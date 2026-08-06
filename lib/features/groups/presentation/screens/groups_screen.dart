@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/profile_options.dart';
+import '../../../../core/models/country.dart';
 import '../../../../core/errors/failure_mapper.dart';
 import '../../../../core/responsive/responsive_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -105,11 +106,11 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
           availableCountries.contains(profile.currentCountry)) {
         // Utiliser le pays du profil s'il existe dans les groupes disponibles
         setState(() => _selectedCountry = profile.currentCountry);
-      } else if (availableCountries.contains('NE')) {
+      } else if (availableCountries.contains(kDefaultCountryCode)) {
         // Sinon, utiliser le Niger par défaut s'il existe dans les groupes.
         // Le code ISO, pas le nom : `availableGroupCountriesProvider` dérive de
         // `groups.country_code`. Avec 'Niger', ce repli ne se déclenchait jamais.
-        setState(() => _selectedCountry = 'NE');
+        setState(() => _selectedCountry = kDefaultCountryCode);
       }
       // Si Niger n'existe pas non plus, on laisse sur "Tous" (null)
     });

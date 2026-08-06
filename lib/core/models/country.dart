@@ -1,3 +1,16 @@
+/// Code ISO-2 retenu quand aucun pays n'est déclaré : le Niger.
+///
+/// Un groupe sans `country_code` **disparaissait de « Découvrir »** dès qu'un
+/// filtre pays était actif — et l'écran en pose un tout seul au premier
+/// affichage (`_loadDefaultCountryFilter`), sans que l'utilisateur ait rien
+/// demandé. Le groupe n'était donc pas « non filtré », il était invisible, et
+/// rien à l'écran ne le disait.
+///
+/// Vaut `Country.niger.code`, qui n'est pas une constante (getter
+/// d'extension) et ne peut donc pas servir de valeur par défaut. Les deux sont
+/// verrouillés ensemble par `test/core/models/pays_defaut_test.dart`.
+const String kDefaultCountryCode = 'NE';
+
 /// Regions for grouping countries
 enum Region {
   niger,

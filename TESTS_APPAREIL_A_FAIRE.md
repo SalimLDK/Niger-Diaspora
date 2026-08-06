@@ -5393,13 +5393,53 @@ Et le mappage du profil est cohérent des deux côtés :
 `profile_supabase_datasource.dart` lit `'currentCountry': row['country_code']`
 et écrit via `CountryExtension.toIsoCode(...)`. Rien à corriger.
 
-⚠️ **Reste une arête, non corrigée** : un groupe dont `country_code` est `null`
-(il y en a un) est invisible dans « Découvrir » dès qu'un filtre pays est
-actif — et l'app en pose un **toute seule** au premier affichage
-(`_loadDefaultCountryFilter`). `_applyFilters` fait `g.country ==
+**Arête tranchée le 2026-08-06 : un groupe sans pays vaut désormais `NE`.**
+
+Un groupe dont `country_code` est `null` est invisible dans « Découvrir » dès
+qu'un filtre pays est actif — et l'app en pose un **toute seule** au premier
+affichage (`_loadDefaultCountryFilter`). `_applyFilters` fait `g.country ==
 _selectedCountry`, ce qui écarte les nuls sans que l'utilisateur ait rien
-demandé. À trancher : soit le filtre par défaut ne s'applique plus aux groupes
-sans pays, soit `country_code` devient obligatoire à la création.
+demandé, et rien à l'écran ne le dit. Un groupe était dans ce cas
+(`2b24986f-08b5-4840-9931-dbe046ffb394`, « Groupe de test prive »).
+
+Le défaut vit en une seule constante, `kDefaultCountryCode`
+(`lib/core/models/country.dart`), qui remplace aussi les deux `'NE'` en dur de
+`groups_screen.dart` — trois endroits décidaient du Niger séparément.
+
+| Verrou | Où | Couvre |
+|---|---|---|
+| `kDefaultCountryCode` | `GroupSupabaseDataSource.createGroup` | toute création passant par l'app |
+| idem | `create_group_screen.dart` | l'affichage immédiat, avant l'aller-retour |
+| `UPDATE` | migration | le groupe déjà nul en base |
+| `SET DEFAULT 'NE'` | migration | colonne omise à l'insertion |
+| déclencheur `trg_groups_country_code_defaut` | migration | colonne fournie **nulle ou vide** — ce que `insert_group` fait, puisqu'il passe toujours `p_country_code` |
+
+Le déclencheur plutôt qu'un `COALESCE` dans `insert_group` : la fonction est
+`SECURITY DEFINER`, et la reproduire depuis `pg_proc` pour n'y changer qu'une
+ligne fait courir un risque de dérive sans rapport avec le sujet.
+
+⛔ **La migration n'est PAS appliquée** :
+`supabase/migrations/20260806170000_groups_country_code_defaut_ne.sql` est
+versionnée, mais l'écriture en base a été refusée depuis la session. Tant
+qu'elle n'est pas passée, **le groupe déjà nul reste invisible** — le côté app
+ne couvre que les créations à venir. À lancer :
+
+```bash
+supabase db query --linked "$(cat supabase/migrations/20260806170000_groups_country_code_defaut_ne.sql)"
+```
+
+Vérifié par `test/core/models/pays_defaut_test.dart` (6 cas : le défaut vaut
+bien `Country.niger.code`, c'est un code ISO-2 et pas un libellé, les deux
+chemins de création le posent, plus aucun `'NE'` en dur dans l'écran des
+groupes, et la migration est présente).
+
+- [ ] **Créer un groupe sans choisir de pays** : il doit apparaître dans
+      « Découvrir » avec le filtre `NE`, et la fiche doit afficher « Niger ».
+- [ ] **Après application de la migration** : « Groupe de test prive »
+      réapparaît (c'est un groupe **privé**, donc le vérifier dans
+      « Mes groupes » côté créateur, pas dans « Découvrir »).
+- [ ] **Un groupe créé AVEC un pays** garde bien le sien — le défaut ne doit
+      écraser personne.
 
 ---
 

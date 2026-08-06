@@ -187,8 +187,12 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       // `CA`/`Canada`, `NE`/`Niger` constaté en base, et un filtre par pays qui
       // ne retenait qu'une partie des groupes. On normalise ici — l'affichage
       // continue de montrer les libellés.
-      country:
-          CountryExtension.toIsoCode(_selectedCountry) ?? _selectedCountry,
+      // Sans pays choisi, le groupe partait avec `country_code` nul et
+      // disparaissait de « Découvrir » dès qu'un filtre pays était actif.
+      // Défaut : le Niger.
+      country: CountryExtension.toIsoCode(_selectedCountry) ??
+          _selectedCountry ??
+          kDefaultCountryCode,
       originRegion: _selectedOriginRegion,
     );
 
