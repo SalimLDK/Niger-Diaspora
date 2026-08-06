@@ -4659,7 +4659,7 @@ Le garde `_isUuid` n'existe qu'à cet endroit, vérifié sur tout `lib/` — pas
 d'autre occurrence du même piège à corriger.
 
 **Verrou base proposé, non appliqué** :
-`supabase/migrations/20260805233000_conversations_une_par_groupe.sql` (index
+`supabase/migrations/20260806230000_conversations_une_par_groupe.sql` (index
 unique partiel sur `group_id` pour `type='group'`). Le correctif applicatif
 supprime la cause, mais trois chemins peuvent encore dupliquer : les **APK déjà
 installés** tournent avec l'ancien code, deux appareils du même compte peuvent
@@ -4735,7 +4735,7 @@ applicatif à incriminer.
   retirés avant), mais la prochaine suppression réelle en créera.
 
   Migration écrite, **non appliquée** :
-  `supabase/migrations/20260805230000_messages_conversation_fk_cascade.sql`
+  `supabase/migrations/20260806220000_messages_conversation_fk_cascade.sql`
   (clé étrangère `on delete cascade`, dans le sens de ce que le code croyait
   déjà). Prérequis vérifié : 0 message orphelin, types compatibles (`text` des
   deux côtés), index `messages_conversation_idx` déjà en tête sur
