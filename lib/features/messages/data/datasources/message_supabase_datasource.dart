@@ -1138,27 +1138,43 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         throw ServerException('Supabase session introuvable');
       }
 
-      // Cherche une conversation 1:1 dont le seul participant est l'utilisateur.
-      final rows = await _supabase
+      // Cherche la conversation dont l'utilisateur est le SEUL participant.
+      //
+      // La requête demandait auparavant `contains` — donc toute conversation
+      // individuelle où l'utilisateur figure — bornée à 20 et **sans tri**,
+      // puis parcourait le lot à la recherche de celle à un seul participant.
+      // Passé 20 conversations individuelles, la bonne pouvait ne pas être
+      // dans le lot : le code concluait alors qu'elle n'existait pas et en
+      // créait une **seconde**, juste en dessous. Sans tri, le lot changeait
+      // d'un appel à l'autre, donc le défaut était intermittent — le pire
+      // profil pour être remarqué.
+      //
+      // `eq` sur une colonne tableau est une égalité exacte côté PostgREST
+      // (`participant_ids=eq.{uid}`, voir `postgrest`) : elle isole la ligne
+      // cherchée, sans troncature ni parcours.
+      //
+      // Le tri et le `limit(1)` ne servent pas à choisir : ils tolèrent les
+      // doublons que ce bug a pu créer par le passé, en retenant toujours le
+      // plus ancien — c'est-à-dire la conversation d'origine.
+      final row = await _supabase
           .from('conversations')
           .select()
           .eq('type', 'individual')
-          .contains('participant_ids', [userId])
-          .limit(20);
+          .eq('participant_ids', [userId])
+          .order('created_at', ascending: true)
+          .limit(1)
+          .maybeSingle();
 
-      for (final row in rows as List) {
-        final participants = List<String>.from(row['participant_ids'] ?? []);
-        if (participants.length == 1 && participants.first == userId) {
-          final data = Map<String, dynamic>.from(row['data'] as Map? ?? {});
-          return ConversationModel.fromJson({
-            ...data,
-            'id': row['id'],
-            'type': row['type'],
-            'participantIds': participants,
-            'createdBy': row['created_by'],
-            'createdAt': row['created_at'],
-          });
-        }
+      if (row != null) {
+        final data = Map<String, dynamic>.from(row['data'] as Map? ?? {});
+        return ConversationModel.fromJson({
+          ...data,
+          'id': row['id'],
+          'type': row['type'],
+          'participantIds': [userId],
+          'createdBy': row['created_by'],
+          'createdAt': row['created_at'],
+        });
       }
 
       final convId = _uuid.v4();
