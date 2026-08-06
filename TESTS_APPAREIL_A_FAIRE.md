@@ -315,8 +315,13 @@ notifications d'un groupe une par une.
   fiche 12c a remis l'action dans l'en-tête sous le libellé court « Tout
   lire », qui **disparaît** quand il n'y a aucune non-lue au lieu d'être
   grisé. Vérifié : la pastille n'est plus là une fois tout lu.
-- [ ] Reste à vérifier : le dialogue de confirmation de « Tout supprimer »
-  (non déclenché — action destructive sur les vraies données du compte).
+- [x] **Dialogue de « Tout supprimer » vérifié le 2026-08-05.** Les 15 vraies
+  notifications du compte ont été **sauvegardées avant**, puis restaurées à
+  l'identique (mêmes ids, mêmes horodatages) — le compte est revenu à son état
+  exact. Le dialogue s'affiche (« Supprimer toutes les notifications /
+  Voulez-vous vraiment… », Annuler + Supprimer en rouge), la suppression
+  aboutit, et l'écran tombe sur l'état vide « Aucune notification / Vous serez
+  notifié des nouvelles activités ».
 - [x] **🔴 Trouvé sur appareil — l'écran de détail était injoignable.**
   L'appui long sur une notification **groupée** dépliait le groupe au lieu
   d'ouvrir le détail : `_NotificationGroupItem` déclarait `onLongPress`, la
@@ -327,8 +332,18 @@ notifications d'un groupe une par une.
   Troisième câble mort de la même famille que `buildOverflowMenu`.
 - [x] **`/notifications/:id` : le sur-titre est en français** — « Message » et
   non « MESSAGE » (`type.name.toUpperCase()`). Vérifié pour le type message.
-- [ ] Reste à lire l'étiquette des autres familles (groupe, événement, ami,
-  commande) : le compte de test n'a que des notifications de message.
+- [x] **Étiquettes des autres familles vérifiées le 2026-08-05** — cinq
+  notifications fabriquées (`groupInvite`, `eventReminder`, `orderShipped`,
+  `newFollower`, `proximityAlert`), puis supprimées. Détail de `orderShipped`
+  ouvert à l'appui long : sur-titre **« Commande expédiée »**, accents compris,
+  et date **« 05 août 2026, 23:34 »**. Les cinq s'affichent dans la liste avec
+  le bon pictogramme et le bon libellé de corps.
+- [ ] **Relevé au passage — la palette de familles rend deux teintes, pas
+  quatre.** `groupInvite`, `eventReminder`, `newFollower` et `proximityAlert`
+  ressortent toutes du **même vert** : `successColor` et
+  `adaptiveSecondaryColor` sont trop proches sur ce thème. Seul l'or des
+  commandes se distingue. À arbitrer — soit on assume deux familles visuelles,
+  soit on écarte les deux teintes.
 - [x] **🔴 Trouvé au passage — la date du détail était en anglais.**
   « 03 August 2026, 20:19 » : `DateFormat('dd MMMM yyyy, HH:mm')` sans locale
   retombe sur en_US. Passe désormais par `LocaleHelper.getDateFormatLocale`.
@@ -493,8 +508,14 @@ démarrage : l'index composite n'existe pas.
   `firebase deploy --only firestore:indexes`** : déployer le fichier
   proposerait de supprimer 24 index en service. À resynchroniser depuis la
   prod avant tout déploiement d'index, comme on l'a fait pour les règles.
-- [ ] Reste à vérifier avec de vraies données : la liste des événements passés
-  se remplit. Le compte de test n'a aucun événement terminé.
+- [x] **Vérifié avec une vraie donnée le 2026-08-05** : un événement
+  `status: "completed"` daté de trois jours plus tôt a été créé, puis la
+  requête exacte qui échouait — `events where status == completed order by
+  startDate desc` — a été rejouée côté serveur. Elle renvoie **1 résultat** au
+  lieu du `FAILED_PRECONDITION`. Événement supprimé après coup.
+- [ ] Le **rendu de la liste** dans l'écran Événements reste à voir au doigt :
+  j'ai prouvé que la requête aboutit et que la donnée remonte, pas que l'onglet
+  l'affiche.
 
 ---
 
