@@ -4375,8 +4375,8 @@ un groupe. `ConversationScreen` ne reconcilie jamais ce drapeau avec
 `conversation.groupId`, pourtant disponible.
 
 **CORRIGÉ (2026-08-05), non vérifié sur appareil.** `ConversationScreen` ne se
-fie plus au seul paramètre de construction : `_syncGroupIdentity()`, appelé
-depuis `build()`, aligne l'état local sur la conversation chargée
+fie plus au seul paramètre de construction : `_syncConversationIdentity()`,
+appelé depuis `build()`, aligne l'état local sur la conversation chargée
 (`conversation.isGroup || conversation.groupId != null`), et les ~80 sites qui
 lisaient `widget.isGroup` / `widget.groupId` passent par les accesseurs
 `_isGroup` / `_effectiveGroupId`. `widget.isGroup` reste prioritaire, la
@@ -4386,6 +4386,15 @@ survient APRÈS `initState`, le travail d'ouverture réservé aux groupes
 `_runGroupOpenWork()`, idempotent via deux drapeaux. Le repli sur
 `conversation?.groupId` qui existait déjà en trois endroits est absorbé par
 `_effectiveGroupId`.
+
+⚠️ **Le symptôme « bandeau épinglé vide » de la description ci-dessus n'est
+plus d'actualité** : il a été réglé indépendamment, et mieux, par le correctif
+« l'épingle est toujours portée par la conversation, groupe compris »
+(`_pinMessage`) — les épingles ne dépendent plus du tout de `isGroup` ni de
+`groupId`. Ce qui restait faux par lien profond, et que le présent correctif
+traite, c'est l'en-tête, les boutons d'appel, le nom et le mini-avatar de
+l'expéditeur, le badge « Admin », les permissions sondage/événement et le
+menu ⋮.
 
 Le second défaut (écran noir au retour) est corrigé dans la foulée :
 `_leaveConversation()` (flèche de l'en-tête + refus de requête) et un
@@ -4401,8 +4410,8 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 - [ ] Même conversation, ouverte par NOTIFICATION (`state.extra` également nul) :
   même en-tête.
 - [ ] Bandeau épinglé visible sur ces deux chemins quand le groupe a une
-  épingle (il interrogeait `conversationPinnedItemsProvider`, toujours vide
-  pour un groupe).
+  épingle (couvert par le correctif « épingle portée par la conversation », pas
+  par celui-ci — à vérifier quand même, les deux se croisent ici).
 - [ ] Nom de l'expéditeur + mini-avatar affichés sur les messages reçus (le
   rendu 1-à-1 les masquait), et badge « Admin » le cas échéant.
 - [ ] Menu ⋮ et menu « + » du composer : options de groupe (sondage, événement
