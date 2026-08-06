@@ -860,7 +860,30 @@ justifie pas de risquer ça.
   désormais identiques au fichier du dépôt**, la dérive est soldée. Vérifiés
   un par un : l'index à trois entrées, `calls/.read` et `group_calls/.read`
   restreints, `admins` et `superAdmins` présents.
-- [x] 🔴🔴 **ANNULÉ LE JOUR MÊME : ce déploiement cassait tous les appels.**
+- [x] ⚠️ **CORRECTION DU 2026-08-06 — le diagnostic ci-dessous est FAUX.**
+  Il est conservé tel quel parce que l'erreur est instructive, mais **ne pas
+  s'y fier**. J'avais conclu que `callerId`/`calleeId` n'existaient nulle part
+  dans RTDB à partir d'un `grep` **tronqué à 40 résultats** où
+  `call_remote_datasource.dart` n'apparaissait pas. Or `createCall` **écrit
+  bien ces deux champs dans le nœud RTDB**, avant toute signalisation, depuis
+  `135ae92` (2026-08-03) — le commit qui a introduit les règles strictes les a
+  introduits **ensemble**, elles étaient conçues pour aller de pair.
+  **Mesuré en émulateur, sur la séquence réelle :**
+  | | règles strictes | règles en ligne (permissives) |
+  |---|---|---|
+  | parcours nominal d'un appel (9 étapes) | **intact** | intact |
+  | étanchéité | **fermée** | ouverte |
+  | client d'un APK < 2026-08-03 | **cassé** | fonctionne |
+  Donc les règles strictes ne cassent **pas** les appels : elles cassent
+  uniquement les clients qui n'écrivent pas ces champs, c'est-à-dire les APK
+  antérieurs au 2026-08-03. Le retour arrière était probablement inutile.
+- [ ] **Décision à prendre : redéployer les règles strictes ?** Toute la
+  question tient à une seule chose — **existe-t-il un APK installé antérieur
+  au 2026-08-03 ?** L'app n'étant pas encore sortie, ça se limite aux
+  téléphones de test. Si le téléphone de test tourne un build plus récent,
+  redéployer ferme l'étanchéité sans risque. Le fichier des règles strictes se
+  récupère par `git show 0ddab4c:database.rules.json`.
+- [x] 🔴🔴 ~~**ANNULÉ LE JOUR MÊME : ce déploiement cassait tous les appels.**~~
   Le test de non-régression a finalement été fait — pas avec deux téléphones,
   mais **en émulateur RTDB**, ce qui suffit largement pour des règles.
   Verdict : sur la forme réelle du nœud, 5 vérifications sur 6 échouaient.
