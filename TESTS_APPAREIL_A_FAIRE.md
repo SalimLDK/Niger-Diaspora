@@ -4898,20 +4898,23 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 >   Elle pose `member_count = 0` (le trigger compte le créateur juste après) et
 >   relit la ligne après l'insertion du membre. Signature, `SECURITY DEFINER`
 >   et garde `firebase_uid` inchangés.
-> - [ ] **À appliquer** : son exécution a été refusée par le garde-fou de
->   sécurité — remplacer une fonction de production est sensible, et c'est
->   normal. Elle est versionnée comme les autres migrations, donc elle part
->   avec le déploiement habituel :
->   ```
->   supabase db push
->   ```
->   ou, pour l'appliquer seule :
->   ```
->   supabase db query --linked --file supabase/migrations/20260806150000_insert_group_member_count.sql
->   ```
-> - [ ] Après application : créer un groupe depuis l'app et vérifier que
->   `member_count` vaut **1**, et que la fiche affiche « Membres · 1 » sans
->   passer par un recompte.
+> - [x] **APPLIQUÉE le 2026-08-06** par `supabase db push --linked
+>   --include-all`. Le drapeau était nécessaire — et sûr : `migration list`
+>   montrait une seule migration en attente (celle-ci), mais son horodatage
+>   (15:00) est antérieur à une migration déjà appliquée (17:00), ce que
+>   Supabase refuse par défaut.
+>
+>   ⚠️ **Premier essai en échec, et l'erreur était juste** :
+>   `cannot remove parameter defaults from existing function` (42P13). La
+>   fonction en place a des valeurs par défaut sur neuf de ses dix paramètres ;
+>   ma réécriture ne les reproduisait pas, ce qui aurait cassé tout appelant
+>   omettant un paramètre. Relevées via `pg_get_function_arguments` et
+>   réintégrées à l'identique. PostgreSQL a évité la régression.
+>
+> - [x] **Vérifié sur appareil** : un groupe créé depuis l'app sort avec
+>   `member_count = 1` pour 1 membre réel — juste dès la création, sans
+>   recompte. `country_code = NE` au passage, la normalisation tient. Groupe de
+>   test supprimé.
 > - [x] Contournement en place en attendant :
 >   `tools/recount_group_members.sql`, idempotent, relancé après ce test. Tous
 >   les groupes sont à leur compte réel.

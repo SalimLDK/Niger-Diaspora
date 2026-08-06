@@ -26,17 +26,23 @@
 --
 -- Les compteurs déjà dérivés se recalent avec `tools/recount_group_members.sql`.
 
+-- ⚠️ Les valeurs par défaut doivent être reproduites À L'IDENTIQUE.
+-- PostgreSQL refuse un `CREATE OR REPLACE` qui les retirerait
+-- (`cannot remove parameter defaults from existing function`, SQLSTATE 42P13),
+-- et il a raison : tout appelant qui omet un paramètre cesserait de résoudre
+-- la fonction. Relevées sur la fonction en place avant écriture, via
+-- `pg_get_function_arguments`.
 CREATE OR REPLACE FUNCTION public.insert_group(
   p_name           text,
-  p_description    text,
-  p_avatar_url     text,
-  p_creator_name   text,
-  p_category       text,
-  p_is_private     boolean,
-  p_group_location text,
-  p_tags           text[],
-  p_country_code   text,
-  p_origin_region  text
+  p_description    text     DEFAULT NULL::text,
+  p_avatar_url     text     DEFAULT NULL::text,
+  p_creator_name   text     DEFAULT NULL::text,
+  p_category       text     DEFAULT 'general'::text,
+  p_is_private     boolean  DEFAULT false,
+  p_group_location text     DEFAULT NULL::text,
+  p_tags           text[]   DEFAULT '{}'::text[],
+  p_country_code   text     DEFAULT NULL::text,
+  p_origin_region  text     DEFAULT NULL::text
 )
 RETURNS json
 LANGUAGE plpgsql
