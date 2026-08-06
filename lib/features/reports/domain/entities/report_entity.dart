@@ -87,62 +87,6 @@ class ReportEntity with _$ReportEntity {
     @Default(false) bool reportedUserNotified,
   }) = _ReportEntity;
 
-  /// Label localisé pour le type de cible
-  String get targetTypeLabel {
-    switch (targetType) {
-      case ReportTargetType.user:
-        return 'Utilisateur';
-      case ReportTargetType.message:
-        return 'Message';
-      case ReportTargetType.conversation:
-        return 'Conversation';
-      case ReportTargetType.group:
-        return 'Groupe';
-      case ReportTargetType.event:
-        return 'Événement';
-      case ReportTargetType.business:
-        return 'Commerce';
-      case ReportTargetType.product:
-        return 'Produit';
-    }
-  }
-
-  /// Label localisé pour la raison
-  String get reasonLabel {
-    switch (reason) {
-      case ReportReason.spam:
-        return 'Spam';
-      case ReportReason.harassment:
-        return 'Harcèlement';
-      case ReportReason.inappropriate:
-        return 'Contenu inapproprié';
-      case ReportReason.violence:
-        return 'Violence ou menaces';
-      case ReportReason.hateSpeech:
-        return 'Discours haineux';
-      case ReportReason.scam:
-        return 'Arnaque';
-      case ReportReason.impersonation:
-        return 'Usurpation d\'identité';
-      case ReportReason.other:
-        return 'Autre';
-    }
-  }
-
-  /// Label localisé pour le statut
-  String get statusLabel {
-    switch (status) {
-      case ReportStatus.pending:
-        return 'En attente';
-      case ReportStatus.underReview:
-        return 'En cours d\'examen';
-      case ReportStatus.resolved:
-        return 'Résolu';
-      case ReportStatus.dismissed:
-        return 'Rejeté';
-    }
-  }
-
   /// Vérifie si le signalement est en attente de traitement
   bool get isPending =>
       status == ReportStatus.pending || status == ReportStatus.underReview;
