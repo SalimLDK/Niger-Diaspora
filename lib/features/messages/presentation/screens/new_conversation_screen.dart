@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../friends/data/datasources/friend_remote_datasource.dart';
-import '../../../profile/data/datasources/profile_remote_datasource.dart';
+import '../../../profile/data/datasources/profile_supabase_datasource.dart';
 import '../../../profile/data/models/profile_model.dart';
 import '../../../profile/domain/entities/profile_entity.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
@@ -151,7 +151,14 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
       }
 
       // Search all profiles
-      final profileDataSource = ProfileRemoteDataSourceImpl();
+      // Recherche de personnes : source Supabase, pas Firestore.
+      //
+      // Le provider principal des profils est passé à Supabase, mais ce chemin
+      // instanciait encore `ProfileRemoteDataSourceImpl`, qui lit Firestore.
+      // Relevé le 2026-08-06 : 10 profils dans Supabase, 2 documents dans
+      // Firestore dont **un seul** avec un nom renseigné. La recherche ne
+      // pouvait donc trouver qu'une personne sur dix, sans erreur ni log.
+      final profileDataSource = ProfileSupabaseDataSource();
       final allProfiles = await profileDataSource.searchProfiles(query);
 
       // Filter out blocked users and friends (to avoid duplicates)
