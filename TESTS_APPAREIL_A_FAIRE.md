@@ -752,8 +752,8 @@ supplémentaire** à créer.
   comptes jetables en forçant l'échec d'une étape intermédiaire — vérifier que
   les étapes suivantes s'exécutent quand même et que l'étape fautive apparaît
   nommée dans les journaux.
-- [ ] 🔴 **Le même défaut dans trois balayages périodiques — corrigé le
-  2026-08-06, NON déployé.** En cherchant le motif « N opérations
+- [x] 🔴 **Le même défaut dans trois balayages périodiques — corrigé et
+  DÉPLOYÉ le 2026-08-06 à 07:01 UTC.** En cherchant le motif « N opérations
   indépendantes sous un `try` unique » dans le reste de `functions/index.js` :
   `cleanupExpiredMessages`, `cleanupStaleParticipants` et
   `cleanupStaleGroupCalls` bouclaient sur des éléments **indépendants** sans
@@ -773,10 +773,34 @@ supplémentaire** à créer.
     leurs participants fantômes, « en direct » indéfiniment.
   - `cleanupStaleGroupCalls` : idem, appels de groupe orphelins restés actifs.
   - Vérifié sans suite : `onReviewDeleted` (opération unique, rien à isoler).
-  **À faire** : après déploiement, lire les journaux d'une exécution de
-  `cleanupExpiredMessages` et vérifier qu'elle parcourt bien **toutes** les
-  conversations (le compte de conversations balayées doit correspondre), là où
-  elle pouvait s'arrêter à la première en échec.
+  **Déployé** (`onAudioRoomInviteCreated` inclus) : les quatre en
+  « Successful update operation », essai à blanc préalable sans orpheline.
+  `cleanupUserData` **volontairement laissée de côté** — chantier de Jules
+  (migration Firestore → Supabase, `2af0920`/`e3576a3`/`7337127`), et le
+  nettoyage Firestore vise de toute façon la mauvaise base maintenant que la
+  donnée est dans Supabase. Le correctif est commité (`d07d533`), pas déployé.
+- [x] **Journaux relus après déploiement — et ils nuancent le diagnostic.**
+  `cleanupExpiredMessages` tourne toutes les heures **à :24** et se terminait
+  déjà `ok` à chaque exécution (02:24 → 06:24 vérifiées), « Deleted 0 messages
+  and 0 files » à chaque fois. **Le scénario corrigé ne se produisait donc pas
+  en production** : le correctif est préventif, il n'a réparé aucune panne en
+  cours. À redire honnêtement si quelqu'un relit le commit.
+- [ ] 🔴 **Index RTDB manquant sur les deux balayages de messages** (trouvé
+  dans les mêmes journaux, 2026-08-06, **non corrigé**) :
+  `FIREBASE WARNING: Using an unspecified index … Consider adding
+  ".indexOn": "expiresAt" at /messages/<convId>`.
+  `database.rules.json` déclare bien un `.indexOn` sur `messages/$conversationId`,
+  mais **uniquement `["createdAt"]`**. Or `cleanupExpiredMessages` interroge
+  `orderByChild("expiresAt")` et `cleanupExpiredMediaFiles`
+  `orderByChild("mediaExpiresAt")` — aucun des deux n'est indexé.
+  Conséquence : à chaque passage, **tous** les messages de **chaque**
+  conversation sont téléchargés puis filtrés côté fonction. Invisible
+  aujourd'hui (une seule conversation a des messages en RTDB, 1,5 à 2 s par
+  exécution), mais le coût croît avec l'historique — c'est exactement la
+  fonction qu'on vient de fiabiliser qui deviendra lente et chère.
+  **À faire** : ajouter `"expiresAt"` et `"mediaExpiresAt"` au `.indexOn` de
+  `messages/$conversationId`, puis `firebase deploy --only database`. Vérifier
+  ensuite la disparition du WARNING et la baisse du temps d'exécution.
 - [x] 🔴 **Deux fonctions tournaient en production sans source dans le dépôt —
   sources retrouvées et réintégrées** (`a7db115`).
   `sendMessagePush(europe-west1)` était dans `stash@{3}` (2026-07-20), jamais
