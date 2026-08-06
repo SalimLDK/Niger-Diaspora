@@ -41,7 +41,7 @@ Trois niveaux, à ne pas confondre :
 | 4a | Discussion cliquable | ◐ | ✅ | — | `messages/…/conversation_screen.dart` |
 | 6b | Discussion — Nocturne | ✅ | ✅ | — | idem 4a |
 | 9a | Messages — liste | ✅ | ✅ | ✅ | `messages/…/messages_screen.dart` |
-| 9b | Messages — recherche | ✅ | ✅ | — | idem 9a |
+| 9b | Messages — recherche | ✅ | ✅ | ✅ | idem 9a |
 | 9c | Groupes — mes groupes, découverte | ✅ | ✅ | ✅ | `groups/…/groups_screen.dart` |
 | 9d | Groupe — fiche | ✅ | ✅ | ✅ | `groups/…/group_detail_screen.dart` |
 | 9e | Messages — état vide | ✅ | ✅ | — | idem 9a (`_buildEmptyState`) |
@@ -1068,6 +1068,40 @@ que ce n'est pas fait, 9d n'est pas validable.
 Avec de vrais groupes en liste, le nom se tronque en « Diaspor… » alors que
 les badges « Officiel » et « CALME » gardent toute leur largeur. La priorite
 est inversee : c'est le nom qui identifie la ligne.
+
+---
+
+## Groupes « officiels » — un badge que personne ne gardait
+
+Verifie en base le 2026-08-06, a la demande de Salim.
+
+`groups.is_official` pilote le badge « Officiel » de la liste des groupes et
+de la carte. Rien ne le protegeait :
+
+| Ce qui aurait du garder la colonne | Etat reel |
+|---|---|
+| Droits de colonne | `authenticated` a **INSERT et UPDATE** sur `is_official` |
+| Policy UPDATE | `groups_update_admin` = `USING (is_group_admin(id))`, **sans `WITH CHECK`** — l'admin d'un groupe, donc son createur, reecrit n'importe quelle colonne de sa ligne |
+| Policy INSERT | `groups_insert` ne verifie que `auth.uid() IS NOT NULL` |
+| Trigger | `enforce_group_creator` impose `creator_id` depuis le JWT, mais ne dit rien de `is_official` |
+| Chemin admin prevu | **aucun** — ni migration, ni Cloud Function, ni ecran ne mentionne `is_official` |
+
+N'importe quel utilisateur authentifie pouvait donc faire passer son propre
+groupe pour officiel, a la creation comme apres coup, par un simple appel
+PostgREST. Le badge n'etait pas un signal de confiance.
+
+A noter : les deux groupes officiels en base ont ete crees par le compte de
+test lui-meme. Rien n'indique un abus — l'application n'offre pas ce
+reglage, ils ont vraisemblablement ete adoubes a la main dans l'editeur SQL.
+C'est le trou qui est reel, pas son exploitation.
+
+Correctif ecrit : `supabase/migrations/20260806130000_guard_group_official.sql`,
+sur le motif deja en place pour `users.is_admin` (`guard_admin_flags`) —
+trigger `guard_group_official` qui exige `is_admin()` des que la colonne
+change, plus un `REVOKE` des droits de colonne. L'absence de session
+applicative (SQL Editor, service_role, migration) reste le chemin
+d'adoubement. **Migration non appliquee** : c'est une ecriture en
+production, elle attend le feu vert de Salim.
 
 ---
 
