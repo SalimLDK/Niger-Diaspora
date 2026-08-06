@@ -551,6 +551,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/notifications/settings',
         builder: (context, state) => const NotificationSettingsScreen(),
       ),
+      // Segments inverses. Vu sur appareil le 2026-08-06 : une navigation vers
+      // `/settings/notifications` tombe sur « Page Not Found »
+      // (`GoException: no routes for location`). Rien dans le depot ne pousse
+      // ce chemin — il arrive de l'exterieur, en lien profond
+      // (`https://diasponiger.web.app/settings/notifications`), donc
+      // vraisemblablement d'une charge utile push deja deployee.
+      //
+      // On ne peut pas corriger l'emetteur d'ici, mais on peut supprimer le
+      // cul-de-sac : les six autres routes de reglages sont en
+      // `/settings/<quelque chose>`, donc la forme inversee est celle qu'on
+      // ecrit naturellement de memoire. Elle menera desormais au bon ecran.
+      GoRoute(
+        path: '/settings/notifications',
+        redirect: (context, state) => '/notifications/settings',
+      ),
       GoRoute(
         path: '/notifications/:id',
         builder: (context, state) {
