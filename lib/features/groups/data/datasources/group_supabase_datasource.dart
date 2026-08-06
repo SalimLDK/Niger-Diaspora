@@ -227,6 +227,19 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
         .select()
         .ilike('name', '%$query%')
         .eq('is_private', false)
+        // `limit(30)` sans `order` rendait 30 groupes **arbitraires** :
+        // Postgres ne promet aucun ordre sans ORDER BY. Deux recherches
+        // identiques pouvaient donc donner deux listes différentes, et passé
+        // 30 correspondances les mêmes groupes pouvaient rester introuvables
+        // pour toujours.
+        //
+        // Tri sur le champ **filtré**, donc garanti présent dans chaque
+        // résultat. `member_count` aurait mis les groupes vivants en tête,
+        // mais ce compteur a déjà dérivé par le passé (un commit existe pour
+        // le recaler) : trier dessus ferait dépendre la visibilité d'un
+        // groupe d'une valeur dénormalisée. Le nom, lui, est ce qu'on vient
+        // de chercher.
+        .order('name')
         .limit(30);
     return _decodeWithMembership(data as List);
   }

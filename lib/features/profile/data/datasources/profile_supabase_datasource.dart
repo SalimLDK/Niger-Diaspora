@@ -127,6 +127,17 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .select()
         .eq('is_visible', true)
         .ilike('display_name', '%$query%')
+        // Même raison que `getNearbyProfiles` : une troncature sans ordre est
+        // une loterie. Passé 30 correspondances, les mêmes personnes
+        // pouvaient rester introuvables d'une recherche à l'autre.
+        //
+        // Tri sur le champ **filtré**, donc garanti présent dans chaque
+        // résultat. `last_active_at` aurait paru plus utile — les gens actifs
+        // d'abord — mais il manque à 7 profils sur 10 : ceux-là auraient été
+        // systématiquement relégués en fin de liste, donc exclus dès que la
+        // base dépasse 30 correspondances. Un tri qui écarte toujours les
+        // mêmes est le défaut qu'on cherche à corriger, pas à déplacer.
+        .order('display_name')
         .limit(30);
     return (data as List)
         .map((r) => ProfileModel.fromJson(_mapProfile(r)))
