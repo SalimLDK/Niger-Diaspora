@@ -301,6 +301,52 @@ Le vrai préalable est de peupler la localisation des profils.
 - [ ] **Salon audio passé en direct** : les abonnés reçoivent la bannière.
 - [ ] **Nouvel épisode de podcast** : idem pour les abonnés du podcast.
 
+### Les 28 écritures Firestore restantes — triées (2026-08-06)
+
+Inventaire fait fonction par fonction, en croisant chaque déclencheur avec
+l'endroit où sa donnée vit réellement aujourd'hui.
+
+**15 écritures basculées vers Supabase et déployées** — leur déclencheur existe
+encore, seule la destination était morte :
+
+| Fonction | Pourquoi elle tourne encore |
+|---|---|
+| `onCallUpdated` | les appels sont restés dans Firestore |
+| `onTransferStatusChanged` (×2) | les transferts aussi |
+| `onOrderCreated`, `onOrderUpdated` (×4), `processOrderPayment` | la place de marché aussi |
+| `stripeWebhook`, `stripeConnectWebhook`, `bankWebhook`, `processPayoutRequest` (×2), `checkEscrowTimeouts` | HTTPS / planifiées : elles tournent quoi qu'il arrive |
+
+**13 laissées telles quelles**, et il ne faut PAS les basculer : leur
+déclencheur ne se produit plus, migrer l'écriture ne réveillerait rien.
+
+| Fonction | État |
+|---|---|
+| `onPostLiked`, `onPostCommented`, `onNewPostCreated` (×3) | le fil est passé à Supabase → le trigger Firestore ne part jamais |
+| `onMessageDeleted` | les messages aussi |
+| `onAudioRoomInviteCreated` | les salons audio aussi |
+| `onSupportMessageCreated` | le support aussi |
+| `sendNotificationOnCreate` (×2) | l'ancienne chaîne de push, sur la collection Firestore `notifications` |
+| `sendChatNotification` | désactivée par un `return null` en tête |
+| `cleanupUserData` | c'est une **lecture**, pas une écriture |
+
+Ces fonctions-là ne se réparent pas en changeant la destination : c'est tout le
+déclencheur qu'il faudrait porter, ou la fonction qu'il faudrait supprimer.
+
+- [ ] **Commande passée** : le vendeur reçoit la notification (`onOrderCreated`).
+- [ ] **Appel manqué** : la notification arrive (`onCallUpdated`).
+
+### Événements locaux : la donnée manque, mais pas totalement
+
+`users.city` est vide pour **les 10 comptes** — pourtant le champ est éditable
+dans `edit_profile_screen` et `profile_config_screen`, donc c'est un trou de
+saisie, pas de code. En revanche **5 comptes sur 10 ont des coordonnées GPS et
+un `country_code`**, et les 10 ont `notify_local_events = true`.
+
+`notifyLocalEventCreated` reste donc réparable — mais pas sans choisir une
+règle d'appariement (pays ? rayon GPS ? les deux ?), et l'événement Firestore
+porte un **nom** de pays là où `users.country_code` porte un ISO-2. Décision à
+prendre avant d'écrire quoi que ce soit.
+
 ## Écrans de notifications — lot « une seule source » (2026-08-05)
 
 `notification_settings_screen.dart` a rejoint `design_kit.dart` (c'était la

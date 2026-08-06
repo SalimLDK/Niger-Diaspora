@@ -2,6 +2,10 @@
 <resources>
     <color name="ic_launcher_background">#E97424</color>
     <!-- Teinte de la petite icône et du filet des notifications système.
-         Même orange que AppColors.primary côté Dart. -->
-    <color name="notification_accent">#E97424</color>
+         DOIT valoir AppColors.primary (app_colors.dart) : les notifications
+         sont posées par deux chemins — le SDK Firebase lit cette ressource,
+         le repli local passe AppColors.primary. Deux valeurs = deux orangés
+         selon l'état de l'app. #E97424 est la couleur du fond d'icône du
+         lanceur, pas la primaire ; c'était l'écart. -->
+    <color name="notification_accent">#E07B39</color>
 </resources>

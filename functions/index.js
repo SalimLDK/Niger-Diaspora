@@ -1320,7 +1320,7 @@ exports.onCallUpdated = functions.firestore
 
                 const callerName = after.callerName || "Quelqu'un";
 
-                await admin.firestore().collection("notifications").add({
+                await createNotification({
                     userId: calleeId,
                     title: "Appel manqué",
                     body: `${callerName} a essayé de vous appeler`,
@@ -1777,7 +1777,7 @@ exports.onTransferStatusChanged = functions.firestore
                     ? `Votre transfert de ${amount} ${currency} vers ${recipientName} a été effectué.`
                     : `Le transfert de ${amount} ${currency} vers ${recipientName} a échoué.`;
 
-                await admin.firestore().collection("notifications").add({
+                await createNotification({
                     userId: senderId,
                     title,
                     body,
@@ -1798,7 +1798,7 @@ exports.onTransferStatusChanged = functions.firestore
             if (newStatus === "completed" && recipientId) {
                 const senderName = after.senderName || "Quelqu'un";
 
-                await admin.firestore().collection("notifications").add({
+                await createNotification({
                     userId: recipientId,
                     title: "Transfert reçu",
                     body: `Vous avez reçu ${amount} ${currency} de ${senderName}.`,
@@ -2281,7 +2281,7 @@ async function handlePaymentFailure(paymentIntent) {
 
         // Notify the user that their payment failed (INT-02)
         if (txData.senderId) {
-            await db.collection("notifications").add({
+            await createNotification({
                 userId: txData.senderId,
                 type: "paymentFailed",
                 title: "Paiement echoue",
@@ -2360,7 +2360,7 @@ exports.onOrderCreated = functions.firestore
             const buyerDoc = await admin.firestore().collection("users").doc(buyerId).get();
             const buyerName = buyerDoc.exists ? (buyerDoc.data().displayName || "Un acheteur") : "Un acheteur";
 
-            await admin.firestore().collection("notifications").add({
+            await createNotification({
                 userId: sellerId,
                 title: "Nouvelle commande",
                 body: `${buyerName} a passé une commande pour "${orderData.productTitle}"`,
@@ -2428,7 +2428,7 @@ exports.onOrderUpdated = functions.firestore
                 const cancellerName = cancellerDoc.exists ?
                     (cancellerDoc.data().displayName || "L'utilisateur") : "L'utilisateur";
 
-                await admin.firestore().collection("notifications").add({
+                await createNotification({
                     userId: otherPartyId,
                     title: "Commande annulée",
                     body: `${cancellerName} a annulé la commande pour "${after.productTitle}"`,
@@ -2454,7 +2454,7 @@ exports.onOrderUpdated = functions.firestore
         if (before.status !== "shipped" && after.status === "shipped") {
             // console.log(`Order ${orderId} was shipped, notifying buyer`);
 
-            await admin.firestore().collection("notifications").add({
+            await createNotification({
                 userId: after.buyerId,
                 title: "Commande expédiée",
                 body: `Votre commande "${after.productTitle}" a été expédiée${after.trackingNumber ? ` (Suivi: ${after.trackingNumber})` : ""}`,
@@ -2473,7 +2473,7 @@ exports.onOrderUpdated = functions.firestore
         if (before.status !== "delivered" && after.status === "delivered") {
             // console.log(`Order ${orderId} was delivered, notifying seller`);
 
-            await admin.firestore().collection("notifications").add({
+            await createNotification({
                 userId: after.sellerId,
                 title: "Commande livrée",
                 body: `L'acheteur a confirmé la réception de "${after.productTitle}"`,
@@ -2491,7 +2491,7 @@ exports.onOrderUpdated = functions.firestore
         if (before.status !== "completed" && after.status === "completed") {
             // console.log(`Order ${orderId} completed, escrow released`);
 
-            await admin.firestore().collection("notifications").add({
+            await createNotification({
                 userId: after.sellerId,
                 title: "Paiement libéré",
                 body: `Le paiement pour "${after.productTitle}" a été libéré. Montant: ${after.sellerAmount} ${after.currency}`,
@@ -3415,7 +3415,7 @@ exports.processPayoutRequest = functions.firestore
             });
 
             // Create notification for the creator
-            await db.collection("notifications").add({
+            await createNotification({
                 userId: data.creatorId,
                 title: "Paiement en cours",
                 body: `Votre retrait de ${ZERO_DECIMAL_CURRENCIES.has((data.currency || "").toLowerCase()) ? data.amount : data.amount / 100} ${data.currency} est en cours de traitement`,
@@ -3452,7 +3452,7 @@ exports.processPayoutRequest = functions.firestore
             });
 
             // Notify the creator of the failure
-            await db.collection("notifications").add({
+            await createNotification({
                 userId: data.creatorId,
                 title: "Échec du paiement",
                 body: `Votre retrait de ${data.amount / 100} ${data.currency} a échoué: ${error.message}`,
@@ -3766,7 +3766,7 @@ exports.stripeConnectWebhook = functions.https.onRequest(async (req, res) => {
 
                     // Notify user if account is now fully enabled
                     if (account.charges_enabled && account.payouts_enabled) {
-                        await db.collection("notifications").add({
+                        await createNotification({
                             userId: userId,
                             title: "Compte Stripe activé",
                             body: "Votre compte est maintenant prêt à recevoir des paiements!",
@@ -4604,7 +4604,7 @@ async function sendTransferNotification(transaction, status) {
         }
 
         // Create in-app notification
-        await db.collection("notifications").add({
+        await createNotification({
             userId: recipient.linkedUserId || recipient.userId,
             type: "transfer",
             title: status === "completed" ? "Transfert recu" : "Transfert echoue",
@@ -6722,7 +6722,7 @@ exports.checkEscrowTimeouts = functions.pubsub
             for (const doc of shippedSnap.docs) {
                 const order = doc.data();
                 if (order.shippingReminderSentAt) continue;
-                await db.collection("notifications").add({
+                await createNotification({
                     userId: order.buyerId,
                     type: "orderShippingReminder",
                     title: "Confirmer la reception",
@@ -6853,7 +6853,7 @@ exports.processOrderPayment = functions.firestore
 
             // Notify the seller
             try {
-                await db.collection("notifications").add({
+                await createNotification({
                     userId: order.sellerId,
                     type: "orderPaid",
                     title: "Paiement recu",
