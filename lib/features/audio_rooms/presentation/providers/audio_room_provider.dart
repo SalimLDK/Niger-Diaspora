@@ -200,7 +200,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
     String? heritageRegion,
     List<String>? displayTimezones,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = state.copyWith(error: 'Utilisateur non connecté');
       return null;
@@ -342,7 +342,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
       await leaveRoom();
     }
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = state.copyWith(error: 'Utilisateur non connecté');
       return false;
@@ -406,7 +406,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
     required bool isHost,
     bool isVideoEnabled = false,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     try {
@@ -489,7 +489,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
       return;
     }
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -538,7 +538,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Toggle mute state
   Future<void> toggleMute() async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -560,7 +560,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Raise hand to speak
   Future<void> raiseHand() async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -575,7 +575,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Lower hand
   Future<void> lowerHand() async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -590,7 +590,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Promote a user to speaker (host/co-host only)
   Future<void> promoteToSpeaker(String userId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -606,7 +606,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Demote a speaker to listener (host/co-host only)
   Future<void> demoteToListener(String userId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -622,7 +622,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Add a co-host (host only)
   Future<void> addCoHost(String userId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -644,7 +644,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Mute a speaker (host/co-host, or ghost admin)
   Future<void> muteSpeaker(String userId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -660,7 +660,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Kick a user from the room (host/co-host, or ghost admin)
   Future<void> kickUser(String userId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -676,7 +676,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Block a user from the room (host/co-host, or ghost admin)
   Future<void> blockUser(String userId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -692,7 +692,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Toggle camera on/off (for video-enabled rooms)
   Future<void> toggleCamera() async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -719,7 +719,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Join room as invisible ghost moderator (admin only)
   Future<bool> joinAsGhostModerator(String roomId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = state.copyWith(error: 'Utilisateur non connecté');
       return false;
@@ -826,7 +826,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
     bool? isVideoEnabled,
     bool? isPrivate,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
     if (currentUser == null || room == null) return;
     if (!room.isHost(currentUser.id)) return;
@@ -868,7 +868,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Force end a room (admin/moderator only)
   Future<void> forceEndRoom(String reason) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;
@@ -885,7 +885,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
   /// Warn the host (admin/moderator only)
   Future<void> warnHost(String message) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final room = state.room;
 
     if (currentUser == null || room == null) return;

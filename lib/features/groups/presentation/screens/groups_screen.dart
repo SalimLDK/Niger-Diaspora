@@ -83,7 +83,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   }
 
   Future<void> _loadData() async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     // Charger les données en parallèle et attendre qu'elles arrivent pour le feedback visuel
     await Future.wait([
       ref.read(groupsNotifierProvider.notifier).loadGroups(),
@@ -520,7 +520,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   }
 
   Future<void> _joinGroup(String groupId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     final success = await ref
@@ -542,8 +542,11 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   }
 
   Future<void> _leaveGroup(String groupId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
+    // L'attente ci-dessus est un saut asynchrone : l'écran peut avoir été
+    // démonté entre-temps, `context` ne serait plus utilisable.
+    if (!mounted) return;
 
     final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(

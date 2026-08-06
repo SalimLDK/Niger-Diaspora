@@ -66,7 +66,7 @@ class NotificationsNotifier extends _$NotificationsNotifier {
 
   Future<void> markAllAsRead() async {
     try {
-      final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+      final currentUser = await ref.read(currentUserAsyncProvider.future);
       if (currentUser == null) return;
 
       final dataSource = ref.read(notificationDataSourceProvider);
@@ -87,7 +87,7 @@ class NotificationsNotifier extends _$NotificationsNotifier {
 
   Future<void> deleteAllNotifications() async {
     try {
-      final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+      final currentUser = await ref.read(currentUserAsyncProvider.future);
       if (currentUser == null) return;
 
       final dataSource = ref.read(notificationDataSourceProvider);

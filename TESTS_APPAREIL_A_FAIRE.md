@@ -4512,19 +4512,39 @@ erreur dans `state`.
   groupe non rejoint (join) et accepter de quitter un groupe (leave).
   ⚠️ `_leaveGroup` a reçu un `if (!mounted) return;` après l'attente —
   l'analyzer signalait un `BuildContext` traversant un saut asynchrone.
-- [ ] Reste ~119 occurrences dans 30 fichiers, non auditées. Prochains
-  candidats par impact décroissant (abandons silencieux / watch dans le
-  fichier) : `admin_settings_screen` (6/0), `groups_screen` (3/0),
-  `blocked_users_provider` (2/0), `notification_provider` (2/0),
-  `media_gallery_provider` (2/0), `group_request_provider` (2/0),
-  `group_call_provider` (2/0), `audio_room_provider` (2/0).
-  ⚠️ `call_provider` (2/0) mérite un examen à part : `initiateCall` **pose**
+- [x] **Deuxième passe le 2026-08-06 — 8 fichiers, 41 sites corrigés.**
+  `admin_settings_screen` (6 × `_save`/`_saveUrls`/`_saveIntervals`),
+  `groups_screen` (3), `blocked_users_provider` (2),
+  `notification_provider` (2), `media_gallery_provider` (2),
+  `group_request_provider` (2), `group_call_provider` (6),
+  `audio_room_provider` (18).
+
+  Trois sites **volontairement laissés** en lecture synchrone, leurs méthodes
+  n'étant pas `async` : `groups_screen._loadDefaultCountryFilter`,
+  `group_call_provider._checkIfLastParticipant`,
+  `audio_room_provider.retryAudioConnection`. Y mettre un `await` ne
+  compilerait pas.
+
+  Deux pièges rencontrés, à connaître avant toute nouvelle passe :
+  - **précédence** : `read(p).valueOrNull?.id` devient
+    `(await read(p.future))?.id` — sans les parenthèses le `await` porte sur
+    la mauvaise expression (1 cas, `group_call_provider`) ;
+  - **`BuildContext` après saut asynchrone** : `groups_screen._leaveGroup` a
+    dû recevoir un `if (!mounted) return;` (l'analyzer l'attrape).
+
+- [x] **Vérifié sur appareil** : « Tout lire » de l'écran Notifications
+  (`markAllAsRead`). Avant : « 7 non lues », badge 7 sur la puce, bouton
+  présent. Après : compteur, badge, bouton et pastilles disparus, icônes en
+  état lu.
+- [ ] Non testés faute de jeu de données ou de droits : les 6 `_save` de
+  l'admin (compte admin requis), bloquer/débloquer, join/leave de groupe,
+  galerie média, appels de groupe, salons audio.
+- [ ] Reste ~78 occurrences, dans des fichiers où le motif est soit absent
+  d'un chemin utilisateur, soit accompagné d'un `watch` local.
+  ⚠️ `call_provider` (2) reste délibérément intact : `initiateCall` **pose**
   une erreur (« Utilisateur non connecté ») donc n'est pas silencieux, et son
-  `build()` amorce l'abonnement via `_cleanupStaleCalls()` quelques secondes
-  avant qu'on puisse taper « appeler » — probablement inoffensif, mais non
-  prouvé (le vérifier demande de passer un vrai appel).
-  **NE PAS remplacer en masse** : `await …future` rend la méthode asynchrone
-  et peut introduire un usage de `BuildContext` après saut asynchrone.
+  `build()` amorce l'abonnement via `_cleanupStaleCalls()` bien avant qu'on
+  puisse taper « appeler ». Le vérifier demande de passer un vrai appel.
 
 > Note d'exécution : un ANR (« Diaspo Niger ne répond pas ») a été observé UNE
 > fois juste après une installation à chaud par-dessus l'app en cours

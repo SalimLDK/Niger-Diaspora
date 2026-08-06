@@ -152,7 +152,7 @@ class ConversationMedia extends _$ConversationMedia {
 /// Returns the conversation ID if a conversation exists with the given user
 @riverpod
 Future<String?> userConversationId(Ref ref, String otherUserId) async {
-  final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+  final currentUser = await ref.read(currentUserAsyncProvider.future);
   if (currentUser == null) return null;
 
   final result = await ref
@@ -172,7 +172,7 @@ Future<String?> userConversationId(Ref ref, String otherUserId) async {
 /// Returns the conversation ID if a conversation exists with the given group ID
 @riverpod
 Future<String?> groupConversationId(Ref ref, String groupId) async {
-  final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+  final currentUser = await ref.read(currentUserAsyncProvider.future);
   if (currentUser == null) return null;
 
   final result = await ref

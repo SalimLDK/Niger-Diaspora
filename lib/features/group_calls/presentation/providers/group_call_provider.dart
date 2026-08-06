@@ -182,7 +182,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
     required GroupCallType type,
     bool enableE2EE = true,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = state.copyWith(error: 'Utilisateur non connecté');
       return null;
@@ -251,7 +251,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
     required List<String> additionalParticipantIds,
     required MediaStream existingLocalStream,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = state.copyWith(error: 'Utilisateur non connecté');
       return null;
@@ -422,7 +422,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
     required String? callerPhotoUrl,
     required bool isVideo,
   }) async {
-    final currentUserId = ref.read(currentUserAsyncProvider).valueOrNull?.id;
+    final currentUserId = (await ref.read(currentUserAsyncProvider.future))?.id;
     if (currentUserId == null) return;
 
     // Filter out the caller from recipients
@@ -476,7 +476,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
     required String callId,
     bool enableVideo = false,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = state.copyWith(error: 'Utilisateur non connecté');
       return false;
@@ -752,7 +752,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
     state = state.copyWith(mode: GroupCallMode.sfu);
 
     // Join SFU call
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser != null) {
       await _joinSfuCall(
         callEntity: callEntity,
@@ -866,7 +866,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
     _callSubscription?.cancel();
     _participantsSubscription?.cancel();
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     final callId = state.call!.id;
 
     try {

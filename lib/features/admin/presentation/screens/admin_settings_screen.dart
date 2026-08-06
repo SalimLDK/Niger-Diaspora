@@ -296,7 +296,7 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     final newFees = FeeSettingsEntity(
@@ -668,7 +668,7 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     final newPricing = BoostPricingEntity(
@@ -1107,7 +1107,7 @@ class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     final newRates = TaxRatesEntity(
@@ -1388,7 +1388,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     final current = widget.settings.mediaLimits;
@@ -1730,7 +1730,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
   }
 
   Future<void> _saveUrls() async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     final current = widget.settings.urls;
@@ -1771,7 +1771,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
   Future<void> _saveIntervals() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     final current = widget.settings.intervals;
