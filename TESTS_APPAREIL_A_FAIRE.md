@@ -877,12 +877,36 @@ justifie pas de risquer ça.
   Donc les règles strictes ne cassent **pas** les appels : elles cassent
   uniquement les clients qui n'écrivent pas ces champs, c'est-à-dire les APK
   antérieurs au 2026-08-03. Le retour arrière était probablement inutile.
-- [ ] **Décision à prendre : redéployer les règles strictes ?** Toute la
-  question tient à une seule chose — **existe-t-il un APK installé antérieur
-  au 2026-08-03 ?** L'app n'étant pas encore sortie, ça se limite aux
-  téléphones de test. Si le téléphone de test tourne un build plus récent,
-  redéployer ferme l'étanchéité sans risque. Le fichier des règles strictes se
-  récupère par `git show 0ddab4c:database.rules.json`.
+- [x] 🔴 **Et en voulant les redéployer, le banc a trouvé DEUX défauts de plus
+  — dans les appels de GROUPE cette fois** (2026-08-06). Les règles strictes de
+  `135ae92` n'avaient manifestement jamais été confrontées à l'app pour cette
+  partie. Les deux sont corrigés :
+  1. **La signalisation de groupe était entièrement refusée.** Le `.validate`
+     posé sur `signaling/$fromId/$toId` exigeait un enfant `type`
+     **directement** sous `$toId`, alors que l'app écrit
+     `$toId/offer = {type, sdp}` (`group_call_service.dart`). Prouvé par sonde :
+     écrire sur `$toId/offer` → 401, écrire sur `$toId` avec `type` → 200.
+     **Correctif** : le `.validate` descend sur les enfants réels (`offer`,
+     `answer`), avec `['type', 'sdp']` comme pour le 1:1.
+  2. **La détection des arrivées serait morte.** `_listenForParticipants` était
+     appelé **avant** `_registerParticipant` (lignes 145/157 et 234/246) : le
+     client se mettait à l'écoute de `participants` avant d'en être un, ce que
+     les règles strictes refusent — à raison. **Correctif** : inscription
+     d'abord. Rien n'est perdu, `onChildAdded` émet aussi pour les enfants déjà
+     présents. `flutter analyze` sur le fichier : aucun problème.
+  Après correctifs, le banc passe intégralement contre les règles strictes :
+  parcours nominal 1:1 **et** groupe intacts, étanchéité fermée des deux côtés.
+- [ ] 🔴 **Les règles strictes NE SONT PAS déployées, et ne doivent pas l'être
+  avant un nouveau build de l'app.** Le dépôt porte volontairement la version
+  stricte corrigée ; la production reste permissive. Deux préconditions, toutes
+  deux liées au parc installé :
+  - l'APK doit écrire `callerId`/`calleeId` (acquis depuis `135ae92`,
+    2026-08-03) ;
+  - l'APK doit s'inscrire avant d'écouter (acquis **aujourd'hui seulement**,
+    donc **aucun** build existant ne l'a).
+  **Donc : rebâtir et réinstaller l'app d'abord, déployer les règles ensuite.**
+  Vérifier entre les deux que `node tools/rules_tests/signalisation_appels.mjs`
+  affiche « Parcours nominal : INTACT ».
 - [x] 🔴🔴 ~~**ANNULÉ LE JOUR MÊME : ce déploiement cassait tous les appels.**~~
   Le test de non-régression a finalement été fait — pas avec deux téléphones,
   mais **en émulateur RTDB**, ce qui suffit largement pour des règles.

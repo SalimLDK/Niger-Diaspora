@@ -148,7 +148,44 @@ function constater(intitule, obtenu) {
         await lire("calls/VIEUX/offer", B));
 
     // ------------------------------------------------------------------
+    // Les appels de GROUPE ont leur propre piege, distinct du 1:1 :
+    //   - `hostId` n'est JAMAIS ecrit dans le noeud RTDB (verifie : aucune
+    //     occurrence dans group_call_service.dart). Une regle qui s'appuie
+    //     dessus ne peut donc jamais passer par cette branche.
+    //   - `_listenForParticipants` est appele AVANT `_registerParticipant`
+    //     (group_call_service.dart, lignes 145 puis 157). Le client se met
+    //     donc a l'ecoute de `participants` avant d'en etre un.
+    console.log("\n=== 4. Appel de groupe — ordre reel de group_call_service ===\n");
+
+    const ecouteAvant = constater(
+        "lire participants SANS y etre inscrit",
+        await lire("group_calls/GC/participants", A));
+    exiger("l'hote s'inscrit comme participant",
+        await ecrire("group_calls/GC/participants/userA", A, { joinedAt: 1 }), true);
+    exiger("l'hote lit participants apres inscription",
+        await lire("group_calls/GC/participants", A), true);
+    exiger("un second s'inscrit",
+        await ecrire("group_calls/GC/participants/userB", B, { joinedAt: 2 }), true);
+    exiger("A envoie son offre a B (signaling/A/B)",
+        await ecrire("group_calls/GC/signaling/userA/userB/offer", A,
+            { type: "offer", sdp: "v=0" }), true);
+    exiger("B lit l'offre de A",
+        await lire("group_calls/GC/signaling/userA/userB/offer", B), true);
+    exiger("B repond (signaling/B/A)",
+        await ecrire("group_calls/GC/signaling/userB/userA/answer", B,
+            { type: "answer", sdp: "v=0" }), true);
+    constater("un tiers lit la signalisation de A vers B",
+        await lire("group_calls/GC/signaling/userA/userB/offer", C));
+
+    // ------------------------------------------------------------------
     console.log("\n--- Verdict ---");
+    if (!ecouteAvant) {
+        console.log("  Lecture de `participants` reservee aux inscrits : c'est voulu.");
+        console.log("  ⚠ Exige que l'app s'inscrive AVANT d'ecouter. Corrige le");
+        console.log("    2026-08-06 dans group_call_service.dart, mais un APK");
+        console.log("    anterieur ecoute d'abord — sa detection des arrivees");
+        console.log("    mourrait en silence. Ne deployer qu'apres un nouveau build.");
+    }
     console.log(echecs === 0
         ? "  Parcours nominal : INTACT"
         : `  Parcours nominal : ${echecs} ECHEC(S) — NE PAS DEPLOYER CES REGLES`);
