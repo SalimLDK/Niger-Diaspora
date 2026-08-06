@@ -67,6 +67,37 @@ final blockedUsersProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef BlockedUsersRef = AutoDisposeStreamProviderRef<List<BlockedUserEntity>>;
+String _$usersWhoBlockedMeHash() => r'77b07db0d8d1a33b3a39f0ce6c3bed8a27ff95e0';
+
+/// Les identifiants qui **m'ont bloqué**.
+///
+/// Le pendant de [blockedUsers], qui donne le sens direct. Celui-ci n'existait
+/// pas : les dix endroits qui posent la question lisaient
+/// `profil.blockedByUserIds`, un champ que `_mapProfile` code en dur à vide
+/// depuis que les profils viennent de Supabase. La réponse était donc toujours
+/// non, et une personne qui vous a bloqué continuait d'apparaître sur la carte,
+/// en ligne, et de recevoir vos messages.
+///
+/// Rend un ensemble vide tant que rien n'est chargé — c'est le défaut sûr côté
+/// affichage : on ne masque personne à tort pendant le chargement.
+///
+/// Copied from [usersWhoBlockedMe].
+@ProviderFor(usersWhoBlockedMe)
+final usersWhoBlockedMeProvider =
+    AutoDisposeStreamProvider<Set<String>>.internal(
+      usersWhoBlockedMe,
+      name: r'usersWhoBlockedMeProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$usersWhoBlockedMeHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef UsersWhoBlockedMeRef = AutoDisposeStreamProviderRef<Set<String>>;
 String _$blockUserNotifierHash() => r'f63d4492dcc45d55d80d2a0f23a2efc04e572ddc';
 
 /// See also [BlockUserNotifier].
