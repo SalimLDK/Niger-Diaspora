@@ -4463,11 +4463,38 @@ Restant à vérifier sur ce lot :
 - [ ] Épingler puis détacher un message depuis ce chemin.
 - [ ] Les deux autres sorties du retour : flèche de l'en-tête et geste de
   bord d'écran (seul le bouton retour système a été exercé).
-- [ ] **Recréation par le VRAI chemin** : le lien profond ouvre la conversation
-  par son id et ne passe pas par `createGroupConversation`. Le compte inchangé
-  ci-dessus ne prouve donc PAS encore le correctif du défaut n°1 — il faut
-  ouvrir la discussion depuis l'onglet Groupes, deux fois de suite, et
-  recompter.
+- [x] **Recréation par le VRAI chemin — PROUVÉ le 2026-08-05.** Le lien profond
+  ouvre la conversation par son id et ne passe PAS par
+  `createGroupConversation` ; le compte inchangé ne prouvait donc rien. Refait
+  par le vrai chemin (fiche du groupe → « Ouvrir la discussion »), **deux fois
+  de suite** sur `yflqsRLMMhTPpiW0NFHx` : la même conversation se rouvre avec
+  son historique, `count(*)` = 8 avant / 8 après, groupe hérité 1 / 1.
+
+  ⚠️ Ce test a d'abord été **impossible** : le bouton « Ouvrir la discussion »
+  était MORT (voir ci-dessous).
+
+**4. « Ouvrir la discussion » était un bouton mort** (défaut pré-existant,
+trouvé en voulant prouver le n°1, corrigé le 2026-08-05).
+`ConversationNotifier.createGroup` lisait
+`_ref.read(currentUserAsyncProvider).valueOrNull` — or c'est un StreamProvider
+**autoDispose** que cet appel ne regarde jamais : la lecture démarrait
+l'abonnement à l'instant du tap et rendait `AsyncLoading`, donc `null`, d'où un
+`return null` **avant même** de toucher au dépôt. Comme `state` n'était jamais
+mis en erreur, l'écran affichait « Erreur lors de l'ouverture de la
+discussion » *sans la moindre cause*, et rien ne sortait dans logcat.
+Exactement le piège déjà rencontré et commenté dans `_createGroup` de
+`create_group_screen.dart`. Correctif : `await read(...future)` + une vraie
+erreur dans `state`.
+
+- [x] Vérifié sur appareil : le bouton ouvre bien la discussion, deux fois de
+  suite, sur le groupe hérité.
+- [ ] Refaire sur un groupe **Supabase** (`03077217-…`), non testé.
+- [ ] ⚠️ **128 occurrences de `read(currentUserAsyncProvider).valueOrNull`
+  subsistent dans 32 fichiers** (`grep -rn` sur `lib/`). Toutes ne sont pas
+  fautives — le piège ne se déclenche que là où l'écran n'écoute pas déjà le
+  provider — mais chacune est un bouton potentiellement mort et silencieux.
+  À auditer, PAS à remplacer en masse : passer en `await …future` rend la
+  méthode asynchrone et change le comportement.
 
 **3. `isSelfNotes` avait exactement le même défaut** (trouvé en corrigeant le
 n°2, corrigé dans la foulée le 2026-08-05). `app_router.dart` lisait

@@ -1490,8 +1490,23 @@ class CreateConversationNotifier extends StateNotifier<AsyncValue<ConversationEn
     String? groupImageUrl,
     String? groupId,
   }) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
-    if (currentUser == null) return null;
+    // `currentUserAsyncProvider` est un StreamProvider **autoDispose** que cet
+    // appel ne regarde jamais : `read(...).valueOrNull` démarrait l'abonnement
+    // à l'instant du tap et rendait `AsyncLoading`, donc `null`. « Ouvrir la
+    // discussion » (fiche de groupe) était alors un bouton MORT — abandon
+    // silencieux, `state` jamais mis en erreur, donc un SnackBar « Erreur lors
+    // de l'ouverture de la discussion » sans la moindre cause, et rien dans
+    // logcat. Vérifié sur appareil le 2026-08-05. Même piège, déjà rencontré et
+    // commenté, que `_createGroup` de `create_group_screen.dart` : on attend la
+    // première émission.
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
+    if (currentUser == null) {
+      state = AsyncValue.error(
+        'Session expirée — reconnectez-vous.',
+        StackTrace.current,
+      );
+      return null;
+    }
 
     state = const AsyncValue.loading();
 
