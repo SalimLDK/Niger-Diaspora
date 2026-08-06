@@ -343,23 +343,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
           return ListView.builder(
             controller: _scrollController,
-            // Le `SafeArea` de l'écran est en `bottom: false` — la vue de la
-            // liste descend donc DERRIÈRE la barre de navigation système. Avec
-            // un padding fixe de 24, la dernière carte se retrouvait cachée
-            // dessous **sans que la liste puisse défiler** : son contenu tenait
-            // dans la vue, `maxScrollExtent` valait 0, et le balayage ne
-            // produisait rien. On lit un « scroll cassé » là où il n'y avait
-            // simplement rien à faire défiler.
-            //
-            // `viewPadding.bottom` (et non `padding.bottom`, qui retombe à 0
-            // dès qu'un `SafeArea` parent l'a consommé) rend la hauteur réelle
-            // de la barre.
-            padding: EdgeInsets.fromLTRB(
-              16,
-              0,
-              16,
-              24 + MediaQuery.of(context).viewPadding.bottom,
-            ),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             itemCount: sections.length,
             itemBuilder: (context, index) {
               final section = sections[index];
