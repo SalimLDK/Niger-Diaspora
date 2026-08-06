@@ -4585,10 +4585,37 @@ erreur dans `state`.
   lire l'état des DEUX côtés avant de taper, et instrumenter plutôt que de
   déduire.
 
-- [ ] Reste ~48 occurrences. `monetization_provider` (11) n'a **aucun** abandon
-  silencieux — à regarder mais probablement sain. Et il reste à passer en revue
-  les autres providers `autoDispose` lus en `.valueOrNull` : le motif dépasse
-  `currentUserAsyncProvider`, `profileNotifierProvider` vient de le prouver.
+- [x] **Cinquième passe — audit des AUTRES providers, et révision à la baisse.**
+  L'estimation « 24 sites suspects » de la passe précédente était **fausse** :
+  le filtre portait sur la mauvaise ligne du `grep -A 1`. Mesure refaite :
+
+  - Providers non-family lus en `.valueOrNull` avec abandon
+    (`currentUserProvider` ×25, `appSettingsNotifierProvider` ×5,
+    `blockedUsersProvider`, `activeStoriesProvider`, …) : **zéro** site sans
+    `watch` local. Le provider est chaud partout où il est lu — rien à faire.
+  - Providers **family** (que le regex précédent ratait, d'où l'angle mort qui
+    avait laissé passer `profileNotifierProvider`) : `profileNotifierProvider`
+    est lu sans `watch` local dans 7 fichiers. En les lisant un par un, la
+    plupart sont des **pré-remplissages avec repli gracieux**
+    (`profile?.currentCountry`) dans des méthodes non `async` — dégradation
+    acceptable, pas un blocage : `business_provider._loadUserLocation`,
+    `create_product_screen._initUserCountry`,
+    `create_event_screen._prefillLocation`, `story_rail`,
+    `marketplace_provider`. `edit_profile_screen` a déjà un `else` de repli.
+
+- [x] **Un seul vrai défaut trouvé, corrigé** :
+  `profile_config_screen._handleComplete` levait `Exception(_kProfileMissing)`
+  quand le cache était vide, donc **l'enregistrement du profil échouait au
+  premier essai** sur « Profil introuvable » ; il fallait toucher
+  « Réessayer », le second essai trouvant le cache chaud. Le profil est
+  maintenant chargé depuis le dépôt avant d'abandonner.
+  - [ ] À vérifier sur appareil : reprendre l'assistant de configuration de
+    profil et enregistrer du premier coup, sans passer par « Réessayer ».
+
+- [ ] Ce filon est donc **épuisé pour l'essentiel**. Ce qui reste
+  (`monetization_provider` ×11, sans aucun abandon silencieux ; les 4 méthodes
+  non `async` laissées volontairement ; les 2 de `call_provider`) n'a pas
+  d'impact utilisateur démontré. Ne pas y retourner sans un défaut constaté.
   ⚠️ `call_provider` (2) reste délibérément intact : `initiateCall` **pose**
   une erreur (« Utilisateur non connecté ») donc n'est pas silencieux, et son
   `build()` amorce l'abonnement via `_cleanupStaleCalls()` bien avant qu'on
