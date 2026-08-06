@@ -123,6 +123,11 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   @override
   Future<List<GroupModel>> getGroups() async {
+    // Comme partout ailleurs dans ce fichier : sans session Supabase établie,
+    // la lecture part en anonyme et RLS renvoie zéro ligne. L'onglet
+    // « Découvrir » affichait alors « Aucun groupe public pour l'instant »
+    // alors que la base en contenait — un état vide qui ment.
+    await SupabaseAuthBridge.instance.ensureAuthenticated();
     final data = await _supabase
         .from('groups')
         .select()
@@ -134,6 +139,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   @override
   Future<List<GroupModel>> getGroupsByCategory(String category) async {
+    await SupabaseAuthBridge.instance.ensureAuthenticated();
     final data = await _supabase
         .from('groups')
         .select()
@@ -163,6 +169,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
   }
 
   Future<GroupModel?> getGroupByName(String name) async {
+    await SupabaseAuthBridge.instance.ensureAuthenticated();
     final data = await _supabase
         .from('groups')
         .select()
@@ -213,6 +220,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   @override
   Future<List<GroupModel>> searchGroups(String query) async {
+    await SupabaseAuthBridge.instance.ensureAuthenticated();
     final data = await _supabase
         .from('groups')
         .select()

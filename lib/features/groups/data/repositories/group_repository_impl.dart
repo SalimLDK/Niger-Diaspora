@@ -51,6 +51,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return Right(groups.map((g) => g.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -66,6 +74,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return Right(groups.map((g) => g.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -79,6 +95,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return Right(group.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -151,6 +175,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return Right(updated.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -165,6 +197,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -189,6 +229,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -206,6 +254,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -222,6 +278,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -235,6 +299,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return Right(groups.map((g) => g.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -248,6 +320,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return Right(groups.map((g) => g.toEntity()).toList());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -278,6 +358,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -291,6 +379,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -304,6 +400,14 @@ class GroupRepositoryImpl implements GroupRepository {
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
+    } catch (e) {
+      // Tout le reste — PostgrestException, erreur de session, décodage —
+      // s'échappait de ce `catch` limité à ServerException : le Future
+      // remontait en exception, `result.fold` n'était jamais atteint, et
+      // l'écran gardait son état précédent sans rien dire. C'est ainsi que
+      // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
+      // publics en base, et que « Créer le groupe » restait sans effet.
+      return Left(ServerFailure(e.toString()));
     }
   }
 
