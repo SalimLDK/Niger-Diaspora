@@ -38,8 +38,15 @@ un appareil + le compte de test) **une fois la migration appliquée** :
 - [ ] **Message 1-à-1, app tuée** : la bannière arrive, titre = nom de
       l'expéditeur, corps = aperçu (ou `🔒 Nouveau message` si E2EE).
 - [ ] **Message de groupe** : titre = nom du groupe, corps = `Nom: aperçu`.
-- [ ] **Aucun doublon** : le repli local `_showFallbackMessageNotification`
-      partage le tag `msg_$conversationId` avec le push — une seule bannière.
+- [ ] **Doublon en arrière-plan** — à regarder de près, le commentaire du code
+      est trop confiant. `_showFallbackMessageNotification`
+      ([notification_service.dart:484](lib/core/services/notification_service.dart:484))
+      affirme « same tag as Cloud Functions → no duplicate », mais Android
+      identifie une notification par le **couple** (tag, id), pas par le tag
+      seul : le repli poste sous l'id `conversationId.hashCode.abs() % 99999`
+      là où le SDK Firebase pose le sien. Tags identiques, ids différents = deux
+      bannières. Si le doublon apparaît, aligner l'id du repli sur celui du SDK
+      (0 lorsqu'un tag est fourni) — non fait ici faute de pouvoir le vérifier.
 - [ ] **Conversation ouverte au premier plan** : pas de notification système.
 - [ ] **Conversation mutée** : rien n'arrive (le trigger filtre `data.mutedBy`).
 - [ ] **« Mes notes »** : s'écrire à soi-même ne déclenche aucune notification.
@@ -97,7 +104,32 @@ bascules. En attendant, ne pas conclure « le push est cassé » en la testant.
 
 - [ ] Ne rien attendre de la bascule « M'avertir » tant que ce point est ouvert.
 
-**2. iOS : aucun push possible, à deux niveaux.**
+**2. Les préférences par type ne filtrent qu'au premier plan.**
+`_shouldShowNotification` (`notify_messages`, `notify_groups`,
+`notify_events`…) n'est appelée que depuis `_handleForegroundMessage`
+([notification_service.dart:1441](lib/core/services/notification_service.dart:1441)),
+et nulle part ailleurs. App en arrière-plan ou tuée, c'est le système qui
+affiche le bloc `notification` du push : la préférence n'est jamais consultée.
+Couper « Messages » dans les réglages ne coupe donc rien dès que l'app est
+fermée — précisément le moment où ça compte.
+
+Ces préférences vivent en fait à **trois** endroits déconnectés :
+
+| Où | Lu par | Effet réel |
+|---|---|---|
+| SharedPreferences | `_shouldShowNotification` | premier plan uniquement |
+| Firestore `users.notificationPreferences` | `NotificationPreferencesDataSourceImpl` | **aucun** — la classe n'est instanciée nulle part |
+| Supabase `public.users` | `send-push` | n'expose que `notifications_enabled` et `show_message_preview` |
+
+Pour que la bascule morde vraiment, il faut une colonne serveur par type (que
+`send-push` consulte), ou des messages *data-only* dont l'app décide seule de
+l'affichage. C'est le motif contre lequel `CLAUDE.md` met en garde : la
+source Firestore est un quatrième fantôme à supprimer au passage.
+
+- [ ] **« Messages » sur `off`, app tuée** : constater qu'une bannière arrive
+      quand même, tant que ce point est ouvert.
+
+**3. iOS : aucun push possible, à deux niveaux.**
 
 - `ios/Runner/Runner.entitlements` ne contient **pas** `aps-environment` (seul
   `associated-domains` y est). Sans lui, l'enregistrement APNs échoue,
@@ -379,9 +411,23 @@ supplémentaire** à créer.
   `sendChatNotification(us-central1)` existent en production **sans source
   dans le dépôt**, et le CLI refuse de les supprimer en non-interactif. Les
   deux sont toujours en ligne après le déploiement ciblé.
-- [ ] À vérifier avec deux comptes jetables : A et B amis, supprimer A,
-  contrôler que B ne voit plus A dans ses amis. Non fait — ça demande de
-  supprimer un vrai compte Firebase Auth.
+- [x] **Vérifié de bout en bout le 2026-08-05**, avec deux comptes jetables
+  créés puis supprimés par l'API Identity Toolkit (aucun compte réel touché) :
+  A et B amis, suppression de A → l'entrée miroir `users/B/friends/A`
+  **disparaît**, le profil de A et sa sous-collection aussi.
+- [x] **🔴 Et la vérification a trouvé pire : le nettoyage ne tournait pas du
+  tout.** Premier essai, rien n'était supprimé — pas même le profil du compte
+  effacé. Les journaux :
+  `Cannot use "undefined" as a Firestore value (found in field "userStats.createdAt")`.
+  Le journal d'audit est écrit **en tête** de `cleanupUserData`, et son
+  ternaire ne testait que l'existence du **document**, pas celle du **champ** :
+  un profil sans `createdAt` renvoyait `undefined`, que Firestore refuse dans
+  un `.add()`. L'exception partait avant la moindre suppression.
+  **Supprimer un compte ne supprimait donc rien**, en silence — ni profil, ni
+  sous-collections, ni notifications, ni conversations.
+  **Corrigé** (`?? null` sur les deux champs **et** journal d'audit rendu non
+  bloquant : il est utile, le nettoyage est obligatoire), déployé, puis rejoué
+  avec un profil volontairement dépourvu de `createdAt` — le cas qui plantait.
 - [x] 🔴 **Deux fonctions tournaient en production sans source dans le dépôt —
   sources retrouvées et réintégrées** (`a7db115`).
   `sendMessagePush(europe-west1)` était dans `stash@{3}` (2026-07-20), jamais

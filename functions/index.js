@@ -2674,8 +2674,15 @@ exports.cleanupUserData = functions.auth.user().onDelete(async (user) => {
             // Données anonymisées pour statistiques
             userStats: {
                 displayName: userDoc.exists ? (userDoc.data().displayName || "N/A") : "N/A",
-                createdAt: userDoc.exists ? userDoc.data().createdAt : null,
-                lastLoginAt: userDoc.exists ? userDoc.data().lastLoginAt : null,
+                // `?? null` obligatoire : le ternaire ne teste que l'existence
+                // du DOCUMENT, pas celle du CHAMP. Un profil sans `createdAt`
+                // renvoyait `undefined`, et Firestore refuse `undefined` dans
+                // un `.add()` — l'exception partait AVANT le moindre nettoyage,
+                // donc supprimer un compte ne supprimait rien du tout. Vu en
+                // vrai le 2026-08-05 : « Cannot use "undefined" as a Firestore
+                // value (found in field "userStats.createdAt") ».
+                createdAt: (userDoc.exists ? userDoc.data().createdAt : null) ?? null,
+                lastLoginAt: (userDoc.exists ? userDoc.data().lastLoginAt : null) ?? null,
                 // Localisation (pour stats géographiques)
                 country: profileDoc.exists ? (profileDoc.data().currentCountry || "N/A") : "N/A",
                 region: profileDoc.exists ? (profileDoc.data().originRegion || "N/A") : "N/A",
@@ -2693,8 +2700,25 @@ exports.cleanupUserData = functions.auth.user().onDelete(async (user) => {
             wasBanned: userDoc.exists ? (userDoc.data().isBanned || false) : false,
         };
 
-        await db.collection("admin_audit_logs").add(auditData);
-        console.log(`Audit log created for deleted user: ${userId}`);
+        // Le journal d'audit ne doit JAMAIS empecher le nettoyage.
+        //
+        // Il etait ecrit sans filet, en tete de fonction : la moindre valeur
+        // `undefined` dans `auditData` levait, et tout le reste — profils,
+        // sous-collections, notifications, conversations — n'etait jamais
+        // supprime. Un compte « supprime » laissait donc l'integralite de ses
+        // donnees derriere lui, en silence.
+        //
+        // L'audit est utile, le nettoyage est obligatoire. On journalise
+        // l'echec et on continue.
+        try {
+            await db.collection("admin_audit_logs").add(auditData);
+            console.log(`Audit log created for deleted user: ${userId}`);
+        } catch (erreurAudit) {
+            console.error(
+                `Audit log KO pour ${userId} (le nettoyage continue) :`,
+                erreurAudit.message,
+            );
+        }
 
         // ================================================================
         // 1. FIRESTORE CLEANUP
