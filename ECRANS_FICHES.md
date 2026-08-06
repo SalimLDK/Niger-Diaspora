@@ -1095,13 +1095,29 @@ test lui-meme. Rien n'indique un abus — l'application n'offre pas ce
 reglage, ils ont vraisemblablement ete adoubes a la main dans l'editeur SQL.
 C'est le trou qui est reel, pas son exploitation.
 
-Correctif ecrit : `supabase/migrations/20260806130000_guard_group_official.sql`,
-sur le motif deja en place pour `users.is_admin` (`guard_admin_flags`) —
-trigger `guard_group_official` qui exige `is_admin()` des que la colonne
-change, plus un `REVOKE` des droits de colonne. L'absence de session
-applicative (SQL Editor, service_role, migration) reste le chemin
-d'adoubement. **Migration non appliquee** : c'est une ecriture en
-production, elle attend le feu vert de Salim.
+**Correctif applique en production le 2026-08-06** (migrations
+`20260806130000` puis `20260806140000`), sur le motif deja en place pour
+`users.is_admin` (`guard_admin_flags`) : trigger `guard_group_official` qui
+exige `is_admin()` des que la colonne change, a l'INSERT comme a l'UPDATE.
+L'absence de session applicative (SQL Editor, service_role, migration) reste
+le chemin d'adoubement.
+
+Teste sur la base distante en se faisant passer pour un utilisateur
+ordinaire, dans les deux sens :
+
+```
+update groups set is_official = true ...   -> ERROR 42501
+insert into groups (..., is_official) ...  -> ERROR 42501
+```
+
+⚠️ **Le `REVOKE` de la premiere migration n'a servi a rien**, et c'est
+documente dans le schema (`COMMENT ON COLUMN groups.is_official`) pour que
+personne ne s'y fie : les droits d'`authenticated` viennent d'un GRANT au
+niveau **table**, et Postgres ne retire pas une colonne d'un privilege
+accorde sur la table entiere — le REVOKE passe sans erreur et ne change
+rien. `information_schema.column_privileges` liste donc toujours
+INSERT/UPDATE sur `is_official`. **La garde reelle est le trigger, et lui
+seul.**
 
 ---
 

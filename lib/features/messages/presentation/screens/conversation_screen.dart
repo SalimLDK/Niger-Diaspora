@@ -1226,7 +1226,32 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                         ? Colors.black.withValues(alpha: 0.3)
                         : Colors.white.withValues(alpha: 0.3),
               ),
-            Column(
+            // Hauteur reellement disponible sous l'en-tete. `MediaQuery
+            // .viewInsets` vaut deja 0 dans un `body` de Scaffold : il ne dirait
+            // rien du clavier. `LayoutBuilder` est la seule mesure fiable, et il
+            // couvre aussi le panneau ancre, qui n'est pas un inset systeme.
+            //
+            // En paysage, clavier ou panneau ouvert, il ne reste qu'une centaine
+            // de dp. Le bandeau epingle et le rappel de restauration des cles
+            // depassent alors a eux seuls cette hauteur : l'`Expanded` tombe a
+            // zero et la colonne deborde quand meme. Mesure sur SM A515F :
+            // 17 px avec le clavier, 4 px avec le panneau emojis, plus court.
+            //
+            // Les enfants gardent volontairement leur indentation d'origine :
+            // les reindenter aurait reecrit des centaines de lignes en cours de
+            // modification par ailleurs, et rendu la fusion ingerable. A passer
+            // au formateur quand le fichier sera libre.
+            LayoutBuilder(
+              builder: (context, zoneCorps) {
+                // Repere mesure : portrait clavier ouvert laisse ~570 dp,
+                // paysage clavier ouvert ~150. Le seuil se pose entre les deux ;
+                // il ne s'agit pas de calculer la hauteur exacte des bandeaux,
+                // seulement de distinguer « il y a de la place » de « il n'y en
+                // a plus du tout ».
+                const hauteurMiniRappelCles = 220.0;
+                final placeRappelCles =
+                    zoneCorps.maxHeight >= hauteurMiniRappelCles;
+                return Column(
               children: [
                 // Offline indicator
                 if (paginationState.isOffline)
@@ -1286,7 +1311,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 ),
                 // Invitation a restaurer les cles, quand des messages de ce
                 // fil ne sont pas dechiffrables sur cet appareil.
-                _buildE2eeRestoreBanner(context, paginationState.messages),
+                // Escamote quand la hauteur ne suffit plus. Le bandeau
+                // epingle, lui, reste toujours visible — c'est sa raison d'etre.
+                // Ce rappel est informatif : il revient des que le clavier se
+                // replie ou que l'ecran repasse en portrait.
+                if (placeRappelCles)
+                  _buildE2eeRestoreBanner(context, paginationState.messages),
                 // Messages
                 Expanded(
                   child: _buildMessageList(
@@ -1650,6 +1680,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     },
                   ),
               ],
+                );
+              },
             ),
 
             // Search results overlay
