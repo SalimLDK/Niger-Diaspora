@@ -85,7 +85,9 @@ void main() {
     };
 
     final motif = RegExp(r'_?ref\.read\(currentUserAsyncProvider\)\.valueOrNull');
-    final abandon = RegExp(r'if\s*\(.*==\s*null\).*return(\s+null|\s+false)?\s*;');
+    // Un `return` NU sur la même ligne. Un `if (x == null) { … }` qui ouvre un
+    // bloc n'est pas visé : c'est la forme d'un repli, pas d'un abandon.
+    final abandon = RegExp(r'if\s*\(.*==\s*null\).*return[^;]*;');
 
     final toutes = _lignes();
     final parFichier = <String, List<String>>{};
@@ -117,6 +119,63 @@ void main() {
           '⚠️ Avec un accès derrière, parenthéser : (await ...)?.id\n'
           'Si elle ne peut pas être async, ajouter le fichier aux `tolerees`\n'
           'avec sa raison.\n'
+          '${inattendus.join('\n')}',
+    );
+  });
+
+  test('aucun abandon silencieux sur profileNotifierProvider', () {
+    // Le piège ne se limite pas à `currentUserAsyncProvider` — c'est la leçon
+    // la plus chère de la session. `profileNotifierProvider` est un
+    // StateNotifierProvider **autoDispose** dont `_loadProfile()` ne pose
+    // `state` de façon synchrone que s'il TROUVE UN CACHE. Sans cache, un
+    // `read(...).valueOrNull` rend `null`, et il a piégé trois fois :
+    // l'interrupteur maître des notifications n'écrivait pas son étage serveur
+    // (le back-end continuait de pousser), l'enregistrement du profil échouait
+    // au premier essai, et les bascules de préférence revenaient à leur
+    // position sans explication.
+    //
+    // Un StateNotifierProvider n'expose pas de `.future` : le correctif est un
+    // repli explicite sur le dépôt, pas un `await`. La forme
+    // `if (x == null) { …charger… }` est donc ATTENDUE et n'est pas visée ici ;
+    // seul le `return` nu l'est.
+    const tolerees = <String>{
+      // _suggestedGroupsCount — rend 0 pour un comptage d'affichage, méthode
+      // synchrone : dégradation acceptable, aucune action n'est perdue.
+      'lib/features/groups/presentation/screens/groups_screen.dart',
+      // set() — l'abandon suit `_profil()`, qui a DÉJÀ tenté le dépôt : si le
+      // profil manque encore, il est réellement introuvable.
+      'lib/features/profile/presentation/providers/profile_preferences_provider.dart',
+    };
+
+    final motif = RegExp(r'_?ref\.read\(profileNotifierProvider\([^)]*\)\)\.valueOrNull');
+    final abandon = RegExp(r'if\s*\(.*==\s*null\).*return[^;]*;');
+
+    final toutes = _lignes();
+    final inattendus = <String>[];
+    for (var i = 0; i < toutes.length; i++) {
+      final l = toutes[i];
+      if (!motif.hasMatch(l.text)) continue;
+      if (tolerees.any((t) => l.path.endsWith(t))) continue;
+      final suite = [
+        if (i + 1 < toutes.length && toutes[i + 1].path == l.path) toutes[i + 1].text,
+        if (i + 2 < toutes.length && toutes[i + 2].path == l.path) toutes[i + 2].text,
+      ];
+      if (suite.any(abandon.hasMatch)) inattendus.add('${l.path}:${l.line}');
+    }
+    inattendus.sort();
+
+    expect(
+      inattendus,
+      isEmpty,
+      reason:
+          'Lecture de profileNotifierProvider suivie d\'un abandon silencieux.\n'
+          'Ce provider rend `null` tant que le profil n\'est pas en cache.\n'
+          'Retomber sur le dépôt plutôt qu\'abandonner :\n'
+          '  var p = ref.read(profileNotifierProvider(id)).valueOrNull;\n'
+          '  if (p == null) {\n'
+          '    final r = await ref.read(profileRepositoryProvider).getProfile(id);\n'
+          '    p = r.fold((_) => null, (v) => v);\n'
+          '  }\n'
           '${inattendus.join('\n')}',
     );
   });
