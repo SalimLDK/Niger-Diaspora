@@ -56,21 +56,50 @@ Deux vérifications faites directement sur la base :
 Reste ce que seul un téléphone peut dire — le rendu, le groupement, les
 doublons :
 
-- [ ] **Message 1-à-1, app tuée** : la bannière arrive, titre = nom de
-      l'expéditeur, corps = aperçu (ou `🔒 Nouveau message` si E2EE).
+- [x] **Message 1-à-1, app en arrière-plan** — vérifié le 2026-08-06 sur le
+      SM A515F. La bannière arrive, `android.title = "Salim L."` (nom de
+      l'expéditeur), `android.text` = le contenu, `channel=messages`,
+      `importance=4`. Une seule bannière, aucun doublon.
+
+      Deux pièges rencontrés en le testant, à ne pas refaire :
+      - un `adb shell am force-stop` **empêche Android de délivrer FCM** ; un
+        test « app tuée » lancé comme ça ne prouve rien. Lancer l'app, puis
+        `KEYCODE_HOME`.
+      - l'appareil est connecté avec le compte **Sim A**
+        (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), pas Salim L. Pousser vers le mauvais
+        `user_id` donne `{"sent":1}` côté serveur — FCM accepte un token
+        périmé sans broncher — et rien n'arrive. Toujours vérifier le compte
+        connecté avant de conclure.
+
+- [ ] **Message 1-à-1, app réellement tuée** (balayée des récents, pas
+      `force-stop`) : reste à faire.
 - [ ] **Message de groupe** : titre = nom du groupe, corps = `Nom: aperçu`.
-- [ ] **Doublon en arrière-plan** : une seule bannière. Android identifie une
-      notification par le **couple** (tag, id) : le repli local postait sous un
-      id dérivé de la conversation là où le SDK Firebase pose le sien, donc il
-      s'ajoutait au lieu de remplacer. L'id du repli est passé à 0, la valeur
-      du SDK quand un tag est fourni — c'est le point qui reste le plus
-      incertain, il n'est vérifiable qu'à l'œil.
+- [x] **Le SDK Firebase poste bien sous `id=0`** — confirmé par
+      `dumpsys notification` : `id=0 tag=msg_verif-simA-004`. L'id du repli
+      local est passé de `conversationId.hashCode % 99999` à 0, il remplacera
+      donc la bannière au lieu de s'y ajouter. Ce n'était qu'une hypothèse
+      jusque-là.
+- [ ] **Doublon en arrière-plan, build à jour** : à revérifier une fois l'APK
+      reconstruit — le repli local n'a pas posté pendant l'essai, donc le cas
+      « les deux chemins se déclenchent » n'a pas été observé.
 - [ ] **Conversation ouverte au premier plan** : pas de notification système.
 - [ ] **Conversation mutée** : rien n'arrive (le trigger filtre `data.mutedBy`).
 - [ ] **« Mes notes »** : s'écrire à soi-même ne déclenche aucune notification.
 - [ ] **Aperçu désactivé** (`show_message_preview = false`) : corps générique.
 - [ ] **Bascule push du profil sur `off`** : plus rien n'arrive côté FCM alors
       que la cloche in-app continue de se remplir.
+
+### Confirmé à l'œil : l'icône affichée est bien celle du lanceur
+
+Capture du volet de notifications du 2026-08-06 : la bannière Diaspo Niger
+porte la pastille ronde « DN » du lanceur, là où toutes les autres apps
+affichent un glyphe monochrome. C'est exactement le défaut décrit ci-dessous —
+la preuve visuelle que `default_notification_icon` manquait. Le correctif n'est
+pas encore sur l'appareil : l'APK installé (2026-08-06 00:29) précède le commit.
+
+- [ ] **Rebâtir et réinstaller** pour vérifier le glyphe monochrome et le filet
+      orange. ⚠️ `adb install -r` vide les données de l'app : re-onboarding et
+      reconnexion à prévoir, ne pas le faire au milieu d'autre chose.
 
 ### Deuxième défaut, indépendant : l'icône de barre d'état n'existait pas
 
