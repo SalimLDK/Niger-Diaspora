@@ -21,6 +21,8 @@ class SecurityBackupScreen extends ConsumerStatefulWidget {
 }
 
 class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _passphraseController = TextEditingController();
   final _confirmPassphraseController = TextEditingController();
   final _restorePassphraseController = TextEditingController();
@@ -157,7 +159,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
         Navigator.of(context).pop();
       }
     } on PassphraseException {
-      _showErrorSnackBar('Passphrase incorrecte');
+      _showErrorSnackBar(l10n.invalidPassphrase);
     } on BackupNotFoundException {
       _showErrorSnackBar(l10n.noBackupFound);
     } catch (e) {

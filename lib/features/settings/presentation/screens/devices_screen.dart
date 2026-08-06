@@ -23,6 +23,8 @@ class DevicesScreen extends ConsumerStatefulWidget {
 }
 
 class _DevicesScreenState extends ConsumerState<DevicesScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _isLoading = true;
   List<E2EEDeviceInfo> _devices = [];
   String? _currentDeviceId;
@@ -185,7 +187,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       );
 
       if (success) {
-        _showSuccessSnackBar('Appareil révoqué');
+        _showSuccessSnackBar(l10n.deviceRevoked);
       } else {
         _showErrorSnackBar('Impossible de révoquer cet appareil');
       }
@@ -493,6 +495,7 @@ class _DeviceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final fingerprint = _formatFingerprint(device.identityKeyPublic);
     final lastActive = _formatLastActive(device.lastActive);
     final isOnline = DateTime.now().difference(device.lastActive).inMinutes < 5;
@@ -615,17 +618,17 @@ class _DeviceCard extends StatelessWidget {
           // Les actions sortent du menu ⋯ : sur un écran de sécurité, ce qu'on
           // peut faire à un appareil doit se voir.
           if (isCurrent)
-            _CardAction(label: 'Renommer', onTap: onRename)
+            _CardAction(label: l10n.settingsRename, onTap: onRename)
           else
             Row(
               children: [
                 Expanded(
-                  child: _CardAction(label: 'Renommer', onTap: onRename),
+                  child: _CardAction(label: l10n.settingsRename, onTap: onRename),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: _CardAction(
-                    label: 'Révoquer',
+                    label: l10n.settingsRevokeAction,
                     danger: true,
                     onTap: onRevoke,
                   ),

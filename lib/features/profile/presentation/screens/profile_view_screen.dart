@@ -45,6 +45,8 @@ class ProfileViewScreen extends ConsumerStatefulWidget {
 
 class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     with AutomaticKeepAliveClientMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _isBackgroundLocationEnabled = false;
   bool _isCurrentUser = false;
   bool _isSendingRequest = false;
@@ -224,12 +226,12 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler'),
+                child: Text(l10n.undo),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text('Bloquer'),
+                child: Text(l10n.block),
               ),
             ],
           ),
@@ -241,7 +243,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
         .read(blockUserNotifierProvider.notifier)
         .blockUser(
           targetUserId: profile.id,
-          targetDisplayName: profile.displayName ?? 'Utilisateur',
+          targetDisplayName: profile.displayName ?? l10n.user,
           targetPhotoUrl: profile.photoUrl,
         );
 
@@ -607,7 +609,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                 AppIcon(AppIcon.flag, color: Colors.orange),
                                 const SizedBox(width: 12),
                                 Text(
-                                  'Signaler',
+                                  l10n.profileReport,
                                   style: TextStyle(color: Colors.orange),
                                 ),
                               ],
@@ -698,7 +700,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                               DesignTitle(
                                 profile.displayName?.isNotEmpty == true
                                     ? profile.displayName!
-                                    : 'Nouvel utilisateur',
+                                    : l10n.profileNewMember,
                                 size: 22,
                               ),
 
@@ -1252,7 +1254,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                     }
                                   },
                                   icon: const AppIcon(AppIcon.close),
-                                  label: const Text('Refuser'),
+                                  label: Text(l10n.profileDeclineAction),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppColors.error,
                                     side: BorderSide(color: AppColors.error),
@@ -1330,7 +1332,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                     }
                                   },
                                   icon: const AppIcon(AppIcon.check),
-                                  label: const Text('Accepter'),
+                                  label: Text(l10n.profileAcceptAction),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: context.successColor,
                                     foregroundColor: AppColors.white,

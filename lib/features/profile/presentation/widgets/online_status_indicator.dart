@@ -5,6 +5,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../providers/online_status_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// A widget that displays a user's online status and last seen information
 ///
@@ -131,6 +132,7 @@ class _OnlineStatusContent extends ConsumerWidget {
   }
 
   Widget _buildOnlineIndicator(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -153,7 +155,7 @@ class _OnlineStatusContent extends ConsumerWidget {
         if (showText) ...[
           if (showDot) const SizedBox(width: 6),
           Text(
-            'En ligne',
+            l10n.online,
             style:
                 textStyle ??
                 TextStyle(
@@ -168,6 +170,7 @@ class _OnlineStatusContent extends ConsumerWidget {
   }
 
   Widget _buildOfflineIndicator(BuildContext context, DateTime? lastSeen) {
+    final l10n = AppLocalizations.of(context)!;
     String lastSeenText = '';
     if (lastSeen != null) {
       // Configure French locale for timeago
@@ -177,7 +180,7 @@ class _OnlineStatusContent extends ConsumerWidget {
     }
 
     final text = Text(
-      lastSeenText.isNotEmpty ? lastSeenText : 'Hors ligne',
+      lastSeenText.isNotEmpty ? lastSeenText : l10n.offline,
       style:
           textStyle ??
           TextStyle(fontSize: 12, color: context.textSecondaryColor),

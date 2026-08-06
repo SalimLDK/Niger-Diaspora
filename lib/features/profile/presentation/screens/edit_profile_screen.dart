@@ -37,6 +37,8 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _displayNameController = TextEditingController();
   final _bioController = TextEditingController();
@@ -219,7 +221,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     if (ProfileOptions.professions.contains(profession)) {
       _selectedProfession = profession;
     } else {
-      _selectedProfession = 'Autre';
+      _selectedProfession = l10n.other;
       _customProfessionController.text = profession;
     }
   }
@@ -253,7 +255,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
         _selectedOriginRegion = region;
         _showOrigin = true;
       } else {
-        _selectedOriginRegion = 'Autre';
+        _selectedOriginRegion = l10n.other;
       }
     }
     if (city != null && city.isNotEmpty) {
@@ -263,7 +265,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       if (cities.contains(city)) {
         _selectedOriginCity = city;
       } else {
-        _selectedOriginCity = 'Autre';
+        _selectedOriginCity = l10n.other;
         _customOriginCityController.text = city;
       }
     }
@@ -404,7 +406,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   /// Ce qu'on montre d'une liste de puces : tout si elle est dépliée, sinon
   /// les seuls choix déjà faits. Repliée et vide, elle ne laisse que la puce
   String _getFinalProfession() {
-    if (_selectedProfession == 'Autre') {
+    if (_selectedProfession == l10n.other) {
       return _customProfessionController.text.trim();
     }
     return _selectedProfession ?? '';
@@ -422,7 +424,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   }
 
   String _getFinalOriginCity() {
-    if (_selectedOriginCity == 'Autre') {
+    if (_selectedOriginCity == l10n.other) {
       return _customOriginCityController.text.trim();
     }
     return _selectedOriginCity ?? '';
@@ -470,7 +472,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           currentCountry: _getFinalCountry(),
           countryCode: _getFinalCountryCode(),
           originRegion:
-              _selectedOriginRegion == 'Autre' ? null : _selectedOriginRegion,
+              _selectedOriginRegion == l10n.other ? null : _selectedOriginRegion,
           originCity: _getFinalOriginCity(),
           isVisible: _isVisible,
           phoneVisibility: _phoneVisibility,
@@ -770,13 +772,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                             onChanged: (value) {
                               setState(() {
                                 _selectedProfession = value;
-                                if (value != 'Autre') {
+                                if (value != l10n.other) {
                                   _customProfessionController.clear();
                                 }
                               });
                             },
                           ),
-                          if (_selectedProfession == 'Autre') ...[
+                          if (_selectedProfession == l10n.other) ...[
                             const SizedBox(height: 10),
                             CustomTextField(
                               controller: _customProfessionController,
@@ -861,7 +863,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                               },
                             ),
                             if (_selectedOriginRegion != null &&
-                                _selectedOriginRegion != 'Autre') ...[
+                                _selectedOriginRegion != l10n.other) ...[
                               const SizedBox(height: 12),
                               _buildDropdownField(
                                 label: l10n.profileOriginCity,
@@ -872,15 +874,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                 onChanged: (value) {
                                   setState(() {
                                     _selectedOriginCity = value;
-                                    if (value != 'Autre') {
+                                    if (value != l10n.other) {
                                       _customOriginCityController.clear();
                                     }
                                   });
                                 },
                               ),
                             ],
-                            if (_selectedOriginRegion == 'Autre' ||
-                                _selectedOriginCity == 'Autre') ...[
+                            if (_selectedOriginRegion == l10n.other ||
+                                _selectedOriginCity == l10n.other) ...[
                               const SizedBox(height: 12),
                               CustomTextField(
                                 controller: _customOriginCityController,
@@ -1133,7 +1135,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             Icon(Icons.verified, color: context.successColor, size: 20),
             const SizedBox(width: 6),
             Text(
-              'Verifie',
+              l10n.verifiedBadge,
               style: TextStyle(
                 color: context.successColor,
                 fontWeight: FontWeight.w600,
@@ -1232,10 +1234,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   Widget _buildOriginRow(AppLocalizations l10n) {
     final parties = <String>[
       if ((_selectedOriginRegion ?? '').isNotEmpty &&
-          _selectedOriginRegion != 'Autre')
+          _selectedOriginRegion != l10n.other)
         _selectedOriginRegion!,
       if ((_selectedOriginCity ?? '').isNotEmpty &&
-          _selectedOriginCity != 'Autre')
+          _selectedOriginCity != l10n.other)
         _selectedOriginCity!,
     ];
     final rempli = parties.isNotEmpty;

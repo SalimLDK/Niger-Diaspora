@@ -35,6 +35,8 @@ class ProfileConfigScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   static const int _stepCount = 4;
 
   int _currentStep = 0;
@@ -182,7 +184,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
 
       // Get final origin city
       String? finalOriginCity;
-      if (_selectedOriginCity == 'Autre') {
+      if (_selectedOriginCity == l10n.other) {
         finalOriginCity = _customOriginCityController.text.trim();
       } else {
         finalOriginCity = _selectedOriginCity;
@@ -197,7 +199,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
         countryCode: _selectedCountry?.code,
         currentCity: _selectedCityController.text.trim(),
         originRegion:
-            _selectedOriginRegion == 'Autre' ? null : _selectedOriginRegion,
+            _selectedOriginRegion == l10n.other ? null : _selectedOriginRegion,
         originCity: finalOriginCity,
         shareLocation: _shareLocation,
         notificationsEnabled: _enableNotifications,
@@ -447,7 +449,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
     final displayName =
         _displayNameController.text.trim().isNotEmpty
             ? _displayNameController.text.trim()
-            : (currentUser?.displayName ?? 'Utilisateur');
+            : (currentUser?.displayName ?? l10n.user);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 18, 24, 16),
@@ -596,9 +598,9 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
   Widget _buildLocationStep() {
     final l10n = AppLocalizations.of(context)!;
     final needsCustomOriginCity =
-        _selectedOriginRegion == 'Autre' || _selectedOriginCity == 'Autre';
+        _selectedOriginRegion == l10n.other || _selectedOriginCity == l10n.other;
     final originCities =
-        _selectedOriginRegion != null && _selectedOriginRegion != 'Autre'
+        _selectedOriginRegion != null && _selectedOriginRegion != l10n.other
             ? ProfileOptions.getCitiesForRegion(_selectedOriginRegion!)
             : <String>[];
 
@@ -689,7 +691,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                           : (value) {
                             setState(() {
                               _selectedOriginCity = value;
-                              if (value != 'Autre') {
+                              if (value != l10n.other) {
                                 _customOriginCityController.clear();
                               }
                             });

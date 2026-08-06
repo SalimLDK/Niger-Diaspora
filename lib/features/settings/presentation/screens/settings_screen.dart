@@ -37,6 +37,8 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _noiseSuppressionEnabled = true;
   bool _dataSaverMode = false;
   ChatBackgroundEntity? _globalBackground;
@@ -261,7 +263,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         // §20d : la ligne ouvrait une feuille modale qui doublait
                         // l'écran de réglages sur les mêmes préférences. Un seul
                         // endroit désormais.
-                        title: 'Notifications',
+                        title: l10n.notifGroupAll,
                         onTap: () {
                           HapticFeedback.lightImpact();
                           context.push('/notifications/settings');
@@ -425,7 +427,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Mode',
+                      l10n.themeMode,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -457,7 +459,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     if (currentMode != AppThemeMode.dark) ...[
                       const SizedBox(height: 24),
                       Text(
-                        'Apparence',
+                        l10n.themeAppearance,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -471,7 +473,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         currentColor == AppThemeColor.green,
                       ),
                       _buildThemeColorOption(
-                        'Orange (Classique)',
+                        l10n.orangeClassic,
                         AppThemeColor.orange,
                         currentColor == AppThemeColor.orange,
                       ),
@@ -978,7 +980,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
+                child: Text(l10n.settingsOk),
               ),
             ],
           ),

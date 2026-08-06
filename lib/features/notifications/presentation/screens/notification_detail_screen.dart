@@ -43,7 +43,7 @@ class NotificationDetailScreen extends ConsumerWidget {
               if (notification == null) return const SizedBox.shrink();
               return IconButton(
                 icon: const Icon(Icons.alarm),
-                tooltip: 'Me rappeler plus tard',
+                tooltip: l10n.notificationRemindLater,
                 onPressed: () => _showReminderDialog(context, notification),
               );
             },
@@ -407,6 +407,7 @@ class NotificationDetailScreen extends ConsumerWidget {
     BuildContext context,
     NotificationEntity notification,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder:
@@ -414,16 +415,16 @@ class NotificationDetailScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Text(
-                    'Me rappeler plus tard',
+                    l10n.notificationRemindLater,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.timer_outlined),
-                  title: const Text('Dans 1 heure'),
+                  title: Text(l10n.notificationIn1Hour),
                   onTap: () {
                     NotificationService().scheduleNotification(
                       id: notification.hashCode,
@@ -439,13 +440,13 @@ class NotificationDetailScreen extends ConsumerWidget {
                     );
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Rappel programmé')),
+                      SnackBar(content: Text(l10n.notificationScheduled)),
                     );
                   },
                 ),
                 ListTile(
                   leading: const Icon(Icons.wb_sunny_outlined),
-                  title: const Text('Demain matin (9h)'),
+                  title: Text(l10n.notificationTomorrowOption),
                   onTap: () {
                     final now = DateTime.now();
                     var scheduled = DateTime(
@@ -470,7 +471,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                     );
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Rappel programmé')),
+                      SnackBar(content: Text(l10n.notificationScheduled)),
                     );
                   },
                 ),

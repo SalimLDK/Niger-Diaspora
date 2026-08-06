@@ -5,6 +5,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../providers/profile_share_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class QrScannerScreen extends ConsumerStatefulWidget {
   const QrScannerScreen({super.key});
@@ -15,6 +16,8 @@ class QrScannerScreen extends ConsumerStatefulWidget {
 
 class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late MobileScannerController _controller;
 
   bool _isProcessing = false;
@@ -119,7 +122,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     final uri = Uri.tryParse(code);
 
     if (uri == null) {
-      _showError('QR code invalide');
+      _showError(l10n.invalidQRCode);
       return;
     }
 
@@ -153,16 +156,16 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
           if (resolvedId != null) {
             await _navigateToProfile(resolvedId);
           } else {
-            _showError('Lien expiré ou introuvable');
+            _showError(l10n.linkExpiredOrNotFound);
           }
         }
       } catch (e) {
-        if (mounted) _showError('Erreur de connexion');
+        if (mounted) _showError(l10n.connectionError);
       }
       return;
     }
 
-    _showError('QR code invalide ou format non reconnu');
+    _showError(l10n.invalidQrCodeFormat);
   }
 
   Future<void> _navigateToProfile(String userId) async {
@@ -182,7 +185,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
           children: [
             Icon(Icons.check_circle, color: AppColors.white),
             const SizedBox(width: 12),
-            Text('QR code scanné avec succès'),
+            Text(l10n.profileQRScanned),
           ],
         ),
         backgroundColor: AppColors.success,
@@ -392,7 +395,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                'Placez le QR code dans le cadre pour scanner',
+                l10n.placeQrCodeInFrame,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: AppColors.white,
@@ -476,7 +479,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                'Scanner un profil',
+                l10n.scanProfile,
                 style: TextStyle(
                   color: AppColors.white,
                   fontSize: 16,
@@ -507,7 +510,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
               // Flash toggle
               _buildControlButton(
                 icon: _flashOn ? Icons.flash_on : Icons.flash_off,
-                label: _flashOn ? 'Flash actif' : 'Flash',
+                label: _flashOn ? l10n.flashActive : l10n.flash,
                 onTap: _toggleFlash,
                 isActive: _flashOn,
               ),
@@ -515,7 +518,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
               // Switch camera
               _buildControlButton(
                 icon: Icons.cameraswitch_rounded,
-                label: 'Changer',
+                label: l10n.changeCard,
                 onTap: _switchCamera,
               ),
             ],

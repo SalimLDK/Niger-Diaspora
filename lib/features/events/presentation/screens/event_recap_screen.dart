@@ -7,6 +7,7 @@ import 'dart:io';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class EventRecapScreen extends ConsumerStatefulWidget {
   final EventEntity event;
@@ -18,6 +19,8 @@ class EventRecapScreen extends ConsumerStatefulWidget {
 }
 
 class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
   final _imagePicker = ImagePicker();
@@ -50,8 +53,8 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
       if (remaining <= 0) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Limite de 10 photos atteinte'),
+            SnackBar(
+              content: Text(l10n.eventPhotoLimit),
               backgroundColor: Colors.orange,
             ),
           );
@@ -93,8 +96,8 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
 
     if (_selectedPhotos.isEmpty && widget.event.recapPhotoUrls.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez ajouter au moins une photo'),
+        SnackBar(
+          content: Text(l10n.eventAddPhotoMin),
           backgroundColor: Colors.orange,
         ),
       );
@@ -146,8 +149,8 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
               SnackBar(
                 content: Text(
                   _isEditing
-                      ? 'Récapitulatif mis à jour avec succès'
-                      : 'Récapitulatif créé avec succès',
+                      ? l10n.eventRecapUpdatedSuccess
+                      : l10n.eventRecapCreatedSuccess,
                 ),
                 backgroundColor: context.adaptiveSecondaryColor,
               ),
@@ -179,7 +182,7 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
         title: Text(
-          _isEditing ? 'Modifier le récapitulatif' : 'Créer un récapitulatif',
+          _isEditing ? l10n.eventEditRecap : l10n.eventCreateRecap,
         ),
         leading: IconButton(
           icon: const Icon(Icons.close),
@@ -207,7 +210,7 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Partagez les meilleurs moments de votre événement avec des photos et une description.',
+                      l10n.eventRecapInfo,
                       style: TextStyle(
                         fontSize: 13,
                         color: context.textSecondaryColor,
@@ -233,7 +236,7 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
             const SizedBox(height: 24),
 
             // Photos section
-            _buildLabel('Photos du récapitulatif'),
+            _buildLabel(l10n.eventRecapPhotosLabel),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(16),
@@ -257,7 +260,7 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
                   // Existing photos (if editing)
                   if (widget.event.recapPhotoUrls.isNotEmpty) ...[
                     Text(
-                      'Photos existantes',
+                      l10n.eventExistingPhotos,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -296,7 +299,7 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
                       child: OutlinedButton.icon(
                         onPressed: _pickPhotos,
                         icon: const Icon(Icons.add_photo_alternate),
-                        label: const Text('Sélectionner des photos'),
+                        label: Text(l10n.eventSelectPhotos),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: context.adaptivePrimaryColor,
                           side: BorderSide(color: context.adaptivePrimaryColor),
@@ -309,7 +312,7 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
                     )
                   else if (_selectedPhotos.isNotEmpty) ...[
                     Text(
-                      'Nouvelles photos',
+                      l10n.eventNewPhotos,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -388,7 +391,7 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
             const SizedBox(height: 20),
 
             // Description
-            _buildLabel('Description'),
+            _buildLabel(l10n.description),
             const SizedBox(height: 8),
             TextFormField(
               controller: _descriptionController,
@@ -400,10 +403,10 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
               maxLines: 6,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Veuillez ajouter une description';
+                  return l10n.eventRecapDescriptionRequired;
                 }
                 if (value.trim().length < 20) {
-                  return 'La description doit faire au moins 20 caractères';
+                  return l10n.eventRecapDescriptionTooShort;
                 }
                 return null;
               },
@@ -436,8 +439,8 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
                         )
                         : Text(
                           _isEditing
-                              ? 'Mettre à jour'
-                              : 'Créer le récapitulatif',
+                              ? l10n.eventRecapUpdateButton
+                              : l10n.eventRecapCreateButton,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

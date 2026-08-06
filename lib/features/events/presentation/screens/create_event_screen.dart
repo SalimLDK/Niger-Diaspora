@@ -42,6 +42,8 @@ class CreateEventScreen extends ConsumerStatefulWidget {
 }
 
 class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -440,8 +442,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text(
-                  'Abandonner',
+                child: Text(
+                  l10n.feedPostDiscard,
                   style: TextStyle(color: Colors.red),
                 ),
               ),
@@ -484,7 +486,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Aperçu',
+                    l10n.adminOverview,
                     style: TextStyle(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
@@ -525,7 +527,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     text:
                         _isOnline
                             ? (_onlineLinkController.text.trim().isEmpty
-                                ? 'En ligne'
+                                ? l10n.eventsOnline
                                 : _onlineLinkController.text.trim())
                             : _locationController.text.trim(),
                   ),
@@ -537,7 +539,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     ),
                   _PreviewRow(
                     icon: Icons.local_offer_outlined,
-                    text: price <= 0 ? 'Gratuit' : '$price €',
+                    text: price <= 0 ? l10n.eventFree : '$price €',
                     color: price <= 0 ? context.successColor : null,
                   ),
                   const SizedBox(height: 12),
@@ -599,7 +601,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               padding: const EdgeInsets.only(right: 16),
               child: Center(
                 child: Text(
-                  'Brouillon',
+                  l10n.podcastsStatusDraft,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -618,7 +620,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               _buildPosterZone(l10n),
               const SizedBox(height: 16),
 
-              _buildLabel('Titre'),
+              _buildLabel(l10n.adminTitle),
               const SizedBox(height: 7),
               TextFormField(
                 controller: _titleController,
@@ -661,7 +663,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 children: [
                   Expanded(
                     child: _buildPickerField(
-                      label: 'Date',
+                      label: l10n.date,
                       icon: AppIcon(
                         AppIcon.event,
                         size: 17,
@@ -674,7 +676,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _buildPickerField(
-                      label: 'Heure',
+                      label: l10n.audioRoomTime,
                       icon: AppIcon(
                         AppIcon.clock,
                         size: 17,
@@ -751,7 +753,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _buildFormatOption(
-                      label: 'En ligne',
+                      label: l10n.eventsOnline,
                       active: _isOnline,
                       onTap: () => setState(() => _isOnline = true),
                     ),
@@ -846,7 +848,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildLabel('Prix'),
+                        _buildLabel(l10n.priceFieldProduct),
                         const SizedBox(height: 7),
                         TextFormField(
                           controller: _priceController,
@@ -854,7 +856,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           // vert de la fiche est l'état par défaut, pas une
                           // valeur à saisir.
                           decoration: _inputDecoration(
-                            'Gratuit',
+                            l10n.eventFree,
                             context,
                           ).copyWith(
                             hintStyle: TextStyle(
@@ -1208,8 +1210,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Text(
-                'Aperçu',
+              child: Text(
+                l10n.adminOverview,
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
             ),
