@@ -4401,30 +4401,73 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 `PopScope` (geste/bouton retour système) retombent sur `/messages` quand
 `context.canPop()` est faux.
 
-- [ ] Ouvrir une conversation de GROUPE par lien profond, en-tête attendu : nom
-  du groupe + avatar vert, PAS de boutons d'appel 1-à-1. Commande utilisée pour
-  reproduire :
+> ### 🔴 Trouvé pendant la vérification appareil : `groupStreamProvider` lit encore FIRESTORE
+>
+> `groupRemoteDataSourceProvider` (`group_provider.dart:16`) rend
+> `GroupRemoteDataSourceImpl`, bâti sur `FirebaseFirestore.instance` — alors
+> qu'un `GroupSupabaseDataSource` existe, complet, mais **n'est câblé nulle
+> part**. Conséquence : `groupStreamProvider` rend `null` pour tout groupe créé
+> dans Supabase, et comme `groupStream` avale l'erreur
+> (`fold((failure) => null)`), ça ne se voit jamais dans les logs.
+>
+> Symptôme observé : l'en-tête du groupe « Diaspora Niger — Canada » affichait
+> « Groupe » (repli `l10n.group`), tandis que le groupe **hérité de Firestore**
+> affichait bien son nom et son compte de membres — ce qui prouve la cause.
+>
+> Contourné ici en lisant `conversation.name` (la conversation porte le nom du
+> groupe dans `data->>'name'`, vérifié en base) AVANT `groupData`. Mais tout ce
+> qui dépend vraiment de l'entité groupe reste vide pour les groupes Supabase :
+> **permissions** (`canPostEvents`/`canPostPolls`/`canPin`), **rôle
+> admin/modérateur**, **liste des membres** pour les mentions, image du groupe.
+>
+> - [ ] Décider du basculement de `groupRemoteDataSourceProvider` vers
+>   `GroupSupabaseDataSource`. Chantier à part entière : il touche création,
+>   join, recherche, membres et permissions de tout le module Groupes.
+
+### VÉRIFIÉ SUR APPAREIL le 2026-08-05 (SM A515F, APK debug de cette branche)
+
+- [x] **Conversation de GROUPE par lien profond** → en-tête « Diaspora Niger
+  … », avatar vert à icône groupe, sous-titre « Groupe », appels de groupe.
+  Commande :
   ```
   adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app/messages/0ce4c63f-ef7a-4616-8d52-88f22444a4ca" -p com.diasponiger.diasponiger
   ```
+- [x] **Groupe hérité Firestore par lien profond** (`68672ea9-…`,
+  `yflqsRLMMhTPpiW0NFHx`) → « Groupe de test prive », « 1 membre », historique
+  présent (plus de « Aucun message »).
+- [x] **Retour depuis un lien profond** (bouton retour système) → liste des
+  messages, plus d'écran noir.
+- [x] **Non-régression 1-à-1** → « Salim L. », « En ligne », avatar terracotta,
+  appels 1-à-1, bandeau épinglé « 1/3 ». Le nom du correspondant ne s'affichait
+  PAS avant (« Utilisateur ») : `otherUserId` n'était pas réconcilié non plus,
+  corrigé dans la même passe.
+- [x] **Bandeau épinglé** visible et fonctionnel sur le DM (correctif « épingle
+  portée par la conversation »).
+- [x] **Liste des messages** : les deux groupes réapparaissent avec leur nom, et
+  la tuile « Mes notes » a retrouvé son sous-titre « Notes, brouillons et
+  sondages ». Avant le correctif, les deux groupes étaient absorbés par la tuile
+  « Mes notes » et absents du flux (« 2 groupes actifs » sans aucun groupe
+  visible).
+- [x] **Pas de recréation de conversation** : `count(*)` sur `conversations`
+  inchangé (8 avant / 8 après), `yflqsRLMMhTPpiW0NFHx` toujours à 1 ligne.
+
+Restant à vérifier sur ce lot :
+
 - [ ] Même conversation, ouverte par NOTIFICATION (`state.extra` également nul) :
-  même en-tête.
-- [ ] Bandeau épinglé visible sur ces deux chemins quand le groupe a une
-  épingle (couvert par le correctif « épingle portée par la conversation », pas
-  par celui-ci — à vérifier quand même, les deux se croisent ici).
-- [ ] Nom de l'expéditeur + mini-avatar affichés sur les messages reçus (le
-  rendu 1-à-1 les masquait), et badge « Admin » le cas échéant.
+  même en-tête. Non testé — pas de push déclenchable simplement depuis le poste.
+- [ ] Nom de l'expéditeur + mini-avatar sur les messages REÇUS d'un tiers, et
+  badge « Admin ». Non testé : les deux groupes de test n'ont qu'un membre, donc
+  aucun message entrant.
 - [ ] Menu ⋮ et menu « + » du composer : options de groupe (sondage, événement
   selon permissions), pas les options 1-à-1.
-- [ ] Épingler puis détacher un message depuis ce chemin : doit réussir
-  (`group_pinned_items.group_id` renseigné, pas de violation de clé étrangère).
-- [ ] **Retour depuis un lien profond** : le bouton retour donnait un **écran
-  noir** (la route du lien est seule dans la pile). Vérifier les trois chemins —
-  flèche de l'en-tête, geste retour, bouton retour système — tous doivent
-  aboutir sur la liste des messages.
-- [ ] Non-régression 1-à-1 : ouvrir un DM par lien profond ne doit RIEN changer
-  (en-tête personne, boutons d'appel présents), et depuis la liste des messages
-  le retour doit toujours dépiler normalement (pas de saut vers `/messages`).
+- [ ] Épingler puis détacher un message depuis ce chemin.
+- [ ] Les deux autres sorties du retour : flèche de l'en-tête et geste de
+  bord d'écran (seul le bouton retour système a été exercé).
+- [ ] **Recréation par le VRAI chemin** : le lien profond ouvre la conversation
+  par son id et ne passe pas par `createGroupConversation`. Le compte inchangé
+  ci-dessus ne prouve donc PAS encore le correctif du défaut n°1 — il faut
+  ouvrir la discussion depuis l'onglet Groupes, deux fois de suite, et
+  recompter.
 
 **3. `isSelfNotes` avait exactement le même défaut** (trouvé en corrigeant le
 n°2, corrigé dans la foulée le 2026-08-05). `app_router.dart` lisait

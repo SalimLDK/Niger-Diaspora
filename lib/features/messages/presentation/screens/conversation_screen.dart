@@ -139,13 +139,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   // du profil au lieu de « Mes notes », et menu « + » sans le brouillon de
   // sondage. `ConversationEntity.isSelfNotesFor()` tranche à partir de la
   // donnée (participant unique = moi).
+  // `widget.otherUserId` souffre du même mal : absent par lien profond, l'écran
+  // ne pouvait pas charger le profil du correspondant et l'en-tête d'un DM
+  // affichait « Utilisateur ». La conversation connaît pourtant l'autre
+  // participant (`getOtherParticipantId`).
   bool _isGroupFromConversation = false;
   String? _groupIdFromConversation;
   bool _isSelfNotesFromConversation = false;
+  String? _otherUserIdFromConversation;
 
   bool get _isGroup => widget.isGroup || _isGroupFromConversation;
   String? get _effectiveGroupId => widget.groupId ?? _groupIdFromConversation;
   bool get _isSelfNotes => widget.isSelfNotes || _isSelfNotesFromConversation;
+  String? get _effectiveOtherUserId =>
+      widget.otherUserId ?? _otherUserIdFromConversation;
 
   // Gardes d'idempotence : _runGroupOpenWork() est appelé à l'ouverture ET à
   // chaque réconciliation, chaque effet ne doit partir qu'une fois.
@@ -206,14 +213,31 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Sans utilisateur courant (auth pas encore chargée) on ne peut pas
     // trancher « Mes notes » : garder la valeur connue plutôt que de conclure
     // « non » à tort, ce qui ferait clignoter le titre de l'en-tête.
+    //
+    // `isSelfNotesFor()` exclut les groupes depuis le 2026-08-05 : sans ça, un
+    // groupe dont je suis le seul membre satisfaisait « un seul participant,
+    // et c'est moi » et s'affichait « Mes notes » à la place de son nom
+    // (constaté sur appareil en ouvrant `0ce4c63f-…` par lien profond).
     final resolvedIsSelfNotes =
         currentUserId == null
             ? _isSelfNotesFromConversation
             : conversation.isSelfNotesFor(currentUserId);
 
+    // L'autre participant d'un DM : sans lui, `userStreamProvider` n'était
+    // jamais souscrit et l'en-tête affichait « Utilisateur » (vérifié sur
+    // appareil). Ne vaut que pour un vrai 1-à-1 — un groupe ou « Mes notes »
+    // n'a pas de « correspondant », et `getOtherParticipantId` rend '' quand
+    // il n'y en a pas.
+    String? resolvedOtherUserId = _otherUserIdFromConversation;
+    if (currentUserId != null && !resolvedIsGroup && !resolvedIsSelfNotes) {
+      final other = conversation.getOtherParticipantId(currentUserId);
+      resolvedOtherUserId = other.isEmpty ? null : other;
+    }
+
     if (resolvedIsGroup == _isGroupFromConversation &&
         resolvedGroupId == _groupIdFromConversation &&
-        resolvedIsSelfNotes == _isSelfNotesFromConversation) {
+        resolvedIsSelfNotes == _isSelfNotesFromConversation &&
+        resolvedOtherUserId == _otherUserIdFromConversation) {
       return;
     }
 
@@ -223,6 +247,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         _isGroupFromConversation = resolvedIsGroup;
         _groupIdFromConversation = resolvedGroupId;
         _isSelfNotesFromConversation = resolvedIsSelfNotes;
+        _otherUserIdFromConversation = resolvedOtherUserId;
       });
       // La conversation vient (peut-être) de se révéler être un groupe :
       // rejouer ce qu'initState avait sauté faute de le savoir.
@@ -665,7 +690,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// Handle call back from a call message bubble
   Future<void> _handleCallBack(MessageEntity message) async {
     // Only allow call back in 1:1 conversations
-    if (_isGroup || widget.otherUserId == null) {
+    if (_isGroup || _effectiveOtherUserId == null) {
       return;
     }
 
@@ -678,7 +703,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final call = await ref
         .read(currentCallProvider.notifier)
         .initiateCall(
-          calleeId: widget.otherUserId!,
+          calleeId: _effectiveOtherUserId!,
           calleeName: widget.conversationName ?? l10n.user,
           calleePhotoUrl: widget.conversationImageUrl,
           type: callType,
@@ -950,9 +975,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           groupData?.permissions.canPostEvents(isAdmin: isAdmin) ?? false;
       canPostPolls =
           groupData?.permissions.canPostPolls(isAdmin: isAdmin) ?? false;
-    } else if (!_isGroup && widget.otherUserId != null) {
+    } else if (!_isGroup && _effectiveOtherUserId != null) {
       final otherUser =
-          ref.read(userStreamProvider(widget.otherUserId!)).valueOrNull;
+          ref.read(userStreamProvider(_effectiveOtherUserId!)).valueOrNull;
       displayName ??= otherUser?.displayName;
       displayImage ??= otherUser?.photoUrl;
     }
@@ -964,7 +989,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       builder:
           (context) => ConversationOptionsModal(
             conversationId: widget.conversationId,
-            otherUserId: widget.otherUserId,
+            otherUserId: _effectiveOtherUserId,
             otherUserName: displayName,
             otherUserPhotoUrl: displayImage,
             isGroup: _isGroup,
@@ -1132,8 +1157,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     // Stream other user's profile if it's an individual chat
     AsyncValue<dynamic>? otherUserAsync;
-    if (!_isGroup && widget.otherUserId != null) {
-      otherUserAsync = ref.watch(userStreamProvider(widget.otherUserId!));
+    if (!_isGroup && _effectiveOtherUserId != null) {
+      otherUserAsync = ref.watch(userStreamProvider(_effectiveOtherUserId!));
     }
 
     final otherUser = otherUserAsync?.valueOrNull;
@@ -1198,9 +1223,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Determine display name for typing indicator
     // For groups: use passed name, fallback to loaded group data, then default
     // For individual: use loaded user profile, fallback to passed name, then default
+    // Même repli que l'en-tête : `conversation.name` avant `groupData`, ce
+    // dernier venant de Firestore et restant null pour un groupe Supabase.
     final displayName =
         _isGroup
-            ? (widget.conversationName ?? groupData?.name ?? l10n.group)
+            ? (widget.conversationName ??
+                conversation?.name ??
+                groupData?.name ??
+                l10n.group)
             : (otherUser?.displayName ?? widget.conversationName ?? l10n.user);
 
     // Typing users for the in-list bubble
@@ -1221,8 +1251,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final Map<String, String>? typingNames =
         _isGroup
             ? {for (final m in groupMembers) m.id: m.name}
-            : (widget.otherUserId != null
-                ? {widget.otherUserId!: displayName}
+            : (_effectiveOtherUserId != null
+                ? {_effectiveOtherUserId!: displayName}
                 : null);
 
     // Auto-scroll to bottom when new messages arrive & calculate unread on first load
@@ -1278,7 +1308,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
               ? _buildSelectionAppBar(paginationState.messages)
               : _isSearchMode
               ? _buildSearchAppBar()
-              : _buildAppBar(otherUser, groupData),
+              : _buildAppBar(otherUser, groupData, conversation),
       body: Container(
         decoration:
             _chatBackground != null && !_chatBackground!.isDefault
@@ -1515,8 +1545,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       // Send with retry logic
                       // If blocked by other user, include their ID in sentWhileBlockedBy
                       final blockedByList =
-                          isBlockedByOther && widget.otherUserId != null
-                              ? [widget.otherUserId!]
+                          isBlockedByOther && _effectiveOtherUserId != null
+                              ? [_effectiveOtherUserId!]
                               : <String>[];
 
                       final success = await ref
@@ -2264,7 +2294,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                                   // Call back support for call messages (1:1 conversations only)
                                   onCallBack:
                                       (!_isGroup &&
-                                              widget.otherUserId != null &&
+                                              _effectiveOtherUserId != null &&
                                               message.isCall)
                                           ? () => _handleCallBack(message)
                                           : null,
@@ -2376,7 +2406,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             onSelect: _handleSelect,
                             onCallBack:
                                 (!_isGroup &&
-                                        widget.otherUserId != null &&
+                                        _effectiveOtherUserId != null &&
                                         message.isCall)
                                     ? () => _handleCallBack(message)
                                     : null,
@@ -2498,12 +2528,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   /// Start a call with the other user
   Future<void> _startCall({required bool isVideo}) async {
-    if (widget.otherUserId == null) return;
+    if (_effectiveOtherUserId == null) return;
 
     final l10n = AppLocalizations.of(context)!;
 
     // Get other user info from watched data
-    final otherUserAsync = ref.read(userStreamProvider(widget.otherUserId!));
+    final otherUserAsync = ref.read(userStreamProvider(_effectiveOtherUserId!));
     final otherUser = otherUserAsync.valueOrNull;
 
     final calleeName =
@@ -2517,7 +2547,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final call = await ref
         .read(currentCallProvider.notifier)
         .initiateCall(
-          calleeId: widget.otherUserId!,
+          calleeId: _effectiveOtherUserId!,
           calleeName: calleeName,
           calleePhotoUrl: calleePhotoUrl,
           type: isVideo ? CallType.video : CallType.audio,
@@ -2557,7 +2587,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       name: 'start_call',
       parameters: {
         'call_type': isVideo ? 'video' : 'audio',
-        'callee_id': widget.otherUserId!,
+        'callee_id': _effectiveOtherUserId!,
       },
     );
   }
@@ -2974,22 +3004,41 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     );
   }
 
-  PreferredSizeWidget _buildAppBar(dynamic otherUser, dynamic groupData) {
+  PreferredSizeWidget _buildAppBar(
+    dynamic otherUser,
+    dynamic groupData,
+    ConversationEntity? conversation,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     // For groups: use passed name, fallback to loaded group data, then default
     // For individual: use loaded user profile, fallback to passed name, then default
+    //
+    // `conversation?.name` s'intercale avant `groupData` : la conversation
+    // porte déjà le nom du groupe (colonne `data->>'name'`), alors que
+    // `groupData` vient de `groupStreamProvider`, encore câblé sur FIRESTORE
+    // (`GroupRemoteDataSourceImpl`) — il rend donc null pour tout groupe créé
+    // dans Supabase, et l'en-tête retombait sur « Groupe » quand aucun
+    // `state.extra` n'était fourni (lien profond, notification). Vérifié sur
+    // appareil le 2026-08-05 : « Diaspora Niger — Canada » s'affichait
+    // « Groupe », alors que la liste des messages — qui lit `conversation.name`
+    // — montrait le bon nom.
     final displayName =
         _isSelfNotes
             ? 'Mes notes'
             : _isGroup
-            ? (widget.conversationName ?? groupData?.name ?? l10n.group)
+            ? (widget.conversationName ??
+                conversation?.name ??
+                groupData?.name ??
+                l10n.group)
             : (otherUser?.displayName ?? widget.conversationName ?? l10n.user);
 
     final displayImage =
         _isSelfNotes
             ? null
             : _isGroup
-            ? (widget.conversationImageUrl ?? groupData?.imageUrl)
+            ? (widget.conversationImageUrl ??
+                conversation?.imageUrl ??
+                groupData?.imageUrl)
             : (otherUser?.photoUrl ?? widget.conversationImageUrl);
 
     final initials = _getInitials(displayName);
@@ -3015,7 +3064,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           // debugPrint('🔘 Tapped conversation header:');
           // debugPrint('   isGroup: ${_isGroup}');
           // debugPrint('   groupId: ${_effectiveGroupId}');
-          // debugPrint('   otherUserId: ${widget.otherUserId}');
+          // debugPrint('   otherUserId: ${_effectiveOtherUserId}');
 
           if (_isGroup) {
             // Use passed groupId, fallback to loaded groupData, then search by name
@@ -3037,12 +3086,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 context,
               ).showSnackBar(SnackBar(content: Text(l10n.loadingError)));
             }
-          } else if (widget.otherUserId != null) {
+          } else if (_effectiveOtherUserId != null) {
             if (isDeletedUser) {
               return;
             }
-            // debugPrint('   ➡️ Navigating to /profile/${widget.otherUserId}');
-            context.push('/profile/${widget.otherUserId}');
+            // debugPrint('   ➡️ Navigating to /profile/${_effectiveOtherUserId}');
+            context.push('/profile/$_effectiveOtherUserId');
           }
         },
         borderRadius: BorderRadius.circular(12),
@@ -3137,7 +3186,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                                       ),
                             ),
                   ),
-                  if (!_isGroup && widget.otherUserId != null && !isDeletedUser)
+                  if (!_isGroup &&
+                      _effectiveOtherUserId != null &&
+                      !isDeletedUser)
                     Positioned(
                       right: -1,
                       bottom: -1,
@@ -3150,7 +3201,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                           shape: BoxShape.circle,
                         ),
                         child: OnlineStatusIndicator(
-                          userId: widget.otherUserId!,
+                          userId: _effectiveOtherUserId!,
                           showText: false,
                           dotSize: 11,
                         ),
@@ -3202,15 +3253,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                         },
                       )
                     else if (!_isGroup &&
-                        widget.otherUserId != null &&
+                        _effectiveOtherUserId != null &&
                         !isDeletedUser)
                       // Online status text for individual chats
                       _buildStatusWithLock(
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
                           child: OnlineStatusIndicator(
-                            key: ValueKey(widget.otherUserId),
-                            userId: widget.otherUserId!,
+                            key: ValueKey(_effectiveOtherUserId),
+                            userId: _effectiveOtherUserId!,
                             showText: true,
                             showDot: false,
                           ),

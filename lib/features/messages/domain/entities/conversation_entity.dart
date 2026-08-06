@@ -39,6 +39,7 @@ class ConversationEntity extends Equatable {
   final String createdBy;
   final Map<String, int> unreadCount;
   final Map<String, int> unreadMentions;
+
   /// Map of userId to mute expiration time.
   /// null value = muted forever, DateTime = muted until that time, no entry = not muted
   final Map<String, DateTime?> mutedBy;
@@ -117,14 +118,27 @@ class ConversationEntity extends Equatable {
   /// « Mes notes » : conversation avec soi-même (unique participant = moi).
   /// Sert de brouillon/scratchpad ; chiffrée au repos avec la clé AES globale.
   ///
-  /// `!isGroup` est indispensable : un groupe dont on est le seul membre — le
-  /// cas de tout groupe qu'on vient de créer — a lui aussi un unique
-  /// participant. Sans cette garde il passait pour « Mes notes » : compté dans
-  /// « N groupes actifs » en en-tête, retiré de la liste comme doublon, et son
-  /// dernier message s'affichait sous la tuile Mes notes. La liste disait donc
-  /// le contraire de son propre en-tête.
+  /// Un GROUPE est exclu explicitement : « un seul participant, et c'est moi »
+  /// est vrai aussi d'un groupe qu'on vient de créer et que personne n'a
+  /// encore rejoint. Sans cette garde, un tel groupe était pris pour « Mes
+  /// notes » — constaté sur appareil le 2026-08-05, avec quatre conséquences :
+  /// il disparaissait de la liste des messages (`_filterConversations` le
+  /// retirait comme doublon) tout en alimentant la tuile épinglée « Mes
+  /// notes », qui affichait son dernier message ; il restait pourtant compté
+  /// dans le « N groupes actifs » de l'en-tête, si bien que la liste
+  /// contredisait son propre titre ; l'en-tête de la conversation affichait
+  /// « Mes notes » à la place du nom du groupe ; et surtout ses messages
+  /// partaient chiffrés en note vers soi (AES global) au lieu du chemin de
+  /// groupe.
+  ///
+  /// `groupId == null` double la garde : une conversation peut porter un
+  /// `group_id` sans que son `type` ait été posé à `group` (cf. la
+  /// réconciliation de `ConversationScreen`, qui teste les deux).
   bool isSelfNotesFor(String userId) =>
-      !isGroup && participantIds.length == 1 && participantIds.first == userId;
+      !isGroup &&
+      groupId == null &&
+      participantIds.length == 1 &&
+      participantIds.first == userId;
 
   int getUnreadCountFor(String userId) => unreadCount[userId] ?? 0;
   bool hasUnreadFor(String userId) => getUnreadCountFor(userId) > 0;
@@ -152,7 +166,8 @@ class ConversationEntity extends Equatable {
   }
 
   /// Check if this is a pending message request
-  bool get isPendingRequest => requestStatus == ConversationRequestStatus.pending;
+  bool get isPendingRequest =>
+      requestStatus == ConversationRequestStatus.pending;
 
   /// Check if user is the requester (sender of the message request)
   bool isRequester(String userId) => requesterId == userId;
@@ -206,7 +221,8 @@ class ConversationEntity extends Equatable {
       lastMessageType: lastMessageType ?? this.lastMessageType,
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
       lastMessageReadBy: lastMessageReadBy ?? this.lastMessageReadBy,
-      lastMessageDeliveredTo: lastMessageDeliveredTo ?? this.lastMessageDeliveredTo,
+      lastMessageDeliveredTo:
+          lastMessageDeliveredTo ?? this.lastMessageDeliveredTo,
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,
       unreadCount: unreadCount ?? this.unreadCount,
