@@ -891,57 +891,51 @@ class _GroupCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // §9c — la ligne du titre ne porte plus que le nom et les
+                  // deux indicateurs à largeur bornée (cadenas, épinglé :
+                  // 13 et 14 dp).
+                  //
+                  // Elle portait aussi la pastille « Officiel » et la pastille
+                  // ACTIF/CALME, toutes deux à largeur libre. Sur un écran de
+                  // 360 dp il ne restait alors qu'une soixantaine de dp au nom
+                  // (226 dp de ligne − 52 avatar déjà déduits − 56 « Officiel »
+                  // − 60 « ACTIF » − 39 d'icônes et d'écarts) : « Diaspora
+                  // Niger — Canada » s'affichait « Diaspor… ». C'est le nom qui
+                  // cédait, jamais les pastilles, parce que lui seul était
+                  // `Flexible`.
+                  //
+                  // Les deux pastilles rejoignent la ligne de méta en bas de
+                  // carte, qui est un `Wrap` : elles y restent entières et
+                  // passent à la ligne plutôt que de rogner quoi que ce soit.
                   Row(
                     children: [
                       Expanded(
-                        child: Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                group.name,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: context.textPrimaryColor,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            // Cadenas si le groupe est privé (refonte 9c).
-                            if (group.isPrivate) ...[
-                              const SizedBox(width: 6),
-                              Icon(
-                                Icons.lock_outline_rounded,
-                                size: 13,
-                                color: context.textTertiaryColor,
-                              ),
-                            ],
-                            if (group.isOfficial) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: context.adaptivePrimaryColor
-                                      .withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  'Officiel',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: context.adaptivePrimaryColor,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
+                        child: Text(
+                          group.name,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: context.textPrimaryColor,
+                          ),
+                          // Deux lignes, parce qu'une seule ne suffit pas même
+                          // sans pastilles : entre l'avatar (52), le bouton
+                          // « Rejoindre » (~86) et les écarts, la colonne ne
+                          // fait que ~140 dp sur un écran de 360. « Diaspora
+                          // Niger — Canada » en demande ~175. Les noms réels
+                          // des groupes officiels tiennent tous sur deux.
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      // Cadenas si le groupe est privé (refonte 9c).
+                      if (group.isPrivate) ...[
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.lock_outline_rounded,
+                          size: 13,
+                          color: context.textTertiaryColor,
+                        ),
+                      ],
                       // Épinglé (refonte 9c) : reprend l'icône/couleur du
                       // même indicateur sur les conversations.
                       if (isPinned) ...[
@@ -951,12 +945,6 @@ class _GroupCard extends ConsumerWidget {
                           size: 14,
                           color: context.adaptivePrimaryColor,
                         ),
-                      ],
-                      // Badge d'activité ACTIF/CALME (refonte 9c) — visible dès
-                      // qu'on connaît la dernière activité de la conversation.
-                      if (lastActivity != null) ...[
-                        const SizedBox(width: 8),
-                        _GroupActivityBadge(lastActivity: lastActivity),
                       ],
                     ],
                   ),
@@ -971,48 +959,81 @@ class _GroupCard extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 10),
-                  Row(
+                  // §9c — `Wrap` et non `Row` : les pastilles qui n'entrent
+                  // pas passent à la ligne suivante. En `Row`, ajouter
+                  // « Officiel » et ACTIF/CALME ici aurait déplacé la
+                  // troncature sur le nom de ville au lieu de la supprimer.
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      // Ville (refonte 9c : « ville · N membres »).
-                      if ((group.location ?? group.country)?.trim().isNotEmpty ??
-                          false) ...[
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: context.surfaceVariantColor,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                AppIcon(
-                                  AppIcon.location,
-                                  size: 12,
-                                  color: context.textSecondaryColor,
-                                ),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    (group.location ?? group.country)!,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
-                                      color: context.textSecondaryColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                      // Groupe officiel (§9c) — pastille déplacée depuis la
+                      // ligne du titre, qu'elle tronquait.
+                      if (group.isOfficial)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.adaptivePrimaryColor
+                                .withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Officiel',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: context.adaptivePrimaryColor,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                      ],
+                      // Badge d'activité ACTIF/CALME (refonte 9c) — visible dès
+                      // qu'on connaît la dernière activité de la conversation.
+                      if (lastActivity != null)
+                        _GroupActivityBadge(lastActivity: lastActivity),
+                      // Ville (refonte 9c : « ville · N membres »).
+                      if ((group.location ?? group.country)?.trim().isNotEmpty ??
+                          false)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.surfaceVariantColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AppIcon(
+                                AppIcon.location,
+                                size: 12,
+                                color: context.textSecondaryColor,
+                              ),
+                              const SizedBox(width: 4),
+                              // Le seul libellé de longueur non bornée de la
+                              // ligne : lui seul reste `Flexible`, donc lui
+                              // seul peut s'élider si la pastille atteint la
+                              // largeur de la carte.
+                              Flexible(
+                                child: Text(
+                                  (group.location ?? group.country)!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: context.textSecondaryColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -1041,7 +1062,6 @@ class _GroupCard extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
