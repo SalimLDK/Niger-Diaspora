@@ -326,26 +326,67 @@ extension CountryExtension on Country {
   /// Get display string with flag
   String get displayName => '$flag $label';
 
-  /// Parse country from string (code or name)
+  /// Rabat une écriture de pays sur une forme comparable : minuscules, sans
+  /// accents, tirets et apostrophes ramenés à des espaces.
+  ///
+  /// Indispensable, et pas cosmétique : la liste de `create_group_screen`
+  /// propose « États-Unis » quand [label] rend « Etats-Unis », et « Côte
+  /// d'Ivoire » s'écrit des deux façons selon la source. Une comparaison
+  /// stricte échouait donc en silence sur ces pays-là — sans erreur, juste un
+  /// pays non reconnu et une valeur brute qui repart en base.
+  static String _fold(String s) => s
+      .toLowerCase()
+      .trim()
+      .replaceAll(RegExp('[àáâãä]'), 'a')
+      .replaceAll(RegExp('[èéêë]'), 'e')
+      .replaceAll(RegExp('[ìíîï]'), 'i')
+      .replaceAll(RegExp('[òóôõö]'), 'o')
+      .replaceAll(RegExp('[ùúûü]'), 'u')
+      .replaceAll('ç', 'c')
+      .replaceAll(RegExp("[’'`\\-]"), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ');
+
+  /// Parse country from string (code ISO, nom d'énumération, ou libellé).
   static Country? fromString(String? value) {
     if (value == null || value.isEmpty) return null;
+    final v = _fold(value);
 
     // Try by code first
     for (final country in Country.values) {
-      if (country.code.toLowerCase() == value.toLowerCase()) {
+      if (_fold(country.code) == v) {
         return country;
       }
     }
 
     // Try by name
     for (final country in Country.values) {
-      if (country.name.toLowerCase() == value.toLowerCase()) {
+      if (_fold(country.name) == v) {
+        return country;
+      }
+    }
+
+    // Try by label : `name` est l'identifiant Dart (`burkinaFaso`), il ne
+    // reconnaît donc aucun nom composé tel qu'il s'écrit (« Burkina Faso »,
+    // « Côte d'Ivoire »). Or c'est sous cette forme que les pays arrivent du
+    // géocodage inverse et des écrans qui listent des libellés en dur.
+    for (final country in Country.values) {
+      if (_fold(country.label) == v) {
         return country;
       }
     }
 
     return null;
   }
+
+  /// Code ISO-2 pour une valeur écrite dans n'importe laquelle des trois
+  /// formes ci-dessus ; `null` si le pays n'est pas reconnu.
+  ///
+  /// À utiliser avant toute écriture dans une colonne `country_code` : elles
+  /// contenaient un mélange de codes et de libellés (`CA` à côté de `Canada`,
+  /// `NE` à côté de `Niger`), si bien que les comparaisons d'égalité
+  /// échouaient silencieusement — le filtre par pays de la liste des groupes
+  /// ne retenait alors qu'une partie des groupes du pays visé.
+  static String? toIsoCode(String? value) => fromString(value)?.code;
 }
 
 /// Helper to get countries by region

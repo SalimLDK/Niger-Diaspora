@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/models/country.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../models/profile_model.dart';
 import 'profile_remote_datasource.dart';
@@ -256,7 +257,18 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
               'bio': profile.bio,
               'profession': profile.profession,
               'city': profile.currentCity,
-              'country_code': profile.currentCountry ?? profile.countryCode,
+              // La colonne attend un code ISO-2. `currentCountry` arrive du
+              // géocodage inverse sous forme de LIBELLÉ (« Canada »), d'où un
+              // mélange `CA`/`Canada` en base qui faisait échouer toutes les
+              // comparaisons d'égalité — notamment le filtre par pays de la
+              // liste des groupes. On normalise, et on ne retient la valeur
+              // brute que si le pays n'est pas reconnu (mieux vaut la garder
+              // que la perdre).
+              'country_code': CountryExtension.toIsoCode(
+                    profile.currentCountry ?? profile.countryCode,
+                  ) ??
+                  profile.currentCountry ??
+                  profile.countryCode,
               'current_region': profile.currentRegion,
               'origin_region': profile.originRegion,
               'origin_city': profile.originCity,

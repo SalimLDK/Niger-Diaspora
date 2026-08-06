@@ -4497,14 +4497,47 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 >   `[migré de yflqsRLMMhTPpiW0NFHx]` que le script y posait apparaissait en
 >   clair dans la liste (constaté sur appareil). Il est désormais effacé en fin
 >   de migration — il ne servait qu'au rapprochement interne.
-> - [ ] Donnée hétérogène, non traitée : `groups.country_code` mélange codes
->   ISO et noms complets (`CA`, `Canada`, `Niger`, `null`). Le filtre pays
->   compare `g.country == _selectedCountry` et
->   `availableGroupCountriesProvider` dérive de cette colonne — un commentaire
->   du code signale déjà que le repli sur `'NE'` ne se déclenchait jamais avec
->   `'Niger'`. Normaliser demanderait de savoir ce que contient
->   `profiles.currentCountry` (un nom, semble-t-il) : à traiter ensemble, pas à
->   moitié.
+> ### `country_code` : sources corrigées, données à normaliser (2026-08-06)
+>
+> Les DEUX tables mélangeaient codes ISO et libellés — `users.country_code`
+> contenait `Niger` à côté de `NE`, `BF`, `CA` ; `groups.country_code` avait
+> `Canada` à côté de `CA`. Toute comparaison d'égalité échouait donc en
+> silence : filtre par pays de la liste des groupes, et
+> `availableGroupCountriesProvider` qui dérive de cette colonne.
+>
+> **Les deux sources d'écriture sont corrigées** — la base ne se salira plus :
+> - `profile_supabase_datasource` écrivait `currentCountry`, qui vient du
+>   géocodage inverse sous forme de libellé (« Canada ») ;
+> - `create_group_screen` écrivait un libellé de sa liste `_hostCountries`
+>   codée en dur (« Niger », « États-Unis »…).
+> Les deux passent maintenant par `CountryExtension.toIsoCode()`, qui a été
+> ajouté. `Country.fromString` reconnaît désormais aussi le **libellé** (il ne
+> comparait que le code et le nom d'énumération, donc aucun nom composé) et
+> ignore accents et ponctuation — sans quoi « États-Unis » ne correspondait pas
+> à `Etats-Unis`, et « Côte d'Ivoire » pas à `Cote d'Ivoire`.
+>
+> ⛔ **Trouvé en tentant la normalisation : DEUX groupes officiels pour le
+> Canada.** « Diaspora Niger — Canada » (`Canada`, 16/07, 1 membre, 5 messages)
+> et « Diaspora Niger — CA » (`CA`, 20/07, totalement vide). L'index unique
+> partiel `uniq_official_group_per_country` aurait dû l'empêcher, mais les deux
+> écritures différaient. C'est le MÊME enchaînement que le défaut n°1 :
+> `ensureOfficialGroup` a cherché par `CA`, n'a pas trouvé le groupe rangé sous
+> `Canada`, et en a créé un second.
+>
+> - [ ] **À lancer** : `tools/normalize_country_codes.sql`. Il déclasse le
+>   doublon vide (`is_official = false` — l'index étant partiel, ça suffit à
+>   lever le conflit, et rien n'est supprimé), puis normalise `users` et
+>   `groups` vers l'ISO-2. Idempotent ; ce qui n'est pas reconnu est laissé
+>   intact plutôt que deviné. L'exécution a été refusée par le garde-fou de
+>   sécurité, elle doit être lancée à la main :
+>   ```
+>   supabase db query --linked --file tools/normalize_country_codes.sql
+>   ```
+> - [ ] Ensuite seulement : vérifier sur appareil que le filtre par pays de la
+>   liste des groupes retient bien tous les groupes du pays choisi.
+> - [ ] À décider : le doublon vide « Diaspora Niger — CA » est déclassé, pas
+>   supprimé. Il restera visible dans « Découvrir ». Sa suppression est sans
+>   perte (0 membre, 0 conversation, 0 épingle, vérifié) mais irréversible.
 
 ### VÉRIFIÉ SUR APPAREIL le 2026-08-05 (SM A515F, APK debug de cette branche)
 

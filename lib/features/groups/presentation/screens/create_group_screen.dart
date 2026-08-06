@@ -10,6 +10,7 @@ import '../../../../core/utils/toast_utils.dart';
 import '../../../../core/services/image_upload_service.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
+import '../../../../core/models/country.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 
@@ -177,7 +178,14 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       adminIds: [currentUser.id],
       memberIds: [currentUser.id],
       createdAt: DateTime.now(),
-      country: _selectedCountry,
+      // `_hostCountries` est une liste de LIBELLÉS français ('Niger',
+      // 'Canada', …) et cette valeur part telle quelle dans
+      // `groups.country_code`, qui attend un code ISO-2. D'où le mélange
+      // `CA`/`Canada`, `NE`/`Niger` constaté en base, et un filtre par pays qui
+      // ne retenait qu'une partie des groupes. On normalise ici — l'affichage
+      // continue de montrer les libellés.
+      country:
+          CountryExtension.toIsoCode(_selectedCountry) ?? _selectedCountry,
       originRegion: _selectedOriginRegion,
     );
 
