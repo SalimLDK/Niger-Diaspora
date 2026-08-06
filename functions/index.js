@@ -7353,14 +7353,35 @@ exports.revenueCatWebhook = functions.https.onRequest(async (req, res) => {
         return res.status(405).send("Method Not Allowed");
     }
 
-    // Verify authorization header
+    // Verify authorization header.
+    //
+    // Ce garde echouait OUVERT : `if (authHeader)` sautait toute la
+    // verification quand la variable etait absente — et elle l'est en
+    // production (`REVENUECAT_WEBHOOK_AUTH` n'est que dans .env.example).
+    // N'importe qui pouvant atteindre l'URL pouvait donc poster un evenement
+    // forge, et le corps ci-dessous ecrit `subscriptionStatus: "active"` avec
+    // les entitlements de son choix sur le compte de son choix
+    // (`app_user_id` vient de la requete). Abonnement premium gratuit, sur
+    // demande.
+    //
+    // Meme classe que le placeholder Stripe corrige par ec07de4, mais dans
+    // l'autre sens : celui-ci laissait passer au lieu de tout refuser. On
+    // refuse desormais tant que le secret n'est pas configure.
     const authHeader = process.env.REVENUECAT_WEBHOOK_AUTH;
-    if (authHeader) {
-        const provided = req.headers["authorization"];
-        if (provided !== authHeader) {
-            console.warn("revenueCatWebhook: unauthorized request");
-            return res.status(401).send("Unauthorized");
-        }
+    if (!authHeader || isPlaceholderSecret(authHeader)) {
+        console.error(
+            "REVENUECAT_WEBHOOK_AUTH absent ou laisse au placeholder — " +
+            "voir docs/ops/secrets_production.md"
+        );
+        return res.status(500).send("Webhook secret not configured");
+    }
+
+    const provided = req.headers["authorization"] || "";
+    const attendu = Buffer.from(authHeader);
+    const recu = Buffer.from(provided);
+    if (recu.length !== attendu.length || !crypto.timingSafeEqual(recu, attendu)) {
+        console.warn("revenueCatWebhook: unauthorized request");
+        return res.status(401).send("Unauthorized");
     }
 
     const event = req.body;
