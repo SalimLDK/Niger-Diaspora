@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/exceptions.dart';
@@ -48,7 +50,8 @@ class ReportRepositoryImpl implements ReportRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: $e'));
+      dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -70,7 +73,8 @@ class ReportRepositoryImpl implements ReportRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: $e'));
+      dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -95,7 +99,8 @@ class ReportRepositoryImpl implements ReportRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: $e'));
+      dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -115,7 +120,8 @@ class ReportRepositoryImpl implements ReportRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: $e'));
+      dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -148,7 +154,8 @@ class ReportRepositoryImpl implements ReportRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: $e'));
+      dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -160,7 +167,8 @@ class ReportRepositoryImpl implements ReportRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: $e'));
+      dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -186,7 +194,8 @@ class ReportRepositoryImpl implements ReportRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: $e'));
+      dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -254,7 +263,8 @@ class ReportRepositoryImpl implements ReportRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: $e'));
+      dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -266,7 +276,8 @@ class ReportRepositoryImpl implements ReportRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: $e'));
+      dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 }
