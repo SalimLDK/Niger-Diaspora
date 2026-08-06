@@ -46,9 +46,11 @@ Signalé comme « le scroll a un problème ». Mesuré sur SM A515F avec une son
   chemin et aucune notification ne le porte — il arrive en lien profond, donc
   probablement d'une charge utile push déjà déployée. Redirection ajoutée
   (`71035fb`) ; l'émetteur reste à corriger côté serveur.
-- [ ] Vérifier la redirection après le prochain build :
+- [x] **Redirection vérifiée sur appareil (2026-08-06, 01:21).**
   `am start -a VIEW -d "https://diasponiger.web.app/settings/notifications"`
-  sur app tuée doit ouvrir les réglages de notifications.
+  sur app tuée ouvre bien l'écran de réglages de notifications, et **aucune
+  `GoException` dans logcat**. Avant le correctif, le même lien affichait
+  « Page Not Found ».
 
 ---
 
