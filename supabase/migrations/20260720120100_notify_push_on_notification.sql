@@ -1,30 +1,52 @@
 -- =============================================================================
--- Trigger / Webhook : notifications INSERT → push FCM via send-push
+-- Trigger : notifications INSERT → push FCM via l'Edge Function send-push.
 --
--- Problème corrigé : la migration 20260720120100 était vide, donc aucun
--- mécanisme serveur ne déclenchait l'Edge Function send-push après INSERT
--- dans `notifications`. Résultat : les notifications in-app étaient créées,
--- mais les push FCM n'arrivaient jamais.
+-- ⚠️ Ce fichier a été RÉÉCRIT le 2026-08-05 pour refléter ce qui tourne
+-- réellement sur le distant. La version précédente n'a jamais été celle
+-- déployée : elle lisait l'URL et le secret dans
+-- `current_setting('app.supabase_project_ref')` / `app.push_webhook_secret`,
+-- deux réglages qui valent NULL sur le projet — elle serait donc retombée sur
+-- ses valeurs de repli `https://diaspo-niger.supabase.co` et `default-secret`,
+-- et aurait cassé les notifications qui fonctionnent. La rejouer à la main
+-- aurait fait des dégâts ; d'où cette remise à niveau.
 --
--- Fix : utiliser pg_net pour appeler l'Edge Function send-push de manière
--- asynchrone et fiable. pg_net est une extension Supabase qui permet de faire
--- des requêtes HTTP depuis Postgres sans bloquer la transaction.
+-- Le mécanisme réel : une table de configuration privée, écrite hors dépôt
+-- (elle contient le secret partagé, qui n'a rien à faire dans le repo).
 --
--- Prérequis :
---   - Extension pg_net activée (Supabase la fournit par défaut)
---   - Edge Function send-push déployée
---   - Secrets configurés dans Supabase :
---       FCM_SERVICE_ACCOUNT       : JSON du service account Firebase
---       PUSH_WEBHOOK_SECRET       : secret partagé pour authentifier l'appel
---       SERVICE_ROLE_KEY          : clé service role Supabase
+--   private.push_webhook_config
+--     id             BOOLEAN PK, toujours TRUE (ligne unique)
+--     function_url   https://<project-ref>.supabase.co/functions/v1/send-push
+--     webhook_secret secret partagé, présenté en `x-webhook-secret`
 --
--- Payload envoyé à send-push : le record notifications au format JSON.
--- send-push lit users.fcm_tokens et envoie les pushes FCM.
+-- Renseigner la ligne une seule fois, hors migration :
+--   INSERT INTO private.push_webhook_config (id, function_url, webhook_secret)
+--   VALUES (TRUE, 'https://<ref>.supabase.co/functions/v1/send-push', '<secret>')
+--   ON CONFLICT (id) DO UPDATE
+--     SET function_url = EXCLUDED.function_url,
+--         webhook_secret = EXCLUDED.webhook_secret;
 --
--- Idempotent : CREATE OR REPLACE + DROP TRIGGER IF EXISTS.
+-- Si la ligne est absente, le trigger est un no-op : la notification in-app
+-- est créée, aucun push n'est envoyé.
+--
+-- Le court-circuit `IF NEW.type = 'message'` que portait la version déployée
+-- est retiré par la migration 20260805230000 — voir son en-tête.
+--
+-- Idempotent : CREATE ... IF NOT EXISTS + CREATE OR REPLACE + DROP TRIGGER IF EXISTS.
 -- =============================================================================
 
 CREATE EXTENSION IF NOT EXISTS pg_net;
+
+CREATE SCHEMA IF NOT EXISTS private;
+
+CREATE TABLE IF NOT EXISTS private.push_webhook_config (
+  id             BOOLEAN PRIMARY KEY DEFAULT TRUE,
+  function_url   TEXT NOT NULL,
+  webhook_secret TEXT NOT NULL,
+  CONSTRAINT push_webhook_config_singleton CHECK (id IS TRUE)
+);
+
+-- Table de secrets : aucun accès client, ni anon ni authenticated.
+REVOKE ALL ON private.push_webhook_config FROM PUBLIC;
 
 CREATE OR REPLACE FUNCTION public.notify_push_on_notification()
 RETURNS TRIGGER
@@ -33,62 +55,37 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_project_ref TEXT;
-  v_edge_url    TEXT;
-  v_secret      TEXT;
-  v_payload     TEXT;
+  cfg private.push_webhook_config%ROWTYPE;
 BEGIN
-  -- Supabase Edge Functions URL pattern: https://<project-ref>.supabase.co/functions/v1/send-push
-  -- We derive project_ref from the current database name if possible, or use a config value.
-  v_project_ref := current_setting('app.supabase_project_ref', true);
-  IF v_project_ref IS NULL OR v_project_ref = '' THEN
-    -- Fallback: try to extract from auth settings or use a placeholder
-    v_project_ref := 'diaspo-niger';
-  END IF;
-
-  v_edge_url := format('https://%s.supabase.co/functions/v1/send-push', v_project_ref);
-  v_secret := current_setting('app.push_webhook_secret', true);
-  IF v_secret IS NULL OR v_secret = '' THEN
-    v_secret := 'default-secret';
-  END IF;
-
-  v_payload := jsonb_build_object(
-    'type',   TG_OP,
-    'table',  TG_TABLE_NAME,
-    'record', row_to_json(NEW)
-  )::text;
-
-  -- Async HTTP POST via pg_net; non-blocking for the trigger transaction.
-  PERFORM net.http_post(
-    url     := v_edge_url,
-    headers := jsonb_build_object(
-      'Content-Type',   'application/json',
-      'x-webhook-secret', v_secret
-    ),
-    body    := v_payload
-  );
-
-  RETURN NEW;
-EXCEPTION
-  WHEN OTHERS THEN
-    -- Never fail the notifications INSERT because of a push failure.
-    RAISE WARNING 'notify_push_on_notification: %', SQLERRM;
+  -- Les messages de chat sont poussés par un autre flux : on les ignore ici.
+  -- (Hypothèse fausse depuis le passage des messages à Supabase — levée par
+  -- la migration 20260805230000.)
+  IF NEW.type = 'message' THEN
     RETURN NEW;
+  END IF;
+
+  SELECT * INTO cfg FROM private.push_webhook_config WHERE id IS TRUE;
+  IF NOT FOUND THEN
+    RETURN NEW; -- non configuré : no-op (la notif in-app reste créée)
+  END IF;
+
+  PERFORM net.http_post(
+    url := cfg.function_url,
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-webhook-secret', cfg.webhook_secret
+    ),
+    body := jsonb_build_object('record', to_jsonb(NEW)),
+    timeout_milliseconds := 5000
+  );
+  RETURN NEW;
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_notify_push_on_notification ON public.notifications;
-CREATE TRIGGER trg_notify_push_on_notification
+DROP TRIGGER IF EXISTS trg_notify_push ON public.notifications;
+CREATE TRIGGER trg_notify_push
   AFTER INSERT ON public.notifications
   FOR EACH ROW
   EXECUTE FUNCTION public.notify_push_on_notification();
 
-COMMENT ON FUNCTION public.notify_push_on_notification() IS
-  'Après INSERT notifications : appelle asynchronement l''Edge Function send-push via pg_net pour envoyer les pushes FCM.';
-
 REVOKE ALL ON FUNCTION public.notify_push_on_notification() FROM PUBLIC;
-
--- Helper to set project ref and webhook secret for the trigger.
--- Run this once after deployment:
---   ALTER DATABASE current_database() SET app.supabase_project_ref = 'your-project-ref';
---   ALTER DATABASE current_database() SET app.push_webhook_secret = 'your-webhook-secret';

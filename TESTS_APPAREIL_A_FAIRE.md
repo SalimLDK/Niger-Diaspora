@@ -14,6 +14,39 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Push FCM des messages — chaîne serveur rétablie (2026-08-05)
+
+Audit de la base distante : **aucun push n'était envoyé pour un message de
+chat** depuis le passage des messages à Supabase. Deux trous cumulés :
+
+- `messages` n'avait aucun trigger sur le distant, et les fonctions de
+  `20260720120000_notify_recipients_on_message_insert.sql` en étaient absentes
+  — alors que la migration est inscrite comme appliquée. Aucune ligne
+  `notifications` de type `message` n'a été créée depuis le 12/04/2026.
+- La fonction `notify_push_on_notification` déployée court-circuitait
+  `type = 'message'` en déléguant à la Cloud Function RTDB `onMessageCreated`
+  ([functions/index.js:839](functions/index.js:839)), qui écoute
+  `/messages/{conversationId}/{messageId}` — un chemin que l'app n'écrit plus
+  (`MessageSupabaseDataSource`).
+
+Correctif : `supabase/migrations/20260805230000_fix_message_push_pipeline.sql`.
+
+Rien de tout ça n'est vérifiable par `flutter analyze`/`flutter test` : c'est
+du SQL distant plus une livraison FCM réelle. À vérifier sur deux appareils (ou
+un appareil + le compte de test) **une fois la migration appliquée** :
+
+- [ ] **Message 1-à-1, app tuée** : la bannière arrive, titre = nom de
+      l'expéditeur, corps = aperçu (ou `🔒 Nouveau message` si E2EE).
+- [ ] **Message de groupe** : titre = nom du groupe, corps = `Nom: aperçu`.
+- [ ] **Aucun doublon** : le repli local `_showFallbackMessageNotification`
+      partage le tag `msg_$conversationId` avec le push — une seule bannière.
+- [ ] **Conversation ouverte au premier plan** : pas de notification système.
+- [ ] **Conversation mutée** : rien n'arrive (le trigger filtre `data.mutedBy`).
+- [ ] **« Mes notes »** : s'écrire à soi-même ne déclenche aucune notification.
+- [ ] **Aperçu désactivé** (`show_message_preview = false`) : corps générique.
+- [ ] **Bascule push du profil sur `off`** : plus rien n'arrive côté FCM alors
+      que la cloche in-app continue de se remplir.
+
 ## Écrans de notifications — lot « une seule source » (2026-08-05)
 
 `notification_settings_screen.dart` a rejoint `design_kit.dart` (c'était la
