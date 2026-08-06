@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'dart:async';
 import 'dart:io';
@@ -261,7 +262,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -402,7 +404,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -424,7 +427,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -452,7 +456,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -506,7 +511,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -527,7 +533,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -553,7 +560,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -573,7 +581,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -595,7 +604,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -642,7 +652,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -662,7 +673,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -718,7 +730,8 @@ class MessageRepositoryImpl implements MessageRepository {
         return Left(ServerFailure(e.message));
       } catch (e) {
         // debugPrint('❌ Repository: Unexpected error - ${e.toString()}');
-        return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+        dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+        return Left(ServerFailure(AppErrorMessages.unexpectedError));
       }
     } else {
       // Offline mode - load from cache
@@ -834,7 +847,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -870,7 +884,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -908,7 +923,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -932,7 +948,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -950,7 +967,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -968,7 +986,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -984,7 +1003,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1004,7 +1024,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1022,7 +1043,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1044,7 +1066,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1066,7 +1089,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1090,7 +1114,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1112,7 +1137,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1134,7 +1160,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1156,7 +1183,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1176,7 +1204,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1194,7 +1223,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1212,7 +1242,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1238,7 +1269,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -1260,7 +1292,8 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 

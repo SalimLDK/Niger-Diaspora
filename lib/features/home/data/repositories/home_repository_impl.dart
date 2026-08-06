@@ -69,7 +69,7 @@ class HomeRepositoryImpl implements HomeRepository {
       return Left(ServerFailure(e.message));
     } catch (e) {
       debugPrint('HomeRepository: Unexpected error: $e');
-      return const Left(ServerFailure('Erreur inattendue'));
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 

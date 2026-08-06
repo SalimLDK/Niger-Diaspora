@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:dartz/dartz.dart';
@@ -275,7 +276,8 @@ class AuthNotifier extends _$AuthNotifier {
       );
     } catch (e, stackTrace) {
       dev.log('AuthNotifier.signInWithGoogle: EXCEPTION - ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
-      state = AuthState.error('Erreur inattendue: ${e.toString()}');
+      dev.log('Erreur inattendue', name: _tag, error: e);
+      state = AuthState.error(AppErrorMessages.unexpectedError);
     }
   }
 

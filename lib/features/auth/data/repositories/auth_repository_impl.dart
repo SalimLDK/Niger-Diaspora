@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -29,7 +31,8 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -45,7 +48,8 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -69,7 +73,8 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -86,7 +91,8 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -101,7 +107,8 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -115,7 +122,8 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -127,7 +135,8 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 
@@ -157,7 +166,8 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(ServerFailure('Erreur inattendue: ${e.toString()}'));
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
   }
 }
