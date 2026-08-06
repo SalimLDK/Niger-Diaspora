@@ -5522,6 +5522,61 @@ Reste à voir à l'écran — c'est tout ce que la base ne peut pas prouver :
 
 ---
 
+## Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06)
+
+`c7f4141` a fait pointer `GroupRequestDataSource` vers Supabase au lieu d'une
+collection Firestore restée vide. La plomberie était juste — 12 méthodes sur
+12, tables, colonnes et index uniques vérifiés en base — mais **le parcours
+restait impraticable de bout en bout**, pour trois raisons que seule la base
+pouvait dire :
+
+- La seule policy sur `group_requests` était
+  `firebase_uid() = requester_id OR firebase_uid() = processed_by`. Une demande
+  en attente a `processed_by` NULL et `requester_id` = le demandeur :
+  **l'admin ne correspondait à aucune des deux branches**. Sa liste de demandes
+  en attente était vide, et l'UPDATE d'approbation ne touchait aucune ligne —
+  sans erreur, PostgREST rendant 200 sur un update qui ne matche rien.
+- `processed_by` recevait `auth.currentUser.id`, l'uid **Supabase** (un uuid),
+  là où la colonne et les policies parlent en uid **Firebase**. La seule ligne
+  existante le montre : `processed_by = '1b313b0d-…'` face à
+  `requester_id = 'U64HKfrjM5Nw…'`. Cette branche ne pouvait jamais matcher.
+- L'approbation inscrivait le nouveau membre dans `groups.member_ids` — colonne
+  **vide sur les 4 groupes**, et systématiquement recalculée depuis
+  `group_members` au chargement. Approuver n'ajoutait personne.
+- Enfin, ni `group_requests` ni `group_invites` n'appartenaient à la
+  publication `supabase_realtime` : les `.stream()` ne faisaient que leur
+  chargement initial. Même trou que `group_pinned_items` (20260805120000).
+
+Corrigé : policies admin sur `group_requests` / `group_invites`, fonctions
+`approve_group_request` / `reject_group_request` (SECURITY DEFINER, statut +
+appartenance en une transaction, identité résolue par `firebase_uid()`), et
+`acceptGroupInvite` qui écrit dans `group_members` comme `joinGroup`
+(migration `20260806180000_group_requests_admin_access.sql`).
+
+Rien de tout ça n'est prouvable sans **deux comptes** :
+
+- [ ] **Compte B demande à rejoindre un groupe privé de A** : la demande doit
+      apparaître chez A, dans les demandes en attente du groupe.
+- [ ] **A approuve** : B devient membre pour de bon — le groupe entre dans
+      « Mes groupes » de B, le compteur de membres monte, et B accède aux
+      messages du groupe.
+- [ ] **A refuse** une deuxième demande : elle disparaît de la liste et B ne
+      devient pas membre.
+- [ ] **B redemande alors qu'il est déjà membre** : message « Vous êtes déjà
+      membre de ce groupe » (le garde lisait une colonne vide, il ne se
+      déclenchait jamais).
+- [ ] **Invitation acceptée** : même vérification côté `acceptGroupInvite` —
+      l'invité devient réellement membre.
+- [ ] **Un non-admin ne voit pas** les demandes du groupe, et l'appel RPC lui
+      est refusé (« Réservé aux administrateurs du groupe »).
+
+Point adjacent **non corrigé**, à garder en tête si le compteur de membres
+paraît faux sur un groupe privé : la policy `group_members_select` est
+`firebase_uid() = user_id OR is_group_public(group_id)`. Dans un groupe privé,
+un membre ne voit donc que **sa propre** ligne d'appartenance.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

@@ -23,18 +23,19 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   }) async {
     try {
       await SupabaseAuthBridge.instance.ensureAuthenticated();
+      // Appartenance lue dans `group_members`, pas dans `groups.member_ids` :
+      // cette colonne est vide sur toutes les lignes et le chargement la
+      // recalcule depuis `group_members`. Le garde ne se declenchait donc
+      // jamais, et un membre pouvait redemander a rejoindre son propre groupe.
       final memberRow = await _supabase
-          .from('groups')
-          .select('member_ids')
-          .eq('id', groupId)
+          .from('group_members')
+          .select('user_id')
+          .eq('group_id', groupId)
+          .eq('user_id', requesterId)
           .maybeSingle();
 
       if (memberRow != null) {
-        final memberIds =
-            List<String>.from(memberRow['member_ids'] as List? ?? []);
-        if (memberIds.contains(requesterId)) {
-          throw ServerException('Vous êtes déjà membre de ce groupe');
-        }
+        throw ServerException('Vous êtes déjà membre de ce groupe');
       }
 
       await _supabase.from('group_requests').upsert({
@@ -57,36 +58,19 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   Future<void> approveJoinRequest(String requestId) async {
     try {
       await SupabaseAuthBridge.instance.ensureAuthenticated();
-      final row = await _supabase
-          .from('group_requests')
-          .select('group_id, requester_id')
-          .eq('id', requestId)
-          .single();
-
-      final groupId = row['group_id'] as String;
-      final requesterId = row['requester_id'] as String;
-
-      await _supabase.from('group_requests').update({
-        'status': 'approved',
-        'processed_at': DateTime.now().toUtc().toIso8601String(),
-        'processed_by': _supabase.auth.currentUser?.id,
-      }).eq('id', requestId);
-
-      final groupRow = await _supabase
-          .from('groups')
-          .select('member_ids')
-          .eq('id', groupId)
-          .single();
-
-      final memberIds =
-          List<String>.from(groupRow['member_ids'] as List? ?? []);
-      if (!memberIds.contains(requesterId)) {
-        memberIds.add(requesterId);
-        await _supabase
-            .from('groups')
-            .update({'member_ids': memberIds})
-            .eq('id', groupId);
-      }
+      // Statut + appartenance en une transaction cote base.
+      //
+      // La version precedente faisait trois allers-retours et se trompait sur
+      // les deux points qui comptent : `processed_by` recevait l'uid Supabase
+      // (un uuid) alors que la colonne et les policies parlent en uid Firebase,
+      // et le nouveau membre etait ecrit dans `groups.member_ids`, colonne que
+      // le chargement recalcule depuis `group_members` -- approuver
+      // n'ajoutait personne. La fonction verifie elle-meme que l'appelant est
+      // admin du groupe (migration 20260806180000).
+      await _supabase.rpc(
+        'approve_group_request',
+        params: {'p_request_id': requestId},
+      );
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -96,11 +80,12 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   Future<void> rejectJoinRequest(String requestId) async {
     try {
       await SupabaseAuthBridge.instance.ensureAuthenticated();
-      await _supabase.from('group_requests').update({
-        'status': 'rejected',
-        'processed_at': DateTime.now().toUtc().toIso8601String(),
-        'processed_by': _supabase.auth.currentUser?.id,
-      }).eq('id', requestId);
+      // Meme fonction miroir que l'approbation, pour que `processed_by` soit
+      // resolu au meme endroit et dans le meme referentiel d'identite.
+      await _supabase.rpc(
+        'reject_group_request',
+        params: {'p_request_id': requestId},
+      );
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -190,21 +175,16 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
         'responded_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', inviteId);
 
-      final groupRow = await _supabase
-          .from('groups')
-          .select('member_ids')
-          .eq('id', groupId)
-          .single();
-
-      final memberIds =
-          List<String>.from(groupRow['member_ids'] as List? ?? []);
-      if (!memberIds.contains(inviteeId)) {
-        memberIds.add(inviteeId);
-        await _supabase
-            .from('groups')
-            .update({'member_ids': memberIds})
-            .eq('id', groupId);
-      }
+      // Appartenance ecrite dans `group_members`, comme `joinGroup` : c'est la
+      // seule source lue au chargement, et le trigger de comptage y est
+      // accroche. L'ecriture precedente dans `groups.member_ids` n'ajoutait
+      // personne. Pas de fonction SECURITY DEFINER ici : l'invite s'inscrit
+      // lui-meme, ce que la policy `group_members_own` autorise deja.
+      await _supabase.from('group_members').upsert({
+        'group_id': groupId,
+        'user_id': inviteeId,
+        'role': 'member',
+      }, onConflict: 'group_id,user_id',);
     } catch (e) {
       throw ServerException(e.toString());
     }
