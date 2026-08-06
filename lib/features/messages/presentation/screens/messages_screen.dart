@@ -692,6 +692,43 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 
+  /// Filtre actif qui ne ramène rien — à ne pas confondre avec la fiche 9e.
+  ///
+  /// Même langage visuel que les deux états vides voisins (recherche sans
+  /// résultat, archives vides) : icône en 64, une phrase. S'y ajoute la sortie
+  /// qui manquait — sans elle, l'écran ne dit pas comment revenir à une liste
+  /// non vide, et la puce active se lit mal sur un fond blanc.
+  Widget _buildFilteredEmptyState(
+    BuildContext context, {
+    required String icon,
+    required String message,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AppIcon(
+            icon,
+            size: 64,
+            color: context.textTertiaryColor.withValues(alpha: 0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: context.textSecondaryColor),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () => setState(() => _filter = _MessagesFilter.all),
+            child: Text(l10n.showAllConversations),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Messagerie vide (fiche 9e) : pastille ronde, titre, explication qui
   /// mentionne le chiffrement, deux amorces nommées, puis le CTA.
   ///
@@ -942,6 +979,27 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               ),
             ],
           ),
+        );
+      }
+
+      // Une puce de filtre active qui ne ramène rien n'est PAS une messagerie
+      // vide. `_buildEmptyState` (fiche 9e) annonçait « Aucune conversation /
+      // Commencez à discuter » et proposait « Nouvelle conversation » alors que
+      // la vérité était « aucune conversation non lue » ou « aucun groupe » —
+      // le message mentait sur le filtre actif, et l'action proposée ne
+      // répondait pas au problème. Les libellés existaient déjà dans les `.arb`
+      // (`noUnreadMessages`, `noGroupConversations`, `showAllConversations`),
+      // ils n'étaient simplement câblés nulle part.
+      if (_filter == _MessagesFilter.unread ||
+          _filter == _MessagesFilter.groups) {
+        return _buildFilteredEmptyState(
+          context,
+          icon: _filter == _MessagesFilter.unread
+              ? AppIcon.doneAll
+              : AppIcon.groups,
+          message: _filter == _MessagesFilter.unread
+              ? l10n.noUnreadMessages
+              : l10n.noGroupConversations,
         );
       }
 
