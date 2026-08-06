@@ -5448,28 +5448,53 @@ Le déclencheur plutôt qu'un `COALESCE` dans `insert_group` : la fonction est
 `SECURITY DEFINER`, et la reproduire depuis `pg_proc` pour n'y changer qu'une
 ligne fait courir un risque de dérive sans rapport avec le sujet.
 
-⛔ **La migration n'est PAS appliquée** :
-`supabase/migrations/20260806170000_groups_country_code_defaut_ne.sql` est
-versionnée, mais l'écriture en base a été refusée depuis la session. Tant
-qu'elle n'est pas passée, **le groupe déjà nul reste invisible** — le côté app
-ne couvre que les créations à venir. À lancer :
+✅ **Migration appliquée le 2026-08-06**, et inscrite dans
+`supabase_migrations.schema_migrations` — elle est passée par
+`db query --file` et non par `db push`, donc sans cette inscription
+`supabase migration list` l'aurait montrée « en attente » pour toujours.
 
-```bash
-supabase db query --linked "$(cat supabase/migrations/20260806170000_groups_country_code_defaut_ne.sql)"
-```
+Relevé avant / après sur `public.groups` :
 
-Vérifié par `test/core/models/pays_defaut_test.dart` (6 cas : le défaut vaut
-bien `Country.niger.code`, c'est un code ISO-2 et pas un libellé, les deux
+| `country_code` | avant | après |
+|---|---|---|
+| `NE` | 2 | **3** |
+| `CA` | 1 | 1 |
+| *(null)* | **1** | **0** |
+
+Le groupe visé (`2b24986f-08b5-4840-9931-dbe046ffb394`, « Groupe de test
+prive ») porte bien `NE`, et le `CA` n'a pas bougé — la reprise ne touche que
+les nuls et les vides.
+
+Les deux autres verrous sont vérifiés en base : `column_default` vaut
+`'NE'::text`, et `trg_groups_country_code_defaut` existe.
+
+**Le déclencheur est prouvé, pas seulement présent.** Il n'a pas pu être
+éprouvé sur `public.groups` : un autre déclencheur, `enforce_group_creator()`,
+refuse toute insertion sans JWT applicatif (« firebase_uid introuvable »), et
+la session d'administration n'en a pas. La fonction a donc été montée sur une
+table jetable, dans une transaction annulée — quatre cas, dont un contrôle
+négatif :
+
+| entrée | résultat |
+|---|---|
+| `NULL` (ce que passe `insert_group`) | `NE` |
+| `''` | `NE` |
+| `'   '` | `NE` |
+| `'CA'` | **`CA`** — non écrasé |
+
+Vérifié aussi par `test/core/models/pays_defaut_test.dart` (6 cas : le défaut
+vaut bien `Country.niger.code`, c'est un code ISO-2 et pas un libellé, les deux
 chemins de création le posent, plus aucun `'NE'` en dur dans l'écran des
-groupes, et la migration est présente).
+groupes, et la migration est versionnée).
+
+Reste à voir à l'écran — c'est tout ce que la base ne peut pas prouver :
 
 - [ ] **Créer un groupe sans choisir de pays** : il doit apparaître dans
       « Découvrir » avec le filtre `NE`, et la fiche doit afficher « Niger ».
-- [ ] **Après application de la migration** : « Groupe de test prive »
-      réapparaît (c'est un groupe **privé**, donc le vérifier dans
-      « Mes groupes » côté créateur, pas dans « Découvrir »).
-- [ ] **Un groupe créé AVEC un pays** garde bien le sien — le défaut ne doit
-      écraser personne.
+- [ ] **« Groupe de test prive » est de nouveau atteignable** : c'est un groupe
+      **privé**, donc à chercher dans « Mes groupes » côté créateur, pas dans
+      « Découvrir ».
+- [ ] **Un groupe créé AVEC un pays** garde bien le sien à l'écran aussi.
 
 ---
 
