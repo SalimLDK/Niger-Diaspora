@@ -4325,9 +4325,30 @@ champ à 6 lignes). Mesures au banc sur gabarit A51 (393 dp).
   - **Envoi depuis l'état verrouillé** : bulle audio verte, lecteur, durée
     1:15, contrôle de vitesse. Fonctionne. ⚠ Un vocal de test de 1:15 traîne
     dans « Mes notes », à supprimer.
-  - [ ] **Appui long puis simple relâchement** (sans glissement) : NON vérifié.
-    La dernière tentative est tombée sur l'écran Profil, l'app ayant navigué
-    entre-temps. C'est le geste le plus courant, il reste à faire.
+  - [x] **Appui long puis simple relâchement** (sans glissement) — vérifié le
+    2026-08-06 à 07:20. Le geste fonctionne : bulle audio de 0:02 créée. ⚠ Mais
+    l'envoi a **échoué** (« À l'instant · Non envoyé · Réessayer »), alors que
+    l'envoi depuis l'état verrouillé avait réussi une heure plus tôt. Entre les
+    deux, « Mes notes » était passé par l'état « Ce groupe a été supprimé ».
+    C'est la conséquence concrète du raccourci de `EnsureSelfNotesNotifier`
+    (voir ci-dessous) : la conversation renvoyée par le cache pointe sur un
+    document absent, donc toute écriture échoue. À noter au crédit de l'app :
+    l'échec est **affiché** avec une action « Réessayer », il n'est pas avalé.
+- [ ] ⚠ **Cause racine à trancher — `EnsureSelfNotesNotifier.ensure()`**
+  (`message_provider.dart`, vers la ligne 1550) renvoie la conversation « Mes
+  notes » trouvée dans la liste en cache **sans vérifier que son document
+  existe encore**, et saute `getOrCreateSelfConversation`. Le commentaire assume
+  le raccourci (« éviter un aller-retour »). Tant que la liste et le document
+  sont d'accord ça tient ; dès qu'ils divergent, « Mes notes » s'ouvre sur un
+  document fantôme et **tout envoi échoue**. Supprimer le raccourci coûte une
+  requête par ouverture : arbitrage à faire.
+- [ ] ⚠ **Débordement en paysage** trouvé le 2026-08-06 : conversation avec
+  toute sa chrome (bandeau épinglé + bandeau de clés), clavier levé, appareil
+  en paysage → « BOTTOM OVERFLOWED BY 17 PIXELS », et le composeur passe sous
+  la ligne de flottaison. Le portrait est sain. Rien dans logcat, comme toujours
+  (Crashlytics remplace `FlutterError.onError`) : seule la bannière rayée le
+  prouve. Piste : la chrome fixe de la conversation n'est pas repliable, et en
+  paysage il ne reste presque rien après le clavier.
 - [x] ⚠ **Défaut trouvé pendant ce test — libellés tronqués dans le bandeau
   d'enregistrement**, à font_scale 1.1 sur le A51 : « Relâc… » au lieu de
   « Relâcher pour annuler », « L'enregi… » au lieu de « L'enregistrement sera
