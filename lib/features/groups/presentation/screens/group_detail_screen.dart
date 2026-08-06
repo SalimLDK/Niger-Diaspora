@@ -484,9 +484,17 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     ); // Close PopScope
   }
 
+  // `_requestToJoin`, `_joinGroup` et `_leaveGroup` attendent la PREMIÈRE
+  // ÉMISSION de `currentUserAsyncProvider` (`await …future`). Cet écran ne
+  // regarde que `currentUserProvider` — un provider DIFFÉRENT — donc un
+  // `read(currentUserAsyncProvider).valueOrNull` démarrait l'abonnement au
+  // moment du tap et rendait `null` : les trois méthodes sortaient sur un
+  // `return` nu, boutons morts sans message ni trace. C'est le même défaut qui
+  // rendait « Ouvrir la discussion » inopérant (cf. `createGroup` de
+  // `message_provider.dart`), vérifié sur appareil le 2026-08-05.
   Future<void> _requestToJoin(GroupEntity group) async {
     final l10n = AppLocalizations.of(context)!;
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     setState(() => _isLoading = true);
@@ -523,7 +531,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
   Future<void> _joinGroup(String groupId) async {
     final l10n = AppLocalizations.of(context)!;
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     setState(() => _isLoading = true);
@@ -554,8 +562,11 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
   Future<void> _leaveGroup(String groupId) async {
     final l10n = AppLocalizations.of(context)!;
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
+    // L'attente ci-dessus est un saut asynchrone : l'écran peut avoir été
+    // démonté entre-temps, et `context` ne serait plus utilisable.
+    if (!mounted) return;
 
     final confirm = await showDialog<bool>(
       context: context,

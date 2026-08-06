@@ -12,12 +12,23 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
     return const AsyncValue.data(null);
   }
 
+  // Toutes les méthodes de ce notifier attendent la PREMIÈRE ÉMISSION de
+  // `currentUserAsyncProvider` (`await …future`) au lieu de lire
+  // `read(...).valueOrNull`. C'est un StreamProvider **autoDispose** qu'aucun
+  // écran appelant ne regarde : la lecture démarrait l'abonnement à l'instant
+  // du tap et rendait `AsyncLoading`, donc `null`, et chaque méthode sortait
+  // sur `return false` — action sans effet et SANS message, puisque les
+  // appelants ignorent ce booléen. Vérifié sur appareil le 2026-08-05 : la
+  // cloche « Couper les notifications » de la fiche de groupe ne faisait rien,
+  // et `data->'mutedBy'` restait nul en base. Même piège que
+  // `ConversationNotifier.createGroup` et `_createGroup` de
+  // `create_group_screen.dart`.
   Future<bool> muteConversation(
     String conversationId,
     bool mute, {
     Duration? duration,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
@@ -51,7 +62,7 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
   }
 
   Future<bool> archiveConversation(String conversationId, bool archive) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
@@ -87,7 +98,7 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
     String conversationId, {
     bool forEveryone = false,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
@@ -117,7 +128,7 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
     required String reason,
     String? description,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
@@ -207,7 +218,7 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
     required String messageId,
     required String reason,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
@@ -233,7 +244,7 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
     required String conversationId,
     required String reason,
   }) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();

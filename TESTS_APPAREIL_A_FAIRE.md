@@ -4489,12 +4489,49 @@ erreur dans `state`.
 - [x] Vérifié sur appareil : le bouton ouvre bien la discussion, deux fois de
   suite, sur le groupe hérité.
 - [ ] Refaire sur un groupe **Supabase** (`03077217-…`), non testé.
-- [ ] ⚠️ **128 occurrences de `read(currentUserAsyncProvider).valueOrNull`
-  subsistent dans 32 fichiers** (`grep -rn` sur `lib/`). Toutes ne sont pas
-  fautives — le piège ne se déclenche que là où l'écran n'écoute pas déjà le
-  provider — mais chacune est un bouton potentiellement mort et silencieux.
-  À auditer, PAS à remplacer en masse : passer en `await …future` rend la
-  méthode asynchrone et change le comportement.
+- [x] **Audit ciblé mené le 2026-08-06.** Critère retenu : occurrence suivie
+  d'un abandon silencieux (`return`, `return null`, `return false`) dans un
+  fichier qui ne `watch` pas ce provider. Point structurel confirmé : **aucun
+  `watch(currentUserAsyncProvider)` au niveau racine/shell** — il n'est
+  maintenu vivant que par 24 sites dispersés, donc rien ne le garde chaud. Et
+  `currentUserProvider` est un provider **différent** : le watcher ne maintient
+  pas l'autre (c'est ce qui piégeait la fiche de groupe).
+- [x] **`conversation_actions_provider` (6 méthodes) — CORRIGÉ ET VÉRIFIÉ.**
+  `muteConversation`, `archiveConversation`, `deleteConversation`,
+  `reportConversation`, `reportMessage`, `reportGroup` rendaient toutes `false`
+  sans rien faire — et les appelants **ignorent ce booléen**, donc aucune
+  erreur n'était affichée. Preuve sur appareil avec la cloche « Couper les
+  notifications » de la fiche de groupe : avant, `data->'mutedBy'` restait
+  `null` malgré le tap ; après, il passe à
+  `{"vQZE49…": "forever"}`, et le re-tap le vide (`{}`). Les deux sens
+  vérifiés.
+- [x] **`group_detail_screen` (3 méthodes) — CORRIGÉ, non testé.**
+  `_requestToJoin`, `_joinGroup`, `_leaveGroup` sortaient sur un `return` nu.
+  C'est le même écran où « Ouvrir la discussion » était prouvé mort, donc le
+  provider y est bien éteint. Non testés faute de jeu de données : il faut un
+  groupe non rejoint (join) et accepter de quitter un groupe (leave).
+  ⚠️ `_leaveGroup` a reçu un `if (!mounted) return;` après l'attente —
+  l'analyzer signalait un `BuildContext` traversant un saut asynchrone.
+- [ ] Reste ~119 occurrences dans 30 fichiers, non auditées. Prochains
+  candidats par impact décroissant (abandons silencieux / watch dans le
+  fichier) : `admin_settings_screen` (6/0), `groups_screen` (3/0),
+  `blocked_users_provider` (2/0), `notification_provider` (2/0),
+  `media_gallery_provider` (2/0), `group_request_provider` (2/0),
+  `group_call_provider` (2/0), `audio_room_provider` (2/0).
+  ⚠️ `call_provider` (2/0) mérite un examen à part : `initiateCall` **pose**
+  une erreur (« Utilisateur non connecté ») donc n'est pas silencieux, et son
+  `build()` amorce l'abonnement via `_cleanupStaleCalls()` quelques secondes
+  avant qu'on puisse taper « appeler » — probablement inoffensif, mais non
+  prouvé (le vérifier demande de passer un vrai appel).
+  **NE PAS remplacer en masse** : `await …future` rend la méthode asynchrone
+  et peut introduire un usage de `BuildContext` après saut asynchrone.
+
+> Note d'exécution : un ANR (« Diaspo Niger ne répond pas ») a été observé UNE
+> fois juste après une installation à chaud par-dessus l'app en cours
+> d'exécution, sur ce même écran. Non reproduit après `force-stop` puis
+> relance — le mute a alors fonctionné du premier coup. Probablement un artefact
+> de la réinstallation à chaud (la 6e de la session), pas du correctif ; à
+> resurveiller quand même.
 
 **3. `isSelfNotes` avait exactement le même défaut** (trouvé en corrigeant le
 n°2, corrigé dans la foulée le 2026-08-05). `app_router.dart` lisait
