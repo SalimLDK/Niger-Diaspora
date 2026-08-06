@@ -1121,8 +1121,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     final l10n = AppLocalizations.of(context)!;
 
-    // Check if conversation exists
-    final isDeleted = !conversationAsync.isLoading && conversation == null;
+    // La conversation est réputée absente **seulement** si le flux a livré une
+    // valeur nulle. `!isLoading && conversation == null` était aussi vrai en
+    // cas d'**erreur** de lecture (permission, réseau) : une panne passagère
+    // s'affichait « Ce groupe a été supprimé », le composeur disparaissait, et
+    // rien ne permettait de réessayer.
+    final isDeleted = conversationAsync.hasValue && conversation == null;
+    final hasLoadError = conversationAsync.hasError;
 
     // Check if this is a pending request from current user (hide read/delivered status)
     final isPendingRequestFromMe =
@@ -1464,6 +1469,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
                 // Input or Blocked/Deleted Message
                 if (isDeleted ||
+                    hasLoadError ||
                     (otherUser != null &&
                         otherUser.displayName == DeletedAccount.storedName))
                   Container(
@@ -1471,8 +1477,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     color: context.surfaceColor,
                     width: double.infinity,
                     child: Text(
-                      isDeleted
-                          ? l10n.thisGroupWasDeleted
+                      // « Ce groupe a été supprimé » s'affichait aussi sur un
+                      // tête-à-tête et sur « Mes notes », qui n'en sont pas.
+                      hasLoadError
+                          ? l10n.loadingError
+                          : isDeleted
+                          ? (widget.isGroup
+                              ? l10n.thisGroupWasDeleted
+                              : l10n.conversationDeleted)
                           : l10n.thisUserWasDeleted,
                       textAlign: TextAlign.center,
                       style: TextStyle(
