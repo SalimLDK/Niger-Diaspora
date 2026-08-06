@@ -43,6 +43,21 @@ Map<String, dynamic> _mapProfile(Map<String, dynamic> row) => {
   'createdAt': row['created_at'],
   'lastLoginAt': row['last_active_at'],
   'fcmTokens': (row['fcm_tokens'] as List?)?.cast<String>() ?? [],
+  // ⚠️ TOUJOURS VIDE, ET CE N'EST PAS UN OUBLI À RÉPARER EN LE REMPLISSANT.
+  //
+  // Il n'existe aucune colonne de blocage sur `users` côté Supabase : le sens
+  // « qui m'a bloqué » vit dans la table `blocked_users`. Ce champ n'est
+  // conservé que parce que `ProfileModel` le déclare.
+  //
+  // Ce `[]` a coûté cher : dix endroits de l'app demandaient « cette personne
+  // m'a-t-elle bloqué ? » en le lisant, et recevaient donc toujours non —
+  // sans erreur, sans log. Le composeur restait actif face à quelqu'un qui
+  // vous avait bloqué.
+  //
+  // Pour poser la question, utiliser `usersWhoBlockedMeProvider`. Ne pas
+  // relire ce champ, et ne pas tenter de l'alimenter ici : il faudrait une
+  // requête par profil sur `blocked_users`, alors qu'une seule suffit pour
+  // toute la liste.
   'blockedByUserIds': [],
 };
 
@@ -133,6 +148,18 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .lte('latitude', latitude + delta)
         .gte('longitude', longitude - delta)
         .lte('longitude', longitude + delta)
+        // `limit(50)` sans `order` renvoyait **50 lignes arbitraires** : sans
+        // ORDER BY, Postgres ne promet aucun ordre. Passé 50 membres dans la
+        // boîte, on pouvait donc recevoir 50 profils périmés et zéro profil
+        // récent — alors que la carte écarte ensuite tout ce qui a plus de
+        // 5 minutes. Résultat possible : « aucun membre autour » alors que
+        // des membres actifs étaient là.
+        //
+        // Trier par fraîcheur aligne la troncature sur le filtre qui suit :
+        // les 50 rendus sont ceux qui ont le plus de chances d'y survivre.
+        // (Trier par distance demanderait un RPC : PostgREST ne sait pas
+        // calculer une distance dans un ORDER BY.)
+        .order('location_updated_at', ascending: false, nullsFirst: false)
         .limit(50);
     return (data as List)
         .map((r) => ProfileModel.fromJson(_mapProfile(r)))
@@ -146,6 +173,9 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .select()
         .eq('country_code', country)
         .eq('is_visible', true)
+        // Même raison que `getNearbyProfiles` : une troncature non ordonnée
+        // est une loterie, et le filtre de présence qui suit élimine le reste.
+        .order('location_updated_at', ascending: false, nullsFirst: false)
         .limit(50);
     return (data as List)
         .map((r) => ProfileModel.fromJson(_mapProfile(r)))
