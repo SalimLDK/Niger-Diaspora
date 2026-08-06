@@ -69,6 +69,36 @@ RevenueCat. C'est voulu : refuser vaut mieux qu'accorder à tout le monde. Mais
 si l'abonnement RevenueCat doit servir un jour, c'est la clé à poser en
 premier.
 
+### 🔴 Deux autres endpoints publics laissaient passer (2026-08-05)
+
+Trouvés en balayant les **neuf** `onRequest` du backend après le cas
+RevenueCat, pour vérifier si le motif se répétait. Il se répétait.
+
+**`mynitaWebhook` et `waveWebhook`** — leur `verifySignature()` commençait par
+`if (this.mockMode) { return true; }`. Or `mockMode` vaut
+`process.env.PARTNER_MOCK_MODE !== "false"` : la variable étant **absente** en
+production, le mode simulé y est actif, donc la signature n'était **jamais**
+vérifiée. Une requête forgée sur l'URL publique pouvait faire basculer le
+statut d'une transaction — par exemple confirmer un débit qui n'a jamais eu
+lieu, ce qui déclenche le crédit.
+
+Simuler concerne les appels **sortants** vers le partenaire ; ça n'a jamais eu
+à désactiver l'authentification d'un endpoint **entrant**. Le raccourci est
+retiré : sans secret configuré, le garde en dessous refuse déjà.
+
+`card.js` utilise aussi `MOCK_MODE`, mais uniquement pour des appels sortants
+(`credit`, `checkEligibility`, `getTransactionStatus`) — rien à corriger.
+
+**`migrateDisplayNameLower`** — POST public **sans aucune autorisation**, qui
+lit l'intégralité de la collection `users` et réécrit dessus. L'écriture est
+idempotente, donc rien ne se corrompt : le risque est une facture Firestore
+illimitée à la demande. Il porte désormais le même garde `ADMIN_API_KEY` que
+`seedLegalContentHttp` juste au-dessus.
+
+Aucun des trois endpoints n'a jamais été appelé (`functions:log` ne montre que
+les entrées d'audit du déploiement du 2026-07-19) : ni trafic légitime à
+casser, ni trace d'abus.
+
 ## Procédure
 
 À faire par Salim — je ne saisis pas de vraies clés, et elles ne doivent

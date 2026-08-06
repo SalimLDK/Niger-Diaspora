@@ -5931,6 +5931,21 @@ exports.migrateDisplayNameLower = functions.https.onRequest(async (req, res) => 
         return;
     }
 
+    // Cet endpoint n'avait AUCUNE autorisation : n'importe qui pouvait le
+    // declencher sur son URL publique et faire lire l'integralite de la
+    // collection `users` puis reecrire dessus, autant de fois qu'il voulait.
+    // L'ecriture est idempotente, donc rien ne se corrompt — mais c'est une
+    // facture Firestore illimitee a la demande.
+    //
+    // Meme garde que `seedLegalContentHttp` juste au-dessus : sans
+    // `ADMIN_API_KEY`, on refuse tout le monde.
+    const adminKey = process.env.ADMIN_API_KEY;
+    const providedKey = req.headers.authorization?.replace("Bearer ", "");
+
+    if (!adminKey || providedKey !== adminKey) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
     try {
         const db = admin.firestore();
         const usersRef = db.collection("users");

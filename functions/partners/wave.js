@@ -84,7 +84,19 @@ class WaveClient {
      * @returns {boolean} - True if valid
      */
     verifySignature(payload, signature) {
-        if (this.mockMode) { return true; }
+        // Le mode simule ne doit PAS court-circuiter cette verification.
+        //
+        // Il y avait ici un `if (this.mockMode) { return true; }`. Or
+        // `mockMode` vaut `process.env.PARTNER_MOCK_MODE !== "false"` : sans la
+        // variable — et elle est absente en production — le mode simule est
+        // actif, donc `waveWebhook` acceptait **n'importe quelle requete
+        // forgee** sur son URL publique, et laissait basculer le statut d'une
+        // transaction.
+        //
+        // Simuler concerne les appels SORTANTS vers le partenaire. Ca n'a
+        // jamais eu a desactiver l'authentification d'un endpoint ENTRANT.
+        // Sans secret configure, on refuse — c'est le cas juste en dessous.
+
         // Security: HMAC signature verification for webhook authenticity
         if (!this.webhookSecret || !signature) {
             console.warn("Wave webhook: missing secret or signature — rejecting");

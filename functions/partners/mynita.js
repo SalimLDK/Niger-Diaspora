@@ -83,7 +83,15 @@ class MynitaClient {
      * @returns {boolean} - True if valid
      */
     verifySignature(payload, signature) {
-        if (this.mockMode) { return true; }
+        // Le mode simule ne doit PAS court-circuiter cette verification —
+        // meme raison que dans `wave.js` : `mockMode` est actif par defaut en
+        // production (`PARTNER_MOCK_MODE` absent), donc `mynitaWebhook`
+        // acceptait n'importe quelle requete forgee et laissait confirmer un
+        // debit qui n'avait jamais eu lieu.
+        //
+        // Simuler concerne les appels SORTANTS. L'authentification d'un
+        // endpoint ENTRANT n'en depend pas.
+
         // Security: HMAC signature verification for webhook authenticity
         if (!this.webhookSecret || !signature) {
             console.warn("Mynita webhook: missing secret or signature — rejecting");
