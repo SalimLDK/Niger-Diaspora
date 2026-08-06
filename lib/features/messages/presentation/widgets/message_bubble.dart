@@ -152,6 +152,8 @@ class MessageBubble extends ConsumerStatefulWidget {
 
 class _MessageBubbleState extends ConsumerState<MessageBubble>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
@@ -973,7 +975,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           AppIcon(AppIcon.star, size: 9, color: context.adaptivePrimaryColor),
           const SizedBox(width: 3),
           Text(
-            'Admin',
+            l10n.adminRoleLabel,
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
@@ -1462,7 +1464,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       case MessageType.file:
         return ReportContentModal.fileSnapshot(
           message.fileUrl ?? '',
-          message.fileName ?? 'Fichier',
+          message.fileName ?? l10n.fileLabel,
         );
 
       case MessageType.system:
@@ -1674,7 +1676,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
               child: IgnorePointer(
                 child: DocumentBubble(
                   fileUrl: '',
-                  fileName: message.fileName ?? 'Fichier',
+                  fileName: message.fileName ?? l10n.fileLabel,
                   fileSize: message.fileSize,
                   isMe: widget.isMe,
                 ),
@@ -1749,7 +1751,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
               child: IgnorePointer(
                 child: DocumentBubble(
                   fileUrl: '',
-                  fileName: message.fileName ?? 'Fichier',
+                  fileName: message.fileName ?? l10n.fileLabel,
                   fileSize: message.fileSize,
                   isMe: widget.isMe,
                 ),
@@ -1814,7 +1816,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       case MessageType.file:
         return DocumentBubble(
           fileUrl: widget.message.fileUrl ?? '',
-          fileName: widget.message.fileName ?? 'Fichier',
+          fileName: widget.message.fileName ?? l10n.fileLabel,
           fileSize: widget.message.fileSize,
           isMe: widget.isMe,
           onTap: () => _openFile(widget.message.fileUrl),
@@ -2419,7 +2421,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       case MessageType.location:
         return '📍 ${l10n.location}';
       case MessageType.sticker:
-        return '🎭 Sticker';
+        return l10n.messageTypeSticker;
     }
   }
 

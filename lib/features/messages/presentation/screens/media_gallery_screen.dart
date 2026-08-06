@@ -10,6 +10,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/media_gallery_provider.dart';
 import '../widgets/full_screen_image_viewer.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class MediaGalleryScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -27,6 +28,8 @@ class MediaGalleryScreen extends ConsumerStatefulWidget {
 
 class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late TabController _tabController;
 
   @override
@@ -55,7 +58,7 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen>
           icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
         ),
         title: Text(
-          widget.title ?? 'Médias partagés',
+          widget.title ?? l10n.sharedMedia,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -220,8 +223,9 @@ class _PhotosTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (images.isEmpty && !isLoading) {
-      return _buildEmptyState(context, 'Aucune photo');
+      return _buildEmptyState(context, l10n.noPhotos);
     }
 
     final groupedImages = _groupImagesByDate(images);
@@ -302,6 +306,7 @@ class _PhotosTab extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, String message) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -329,7 +334,7 @@ class _PhotosTab extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Les photos partagées apparaîtront ici',
+            l10n.sharedPhotosWillAppear,
             style: TextStyle(
               fontSize: 14,
               color: context.textTertiaryColor,
@@ -643,8 +648,9 @@ class _FilesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (files.isEmpty && !isLoading) {
-      return _buildEmptyState(context, 'Aucun fichier');
+      return _buildEmptyState(context, l10n.noFiles);
     }
 
     // Grouper les fichiers par date
@@ -715,6 +721,7 @@ class _FilesTab extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, String message) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -742,7 +749,7 @@ class _FilesTab extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Les fichiers partagés apparaîtront ici',
+            l10n.sharedFilesWillAppear,
             style: TextStyle(
               fontSize: 14,
               color: context.textTertiaryColor,
@@ -761,6 +768,7 @@ class _FileListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
@@ -791,7 +799,7 @@ class _FileListItem extends StatelessWidget {
           ),
         ),
         title: Text(
-          message.fileName ?? 'Fichier',
+          message.fileName ?? l10n.fileLabel,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,

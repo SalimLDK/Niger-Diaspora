@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,6 +24,8 @@ class GalleryPickerScreen extends StatefulWidget {
 }
 
 class _GalleryPickerScreenState extends State<GalleryPickerScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final ScrollController _scroll = ScrollController();
   final List<AssetEntity> _assets = [];
   final List<AssetEntity> _selected = [];
@@ -140,7 +143,7 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: const Text('Galerie'),
+        title: Text(l10n.imagePickerGallery),
         leading: IconButton(
           icon: const AppIcon(AppIcon.close),
           onPressed: () => Navigator.pop(context),
@@ -226,9 +229,9 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          chip('Tout', RequestType.common),
-          chip('Photos', RequestType.image),
-          chip('Vidéos', RequestType.video),
+          chip(l10n.everything, RequestType.common),
+          chip(l10n.photos, RequestType.image),
+          chip(l10n.videos, RequestType.video),
         ],
       ),
     );

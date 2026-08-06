@@ -53,6 +53,8 @@ class ConversationItem extends ConsumerStatefulWidget {
 
 class _ConversationItemState extends ConsumerState<ConversationItem>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late AnimationController _scaleController;
   late Animation<double> _scaleAnimation;
 
@@ -658,7 +660,7 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
           const SizedBox(width: 4),
           Expanded(
             child: Text(
-              youPrefix ? l10n.conversationYouPrefix('Note vocale') : 'Note vocale',
+              youPrefix ? l10n.conversationYouPrefix(l10n.messageTypeVoiceNote) : l10n.messageTypeVoiceNote,
               style: TextStyle(
                 fontSize: 14,
                 color: textColor,
@@ -705,7 +707,7 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
         typeLabel = '📎 Document';
         break;
       case MessageType.location:
-        typeLabel = '📍 Position';
+        typeLabel = l10n.messageTypeLocation;
         break;
       case MessageType.sticker:
         typeLabel = '🎨 Sticker';

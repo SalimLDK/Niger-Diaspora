@@ -26,6 +26,8 @@ class NewConversationScreen extends ConsumerStatefulWidget {
 }
 
 class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _groupNameController = TextEditingController();
   final FocusNode _searchFocus = FocusNode();
@@ -97,7 +99,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
     }
     context.push(
       '/messages/${conversation.id}',
-      extra: {'name': 'Mes notes', 'isGroup': false, 'isSelfNotes': true},
+      extra: {'name': l10n.messagesMyNotes, 'isGroup': false, 'isSelfNotes': true},
     );
   }
 
@@ -422,7 +424,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                         SizedBox(
                           width: 60,
                           child: Text(
-                            user.displayName ?? 'Utilisateur',
+                            user.displayName ?? l10n.user,
                             style: TextStyle(
                               fontSize: 11,
                               color: context.textSecondaryColor,
@@ -529,7 +531,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Autres membres',
+                                  l10n.otherMembers,
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -571,7 +573,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Aucun résultat',
+            l10n.noSearchResults,
             style: TextStyle(fontSize: 16, color: context.textSecondaryColor),
           ),
         ],
@@ -619,7 +621,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
         const SizedBox(height: 10),
         _buildShortcut(
           icon: Icon(Icons.edit_note_rounded, size: 24, color: context.adaptivePrimaryColor),
-          title: 'Mes notes',
+          title: l10n.messagesMyNotes,
           subtitle: 'Vos brouillons, visibles de vous seul',
           onTap: _openSelfNotes,
         ),
@@ -685,7 +687,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
     final subtitleParts = <String>[
       if (p.profession != null && p.profession!.isNotEmpty) p.profession!,
       if (_distanceLabel(p) != null) _distanceLabel(p)!,
-      if (online) 'En ligne',
+      if (online) l10n.online,
     ];
 
     return GestureDetector(
@@ -838,7 +840,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
   }
 
   Widget _buildRecentTile(ConversationEntity conversation, String myId) {
-    final name = conversation.name ?? 'Utilisateur';
+    final name = conversation.name ?? l10n.user;
     final photoUrl = conversation.imageUrl;
     return GestureDetector(
       onTap: () => context.push(

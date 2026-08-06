@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_shadows.dart';
 import '../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Navigation inferieure flottante (pilule vitree) façon Signal : ne prend pas
 /// de place dans le layout (utilisee avec Scaffold.extendBody: true dans
@@ -22,6 +23,7 @@ class CustomBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.fromLTRB(
         16,
@@ -56,32 +58,32 @@ class CustomBottomNavigation extends StatelessWidget {
               children: [
                 _NavItem(
                   icon: Icons.home_rounded,
-                  label: 'Accueil',
+                  label: l10n.homeTitle,
                   isActive: currentIndex == 0,
                   onTap: () => onTap(0),
                 ),
                 _NavItem(
                   icon: Icons.map_rounded,
-                  label: 'Carte',
+                  label: l10n.mapTitle,
                   isActive: currentIndex == 1,
                   onTap: () => onTap(1),
                 ),
                 _NavItem(
                   icon: Icons.groups_rounded,
-                  label: 'Groupes',
+                  label: l10n.homeGroups,
                   isActive: currentIndex == 2,
                   onTap: () => onTap(2),
                 ),
                 _NavItem(
                   icon: Icons.chat_bubble_rounded,
-                  label: 'Messages',
+                  label: l10n.messages,
                   isActive: currentIndex == 3,
                   onTap: () => onTap(3),
                   badgeCount: unreadMessagesCount,
                 ),
                 _NavItem(
                   icon: Icons.person_rounded,
-                  label: 'Profil',
+                  label: l10n.profileTitle,
                   isActive: currentIndex == 4,
                   onTap: () => onTap(4),
                 ),

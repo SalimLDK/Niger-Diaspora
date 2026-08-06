@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Données d'une notification in-app
@@ -77,6 +78,8 @@ class InAppNotificationBanner extends StatefulWidget {
 
 class _InAppNotificationBannerState extends State<InAppNotificationBanner>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _fadeAnimation;
@@ -239,7 +242,7 @@ class _InAppNotificationBannerState extends State<InAppNotificationBanner>
                                     ),
                                     // Indicateur de temps
                                     Text(
-                                      'maintenant',
+                                      l10n.notifNow,
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: context.textTertiaryColor,

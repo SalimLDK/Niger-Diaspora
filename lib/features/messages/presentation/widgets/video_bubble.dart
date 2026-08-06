@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Bubble pour l'affichage de vidéos dans les messages avec style WhatsApp
 class VideoBubble extends StatelessWidget {
@@ -55,6 +56,7 @@ class VideoBubble extends StatelessWidget {
   });
 
   void _showMediaContextMenu(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -80,7 +82,7 @@ class VideoBubble extends StatelessWidget {
                       color: context.textPrimaryColor,
                     ),
                     title: Text(
-                      'Transférer',
+                      l10n.forward,
                       style: TextStyle(color: context.textPrimaryColor),
                     ),
                     onTap: () {
@@ -96,7 +98,7 @@ class VideoBubble extends StatelessWidget {
                       color: context.textPrimaryColor,
                     ),
                     title: Text(
-                      'Enregistrer',
+                      l10n.save,
                       style: TextStyle(color: context.textPrimaryColor),
                     ),
                     onTap: () {
@@ -119,8 +121,8 @@ class VideoBubble extends StatelessWidget {
                       Icons.delete_outline,
                       color: Colors.red,
                     ),
-                    title: const Text(
-                      'Supprimer',
+                    title: Text(
+                      l10n.delete,
                       style: TextStyle(color: Colors.red),
                     ),
                     onTap: () {
@@ -378,6 +380,7 @@ class VideoBubble extends StatelessWidget {
   }
 
   Widget _buildPlaceholder(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       color: context.isDarkMode ? Colors.grey[800] : Colors.grey[300],
       child: Column(
@@ -390,7 +393,7 @@ class VideoBubble extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Vidéo',
+            l10n.video,
             style: TextStyle(
               color: context.isDarkMode ? Colors.grey[600] : Colors.grey[500],
               fontSize: 14,

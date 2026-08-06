@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Bubble pour l'affichage de documents/fichiers dans les messages
 /// Avec icônes colorées par type de fichier et animation de succès
@@ -36,6 +37,8 @@ class DocumentBubble extends StatefulWidget {
 
 class _DocumentBubbleState extends State<DocumentBubble>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late AnimationController _successAnimationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
@@ -348,28 +351,28 @@ class _DocumentBubbleState extends State<DocumentBubble>
         return _FileTypeInfo(
           icon: Icons.picture_as_pdf_rounded,
           color: const Color(0xFFE53935), // Red
-          label: 'PDF',
+          label: l10n.pdf,
         );
       case 'doc':
       case 'docx':
         return _FileTypeInfo(
           icon: Icons.description_rounded,
           color: const Color(0xFF2196F3), // Blue
-          label: 'DOC',
+          label: l10n.doc,
         );
       case 'xls':
       case 'xlsx':
         return _FileTypeInfo(
           icon: Icons.table_chart_rounded,
           color: const Color(0xFF4CAF50), // Green
-          label: 'XLS',
+          label: l10n.xlsLabel,
         );
       case 'ppt':
       case 'pptx':
         return _FileTypeInfo(
           icon: Icons.slideshow_rounded,
           color: const Color(0xFFFF9800), // Orange
-          label: 'PPT',
+          label: l10n.pptLabel,
         );
       case 'zip':
       case 'rar':
@@ -377,25 +380,25 @@ class _DocumentBubbleState extends State<DocumentBubble>
         return _FileTypeInfo(
           icon: Icons.folder_zip_rounded,
           color: const Color(0xFF9C27B0), // Purple
-          label: 'ZIP',
+          label: l10n.zipLabel,
         );
       case 'txt':
         return _FileTypeInfo(
           icon: Icons.text_snippet_rounded,
           color: const Color(0xFF607D8B), // Blue Grey
-          label: 'TXT',
+          label: l10n.txtLabel,
         );
       case 'csv':
         return _FileTypeInfo(
           icon: Icons.table_rows_rounded,
           color: const Color(0xFF009688), // Teal
-          label: 'CSV',
+          label: l10n.csvLabel,
         );
       case 'json':
         return _FileTypeInfo(
           icon: Icons.data_object_rounded,
           color: const Color(0xFFFF5722), // Deep Orange
-          label: 'JSON',
+          label: l10n.jsonLabel,
         );
       default:
         return _FileTypeInfo(
@@ -460,7 +463,7 @@ class _DocumentBubbleState extends State<DocumentBubble>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Fichier non disponible',
+                  l10n.fileNotAvailable,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color:

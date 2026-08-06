@@ -427,7 +427,8 @@ class _ConversationTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    String displayName = conversation.name ?? 'Conversation';
+    final l10n = AppLocalizations.of(context)!;
+    String displayName = conversation.name ?? l10n.conversation;
     String? avatarUrl = conversation.imageUrl;
 
     if (conversation.isIndividual && currentUserId != null) {
@@ -475,7 +476,7 @@ class _ConversationTile extends ConsumerWidget {
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
-        conversation.isGroup ? 'Groupe' : 'Message privé',
+        conversation.isGroup ? l10n.group : 'Message privé',
         style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
       ),
       trailing:

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/price_text.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Widget to display a product attachment in a message bubble
 /// Tapping on it navigates to the product detail screen
@@ -19,8 +20,9 @@ class ProductMessageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final productId = productData['id'] as String?;
-    final title = productData['title'] as String? ?? 'Produit';
+    final title = productData['title'] as String? ?? l10n.reportTypeProduct;
     final price = (productData['price'] as num?)?.toDouble() ?? 0.0;
     final currency = productData['currency'] as String? ?? 'XOF';
     final imageUrl = productData['imageUrl'] as String?;
@@ -114,7 +116,7 @@ class ProductMessageCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Produit',
+                          l10n.reportTypeProduct,
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w500,

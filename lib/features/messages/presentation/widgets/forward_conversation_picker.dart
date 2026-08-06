@@ -38,6 +38,8 @@ class ForwardConversationPicker extends ConsumerStatefulWidget {
 
 class _ForwardConversationPickerState
     extends ConsumerState<ForwardConversationPicker> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   String _searchQuery = '';
   bool _isSending = false;
 
@@ -80,7 +82,7 @@ class _ForwardConversationPickerState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Transférer à...',
+                        l10n.forwardTo,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -220,7 +222,7 @@ class _ForwardConversationPickerState
                       });
                     },
                     child: Text(
-                      'Tout désélectionner',
+                      l10n.deselectAll,
                       style: TextStyle(color: context.textSecondaryColor),
                     ),
                   ),
@@ -320,7 +322,7 @@ class _ForwardConversationPickerState
                     ),
                     child:
                         _isSending
-                            ? const Row(
+                            ? Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 SizedBox(
@@ -333,7 +335,7 @@ class _ForwardConversationPickerState
                                 ),
                                 SizedBox(width: 12),
                                 Text(
-                                  'Envoi en cours...',
+                                  l10n.adminSending,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 16,
@@ -429,7 +431,7 @@ class _ForwardConversationPickerState
                   ? conversations.length == 1
                       ? widget.messages.length > 1
                           ? '${widget.messages.length} messages transférés'
-                          : 'Message transféré'
+                          : l10n.messageForwarded
                       : '${widget.messages.length} message(s) envoyé(s) à ${conversations.length} conversation(s)'
                   : 'Certains messages n\'ont pas pu être envoyés',
             ),
@@ -478,8 +480,9 @@ class _ConversationTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     // For individual conversations, get the other user's profile
-    String displayName = conversation.name ?? 'Conversation';
+    String displayName = conversation.name ?? l10n.conversation;
     String? avatarUrl = conversation.imageUrl;
 
     if (conversation.isIndividual && currentUserId != null) {
@@ -550,7 +553,7 @@ class _ConversationTile extends ConsumerWidget {
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
-        conversation.isGroup ? 'Groupe' : 'Message privé',
+        conversation.isGroup ? l10n.group : 'Message privé',
         style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
       ),
       trailing:

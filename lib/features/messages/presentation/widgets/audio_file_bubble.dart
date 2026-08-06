@@ -8,6 +8,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/message_entity.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Compact audio file player (music, podcast, etc.) — Telegram style.
 /// No waveform, only filename, duration and a simple progress bar.
@@ -26,6 +27,8 @@ class AudioFileBubble extends StatefulWidget {
 }
 
 class _AudioFileBubbleState extends State<AudioFileBubble> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final AudioPlaybackService _playbackService = AudioPlaybackService();
   late StreamSubscription<PlayerState> _playerStateSubscription;
   late StreamSubscription<Duration> _positionSubscription;
@@ -92,7 +95,7 @@ class _AudioFileBubbleState extends State<AudioFileBubble> {
 
   Future<void> _togglePlayPause() async {
     if (_audioUrl.isEmpty) {
-      setState(() => _error = 'Audio non disponible');
+      setState(() => _error = l10n.audioNotAvailable);
       return;
     }
 
@@ -177,7 +180,7 @@ class _AudioFileBubbleState extends State<AudioFileBubble> {
                           child: Text(
                             widget.message.fileName ??
                                 widget.message.fileUrl?.split('/').last ??
-                                'Audio',
+                                l10n.audio,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
