@@ -717,6 +717,37 @@ supplémentaire** à créer.
   **Corrigé** (`?? null` sur les deux champs **et** journal d'audit rendu non
   bloquant : il est utile, le nettoyage est obligatoire), déployé, puis rejoué
   avec un profil volontairement dépourvu de `createdAt` — le cas qui plantait.
+- [x] **La même famille cherchée ailleurs le 2026-08-06** (suite de `8d769d3`).
+  Deux motifs distincts : *(a)* un ternaire `.exists ? …data().champ : …` qui
+  laisse passer `undefined` jusqu'à une écriture Firestore ; *(b)* une écriture
+  accessoire placée avant du travail obligatoire, sans filet. Résultat :
+  - `.exists ?` — **une seule** occurrence restante sans repli, corrigée :
+    `onAudioRoomInviteCreated` (`functions/index.js`) posait
+    `roomTitle = roomDoc.data().title` puis l'écrivait dans `data.roomTitle`.
+    Un salon sans `title` faisait donc échouer le `.add()` ; le `catch` de la
+    fonction avalait l'erreur et **l'invitation n'était jamais notifiée**.
+    Les autres (`senderName`, `buyerName`, `cancellerName`, `likerName`,
+    `displayName`…) ont déjà un `|| "…"` — rien à faire.
+  - Assignations nues `x = doc.data().champ` : 7 occurrences, toutes vérifiées.
+    Aucune n'atteint une écriture Firestore sauf dans `onPostLiked` /
+    `onPostCommented`, **explicitement marquées MORTES** dans le fichier.
+- [ ] 🔴 **Le nettoyage était encore tout-ou-rien après le correctif — corrigé
+  le 2026-08-06, NON déployé.** Le commit `8d769d3` a isolé le journal d'audit,
+  mais les **17 étapes** du bloc Firestore restaient dans un `try` **unique** :
+  la première qui levait (index composite manquant, document malformé, valeur
+  inattendue) sautait droit au `catch` final et **toutes les suivantes étaient
+  ignorées en silence**. Casser sur les demandes d'ami (1.3) laissait derrière
+  elle notifications, conversations, groupes, produits, transactions,
+  signalements. Les sections 2 (RTDB) et 3 (Storage) avaient déjà leur filet ;
+  `results.firestore.errors` était déclaré et journalisé mais **jamais
+  alimenté** — impossible de savoir où le nettoyage s'était arrêté.
+  Chaque étape est désormais enveloppée par un helper `etape(nom, travail)` qui
+  journalise et pousse dans `results.firestore.errors`, puis continue.
+  **À faire** : redéployer `cleanupUserData` **seul** (cf. l'entrée ci-dessus
+  sur les orphelines, et ne jamais `--force`), puis rejouer le scénario à deux
+  comptes jetables en forçant l'échec d'une étape intermédiaire — vérifier que
+  les étapes suivantes s'exécutent quand même et que l'étape fautive apparaît
+  nommée dans les journaux.
 - [x] 🔴 **Deux fonctions tournaient en production sans source dans le dépôt —
   sources retrouvées et réintégrées** (`a7db115`).
   `sendMessagePush(europe-west1)` était dans `stash@{3}` (2026-07-20), jamais

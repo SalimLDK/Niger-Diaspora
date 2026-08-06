@@ -1726,7 +1726,14 @@ exports.onAudioRoomInviteCreated = functions.firestore
                 .doc(roomId)
                 .get();
 
-            const roomTitle = roomDoc.exists ? roomDoc.data().title : "un salon audio";
+            // `|| "un salon audio"` obligatoire, meme motif que `cleanupUserData` :
+            // le ternaire ne teste que l'existence du DOCUMENT, pas celle du CHAMP.
+            // Un salon sans `title` renvoyait `undefined`, qui partait ensuite dans
+            // `data.roomTitle` du `.add()` — Firestore refuse `undefined` et
+            // l'invitation n'etait jamais notifiee (le catch avale l'echec).
+            const roomTitle = roomDoc.exists
+                ? (roomDoc.data().title || "un salon audio")
+                : "un salon audio";
 
             // Create notification
             await admin.firestore().collection("notifications").add({
@@ -2710,262 +2717,324 @@ exports.cleanupUserData = functions.auth.user().onDelete(async (user) => {
         // ================================================================
         // 1. FIRESTORE CLEANUP
         // ================================================================
-
-        if (userDoc.exists) {
-            // Delete subcollections: friends, blocked_users, cart, sessions
-            const subcollections = ["friends", "blocked_users", "cart", "sessions"];
-            for (const subcol of subcollections) {
-                const subcolDocs = await userDocRef.collection(subcol).get();
-
-                // Une amitie est symetrique : `acceptFriendRequest` ecrit
-                // `users/A/friends/B` ET `users/B/friends/A`. Ne supprimer que
-                // la liste du compte efface laisse donc une entree miroir chez
-                // chacun de ses anciens amis — et c'est CETTE sous-collection
-                // que l'app lit (`getFriends`, `areFriends`), pas le tableau
-                // `friendIds` nettoye plus bas. Sans ca, le compte supprime
-                // reste indefiniment dans la liste d'amis des autres, avec son
-                // nom et sa photo, et `areFriends` repond toujours « oui ».
-                //
-                // On passe par la liste du compte lui-meme plutot que par une
-                // requete de groupe de collections : c'est exactement
-                // l'ensemble des personnes ayant une entree miroir, et ca
-                // n'exige aucun index supplementaire.
-                if (subcol === "friends" && !subcolDocs.empty) {
-                    const miroir = db.batch();
-                    subcolDocs.docs.forEach((doc) => {
-                        miroir.delete(
-                            db.collection("users").doc(doc.id)
-                                .collection("friends").doc(userId),
-                        );
-                    });
-                    await miroir.commit();
-                    results.firestore.deleted += subcolDocs.size;
-                }
-
-                const batch = db.batch();
-                subcolDocs.docs.forEach((doc) => batch.delete(doc.ref));
-                if (!subcolDocs.empty) {
-                    await batch.commit();
-                    results.firestore.deleted += subcolDocs.size;
-                }
+        //
+        // Meme lecon que le journal d'audit ci-dessus, un cran plus haut : les
+        // 17 etapes qui suivent etaient dans un `try` UNIQUE. La premiere qui
+        // levait — un index composite manquant, un document malforme, une
+        // valeur inattendue — sautait directement au `catch` final, et TOUTES
+        // les suivantes etaient silencieusement ignorees. Casser sur les
+        // demandes d'ami (1.3) laissait derriere elle notifications,
+        // conversations, groupes, produits, transactions, signalements.
+        //
+        // Les sections 2 (RTDB) et 3 (Storage) avaient deja leur propre filet
+        // et remplissaient `results.*.errors` ; `results.firestore.errors`
+        // etait declare et journalise mais jamais alimente — personne ne
+        // pouvait donc savoir OU le nettoyage s'etait arrete.
+        //
+        // Chaque etape est desormais isolee : elle echoue seule, se signale,
+        // et le reste du nettoyage continue.
+        const etape = async (nom, travail) => {
+            try {
+                await travail();
+            } catch (erreur) {
+                console.error(
+                    `Nettoyage ${userId} — etape « ${nom} » KO (on continue) :`,
+                    erreur.message,
+                );
+                results.firestore.errors.push(`${nom}: ${erreur.message}`);
             }
-            await userDocRef.delete();
-            results.firestore.deleted++;
-        }
+        };
+
+        // 1.1 Delete user document and its subcollections
+        await etape("1.1 document utilisateur", async () => {
+            if (userDoc.exists) {
+                // Delete subcollections: friends, blocked_users, cart, sessions
+                const subcollections = ["friends", "blocked_users", "cart", "sessions"];
+                for (const subcol of subcollections) {
+                    const subcolDocs = await userDocRef.collection(subcol).get();
+
+                    // Une amitie est symetrique : `acceptFriendRequest` ecrit
+                    // `users/A/friends/B` ET `users/B/friends/A`. Ne supprimer que
+                    // la liste du compte efface laisse donc une entree miroir chez
+                    // chacun de ses anciens amis — et c'est CETTE sous-collection
+                    // que l'app lit (`getFriends`, `areFriends`), pas le tableau
+                    // `friendIds` nettoye plus bas. Sans ca, le compte supprime
+                    // reste indefiniment dans la liste d'amis des autres, avec son
+                    // nom et sa photo, et `areFriends` repond toujours « oui ».
+                    //
+                    // On passe par la liste du compte lui-meme plutot que par une
+                    // requete de groupe de collections : c'est exactement
+                    // l'ensemble des personnes ayant une entree miroir, et ca
+                    // n'exige aucun index supplementaire.
+                    if (subcol === "friends" && !subcolDocs.empty) {
+                        const miroir = db.batch();
+                        subcolDocs.docs.forEach((doc) => {
+                            miroir.delete(
+                                db.collection("users").doc(doc.id)
+                                    .collection("friends").doc(userId),
+                            );
+                        });
+                        await miroir.commit();
+                        results.firestore.deleted += subcolDocs.size;
+                    }
+
+                    const batch = db.batch();
+                    subcolDocs.docs.forEach((doc) => batch.delete(doc.ref));
+                    if (!subcolDocs.empty) {
+                        await batch.commit();
+                        results.firestore.deleted += subcolDocs.size;
+                    }
+                }
+                await userDocRef.delete();
+                results.firestore.deleted++;
+            }
+        });
 
         // 1.2 Delete profile document
-        if (profileDoc.exists) {
-            await profileDocRef.delete();
-            results.firestore.deleted++;
-        }
+        await etape("1.2 profil", async () => {
+            if (profileDoc.exists) {
+                await profileDocRef.delete();
+                results.firestore.deleted++;
+            }
+        });
 
         // 1.3 Delete friend requests (sent and received)
-        const sentRequests = await db.collection("friend_requests")
-            .where("senderId", "==", userId).get();
-        const receivedRequests = await db.collection("friend_requests")
-            .where("receiverId", "==", userId).get();
+        await etape("1.3 demandes d'ami", async () => {
+            const sentRequests = await db.collection("friend_requests")
+                .where("senderId", "==", userId).get();
+            const receivedRequests = await db.collection("friend_requests")
+                .where("receiverId", "==", userId).get();
 
-        for (const doc of [...sentRequests.docs, ...receivedRequests.docs]) {
-            await doc.ref.delete();
-            results.firestore.deleted++;
-        }
+            for (const doc of [...sentRequests.docs, ...receivedRequests.docs]) {
+                await doc.ref.delete();
+                results.firestore.deleted++;
+            }
+        });
 
         // 1.4 Remove user from other users' friend lists (blockedByUserIds, friendIds)
-        const usersWithFriend = await db.collection("users")
-            .where("friendIds", "array-contains", userId).get();
-        for (const doc of usersWithFriend.docs) {
-            await doc.ref.update({
-                friendIds: admin.firestore.FieldValue.arrayRemove(userId),
-            });
-            results.firestore.updated++;
-        }
+        await etape("1.4 listes d'amis des autres", async () => {
+            const usersWithFriend = await db.collection("users")
+                .where("friendIds", "array-contains", userId).get();
+            for (const doc of usersWithFriend.docs) {
+                await doc.ref.update({
+                    friendIds: admin.firestore.FieldValue.arrayRemove(userId),
+                });
+                results.firestore.updated++;
+            }
+        });
 
         // 1.5 Delete notifications
-        const notifications = await db.collection("notifications")
-            .where("userId", "==", userId).get();
-        for (const doc of notifications.docs) {
-            await doc.ref.delete();
-            results.firestore.deleted++;
-        }
+        await etape("1.5 notifications", async () => {
+            const notifications = await db.collection("notifications")
+                .where("userId", "==", userId).get();
+            for (const doc of notifications.docs) {
+                await doc.ref.delete();
+                results.firestore.deleted++;
+            }
+        });
 
         // 1.6 Handle conversations
-        const conversations = await db.collection("conversations")
-            .where("participantIds", "array-contains", userId).get();
+        await etape("1.6 conversations", async () => {
+            const conversations = await db.collection("conversations")
+                .where("participantIds", "array-contains", userId).get();
 
-        for (const convDoc of conversations.docs) {
-            const convData = convDoc.data();
-            const participantIds = convData.participantIds || [];
+            for (const convDoc of conversations.docs) {
+                const convData = convDoc.data();
+                const participantIds = convData.participantIds || [];
 
-            if (participantIds.length <= 2) {
-                // Individual conversation - delete entirely
-                // First delete messages subcollection
-                const messages = await convDoc.ref.collection("messages").get();
-                for (const msgDoc of messages.docs) {
-                    await msgDoc.ref.delete();
+                if (participantIds.length <= 2) {
+                    // Individual conversation - delete entirely
+                    // First delete messages subcollection
+                    const messages = await convDoc.ref.collection("messages").get();
+                    for (const msgDoc of messages.docs) {
+                        await msgDoc.ref.delete();
+                        results.firestore.deleted++;
+                    }
+                    await convDoc.ref.delete();
                     results.firestore.deleted++;
+                } else {
+                    // Group conversation - just remove user
+                    await convDoc.ref.update({
+                        participantIds: admin.firestore.FieldValue.arrayRemove(userId),
+                        adminIds: admin.firestore.FieldValue.arrayRemove(userId),
+                    });
+                    results.firestore.updated++;
                 }
-                await convDoc.ref.delete();
-                results.firestore.deleted++;
-            } else {
-                // Group conversation - just remove user
-                await convDoc.ref.update({
-                    participantIds: admin.firestore.FieldValue.arrayRemove(userId),
-                    adminIds: admin.firestore.FieldValue.arrayRemove(userId),
-                });
-                results.firestore.updated++;
             }
-        }
+        });
 
         // 1.7 Handle groups
-        const memberGroups = await db.collection("groups")
-            .where("memberIds", "array-contains", userId).get();
+        await etape("1.7 groupes", async () => {
+            const memberGroups = await db.collection("groups")
+                .where("memberIds", "array-contains", userId).get();
 
-        for (const groupDoc of memberGroups.docs) {
-            const groupData = groupDoc.data();
-            const isCreator = groupData.creatorId === userId;
-            const memberCount = (groupData.memberIds || []).length;
+            for (const groupDoc of memberGroups.docs) {
+                const groupData = groupDoc.data();
+                const isCreator = groupData.creatorId === userId;
+                const memberCount = (groupData.memberIds || []).length;
 
-            if (isCreator && memberCount <= 1) {
-                // Creator is leaving and no other members - delete group
-                await groupDoc.ref.delete();
-                results.firestore.deleted++;
-            } else {
-                // Just remove user from group
-                await groupDoc.ref.update({
-                    memberIds: admin.firestore.FieldValue.arrayRemove(userId),
-                    adminIds: admin.firestore.FieldValue.arrayRemove(userId),
-                });
-                results.firestore.updated++;
+                if (isCreator && memberCount <= 1) {
+                    // Creator is leaving and no other members - delete group
+                    await groupDoc.ref.delete();
+                    results.firestore.deleted++;
+                } else {
+                    // Just remove user from group
+                    await groupDoc.ref.update({
+                        memberIds: admin.firestore.FieldValue.arrayRemove(userId),
+                        adminIds: admin.firestore.FieldValue.arrayRemove(userId),
+                    });
+                    results.firestore.updated++;
+                }
             }
-        }
+        });
 
         // 1.8 Delete group requests and invites
-        const groupRequests = await db.collection("group_requests")
-            .where("requesterId", "==", userId).get();
-        const groupInvites = await db.collection("group_invites")
-            .where("inviteeId", "==", userId).get();
+        await etape("1.8 demandes et invitations de groupe", async () => {
+            const groupRequests = await db.collection("group_requests")
+                .where("requesterId", "==", userId).get();
+            const groupInvites = await db.collection("group_invites")
+                .where("inviteeId", "==", userId).get();
 
-        for (const doc of [...groupRequests.docs, ...groupInvites.docs]) {
-            await doc.ref.delete();
-            results.firestore.deleted++;
-        }
+            for (const doc of [...groupRequests.docs, ...groupInvites.docs]) {
+                await doc.ref.delete();
+                results.firestore.deleted++;
+            }
+        });
 
         // 1.9 Handle events
-        const organizedEvents = await db.collection("events")
-            .where("organizerId", "==", userId).get();
-        const attendingEvents = await db.collection("events")
-            .where("attendeeIds", "array-contains", userId).get();
+        await etape("1.9 evenements", async () => {
+            const organizedEvents = await db.collection("events")
+                .where("organizerId", "==", userId).get();
+            const attendingEvents = await db.collection("events")
+                .where("attendeeIds", "array-contains", userId).get();
 
-        for (const eventDoc of organizedEvents.docs) {
-            await eventDoc.ref.delete();
-            results.firestore.deleted++;
-        }
-
-        for (const eventDoc of attendingEvents.docs) {
-            if (eventDoc.data().organizerId !== userId) {
-                await eventDoc.ref.update({
-                    attendeeIds: admin.firestore.FieldValue.arrayRemove(userId),
-                });
-                results.firestore.updated++;
+            for (const eventDoc of organizedEvents.docs) {
+                await eventDoc.ref.delete();
+                results.firestore.deleted++;
             }
-        }
+
+            for (const eventDoc of attendingEvents.docs) {
+                if (eventDoc.data().organizerId !== userId) {
+                    await eventDoc.ref.update({
+                        attendeeIds: admin.firestore.FieldValue.arrayRemove(userId),
+                    });
+                    results.firestore.updated++;
+                }
+            }
+        });
 
         // 1.10 Delete products (marketplace)
-        const products = await db.collection("products")
-            .where("sellerId", "==", userId).get();
-        for (const doc of products.docs) {
-            await doc.ref.delete();
-            results.firestore.deleted++;
-        }
+        await etape("1.10 produits", async () => {
+            const products = await db.collection("products")
+                .where("sellerId", "==", userId).get();
+            for (const doc of products.docs) {
+                await doc.ref.delete();
+                results.firestore.deleted++;
+            }
+        });
 
         // 1.11 Handle orders (keep for record but anonymize)
-        const buyerOrders = await db.collection("orders")
-            .where("buyerId", "==", userId).get();
-        const sellerOrders = await db.collection("orders")
-            .where("sellerId", "==", userId).get();
+        await etape("1.11 commandes", async () => {
+            const buyerOrders = await db.collection("orders")
+                .where("buyerId", "==", userId).get();
+            const sellerOrders = await db.collection("orders")
+                .where("sellerId", "==", userId).get();
 
-        for (const doc of buyerOrders.docs) {
-            await doc.ref.update({ buyerId: "deleted_user", buyerName: "Utilisateur supprimé" });
-            results.firestore.updated++;
-        }
-        for (const doc of sellerOrders.docs) {
-            await doc.ref.update({ sellerId: "deleted_user", sellerName: "Utilisateur supprimé" });
-            results.firestore.updated++;
-        }
+            for (const doc of buyerOrders.docs) {
+                await doc.ref.update({ buyerId: "deleted_user", buyerName: "Utilisateur supprimé" });
+                results.firestore.updated++;
+            }
+            for (const doc of sellerOrders.docs) {
+                await doc.ref.update({ sellerId: "deleted_user", sellerName: "Utilisateur supprimé" });
+                results.firestore.updated++;
+            }
+        });
 
         // 1.12 Delete businesses and related data
-        const businesses = await db.collection("businesses")
-            .where("ownerId", "==", userId).get();
+        await etape("1.12 commerces", async () => {
+            const businesses = await db.collection("businesses")
+                .where("ownerId", "==", userId).get();
 
-        for (const bizDoc of businesses.docs) {
-            const bizId = bizDoc.id;
+            for (const bizDoc of businesses.docs) {
+                const bizId = bizDoc.id;
 
-            // Delete business posts
-            const posts = await db.collection("business_posts")
-                .where("businessId", "==", bizId).get();
-            for (const postDoc of posts.docs) {
-                await postDoc.ref.delete();
+                // Delete business posts
+                const posts = await db.collection("business_posts")
+                    .where("businessId", "==", bizId).get();
+                for (const postDoc of posts.docs) {
+                    await postDoc.ref.delete();
+                    results.firestore.deleted++;
+                }
+
+                // Delete business boosts
+                const boosts = await db.collection("business_boosts")
+                    .where("businessId", "==", bizId).get();
+                for (const boostDoc of boosts.docs) {
+                    await boostDoc.ref.delete();
+                    results.firestore.deleted++;
+                }
+
+                await bizDoc.ref.delete();
                 results.firestore.deleted++;
             }
-
-            // Delete business boosts
-            const boosts = await db.collection("business_boosts")
-                .where("businessId", "==", bizId).get();
-            for (const boostDoc of boosts.docs) {
-                await boostDoc.ref.delete();
-                results.firestore.deleted++;
-            }
-
-            await bizDoc.ref.delete();
-            results.firestore.deleted++;
-        }
+        });
 
         // 1.13 Delete business reviews written by user
-        const reviews = await db.collection("business_reviews")
-            .where("reviewerId", "==", userId).get();
-        for (const doc of reviews.docs) {
-            await doc.ref.delete();
-            results.firestore.deleted++;
-        }
+        await etape("1.13 avis sur les commerces", async () => {
+            const reviews = await db.collection("business_reviews")
+                .where("reviewerId", "==", userId).get();
+            for (const doc of reviews.docs) {
+                await doc.ref.delete();
+                results.firestore.deleted++;
+            }
+        });
 
         // 1.14 Handle transactions (anonymize for financial records)
-        const sentTransactions = await db.collection("transactions")
-            .where("senderId", "==", userId).get();
-        const receivedTransactions = await db.collection("transactions")
-            .where("receiverId", "==", userId).get();
+        await etape("1.14 transactions", async () => {
+            const sentTransactions = await db.collection("transactions")
+                .where("senderId", "==", userId).get();
+            const receivedTransactions = await db.collection("transactions")
+                .where("receiverId", "==", userId).get();
 
-        for (const doc of sentTransactions.docs) {
-            await doc.ref.update({ senderId: "deleted_user", senderName: "Utilisateur supprimé" });
-            results.firestore.updated++;
-        }
-        for (const doc of receivedTransactions.docs) {
-            await doc.ref.update({ receiverId: "deleted_user", receiverName: "Utilisateur supprimé" });
-            results.firestore.updated++;
-        }
+            for (const doc of sentTransactions.docs) {
+                await doc.ref.update({ senderId: "deleted_user", senderName: "Utilisateur supprimé" });
+                results.firestore.updated++;
+            }
+            for (const doc of receivedTransactions.docs) {
+                await doc.ref.update({ receiverId: "deleted_user", receiverName: "Utilisateur supprimé" });
+                results.firestore.updated++;
+            }
+        });
 
         // 1.15 Delete saved recipients
-        const recipients = await db.collection("recipients")
-            .where("userId", "==", userId).get();
-        for (const doc of recipients.docs) {
-            await doc.ref.delete();
-            results.firestore.deleted++;
-        }
+        await etape("1.15 beneficiaires enregistres", async () => {
+            const recipients = await db.collection("recipients")
+                .where("userId", "==", userId).get();
+            for (const doc of recipients.docs) {
+                await doc.ref.delete();
+                results.firestore.deleted++;
+            }
+        });
 
         // 1.16 Delete payment intents
-        const paymentIntents = await db.collection("payment_intents")
-            .where("userId", "==", userId).get();
-        for (const doc of paymentIntents.docs) {
-            await doc.ref.delete();
-            results.firestore.deleted++;
-        }
+        await etape("1.16 intentions de paiement", async () => {
+            const paymentIntents = await db.collection("payment_intents")
+                .where("userId", "==", userId).get();
+            for (const doc of paymentIntents.docs) {
+                await doc.ref.delete();
+                results.firestore.deleted++;
+            }
+        });
 
         // 1.17 Delete reports created by user
-        const reports = await db.collection("reports")
-            .where("reporterId", "==", userId).get();
-        for (const doc of reports.docs) {
-            await doc.ref.delete();
-            results.firestore.deleted++;
-        }
+        await etape("1.17 signalements", async () => {
+            const reports = await db.collection("reports")
+                .where("reporterId", "==", userId).get();
+            for (const doc of reports.docs) {
+                await doc.ref.delete();
+                results.firestore.deleted++;
+            }
+        });
 
         // ================================================================
         // 2. REALTIME DATABASE CLEANUP
