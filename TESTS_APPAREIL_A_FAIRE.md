@@ -4703,11 +4703,34 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 > C'est l'autre face de l'incohérence déjà vue (« Membres · 0 » sur un groupe
 > peuplé) : le compteur n'est jamais recalculé, il dérive dans les deux sens.
 >
-> - [ ] Correctif propre : faire poser `member_count = 0` par `insert_group` et
->   laisser le trigger seul maître du compteur. C'est une migration SQL sur une
->   fonction de production — à faire délibérément, pas en passant.
-> - [x] Contournement en place : `tools/recount_group_members.sql`, idempotent,
->   relancé après ce test. Tous les groupes sont à leur compte réel.
+> En relisant la fonction, le défaut est double — et la seconde moitié était
+> invisible : `RETURNING * INTO v_row` capture la ligne **avant** l'insertion du
+> membre, donc avant que le trigger n'agisse. La fonction renvoyait `1` pendant
+> que la base contenait `2`. L'écran de création affichait donc un troisième
+> chiffre, différent des deux autres.
+>
+> - [x] **Migration écrite** :
+>   `supabase/migrations/20260806150000_insert_group_member_count.sql`.
+>   Elle pose `member_count = 0` (le trigger compte le créateur juste après) et
+>   relit la ligne après l'insertion du membre. Signature, `SECURITY DEFINER`
+>   et garde `firebase_uid` inchangés.
+> - [ ] **À appliquer** : son exécution a été refusée par le garde-fou de
+>   sécurité — remplacer une fonction de production est sensible, et c'est
+>   normal. Elle est versionnée comme les autres migrations, donc elle part
+>   avec le déploiement habituel :
+>   ```
+>   supabase db push
+>   ```
+>   ou, pour l'appliquer seule :
+>   ```
+>   supabase db query --linked --file supabase/migrations/20260806150000_insert_group_member_count.sql
+>   ```
+> - [ ] Après application : créer un groupe depuis l'app et vérifier que
+>   `member_count` vaut **1**, et que la fiche affiche « Membres · 1 » sans
+>   passer par un recompte.
+> - [x] Contournement en place en attendant :
+>   `tools/recount_group_members.sql`, idempotent, relancé après ce test. Tous
+>   les groupes sont à leur compte réel.
 > - [x] **Doublon supprimé** (2026-08-06, sur décision explicite de Salim).
 >   `25463f01-a148-4304-8f35-a38e6d7efcfb` — « Diaspora Niger — CA », créé le
 >   20/07 par la recherche qui échouait. Avant suppression, les **neuf** tables
