@@ -43,6 +43,7 @@ class EmbassyDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -133,15 +134,15 @@ class EmbassyDetailScreen extends StatelessWidget {
                 ),
                 SliverPersistentHeader(
                   delegate: _SliverAppBarDelegate(
-                    const TabBar(
+                    TabBar(
                       labelColor: Colors.black87,
                       unselectedLabelColor: Colors.grey,
                       indicatorColor:
                           Colors.orange, // Keep original theme color
                       tabs: [
-                        Tab(text: 'Infos'),
-                        Tab(text: 'Activités'),
-                        Tab(text: 'Actualités'),
+                        Tab(text: l10n.embassyInfoTab),
+                        Tab(text: l10n.embassyActivitiesTab),
+                        Tab(text: l10n.embassyNewsTab),
                       ],
                     ),
                   ),
@@ -258,6 +259,7 @@ class EmbassyDetailScreen extends StatelessWidget {
   }
 
   Widget _buildInfoTab(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
@@ -284,7 +286,7 @@ class EmbassyDetailScreen extends StatelessWidget {
                   const Icon(Icons.verified, color: Colors.blue, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'Compte Officiel Vérifié',
+                    l10n.embassyOfficialVerified,
                     style: TextStyle(
                       color: Colors.blue[800],
                       fontWeight: FontWeight.bold,
@@ -308,7 +310,7 @@ class EmbassyDetailScreen extends StatelessWidget {
               Expanded(
                 child: _MainActionButton(
                   icon: Icons.description,
-                  label: 'Demande',
+                  label: l10n.embassyRequest,
                   color: const Color(0xFF1976D2),
                   filled: true,
                   enabled: !embassy.isTemporarilyClosed,
@@ -326,7 +328,7 @@ class EmbassyDetailScreen extends StatelessWidget {
               Expanded(
                 child: _MainActionButton(
                   icon: Icons.message,
-                  label: 'Contacter',
+                  label: l10n.contactAction,
                   color: theme.colorScheme.primary,
                   enabled: !embassy.isTemporarilyClosed,
                   onTap:
@@ -342,7 +344,7 @@ class EmbassyDetailScreen extends StatelessWidget {
               Expanded(
                 child: _MainActionButton(
                   icon: Icons.call,
-                  label: 'Appeler',
+                  label: l10n.callAction,
                   color: theme.colorScheme.primary,
                   enabled: embassy.phone != null && !embassy.isTemporarilyClosed,
                   onTap: () => _makePhoneCall(embassy.phone ?? ''),
@@ -352,7 +354,7 @@ class EmbassyDetailScreen extends StatelessWidget {
               Expanded(
                 child: _MainActionButton(
                   icon: Icons.directions,
-                  label: 'Y aller',
+                  label: l10n.embassyDirections,
                   color: theme.colorScheme.primary,
                   enabled: embassy.latitude != null && embassy.longitude != null,
                   onTap:
@@ -373,7 +375,7 @@ class EmbassyDetailScreen extends StatelessWidget {
             children: [
               _ActionButton(
                 icon: Icons.people,
-                label: 'Personnel',
+                label: l10n.embassyStaff,
                 onTap:
                     () => Navigator.of(context).push(
                       MaterialPageRoute(
@@ -384,13 +386,13 @@ class EmbassyDetailScreen extends StatelessWidget {
               if (embassy.email != null)
                 _ActionButton(
                   icon: Icons.email,
-                  label: 'Email',
+                  label: l10n.email,
                   onTap: () => _sendEmail(embassy.email!),
                 ),
               if (embassy.website != null)
                 _ActionButton(
                   icon: Icons.language,
-                  label: 'Site Web',
+                  label: l10n.embassyWebsite,
                   onTap: () => _openWebsite(embassy.website!),
                 ),
             ],
@@ -406,7 +408,7 @@ class EmbassyDetailScreen extends StatelessWidget {
                 Icon(Icons.schedule, color: Colors.purple[600], size: 22),
                 const SizedBox(width: 8),
                 Text(
-                  'Bientôt disponible',
+                  l10n.comingSoonShort,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.purple[700],
@@ -459,7 +461,7 @@ class EmbassyDetailScreen extends StatelessWidget {
           // Services
           if (embassy.services.isNotEmpty) ...[
             Text(
-              'Services Consulaires',
+              l10n.embassyConsularServices,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -529,14 +531,14 @@ class EmbassyDetailScreen extends StatelessWidget {
           if (embassy.jurisdictionCountries.isNotEmpty) ...[
             const SizedBox(height: 24),
             Text(
-              'Juridiction',
+              l10n.embassyJurisdiction,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Cette ambassade dessert les ressortissants se trouvant dans: ',
+              l10n.embassyJurisdictionDescription,
               style: TextStyle(color: Colors.grey[600], fontSize: 13),
             ),
             const SizedBox(height: 8),
@@ -560,8 +562,9 @@ class EmbassyDetailScreen extends StatelessWidget {
   }
 
   Widget _buildActivitiesTab(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (embassy.activities.isEmpty) {
-      return _buildEmptyState('Aucune activité prévue pour le moment.');
+      return _buildEmptyState(l10n.embassyNoActivities);
     }
 
     return ListView.builder(
@@ -640,8 +643,9 @@ class EmbassyDetailScreen extends StatelessWidget {
   }
 
   Widget _buildNewsTab(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (embassy.news.isEmpty) {
-      return _buildEmptyState('Aucune actualité disponible.');
+      return _buildEmptyState(l10n.embassyNoNews);
     }
 
     return ListView.builder(

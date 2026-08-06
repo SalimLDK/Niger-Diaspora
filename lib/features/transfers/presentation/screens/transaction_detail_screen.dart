@@ -21,13 +21,14 @@ class TransactionDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final transactionStream = ref.watch(
       watchTransactionProvider(transactionId),
     );
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Details du transfert'),
+        title: Text(l10n.transferDetails),
         actions: [
           IconButton(
             icon: const Icon(Icons.share_outlined),
@@ -171,7 +172,7 @@ class TransactionDetailScreen extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Montant envoye'),
+                Text(l10n.transferAmountSentLine),
                 Text(
                   currencyFormat.format(transaction.amount),
                   style: const TextStyle(fontWeight: FontWeight.w600),
@@ -194,7 +195,7 @@ class TransactionDetailScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total debite',
+                  l10n.transferTotalDebited,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: context.textPrimaryColor,
@@ -232,7 +233,7 @@ class TransactionDetailScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   Text(
-                    'Montant recu',
+                    l10n.amountReceived,
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: context.adaptiveSecondaryColor),
@@ -266,7 +267,7 @@ class TransactionDetailScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Beneficiaire',
+              l10n.transferRecipient,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -335,7 +336,7 @@ class TransactionDetailScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             _buildDetailRow(
               context,
-              'Reference',
+              l10n.reference,
               transaction.id.substring(0, 8).toUpperCase(),
               canCopy: true,
               fullValue: transaction.id,
@@ -377,7 +378,7 @@ class TransactionDetailScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               _buildDetailRow(
                 context,
-                'Date de completion',
+                l10n.completionDate,
                 dateFormat.format(transaction.completedAt!),
               ),
             ],
@@ -488,7 +489,7 @@ class TransactionDetailScreen extends ConsumerWidget {
             child: ElevatedButton.icon(
               onPressed: () => _retryTransaction(context, ref, transaction),
               icon: const Icon(Icons.refresh),
-              label: const Text('Reessayer le transfert'),
+              label: Text(l10n.transferRetry),
             ),
           ),
           const SizedBox(height: 12),
@@ -576,8 +577,8 @@ class TransactionDetailScreen extends ConsumerWidget {
       TransferFailureKind.unknown => _StatusInfo(
           icon: Icons.error,
           color: context.errorColor,
-          label: 'Echoue',
-          description: 'Le transfert a echoue. Veuillez reessayer.',
+          label: l10n.transferStatusFailed,
+          description: l10n.transferStatusFailedDesc,
         ),
     };
   }
@@ -609,29 +610,29 @@ class TransactionDetailScreen extends ConsumerWidget {
         return _StatusInfo(
           icon: Icons.check_circle,
           color: context.successColor,
-          label: 'Termine',
-          description: 'Votre transfert a ete effectue avec succes !',
+          label: l10n.transferStatusCompleted,
+          description: l10n.transferStatusCompletedDesc,
         );
       case TransactionStatus.failed:
         return _StatusInfo(
           icon: Icons.error,
           color: context.errorColor,
-          label: 'Echoue',
-          description: 'Le transfert a echoue. Veuillez reessayer.',
+          label: l10n.transferStatusFailed,
+          description: l10n.transferStatusFailedDesc,
         );
       case TransactionStatus.refunded:
         return _StatusInfo(
           icon: Icons.replay,
           color: context.infoColor,
-          label: 'Rembourse',
-          description: 'Le montant a ete rembourse sur votre compte.',
+          label: l10n.transferStatusRefunded,
+          description: l10n.transferStatusRefundedDesc,
         );
       case TransactionStatus.cancelled:
         return _StatusInfo(
           icon: Icons.cancel,
           color: context.textTertiaryColor,
-          label: 'Annule',
-          description: 'Ce transfert a ete annule.',
+          label: l10n.transferStatusCancelled,
+          description: l10n.transferStatusCancelledDesc,
         );
     }
   }

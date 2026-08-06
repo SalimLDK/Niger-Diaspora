@@ -200,7 +200,7 @@ class _AdminEmbassyVerificationScreenState
 
   Widget _buildEmptyState(String type) {
     final messages = {
-      'pending': 'Aucune ambassade en attente de verification',
+      'pending': l10n.adminNoEmbassyPending,
       'active': l10n.adminNoEmbassyActive,
       'suspended': l10n.adminNoEmbassySuspended,
     };
@@ -318,7 +318,7 @@ class _AdminEmbassyVerificationScreenState
             ElevatedButton.icon(
               onPressed: () => ref.invalidate(embassiesListProvider),
               icon: const AppIcon(AppIcon.refresh),
-              label: const Text('Reessayer'),
+              label: Text(l10n.retry),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _primaryColor,
                 foregroundColor: Colors.white,

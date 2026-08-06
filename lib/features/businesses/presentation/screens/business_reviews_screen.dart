@@ -27,7 +27,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
     final currentUser = ref.read(currentUserProvider).valueOrNull;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vous devez etre connecte pour laisser un avis')),
+        SnackBar(content: Text(l10n.reviewMustBeLoggedIn)),
       );
       return;
     }
@@ -48,7 +48,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Supprimer l\'avis'),
-        content: const Text('Voulez-vous vraiment supprimer cet avis ? Cette action est irreversible.'),
+        content: Text(l10n.deleteReviewConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -62,7 +62,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
                   .deleteReview(review.id, businessId);
               if (context.mounted && success) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Avis supprime')),
+                  SnackBar(content: Text(l10n.reviewDeleted)),
                 );
               }
             },
@@ -160,7 +160,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(success ? 'Avis signale' : l10n.reportErrorOccurred),
+                    content: Text(success ? l10n.reviewReportedMessage : l10n.reportErrorOccurred),
                   ),
                 );
               }
@@ -228,7 +228,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Vous avez deja laisse un avis',
+                              l10n.alreadyLeftReviewMessage,
                               style: TextStyle(color: theme.colorScheme.primary),
                             ),
                           ),
@@ -302,7 +302,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
           ? FloatingActionButton.extended(
               onPressed: () => _showReviewForm(context, ref),
               icon: const Icon(Icons.edit),
-              label: const Text('Ecrire un avis'),
+              label: Text(l10n.writeReview),
             )
           : null,
     );
@@ -338,7 +338,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Soyez le premier a partager votre experience !',
+              l10n.beFirstToShareExperience,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.outline,
               ),
@@ -348,7 +348,7 @@ class _EmptyState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onWriteReview,
               icon: const Icon(Icons.edit),
-              label: const Text('Ecrire un avis'),
+              label: Text(l10n.writeReview),
             ),
           ],
         ),
@@ -396,7 +396,7 @@ class _ErrorState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onRetry,
               icon: const AppIcon(AppIcon.refresh),
-              label: const Text('Reessayer'),
+              label: Text(l10n.retry),
             ),
           ],
         ),

@@ -369,7 +369,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                                 ElevatedButton(
                                   onPressed:
                                       () => ref.invalidate(productsProvider),
-                                  child: const Text('Reessayer'),
+                                  child: Text(l10n.retry),
                                 ),
                               ],
                             ),

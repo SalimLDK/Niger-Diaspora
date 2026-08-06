@@ -5,6 +5,7 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../domain/enums/admin_enums.dart';
 import '../../domain/constants/role_permissions.dart';
 import '../providers/permission_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Widget qui protège son contenu selon les permissions de l'utilisateur.
 ///
@@ -117,6 +118,7 @@ class UnauthorizedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Accès refusé'),
@@ -140,7 +142,7 @@ class UnauthorizedScreen extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: () => Navigator.of(context).pop(),
               icon: const AppIcon(AppIcon.arrowBack),
-              label: const Text('Retour'),
+              label: Text(l10n.adminBack),
             ),
           ],
         ),

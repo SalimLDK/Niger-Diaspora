@@ -54,7 +54,7 @@ class _AdminFeatureFlagsScreenState
   Future<void> _save() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      _showError('Vous devez etre connecte pour sauvegarder');
+      _showError(l10n.adminMustBeConnected);
       return;
     }
 
@@ -73,11 +73,11 @@ class _AdminFeatureFlagsScreenState
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
                 Icon(Icons.check_circle_rounded, color: Colors.white),
                 SizedBox(width: 12),
-                Text('Feature flags mis a jour'),
+                Text(l10n.adminFeatureFlagsUpdated),
               ],
             ),
             backgroundColor: AdminColors.statusGreen,
@@ -434,7 +434,7 @@ class _AdminFeatureFlagsScreenState
                   ),
                 ),
                 Text(
-                  'Activez ou desactivez les modules',
+                  l10n.adminFeaturesSubtitle,
                   style: TextStyle(
                     fontSize: 13,
                     color: _textSecondary,
@@ -463,15 +463,15 @@ class _AdminFeatureFlagsScreenState
         ),
         _buildFeatureToggle(
           title: l10n.featureBusinessDirectory,
-          subtitle: 'Repertoire des entreprises nigeriennes',
+          subtitle: l10n.featureBusinessDirectoryDesc,
           icon: Icons.business_rounded,
           color: AdminColors.actionBlueLight,
           value: _flags.businessDirectory,
           onChanged: (v) => _updateFlag(_flags.copyWith(businessDirectory: v)),
         ),
         _buildFeatureToggle(
-          title: 'Evenements',
-          subtitle: 'Creation et participation aux evenements',
+          title: l10n.adminEventsLabel,
+          subtitle: l10n.featureEventsDesc,
           icon: Icons.event_rounded,
           color: AdminColors.statusPurple,
           value: _flags.events,
@@ -479,7 +479,7 @@ class _AdminFeatureFlagsScreenState
         ),
         _buildFeatureToggle(
           title: l10n.adminGroupsLabel,
-          subtitle: 'Creation et gestion des groupes',
+          subtitle: l10n.featureGroupsDesc,
           icon: Icons.groups_rounded,
           color: AdminColors.statusPurple,
           value: _flags.groups,
