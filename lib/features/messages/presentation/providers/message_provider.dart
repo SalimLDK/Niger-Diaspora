@@ -644,7 +644,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   }
 
   Future<void> toggleStar(String messageId) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     final messageIndex = state.messages.indexWhere((m) => m.id == messageId);
@@ -709,7 +709,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
     required String messageId,
     required String newContent,
   }) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     final messageIndex = state.messages.indexWhere((m) => m.id == messageId);
@@ -782,7 +782,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     bool isForwarded = false,
     List<MentionedUser> mentionedUsers = const [],
   }) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     final senderProfile = _ref.read(userStreamProvider(currentUser.id)).valueOrNull;
@@ -1049,7 +1049,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     String? caption,
     MessageEntity? replyToMessage,
   }) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     Map<String, dynamic>? replyToMessageData;
@@ -1116,7 +1116,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     required List<double> waveform,
     MessageEntity? replyToMessage,
   }) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     Map<String, dynamic>? replyToMessageData;
@@ -1188,7 +1188,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     required String address,
     MessageEntity? replyToMessage,
   }) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     Map<String, dynamic>? replyToMessageData;
@@ -1265,7 +1265,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     bool isAnimated = false,
     MessageEntity? replyToMessage,
   }) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     Map<String, dynamic>? replyToMessageData;
@@ -1339,7 +1339,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     required String targetConversationId,
     required MessageEntity originalMessage,
   }) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     switch (originalMessage.type) {
@@ -1462,7 +1462,7 @@ class CreateConversationNotifier extends StateNotifier<AsyncValue<ConversationEn
   CreateConversationNotifier(this._ref) : super(const AsyncValue.data(null));
 
   Future<ConversationEntity?> createIndividual(String otherUserId) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return null;
 
     state = const AsyncValue.loading();
@@ -1558,7 +1558,7 @@ class EnsureSelfNotesNotifier extends StateNotifier<AsyncValue<ConversationEntit
   EnsureSelfNotesNotifier(this._ref) : super(const AsyncValue.data(null));
 
   Future<ConversationEntity?> ensure() async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return null;
 
     // Réutilise l'éventuelle conversation déjà chargée pour éviter un aller-retour.
@@ -1612,7 +1612,7 @@ class MarkAsReadNotifier extends StateNotifier<AsyncValue<void>> {
   MarkAsReadNotifier(this._ref) : super(const AsyncValue.data(null));
 
   Future<void> mark(String conversationId) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     final userId = currentUser.id;
@@ -1673,7 +1673,7 @@ class MarkAsDeliveredNotifier extends StateNotifier<AsyncValue<void>> {
   MarkAsDeliveredNotifier(this._ref) : super(const AsyncValue.data(null));
 
   Future<void> mark(String conversationId) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     await _ref.read(messageRepositoryProvider).markAsDelivered(
@@ -1729,7 +1729,7 @@ class DeleteMessageNotifier extends StateNotifier<AsyncValue<void>> {
     required String conversationId,
     required String messageId,
   }) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     _ref.read(paginatedMessagesProvider(conversationId).notifier).markMessageDeletedForMe(messageId, currentUser.id);
@@ -1852,7 +1852,7 @@ class MessageRequestActionsNotifier extends StateNotifier<AsyncValue<void>> {
 
   /// Accept a message request
   Future<bool> acceptRequest(String conversationId) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();
@@ -1878,7 +1878,7 @@ class MessageRequestActionsNotifier extends StateNotifier<AsyncValue<void>> {
 
   /// Decline a message request
   Future<bool> declineRequest(String conversationId) async {
-    final currentUser = _ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
 
     state = const AsyncValue.loading();

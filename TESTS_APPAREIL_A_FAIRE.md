@@ -4539,8 +4539,27 @@ erreur dans `state`.
 - [ ] Non testés faute de jeu de données ou de droits : les 6 `_save` de
   l'admin (compte admin requis), bloquer/débloquer, join/leave de groupe,
   galerie média, appels de groupe, salons audio.
-- [ ] Reste ~78 occurrences, dans des fichiers où le motif est soit absent
-  d'un chemin utilisateur, soit accompagné d'un `watch` local.
+- [x] **Troisième passe — `message_provider` (15 sites), le plus gros
+  gisement.** Il avait 16 occurrences pour 16 abandons silencieux, et seul
+  `createGroup` avait été traité. Corrigés : `toggleStar`, `editMessage`,
+  `forwardMessage`, `deleteForMe`, `createIndividual`, `ensure` (Mes notes),
+  les deux `mark` (lu / distribué), `acceptRequest`, `declineRequest` et les
+  cinq envois à paramètres nommés. `_preEstablishE2EESessions` (ligne 157)
+  reste en lecture synchrone : méthode non `async`.
+
+  **Vérifié sur appareil — c'est le plus parlant du lot** : la conversation
+  `883c9d96-…` affichait **4 non lus**. Elle avait déjà été ouverte à 10:56
+  pendant le test de non-régression du DM, et le compteur était **resté à 4** :
+  `markAsRead.mark()` ne faisait donc rien. Après correctif, une simple
+  ouverture le remet à `0`. Autrement dit, **les messages ne se marquaient pas
+  comme lus** — le badge de la liste et celui de la barre de navigation
+  restaient donc allumés indéfiniment.
+
+- [ ] Reste ~63 occurrences, dans des fichiers où le motif est soit absent
+  d'un chemin utilisateur, soit accompagné d'un `watch` local. Suivant par
+  volume : `heritage_provider` (6 silencieux / 8, mais 1 watch),
+  `monetization_provider` (11 occurrences, 0 abandon silencieux),
+  `notification_preferences_provider` (1/3), `create_event_screen` (1/2).
   ⚠️ `call_provider` (2) reste délibérément intact : `initiateCall` **pose**
   une erreur (« Utilisateur non connecté ») donc n'est pas silencieux, et son
   `build()` amorce l'abonnement via `_cleanupStaleCalls()` bien avant qu'on
