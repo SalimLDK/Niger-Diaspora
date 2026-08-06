@@ -74,6 +74,44 @@ manifeste. `:app:processDebugResources` passe.
 Le glyphe est le « notifications » de Material, posé comme placeholder : à
 remplacer si une version blanche monochrome de la marque est produite.
 
+### Deux fils débranchés, constatés au passage — NON corrigés
+
+Trouvés en auditant la même chaîne. Ils ne bloquent pas le push Android, donc
+je ne les ai pas traités : ce sont des décisions (Apple, back-end) qui ne
+m'appartiennent pas.
+
+**1. Personne n'émet jamais vers un topic FCM.** Zéro occurrence de `topic`,
+`sendToTopic` ou `/topics/` dans `functions/index.js`, `functions/supabase.js`
+et `supabase/functions/send-push/index.ts` — cette dernière n'envoie qu'à des
+tokens individuels. Or l'app s'abonne à trois familles de topics :
+
+| Abonnement | Où | Ce que l'utilisateur croit obtenir |
+|---|---|---|
+| `general` | `setMasterEnabled` ([notification_preferences_provider.dart:140](lib/features/settings/presentation/providers/notification_preferences_provider.dart:140)) | les diffusions générales |
+| `group_<id>` | [group_repository_impl.dart:122](lib/features/groups/data/repositories/group_repository_impl.dart:122) | l'activité du groupe |
+| topic d'événement | `_NotifyNextToggle` ([home_screen_widgets.dart:1411](lib/features/home/presentation/screens/home_screen_widgets.dart:1411)) | le rappel du prochain événement |
+
+La bascule **« M'avertir »** d'un événement est donc un interrupteur qui ne
+commande rien. À trancher : soit un émetteur côté serveur, soit retirer les
+bascules. En attendant, ne pas conclure « le push est cassé » en la testant.
+
+- [ ] Ne rien attendre de la bascule « M'avertir » tant que ce point est ouvert.
+
+**2. iOS : aucun push possible, à deux niveaux.**
+
+- `ios/Runner/Runner.entitlements` ne contient **pas** `aps-environment` (seul
+  `associated-domains` y est). Sans lui, l'enregistrement APNs échoue,
+  `getAPNSToken()` renvoie nil, et [`_getToken()`](lib/core/services/notification_service.dart:1283)
+  sort avant même d'appeler `getToken()` : aucun token FCM n'est jamais
+  enregistré sur iOS. Ça se répare dans Xcode (capability « Push
+  Notifications » sur l'App ID **et** le profil de provisionnement) — ajouter
+  la clé à la main sans activer la capability casse la signature.
+- `saveVoipTokenForUser` n'est appelée nulle part : `NativeCallService` expose
+  `onVoipTokenUpdated` ([native_call_service.dart:79](lib/core/services/native_call_service.dart:79))
+  mais rien ne lui affecte de callback, donc `users.voip_token` reste vide et
+  les appels CallKit iOS ne peuvent pas sonner. Fil d'une ligne à rebrancher —
+  mais sans le point précédent il ne changerait rien.
+
 ## Écrans de notifications — lot « une seule source » (2026-08-05)
 
 `notification_settings_screen.dart` a rejoint `design_kit.dart` (c'était la
