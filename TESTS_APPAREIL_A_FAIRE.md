@@ -3411,6 +3411,45 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 
 ---
 
+## Blocage, sens inverse — RLS prouvée en base (2026-08-06)
+
+Le sens « qui m'a bloqué » n'a jamais fonctionné : `blockUser` écrit bien
+`blockedByUserIds` sur la cible, mais dans Firestore, alors que les profils
+viennent de Supabase où `_mapProfile` code ce champ en dur à `[]`. Et les dix
+sites de lecture testaient en plus la **mauvaise direction** — sauf
+`conversation_screen`, seul à avoir le bon sens.
+
+La politique RLS était le vrai verrou : `blocked_users_own` en `ALL` sur
+`firebase_uid() = blocker_id` ne laissait lire que les lignes où l'on est le
+**bloqueur**. La recherche inverse échouait **en silence** — requête réussie,
+zéro ligne. Corrigé par la migration `20260806120000`.
+
+✅ **Prouvé en base**, en simulant les trois identités via
+`request.jwt.claims` (ce que lit `firebase_uid()`), chaque essai dans une
+transaction annulée :
+
+| Qui interroge | Lignes vues | Attendu |
+|---|:--:|---|
+| La personne **bloquée** (Sim A) | **1** | le sens qui était cassé |
+| Un **tiers** quelconque | **0** | contrôle négatif |
+| Le **bloqueur** (Salim L.) | **1** | le sens qui marchait déjà |
+
+Sans le contrôle négatif, le premier résultat n'aurait rien voulu dire : une
+politique trop permissive aurait donné 1 aussi. Table laissée à zéro ligne.
+
+**Ce qui reste non exercé** : le rendu. La base ne contient aucun blocage et
+seulement 2 comptes, donc rien de tout ceci n'a été vu à l'écran.
+
+- [ ] **Poser un vrai blocage entre les deux comptes** et vérifier sur
+  l'appareil : la personne disparaît de la carte, de l'accueil, du statut
+  « en ligne » et des notifications, **et le composeur de la conversation se
+  ferme** (`isBlockedByOther`, six branches de l'écran).
+- [ ] **Débloquer** et vérifier que tout revient — la table est publiée en
+  realtime avec `REPLICA IDENTITY FULL` précisément pour que la suppression
+  soit livrée ; sans ça le déblocage n'aurait pris effet qu'au relancement.
+
+---
+
 ## Podcasts — 5 écrans passés au système DN (2026-08-04)
 
 `lib/design_v2/` a été supprimé. Avant de le retirer, cinq écrans podcasts
