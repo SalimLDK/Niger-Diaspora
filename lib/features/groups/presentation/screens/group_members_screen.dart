@@ -9,6 +9,7 @@ import '../../../../features/messages/presentation/providers/conversation_action
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class GroupMembersScreen extends ConsumerWidget {
   final String groupId;
@@ -24,6 +25,7 @@ class GroupMembersScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final groupAsync = ref.watch(groupDetailNotifierProvider);
     final groupEntity = group ?? groupAsync.valueOrNull;
     final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
@@ -32,7 +34,7 @@ class GroupMembersScreen extends ConsumerWidget {
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
         title: Text(
-          groupEntity?.name ?? 'Membres',
+          groupEntity?.name ?? l10n.membersLabel,
           style: TextStyle(color: context.textPrimaryColor),
         ),
         backgroundColor: context.surfaceColor,
@@ -119,6 +121,7 @@ class _MemberListItem extends ConsumerWidget {
   }
 
   void _showMemberOptions(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     if (!canModerate || currentUserId == memberId) {
       return;
     }
@@ -151,7 +154,7 @@ class _MemberListItem extends ConsumerWidget {
                 if (conversationId != null && !isAdmin && !isCreator)
                   ListTile(
                     leading: const Icon(Icons.admin_panel_settings),
-                    title: const Text('Promouvoir Admin'),
+                    title: Text(l10n.groupPromoteAdmin),
                     onTap: () async {
                       Navigator.pop(context);
                       final success = await ref
@@ -165,8 +168,8 @@ class _MemberListItem extends ConsumerWidget {
                           SnackBar(
                             content: Text(
                               success
-                                  ? 'Membre promu admin'
-                                  : 'Erreur lors de la promotion',
+                                  ? l10n.memberPromotedAdmin
+                                  : l10n.promoteError,
                             ),
                           ),
                         );
@@ -176,7 +179,7 @@ class _MemberListItem extends ConsumerWidget {
                 if (conversationId != null && isAdmin && !isCreator)
                   ListTile(
                     leading: const Icon(Icons.remove_moderator),
-                    title: const Text('Retirer Admin'),
+                    title: Text(l10n.groupDemoteAdmin),
                     onTap: () async {
                       Navigator.pop(context);
                       final success = await ref
@@ -190,8 +193,8 @@ class _MemberListItem extends ConsumerWidget {
                           SnackBar(
                             content: Text(
                               success
-                                  ? 'Admin rétrogradé'
-                                  : 'Erreur lors de la rétrogradation',
+                                  ? l10n.memberDemotedAdmin
+                                  : l10n.demoteError,
                             ),
                           ),
                         );
@@ -201,8 +204,8 @@ class _MemberListItem extends ConsumerWidget {
                 if (conversationId != null && !isCreator)
                   ListTile(
                     leading: const Icon(Icons.person_remove, color: Colors.red),
-                    title: const Text(
-                      'Retirer du groupe',
+                    title: Text(
+                      l10n.removeFromGroup,
                       style: TextStyle(color: Colors.red),
                     ),
                     onTap: () async {
@@ -211,20 +214,20 @@ class _MemberListItem extends ConsumerWidget {
                         context: context,
                         builder:
                             (context) => AlertDialog(
-                              title: const Text('Confirmer'),
-                              content: const Text(
-                                'Voulez-vous vraiment retirer ce membre du groupe ?',
+                              title: Text(l10n.groupConfirmTitle),
+                              content: Text(
+                                l10n.confirmRemoveMember,
                               ),
                               actions: [
                                 TextButton(
                                   onPressed:
                                       () => Navigator.pop(context, false),
-                                  child: const Text('Annuler'),
+                                  child: Text(l10n.undo),
                                 ),
                                 TextButton(
                                   onPressed: () => Navigator.pop(context, true),
-                                  child: const Text(
-                                    'Retirer',
+                                  child: Text(
+                                    l10n.remove,
                                     style: TextStyle(color: Colors.red),
                                   ),
                                 ),
@@ -243,8 +246,8 @@ class _MemberListItem extends ConsumerWidget {
                             SnackBar(
                               content: Text(
                                 success
-                                    ? 'Membre retiré du groupe'
-                                    : 'Erreur lors de la suppression',
+                                    ? l10n.memberRemovedFromGroup
+                                    : l10n.removalError,
                               ),
                             ),
                           );
@@ -260,6 +263,7 @@ class _MemberListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final profileAsync = ref.watch(userStreamProvider(memberId));
 
     return profileAsync.when(
@@ -310,7 +314,7 @@ class _MemberListItem extends ConsumerWidget {
               children: [
                 Flexible(
                   child: Text(
-                    profile.displayName ?? 'Membre',
+                    profile.displayName ?? l10n.member,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -330,8 +334,8 @@ class _MemberListItem extends ConsumerWidget {
                       color: context.adaptivePrimaryColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
-                      'Créateur',
+                    child: Text(
+                      l10n.creator,
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.white,
@@ -353,7 +357,7 @@ class _MemberListItem extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      'Admin',
+                      l10n.adminRoleLabel,
                       style: TextStyle(
                         fontSize: 10,
                         color: context.adaptiveSecondaryColor,
@@ -372,8 +376,8 @@ class _MemberListItem extends ConsumerWidget {
                       color: const Color(0xFF7A8A5E).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
-                      'Modé',
+                    child: Text(
+                      l10n.groupRoleModerator,
                       style: TextStyle(
                         fontSize: 10,
                         color: Color(0xFF5A6B45),

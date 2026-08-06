@@ -285,7 +285,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             _StatItem(
                               icon: Icons.access_time,
                               value: _formatDate(product.createdAt),
-                              label: 'publie',
+                              label: l10n.marketplacePublishedLabel,
                             ),
                           ],
                         ),
@@ -315,7 +315,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       onPressed:
                           () =>
                               ref.invalidate(productProvider(widget.productId)),
-                      child: const Text('Reessayer'),
+                      child: Text(l10n.retry),
                     ),
                   ],
                 ),
@@ -414,7 +414,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                                       .addToCart(product, quantity: _quantity);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: const Text('Ajoute au panier'),
+                                      content: Text(l10n.marketplaceAddedToCart),
                                       action: SnackBarAction(
                                         label: l10n.marketplaceViewCart,
                                         onPressed:
@@ -590,8 +590,8 @@ class _SellerCardState extends ConsumerState<_SellerCard> {
       if (conversation == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Erreur lors de la creation de la conversation'),
+            SnackBar(
+              content: Text(l10n.marketplaceConversationError),
             ),
           );
         }

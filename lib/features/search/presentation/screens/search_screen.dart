@@ -31,6 +31,8 @@ class SearchScreen extends ConsumerStatefulWidget {
 }
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _searchController = TextEditingController();
   Timer? _debounce;
 
@@ -280,28 +282,28 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       children: [
         // Members Section
         if (filteredProfiles.isNotEmpty) ...[
-          _SectionHeader(title: 'Membres', count: filteredProfiles.length),
+          _SectionHeader(title: l10n.membersLabel, count: filteredProfiles.length),
           ...filteredProfiles.map((profile) => _MemberItem(profile: profile)),
           const SizedBox(height: 16),
         ],
 
         // Groups Section
         if (filteredGroups.isNotEmpty) ...[
-          _SectionHeader(title: 'Groupes', count: filteredGroups.length),
+          _SectionHeader(title: l10n.homeGroups, count: filteredGroups.length),
           ...filteredGroups.map((group) => _GroupItem(group: group)),
           const SizedBox(height: 16),
         ],
 
         // Friends Section
         if (filteredFriends.isNotEmpty) ...[
-          _SectionHeader(title: 'Amis', count: filteredFriends.length),
+          _SectionHeader(title: l10n.friends, count: filteredFriends.length),
           ...filteredFriends.map((friend) => _FriendItem(friend: friend)),
           const SizedBox(height: 16),
         ],
 
         // Conversations Section
         if (filteredConversations.isNotEmpty) ...[
-          _SectionHeader(title: 'Discussions', count: filteredConversations.length),
+          _SectionHeader(title: l10n.conversationsSection, count: filteredConversations.length),
           ...filteredConversations.map((conv) => _ConversationItem(conversation: conv)),
         ],
 
@@ -333,7 +335,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       ref
                           .read(searchNotifierProvider.notifier)
                           .clearRecentSearches(),
-              child: const Text('Effacer'),
+              child: Text(l10n.clear),
             ),
           ],
         ),
@@ -418,6 +420,7 @@ class _MemberItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -467,7 +470,7 @@ class _MemberItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    profile.displayName ?? 'Membre',
+                    profile.displayName ?? l10n.member,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -652,6 +655,7 @@ class _FriendItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -718,7 +722,7 @@ class _FriendItem extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Ami',
+                        l10n.friend,
                         style: TextStyle(
                           fontSize: 12,
                           color: context.textTertiaryColor,
@@ -744,8 +748,9 @@ class _ConversationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isGroup = conversation.isGroup;
-    final displayName = conversation.name ?? 'Conversation';
+    final displayName = conversation.name ?? l10n.conversation;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -843,7 +848,7 @@ class _ConversationItem extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'Groupe',
+                      l10n.group,
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,

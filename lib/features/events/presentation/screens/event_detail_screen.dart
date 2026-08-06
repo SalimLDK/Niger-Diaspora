@@ -29,6 +29,8 @@ class EventDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _isLoading = false;
   int _currentPosterIndex = 0;
 
@@ -720,7 +722,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Récapitulatif',
+                            l10n.eventRecapTitle,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -746,8 +748,8 @@ Voir plus de d\u00e9tails sur DiaspoNiger
                                 );
                               } catch (e) {
                                 scaffoldMessenger.showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Erreur lors du partage'),
+                                  SnackBar(
+                                    content: Text(l10n.errorSharing),
                                     backgroundColor: Colors.red,
                                   ),
                                 );
@@ -757,7 +759,7 @@ Voir plus de d\u00e9tails sur DiaspoNiger
                               Icons.share,
                               color: context.adaptivePrimaryColor,
                             ),
-                            tooltip: 'Partager le récapitulatif',
+                            tooltip: l10n.eventShareRecap,
                           ),
                         ],
                       ),

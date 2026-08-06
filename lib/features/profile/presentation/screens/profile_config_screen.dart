@@ -35,6 +35,8 @@ class ProfileConfigScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   static const int _stepCount = 4;
 
   int _currentStep = 0;
@@ -457,7 +459,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
     final displayName =
         _displayNameController.text.trim().isNotEmpty
             ? _displayNameController.text.trim()
-            : (currentUser?.displayName ?? 'Utilisateur');
+            : (currentUser?.displayName ?? l10n.user);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 18, 24, 16),

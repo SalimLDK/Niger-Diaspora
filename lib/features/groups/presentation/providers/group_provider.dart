@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -13,23 +14,34 @@ import '../../domain/repositories/group_repository.dart';
 
 part 'group_provider.g.dart';
 
-/// Source des groupes : **Supabase**, depuis le 2026-08-06.
+/// Source de données des groupes : **Supabase**, depuis le 2026-08-06.
 ///
-/// Elle était restée sur `GroupRemoteDataSourceImpl` (Firestore) alors que les
-/// groupes sont créés dans Supabase depuis la migration. Conséquences mesurées
-/// sur appareil avant bascule : la fiche d'un groupe Supabase affichait
-/// « Erreur de chargement » et rien d'autre (donc pas d'ouverture de la
-/// discussion depuis la fiche, pas de membres, pas de quitter/partager) ;
-/// l'onglet « Mes groupes » ne montrait AUCUN des groupes Supabase ; et le
-/// menu « + » du composer n'offrait ni sondage ni événement, leurs permissions
-/// dérivant de l'entité groupe restée nulle. `GroupSupabaseDataSource`
-/// existait déjà, complet, mais n'était câblé nulle part.
+/// Elle a toujours rendu l'implémentation Firestore
+/// (`GroupRemoteDataSourceImpl`), depuis le commit initial et sans exception,
+/// alors que les groupes vivent dans Supabase et que la collection Firestore
+/// `groups` est vide. C'est le seul point de câblage de toute la
+/// fonctionnalité — liste, découverte, fiche, création, adhésion, recherche —
+/// si bien que tout le travail fait sur `GroupSupabaseDataSource` (session
+/// avant lecture, appartenance lue dans `group_members`, garde « Officiel »)
+/// portait sur une classe que ce provider n'instanciait pas.
+///
+/// Conséquences observées, toutes le même défaut :
+/// - « Découvrir » annonçait « Aucun groupe public » sur trois groupes publics,
+///   et la recherche ne remontait rien ;
+/// - l'onglet « Mes groupes » ne montrait AUCUN groupe Supabase ;
+/// - la fiche d'un groupe Supabase affichait « Erreur de chargement » et rien
+///   d'autre : ni ouverture de la discussion, ni membres, ni quitter/partager ;
+/// - le menu « + » du composer n'offrait ni sondage ni événement, leurs
+///   permissions dérivant de l'entité groupe restée nulle ;
+/// - le groupe officiel du pays n'était jamais rejoint à l'inscription :
+///   `GroupRemoteDataSourceImpl.ensureOfficialGroup` lève `UnimplementedError`,
+///   que `GroupRepositoryImpl` traduit en `Left(...)` que
+///   `ProfileNotifier._joinOfficialGroup` ignore (`(failure) async {}`).
 ///
 /// ⚠️ Les groupes hérités de Firestore (id de 20 caractères, hors de
 /// `public.groups` dont l'`id` est `uuid`) ne sont PAS lisibles par cette
 /// source. Ils doivent être migrés — voir `tools/migrate_legacy_groups.sql`,
 /// qui leur attribue un uuid et réaligne `conversations.group_id`.
-/// Cf. [[project_legacy_firestore_ids_vs_uuid]].
 @riverpod
 GroupRemoteDataSource groupRemoteDataSource(Ref ref) {
   return GroupSupabaseDataSource();
@@ -58,17 +70,34 @@ class GroupsNotifier extends _$GroupsNotifier {
     return const AsyncValue.loading();
   }
 
+  /// Préfixe de journal de `loadGroups`.
+  ///
+  /// « Découvrir » a annoncé « Aucun groupe public » pendant deux sessions
+  /// alors que la base en contenait trois, et rien dans les journaux ne
+  /// permettait de distinguer les quatre issues possibles : cache servi,
+  /// réseau vide, échec avalé, ou source qui interroge le mauvais backend.
+  /// C'était le dernier cas — et il ne se voyait nulle part. La trace nomme
+  /// désormais la source interrogée, ce qui suffit à le voir en une ligne.
+  static const _trace = '[groupes] loadGroups';
+
   Future<void> loadGroups() async {
     final repository = ref.read(groupRepositoryProvider);
+    if (kDebugMode) {
+      debugPrint(
+        '$_trace source=${ref.read(groupRemoteDataSourceProvider).runtimeType}',
+      );
+    }
 
     // 1. Try to load from cache first (Cache-First Strategy)
     final cachedResult = repository.getCachedGroups();
     cachedResult.fold(
       (failure) {
         // Cache miss or error - show loading
+        if (kDebugMode) debugPrint('$_trace cache=échec ${failure.message}');
         state = const AsyncValue.loading();
       },
       (cachedGroups) {
+        if (kDebugMode) debugPrint('$_trace cache=${cachedGroups.length}');
         if (cachedGroups.isNotEmpty) {
           state = AsyncValue.data(cachedGroups);
         } else {
@@ -80,11 +109,18 @@ class GroupsNotifier extends _$GroupsNotifier {
     // 2. Fetch from network
     final result = await repository.getGroups();
     result.fold((failure) {
+      // `getGroups` est le seul chemin de l'onglet « Découvrir » : un échec
+      // ici et un backend réellement vide donnent le même écran. Il faut donc
+      // que le journal les sépare, même quand l'état n'est pas mis à jour.
+      if (kDebugMode) debugPrint('$_trace réseau=échec ${failure.message}');
       // Only update to error if we don't have cached data
       if (state.valueOrNull == null || state.valueOrNull!.isEmpty) {
         state = AsyncValue.error(failure.message, StackTrace.current);
       }
-    }, (groups) => state = AsyncValue.data(groups));
+    }, (groups) {
+      if (kDebugMode) debugPrint('$_trace réseau=${groups.length} groupes');
+      state = AsyncValue.data(groups);
+    });
   }
 
   Future<void> loadGroupsByCategory(GroupCategory category) async {

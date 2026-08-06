@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: context.surfaceVariantColor,
       body: Center(
@@ -40,7 +42,7 @@ class SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Diaspo Niger',
+              l10n.appTitle,
               style: Theme.of(
                 context,
               ).textTheme.displayMedium?.copyWith(color: context.textPrimaryColor),

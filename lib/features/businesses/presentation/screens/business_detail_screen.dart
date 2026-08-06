@@ -123,7 +123,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                             .read(businessDetailNotifierProvider.notifier)
                             .loadBusiness(widget.businessId);
                       },
-                      child: const Text('Reessayer'),
+                      child: Text(l10n.retry),
                     ),
                   ],
                 ),
@@ -245,13 +245,13 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                           color: Colors.green,
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.verified, size: 16, color: Colors.white),
                             SizedBox(width: 4),
                             Text(
-                              'Verifie',
+                              l10n.verifiedBadge,
                               style: TextStyle(color: Colors.white),
                             ),
                           ],
@@ -727,7 +727,7 @@ class _PostsSection extends ConsumerWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Actualites',
+                l10n.embassyNewsTab,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -763,7 +763,7 @@ class _PostsSection extends ConsumerWidget {
                     AppIcon(AppIcon.info, color: theme.colorScheme.outline),
                     const SizedBox(width: 12),
                     Text(
-                      'Aucune actualite',
+                      l10n.noNewsMessage,
                       style: TextStyle(color: theme.colorScheme.outline),
                     ),
                   ],
@@ -856,7 +856,7 @@ class _PostsSection extends ConsumerWidget {
                           controller: contentController,
                           decoration: InputDecoration(
                             labelText: l10n.adminContent,
-                            hintText: 'Decrivez votre actualite...',
+                            hintText: l10n.contentHintDescribe,
                           ),
                           maxLines: 4,
                         ),
@@ -1099,7 +1099,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
     final currentUser = ref.read(currentUserProvider).valueOrNull;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vous devez etre connecte pour laisser un avis')),
+        SnackBar(content: Text(l10n.reviewMustBeLoggedIn)),
       );
       return;
     }
@@ -1264,7 +1264,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
                       FilledButton.icon(
                         onPressed: () => _showReviewForm(context, ref),
                         icon: const Icon(Icons.edit, size: 18),
-                        label: const Text('Ecrire le premier avis'),
+                        label: Text(l10n.writeFirstReview),
                       ),
                     ],
                   ],
@@ -1306,7 +1306,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
                       child: OutlinedButton.icon(
                         onPressed: () => _showReviewForm(context, ref),
                         icon: const Icon(Icons.edit, size: 18),
-                        label: const Text('Ecrire un avis'),
+                        label: Text(l10n.writeReview),
                       ),
                     ),
                   ),

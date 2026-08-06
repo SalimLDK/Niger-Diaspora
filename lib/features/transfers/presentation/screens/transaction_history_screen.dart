@@ -135,7 +135,7 @@ class _TransactionHistoryScreenState
                   onPressed:
                       () =>
                           ref.invalidate(watchUserTransactionsProvider(userId)),
-                  child: const Text('Reessayer'),
+                  child: Text(l10n.retry),
                 ),
               ],
             ),
@@ -267,7 +267,7 @@ class _TransactionHistoryScreenState
           children: [
             Expanded(
               child: Text(
-                transaction.recipientName ?? 'Beneficiaire inconnu',
+                transaction.recipientName ?? l10n.unknownRecipient,
                 style: const TextStyle(fontWeight: FontWeight.w600),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -338,7 +338,7 @@ class _TransactionHistoryScreenState
           ),
           const SizedBox(height: 16),
           Text(
-            hasFilters ? 'Aucun transfert trouve' : 'Aucun transfert effectue',
+            hasFilters ? l10n.noTransferFound : l10n.noTransferCompleted,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(color: context.textSecondaryColor),
@@ -416,7 +416,7 @@ class _TransactionHistoryScreenState
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'Periode',
+                          l10n.period,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 12),
@@ -470,7 +470,7 @@ class _TransactionHistoryScreenState
                             }
                           },
                           icon: const Icon(Icons.date_range),
-                          label: const Text('Choisir une periode'),
+                          label: Text(l10n.transferChoosePeriod),
                         ),
                         const SizedBox(height: 24),
                         SizedBox(
@@ -532,13 +532,13 @@ class _TransactionHistoryScreenState
       case TransactionStatus.processing:
         return _StatusInfo(Icons.sync, AppColors.info, l10n.transferStatusProcessing);
       case TransactionStatus.completed:
-        return _StatusInfo(Icons.check_circle, AppColors.success, 'Termine');
+        return _StatusInfo(Icons.check_circle, AppColors.success, l10n.transferStatusCompleted);
       case TransactionStatus.failed:
-        return _StatusInfo(Icons.error, AppColors.error, 'Echoue');
+        return _StatusInfo(Icons.error, AppColors.error, l10n.transferStatusFailed);
       case TransactionStatus.refunded:
-        return _StatusInfo(Icons.replay, AppColors.info, 'Rembourse');
+        return _StatusInfo(Icons.replay, AppColors.info, l10n.transferStatusRefunded);
       case TransactionStatus.cancelled:
-        return _StatusInfo(Icons.cancel, context.textTertiaryColor, 'Annule');
+        return _StatusInfo(Icons.cancel, context.textTertiaryColor, l10n.transferStatusCancelled);
     }
   }
 }

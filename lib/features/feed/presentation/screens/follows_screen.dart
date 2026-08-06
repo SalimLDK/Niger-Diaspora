@@ -35,6 +35,8 @@ class FollowsScreen extends ConsumerStatefulWidget {
 }
 
 class _FollowsScreenState extends ConsumerState<FollowsScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late int _tab = widget.initialTab.clamp(0, 1);
   final _searchController = TextEditingController();
   String _query = '';
@@ -71,8 +73,8 @@ class _FollowsScreenState extends ConsumerState<FollowsScreen> {
                 tokens: tokens,
                 selected: _tab,
                 labels: [
-                  withCount('Abonnés', followersCount),
-                  withCount('Abonnements', followingCount),
+                  withCount(l10n.followersTitle, followersCount),
+                  withCount(l10n.followingTab, followingCount),
                 ],
                 onChanged: (v) => setState(() => _tab = v),
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/services/support_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class BugReportDialog extends StatefulWidget {
   const BugReportDialog({super.key});
@@ -10,6 +11,8 @@ class BugReportDialog extends StatefulWidget {
 }
 
 class _BugReportDialogState extends State<BugReportDialog> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
   final _stepsController = TextEditingController();
@@ -42,7 +45,7 @@ class _BugReportDialogState extends State<BugReportDialog> {
         SnackBar(
           content: Text(
             success
-                ? 'Application de messagerie ouverte'
+                ? l10n.bugReportEmailOpened
                 : 'Impossible d\'ouvrir l\'application de messagerie',
           ),
           backgroundColor: success ? Colors.green : Colors.red,
@@ -81,7 +84,7 @@ class _BugReportDialogState extends State<BugReportDialog> {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    'Signaler un bug',
+                    l10n.reportBug,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -95,8 +98,8 @@ class _BugReportDialogState extends State<BugReportDialog> {
                 controller: _descriptionController,
                 maxLines: 4,
                 decoration: InputDecoration(
-                  labelText: 'Description du bug',
-                  hintText: 'Décrivez le problème rencontré...',
+                  labelText: l10n.settingsBugDescLabel,
+                  hintText: l10n.settingsBugDescHint,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -107,7 +110,7 @@ class _BugReportDialogState extends State<BugReportDialog> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Veuillez décrire le bug';
+                    return l10n.bugReportDescriptionRequired;
                   }
                   return null;
                 },
@@ -117,7 +120,7 @@ class _BugReportDialogState extends State<BugReportDialog> {
                 controller: _stepsController,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  labelText: 'Étapes pour reproduire (optionnel)',
+                  labelText: l10n.stepsToReproduce,
                   hintText: '1. Ouvrir l\'application\n2. ...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -134,7 +137,7 @@ class _BugReportDialogState extends State<BugReportDialog> {
                 children: [
                   TextButton(
                     onPressed: _isLoading ? null : () => Navigator.pop(context),
-                    child: const Text('Annuler'),
+                    child: Text(l10n.undo),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
@@ -155,7 +158,7 @@ class _BugReportDialogState extends State<BugReportDialog> {
                                 color: Colors.white,
                               ),
                             )
-                            : const Text('Envoyer'),
+                            : Text(l10n.send),
                   ),
                 ],
               ),

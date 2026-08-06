@@ -236,7 +236,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       // Get current Firebase user directly (avoids StreamProvider race conditions)
       final firebaseUser = FirebaseAuth.instance.currentUser;
       if (firebaseUser == null) {
-        throw Exception('Utilisateur non connecte');
+        throw Exception(l10n.marketplaceUserNotConnected);
       }
 
       // Try to get extended user data, or use Firebase user data as fallback
@@ -316,7 +316,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_isEditing ? 'Produit modifie' : 'Produit publie'),
+            content: Text(_isEditing ? l10n.productModifiedMessage : l10n.productPublishedMessage),
           ),
         );
         context.pop();
@@ -355,7 +355,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                 // page — le titre déborde sans lui aux grandes échelles.
                 Expanded(
                   child: Text(
-                    'Parametres de taxe',
+                    l10n.marketplaceTaxSettings,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -366,7 +366,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             const SizedBox(height: 8),
             Text(
               isCategoryExempt
-                  ? 'Cette categorie est exoneree de taxe par defaut'
+                  ? l10n.taxExemptCategoryMessage
                   : 'Taxe par defaut pour cette categorie: ${(categoryTaxRate * 100).toStringAsFixed(0)}%',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.outline,
@@ -409,7 +409,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                         ? (_customTaxRate! * 100).toStringAsFixed(0)
                         : '',
                 decoration: InputDecoration(
-                  labelText: 'Taux personnalise (%)',
+                  labelText: l10n.marketplaceCustomTaxRate,
                   hintText: l10n.marketplaceCustomTaxHint,
                   border: OutlineInputBorder(),
                   suffixText: '%',
@@ -433,8 +433,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
               title: Text(l10n.marketplacePriceTTC),
               subtitle: Text(
                 _taxIncludedInPrice
-                    ? 'Le prix affiche inclut deja la taxe'
-                    : 'La taxe sera ajoutee au prix affiche',
+                    ? l10n.marketplaceTaxIncluded
+                    : l10n.marketplaceTaxAdded,
                 style: theme.textTheme.bodySmall,
               ),
               value: _taxIncludedInPrice,
@@ -491,7 +491,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Apercu',
+          l10n.marketplacePreview,
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -631,7 +631,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
               controller: _descriptionController,
               decoration: InputDecoration(
                 labelText: l10n.marketplaceDescriptionLabel,
-                hintText: 'Decrivez votre produit...',
+                hintText: l10n.marketplaceDescriptionHint,
                 border: OutlineInputBorder(),
               ),
               maxLines: 4,
@@ -673,8 +673,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: _quantityController,
-                    decoration: const InputDecoration(
-                      labelText: 'Quantite',
+                    decoration: InputDecoration(
+                      labelText: l10n.marketplaceQuantityLabel,
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
@@ -718,8 +718,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
               // pile interne, et l'Expanded empêche cette Row-là de déborder
               // à son tour une fois bornée.
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Categorie',
+              decoration: InputDecoration(
+                labelText: l10n.marketplaceCategoryLabel,
                 border: OutlineInputBorder(),
               ),
               items:
@@ -753,8 +753,8 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             DropdownButtonFormField<ProductCondition>(
               initialValue: _selectedCondition,
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Etat',
+              decoration: InputDecoration(
+                labelText: l10n.marketplaceConditionLabel,
                 border: OutlineInputBorder(),
               ),
               items:
@@ -848,7 +848,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
               },
               validator: (value) {
                 if (value == null) {
-                  return 'Selectionnez un pays';
+                  return l10n.marketplaceSelectCountry;
                 }
                 return null;
               },

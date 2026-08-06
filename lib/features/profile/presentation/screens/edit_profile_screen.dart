@@ -37,6 +37,8 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _displayNameController = TextEditingController();
   final _bioController = TextEditingController();
@@ -1133,7 +1135,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             Icon(Icons.verified, color: context.successColor, size: 20),
             const SizedBox(width: 6),
             Text(
-              'Verifie',
+              l10n.verifiedBadge,
               style: TextStyle(
                 color: context.successColor,
                 fontWeight: FontWeight.w600,

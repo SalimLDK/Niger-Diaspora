@@ -39,6 +39,8 @@ class GroupDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _isLoading = false;
 
   @override
@@ -506,7 +508,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         groupName: group.name,
         groupImageUrl: group.imageUrl,
         requesterId: currentUser.id,
-        requesterName: currentUser.displayName ?? 'Utilisateur',
+        requesterName: currentUser.displayName ?? l10n.user,
         requesterPhotoUrl: currentUser.photoUrl,
       );
 
@@ -815,7 +817,7 @@ class _MemberListItem extends ConsumerWidget {
     return profileAsync.when(
       data: (profile) {
         // Afficher un placeholder si le profil n'est pas trouvé
-        final displayName = profile?.displayName ?? 'Membre';
+        final displayName = profile?.displayName ?? l10n.member;
         final photoUrl = profile?.photoUrl;
         final profession = profile?.profession;
 
@@ -896,7 +898,7 @@ class _MemberListItem extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    'Admin',
+                    l10n.adminRoleLabel,
                     style: TextStyle(
                       fontSize: 10,
                       color: context.adaptiveSecondaryColor,
@@ -983,6 +985,7 @@ class _GroupActionRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final me = ref.watch(currentUserProvider).valueOrNull?.id;
     final conversations = ref.watch(conversationsProvider).valueOrNull ?? [];
     final conversation =
@@ -1026,7 +1029,7 @@ class _GroupActionRow extends ConsumerWidget {
           Tooltip(
             message:
                 isMuted
-                    ? 'Réactiver les notifications'
+                    ? l10n.unmute
                     : 'Couper les notifications',
             child: InkWell(
               borderRadius: BorderRadius.circular(13),

@@ -145,7 +145,7 @@ class BusinessCard extends ConsumerWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Verifie',
+                                l10n.verifiedBadge,
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,

@@ -81,6 +81,8 @@ class CreatePostScreen extends ConsumerStatefulWidget {
 
 class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
     with WidgetsBindingObserver {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _contentController = HashtagHighlightingController();
   final _uploadService = ImageUploadService();
   final _videoUploadService = VideoUploadService();
@@ -377,7 +379,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
       final post = PostEntity(
         id: '',
         authorId: user.uid,
-        authorName: user.displayName ?? user.email ?? 'Utilisateur',
+        authorName: user.displayName ?? user.email ?? l10n.user,
         authorPhotoUrl: user.photoURL,
         content: content,
         mediaUrls: finalUrls,
@@ -465,7 +467,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
                   AppIcon(AppIcon.public, size: 20, color: tokens.accent),
                   const SizedBox(width: 10),
                   Text(
-                    'Public',
+                    l10n.public,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -587,7 +589,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
                                   ),
                                   const SizedBox(width: 5),
                                   Text(
-                                    'Public',
+                                    l10n.public,
                                     style: TextStyle(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w600,
@@ -840,7 +842,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
                   // édition).
                   IconButton(
                     icon: AppIcon(AppIcon.poll, color: tokens.accent),
-                    tooltip: 'Sondage',
+                    tooltip: l10n.pollLabel,
                     onPressed: (_isPublishing || _isEditing) ? null : _pickPoll,
                   ),
                   IconButton(

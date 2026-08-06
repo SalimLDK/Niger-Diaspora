@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../domain/entities/group_request_entity.dart';
 import '../providers/group_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class GroupRequestsScreen extends ConsumerWidget {
   final String groupId;
@@ -12,6 +13,7 @@ class GroupRequestsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     // Note: groupPendingRequestsProvider must be defined in group_provider.dart
     final requestsAsync = ref.watch(groupPendingRequestsProvider(groupId));
     final theme = Theme.of(context);
@@ -37,7 +39,7 @@ class GroupRequestsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Aucune demande en attente',
+                    l10n.noPendingRequests,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
@@ -75,6 +77,8 @@ class _RequestItem extends ConsumerStatefulWidget {
 }
 
 class _RequestItemState extends ConsumerState<_RequestItem> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _isLoading = false;
 
   Future<void> _approve() async {
@@ -89,7 +93,7 @@ class _RequestItemState extends ConsumerState<_RequestItem> {
         (_) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('Demande approuvée')));
+          ).showSnackBar(SnackBar(content: Text(l10n.groupApprovedRequest)));
         },
       );
     } finally {
@@ -109,7 +113,7 @@ class _RequestItemState extends ConsumerState<_RequestItem> {
         (_) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(const SnackBar(content: Text('Demande refusée')));
+          ).showSnackBar(SnackBar(content: Text(l10n.groupDeclinedRequest)));
         },
       );
     } finally {
@@ -179,12 +183,12 @@ class _RequestItemState extends ConsumerState<_RequestItem> {
                   IconButton(
                     icon: const Icon(Icons.close, color: Colors.red),
                     onPressed: _reject,
-                    tooltip: 'Refuser',
+                    tooltip: l10n.groupRejectAction,
                   ),
                   IconButton(
                     icon: Icon(Icons.check, color: theme.colorScheme.primary),
                     onPressed: _approve,
-                    tooltip: 'Approuver',
+                    tooltip: l10n.groupApproveAction,
                   ),
                 ],
               ),

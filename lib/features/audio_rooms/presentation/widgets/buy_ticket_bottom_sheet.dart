@@ -34,6 +34,8 @@ class BuyTicketBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   String _paymentMethod = 'stripe';
   bool _isPurchasing = false;
 
@@ -191,7 +193,7 @@ class _BuyTicketBottomSheetState extends ConsumerState<BuyTicketBottomSheet> {
               needsPin: false,
             ),
             (id: 'wave', label: 'Wave Mobile Money', emoji: '📱', needsPin: true),
-            (id: 'mynita', label: 'Mynita', emoji: '🌍', needsPin: true),
+            (id: 'mynita', label: l10n.recipientTypeMynita, emoji: '🌍', needsPin: true),
           ].map((m) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: _PaymentRadio(

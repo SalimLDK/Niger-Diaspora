@@ -519,9 +519,10 @@ class _ViewerRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final profile =
         ref.watch(profileNotifierProvider(viewer.viewerId)).valueOrNull;
-    final name = profile?.displayName ?? 'Membre';
+    final name = profile?.displayName ?? l10n.member;
 
     return ListTile(
       contentPadding: EdgeInsets.zero,

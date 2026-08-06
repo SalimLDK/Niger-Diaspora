@@ -287,7 +287,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             ),
             const SizedBox(width: 12),
             Text(
-              'Evolution Mensuelle (6 derniers mois)',
+              l10n.adminMonthlyEvolution,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -323,7 +323,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
               Icon(Icons.bar_chart_rounded, size: 48, color: _textSecondary.withValues(alpha: 0.5)),
               const SizedBox(height: 12),
               Text(
-                'Aucune donnee disponible',
+                l10n.adminNoDataAvailable,
                 style: TextStyle(color: _textSecondary),
               ),
             ],
@@ -431,7 +431,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
       children: [
         Expanded(
           child: _buildDistributionCard(
-            'Evenements par Categorie',
+            l10n.adminEventsByCategory,
             const Icon(Icons.event_rounded, color: AdminColors.actionBlueLight, size: 18),
             AdminColors.actionBlueLight,
             data.eventsByCategory,
@@ -440,7 +440,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
         const SizedBox(width: 24),
         Expanded(
           child: _buildDistributionCard(
-            'Commerces par Categorie',
+            l10n.adminBusinessesByCategory,
             const AppIcon(AppIcon.store, color: AdminColors.statusAmber, size: 18),
             AdminColors.statusAmber,
             data.businessesByCategory,
@@ -501,7 +501,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Center(
                 child: Text(
-                  'Aucune donnee',
+                  l10n.adminNoData,
                   style: TextStyle(color: _textSecondary),
                 ),
               ),
@@ -596,7 +596,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             ),
             const SizedBox(width: 12),
             Text(
-              'Export de Donnees',
+              l10n.adminDataExport,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -624,7 +624,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             runSpacing: 12,
             children: [
               _buildExportButton(l10n.adminUsers, const AppIcon(AppIcon.people, color: Colors.white, size: 20), AdminColors.actionBlueLight, 'users'),
-              _buildExportButton('Evenements', const Icon(Icons.event_rounded, color: Colors.white, size: 20), AdminColors.statusGreen, 'events'),
+              _buildExportButton(l10n.adminEventsLabel, const Icon(Icons.event_rounded, color: Colors.white, size: 20), AdminColors.statusGreen, 'events'),
               _buildExportButton(l10n.adminBusinesses, const AppIcon(AppIcon.store, color: Colors.white, size: 20), AdminColors.statusAmber, 'businesses'),
               _buildExportButton(l10n.adminTransactions, const Icon(Icons.payments_rounded, color: Colors.white, size: 20), AdminColors.statusPurple, 'transactions'),
             ],

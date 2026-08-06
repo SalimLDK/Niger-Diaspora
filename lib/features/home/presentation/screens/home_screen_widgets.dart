@@ -343,28 +343,28 @@ class _ServicesGrid extends ConsumerWidget {
       if (ref.watch(isMoneyTransferEnabledProvider))
         _ServiceTile(
           icon: Icons.send_rounded,
-          label: 'Transfert',
+          label: l10n.serviceTransfer,
           color: context.adaptivePrimaryColor,
           onTap: () => context.push('/transfers'),
         ),
       if (ref.watch(isMarketplaceEnabledProvider))
         _ServiceTile(
           icon: Icons.storefront_rounded,
-          label: 'Boutique',
+          label: l10n.serviceMarketplace,
           color: context.adaptiveSecondaryColor,
           onTap: () => context.push('/marketplace'),
         ),
       if (ref.watch(isBusinessDirectoryEnabledProvider))
         _ServiceTile(
           icon: Icons.business_rounded,
-          label: 'Annuaire',
+          label: l10n.homeDirectory,
           color: Theme.of(context).colorScheme.onPrimaryContainer,
           onTap: () => context.push('/businesses'),
         ),
       if (ref.watch(isEmbassiesEnabledProvider))
         _ServiceTile(
           icon: Icons.account_balance,
-          label: 'Ambassades',
+          label: l10n.embassies,
           color: context.adaptiveSecondaryColor,
           onTap: () => context.push('/embassies'),
         ),
@@ -381,7 +381,7 @@ class _ServicesGrid extends ConsumerWidget {
       if (ref.watch(isPodcastsEnabledProvider))
         _ServiceTile(
           icon: Icons.mic_rounded,
-          label: 'Podcasts',
+          label: l10n.podcasts,
           color: context.adaptiveSecondaryColor,
           onTap: () => context.push('/podcasts'),
         ),
@@ -1360,7 +1360,7 @@ class _EventsPastCard extends StatelessWidget {
                             size: 14, color: context.adaptivePrimaryColor),
                         const SizedBox(width: 4),
                         Text(
-                          'Photos',
+                          l10n.photos,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,

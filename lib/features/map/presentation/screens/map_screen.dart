@@ -50,6 +50,8 @@ class MapScreen extends ConsumerStatefulWidget {
 
 class _MapScreenState extends ConsumerState<MapScreen>
     with WidgetsBindingObserver {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final Completer<GoogleMapController> _controller = Completer();
 
   // Position par défaut: Niamey, Niger
@@ -2835,7 +2837,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                             return SwitchListTile(
                               contentPadding: EdgeInsets.zero,
                               secondary: const Icon(Icons.people_alt_outlined),
-                              title: const Text('Membres'),
+                              title: Text(l10n.membersLabel),
                               value: on,
                               onChanged:
                                   (v) => r
@@ -2850,7 +2852,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           SwitchListTile(
                             contentPadding: EdgeInsets.zero,
                             secondary: const Icon(Icons.storefront_outlined),
-                            title: const Text('Commerces'),
+                            title: Text(l10n.adminBusinesses),
                             value: _showBusinesses,
                             onChanged: (v) {
                               _toggleBusinessesLayer(v);
@@ -2860,7 +2862,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                         SwitchListTile(
                           contentPadding: EdgeInsets.zero,
                           secondary: const Icon(Icons.account_balance_outlined),
-                          title: const Text('Ambassades'),
+                          title: Text(l10n.embassies),
                           value: _showEmbassies,
                           onChanged: (v) {
                             setState(() => _showEmbassies = v);
@@ -3963,7 +3965,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                             constraints: const BoxConstraints(),
                                             padding: const EdgeInsets.all(6),
                                             tooltip:
-                                                _listOnly ? 'Carte' : 'Liste',
+                                                _listOnly ? l10n.mapTitle : 'Liste',
                                             icon: Icon(
                                               _listOnly
                                                   ? Icons.map_outlined

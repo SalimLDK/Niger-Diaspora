@@ -157,7 +157,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
                       children: [
                         Icon(Icons.settings_rounded, size: 18),
                         SizedBox(width: 6),
-                        Text('Systeme'),
+                        Text(l10n.adminSystem),
                       ],
                     ),
                   ),
@@ -317,11 +317,11 @@ class _FeesTabState extends ConsumerState<_FeesTab> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
               Icon(Icons.check_circle_rounded, color: Colors.white),
               SizedBox(width: 12),
-              Text('Frais mis a jour'),
+              Text(l10n.adminFeesUpdated),
             ],
           ),
           backgroundColor: AdminColors.statusGreen,
@@ -687,11 +687,11 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
               Icon(Icons.check_circle_rounded, color: Colors.white),
               SizedBox(width: 12),
-              Text('Tarifs boost mis a jour'),
+              Text(l10n.adminBoostRatesUpdated),
             ],
           ),
           backgroundColor: AdminColors.statusGreen,
@@ -715,7 +715,7 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
             const SizedBox(height: 20),
             _buildPriceCard(
               title: l10n.adminStandardTier,
-              description: 'Visibilite amelioree',
+              description: l10n.adminStandardTierDesc,
               controller: _standardBaseController,
               color: AdminColors.actionBlueLight,
             ),
@@ -729,12 +729,12 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
             const SizedBox(height: 12),
             _buildPriceCard(
               title: l10n.adminPremiumTier,
-              description: 'Top position + section dediee',
+              description: l10n.adminPremiumTierDesc,
               controller: _premiumBaseController,
               color: AdminColors.statusPurple,
             ),
             const SizedBox(height: 32),
-            _buildSectionHeader('Multiplicateurs de duree', Icons.schedule_rounded, AdminColors.statusGreen),
+            _buildSectionHeader(l10n.adminDurationMultipliersTitle, Icons.schedule_rounded, AdminColors.statusGreen),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(20),
@@ -952,7 +952,7 @@ class _BoostPricingTabState extends ConsumerState<_BoostPricingTab> {
               Icon(Icons.preview_rounded, color: _primaryColor, size: 20),
               const SizedBox(width: 8),
               Text(
-                'Apercu des prix (Standard)',
+                l10n.adminPricePreviewTitle,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: _textPrimary,
@@ -1127,11 +1127,11 @@ class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
               Icon(Icons.check_circle_rounded, color: Colors.white),
               SizedBox(width: 12),
-              Text('Taux de TVA mis a jour'),
+              Text(l10n.adminVatRateUpdated),
             ],
           ),
           backgroundColor: AdminColors.statusGreen,
@@ -1168,7 +1168,7 @@ class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Taux de TVA par categorie',
+                      l10n.adminTaxRatesTitle,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -1176,7 +1176,7 @@ class _TaxRatesTabState extends ConsumerState<_TaxRatesTab> {
                       ),
                     ),
                     Text(
-                      'Definissez les taux applicables a chaque categorie',
+                      l10n.adminTaxRatesDesc,
                       style: TextStyle(
                         fontSize: 13,
                         color: _textSecondary,
@@ -1413,11 +1413,11 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
               Icon(Icons.check_circle_rounded, color: Colors.white),
               SizedBox(width: 12),
-              Text('Limites medias mises a jour'),
+              Text(l10n.adminMediaLimitsUpdated),
             ],
           ),
           backgroundColor: AdminColors.statusGreen,
@@ -1439,7 +1439,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
           children: [
             _buildSectionCard(
               title: l10n.adminImagesTitle,
-              subtitle: 'Configuration des images uploadees',
+              subtitle: l10n.adminImagesDesc,
               icon: Icons.image_rounded,
               color: AdminColors.actionBlueLight,
               children: [
@@ -1454,7 +1454,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
                     Expanded(
                       child: _buildIntField(
                         controller: _imageQualityController,
-                        label: 'Qualite compression (%)',
+                        label: l10n.adminCompressionQuality,
                         hint: '1-100',
                         max: 100,
                       ),
@@ -1477,14 +1477,14 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
             ),
             const SizedBox(height: 24),
             _buildSectionCard(
-              title: 'Videos',
-              subtitle: 'Limites pour les videos',
+              title: l10n.adminVideosTitle,
+              subtitle: l10n.adminVideosDesc,
               icon: Icons.videocam_rounded,
               color: AdminColors.statusRed,
               children: [
                 _buildIntField(
                   controller: _maxVideoSizeController,
-                  label: 'Taille max video (MB)',
+                  label: l10n.adminMaxVideoSize,
                 ),
               ],
             ),
@@ -1497,7 +1497,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
               children: [
                 _buildIntField(
                   controller: _messageMaxCharsController,
-                  label: 'Caracteres max par message',
+                  label: l10n.adminMaxMessageChars,
                 ),
               ],
             ),
@@ -1753,11 +1753,11 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
               Icon(Icons.check_circle_rounded, color: Colors.white),
               SizedBox(width: 12),
-              Text('URLs mises a jour'),
+              Text(l10n.adminUrlsUpdated),
             ],
           ),
           backgroundColor: AdminColors.statusGreen,
@@ -1790,11 +1790,11 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
               Icon(Icons.check_circle_rounded, color: Colors.white),
               SizedBox(width: 12),
-              Text('Intervalles mis a jour'),
+              Text(l10n.adminIntervalsUpdated),
             ],
           ),
           backgroundColor: AdminColors.statusGreen,
@@ -1835,7 +1835,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
                 const SizedBox(height: 16),
                 _buildTextField(
                   controller: _privacyEmailController,
-                  label: 'Email confidentialite (RGPD)',
+                  label: l10n.adminPrivacyEmail,
                   icon: Icons.privacy_tip_rounded,
                 ),
                 const SizedBox(height: 16),
@@ -1853,22 +1853,22 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
                 const SizedBox(height: 16),
                 _buildTextField(
                   controller: _moderationEmailController,
-                  label: 'Email moderation',
+                  label: l10n.adminModerationEmail,
                   icon: Icons.admin_panel_settings_rounded,
                 ),
               ],
             ),
             const SizedBox(height: 24),
             _buildSectionCard(
-              title: 'Intervalles systeme',
-              subtitle: 'Frequences de mise a jour',
+              title: l10n.adminIntervalsTitle,
+              subtitle: l10n.adminIntervalsDesc,
               icon: Icons.timer_rounded,
               color: AdminColors.statusAmber,
               saveAction: _saveIntervals,
               children: [
                 _buildIntervalField(
                   controller: _locationIntervalController,
-                  label: 'Mise a jour localisation (min)',
+                  label: l10n.adminLocationUpdateMin,
                   icon: Icons.location_on_rounded,
                 ),
                 const SizedBox(height: 16),
@@ -1880,7 +1880,7 @@ class _SystemSettingsTabState extends ConsumerState<_SystemSettingsTab> {
                 const SizedBox(height: 16),
                 _buildIntervalField(
                   controller: _cacheMinutesController,
-                  label: 'Duree cache (min)',
+                  label: l10n.adminCacheDuration,
                   icon: Icons.cached_rounded,
                 ),
               ],

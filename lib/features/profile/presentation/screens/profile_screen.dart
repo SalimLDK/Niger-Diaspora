@@ -30,6 +30,8 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _completionDismissed = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -537,7 +539,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         benefit: l10n.profileCompletionPhotoBenefit,
         icon: Icons.photo_camera_outlined,
         tint: context.adaptivePrimaryColor,
-        ancre: 'photo',
+        ancre: l10n.homeFieldPhoto,
       ),
       _CompletionField(
         filled: (profile.currentCity ?? '').trim().isNotEmpty,
@@ -565,11 +567,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       ),
       _CompletionField(
         filled: (profile.bio ?? '').trim().isNotEmpty,
-        label: 'Bio',
+        label: l10n.bio,
         benefit: l10n.profileCompletionBioBenefit,
         icon: Icons.notes_outlined,
         tint: context.textSecondaryColor,
-        ancre: 'bio',
+        ancre: l10n.homeFieldBio,
       ),
     ];
 

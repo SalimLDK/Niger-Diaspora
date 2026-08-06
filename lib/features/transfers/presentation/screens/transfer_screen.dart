@@ -41,7 +41,7 @@ class TransferScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.people_outline),
             onPressed: () => context.push('/transfers/recipient'),
-            tooltip: 'Beneficiaires',
+            tooltip: l10n.transferRecipientsTooltip,
           ),
           IconButton(
             icon: const Icon(Icons.history),
@@ -111,7 +111,7 @@ class TransferScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Transactions recentes',
+                  l10n.transferRecentTransactions,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -148,7 +148,7 @@ class TransferScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Vos transferts apparaitront ici',
+                          l10n.transferTransactionsWillAppear,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.outline,
                           ),
@@ -207,6 +207,7 @@ class _TransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Card(
@@ -223,7 +224,7 @@ class _TransactionTile extends StatelessWidget {
           ),
         ),
         title: Text(
-          transaction.recipientName ?? 'Beneficiaire',
+          transaction.recipientName ?? l10n.transferRecipient,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(

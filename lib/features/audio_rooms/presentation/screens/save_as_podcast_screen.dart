@@ -31,6 +31,8 @@ class SaveAsPodcastScreen extends ConsumerStatefulWidget {
 }
 
 class _SaveAsPodcastScreenState extends ConsumerState<SaveAsPodcastScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _titleCtrl = TextEditingController();
   bool _tipsEnabled = true;
   String _visibility = 'public';
@@ -198,7 +200,7 @@ class _SaveAsPodcastScreenState extends ConsumerState<SaveAsPodcastScreen> {
           const SizedBox(height: 6),
           Row(
             children: [
-              ('public', 'Public'),
+              ('public', l10n.public),
               ('followers', l10n.podcastFollowersVisibility),
               ('private', l10n.podcastPrivateVisibility),
             ].map((v) {

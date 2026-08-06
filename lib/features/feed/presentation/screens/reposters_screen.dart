@@ -9,6 +9,7 @@ import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
 import '../widgets/feed_avatar.dart';
 import '../widgets/follow_button.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Liste des comptes ayant repartagé une publication donnée
 /// (route `/feed/:postId/reposts`).
@@ -68,8 +69,9 @@ class _ReposterTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final profile = ref.watch(profileNotifierProvider(userId)).valueOrNull;
-    final name = profile?.displayName ?? 'Utilisateur';
+    final name = profile?.displayName ?? l10n.user;
     final photo = profile?.photoUrl;
     final subtitle = [profile?.currentCity, profile?.currentCountry]
         .where((e) => e != null && e.isNotEmpty)

@@ -262,6 +262,7 @@ class _PostMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     final isAuthor = currentUserId != null && currentUserId == post.authorId;
     final isBookmarked = ref.watch(
@@ -315,7 +316,7 @@ class _PostMenu extends ConsumerWidget {
                     size: 18,
                   ),
                   const SizedBox(width: 8),
-                  Text(isBookmarked ? 'Retirer le signet' : 'Sauvegarder'),
+                  Text(isBookmarked ? 'Retirer le signet' : l10n.e2eeBackupNudgeAction),
                 ],
               ),
             ),

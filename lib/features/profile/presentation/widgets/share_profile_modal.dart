@@ -10,6 +10,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile_share_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class ShareProfileDialog extends ConsumerStatefulWidget {
   final String? userName;
@@ -47,6 +48,8 @@ class ShareProfileDialog extends ConsumerStatefulWidget {
 
 class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   String? _shareUrl;
   bool _isLoading = true;
   bool _copied = false;
@@ -96,7 +99,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
           _shareUrl = url;
           _isLoading = false;
           if (url == null) {
-            _errorMessage = 'Impossible de générer le lien de partage';
+            _errorMessage = l10n.unableToGenerateLink;
           }
         });
       }
@@ -209,7 +212,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
             children: [
               const SizedBox(width: 32),
               Text(
-                'Partager mon profil',
+                l10n.shareMyProfile,
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -361,7 +364,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
           ),
           const SizedBox(height: 16),
           Text(
-            'Génération du lien...',
+            l10n.generatingLink,
             style: TextStyle(color: context.textSecondaryColor, fontSize: 14),
           ),
         ],
@@ -398,7 +401,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
           ),
           const SizedBox(height: 8),
           Text(
-            _errorMessage ?? 'Une erreur est survenue',
+            _errorMessage ?? l10n.errorOccurred,
             style: TextStyle(color: context.textSecondaryColor, fontSize: 14),
             textAlign: TextAlign.center,
           ),
@@ -412,7 +415,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
               _generateLink();
             },
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Réessayer'),
+            label: Text(l10n.retry),
             style: TextButton.styleFrom(
               foregroundColor: context.adaptivePrimaryColor,
             ),
@@ -506,7 +509,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'Scannez pour me retrouver',
+                  l10n.scanToFindMe,
                   style: TextStyle(
                     color: context.adaptivePrimaryColor,
                     fontWeight: FontWeight.w500,
@@ -586,7 +589,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _copied ? 'Copié!' : 'Copier',
+                      _copied ? 'Copié!' : l10n.copy,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -608,7 +611,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Partager via',
+          l10n.shareVia,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -621,14 +624,14 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
             _ShareIconButton(
               icon: Icons.message_rounded,
               color: const Color(0xFF25D366),
-              label: 'WhatsApp',
+              label: l10n.whatsApp,
               onTap: _shareViaWhatsApp,
             ),
             const SizedBox(width: 12),
             _ShareIconButton(
               icon: Icons.facebook_rounded,
               color: const Color(0xFF1877F2),
-              label: 'Facebook',
+              label: l10n.facebook,
               onTap: _shareViaFacebook,
             ),
             const SizedBox(width: 12),
@@ -643,7 +646,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
             _ShareIconButton(
               icon: Icons.more_horiz_rounded,
               color: AppColors.primary,
-              label: 'Plus',
+              label: l10n.more,
               onTap: _shareViaSystem,
             ),
           ],
@@ -665,7 +668,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
           color: context.adaptiveSecondaryColor,
         ),
         label: Text(
-          'Scanner un QR code',
+          l10n.scanQRCode,
           style: TextStyle(
             color: context.adaptiveSecondaryColor,
             fontWeight: FontWeight.w600,
@@ -736,7 +739,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
     await SharePlus.instance.share(
       ShareParams(
         text: 'Découvrez mon profil sur Diaspo Niger: $_shareUrl',
-        subject: 'Mon profil Diaspo Niger',
+        subject: l10n.myProfileOnDiaspoNiger,
       ),
     );
   }

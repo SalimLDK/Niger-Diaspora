@@ -20,6 +20,8 @@ class EditEventScreen extends ConsumerStatefulWidget {
 }
 
 class _EditEventScreenState extends ConsumerState<EditEventScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
@@ -194,8 +196,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
       if (remaining <= 0) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Limite de 5 affiches atteinte'),
+            SnackBar(
+              content: Text(l10n.eventPosterLimit),
               backgroundColor: Colors.orange,
             ),
           );
@@ -439,7 +441,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                   // Existing posters
                   if (_currentPosterUrls.isNotEmpty) ...[
                     Text(
-                      'Affiches actuelles',
+                      l10n.eventCurrentPosters,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -499,7 +501,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                   // New posters
                   if (_newPosters.isNotEmpty) ...[
                     Text(
-                      'Nouvelles affiches',
+                      l10n.eventNewPosters,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -565,7 +567,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
                         label: Text(
                           _currentPosterUrls.isEmpty && _newPosters.isEmpty
                               ? 'S\u00e9lectionner des images'
-                              : 'Ajouter des images',
+                              : l10n.eventAddImages,
                         ),
                         style: TextButton.styleFrom(
                           foregroundColor: context.adaptivePrimaryColor,

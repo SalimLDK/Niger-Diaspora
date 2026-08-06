@@ -51,7 +51,7 @@ class CartScreen extends ConsumerWidget {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () => context.go('/marketplace'),
-                child: const Text('Decouvrir les produits'),
+                child: Text(l10n.marketplaceDiscoverProducts),
               ),
             ],
           ),

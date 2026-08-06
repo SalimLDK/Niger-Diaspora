@@ -8,6 +8,7 @@ import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Centroides approximatifs des pays de destination les plus courants pour la
 /// diaspora nigerienne. Un pays absent de cette table n'a simplement pas de
@@ -58,6 +59,8 @@ class GroupsMapScreen extends ConsumerStatefulWidget {
 }
 
 class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   static const _defaultPosition = LatLng(17.6078, 8.0817); // Niger, vue monde
 
   @override
@@ -172,7 +175,7 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              'Officiel',
+                              l10n.audioRoomCategoryOfficial,
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,

@@ -4,6 +4,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../profile/data/datasources/profile_remote_datasource.dart';
 import '../../../profile/data/models/profile_model.dart';
 import '../../../groups/data/datasources/group_remote_datasource.dart';
+import '../../../groups/data/datasources/group_supabase_datasource.dart';
 import '../../../groups/data/models/group_model.dart';
 import '../../../friends/data/datasources/friend_remote_datasource.dart';
 import '../../../friends/data/models/friend_model.dart';
@@ -74,7 +75,9 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
     MessageRemoteDataSource? messageDataSource,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
         _profileDataSource = profileDataSource ?? ProfileRemoteDataSourceImpl(),
-        _groupDataSource = groupDataSource ?? GroupRemoteDataSourceImpl(),
+        // Supabase par défaut, comme `groupRemoteDataSourceProvider` : la
+        // collection Firestore `groups` est vide depuis la migration.
+        _groupDataSource = groupDataSource ?? GroupSupabaseDataSource(),
         _friendDataSource = friendDataSource ?? FriendRemoteDataSourceImpl(),
         _messageDataSource = messageDataSource ?? MessageRemoteDataSourceImpl();
 

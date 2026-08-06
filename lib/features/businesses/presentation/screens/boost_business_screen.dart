@@ -97,7 +97,7 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
                 const Icon(Icons.rocket_launch, size: 48, color: Colors.white),
                 const SizedBox(height: 12),
                 Text(
-                  'Augmentez votre visibilite',
+                  l10n.businessBoostVisibilityTitle,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -105,7 +105,7 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Apparaissez en premier dans les resultats de recherche et attirez plus de clients.',
+                  l10n.businessBoostVisibilityDesc,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: Colors.white.withValues(alpha: 0.9),
@@ -175,8 +175,8 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
                                       color: Colors.amber,
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: const Text(
-                                      'Recommande',
+                                    child: Text(
+                                      l10n.businessBoostRecommended,
                                       style: TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
@@ -216,7 +216,7 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
 
           // Duration selection
           Text(
-            'Duree',
+            l10n.ghostDuration,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -231,9 +231,9 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
                   final price = _selectedType.getPrice(duration);
                   final savings =
                       duration == BoostDuration.days30
-                          ? '~25% economise'
+                          ? l10n.businessBoostSavings25
                           : duration == BoostDuration.days90
-                          ? '~42% economise'
+                          ? l10n.businessBoostSavings42
                           : null;
 
                   return ChoiceChip(
@@ -293,7 +293,7 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Duree:'),
+                    Text(l10n.businessDurationLabel),
                     Text(
                       _selectedDuration.label,
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -358,7 +358,7 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
 
           // Note
           Text(
-            'Note: Le boost sera actif immediatement apres le paiement.',
+            l10n.businessBoostNote,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.outline,

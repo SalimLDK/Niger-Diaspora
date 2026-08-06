@@ -265,6 +265,7 @@ class _MyStoryAvatar extends ConsumerWidget {
     WidgetRef ref,
     String choice,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final uploadService = ImageUploadService();
     final result = choice == 'camera'
         ? await uploadService.pickImageFromCameraWithResult()
@@ -286,7 +287,7 @@ class _MyStoryAvatar extends ConsumerWidget {
         ref.read(profileNotifierProvider(user.uid)).valueOrNull;
     await ref.read(storyActionsNotifierProvider.notifier).createStory(
           authorId: user.uid,
-          authorName: profile?.displayName ?? user.displayName ?? 'Vous',
+          authorName: profile?.displayName ?? user.displayName ?? l10n.you,
           authorPhotoUrl: profile?.photoUrl ?? user.photoURL,
           mediaUrl: url,
           mediaType: StoryMediaType.image,
@@ -294,6 +295,7 @@ class _MyStoryAvatar extends ConsumerWidget {
   }
 
   Future<void> _createVideoStory(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final videoService = VideoUploadService();
     final pick = await videoService.pickVideoFromGallery(
       maxDuration: const Duration(seconds: 30),
@@ -314,7 +316,7 @@ class _MyStoryAvatar extends ConsumerWidget {
         ref.read(profileNotifierProvider(user.uid)).valueOrNull;
     await ref.read(storyActionsNotifierProvider.notifier).createStory(
           authorId: user.uid,
-          authorName: profile?.displayName ?? user.displayName ?? 'Vous',
+          authorName: profile?.displayName ?? user.displayName ?? l10n.you,
           authorPhotoUrl: profile?.photoUrl ?? user.photoURL,
           mediaUrl: uploadResult.videoUrl,
           mediaType: StoryMediaType.video,
@@ -324,6 +326,7 @@ class _MyStoryAvatar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final user = FirebaseAuth.instance.currentUser;
     final hasStory = myGroup != null && myGroup!.stories.isNotEmpty;
 
@@ -366,7 +369,7 @@ class _MyStoryAvatar extends ConsumerWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              hasStory ? 'Ma story' : 'Ajouter',
+              hasStory ? 'Ma story' : l10n.add,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: _labelStyle(tokens),

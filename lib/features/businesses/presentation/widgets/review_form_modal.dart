@@ -120,7 +120,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
     }
     if (_contentController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez ecrire un avis')),
+        SnackBar(content: Text(l10n.pleaseWriteReview)),
       );
       return;
     }
@@ -172,8 +172,8 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
             SnackBar(
               content: Text(
                 widget.existingReview != null
-                    ? 'Avis modifie avec succes'
-                    : 'Avis publie avec succes',
+                    ? l10n.reviewModifiedSuccess
+                    : l10n.reviewPublishedSuccess,
               ),
             ),
           );
@@ -223,7 +223,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
 
               // Title
               Text(
-                isEditing ? l10n.reviewModifyTitle : 'Ecrire un avis',
+                isEditing ? l10n.reviewModifyTitle : l10n.writeReview,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -270,7 +270,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
                 controller: _contentController,
                 decoration: InputDecoration(
                   labelText: l10n.yourReview,
-                  hintText: 'Partagez votre experience...',
+                  hintText: l10n.shareExperience,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

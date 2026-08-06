@@ -52,7 +52,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 0,
-        title: const DesignTitle('Notifications', size: 22),
+        title: DesignTitle(l10n.notifications, size: 22),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -67,7 +67,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
             children: [
               DesignSettingsSwitchTile(
                 icon: const Icon(Icons.notifications_active_outlined),
-                title: 'Notifications push',
+                title: l10n.pushNotifications,
                 subtitle: "Coupe tout d'un seul geste",
                 value: preferences.masterEnabled,
                 onChanged: (value) {
@@ -121,14 +121,14 @@ class NotificationSettingsScreen extends ConsumerWidget {
               ),
               DesignSettingsSwitchTile(
                 icon: const Icon(Icons.location_on_outlined),
-                title: 'Événements locaux',
-                subtitle: 'Nouveaux événements dans votre ville',
+                title: l10n.localEvents,
+                subtitle: l10n.profileNewEventsInCity,
                 value: preferences.localEventsEnabled,
                 onChanged: gated(notifier.setLocalEventsEnabled),
               ),
               DesignSettingsSwitchTile(
                 icon: const Icon(Icons.shield_outlined),
-                title: 'Messages système',
+                title: l10n.systemMessages,
                 subtitle: 'Sécurité, mises à jour importantes',
                 value: preferences.systemMessagesEnabled,
                 onChanged: gated(notifier.setSystemMessagesEnabled),
@@ -189,7 +189,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
           // plus qu'un bouton ⚙. C'est sa place : une action destructive sur
           // l'historique, rangée avec les réglages, pas à portée du pouce sur
           // la liste elle-même.
-          DesignSectionLabel('Historique', color: context.errorColor),
+          DesignSectionLabel(l10n.history, color: context.errorColor),
           DesignSettingsCard(
             isDanger: true,
             children: [

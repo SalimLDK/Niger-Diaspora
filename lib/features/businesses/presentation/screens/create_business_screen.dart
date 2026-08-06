@@ -121,7 +121,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
         context.pop();
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erreur lors de la creation')),
+          SnackBar(content: Text(l10n.creationError)),
         );
       }
     } finally {
@@ -205,7 +205,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             const SizedBox(height: 24),
 
             // Category
-            Text('Categorie', style: theme.textTheme.titleMedium),
+            Text(l10n.category, style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             DropdownButtonFormField<BusinessCategory>(
               initialValue: _selectedCategory,
@@ -281,7 +281,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             TextFormField(
               controller: _phoneController,
               decoration: InputDecoration(
-                labelText: 'Telephone',
+                labelText: l10n.phone,
                 border: const OutlineInputBorder(),
                 prefixIcon: const AppIcon(AppIcon.call),
                 prefixText: '$_phoneCode ',
@@ -359,7 +359,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
                   suffixIcon: const Icon(Icons.arrow_drop_down),
                 ),
                 child: Text(
-                  _selectedCountry?.name ?? 'Selectionner un pays',
+                  _selectedCountry?.name ?? l10n.selectCountry,
                   style: _selectedCountry != null
                       ? theme.textTheme.bodyLarge
                       : theme.textTheme.bodyLarge?.copyWith(
@@ -391,7 +391,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
             const SizedBox(height: 24),
 
             // Services
-            Text('Services proposes', style: theme.textTheme.titleMedium),
+            Text(l10n.offeredServices, style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             Row(
               children: [

@@ -5,39 +5,41 @@ import '../../../../core/services/feature_flag_service.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../widgets/quick_action_card.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class ServicesScreen extends ConsumerWidget {
   const ServicesScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     // Collect available services
     final services = [
       if (ref.watch(isMoneyTransferEnabledProvider))
         _ServiceItem(
           icon: Icons.send_rounded,
-          label: 'Transfert',
+          label: l10n.serviceTransfer,
           color: AppColors.primary,
           route: '/transfers',
         ),
       if (ref.watch(isMarketplaceEnabledProvider))
         _ServiceItem(
           icon: Icons.storefront_rounded,
-          label: 'Boutique',
+          label: l10n.serviceMarketplace,
           color: context.adaptiveSecondaryColor,
           route: '/marketplace',
         ),
       if (ref.watch(isBusinessDirectoryEnabledProvider))
         _ServiceItem(
           icon: Icons.business_rounded,
-          label: 'Annuaire',
+          label: l10n.homeDirectory,
           color: AppColors.primaryDark,
           route: '/businesses',
         ),
       if (ref.watch(isEmbassiesEnabledProvider))
         _ServiceItem(
           icon: Icons.account_balance,
-          label: 'Ambassades',
+          label: l10n.embassies,
           color: Colors.indigo,
           route: '/embassies',
         ),
@@ -54,7 +56,7 @@ class ServicesScreen extends ConsumerWidget {
       if (ref.watch(isPodcastsEnabledProvider))
         _ServiceItem(
           icon: Icons.mic_rounded,
-          label: 'Podcasts',
+          label: l10n.podcasts,
           color: context.adaptiveSecondaryColor,
           route: '/podcasts',
         ),
@@ -63,7 +65,7 @@ class ServicesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: const Text('Tous les services'),
+        title: Text(l10n.allServices),
         backgroundColor: context.surfaceColor,
         elevation: 0,
         centerTitle: true,

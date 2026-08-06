@@ -3479,13 +3479,54 @@ parce qu'il change un **comportement**, pas seulement un habillage :
     composeur, et non les bandeaux, était en cours à côté. S'il a atterri
     depuis, une partie du symptôme a pu disparaître autrement.
 
-- [ ] **Vérifier le correctif sur appareil** : conversation en paysage,
-  clavier ouvert, avec le bandeau « Restaurez vos clés » actif — le bandeau
-  rayé ne doit plus apparaître, et le rappel des clés doit s'escamoter. Puis
-  replier le clavier et repasser en portrait : il doit revenir. Refaire avec
-  le panneau GIF/Émojis à la place du clavier (le cas à 4 px).
-  Le code compile et l'analyse est propre, mais **personne n'a jamais vu le
-  bandeau rayé disparaître**.
+### ⚠️ Vérifié sur appareil le 2026-08-06 — le correctif marche, il ne suffit pas
+
+Build de HEAD installé sur SM A515F, conversation « Salim L. » (bandeau des
+clés actif, brouillon de 3 lignes), rotation forcée en paysage.
+
+| Situation | Bandeau des clés | Débordement |
+|---|---|---|
+| Paysage, **sans** clavier | visible | aucun |
+| Paysage, **clavier levé** | **escamoté** ✅ | **`BOTTOM OVERFLOWED BY 73 PIXELS`** ❌ |
+
+**Ce qui est prouvé** : le mécanisme fonctionne. `placeRappelCles` bascule
+bien à faux quand la hauteur tombe — le bandeau est visible sans clavier,
+escamoté avec. Le `LayoutBuilder` mesure ce qu'il faut.
+
+**Ce qui est infirmé** : mon diagnostic était **incomplet**. Je pensais que
+les deux bandeaux étaient la seule cause. Une fois le rappel des clés retiré,
+c'est le **composeur** qui déborde à son tour — et de bien plus : 73 px ici,
+contre 17 px avant correctif. L'ampleur suit la longueur du brouillon, ce qui
+désigne le composeur sans ambiguïté.
+
+**Ce qui manque donc** : borner le composeur, c'est-à-dire exactement ce que
+vise le correctif « zone BORNEE » — qui n'était PAS dans ce build, puisque
+j'ai construit HEAD et qu'il vivait encore dans un WIP non committé. Les deux
+correctifs sont complémentaires, pas redondants : le mien retire les bandeaux
+de l'équation, l'autre empêche le composeur de prendre sa taille naturelle.
+
+**Pourquoi le reste ne peut PAS se corriger dans le composeur** (vérifié le
+2026-08-06, pour éviter que quelqu'un le retente) : `message_input.dart` sait
+déjà se rétrécir — `maxLignes = (borne / 2 / 22).floor().clamp(1, 6)`, et ses
+panneaux passent en `Flexible`. Mais tout est conditionné à `borne.isFinite`,
+et personne ne le borne : `RenderFlex` donne `maxHeight: Infinity` à ses
+enfants non flexibles. Le garde-fou dort donc en production, ce que le
+fichier documente lui-même.
+
+Le calculer depuis la fenêtre plutôt que depuis les contraintes ne suffit
+pas : on obtient ~194 dp en paysage clavier levé, donc 4 lignes autorisées,
+alors que le brouillon qui déborde en fait 3. Ce qu'il faut, c'est la hauteur
+restante **sous les bandeaux** — seul le parent la connaît. D'où la
+conclusion, déjà écrite dans `message_input.dart` : le correctif appartient à
+`conversation_screen`, pas au composeur.
+
+- [ ] **Refaire ce test une fois « zone BORNEE » committé** — c'est la
+  combinaison des deux qu'il faut mesurer, pas l'un ou l'autre.
+- [ ] **Cas du panneau GIF/Émojis** (le 4 px d'origine) : non testé ici, le
+  clavier ayant suffi à montrer que le problème subsistait.
+- [ ] Si le débordement persiste même avec les deux, chercher plus bas : le
+  bandeau épinglé et l'en-tête ne sont pas escamotables, et en paysage
+  clavier levé il ne reste qu'une centaine de dp au total.
 
   Non lié aux correctifs de localisation de cette session.
 
@@ -4892,6 +4933,137 @@ Restent ouverts, même famille : le `BOTTOM OVERFLOWED BY 240` de la
 conversation (ci-dessus), et le `PodcastMiniPlayer` (hauteur fixe 64, hors
 `Expanded` dans la branche paysage de `MainShell`) qui déborderait si le corps
 tombait sous 64 dp — non observé, non corrigé.
+
+---
+
+## Groupes — « Découvrir » lisait le mauvais backend (2026-08-06)
+
+**Cause trouvée, et ce n'était pas dans `loadGroups()`.** L'onglet annonçait
+« Aucun groupe public » alors que `public.groups` en contient trois
+(`Diaspora Niger — CA`, `Diaspora Niger — Canada`, `teste`, tous
+`is_private = false`). `loadGroups()` faisait exactement ce qu'on lui
+demandait : il interrogeait **Firestore**, dont la collection `groups` est
+vide depuis la migration.
+
+`groupRemoteDataSourceProvider` (`group_provider.dart`) rendait
+`GroupRemoteDataSourceImpl` (Firestore) **depuis le commit initial, sans une
+seule modification**. C'est le seul point de câblage de toute la
+fonctionnalité : liste, découverte, fiche, création, adhésion, recherche.
+Tout le travail accumulé sur `GroupSupabaseDataSource` — session avant
+lecture, appartenance lue dans `group_members`, garde « Officiel » — portait
+donc sur une classe que rien n'instanciait.
+
+Deux autres symptômes s'expliquent par le même câblage :
+
+- **Le groupe officiel du pays n'était jamais rejoint.**
+  `GroupRemoteDataSourceImpl.ensureOfficialGroup` lève `UnimplementedError`,
+  que `GroupRepositoryImpl` convertit en `Left(...)`, que
+  `ProfileNotifier._joinOfficialGroup` avale (`(failure) async {}`).
+- **La recherche ne remontait aucun groupe** (`search_provider.dart`,
+  `search_remote_datasource.dart`, qui instanciaient la même classe).
+
+`loadGroups()` est désormais instrumenté (`[groupes] loadGroups source=… /
+cache=… / réseau=…`, `kDebugMode`) : les quatre issues indistinguables
+jusqu'ici — cache servi, réseau vide, échec avalé, mauvais backend — se lisent
+en une ligne de logcat.
+
+⚠️ **Le même correctif existe déjà sur `claude/silly-liskov-1e9d62`**
+(commit `c803893`, 2026-08-06), avec 15 autres commits que cette branche n'a
+jamais reçus. Voir la section « Deux branches » plus bas.
+
+À vérifier sur l'appareil :
+
+- [ ] **« Découvrir »** : les trois groupes publics apparaissent. Filtrer sur
+      « Tous » les pays d'abord — le filtre pays par défaut se pose sur le pays
+      du profil, ou sur `NE` à défaut, et ne laisserait qu'un seul groupe.
+- [ ] **Journal** : `adb logcat | grep "\[groupes\]"` affiche
+      `source=GroupSupabaseDataSource` puis `réseau=3 groupes`.
+- [ ] **Recherche de groupes** (loupe de l'écran Groupes) : taper « niger »
+      remonte bien les deux groupes « Diaspora Niger ».
+- [ ] **Groupe officiel du pays à l'inscription** : renseigner un pays dans le
+      profil doit désormais faire apparaître son groupe officiel dans
+      « Mes groupes » (chemin `ensureOfficialGroup`, jamais exécuté jusqu'ici).
+
+### §9c — le nom du groupe était rogné par les pastilles de sa carte
+
+Sur un écran de 360 dp, la colonne de texte de `_GroupCard` ne fait que
+~140 dp : écran 360 − marge 32 − padding de carte 28 − avatar 52 − écart 14 −
+écart 8 − bouton « Rejoindre » ~86. L'ancienne ligne de titre y logeait, en
+plus du nom, un cadenas (13), une pastille « Officiel », une épingle (14) et
+une pastille ACTIF/CALME — **les deux pastilles à largeur libre, et le nom
+seul `Flexible`**. Il cédait donc toujours en premier ; et quand les pastilles
+dépassaient à elles seules les 140 dp, la ligne débordait carrément (mesuré :
+`RenderFlex overflowed by 88 pixels`).
+
+Correctif : les deux pastilles descendent dans la ligne de méta, passée de
+`Row` à `Wrap` (elles y restent entières et vont à la ligne au lieu de rogner
+le nom de ville) ; la ligne de titre ne garde que le nom, le cadenas et
+l'épingle ; et le nom passe à `maxLines: 2`, sans quoi « Diaspora Niger —
+Canada » (~175 dp) ne tiendrait toujours pas dans les ~101 dp restants.
+
+Verrouillé par `test/features/groups/group_card_title_truncation_test.dart`
+(6 cas, dont deux de régression qui prouvent le débordement d'avant).
+
+- [ ] **Carte d'un groupe officiel, épinglé, actif** : le nom complet est
+      lisible (sur deux lignes si besoin), les pastilles « Officiel » et
+      ACTIF/CALME sont visibles en bas de carte, **aucun bandeau rayé**.
+- [ ] **font_scale 1.1**, même carte : toujours aucun débordement, la ligne de
+      méta passe à deux rangs si nécessaire.
+- [ ] **Nom très long** (créer un groupe au nom de 60 caractères) : il s'élide
+      proprement au bout de la 2ᵉ ligne, sans pousser le bouton hors carte.
+
+### §9e — pourquoi il paraissait inatteignable, et comment l'atteindre
+
+L'item « Messagerie — état vide » était noté inatteignable parce que la
+messagerie du compte n'est plus vide. **C'est vrai pour une moitié seulement**
+de la fiche. En lisant `messages_screen.dart`, il y a deux déclencheurs
+distincts :
+
+| Partie de 9e | Condition | Atteignable aujourd'hui |
+|---|---|---|
+| **Le corps** (pastille ronde, titre, amorces nommées, CTA, ligne chiffrement) — `_buildEmptyState` | la liste **filtrée** est vide | **oui** |
+| **Le chrome** (ni champ de recherche, ni puces de filtre, ni entrée « Archives ») — `isEmptyInbox` | la liste **entière** est vide | non |
+
+Le corps se déclenche donc sans compte neuf :
+
+- [ ] **Puce « Non lus » alors que rien n'est non lu** → le corps de 9e
+      s'affiche. C'est le chemin le plus rapide.
+- [ ] **Puce « Groupes » sur un compte sans conversation de groupe** → idem.
+- [ ] **Archiver toutes les conversations** puis revenir sur « Tous » → idem,
+      avec la tuile « Mes notes » conservée au-dessus.
+
+Le chrome de 9e, lui, demande une liste `conversations` réellement vide :
+**archiver ne suffit pas**, `isEmptyInbox` lit la liste avant filtrage. Il faut
+un compte neuf.
+
+- [ ] **Compte neuf, messagerie jamais utilisée** : vérifier l'absence du champ
+      de recherche, des puces de filtre et de l'entrée « Archives » dans
+      l'en-tête.
+
+⚠️ **Défaut repéré au passage, non corrigé** : le corps de 9e dit « Aucune
+conversation / Commencez à discuter » même quand la vérité est « aucune
+conversation **non lue** » ou « aucun **groupe** ». Le message ment sur le
+filtre actif. Hors périmètre des quatre points traités ici.
+
+### Deux branches, seize commits d'écart
+
+`claude/silly-liskov-1e9d62` porte 16 commits que `wip-jules-2025-12-29T23-58-34-776Z`
+n'a jamais reçus, dont plusieurs déjà considérés comme « faits » :
+
+| Commit | Sujet |
+|---|---|
+| `c803893` | bascule des groupes vers Supabase (le correctif ci-dessus) |
+| `21b5200` | migration du groupe hérité Firestore |
+| `c960ec4` | recalage de `member_count` |
+| `6627217`, `a1a7190` | normalisation `country_code` en ISO-2 |
+| `988f2c1`, `009c0d9`, `b9d94f3`, `12d1549`, `4283cdd` | actions mortes / sessions manquantes |
+| `96d2711` | enregistrement du profil au premier essai |
+| `6a1fef2`, `d59f785`, `074043d` | liens profonds de groupe, « Mes notes » |
+
+La branche courante n'a qu'un commit propre en face (`6ff6438`). **Décider
+explicitement d'un rapatriement** — sinon chaque correctif sera retrouvé une
+troisième fois. Non fait ici : c'est une fusion de 16 commits sur une branche
+qu'un agent tiers réécrit en parallèle.
 
 ---
 

@@ -135,14 +135,14 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Aucune entreprise trouvee',
+                            l10n.noBusinessFound,
                             style: theme.textTheme.titleMedium?.copyWith(
                               color: theme.colorScheme.outline,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Soyez le premier a ajouter votre entreprise !',
+                            l10n.beFirstToAddBusiness,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: theme.colorScheme.outline,
                             ),
@@ -195,7 +195,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                                   .read(businessesNotifierProvider.notifier)
                                   .refresh();
                             },
-                            child: const Text('Reessayer'),
+                            child: Text(l10n.retry),
                           ),
                         ],
                       ),

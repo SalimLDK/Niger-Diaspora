@@ -196,6 +196,7 @@ class _OrdersList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return ordersAsync.when(
@@ -231,7 +232,7 @@ class _OrdersList extends ConsumerWidget {
                 if (isBuyer)
                   ElevatedButton(
                     onPressed: () => context.go('/marketplace'),
-                    child: const Text('Decouvrir les produits'),
+                    child: Text(l10n.marketplaceDiscoverProducts),
                   ),
               ],
             ),
@@ -571,7 +572,7 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Erreur lors de la mise a jour de la commande'),
+                content: Text(l10n.marketplaceOrderUpdateError),
                 backgroundColor: context.errorColor,
               ),
             );
@@ -608,7 +609,7 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Livraison confirmee'),
+            content: Text(l10n.marketplaceDeliveryConfirmed),
             backgroundColor: context.successColor,
           ),
         );
@@ -633,7 +634,7 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Commande marquee comme expediee'),
+            content: Text(l10n.marketplaceMarkedAsShipped),
             backgroundColor: context.successColor,
           ),
         );
@@ -646,11 +647,11 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Numero de suivi'),
+        title: Text(l10n.marketplaceTrackingNumber),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Entrez le numero de suivi (optionnel)',
+          decoration: InputDecoration(
+            hintText: l10n.marketplaceTrackingHint,
           ),
         ),
         actions: [
@@ -718,8 +719,8 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
               padding: const EdgeInsets.symmetric(vertical: 8),
             ),
             icon: const Icon(Icons.check_circle_outline, size: 18),
-            label: const Text(
-              'Confirmer la reception',
+            label: Text(
+              l10n.confirmReceiptAction,
               style: TextStyle(fontSize: 13),
             ),
           ),
@@ -736,8 +737,8 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
               padding: const EdgeInsets.symmetric(vertical: 8),
             ),
             icon: const Icon(Icons.local_shipping_outlined, size: 18),
-            label: const Text(
-              'Marquer comme expedie',
+            label: Text(
+              l10n.markAsShippedAction,
               style: TextStyle(fontSize: 13),
             ),
           ),
