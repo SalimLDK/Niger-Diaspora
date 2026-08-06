@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../profile/data/datasources/profile_remote_datasource.dart';
+import '../../../profile/data/datasources/profile_supabase_datasource.dart';
 import '../../../profile/data/models/profile_model.dart';
 import '../../../groups/data/datasources/group_remote_datasource.dart';
 import '../../../groups/data/datasources/group_supabase_datasource.dart';
@@ -74,7 +75,14 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
     FriendRemoteDataSource? friendDataSource,
     MessageRemoteDataSource? messageDataSource,
   })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _profileDataSource = profileDataSource ?? ProfileRemoteDataSourceImpl(),
+        // Recherche de personnes : source Supabase, pas Firestore.
+        //
+        // Le provider principal des profils est passé à Supabase, mais ce chemin
+        // instanciait encore `ProfileRemoteDataSourceImpl`, qui lit Firestore.
+        // Relevé le 2026-08-06 : 10 profils dans Supabase, 2 documents dans
+        // Firestore dont **un seul** avec un nom renseigné. La recherche ne
+        // pouvait donc trouver qu'une personne sur dix, sans erreur ni log.
+        _profileDataSource = profileDataSource ?? ProfileSupabaseDataSource(),
         // Supabase par défaut, comme `groupRemoteDataSourceProvider` : la
         // collection Firestore `groups` est vide depuis la migration.
         _groupDataSource = groupDataSource ?? GroupSupabaseDataSource(),

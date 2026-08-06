@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Rail de navigation gauche pour tablette/desktop (largeur 86 px), même
 /// items que [CustomBottomNavigation] — cf. handoff tour 4b. Remplace la
@@ -19,6 +20,7 @@ class TabletNavigationRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: 86,
       color: context.surfaceColor,
@@ -40,32 +42,32 @@ class TabletNavigationRail extends StatelessWidget {
               const SizedBox(height: 12),
               _RailItem(
                 icon: Icons.home_rounded,
-                label: 'Accueil',
+                label: l10n.homeTitle,
                 isActive: currentIndex == 0,
                 onTap: () => onTap(0),
               ),
               _RailItem(
                 icon: Icons.map_rounded,
-                label: 'Carte',
+                label: l10n.mapTitle,
                 isActive: currentIndex == 1,
                 onTap: () => onTap(1),
               ),
               _RailItem(
                 icon: Icons.groups_rounded,
-                label: 'Groupes',
+                label: l10n.homeGroups,
                 isActive: currentIndex == 2,
                 onTap: () => onTap(2),
               ),
               _RailItem(
                 icon: Icons.chat_bubble_rounded,
-                label: 'Messages',
+                label: l10n.messages,
                 isActive: currentIndex == 3,
                 onTap: () => onTap(3),
                 badgeCount: unreadMessagesCount,
               ),
               _RailItem(
                 icon: Icons.person_rounded,
-                label: 'Profil',
+                label: l10n.profileTitle,
                 isActive: currentIndex == 4,
                 onTap: () => onTap(4),
               ),

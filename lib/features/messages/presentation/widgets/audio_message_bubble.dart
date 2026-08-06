@@ -12,6 +12,7 @@ import '../../../../core/services/file_download_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/message_entity.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Widget for displaying audio message with animated waveform visualization
 class AudioMessageBubble extends StatefulWidget {
@@ -30,6 +31,8 @@ class AudioMessageBubble extends StatefulWidget {
 
 class _AudioMessageBubbleState extends State<AudioMessageBubble>
     with TickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final AudioPlaybackService _playbackService = AudioPlaybackService();
   late StreamSubscription<PlayerState> _playerStateSubscription;
   late StreamSubscription<Duration> _positionSubscription;
@@ -208,7 +211,7 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
       await _playbackService.togglePlayPause(widget.message.fileUrl!);
     } catch (e) {
       setState(() {
-        _error = 'Erreur de lecture';
+        _error = l10n.playbackError;
         _isPlaying = false;
         _isLoading = false;
       });

@@ -1087,6 +1087,7 @@ class _EmptyStateSuggestions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final rows = <Widget>[];
 
     // Membre proche : on lit l'état déjà chargé (l'accueil le remplit quand
@@ -1106,7 +1107,7 @@ class _EmptyStateSuggestions extends ConsumerWidget {
           title: profile.displayName!,
           subtitle:
               profile.isOnline
-                  ? 'En ligne'
+                  ? l10n.online
                   : (city != null && city.isNotEmpty ? city : 'À proximité'),
           trailing: Icons.send_rounded,
           onTap: () => context.push('/messages/new?userId=${profile.id}'),

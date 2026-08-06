@@ -422,6 +422,7 @@ class GroupCallMessageBubble extends StatelessWidget {
     AppLocalizations l10n,
     bool isVideoCall,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder:
@@ -440,7 +441,7 @@ class GroupCallMessageBubble extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildInfoRow(
-                  'Type',
+                  l10n.callType,
                   isVideoCall ? l10n.videoCall : l10n.audioCall,
                 ),
                 const SizedBox(height: 8),

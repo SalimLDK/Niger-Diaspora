@@ -54,6 +54,8 @@ class VideoPlayerScreen extends StatefulWidget {
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late VideoPlayerController _controller;
   bool _isInitialized = false;
   bool _isPlaying = false;
@@ -477,7 +479,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (date == today) {
       dateStr = "Aujourd'hui";
     } else if (date == today.subtract(const Duration(days: 1))) {
-      dateStr = 'Hier';
+      dateStr = l10n.marketplaceYesterdayLabel;
     } else {
       dateStr = '${dt.day}/${dt.month}/${dt.year}';
     }

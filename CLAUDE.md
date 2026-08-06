@@ -56,6 +56,58 @@ permissions runtime (caméra/localisation), le thème sombre, et tout ce que
 Ne pas attendre la fin de la tâche pour le faire : l'ajouter au fil de
 l'eau, dans le même commit que le changement concerné si possible.
 
+## Règles RTDB : jamais de déploiement sans le banc
+
+`firebase deploy --only database` envoie **tout le fichier d'un coup**, et une
+règle d'accès rate en silence : l'appelé ne voit jamais l'offre, aucune erreur
+n'apparaît nulle part. Trois choses sont obligatoires, dans cet ordre.
+
+**1. Lire ce qui tourne avant de toucher au fichier.** Le dépôt peut être en
+avance *comme* en retard sur la production.
+
+```bash
+MSYS_NO_PATHCONV=1 firebase database:get "/.settings/rules"
+```
+
+(`database:settings:get` ne sait pas lire `rules` ; sous Git Bash, sans
+`MSYS_NO_PATHCONV=1`, le chemin est mangé par la conversion de chemins.)
+
+**2. Passer le banc**, qui rejoue le parcours réel d'un appel — 1:1 et groupe,
+signalisation, clé E2EE :
+
+```bash
+firebase emulators:start --only database --project diaspo-niger
+node tools/rules_tests/signalisation_appels.mjs
+```
+
+« Parcours nominal : INTACT » est la condition de déploiement. Le reste du banc
+**mesure** (étanchéité, client périmé, exposition de la clé) au lieu de figer
+une opinion en assertion.
+
+**3. `database.rules.json` doit rester le reflet exact de ce qui est déployé.**
+Une cible non encore déployable vit dans un fichier à part —
+`database.rules.strict-cible.json` aujourd'hui.
+
+Ce que la violation a coûté le 2026-08-06, en une journée :
+
+- un durcissement déployé sans banc a **cassé tous les appels**, annulé dans
+  l'heure — et le diagnostic de l'annulation était lui-même faux, bâti sur un
+  `grep` tronqué à 40 résultats ;
+- le banc, écrit ensuite, a trouvé que la signalisation des appels de groupe
+  était **refusée en production depuis trois jours** (`81ba52c`) : un
+  `.validate` exigeait `type` directement sous `$toId` alors que l'app écrit
+  `$toId/offer` ;
+- et qu'un **anonyme** pouvait poser la clé E2EE d'un appel de groupe, faute de
+  `auth != null` devant un `!data.exists()`.
+
+**Deux pièges de RTDB à connaître avant de raisonner sur ces règles :**
+
+- **L'autorisation cascade vers le bas.** Une règle fille plus stricte ne sert
+  à rien tant que le parent accorde. C'est pourquoi `e2ee_key` reste lisible
+  par tous tant que `group_calls/$callId` est à `auth != null`.
+- **`.validate` remonte.** Écrire `$toId/offer` fait évaluer le `.validate` de
+  `$toId`. Poser la contrainte au bon niveau, sur l'enfant réellement écrit.
+
 ## Réglages : une seule source
 
 Une ligne de réglage n'existe qu'au singulier — **sa brique visuelle est dans

@@ -606,7 +606,8 @@ class _UserStatusTile extends ConsumerWidget {
   }
 
   Widget _buildTile(BuildContext context, ProfileEntity? profile) {
-    final displayName = profile?.displayName ?? 'Utilisateur';
+    final l10n = AppLocalizations.of(context)!;
+    final displayName = profile?.displayName ?? l10n.user;
     final photoUrl = profile?.photoUrl;
 
     return ListTile(
@@ -771,6 +772,7 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -788,7 +790,7 @@ class _ErrorView extends StatelessWidget {
             TextButton.icon(
               onPressed: onRetry,
               icon: AppIcon(AppIcon.refresh, color: Theme.of(context).iconTheme.color!),
-              label: const Text('Réessayer'),
+              label: Text(l10n.retry),
             ),
           ],
         ),

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import 'full_screen_image_viewer.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class OptimizedImageBubble extends StatefulWidget {
   final String imageUrl;
@@ -55,6 +56,8 @@ class OptimizedImageBubble extends StatefulWidget {
 
 class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
     with SingleTickerProviderStateMixin {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   double _downloadProgress = 0;
   bool _isLoading = true;
   bool _hasError = false;
@@ -138,7 +141,7 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
                       color: context.textPrimaryColor,
                     ),
                     title: Text(
-                      'Transférer',
+                      l10n.forward,
                       style: TextStyle(color: context.textPrimaryColor),
                     ),
                     onTap: () {
@@ -154,7 +157,7 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
                       color: context.textPrimaryColor,
                     ),
                     title: Text(
-                      'Enregistrer',
+                      l10n.save,
                       style: TextStyle(color: context.textPrimaryColor),
                     ),
                     onTap: () {
@@ -177,8 +180,8 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
                       Icons.delete_outline,
                       color: Colors.red,
                     ),
-                    title: const Text(
-                      'Supprimer',
+                    title: Text(
+                      l10n.delete,
                       style: TextStyle(color: Colors.red),
                     ),
                     onTap: () {
@@ -343,7 +346,7 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
               ),
               const SizedBox(height: 8),
               Text(
-                'Image non disponible',
+                l10n.imageNotAvailable,
                 style: TextStyle(
                   color: context.textTertiaryColor,
                   fontSize: 12,

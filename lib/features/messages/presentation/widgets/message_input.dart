@@ -105,6 +105,8 @@ class MessageInput extends StatefulWidget {
 
 class _MessageInputState extends State<MessageInput>
     with TickerProviderStateMixin, WidgetsBindingObserver {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final AudioRecordingService _recordingService = AudioRecordingService();
@@ -713,7 +715,7 @@ class _MessageInputState extends State<MessageInput>
                       if (widget.onCreateEvent != null)
                         _AttachmentOption(
                           icon: Icons.event,
-                          label: 'Événement',
+                          label: l10n.eventLabel,
                           color: context.adaptiveSecondaryColor,
                           onTap: () {
                             Navigator.pop(context);
@@ -723,7 +725,7 @@ class _MessageInputState extends State<MessageInput>
                       if (widget.onCreatePoll != null)
                         _AttachmentOption(
                           icon: Icons.poll,
-                          label: 'Sondage',
+                          label: l10n.pollLabel,
                           color: context.adaptiveSecondaryColor,
                           onTap: () {
                             Navigator.pop(context);

@@ -62,6 +62,8 @@ class ConversationOptionsModal extends ConsumerStatefulWidget {
 
 class _ConversationOptionsModalState
     extends ConsumerState<ConversationOptionsModal> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _isLoading = false;
 
   String? _getAutoDeleteLabel(AppLocalizations l10n) {
@@ -510,7 +512,7 @@ class _ConversationOptionsModalState
                   size: 20,
                   color: context.adaptivePrimaryColor,
                 ),
-                title: 'Créer un événement',
+                title: l10n.createEvent,
                 onTap: () {
                   Navigator.pop(context);
                   context.push('/groups/${widget.groupId}/events/create');
@@ -523,7 +525,7 @@ class _ConversationOptionsModalState
                   size: 20,
                   color: context.adaptivePrimaryColor,
                 ),
-                title: 'Créer un événement',
+                title: l10n.createEvent,
                 onTap: () {
                   Navigator.pop(context);
                   context.push(

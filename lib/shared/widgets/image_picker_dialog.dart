@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/services/image_upload_service.dart';
 import '../../core/services/permission_service.dart';
 import '../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'sheet_handle.dart';
 
 class ImagePickerDialog extends StatelessWidget {
@@ -83,13 +84,14 @@ class _ImagePickerSheet extends StatelessWidget {
   }
 
   void _showPermissionError(BuildContext context, ImagePickResult result) {
+    final l10n = AppLocalizations.of(context)!;
     final isPermanent =
         result.permissionResult == PermissionResult.permanentlyDenied;
 
     PermissionService.showPermissionDeniedDialog(
       context: context,
-      title: 'Permission requise',
-      message: result.errorMessage ?? 'Permission refusée',
+      title: l10n.permissionRequired,
+      message: result.errorMessage ?? l10n.permissionDeniedGeneric,
       showSettingsButton: isPermanent,
     );
   }
@@ -105,6 +107,7 @@ class _ImagePickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -117,7 +120,7 @@ class _ImagePickerSheet extends StatelessWidget {
           const SheetHandle(),
           const SizedBox(height: 20),
           Text(
-            'Choisir une image',
+            l10n.chooseImage,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -130,7 +133,7 @@ class _ImagePickerSheet extends StatelessWidget {
             children: [
               _OptionButton(
                 icon: Icons.camera_alt,
-                label: 'Caméra',
+                label: l10n.callCamera,
                 onTap: () async {
                   final result =
                       await ImageUploadService().pickImageFromCameraWithResult();
@@ -141,7 +144,7 @@ class _ImagePickerSheet extends StatelessWidget {
               ),
               _OptionButton(
                 icon: Icons.photo_library,
-                label: 'Galerie',
+                label: l10n.imagePickerGallery,
                 onTap: () async {
                   final result =
                       await ImageUploadService().pickImageFromGalleryWithResult();
@@ -155,7 +158,7 @@ class _ImagePickerSheet extends StatelessWidget {
           const SizedBox(height: 20),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.undo),
           ),
           SizedBox(height: MediaQuery.of(context).padding.bottom),
         ],
@@ -204,13 +207,14 @@ class _MultiImagePickerSheet extends StatelessWidget {
   }
 
   void _showPermissionError(BuildContext context, ImagePickResult result) {
+    final l10n = AppLocalizations.of(context)!;
     final isPermanent =
         result.permissionResult == PermissionResult.permanentlyDenied;
 
     PermissionService.showPermissionDeniedDialog(
       context: context,
-      title: 'Permission requise',
-      message: result.errorMessage ?? 'Permission refusée',
+      title: l10n.permissionRequired,
+      message: result.errorMessage ?? l10n.permissionDeniedGeneric,
       showSettingsButton: isPermanent,
     );
   }
@@ -226,6 +230,7 @@ class _MultiImagePickerSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -238,7 +243,7 @@ class _MultiImagePickerSheet extends StatelessWidget {
           const SheetHandle(),
           const SizedBox(height: 20),
           Text(
-            'Choisir des images',
+            l10n.chooseImages,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -259,7 +264,7 @@ class _MultiImagePickerSheet extends StatelessWidget {
             children: [
               _OptionButton(
                 icon: Icons.camera_alt,
-                label: 'Caméra',
+                label: l10n.callCamera,
                 onTap: () async {
                   final result =
                       await ImageUploadService().pickImageFromCameraWithResult();
@@ -270,7 +275,7 @@ class _MultiImagePickerSheet extends StatelessWidget {
               ),
               _OptionButton(
                 icon: Icons.photo_library,
-                label: 'Galerie',
+                label: l10n.imagePickerGallery,
                 onTap: () async {
                   final result =
                       await ImageUploadService().pickMultipleImagesWithResult(
@@ -286,7 +291,7 @@ class _MultiImagePickerSheet extends StatelessWidget {
           const SizedBox(height: 20),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
+            child: Text(l10n.undo),
           ),
           SizedBox(height: MediaQuery.of(context).padding.bottom),
         ],
