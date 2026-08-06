@@ -860,7 +860,30 @@ justifie pas de risquer ça.
   désormais identiques au fichier du dépôt**, la dérive est soldée. Vérifiés
   un par un : l'index à trois entrées, `calls/.read` et `group_calls/.read`
   restreints, `admins` et `superAdmins` présents.
-- [x] 🔴🔴 **ANNULÉ LE JOUR MÊME : ce déploiement cassait tous les appels.**
+- [x] ⚠️ **CORRECTION DU 2026-08-06 — le diagnostic ci-dessous est FAUX.**
+  Il est conservé tel quel parce que l'erreur est instructive, mais **ne pas
+  s'y fier**. J'avais conclu que `callerId`/`calleeId` n'existaient nulle part
+  dans RTDB à partir d'un `grep` **tronqué à 40 résultats** où
+  `call_remote_datasource.dart` n'apparaissait pas. Or `createCall` **écrit
+  bien ces deux champs dans le nœud RTDB**, avant toute signalisation, depuis
+  `135ae92` (2026-08-03) — le commit qui a introduit les règles strictes les a
+  introduits **ensemble**, elles étaient conçues pour aller de pair.
+  **Mesuré en émulateur, sur la séquence réelle :**
+  | | règles strictes | règles en ligne (permissives) |
+  |---|---|---|
+  | parcours nominal d'un appel (9 étapes) | **intact** | intact |
+  | étanchéité | **fermée** | ouverte |
+  | client d'un APK < 2026-08-03 | **cassé** | fonctionne |
+  Donc les règles strictes ne cassent **pas** les appels : elles cassent
+  uniquement les clients qui n'écrivent pas ces champs, c'est-à-dire les APK
+  antérieurs au 2026-08-03. Le retour arrière était probablement inutile.
+- [ ] **Décision à prendre : redéployer les règles strictes ?** Toute la
+  question tient à une seule chose — **existe-t-il un APK installé antérieur
+  au 2026-08-03 ?** L'app n'étant pas encore sortie, ça se limite aux
+  téléphones de test. Si le téléphone de test tourne un build plus récent,
+  redéployer ferme l'étanchéité sans risque. Le fichier des règles strictes se
+  récupère par `git show 0ddab4c:database.rules.json`.
+- [x] 🔴🔴 ~~**ANNULÉ LE JOUR MÊME : ce déploiement cassait tous les appels.**~~
   Le test de non-régression a finalement été fait — pas avec deux téléphones,
   mais **en émulateur RTDB**, ce qui suffit largement pour des règles.
   Verdict : sur la forme réelle du nœud, 5 vérifications sur 6 échouaient.
@@ -3558,13 +3581,32 @@ transaction annulée :
 Sans le contrôle négatif, le premier résultat n'aurait rien voulu dire : une
 politique trop permissive aurait donné 1 aussi. Table laissée à zéro ligne.
 
-**Ce qui reste non exercé** : le rendu. La base ne contient aucun blocage et
-seulement 2 comptes, donc rien de tout ceci n'a été vu à l'écran.
+✅ **La livraison temps réel jusqu'à l'UI est vue à l'écran** (2026-08-06).
+Blocage inséré en base pendant que la conversation était ouverte : quelques
+secondes plus tard, la ligne « Vu il y a 4 heures » avait **disparu** de
+l'en-tête. C'est `online_status_indicator` qui a réagi au provider. La chaîne
+`blocked_users` → realtime → `usersWhoBlockedMeProvider` → UI fonctionne.
+Blocage retiré aussitôt, table revenue à zéro ligne.
 
-- [ ] **Poser un vrai blocage entre les deux comptes** et vérifier sur
-  l'appareil : la personne disparaît de la carte, de l'accueil, du statut
-  « en ligne » et des notifications, **et le composeur de la conversation se
-  ferme** (`isBlockedByOther`, six branches de l'écran).
+⚠️ **Correction d'une description fausse écrite plus haut dans ce fichier.**
+Une version précédente de ce point disait « le composeur se ferme ». **C'est
+faux**, et la capture l'a montré : `isBlockedByOther` ne masque pas le
+composeur. Le champ de saisie reste visible et éditable ; ce sont les
+**actions** qui sont refusées (six branches, toutes dans des gestionnaires
+d'envoi, pas dans le rendu). Ce qui masque le composeur, c'est `isBlocked` —
+l'autre sens, quand c'est *vous* qui avez bloqué.
+
+Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
+
+- [ ] **Ce qui reste à vérifier : le refus effectif de l'envoi.** Conversation
+  ouverte avec un compte qui vous a bloqué, taper un message, appuyer sur
+  envoyer — l'envoi doit être refusé avec un message, et rien ne doit partir.
+  C'est le seul maillon non prouvé de toute la chaîne.
+  *Deux tentatives ont échoué non sur le code mais sur l'appareil : l'app est
+  passée en arrière-plan au moment du tap. Aucun plantage — process vivant,
+  ni `FATAL`, ni exception Dart, ni mise à mort `lmkd`.*
+- [ ] **Vérifier aussi la carte, l'accueil et les notifications** sous
+  blocage : la personne doit disparaître des quatre.
 - [ ] **Débloquer** et vérifier que tout revient — la table est publiée en
   realtime avec `REPLICA IDENTITY FULL` précisément pour que la suppression
   soit livrée ; sans ça le déblocage n'aurait pris effet qu'au relancement.
