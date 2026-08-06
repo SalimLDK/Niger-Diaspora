@@ -64,7 +64,7 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
         query: _searchController.text.trim(),
         embassyId: widget.embassy?.id,
         department:
-            _selectedDepartment == l10n.embassyAllDepartments
+            _selectedDepartment == 'Tous les départements'
                 ? null
                 : _selectedDepartment,
       );

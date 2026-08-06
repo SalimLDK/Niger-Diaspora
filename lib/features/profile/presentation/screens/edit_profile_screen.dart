@@ -221,7 +221,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     if (ProfileOptions.professions.contains(profession)) {
       _selectedProfession = profession;
     } else {
-      _selectedProfession = l10n.other;
+      _selectedProfession = 'Autre';
       _customProfessionController.text = profession;
     }
   }
@@ -255,7 +255,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
         _selectedOriginRegion = region;
         _showOrigin = true;
       } else {
-        _selectedOriginRegion = l10n.other;
+        _selectedOriginRegion = 'Autre';
       }
     }
     if (city != null && city.isNotEmpty) {
@@ -265,7 +265,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       if (cities.contains(city)) {
         _selectedOriginCity = city;
       } else {
-        _selectedOriginCity = l10n.other;
+        _selectedOriginCity = 'Autre';
         _customOriginCityController.text = city;
       }
     }
@@ -406,7 +406,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   /// Ce qu'on montre d'une liste de puces : tout si elle est dépliée, sinon
   /// les seuls choix déjà faits. Repliée et vide, elle ne laisse que la puce
   String _getFinalProfession() {
-    if (_selectedProfession == l10n.other) {
+    if (_selectedProfession == 'Autre') {
       return _customProfessionController.text.trim();
     }
     return _selectedProfession ?? '';
@@ -424,7 +424,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   }
 
   String _getFinalOriginCity() {
-    if (_selectedOriginCity == l10n.other) {
+    if (_selectedOriginCity == 'Autre') {
       return _customOriginCityController.text.trim();
     }
     return _selectedOriginCity ?? '';
@@ -472,7 +472,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           currentCountry: _getFinalCountry(),
           countryCode: _getFinalCountryCode(),
           originRegion:
-              _selectedOriginRegion == l10n.other ? null : _selectedOriginRegion,
+              _selectedOriginRegion == 'Autre' ? null : _selectedOriginRegion,
           originCity: _getFinalOriginCity(),
           isVisible: _isVisible,
           phoneVisibility: _phoneVisibility,
@@ -772,13 +772,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                             onChanged: (value) {
                               setState(() {
                                 _selectedProfession = value;
-                                if (value != l10n.other) {
+                                if (value != 'Autre') {
                                   _customProfessionController.clear();
                                 }
                               });
                             },
                           ),
-                          if (_selectedProfession == l10n.other) ...[
+                          if (_selectedProfession == 'Autre') ...[
                             const SizedBox(height: 10),
                             CustomTextField(
                               controller: _customProfessionController,
@@ -863,7 +863,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                               },
                             ),
                             if (_selectedOriginRegion != null &&
-                                _selectedOriginRegion != l10n.other) ...[
+                                _selectedOriginRegion != 'Autre') ...[
                               const SizedBox(height: 12),
                               _buildDropdownField(
                                 label: l10n.profileOriginCity,
@@ -874,15 +874,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                 onChanged: (value) {
                                   setState(() {
                                     _selectedOriginCity = value;
-                                    if (value != l10n.other) {
+                                    if (value != 'Autre') {
                                       _customOriginCityController.clear();
                                     }
                                   });
                                 },
                               ),
                             ],
-                            if (_selectedOriginRegion == l10n.other ||
-                                _selectedOriginCity == l10n.other) ...[
+                            if (_selectedOriginRegion == 'Autre' ||
+                                _selectedOriginCity == 'Autre') ...[
                               const SizedBox(height: 12),
                               CustomTextField(
                                 controller: _customOriginCityController,
@@ -1234,10 +1234,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   Widget _buildOriginRow(AppLocalizations l10n) {
     final parties = <String>[
       if ((_selectedOriginRegion ?? '').isNotEmpty &&
-          _selectedOriginRegion != l10n.other)
+          _selectedOriginRegion != 'Autre')
         _selectedOriginRegion!,
       if ((_selectedOriginCity ?? '').isNotEmpty &&
-          _selectedOriginCity != l10n.other)
+          _selectedOriginCity != 'Autre')
         _selectedOriginCity!,
     ];
     final rempli = parties.isNotEmpty;
