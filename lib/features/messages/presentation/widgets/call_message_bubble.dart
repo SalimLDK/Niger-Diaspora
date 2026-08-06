@@ -401,6 +401,7 @@ class CallMessageBubble extends StatelessWidget {
     AppLocalizations l10n,
     bool isVideoCall,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final isOutgoing = (message.callerId ?? message.senderId) == currentUserId;
     final hasAnswered =
         message.callStatus == 'ended' &&
@@ -425,12 +426,12 @@ class CallMessageBubble extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildInfoRow(
-                  'Type',
+                  l10n.callType,
                   isVideoCall ? l10n.videoCall : l10n.audioCall,
                 ),
                 const SizedBox(height: 8),
                 _buildInfoRow(
-                  'Direction',
+                  l10n.callDirection,
                   isOutgoing ? l10n.outgoingCall : l10n.incomingCall,
                 ),
                 const SizedBox(height: 8),

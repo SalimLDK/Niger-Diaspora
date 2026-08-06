@@ -8,6 +8,7 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/image_compressor_service.dart';
 import '../../../../core/services/preferences_service.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 enum MediaType { image, video, document }
 
@@ -40,6 +41,8 @@ class MediaPreviewScreen extends StatefulWidget {
 }
 
 class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final TextEditingController _captionController = TextEditingController();
   final ImageCompressorService _compressor = ImageCompressorService();
   bool _isCompressing = false;
@@ -204,8 +207,8 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
           widget.type == MediaType.image
               ? 'Aperçu de l\'image'
               : widget.type == MediaType.video
-                  ? 'Aperçu de la vidéo'
-                  : 'Aperçu du document',
+                  ? l10n.videoPreview
+                  : l10n.documentPreview,
           style: const TextStyle(color: Colors.white),
         ),
         actions: [
@@ -275,7 +278,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Row(
           children: [
-            _toolButton(Icons.download_outlined, 'Enregistrer', _saveToGallery),
+            _toolButton(Icons.download_outlined, l10n.save, _saveToGallery),
           ],
         ),
       );
@@ -291,7 +294,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
           _toolButton(
               Icons.crop_rotate, 'Rogner', () => _editWith(_SubEditor.crop)),
           _toolButton(Icons.blur_on, 'Flou', () => _editWith(_SubEditor.blur)),
-          _toolButton(Icons.download_outlined, 'Enregistrer', _saveToGallery),
+          _toolButton(Icons.download_outlined, l10n.save, _saveToGallery),
         ],
       ),
     );
@@ -342,8 +345,8 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
               style: const TextStyle(color: Colors.white),
               maxLines: 3,
               minLines: 1,
-              decoration: const InputDecoration(
-                hintText: 'Ajouter une légende...',
+              decoration: InputDecoration(
+                hintText: l10n.addCaption,
                 hintStyle: TextStyle(color: Colors.white54),
                 // Pas d'encadré du thème : le texte coule sur la barre.
                 filled: false,

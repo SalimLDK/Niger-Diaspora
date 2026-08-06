@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/constants/deleted_account.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -83,6 +84,8 @@ class ConversationScreen extends ConsumerStatefulWidget {
 
 class _ConversationScreenState extends ConsumerState<ConversationScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final ScrollController _scrollController = ScrollController();
   bool _isNearBottom = true;
 
@@ -1462,7 +1465,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 // Input or Blocked/Deleted Message
                 if (isDeleted ||
                     (otherUser != null &&
-                        otherUser.displayName == l10n.deletedUser))
+                        otherUser.displayName == DeletedAccount.storedName))
                   Container(
                     padding: const EdgeInsets.all(16),
                     color: context.surfaceColor,
@@ -3024,7 +3027,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // — montrait le bon nom.
     final displayName =
         _isSelfNotes
-            ? 'Mes notes'
+            ? l10n.messagesMyNotes
             : _isGroup
             ? (widget.conversationName ??
                 conversation?.name ??
@@ -3045,7 +3048,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     // Check if user is deleted
     final isDeletedUser =
-        otherUser != null && otherUser.displayName == l10n.deletedUser;
+        otherUser != null && otherUser.displayName == DeletedAccount.storedName;
 
     return AppBar(
       backgroundColor: context.surfaceColor,

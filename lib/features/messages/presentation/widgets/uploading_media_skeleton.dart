@@ -4,6 +4,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../providers/media_upload_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Skeleton widget displayed while media is uploading
 /// Shows a preview with progress overlay and cancel button
@@ -145,6 +146,7 @@ class UploadingMediaSkeleton extends ConsumerWidget {
     WidgetRef ref,
     MediaUploadState uploadState,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -188,7 +190,7 @@ class UploadingMediaSkeleton extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  uploadState.fileName ?? 'Envoi en cours...',
+                  uploadState.fileName ?? l10n.adminSending,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,

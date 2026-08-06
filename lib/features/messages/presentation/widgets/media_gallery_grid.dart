@@ -7,6 +7,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/media_gallery_provider.dart';
 import 'full_screen_image_viewer.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Widget to display a grid of media (images) from a conversation
 /// Used in profile and group detail screens
@@ -63,13 +64,14 @@ class MediaGalleryGrid extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, bool hasMore) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Médias partagés',
+            l10n.sharedMedia,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -80,7 +82,7 @@ class MediaGalleryGrid extends ConsumerWidget {
             TextButton(
               onPressed: onViewAll,
               child: Text(
-                'Voir tout',
+                l10n.seeAll,
                 style: TextStyle(
                   fontSize: 14,
                   color: context.adaptivePrimaryColor,
@@ -227,6 +229,7 @@ class MediaGalleryCompact extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     if (conversationId == null) {
       return showEmptyState
           ? _buildEmptyState(context)
@@ -293,7 +296,7 @@ class MediaGalleryCompact extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Médias partagés',
+                      l10n.sharedMedia,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -328,7 +331,7 @@ class MediaGalleryCompact extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Voir tout',
+                          l10n.seeAll,
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
@@ -466,6 +469,7 @@ class MediaGalleryCompact extends ConsumerWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -502,7 +506,7 @@ class MediaGalleryCompact extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Médias partagés',
+                  l10n.sharedMedia,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,

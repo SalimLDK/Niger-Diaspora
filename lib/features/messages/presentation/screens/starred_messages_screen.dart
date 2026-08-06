@@ -16,6 +16,7 @@ class StarredMessagesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final starredAsync = ref.watch(starredMessagesProvider(conversationId));
 
     return Scaffold(
@@ -52,7 +53,7 @@ class StarredMessagesScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Erreur de chargement',
+                    l10n.adminLoadingError,
                     style: TextStyle(color: context.textSecondaryColor),
                   ),
                 ],

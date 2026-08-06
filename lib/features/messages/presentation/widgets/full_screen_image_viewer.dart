@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/services/file_download_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Full screen image viewer with zoom, pan, download, and share capabilities
 class FullScreenImageViewer extends StatefulWidget {
@@ -64,6 +65,8 @@ class FullScreenImageViewer extends StatefulWidget {
 }
 
 class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _isDownloading = false;
   double _downloadProgress = 0;
 
@@ -84,8 +87,8 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
       if (!granted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Permission refusée pour accéder à la galerie'),
+            SnackBar(
+              content: Text(l10n.galleryPermissionDenied),
               backgroundColor: Colors.red,
             ),
           );
@@ -113,8 +116,8 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
         SnackBar(
           content: Text(
             success
-                ? 'Image enregistrée dans la galerie'
-                : 'Erreur lors du téléchargement',
+                ? l10n.imageSavedToGallery
+                : l10n.errorDownloading,
           ),
           backgroundColor: success ? Colors.green : Colors.red,
         ),
@@ -128,8 +131,8 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur lors du partage'),
+          SnackBar(
+            content: Text(l10n.errorSharing),
             backgroundColor: Colors.red,
           ),
         );
@@ -203,12 +206,12 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                   IconButton(
                     onPressed: _downloadImage,
                     icon: const Icon(Icons.download),
-                    tooltip: 'Télécharger',
+                    tooltip: l10n.download,
                   ),
                 IconButton(
                   onPressed: _shareImage,
                   icon: const Icon(Icons.share),
-                  tooltip: 'Partager',
+                  tooltip: l10n.share,
                 ),
               ]
             : null,
@@ -252,7 +255,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Image non disponible',
+                l10n.imageNotAvailable,
                 style: TextStyle(
                   color: context.textSecondaryColor,
                   fontSize: 16,

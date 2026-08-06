@@ -7,6 +7,7 @@ import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
 import '../providers/conversation_actions_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class DeleteMessageModal extends ConsumerStatefulWidget {
   final MessageEntity message;
@@ -52,6 +53,8 @@ class DeleteMessageModal extends ConsumerStatefulWidget {
 }
 
 class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool get _canDeleteForEveryone =>
       widget.isAdmin ||
       widget.message.canDeleteForEveryone(widget.currentUserId);
@@ -91,8 +94,8 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
       if (mounted) {
         Navigator.pop(context); // Close modal
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Impossible de supprimer le message après 1h'),
+          SnackBar(
+            content: Text(l10n.cannotDeleteAfter1Hour),
             backgroundColor: Colors.red,
           ),
         );
@@ -165,7 +168,7 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Supprimer le message',
+                    l10n.deleteMessage,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -189,7 +192,7 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
             // Delete for me option (portée la moins destructive : reste en haut).
             _OptionTile(
               icon: AppIcon(AppIcon.delete, color: context.textPrimaryColor),
-              title: 'Supprimer pour moi',
+              title: l10n.deleteForMe,
               subtitle: 'Reste visible chez les autres participants',
               onTap: _deleteForMe,
             ),
@@ -208,7 +211,7 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
             if (_canDeleteForEveryone)
               _OptionTile(
                 icon: const Icon(Icons.delete_forever, color: Colors.red),
-                title: 'Supprimer pour tous',
+                title: l10n.deleteForEveryone,
                 subtitle: 'Chacun verra « message supprimé »',
                 isDestructive: true,
                 onTap: _deleteForEveryone,
@@ -218,8 +221,8 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
             if (widget.message.senderId != widget.currentUserId)
               _OptionTile(
                 icon: const AppIcon(AppIcon.flag, color: Colors.red),
-                title: 'Signaler le message',
-                subtitle: 'Signaler ce message aux administrateurs',
+                title: l10n.reportMessageTitle,
+                subtitle: l10n.reportMessageSubtitle,
                 isDestructive: true,
                 onTap: _reportMessage,
               ),
@@ -243,7 +246,7 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
                     ),
                   ),
                   child: Text(
-                    'Annuler',
+                    l10n.undo,
                     style: TextStyle(
                       fontSize: 16,
                       color: context.textSecondaryColor,
@@ -314,6 +317,8 @@ class _ReportDialog extends StatefulWidget {
 }
 
 class _ReportDialogState extends State<_ReportDialog> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   String? _selectedReason;
 
   final List<Map<String, String>> _reasons = [
@@ -329,7 +334,7 @@ class _ReportDialogState extends State<_ReportDialog> {
     return AlertDialog(
       backgroundColor: context.surfaceColor,
       title: Text(
-        'Signaler le message',
+        l10n.reportMessageTitle,
         style: TextStyle(color: context.textPrimaryColor),
       ),
       content: Column(
@@ -337,7 +342,7 @@ class _ReportDialogState extends State<_ReportDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Motif du signalement :',
+            l10n.reportMotifLabel,
             style: TextStyle(color: context.textSecondaryColor),
           ),
           const SizedBox(height: 16),
@@ -365,7 +370,7 @@ class _ReportDialogState extends State<_ReportDialog> {
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(
-            'Annuler',
+            l10n.undo,
             style: TextStyle(color: context.textSecondaryColor),
           ),
         ),
@@ -377,7 +382,7 @@ class _ReportDialogState extends State<_ReportDialog> {
           style: ElevatedButton.styleFrom(
             backgroundColor: context.adaptivePrimaryColor,
           ),
-          child: const Text('Envoyer le signalement'),
+          child: Text(l10n.sendReport),
         ),
       ],
     );

@@ -11,6 +11,7 @@ import '../../../settings/data/models/chat_background_model.dart';
 import '../../../settings/domain/constants/chat_background_colors.dart';
 import '../../../settings/domain/entities/chat_background_entity.dart';
 import 'chat_wallpapers.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class ChatBackgroundPickerModal extends StatefulWidget {
   final String? conversationId; // If null, apply to all conversations
@@ -45,6 +46,8 @@ class ChatBackgroundPickerModal extends StatefulWidget {
 }
 
 class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   ChatBackgroundEntity? _selectedBackground;
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -136,8 +139,8 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
                 children: [
                   Text(
                     widget.conversationId != null
-                        ? 'Fond de conversation'
-                        : 'Fond par défaut',
+                        ? l10n.conversationBackground
+                        : l10n.defaultBackground,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -164,7 +167,7 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
 
               // Color Options
               Text(
-                'Couleurs',
+                l10n.colors,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -217,8 +220,8 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Appliquer',
+                  child: Text(
+                    l10n.apply,
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -292,7 +295,7 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
-                    'Message reçu',
+                    l10n.receivedMessage,
                     style: TextStyle(
                       fontSize: 12,
                       color: context.textPrimaryColor,
@@ -315,8 +318,8 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Text(
-                    'Message envoyé',
+                  child: Text(
+                    l10n.messageSent,
                     style: TextStyle(fontSize: 12, color: Colors.white),
                   ),
                 ),
@@ -361,7 +364,7 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
             ),
             const SizedBox(width: 12),
             Text(
-              'Thème par défaut',
+              l10n.defaultTheme,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
@@ -487,7 +490,7 @@ class _ChatBackgroundPickerModalState extends State<ChatBackgroundPickerModal> {
             ),
             const SizedBox(width: 12),
             Text(
-              isSelected ? 'Image sélectionnée' : 'Choisir une image',
+              isSelected ? l10n.imageSelected : l10n.chooseImage,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,

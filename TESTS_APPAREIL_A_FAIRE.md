@@ -4675,12 +4675,62 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 >     plus `Canada`.
 >   - Le groupe migré est là, sa description est vide (marqueur `[migré de …]`
 >     bien retiré), et le doublon supprimé n'apparaît plus nulle part.
+> - [x] **La normalisation À L'ÉCRITURE est vérifiée de bout en bout** — par le
+>   chemin normal de l'app, pas en SQL. Un groupe créé depuis « Créer un
+>   groupe » avec le pays affiché « **Niger** » arrive en base avec
+>   `country_code = '**NE**'`. Sans le correctif, la base aurait reçu le
+>   libellé, comme les groupes « teste » et « Testeurs » créés avant. Le groupe
+>   de test a été supprimé après contrôle.
 > - [ ] Détail sans gravité relevé au passage : à l'ouverture, la puce active
 >   est « Tous » et non « NE ». `_loadDefaultCountryFilter` lit
 >   `availableGroupCountries` avant que les groupes ne soient chargés — la
 >   liste est alors vide, donc aucune branche ne s'applique. Même famille que
 >   les autres lectures trop précoces, mais ici le défaut est bénin : « Tous »
 >   est un défaut raisonnable et le filtre reste utilisable.
+
+> ### 🔴 `member_count` est incrémenté DEUX FOIS à la création d'un groupe
+>
+> Trouvé le 2026-08-06 en créant un groupe de test : `member_count = 2` pour un
+> groupe qui n'a qu'une seule ligne dans `group_members` (son créateur).
+>
+> Deux mécanismes comptent le même membre :
+> - la RPC `insert_group` pose un `member_count` initial dans la ligne
+>   `groups` ;
+> - le trigger `group_members_count_trigger` fait
+>   `member_count = GREATEST(member_count + 1, 0)` à chaque INSERT dans
+>   `group_members` — donc aussi pour le créateur que la RPC vient d'insérer.
+>
+> C'est l'autre face de l'incohérence déjà vue (« Membres · 0 » sur un groupe
+> peuplé) : le compteur n'est jamais recalculé, il dérive dans les deux sens.
+>
+> En relisant la fonction, le défaut est double — et la seconde moitié était
+> invisible : `RETURNING * INTO v_row` capture la ligne **avant** l'insertion du
+> membre, donc avant que le trigger n'agisse. La fonction renvoyait `1` pendant
+> que la base contenait `2`. L'écran de création affichait donc un troisième
+> chiffre, différent des deux autres.
+>
+> - [x] **Migration écrite** :
+>   `supabase/migrations/20260806150000_insert_group_member_count.sql`.
+>   Elle pose `member_count = 0` (le trigger compte le créateur juste après) et
+>   relit la ligne après l'insertion du membre. Signature, `SECURITY DEFINER`
+>   et garde `firebase_uid` inchangés.
+> - [ ] **À appliquer** : son exécution a été refusée par le garde-fou de
+>   sécurité — remplacer une fonction de production est sensible, et c'est
+>   normal. Elle est versionnée comme les autres migrations, donc elle part
+>   avec le déploiement habituel :
+>   ```
+>   supabase db push
+>   ```
+>   ou, pour l'appliquer seule :
+>   ```
+>   supabase db query --linked --file supabase/migrations/20260806150000_insert_group_member_count.sql
+>   ```
+> - [ ] Après application : créer un groupe depuis l'app et vérifier que
+>   `member_count` vaut **1**, et que la fiche affiche « Membres · 1 » sans
+>   passer par un recompte.
+> - [x] Contournement en place en attendant :
+>   `tools/recount_group_members.sql`, idempotent, relancé après ce test. Tous
+>   les groupes sont à leur compte réel.
 > - [x] **Doublon supprimé** (2026-08-06, sur décision explicite de Salim).
 >   `25463f01-a148-4304-8f35-a38e6d7efcfb` — « Diaspora Niger — CA », créé le
 >   20/07 par la recherche qui échouait. Avant suppression, les **neuf** tables
