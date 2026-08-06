@@ -3,7 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../friends/data/datasources/friend_remote_datasource.dart';
 import '../../../friends/domain/entities/friend_entity.dart';
-import '../../../groups/data/datasources/group_remote_datasource.dart';
+import '../../../groups/data/datasources/group_supabase_datasource.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import '../../../messages/data/datasources/message_remote_datasource.dart';
 import '../../../messages/domain/entities/conversation_entity.dart';
@@ -77,7 +77,10 @@ class SearchNotifier extends _$SearchNotifier {
       final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
       final profileDataSource = ProfileRemoteDataSourceImpl();
-      final groupDataSource = GroupRemoteDataSourceImpl();
+      // Supabase, comme `groupRemoteDataSourceProvider` : la collection
+      // Firestore `groups` est vide depuis la migration, donc la recherche
+      // ne remontait jamais aucun groupe.
+      final groupDataSource = GroupSupabaseDataSource();
       final friendDataSource = FriendRemoteDataSourceImpl();
       final messageDataSource = MessageRemoteDataSourceImpl();
 
