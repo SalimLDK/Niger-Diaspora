@@ -5565,8 +5565,31 @@ Rien de tout ça n'est prouvable sans **deux comptes** :
 - [ ] **B redemande alors qu'il est déjà membre** : message « Vous êtes déjà
       membre de ce groupe » (le garde lisait une colonne vide, il ne se
       déclenchait jamais).
-- [ ] **Invitation acceptée** : même vérification côté `acceptGroupInvite` —
-      l'invité devient réellement membre.
+- [x] **Invitation acceptée** — vérifié sur SM A515F le 2026-08-06, compte
+      « Sim » acceptant une vraie invitation à « Testeurs » (groupe privé).
+      `group_members` gagne bien la ligne `role = 'member'`, le groupe entre
+      dans « Mes groupes » (« 2 rejoints » → « 3 rejoints »).
+
+      Deux choses valent d'être retenues de ce test :
+
+      **Le bouton semblait mort.** Deux captures prises 6 et 7 s après le tap
+      montraient un écran inchangé. La SnackBar d'erreur dure ~4 s : c'est la
+      fenêtre de capture qui était trop lente, pas le bouton qui ne répondait
+      pas. En capturant à 1 s, « Action impossible pour le moment, réessayez. »
+      apparaît. Ne jamais conclure « bouton mort » sans une capture immédiate.
+
+      **La cause était une cinquième anomalie, antérieure et jamais vue.**
+      `group_invites_own` avait un `USING` (inviter OU invité) et un
+      `WITH CHECK` (inviter **seulement**) asymétriques : l'invité pouvait lire
+      son invitation mais pas écrire sa réponse — `42501`. `acceptGroupInvite`
+      **et** `declineGroupInvite` étaient donc morts pour le destinataire
+      depuis toujours. Corrigé par
+      `20260806200000_invite_repondre_par_l_invite.sql`.
+      L'audit initial n'avait lu que les `USING` des policies : sur une table
+      en écriture, lire le `WITH CHECK` est la moitié qui manque.
+
+- [ ] **Refus d'invitation** (`declineGroupInvite`) : même chemin RLS que
+      l'acceptation, débloqué par la même migration, mais jamais exercé.
 - [ ] **Un non-admin ne voit pas** les demandes du groupe, et l'appel RPC lui
       est refusé (« Réservé aux administrateurs du groupe »).
 
@@ -5590,10 +5613,27 @@ Relu en base après application : pas de récursion, et une session sans
 identité ne voit que les 2 lignes des groupes publics (les privés restent
 masqués).
 
-- [ ] **Groupe privé à 2 membres et plus** : le compteur affiche le vrai
-      nombre, et la liste des membres les montre tous — des deux côtés, pas
-      seulement chez l'administrateur.
+- [x] **Groupe privé à 2 membres** — vérifié sur SM A515F le 2026-08-06, du
+      côté du membre non-administrateur : « Testeurs » affiche bien **2**
+      après l'entrée de Sim. Avant la migration il aurait affiché 1.
+      Vérifié depuis ce seul compte ; la vue de l'administrateur n'a pas été
+      regardée (elle passait déjà, `firebase_uid() = user_id` couvrant sa
+      propre ligne).
 - [ ] **Un non-membre ne voit toujours rien** d'un groupe privé.
+
+Deux effets de bord relevés pendant ce test, aucun bloquant :
+
+- **`groups.member_count` reste à 1** alors que le groupe a 2 membres. Le
+  trigger `update_group_member_count` n'est pas `SECURITY DEFINER` : son
+  `UPDATE groups` tombe sur `groups_update_admin` (`is_group_admin`), faux pour
+  quelqu'un qui vient de rejoindre. L'écran affiche quand même 2, parce que
+  `GroupEntity.memberCount` dérive de `group_members` et jamais de cette
+  colonne — la colonne est fausse, l'affichage est juste. À corriger si un jour
+  un tri ou une requête s'appuie sur `member_count` (`getGroups` l'utilise déjà
+  en `order by`).
+- **La liste ne s'est pas rafraîchie après l'acceptation** : l'invitation
+  disparaît bien, mais « Testeurs » n'apparaît qu'après un redémarrage à froid,
+  malgré le `ref.invalidate(myGroupsNotifierProvider)` de `_accept`.
 
 ---
 
