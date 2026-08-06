@@ -33,6 +33,16 @@
     "functions": {
         "source": "functions"
     },
+    "emulators": {
+        "database": {
+            "host": "127.0.0.1",
+            "port": 9102
+        },
+        "ui": {
+            "enabled": false
+        },
+        "singleProjectMode": true
+    },
     "hosting": [
         {
             "site": "diaspo-niger",

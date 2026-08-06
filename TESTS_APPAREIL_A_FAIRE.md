@@ -860,8 +860,49 @@ justifie pas de risquer ça.
   désormais identiques au fichier du dépôt**, la dérive est soldée. Vérifiés
   un par un : l'index à trois entrées, `calls/.read` et `group_calls/.read`
   restreints, `admins` et `superAdmins` présents.
-- [ ] 🔴🔴 **MAIS le test de non-régression des appels n'a PAS été fait avant
-  le déploiement** — il demande deux comptes sur deux téléphones. Le
+- [x] 🔴🔴 **ANNULÉ LE JOUR MÊME : ce déploiement cassait tous les appels.**
+  Le test de non-régression a finalement été fait — pas avec deux téléphones,
+  mais **en émulateur RTDB**, ce qui suffit largement pour des règles.
+  Verdict : sur la forme réelle du nœud, 5 vérifications sur 6 échouaient.
+  **Cause racine, et elle est nette :** les règles durcies testaient
+  `data.child('callerId').val() === auth.uid` **sur le nœud RTDB**, alors que
+  `callerId`/`calleeId` n'existent **que dans Firestore**. Vérifié dans le
+  code : `webrtc_service.dart` et `call_remote_datasource.dart` n'écrivent
+  jamais ces champs dans RTDB — le nœud `calls/<id>` ne reçoit que des enfants
+  de signalisation (`offer`, `answer`, `callerCandidates`, `calleeCandidates`,
+  `videoUpgrade`, `renegotiate_*`, `ice_restart_*`, `heartbeat`, `e2ee_key`).
+  Le prédicat était donc **toujours faux** :
+  - `.read` → refusé pour tout le monde, l'appelé ne pouvait plus lire l'offre ;
+  - `.write` → seule la toute première écriture passait (`!data.exists()`),
+    tout le reste refusé.
+  Autrement dit : **plus rien ne sonnait**, sans une seule erreur nulle part.
+  Exactement le mode d'échec silencieux annoncé.
+  **Retour arrière déployé et vérifié** : les règles en ligne sont revenues à
+  `auth != null` sur `calls` et `group_calls`, l'index RTDB est conservé.
+  Comparaison refaite — en ligne == dépôt == sauvegarde + index.
+- [x] **Test pérennisé** : `tools/rules_tests/signalisation_appels.mjs` rejoue
+  le parcours réel d'un appel (offre, candidats ICE des deux côtés, réponse,
+  passage vidéo) contre l'émulateur. Bloc `emulators` ajouté à `firebase.json`
+  (port 9102, le 9000 étant pris sur cette machine). **Toute modification des
+  règles `calls` doit le faire passer avant d'être déployée.**
+  Deux pièges déjà payés, notés dans l'en-tête du fichier : `?auth=owner` ne
+  donne pas les droits admin sur l'émulateur (il faut l'en-tête
+  `Authorization: Bearer owner`, sinon la mise en place échoue en silence et le
+  banc mesure un arbre vide — huit faux échecs avant de s'en apercevoir) ; et
+  un candidat ICE partiel est refusé par le `.validate`, pas par le droit
+  d'accès — ne pas confondre les deux en lisant un 401.
+- [ ] 🔴 **L'étanchéité de la signalisation reste donc OUVERTE.** Tout compte
+  connecté peut lire et écrire la signalisation de n'importe quel appel dont il
+  connaît l'identifiant. Le test le constate explicitement (deux lignes
+  attendues « autorisé »), et **ces deux lignes échoueront le jour où ce sera
+  fermé — c'est le signal voulu**.
+  **Pour fermer sans casser** : il faut D'ABORD que l'app écrive `callerId` et
+  `calleeId` dans le nœud RTDB au moment de créer l'appel. Tant que ce n'est
+  pas fait, tout prédicat qui s'appuie dessus est toujours faux. L'ordre est :
+  1) écrire les deux champs côté app, 2) déployer l'app, 3) attendre que le
+  parc installé ait migré, 4) seulement ensuite durcir les règles.
+- [ ] ~~**MAIS le test de non-régression des appels n'a PAS été fait avant
+  le déploiement**~~ — il demande deux comptes sur deux téléphones. Le
   durcissement de la signalisation est donc **en production sans avoir jamais
   été exercé**, et son mode d'échec est silencieux : l'appelé ne voit jamais
   l'offre, aucune erreur, rien dans les journaux.
@@ -3413,12 +3454,38 @@ parce qu'il change un **comportement**, pas seulement un habillage :
   escamoter le rappel de restauration sous ~220 dp. Le bandeau épinglé, lui,
   reste toujours visible : c'est sa raison d'être.
 
-  **Annulé sans être committé** parce que `conversation_screen.dart` portait au
-  même moment le WIP non committé de Jules, dont un correctif « zone BORNEE »
-  visant le même débordement par l'autre bout (borner le composeur au lieu des
-  bandeaux). Impossible de stager l'un sans emporter l'autre. À reprendre quand
-  le fichier est libre — et à re-vérifier d'abord : le correctif de Jules
-  supprime peut-être déjà le symptôme.
+  ⚠️ **LE CORRECTIF EST DANS LE CODE, MAIS PAS SOUS SON PROPRE COMMIT.**
+
+  Il a été livré le 2026-08-06 à l'intérieur de
+  **`af3485b fix(groupes): garde « Officiel » appliquée, et le REVOKE qui n'y
+  servait à rien`** — un commit dont le message ne dit pas un mot du
+  débordement. Il y est arrivé emporté : la version était dans l'index quand
+  ce commit a été fait, sur une branche partagée avec un autre agent.
+
+  Donc : `git log` sur ce fichier **ne mènera pas** au débordement en paysage.
+  C'est cette entrée qui fait le lien. Chercher `zoneCorps` ou
+  `placeRappelCles` dans `conversation_screen.dart` pour trouver le code.
+
+  **Deux choses à savoir en le relisant :**
+
+  - *L'indentation est volontairement fausse.* Les ~424 enfants de la colonne
+    gardent leur indentation d'origine. Les réindenter aurait réécrit des
+    centaines de lignes en cours de modification par ailleurs, et rendu la
+    fusion ingérable ; sans réindentation, le correctif ne touche que trois
+    lignes (1229, 1289, 1653), toutes hors des zones modifiées. **À passer au
+    formateur quand le fichier sera libre** — le fichier n'est de toute façon
+    pas conforme à `dart format`, même avant ce changement.
+  - *Un correctif voisin existe peut-être.* Un « zone BORNEE » qui borne le
+    composeur, et non les bandeaux, était en cours à côté. S'il a atterri
+    depuis, une partie du symptôme a pu disparaître autrement.
+
+- [ ] **Vérifier le correctif sur appareil** : conversation en paysage,
+  clavier ouvert, avec le bandeau « Restaurez vos clés » actif — le bandeau
+  rayé ne doit plus apparaître, et le rappel des clés doit s'escamoter. Puis
+  replier le clavier et repasser en portrait : il doit revenir. Refaire avec
+  le panneau GIF/Émojis à la place du clavier (le cas à 4 px).
+  Le code compile et l'analyse est propre, mais **personne n'a jamais vu le
+  bandeau rayé disparaître**.
 
   Non lié aux correctifs de localisation de cette session.
 

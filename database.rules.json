@@ -78,14 +78,8 @@
         },
         "calls": {
             "$callId": {
-                ".read": "auth != null && (data.child('callerId').val() === auth.uid || data.child('calleeId').val() === auth.uid)",
-                ".write": "auth != null && (!data.exists() || data.child('callerId').val() === auth.uid || data.child('calleeId').val() === auth.uid)",
-                "callerId": {
-                    ".validate": "newData.isString() && (data.exists() ? data.val() === newData.val() : newData.val() === auth.uid)"
-                },
-                "calleeId": {
-                    ".validate": "newData.isString() && (!data.exists() || data.val() === newData.val())"
-                },
+                ".read": "auth != null",
+                ".write": "auth != null",
                 "offer": {
                     ".validate": "newData.hasChildren(['type', 'sdp'])"
                 },
@@ -123,22 +117,17 @@
         },
         "group_calls": {
             "$callId": {
-                ".read": "auth != null && (data.child('participants').child(auth.uid).exists() || data.child('hostId').val() === auth.uid)",
-                ".write": "auth != null && (data.child('participants').child(auth.uid).exists() || data.child('hostId').val() === auth.uid)",
+                ".read": "auth != null",
+                ".write": "auth != null",
                 "participants": {
-                    ".indexOn": [
-                        "joinedAt"
-                    ],
+                    ".indexOn": ["joinedAt"],
                     "$participantId": {
-                        ".write": "auth != null && $participantId === auth.uid",
                         ".validate": "newData.hasChildren(['joinedAt']) || !newData.exists()"
                     }
                 },
                 "signaling": {
                     "$fromId": {
                         "$toId": {
-                            ".read": "auth != null && ($fromId === auth.uid || $toId === auth.uid)",
-                            ".write": "auth != null && ($fromId === auth.uid || $toId === auth.uid)",
                             ".validate": "newData.hasChildren(['type'])"
                         }
                     }
@@ -149,41 +138,27 @@
                     ".validate": "newData.hasChildren(['keyId', 'encryptedKey'])"
                 },
                 "hostId": {
-                    ".read": "auth != null",
                     ".validate": "newData.isString()"
                 },
                 "status": {
-                    ".read": "auth != null",
                     ".validate": "newData.isString() && (newData.val() === 'waiting' || newData.val() === 'active' || newData.val() === 'ended')"
                 },
                 "mode": {
-                    ".read": "auth != null",
                     ".validate": "newData.isString() && (newData.val() === 'mesh' || newData.val() === 'sfu')"
                 },
                 "maxParticipants": {
-                    ".read": "auth != null",
                     ".validate": "newData.isNumber() && newData.val() >= 2 && newData.val() <= 50"
                 }
-            }
-        },
-        "superAdmins": {
-            ".read": false,
-            ".write": false,
-            "$userId": {
-                ".validate": "newData.isBoolean() || !newData.exists()"
-            }
-        },
-        "admins": {
-            "$userId": {
-                ".read": "auth != null && auth.uid === $userId",
-                ".write": "auth != null && root.child('superAdmins').child(auth.uid).val() === true",
-                ".validate": "newData.isBoolean() || !newData.exists()"
             }
         },
         "audioRooms": {
             "$roomId": {
                 ".read": "auth != null",
-                ".write": "auth != null && ( !data.exists() || data.child('hostId').val() === auth.uid || data.child('coHostIds').hasChild(auth.uid) || root.child('admins').child(auth.uid).val() === true )",
+                ".write": "auth != null && (
+                    !data.exists() ||
+                    data.child('hostId').val() === auth.uid ||
+                    data.child('coHostIds').hasChild(auth.uid)
+                )",
                 "hostId": {
                     ".validate": "newData.isString() && (!data.exists() ? newData.val() === auth.uid : data.val() === newData.val())"
                 },
@@ -192,12 +167,13 @@
                 },
                 "participants": {
                     ".read": "auth != null",
-                    ".indexOn": [
-                        "joinedAt",
-                        "role"
-                    ],
+                    ".indexOn": ["joinedAt", "role"],
                     "$participantId": {
-                        ".write": "auth != null && ( $participantId === auth.uid || root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid || root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid) || root.child('admins').child(auth.uid).val() === true )",
+                        ".write": "auth != null && (
+                            $participantId === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid)
+                        )",
                         ".validate": "newData.hasChildren(['oderId', 'role', 'joinedAt']) || !newData.exists()",
                         "role": {
                             ".validate": "newData.isString() && (newData.val() === 'host' || newData.val() === 'coHost' || newData.val() === 'speaker' || newData.val() === 'listener')"
@@ -207,14 +183,11 @@
                 "raisedHands": {
                     ".read": "auth != null",
                     "$participantId": {
-                        ".write": "auth != null && ( $participantId === auth.uid || root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid || root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid) || root.child('admins').child(auth.uid).val() === true )"
-                    }
-                },
-                "warnings": {
-                    ".read": "auth != null",
-                    ".write": "auth != null && ( root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid || root.child('admins').child(auth.uid).val() === true )",
-                    "$warningId": {
-                        ".validate": "newData.hasChildren(['message', 'timestamp']) || !newData.exists()"
+                        ".write": "auth != null && (
+                            $participantId === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid)
+                        )"
                     }
                 },
                 "reactions": {
@@ -223,11 +196,14 @@
                 },
                 "chat": {
                     ".read": "auth != null",
-                    ".indexOn": [
-                        "createdAt"
-                    ],
+                    ".indexOn": ["createdAt"],
                     "$messageId": {
-                        ".write": "auth != null && ( !data.exists() || data.child('senderId').val() === auth.uid || root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid || root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid) || root.child('admins').child(auth.uid).val() === true )",
+                        ".write": "auth != null && (
+                            !data.exists() ||
+                            data.child('senderId').val() === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid)
+                        )",
                         ".validate": "newData.hasChildren(['senderId', 'content', 'createdAt']) || !newData.exists()",
                         "senderId": {
                             ".validate": "newData.isString() && (!data.exists() ? newData.val() === auth.uid : true)"
@@ -236,7 +212,10 @@
                 },
                 "blockedUserIds": {
                     ".read": "auth != null",
-                    ".write": "auth != null && ( root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid || root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid) || root.child('admins').child(auth.uid).val() === true )"
+                    ".write": "auth != null && (
+                        root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid ||
+                        root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid)
+                    )"
                 }
             }
         },
