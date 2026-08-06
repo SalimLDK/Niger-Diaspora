@@ -3168,6 +3168,27 @@ parce qu'il change un **comportement**, pas seulement un habillage :
   attention, le bandeau signale une **position**, pas forcément le widget
   fautif.
 
+  **Diagnostic fait, correctif écrit puis annulé (2026-08-05).** L'`Expanded`
+  de la colonne extérieure ne peut pas déborder : le dépassement vient
+  forcément des enfants **non flexibles**, c'est-à-dire les bandeaux. En
+  paysage clavier ouvert il reste ~150 dp sous l'en-tête, et le bandeau
+  épinglé plus le rappel de restauration des clés dépassent à eux seuls cette
+  hauteur. Ça explique les deux ampleurs : le panneau émojis est plus court
+  que le clavier, donc 4 px au lieu de 17.
+
+  Correctif retenu : envelopper la colonne extérieure de `conversation_screen`
+  dans un `LayoutBuilder` — seul moyen fiable de connaître la hauteur
+  restante, `MediaQuery.viewInsets` valant 0 dans un `body` de `Scaffold` — et
+  escamoter le rappel de restauration sous ~220 dp. Le bandeau épinglé, lui,
+  reste toujours visible : c'est sa raison d'être.
+
+  **Annulé sans être committé** parce que `conversation_screen.dart` portait au
+  même moment le WIP non committé de Jules, dont un correctif « zone BORNEE »
+  visant le même débordement par l'autre bout (borner le composeur au lieu des
+  bandeaux). Impossible de stager l'un sans emporter l'autre. À reprendre quand
+  le fichier est libre — et à re-vérifier d'abord : le correctif de Jules
+  supprime peut-être déjà le symptôme.
+
   Non lié aux correctifs de localisation de cette session.
 
 ---
@@ -3367,11 +3388,23 @@ attendre le sondage.
   marqueurs et liste.
 - [ ] **Sortie de rayon** : quand B sort du rayon sélectionné, son pin
   disparaît immédiatement de la carte de A (et non au sondage suivant).
-  ⏸️ *Tentative du 2026-08-05 sans résultat* : « Salim L. » a bien été
-  déplacé à ~230 km (région de Québec), mais la carte n'était plus à l'écran
-  — l'app était revenue sur une conversation. Rien à observer. Le chemin
-  testé serait la branche `!keep` de `_onMemberLocationUpdate`, la seule du
-  temps réel qui **retire** une ligne ; c'est ce qui reste à confirmer.
+  ⏸️ **Cinq tentatives, aucune concluante (2026-08-05).** À chaque fois le
+  déplacement SQL est parti, mais l'écran avait changé avant la capture :
+  conversation, Réglages, écran de démarrage après un redémarrage de l'app,
+  Notifications. La cause n'est pas le correctif — c'est que le téléphone
+  était utilisé, et qu'un build debug avec Google Maps se fait tuer par
+  `lmkd` (215 Mo libres sur 5,7 Go relevés pendant la session).
+
+  **Ne pas se contenter de relancer le même protocole.** Deux voies plus
+  sûres : soit un moment où le téléphone est franchement au repos, carte
+  ouverte, en enchaînant `UPDATE` et `screencap` dans **une seule** commande
+  (en deux appels séparés l'écart monte à ~23 s et ne prouve plus rien) ;
+  soit un test Dart sur la branche `!keep` de `_onMemberLocationUpdate`, ce
+  qui suppose d'extraire la décision `keep` dans une fonction testable —
+  aujourd'hui elle lit `ref` et `FirebaseAuth`.
+
+  C'est la seule branche du temps réel non vérifiée : celle qui **retire**
+  une ligne. L'ajout et la mise à jour sont prouvés (voir ci-dessus).
 - [x] **Position publiée hors de l'écran carte** ✅ **vérifié le 2026-08-05**
   sur SM A515F, côté données. L'app était sur un écran de **conversation**
   (jamais sur la carte) et `users.location_updated_at` du compte « Sim A »
