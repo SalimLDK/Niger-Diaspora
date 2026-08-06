@@ -316,24 +316,59 @@ encore, seule la destination était morte :
 | `onOrderCreated`, `onOrderUpdated` (×4), `processOrderPayment` | la place de marché aussi |
 | `stripeWebhook`, `stripeConnectWebhook`, `bankWebhook`, `processPayoutRequest` (×2), `checkEscrowTimeouts` | HTTPS / planifiées : elles tournent quoi qu'il arrive |
 
-**13 laissées telles quelles**, et il ne faut PAS les basculer : leur
-déclencheur ne se produit plus, migrer l'écriture ne réveillerait rien.
+**Les 13 restantes, reprises le 2026-08-06.** Elles ne se réduisaient pas à un
+changement de destination : chacune demandait de décider quoi en faire.
 
-| Fonction | État |
-|---|---|
-| `onPostLiked`, `onPostCommented`, `onNewPostCreated` (×3) | le fil est passé à Supabase → le trigger Firestore ne part jamais |
-| `onMessageDeleted` | les messages aussi |
-| `onAudioRoomInviteCreated` | les salons audio aussi |
-| `onSupportMessageCreated` | le support aussi |
-| `sendNotificationOnCreate` (×2) | l'ancienne chaîne de push, sur la collection Firestore `notifications` |
-| `sendChatNotification` | désactivée par un `return null` en tête |
-| `cleanupUserData` | c'est une **lecture**, pas une écriture |
+*Une seule capacité manquait vraiment* — `onNewPostCreated`, qui prévenait les
+abonnés, les personnes mentionnées et les membres des groupes cités. Personne
+ne le faisait à sa place. Portée en **trigger Postgres** sur `posts`
+(`trg_notify_on_post_insert`, migration `20260806110000`), au plus près de la
+donnée. Deux écarts assumés avec l'originale :
 
-Ces fonctions-là ne se réparent pas en changeant la destination : c'est tout le
-déclencheur qu'il faudrait porter, ou la fonction qu'il faudrait supprimer.
+- pas de diffusion aux abonnés pour une publication de groupe ou non publique.
+  L'originale mettait l'aperçu du contenu dans le corps de la notification —
+  donc recopiait le texte d'un post de groupe privé à des gens qui n'y ont pas
+  accès ;
+- un destinataire n'est notifié qu'une **fois**. L'originale empilait trois
+  notifications pour qui était à la fois abonné, mentionné et membre d'un
+  groupe cité.
 
-- [ ] **Commande passée** : le vendeur reçoit la notification (`onOrderCreated`).
-- [ ] **Appel manqué** : la notification arrive (`onCallUpdated`).
+Vérifié dans une transaction annulée : 44 → 45 lignes, et le compte à la fois
+abonné **et** mentionné n'en reçoit qu'une.
+
+*Deux étaient des doublons* — `onPostLiked` et `onPostCommented`. L'app crée
+déjà ces notifications côté client via la RPC `create_user_notification`
+(`feed_provider.dart` : `postLiked`, `postCommented`, `commentReply`,
+`postReposted`). Les rebrancher aurait doublé chaque « j'aime ». C'est
+exactement la mise en garde laissée dans `index.js` à la suppression
+d'`onCommentMention` — elle était juste.
+
+*Deux n'ont plus de côté serveur du tout* — `onAudioRoomInviteCreated` (aucune
+table d'invitations dans Supabase) et `onSupportMessageCreated` (les messages
+de ticket vivent dans une colonne jsonb qu'aucun ticket ne remplit à ce jour).
+Les porter reviendrait à deviner une forme de donnée que personne n'écrit.
+
+*Le reste* : `sendNotificationOnCreate` et `sendChatNotification` sont
+l'ancienne chaîne de push, l'une remplacée par `send-push`, l'autre désactivée
+par un `return null` depuis longtemps. `onMessageDeleted` écoute un chemin RTDB
+que l'app n'écrit plus.
+
+Les cinq fonctions concernées portent désormais un en-tête `⚠️ MORTE` qui dit
+pourquoi et ce qui les remplace. Elles restent **déployées mais inertes** :
+leurs déclencheurs Firestore ne se produisent plus. Les retirer de Firebase
+demande un `functions:delete` explicite — non fait, ça ne presse pas.
+
+⚠️ **`cleanupUserData` n'a pas été touchée.** C'est du nettoyage Firestore de
+bout en bout (conversations, messages, notifications) alors que ces données
+sont dans Supabase — donc supprimer un compte y laisse tout en place. Mais
+Jules a committé sur cette fonction le 2026-08-06 (`8d769d3`) : à traiter dans
+son chantier, pas ici.
+
+- [ ] **Publier depuis un compte suivi** : l'abonné reçoit « Nouvelle
+      publication ».
+- [ ] **Mentionner quelqu'un** dans une publication : il reçoit « Vous avez été
+      mentionné(e) », et une seule notification s'il est aussi abonné.
+- [ ] **Publier dans un groupe** : les abonnés hors du groupe ne reçoivent rien.
 
 ### Événements locaux + « M'avertir du prochain » — branchés (2026-08-06)
 

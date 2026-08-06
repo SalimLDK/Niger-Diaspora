@@ -1703,6 +1703,10 @@ exports.onAudioRoomStatusChanged = functions.firestore
 /**
  * Triggered when a user is invited to an audio room.
  */
+// ⚠️ MORTE et SANS ÉQUIVALENT. Trigger Firestore sur les invitations de salon
+// audio ; les salons sont passés à Supabase et il n'y existe aucune table
+// d'invitations. La fonctionnalité n'a plus de côté serveur — il n'y a rien à
+// porter tant qu'elle n'est pas redéfinie.
 exports.onAudioRoomInviteCreated = functions.firestore
     .document("audioRooms/{roomId}/invites/{inviteId}")
     .onCreate(async (snapshot, context) => {
@@ -3821,6 +3825,10 @@ exports.stripeConnectWebhook = functions.https.onRequest(async (req, res) => {
  * to the appropriate party (user if support replied, or nothing if user replied
  * since admins check the dashboard).
  */
+// ⚠️ MORTE. Le support est passé à Supabase (`support_tickets`, dont les
+// messages vivent dans une colonne jsonb) et aucun ticket n'y porte de message
+// à ce jour : porter ce trigger reviendrait à deviner une forme de donnée que
+// personne n'écrit. À reprendre quand le support sera réellement utilisé.
 exports.onSupportMessageCreated = functions.firestore
     .document("support_tickets/{ticketId}/messages/{messageId}")
     .onCreate(async (snapshot, context) => {
@@ -6928,6 +6936,10 @@ exports.processCardCreditRequest = functions.firestore
 // FEED SOCIAL — Notifications
 // ============================================================================
 
+// ⚠️ MORTE — ne pas « réparer ». Trigger Firestore sur `post_likes`, alors que
+// le fil est passé à Supabase : il ne se déclenche plus. Et surtout, l'app crée
+// déjà cette notification côté client via la RPC `create_user_notification`
+// (`feed_provider.dart`, type `postLiked`). La rebrancher ferait un DOUBLON.
 exports.onPostLiked = functions.firestore
     .document("post_likes/{likeId}")
     .onCreate(async (snapshot) => {
@@ -6955,6 +6967,8 @@ exports.onPostLiked = functions.firestore
         return null;
     });
 
+// ⚠️ MORTE — même raison qu'onPostLiked : l'app crée déjà `postCommented` et
+// `commentReply` côté client. Ne pas rebrancher.
 exports.onPostCommented = functions.firestore
     .document("post_comments/{commentId}")
     .onCreate(async (snapshot) => {
@@ -6986,6 +7000,12 @@ exports.onPostCommented = functions.firestore
         return null;
     });
 
+// ⚠️ MORTE, et REMPLACÉE. Ses trois notifications (abonnés, personnes
+// mentionnées, groupes cités) sont désormais produites par le trigger Postgres
+// `trg_notify_on_post_insert` (migration 20260806110000), au plus près de la
+// donnée. Contrairement à celle-ci, il ne diffuse pas l'aperçu d'un post de
+// groupe privé à tous les abonnés, et ne notifie qu'une fois un destinataire
+// à la fois abonné et mentionné.
 exports.onNewPostCreated = functions.firestore
     .document("posts/{postId}")
     .onCreate(async (snapshot, context) => {
