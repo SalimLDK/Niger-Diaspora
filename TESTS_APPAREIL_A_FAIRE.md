@@ -14,6 +14,44 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06)
+
+Signalé comme « le scroll a un problème ». Mesuré sur SM A515F avec une sonde
+(deux builds), capture et mesure prises **dans la même frame** :
+
+```
+état non-lu :  liste bas = 866.3 dp   dernière carte bas = 929.5 dp
+               maxScrollExtent = 87.2 dp   (63.2 de débordement + 24 de padding)
+état lu     :  dernière carte bas = 670.5 dp   maxScrollExtent = 0
+```
+
+- [x] **La liste peut défiler** : `maxScrollExtent = 87.2 dp` en état non-lu.
+  La carte coupée n'est pas un défaut d'affichage, c'est du contenu qui dépasse.
+- [x] **Un correctif posé puis retiré** (`4c19b3d` → `7648c35`) : il ajoutait
+  `viewPadding.bottom` au padding bas, or cette valeur vaut **0** sur cet
+  appareil — Flutter n'y reçoit aucun inset système. No-op vérifié à l'écran.
+- [ ] ⚠ **À refaire au doigt.** Aucun `adb input swipe` n'a fait défiler cette
+  liste, et un glissement lent (1500 ms) a été interprété comme un **tap**.
+  L'injection n'est pas fiable ici : je ne peux ni confirmer ni infirmer un
+  défaut vécu au doigt. Le test : la liste doit remonter de ~87 dp et découvrir
+  le bas de la dernière carte.
+- **Piège de méthode à retenir** : le premier `maxScrollExtent = 0` venait de
+  l'état *lu* (cartes courtes, contenu qui tient) et a été comparé à une capture
+  prise en état *non-lu*. Deux écrans différents. Mesurer et capturer dans la
+  même frame, sinon on conclut de travers — ça a coûté deux builds.
+
+- [x] **Trouvé au passage — `/settings/notifications` menait à « Page Not
+  Found »** (`GoException: no routes for location`). Segments inversés : le
+  routeur déclare `/notifications/settings`. Rien dans le dépôt ne pousse ce
+  chemin et aucune notification ne le porte — il arrive en lien profond, donc
+  probablement d'une charge utile push déjà déployée. Redirection ajoutée
+  (`71035fb`) ; l'émetteur reste à corriger côté serveur.
+- [ ] Vérifier la redirection après le prochain build :
+  `am start -a VIEW -d "https://diasponiger.web.app/settings/notifications"`
+  sur app tuée doit ouvrir les réglages de notifications.
+
+---
+
 ## Push FCM des messages — chaîne serveur rétablie (2026-08-05)
 
 Audit de la base distante : **aucun push n'était envoyé pour un message de
@@ -98,8 +136,9 @@ la preuve visuelle que `default_notification_icon` manquait. Le correctif n'est
 pas encore sur l'appareil : l'APK installé (2026-08-06 00:29) précède le commit.
 
 - [ ] **Rebâtir et réinstaller** pour vérifier le glyphe monochrome et le filet
-      orange. ⚠️ `adb install -r` vide les données de l'app : re-onboarding et
-      reconnexion à prévoir, ne pas le faire au milieu d'autre chose.
+      orange. (`adb install -r` d'un debug par-dessus un debug ne vide pas les
+      données — si les signatures divergeaient, l'install échouerait proprement
+      avec `INSTALL_FAILED_UPDATE_INCOMPATIBLE`.)
 
 ### Deuxième défaut, indépendant : l'icône de barre d'état n'existait pas
 
