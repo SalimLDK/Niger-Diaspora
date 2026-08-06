@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import '../../../../core/errors/failures.dart';
@@ -54,7 +55,7 @@ class HomeRepositoryImpl implements HomeRepository {
         if (cached != null) {
           return Right(cached.toEntity());
         }
-        return const Left(NetworkFailure('Pas de connexion internet'));
+        return Left(NetworkFailure(AppErrorMessages.networkError));
       }
     } on ServerException catch (e) {
       debugPrint('HomeRepository: Server error: $e');
@@ -88,7 +89,7 @@ class HomeRepositoryImpl implements HomeRepository {
         if (cached != null) {
           return Right(cached.stats.toEntity());
         }
-        return const Left(NetworkFailure('Pas de connexion internet'));
+        return Left(NetworkFailure(AppErrorMessages.networkError));
       }
     } catch (e) {
       debugPrint('HomeRepository: Error getting stats: $e');
@@ -113,7 +114,7 @@ class HomeRepositoryImpl implements HomeRepository {
         if (cached != null) {
           return Right(cached.nearbyMembers.map((m) => m.toEntity()).toList());
         }
-        return const Left(NetworkFailure('Pas de connexion internet'));
+        return Left(NetworkFailure(AppErrorMessages.networkError));
       }
 
       final result = await remoteDataSource.getNearbyMembers(
@@ -144,7 +145,7 @@ class HomeRepositoryImpl implements HomeRepository {
         if (cached != null) {
           return Right(cached.upcomingEvents.map((e) => e.toEntity()).toList());
         }
-        return const Left(NetworkFailure('Pas de connexion internet'));
+        return Left(NetworkFailure(AppErrorMessages.networkError));
       }
 
       final result = await remoteDataSource.getUpcomingEvents(

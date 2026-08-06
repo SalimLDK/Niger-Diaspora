@@ -5,6 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/services/e2ee_service.dart';
 import '../../../../core/services/group_call_service.dart';
@@ -432,43 +433,47 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
       'GroupCallProvider: Sending group call invitations to ${recipients.length} participants',
     );
 
-    // Create a notification document for each participant
-    // The Cloud Function onGroupCallCreated should handle this ideally,
-    // but as a fallback we create notification docs here
-    final batch = _firestore.batch();
-    final notificationsRef = _firestore.collection('notifications');
-
+    // Une notification par participant.
+    //
+    // Écrites dans Supabase, pas dans Firestore : c'est Supabase que lit
+    // l'écran des notifications. Ce lot Firestore déposait les invitations
+    // dans une collection que plus personne n'affiche — l'invitation à un
+    // appel de groupe n'apparaissait donc jamais dans la liste.
+    //
+    // La RPC est `SECURITY DEFINER` : elle autorise l'écriture d'une
+    // notification destinée à quelqu'un d'autre, que la RLS refuserait.
+    // Il n'y a pas d'équivalent du lot Firestore, mais l'échec d'une
+    // invitation ne doit pas empêcher les suivantes : chacune est isolée.
+    final supabase = Supabase.instance.client;
     for (final recipientId in recipients) {
-      final notificationDoc = notificationsRef.doc();
-      batch.set(notificationDoc, {
-        'userId': recipientId,
-        'type': 'groupCallInvitation',
-        'title': callerName,
-        'body': isVideo
-            ? 'Vous invite à un appel vidéo de groupe'
-            : 'Vous invite à un appel vocal de groupe',
-        'targetId': callId,
-        'data': {
-          'callId': callId,
-          'callerId': currentUserId,
-          'callerName': callerName,
-          'callerPhotoUrl': callerPhotoUrl ?? '',
-          'callType': isVideo ? 'video' : 'audio',
-        },
-        'createdAt': FieldValue.serverTimestamp(),
-        'read': false,
-      });
+      try {
+        await supabase.rpc(
+          'create_user_notification',
+          params: {
+            'p_user_id': recipientId,
+            'p_type': 'groupCallInvitation',
+            'p_title': callerName,
+            'p_body': isVideo
+                ? 'Vous invite à un appel vidéo de groupe'
+                : 'Vous invite à un appel vocal de groupe',
+            'p_data': {
+              'targetId': callId,
+              'callId': callId,
+              'callerId': currentUserId,
+              'callerName': callerName,
+              'callerPhotoUrl': callerPhotoUrl ?? '',
+              'callType': isVideo ? 'video' : 'audio',
+            },
+          },
+        );
+      } catch (e) {
+        debugPrint('GroupCall: notification a $recipientId echouee : $e');
+      }
     }
 
-    try {
-      await batch.commit();
-      debugPrint(
-        'GroupCallProvider: Successfully queued ${recipients.length} invitation notifications',
-      );
-    } catch (e) {
-      debugPrint('GroupCallProvider: Error sending invitations: $e');
-      // Don't throw - call can still proceed even if notifications fail
-    }
+    debugPrint(
+      'GroupCallProvider: ${recipients.length} invitations envoyees',
+    );
   }
 
   /// Join an existing group call

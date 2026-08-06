@@ -4325,9 +4325,30 @@ champ à 6 lignes). Mesures au banc sur gabarit A51 (393 dp).
   - **Envoi depuis l'état verrouillé** : bulle audio verte, lecteur, durée
     1:15, contrôle de vitesse. Fonctionne. ⚠ Un vocal de test de 1:15 traîne
     dans « Mes notes », à supprimer.
-  - [ ] **Appui long puis simple relâchement** (sans glissement) : NON vérifié.
-    La dernière tentative est tombée sur l'écran Profil, l'app ayant navigué
-    entre-temps. C'est le geste le plus courant, il reste à faire.
+  - [x] **Appui long puis simple relâchement** (sans glissement) — vérifié le
+    2026-08-06 à 07:20. Le geste fonctionne : bulle audio de 0:02 créée. ⚠ Mais
+    l'envoi a **échoué** (« À l'instant · Non envoyé · Réessayer »), alors que
+    l'envoi depuis l'état verrouillé avait réussi une heure plus tôt. Entre les
+    deux, « Mes notes » était passé par l'état « Ce groupe a été supprimé ».
+    C'est la conséquence concrète du raccourci de `EnsureSelfNotesNotifier`
+    (voir ci-dessous) : la conversation renvoyée par le cache pointe sur un
+    document absent, donc toute écriture échoue. À noter au crédit de l'app :
+    l'échec est **affiché** avec une action « Réessayer », il n'est pas avalé.
+- [ ] ⚠ **Cause racine à trancher — `EnsureSelfNotesNotifier.ensure()`**
+  (`message_provider.dart`, vers la ligne 1550) renvoie la conversation « Mes
+  notes » trouvée dans la liste en cache **sans vérifier que son document
+  existe encore**, et saute `getOrCreateSelfConversation`. Le commentaire assume
+  le raccourci (« éviter un aller-retour »). Tant que la liste et le document
+  sont d'accord ça tient ; dès qu'ils divergent, « Mes notes » s'ouvre sur un
+  document fantôme et **tout envoi échoue**. Supprimer le raccourci coûte une
+  requête par ouverture : arbitrage à faire.
+- [ ] ⚠ **Débordement en paysage** trouvé le 2026-08-06 : conversation avec
+  toute sa chrome (bandeau épinglé + bandeau de clés), clavier levé, appareil
+  en paysage → « BOTTOM OVERFLOWED BY 17 PIXELS », et le composeur passe sous
+  la ligne de flottaison. Le portrait est sain. Rien dans logcat, comme toujours
+  (Crashlytics remplace `FlutterError.onError`) : seule la bannière rayée le
+  prouve. Piste : la chrome fixe de la conversation n'est pas repliable, et en
+  paysage il ne reste presque rien après le clavier.
 - [x] ⚠ **Défaut trouvé pendant ce test — libellés tronqués dans le bandeau
   d'enregistrement**, à font_scale 1.1 sur le A51 : « Relâc… » au lieu de
   « Relâcher pour annuler », « L'enregi… » au lieu de « L'enregistrement sera
@@ -5448,28 +5469,53 @@ Le déclencheur plutôt qu'un `COALESCE` dans `insert_group` : la fonction est
 `SECURITY DEFINER`, et la reproduire depuis `pg_proc` pour n'y changer qu'une
 ligne fait courir un risque de dérive sans rapport avec le sujet.
 
-⛔ **La migration n'est PAS appliquée** :
-`supabase/migrations/20260806170000_groups_country_code_defaut_ne.sql` est
-versionnée, mais l'écriture en base a été refusée depuis la session. Tant
-qu'elle n'est pas passée, **le groupe déjà nul reste invisible** — le côté app
-ne couvre que les créations à venir. À lancer :
+✅ **Migration appliquée le 2026-08-06**, et inscrite dans
+`supabase_migrations.schema_migrations` — elle est passée par
+`db query --file` et non par `db push`, donc sans cette inscription
+`supabase migration list` l'aurait montrée « en attente » pour toujours.
 
-```bash
-supabase db query --linked "$(cat supabase/migrations/20260806170000_groups_country_code_defaut_ne.sql)"
-```
+Relevé avant / après sur `public.groups` :
 
-Vérifié par `test/core/models/pays_defaut_test.dart` (6 cas : le défaut vaut
-bien `Country.niger.code`, c'est un code ISO-2 et pas un libellé, les deux
+| `country_code` | avant | après |
+|---|---|---|
+| `NE` | 2 | **3** |
+| `CA` | 1 | 1 |
+| *(null)* | **1** | **0** |
+
+Le groupe visé (`2b24986f-08b5-4840-9931-dbe046ffb394`, « Groupe de test
+prive ») porte bien `NE`, et le `CA` n'a pas bougé — la reprise ne touche que
+les nuls et les vides.
+
+Les deux autres verrous sont vérifiés en base : `column_default` vaut
+`'NE'::text`, et `trg_groups_country_code_defaut` existe.
+
+**Le déclencheur est prouvé, pas seulement présent.** Il n'a pas pu être
+éprouvé sur `public.groups` : un autre déclencheur, `enforce_group_creator()`,
+refuse toute insertion sans JWT applicatif (« firebase_uid introuvable »), et
+la session d'administration n'en a pas. La fonction a donc été montée sur une
+table jetable, dans une transaction annulée — quatre cas, dont un contrôle
+négatif :
+
+| entrée | résultat |
+|---|---|
+| `NULL` (ce que passe `insert_group`) | `NE` |
+| `''` | `NE` |
+| `'   '` | `NE` |
+| `'CA'` | **`CA`** — non écrasé |
+
+Vérifié aussi par `test/core/models/pays_defaut_test.dart` (6 cas : le défaut
+vaut bien `Country.niger.code`, c'est un code ISO-2 et pas un libellé, les deux
 chemins de création le posent, plus aucun `'NE'` en dur dans l'écran des
-groupes, et la migration est présente).
+groupes, et la migration est versionnée).
+
+Reste à voir à l'écran — c'est tout ce que la base ne peut pas prouver :
 
 - [ ] **Créer un groupe sans choisir de pays** : il doit apparaître dans
       « Découvrir » avec le filtre `NE`, et la fiche doit afficher « Niger ».
-- [ ] **Après application de la migration** : « Groupe de test prive »
-      réapparaît (c'est un groupe **privé**, donc le vérifier dans
-      « Mes groupes » côté créateur, pas dans « Découvrir »).
-- [ ] **Un groupe créé AVEC un pays** garde bien le sien — le défaut ne doit
-      écraser personne.
+- [ ] **« Groupe de test prive » est de nouveau atteignable** : c'est un groupe
+      **privé**, donc à chercher dans « Mes groupes » côté créateur, pas dans
+      « Découvrir ».
+- [ ] **Un groupe créé AVEC un pays** garde bien le sien à l'écran aussi.
 
 ---
 

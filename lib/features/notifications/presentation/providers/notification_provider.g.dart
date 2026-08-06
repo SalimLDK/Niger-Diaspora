@@ -27,7 +27,7 @@ final notificationServiceProvider =
 // ignore: unused_element
 typedef NotificationServiceRef = AutoDisposeProviderRef<NotificationService>;
 String _$notificationDataSourceHash() =>
-    r'27437227f019a151f26d5d3757c2fd32b75e2b05';
+    r'c30d7e9a00ac7321ddd21873bec4bcb87fe62c3d';
 
 /// See also [notificationDataSource].
 @ProviderFor(notificationDataSource)
@@ -86,7 +86,7 @@ final notificationLimitProvider =
 
 typedef _$NotificationLimit = AutoDisposeNotifier<int>;
 String _$notificationsNotifierHash() =>
-    r'c33653d559659693416deddf8cd2a0b23a7a8aee';
+    r'1f8fff0744e1f18899337b835ac3bd1e1535eb01';
 
 /// See also [NotificationsNotifier].
 @ProviderFor(NotificationsNotifier)
@@ -107,7 +107,7 @@ final notificationsNotifierProvider = AutoDisposeNotifierProvider<
 typedef _$NotificationsNotifier =
     AutoDisposeNotifier<AsyncValue<List<NotificationEntity>>>;
 String _$unreadNotificationsCountHash() =>
-    r'49cb12dc00f0539ab2d10c692248704cf70bfda3';
+    r'b1e8bb9158478da2e1af5ad2f56e0386d32194cf';
 
 /// See also [UnreadNotificationsCount].
 @ProviderFor(UnreadNotificationsCount)

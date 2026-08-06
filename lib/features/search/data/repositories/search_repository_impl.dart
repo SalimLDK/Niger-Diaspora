@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import '../../../../core/errors/failures.dart';
@@ -31,7 +32,7 @@ class SearchRepositoryImpl implements SearchRepository {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
-        return const Left(NetworkFailure('Pas de connexion internet'));
+        return Left(NetworkFailure(AppErrorMessages.networkError));
       }
 
       final result = await remoteDataSource.searchAll(
@@ -67,7 +68,7 @@ class SearchRepositoryImpl implements SearchRepository {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
-        return const Left(NetworkFailure('Pas de connexion internet'));
+        return Left(NetworkFailure(AppErrorMessages.networkError));
       }
 
       final result = await remoteDataSource.searchProfiles(
@@ -91,7 +92,7 @@ class SearchRepositoryImpl implements SearchRepository {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
-        return const Left(NetworkFailure('Pas de connexion internet'));
+        return Left(NetworkFailure(AppErrorMessages.networkError));
       }
 
       final result = await remoteDataSource.searchGroups(
@@ -116,7 +117,7 @@ class SearchRepositoryImpl implements SearchRepository {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
-        return const Left(NetworkFailure('Pas de connexion internet'));
+        return Left(NetworkFailure(AppErrorMessages.networkError));
       }
 
       final result = await remoteDataSource.searchFriends(
@@ -142,7 +143,7 @@ class SearchRepositoryImpl implements SearchRepository {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
-        return const Left(NetworkFailure('Pas de connexion internet'));
+        return Left(NetworkFailure(AppErrorMessages.networkError));
       }
 
       final result = await remoteDataSource.searchConversations(

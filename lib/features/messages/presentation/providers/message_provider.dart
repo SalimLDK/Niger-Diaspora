@@ -1561,13 +1561,18 @@ class EnsureSelfNotesNotifier extends StateNotifier<AsyncValue<ConversationEntit
     final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return null;
 
-    // Réutilise l'éventuelle conversation déjà chargée pour éviter un aller-retour.
-    final existing = _ref.read(selfNotesConversationProvider);
-    if (existing != null) {
-      state = AsyncValue.data(existing);
-      return existing;
-    }
-
+    // ⚠ Ne PAS court-circuiter avec la conversation déjà en cache.
+    //
+    // Ce raccourci existait pour éviter un aller-retour : si « Mes notes »
+    // figurait dans la liste, on la renvoyait telle quelle. Mais la liste et le
+    // document peuvent diverger — document effacé côté serveur, liste encore
+    // chaude. On ouvrait alors l'écran sur un document fantôme : la lecture
+    // rendait « Ce groupe a été supprimé » et **tout envoi échouait**
+    // (« Non envoyé · Réessayer », observé sur appareil le 2026-08-06).
+    //
+    // `getOrCreateSelfConversation` est justement idempotent : il retrouve la
+    // conversation si elle existe, la recrée sinon. Une requête par ouverture
+    // de « Mes notes » est un prix raisonnable pour ne pas écrire dans le vide.
     state = const AsyncValue.loading();
     final result = await _ref
         .read(messageRepositoryProvider)

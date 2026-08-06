@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/group_request_datasource.dart';
+import '../../data/datasources/group_request_supabase_datasource.dart';
 import '../../domain/entities/group_request_entity.dart';
 import '../../domain/entities/group_invite_entity.dart';
 
@@ -9,7 +10,18 @@ part 'group_request_provider.g.dart';
 
 @riverpod
 GroupRequestDataSource groupRequestDataSource(Ref ref) {
-  return GroupRequestDataSourceImpl();
+  // Source Supabase, pas Firestore.
+  //
+  // `GroupRequestDataSourceImpl` lit la collection Firestore `group_requests`,
+  // restee a 0 document, alors qu'une demande d'adhesion vit deja dans
+  // Supabase (releve du 2026-08-06). Cette demande etait donc invisible :
+  // personne ne pouvait l'approuver ni la refuser.
+  //
+  // Troisieme occurrence du meme motif dans la journee, apres la recherche de
+  // personnes et les notifications : un provider reste sur le datasource
+  // deprecie, avec le remplacant Supabase juste a cote. L'interface compte
+  // 12 methodes, `GroupRequestSupabaseDataSource` les surcharge toutes les 12.
+  return GroupRequestSupabaseDataSource();
 }
 
 // ==================== GROUP JOIN REQUESTS ====================
