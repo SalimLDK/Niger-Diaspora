@@ -57,8 +57,17 @@ laissait passer au lieu de tout refuser.
 comparaison à temps constant. `firebase functions:log --only revenueCatWebhook`
 ne montre **aucun appel** — ni trafic légitime à casser, ni trace d'abus.
 
-Le correctif attend un déploiement ciblé :
-`firebase deploy --only functions:revenueCatWebhook`.
+**Déployé le 2026-08-05** (`firebase deploy --only functions:revenueCatWebhook`)
+et vérifié depuis l'extérieur : une requête forgée sans en-tête d'autorisation,
+portant un `app_user_id` inexistant, reçoit `HTTP 500 — Webhook secret not
+configured`, et **aucun document n'est créé** ni dans `users` ni dans
+`creatorProfiles`. Le trou est fermé.
+
+⚠ **L'endpoint est donc inerte** tant que `REVENUECAT_WEBHOOK_AUTH` n'est pas
+renseigné des deux côtés — dans `functions/.env` et dans le tableau de bord
+RevenueCat. C'est voulu : refuser vaut mieux qu'accorder à tout le monde. Mais
+si l'abonnement RevenueCat doit servir un jour, c'est la clé à poser en
+premier.
 
 ## Procédure
 
