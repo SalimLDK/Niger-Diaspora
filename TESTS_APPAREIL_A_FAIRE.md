@@ -4544,12 +4544,20 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 >   couvre bien plus de libellés que les trois rencontrés ici — il servira si
 >   d'autres apparaissent.
 >
-> - [ ] ⚠️ **NON VÉRIFIÉ SUR APPAREIL** : le téléphone s'est déconnecté juste
->   après le build (`adb devices` vide, `kill-server`/`start-server` sans
->   effet). Reste donc à confirmer, une fois rebranché, que le filtre par pays
->   de la liste des groupes retient bien tous les groupes du pays choisi — et
->   que « Découvrir » les montre. Le code est analysé sans erreur et la donnée
->   est vérifiée en base, mais l'écran lui-même n'a pas été revu.
+> - [x] **Le repli du filtre est démontré par la donnée** (l'appareil est resté
+>   débranché, mais ce cas se prouve sans lui). `availableGroupCountries` dérive
+>   de `groups.country_code` : il vaut désormais `['CA', 'NE']` là où il valait
+>   `['CA', 'Canada', 'Niger']`. Or `_loadDefaultCountryFilter` teste
+>   `availableCountries.contains('NE')` — le test était donc **toujours faux**,
+>   et le repli sur le Niger ne se déclenchait jamais. C'est mot pour mot ce
+>   que le commentaire du code annonçait ; il est maintenant vrai.
+>   Le profil de test a `country_code = null` (il portait `''`, sans effet : le
+>   code testait déjà `!= null && isNotEmpty`), donc c'est bien la branche de
+>   repli qui s'applique.
+> - [ ] ⚠️ Reste à confirmer **à l'écran**, une fois le téléphone rebranché :
+>   que la puce de pays s'arme bien sur « NE » à l'ouverture, et que
+>   « Découvrir » liste alors les deux groupes NE. Le code est analysé sans
+>   erreur et la donnée vérifiée, mais l'écran n'a pas été revu.
 > - [ ] À décider : le doublon vide « Diaspora Niger — CA » est déclassé, pas
 >   supprimé — il reste visible dans « Découvrir ». Sa suppression serait sans
 >   perte (0 membre, 0 conversation, 0 épingle, vérifié) mais irréversible :
