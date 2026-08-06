@@ -896,6 +896,63 @@ justifie pas de risquer ça.
      présents. `flutter analyze` sur le fichier : aucun problème.
   Après correctifs, le banc passe intégralement contre les règles strictes :
   parcours nominal 1:1 **et** groupe intacts, étanchéité fermée des deux côtés.
+### 🔴 La signalisation des appels de groupe était refusée EN PRODUCTION
+
+Trouvé le 2026-08-06 en passant le banc contre les règles **déployées**, pas
+contre une hypothèse. Deux échecs du parcours nominal là où il ne devait y en
+avoir aucun.
+
+Le `.validate` posé sur `group_calls/$callId/signaling/$fromId/$toId` exigeait
+un enfant `type` **directement** sous `$toId`. Or l'app écrit
+`$toId/offer = {type, sdp}` et `$toId/candidates/<clé>`. Toute écriture de
+signalisation de groupe était donc refusée — offres, réponses et candidats ICE
+compris. **Introduit par `81ba52c` le 2026-08-03 et déployé depuis** : trois
+jours pendant lesquels aucun appel de groupe ne pouvait établir sa connexion.
+Sans erreur visible, comme toujours ici.
+
+Rien à voir avec le durcissement d'aujourd'hui : le défaut est dans les règles
+permissives comme dans les strictes.
+
+- [x] **Correctif déployé le 2026-08-06** — le `.validate` descend sur les
+  enfants réels (`offer`, `answer`, en `['type', 'sdp']`), les candidats ICE
+  n'ont plus de contrainte de forme au mauvais niveau.
+  **Aucune précondition sur le parc installé** : ce correctif ne fait que lever
+  une validation qui refusait des écritures légitimes. C'est pourquoi il a pu
+  partir tout de suite, contrairement au durcissement.
+  Diff par rapport à la production exacte, vérifié champ par champ : **3
+  changements, pas un de plus** — le `.validate` déplacé, la garde `auth` sur
+  `e2ee_key`, et l'index déjà en place. En ligne == dépôt après coup.
+- [ ] **À vérifier sur appareil** : un appel de groupe à deux comptes doit
+  maintenant se connecter. C'est la seule preuve qui manque — le banc prouve
+  que les règles laissent passer, pas que la connexion WebRTC aboutit.
+
+### 🔴 La clé E2EE des appels est lisible et remplaçable par n'importe qui
+
+Mesuré le 2026-08-06 contre les règles déployées, après une lecture de code
+que je ne voulais pas vendre comme un fait. Le résultat est pire que la lecture.
+
+| | avant | après le correctif du jour |
+|---|---|---|
+| un **anonyme** pose la clé absente (groupe) | AUTORISÉ | refusé |
+| un **tiers** connecté pose la clé absente | AUTORISÉ | autorisé |
+| un **tiers** remplace la clé existante | AUTORISÉ | **autorisé** |
+| un **tiers** lit la clé | AUTORISÉ | **autorisé** |
+| un anonyme / tiers pose la clé d'un 1:1 | anon refusé, tiers AUTORISÉ | idem |
+
+La garde `auth != null` manquait sur `e2ee_key/.write` : `!data.exists()`
+suffisait à accorder l'écriture. Elle est ajoutée et déployée — le trou
+anonyme est fermé.
+
+- [ ] 🔴 **Mais l'essentiel reste ouvert** : un compte connecté quelconque peut
+  toujours **lire et remplacer** la clé E2EE de n'importe quel appel dont il
+  connaît l'identifiant. La cause n'est pas la règle `e2ee_key` mais son
+  **parent** `group_calls/$callId` (et `calls/$callId`) à `auth != null` : dans
+  RTDB une autorisation accordée plus haut cascade vers le bas, donc la règle
+  fille plus stricte ne sert à rien tant que le parent est permissif.
+  **C'est exactement ce que le durcissement ferme** — vérifié : contre les
+  règles strictes, anonyme et tiers sont tenus à l'écart sur les deux.
+  Donc le chiffrement de bout en bout des appels **n'en est pas un** tant que
+  le durcissement n'est pas déployé.
 - [ ] 🔴 **Les règles strictes NE SONT PAS déployées, et ne doivent pas l'être
   avant un nouveau build de l'app.** Le dépôt porte volontairement la version
   stricte corrigée ; la production reste permissive. Deux préconditions, toutes
@@ -907,6 +964,11 @@ justifie pas de risquer ça.
   **Donc : rebâtir et réinstaller l'app d'abord, déployer les règles ensuite.**
   Vérifier entre les deux que `node tools/rules_tests/signalisation_appels.mjs`
   affiche « Parcours nominal : INTACT ».
+  Le fichier cible est versionné à part : **`database.rules.strict-cible.json`**.
+  `database.rules.json` reste donc le reflet exact de ce qui est **déployé** —
+  c'est le seul moyen de ne pas refabriquer la dérive qui a coûté la journée.
+  Pour déployer le jour venu : remplacer l'un par l'autre, relancer le banc,
+  puis `firebase deploy --only database`.
 - [x] 🔴🔴 ~~**ANNULÉ LE JOUR MÊME : ce déploiement cassait tous les appels.**~~
   Le test de non-régression a finalement été fait — pas avec deux téléphones,
   mais **en émulateur RTDB**, ce qui suffit largement pour des règles.
