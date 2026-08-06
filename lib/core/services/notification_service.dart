@@ -486,6 +486,11 @@ Future<void> _showFallbackMessageNotification({
         importance: Importance.high,
         priority: Priority.high,
         tag: 'msg_$conversationId', // same tag as Cloud Functions → no duplicate
+        // Sans ça, le repli retombait sur l'icône par défaut du plugin
+        // (`@mipmap/ic_launcher`), que la barre d'état réduit à un disque
+        // blanc — vérifié à l'écran le 2026-08-06.
+        icon: '@drawable/ic_stat_notification',
+        color: AppColors.primary,
       ),
       iOS: const DarwinNotificationDetails(
         presentAlert: true,
@@ -1307,8 +1312,16 @@ class NotificationService {
   /// que le token) de sauvegarder sous le bon utilisateur.
   String? _lastKnownUserId;
 
+  /// Utilisateur déjà synchronisé pendant cette exécution du process, pour que
+  /// l'appel depuis `authStateChanges` (qui émet à répétition) ne relance pas
+  /// un aller-retour base à chaque émission.
+  String? _tokenSyncedForUser;
+
   Future<void> saveTokenForUser(String userId) async {
     _lastKnownUserId = userId;
+    if (_tokenSyncedForUser == userId) return;
+    _tokenSyncedForUser = userId;
+
     if (_fcmToken == null) {
       await _getToken();
     }
@@ -1366,6 +1379,9 @@ class NotificationService {
 
   /// Remove FCM token when user logs out
   Future<void> removeTokenForUser(String userId) async {
+    // Sinon une reconnexion sur le même compte serait ignorée par la garde de
+    // saveTokenForUser, et le jeton ne repartirait jamais en base.
+    _tokenSyncedForUser = null;
     // Le jeton VoIP est nominatif lui aussi : le laisser en base ferait sonner
     // l'appareil pour l'ancien compte.
     if (Platform.isIOS) {

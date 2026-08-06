@@ -131,7 +131,18 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Stream<UserEntity?> get authStateChanges {
     return remoteDataSource.authStateChanges.map((userModel) {
-      return userModel?.toEntity();
+      final entity = userModel?.toEntity();
+      // Le jeton FCM n'était enregistré qu'à la connexion **explicite**
+      // (connexion, inscription, SSO). Au démarrage avec une session déjà
+      // ouverte — le cas courant — rien ne l'appelait : `_lastKnownUserId`
+      // restait nul, donc un `onTokenRefresh` était rejeté en silence et la
+      // base gardait un jeton périmé jusqu'à la prochaine déconnexion.
+      // `saveTokenForUser` est idempotente par process, ce flux peut donc
+      // émettre autant qu'il veut.
+      if (entity != null) {
+        NotificationService().saveTokenForUser(entity.id);
+      }
+      return entity;
     });
   }
 

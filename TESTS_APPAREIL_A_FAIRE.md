@@ -127,18 +127,37 @@ doublons :
 - [ ] **Bascule push du profil sur `off`** : plus rien n'arrive côté FCM alors
       que la cloche in-app continue de se remplir.
 
-### Confirmé à l'œil : l'icône affichée est bien celle du lanceur
+### Icône de barre d'état — corrigée ET vérifiée à l'écran (2026-08-06)
 
-Capture du volet de notifications du 2026-08-06 : la bannière Diaspo Niger
-porte la pastille ronde « DN » du lanceur, là où toutes les autres apps
-affichent un glyphe monochrome. C'est exactement le défaut décrit ci-dessous —
-la preuve visuelle que `default_notification_icon` manquait. Le correctif n'est
-pas encore sur l'appareil : l'APK installé (2026-08-06 00:29) précède le commit.
+Chaîne complète refaite sur le SM A515F, build reconstruit et installé
+(`adb install -r`, session Firebase et clés E2EE conservées).
 
-- [ ] **Rebâtir et réinstaller** pour vérifier le glyphe monochrome et le filet
-      orange. (`adb install -r` d'un debug par-dessus un debug ne vide pas les
-      données — si les signatures divergeaient, l'install échouerait proprement
-      avec `INSTALL_FAILED_UPDATE_INCOMPATIBLE`.)
+**Un vector drawable ne convient pas comme petite icône de notification.**
+Première tentative avec `res/drawable/ic_stat_notification.xml` : la
+notification n'apparaissait **plus du tout** — 60 s de scrutation, rien, alors
+que le build précédent l'affichait. Elle figurait bien un instant dans le
+registre Samsung puis disparaissait, ce qui ressemble à un `Bad notification`
+côté système. Aucune trace dans logcat.
+
+Remplacé par de vrais PNG monochromes générés aux cinq densités
+(`drawable-mdpi` → `drawable-xxxhdpi`, bulle de discussion blanche sur fond
+transparent) : la bannière réapparaît **en 5 s**.
+
+- [x] **Notification affichée** : `id=0 tag=msg_… channel=messages
+      importance=4`, titre = nom de l'expéditeur.
+- [x] **Icône correcte** : `icon=Icon(typ=RESOURCE id=0x7f08012d)`, soit
+      `drawable/ic_stat_notification` (vérifié par `aapt2 dump resources`).
+      À l'écran : bulle monochrome, comme WhatsApp et Telegram.
+- [x] **Le repli local devait aussi la déclarer.** Sans `icon:` dans
+      `_showFallbackMessageNotification`, le plugin retombait sur son défaut
+      `@mipmap/ic_launcher` — un disque blanc. C'est ce repli qui poste en
+      arrière-plan, donc c'était bien lui qu'on voyait.
+- [ ] **Filet orange** : `color` est passé à `AppColors.primary` sur le repli,
+      pas encore observé à l'œil (la couleur ne se lit pas dans `dumpsys` pour
+      ce chemin).
+
+⚠️ **Ne pas revenir à un vector drawable** pour cette icône, même « parce que
+c'est plus propre » : ça supprime silencieusement toutes les notifications.
 
 ### Deuxième défaut, indépendant : l'icône de barre d'état n'existait pas
 
