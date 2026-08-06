@@ -3416,8 +3416,25 @@ attendre le sondage.
   Le canal `users_location_updates` fonctionne donc de bout en bout :
   publication Postgres → RLS → websocket → `_onMemberLocationUpdate` →
   marqueurs et liste.
-- [ ] **Sortie de rayon** : quand B sort du rayon sélectionné, son pin
-  disparaît immédiatement de la carte de A (et non au sondage suivant).
+- [x] **Sortie de rayon — le verdict est prouvé, en test Dart** ✅
+  (2026-08-05, `test/features/map/nearby_member_filter_test.dart`, 20 cas).
+
+  La décision a été extraite dans `lib/features/map/domain/nearby_member_filter.dart`
+  précisément pour ça. Les huit cas de la branche de retrait couvrent le
+  déplacement à 230 km joué cinq fois sur l'appareil sans jamais pouvoir être
+  observé, les deux bords à ±0,02 degré du seuil, le partage coupé, le profil
+  devenu invisible et les coordonnées absentes.
+
+  **Ce que ça ne prouve pas** : que le pin disparaisse *visuellement*. Le
+  trajet websocket → `_onMemberLocationUpdate` est prouvé sur appareil (voir
+  ci-dessus), et le verdict est prouvé ici ; reste le rendu, c'est-à-dire
+  `setState` + `_updateMarkers`, qui est le même code que pour l'ajout — déjà
+  vu fonctionner à l'écran. Le risque résiduel est faible mais non nul.
+
+- [ ] **Sortie de rayon, confirmation visuelle** (facultatif) : si l'occasion
+  se présente — téléphone franchement au repos, carte ouverte — refaire le
+  protocole en une seule commande. Ne pas y consacrer d'effort dédié : le
+  rapport entre le coût et ce qui reste inconnu ne le justifie plus.
   ⏸️ **Cinq tentatives, aucune concluante (2026-08-05).** À chaque fois le
   déplacement SQL est parti, mais l'écran avait changé avant la capture :
   conversation, Réglages, écran de démarrage après un redémarrage de l'app,
