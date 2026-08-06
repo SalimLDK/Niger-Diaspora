@@ -5570,10 +5570,30 @@ Rien de tout ça n'est prouvable sans **deux comptes** :
 - [ ] **Un non-admin ne voit pas** les demandes du groupe, et l'appel RPC lui
       est refusé (« Réservé aux administrateurs du groupe »).
 
-Point adjacent **non corrigé**, à garder en tête si le compteur de membres
-paraît faux sur un groupe privé : la policy `group_members_select` est
-`firebase_uid() = user_id OR is_group_public(group_id)`. Dans un groupe privé,
-un membre ne voit donc que **sa propre** ligne d'appartenance.
+### Le corollaire : un groupe privé ne montrait qu'un seul membre
+
+`group_members_select` valait `firebase_uid() = user_id OR
+is_group_public(group_id)`. Dans un groupe **privé**, aucune des deux branches
+ne couvre les autres membres. Comme `_membershipFor` reconstruit `member_ids`
+et `admin_ids` depuis cette table et que `GroupEntity.memberCount` dérive de
+`memberIds.length`, un groupe privé de cinq personnes se serait affiché
+« 1 membre » pour chacune, avec une liste de membres réduite à soi-même.
+
+Le défaut était **invisible jusqu'ici** : les deux groupes privés de la base
+n'ont qu'un membre chacun. Il devient observable dès qu'un second membre
+arrive — donc dès que l'approbation ci-dessus fonctionne. Corrigé dans la
+foulée par `20260806190000_group_members_visible_aux_membres.sql`, qui ajoute
+`is_group_member(group_id)` — l'idiome déjà retenu sur `groups`
+(`groups_select_public`).
+
+Relu en base après application : pas de récursion, et une session sans
+identité ne voit que les 2 lignes des groupes publics (les privés restent
+masqués).
+
+- [ ] **Groupe privé à 2 membres et plus** : le compteur affiche le vrai
+      nombre, et la liste des membres les montre tous — des deux côtés, pas
+      seulement chez l'administrateur.
+- [ ] **Un non-membre ne voit toujours rien** d'un groupe privé.
 
 ---
 
