@@ -31,6 +31,13 @@
 -- Le court-circuit `IF NEW.type = 'message'` que portait la version déployée
 -- est retiré par la migration 20260805230000 — voir son en-tête.
 --
+-- ⚠️ La fonction vit dans le schéma **private**, pas `public`. Une correction
+-- du 2026-08-06 l'avait recréée dans `public` : ça a produit une deuxième
+-- fonction homonyme, sans toucher celle que le trigger appelle réellement — le
+-- correctif semblait appliqué et ne changeait rien. Pour savoir laquelle est
+-- branchée, joindre `pg_trigger` à `pg_namespace` ; `pg_proc` seul renvoie les
+-- deux sans dire laquelle sert.
+--
 -- Idempotent : CREATE ... IF NOT EXISTS + CREATE OR REPLACE + DROP TRIGGER IF EXISTS.
 -- =============================================================================
 
@@ -48,7 +55,7 @@ CREATE TABLE IF NOT EXISTS private.push_webhook_config (
 -- Table de secrets : aucun accès client, ni anon ni authenticated.
 REVOKE ALL ON private.push_webhook_config FROM PUBLIC;
 
-CREATE OR REPLACE FUNCTION public.notify_push_on_notification()
+CREATE OR REPLACE FUNCTION private.notify_push_on_notification()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -86,6 +93,6 @@ DROP TRIGGER IF EXISTS trg_notify_push ON public.notifications;
 CREATE TRIGGER trg_notify_push
   AFTER INSERT ON public.notifications
   FOR EACH ROW
-  EXECUTE FUNCTION public.notify_push_on_notification();
+  EXECUTE FUNCTION private.notify_push_on_notification();
 
-REVOKE ALL ON FUNCTION public.notify_push_on_notification() FROM PUBLIC;
+REVOKE ALL ON FUNCTION private.notify_push_on_notification() FROM PUBLIC;

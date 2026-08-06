@@ -29,24 +29,42 @@ chat** depuis le passage des messages à Supabase. Deux trous cumulés :
   `/messages/{conversationId}/{messageId}` — un chemin que l'app n'écrit plus
   (`MessageSupabaseDataSource`).
 
-Correctif : `supabase/migrations/20260805230000_fix_message_push_pipeline.sql`.
+Correctifs : `20260805230000_fix_message_push_pipeline.sql` puis
+`20260806090000_fix_push_trigger_schema.sql`.
 
-Rien de tout ça n'est vérifiable par `flutter analyze`/`flutter test` : c'est
-du SQL distant plus une livraison FCM réelle. À vérifier sur deux appareils (ou
-un appareil + le compte de test) **une fois la migration appliquée** :
+**Appliqués et vérifiés côté serveur le 2026-08-06.** Le premier ne suffisait
+pas : il faisait `CREATE OR REPLACE FUNCTION public.notify_push_on_notification`
+alors que le trigger appelle celle du schéma **`private`**. Il a donc créé une
+deuxième fonction homonyme sans toucher la bonne — appliqué, sans effet. Pour
+savoir laquelle est branchée : joindre `pg_trigger` à `pg_namespace`,
+`pg_proc` seul renvoie les deux sans dire laquelle sert.
+
+Deux vérifications faites directement sur la base :
+
+- **`messages` → `notifications`** : insertion d'un message dans une
+  transaction volontairement annulée (`RAISE EXCEPTION` en fin de bloc, donc
+  rien de persisté et aucun push envoyé) → 28 → 29 lignes, destinataire = le
+  participant **autre** que l'expéditeur, titre = nom de l'expéditeur, corps =
+  contenu. L'exclusion de l'expéditeur est donc bonne.
+- **`notifications` → FCM** : une ligne de test insérée sur le compte Salim a
+  produit `{"sent":1,"removed":0}` en HTTP 200 dans `net._http_response` — le
+  push est réellement parti, le token était valide. Ligne supprimée depuis.
+- **Filtre par type** : avec `notification_prefs = {"messages": false}`, la
+  même insertion donne `{"skipped":"type disabled: messages"}` et la ligne
+  in-app reste créée. Préférence remise à `{}` depuis.
+
+Reste ce que seul un téléphone peut dire — le rendu, le groupement, les
+doublons :
 
 - [ ] **Message 1-à-1, app tuée** : la bannière arrive, titre = nom de
       l'expéditeur, corps = aperçu (ou `🔒 Nouveau message` si E2EE).
 - [ ] **Message de groupe** : titre = nom du groupe, corps = `Nom: aperçu`.
-- [ ] **Doublon en arrière-plan** — à regarder de près, le commentaire du code
-      est trop confiant. `_showFallbackMessageNotification`
-      ([notification_service.dart:484](lib/core/services/notification_service.dart:484))
-      affirme « same tag as Cloud Functions → no duplicate », mais Android
-      identifie une notification par le **couple** (tag, id), pas par le tag
-      seul : le repli poste sous l'id `conversationId.hashCode.abs() % 99999`
-      là où le SDK Firebase pose le sien. Tags identiques, ids différents = deux
-      bannières. Si le doublon apparaît, aligner l'id du repli sur celui du SDK
-      (0 lorsqu'un tag est fourni) — non fait ici faute de pouvoir le vérifier.
+- [ ] **Doublon en arrière-plan** : une seule bannière. Android identifie une
+      notification par le **couple** (tag, id) : le repli local postait sous un
+      id dérivé de la conversation là où le SDK Firebase pose le sien, donc il
+      s'ajoutait au lieu de remplacer. L'id du repli est passé à 0, la valeur
+      du SDK quand un tag est fourni — c'est le point qui reste le plus
+      incertain, il n'est vérifiable qu'à l'œil.
 - [ ] **Conversation ouverte au premier plan** : pas de notification système.
 - [ ] **Conversation mutée** : rien n'arrive (le trigger filtre `data.mutedBy`).
 - [ ] **« Mes notes »** : s'écrire à soi-même ne déclenche aucune notification.
