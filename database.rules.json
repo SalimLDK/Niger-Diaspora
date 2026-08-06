@@ -23,7 +23,9 @@
         "messages": {
             "$conversationId": {
                 ".indexOn": [
-                    "createdAt"
+                    "createdAt",
+                    "expiresAt",
+                    "mediaExpiresAt"
                 ],
                 ".read": "auth != null && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",
                 ".write": "auth != null && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",

@@ -798,9 +798,59 @@ supplémentaire** à créer.
   aujourd'hui (une seule conversation a des messages en RTDB, 1,5 à 2 s par
   exécution), mais le coût croît avec l'historique — c'est exactement la
   fonction qu'on vient de fiabiliser qui deviendra lente et chère.
-  **À faire** : ajouter `"expiresAt"` et `"mediaExpiresAt"` au `.indexOn` de
-  `messages/$conversationId`, puis `firebase deploy --only database`. Vérifier
-  ensuite la disparition du WARNING et la baisse du temps d'exécution.
+  **Index ajouté au fichier** le 2026-08-06 (`.indexOn` de
+  `messages/$conversationId` passe à `["createdAt", "expiresAt",
+  "mediaExpiresAt"]`, JSON revalidé). **NON déployé — et surtout pas par un
+  `deploy --only database` naïf**, voir juste en dessous.
+
+### 🔴 `database.rules.json` est en avance de 27 changements sur la production
+
+Relevé le 2026-08-06 en voulant déployer le simple index ci-dessus. Les règles
+en ligne se lisent avec :
+
+```
+MSYS_NO_PATHCONV=1 firebase database:get "/.settings/rules"
+```
+
+(`database:settings:get` ne sait pas lire `rules`, et sous Git Bash le chemin
+`/.settings/rules` est mangé par la conversion MSYS — d'où `MSYS_NO_PATHCONV=1`.)
+
+Comparées au fichier du dépôt : **18 chemins de règles existent dans le dépôt
+et pas en ligne** (`admins`, `superAdmins`, `warnings` des salons, plusieurs
+`.validate`, et les restrictions de signalisation) et **9 valeurs diffèrent
+réellement** — aucune n'est une simple différence de mise en forme, vérifié en
+normalisant les espaces.
+
+Les quatre qui comptent :
+
+| chemin | en ligne | dans le dépôt |
+|---|---|---|
+| `calls/$callId/.read` | `auth != null` | réservé à l'appelant/appelé |
+| `calls/$callId/.write` | `auth != null` | idem |
+| `group_calls/$callId/.read` | `auth != null` | réservé aux participants/hôte |
+| `group_calls/$callId/.write` | `auth != null` | idem |
+
+Le dépôt est donc **plus strict** que la production : c'est le durcissement de
+la signalisation d'appel, écrit le 2026-08-03 et **volontairement laissé non
+déployé** en attendant le test de non-régression à deux comptes (voir la
+section « Appel 1:1 après restriction »).
+
+⚠️ **Conséquence pratique : `firebase deploy --only database` n'est pas une
+opération anodine.** Il embarquerait les 27 changements d'un coup, dont ce
+durcissement jamais testé — et son mode d'échec est **silencieux** : l'appelé
+ne verrait jamais l'offre, sans la moindre erreur. Un index de performance ne
+justifie pas de risquer ça.
+
+- [ ] **Deux chemins possibles, à trancher :**
+  1. Passer d'abord le test de non-régression des appels à deux comptes, puis
+     déployer le fichier entier — index et durcissement ensemble. C'est le
+     chemin propre, il solde la dérive.
+  2. Déployer un fichier chirurgical = règles **en ligne** + les deux entrées
+     d'index, pour n'obtenir que la performance sans toucher au comportement.
+     Plus rapide, mais ça fabrique une troisième version des règles et laisse
+     la dérive intacte — donc à ne faire que si l'index devient urgent.
+- [ ] Refaire la comparaison après coup : le `database:get` ci-dessus doit
+  redevenir identique au fichier du dépôt.
 - [x] 🔴 **Deux fonctions tournaient en production sans source dans le dépôt —
   sources retrouvées et réintégrées** (`a7db115`).
   `sendMessagePush(europe-west1)` était dans `stash@{3}` (2026-07-20), jamais
