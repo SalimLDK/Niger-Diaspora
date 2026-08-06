@@ -47,7 +47,7 @@ class _AddPaymentAccountScreenState
     final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     setState(() => _isLoading = true);

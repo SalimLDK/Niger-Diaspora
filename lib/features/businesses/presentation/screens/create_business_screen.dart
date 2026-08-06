@@ -74,7 +74,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     setState(() => _isLoading = true);

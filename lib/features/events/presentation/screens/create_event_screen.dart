@@ -250,8 +250,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   Future<void> _createEvent() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    // `await …future` et non `read(...).valueOrNull` : StreamProvider
+    // autoDispose que cet écran ne regarde pas, la lecture rendait `null` au
+    // moment du tap et « Créer » ne faisait rien, sans message.
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
+    // L'attente ci-dessus est un saut asynchrone : l'écran peut avoir été
+    // démonté entre-temps, `context` ne serait plus utilisable.
+    if (!mounted) return;
 
     final l10n = AppLocalizations.of(context)!;
     final successMessage = l10n.eventCreatedSuccess;

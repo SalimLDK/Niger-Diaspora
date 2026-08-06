@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/domain/entities/profile_entity.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 
 part 'notification_preferences_provider.g.dart';
@@ -126,15 +127,38 @@ class NotificationPreferencesNotifier
     state = state.copyWith(masterEnabled: enabled);
 
     // Étage serveur : sans lui, le back-end continue de pousser.
-    final userId = ref.read(currentUserAsyncProvider).valueOrNull?.id;
+    final userId = (await ref.read(currentUserAsyncProvider.future))?.id;
     if (userId != null) {
-      final profile = ref.read(profileNotifierProvider(userId)).valueOrNull;
+      final profile = await _loadProfileFor(userId);
       if (profile != null) {
         await ref
             .read(profileNotifierProvider(userId).notifier)
             .updateProfile(profile.copyWith(notificationsEnabled: enabled));
       }
     }
+  }
+
+  /// Profil courant, quitte à le charger.
+  ///
+  /// `profileNotifierProvider` est un StateNotifierProvider **autoDispose** :
+  /// son `_loadProfile()` ne pose `state` de façon synchrone que s'il trouve un
+  /// cache. Sans cache — après un redémarrage, ou si le profil n'a pas encore
+  /// été consulté — un `read(...).valueOrNull` juste après le `read` rend
+  /// `null`, et l'étage serveur (la colonne que lit `send-push`) était sauté en
+  /// silence : la bascule n'éteignait alors que l'affichage local, le back-end
+  /// continuant de pousser alors que l'interrupteur affichait « désactivé ».
+  ///
+  /// Même famille que le piège `currentUserAsyncProvider`, sur un provider
+  /// différent — mais un StateNotifierProvider n'expose pas de `.future`,
+  /// d'où le repli explicite sur le dépôt.
+  ///
+  /// Vérifié sur appareil le 2026-08-06 : la bascule écrit désormais
+  /// `users.notifications_enabled` (true → false → true).
+  Future<ProfileEntity?> _loadProfileFor(String userId) async {
+    final cached = ref.read(profileNotifierProvider(userId)).valueOrNull;
+    if (cached != null) return cached;
+    final result = await ref.read(profileRepositoryProvider).getProfile(userId);
+    return result.fold((_) => null, (profile) => profile);
   }
 
   /// Recopie **toutes** les préférences par type dans
@@ -146,7 +170,7 @@ class NotificationPreferencesNotifier
   /// était fermée. On envoie la carte entière plutôt que la clé touchée : elle
   /// est petite, et ça réconcilie au passage un appareil désynchronisé.
   Future<void> _syncTypePrefsToServer() async {
-    final userId = ref.read(currentUserAsyncProvider).valueOrNull?.id;
+    final userId = (await ref.read(currentUserAsyncProvider.future))?.id;
     if (userId == null) return;
     try {
       await ref
@@ -194,7 +218,7 @@ class NotificationPreferencesNotifier
 
     // Colonne dédiée : les requêtes serveur ciblent les destinataires par
     // `notify_local_events`, elles ne fouillent pas le JSONB.
-    final userId = ref.read(currentUserAsyncProvider).valueOrNull?.id;
+    final userId = (await ref.read(currentUserAsyncProvider.future))?.id;
     if (userId != null) {
       final datasource = ref.read(profileRemoteDataSourceProvider);
       await datasource.updateNotifyLocalEvents(userId, enabled);

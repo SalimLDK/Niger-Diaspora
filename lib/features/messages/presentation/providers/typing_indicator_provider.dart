@@ -68,7 +68,7 @@ class TypingIndicatorNotifier extends _$TypingIndicatorNotifier {
     _isCurrentlyTyping = isTyping;
     state = isTyping;
 
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     try {

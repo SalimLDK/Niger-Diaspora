@@ -4555,11 +4555,40 @@ erreur dans `state`.
   comme lus** — le badge de la liste et celui de la barre de navigation
   restaient donc allumés indéfiniment.
 
-- [ ] Reste ~63 occurrences, dans des fichiers où le motif est soit absent
-  d'un chemin utilisateur, soit accompagné d'un `watch` local. Suivant par
-  volume : `heritage_provider` (6 silencieux / 8, mais 1 watch),
-  `monetization_provider` (11 occurrences, 0 abandon silencieux),
-  `notification_preferences_provider` (1/3), `create_event_screen` (1/2).
+- [x] **Quatrième passe — 15 sites** : `heritage_provider` (8),
+  `notification_preferences_provider` (3), `create_event_screen` (1),
+  `add_payment_account_screen` (1), `typing_indicator_provider` (1),
+  `create_business_screen` (1). `create_event_screen._prefillLocation` laissé
+  synchrone (non `async`). `create_event_screen._createEvent` a reçu un
+  `if (!mounted) return;`.
+
+- [x] 🔴 **Découverte : le piège n'est pas propre à `currentUserAsyncProvider`.**
+  En vérifiant l'interrupteur maître des notifications, l'UI basculait mais
+  `users.notifications_enabled` ne bougeait pas. Cause : un **second garde de
+  la même famille** juste en dessous —
+  `ref.read(profileNotifierProvider(userId)).valueOrNull`, sur un
+  `StateNotifierProvider.autoDispose` dont le `_loadProfile()` ne pose `state`
+  de façon synchrone que s'il trouve un cache. Sans cache, l'étage serveur
+  était sauté en silence : la bascule n'éteignait que l'affichage local, et
+  **le back-end continuait de pousser** alors que l'interrupteur affichait
+  « désactivé » — exactement ce que le commentaire du code disait vouloir
+  éviter. Un `StateNotifierProvider` n'a pas de `.future` : le correctif
+  retombe explicitement sur le dépôt (`_loadProfileFor`).
+
+  Vérifié sur appareil : `enabled=false` → `profile=ok` →
+  `users.notifications_enabled = false`, puis remis à `true`.
+
+  ⚠️ **Leçon de méthode** : deux mesures intermédiaires ont été jetées avant
+  celle-ci. La préférence **locale** et la colonne **serveur** s'étaient
+  désynchronisées à force d'essais, si bien que le tap rejouait parfois la
+  valeur déjà en base — l'absence de changement ne prouvait alors rien. Il faut
+  lire l'état des DEUX côtés avant de taper, et instrumenter plutôt que de
+  déduire.
+
+- [ ] Reste ~48 occurrences. `monetization_provider` (11) n'a **aucun** abandon
+  silencieux — à regarder mais probablement sain. Et il reste à passer en revue
+  les autres providers `autoDispose` lus en `.valueOrNull` : le motif dépasse
+  `currentUserAsyncProvider`, `profileNotifierProvider` vient de le prouver.
   ⚠️ `call_provider` (2) reste délibérément intact : `initiateCall` **pose**
   une erreur (« Utilisateur non connecté ») donc n'est pas silencieux, et son
   `build()` amorce l'abonnement via `_cleanupStaleCalls()` bien avant qu'on

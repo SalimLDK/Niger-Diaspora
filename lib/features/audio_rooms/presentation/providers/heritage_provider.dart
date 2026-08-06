@@ -318,7 +318,7 @@ class HeritageNotifier extends Notifier<HeritageState> {
 
   /// Like a recording
   Future<void> likeRecording(String recordingId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = state.copyWith(error: 'Utilisateur non connecte');
       return;
@@ -337,7 +337,7 @@ class HeritageNotifier extends Notifier<HeritageState> {
 
   /// Unlike a recording
   Future<void> unlikeRecording(String recordingId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     state = state.copyWith(isLoading: true, error: null);
@@ -353,7 +353,7 @@ class HeritageNotifier extends Notifier<HeritageState> {
 
   /// Save a recording for offline
   Future<void> saveRecording(String recordingId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     try {
@@ -365,7 +365,7 @@ class HeritageNotifier extends Notifier<HeritageState> {
 
   /// Remove saved recording
   Future<void> unsaveRecording(String recordingId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     try {
@@ -377,7 +377,7 @@ class HeritageNotifier extends Notifier<HeritageState> {
 
   /// Record play and update history
   Future<void> recordPlay(String recordingId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
 
     try {
       // Increment play count
@@ -426,7 +426,7 @@ class HeritageNotifier extends Notifier<HeritageState> {
     int progressSeconds,
     bool completed,
   ) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     state = state.copyWith(currentProgress: progressSeconds);
@@ -474,7 +474,7 @@ class HeritageNotifier extends Notifier<HeritageState> {
 
   /// Follow a collection
   Future<void> followCollection(String collectionId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     try {
@@ -492,7 +492,7 @@ class HeritageNotifier extends Notifier<HeritageState> {
 
   /// Unfollow a collection
   Future<void> unfollowCollection(String collectionId) async {
-    final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return;
 
     try {
