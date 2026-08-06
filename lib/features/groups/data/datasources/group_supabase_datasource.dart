@@ -34,6 +34,90 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
       : _supabase = supabase ?? Supabase.instance.client;
 
   // ═══════════════════════════════════════════
+  // APPARTENANCE
+  // ═══════════════════════════════════════════
+
+  /// Lit l'appartenance réelle depuis `group_members` pour les groupes donnés.
+  ///
+  /// La colonne `groups.member_ids` est **NULL sur toutes les lignes** et
+  /// `groups.member_count` n'est pas tenu à jour : un groupe avec un membre
+  /// réel s'affichait « Membres · 0 », et « Rejoindre le groupe » était
+  /// proposé à quelqu'un qui en faisait déjà partie. Les deux se déduisent
+  /// donc de la table d'appartenance, seule source vraie.
+  ///
+  /// Une seule requête pour toute la liste : compter groupe par groupe ferait
+  /// un N+1 sur les écrans de découverte.
+  Future<Map<String, ({List<String> members, List<String> admins})>>
+      _membershipFor(List<String> groupIds) async {
+    if (groupIds.isEmpty) return const {};
+    try {
+      final rows = await _supabase
+          .from('group_members')
+          .select('group_id, user_id, role')
+          .inFilter('group_id', groupIds) as List;
+
+      final members = <String, List<String>>{};
+      final admins = <String, List<String>>{};
+      for (final r in rows) {
+        final gid = r['group_id'] as String?;
+        final uid = r['user_id'] as String?;
+        if (gid == null || uid == null) continue;
+        (members[gid] ??= <String>[]).add(uid);
+        final role = r['role'] as String?;
+        if (role == 'owner' || role == 'admin') {
+          (admins[gid] ??= <String>[]).add(uid);
+        }
+      }
+      return {
+        for (final gid in groupIds)
+          gid: (
+            members: members[gid] ?? const <String>[],
+            admins: admins[gid] ?? const <String>[],
+          ),
+      };
+    } catch (_) {
+      // Appartenance illisible (RLS, réseau) : on rend les lignes telles
+      // quelles plutôt que de faire disparaître les groupes.
+      return const {};
+    }
+  }
+
+  /// Applique l'appartenance réelle à une ligne `groups` avant décodage.
+  Map<String, dynamic> _withMembership(
+    Map<String, dynamic> row,
+    Map<String, ({List<String> members, List<String> admins})> membership,
+  ) {
+    final gid = row['id'] as String?;
+    final entry = gid == null ? null : membership[gid];
+    if (entry == null) return row;
+    final patched = Map<String, dynamic>.from(row);
+    patched['member_ids'] = entry.members;
+    if (entry.admins.isNotEmpty) patched['admin_ids'] = entry.admins;
+    // `member_count` de la table n'est volontairement pas repris :
+    // `GroupEntity.memberCount` est un getter sur `memberIds.length`, donc le
+    // compte suit l'appartenance et ne peut plus la contredire.
+    return patched;
+  }
+
+  /// Décode une liste de lignes `groups` en y injectant l'appartenance réelle.
+  Future<List<GroupModel>> _decodeWithMembership(List rows) async {
+    final ids = [
+      for (final r in rows)
+        if ((r as Map)['id'] is String) r['id'] as String,
+    ];
+    final membership = await _membershipFor(ids);
+    return rows
+        .map(
+          (r) => GroupModel.fromJson(
+            _mapGroup(
+              _withMembership(Map<String, dynamic>.from(r as Map), membership),
+            ),
+          ),
+        )
+        .toList();
+  }
+
+  // ═══════════════════════════════════════════
   // READ
   // ═══════════════════════════════════════════
 
@@ -45,7 +129,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
         .eq('is_private', false)
         .order('member_count', ascending: false)
         .limit(50);
-    return (data as List).map((r) => GroupModel.fromJson(_mapGroup(r))).toList();
+    return _decodeWithMembership(data as List);
   }
 
   @override
@@ -57,7 +141,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
         .eq('is_private', false)
         .order('member_count', ascending: false)
         .limit(50);
-    return (data as List).map((r) => GroupModel.fromJson(_mapGroup(r))).toList();
+    return _decodeWithMembership(data as List);
   }
 
   @override
@@ -67,29 +151,15 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     // restait en chargement infini.
     await SupabaseAuthBridge.instance.ensureAuthenticated();
     final data = await _supabase.from('groups').select().eq('id', groupId).single();
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return GroupModel.fromJson(_mapGroup(data));
 
-    final membership = await _supabase
-        .from('group_members')
-        .select('role')
-        .eq('group_id', groupId)
-        .eq('user_id', userId)
-        .maybeSingle();
-
-    if (membership == null) return GroupModel.fromJson(_mapGroup(data));
-
-    final role = membership['role'] as String?;
-    final patchedRow = Map<String, dynamic>.from(data);
-    final members = List<String>.from((data['member_ids'] as List?) ?? []);
-    final admins = List<String>.from((data['admin_ids'] as List?) ?? []);
-    if (!members.contains(userId)) members.add(userId);
-    if ((role == 'owner' || role == 'admin') && !admins.contains(userId)) {
-      admins.add(userId);
-    }
-    patchedRow['member_ids'] = members;
-    patchedRow['admin_ids'] = admins;
-    return GroupModel.fromJson(_mapGroup(patchedRow));
+    // L'appartenance vient de `group_members`, pour **tous** les membres et
+    // pas seulement pour soi : la fiche 9d affiche un compte et une liste, et
+    // ne rapiécer que sa propre ligne donnait « Membres · 0 » au-dessus d'un
+    // membre bien affiché.
+    final membership = await _membershipFor([groupId]);
+    return GroupModel.fromJson(
+      _mapGroup(_withMembership(Map<String, dynamic>.from(data), membership)),
+    );
   }
 
   Future<GroupModel?> getGroupByName(String name) async {
@@ -125,31 +195,20 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
     if (rows.isEmpty) return [];
 
-    // Fetch roles from group_members to patch memberIds/adminIds
-    Map<String, String> roleMap = {};
-    try {
-      final memberships = await _supabase
-          .from('group_members')
-          .select('group_id, role')
-          .eq('user_id', userId) as List;
-      roleMap = {for (final m in memberships) m['group_id'] as String: m['role'] as String};
-    } catch (_) {}
+    final groups = await _decodeWithMembership(rows);
 
-    return rows.map((r) {
-      final row = r as Map<String, dynamic>;
-      final groupId = row['id'] as String;
-      final role = roleMap[groupId] ?? (row['creator_id'] == userId ? 'owner' : 'member');
-      final patchedRow = Map<String, dynamic>.from(row);
-      final members = List<String>.from((row['member_ids'] as List?) ?? []);
-      final admins = List<String>.from((row['admin_ids'] as List?) ?? []);
-      if (!members.contains(userId)) members.add(userId);
-      if ((role == 'owner' || role == 'admin') && !admins.contains(userId)) {
-        admins.add(userId);
-      }
-      patchedRow['member_ids'] = members;
-      patchedRow['admin_ids'] = admins;
-      return GroupModel.fromJson(_mapGroup(patchedRow));
-    }).toList();
+    // `get_my_groups` ne renvoie que des groupes dont on est membre : si
+    // l'appartenance n'a pas pu être lue (RLS, réseau), on s'y ajoute quand
+    // même, sinon « Mes groupes » proposerait « Rejoindre » sur ses propres
+    // groupes.
+    return groups
+        .map(
+          (g) =>
+              g.memberIds.contains(userId)
+                  ? g
+                  : g.copyWith(memberIds: [...g.memberIds, userId]),
+        )
+        .toList();
   }
 
   @override
@@ -160,7 +219,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
         .ilike('name', '%$query%')
         .eq('is_private', false)
         .limit(30);
-    return (data as List).map((r) => GroupModel.fromJson(_mapGroup(r))).toList();
+    return _decodeWithMembership(data as List);
   }
 
   // ═══════════════════════════════════════════

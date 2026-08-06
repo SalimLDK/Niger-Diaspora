@@ -40,7 +40,7 @@ Trois niveaux, à ne pas confondre :
 | 11f | Profil incomplet | ✅ | ✅ | ✅ | `profile/…/profile_screen.dart` (état conditionnel de 10a) |
 | 4a | Discussion cliquable | ◐ | ✅ | — | `messages/…/conversation_screen.dart` |
 | 6b | Discussion — Nocturne | ✅ | ✅ | — | idem 4a |
-| 9a | Messages — liste | ✅ | ✅ | — | `messages/…/messages_screen.dart` |
+| 9a | Messages — liste | ✅ | ✅ | ✅ | `messages/…/messages_screen.dart` |
 | 9b | Messages — recherche | ✅ | ✅ | — | idem 9a |
 | 9c | Groupes — mes groupes, découverte | ✅ | ✅ | ✅ | `groups/…/groups_screen.dart` |
 | 9d | Groupe — fiche | ✅ | ✅ | ✅ | `groups/…/group_detail_screen.dart` |
@@ -1037,6 +1037,37 @@ sur-titres monospace `#C08A5A`, pastilles d'icone carrees, chevrons encadres.
 - Le sous-titre de « Afficher mon statut en ligne » tient sur trois lignes et
   desequilibre la carte. Justifie (c'est le seul endroit qui explique la
   reciprocite), mais ca se voit.
+
+---
+
+## Groupes — le compte de membres ne vient pas d'ou l'on croit
+
+Releve en validant 9d, confirme en base :
+
+- la colonne `groups.member_ids` est **NULL pour tous les groupes** —
+  l'appartenance vit dans la table `group_members` ;
+- `groups.member_count` n'est **pas tenu a jour** : « Diaspora Niger — Canada »
+  a une ligne d'appartenance reelle et un `member_count` a 0.
+
+L'interface lit ces deux colonnes. Consequences vues a l'ecran :
+
+- 9d affiche **« Membres · 0 »** tout en listant un membre juste en dessous ;
+- 9d propose **« Rejoindre le groupe »** a quelqu'un qui en est deja membre,
+  parce que `isMember` se deduit de `memberIds` — donc d'une colonne vide.
+  Certains chemins de lecture rapiecent `member_ids` avec l'utilisateur
+  courant (`getMyGroups`, `getGroupById` quand la ligne d'appartenance est
+  trouvee), d'autres non : l'ecran dit donc l'un ou l'autre selon la route
+  empruntee pour y arriver.
+
+La correction n'est pas cosmetique : il faut que le compte **et**
+l'appartenance viennent de `group_members`, pas de la ligne `groups`. Tant
+que ce n'est pas fait, 9d n'est pas validable.
+
+## 9c — noms de groupes tronques par leurs badges
+
+Avec de vrais groupes en liste, le nom se tronque en « Diaspor… » alors que
+les badges « Officiel » et « CALME » gardent toute leur largeur. La priorite
+est inversee : c'est le nom qui identifie la ligne.
 
 ---
 
