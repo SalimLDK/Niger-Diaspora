@@ -4423,6 +4423,137 @@ tombait sous 64 dp — non observé, non corrigé.
 
 ---
 
+## Groupes — « Découvrir » lisait le mauvais backend (2026-08-06)
+
+**Cause trouvée, et ce n'était pas dans `loadGroups()`.** L'onglet annonçait
+« Aucun groupe public » alors que `public.groups` en contient trois
+(`Diaspora Niger — CA`, `Diaspora Niger — Canada`, `teste`, tous
+`is_private = false`). `loadGroups()` faisait exactement ce qu'on lui
+demandait : il interrogeait **Firestore**, dont la collection `groups` est
+vide depuis la migration.
+
+`groupRemoteDataSourceProvider` (`group_provider.dart`) rendait
+`GroupRemoteDataSourceImpl` (Firestore) **depuis le commit initial, sans une
+seule modification**. C'est le seul point de câblage de toute la
+fonctionnalité : liste, découverte, fiche, création, adhésion, recherche.
+Tout le travail accumulé sur `GroupSupabaseDataSource` — session avant
+lecture, appartenance lue dans `group_members`, garde « Officiel » — portait
+donc sur une classe que rien n'instanciait.
+
+Deux autres symptômes s'expliquent par le même câblage :
+
+- **Le groupe officiel du pays n'était jamais rejoint.**
+  `GroupRemoteDataSourceImpl.ensureOfficialGroup` lève `UnimplementedError`,
+  que `GroupRepositoryImpl` convertit en `Left(...)`, que
+  `ProfileNotifier._joinOfficialGroup` avale (`(failure) async {}`).
+- **La recherche ne remontait aucun groupe** (`search_provider.dart`,
+  `search_remote_datasource.dart`, qui instanciaient la même classe).
+
+`loadGroups()` est désormais instrumenté (`[groupes] loadGroups source=… /
+cache=… / réseau=…`, `kDebugMode`) : les quatre issues indistinguables
+jusqu'ici — cache servi, réseau vide, échec avalé, mauvais backend — se lisent
+en une ligne de logcat.
+
+⚠️ **Le même correctif existe déjà sur `claude/silly-liskov-1e9d62`**
+(commit `c803893`, 2026-08-06), avec 15 autres commits que cette branche n'a
+jamais reçus. Voir la section « Deux branches » plus bas.
+
+À vérifier sur l'appareil :
+
+- [ ] **« Découvrir »** : les trois groupes publics apparaissent. Filtrer sur
+      « Tous » les pays d'abord — le filtre pays par défaut se pose sur le pays
+      du profil, ou sur `NE` à défaut, et ne laisserait qu'un seul groupe.
+- [ ] **Journal** : `adb logcat | grep "\[groupes\]"` affiche
+      `source=GroupSupabaseDataSource` puis `réseau=3 groupes`.
+- [ ] **Recherche de groupes** (loupe de l'écran Groupes) : taper « niger »
+      remonte bien les deux groupes « Diaspora Niger ».
+- [ ] **Groupe officiel du pays à l'inscription** : renseigner un pays dans le
+      profil doit désormais faire apparaître son groupe officiel dans
+      « Mes groupes » (chemin `ensureOfficialGroup`, jamais exécuté jusqu'ici).
+
+### §9c — le nom du groupe était rogné par les pastilles de sa carte
+
+Sur un écran de 360 dp, la colonne de texte de `_GroupCard` ne fait que
+~140 dp : écran 360 − marge 32 − padding de carte 28 − avatar 52 − écart 14 −
+écart 8 − bouton « Rejoindre » ~86. L'ancienne ligne de titre y logeait, en
+plus du nom, un cadenas (13), une pastille « Officiel », une épingle (14) et
+une pastille ACTIF/CALME — **les deux pastilles à largeur libre, et le nom
+seul `Flexible`**. Il cédait donc toujours en premier ; et quand les pastilles
+dépassaient à elles seules les 140 dp, la ligne débordait carrément (mesuré :
+`RenderFlex overflowed by 88 pixels`).
+
+Correctif : les deux pastilles descendent dans la ligne de méta, passée de
+`Row` à `Wrap` (elles y restent entières et vont à la ligne au lieu de rogner
+le nom de ville) ; la ligne de titre ne garde que le nom, le cadenas et
+l'épingle ; et le nom passe à `maxLines: 2`, sans quoi « Diaspora Niger —
+Canada » (~175 dp) ne tiendrait toujours pas dans les ~101 dp restants.
+
+Verrouillé par `test/features/groups/group_card_title_truncation_test.dart`
+(6 cas, dont deux de régression qui prouvent le débordement d'avant).
+
+- [ ] **Carte d'un groupe officiel, épinglé, actif** : le nom complet est
+      lisible (sur deux lignes si besoin), les pastilles « Officiel » et
+      ACTIF/CALME sont visibles en bas de carte, **aucun bandeau rayé**.
+- [ ] **font_scale 1.1**, même carte : toujours aucun débordement, la ligne de
+      méta passe à deux rangs si nécessaire.
+- [ ] **Nom très long** (créer un groupe au nom de 60 caractères) : il s'élide
+      proprement au bout de la 2ᵉ ligne, sans pousser le bouton hors carte.
+
+### §9e — pourquoi il paraissait inatteignable, et comment l'atteindre
+
+L'item « Messagerie — état vide » était noté inatteignable parce que la
+messagerie du compte n'est plus vide. **C'est vrai pour une moitié seulement**
+de la fiche. En lisant `messages_screen.dart`, il y a deux déclencheurs
+distincts :
+
+| Partie de 9e | Condition | Atteignable aujourd'hui |
+|---|---|---|
+| **Le corps** (pastille ronde, titre, amorces nommées, CTA, ligne chiffrement) — `_buildEmptyState` | la liste **filtrée** est vide | **oui** |
+| **Le chrome** (ni champ de recherche, ni puces de filtre, ni entrée « Archives ») — `isEmptyInbox` | la liste **entière** est vide | non |
+
+Le corps se déclenche donc sans compte neuf :
+
+- [ ] **Puce « Non lus » alors que rien n'est non lu** → le corps de 9e
+      s'affiche. C'est le chemin le plus rapide.
+- [ ] **Puce « Groupes » sur un compte sans conversation de groupe** → idem.
+- [ ] **Archiver toutes les conversations** puis revenir sur « Tous » → idem,
+      avec la tuile « Mes notes » conservée au-dessus.
+
+Le chrome de 9e, lui, demande une liste `conversations` réellement vide :
+**archiver ne suffit pas**, `isEmptyInbox` lit la liste avant filtrage. Il faut
+un compte neuf.
+
+- [ ] **Compte neuf, messagerie jamais utilisée** : vérifier l'absence du champ
+      de recherche, des puces de filtre et de l'entrée « Archives » dans
+      l'en-tête.
+
+⚠️ **Défaut repéré au passage, non corrigé** : le corps de 9e dit « Aucune
+conversation / Commencez à discuter » même quand la vérité est « aucune
+conversation **non lue** » ou « aucun **groupe** ». Le message ment sur le
+filtre actif. Hors périmètre des quatre points traités ici.
+
+### Deux branches, seize commits d'écart
+
+`claude/silly-liskov-1e9d62` porte 16 commits que `wip-jules-2025-12-29T23-58-34-776Z`
+n'a jamais reçus, dont plusieurs déjà considérés comme « faits » :
+
+| Commit | Sujet |
+|---|---|
+| `c803893` | bascule des groupes vers Supabase (le correctif ci-dessus) |
+| `21b5200` | migration du groupe hérité Firestore |
+| `c960ec4` | recalage de `member_count` |
+| `6627217`, `a1a7190` | normalisation `country_code` en ISO-2 |
+| `988f2c1`, `009c0d9`, `b9d94f3`, `12d1549`, `4283cdd` | actions mortes / sessions manquantes |
+| `96d2711` | enregistrement du profil au premier essai |
+| `6a1fef2`, `d59f785`, `074043d` | liens profonds de groupe, « Mes notes » |
+
+La branche courante n'a qu'un commit propre en face (`6ff6438`). **Décider
+explicitement d'un rapatriement** — sinon chaque correctif sera retrouvé une
+troisième fois. Non fait ici : c'est une fusion de 16 commits sur une branche
+qu'un agent tiers réécrit en parallèle.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
