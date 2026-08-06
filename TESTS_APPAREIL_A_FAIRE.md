@@ -4420,9 +4420,29 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 > **permissions** (`canPostEvents`/`canPostPolls`/`canPin`), **rôle
 > admin/modérateur**, **liste des membres** pour les mentions, image du groupe.
 >
-> - [ ] Décider du basculement de `groupRemoteDataSourceProvider` vers
->   `GroupSupabaseDataSource`. Chantier à part entière : il touche création,
->   join, recherche, membres et permissions de tout le module Groupes.
+> ### ⛔ AGGRAVATION mesurée le 2026-08-06 : la fiche d'un groupe Supabase ne
+> ### s'ouvre PAS DU TOUT
+>
+> Ce n'est pas seulement « le nom manque dans l'en-tête ». Ouvrir
+> `https://diasponiger.web.app/groups/03077217-24d5-4cfa-9ec6-ed5b593c3cd2`
+> (groupe « Diaspora Niger — Canada », bien présent dans Supabase) donne un
+> écran **« Erreur de chargement » + « Réessayer »**, et rien d'autre.
+> Reproduit deux fois, après relance à froid.
+>
+> Comparaison qui isole la cause : la fiche du groupe **hérité de Firestore**
+> (`yflqsRLMMhTPpiW0NFHx`) s'affiche parfaitement — nom, description, « 1
+> membre », créateur, bouton « Ouvrir la discussion ».
+>
+> Donc pour TOUT groupe créé dans Supabase, sont inaccessibles : l'ouverture de
+> la discussion depuis la fiche, la liste des membres, quitter le groupe, le
+> partager, et les réglages de notification du groupe. Seul le passage par la
+> liste des messages (ou un lien profond vers la conversation) fonctionne
+> encore, grâce au repli sur `conversation.name` posé plus haut.
+>
+> - [ ] **Décider du basculement** de `groupRemoteDataSourceProvider` vers
+>   `GroupSupabaseDataSource`. Chantier à part entière — création, join,
+>   recherche, membres, permissions — mais ce n'est plus une dette cosmétique :
+>   c'est un écran mort pour toute une génération de groupes.
 
 ### VÉRIFIÉ SUR APPAREIL le 2026-08-05 (SM A515F, APK debug de cette branche)
 
@@ -4451,18 +4471,33 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 - [x] **Pas de recréation de conversation** : `count(*)` sur `conversations`
   inchangé (8 avant / 8 après), `yflqsRLMMhTPpiW0NFHx` toujours à 1 ligne.
 
-Restant à vérifier sur ce lot :
+Complément de vérification, 2026-08-06 :
+
+- [x] **Menu ⋮ sur la conversation de groupe** → options de conversation
+  (recherche, médias, sourdine, éphémères, archiver, fond, favoris, exporter,
+  signaler) et **pas** l'option « Bloquer », qui est gardée par
+  `!isGroup && otherUserId != null` dans `ConversationOptionsModal`. C'est la
+  preuve que le drapeau est correct sur ce chemin.
+- [x] **Flèche de l'en-tête depuis un lien profond** → ramène à la liste des
+  messages, pas d'écran noir. Les trois sorties du retour sont donc couvertes
+  (bouton système, flèche ; le geste de bord emprunte le même `PopScope`).
 
 - [ ] Même conversation, ouverte par NOTIFICATION (`state.extra` également nul) :
   même en-tête. Non testé — pas de push déclenchable simplement depuis le poste.
 - [ ] Nom de l'expéditeur + mini-avatar sur les messages REÇUS d'un tiers, et
   badge « Admin ». Non testé : les deux groupes de test n'ont qu'un membre, donc
-  aucun message entrant.
-- [ ] Menu ⋮ et menu « + » du composer : options de groupe (sondage, événement
-  selon permissions), pas les options 1-à-1.
+  aucun message entrant. **Script SQL prêt** (`scratchpad/donnees_test.sql`) —
+  l'écriture en base de production a été refusée par le garde-fou de sécurité,
+  elle doit être lancée à la main.
 - [ ] Épingler puis détacher un message depuis ce chemin.
-- [ ] Les deux autres sorties du retour : flèche de l'en-tête et geste de
-  bord d'écran (seul le bouton retour système a été exercé).
+- ⛔ **Menu « + » du composer (sondage / événement) : NON TESTABLE en l'état.**
+  `canCreateEvent` et `canCreatePoll` dérivent de `groupData?.permissions`,
+  donc de `groupStreamProvider` — câblé sur Firestore. Pour un groupe Supabase
+  `groupData` est null, les deux sont donc `false` par construction. Cette case
+  ne pourra être vérifiée qu'après le basculement du datasource des groupes.
+- ⛔ **Bouton « Ouvrir la discussion » sur un groupe Supabase : NON TESTABLE.**
+  On ne peut même pas atteindre le bouton — la fiche du groupe affiche
+  « Erreur de chargement » (voir l'encadré Firestore plus haut).
 - [x] **Recréation par le VRAI chemin — PROUVÉ le 2026-08-05.** Le lien profond
   ouvre la conversation par son id et ne passe PAS par
   `createGroupConversation` ; le compte inchangé ne prouvait donc rien. Refait
