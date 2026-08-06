@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -44,7 +45,7 @@ class GroupRepositoryImpl implements GroupRepository {
   @override
   Future<Either<Failure, List<GroupEntity>>> getGroups() async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final groups = await remoteDataSource.getGroups();
@@ -67,7 +68,7 @@ class GroupRepositoryImpl implements GroupRepository {
     GroupCategory category,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final groups = await remoteDataSource.getGroupsByCategory(category.name);
@@ -88,7 +89,7 @@ class GroupRepositoryImpl implements GroupRepository {
   @override
   Future<Either<Failure, GroupEntity>> getGroupById(String groupId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final group = await remoteDataSource.getGroupById(groupId);
@@ -131,7 +132,7 @@ class GroupRepositoryImpl implements GroupRepository {
   @override
   Future<Either<Failure, GroupEntity>> createGroup(GroupEntity group) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final groupModel = GroupModel.fromEntity(group);
@@ -167,7 +168,7 @@ class GroupRepositoryImpl implements GroupRepository {
   @override
   Future<Either<Failure, GroupEntity>> updateGroup(GroupEntity group) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final groupModel = GroupModel.fromEntity(group);
@@ -189,7 +190,7 @@ class GroupRepositoryImpl implements GroupRepository {
   @override
   Future<Either<Failure, void>> deleteGroup(String groupId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.deleteGroup(groupId);
@@ -211,7 +212,7 @@ class GroupRepositoryImpl implements GroupRepository {
   @override
   Future<Either<Failure, void>> joinGroup(String groupId, String userId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.joinGroup(groupId, userId);
@@ -246,7 +247,7 @@ class GroupRepositoryImpl implements GroupRepository {
     String userId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.leaveGroup(groupId, userId);
@@ -271,7 +272,7 @@ class GroupRepositoryImpl implements GroupRepository {
     String userId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.removeMember(groupId, userId);
@@ -292,7 +293,7 @@ class GroupRepositoryImpl implements GroupRepository {
   @override
   Future<Either<Failure, List<GroupEntity>>> getMyGroups(String userId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final groups = await remoteDataSource.getMyGroups(userId);
@@ -313,7 +314,7 @@ class GroupRepositoryImpl implements GroupRepository {
   @override
   Future<Either<Failure, List<GroupEntity>>> searchGroups(String query) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final groups = await remoteDataSource.searchGroups(query);
@@ -343,7 +344,7 @@ class GroupRepositoryImpl implements GroupRepository {
     String? message,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await requestDataSource.requestToJoinGroup(
@@ -372,7 +373,7 @@ class GroupRepositoryImpl implements GroupRepository {
   @override
   Future<Either<Failure, void>> approveJoinRequest(String requestId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await requestDataSource.approveJoinRequest(requestId);
@@ -393,7 +394,7 @@ class GroupRepositoryImpl implements GroupRepository {
   @override
   Future<Either<Failure, void>> rejectJoinRequest(String requestId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await requestDataSource.rejectJoinRequest(requestId);
@@ -459,7 +460,7 @@ class GroupRepositoryImpl implements GroupRepository {
     required String countryName,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final model = await remoteDataSource.ensureOfficialGroup(

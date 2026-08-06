@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -27,7 +28,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     int limit = 20,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final businesses = await remoteDataSource.getBusinesses(
@@ -45,7 +46,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     BusinessCategory category,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final businesses = await remoteDataSource.getBusinessesByCategory(
@@ -62,7 +63,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     String query,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final businesses = await remoteDataSource.searchBusinesses(query);
@@ -79,7 +80,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     double radiusKm,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final businesses = await remoteDataSource.getNearbyBusinesses(
@@ -99,7 +100,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     String? city,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final businesses = await remoteDataSource.getBusinessesByLocation(
@@ -115,7 +116,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
   @override
   Future<Either<Failure, BusinessEntity>> getBusinessById(String id) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final business = await remoteDataSource.getBusinessById(id);
@@ -128,7 +129,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
   @override
   Future<Either<Failure, BusinessEntity?>> getMyBusiness(String ownerId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final business = await remoteDataSource.getMyBusiness(ownerId);
@@ -143,7 +144,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     String ownerId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final businesses = await remoteDataSource.getMyBusinesses(ownerId);
@@ -158,7 +159,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     BusinessEntity business,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final businessModel = BusinessModel.fromEntity(business);
@@ -174,7 +175,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     BusinessEntity business,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final businessModel = BusinessModel.fromEntity(business);
@@ -188,7 +189,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
   @override
   Future<Either<Failure, void>> deleteBusiness(String id) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.deleteBusiness(id);
@@ -219,7 +220,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     required String paymentMethod,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -293,7 +294,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     String businessId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final boosts = await remoteDataSource.getBoostHistory(businessId);
@@ -308,7 +309,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     String businessId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final boost = await remoteDataSource.getActiveBoost(businessId);

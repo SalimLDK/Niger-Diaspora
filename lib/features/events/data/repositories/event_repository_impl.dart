@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -38,7 +39,7 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Either<Failure, List<EventEntity>>> getEvents() async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final events = await remoteDataSource.getEvents();
@@ -51,7 +52,7 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Either<Failure, List<EventEntity>>> getUpcomingEvents() async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final events = await remoteDataSource.getUpcomingEvents();
@@ -66,7 +67,7 @@ class EventRepositoryImpl implements EventRepository {
     EventCategory category,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final events = await remoteDataSource.getEventsByCategory(category.name);
@@ -81,7 +82,7 @@ class EventRepositoryImpl implements EventRepository {
     String groupId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final events = await remoteDataSource.getEventsByGroup(groupId);
@@ -94,7 +95,7 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Either<Failure, EventEntity>> getEventById(String eventId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final event = await remoteDataSource.getEventById(eventId);
@@ -107,7 +108,7 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Either<Failure, EventEntity>> createEvent(EventEntity event) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final eventModel = EventModel.fromEntity(event);
@@ -121,7 +122,7 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Either<Failure, EventEntity>> updateEvent(EventEntity event) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final eventModel = EventModel.fromEntity(event);
@@ -135,7 +136,7 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Either<Failure, void>> deleteEvent(String eventId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.deleteEvent(eventId);
@@ -151,7 +152,7 @@ class EventRepositoryImpl implements EventRepository {
     String userId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       // Get event details to know who to notify
@@ -201,7 +202,7 @@ class EventRepositoryImpl implements EventRepository {
     String userId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.cancelAttendance(eventId, userId);
@@ -214,7 +215,7 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Either<Failure, List<EventEntity>>> getMyEvents(String userId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final events = await remoteDataSource.getMyEvents(userId);
@@ -229,7 +230,7 @@ class EventRepositoryImpl implements EventRepository {
     String userId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final events = await remoteDataSource.getAttendingEvents(userId);
@@ -242,7 +243,7 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Either<Failure, List<EventEntity>>> getPastEvents() async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final events = await remoteDataSource.getPastEvents();
@@ -258,7 +259,7 @@ class EventRepositoryImpl implements EventRepository {
     String imagePath,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final url = await remoteDataSource.uploadEventPoster(eventId, imagePath);
@@ -274,7 +275,7 @@ class EventRepositoryImpl implements EventRepository {
     String imageUrl,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.deleteEventPoster(eventId, imageUrl);
@@ -290,7 +291,7 @@ class EventRepositoryImpl implements EventRepository {
     String imagePath,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final url = await remoteDataSource.uploadRecapPhoto(eventId, imagePath);
@@ -307,7 +308,7 @@ class EventRepositoryImpl implements EventRepository {
     String description,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.updateEventRecap(eventId, photoUrls, description);

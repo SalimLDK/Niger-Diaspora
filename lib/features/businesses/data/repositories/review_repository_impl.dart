@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -23,7 +24,7 @@ class ReviewRepositoryImpl implements ReviewRepository {
     String? lastReviewId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final reviews = await remoteDataSource.getReviewsForBusiness(
@@ -43,7 +44,7 @@ class ReviewRepositoryImpl implements ReviewRepository {
     String businessId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final review = await remoteDataSource.getUserReviewForBusiness(
@@ -61,7 +62,7 @@ class ReviewRepositoryImpl implements ReviewRepository {
     String userId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final reviews = await remoteDataSource.getUserReviews(userId);
@@ -76,7 +77,7 @@ class ReviewRepositoryImpl implements ReviewRepository {
     ReviewEntity review,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final reviewModel = ReviewModel.fromEntity(review);
@@ -92,7 +93,7 @@ class ReviewRepositoryImpl implements ReviewRepository {
     ReviewEntity review,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final reviewModel = ReviewModel.fromEntity(review);
@@ -106,7 +107,7 @@ class ReviewRepositoryImpl implements ReviewRepository {
   @override
   Future<Either<Failure, void>> deleteReview(String reviewId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.deleteReview(reviewId);
@@ -122,7 +123,7 @@ class ReviewRepositoryImpl implements ReviewRepository {
     String userId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.markHelpful(reviewId, userId);
@@ -138,7 +139,7 @@ class ReviewRepositoryImpl implements ReviewRepository {
     String userId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.unmarkHelpful(reviewId, userId);
@@ -155,7 +156,7 @@ class ReviewRepositoryImpl implements ReviewRepository {
     String reporterId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.reportReview(reviewId, reason, reporterId);

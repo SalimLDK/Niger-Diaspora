@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -229,7 +230,7 @@ class MessageRepositoryImpl implements MessageRepository {
     bool selfNote = false,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -279,7 +280,7 @@ class MessageRepositoryImpl implements MessageRepository {
     Map<String, dynamic>? replyToMessageData,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -411,7 +412,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String otherUserId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -436,7 +437,7 @@ class MessageRepositoryImpl implements MessageRepository {
     String? groupId, // Add groupId parameter
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -493,7 +494,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -515,7 +516,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       await remoteDataSource.clearUnreadMentions(
@@ -561,7 +562,7 @@ class MessageRepositoryImpl implements MessageRepository {
     String conversationId,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -582,7 +583,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -605,7 +606,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String otherUserId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -650,7 +651,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -813,7 +814,7 @@ class MessageRepositoryImpl implements MessageRepository {
     bool isForwarded = false,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -850,7 +851,7 @@ class MessageRepositoryImpl implements MessageRepository {
     Map<String, dynamic>? replyToMessageData,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -887,7 +888,7 @@ class MessageRepositoryImpl implements MessageRepository {
     Map<String, dynamic>? replyToMessageData,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -918,7 +919,7 @@ class MessageRepositoryImpl implements MessageRepository {
     String? beforeMessageId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -1031,7 +1032,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -1053,7 +1054,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -1076,7 +1077,7 @@ class MessageRepositoryImpl implements MessageRepository {
     Duration? duration,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -1099,7 +1100,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -1121,7 +1122,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -1143,7 +1144,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -1223,7 +1224,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String oldContent,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -1247,7 +1248,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required int? durationSeconds,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -1382,7 +1383,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String otherUserId,
   }) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {

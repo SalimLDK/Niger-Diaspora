@@ -1,3 +1,4 @@
+import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
@@ -26,7 +27,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Future<Either<Failure, ProfileEntity>> getProfile(String userId) async {
     // Removal of explicit network check to allow DataSource to handle offline/cache logic fallback
     // if (!await networkInfo.isConnected) {
-    //   return const Left(NetworkFailure('Pas de connexion internet'));
+    //   return Left(NetworkFailure(AppErrorMessages.networkError));
     // }
 
     try {
@@ -54,7 +55,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     ProfileEntity profile,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -118,7 +119,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     String filePath,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -136,7 +137,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     double longitude,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -208,7 +209,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     double radiusKm,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -228,7 +229,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     String query,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -285,7 +286,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     // But for consistency we check it
     if (!await networkInfo.isConnected) {
       // For online status, we might just ignore if offline
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
@@ -302,7 +303,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     bool showStatus,
   ) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure('Pas de connexion internet'));
+      return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
     try {
