@@ -14,6 +14,68 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)
+
+Toute l'application vient d'être branchée sur `l10n` : l'admin (0 fichier sur
+34 utilisait `l10n`), `businesses` (0/40), `embassies`, `transfers`,
+`marketplace`, puis les 19 modules restants, `lib/shared/` et `lib/core/`.
+`dart analyze` est propre et les **207 tests passent**, mais aucun de ces
+contrôles ne regarde un écran.
+
+**Comment basculer** : Réglages → choix de la langue
+([settings_screen.dart:721](lib/features/settings/presentation/screens/settings_screen.dart:721),
+`localeNotifierProvider.setLocale`). Les deux locales sont `fr` et `en`.
+
+### Ce qui n'a jamais été vu en anglais
+
+- [ ] **Le back-office en entier.** C'est le plus gros risque : 432 chaînes
+  d'un coup, et il affichait du français en dur à un anglophone jusqu'ici.
+  Parcourir les 18 écrans, en cherchant les libellés restés français.
+- [ ] **Les écrans de profil**, notamment `edit_profile_screen` et
+  `profile_config_screen` : les listes profession / région / ville viennent de
+  `lib/core/constants/profile_options.dart` et restent **en français dans les
+  deux langues** (ce sont des valeurs persistées, pas des libellés). Vérifier
+  surtout que choisir « Autre » ouvre bien le champ libre — c'est exactement ce
+  que ma régression `l10n.other` cassait, corrigée en `66248d2`.
+- [ ] **Les 5 écrans qui utilisent `ErrorView`** : son « Réessayer » était en
+  dur jusqu'à `4d6bc1b`.
+- [ ] **La barre de navigation et le rail paysage** : leurs libellés sont
+  passés sur `l10n` et c'est ce qui a cassé les tests du rail.
+
+### Ce qui change aussi en français
+
+- [ ] **141 accents restaurés** : « Reessayer » → « Réessayer », « Systeme » →
+  « Système », « Echoue » → « Échoué », « Evenements par Categorie »… Séquelles
+  de la réparation d'encodage CP850, invisibles jusqu'ici parce que ces chaînes
+  n'étaient pas branchées. Un coup d'œil sur l'admin et les transferts suffit.
+
+### Deux corrections de comportement, invisibles à l'analyse
+
+- [ ] **Suppression de compte** : la demande de ré-authentification était
+  détectée en cherchant « mot de passe » dans le message d'erreur — donc jamais
+  en anglais, et à tort sur « Email ou mot de passe incorrect ». Elle se fie
+  maintenant au code Firebase `requires-recent-login` (`9b7e69d`). Tester le
+  parcours complet de suppression, en français **et** en anglais.
+- [ ] **Compte supprimé** : `displayName == l10n.deletedUser` ne pouvait être
+  vrai qu'en français. Passé sur `DeletedAccount.storedName`, le marqueur que
+  le backend écrit réellement (`af44df0`, `4c32c01`). Vérifier qu'une
+  conversation avec un compte supprimé affiche bien l'état « compte supprimé »
+  et bloque le chat, dans les deux langues.
+
+### Connu, non corrigé
+
+- Les messages d'erreur voyagent comme **texte** dans `Failure(...)` : ils
+  resteront en français en anglais. 207 sites de construction, 327 de lecture.
+  ⚠ `lib/core/errors/app_error_messages.dart` contient **déjà** des messages
+  FR/EN avec un `setLocale` — l'infrastructure existe, elle n'est simplement
+  reliée à rien. C'est un raccordement, pas une création.
+- Des libellés d'affichage vivent dans les entités (`requestTypeLabel`, statut
+  de transaction, moyen de paiement) : pas de `context`, donc pas traduits.
+- ~30 chaînes affichées n'ont aucune clé ARB, dont plusieurs ne doivent pas
+  être traduites (séparateurs ` · `, gabarit `+227 XX XX XX XX`, badge `ÉCO`).
+
+---
+
 ## Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06)
 
 Signalé comme « le scroll a un problème ». Mesuré sur SM A515F avec une sonde
