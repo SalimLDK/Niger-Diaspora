@@ -371,10 +371,14 @@ son chantier, pas ici.
       publication insérée avec `mentioned_users` a produit la ligne
       `notifications` puis la bannière « Vous avez été mentionné(e) / Salim L.
       vous a mentionné(e) dans une publication ». Publication de test supprimée.
-- [ ] **Publier depuis un compte suivi** : l'abonné reçoit « Nouvelle
-      publication ». Non testé — Sim A ne suit personne, et créer
-      l'abonnement aurait modifié le graphe social pour de bon.
-- [ ] **Publier dans un groupe** : les abonnés hors du groupe ne reçoivent rien.
+- [x] **Publier depuis un compte suivi** — vérifié sur appareil. Abonnement
+      créé le temps du test puis supprimé : la bannière « Salim L. » est
+      arrivée, `tag=FCM-Notification:1341720743`, `channel=general_channel`,
+      `color=0xffe07b39`.
+- [x] **Publier dans un groupe, ou en visibilité non publique** — vérifié en
+      transaction annulée, les trois cas d'un coup : publique → 1 notification
+      pour l'abonné, groupe → 0, `visibility = 'friends'` → 0. La garde qui
+      évite de recopier l'aperçu d'un post privé aux abonnés fonctionne.
 
 ### Événements locaux + « M'avertir du prochain » — branchés (2026-08-06)
 
