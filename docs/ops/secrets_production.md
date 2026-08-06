@@ -99,6 +99,20 @@ Aucun des trois endpoints n'a jamais été appelé (`functions:log` ne montre qu
 les entrées d'audit du déploiement du 2026-07-19) : ni trafic légitime à
 casser, ni trace d'abus.
 
+**Déployés et vérifiés depuis l'extérieur le 2026-08-05** :
+
+| Requête forgée | Réponse |
+|---|---|
+| `POST /waveWebhook` + signature bidon | `401 Invalid signature` |
+| `POST /mynitaWebhook` + signature bidon | `401 Invalid signature` |
+| `POST /migrateDisplayNameLower` sans jeton | `401 Unauthorized` |
+| idem avec `Authorization: Bearer` invalide | `401 Unauthorized` |
+
+⚠ Piège de test : un `POST` sans corps sur ces URL renvoie `411 Length
+Required` — c'est le frontal Google qui répond **avant** le code de la
+fonction. Toujours envoyer un corps, sinon on croit tester un garde qu'on n'a
+pas atteint.
+
 ## Procédure
 
 À faire par Salim — je ne saisis pas de vraies clés, et elles ne doivent
