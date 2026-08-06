@@ -4439,10 +4439,33 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 > liste des messages (ou un lien profond vers la conversation) fonctionne
 > encore, grâce au repli sur `conversation.name` posé plus haut.
 >
-> - [ ] **Décider du basculement** de `groupRemoteDataSourceProvider` vers
->   `GroupSupabaseDataSource`. Chantier à part entière — création, join,
->   recherche, membres, permissions — mais ce n'est plus une dette cosmétique :
->   c'est un écran mort pour toute une génération de groupes.
+> ### ✅ BASCULÉ le 2026-08-06, et vérifié sur appareil
+>
+> `groupRemoteDataSourceProvider` rend désormais `GroupSupabaseDataSource`.
+> Celui-ci implémentait déjà l'intégralité de l'interface (le projet n'aurait
+> pas compilé sinon) — il n'était simplement câblé nulle part.
+>
+> Avant / après, mesuré :
+> - fiche d'un groupe Supabase : « Erreur de chargement » → **s'ouvre**
+>   (nom, visibilité, description, membres, créateur, partage, menu) ;
+> - onglet « Mes groupes » : les groupes Supabase étaient **invisibles**
+>   (« 1 rejoint », le seul groupe Firestore) → « 2 rejoints », les deux
+>   groupes Supabase ;
+> - `_joinGroup` vérifié sur « teste » : `group_members` 0 → 1 ;
+> - `_leaveGroup` vérifié dans la foulée : 1 → 0 (état restauré). La boîte de
+>   confirmation s'ouvre, ce qui prouve au passage que le correctif « bouton
+>   mort » de ces deux méthodes fonctionne — elles n'étaient pas testables
+>   jusqu'ici.
+>
+> - [ ] ⚠️ **Migration des groupes hérités à lancer** :
+>   `tools/migrate_legacy_groups.sql`. Tant qu'elle n'est pas passée, le seul
+>   groupe hérité (`yflqsRLMMhTPpiW0NFHx`, « Groupe de test prive ») **n'est
+>   plus visible** — il vit dans Firestore, que l'app ne lit plus. Sa
+>   conversation et ses messages, eux, sont intacts.
+> - [ ] Incohérence de donnée repérée : `groups.member_count` vaut 0 alors que
+>   `group_members` a des lignes (la fiche affiche « Membres · 0 » tout en
+>   listant le créateur). Sans effet sur les droits, mais à recaler — le script
+>   de migration recompte pour les groupes qu'il crée.
 
 ### VÉRIFIÉ SUR APPAREIL le 2026-08-05 (SM A515F, APK debug de cette branche)
 

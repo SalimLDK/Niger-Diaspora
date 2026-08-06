@@ -5,6 +5,7 @@ import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../../core/network/network_info.dart';
 import '../../data/datasources/group_remote_datasource.dart';
 import '../../data/datasources/group_request_datasource.dart';
+import '../../data/datasources/group_supabase_datasource.dart';
 import '../../data/repositories/group_repository_impl.dart';
 import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/group_request_entity.dart';
@@ -12,9 +13,26 @@ import '../../domain/repositories/group_repository.dart';
 
 part 'group_provider.g.dart';
 
+/// Source des groupes : **Supabase**, depuis le 2026-08-06.
+///
+/// Elle était restée sur `GroupRemoteDataSourceImpl` (Firestore) alors que les
+/// groupes sont créés dans Supabase depuis la migration. Conséquences mesurées
+/// sur appareil avant bascule : la fiche d'un groupe Supabase affichait
+/// « Erreur de chargement » et rien d'autre (donc pas d'ouverture de la
+/// discussion depuis la fiche, pas de membres, pas de quitter/partager) ;
+/// l'onglet « Mes groupes » ne montrait AUCUN des groupes Supabase ; et le
+/// menu « + » du composer n'offrait ni sondage ni événement, leurs permissions
+/// dérivant de l'entité groupe restée nulle. `GroupSupabaseDataSource`
+/// existait déjà, complet, mais n'était câblé nulle part.
+///
+/// ⚠️ Les groupes hérités de Firestore (id de 20 caractères, hors de
+/// `public.groups` dont l'`id` est `uuid`) ne sont PAS lisibles par cette
+/// source. Ils doivent être migrés — voir `tools/migrate_legacy_groups.sql`,
+/// qui leur attribue un uuid et réaligne `conversations.group_id`.
+/// Cf. [[project_legacy_firestore_ids_vs_uuid]].
 @riverpod
 GroupRemoteDataSource groupRemoteDataSource(Ref ref) {
-  return GroupRemoteDataSourceImpl();
+  return GroupSupabaseDataSource();
 }
 
 @riverpod
