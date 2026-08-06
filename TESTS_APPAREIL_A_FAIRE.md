@@ -3479,13 +3479,39 @@ parce qu'il change un **comportement**, pas seulement un habillage :
     composeur, et non les bandeaux, était en cours à côté. S'il a atterri
     depuis, une partie du symptôme a pu disparaître autrement.
 
-- [ ] **Vérifier le correctif sur appareil** : conversation en paysage,
-  clavier ouvert, avec le bandeau « Restaurez vos clés » actif — le bandeau
-  rayé ne doit plus apparaître, et le rappel des clés doit s'escamoter. Puis
-  replier le clavier et repasser en portrait : il doit revenir. Refaire avec
-  le panneau GIF/Émojis à la place du clavier (le cas à 4 px).
-  Le code compile et l'analyse est propre, mais **personne n'a jamais vu le
-  bandeau rayé disparaître**.
+### ⚠️ Vérifié sur appareil le 2026-08-06 — le correctif marche, il ne suffit pas
+
+Build de HEAD installé sur SM A515F, conversation « Salim L. » (bandeau des
+clés actif, brouillon de 3 lignes), rotation forcée en paysage.
+
+| Situation | Bandeau des clés | Débordement |
+|---|---|---|
+| Paysage, **sans** clavier | visible | aucun |
+| Paysage, **clavier levé** | **escamoté** ✅ | **`BOTTOM OVERFLOWED BY 73 PIXELS`** ❌ |
+
+**Ce qui est prouvé** : le mécanisme fonctionne. `placeRappelCles` bascule
+bien à faux quand la hauteur tombe — le bandeau est visible sans clavier,
+escamoté avec. Le `LayoutBuilder` mesure ce qu'il faut.
+
+**Ce qui est infirmé** : mon diagnostic était **incomplet**. Je pensais que
+les deux bandeaux étaient la seule cause. Une fois le rappel des clés retiré,
+c'est le **composeur** qui déborde à son tour — et de bien plus : 73 px ici,
+contre 17 px avant correctif. L'ampleur suit la longueur du brouillon, ce qui
+désigne le composeur sans ambiguïté.
+
+**Ce qui manque donc** : borner le composeur, c'est-à-dire exactement ce que
+vise le correctif « zone BORNEE » — qui n'était PAS dans ce build, puisque
+j'ai construit HEAD et qu'il vivait encore dans un WIP non committé. Les deux
+correctifs sont complémentaires, pas redondants : le mien retire les bandeaux
+de l'équation, l'autre empêche le composeur de prendre sa taille naturelle.
+
+- [ ] **Refaire ce test une fois « zone BORNEE » committé** — c'est la
+  combinaison des deux qu'il faut mesurer, pas l'un ou l'autre.
+- [ ] **Cas du panneau GIF/Émojis** (le 4 px d'origine) : non testé ici, le
+  clavier ayant suffi à montrer que le problème subsistait.
+- [ ] Si le débordement persiste même avec les deux, chercher plus bas : le
+  bandeau épinglé et l'en-tête ne sont pas escamotables, et en paysage
+  clavier levé il ne reste qu'une centaine de dp au total.
 
   Non lié aux correctifs de localisation de cette session.
 
