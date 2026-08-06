@@ -204,9 +204,7 @@ Deno.serve(async (req) => {
 
     const { data: userRow } = await supabase
       .from('users')
-      .select(
-        'fcm_tokens, notifications_enabled, show_message_preview, notification_prefs',
-      )
+      .select('fcm_tokens, notifications_enabled, show_message_preview')
       .eq('id', record.user_id)
       .maybeSingle()
 
@@ -219,11 +217,26 @@ Deno.serve(async (req) => {
     // Préférence par type. Clé absente = autorisé ; seul un false explicite
     // coupe. C'est ce qui rend la bascule effective app fermée, là où
     // `_shouldShowNotification` ne mordait qu'au premier plan.
+    //
+    // Lecture SÉPARÉE et tolérante à l'absence de la colonne : déployer cette
+    // fonction avant la migration 20260805233000 ferait échouer un select qui
+    // la mentionne, `userRow` serait null, et PLUS AUCUN push ne partirait —
+    // y compris ceux qui marchaient. L'ordre déploiement/migration ne doit pas
+    // pouvoir casser l'envoi.
     const prefKey = prefKeyFor(type)
     if (prefKey) {
-      const prefs = (userRow?.notification_prefs ?? {}) as Record<string, unknown>
-      if (prefs[prefKey] === false) {
-        return json(200, { skipped: `type disabled: ${prefKey}` })
+      const { data: prefRow, error: prefErr } = await supabase
+        .from('users')
+        .select('notification_prefs')
+        .eq('id', record.user_id)
+        .maybeSingle()
+      if (prefErr) {
+        console.warn('notification_prefs indisponible, envoi autorisé:', prefErr.message)
+      } else {
+        const prefs = (prefRow?.notification_prefs ?? {}) as Record<string, unknown>
+        if (prefs[prefKey] === false) {
+          return json(200, { skipped: `type disabled: ${prefKey}` })
+        }
       }
     }
 

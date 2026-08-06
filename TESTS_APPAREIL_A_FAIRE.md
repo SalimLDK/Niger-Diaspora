@@ -118,6 +118,16 @@ existants gardent donc le comportement actuel.
 (Dart) — doivent bouger ensemble. Désynchronisés, une bascule coupe au premier
 plan et laisse passer app fermée : exactement le défaut corrigé ici.
 
+**`send-push` est déployée** (le déploiement des Edge Functions passe, seule
+l'écriture SQL est bloquée). Elle lit `notification_prefs` par une requête
+**séparée et tolérante à l'absence de la colonne** : la première version
+nommait la colonne dans le select principal, et comme la migration n'est pas
+encore appliquée, ce select échouait, `userRow` valait null, et **plus aucun
+push ne partait** — y compris ceux qui marchaient. Corrigé et redéployé dans la
+foulée, vérifié de l'extérieur (401 sans le secret partagé). Tant que la
+migration n'est pas passée, la préférence par type est simplement ignorée :
+personne ne perd de notification.
+
 - [ ] **« Messages » sur `off`, app tuée** : plus aucune bannière.
 - [ ] **« Demandes d'amis » sur `off`** : idem, et les messages continuent
       d'arriver (le filtrage est bien par type, pas global).
