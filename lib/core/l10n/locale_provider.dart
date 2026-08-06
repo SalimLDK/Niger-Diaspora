@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../errors/app_error_messages.dart';
 import '../services/preferences_service.dart';
 
 part 'locale_provider.g.dart';
@@ -18,7 +19,16 @@ class LocaleNotifier extends _$LocaleNotifier {
   @override
   Locale build() {
     _loadLocale();
-    return const Locale('fr');
+    return _sync(const Locale('fr'));
+  }
+
+  /// `AppErrorMessages` est une classe statique qui garde sa propre langue.
+  /// Personne n'appelait son `setLocale` : elle restait en français, et ses
+  /// traductions anglaises — pourtant écrites — n'étaient jamais atteintes,
+  /// alors qu'une dizaine d'écrans affichent ses messages via `ErrorHandler`.
+  Locale _sync(Locale locale) {
+    AppErrorMessages.setLocale(locale);
+    return locale;
   }
 
   Future<void> _loadLocale() async {
@@ -29,12 +39,12 @@ class LocaleNotifier extends _$LocaleNotifier {
         (l) => l.languageCode == localeCode,
         orElse: () => const Locale('fr'),
       );
-      state = locale;
+      state = _sync(locale);
     }
   }
 
   Future<void> setLocale(Locale locale) async {
-    state = locale;
+    state = _sync(locale);
     await _prefs.setLocale(locale.languageCode);
   }
 
