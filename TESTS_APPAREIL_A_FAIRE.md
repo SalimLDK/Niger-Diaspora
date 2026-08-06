@@ -42,10 +42,15 @@ Signalé comme « le scroll a un problème ». Mesuré sur SM A515F avec une son
 
 - [x] **Trouvé au passage — `/settings/notifications` menait à « Page Not
   Found »** (`GoException: no routes for location`). Segments inversés : le
-  routeur déclare `/notifications/settings`. Rien dans le dépôt ne pousse ce
-  chemin et aucune notification ne le porte — il arrive en lien profond, donc
-  probablement d'une charge utile push déjà déployée. Redirection ajoutée
-  (`71035fb`) ; l'émetteur reste à corriger côté serveur.
+  routeur déclare `/notifications/settings`. Redirection ajoutée (`71035fb`).
+- [x] **L'émetteur n'est PAS la chaîne push** — hypothèse vérifiée puis
+  écartée. `supabase functions download send-push` : le déployé est
+  **identique au fichier versionné** (aucun diff), et il ne construit aucun
+  lien profond — seulement `click_action: 'FLUTTER_NOTIFICATION_CLICK'`.
+  Écartés aussi : les navigations de l'écran notifications (toutes en
+  `/notifications/...`, `/map`, `/groups/...`, etc.) et `functions/index.js`.
+  **L'émetteur reste inconnu** ; la redirection le rend inoffensif quel qu'il
+  soit. Ne pas rouvrir la piste « dérive du déployé » : elle est fermée.
 - [x] **Redirection vérifiée sur appareil (2026-08-06, 01:21).**
   `am start -a VIEW -d "https://diasponiger.web.app/settings/notifications"`
   sur app tuée ouvre bien l'écran de réglages de notifications, et **aucune
