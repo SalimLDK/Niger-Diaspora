@@ -496,11 +496,13 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     // Check if user is blocked (both ways)
     final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
     final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     final isBlockedByMe = blockedUserIds.contains(profile.id);
-    final isBlockedByThem =
-        currentUserId != null &&
-        profile.blockedByUserIds.contains(currentUserId);
+    // `profile.blockedByUserIds.contains(moi)` disait « j'ai bloqué ce
+    // profil » — le sens de `isBlockedByMe`, pas l'inverse — sur un champ que
+    // le mapping Supabase laisse toujours vide.
+    final quiMOntBloque =
+        ref.watch(usersWhoBlockedMeProvider).valueOrNull ?? const <String>{};
+    final isBlockedByThem = quiMOntBloque.contains(profile.id);
     final isBlocked = isBlockedByMe || isBlockedByThem;
 
     // Hide location if blocked

@@ -5,7 +5,6 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../providers/online_status_provider.dart';
-import '../providers/profile_provider.dart';
 
 /// A widget that displays a user's online status and last seen information
 ///
@@ -44,17 +43,23 @@ class OnlineStatusIndicator extends ConsumerWidget {
     // Check if user is blocked (both ways) - hide online status if blocked
     final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
     final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
-    final targetProfileAsync = ref.watch(userStreamProvider(userId));
-    final targetProfile = targetProfileAsync.valueOrNull;
+    // Le profil de la cible n'est plus lu ici : il ne servait qu'au test du
+    // sens inverse, qui vivait sur un champ toujours vide.
 
     // If I blocked them, hide their status
     if (blockedUserIds.contains(userId)) {
       return const SizedBox.shrink();
     }
 
-    // If they blocked me, hide their status
-    if (targetProfile != null &&
-        targetProfile.blockedByUserIds.contains(currentUser.id)) {
+    // If they blocked me, hide their status.
+    //
+    // Le test lisait `targetProfile.blockedByUserIds.contains(moi)`, ce qui
+    // dit « J'AI bloqué la cible » — le sens de la ligne au-dessus, pas
+    // celui-ci. Et le champ vaut toujours `[]` depuis que les profils
+    // viennent de Supabase.
+    final quiMOntBloque =
+        ref.watch(usersWhoBlockedMeProvider).valueOrNull ?? const <String>{};
+    if (quiMOntBloque.contains(userId)) {
       return const SizedBox.shrink();
     }
 

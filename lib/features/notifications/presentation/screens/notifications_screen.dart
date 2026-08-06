@@ -12,7 +12,6 @@ import '../providers/notification_provider.dart';
 import '../widgets/notification_style.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
-import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../events/presentation/providers/event_provider.dart';
 import '../../../friends/domain/entities/friend_request_entity.dart';
@@ -23,7 +22,6 @@ import '../../../friends/presentation/providers/friend_provider.dart';
 /// d'ami, abonnements, invitations, présence) — faute d'un type « mention »
 /// dédié dans [NotificationType].
 enum NotificationFilter { all, unread, mentions }
-
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -256,7 +254,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     // Get blocked users data outside the when callback
     final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
     final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
-    final currentUserId = ref.watch(currentUserProvider).valueOrNull?.id;
+    final quiMOntBloque =
+        ref.watch(usersWhoBlockedMeProvider).valueOrNull ?? const <String>{};
 
     return notificationsAsync.when(
         skipLoadingOnRefresh: true,
@@ -297,14 +296,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               // If I blocked this user, hide their notifications
               if (blockedUserIds.contains(n.senderId)) return false;
 
-              // Check if sender blocked me
-              final senderProfileAsync = ref.watch(userStreamProvider(n.senderId!));
-              final senderProfile = senderProfileAsync.valueOrNull;
-              if (senderProfile != null && currentUserId != null) {
-                if (senderProfile.blockedByUserIds.contains(currentUserId)) {
-                  return false;
-                }
-              }
+              // Check if sender blocked me — le test disait « j'ai bloque
+              // l'expediteur », sur un champ toujours vide.
+              if (quiMOntBloque.contains(n.senderId)) return false;
               return true;
             }
 
@@ -315,14 +309,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             // If I blocked this user, hide their notifications
             if (blockedUserIds.contains(n.targetId)) return false;
 
-            // Check if target user blocked me
-            final targetProfileAsync = ref.watch(userStreamProvider(n.targetId!));
-            final targetProfile = targetProfileAsync.valueOrNull;
-            if (targetProfile != null && currentUserId != null) {
-              if (targetProfile.blockedByUserIds.contains(currentUserId)) {
-                return false;
-              }
-            }
+            // Check if target user blocked me — meme inversion.
+            if (quiMOntBloque.contains(n.targetId)) return false;
 
             return true;
           }).toList();
@@ -1358,7 +1346,6 @@ class _NotificationGroupItemState extends State<_NotificationGroupItem>
       }
     });
   }
-
 
   @override
   Widget build(BuildContext context) {

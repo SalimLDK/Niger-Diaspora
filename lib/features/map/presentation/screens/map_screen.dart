@@ -609,6 +609,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
       paysUtilisateur: _userCountry,
       idUtilisateurCourant: FirebaseAuth.instance.currentUser?.uid,
       idsBloques: _idsBloques(),
+      idsQuiMOntBloque: _idsQuiMOntBloque(),
       maintenant: DateTime.now(),
     );
 
@@ -637,6 +638,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
     _updateMarkers();
   }
 
+  /// Identifiants qui m'ont bloqué — le sens inverse, longtemps mort.
+  Set<String> _idsQuiMOntBloque() {
+    return ref.read(usersWhoBlockedMeProvider).valueOrNull ?? const <String>{};
+  }
+
   /// Identifiants bloqués, lus une fois par appel.
   Set<String> _idsBloques() {
     final bloques = ref.read(blockedUsersProvider).valueOrNull ?? [];
@@ -654,6 +660,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
       membre: p,
       idUtilisateurCourant: FirebaseAuth.instance.currentUser?.uid,
       idsBloques: _idsBloques(),
+      idsQuiMOntBloque: _idsQuiMOntBloque(),
       maintenant: DateTime.now(),
     );
   }

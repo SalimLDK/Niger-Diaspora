@@ -1675,6 +1675,8 @@ final totalUnreadCountProvider = Provider<int>((ref) {
   final currentUser = ref.watch(currentUserProvider).valueOrNull;
   final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
   final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
+  final quiMOntBloque =
+      ref.watch(usersWhoBlockedMeProvider).valueOrNull ?? const <String>{};
 
   if (currentUser == null) return 0;
 
@@ -1686,9 +1688,9 @@ final totalUnreadCountProvider = Provider<int>((ref) {
         return total;
       }
 
-      final otherProfileAsync = ref.watch(userStreamProvider(otherUserId));
-      final otherProfile = otherProfileAsync.valueOrNull;
-      if (otherProfile != null && otherProfile.blockedByUserIds.contains(currentUser.id)) {
+      // `otherProfile.blockedByUserIds.contains(moi)` disait « j'ai bloque
+      // l'autre » — deja teste juste au-dessus — sur un champ toujours vide.
+      if (quiMOntBloque.contains(otherUserId)) {
         return total;
       }
     }

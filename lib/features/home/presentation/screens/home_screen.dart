@@ -959,13 +959,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             // Filter out blocked users (both ways)
                             final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
                             final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
-                            final currentUserId = ref.watch(currentUserProvider).valueOrNull?.id;
+                            final quiMOntBloque = ref.watch(usersWhoBlockedMeProvider).valueOrNull ?? const <String>{};
 
                             final filteredProfiles = profiles.where((p) {
                               // Skip if I blocked them
                               if (blockedUserIds.contains(p.id)) return false;
-                              // Skip if they blocked me
-                              if (currentUserId != null && p.blockedByUserIds.contains(currentUserId)) return false;
+                              // Skip if they blocked me. Le test lisait
+                              // `p.blockedByUserIds.contains(moi)`, soit « j'ai
+                              // bloque p » — le sens de la ligne au-dessus — sur
+                              // un champ que Supabase laisse toujours vide.
+                              if (quiMOntBloque.contains(p.id)) return false;
                               return true;
                             }).toList();
 

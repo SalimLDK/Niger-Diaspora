@@ -52,6 +52,7 @@ void main() {
     String? paysUtilisateur = 'CA',
     String? idUtilisateurCourant = 'moi',
     Set<String> idsBloques = const {},
+    Set<String> idsQuiMOntBloque = const {},
     double? lat = centreLat,
     double? lng = centreLng,
   }) {
@@ -63,6 +64,7 @@ void main() {
       paysUtilisateur: paysUtilisateur,
       idUtilisateurCourant: idUtilisateurCourant,
       idsBloques: idsBloques,
+      idsQuiMOntBloque: idsQuiMOntBloque,
       maintenant: maintenant,
     );
   }
@@ -161,7 +163,17 @@ void main() {
     });
 
     test('un membre qui m a bloque est retire', () {
-      expect(verdict(membre(blockedByUserIds: const ['moi'])), isFalse);
+      // Le sens INVERSE. Il ne se lit plus sur le profil : `blockedByUserIds`
+      // y disait « qui a bloque ce membre », donc `.contains(moi)` voulait
+      // dire « j ai bloque ce membre » — le meme sens que la ligne au-dessus,
+      // pas l inverse. Et le champ vaut toujours [] cote Supabase.
+      expect(verdict(membre(), idsQuiMOntBloque: {'membre-b'}), isFalse);
+    });
+
+    test('le profil ne decide plus du sens inverse', () {
+      // Garde-fou contre un retour en arriere : renseigner l ancien champ ne
+      // doit plus rien changer.
+      expect(verdict(membre(blockedByUserIds: const ['moi'])), isTrue);
     });
   });
 

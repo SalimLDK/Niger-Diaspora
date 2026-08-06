@@ -109,9 +109,11 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
       // Watch profile once and reuse (avoid duplicate provider calls)
       final otherProfileAsync = ref.watch(userStreamProvider(otherUserId));
       otherProfile = otherProfileAsync.valueOrNull;
-      // They blocked me
-      if (otherProfile != null &&
-          otherProfile.blockedByUserIds.contains(currentUserId)) {
+      // They blocked me — le test disait en réalité « j'ai bloqué l'autre »,
+      // et lisait un champ toujours vide.
+      final quiMOntBloque =
+          ref.watch(usersWhoBlockedMeProvider).valueOrNull ?? const <String>{};
+      if (quiMOntBloque.contains(otherUserId)) {
         isBlocked = true;
       }
     }

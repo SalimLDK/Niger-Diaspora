@@ -23,6 +23,7 @@ bool membreVisibleSurCarte({
   required String? paysUtilisateur,
   required String? idUtilisateurCourant,
   required Set<String> idsBloques,
+  required Set<String> idsQuiMOntBloque,
   required DateTime maintenant,
 }) {
   // Le sondage s'appuie sur la requête SQL, qui filtre déjà `is_visible` et
@@ -42,6 +43,7 @@ bool membreVisibleSurCarte({
         membre: membre,
         idUtilisateurCourant: idUtilisateurCourant,
         idsBloques: idsBloques,
+        idsQuiMOntBloque: idsQuiMOntBloque,
         maintenant: maintenant,
       );
 }
@@ -54,6 +56,7 @@ bool membreAffichable({
   required ProfileModel membre,
   required String? idUtilisateurCourant,
   required Set<String> idsBloques,
+  required Set<String> idsQuiMOntBloque,
   required DateTime maintenant,
 }) {
   // Se retirer de ses propres « membres autour » : la requête de proximité
@@ -65,11 +68,14 @@ bool membreAffichable({
   }
 
   // Utilisateurs bloqués, dans les deux sens.
+  //
+  // Le second test lisait `membre.blockedByUserIds.contains(moi)`, ce qui
+  // signifie « J'AI bloqué ce membre » — le même sens que la ligne au-dessus,
+  // pas l'inverse comme le commentaire le prétendait. Et le champ vaut de
+  // toute façon toujours `[]`, `_mapProfile` le codant en dur. Deux défauts
+  // empilés : mauvaise direction, et donnée absente.
   if (idsBloques.contains(membre.id)) return false;
-  if (idUtilisateurCourant != null &&
-      membre.blockedByUserIds.contains(idUtilisateurCourant)) {
-    return false;
-  }
+  if (idsQuiMOntBloque.contains(membre.id)) return false;
 
   // Présence — STRICT : seulement les membres réellement actifs.
   // 1. En ligne depuis moins d'une heure

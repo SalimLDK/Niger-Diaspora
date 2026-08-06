@@ -4,7 +4,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
-import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../data/datasources/notification_remote_datasource.dart';
 import '../../domain/entities/notification_entity.dart';
 
@@ -111,7 +110,6 @@ class UnreadNotificationsCount extends _$UnreadNotificationsCount {
         ref.watch(notificationsStreamProvider).valueOrNull ?? [];
     final blockedUsers = ref.watch(blockedUsersProvider).valueOrNull ?? [];
     final blockedUserIds = blockedUsers.map((u) => u.id).toSet();
-    final currentUserId = ref.watch(currentUserProvider).valueOrNull?.id;
 
     // Notification types that have targetId as a user ID
     const userRelatedTypes = {
@@ -123,6 +121,9 @@ class UnreadNotificationsCount extends _$UnreadNotificationsCount {
       NotificationType.proximityAlert,
     };
 
+    final quiMOntBloque =
+        ref.watch(usersWhoBlockedMeProvider).valueOrNull ?? const <String>{};
+
     return notifications.where((n) {
       if (n.isRead) return false;
 
@@ -131,14 +132,11 @@ class UnreadNotificationsCount extends _$UnreadNotificationsCount {
         // If I blocked this user, don't count their notifications
         if (blockedUserIds.contains(n.senderId)) return false;
 
-        // Check if sender blocked me
-        final senderProfileAsync = ref.watch(userStreamProvider(n.senderId!));
-        final senderProfile = senderProfileAsync.valueOrNull;
-        if (senderProfile != null && currentUserId != null) {
-          if (senderProfile.blockedByUserIds.contains(currentUserId)) {
-            return false;
-          }
-        }
+        // Check if sender blocked me. Le test lisait
+        // `senderProfile.blockedByUserIds.contains(moi)`, c'est-a-dire « j'ai
+        // bloque l'expediteur » — le sens deja teste juste au-dessus — sur un
+        // champ que le mapping Supabase laisse toujours vide.
+        if (quiMOntBloque.contains(n.senderId)) return false;
         return true;
       }
 
@@ -149,14 +147,8 @@ class UnreadNotificationsCount extends _$UnreadNotificationsCount {
       // If I blocked this user, don't count their notifications
       if (blockedUserIds.contains(n.targetId)) return false;
 
-      // Check if target user blocked me
-      final targetProfileAsync = ref.watch(userStreamProvider(n.targetId!));
-      final targetProfile = targetProfileAsync.valueOrNull;
-      if (targetProfile != null && currentUserId != null) {
-        if (targetProfile.blockedByUserIds.contains(currentUserId)) {
-          return false;
-        }
-      }
+      // Check if target user blocked me — meme inversion que ci-dessus.
+      if (quiMOntBloque.contains(n.targetId)) return false;
 
       return true;
     }).length;
