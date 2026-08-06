@@ -1406,15 +1406,10 @@ class _NotifyNextToggleState extends State<_NotifyNextToggle> {
   Future<void> _set(bool value) async {
     setState(() => _on = value);
     await PreferencesService.instance.prefs.setBool(_prefKey, value);
-    try {
-      if (value) {
-        await NotificationService().subscribeToTopic(widget.topic);
-      } else {
-        await NotificationService().unsubscribeFromTopic(widget.topic);
-      }
-    } catch (_) {
-      // Abonnement best-effort : on garde la préférence locale.
-    }
+    // L'abonnement au topic FCM `widget.topic` a été retiré : aucun back-end
+    // n'émet vers un topic (ni les Cloud Functions, ni send-push qui ne vise
+    // que des tokens). Il donnait l'illusion d'une bascule active. Le choix
+    // reste persisté localement, prêt pour l'émetteur qui reste à écrire.
   }
 
   @override

@@ -23,6 +23,8 @@ void main() {
         ds.updateOnlineStatusVisibility('u1', true),
     'updateNotifyLocalEvents': (ds) => ds.updateNotifyLocalEvents('u1', true),
     'updateShowMessagePreview': (ds) => ds.updateShowMessagePreview('u1', true),
+    'updateNotificationPrefs': (ds) =>
+        ds.updateNotificationPrefs('u1', const {'messages': false}),
   };
 
   group('session absente', () {

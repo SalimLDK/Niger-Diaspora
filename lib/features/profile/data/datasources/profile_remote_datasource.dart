@@ -42,6 +42,10 @@ abstract class ProfileRemoteDataSource {
   );
   Future<void> updateOnlineStatusVisibility(String userId, bool showStatus);
   Future<void> updateNotifyLocalEvents(String userId, bool enabled);
+
+  /// Miroir serveur des préférences par type, lu par l'Edge Function
+  /// send-push. Sans lui, couper une bascule n'a d'effet qu'au premier plan.
+  Future<void> updateNotificationPrefs(String userId, Map<String, bool> prefs);
   ProfileModel? getCachedProfile(String userId);
 
   /// Vrai si la poignée [handle] est disponible (§16f). Comparaison
@@ -622,6 +626,20 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       // debugPrint(
       //   'Erreur lors de la mise à jour notifyLocalEvents: ${e.message}',
       // );
+    }
+  }
+
+  @override
+  Future<void> updateNotificationPrefs(
+    String userId,
+    Map<String, bool> prefs,
+  ) async {
+    try {
+      await _firestore.collection(FirebaseCollections.users).doc(userId).update(
+        {'notificationPrefs': prefs},
+      );
+    } on FirebaseException {
+      // Best effort, comme updateNotifyLocalEvents ci-dessus.
     }
   }
 

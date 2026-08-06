@@ -7,5 +7,15 @@
 		<string>applinks:diasponiger.web.app</string>
 		<string>applinks:diasponiger.com</string>
 	</array>
+	<!-- Sans cette clé, registerForRemoteNotifications échoue, getAPNSToken()
+	     renvoie nil, et NotificationService._getToken() sort avant même
+	     d'appeler getToken() : aucun token FCM n'était jamais enregistré sur
+	     iOS, donc zéro notification.
+	     ⚠️ La clé seule ne suffit pas : il faut activer la capability « Push
+	     Notifications » sur l'App ID et régénérer le profil de provisionnement,
+	     sinon la signature échoue. `development` ici ; Xcode bascule sur
+	     `production` pour les archives App Store. -->
+	<key>aps-environment</key>
+	<string>development</string>
 </dict>
 </plist>

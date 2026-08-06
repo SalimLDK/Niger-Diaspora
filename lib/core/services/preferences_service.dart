@@ -252,6 +252,31 @@ class PreferencesService {
   Future<void> setNotifySystemMessages(bool enabled) =>
       prefs.setBool(_keyNotifySystemMessages, enabled);
 
+  /// Les préférences par type, telles qu'elles doivent être miroitées dans
+  /// `users.notification_prefs` pour que `send-push` les respecte.
+  ///
+  /// Sans ce miroir, une bascule ne coupe qu'au premier plan : app fermée,
+  /// c'est le système qui affiche le push et personne ne lit ces booléens.
+  /// Les clés sont celles des SharedPreferences sans le préfixe `notify_` —
+  /// `send-push` (`prefKeyFor`) attend exactement celles-là.
+  ///
+  /// `calls` et `orders` n'ont pas de bascule d'interface : ils sont listés
+  /// avec leur valeur par défaut pour que le serveur décide comme l'app.
+  Map<String, bool> get notificationTypePrefs => {
+    'messages': notifyMessages,
+    'friend_requests': notifyFriendRequests,
+    'groups': notifyGroups,
+    'events': notifyEvents,
+    'event_reminders': notifyEventReminders,
+    'local_events': notifyLocalEvents,
+    'audio_room_reminders': notifyAudioRoomReminders,
+    'podcast_episodes': notifyPodcastEpisodes,
+    'transfer_reminders': notifyTransferReminders,
+    'system_messages': notifySystemMessages,
+    'calls': prefs.getBool('notify_calls') ?? true,
+    'orders': prefs.getBool('notify_orders') ?? true,
+  };
+
   bool get notificationSound => prefs.getBool(_keyNotificationSound) ?? true;
   Future<void> setNotificationSound(bool enabled) =>
       prefs.setBool(_keyNotificationSound, enabled);

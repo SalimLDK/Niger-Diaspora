@@ -14,7 +14,6 @@ import '../../../../core/services/location_service.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/feature_flag_service.dart';
 import '../../../../core/services/preferences_service.dart';
-import '../../../../core/services/notification_service.dart';
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';

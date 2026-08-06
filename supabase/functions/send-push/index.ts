@@ -109,6 +109,63 @@ async function getAccessToken(sa: ServiceAccount): Promise<string> {
   return cachedAccessToken.token
 }
 
+// Mappe un type de notification vers la clé de `users.notification_prefs`.
+// Miroir exact du switch de `_shouldShowNotification` côté app — les deux
+// doivent bouger ensemble, sinon une bascule coupe au premier plan et laisse
+// passer en arrière-plan (le défaut que cette colonne corrige).
+// null = type non filtrable par préférence (toujours envoyé).
+function prefKeyFor(type: string): string | null {
+  switch (type) {
+    case 'message':
+      return 'messages'
+    case 'friendRequest':
+    case 'friendRequestAccepted':
+    case 'friendAccepted':
+    case 'newFollower':
+      return 'friend_requests'
+    case 'groupInvite':
+    case 'groupJoinRequest':
+    case 'groupRequestApproved':
+    case 'groupRequestRejected':
+      return 'groups'
+    case 'eventUpdate':
+    case 'eventAttendance':
+      return 'events'
+    case 'eventReminder':
+      return 'event_reminders'
+    case 'localEvent':
+      return 'local_events'
+    case 'audioRoomReminder':
+    case 'audioRoomLive':
+    case 'audioRoomInvite':
+    case 'audioRoomSpeakerRequest':
+    case 'audioRoomEnded':
+      return 'audio_room_reminders'
+    case 'podcastNewEpisode':
+    case 'podcastLiveStarting':
+    case 'podcastLiveNow':
+      return 'podcast_episodes'
+    case 'transferReminder':
+    case 'transferCompleted':
+    case 'transferReceived':
+    case 'transferFailed':
+      return 'transfer_reminders'
+    case 'missedCall':
+      return 'calls'
+    case 'newOrder':
+    case 'orderPaid':
+    case 'orderShipped':
+    case 'orderDelivered':
+    case 'orderCancelled':
+      return 'orders'
+    case 'system':
+    case 'systemMessage':
+      return 'system_messages'
+    default:
+      return null
+  }
+}
+
 // Mappe un type de notification vers un canal Android (créés côté app dans
 // notification_service.dart). Repli sûr : general_channel.
 function channelFor(type: string): string {
@@ -147,7 +204,9 @@ Deno.serve(async (req) => {
 
     const { data: userRow } = await supabase
       .from('users')
-      .select('fcm_tokens, notifications_enabled, show_message_preview')
+      .select(
+        'fcm_tokens, notifications_enabled, show_message_preview, notification_prefs',
+      )
       .eq('id', record.user_id)
       .maybeSingle()
 
@@ -155,6 +214,17 @@ Deno.serve(async (req) => {
     // notifications reste visible in-app).
     if (userRow?.notifications_enabled === false) {
       return json(200, { skipped: 'notifications disabled' })
+    }
+
+    // Préférence par type. Clé absente = autorisé ; seul un false explicite
+    // coupe. C'est ce qui rend la bascule effective app fermée, là où
+    // `_shouldShowNotification` ne mordait qu'au premier plan.
+    const prefKey = prefKeyFor(type)
+    if (prefKey) {
+      const prefs = (userRow?.notification_prefs ?? {}) as Record<string, unknown>
+      if (prefs[prefKey] === false) {
+        return json(200, { skipped: `type disabled: ${prefKey}` })
+      }
     }
 
     const tokens: string[] = (userRow?.fcm_tokens as string[] | null) ?? []

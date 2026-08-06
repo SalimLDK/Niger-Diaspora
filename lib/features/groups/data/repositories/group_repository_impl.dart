@@ -4,7 +4,6 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/services/cache_service.dart';
-import '../../../../core/services/notification_service.dart';
 import '../../../messages/domain/repositories/message_repository.dart';
 import '../../domain/entities/group_entity.dart';
 import '../../domain/repositories/group_repository.dart';
@@ -115,11 +114,10 @@ class GroupRepositoryImpl implements GroupRepository {
       final created = await remoteDataSource.createGroup(groupModel);
 
       // Le groupe existe désormais côté serveur. Ce qui suit est accessoire :
-      // si l'abonnement au topic ou la création de la conversation échoue, on
-      // ne doit pas faire croire que la création a échoué — sinon l'écran
-      // affiche une erreur alors que le groupe est bel et bien créé.
+      // si la création de la conversation échoue, on ne doit pas faire croire
+      // que la création a échoué — sinon l'écran affiche une erreur alors que
+      // le groupe est bel et bien créé.
       try {
-        await NotificationService().subscribeToTopic('group_${created.id}');
         await messageRepository.createGroupConversation(
           creatorId: created.creatorId,
           participantIds: created.memberIds,
@@ -164,9 +162,6 @@ class GroupRepositoryImpl implements GroupRepository {
     try {
       await remoteDataSource.deleteGroup(groupId);
 
-      // Unsubscribe from group topic
-      await NotificationService().unsubscribeFromTopic('group_$groupId');
-
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -180,9 +175,6 @@ class GroupRepositoryImpl implements GroupRepository {
     }
     try {
       await remoteDataSource.joinGroup(groupId, userId);
-
-      // Subscribe to group topic
-      await NotificationService().subscribeToTopic('group_$groupId');
 
       // Ajoute immédiatement userId aux participants de la conversation du
       // groupe : sans cet appel, le groupe restait absent de l'onglet
@@ -210,9 +202,6 @@ class GroupRepositoryImpl implements GroupRepository {
     }
     try {
       await remoteDataSource.leaveGroup(groupId, userId);
-
-      // Unsubscribe from group topic
-      await NotificationService().unsubscribeFromTopic('group_$groupId');
 
       return const Right(null);
     } on ServerException catch (e) {

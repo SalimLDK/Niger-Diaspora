@@ -469,7 +469,11 @@ Future<void> _showFallbackMessageNotification({
   await plugin.initialize(
     const InitializationSettings(android: androidSettings, iOS: iosSettings),
   );
-  final notifId = conversationId.hashCode.abs() % 99999;
+  // Android identifie une notification par le COUPLE (tag, id), pas par le tag
+  // seul. Avec un id dérivé de la conversation, ce repli s'ajoutait à celle du
+  // SDK Firebase au lieu de la remplacer — deux bannières pour un message.
+  // Le SDK poste sous l'id 0 dès qu'un tag est fourni : on s'aligne dessus.
+  const notifId = 0;
   await plugin.show(
     notifId,
     title,
@@ -1312,6 +1316,28 @@ class NotificationService {
     if (_fcmToken != null) {
       await _saveTokenToDatabase(_fcmToken!, userId: userId);
     }
+
+    await _bindVoipTokenTo(userId);
+  }
+
+  /// Branche le jeton VoIP (PushKit, iOS) sur `users.voip_token`.
+  ///
+  /// `NativeCallService` exposait `onVoipTokenUpdated` mais personne ne lui
+  /// affectait de callback, et `saveVoipTokenForUser` n'était appelée nulle
+  /// part : la colonne restait vide, donc aucun appel CallKit ne pouvait
+  /// sonner sur iOS. Le jeton peut arriver avant ou après la connexion, d'où
+  /// les deux chemins — le callback pour la suite, et la lecture immédiate
+  /// pour celui déjà reçu.
+  Future<void> _bindVoipTokenTo(String userId) async {
+    if (!Platform.isIOS) return;
+    final callService = NativeCallService.instance;
+    callService.onVoipTokenUpdated = (token) {
+      saveVoipTokenForUser(userId, token);
+    };
+    final existing = callService.voipToken;
+    if (existing != null && existing.isNotEmpty) {
+      await saveVoipTokenForUser(userId, existing);
+    }
   }
 
   /// Save token to Supabase
@@ -1340,6 +1366,12 @@ class NotificationService {
 
   /// Remove FCM token when user logs out
   Future<void> removeTokenForUser(String userId) async {
+    // Le jeton VoIP est nominatif lui aussi : le laisser en base ferait sonner
+    // l'appareil pour l'ancien compte.
+    if (Platform.isIOS) {
+      NativeCallService.instance.onVoipTokenUpdated = null;
+      await removeVoipTokenForUser(userId);
+    }
     if (_fcmToken == null) return;
     try {
       await SupabaseAuthBridge.instance.ensureAuthenticated();
@@ -2712,7 +2744,17 @@ class NotificationService {
     );
   }
 
-  /// Subscribe to a topic
+  /// Abonnement à un topic FCM.
+  ///
+  /// ⚠️ **Aucun back-end n'émet vers un topic aujourd'hui** : ni
+  /// `functions/index.js`, ni `functions/supabase.js`, ni l'Edge Function
+  /// send-push, qui ne vise que des tokens individuels. Les trois appelants
+  /// historiques (`general` de l'interrupteur maître, `group_<id>` à
+  /// l'adhésion, le topic d'événement de « M'avertir du prochain ») ont été
+  /// retirés : ils promettaient des notifications que personne n'envoyait.
+  ///
+  /// Ces deux méthodes restent en place pour le jour où un émetteur existera.
+  /// Ne pas les rebrancher avant d'avoir écrit le côté serveur.
   Future<void> subscribeToTopic(String topic) async {
     try {
       await _messaging.subscribeToTopic(topic);

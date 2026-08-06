@@ -319,6 +319,18 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .eq('id', userId);
   }
 
+  @override
+  Future<void> updateNotificationPrefs(
+    String userId,
+    Map<String, bool> prefs,
+  ) async {
+    await _requireAuth();
+    await _supabase
+        .from('users')
+        .update({'notification_prefs': prefs})
+        .eq('id', userId);
+  }
+
   Future<void> updateShowMessagePreview(String userId, bool show) async {
     await _requireAuth();
     await _supabase

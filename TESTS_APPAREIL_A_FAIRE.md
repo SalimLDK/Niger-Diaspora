@@ -81,68 +81,67 @@ manifeste. `:app:processDebugResources` passe.
 Le glyphe est le « notifications » de Material, posé comme placeholder : à
 remplacer si une version blanche monochrome de la marque est produite.
 
-### Deux fils débranchés, constatés au passage — NON corrigés
+### Trois fils débranchés, trouvés au passage — CORRIGÉS
 
-Trouvés en auditant la même chaîne. Ils ne bloquent pas le push Android, donc
-je ne les ai pas traités : ce sont des décisions (Apple, back-end) qui ne
-m'appartiennent pas.
+**1. Personne n'émettait jamais vers un topic FCM.** Zéro occurrence de
+`topic`, `sendToTopic` ou `/topics/` dans `functions/index.js`,
+`functions/supabase.js` et `send-push` — cette dernière ne vise que des tokens
+individuels. L'app s'abonnait pourtant à trois familles de topics : `general`
+(interrupteur maître), `group_<id>` (adhésion), et un topic par événement
+(« M'avertir du prochain »).
 
-**1. Personne n'émet jamais vers un topic FCM.** Zéro occurrence de `topic`,
-`sendToTopic` ou `/topics/` dans `functions/index.js`, `functions/supabase.js`
-et `supabase/functions/send-push/index.ts` — cette dernière n'envoie qu'à des
-tokens individuels. Or l'app s'abonne à trois familles de topics :
+Les trois abonnements sont retirés. `subscribeToTopic` / `unsubscribeFromTopic`
+restent dans `notification_service.dart`, documentées comme sans appelant, pour
+le jour où un émetteur existera.
 
-| Abonnement | Où | Ce que l'utilisateur croit obtenir |
-|---|---|---|
-| `general` | `setMasterEnabled` ([notification_preferences_provider.dart:140](lib/features/settings/presentation/providers/notification_preferences_provider.dart:140)) | les diffusions générales |
-| `group_<id>` | [group_repository_impl.dart:122](lib/features/groups/data/repositories/group_repository_impl.dart:122) | l'activité du groupe |
-| topic d'événement | `_NotifyNextToggle` ([home_screen_widgets.dart:1411](lib/features/home/presentation/screens/home_screen_widgets.dart:1411)) | le rappel du prochain événement |
+⚠️ **Reste ouvert** : la bascule « M'avertir du prochain » persiste toujours le
+choix localement, mais rien ne l'honore — il n'y a pas d'émetteur à écrire sans
+décider d'abord *qui* est notifié à la création d'un événement. À trancher :
+émetteur serveur, ou retirer la bascule.
 
-La bascule **« M'avertir »** d'un événement est donc un interrupteur qui ne
-commande rien. À trancher : soit un émetteur côté serveur, soit retirer les
-bascules. En attendant, ne pas conclure « le push est cassé » en la testant.
+- [ ] Ne rien attendre de « M'avertir du prochain » tant que ce point est ouvert.
 
-- [ ] Ne rien attendre de la bascule « M'avertir » tant que ce point est ouvert.
-
-**2. Les préférences par type ne filtrent qu'au premier plan.**
-`_shouldShowNotification` (`notify_messages`, `notify_groups`,
-`notify_events`…) n'est appelée que depuis `_handleForegroundMessage`
-([notification_service.dart:1441](lib/core/services/notification_service.dart:1441)),
+**2. Les préférences par type ne filtraient qu'au premier plan.**
+`_shouldShowNotification` n'est appelée que depuis `_handleForegroundMessage`,
 et nulle part ailleurs. App en arrière-plan ou tuée, c'est le système qui
-affiche le bloc `notification` du push : la préférence n'est jamais consultée.
-Couper « Messages » dans les réglages ne coupe donc rien dès que l'app est
-fermée — précisément le moment où ça compte.
+affiche le bloc `notification` du push : la préférence n'était jamais lue.
+Couper « Messages » ne coupait donc rien dès que l'app était fermée —
+précisément le moment où ça compte.
 
-Ces préférences vivent en fait à **trois** endroits déconnectés :
+Corrigé par une source serveur : colonne `users.notification_prefs` (JSONB,
+migration `20260805233000`), écrite par chaque bascule
+(`_syncTypePrefsToServer`) et lue par `send-push` (`prefKeyFor`). Convention :
+**clé absente = autorisé**, seul un `false` explicite coupe — les comptes
+existants gardent donc le comportement actuel.
 
-| Où | Lu par | Effet réel |
-|---|---|---|
-| SharedPreferences | `_shouldShowNotification` | premier plan uniquement |
-| Firestore `users.notificationPreferences` | `NotificationPreferencesDataSourceImpl` | **aucun** — la classe n'est instanciée nulle part |
-| Supabase `public.users` | `send-push` | n'expose que `notifications_enabled` et `show_message_preview` |
+⚠️ Les deux switch — `prefKeyFor` (TypeScript) et `_shouldShowNotification`
+(Dart) — doivent bouger ensemble. Désynchronisés, une bascule coupe au premier
+plan et laisse passer app fermée : exactement le défaut corrigé ici.
 
-Pour que la bascule morde vraiment, il faut une colonne serveur par type (que
-`send-push` consulte), ou des messages *data-only* dont l'app décide seule de
-l'affichage. C'est le motif contre lequel `CLAUDE.md` met en garde : la
-source Firestore est un quatrième fantôme à supprimer au passage.
-
-- [ ] **« Messages » sur `off`, app tuée** : constater qu'une bannière arrive
-      quand même, tant que ce point est ouvert.
+- [ ] **« Messages » sur `off`, app tuée** : plus aucune bannière.
+- [ ] **« Demandes d'amis » sur `off`** : idem, et les messages continuent
+      d'arriver (le filtrage est bien par type, pas global).
+- [ ] **Rebasculer sur `on`** : les notifications reviennent sans redémarrage.
 
 **3. iOS : aucun push possible, à deux niveaux.**
 
-- `ios/Runner/Runner.entitlements` ne contient **pas** `aps-environment` (seul
-  `associated-domains` y est). Sans lui, l'enregistrement APNs échoue,
-  `getAPNSToken()` renvoie nil, et [`_getToken()`](lib/core/services/notification_service.dart:1283)
-  sort avant même d'appeler `getToken()` : aucun token FCM n'est jamais
-  enregistré sur iOS. Ça se répare dans Xcode (capability « Push
-  Notifications » sur l'App ID **et** le profil de provisionnement) — ajouter
-  la clé à la main sans activer la capability casse la signature.
-- `saveVoipTokenForUser` n'est appelée nulle part : `NativeCallService` expose
-  `onVoipTokenUpdated` ([native_call_service.dart:79](lib/core/services/native_call_service.dart:79))
-  mais rien ne lui affecte de callback, donc `users.voip_token` reste vide et
-  les appels CallKit iOS ne peuvent pas sonner. Fil d'une ligne à rebrancher —
-  mais sans le point précédent il ne changerait rien.
+- `aps-environment` ajouté à `ios/Runner/Runner.entitlements`. Sans lui,
+  l'enregistrement APNs échouait, `getAPNSToken()` renvoyait nil et
+  `_getToken()` sortait avant même d'appeler `getToken()` : aucun token FCM
+  n'était jamais enregistré sur iOS.
+  ⚠️ **La clé seule ne suffit pas** : il faut activer la capability « Push
+  Notifications » sur l'App ID **et** régénérer le profil de provisionnement,
+  sinon la signature échoue. Ça se fait dans Xcode, pas ici.
+- `saveVoipTokenForUser` est enfin appelée : `_bindVoipTokenTo` branche
+  `onVoipTokenUpdated` à la connexion (et rattrape un jeton déjà reçu), et la
+  déconnexion vide `users.voip_token`. Sans ça, la colonne restait vide et les
+  appels CallKit iOS ne pouvaient pas sonner.
+
+Rien de tout ça n'est vérifiable depuis Windows — aucune de ces cases ne sera
+cochée sans un Mac et un appareil iOS.
+
+- [ ] Token FCM enregistré sur iOS après connexion (ligne `users.fcm_tokens`).
+- [ ] `users.voip_token` renseigné, et vidé à la déconnexion.
 
 ## Écrans de notifications — lot « une seule source » (2026-08-05)
 
