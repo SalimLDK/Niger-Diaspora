@@ -42,6 +42,33 @@ function isPlaceholderSecret(value) {
     );
 }
 
+/**
+ * Vrai si la requête porte la clé d'administration attendue.
+ *
+ * Les deux endpoints d'administration (`seedLegalContentHttp`,
+ * `migrateDisplayNameLower`) comparaient la clé avec `!==`. Ce n'était pas
+ * exploitable — une attaque temporelle sur une comparaison de chaîne à travers
+ * HTTPS n'est pas praticable — mais ça laissait deux écritures du même garde,
+ * divergentes du modèle utilisé par `revenueCatWebhook` juste à côté. Un
+ * lecteur ne devrait pas avoir à se demander laquelle fait autorité.
+ *
+ * `timingSafeEqual` **lève une exception** sur des tampons de tailles
+ * différentes : le contrôle de longueur d'abord n'est pas une optimisation,
+ * c'est ce qui empêche l'exception.
+ *
+ * Le placeholder est refusé comme l'absence : une clé laissée à sa valeur
+ * d'exemple n'est pas un secret.
+ */
+function cleAdminValide(req) {
+    const attendue = process.env.ADMIN_API_KEY;
+    if (!attendue || isPlaceholderSecret(attendue)) return false;
+
+    const fournie = req.headers.authorization?.replace("Bearer ", "") || "";
+    const a = Buffer.from(fournie);
+    const b = Buffer.from(attendue);
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
 // Stripe zero-decimal currencies — amounts must NOT be multiplied by 100
 // See: https://stripe.com/docs/currencies#zero-decimal
 const ZERO_DECIMAL_CURRENCIES = new Set([
@@ -3528,10 +3555,7 @@ exports.seedLegalContentHttp = functions.https.onRequest(async (req, res) => {
     }
 
     // Check for admin API key (simple auth for deployment scripts)
-    const adminKey = process.env.ADMIN_API_KEY;
-    const providedKey = req.headers.authorization?.replace("Bearer ", "");
-
-    if (!adminKey || providedKey !== adminKey) {
+    if (!cleAdminValide(req)) {
         return res.status(401).json({ error: "Unauthorized" });
     }
 
@@ -5937,12 +5961,9 @@ exports.migrateDisplayNameLower = functions.https.onRequest(async (req, res) => 
     // L'ecriture est idempotente, donc rien ne se corrompt — mais c'est une
     // facture Firestore illimitee a la demande.
     //
-    // Meme garde que `seedLegalContentHttp` juste au-dessus : sans
-    // `ADMIN_API_KEY`, on refuse tout le monde.
-    const adminKey = process.env.ADMIN_API_KEY;
-    const providedKey = req.headers.authorization?.replace("Bearer ", "");
-
-    if (!adminKey || providedKey !== adminKey) {
+    // Meme garde que `seedLegalContentHttp` : sans `ADMIN_API_KEY`, on refuse
+    // tout le monde. Les deux passent maintenant par `cleAdminValide`.
+    if (!cleAdminValide(req)) {
         return res.status(401).json({ error: "Unauthorized" });
     }
 
