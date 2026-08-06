@@ -36,6 +36,7 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../../features/map/presentation/utils/cluster_marker_generator.dart';
 import '../../../../features/map/presentation/utils/marker_image_loader.dart';
+import '../../domain/nearby_member_filter.dart';
 import '../widgets/map_legend.dart';
 import '../widgets/map_search_bar.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -600,11 +601,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
     if (!ref.read(nearbyMembersEnabledProvider)) return;
 
     final index = _nearbyMembers.indexWhere((m) => m.id == member.id);
-    final keep =
-        member.isVisible &&
-        member.shareLocation &&
-        _isWithinSelectedRadius(member) &&
-        _isMemberDisplayable(member);
+    final keep = membreVisibleSurCarte(
+      membre: member,
+      centreLatitude: _currentPosition?.latitude,
+      centreLongitude: _currentPosition?.longitude,
+      rayonKm: _selectedRadius,
+      paysUtilisateur: _userCountry,
+      idUtilisateurCourant: FirebaseAuth.instance.currentUser?.uid,
+      idsBloques: _idsBloques(),
+      maintenant: DateTime.now(),
+    );
 
     if (!keep) {
       // Sorti du rayon, redevenu invisible ou trop ancien : on le retire tout
@@ -631,61 +637,25 @@ class _MapScreenState extends ConsumerState<MapScreen>
     _updateMarkers();
   }
 
-  /// Le membre tombe-t-il dans le périmètre actuellement sélectionné ?
-  ///
-  /// Reprend la même boîte englobante que `getNearbyProfiles`, pour que le
-  /// temps réel n'affiche pas quelqu'un que le prochain sondage retirerait.
-  bool _isWithinSelectedRadius(ProfileModel member) {
-    final centre = _currentPosition;
-    if (centre == null) return false;
-    if (member.latitude == null || member.longitude == null) return false;
-
-    if (_selectedRadius == -1) return true; // monde entier
-    if (_selectedRadius == 0) {
-      // « Pays entier » : c'est le pays qui borne, pas la distance.
-      return _userCountry == null || member.currentCountry == _userCountry;
-    }
-
-    final delta = _selectedRadius / 111.0;
-    return (member.latitude! - centre.latitude).abs() <= delta &&
-        (member.longitude! - centre.longitude).abs() <= delta;
+  /// Identifiants bloqués, lus une fois par appel.
+  Set<String> _idsBloques() {
+    final bloques = ref.read(blockedUsersProvider).valueOrNull ?? [];
+    return bloques.map((u) => u.id).toSet();
   }
 
   /// Un membre est-il affichable sur la carte ? (blocages, présence récente)
   ///
   /// Partagé par le sondage périodique et le flux temps réel : dupliquer ces
   /// règles les ferait fatalement diverger, et un membre filtré d'un côté
-  /// réapparaîtrait de l'autre.
+  /// réapparaîtrait de l'autre. La décision elle-même vit désormais dans
+  /// `nearby_member_filter.dart`, où elle est testable à froid.
   bool _isMemberDisplayable(ProfileModel p) {
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-
-    // Se retirer de ses propres « membres autour » : la requête de proximité
-    // renvoie aussi l'utilisateur courant, qui se retrouvait listé à
-    // « 0 m · en ligne » et dessiné une seconde fois sur la carte, par-dessus
-    // son propre marqueur de position.
-    if (currentUserId != null && p.id == currentUserId) return false;
-
-    // Utilisateurs bloqués, dans les deux sens.
-    final blockedUsers = ref.read(blockedUsersProvider).valueOrNull ?? [];
-    if (blockedUsers.any((u) => u.id == p.id)) return false;
-    if (currentUserId != null && p.blockedByUserIds.contains(currentUserId)) {
-      return false;
-    }
-
-    // Présence — STRICT : seulement les membres réellement actifs.
-    // 1. En ligne depuis moins d'une heure
-    // 2. OU position mise à jour depuis moins de 5 minutes
-    final now = DateTime.now();
-    if (p.isOnline &&
-        p.lastSeen != null &&
-        now.difference(p.lastSeen!).inHours < 1) {
-      return true;
-    }
-    if (p.locationUpdatedAt != null &&
-        now.difference(p.locationUpdatedAt!).inMinutes < 5) {
-      return true;
-    }
-    return false;
+    return membreAffichable(
+      membre: p,
+      idUtilisateurCourant: FirebaseAuth.instance.currentUser?.uid,
+      idsBloques: _idsBloques(),
+      maintenant: DateTime.now(),
+    );
   }
 
   /// Démarre un timer pour rafraîchir périodiquement la liste des membres à proximité
