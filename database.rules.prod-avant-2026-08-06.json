@@ -1,0 +1,225 @@
+{
+    "rules": {
+        "presence": {
+            "$userId": {
+                ".read": "auth != null",
+                ".write": "auth != null && auth.uid === $userId",
+                "isOnline": {
+                    ".validate": "newData.isBoolean()"
+                },
+                "lastSeen": {
+                    ".validate": "newData.isNumber()"
+                }
+            }
+        },
+        "conversations": {
+            "$conversationId": {
+                "participants": {
+                    ".read": "auth != null && data.hasChild(auth.uid)",
+                    ".write": "auth != null && (!data.exists() || data.hasChild(auth.uid))"
+                }
+            }
+        },
+        "messages": {
+            "$conversationId": {
+                ".indexOn": [
+                    "createdAt"
+                ],
+                ".read": "auth != null && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",
+                ".write": "auth != null && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",
+                "$messageId": {
+                    ".validate": "newData.hasChildren(['senderId', 'type', 'createdAt'])",
+                    "content": {
+                        ".validate": "newData.isString() && newData.val().length < 10000"
+                    },
+                    "type": {
+                        ".validate": "newData.isString() && (newData.val() === 'text' || newData.val() === 'image' || newData.val() === 'audio' || newData.val() === 'video' || newData.val() === 'file' || newData.val() === 'system' || newData.val() === 'location' || newData.val() === 'call')"
+                    },
+                    "createdAt": {
+                        ".validate": "newData.isString()"
+                    },
+                    "senderId": {
+                        ".validate": "newData.isString() && (data.exists() ? data.val() === newData.val() : newData.val() === auth.uid)"
+                    },
+                    "deletedFor": {
+                        ".validate": "newData.isString() || (newData.hasChildren() ? true : true)"
+                    },
+                    "deletedForEveryone": {
+                        ".validate": "newData.isBoolean()"
+                    },
+                    "deletedAt": {
+                        ".validate": "newData.isString()"
+                    },
+                    "reactions": {
+                        ".validate": "newData.isString() || (newData.hasChildren() ? true : true)"
+                    },
+                    "reportedBy": {
+                        ".validate": "newData.isString() || (newData.hasChildren() ? true : true)"
+                    },
+                    "deliveredTo": {
+                        ".validate": "newData.isString() || (newData.hasChildren() ? true : true)"
+                    },
+                    "deliveredAt": {
+                        ".validate": "newData.isString() || (newData.hasChildren() ? true : true)"
+                    }
+                }
+            }
+        },
+        "typing": {
+            "$conversationId": {
+                ".read": "auth != null && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",
+                "$userId": {
+                    ".write": "auth != null && auth.uid === $userId && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",
+                    ".validate": "newData.isBoolean()"
+                }
+            }
+        },
+        "calls": {
+            "$callId": {
+                ".read": "auth != null",
+                ".write": "auth != null",
+                "offer": {
+                    ".validate": "newData.hasChildren(['type', 'sdp'])"
+                },
+                "answer": {
+                    ".validate": "newData.hasChildren(['type', 'sdp'])"
+                },
+                "callerCandidates": {
+                    "$candidateId": {
+                        ".validate": "newData.hasChildren(['candidate', 'sdpMid', 'sdpMLineIndex'])"
+                    }
+                },
+                "calleeCandidates": {
+                    "$candidateId": {
+                        ".validate": "newData.hasChildren(['candidate', 'sdpMid', 'sdpMLineIndex'])"
+                    }
+                },
+                "videoUpgrade": {
+                    ".validate": "newData.hasChildren(['requestedBy', 'status'])"
+                },
+                "renegotiate_offer": {
+                    ".validate": "newData.hasChildren(['type', 'sdp'])"
+                },
+                "renegotiate_answer": {
+                    ".validate": "newData.hasChildren(['type', 'sdp'])"
+                },
+                "e2ee_key": {
+                    ".validate": "newData.hasChildren(['keyId', 'encryptedKey'])"
+                },
+                "heartbeat": {
+                    "$oderId": {
+                        ".validate": "newData.isNumber()"
+                    }
+                }
+            }
+        },
+        "group_calls": {
+            "$callId": {
+                ".read": "auth != null",
+                ".write": "auth != null",
+                "participants": {
+                    ".indexOn": ["joinedAt"],
+                    "$participantId": {
+                        ".validate": "newData.hasChildren(['joinedAt']) || !newData.exists()"
+                    }
+                },
+                "signaling": {
+                    "$fromId": {
+                        "$toId": {
+                            ".validate": "newData.hasChildren(['type'])"
+                        }
+                    }
+                },
+                "e2ee_key": {
+                    ".read": "data.parent().child('participants').child(auth.uid).exists() || data.parent().child('hostId').val() === auth.uid",
+                    ".write": "!data.exists() || data.parent().child('hostId').val() === auth.uid",
+                    ".validate": "newData.hasChildren(['keyId', 'encryptedKey'])"
+                },
+                "hostId": {
+                    ".validate": "newData.isString()"
+                },
+                "status": {
+                    ".validate": "newData.isString() && (newData.val() === 'waiting' || newData.val() === 'active' || newData.val() === 'ended')"
+                },
+                "mode": {
+                    ".validate": "newData.isString() && (newData.val() === 'mesh' || newData.val() === 'sfu')"
+                },
+                "maxParticipants": {
+                    ".validate": "newData.isNumber() && newData.val() >= 2 && newData.val() <= 50"
+                }
+            }
+        },
+        "audioRooms": {
+            "$roomId": {
+                ".read": "auth != null",
+                ".write": "auth != null && (
+                    !data.exists() ||
+                    data.child('hostId').val() === auth.uid ||
+                    data.child('coHostIds').hasChild(auth.uid)
+                )",
+                "hostId": {
+                    ".validate": "newData.isString() && (!data.exists() ? newData.val() === auth.uid : data.val() === newData.val())"
+                },
+                "coHostIds": {
+                    ".validate": "newData.hasChildren() || newData.val() === null"
+                },
+                "participants": {
+                    ".read": "auth != null",
+                    ".indexOn": ["joinedAt", "role"],
+                    "$participantId": {
+                        ".write": "auth != null && (
+                            $participantId === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid)
+                        )",
+                        ".validate": "newData.hasChildren(['oderId', 'role', 'joinedAt']) || !newData.exists()",
+                        "role": {
+                            ".validate": "newData.isString() && (newData.val() === 'host' || newData.val() === 'coHost' || newData.val() === 'speaker' || newData.val() === 'listener')"
+                        }
+                    }
+                },
+                "raisedHands": {
+                    ".read": "auth != null",
+                    "$participantId": {
+                        ".write": "auth != null && (
+                            $participantId === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid)
+                        )"
+                    }
+                },
+                "reactions": {
+                    ".read": "auth != null",
+                    ".write": "auth != null"
+                },
+                "chat": {
+                    ".read": "auth != null",
+                    ".indexOn": ["createdAt"],
+                    "$messageId": {
+                        ".write": "auth != null && (
+                            !data.exists() ||
+                            data.child('senderId').val() === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid ||
+                            root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid)
+                        )",
+                        ".validate": "newData.hasChildren(['senderId', 'content', 'createdAt']) || !newData.exists()",
+                        "senderId": {
+                            ".validate": "newData.isString() && (!data.exists() ? newData.val() === auth.uid : true)"
+                        }
+                    }
+                },
+                "blockedUserIds": {
+                    ".read": "auth != null",
+                    ".write": "auth != null && (
+                        root.child('audioRooms').child($roomId).child('hostId').val() === auth.uid ||
+                        root.child('audioRooms').child($roomId).child('coHostIds').hasChild(auth.uid)
+                    )"
+                }
+            }
+        },
+        "$other": {
+            ".read": false,
+            ".write": false
+        }
+    }
+}

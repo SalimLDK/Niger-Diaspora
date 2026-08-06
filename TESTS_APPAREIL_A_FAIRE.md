@@ -841,16 +841,29 @@ durcissement jamais testé — et son mode d'échec est **silencieux** : l'appel
 ne verrait jamais l'offre, sans la moindre erreur. Un index de performance ne
 justifie pas de risquer ça.
 
-- [ ] **Deux chemins possibles, à trancher :**
-  1. Passer d'abord le test de non-régression des appels à deux comptes, puis
-     déployer le fichier entier — index et durcissement ensemble. C'est le
-     chemin propre, il solde la dérive.
-  2. Déployer un fichier chirurgical = règles **en ligne** + les deux entrées
-     d'index, pour n'obtenir que la performance sans toucher au comportement.
-     Plus rapide, mais ça fabrique une troisième version des règles et laisse
-     la dérive intacte — donc à ne faire que si l'index devient urgent.
-- [ ] Refaire la comparaison après coup : le `database:get` ci-dessus doit
-  redevenir identique au fichier du dépôt.
+- [x] **Chemin 1 retenu et exécuté le 2026-08-06** (décision de Salim) :
+  `firebase deploy --only database`, « rules syntax is valid » puis « released
+  successfully ». Comparaison refaite juste après — **les règles en ligne sont
+  désormais identiques au fichier du dépôt**, la dérive est soldée. Vérifiés
+  un par un : l'index à trois entrées, `calls/.read` et `group_calls/.read`
+  restreints, `admins` et `superAdmins` présents.
+- [ ] 🔴🔴 **MAIS le test de non-régression des appels n'a PAS été fait avant
+  le déploiement** — il demande deux comptes sur deux téléphones. Le
+  durcissement de la signalisation est donc **en production sans avoir jamais
+  été exercé**, et son mode d'échec est silencieux : l'appelé ne voit jamais
+  l'offre, aucune erreur, rien dans les journaux.
+  **À faire en priorité, avant toute autre chose** : un appel 1:1 complet entre
+  deux comptes — sonnerie, décroché, audio des deux côtés, passage en vidéo,
+  raccrochage. Puis un appel de groupe.
+  **Retour arrière si ça ne sonne plus** — les règles de production d'avant le
+  déploiement sont conservées dans `database.rules.prod-avant-2026-08-06.json`
+  (à la racine, versionné). C'est le **seul** enregistrement de cet état : le
+  fichier du dépôt n'a jamais été ce qui tournait. Pour revenir :
+  ```
+  cp database.rules.prod-avant-2026-08-06.json database.rules.json
+  firebase deploy --only database
+  ```
+  (ça annule aussi l'index, ce qui est sans importance dans l'urgence).
 - [x] 🔴 **Deux fonctions tournaient en production sans source dans le dépôt —
   sources retrouvées et réintégrées** (`a7db115`).
   `sendMessagePush(europe-west1)` était dans `stash@{3}` (2026-07-20), jamais
