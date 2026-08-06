@@ -5,7 +5,7 @@ import '../../../friends/data/datasources/friend_remote_datasource.dart';
 import '../../../friends/domain/entities/friend_entity.dart';
 import '../../../groups/data/datasources/group_supabase_datasource.dart';
 import '../../../groups/domain/entities/group_entity.dart';
-import '../../../messages/data/datasources/message_remote_datasource.dart';
+import '../../../messages/data/datasources/message_supabase_datasource.dart';
 import '../../../messages/domain/entities/conversation_entity.dart';
 import '../../../profile/data/datasources/profile_supabase_datasource.dart';
 import '../../../profile/data/models/profile_model.dart';
@@ -89,7 +89,11 @@ class SearchNotifier extends _$SearchNotifier {
       // ne remontait jamais aucun groupe.
       final groupDataSource = GroupSupabaseDataSource();
       final friendDataSource = FriendRemoteDataSourceImpl();
-      final messageDataSource = MessageRemoteDataSourceImpl();
+      // Source Supabase, pas Firestore : la collection Firestore `messages`
+      // est à 0 document, les 51 messages vivent dans Supabase. La recherche
+      // de conversations ne trouvait donc jamais rien — et une recherche
+      // vide ne ressemble pas à une panne.
+      final messageDataSource = MessageSupabaseDataSource();
 
       // Search in parallel
       final results = await Future.wait([
