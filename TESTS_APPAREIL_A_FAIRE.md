@@ -800,8 +800,21 @@ supplémentaire** à créer.
   fonction qu'on vient de fiabiliser qui deviendra lente et chère.
   **Index ajouté au fichier** le 2026-08-06 (`.indexOn` de
   `messages/$conversationId` passe à `["createdAt", "expiresAt",
-  "mediaExpiresAt"]`, JSON revalidé). **NON déployé — et surtout pas par un
-  `deploy --only database` naïf**, voir juste en dessous.
+  "mediaExpiresAt"]`, JSON revalidé), puis **déployé** — voir juste en dessous
+  pour ce que ce déploiement a entraîné d'autre.
+- [x] **WARNING d'index disparu, vérifié dans les journaux.** Les exécutions de
+  04:24, 05:24 et 06:24 portent toutes la ligne `FIREBASE WARNING: Using an
+  unspecified index` entre « Starting » et « Cleanup complete ». Celle de
+  **08:02, après déploiement, ne l'a plus** : « Starting » → « Cleanup
+  complete », rien entre les deux. L'index est bien pris en compte.
+  ⚠️ **Ne pas conclure à un gain de vitesse** : cette exécution a pris 3633 ms
+  contre 1446 à 2112 ms avant. C'est un démarrage à froid (conteneur reconstruit
+  au déploiement de 07:01 puis redescendu à zéro), et avec une seule
+  conversation peuplée et 0 message à supprimer, la durée ne mesure de toute
+  façon pas la requête. Le gain est structurel, pas encore observable.
+  À noter aussi : l'horaire du balayage est passé de **:24 à :02** — redéployer
+  une fonction planifiée réinitialise son job Cloud Scheduler. Aucune exécution
+  n'a été perdue.
 
 ### 🔴 `database.rules.json` est en avance de 27 changements sur la production
 
