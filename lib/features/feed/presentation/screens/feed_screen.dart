@@ -466,7 +466,7 @@ class _FeedHeader extends StatelessWidget {
         tokens.isDark ? const Color(0xFF8E86C4) : const Color(0xFF9A6A3A);
 
     // Titre « Le fil. » : le point prend la couleur d'accent.
-    final baseTitle = lang == 'en' ? 'The feed' : 'Le fil';
+    final baseTitle = lang == 'en' ? 'The feed' : l10n.homeServiceFeed;
     final titleStyle = FeedText.heading(tokens, size: tokens.isDark ? 24 : 26);
 
     return SafeArea(
@@ -943,6 +943,7 @@ class _HashtagBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final tokens = FeedTokens.of(context);
     // Sans le `#`, cohérent avec le stockage local des hashtags suivis
     // (Mon espace, §5a).
@@ -977,7 +978,7 @@ class _HashtagBanner extends ConsumerWidget {
                 border: Border.all(color: tokens.accent),
               ),
               child: Text(
-                isFollowed ? 'Suivi' : 'Suivre',
+                isFollowed ? 'Suivi' : l10n.followUser,
                 style: FeedText.body(
                   tokens,
                   size: 12.5,

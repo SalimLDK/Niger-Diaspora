@@ -10,6 +10,7 @@ import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
 import 'my_posts_screen.dart' show userPostsCountProvider;
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'saved_posts_screen.dart' show bookmarkedPostsCountProvider;
 
 /// Hub « Mon espace » (fiche 5a) — point d'entrée = avatar de l'en-tête du fil.
@@ -227,6 +228,7 @@ class _StatsRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final posts = ref.watch(userPostsCountProvider).valueOrNull;
     final followers =
         uid != null ? ref.watch(followersCountProvider(uid!)).valueOrNull : null;
@@ -239,7 +241,7 @@ class _StatsRow extends ConsumerWidget {
           child: _StatCard(
             tokens: tokens,
             value: posts,
-            label: 'Publications',
+            label: l10n.profileStatPosts,
             onTap: () => context.push('/profile/my-posts'),
           ),
         ),
@@ -248,7 +250,7 @@ class _StatsRow extends ConsumerWidget {
           child: _StatCard(
             tokens: tokens,
             value: followers,
-            label: 'Abonnés',
+            label: l10n.followersTitle,
             onTap: () => context.push('/profile/follows?tab=0'),
           ),
         ),
@@ -257,7 +259,7 @@ class _StatsRow extends ConsumerWidget {
           child: _StatCard(
             tokens: tokens,
             value: following,
-            label: 'Abonnements',
+            label: l10n.followingTab,
             onTap: () => context.push('/profile/follows?tab=1'),
           ),
         ),
@@ -330,6 +332,7 @@ class _NavCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final posts = ref.watch(userPostsCountProvider).valueOrNull;
     final reposts = ref.watch(myRepostsProvider).valueOrNull?.length;
     final saved = ref.watch(bookmarkedPostsCountProvider).valueOrNull;
@@ -340,7 +343,7 @@ class _NavCard extends ConsumerWidget {
         tokens: tokens,
         icon: Icons.edit_note_rounded,
         iconColor: tokens.accent,
-        label: 'Mes publications',
+        label: l10n.myPostsTitle,
         count: posts,
         onTap: () => context.push('/profile/my-posts'),
       ),
@@ -348,7 +351,7 @@ class _NavCard extends ConsumerWidget {
         tokens: tokens,
         icon: Icons.repeat_rounded,
         iconColor: tokens.accent2,
-        label: 'Mes repartages',
+        label: l10n.repostsTitle,
         count: reposts,
         // §5b, onglet Repartages actif — et non l'ancien écran dédié.
         onTap: () => context.push('/profile/my-posts?tab=1'),
@@ -357,7 +360,7 @@ class _NavCard extends ConsumerWidget {
         tokens: tokens,
         icon: Icons.bookmark_rounded,
         iconColor: tokens.accent,
-        label: 'Enregistrés',
+        label: l10n.audioRoomHeritageSaved,
         count: saved,
         onTap: () => context.push('/profile/saved-posts'),
       ),
@@ -368,7 +371,7 @@ class _NavCard extends ConsumerWidget {
           size: 19,
           color: tokens.actionLabel,
         ),
-        label: 'Abonnés et abonnements',
+        label: l10n.followTitle,
         onTap: () => context.push('/profile/follows'),
       ),
       _NavRow(

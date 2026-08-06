@@ -22,6 +22,8 @@ class CreateAudioRoomScreen extends ConsumerStatefulWidget {
 
 class _CreateAudioRoomScreenState
     extends ConsumerState<CreateAudioRoomScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
@@ -180,10 +182,10 @@ class _CreateAudioRoomScreenState
                 spacing: 6,
                 runSpacing: 6,
                 children: [
-                  (AudioRoomMode.normal, 'Normal'),
-                  (AudioRoomMode.ceremony, 'Cérémonie'),
-                  (AudioRoomMode.radio, 'Radio'),
-                  (AudioRoomMode.heritage, 'Patrimoine'),
+                  (AudioRoomMode.normal, l10n.audioRoomModeNormal),
+                  (AudioRoomMode.ceremony, l10n.audioRoomModeCeremony),
+                  (AudioRoomMode.radio, l10n.audioRoomModeRadio),
+                  (AudioRoomMode.heritage, l10n.audioRoomModeHeritage),
                 ].map((m) {
                   final sel = _mode == m.$1;
                   return GestureDetector(
@@ -291,7 +293,7 @@ class _CreateAudioRoomScreenState
                     (CollectionType.familyEvent, l10n.familyEventLabel),
                     (CollectionType.emergency, 'Aide urgence'),
                     (CollectionType.communityProject, 'Projet commun.'),
-                    (CollectionType.custom, 'Autre'),
+                    (CollectionType.custom, l10n.other),
                   ].map((ct) {
                     final sel = _collectionType == ct.$1;
                     return GestureDetector(
@@ -315,7 +317,7 @@ class _CreateAudioRoomScreenState
                 child: TextFormField(
                   controller: _collectionBeneficiaryCtrl,
                   style: DNText.sans(size: 14, color: dn.onSurface),
-                  decoration: _inputDecoration('Nom du bénéficiaire', dn),
+                  decoration: _inputDecoration(l10n.audioRoomCollectionBeneficiaryHint, dn),
                 ),
               ),
             ],

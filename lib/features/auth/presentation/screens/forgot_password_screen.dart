@@ -17,6 +17,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _isLoading = false;
@@ -96,7 +98,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               children: [
                 const SizedBox(height: 20),
                 Text(
-                  'Entrez votre adresse email pour recevoir un lien de réinitialisation.',
+                  l10n.forgotPasswordDescription,
                   style: Theme.of(
                     context,
                   ).textTheme.bodyLarge?.copyWith(color: context.textPrimaryColor),
@@ -121,7 +123,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 const SizedBox(height: 24),
                 CustomButton(
                   onPressed: _handleResetPassword,
-                  label: 'Envoyer le lien',
+                  label: l10n.sendLink,
                   isLoading: _isLoading,
                 ),
               ],

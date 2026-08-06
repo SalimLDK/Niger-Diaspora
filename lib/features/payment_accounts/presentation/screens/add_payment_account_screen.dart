@@ -19,6 +19,8 @@ class AddPaymentAccountScreen extends ConsumerStatefulWidget {
 
 class _AddPaymentAccountScreenState
     extends ConsumerState<AddPaymentAccountScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _labelController = TextEditingController();
   final _mobileNumberController = TextEditingController();
@@ -443,7 +445,7 @@ class _AddPaymentAccountScreenState
     return switch (_selectedType) {
       PaymentAccountType.mobileMoney => 'Ex: Mon Orange Money',
       PaymentAccountType.bankAccount => 'Ex: Compte Ecobank',
-      PaymentAccountType.stripeConnect => 'Stripe Connect',
+      PaymentAccountType.stripeConnect => l10n.stripeConnect,
       null => '',
     };
   }

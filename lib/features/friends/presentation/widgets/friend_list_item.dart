@@ -9,6 +9,7 @@ import '../providers/friend_provider.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class FriendListItem extends ConsumerWidget {
   final FriendEntity friend;
@@ -17,6 +18,7 @@ class FriendListItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -71,17 +73,17 @@ class FriendListItem extends ConsumerWidget {
                 },
                 itemBuilder:
                     (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'message',
                         child: Row(
                           children: [
                             Icon(Icons.chat_outlined),
                             SizedBox(width: AppSpacing.spacing8),
-                            Text('Envoyer un message'),
+                            Text(l10n.friendSendMessage),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'remove',
                         child: Row(
                           children: [
@@ -91,7 +93,7 @@ class FriendListItem extends ConsumerWidget {
                             ),
                             SizedBox(width: AppSpacing.spacing8),
                             Text(
-                              'Retirer des amis',
+                              l10n.friendRemoveTitle,
                               style: TextStyle(color: Colors.red),
                             ),
                           ],
@@ -165,18 +167,19 @@ class FriendListItem extends ConsumerWidget {
   }
 
   void _showRemoveFriendDialog(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Retirer des amis'),
+            title: Text(l10n.friendRemoveTitle),
             content: Text(
               'Voulez-vous vraiment retirer ${friend.displayName} de vos amis ?',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Annuler'),
+                child: Text(l10n.undo),
               ),
               TextButton(
                 onPressed: () async {
@@ -187,11 +190,11 @@ class FriendListItem extends ConsumerWidget {
                   if (context.mounted && success) {
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(const SnackBar(content: Text('Ami retiré')));
+                    ).showSnackBar(SnackBar(content: Text(l10n.friendRemoved)));
                   }
                 },
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Retirer'),
+                child: Text(l10n.friendRemoveAction),
               ),
             ],
           ),

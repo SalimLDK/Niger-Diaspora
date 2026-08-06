@@ -47,6 +47,8 @@ class MyPostsScreen extends ConsumerStatefulWidget {
 }
 
 class _MyPostsScreenState extends ConsumerState<MyPostsScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   late int _tab = widget.initialTab;
 
   /// Recherche de l'en-tête : filtre local sur la liste déjà chargée (la
@@ -176,9 +178,9 @@ class _MyPostsScreenState extends ConsumerState<MyPostsScreen> {
           return _query.isNotEmpty
               ? FeedEmptyState(
                 icon: Icons.search_off_rounded,
-                title: 'Aucun résultat',
+                title: l10n.noSearchResults,
                 body: 'Aucune publication ne contient « $_query ».',
-                ctaLabel: 'Effacer la recherche',
+                ctaLabel: l10n.emptyStateNoResultsAction,
                 ctaIcon: Icons.close_rounded,
                 onCta: () {
                   _searchController.clear();
@@ -240,7 +242,7 @@ class _MyPostsScreenState extends ConsumerState<MyPostsScreen> {
         if (visible.isEmpty) {
           return FeedEmptyState(
             icon: Icons.repeat_rounded,
-            title: _query.isNotEmpty ? 'Aucun résultat' : l10n.repostsEmptyTitle,
+            title: _query.isNotEmpty ? l10n.noSearchResults : l10n.repostsEmptyTitle,
             body:
                 _query.isNotEmpty
                     ? 'Aucun repartage ne contient « $_query ».'
@@ -294,7 +296,7 @@ class _MyPostsScreenState extends ConsumerState<MyPostsScreen> {
                     color: isBookmarked ? tokens.accent : tokens.text,
                   ),
                   title: Text(
-                    isBookmarked ? 'Retirer le signet' : 'Enregistrer',
+                    isBookmarked ? 'Retirer le signet' : l10n.save,
                     style: FeedText.body(tokens, size: 15),
                   ),
                   onTap: () => Navigator.pop(ctx, 'bookmark'),
@@ -378,12 +380,12 @@ class _MyPostsScreenState extends ConsumerState<MyPostsScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Annuler'),
+                child: Text(l10n.undo),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text(
-                  'Supprimer',
+                child: Text(
+                  l10n.delete,
                   style: TextStyle(color: Colors.red),
                 ),
               ),
@@ -568,6 +570,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       height: 52,
       child: Padding(
@@ -619,7 +622,7 @@ class _Header extends StatelessWidget {
                         ),
                       )
                       : Text(
-                        'Mes publications',
+                        l10n.myPostsTitle,
                         style: FeedText.heading(tokens, size: 22),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

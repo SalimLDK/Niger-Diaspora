@@ -10,6 +10,7 @@ import '../../domain/entities/post_entity.dart';
 import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Rayon de la vignette média 56×56 (détail interne de la carte, pas une
 /// forme partagée — d'où la constante locale).
@@ -32,6 +33,7 @@ class MyPostCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final tokens = FeedTokens.of(context);
     final isLiked = ref.watch(
       feedNotifierProvider.select((s) => s.likedPostIds.contains(post.id)),
@@ -127,7 +129,7 @@ class MyPostCard extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
-                    'Modifier',
+                    l10n.edit,
                     style: FeedText.body(
                       tokens,
                       size: 12.5,
@@ -241,6 +243,7 @@ class MyDraftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final tokens = FeedTokens.of(context);
 
     return Opacity(
@@ -289,14 +292,14 @@ class MyDraftCard extends StatelessWidget {
               children: [
                 _DraftAction(
                   tokens: tokens,
-                  label: 'Reprendre',
+                  label: l10n.callResume,
                   filled: true,
                   onTap: onResume,
                 ),
                 const SizedBox(width: 10),
                 _DraftAction(
                   tokens: tokens,
-                  label: 'Supprimer',
+                  label: l10n.delete,
                   filled: false,
                   onTap: onDelete,
                 ),

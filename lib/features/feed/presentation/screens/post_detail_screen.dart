@@ -27,6 +27,8 @@ class PostDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _commentController = HashtagHighlightingController();
   final _scrollController = ScrollController();
   bool _isSending = false;
@@ -71,7 +73,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       id: '',
       postId: widget.postId,
       authorId: user.uid,
-      authorName: user.displayName ?? user.email ?? 'Utilisateur',
+      authorName: user.displayName ?? user.email ?? l10n.user,
       authorPhotoUrl: user.photoURL,
       content: text,
       createdAt: DateTime.now(),

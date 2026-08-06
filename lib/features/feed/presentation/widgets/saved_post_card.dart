@@ -7,6 +7,7 @@ import '../../../../core/utils/date_formatter.dart';
 import '../../domain/entities/post_entity.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Carte d'un post enregistré (fiche 5c) : vignette 72×72 à gauche, ligne
 /// d'auteur, texte clampé à deux lignes, puis « Retirer » / « Partager ».
@@ -27,6 +28,7 @@ class SavedPostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final tokens = FeedTokens.of(context);
 
     return Container(
@@ -62,7 +64,7 @@ class SavedPostCard extends StatelessWidget {
                   children: [
                     _Action(
                       tokens: tokens,
-                      label: 'Retirer',
+                      label: l10n.remove,
                       color: tokens.accent,
                       weight: FontWeight.w600,
                       onTap: onRemove,
@@ -70,7 +72,7 @@ class SavedPostCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     _Action(
                       tokens: tokens,
-                      label: 'Partager',
+                      label: l10n.share,
                       color: tokens.actionLabel,
                       weight: FontWeight.w500,
                       onTap: onShare,

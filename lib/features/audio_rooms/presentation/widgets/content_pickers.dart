@@ -261,6 +261,8 @@ class GroupPickerBottomSheet extends ConsumerStatefulWidget {
 
 class _GroupPickerBottomSheetState
     extends ConsumerState<GroupPickerBottomSheet> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   String _searchQuery = '';
   final _searchController = TextEditingController();
 
@@ -302,9 +304,9 @@ class _GroupPickerBottomSheetState
                       color: AppColors.secondary,
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Lier un groupe',
+                        l10n.audioRoomLinkGroup,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -496,6 +498,8 @@ class EmbassyPickerBottomSheet extends ConsumerStatefulWidget {
 
 class _EmbassyPickerBottomSheetState
     extends ConsumerState<EmbassyPickerBottomSheet> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   String _searchQuery = '';
   final _searchController = TextEditingController();
 
@@ -537,9 +541,9 @@ class _EmbassyPickerBottomSheetState
                       color: AppColors.secondary,
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Lier une ambassade/consulat',
+                        l10n.audioRoomLinkEmbassy,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

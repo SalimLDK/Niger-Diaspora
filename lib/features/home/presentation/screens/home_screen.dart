@@ -44,6 +44,8 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   // GlobalKeys for coach marks
   final GlobalKey _profilePictureKey = GlobalKey();
   final GlobalKey _notificationBellKey = GlobalKey();
@@ -896,7 +898,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         HomeSectionHeader(
-                          title: 'Services',
+                          title: l10n.services,
                           onSeeAll: () => context.push('/services'),
                           seeAllText: l10n.seeAll,
                         ),
@@ -1014,7 +1016,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   }
                                   final p = visible[index];
                                   return _NearbyAvatar(
-                                    name: p.displayName ?? 'Membre',
+                                    name: p.displayName ?? l10n.member,
                                     photoUrl: p.photoUrl,
                                     distance:
                                         _distanceLabel(p.latitude, p.longitude),

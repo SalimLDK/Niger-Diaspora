@@ -982,7 +982,7 @@ class _GroupCard extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            'Officiel',
+                            l10n.audioRoomCategoryOfficial,
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -1111,7 +1111,7 @@ class _GroupCard extends ConsumerWidget {
                   ],
                 ),
                 child: Text(
-                  isJoined ? 'Ouvrir' : l10n.joinGroup,
+                  isJoined ? l10n.open : l10n.joinGroup,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

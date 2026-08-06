@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/theme/dn_colors.dart';
 import '../../../../../core/theme/dn_text.dart';
 import '../../../../../core/theme/dn_theme.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Room mode enum used by [ModeChip] and screen backgrounds.
 enum RoomMode { normal, ceremony, radio, heritage }
@@ -15,12 +16,13 @@ class ModeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final dn = context.dn;
     final (label, textColor, bgColor) = switch (mode) {
-      RoomMode.normal   => ('Normal',     dn.onSurface3, dn.surface2),
-      RoomMode.ceremony => ('Cérémonie',  DNColors.paper, DNColors.terra),
-      RoomMode.radio    => ('Radio',      DNColors.paper, DNColors.teal),
-      RoomMode.heritage => ('Patrimoine', DNColors.paper, DNColors.ochre),
+      RoomMode.normal   => (l10n.audioRoomModeNormal,     dn.onSurface3, dn.surface2),
+      RoomMode.ceremony => (l10n.audioRoomModeCeremony,  DNColors.paper, DNColors.terra),
+      RoomMode.radio    => (l10n.audioRoomModeRadio,      DNColors.paper, DNColors.teal),
+      RoomMode.heritage => (l10n.audioRoomModeHeritage, DNColors.paper, DNColors.ochre),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

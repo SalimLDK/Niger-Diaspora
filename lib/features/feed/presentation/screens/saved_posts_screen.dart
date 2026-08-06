@@ -278,6 +278,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       height: 52,
       child: Padding(
@@ -306,7 +307,7 @@ class _Header extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Enregistrés',
+                l10n.audioRoomHeritageSaved,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: FeedText.heading(tokens, size: 22),

@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../features/profile/data/datasources/profile_supabase_datasource.dart';
 import '../../domain/entities/post_entity.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Returns a `\w+`-compatible handle from a display name.
@@ -112,6 +113,8 @@ class MentionTextField extends StatefulWidget {
 }
 
 class _MentionTextFieldState extends State<MentionTextField> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _profileDataSource = ProfileSupabaseDataSource();
 
   String? _activeMentionQuery;
@@ -212,7 +215,7 @@ class _MentionTextFieldState extends State<MentionTextField> {
     try {
       final profiles = await _profileDataSource.searchProfiles(query);
       return profiles.take(4).map((p) {
-        final name = p.displayName ?? p.email ?? 'Utilisateur';
+        final name = p.displayName ?? p.email ?? l10n.user;
         return _Suggestion(
           type: _SuggestionType.user,
           id: p.id,
@@ -342,6 +345,7 @@ class _SuggestionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Container(
@@ -446,8 +450,8 @@ class _SuggestionList extends StatelessWidget {
                                   color: Colors.teal.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: const Text(
-                                  'Groupe',
+                                child: Text(
+                                  l10n.group,
                                   style: TextStyle(
                                     fontSize: 10,
                                     color: Colors.teal,

@@ -8,6 +8,7 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../../groups/presentation/providers/common_groups_provider.dart';
 import '../../domain/entities/friend_request_entity.dart';
 import '../providers/friend_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class FriendRequestItem extends ConsumerWidget {
   final FriendRequestEntity request;
@@ -21,6 +22,7 @@ class FriendRequestItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final notifier = ref.watch(friendRequestNotifierProvider.notifier);
     final isLoading = ref.watch(friendRequestNotifierProvider).isLoading;
 
@@ -83,13 +85,13 @@ class FriendRequestItem extends ConsumerWidget {
                                 );
                                 if (context.mounted && success) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Demande refusée'),
+                                    SnackBar(
+                                      content: Text(l10n.friendRequestDeclined),
                                     ),
                                   );
                                 }
                               },
-                      child: const Text('Refuser'),
+                      child: Text(l10n.friendDecline),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.spacing8),
@@ -105,13 +107,13 @@ class FriendRequestItem extends ConsumerWidget {
                                 );
                                 if (context.mounted && success) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Demande acceptée'),
+                                    SnackBar(
+                                      content: Text(l10n.friendRequestAccepted),
                                     ),
                                   );
                                 }
                               },
-                      child: const Text('Accepter'),
+                      child: Text(l10n.friendAccept),
                     ),
                   ),
                 ],
@@ -130,8 +132,8 @@ class FriendRequestItem extends ConsumerWidget {
                             );
                             if (context.mounted && success) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Demande annulée'),
+                                SnackBar(
+                                  content: Text(l10n.friendRequestCancelled),
                                 ),
                               );
                             }
@@ -140,7 +142,7 @@ class FriendRequestItem extends ConsumerWidget {
                     foregroundColor: Colors.red,
                     side: const BorderSide(color: Colors.red),
                   ),
-                  child: const Text('Annuler la demande'),
+                  child: Text(l10n.friendCancelRequest),
                 ),
               ),
           ],

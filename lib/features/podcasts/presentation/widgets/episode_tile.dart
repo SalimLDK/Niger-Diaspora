@@ -37,6 +37,7 @@ class EpisodeTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final downloadState = ref.watch(downloadManagerProvider)[episode.id];
     final isDownloadedAsync = ref.watch(isEpisodeDownloadedProvider(episode.id));
     final hasPremiumAccess = ref.watch(hasPodcastPremiumProvider);
@@ -135,7 +136,7 @@ class EpisodeTile extends ConsumerWidget {
                               Text(
                                 premiumPriceLabel != null
                                     ? 'Premium · $premiumPriceLabel'
-                                    : 'Premium',
+                                    : l10n.premiumBadge,
                                 style: DNText.sans(size: 11, color: context.dn.onSurface3).copyWith(
                                   color: Colors.amber[700],
                                   fontWeight: FontWeight.w600,

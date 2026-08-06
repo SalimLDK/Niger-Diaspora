@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../onboarding/presentation/providers/onboarding_provider.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class ConsentScreen extends ConsumerStatefulWidget {
   const ConsentScreen({super.key});
@@ -13,6 +14,8 @@ class ConsentScreen extends ConsumerStatefulWidget {
 }
 
 class _ConsentScreenState extends ConsumerState<ConsentScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   bool _termsAccepted = false;
   bool _privacyAccepted = false;
   bool _conductAccepted = false;
@@ -78,7 +81,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
               const SizedBox(height: 24),
 
               Text(
-                'Bienvenue !',
+                l10n.consentWelcome,
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: context.textPrimaryColor,
@@ -87,7 +90,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
               const SizedBox(height: 8),
 
               Text(
-                'Avant de continuer, veuillez accepter nos conditions.',
+                l10n.consentAcceptConditions,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: context.textSecondaryColor,
                 ),
@@ -113,7 +116,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
 
                       // Privacy checkbox
                       _buildConsentCard(
-                        title: 'Politique de confidentialité',
+                        title: l10n.privacyPolicy,
                         description:
                             'J\'accepte la politique de confidentialité et le traitement de mes données personnelles.',
                         isChecked: _privacyAccepted,
@@ -127,7 +130,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
 
                       // Code of conduct checkbox
                       _buildConsentCard(
-                        title: 'Code de conduite',
+                        title: l10n.codeOfConduct,
                         description:
                             'Je m\'engage à respecter le code de conduite et les règles de la communauté.',
                         isChecked: _conductAccepted,
@@ -164,7 +167,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Vos données sont protégées et ne seront jamais partagées sans votre consentement.',
+                                l10n.consentDataProtection,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: context.textSecondaryColor,
                                 ),
@@ -207,8 +210,8 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
                               ),
                             ),
                           )
-                          : const Text(
-                            'Continuer',
+                          : Text(
+                            l10n.continueAction,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

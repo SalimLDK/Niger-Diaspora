@@ -9,6 +9,7 @@ import '../providers/group_provider.dart';
 import '../../../../core/utils/toast_utils.dart';
 import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class EditGroupScreen extends ConsumerStatefulWidget {
   final GroupEntity group;
@@ -20,6 +21,8 @@ class EditGroupScreen extends ConsumerStatefulWidget {
 }
 
 class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameController;
   late final TextEditingController _descriptionController;
@@ -61,19 +64,19 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Supprimer la photo'),
+            title: Text(l10n.deletePhoto),
             content: const Text(
               'Voulez-vous vraiment supprimer la photo du groupe ?',
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler'),
+                child: Text(l10n.undo),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text('Supprimer'),
+                child: Text(l10n.delete),
               ),
             ],
           ),
@@ -148,7 +151,7 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
     setState(() => _isLoading = false);
 
     if (success && mounted) {
-      ToastUtils.showSuccess(context, 'Groupe modifié avec succès');
+      ToastUtils.showSuccess(context, l10n.groupModified);
 
       // Refresh groups list
       ref.read(groupsNotifierProvider.notifier).refresh();
@@ -157,7 +160,7 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
 
       if (mounted) context.pop();
     } else if (mounted) {
-      ToastUtils.showError(context, 'Erreur lors de la modification');
+      ToastUtils.showError(context, l10n.eventUpdateError);
     }
   }
 
@@ -166,19 +169,19 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Supprimer le groupe'),
-            content: const Text(
-              'Voulez-vous vraiment supprimer ce groupe ? Cette action est irréversible.',
+            title: Text(l10n.deleteGroup),
+            content: Text(
+              l10n.confirmDeleteGroup,
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Annuler'),
+                child: Text(l10n.undo),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text('Supprimer'),
+                child: Text(l10n.delete),
               ),
             ],
           ),
@@ -196,8 +199,8 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
 
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Groupe supprimé'),
+        SnackBar(
+          content: Text(l10n.adminGroupDeleted),
           behavior: SnackBarBehavior.fixed,
         ),
       );
@@ -207,8 +210,8 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
       context.go('/groups');
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur lors de la suppression'),
+        SnackBar(
+          content: Text(l10n.removalError),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.fixed,
         ),
@@ -221,7 +224,7 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: const Text('Modifier le groupe'),
+        title: Text(l10n.groupEditTitle),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
@@ -339,13 +342,13 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _nameController,
-              decoration: _inputDecoration('Ex: Entrepreneurs Niger'),
+              decoration: _inputDecoration(l10n.groupNameExample),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Le nom est requis';
+                  return l10n.groupNameIsRequired;
                 }
                 if (value.trim().length < 3) {
-                  return 'Le nom doit contenir au moins 3 caractères';
+                  return l10n.groupNameMinLength;
                 }
                 return null;
               },
@@ -354,18 +357,18 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
             const SizedBox(height: 20),
 
             // Description
-            _buildLabel('Description *'),
+            _buildLabel(l10n.businessDescriptionLabel),
             const SizedBox(height: 8),
             TextFormField(
               controller: _descriptionController,
-              decoration: _inputDecoration('Décrivez votre groupe...'),
+              decoration: _inputDecoration(l10n.describeYourGroup),
               maxLines: 4,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'La description est requise';
+                  return l10n.descriptionRequired;
                 }
                 if (value.trim().length < 10) {
-                  return 'La description doit contenir au moins 10 caractères';
+                  return l10n.descriptionMinLength;
                 }
                 return null;
               },
@@ -374,7 +377,7 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
             const SizedBox(height: 20),
 
             // Catégorie
-            _buildLabel('Catégorie'),
+            _buildLabel(l10n.category),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -413,21 +416,21 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _locationController,
-              decoration: _inputDecoration('Ex: Paris, France'),
+              decoration: _inputDecoration(l10n.locationHint),
             ),
 
             const SizedBox(height: 20),
 
             // Tags
-            _buildLabel('Tags (optionnel)'),
+            _buildLabel(l10n.audioRoomTagsOptional),
             const SizedBox(height: 8),
             TextFormField(
               controller: _tagsController,
-              decoration: _inputDecoration('Ex: business, networking, tech'),
+              decoration: _inputDecoration(l10n.tagsExample),
             ),
             const SizedBox(height: 4),
             Text(
-              'Séparez les tags par des virgules',
+              l10n.tagsHint,
               style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
             ),
 
@@ -447,7 +450,7 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Groupe privé',
+                          l10n.privateGroup,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -456,7 +459,7 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          'Les membres doivent être approuvés',
+                          l10n.membersNeedApproval,
                           style: TextStyle(
                             fontSize: 13,
                             color: context.textTertiaryColor,
@@ -499,8 +502,8 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                        : const Text(
-                          'Enregistrer les modifications',
+                        : Text(
+                          l10n.saveChanges,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

@@ -27,6 +27,8 @@ class CallHistoryScreen extends ConsumerStatefulWidget {
 }
 
 class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   CallHistoryFilter _selectedFilter = CallHistoryFilter.all;
 
   @override
@@ -146,7 +148,7 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Appels',
+                  l10n.calls,
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
@@ -180,7 +182,7 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen> {
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
       child: Row(
         children: [
-          _buildFilterChip(context, label: 'Tout', filter: CallHistoryFilter.all),
+          _buildFilterChip(context, label: l10n.everything, filter: CallHistoryFilter.all),
           const SizedBox(width: 8),
           _buildFilterChip(
             context,
@@ -676,7 +678,7 @@ class _CallHistoryItem extends StatelessWidget {
     if (call.status == CallStatus.busy) {
       sense = l10n.busyCall;
     } else if (call.status == CallStatus.missed) {
-      sense = 'Manqué';
+      sense = l10n.callMissed;
     } else if (call.status == CallStatus.declined) {
       sense = isIncoming ? l10n.declinedCall : l10n.noAnswer;
     } else {

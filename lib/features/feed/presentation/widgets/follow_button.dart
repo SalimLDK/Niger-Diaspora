@@ -88,7 +88,7 @@ class FollowButton extends ConsumerWidget {
               // « Suivi » et non `l10n.unfollowUser` (« Ne plus suivre ») :
               // la pastille indique un état, pas une action, et la fiche
               // 5d ne laisse pas la place à quatre mots.
-              isFollowing ? 'Suivi' : 'Suivre',
+              isFollowing ? 'Suivi' : l10n.followUser,
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,

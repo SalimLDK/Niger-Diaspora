@@ -44,9 +44,9 @@ class MapLegend extends StatelessWidget {
               label: l10n.member,
             ),
             _buildDivider(context),
-            const _LegendItem(
+            _LegendItem(
               color: Color(0xFF1976D2),
-              label: 'Ambassades',
+              label: l10n.embassies,
             ),
           ],
         ),

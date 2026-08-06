@@ -12,6 +12,7 @@ import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class CreateGroupScreen extends ConsumerStatefulWidget {
   /// Nom pré-rempli, venant du « Créer « X » » de la recherche sans résultat.
@@ -24,6 +25,8 @@ class CreateGroupScreen extends ConsumerStatefulWidget {
 }
 
 class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
+  AppLocalizations get l10n => AppLocalizations.of(context)!;
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -202,7 +205,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
     setState(() => _isLoading = false);
 
     if (success) {
-      ToastUtils.showSuccess(context, 'Groupe créé avec succès');
+      ToastUtils.showSuccess(context, l10n.groupCreated);
       context.pop();
     } else {
       // La raison remonte du dépôt : « Erreur lors de la création » tout court
@@ -211,7 +214,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       ToastUtils.showError(
         context,
         reason == null || reason.isEmpty
-            ? 'Erreur lors de la création du groupe'
+            ? l10n.groupCreationError
             : 'Création impossible : $reason',
       );
     }
@@ -222,7 +225,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: const Text('Créer un groupe'),
+        title: Text(l10n.groupCreateTitle),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
@@ -263,7 +266,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Ajouter une photo',
+                                l10n.addPhoto,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: context.textTertiaryColor,
@@ -281,13 +284,13 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _nameController,
-              decoration: _inputDecoration('Ex: Entrepreneurs Niger'),
+              decoration: _inputDecoration(l10n.groupNameExample),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Le nom est requis';
+                  return l10n.groupNameIsRequired;
                 }
                 if (value.trim().length < 3) {
-                  return 'Le nom doit contenir au moins 3 caractères';
+                  return l10n.groupNameMinLength;
                 }
                 return null;
               },
@@ -296,18 +299,18 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
             const SizedBox(height: 20),
 
             // Description
-            _buildLabel('Description *'),
+            _buildLabel(l10n.businessDescriptionLabel),
             const SizedBox(height: 8),
             TextFormField(
               controller: _descriptionController,
-              decoration: _inputDecoration('Décrivez votre groupe...'),
+              decoration: _inputDecoration(l10n.describeYourGroup),
               maxLines: 4,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'La description est requise';
+                  return l10n.descriptionRequired;
                 }
                 if (value.trim().length < 10) {
-                  return 'La description doit contenir au moins 10 caractères';
+                  return l10n.descriptionMinLength;
                 }
                 return null;
               },
@@ -316,7 +319,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
             const SizedBox(height: 20),
 
             // Catégorie
-            _buildLabel('Catégorie'),
+            _buildLabel(l10n.category),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -365,7 +368,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                   value: _selectedCountry,
                   isExpanded: true,
                   hint: Text(
-                    'Sélectionner un pays',
+                    l10n.selectCountry,
                     style: TextStyle(color: context.textTertiaryColor),
                   ),
                   icon: const Icon(Icons.keyboard_arrow_down),
@@ -373,7 +376,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                     DropdownMenuItem<String>(
                       value: null,
                       child: Text(
-                        'Aucun',
+                        l10n.none,
                         style: TextStyle(color: context.textTertiaryColor),
                       ),
                     ),
@@ -392,7 +395,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Le pays où se trouve la communauté du groupe',
+              l10n.groupCountryHint,
               style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
             ),
 
@@ -413,7 +416,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                   value: _selectedOriginRegion,
                   isExpanded: true,
                   hint: Text(
-                    'Sélectionner une région',
+                    l10n.selectRegion,
                     style: TextStyle(color: context.textTertiaryColor),
                   ),
                   icon: const Icon(Icons.keyboard_arrow_down),
@@ -421,7 +424,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                     DropdownMenuItem<String>(
                       value: null,
                       child: Text(
-                        'Aucune',
+                        l10n.audioRoomCollectionTypeNone,
                         style: TextStyle(color: context.textTertiaryColor),
                       ),
                     ),
@@ -447,25 +450,25 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
             const SizedBox(height: 20),
 
             // Localisation
-            _buildLabel('Localisation détaillée (optionnel)'),
+            _buildLabel(l10n.detailedLocation),
             const SizedBox(height: 8),
             TextFormField(
               controller: _locationController,
-              decoration: _inputDecoration('Ex: Paris 18e, Île-de-France'),
+              decoration: _inputDecoration(l10n.detailedLocationExample),
             ),
 
             const SizedBox(height: 20),
 
             // Tags
-            _buildLabel('Tags (optionnel)'),
+            _buildLabel(l10n.audioRoomTagsOptional),
             const SizedBox(height: 8),
             TextFormField(
               controller: _tagsController,
-              decoration: _inputDecoration('Ex: business, networking, tech'),
+              decoration: _inputDecoration(l10n.tagsExample),
             ),
             const SizedBox(height: 4),
             Text(
-              'Séparez les tags par des virgules',
+              l10n.tagsHint,
               style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
             ),
 
@@ -485,7 +488,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Groupe privé',
+                          l10n.privateGroup,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -494,7 +497,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Les membres doivent être approuvés',
+                          l10n.membersNeedApproval,
                           style: TextStyle(
                             fontSize: 13,
                             color: context.textTertiaryColor,
@@ -537,8 +540,8 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                        : const Text(
-                          'Créer le groupe',
+                        : Text(
+                          l10n.createTheGroup,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
