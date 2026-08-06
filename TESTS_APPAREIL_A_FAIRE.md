@@ -159,9 +159,12 @@ transparent) : la bannière réapparaît **en 5 s**.
       `_showFallbackMessageNotification`, le plugin retombait sur son défaut
       `@mipmap/ic_launcher` — un disque blanc. C'est ce repli qui poste en
       arrière-plan, donc c'était bien lui qu'on voyait.
-- [ ] **Filet orange** : `color` est passé à `AppColors.primary` sur le repli,
-      pas encore observé à l'œil (la couleur ne se lit pas dans `dumpsys` pour
-      ce chemin).
+- [x] **Filet orange et icône sur le chemin du SDK Firebase** — la
+      notification de mention passe par le SDK (tag `FCM-Notification:…`), pas
+      par le repli local : `dumpsys` y donne `color=0xffe07b39` et
+      `icon=0x7f08012d`. C'est donc le `default_notification_icon` et le
+      `notification_accent` du manifeste qui sont vérifiés, en plus du chemin
+      repli déjà contrôlé. Les deux chemins peignent enfin le même orange.
 
 ⚠️ **Ne pas revenir à un vector drawable** pour cette icône, même « parce que
 c'est plus propre » : ça supprime silencieusement toutes les notifications.
@@ -364,10 +367,13 @@ sont dans Supabase — donc supprimer un compte y laisse tout en place. Mais
 Jules a committé sur cette fonction le 2026-08-06 (`8d769d3`) : à traiter dans
 son chantier, pas ici.
 
+- [x] **Mentionner quelqu'un** — vérifié sur le SM A515F le 2026-08-06. Une
+      publication insérée avec `mentioned_users` a produit la ligne
+      `notifications` puis la bannière « Vous avez été mentionné(e) / Salim L.
+      vous a mentionné(e) dans une publication ». Publication de test supprimée.
 - [ ] **Publier depuis un compte suivi** : l'abonné reçoit « Nouvelle
-      publication ».
-- [ ] **Mentionner quelqu'un** dans une publication : il reçoit « Vous avez été
-      mentionné(e) », et une seule notification s'il est aussi abonné.
+      publication ». Non testé — Sim A ne suit personne, et créer
+      l'abonnement aurait modifié le graphe social pour de bon.
 - [ ] **Publier dans un groupe** : les abonnés hors du groupe ne reçoivent rien.
 
 ### Événements locaux + « M'avertir du prochain » — branchés (2026-08-06)
