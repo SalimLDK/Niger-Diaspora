@@ -8072,5 +8072,28 @@
   "originSummaryPlaceholder": "région et ville",
   "@originSummaryPlaceholder": {
     "description": "Texte gris de la ligne Origine tant que rien n est choisi"
-  }
+  },
+  "adminFailedPlural": "Échouées",
+  "eventOnSite": "Sur place",
+  "feedNewRepost": "Nouveau repartage",
+  "feedPlaceLabel": "Lieu",
+  "feedFollowedHashtags": "Hashtags suivis",
+  "feedRepostsTitle": "Repartages",
+  "feedRepostAction": "Reposter",
+  "groupMediaAndFiles": "Médias et fichiers",
+  "groupsByCountry": "Groupes par pays",
+  "groupsLoadFailed": "Impossible de charger les groupes",
+  "messageUnpinFailed": "Impossible de détacher ce message",
+  "openSettingsAction": "Ouvrir les réglages",
+  "newGroupTitle": "Nouveau groupe",
+  "messageExpired": "Expiré",
+  "messageLocalCopy": "Local",
+  "notifTimezoneHint": "Utile avec le décalage Niamey – Paris",
+  "pollMultipleChoice": "Choix multiple",
+  "pollVoteAction": "Voter",
+  "pollViewResults": "Voir les résultats",
+  "profileYourCurrentCity": "Votre ville actuelle",
+  "profileYourProfession": "Votre métier",
+  "transferMobileOperatorRequired": "Opérateur mobile *",
+  "messageEcoBadge": "ÉCO"
 }

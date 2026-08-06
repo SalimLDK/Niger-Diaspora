@@ -6,6 +6,7 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Hashtags suivis (§5a « Mon espace ») : liste locale, sans modèle serveur.
 /// Se remplit depuis le bouton « Suivre » du bandeau de filtre par hashtag
@@ -15,6 +16,7 @@ class FollowedHashtagsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final tokens = FeedTokens.of(context);
     final hashtags = ref.watch(followedHashtagsProvider);
 
@@ -28,7 +30,7 @@ class FollowedHashtagsScreen extends ConsumerWidget {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'Hashtags suivis',
+          l10n.feedFollowedHashtags,
           style: FeedText.heading(tokens, size: 20),
         ),
       ),

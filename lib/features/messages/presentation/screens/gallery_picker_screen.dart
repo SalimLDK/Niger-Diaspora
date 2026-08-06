@@ -255,7 +255,7 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> {
             const SizedBox(height: 12),
             FilledButton(
               onPressed: () => PhotoManager.openSetting(),
-              child: const Text('Ouvrir les réglages'),
+              child: Text(l10n.openSettingsAction),
             ),
           ],
         ),

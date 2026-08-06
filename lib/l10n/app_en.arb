@@ -6927,5 +6927,28 @@
   "originSummaryPlaceholder": "region and city",
   "@originSummaryPlaceholder": {
     "description": "Texte gris de la ligne Origine tant que rien n est choisi"
-  }
+  },
+  "adminFailedPlural": "Failed",
+  "eventOnSite": "In person",
+  "feedNewRepost": "New repost",
+  "feedPlaceLabel": "Place",
+  "feedFollowedHashtags": "Followed hashtags",
+  "feedRepostsTitle": "Reposts",
+  "feedRepostAction": "Repost",
+  "groupMediaAndFiles": "Media and files",
+  "groupsByCountry": "Groups by country",
+  "groupsLoadFailed": "Unable to load groups",
+  "messageUnpinFailed": "Unable to unpin this message",
+  "openSettingsAction": "Open settings",
+  "newGroupTitle": "New group",
+  "messageExpired": "Expired",
+  "messageLocalCopy": "Local",
+  "notifTimezoneHint": "Useful with the Niamey–Paris time difference",
+  "pollMultipleChoice": "Multiple choice",
+  "pollVoteAction": "Vote",
+  "pollViewResults": "View results",
+  "profileYourCurrentCity": "Your current city",
+  "profileYourProfession": "Your profession",
+  "transferMobileOperatorRequired": "Mobile operator *",
+  "messageEcoBadge": "ECO"
 }

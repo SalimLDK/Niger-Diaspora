@@ -20,6 +20,7 @@ class RepostersScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final repostersAsync = ref.watch(repostersProvider(postId));
     final tokens = FeedTokens.of(context);
 
@@ -27,7 +28,7 @@ class RepostersScreen extends ConsumerWidget {
       backgroundColor: tokens.bg,
       appBar: AppBar(
         backgroundColor: tokens.bg,
-        title: Text('Repartages', style: FeedText.heading(tokens, size: 18)),
+        title: Text(l10n.feedRepostsTitle, style: FeedText.heading(tokens, size: 18)),
         elevation: 0,
       ),
       body: repostersAsync.when(

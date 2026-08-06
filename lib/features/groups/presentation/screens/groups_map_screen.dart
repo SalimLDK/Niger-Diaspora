@@ -70,7 +70,7 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: const Text('Groupes par pays'),
+        title: Text(l10n.groupsByCountry),
         leading: IconButton(
           icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
           onPressed: () => context.pop(),
@@ -80,7 +80,7 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
         loading: () => Center(
           child: CircularProgressIndicator(color: context.adaptivePrimaryColor),
         ),
-        error: (_, __) => const Center(child: Text('Impossible de charger les groupes')),
+        error: (_, __) => Center(child: Text(l10n.groupsLoadFailed)),
         data: (groups) {
           final byCountry = <String, List<GroupEntity>>{};
           for (final g in groups) {

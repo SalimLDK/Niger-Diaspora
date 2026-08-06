@@ -1024,8 +1024,38 @@ anonyme est fermé.
   règles strictes, anonyme et tiers sont tenus à l'écart sur les deux.
   Donc le chiffrement de bout en bout des appels **n'en est pas un** tant que
   le durcissement n'est pas déployé.
-- [ ] 🔴 **Les règles strictes NE SONT PAS déployées, et ne doivent pas l'être
-  avant un nouveau build de l'app.** Le dépôt porte volontairement la version
+- [x] ✅ **Règles strictes DÉPLOYÉES le 2026-08-06**, dans l'ordre imposé :
+  1. **App rebâtie et réinstallée** sur le SM_A515F (`R58N91XBA7B`).
+     ⚠️ **En debug, pas en release** : l'app présente était `DEBUGGABLE`, donc
+     signée avec la clé de debug. Une APK release a une autre signature et ne
+     s'installe pas par-dessus — il aurait fallu désinstaller, donc perdre la
+     session, les brouillons et **les clés d'identité E2EE locales**. Refusé.
+     L'APK release existe si besoin (`build/app/outputs/flutter-apk/`, 166,7 Mo)
+     mais exige une désinstallation préalable.
+     Preuve de l'installation : `lastUpdateTime` passé de 06:49:48 à 06:56:27.
+  2. Banc rejoué contre la cible : « Parcours nominal : INTACT », étanchéité
+     fermée sur le 1:1 **et** le groupe, clé E2EE hors de portée d'un anonyme
+     comme d'un tiers.
+  3. `firebase deploy --only database`, puis relecture des règles en ligne :
+     **en ligne == dépôt == `database.rules.strict-cible.json`**.
+- [ ] 🔴 **À VÉRIFIER EN PRIORITÉ, ET C'EST LA SEULE CHOSE QUI MANQUE** : un
+  appel 1:1 et un appel de groupe, à deux comptes. Le banc prouve que les
+  règles laissent passer le parcours réel ; il ne prouve pas qu'un appel
+  aboutit (FCM, CallKit, coturn, WebRTC).
+  **Si ça ne sonne plus**, retour arrière immédiat :
+  ```
+  cp database.rules.prod-avant-2026-08-06.json database.rules.json
+  firebase deploy --only database
+  ```
+  (ça annule aussi l'index et le correctif de signalisation de groupe — dans
+  l'urgence c'est sans importance, on redéploiera proprement ensuite.)
+- [ ] **`e2ee_key` des appels de groupe est écrite mais JAMAIS LUE.** Une seule
+  occurrence dans tout `lib/` (`group_call_service.dart`, `_shareE2EEKey`), et
+  c'est l'écriture. Personne ne récupère la clé en rejoignant. Le chiffrement
+  de bout en bout des appels de groupe n'est donc pas câblé — la clé est
+  publiée dans le vide. Même motif que les champs d'état jamais alimentés déjà
+  rencontrés sur ce projet. Sans effet sur le durcissement (durcir la lecture
+  de quelque chose que personne ne lit ne casse rien), mais à traiter. Le dépôt porte volontairement la version
   stricte corrigée ; la production reste permissive. Deux préconditions, toutes
   deux liées au parc installé :
   - l'APK doit écrire `callerId`/`calleeId` (acquis depuis `135ae92`,

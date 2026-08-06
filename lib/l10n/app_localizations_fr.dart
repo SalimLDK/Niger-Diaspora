@@ -15849,4 +15849,73 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get originSummaryPlaceholder => 'région et ville';
+
+  @override
+  String get adminFailedPlural => 'Échouées';
+
+  @override
+  String get eventOnSite => 'Sur place';
+
+  @override
+  String get feedNewRepost => 'Nouveau repartage';
+
+  @override
+  String get feedPlaceLabel => 'Lieu';
+
+  @override
+  String get feedFollowedHashtags => 'Hashtags suivis';
+
+  @override
+  String get feedRepostsTitle => 'Repartages';
+
+  @override
+  String get feedRepostAction => 'Reposter';
+
+  @override
+  String get groupMediaAndFiles => 'Médias et fichiers';
+
+  @override
+  String get groupsByCountry => 'Groupes par pays';
+
+  @override
+  String get groupsLoadFailed => 'Impossible de charger les groupes';
+
+  @override
+  String get messageUnpinFailed => 'Impossible de détacher ce message';
+
+  @override
+  String get openSettingsAction => 'Ouvrir les réglages';
+
+  @override
+  String get newGroupTitle => 'Nouveau groupe';
+
+  @override
+  String get messageExpired => 'Expiré';
+
+  @override
+  String get messageLocalCopy => 'Local';
+
+  @override
+  String get notifTimezoneHint => 'Utile avec le décalage Niamey – Paris';
+
+  @override
+  String get pollMultipleChoice => 'Choix multiple';
+
+  @override
+  String get pollVoteAction => 'Voter';
+
+  @override
+  String get pollViewResults => 'Voir les résultats';
+
+  @override
+  String get profileYourCurrentCity => 'Votre ville actuelle';
+
+  @override
+  String get profileYourProfession => 'Votre métier';
+
+  @override
+  String get transferMobileOperatorRequired => 'Opérateur mobile *';
+
+  @override
+  String get messageEcoBadge => 'ÉCO';
 }

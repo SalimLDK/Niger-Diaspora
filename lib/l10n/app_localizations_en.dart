@@ -15699,4 +15699,74 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get originSummaryPlaceholder => 'region and city';
+
+  @override
+  String get adminFailedPlural => 'Failed';
+
+  @override
+  String get eventOnSite => 'In person';
+
+  @override
+  String get feedNewRepost => 'New repost';
+
+  @override
+  String get feedPlaceLabel => 'Place';
+
+  @override
+  String get feedFollowedHashtags => 'Followed hashtags';
+
+  @override
+  String get feedRepostsTitle => 'Reposts';
+
+  @override
+  String get feedRepostAction => 'Repost';
+
+  @override
+  String get groupMediaAndFiles => 'Media and files';
+
+  @override
+  String get groupsByCountry => 'Groups by country';
+
+  @override
+  String get groupsLoadFailed => 'Unable to load groups';
+
+  @override
+  String get messageUnpinFailed => 'Unable to unpin this message';
+
+  @override
+  String get openSettingsAction => 'Open settings';
+
+  @override
+  String get newGroupTitle => 'New group';
+
+  @override
+  String get messageExpired => 'Expired';
+
+  @override
+  String get messageLocalCopy => 'Local';
+
+  @override
+  String get notifTimezoneHint =>
+      'Useful with the Niamey–Paris time difference';
+
+  @override
+  String get pollMultipleChoice => 'Multiple choice';
+
+  @override
+  String get pollVoteAction => 'Vote';
+
+  @override
+  String get pollViewResults => 'View results';
+
+  @override
+  String get profileYourCurrentCity => 'Your current city';
+
+  @override
+  String get profileYourProfession => 'Your profession';
+
+  @override
+  String get transferMobileOperatorRequired => 'Mobile operator *';
+
+  @override
+  String get messageEcoBadge => 'ECO';
 }
