@@ -1023,19 +1023,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       isBlocked = blockedUsers.any((user) => user.id == otherUserId);
     }
 
-    // Check if I am blocked by the other user
-    bool isBlockedByOther = false;
-    if (!widget.isGroup && currentUser != null && widget.otherUserId != null) {
-      final currentUserProfileAsync = ref.watch(
-        userStreamProvider(currentUser.id),
-      );
-      final currentUserProfile = currentUserProfileAsync.valueOrNull;
-      if (currentUserProfile != null) {
-        isBlockedByOther = currentUserProfile.blockedByUserIds.contains(
-          widget.otherUserId,
-        );
-      }
-    }
+    // Check if I am blocked by the other user.
+    //
+    // Le sens etait bon ici, contrairement aux neuf autres sites :
+    // `monProfil.blockedByUserIds.contains(autre)` demande bien « l'autre
+    // m'a-t-il bloque ». Mais ce champ vaut toujours `[]` depuis que les
+    // profils viennent de Supabase, ou `_mapProfile` le code en dur. La
+    // reponse etait donc toujours non, et le composeur restait actif : on
+    // pouvait ecrire a quelqu'un qui nous avait bloque.
+    final quiMOntBloque =
+        ref.watch(usersWhoBlockedMeProvider).valueOrNull ?? const <String>{};
+    final isBlockedByOther =
+        !widget.isGroup &&
+        widget.otherUserId != null &&
+        quiMOntBloque.contains(widget.otherUserId);
 
     // Stream other user's profile if it's an individual chat
     AsyncValue<dynamic>? otherUserAsync;
