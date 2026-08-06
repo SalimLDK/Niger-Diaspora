@@ -3505,6 +3505,21 @@ j'ai construit HEAD et qu'il vivait encore dans un WIP non committé. Les deux
 correctifs sont complémentaires, pas redondants : le mien retire les bandeaux
 de l'équation, l'autre empêche le composeur de prendre sa taille naturelle.
 
+**Pourquoi le reste ne peut PAS se corriger dans le composeur** (vérifié le
+2026-08-06, pour éviter que quelqu'un le retente) : `message_input.dart` sait
+déjà se rétrécir — `maxLignes = (borne / 2 / 22).floor().clamp(1, 6)`, et ses
+panneaux passent en `Flexible`. Mais tout est conditionné à `borne.isFinite`,
+et personne ne le borne : `RenderFlex` donne `maxHeight: Infinity` à ses
+enfants non flexibles. Le garde-fou dort donc en production, ce que le
+fichier documente lui-même.
+
+Le calculer depuis la fenêtre plutôt que depuis les contraintes ne suffit
+pas : on obtient ~194 dp en paysage clavier levé, donc 4 lignes autorisées,
+alors que le brouillon qui déborde en fait 3. Ce qu'il faut, c'est la hauteur
+restante **sous les bandeaux** — seul le parent la connaît. D'où la
+conclusion, déjà écrite dans `message_input.dart` : le correctif appartient à
+`conversation_screen`, pas au composeur.
+
 - [ ] **Refaire ce test une fois « zone BORNEE » committé** — c'est la
   combinaison des deux qu'il faut mesurer, pas l'un ou l'autre.
 - [ ] **Cas du panneau GIF/Émojis** (le 4 px d'origine) : non testé ici, le
