@@ -322,8 +322,8 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       // la pile interne du menu, dimensionnée sur son plus long libellé,
       // déborde d'autant plus tôt.
       isExpanded: true,
-      decoration: const InputDecoration(
-        labelText: 'Opérateur mobile *',
+      decoration: InputDecoration(
+        labelText: l10n.transferMobileOperatorRequired,
         prefixIcon: Icon(Icons.sim_card_outlined),
       ),
       items:

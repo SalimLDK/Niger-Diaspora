@@ -28987,6 +28987,144 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'région et ville'**
   String get originSummaryPlaceholder;
+
+  /// No description provided for @adminFailedPlural.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échouées'**
+  String get adminFailedPlural;
+
+  /// No description provided for @eventOnSite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sur place'**
+  String get eventOnSite;
+
+  /// No description provided for @feedNewRepost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau repartage'**
+  String get feedNewRepost;
+
+  /// No description provided for @feedPlaceLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lieu'**
+  String get feedPlaceLabel;
+
+  /// No description provided for @feedFollowedHashtags.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hashtags suivis'**
+  String get feedFollowedHashtags;
+
+  /// No description provided for @feedRepostsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repartages'**
+  String get feedRepostsTitle;
+
+  /// No description provided for @feedRepostAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reposter'**
+  String get feedRepostAction;
+
+  /// No description provided for @groupMediaAndFiles.
+  ///
+  /// In fr, this message translates to:
+  /// **'Médias et fichiers'**
+  String get groupMediaAndFiles;
+
+  /// No description provided for @groupsByCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes par pays'**
+  String get groupsByCountry;
+
+  /// No description provided for @groupsLoadFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger les groupes'**
+  String get groupsLoadFailed;
+
+  /// No description provided for @messageUnpinFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de détacher ce message'**
+  String get messageUnpinFailed;
+
+  /// No description provided for @openSettingsAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir les réglages'**
+  String get openSettingsAction;
+
+  /// No description provided for @newGroupTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau groupe'**
+  String get newGroupTitle;
+
+  /// No description provided for @messageExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expiré'**
+  String get messageExpired;
+
+  /// No description provided for @messageLocalCopy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Local'**
+  String get messageLocalCopy;
+
+  /// No description provided for @notifTimezoneHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utile avec le décalage Niamey – Paris'**
+  String get notifTimezoneHint;
+
+  /// No description provided for @pollMultipleChoice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choix multiple'**
+  String get pollMultipleChoice;
+
+  /// No description provided for @pollVoteAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voter'**
+  String get pollVoteAction;
+
+  /// No description provided for @pollViewResults.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir les résultats'**
+  String get pollViewResults;
+
+  /// No description provided for @profileYourCurrentCity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre ville actuelle'**
+  String get profileYourCurrentCity;
+
+  /// No description provided for @profileYourProfession.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre métier'**
+  String get profileYourProfession;
+
+  /// No description provided for @transferMobileOperatorRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Opérateur mobile *'**
+  String get transferMobileOperatorRequired;
+
+  /// No description provided for @messageEcoBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'ÉCO'**
+  String get messageEcoBadge;
 }
 
 class _AppLocalizationsDelegate

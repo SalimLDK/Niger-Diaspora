@@ -647,7 +647,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       // tapait « Détacher » et rien ne se passait, sans le moindre signal.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible de détacher ce message')),
+          SnackBar(content: Text(l10n.messageUnpinFailed)),
         );
       }
       return;
@@ -665,7 +665,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            success ? 'Message détaché' : 'Impossible de détacher ce message',
+            success ? 'Message détaché' : l10n.messageUnpinFailed,
           ),
         ),
       );
@@ -2998,7 +2998,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         size: 15,
         color: eco ? repere : context.textSecondaryColor,
       ),
-      label: 'ÉCO',
+      label: l10n.messageEcoBadge,
       labelColor: eco ? repere : context.textSecondaryColor,
       onTap: () async {
         await PreferencesService.instance.setDataSaverMode(!eco);

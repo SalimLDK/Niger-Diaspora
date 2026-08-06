@@ -543,7 +543,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       ),
       _CompletionField(
         filled: (profile.currentCity ?? '').trim().isNotEmpty,
-        label: 'Votre ville actuelle',
+        label: l10n.profileYourCurrentCity,
         benefit: l10n.profileCompletionCityBenefit,
         icon: Icons.location_on_outlined,
         tint: context.adaptivePrimaryColor,
@@ -551,7 +551,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       ),
       _CompletionField(
         filled: (profile.profession ?? '').trim().isNotEmpty,
-        label: 'Votre métier',
+        label: l10n.profileYourProfession,
         benefit: l10n.profileCompletionJobBenefit,
         icon: Icons.work_outline,
         tint: context.successColor,

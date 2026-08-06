@@ -612,7 +612,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
       children: [
         _buildShortcut(
           icon: AppIcon(AppIcon.groups, size: 22, color: context.adaptivePrimaryColor),
-          title: 'Nouveau groupe',
+          title: l10n.newGroupTitle,
           subtitle: 'Sélectionnez des membres, puis nommez le groupe',
           onTap: () {
             _searchFocus.requestFocus();

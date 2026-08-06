@@ -219,7 +219,7 @@ class _AdminTransactionsScreenState
           gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
         ),
         _buildStatCard(
-          title: 'Échouées',
+          title: l10n.adminFailedPlural,
           value: state.failedTransactions.length.toString(),
           icon: Icons.error_rounded,
           gradient: state.failedTransactions.isNotEmpty

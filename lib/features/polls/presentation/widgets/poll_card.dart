@@ -223,12 +223,12 @@ class _PollCardState extends ConsumerState<PollCard> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Voter'),
+                      : Text(l10n.pollVoteAction),
                 )
               else
                 TextButton(
                   onPressed: () => context.push('/polls/${poll.id}/results'),
-                  child: const Text('Voir les résultats'),
+                  child: Text(l10n.pollViewResults),
                 ),
             ],
           ),

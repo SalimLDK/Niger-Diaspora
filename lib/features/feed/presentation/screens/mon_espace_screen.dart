@@ -378,7 +378,7 @@ class _NavCard extends ConsumerWidget {
         tokens: tokens,
         icon: Icons.tag_rounded,
         iconColor: tokens.hashtagColor,
-        label: 'Hashtags suivis',
+        label: l10n.feedFollowedHashtags,
         count: hashtags,
         onTap: () => context.push('/feed/space/hashtags'),
       ),

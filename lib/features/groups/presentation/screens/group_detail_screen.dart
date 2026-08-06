@@ -1205,6 +1205,7 @@ class _GroupInfoCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final pinned =
         ref.watch(groupPinnedItemsProvider(group.id)).valueOrNull ??
         const <GroupPinnedItemEntity>[];
@@ -1249,7 +1250,7 @@ class _GroupInfoCard extends ConsumerWidget {
             size: 18,
             color: context.textSecondaryColor,
           ),
-          title: 'Médias et fichiers',
+          title: l10n.groupMediaAndFiles,
           subtitle: _mediaSummary(media),
           trailing: Icon(
             Icons.chevron_right,
