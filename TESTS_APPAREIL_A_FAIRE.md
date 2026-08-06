@@ -2780,16 +2780,26 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 
 ## Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)
 
-- [ ] ⛔ **`BOTTOM OVERFLOWED BY 4.1 PIXELS`** sur l'écran de conversation en
-  **paysage**, panneau GIF/Émojis ouvert. Constaté sur une capture du
-  SM A515F pendant une session de saisie (conversation « Salim L. », message
-  multi-ligne en cours, rangée `GIF` / `Émojis` en bas). Le débordement est
-  petit mais le bandeau rayé est visible à l'écran.
-  Deux pistes, dans cet ordre : la hauteur du panneau ancré n'est pas
-  recalculée pour l'orientation paysage (voir la note « panneau ancré +
-  clavier » — le panneau doit prendre la **place** du clavier, et en paysage
-  cette place est bien plus basse) ; et le bandeau signale une **position**,
-  pas forcément le widget fautif.
+- [ ] ⛔ **Débordement bas sur l'écran de conversation en PAYSAGE.** Constaté
+  **deux fois** sur SM A515F le 2026-08-05, avec deux ampleurs différentes :
+
+  | Capture | Bas de l'écran occupé par | Débordement |
+  |---|---|---|
+  | 1 | panneau GIF / Émojis | `4.1 PIXELS` |
+  | 2 | **clavier système** | `17 PIXELS` |
+
+  Le second cas est le plus instructif : **ce n'est pas le panneau ancré qui
+  est en cause**, puisque le défaut se produit aussi avec le clavier seul.
+  C'est l'écran de conversation en paysage dès que l'espace vertical restant
+  se réduit — et l'ampleur suit la hauteur de ce qui occupe le bas.
+
+  Piste : en paysage, la hauteur disponible entre l'en-tête (avatar + nom +
+  bandeau de message épinglé + bandeau « Restaurez vos clés ») et l'insert du
+  bas ne suffit plus. Sur la capture 2, le bandeau rayé passe **juste sous le
+  bandeau de restauration des clés**, ce qui désigne cette zone — mais
+  attention, le bandeau signale une **position**, pas forcément le widget
+  fautif.
+
   Non lié aux correctifs de localisation de cette session.
 
 ---
@@ -2874,7 +2884,25 @@ Les deux comptes sont à ~10 m l'un de l'autre. `getNearbyProfiles` filtre sur
 `.eq('share_location', true)` : « Salim L. » était écarté à la source, et
 « Sim A » est retiré par l'auto-exclusion — il ne restait personne.
 
-### État préparé le 2026-08-05 — un seul geste reste à faire
+### ↩️ Compte restauré le 2026-08-05 — à re-préparer avant tout nouveau test
+
+Le maquillage décrit ci-dessous **a été défait** : « Salim L. » est revenu à
+`share_location = false`, position `45.5802795 / -73.6459928`,
+`location_updated_at = 2026-08-04 18:32:45+00`, `is_online = false`. Plus
+aucune fausse donnée en base. Pour retester, rejouer la préparation :
+
+```sql
+update users
+   set share_location = true,
+       latitude  = 45.5980,
+       longitude = -73.6459,
+       is_online = true,
+       last_seen_at = now(),
+       show_online_status = true
+ where id = 'U64HKfrjM5NwR6HO00XPKo6168z2';
+```
+
+### État préparé le 2026-08-05 (défait depuis, voir ci-dessus)
 
 Le compte « Salim L. » a été **maquillé en membre voisin présent**, en SQL,
 pour pouvoir tester avec un seul téléphone. Vérifié : il passe la requête de
@@ -2971,6 +2999,11 @@ attendre le sondage.
   marqueurs et liste.
 - [ ] **Sortie de rayon** : quand B sort du rayon sélectionné, son pin
   disparaît immédiatement de la carte de A (et non au sondage suivant).
+  ⏸️ *Tentative du 2026-08-05 sans résultat* : « Salim L. » a bien été
+  déplacé à ~230 km (région de Québec), mais la carte n'était plus à l'écran
+  — l'app était revenue sur une conversation. Rien à observer. Le chemin
+  testé serait la branche `!keep` de `_onMemberLocationUpdate`, la seule du
+  temps réel qui **retire** une ligne ; c'est ce qui reste à confirmer.
 - [x] **Position publiée hors de l'écran carte** ✅ **vérifié le 2026-08-05**
   sur SM A515F, côté données. L'app était sur un écran de **conversation**
   (jamais sur la carte) et `users.location_updated_at` du compte « Sim A »
