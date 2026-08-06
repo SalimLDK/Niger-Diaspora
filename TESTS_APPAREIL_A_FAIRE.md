@@ -5555,11 +5555,21 @@ appartenance en une transaction, identité résolue par `firebase_uid()`), et
 
 Rien de tout ça n'est prouvable sans **deux comptes** :
 
-- [ ] **Compte B demande à rejoindre un groupe privé de A** : la demande doit
-      apparaître chez A, dans les demandes en attente du groupe.
-- [ ] **A approuve** : B devient membre pour de bon — le groupe entre dans
-      « Mes groupes » de B, le compteur de membres monte, et B accède aux
-      messages du groupe.
+- [x] **La demande apparaît chez l'administrateur** — vérifié sur SM A515F le
+      2026-08-06. La demande a été **créée en base** (pas depuis un second
+      téléphone) : c'est donc l'affichage qui est prouvé, pas l'émission. Le
+      menu du groupe porte « Demandes d'adhésion · 1 » avec sa pastille, et
+      l'écran liste bien le demandeur. Avant la migration, cette liste était
+      vide — c'était le blocage principal.
+- [x] **L'approbation fait entrer le demandeur** — vérifié le 2026-08-06, les
+      trois anomalies d'origine tombant d'un coup :
+      `status = 'approved'`, `processed_by = 'vQZE49dTdyRtLwSG6lMIbhAqoFG2'`
+      (l'uid **Firebase**, plus l'uuid Supabase), et le demandeur présent dans
+      `group_members` — le groupe passe de 1 à 2 membres. SnackBar
+      « Demande approuvée », liste vidée immédiatement.
+      Donnée de test retirée après coup.
+      Reste non vu, faute d'un second appareil : que le groupe apparaisse dans
+      « Mes groupes » du demandeur et qu'il accède aux messages.
 - [ ] **A refuse** une deuxième demande : elle disparaît de la liste et B ne
       devient pas membre.
 - [ ] **B redemande alors qu'il est déjà membre** : message « Vous êtes déjà
@@ -5634,6 +5644,41 @@ Deux effets de bord relevés pendant ce test, aucun bloquant :
 - **La liste ne s'est pas rafraîchie après l'acceptation** : l'invitation
   disparaît bien, mais « Testeurs » n'apparaît qu'après un redémarrage à froid,
   malgré le `ref.invalidate(myGroupsNotifierProvider)` de `_accept`.
+  (L'écran des demandes, lui, se vide immédiatement après une approbation.)
+
+### La fiche du groupe ment selon le chemin par lequel on l'ouvre
+
+Trouvé en cherchant l'écran des demandes, le 2026-08-06. Sur **le même groupe**,
+avec **le même compte** — Sim, créateur et administrateur :
+
+| Ouverte depuis | Membres | Bouton du bas | Menu « Demandes » |
+|---|---|---|---|
+| la liste « Mes groupes » | 1 | « Ouvrir la discussion » | présent, pastille 1 |
+| l'en-tête de la conversation | **0** | **« Demander à rejoindre »** | **absent** |
+
+L'écran calcule tout depuis l'entité :
+`isAdmin = group.adminIds.contains(me)` et
+`isMember = group.memberIds.contains(me)`
+([group_detail_screen.dart:132](lib/features/groups/presentation/screens/group_detail_screen.dart:132)).
+Par le second chemin ces deux listes arrivent vides, donc l'administrateur se
+voit proposer de rejoindre son propre groupe et **perd l'accès à l'écran
+d'approbation**.
+
+Ce n'est pas la base : la requête d'appartenance rejouée sous l'identité de Sim
+rend bien sa ligne `role = 'admin'`. Et `getGroupById` applique pourtant
+`_membershipFor` — son commentaire décrit même ce symptôme comme déjà corrigé.
+La cause exacte côté app n'a pas été trouvée ; `_membershipFor` avale ses
+erreurs (`catch (_) { return const {}; }`), ce qui rend un échec indiscernable
+d'un groupe sans membres.
+
+À noter pour qui reprendra : `getMyGroups` masque le même trou avec un
+rattrapage explicite (« on s'y ajoute quand même, sinon Mes groupes proposerait
+Rejoindre sur ses propres groupes »). Le rattrapage soigne le symptôme sur un
+écran et laisse l'autre à découvert — donc le « 1 » de la liste ne prouve pas
+que la lecture d'appartenance ait réussi.
+
+- [ ] **Vérifier après correction** : ouvrir la fiche depuis la conversation
+      doit donner exactement le même écran que depuis la liste.
 
 ---
 
