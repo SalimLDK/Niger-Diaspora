@@ -47,11 +47,36 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     });
   }
 
+  /// Pagination au défilement.
+  ///
+  /// Ce garde-fou vaut une explication, parce que son absence gelait l'écran.
+  ///
+  /// La condition était seulement `pixels >= maxScrollExtent - 200`. Sur une
+  /// liste courte — mesuré ici : `maxScrollExtent = 87.2` — le seuil vaut
+  /// **−112.8**, donc la condition est vraie **dès le pixel zéro**. Au premier
+  /// micro-mouvement du doigt, `loadMore()` partait ; il fait `state += 20`
+  /// sur la limite, ce qui **réabonne le flux Firestore** et reconstruit le
+  /// sous-arbre. Sous le doigt, en boucle, à chaque événement de défilement :
+  /// la liste ne bougeait pas d'un pixel, et un glissement lent finissait
+  /// interprété comme un tap. La limite grimpait de 20 en 20 dans le vide.
+  ///
+  /// Deux gardes, dans cet ordre :
+  /// 1. rien à faire défiler → rien à paginer ;
+  /// 2. **le serveur a rendu moins que la limite demandée → on a déjà tout**.
+  ///    C'est le test qui manquait ; à lui seul il suffit ici (15 notifications
+  ///    pour une limite de 20), mais les deux ensemble couvrent aussi le cas
+  ///    d'une page pleine sur un écran court.
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      ref.read(notificationsNotifierProvider.notifier).loadMore();
-    }
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.maxScrollExtent <= 0) return;
+    if (position.pixels < position.maxScrollExtent - 200) return;
+
+    final chargees =
+        ref.read(notificationsNotifierProvider).valueOrNull?.length ?? 0;
+    if (chargees < ref.read(notificationLimitProvider)) return;
+
+    ref.read(notificationsNotifierProvider.notifier).loadMore();
   }
 
   /// Groupement intelligent style WhatsApp
