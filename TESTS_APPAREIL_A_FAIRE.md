@@ -4595,10 +4595,26 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 >   Le profil de test a `country_code = null` (il portait `''`, sans effet : le
 >   code testait déjà `!= null && isNotEmpty`), donc c'est bien la branche de
 >   repli qui s'applique.
-> - [ ] ⚠️ Reste à confirmer **à l'écran**, une fois le téléphone rebranché :
->   que la puce de pays s'arme bien sur « NE » à l'ouverture, et que
->   « Découvrir » liste alors les deux groupes NE. Le code est analysé sans
->   erreur et la donnée vérifiée, mais l'écran n'a pas été revu.
+> - [x] **VÉRIFIÉ À L'ÉCRAN le 2026-08-06**, sur un APK construit depuis l'état
+>   fusionné et poussé.
+>   - Les puces de pays affichent « 🇨🇦 Canada » et « 🇳🇪 Niger » — drapeau et
+>     libellé. C'est la preuve que les codes sont reconnus de bout en bout :
+>     avec l'ancien mélange (`CA` / `Canada` / `Niger`), l'app ne pouvait pas
+>     les convertir.
+>   - Le filtre **discrimine** correctement : sur « Niger », le groupe `NE`
+>     (« teste ») s'affiche ; sur « Canada », plus rien et le message
+>     « Aucun groupe ne correspond à ces filtres » apparaît ; retour à « Tous »,
+>     il revient.
+>   - Le badge de « Diaspora Niger — Canada » affiche désormais `CA` et non
+>     plus `Canada`.
+>   - Le groupe migré est là, sa description est vide (marqueur `[migré de …]`
+>     bien retiré), et le doublon supprimé n'apparaît plus nulle part.
+> - [ ] Détail sans gravité relevé au passage : à l'ouverture, la puce active
+>   est « Tous » et non « NE ». `_loadDefaultCountryFilter` lit
+>   `availableGroupCountries` avant que les groupes ne soient chargés — la
+>   liste est alors vide, donc aucune branche ne s'applique. Même famille que
+>   les autres lectures trop précoces, mais ici le défaut est bénin : « Tous »
+>   est un défaut raisonnable et le filtre reste utilisable.
 > - [x] **Doublon supprimé** (2026-08-06, sur décision explicite de Salim).
 >   `25463f01-a148-4304-8f35-a38e6d7efcfb` — « Diaspora Niger — CA », créé le
 >   20/07 par la recherche qui échouait. Avant suppression, les **neuf** tables
