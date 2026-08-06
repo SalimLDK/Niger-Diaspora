@@ -5330,6 +5330,77 @@ explicitement d'un rapatriement** — sinon chaque correctif sera retrouvé une
 troisième fois. Non fait ici : c'est une fusion de 16 commits sur une branche
 qu'un agent tiers réécrit en parallèle.
 
+✅ **Rapatriement fait le 2026-08-06** — pas par la fusion préparée ici mais
+par une session parallèle, dans l'autre sens (`098414c`, `7d0758c` : la
+branche partagée fusionnée dans `claude/silly-liskov-1e9d62`, puis ramenée).
+Vérifié : `git merge-base --is-ancestor claude/silly-liskov-1e9d62 HEAD` répond
+oui. La branche de fusion préparée est devenue **en retard de 511 lignes** sur
+HEAD et aurait annulé la passe l10n de Jules ; elle a été supprimée (locale,
+distante, worktree). Leçon retenue en mémoire : deux sessions sur la même
+branche doivent avoir des périmètres disjoints.
+
+---
+
+## Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)
+
+`_buildConversationList` branchait sur `filtered.isEmpty`, c'est-à-dire la
+liste **après** application de la puce de filtre, et rendait alors la fiche 9e :
+« Aucune conversation », « Commencez à discuter avec les membres de la
+diaspora », le bouton « Nouvelle conversation », la ligne sur le chiffrement.
+
+Sur la puce **« Non lus »** d'un compte dont tout est lu, les trois phrases
+étaient fausses et l'action ne répondait pas au problème : il n'y avait rien à
+commencer, il fallait revenir à « Tous ». Idem pour **« Groupes »** sur un
+compte sans conversation de groupe — et c'est le cas du compte de test.
+
+Les libellés justes existaient déjà dans les **deux** `.arb` —
+`noUnreadMessages`, `noGroupConversations`, `showAllConversations` — mais
+**aucun n'était référencé nulle part dans `lib/`**. La branche avait été prévue
+puis oubliée. Aucun `.arb` n'a donc été touché (donc aucune collision avec la
+passe l10n en cours).
+
+Verrouillé par `test/features/messages/etat_vide_filtre_test.dart` (6 cas,
+dont l'ordre des gardes et la non-mort des trois clés). Test de structure,
+comme `reglages_sans_doublon_test.dart` : monter `MessagesScreen` exigerait
+l10n, GoRouter, une session Supabase et une dizaine de providers, et
+`_buildConversationList` est privée.
+
+- [ ] **Puce « Non lus », tout étant lu** : « Aucun message non lu » + le lien
+      « Afficher toutes les conversations », et **pas** la fiche 9e. Le lien
+      doit ramener sur « Tous » avec la liste complète.
+- [ ] **Puce « Groupes » sur un compte sans groupe** : « Aucune conversation de
+      groupe », même sortie.
+- [ ] **Messagerie réellement vide** (compte neuf) : la fiche 9e s'affiche
+      toujours, elle — c'est elle qu'on ne voulait pas perdre.
+- [ ] **Archives vides** et **recherche sans résultat** : inchangés, ils ont
+      leurs propres états vides depuis toujours.
+- [ ] **Thème sombre** sur les deux nouveaux états : l'icône est posée à
+      `textTertiaryColor` à 50 %, le texte à `textSecondaryColor` — vérifier
+      qu'ils restent lisibles.
+
+### Le `country_code` n'est plus un problème (vérifié en base le 2026-08-06)
+
+Signalé plus haut comme défaut ouvert « les codes pays mélangent ISO et noms ».
+**C'est faux depuis la fusion** : `6627217` normalise à l'écriture et `a1a7190`
+a repris l'existant. Relevé en base ce jour :
+
+| table | valeurs |
+|---|---|
+| `groups.country_code` | `NE` ×3, `CA` ×1, `null` ×1 |
+| `users.country_code` | `null` ×5, `CA` ×2, `NE` ×2, `BF` ×1 |
+
+Et le mappage du profil est cohérent des deux côtés :
+`profile_supabase_datasource.dart` lit `'currentCountry': row['country_code']`
+et écrit via `CountryExtension.toIsoCode(...)`. Rien à corriger.
+
+⚠️ **Reste une arête, non corrigée** : un groupe dont `country_code` est `null`
+(il y en a un) est invisible dans « Découvrir » dès qu'un filtre pays est
+actif — et l'app en pose un **toute seule** au premier affichage
+(`_loadDefaultCountryFilter`). `_applyFilters` fait `g.country ==
+_selectedCountry`, ce qui écarte les nuls sans que l'utilisateur ait rien
+demandé. À trancher : soit le filtre par défaut ne s'applique plus aux groupes
+sans pays, soit `country_code` devient obligatoire à la création.
+
 ---
 
 ## Comment tester (rappel de la config utilisée précédemment)
