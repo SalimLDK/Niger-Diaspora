@@ -93,21 +93,14 @@ class CallMessageService {
       debugPrint('appel: Message written to RTDB at ${messageRef.path}');
 
       // Mettre à jour la conversation dans Supabase avec le dernier message
-      final existing = await Supabase.instance.client
-          .from('conversations')
-          .select('data')
-          .eq('id', convId)
-          .maybeSingle();
-      final data = Map<String, dynamic>.from(existing?['data'] as Map? ?? {});
-      data['last_message'] = messageContent;
-      data['last_message_at'] = DateTime.now().toUtc().toIso8601String();
-      data['last_message_sender_id'] = currentUserId;
-      data['last_message_type'] = 'call';
-      data['last_call_status'] = callStatus;
-      await Supabase.instance.client
-          .from('conversations')
-          .update({'data': data, 'updated_at': DateTime.now().toUtc().toIso8601String()})
-          .eq('id', convId);
+      // (clés `data` en camelCase + colonne top-level `last_message_at` —
+      // voir _updateConversationLastMessage)
+      await _updateConversationLastMessage(
+        convId,
+        text: messageContent,
+        senderId: currentUserId,
+        at: now,
+      );
 
       debugPrint('appel: Supabase conversation updated');
       debugPrint(
@@ -153,19 +146,23 @@ class CallMessageService {
       }
 
       // Créer une nouvelle conversation
+      // Même schéma que MessageSupabaseDataSource.createIndividualConversation :
+      // `data` en camelCase, `created_by`/`last_message_at` sont des colonnes
+      // top-level (les dupliquer en snake_case dans `data` ne fait qu'écrire
+      // des clés mortes, jamais lues par ConversationModel.fromJson).
       debugPrint('appel: Creating new conversation...');
       final newId = const Uuid().v4();
+      final now = DateTime.now().toUtc().toIso8601String();
       await Supabase.instance.client.from('conversations').insert({
         'id': newId,
         'type': 'individual',
         'participant_ids': [user1Id, user2Id],
         'created_by': user1Id,
-        'created_at': DateTime.now().toUtc().toIso8601String(),
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
+        'created_at': now,
+        'updated_at': now,
         'data': {
-          'created_by': user1Id,
-          'unread_counts': {user1Id: 0, user2Id: 0},
-          'last_message_at': DateTime.now().toUtc().toIso8601String(),
+          'unreadCount': {user1Id: 0, user2Id: 0},
+          'requestStatus': 'none',
         },
       });
       debugPrint('appel: New conversation created: $newId');
@@ -174,6 +171,64 @@ class CallMessageService {
       debugPrint('appel: ERROR _getOrCreateConversation - $e');
       return null;
     }
+  }
+
+  /// Met à jour l'aperçu de dernier message de la conversation et incrémente
+  /// les compteurs non lus des autres participants.
+  ///
+  /// Reflète exactement `MessageSupabaseDataSource._updateConversationLastMessage`
+  /// / `BackgroundReplyService._updateConversationLastMessage` : mêmes clés
+  /// `data` en camelCase (`lastMessage`, `lastMessageSenderId`,
+  /// `lastMessageType`, `unreadCount`...) et même colonne top-level
+  /// `last_message_at`. Un ancien jeu de clés snake_case ici (`last_message`,
+  /// `last_message_sender_id`, `last_message_type`) écrivait dans des champs
+  /// que l'UI ne lisait jamais — l'aperçu et le badge non-lu ne se mettaient
+  /// jamais à jour pour les conversations initiées par un appel.
+  Future<void> _updateConversationLastMessage(
+    String conversationId, {
+    required String text,
+    required String senderId,
+    required String at,
+  }) async {
+    final rows = await Supabase.instance.client
+        .from('conversations')
+        .select('data, participant_ids')
+        .eq('id', conversationId)
+        .limit(1);
+    if (rows.isEmpty) return;
+
+    final current = Map<String, dynamic>.from(
+      (rows.first['data'] as Map<String, dynamic>?) ?? {},
+    );
+    final participantIds = List<String>.from(
+      rows.first['participant_ids'] as List? ?? [],
+    );
+
+    final unreadCount = Map<String, dynamic>.from(
+      current['unreadCount'] as Map? ?? {},
+    );
+    for (final pid in participantIds) {
+      if (pid != senderId) {
+        final cur = (unreadCount[pid] as int?) ?? 0;
+        unreadCount[pid] = cur + 1;
+      }
+    }
+
+    final updated = {
+      ...current,
+      'lastMessage': text,
+      'lastMessageSenderId': senderId,
+      'lastMessageType': 'call',
+      'lastMessageStatus': 'sent',
+      'unreadCount': unreadCount,
+      'lastMessageReadBy': [senderId],
+      'lastMessageDeliveredTo': [senderId],
+    };
+
+    await Supabase.instance.client
+        .from('conversations')
+        .update({'last_message_at': at, 'data': updated})
+        .eq('id', conversationId);
   }
 
   /// S'assure que les participants existent dans RTDB pour les permissions d'écriture

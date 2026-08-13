@@ -54,6 +54,51 @@ tout ça n'exerce le vrai réveil d'isolate Android ni Supabase.
 - [ ] Action « Marquer comme lu » depuis une notification → le compteur non
   lu de la conversation redescend à 0 dans la liste des conversations.
 
+## Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour (2026-08-13)
+
+Même famille de bug que la réponse rapide depuis une notification
+ci-dessus. [call_message_service.dart](lib/core/services/call_message_service.dart)
+écrivait l'aperçu de dernier message dans `conversations.data` avec des clés
+snake_case (`last_message`, `last_message_sender_id`, `last_message_type`,
+`unread_counts` à la création d'une conversation 1:1) alors que
+`ConversationModel.fromJson`/`_convFromRow`
+([message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart))
+et tout le reste du pipeline d'envoi lisent des clés camelCase
+(`lastMessage`, `lastMessageSenderId`, `lastMessageType`, `unreadCount`).
+En plus de la casse, la colonne top-level `last_message_at` (celle qui
+pilote le tri `.order('last_message_at', ...)` de la liste des
+conversations) n'était jamais mise à jour — seule une copie morte dans
+`data` l'était — et **aucun** compteur non lu n'était incrémenté après un
+appel sur une conversation déjà existante (seule la création en écrivait
+un, et en snake_case). Concrètement : après un appel, la conversation ne
+remontait pas en tête de liste, l'aperçu affichait l'ancien dernier
+message texte au lieu de « 📞 Appel manqué », et le badge non-lu du
+destinataire ne s'incrémentait jamais.
+
+Correctif : nouvelle méthode privée `_updateConversationLastMessage`
+dans `call_message_service.dart`, calquée sur celle de
+`MessageSupabaseDataSource`/`BackgroundReplyService` (mêmes clés
+camelCase, même colonne top-level `last_message_at`, incrément
+`unreadCount` pour tous les participants sauf l'auteur de l'appel). La
+création de conversation 1:1 (`_getOrCreateConversation`) écrit
+maintenant `unreadCount`/`requestStatus` comme
+`createIndividualConversation`, sans plus dupliquer `created_by`/
+`last_message_at` (colonnes top-level) dans `data`. `flutter analyze`
+propre, mais rien de tout ça n'exerce un vrai appel WebRTC/coturn ni
+Supabase.
+
+- [ ] Passer ou recevoir un appel (audio ou vidéo), le laisser sonner sans
+  décrocher puis raccrocher → dans la liste des conversations, la
+  conversation remonte en tête et l'aperçu affiche « 📞 Appel {audio/vidéo}
+  manqué/refusé/sortant » (pas l'ancien dernier message texte).
+- [ ] Depuis le téléphone qui n'a **pas** initié l'appel, vérifier que le
+  badge non-lu de cette conversation s'incrémente après l'appel (et
+  redescend à 0 en rouvrant la conversation).
+- [ ] Passer un premier appel vers un contact sans conversation 1:1
+  existante → une nouvelle conversation est créée et apparaît normalement
+  dans la liste (aperçu + badge), pas seulement après l'envoi d'un
+  message texte ultérieur.
+
 ## Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)
 
 Signal (1:1) et Sender Key (groupes) avancent un ratchet à sens unique à
