@@ -31,21 +31,28 @@ cet emoji, pas sur l'utilisateur courant). L'onglet « Réactions » de la fiche
 message ([message_info_sheet.dart](lib/features/messages/presentation/widgets/message_info_sheet.dart))
 chargeait en plus depuis un service RTDB Firebase mort (`MessageActionService`)
 que les vraies réactions Supabase n'ont jamais alimenté — toujours vide en
-pratique ; il lit maintenant `message.reactions` directement. `flutter
-analyze`/`flutter test` propres, mais rien de tout ça n'a été vu sur un
-appareil réel (gestes de sélection, surbrillance de « ma » réaction,
-remplacement d'un emoji par un autre, onglet « qui a réagi »).
+pratique ; il lit maintenant `message.reactions` directement.
 
-- [ ] Poser une réaction (double-tap ou appui long → sélecteur rapide), la
-  voir apparaître avec la bonne surbrillance (bordure/fond teintés).
-- [ ] Reposer la même réaction → elle disparaît (toggle off).
-- [ ] Poser un emoji différent sur un message déjà réagi par soi → remplace
-  l'ancien, ne l'additionne pas.
+- [x] **Poser une réaction (appui long → sélecteur rapide), la voir
+  apparaître avec la bonne surbrillance — VÉRIFIÉ SUR SM A515F (2026-08-13)** :
+  compte « Sim A », groupe « Groupe de test privé ». Le chip ❤️ apparaît avec
+  bordure/fond teintés (couleur d'accent), et un appui long ultérieur montre
+  bien l'émoji comme sélectionné dans la rangée rapide.
+- [x] **Reposer la même réaction → elle disparaît (toggle off) — VÉRIFIÉ SUR
+  SM A515F (2026-08-13)** : re-sélectionner 😂 depuis la rangée rapide retire
+  le chip.
+- [x] **Poser un emoji différent sur un message déjà réagi par soi →
+  remplace l'ancien, ne l'additionne pas — VÉRIFIÉ SUR SM A515F (2026-08-13)** :
+  ❤️ posé, puis 😂 sélectionné → un seul chip (😂) reste affiché, pas deux.
+- [x] **Fiche message (appui sur l'accusé « Envoyé ») → onglet Réactions liste
+  qui a réagi et avec quel emoji — VÉRIFIÉ SUR SM A515F (2026-08-13)** :
+  « Réactions · 1 » dans les onglets, détail « Sim A — ❤️ » correct. Avant le
+  correctif cet onglet était toujours vide (service RTDB mort) ; confirmé
+  qu'il lit maintenant la vraie donnée.
 - [ ] Deux comptes différents réagissant au même message avec le même emoji
   → le chip affiche bien un compteur à 2, et chacun ne peut retirer que sa
-  propre réaction.
-- [ ] Fiche message (appui long → « Infos ») → onglet Réactions liste
-  effectivement qui a réagi et avec quel emoji.
+  propre réaction. **Pas vérifiable avec un seul appareil/compte** — nécessite
+  un deuxième testeur ou compte connecté ailleurs.
 
 ---
 
