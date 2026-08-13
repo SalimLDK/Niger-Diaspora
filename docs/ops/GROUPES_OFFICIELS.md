@@ -34,6 +34,37 @@ conserve de droit de gestion implicite sur ce groupe. Vérifié sur SM A515F,
 connecté sous un compte tiers (Sim A) : « Membres · 3 », ligne créateur sans
 tap possible, cohérente partout sur la fiche.
 
+## Le bug était structurel, pas seulement historique
+
+Ce groupe n'a pas été créé à la main : `get_or_create_official_group()`
+(RPC appelée automatiquement par `ProfileNotifier._joinOfficialCountryGroup`
+dès qu'un profil renseigne un `countryCode` sans groupe officiel existant)
+tentait bien de poser `creator_id = 'system_official'`, mais
+`enforce_group_creator_trigger` (BEFORE INSERT sur `groups`) écrase
+**toujours** `creator_id` par l'identité de l'appelant, quoi que l'INSERT
+tente de poser — c'est ce qui a produit ce groupe avec le compte perso du
+premier utilisateur ayant renseigné le Canada.
+
+Pire : depuis le 2026-08-06, `groups_guard_official` (voir plus bas) refuse
+l'INSERT entier pour tout appelant qui n'est pas admin plateforme. Comme la
+RPC tourne dans la session de l'utilisateur normal qui vient de renseigner
+son pays, **plus aucun groupe officiel ne pouvait être créé pour un nouveau
+pays depuis cette date** — en échec silencieux, l'erreur 42501 étant avalée
+par `_joinOfficialCountryGroup` (`(failure) async {}`, best-effort assumé).
+
+**Corrigé** (migration
+`20260813233000_fix_official_group_creator_and_admin.sql`) : la RPC
+désactive les deux triggers concernés le temps du seul INSERT qui doit porter
+le compte plateforme plutôt que l'appelant — même technique que la migration
+des groupes hérités du 2026-08-06 (transactionnel, `ALTER TABLE ...
+DISABLE/ENABLE TRIGGER` dans le même bloc, un échec annule tout par
+ROLLBACK) — puis pose la ligne `group_members role='owner'` manquante.
+Testé en rejouant l'appel sous une identité non-admin réelle, dans une
+transaction annulée par `ROLLBACK` (`SET LOCAL request.jwt.claims`) : plus
+d'exception, `creator_id` correctement posé sur le compte plateforme,
+`member_count` correct. Le chemin « pays déjà couvert » (retour anticipé,
+aucun INSERT) reste inchangé et vérifié intact.
+
 ## Règle pour tout nouveau groupe officiel
 
 1. **`creator_id` doit être le compte plateforme**, jamais un compte
@@ -52,7 +83,13 @@ tap possible, cohérente partout sur la fiche.
    groupe**, à prendre et documenter explicitement (ligne `group_members`
    dédiée) — jamais un effet de bord de la création.
 
-## Étapes concrètes (compte plateforme déjà amorcé)
+Un nouveau pays n'a donc plus besoin d'étapes manuelles : la RPC
+`get_or_create_official_group` provisionne désormais correctement, avec le
+bon `creator_id` et le bon `group_members`. Les étapes SQL ci-dessous ne
+servent plus qu'à un groupe officiel **hors de ce mécanisme** (pas rattaché
+à un pays) ou à un futur compte plateforme distinct.
+
+## Étapes concrètes (compte plateforme déjà amorcé, hors flux pays)
 
 ```sql
 -- 1. Marquer le groupe officiel et lui donner sa vraie identité de créateur

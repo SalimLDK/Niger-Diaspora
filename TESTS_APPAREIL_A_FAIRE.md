@@ -6675,6 +6675,27 @@ pour la migration des groupes hérités).
   « Salim L. » apparaît comme 3e membre (compte déjà présent en base,
   simplement jamais vu résolu avant ce test).
 
+**Bug structurel trouvé en vérifiant qu'aucun autre groupe officiel n'avait
+été oublié** : la RPC `get_or_create_official_group` (déclenchée
+automatiquement à chaque profil qui renseigne un pays) reproduisait le même
+défaut pour tout NOUVEAU pays — et depuis le 2026-08-06
+(`groups_guard_official`), échouait carrément en silence (42501 avalé côté
+app), donc plus aucun groupe officiel n'était créé pour un pays inédit.
+Corrigé par migration (`20260813233000_fix_official_group_creator_and_admin.sql`) :
+la RPC désactive les deux triggers concernés le temps de son propre INSERT,
+pose le compte plateforme comme `creator_id`, et ajoute la ligne
+`group_members role='owner'` manquante. Détail dans
+`docs/ops/GROUPES_OFFICIELS.md`.
+
+- [x] **Testé en base (pas sur appareil — aucun compte de test n'a de pays
+  encore sans groupe officiel)** : rejoué sous une identité non-admin réelle
+  (`U64HKfrjM5NwR6HO00XPKo6168z2`), dans une transaction annulée par
+  `ROLLBACK` (`SET LOCAL request.jwt.claims`). Cas nouveau pays (France,
+  simulé) : plus d'exception, `creator_id` = compte plateforme,
+  `member_count = 1`, aucune trace laissée par le ROLLBACK, les 4 triggers de
+  `groups` réactivés après coup. Cas pays déjà couvert (Canada) : retour
+  identique à avant, aucun INSERT déclenché.
+
 ---
 
 ## Comment tester (rappel de la config utilisée précédemment)
