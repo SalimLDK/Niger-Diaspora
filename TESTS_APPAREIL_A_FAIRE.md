@@ -14,6 +14,26 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Retour à la ligne des bulles de discussion après l'agrandissement du texte (2026-08-13)
+
+`fontSize` du texte des bulles porté à 17 (texte, liens, mentions) et padding
+interne desserré (14/10/8) dans
+[message_bubble.dart:2156](lib/features/messages/presentation/widgets/message_bubble.dart:2156)
+— la taille précédente (15, puis 16) était jugée trop petite. Vérifié sur
+SM A515F : les bulles existantes (messages courts « Salut », « Yo », « Hi »)
+s'affichent sans overflow, mais un essai d'envoi d'un message long depuis
+l'appareil (`adb shell input text`) n'a pas abouti — le champ ne recevait pas
+le texte tapé — donc le retour à la ligne sur un message qui remplit toute la
+largeur de la bulle n'a jamais été vu en vrai à cette taille de police.
+
+- [ ] **Envoyer un vrai message long** (plusieurs phrases, au doigt ou via un
+      champ correctement focus) dans une discussion 1:1 et en groupe, et
+      vérifier que le texte se replie proprement dans la bulle sans dépasser
+      ni tronquer, avec `font_scale` par défaut **et** à 1.1 (piège connu,
+      cf. section « Comment tester » plus bas).
+
+---
+
 ## Cartographie des accès `anon` réellement nécessaires (2026-08-13)
 
 Suite à l'audit des RPC (section suivante) : `anon` a INSERT/UPDATE/DELETE/SELECT
@@ -3025,7 +3045,11 @@ explicitement tracé.
 ## Groupes & événements en conversation
 
 - [ ] **Bulle `EventMessageCard` en conversation + différenciation groupe** (commit `267d7d3`) : visibilité « publier dans le fil » DM/groupe, badge Admin sur les bulles, « Vu par N » sur messages de groupe lus, boutons appel/vidéo de groupe dans l'app bar, auto-adhésion au groupe pays au chargement du profil — aucun sous-élément vérifié sur device.
-- [ ] **Alignement des bulles reçues dans une série de groupe** (`message_bubble.dart`) : le padding gauche des messages reçus en groupe passait de 8 (avatar affiché sur le 1er message d'une série) à 16 (pas d'avatar sur les suivants) — un saut de 28px, les bulles d'une même série n'étaient pas alignées verticalement. Corrigé en réservant toujours la largeur de l'avatar (`SizedBox(width: 28)` en son absence) pour tout message reçu d'un groupe (`groupId` non nul). `flutter analyze` propre ; non vérifié sur device (rendu visuel, pas testable par l'analyseur).
+- [x] **Alignement des bulles reçues dans une série de groupe — CORRIGÉ ET VÉRIFIÉ SUR APPAREIL** (`message_bubble.dart`, `conversation_screen.dart`, SM A515F, 2026-08-13). Deux défauts distincts trouvés sur le même chemin :
+  1. Le padding gauche des messages reçus en groupe passait de 8 (avatar affiché sur le 1er message d'une série) à 16 (pas d'avatar sur les suivants) — saut de 28px, bulles non alignées verticalement dans une même série. Corrigé en réservant toujours la largeur de l'avatar (`SizedBox(width: 28)` en son absence) pour tout message reçu d'un groupe (`groupId` non nul).
+  2. **Avatar dupliqué** — `conversation_screen.dart` enveloppait `MessageBubble` dans SA PROPRE colonne avatar (radius 12, gris, sans badge vérifié ni tap-profil) pour tout message de groupe reçu, en plus de l'avatar interne de `MessageBubble` (radius 14, coloré) : deux cercles « S » côte à côte sur chaque message montrant l'expéditeur. Les deux branches du ternaire `_isGroup && !isMe ? Row(...) : MessageBubble(...)` construisaient `MessageBubble` avec des paramètres strictement identiques — le wrapper était mort code redondant. Supprimé, un seul appel `MessageBubble(...)` désormais.
+
+  Vérifié sur le groupe « teste » (messages réels de Salim L., série de 2 sur 18 juillet 2026) : un seul avatar par message, bulles alignées au même bord gauche que le message montre le nom/avatar ou non.
 
 ## Sécurité / Comptes connectés
 
