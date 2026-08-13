@@ -82,13 +82,16 @@ jamais atteint. Corrigé côté client
 `_showLocalNotification`, et son payload est du JSON valide (l'ancien
 `'message:$conversationId'` aurait fait échouer même un simple tap). Mais
 tant que `send-push` envoie encore le bloc `notification`, ce correctif
-client ne s'exécute jamais dans le cas courant — **correctif serveur requis**
-(passer les messages `type === 'message'` en `data`-only, en reconstruisant
-`aps.alert` explicitement pour ne pas perdre l'alerte iOS) avant que la
-réponse rapide soit utilisable en pratique. Pas déployé — à valider avec
-Salim avant tout `supabase functions deploy send-push` (fonction de
-production partagée par toutes les notifications de message, tous
-utilisateurs).
+client ne s'exécute jamais dans le cas courant. **Correctif serveur fait et
+déployé le 2026-08-13** (confirmation de Salim avant déploiement) :
+[supabase/functions/send-push/index.ts](supabase/functions/send-push/index.ts)
+envoie désormais les messages `type === 'message'` en pur `data`-only (pas
+de bloc `notification` ni `android.notification`), avec `aps.alert`
+reconstruit explicitement côté APNs pour ne pas perdre l'alerte iOS. Les
+autres types de notification (amis, groupes, événements...) gardent le bloc
+`notification` classique — comportement inchangé, aucune action requise pour
+eux. Reste à confirmer sur appareil que ça fait bien apparaître les boutons
+en pratique (test en cours).
 
 ## Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour (2026-08-13)
 

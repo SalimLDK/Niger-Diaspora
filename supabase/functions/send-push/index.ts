@@ -311,6 +311,39 @@ Deno.serve(async (req) => {
 
     const dead: string[] = []
 
+    // Les messages sont envoyés en **data-only** (pas de bloc `notification`
+    // top-level) : sur Android, un bloc `notification` présent fait que le
+    // système affiche lui-même la bannière dès que l'app est en
+    // arrière-plan, SANS jamais invoquer `onBackgroundMessage` côté Dart —
+    // vérifié sur SM A515F le 2026-08-13 (`adb logcat` : la notification est
+    // postée directement par le `NotificationService` système à
+    // l'horodatage du push, aucune ligne Flutter ne s'exécute). Résultat :
+    // le client ne peut jamais construire la notification lui-même, donc
+    // jamais lui attacher les actions Répondre/Marquer comme lu. Tous les
+    // autres types de notification gardent le bloc `notification` classique
+    // (affichage natif suffisant, pas d'action requise).
+    //
+    // `content-available: 1` (déjà dans `aps`) reste nécessaire pour réveiller
+    // l'app iOS en arrière-plan ; sans bloc `notification` top-level, l'alerte
+    // iOS doit être reconstruite explicitement dans `aps.alert`, sinon aucune
+    // bannière ne s'affiche côté iOS.
+    const isMessageType = type === 'message'
+    const fcmMessage: Record<string, unknown> = isMessageType
+      ? {
+          data: dataMap,
+          android: { priority: 'high' },
+          apns: {
+            headers: apnsHeaders,
+            payload: { aps: { ...aps, alert: { title, body } } },
+          },
+        }
+      : {
+          notification: { title, body },
+          data: dataMap,
+          android: { priority: 'high', notification: androidNotification },
+          apns: { headers: apnsHeaders, payload: { aps } },
+        }
+
     await Promise.all(
       tokens.map(async (token) => {
         const res = await fetch(
@@ -322,19 +355,7 @@ Deno.serve(async (req) => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              message: {
-                token,
-                notification: { title, body },
-                data: dataMap,
-                android: {
-                  priority: 'high',
-                  notification: androidNotification,
-                },
-                apns: {
-                  headers: apnsHeaders,
-                  payload: { aps },
-                },
-              },
+              message: { token, ...fcmMessage },
             }),
           },
         )
