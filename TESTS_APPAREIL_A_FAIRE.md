@@ -6513,6 +6513,26 @@ comme les autres lectures.
   L.), et « Tout voir » ouvre la liste immédiatement au lieu de tourner dans
   le vide.
 
+**Cause n°3 — signalée par Salim en relisant le screenshot ci-dessus** : la
+ligne « Créateur » affichait « Sim A · Étudiant », alors que le bas de la même
+fiche affiche « Créé par Diaspo Niger ». Vérifié en base
+(`supabase db query --linked`) : pour ce groupe `is_official=true`,
+`creator_id` pointe en fait vers le compte perso de Sim A
+(`vQZE49dTdyRtLwSG6lMIbhAqoFG2`) avec `creator_name` forcé à « Diaspo Niger »
+— contrainte de la base, pas un vrai compte plateforme séparé. La ligne
+« Créateur » suivait le profil réel lié à `creator_id` au lieu de l'identité
+`creator_name` déjà affichée ailleurs sur la fiche.
+
+Corrigé côté affichage uniquement (la réassignation en base d'un vrai compte
+plateforme pour les groupes officiels reste à discuter séparément) :
+`_MemberListItem` (`group_detail_screen.dart` et `group_members_screen.dart`)
+affiche `group.creatorName` — et masque la profession — pour la ligne
+créateur quand `group.isOfficial` est vrai.
+
+- [x] **Vérifié sur SM A515F** : la ligne créateur affiche désormais
+  « Diaspo Niger · Créateur » (sans profession) sur la fiche ET sur l'écran
+  « Tout voir », cohérent avec « Créé par Diaspo Niger » en bas de fiche.
+
 ---
 
 ## Comment tester (rappel de la config utilisée précédemment)

@@ -327,10 +327,25 @@ class _MemberListItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final profileAsync = ref.watch(userStreamProvider(memberId));
+    // Sur un groupe officiel, `creator_id` pointe vers un compte perso
+    // (contrainte de la base, pas un vrai compte plateforme) : sans ce
+    // repli, la ligne « Créateur » affichait le profil personnel — nom et
+    // profession — au lieu de l'identité affichée partout ailleurs sur la
+    // fiche (« Créé par Diaspo Niger »).
+    final isOfficialCreator = isCreator && group.isOfficial;
 
     return profileAsync.when(
       data: (profile) {
-        if (profile == null) return const SizedBox.shrink();
+        if (profile == null && !isOfficialCreator) {
+          return const SizedBox.shrink();
+        }
+
+        final displayName =
+            isOfficialCreator
+                ? (group.creatorName ?? profile?.displayName ?? l10n.member)
+                : (profile?.displayName ?? l10n.member);
+        final photoUrl = isOfficialCreator ? null : profile?.photoUrl;
+        final profession = isOfficialCreator ? null : profile?.profession;
 
         return Card(
           elevation: 0,
@@ -341,7 +356,11 @@ class _MemberListItem extends ConsumerWidget {
             side: BorderSide(color: context.borderColor.withValues(alpha: 0.5)),
           ),
           child: ListTile(
-            onTap: onTap,
+            // Le nom affiché est celui de la plateforme, mais `memberId` reste
+            // le compte perso réel derrière `creator_id` : un tap menait à SA
+            // fiche profil, donnant accès à ce que la ligne prétend
+            // justement ne pas montrer.
+            onTap: isOfficialCreator ? null : onTap,
             onLongPress:
                 canModerate ? () => _showMemberOptions(context, ref) : null,
             leading: Container(
@@ -352,11 +371,11 @@ class _MemberListItem extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child:
-                  profile.photoUrl != null
+                  photoUrl != null
                       ? ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: CachedNetworkImage(
-                          imageUrl: profile.photoUrl!,
+                          imageUrl: photoUrl,
                           fit: BoxFit.cover,
                           placeholder:
                               (_, __) => Icon(
@@ -376,7 +395,7 @@ class _MemberListItem extends ConsumerWidget {
               children: [
                 Flexible(
                   child: Text(
-                    profile.displayName ?? l10n.member,
+                    displayName,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -451,9 +470,9 @@ class _MemberListItem extends ConsumerWidget {
               ],
             ),
             subtitle:
-                profile.profession != null
+                profession != null
                     ? Text(
-                      profile.profession!,
+                      profession,
                       style: TextStyle(
                         fontSize: 12,
                         color: context.textTertiaryColor,
@@ -461,11 +480,14 @@ class _MemberListItem extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     )
                     : null,
-            trailing: Icon(
-              Icons.arrow_forward_ios,
-              size: 14,
-              color: context.textTertiaryColor,
-            ),
+            trailing:
+                isOfficialCreator
+                    ? null
+                    : Icon(
+                      Icons.arrow_forward_ios,
+                      size: 14,
+                      color: context.textTertiaryColor,
+                    ),
           ),
         );
       },

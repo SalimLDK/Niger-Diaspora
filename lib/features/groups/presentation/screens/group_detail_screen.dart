@@ -735,6 +735,13 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                 isAdmin: group.adminIds.contains(group.creatorId),
                 isModerator: group.isModerator(group.creatorId),
                 isCreator: true,
+                // Sur un groupe officiel, `creator_id` pointe vers un compte
+                // perso (contrainte de la base) : sans ce repli, la ligne
+                // affichait son profil — nom et profession — au lieu de
+                // l'identité déjà montrée juste en dessous (« Créé par
+                // Diaspo Niger »).
+                officialCreatorName:
+                    group.isOfficial ? group.creatorName : null,
                 onTap: () => context.push('/profile/${group.creatorId}'),
               ),
               // Afficher les autres membres ou un message s'il n'y en a pas
@@ -804,12 +811,18 @@ class _MemberListItem extends ConsumerWidget {
   final bool isModerator;
   final bool isCreator;
   final VoidCallback onTap;
+  // Non nul seulement pour la ligne du créateur d'un groupe OFFICIEL :
+  // `creator_id` y pointe vers un compte perso (contrainte de la base), donc
+  // sans ce repli la ligne affichait ce profil perso au lieu de l'identité
+  // affichée partout ailleurs sur la fiche.
+  final String? officialCreatorName;
 
   const _MemberListItem({
     required this.memberId,
     required this.isAdmin,
     this.isModerator = false,
     required this.isCreator,
+    this.officialCreatorName,
     required this.onTap,
   });
 
@@ -821,12 +834,20 @@ class _MemberListItem extends ConsumerWidget {
     return profileAsync.when(
       data: (profile) {
         // Afficher un placeholder si le profil n'est pas trouvé
-        final displayName = profile?.displayName ?? l10n.member;
-        final photoUrl = profile?.photoUrl;
-        final profession = profile?.profession;
+        final displayName =
+            officialCreatorName ?? profile?.displayName ?? l10n.member;
+        final photoUrl = officialCreatorName != null ? null : profile?.photoUrl;
+        final profession = officialCreatorName != null ? null : profile?.profession;
+
+        // Le nom affiché est celui de la plateforme, mais `memberId` reste le
+        // compte perso réel derrière `creator_id` : un tap menait à SA fiche
+        // profil (nom, profession, photo réels), donnant accès à ce que la
+        // ligne prétend justement ne pas montrer. La ligne créateur
+        // officielle n'est donc pas cliquable.
+        final isOfficialCreator = officialCreatorName != null;
 
         return ListTile(
-          onTap: onTap,
+          onTap: isOfficialCreator ? null : onTap,
           leading: Container(
             width: 44,
             height: 44,
@@ -944,11 +965,14 @@ class _MemberListItem extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   )
                   : null,
-          trailing: Icon(
-            Icons.arrow_forward_ios,
-            size: 14,
-            color: context.textTertiaryColor,
-          ),
+          trailing:
+              isOfficialCreator
+                  ? null
+                  : Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: context.textTertiaryColor,
+                  ),
         );
       },
       loading:
