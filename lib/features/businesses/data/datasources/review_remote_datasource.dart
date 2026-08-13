@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/firebase_collections.dart';
+import '../../../../core/errors/app_error_messages.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../models/review_model.dart';
@@ -47,7 +48,7 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       Query query = _reviewsCollection
@@ -78,7 +79,7 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       final snapshot = await _reviewsCollection
@@ -102,7 +103,7 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       final snapshot = await _reviewsCollection
@@ -121,7 +122,7 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       // Verifier si l'utilisateur a deja laisse un avis pour ce business
@@ -155,7 +156,7 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       final data = review.toJson();
@@ -178,7 +179,7 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       await _reviewsCollection.doc(reviewId).delete();
@@ -192,7 +193,7 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       await _reviewsCollection.doc(reviewId).update({
@@ -209,7 +210,7 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       await _reviewsCollection.doc(reviewId).update({
@@ -230,7 +231,7 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       // Creer un rapport

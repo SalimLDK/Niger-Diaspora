@@ -17,11 +17,25 @@ disparaissent.
 
 ```bash
 git worktree add -b claude/<sujet> .claude/worktrees/<sujet> HEAD
-cp .env functions/.env .claude/worktrees/<sujet>/   # ignorés par git, requis
+W=.claude/worktrees/<sujet>
+cp .env "$W/"                                  # ignorés par git, requis
+cp functions/.env "$W/functions/"
+cp android/key.properties "$W/android/"        # uniquement pour un build release
+cp android/app/diaspo-niger-release.jks "$W/android/app/"
 ```
 
 Sans le `.env` copié, toute commande Flutter échoue sur l'asset manquant.
 Compter ~4 min au premier `flutter analyze` (résolution des paquets).
+
+Les deux derniers ne servent qu'à `flutter build apk --release`, mais leur
+absence ne se voit qu'**au tout dernier moment** : `signingConfigs.release` lit
+`key.properties` derrière un `if (storeFileVal != null)`, donc un fichier
+manquant ne fait pas échouer la configuration — la compilation entière se
+déroule, et c'est `:app:packageRelease` qui tombe sur
+« SigningConfig "release" is missing required property "storeFile" ».
+25 minutes de build perdues le 2026-08-06. Les deux fichiers sont couverts par
+`android/.gitignore` (`key.properties`, `**/*.jks`) : les copier ne risque pas
+de les faire committer.
 
 Pour livrer, pousser directement sur la branche partagée :
 

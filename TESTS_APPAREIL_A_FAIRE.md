@@ -14,6 +14,34 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Accusés livré/lu séparés — sheet infos du message (2026-08-13)
+
+`mark_messages_as_delivered` marquait `readBy`/`readAt` en même temps que
+`deliveredTo`/`deliveredAt`, y compris depuis les handlers de notification
+push (app en arrière-plan ou fermée) : un message passait à « lu » avant même
+que le destinataire ouvre la conversation. Séparé en deux RPC —
+`mark_messages_as_delivered` (livré seul) et `mark_messages_as_read` (lu,
+appelée uniquement à l'ouverture réelle de la conversation) — voir
+[20260813120000_split_delivered_from_read.sql](supabase/migrations/20260813120000_split_delivered_from_read.sql)
+et [message_supabase_datasource.dart:1548](lib/features/messages/data/datasources/message_supabase_datasource.dart:1548).
+
+`flutter analyze` propre, mais rien de tout ça n'est vérifiable sans deux
+comptes réels échangeant un message :
+
+- [ ] **Migration à déployer** (`supabase db push` ou équivalent) avant que
+  `mark_messages_as_read` existe côté distant — tant qu'elle n'est pas
+  déployée, l'appel échoue en silence (best-effort, voir le code) et le
+  comportement reste celui d'avant (lu = livré).
+- [ ] Envoyer un message depuis le compte A à un compte B **avec le compte B
+  hors ligne** (notification push reçue, app fermée) : vérifier dans le sheet
+  infos du message (appui long → Infos) que l'onglet « Livré à » liste B mais
+  que « Lu par » reste vide tant que B n'a pas ouvert la conversation.
+- [ ] Ouvrir la conversation côté B : vérifier que B apparaît alors dans « Lu
+  par », et que le coche du message (côté A) passe au double-coche bleu à ce
+  moment-là, pas avant.
+
+---
+
 ## Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)
 
 Toute l'application vient d'être branchée sur `l10n` : l'admin (0 fichier sur
@@ -4609,12 +4637,23 @@ le second. **Les trois sont corrigés** (2026-08-05), aucun n'est vérifié sur
 appareil.
 
 **1. Chaque ouverture de la discussion de groupe crée une NOUVELLE
-conversation.** « Groupe de test prive » (`yflqsRLMMhTPpiW0NFHx`) a trois
-lignes dans `conversations` : une du 05/08 à 04:13 (1 message), puis une à
-22:14 et une à 22:21 — les deux créées en ouvrant simplement la discussion
-pendant la session. Conséquence visible : l'écran affiche « Aucun message »
-alors qu'un message existe bel et bien, dans une conversation précédente.
-L'historique du groupe se fragmente à chaque entrée.
+conversation.** ✅ **Corrigé le 2026-08-05** (code ; doublons déjà en base non
+encore fusionnés — décision en attente). « Groupe de test prive »
+(`yflqsRLMMhTPpiW0NFHx`) a trois lignes dans `conversations` : une du 05/08 à
+04:13 (1 message), puis une à 22:14 et une à 22:21 — les deux créées en ouvrant
+simplement la discussion pendant la session. Conséquence visible : l'écran
+affiche « Aucun message » alors qu'un message existe bel et bien, dans une
+conversation précédente. L'historique du groupe se fragmente à chaque entrée.
+
+Cause : `MessageSupabaseDataSource.findGroupConversationByGroupId` rendait
+`null` **sans chercher** dès que le `group_id` n'était pas un UUID. Ce
+court-circuit protège l'appel de la RPC `join_group_conversation`, qui casse le
+`group_id` en `uuid` (`22P02`) — mais il faisait croire à
+`createGroupConversation` qu'aucune conversation n'existait, donc il en
+insérait une neuve à chaque ouverture. Les groupes hérités de Firestore ont un
+id de 20 caractères (`yflqsRLMMhTPpiW0NFHx`), pas un UUID : ils étaient les
+seuls touchés — ce que la base confirme, les 3 groupes à id UUID ont exactement
+une conversation chacun, le groupe hérité en avait trois.
 
 **CORRIGÉ (2026-08-05), non vérifié sur appareil.** Cause :
 `findGroupConversationByGroupId` (`message_supabase_datasource.dart`) faisait
@@ -4644,6 +4683,21 @@ sans pouvoir vérifier son appartenance ouvrirait n'importe quelle conversation
 de groupe hérité à n'importe qui. À traiter avec la migration des groupes
 hérités.
 
+Le garde `_isUuid` n'existe qu'à cet endroit, vérifié sur tout `lib/` — pas
+d'autre occurrence du même piège à corriger.
+
+**Verrou base proposé, non appliqué** :
+`supabase/migrations/20260806230000_conversations_une_par_groupe.sql` (index
+unique partiel sur `group_id` pour `type='group'`). Le correctif applicatif
+supprime la cause, mais trois chemins peuvent encore dupliquer : les **APK déjà
+installés** tournent avec l'ancien code, deux appareils du même compte peuvent
+ouvrir la discussion simultanément, et un futur chemin d'insertion pourrait
+oublier la recherche. ⚠ Changement de comportement à peser : une insertion en
+trop échouera au lieu de réussir en silence — donc « Erreur à l'ouverture de la
+discussion » plutôt qu'un historique fragmenté. Cas limite documenté dans la
+migration : un membre d'un groupe hérité absent de `participant_ids` passera
+d'un doublon vide à une erreur franche.
+
 - [ ] Ouvrir deux fois de suite la discussion d'un groupe **hérité** (id de 20
   caractères, ex. `yflqsRLMMhTPpiW0NFHx`) et compter les lignes
   `conversations` pour ce `group_id` : il ne doit s'en créer aucune de plus.
@@ -4655,6 +4709,68 @@ hérités.
 - [ ] Non-régression sur un groupe **Supabase** (vrai UUID) : la RPC doit
   toujours être empruntée, et un membre ayant rejoint après la création doit
   continuer à retrouver la conversation.
+
+**Deuxième filet ajouté (2026-08-06) :** quand la RPC rend `NULL` sur un groupe
+à id UUID — soit qu'aucune conversation n'existe, soit que l'appelant ne soit
+pas encore dans `group_members` —, on retombe sur la même recherche directe au
+lieu de rendre `null` sec. Le RLS la borne aux conversations dont on est déjà
+participant : si l'appelant en est un, sa conversation est réutilisée au lieu
+d'être doublée ; sinon rien ne change.
+
+- [ ] Non-régression du filet : un groupe UUID dont l'appelant est participant
+  de la conversation mais absent de `group_members` doit ouvrir la conversation
+  existante, pas en créer une seconde.
+
+**Doublons en base : plus rien à fusionner.** Les deux conversations
+surnuméraires (22:14 et 22:21) ont disparu **pendant** la session d'analyse,
+sans intervention de ma part — la suppression que j'avais préparée a été
+bloquée avant exécution. Le compte final est propre : les 4 groupes ont
+exactement 1 conversation chacun, et `yflqsRLMMhTPpiW0NFHx` garde celle du
+04:13 avec son message. Une sauvegarde des 3 lignes d'origine a été prise avant
+(scratchpad de session, `conversations_yflqs_avant_fusion.json`) — elle
+disparaîtra avec la session, à récupérer maintenant si elle a de la valeur.
+
+**Message disparu : très probablement un ménage manuel.** Le message de la
+conversation 22:21 (envoyé à 22:22:34) était présent au début de l'analyse,
+absent quelques minutes plus tard, avant toute suppression de conversation.
+Rien dans le système ne peut faire ça tout seul, vérifié :
+
+- `pg_cron` a 3 tâches, toutes des `http_post` vers des Edge Functions de
+  rappels — aucune ne supprime de données.
+- Aucun déclencheur sur `messages` ; sur `conversations`, seulement
+  `update_updated_at`.
+- Pas de messages éphémères dans l'app (les occurrences « ephemeral » sont les
+  clés X3DH de l'E2EE, sans rapport).
+- `deleteMessageForEveryone` et `deleteMessageForMe` sont des suppressions
+  **douces** (`is_deleted`, `data.deletedForEveryone`) : la ligne reste, elle
+  serait encore comptée.
+- **Aucun `from('messages').delete()` dans tout le code** — l'app n'a pas de
+  chemin pour supprimer physiquement un message.
+
+Conclusion : la ligne a été retirée hors de l'app (éditeur SQL ou dashboard).
+Si ce n'était pas toi, alors rouvrir le sujet — mais il n'y a pas de mécanisme
+applicatif à incriminer.
+
+- [ ] **Défaut trouvé au passage — « supprimer pour tout le monde » laisse les
+  messages orphelins.** `MessageSupabaseDataSource.deleteConversation`
+  (ligne ~1676) fait `from('conversations').delete()` avec le commentaire
+  « Hard delete (cascade deletes messages) ». **Il n'y a pas de cascade** :
+  `messages.conversation_id` n'a aucune clé étrangère vers `conversations`
+  (seules `events` et `group_pinned_items` en ont une, en CASCADE). Chaque
+  suppression de conversation « pour tout le monde » abandonne donc en base
+  tous ses messages — invisibles, et chiffrés E2EE, donc jamais récupérables ni
+  purgés. Zéro orphelin aujourd'hui (les messages du groupe de test avaient été
+  retirés avant), mais la prochaine suppression réelle en créera.
+
+  Migration écrite, **non appliquée** :
+  `supabase/migrations/20260806220000_messages_conversation_fk_cascade.sql`
+  (clé étrangère `on delete cascade`, dans le sens de ce que le code croyait
+  déjà). Prérequis vérifié : 0 message orphelin, types compatibles (`text` des
+  deux côtés), index `messages_conversation_idx` déjà en tête sur
+  `conversation_id`. À appliquer avec :
+  ```
+  supabase db push --linked
+  ```
 
 **2. Un lien profond vers une conversation de groupe la rend en 1-à-1.**
 `app_router.dart:873` lit `isGroup` uniquement dans `state.extra`, absent d'un
@@ -4898,20 +5014,23 @@ Le second défaut (écran noir au retour) est corrigé dans la foulée :
 >   Elle pose `member_count = 0` (le trigger compte le créateur juste après) et
 >   relit la ligne après l'insertion du membre. Signature, `SECURITY DEFINER`
 >   et garde `firebase_uid` inchangés.
-> - [ ] **À appliquer** : son exécution a été refusée par le garde-fou de
->   sécurité — remplacer une fonction de production est sensible, et c'est
->   normal. Elle est versionnée comme les autres migrations, donc elle part
->   avec le déploiement habituel :
->   ```
->   supabase db push
->   ```
->   ou, pour l'appliquer seule :
->   ```
->   supabase db query --linked --file supabase/migrations/20260806150000_insert_group_member_count.sql
->   ```
-> - [ ] Après application : créer un groupe depuis l'app et vérifier que
->   `member_count` vaut **1**, et que la fiche affiche « Membres · 1 » sans
->   passer par un recompte.
+> - [x] **APPLIQUÉE le 2026-08-06** par `supabase db push --linked
+>   --include-all`. Le drapeau était nécessaire — et sûr : `migration list`
+>   montrait une seule migration en attente (celle-ci), mais son horodatage
+>   (15:00) est antérieur à une migration déjà appliquée (17:00), ce que
+>   Supabase refuse par défaut.
+>
+>   ⚠️ **Premier essai en échec, et l'erreur était juste** :
+>   `cannot remove parameter defaults from existing function` (42P13). La
+>   fonction en place a des valeurs par défaut sur neuf de ses dix paramètres ;
+>   ma réécriture ne les reproduisait pas, ce qui aurait cassé tout appelant
+>   omettant un paramètre. Relevées via `pg_get_function_arguments` et
+>   réintégrées à l'identique. PostgreSQL a évité la régression.
+>
+> - [x] **Vérifié sur appareil** : un groupe créé depuis l'app sort avec
+>   `member_count = 1` pour 1 membre réel — juste dès la création, sans
+>   recompte. `country_code = NE` au passage, la normalisation tient. Groupe de
+>   test supprimé.
 > - [x] Contournement en place en attendant :
 >   `tools/recount_group_members.sql`, idempotent, relancé après ce test. Tous
 >   les groupes sont à leur compte réel.
@@ -5532,7 +5651,7 @@ Signal n'est établie) écrit `encryptionLevel: 'aes'` et un `content` au format
 `gcm:%`. Ces messages tombaient dans la branche ELSE et exposaient le
 ciphertext brut comme corps de la notification push, envoyé tel quel via FCM.
 
-**Correctif** (`supabase/migrations/20260813120000_fix_push_preview_leaks_aes_ciphertext.sql`) :
+**Correctif** (`supabase/migrations/20260813140000_fix_push_preview_leaks_aes_ciphertext.sql`) :
 toute valeur de `encryptionLevel` ('aes' OU 'e2ee') déclenche désormais le
 preview générique par type (🔒 Nouveau message / 📸 Photo / …), comme c'était
 déjà le cas pour 'e2ee' seul.
@@ -5550,6 +5669,215 @@ rejouée :
       `body` en ciphertext (une UPDATE de rattrapage n'a pas été tentée — trop
       de risque de mal cibler les lignes) : à purger ou ignorer selon la
       politique de rétention choisie.
+---
+
+## Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06)
+
+`c7f4141` a fait pointer `GroupRequestDataSource` vers Supabase au lieu d'une
+collection Firestore restée vide. La plomberie était juste — 12 méthodes sur
+12, tables, colonnes et index uniques vérifiés en base — mais **le parcours
+restait impraticable de bout en bout**, pour trois raisons que seule la base
+pouvait dire :
+
+- La seule policy sur `group_requests` était
+  `firebase_uid() = requester_id OR firebase_uid() = processed_by`. Une demande
+  en attente a `processed_by` NULL et `requester_id` = le demandeur :
+  **l'admin ne correspondait à aucune des deux branches**. Sa liste de demandes
+  en attente était vide, et l'UPDATE d'approbation ne touchait aucune ligne —
+  sans erreur, PostgREST rendant 200 sur un update qui ne matche rien.
+- `processed_by` recevait `auth.currentUser.id`, l'uid **Supabase** (un uuid),
+  là où la colonne et les policies parlent en uid **Firebase**. La seule ligne
+  existante le montre : `processed_by = '1b313b0d-…'` face à
+  `requester_id = 'U64HKfrjM5Nw…'`. Cette branche ne pouvait jamais matcher.
+- L'approbation inscrivait le nouveau membre dans `groups.member_ids` — colonne
+  **vide sur les 4 groupes**, et systématiquement recalculée depuis
+  `group_members` au chargement. Approuver n'ajoutait personne.
+- Enfin, ni `group_requests` ni `group_invites` n'appartenaient à la
+  publication `supabase_realtime` : les `.stream()` ne faisaient que leur
+  chargement initial. Même trou que `group_pinned_items` (20260805120000).
+
+Corrigé : policies admin sur `group_requests` / `group_invites`, fonctions
+`approve_group_request` / `reject_group_request` (SECURITY DEFINER, statut +
+appartenance en une transaction, identité résolue par `firebase_uid()`), et
+`acceptGroupInvite` qui écrit dans `group_members` comme `joinGroup`
+(migration `20260806180000_group_requests_admin_access.sql`).
+
+Rien de tout ça n'est prouvable sans **deux comptes** :
+
+- [x] **La demande apparaît chez l'administrateur** — vérifié sur SM A515F le
+      2026-08-06. La demande a été **créée en base** (pas depuis un second
+      téléphone) : c'est donc l'affichage qui est prouvé, pas l'émission. Le
+      menu du groupe porte « Demandes d'adhésion · 1 » avec sa pastille, et
+      l'écran liste bien le demandeur. Avant la migration, cette liste était
+      vide — c'était le blocage principal.
+- [x] **L'approbation fait entrer le demandeur** — vérifié le 2026-08-06, les
+      trois anomalies d'origine tombant d'un coup :
+      `status = 'approved'`, `processed_by = 'vQZE49dTdyRtLwSG6lMIbhAqoFG2'`
+      (l'uid **Firebase**, plus l'uuid Supabase), et le demandeur présent dans
+      `group_members` — le groupe passe de 1 à 2 membres. SnackBar
+      « Demande approuvée », liste vidée immédiatement.
+      Donnée de test retirée après coup.
+      Reste non vu, faute d'un second appareil : que le groupe apparaisse dans
+      « Mes groupes » du demandeur et qu'il accède aux messages.
+- [ ] **A refuse** une deuxième demande : elle disparaît de la liste et B ne
+      devient pas membre.
+- [ ] **B redemande alors qu'il est déjà membre** : message « Vous êtes déjà
+      membre de ce groupe » (le garde lisait une colonne vide, il ne se
+      déclenchait jamais).
+- [x] **Invitation acceptée** — vérifié sur SM A515F le 2026-08-06, compte
+      « Sim » acceptant une vraie invitation à « Testeurs » (groupe privé).
+      `group_members` gagne bien la ligne `role = 'member'`, le groupe entre
+      dans « Mes groupes » (« 2 rejoints » → « 3 rejoints »).
+
+      Deux choses valent d'être retenues de ce test :
+
+      **Le bouton semblait mort.** Deux captures prises 6 et 7 s après le tap
+      montraient un écran inchangé. La SnackBar d'erreur dure ~4 s : c'est la
+      fenêtre de capture qui était trop lente, pas le bouton qui ne répondait
+      pas. En capturant à 1 s, « Action impossible pour le moment, réessayez. »
+      apparaît. Ne jamais conclure « bouton mort » sans une capture immédiate.
+
+      **La cause était une cinquième anomalie, antérieure et jamais vue.**
+      `group_invites_own` avait un `USING` (inviter OU invité) et un
+      `WITH CHECK` (inviter **seulement**) asymétriques : l'invité pouvait lire
+      son invitation mais pas écrire sa réponse — `42501`. `acceptGroupInvite`
+      **et** `declineGroupInvite` étaient donc morts pour le destinataire
+      depuis toujours. Corrigé par
+      `20260806200000_invite_repondre_par_l_invite.sql`.
+      L'audit initial n'avait lu que les `USING` des policies : sur une table
+      en écriture, lire le `WITH CHECK` est la moitié qui manque.
+
+- [ ] **Refus d'invitation** (`declineGroupInvite`) : même chemin RLS que
+      l'acceptation, débloqué par la même migration, mais jamais exercé.
+- [ ] **Un non-admin ne voit pas** les demandes du groupe, et l'appel RPC lui
+      est refusé (« Réservé aux administrateurs du groupe »).
+
+### Le corollaire : un groupe privé ne montrait qu'un seul membre
+
+`group_members_select` valait `firebase_uid() = user_id OR
+is_group_public(group_id)`. Dans un groupe **privé**, aucune des deux branches
+ne couvre les autres membres. Comme `_membershipFor` reconstruit `member_ids`
+et `admin_ids` depuis cette table et que `GroupEntity.memberCount` dérive de
+`memberIds.length`, un groupe privé de cinq personnes se serait affiché
+« 1 membre » pour chacune, avec une liste de membres réduite à soi-même.
+
+Le défaut était **invisible jusqu'ici** : les deux groupes privés de la base
+n'ont qu'un membre chacun. Il devient observable dès qu'un second membre
+arrive — donc dès que l'approbation ci-dessus fonctionne. Corrigé dans la
+foulée par `20260806190000_group_members_visible_aux_membres.sql`, qui ajoute
+`is_group_member(group_id)` — l'idiome déjà retenu sur `groups`
+(`groups_select_public`).
+
+Relu en base après application : pas de récursion, et une session sans
+identité ne voit que les 2 lignes des groupes publics (les privés restent
+masqués).
+
+- [x] **Groupe privé à 2 membres** — vérifié sur SM A515F le 2026-08-06, du
+      côté du membre non-administrateur : « Testeurs » affiche bien **2**
+      après l'entrée de Sim. Avant la migration il aurait affiché 1.
+      Vérifié depuis ce seul compte ; la vue de l'administrateur n'a pas été
+      regardée (elle passait déjà, `firebase_uid() = user_id` couvrant sa
+      propre ligne).
+- [ ] **Un non-membre ne voit toujours rien** d'un groupe privé.
+
+Deux effets de bord relevés pendant ce test, aucun bloquant :
+
+- **`groups.member_count` reste à 1** alors que le groupe a 2 membres. Le
+  trigger `update_group_member_count` n'est pas `SECURITY DEFINER` : son
+  `UPDATE groups` tombe sur `groups_update_admin` (`is_group_admin`), faux pour
+  quelqu'un qui vient de rejoindre. L'écran affiche quand même 2, parce que
+  `GroupEntity.memberCount` dérive de `group_members` et jamais de cette
+  colonne — la colonne est fausse, l'affichage est juste. À corriger si un jour
+  un tri ou une requête s'appuie sur `member_count` (`getGroups` l'utilise déjà
+  en `order by`).
+- **La liste ne s'est pas rafraîchie après l'acceptation** : l'invitation
+  disparaît bien, mais « Testeurs » n'apparaît qu'après un redémarrage à froid,
+  malgré le `ref.invalidate(myGroupsNotifierProvider)` de `_accept`.
+  (L'écran des demandes, lui, se vide immédiatement après une approbation.)
+
+### La fiche du groupe ment selon le chemin par lequel on l'ouvre
+
+Trouvé en cherchant l'écran des demandes, le 2026-08-06. Sur **le même groupe**,
+avec **le même compte** — Sim, créateur et administrateur :
+
+| Ouverte depuis | Membres | Bouton du bas | Menu « Demandes » |
+|---|---|---|---|
+| la liste « Mes groupes » | 1 | « Ouvrir la discussion » | présent, pastille 1 |
+| l'en-tête de la conversation | **0** | **« Demander à rejoindre »** | **absent** |
+
+L'écran calcule tout depuis l'entité :
+`isAdmin = group.adminIds.contains(me)` et
+`isMember = group.memberIds.contains(me)`
+([group_detail_screen.dart:132](lib/features/groups/presentation/screens/group_detail_screen.dart:132)).
+Par le second chemin ces deux listes arrivent vides, donc l'administrateur se
+voit proposer de rejoindre son propre groupe et **perd l'accès à l'écran
+d'approbation**.
+
+Ce n'est pas la base : la requête d'appartenance rejouée sous l'identité de Sim
+rend bien sa ligne `role = 'admin'`. Et `getGroupById` applique pourtant
+`_membershipFor` — son commentaire décrit même ce symptôme comme déjà corrigé.
+La cause exacte côté app n'a pas été trouvée ; `_membershipFor` avale ses
+erreurs (`catch (_) { return const {}; }`), ce qui rend un échec indiscernable
+d'un groupe sans membres.
+
+À noter pour qui reprendra : `getMyGroups` masque le même trou avec un
+rattrapage explicite (« on s'y ajoute quand même, sinon Mes groupes proposerait
+Rejoindre sur ses propres groupes »). Le rattrapage soigne le symptôme sur un
+écran et laisse l'autre à découvert — donc le « 1 » de la liste ne prouve pas
+que la lecture d'appartenance ait réussi.
+
+- [ ] **Vérifier après correction** : ouvrir la fiche depuis la conversation
+      doit donner exactement le même écran que depuis la liste.
+
+---
+
+## La porte d'entrée des groupes était grande ouverte (2026-08-06)
+
+`group_members_own` est une policy `FOR ALL` dont le `USING` vaut
+`firebase_uid() = user_id`, **sans `WITH CHECK` explicite** — la même expression
+sert donc au contrôle d'insertion. Elle vérifie qu'on s'inscrit *soi-même*, et
+rien d'autre : ni le groupe, ni une invitation, ni une approbation.
+
+Mesuré sous une vraie identité avant correction : l'insertion d'une ligne
+d'appartenance est **acceptée pour un groupe inexistant** (`group_id` n'a
+d'ailleurs aucune clé étrangère — 7 lignes orphelines dorment déjà dans la
+table). A fortiori pour un groupe privé dont on n'a jamais reçu d'invitation :
+il suffit d'en connaître l'uuid et d'appeler l'API. Les uuid des groupes privés
+ne sont pas listés, mais c'est de l'obscurité, pas un contrôle.
+
+Fermé par `20260806210000_group_members_porte_d_entree.sql` : une policy
+**RESTRICTIVE `FOR INSERT`**, qui s'ajoute en ET aux permissives sans toucher au
+reste. `SELECT` / `UPDATE` / `DELETE` gardent `group_members_own` — quitter un
+groupe privé reste possible, ce qu'une condition sur l'invitation aurait cassé.
+
+Mesures après application, sous l'identité réelle du compte de test :
+
+| Cas | Attendu | Obtenu |
+|---|---|---|
+| groupe inexistant (ou privé sans invitation) | refusé | `42501` refusé |
+| groupe **public** (`joinGroup`) | accepté | accepté |
+| groupe privé **avec invitation** | accepté | `23505` doublon — la policy a laissé passer, `has_group_invite` = `t` |
+| quitter un groupe (`DELETE`) | accepté | 1 ligne supprimée |
+
+Et dans l'app, sur SM A515F : « Découvrir » → « Rejoindre » sur un groupe
+public fonctionne toujours — c'est le chemin que cette policy aurait pu casser,
+et il a été exercé pour de vrai, pas seulement en SQL. Adhésion retirée après
+coup.
+
+- [ ] **Reste à voir** : rejoindre un groupe public depuis un compte qui n'y a
+      jamais mis les pieds (le test l'a fait avec le compte administrateur d'un
+      autre groupe), et vérifier qu'un groupe privé sans invitation ne propose
+      bien que « Demander à rejoindre ».
+
+Deux voisins **non corrigés**, repérés en lisant ces policies :
+
+- **`removeMember` ne peut pas fonctionner** :
+  [group_supabase_datasource.dart:337](lib/features/groups/data/datasources/group_supabase_datasource.dart:337)
+  délègue à `leaveGroup`, donc un `DELETE` sur la ligne de *quelqu'un d'autre*,
+  que `group_members_own` (`firebase_uid() = user_id`) refuse. Un
+  administrateur ne peut pas exclure un membre.
+- **Aucune clé étrangère sur `group_members.group_id`** : supprimer un groupe
+  laisse ses membres derrière (7 orphelins sur 11 lignes aujourd'hui).
 
 ---
 

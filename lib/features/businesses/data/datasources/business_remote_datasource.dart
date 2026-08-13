@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/firebase_collections.dart';
+import '../../../../core/errors/app_error_messages.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../models/business_model.dart';
@@ -58,7 +59,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       Query query = _businessesCollection;
@@ -89,7 +90,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       final snapshot = await _businessesCollection
@@ -113,7 +114,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       final lowerQuery = query.toLowerCase();
@@ -144,7 +145,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       // Calcul du bounding box approximatif
@@ -182,7 +183,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       final doc = await _businessesCollection.doc(id).get();
@@ -204,7 +205,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       final snapshot = await _businessesCollection
@@ -230,7 +231,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       // Pas de .limit(1) : un propriétaire peut avoir plusieurs entreprises.
@@ -267,7 +268,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       Query query = _businessesCollection;
@@ -459,7 +460,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       final snapshot = await _postsCollection
@@ -484,7 +485,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     try {
       final isConnected = await _connectivity.isConnected();
       if (!isConnected) {
-        throw ServerException('Pas de connexion internet');
+        throw ServerException(AppErrorMessages.networkError);
       }
 
       final now = DateTime.now();
