@@ -11,7 +11,7 @@ import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
-class GroupMembersScreen extends ConsumerWidget {
+class GroupMembersScreen extends ConsumerStatefulWidget {
   final String groupId;
   final GroupEntity? group;
   final String? conversationId;
@@ -24,10 +24,42 @@ class GroupMembersScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GroupMembersScreen> createState() =>
+      _GroupMembersScreenState();
+}
+
+class _GroupMembersScreenState extends ConsumerState<GroupMembersScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // `groupDetailNotifierProvider` est un provider PARTAGÉ (pas une famille
+    // par id), jamais peuplé par cet écran lui-même. Sans le groupe transmis
+    // par la navigation — le lien « Tout voir » de la fiche groupe ne le
+    // passait pas, contrairement au bouton du bas —, l'écran restait à son
+    // état par défaut (`AsyncValue.data(null)`) et le spinner tournait
+    // indéfiniment : reproduit sur SM A515F, bloqué sur « Membres ».
+    if (widget.group == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref
+            .read(groupDetailNotifierProvider.notifier)
+            .loadGroup(widget.groupId);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final groupAsync = ref.watch(groupDetailNotifierProvider);
-    final groupEntity = group ?? groupAsync.valueOrNull;
+    // Le provider étant partagé, une valeur déjà en cache peut appartenir à
+    // un AUTRE groupe visité juste avant : ne l'accepter que si son id
+    // correspond à l'écran ouvert, sinon on affiche les membres du mauvais
+    // groupe.
+    final cachedGroup = groupAsync.valueOrNull;
+    final groupEntity =
+        widget.group ??
+        (cachedGroup?.id == widget.groupId ? cachedGroup : null);
     final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
 
     return Scaffold(
@@ -44,9 +76,8 @@ class GroupMembersScreen extends ConsumerWidget {
         ),
       ),
       body:
-          groupEntity == null
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
+          groupEntity != null
+              ? ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: groupEntity.memberIds.length,
                 itemBuilder: (context, index) {
@@ -60,13 +91,44 @@ class GroupMembersScreen extends ConsumerWidget {
                     isAdmin: groupEntity.adminIds.contains(memberId),
                     isModerator: groupEntity.moderatorIds.contains(memberId),
                     isCreator: groupEntity.creatorId == memberId,
-                    conversationId: conversationId,
+                    conversationId: widget.conversationId,
                     currentUserId: currentUser?.id,
                     canModerate: isCurrentUserAdmin,
                     onTap: () => context.push('/profile/$memberId'),
                   );
                 },
-              ),
+              )
+              : groupAsync.hasError
+              ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: context.textSecondaryColor,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.loadingError,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed:
+                            () => ref
+                                .read(groupDetailNotifierProvider.notifier)
+                                .loadGroup(widget.groupId),
+                        child: Text(l10n.retry),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+              : const Center(child: CircularProgressIndicator()),
     );
   }
 }

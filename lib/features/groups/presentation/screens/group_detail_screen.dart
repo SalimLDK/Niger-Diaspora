@@ -702,7 +702,11 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
             ),
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: () => context.push('/groups/${group.id}/members'),
+              onTap:
+                  () => context.push(
+                    '/groups/${group.id}/members',
+                    extra: group,
+                  ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Text(

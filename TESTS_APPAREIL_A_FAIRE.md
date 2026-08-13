@@ -6429,6 +6429,52 @@ Deux voisins **non corrigés**, repérés en lisant ces policies :
 
 ---
 
+## Fiche membres de groupe bloquée / vide (2026-08-13)
+
+Signalé par Salim : « problème sur les infos des membres de groupes ». L'appareil
+était **surpris en flagrant délit** — écran « Membres » figé sur un spinner
+indéfini au moment où j'ai capturé le premier screenshot de la session.
+
+**Cause n°1 — spinner indéfini.** `GroupMembersScreen`
+([group_members_screen.dart](lib/features/groups/presentation/screens/group_members_screen.dart))
+est un `ConsumerWidget` qui ne charge jamais lui-même son groupe : il lit
+`group` (passé par la navigation) puis, à défaut, l'état déjà présent dans
+`groupDetailNotifierProvider` — un provider **partagé**, pas une famille par
+id, jamais peuplé par cet écran. Le lien « Tout voir » de la fiche groupe
+([group_detail_screen.dart:705](lib/features/groups/presentation/screens/group_detail_screen.dart:705))
+ne passait pas `extra: group`, contrairement au bouton du bas qui le passait
+déjà. Sans lui, si l'écran précédent n'avait pas déjà peuplé le provider pour
+CE groupe, `groupEntity` restait `null` pour toujours.
+
+Corrigé : `GroupMembersScreen` devient `ConsumerStatefulWidget`, déclenche
+`loadGroup(groupId)` en `initState` quand `group` est absent, et n'accepte la
+valeur en cache que si son id correspond à l'écran ouvert (le provider partagé
+peut porter les données d'un AUTRE groupe visité juste avant). Le lien
+« Tout voir » passe désormais `extra: group` en plus, pour l'aller vite sans
+round-trip réseau.
+
+**Cause n°2 — fiche affichant « Membres · 0 » / « Rejoindre le groupe » à un
+membre réel.** Repérée en vérifiant le correctif n°1 sur appareil, par un
+AUTRE chemin de navigation (en-tête de la conversation de groupe → fiche,
+sans `initialGroup`) :
+`getGroupStream` ([group_supabase_datasource.dart:184](lib/features/groups/data/datasources/group_supabase_datasource.dart:184))
+lit la ligne `groups` brute sans jamais appliquer `_withMembership` —
+contrairement à `getGroupById`/`getGroups`/`getMyGroups`. Comme
+`groups.member_ids`/`admin_ids` sont NULL en base (seule `group_members` fait
+foi), le flux temps réel écrasait en permanence la lecture ponctuelle
+correcte de `groupDetailNotifierProvider` via le `??` de `GroupDetailScreen`.
+Corrigé : `getGroupStream` applique désormais `_membershipFor`/`_withMembership`
+comme les autres lectures.
+
+- [x] **Vérifié sur SM A515F**, groupe « Diaspora Niger — Canada » (2 membres,
+  compte Sim A) : par le chemin en-tête de conversation → fiche → Tout voir —
+  celui qui reproduisait les DEUX défauts — la fiche affiche « Membres · 2 »,
+  « Ouvrir la discussion », les deux membres nommés (Sim A · Créateur, Salim
+  L.), et « Tout voir » ouvre la liste immédiatement au lieu de tourner dans
+  le vide.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

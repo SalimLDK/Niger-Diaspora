@@ -190,7 +190,22 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
         .from('groups')
         .stream(primaryKey: ['id'])
         .eq('id', groupId)
-        .map((rows) => rows.isEmpty ? null : GroupModel.fromJson(_mapGroup(rows.first)));
+        .asyncMap((rows) async {
+          if (rows.isEmpty) return null;
+          // Comme getGroupById : `groups.member_ids`/`admin_ids` sont NULL en
+          // base, seule `group_members` fait foi. Sans ce correctif, la fiche
+          // groupe atteinte SANS `initialGroup` (ex. depuis l'en-tête de la
+          // conversation) affichait « Membres · 0 » et « Rejoindre le groupe »
+          // à des membres réels — le flux réactif écrasait en permanence la
+          // lecture ponctuelle correcte de `groupDetailNotifierProvider` via
+          // le `??` de `GroupDetailScreen`.
+          final membership = await _membershipFor([groupId]);
+          return GroupModel.fromJson(
+            _mapGroup(
+              _withMembership(Map<String, dynamic>.from(rows.first), membership),
+            ),
+          );
+        });
   }
 
   @override
