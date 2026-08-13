@@ -66,10 +66,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     });
   }
 
-  /// Union du `read_by`/`delivered_to` top-level (colonne mise à jour par le
-  /// RPC mark_messages_as_read) et de ceux du JSONB `data` (écrits à l'envoi).
-  /// Sans cette union, si le backend écrit le « lu » dans la colonne top-level,
-  /// la bulle (qui lisait seulement `data`) ne passait jamais au bleu.
+  /// Union défensive avec d'éventuelles colonnes top-level `read_by`/
+  /// `delivered_to` — aucune migration n'en crée à ce jour, seul le JSONB
+  /// `data` (écrit par mark_messages_as_delivered/mark_messages_as_read) fait
+  /// foi. `row['read_by']`/`row['delivered_to']` valent donc `null` et cette
+  /// union se réduit à `data['readBy']`/`data['deliveredTo']`.
   Map<String, dynamic> _mergedReceipts(
     Map<String, dynamic> row,
     Map<String, dynamic> data,
@@ -1555,6 +1556,20 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String conversationId,
     required String userId,
   }) async {
+    // Accusés de lecture par message (data.readBy/readAt), distincts des
+    // accusés de livraison écrits par markAsDelivered. Best-effort et isolé
+    // du reste : ne doit pas faire échouer la mise à jour lastMessageReadBy
+    // ci-dessous si la RPC est indisponible (ex. migration pas encore
+    // déployée).
+    try {
+      await _supabase.rpc(
+        'mark_messages_as_read',
+        params: {'p_conversation_id': conversationId, 'p_user_id': userId},
+      );
+    } catch (e) {
+      debugPrint('mark_messages_as_read RPC error: $e');
+    }
+
     try {
       // Fetch current lastMessageReadBy to append userId
       final rows = await _supabase
