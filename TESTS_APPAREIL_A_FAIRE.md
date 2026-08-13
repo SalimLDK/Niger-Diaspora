@@ -4358,6 +4358,46 @@ Le compte « Salim L. » a été **maquillé en membre voisin présent**, en SQL
 pour pouvoir tester avec un seul téléphone. Vérifié : il passe la requête de
 proximité **et** le filtre de présence, à **1,97 km** du compte principal.
 
+## Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)
+
+Signalé : « j'arrive pas à localiser certains users ». Diagnostic en base
+(projet Supabase lié `Diapo Niger`) : sur 10 comptes, seuls 2 avaient
+`share_location = true`, et un seul de ceux-là avait une position (l'autre,
+« Ibrahim Yacouba Maïdaoua », avait activé « Ma localisation » dans Réglages
+sans jamais avoir ouvert la carte pour activer son calque « Membres » — le
+seul chemin qui déclenchait `LocationPublisherService`).
+
+Cause : `share_location` (écrit par Réglages/Profil, `profile_preferences_provider.dart`)
+et `nearbyMembersEnabled` (préférence locale du calque « Membres » de la
+carte, `map_screen.dart`) sont deux réglages distincts qui devraient être un
+seul. `LocationPublisherService.start()` ne se fiait qu'au second.
+
+Corrigé (`lib/core/services/location_publisher_service.dart`,
+`lib/features/profile/presentation/providers/profile_preferences_provider.dart`) :
+`start()` relit désormais `share_location` depuis le profil serveur à chaque
+démarrage (auto-guérison des comptes déjà désynchronisés, sans action de leur
+part), et `ProfilePreferences.set` déclenche `start()`/`stop()` immédiatement
+quand on bascule « Ma localisation ». Le calque « Membres » de la carte reste
+inchangé (c'est un filtre d'affichage, pas un consentement).
+
+**Rien de ceci n'est vérifiable par `flutter analyze`/`flutter test` seuls**
+(permission GPS réelle, cycle de vie `resumed`/`paused` de l'app) :
+
+- [ ] Activer « Ma localisation » dans Réglages **sans jamais ouvrir la
+  carte** : vérifier en base que `latitude`/`longitude`/`location_updated_at`
+  se peuplent dans les secondes qui suivent (permission GPS déjà accordée).
+- [ ] Désactiver « Ma localisation » dans Réglages, app au premier plan :
+  vérifier que `location_updated_at` cesse d'avancer (pas de battement de
+  cœur résiduel).
+- [ ] Mettre l'app en arrière-plan puis la ressortir plusieurs fois de suite
+  (volet de notifications, `inactive` transitoire) avec le partage désactivé :
+  vérifier dans les logs qu'aucune requête profil réseau superflue n'est
+  déclenchée à chaque aller-retour (le garde `_positionSubscription != null`
+  doit court-circuiter).
+- [ ] Compte préexistant en base avec `share_location = true` mais sans
+  position (reproduire l'état d'Ibrahim) : relancer l'app et vérifier
+  l'auto-guérison, sans toucher à aucun réglage.
+
 | Colonne | Valeur d'origine | Valeur posée |
 |---|---|---|
 | `share_location` | `false` | `true` |

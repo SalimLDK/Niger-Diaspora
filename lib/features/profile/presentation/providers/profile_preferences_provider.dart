@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/location_publisher_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/profile_entity.dart';
 import 'profile_provider.dart';
@@ -77,6 +78,18 @@ class ProfilePreferences {
     final profile = await _profil(userId);
     if (profile == null) return;
     await notifier.updateProfile(pref.write(profile, value));
+
+    // `shareLocation` est le champ que `getNearbyProfiles` consulte pour
+    // décider si quelqu'un d'autre voit cette position : l'écrire ne suffit
+    // pas, il faut aussi (dé)clencher la capture GPS qui l'alimente,
+    // immédiatement plutôt qu'au prochain retour au premier plan.
+    if (pref == ProfilePreference.shareLocation) {
+      if (value) {
+        await LocationPublisherService.instance.start();
+      } else {
+        LocationPublisherService.instance.stop();
+      }
+    }
   }
 
   /// Profil courant, quitte à aller le chercher.

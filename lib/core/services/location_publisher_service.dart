@@ -6,7 +6,6 @@ import 'package:geolocator/geolocator.dart';
 
 import '../../features/profile/data/datasources/profile_supabase_datasource.dart';
 import 'logger_service.dart';
-import 'preferences_service.dart';
 
 /// Publie la position de l'utilisateur courant tant que l'app est au premier
 /// plan, **quel que soit l'écran affiché**.
@@ -23,9 +22,19 @@ import 'preferences_service.dart';
 /// - un battement de cœur qui réécrit la dernière position connue, pour qu'un
 ///   membre immobile ne sorte pas de la fenêtre de fraîcheur de cinq minutes.
 ///
-/// Le service n'écrit jamais sans le consentement explicite : `nearbyMembersEnabled`
-/// est à `false` par défaut, et la permission de localisation n'est pas demandée
+/// Le service n'écrit jamais sans le consentement explicite : le
+/// consentement qui compte est `share_location` sur le profil serveur — le
+/// même champ que lit `getNearbyProfiles` pour décider si quelqu'un d'autre
+/// peut voir cette position. La permission de localisation n'est pas demandée
 /// ici (c'est le rôle de l'onboarding et de l'écran carte, qui l'expliquent).
+///
+/// `start()` relit ce champ à chaque appel plutôt que de faire confiance à la
+/// préférence locale `nearbyMembersEnabled` : Réglages écrit le profil sans
+/// passer par cette préférence, et un compte qui avait activé « Ma
+/// localisation » dans Réglages restait invisible pour toujours faute d'avoir
+/// aussi ouvert la carte pour activer son calque « Membres » (le seul chemin
+/// qui touchait `nearbyMembersEnabled` avant ce correctif). Se relire depuis
+/// le serveur à chaque démarrage guérit ces comptes sans action de leur part.
 class LocationPublisherService {
   static LocationPublisherService? _instance;
   static LocationPublisherService get instance {
@@ -51,6 +60,11 @@ class LocationPublisherService {
   bool _initialized = false;
   String? _userId;
   Position? _lastPublished;
+
+  /// Copie du `share_location` serveur lu par le dernier `start()` réussi.
+  /// `_publish` s'y fie plutôt que de refaire une lecture réseau à chaque
+  /// battement de cœur ou déplacement.
+  bool _shareLocationEnabled = false;
 
   /// Branche le service sur l'authentification et le cycle de vie de l'app.
   Future<void> initialize() async {
@@ -92,10 +106,27 @@ class LocationPublisherService {
   Future<void> start() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    if (!PreferencesService.instance.nearbyMembersEnabled) return;
+    // Déjà en train de streamer : ne pas relire le profil en réseau à
+    // chaque `inactive` transitoire (volet de notifications, appel entrant),
+    // qui redéclenche `start()` sans que le flux ait été suspendu.
+    if (_positionSubscription != null) return;
+
+    try {
+      final profile = await _dataSource.getProfile(user.uid);
+      _shareLocationEnabled = profile.shareLocation;
+    } catch (e, s) {
+      // Session pas encore prête, ou profil pas encore créé : on retentera
+      // au prochain `start()` (retour au premier plan, changement d'auth).
+      LoggerService.w(
+        'LocationPublisherService: lecture du profil échouée',
+        e,
+        s,
+      );
+      return;
+    }
+    if (!_shareLocationEnabled) return;
 
     _userId = user.uid;
-    if (_positionSubscription != null) return;
 
     // On se contente de la permission déjà accordée : la demander ici la
     // ferait surgir sur un écran quelconque, sans explication.
@@ -142,18 +173,21 @@ class LocationPublisherService {
     _heartbeatTimer = null;
   }
 
-  /// Coupe tout : déconnexion, ou désactivation des « membres à proximité ».
+  /// Coupe tout : déconnexion, ou désactivation de « Ma localisation ».
   void stop() {
     _suspend();
     _userId = null;
     _lastPublished = null;
+    _shareLocationEnabled = false;
   }
 
   Future<void> _publish(Position position) async {
     final userId = _userId;
     if (userId == null) return;
-    // Relu à chaque écriture : le réglage peut avoir été coupé entre-temps.
-    if (!PreferencesService.instance.nearbyMembersEnabled) return;
+    // Le réglage peut avoir été coupé entre-temps ; `stop()` annule déjà
+    // l'abonnement et le battement de cœur, ce garde couvre l'appel encore
+    // en vol au moment de la coupure.
+    if (!_shareLocationEnabled) return;
 
     try {
       await _dataSource.updateLocation(
