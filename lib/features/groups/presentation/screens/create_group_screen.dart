@@ -110,12 +110,13 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       );
     }
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (success && mounted) {
+    if (success) {
       ToastUtils.showSuccess(context, 'Groupe créé avec succès');
       context.pop();
-    } else if (mounted) {
+    } else {
       ToastUtils.showError(context, 'Erreur lors de la création du groupe');
     }
   }
