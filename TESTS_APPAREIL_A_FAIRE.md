@@ -5795,9 +5795,26 @@ seul le premier plan (`onMessage` → `_showLocalNotification`) a été exercé.
       android.text  = "🔒 Nouveau message"
       actions: [0] "Répondre"  [1] "Marquer comme lu"
       ```
-      Donnée de test retirée après coup. Cas app tuée toujours pas exercé
-      (nécessiterait `input keyevent KEYCODE_HOME`, refusé par le
-      classificateur de permissions dans cette session).
+      Donnée de test retirée après coup.
+- [x] **Cas arrière-plan également rejoué, 2026-08-13.** `input keyevent
+      KEYCODE_HOME` étant refusé par le classificateur de permissions,
+      backgroundé via `am start -a MAIN -c HOME` (fait passer le launcher
+      au premier plan sans simuler d'appui physique) — app confirmée hors
+      premier plan (`topResumedActivity` = launcher). `am kill` n'a PAS pu
+      terminer le process (service de localisation en arrière-plan actif,
+      protégé par Android) : le test porte donc sur « app en arrière-plan
+      réel », pas sur un process totalement tué. Message rejoué : reçu par
+      `FLTFireMsgReceiver` (même process, toujours vivant), notification
+      postée avec le même texte correct et les deux actions. **Capture
+      d'écran du volet de notifications** (shade ouvert via `service call
+      statusbar 1`, pas de swipe) : les deux notifications de test
+      affichent bien « Salim L. / 🔒 Nouveau message », envoyée à Salim.
+      Donnée de test retirée après coup.
+      Reste non prouvé : le cas process **totalement** tué (kill -9 /
+      swipe-away depuis les apps récentes), où Android peut afficher le
+      champ `notification` FCM directement sans repasser par le code Dart
+      — non exercé, aucun outil disponible dans cette session ne permet de
+      tuer ce process protégé sans simuler un geste.
 
 ---
 
