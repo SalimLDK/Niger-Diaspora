@@ -2153,7 +2153,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     }
 
     final baseStyle = TextStyle(
-      fontSize: 16,
+      fontSize: 17,
       color: widget.isMe ? AppColors.white : context.textPrimaryColor,
     );
 
@@ -2186,7 +2186,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           TextSpan(
             text: match.text,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 17,
               color:
                   widget.isMe
                       ? Colors.white
@@ -2205,7 +2205,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           TextSpan(
             text: match.text,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 17,
               color: linkColor,
               decoration: TextDecoration.underline,
               decorationColor: linkColor,
@@ -2322,7 +2322,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     }
 
     return Padding(
-      padding: const EdgeInsets.only(left: 13, right: 13, top: 9, bottom: 7),
+      padding: const EdgeInsets.only(left: 14, right: 14, top: 10, bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
