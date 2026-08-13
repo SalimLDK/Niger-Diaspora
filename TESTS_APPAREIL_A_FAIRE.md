@@ -14,6 +14,46 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)
+
+Deux bugs cumulés. (1) `currentUserId` dans SharedPreferences — lu par
+[background_reply_service.dart](lib/core/services/background_reply_service.dart)
+et 4 autres endroits de
+[notification_service.dart](lib/core/services/notification_service.dart) pour
+retrouver l'utilisateur courant depuis un isolate background — n'était écrit
+**nulle part** dans le code : toujours `null`, donc la réponse rapide comme
+la confirmation de livraison en arrière-plan (`mark_messages_as_delivered`)
+étaient court-circuitées avant même de tenter quoi que ce soit. (2) même
+quand ce cache aurait été renseigné, `BackgroundReplyService.sendReply`
+écrivait dans Firebase Realtime Database (`messages/{conversationId}`), un
+backend retiré depuis la migration vers Supabase — la conversation lit
+`messages`/`conversations` sur Supabase, jamais RTDB, donc le message
+n'apparaissait jamais, ni pour le destinataire ni au retour dans l'app.
+
+Correctifs : `NotificationService.saveTokenForUser` (appelée à chaque login
+et par `authStateChanges` au démarrage) alimente maintenant le cache
+`currentUserId`/`currentUserDisplayName`/`currentUserPhotoUrl`, et le vide à
+la déconnexion. `BackgroundReplyService` initialise un client Supabase propre
+à l'isolate (même piège que `BackgroundLocationService` : singleton par
+isolate) avec `SupabaseAuthBridge.ensureAuthenticated()`, écrit dans
+`messages`/`conversations` avec le même schéma que
+`MessageSupabaseDataSource` (chiffrement AES de repli — Signal Protocol est
+hors de portée d'un isolate éphémère, pas de Hive), et la file d'attente
+hors-ligne (`processPendingMessages`, jusqu'ici jamais appelée) se vide
+maintenant à chaque connexion connue. `flutter analyze` propre, mais rien de
+tout ça n'exerce le vrai réveil d'isolate Android ni Supabase.
+
+- [ ] Recevoir une notification de message avec l'app en arrière-plan (ou
+  fermée), répondre directement depuis l'action « Répondre » de la
+  notification → la confirmation « Message envoyé » s'affiche, ET le message
+  apparaît réellement dans la conversation (à l'écran si rouverte, et pour
+  le destinataire).
+- [ ] Même test avec le téléphone en mode avion au moment de la réponse →
+  le message part en file d'attente, puis rouvrir l'app une fois reconnecté
+  doit l'envoyer automatiquement (pas besoin de le retaper).
+- [ ] Action « Marquer comme lu » depuis une notification → le compteur non
+  lu de la conversation redescend à 0 dans la liste des conversations.
+
 ## Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)
 
 Signal (1:1) et Sender Key (groupes) avancent un ratchet à sens unique à

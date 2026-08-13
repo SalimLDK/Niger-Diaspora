@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../constants/app_config.dart';
 import 'encryption_service.dart';
+import 'supabase_auth_bridge.dart';
 
 /// Message en attente d'envoi depuis le background
 class BackgroundPendingMessage {
@@ -68,6 +71,15 @@ class BackgroundPendingMessage {
 /// Service autonome pour envoyer des messages depuis les isolates background.
 /// Ne dépend PAS de Riverpod - utilise directement Firebase et SharedPreferences.
 /// Gère aussi la mise en queue des messages en cas d'échec (offline).
+///
+/// Écrit dans la table Supabase `messages` — le même backend que
+/// `MessageSupabaseDataSource`, avec le même schéma de colonnes (`data`
+/// JSONB en camelCase). Chiffre avec la clé AES globale ([EncryptionService]),
+/// pas Signal Protocol : ce dernier suppose Hive et le service E2EE complet
+/// initialisés (voir `NotificationDecryptionService`), impossible dans un
+/// isolate background éphémère. C'est le même repli 'aes' que le reste de
+/// l'app utilise déjà quand Signal n'est pas disponible — le destinataire le
+/// déchiffre normalement.
 class BackgroundReplyService {
   static final BackgroundReplyService _instance =
       BackgroundReplyService._internal();
@@ -76,6 +88,62 @@ class BackgroundReplyService {
 
   static const String _pendingMessagesKey = 'background_pending_messages';
   static const int _maxRetries = 5;
+  static const _uuid = Uuid();
+
+  static bool _supabaseReady = false;
+
+  /// Prépare un client Supabase propre à cet isolate.
+  ///
+  /// `Supabase.instance` est un singleton *par isolate* (voir la même note
+  /// dans `BackgroundLocationService._initializeSupabaseForIsolate`) : celui
+  /// de l'app principale n'existe pas ici. Si l'app principale a déjà
+  /// initialisé Supabase dans CET isolate (cas où cette méthode est appelée
+  /// depuis l'isolate principal, ex. pour vider la queue au démarrage), on
+  /// réutilise ce client tel quel plutôt que d'appeler `Supabase.initialize`
+  /// une seconde fois (ce qui lève). Sinon, on initialise avec une clé de
+  /// session dédiée pour ne pas se marcher dessus avec l'isolate de
+  /// localisation ni avec l'app principale (échange de magic link à usage
+  /// unique, invalidé par des échanges concurrents).
+  static Future<bool> _initializeSupabaseForIsolate() async {
+    if (_supabaseReady) return true;
+
+    try {
+      // ignore: unnecessary_statements
+      Supabase.instance.client;
+      _supabaseReady = true;
+      return true;
+    } catch (_) {
+      // Pas encore initialisé dans cet isolate — on continue ci-dessous.
+    }
+
+    try {
+      try {
+        await dotenv.load(fileName: '.env');
+      } catch (_) {
+        // Build de production : la configuration vient de --dart-define.
+      }
+      if (!AppConfig.isSupabaseConfigured) {
+        debugPrint(
+          'BackgroundReplyService: Supabase non configuré dans cet isolate',
+        );
+        return false;
+      }
+      await Supabase.initialize(
+        url: AppConfig.supabaseUrl,
+        publishableKey: AppConfig.supabaseAnonKey,
+        authOptions: FlutterAuthClientOptions(
+          localStorage: SharedPreferencesLocalStorage(
+            persistSessionKey: 'supabase.notification_reply.session',
+          ),
+        ),
+      );
+      _supabaseReady = true;
+      return true;
+    } catch (e) {
+      debugPrint('BackgroundReplyService: init Supabase échouée ($e)');
+      return false;
+    }
+  }
 
   /// Envoie une réponse depuis l'isolate background.
   /// En cas d'échec, le message est mis en queue pour réessai ultérieur.
@@ -84,77 +152,45 @@ class BackgroundReplyService {
     required String conversationId,
     required String replyText,
   }) async {
+    SharedPreferences? prefs;
     try {
-      // 1. S'assurer que Firebase est initialisé
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp();
       }
 
-      // 2. Récupérer les infos utilisateur depuis SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
+      if (!await _initializeSupabaseForIsolate()) {
+        throw StateError('Supabase indisponible dans cet isolate');
+      }
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        throw StateError('Session Supabase non établie');
+      }
+
+      prefs = await SharedPreferences.getInstance();
       final userId = prefs.getString('currentUserId');
       final userDisplayName =
           prefs.getString('currentUserDisplayName') ?? 'Utilisateur';
       final userPhotoUrl = prefs.getString('currentUserPhotoUrl');
 
       if (userId == null || userId.isEmpty) {
-        // Mettre en queue pour quand l'utilisateur sera connecté
-        await _enqueueMessage(
-          prefs: prefs,
-          message: BackgroundPendingMessage(
-            conversationId: conversationId,
-            content: replyText,
-            senderId: '',
-            senderName: '',
-          ),
-        );
-        return false;
+        throw StateError('currentUserId absent du cache background');
       }
 
-      // 3. Initialiser le service de chiffrement
-      await EncryptionService.instance.initialize();
-      final encryptedContent = EncryptionService.instance.encryptText(
-        replyText,
-      );
-
-      // 4. Créer les données du message
-      final now = DateTime.now().toUtc().toIso8601String();
-      final messageData = {
-        'senderId': userId,
-        'senderName': userDisplayName,
-        'senderPhotoUrl': userPhotoUrl,
-        'content': encryptedContent,
-        'type': 'text',
-        'readBy': [userId],
-        'readAt': {userId: now},
-        'deliveredTo': [userId],
-        'deliveredAt': {userId: now},
-        'createdAt': now,
-        'sentFromNotificationReply': true, // Flag pour analytics
-      };
-
-      // 5. Envoyer à Firebase RTDB
-      final database = FirebaseDatabase.instance;
-      final messagesRef = database
-          .ref()
-          .child('messages')
-          .child(conversationId);
-
-      final newMessageRef = messagesRef.push();
-      await newMessageRef.set(messageData);
-
-      // 6. Mettre à jour les métadonnées de conversation dans Firestore
-      await _updateConversationLastMessage(
+      await _persistMessage(
         conversationId: conversationId,
-        lastMessage: replyText,
+        content: replyText,
         senderId: userId,
+        senderName: userDisplayName,
+        senderPhotoUrl: userPhotoUrl,
+        wasQueued: false,
       );
 
       return true;
     } catch (e) {
-      // En cas d'échec (offline ou autre), mettre en queue
+      debugPrint('BackgroundReplyService: sendReply error: $e');
+      // En cas d'échec (offline, session absente...), mettre en queue pour
+      // que processPendingMessages() réessaie plus tard.
       try {
-        final prefs = await SharedPreferences.getInstance();
+        prefs ??= await SharedPreferences.getInstance();
         final userId = prefs.getString('currentUserId') ?? '';
         final userDisplayName =
             prefs.getString('currentUserDisplayName') ?? 'Utilisateur';
@@ -170,79 +206,177 @@ class BackgroundReplyService {
             senderPhotoUrl: userPhotoUrl,
           ),
         );
-      } catch (_) {
-        // Ignorer les erreurs de queue
+      } catch (queueError) {
+        debugPrint('BackgroundReplyService: enqueue error: $queueError');
       }
       return false;
     }
   }
 
-  /// Met à jour les métadonnées de dernière message de la conversation
+  /// Écrit le message dans `messages` puis met à jour l'aperçu de la
+  /// conversation — même schéma que `MessageSupabaseDataSource.sendTextMessage`
+  /// et `_updateConversationLastMessage` (clés `data` en camelCase, colonne
+  /// top-level `last_message_at`), pour que la liste des conversations et le
+  /// fil de discussion affichent correctement ce message.
+  static Future<void> _persistMessage({
+    required String conversationId,
+    required String content,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required bool wasQueued,
+  }) async {
+    await EncryptionService.instance.initialize();
+    final encryptedContent = EncryptionService.instance.encryptText(content);
+
+    final msgId = _uuid.v4();
+    final now = DateTime.now().toUtc().toIso8601String();
+    final msgData = <String, dynamic>{
+      'senderName': senderName,
+      if (senderPhotoUrl != null) 'senderPhotoUrl': senderPhotoUrl,
+      'content': encryptedContent,
+      'encryptionLevel': 'aes',
+      'status': 'sent',
+      'readBy': [senderId],
+      'readAt': {senderId: now},
+      'deliveredTo': [senderId],
+      'deliveredAt': {senderId: now},
+      'sentFromNotificationReply': true,
+      if (wasQueued) 'wasQueued': true,
+    };
+
+    await Supabase.instance.client.from('messages').insert({
+      'id': msgId,
+      'conversation_id': conversationId,
+      'sender_id': senderId,
+      'type': 'text',
+      'created_at': now,
+      'data': msgData,
+    });
+
+    await _updateConversationLastMessage(
+      conversationId: conversationId,
+      lastMessage: content,
+      senderId: senderId,
+      at: now,
+    );
+  }
+
+  /// Met à jour l'aperçu de dernier message de la conversation.
+  /// Reflète exactement `MessageSupabaseDataSource._updateConversationLastMessage`
+  /// (mêmes clés `data`, même colonne `last_message_at`) — un ancien jeu de
+  /// clés snake_case ici (`last_message`, `unread_counts`...) écrivait dans
+  /// des champs que l'UI ne lisait jamais.
   static Future<void> _updateConversationLastMessage({
     required String conversationId,
     required String lastMessage,
     required String senderId,
+    required String at,
   }) async {
     try {
-      await EncryptionService.instance.initialize();
-      final encryptedLastMessage = EncryptionService.instance.encryptText(lastMessage);
-
-      final row = await Supabase.instance.client
+      final rows = await Supabase.instance.client
           .from('conversations')
           .select('data, participant_ids')
           .eq('id', conversationId)
-          .maybeSingle();
-      if (row == null) return;
+          .limit(1);
+      if (rows.isEmpty) return;
 
-      final participants = List<String>.from(row['participant_ids'] as List? ?? []);
-      final data = Map<String, dynamic>.from(row['data'] as Map? ?? {});
-      final unreadCounts = Map<String, dynamic>.from(data['unread_counts'] as Map? ?? {});
-      for (final p in participants) {
-        if (p != senderId) {
-          unreadCounts[p] = ((unreadCounts[p] as int?) ?? 0) + 1;
+      final current = Map<String, dynamic>.from(
+        (rows.first['data'] as Map<String, dynamic>?) ?? {},
+      );
+      final participantIds = List<String>.from(
+        rows.first['participant_ids'] as List? ?? [],
+      );
+
+      final unreadCount = Map<String, dynamic>.from(
+        current['unreadCount'] as Map? ?? {},
+      );
+      for (final pid in participantIds) {
+        if (pid != senderId) {
+          final cur = (unreadCount[pid] as int?) ?? 0;
+          unreadCount[pid] = cur + 1;
         }
       }
-      data['last_message'] = encryptedLastMessage;
-      data['last_message_sender_id'] = senderId;
-      data['last_message_status'] = 'sent';
-      data['last_message_at'] = DateTime.now().toUtc().toIso8601String();
-      data['unread_counts'] = unreadCounts;
+
+      final updated = {
+        ...current,
+        'lastMessage': lastMessage,
+        'lastMessageSenderId': senderId,
+        'lastMessageType': 'text',
+        'lastMessageStatus': 'sent',
+        'unreadCount': unreadCount,
+        'lastMessageReadBy': [senderId],
+        'lastMessageDeliveredTo': [senderId],
+      };
 
       await Supabase.instance.client
           .from('conversations')
-          .update({'data': data, 'updated_at': DateTime.now().toUtc().toIso8601String()})
+          .update({'last_message_at': at, 'data': updated})
           .eq('id', conversationId);
     } catch (e) {
       // Non critique - le message est déjà envoyé
+      debugPrint(
+        'BackgroundReplyService: _updateConversationLastMessage error: $e',
+      );
     }
   }
 
-  /// Marque une conversation comme lue depuis le background
+  /// Marque une conversation comme lue depuis le background.
+  /// Reflète `MessageSupabaseDataSource.markAsRead` : RPC `mark_messages_as_read`
+  /// (accusés par message) + fusion `unreadCount`/`lastMessageReadBy` dans
+  /// `conversations.data` (aperçu de la liste).
   static Future<bool> markAsRead({required String conversationId}) async {
     try {
       if (Firebase.apps.isEmpty) await Firebase.initializeApp();
+      if (!await _initializeSupabaseForIsolate()) return false;
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        return false;
+      }
+
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getString('currentUserId');
       if (userId == null || userId.isEmpty) return false;
 
-      final row = await Supabase.instance.client
+      try {
+        await Supabase.instance.client.rpc(
+          'mark_messages_as_read',
+          params: {'p_conversation_id': conversationId, 'p_user_id': userId},
+        );
+      } catch (e) {
+        debugPrint('BackgroundReplyService: mark_messages_as_read RPC error: $e');
+      }
+
+      final rows = await Supabase.instance.client
           .from('conversations')
           .select('data')
           .eq('id', conversationId)
-          .maybeSingle();
-      if (row == null) return false;
+          .limit(1);
+      final current = Map<String, dynamic>.from(
+        (rows.isNotEmpty ? rows.first['data'] as Map<String, dynamic>? : null) ??
+            {},
+      );
+      final readBy = List<String>.from(
+        current['lastMessageReadBy'] as List? ?? [],
+      );
+      if (!readBy.contains(userId)) readBy.add(userId);
 
-      final data = Map<String, dynamic>.from(row['data'] as Map? ?? {});
-      final unreadCounts = Map<String, dynamic>.from(data['unread_counts'] as Map? ?? {});
-      unreadCounts[userId] = 0;
-      data['unread_counts'] = unreadCounts;
+      final unreadCount = Map<String, dynamic>.from(
+        current['unreadCount'] as Map? ?? {},
+      )..[userId] = 0;
+
+      final updated = {
+        ...current,
+        'unreadCount': unreadCount,
+        'lastMessageReadBy': readBy,
+      };
 
       await Supabase.instance.client
           .from('conversations')
-          .update({'data': data, 'updated_at': DateTime.now().toUtc().toIso8601String()})
+          .update({'data': updated})
           .eq('id', conversationId);
       return true;
     } catch (e) {
+      debugPrint('BackgroundReplyService: markAsRead error: $e');
       return false;
     }
   }
@@ -292,7 +426,9 @@ class BackgroundReplyService {
     return _getQueue(prefs);
   }
 
-  /// Traite les messages en attente (appelé quand online)
+  /// Traite les messages en attente (appelé quand online, ex. au démarrage
+  /// de l'app une fois l'utilisateur connu — voir
+  /// `NotificationService.saveTokenForUser`).
   static Future<void> processPendingMessages() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -300,10 +436,11 @@ class BackgroundReplyService {
 
       if (queue.isEmpty) return;
 
-      // S'assurer que Firebase est initialisé
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp();
       }
+      if (!await _initializeSupabaseForIsolate()) return;
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) return;
 
       final userId = prefs.getString('currentUserId');
       if (userId == null || userId.isEmpty) return;
@@ -329,47 +466,17 @@ class BackgroundReplyService {
         );
 
         try {
-          // Initialiser le chiffrement
-          await EncryptionService.instance.initialize();
-          final encryptedContent = EncryptionService.instance.encryptText(
-            updatedMessage.content,
-          );
-
-          // Créer les données du message
-          final now = DateTime.now().toUtc().toIso8601String();
-          final messageData = {
-            'senderId': updatedMessage.senderId,
-            'senderName': updatedMessage.senderName,
-            'senderPhotoUrl': updatedMessage.senderPhotoUrl,
-            'content': encryptedContent,
-            'type': 'text',
-            'readBy': [updatedMessage.senderId],
-            'readAt': {updatedMessage.senderId: now},
-            'deliveredTo': [updatedMessage.senderId],
-            'deliveredAt': {updatedMessage.senderId: now},
-            'createdAt': now,
-            'sentFromNotificationReply': true,
-            'wasQueued': true, // Flag pour analytics
-          };
-
-          // Envoyer à Firebase RTDB
-          final database = FirebaseDatabase.instance;
-          final messagesRef = database
-              .ref()
-              .child('messages')
-              .child(updatedMessage.conversationId);
-          final newMessageRef = messagesRef.push();
-          await newMessageRef.set(messageData);
-
-          // Mettre à jour les métadonnées
-          await _updateConversationLastMessage(
+          await _persistMessage(
             conversationId: updatedMessage.conversationId,
-            lastMessage: updatedMessage.content,
+            content: updatedMessage.content,
             senderId: updatedMessage.senderId,
+            senderName: updatedMessage.senderName,
+            senderPhotoUrl: updatedMessage.senderPhotoUrl,
+            wasQueued: true,
           );
-
           // Succès - ne pas remettre en queue
         } catch (e) {
+          debugPrint('BackgroundReplyService: retry failed: $e');
           // Échec - remettre en queue si pas trop de retries
           if (updatedMessage.retryCount < _maxRetries) {
             newQueue.add(updatedMessage.copyWithRetry());
@@ -381,7 +488,7 @@ class BackgroundReplyService {
       // Sauvegarder la nouvelle queue
       await _saveQueue(prefs, newQueue);
     } catch (e) {
-      // Ignorer les erreurs globales
+      debugPrint('BackgroundReplyService: processPendingMessages error: $e');
     }
   }
 

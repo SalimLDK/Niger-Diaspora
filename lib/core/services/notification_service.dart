@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -189,7 +190,7 @@ Future<void> notificationActionBackgroundHandler(
       await _cancelNotificationsForConversation(conversationId, notificationId);
     }
   } catch (e) {
-    // Silently fail
+    debugPrint('notificationActionBackgroundHandler error: $e');
   }
 }
 
@@ -1318,8 +1319,38 @@ class NotificationService {
   /// un aller-retour base à chaque émission.
   String? _tokenSyncedForUser;
 
-  Future<void> saveTokenForUser(String userId) async {
+  Future<void> saveTokenForUser(
+    String userId, {
+    String? displayName,
+    String? photoUrl,
+  }) async {
     _lastKnownUserId = userId;
+
+    // Cache pour les isolates background (action de notification, message
+    // FCM en arrière-plan) : ils n'ont pas accès à Riverpod ni à
+    // FirebaseAuth.currentUser au moment où ils se réveillent, seulement à
+    // SharedPreferences. Sans ce cache, `currentUserId` restait `null` pour
+    // toujours — la réponse rapide depuis une notification et la
+    // confirmation de livraison en arrière-plan étaient silencieusement
+    // court-circuitées avant même de tenter une écriture.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('currentUserId', userId);
+      if (displayName != null && displayName.isNotEmpty) {
+        await prefs.setString('currentUserDisplayName', displayName);
+      }
+      if (photoUrl != null && photoUrl.isNotEmpty) {
+        await prefs.setString('currentUserPhotoUrl', photoUrl);
+      }
+    } catch (e) {
+      debugPrint('NotificationService: cache currentUserId error: $e');
+    }
+
+    // Vide la file des réponses de notification qui ont échoué pendant que
+    // `currentUserId` était vide (offline, ou app pas encore lancée depuis).
+    // Fire-and-forget : ne doit pas retarder le reste de saveTokenForUser.
+    unawaited(BackgroundReplyService.processPendingMessages());
+
     if (_tokenSyncedForUser == userId) return;
     _tokenSyncedForUser = userId;
 
@@ -1383,6 +1414,20 @@ class NotificationService {
     // Sinon une reconnexion sur le même compte serait ignorée par la garde de
     // saveTokenForUser, et le jeton ne repartirait jamais en base.
     _tokenSyncedForUser = null;
+    _lastKnownUserId = null;
+
+    // Sans ça, un isolate background réveillé après déconnexion (réponse
+    // rapide, confirmation de livraison) agirait encore sous l'identité de
+    // l'utilisateur précédent.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('currentUserId');
+      await prefs.remove('currentUserDisplayName');
+      await prefs.remove('currentUserPhotoUrl');
+    } catch (e) {
+      debugPrint('NotificationService: clear currentUserId cache error: $e');
+    }
+
     // Le jeton VoIP est nominatif lui aussi : le laisser en base ferait sonner
     // l'appareil pour l'ancien compte.
     if (Platform.isIOS) {

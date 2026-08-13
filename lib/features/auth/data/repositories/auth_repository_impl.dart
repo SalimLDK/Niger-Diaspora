@@ -25,7 +25,11 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       // Save FCM token
-      await NotificationService().saveTokenForUser(userModel.id);
+      await NotificationService().saveTokenForUser(
+        userModel.id,
+        displayName: userModel.displayName,
+        photoUrl: userModel.photoUrl,
+      );
 
       return Right(userModel.toEntity());
     } on ServerException catch (e) {
@@ -42,7 +46,11 @@ class AuthRepositoryImpl implements AuthRepository {
       final userModel = await remoteDataSource.signInWithGoogle();
 
       // Save FCM token
-      await NotificationService().saveTokenForUser(userModel.id);
+      await NotificationService().saveTokenForUser(
+        userModel.id,
+        displayName: userModel.displayName,
+        photoUrl: userModel.photoUrl,
+      );
 
       return Right(userModel.toEntity());
     } on ServerException catch (e) {
@@ -67,7 +75,11 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       // Save FCM token
-      await NotificationService().saveTokenForUser(userModel.id);
+      await NotificationService().saveTokenForUser(
+        userModel.id,
+        displayName: userModel.displayName,
+        photoUrl: userModel.photoUrl,
+      );
 
       return Right(userModel.toEntity());
     } on ServerException catch (e) {
@@ -152,7 +164,11 @@ class AuthRepositoryImpl implements AuthRepository {
       // `saveTokenForUser` est idempotente par process, ce flux peut donc
       // émettre autant qu'il veut.
       if (entity != null) {
-        NotificationService().saveTokenForUser(entity.id);
+        NotificationService().saveTokenForUser(
+          entity.id,
+          displayName: entity.displayName,
+          photoUrl: entity.photoUrl,
+        );
       }
       return entity;
     });
