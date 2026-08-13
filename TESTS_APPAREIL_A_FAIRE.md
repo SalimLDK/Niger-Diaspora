@@ -5674,12 +5674,22 @@ preview générique par type (🔒 Nouveau message / 📸 Photo / …), comme c'
 déjà le cas pour 'e2ee' seul.
 
 - [x] **Migration appliquée** (`supabase db push`, 2026-08-13, approuvée par
-      Salim). Bloquée un temps par un bug sans rapport dans la migration
-      précédente de la file (`20260813130000_fix_receipts_uuid_type_and_anon_grant.sql`,
-      Jules — `mark_messages_as_delivered(TEXT, TEXT)` recréée sans DROP
-      préalable, 42723 already exists) : DROP manquant ajouté, la file est
-      repassée d'un coup. `migration list` confirme les deux versions
-      Local = Remote.
+      Salim). `migration list` confirme les deux versions Local = Remote.
+
+⚠️ **Pour Jules — j'ai touché ton fichier `20260813130000_fix_receipts_uuid_type_and_anon_grant.sql`.**
+`db push` s'arrêtait dessus (42723 « mark_messages_as_delivered already
+exists with same argument types ») et bloquait toute la file, ma migration
+comprise. Cause : ton fichier `DROP`e bien la surcharge
+`mark_messages_as_delivered(UUID, TEXT)` avant de recréer, mais pas la
+surcharge `(TEXT, TEXT)` — celle-là existe depuis `20260720120300`, avant
+`20260813120000`. J'ai ajouté le `DROP FUNCTION IF EXISTS
+public.mark_messages_as_delivered(TEXT, TEXT);` manquant (même motif que les
+deux `DROP` déjà là pour `mark_messages_as_read`), poussé, puis relancé
+`db push` — passé, sans autre incident. Le fichier a maintenant un
+paragraphe 3) dans son commentaire d'en-tête qui explique l'ajout. Si tu
+avais une raison de ne PAS dropper cette surcharge (une autre fonction encore
+dessus, un appelant qui en dépend), vérifie — je n'ai vu que l'échec du push,
+pas ton intention complète sur ce fichier.
 
 **Pas vérifiable sans device + vrai envoi FCM** — la base a été relue et la
 migration appliquée, pas rejouée de bout en bout :
