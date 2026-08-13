@@ -6375,11 +6375,29 @@ sessions Signal dans un isolate séparé — non fait, hors périmètre.
       `android.text = "He"` — le texte réel tapé par Salim, plus de
       placeholder. Confirmé en base (`notifications.body = "He"`) et à
       l'écran (capture du volet de notifications envoyée à Salim).
-- [ ] Cas E2EE Signal établi (au premier plan) : pas testé, faute d'une
-      paire de comptes avec une session Signal active entre eux sur les
-      comptes de test actuels. Le câblage (`app.dart` →
-      `setE2EEDecryptionCallback`) est en place mais son fonctionnement
-      réel n'a pas été observé à l'écran.
+- [x] **Repli AES re-confirmé 7 fois** avec les messages de test indépendants
+      de Salim dans `883c9d96` (« Salut », « Yo », « Test 2/3/4… », « Yyy ») :
+      toujours le vrai texte en `notifications.body`, jamais de ciphertext.
+- [ ] **Cas E2EE Signal établi (au premier plan) : session réelle obtenue,
+      rendu à l'écran non capturé en direct.** En envoyant dans « Diaspora
+      Niger — Canada » (`0ce4c63f`, Salim + Sim vrais membres), une session
+      Sender Key s'est établie à la volée — vérifié en base :
+      `encryptionLevel = 'e2ee'`, `senderKeyPayload` présent dans les deux
+      côtés (`messages.data` ET `notifications.data`, donc le cablage SQL qui
+      transporte le vrai payload au lieu du placeholder `'[E2EE]'`
+      fonctionne), `notifications.body` resté générique côté serveur (jamais
+      de fuite). Trois tentatives de capture en direct ont échoué pour des
+      raisons de timing/navigation (app repassée en arrière-plan entre
+      l'envoi et la vérification, conversation ouverte qui supprime la
+      notification, messages de test envoyés par erreur vers `883c9d96` au
+      lieu du groupe visé) — jamais une preuve que le déchiffrement échoue.
+      Rejeu impossible avec le même message (clé Signal à usage unique,
+      supprimée après un déchiffrement réussi — pas une clé « rejouable »
+      comme le repli AES). Le code manquant pour ce cas
+      (`NotificationDecryptionService` → `MessageCryptoService.decrypt`) est
+      le même chemin déjà exercé pour afficher les vrais messages dans une
+      conversation ouverte — `flutter analyze` propre, mais pas vu rendre à
+      l'écran pour une notification.
 
 ---
 
