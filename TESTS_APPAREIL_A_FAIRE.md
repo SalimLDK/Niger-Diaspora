@@ -26,11 +26,23 @@ l'appareil (`adb shell input text`) n'a pas abouti — le champ ne recevait pas
 le texte tapé — donc le retour à la ligne sur un message qui remplit toute la
 largeur de la bulle n'a jamais été vu en vrai à cette taille de police.
 
-- [ ] **Envoyer un vrai message long** (plusieurs phrases, au doigt ou via un
-      champ correctement focus) dans une discussion 1:1 et en groupe, et
-      vérifier que le texte se replie proprement dans la bulle sans dépasser
-      ni tronquer, avec `font_scale` par défaut **et** à 1.1 (piège connu,
-      cf. section « Comment tester » plus bas).
+- [x] **Envoyer un vrai message long, `font_scale` par défaut — VÉRIFIÉ SUR SM A515F (2026-08-13)** :
+  - **1:1** (conversation « Salim L. ») : message réel envoyé par Salim
+    (« Ceci est un message test assez long pour verifier que le texte se
+    replie bien dans la bulle sans depasser ni tronquer quoi qui arrive. »)
+    — se replie proprement sur 5 lignes, aucun débordement.
+  - **Groupe** (« Diaspora Niger — Canada ») : le message de stress-test
+    existant (~2000 caractères, alternant texte et segments de type
+    téléphone auto-liés) se replie entièrement dans la largeur de la bulle,
+    y compris aux frontières des segments liés, sans dépassement horizontal.
+  - Tentative d'envoi d'un nouveau message dans un troisième groupe
+    (« Groupe de test privé ») interrompue par des redémarrages concurrents
+    de l'app (rebuilds/réinstalls de Salim en parallèle sur le même
+    appareil) puis un état « Connexion en cours... » resté bloqué >40s —
+    observation isolée, pas reproduite volontairement, probablement liée au
+    nombre de kill/reinstall consécutifs plutôt qu'au correctif de police.
+- [ ] **`font_scale` à 1.1** : toujours pas vérifié à cette taille de police
+      (piège connu, cf. section « Comment tester » plus bas).
 
 ---
 
