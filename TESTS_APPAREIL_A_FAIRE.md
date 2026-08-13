@@ -14,6 +14,34 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Accusés livré/lu séparés — sheet infos du message (2026-08-13)
+
+`mark_messages_as_delivered` marquait `readBy`/`readAt` en même temps que
+`deliveredTo`/`deliveredAt`, y compris depuis les handlers de notification
+push (app en arrière-plan ou fermée) : un message passait à « lu » avant même
+que le destinataire ouvre la conversation. Séparé en deux RPC —
+`mark_messages_as_delivered` (livré seul) et `mark_messages_as_read` (lu,
+appelée uniquement à l'ouverture réelle de la conversation) — voir
+[20260813120000_split_delivered_from_read.sql](supabase/migrations/20260813120000_split_delivered_from_read.sql)
+et [message_supabase_datasource.dart:1548](lib/features/messages/data/datasources/message_supabase_datasource.dart:1548).
+
+`flutter analyze` propre, mais rien de tout ça n'est vérifiable sans deux
+comptes réels échangeant un message :
+
+- [ ] **Migration à déployer** (`supabase db push` ou équivalent) avant que
+  `mark_messages_as_read` existe côté distant — tant qu'elle n'est pas
+  déployée, l'appel échoue en silence (best-effort, voir le code) et le
+  comportement reste celui d'avant (lu = livré).
+- [ ] Envoyer un message depuis le compte A à un compte B **avec le compte B
+  hors ligne** (notification push reçue, app fermée) : vérifier dans le sheet
+  infos du message (appui long → Infos) que l'onglet « Livré à » liste B mais
+  que « Lu par » reste vide tant que B n'a pas ouvert la conversation.
+- [ ] Ouvrir la conversation côté B : vérifier que B apparaît alors dans « Lu
+  par », et que le coche du message (côté A) passe au double-coche bleu à ce
+  moment-là, pas avant.
+
+---
+
 ## Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)
 
 Toute l'application vient d'être branchée sur `l10n` : l'admin (0 fichier sur
