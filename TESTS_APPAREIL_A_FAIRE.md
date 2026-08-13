@@ -4806,6 +4806,16 @@ passe sur un rail de navigation latéral, et la conversation reste correcte.
   composeur à 6 lignes fait ~150 dp au lieu de 64. Sur 392 dp de haut, le
   compte est dépassé de ~240.
   Le même écran **sans** ces deux conditions ne déborde pas.
+
+  **Reconfirmé le 2026-08-13**, seuil plus bas qu'estimé : `BOTTOM OVERFLOWED
+  BY 47 PIXELS` avec le même bandeau de restauration des clés mais un
+  brouillon de **2 lignes seulement** (pas 6), pendant la frappe au clavier
+  logiciel. L'overflow disparaît dès que le clavier se referme (texte
+  entièrement visible, bouton d'envoi accessible) — le message part
+  normalement et la bulle reçue se replie bien sur deux lignes. Donc rien à
+  voir avec `message_bubble.dart` (agrandissement du texte des bulles à 17,
+  commits `83ca2e4`/`a9b1fa5`) : l'overflow touche uniquement la barre de
+  saisie, pas le rendu des bulles envoyées.
 - [x] ⚠ **Écran de recherche des messages en paysage, clavier levé :
   `OVERFLOWED BY 190`.** Cet écran n'a été touché par aucun des lots — c'est
   le même défaut structurel, ailleurs. **Corrigé le 2026-08-05, mais pas où
