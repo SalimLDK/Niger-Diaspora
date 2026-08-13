@@ -27,6 +27,18 @@ class MessageRepositoryImpl implements MessageRepository {
   final CacheService cacheService;
   final BlurhashService blurhashService;
 
+  /// Placeholders posés par la couche crypto quand un déchiffrement échoue.
+  /// Signal (1:1) et Sender Key (groupes) consomment la clé de message au
+  /// premier déchiffrement réussi — aucun cache de clés sautées côté client —
+  /// donc retenter sur le MÊME message échoue toujours après coup. Voir
+  /// `_reconcileEcho` dans message_provider.dart pour le même constat côté
+  /// écho temps réel ; ceci couvre le rechargement paginé (réouverture de
+  /// conversation, pull-to-refresh, pagination).
+  static const _undecryptablePlaceholders = {
+    '[🔐 E2EE — session requise]',
+    '🔐 Message chiffré',
+  };
+
   // DocumentSnapshot? _lastDocument; // Removed: using stateless cursor via beforeMessageId (RTDB key)
 
   MessageRepositoryImpl({
@@ -707,11 +719,12 @@ class MessageRepositoryImpl implements MessageRepository {
         // Drop the oldest probe item used to detect hasMore, keeping the
         // newest `limit` messages (datasource returns ascending order).
         final trimmed = hasMore ? messages.sublist(1) : messages;
+        final healed = _healUndecryptableMessages(conversationId, trimmed);
 
-        final entities = trimmed.map((m) => m.toEntity()).toList();
+        final entities = healed.map((m) => m.toEntity()).toList();
 
         // Cache the messages
-        final messageMaps = trimmed.map((m) => m.toJson()).toList();
+        final messageMaps = healed.map((m) => m.toJson()).toList();
         await cacheService.cacheMessages(conversationId, messageMaps);
 
         // debugPrint('💾 Repository: Cached ${messageMaps.length} messages');
@@ -767,6 +780,50 @@ class MessageRepositoryImpl implements MessageRepository {
         return Left(CacheFailure('Erreur lecture cache: ${e.toString()}'));
       }
     }
+  }
+
+  /// Restaure, depuis le cache local, le texte clair des messages qu'un
+  /// rechargement réseau vient de rendre indéchiffrables.
+  ///
+  /// Symptôme observé : une conversation de groupe se déchiffre correctement
+  /// à la première ouverture, puis affiche « 🔐 Message chiffré » /
+  /// « session requise » sur les MÊMES messages dès qu'on la rouvre, fait un
+  /// pull-to-refresh, ou charge une page plus ancienne. Cause : Signal (1:1)
+  /// et Sender Key (groupes) font avancer un ratchet à sens unique à chaque
+  /// déchiffrement réussi, sans conserver les clés de message déjà
+  /// consommées — `getMessagesPaginated` re-fetch pourtant le même ciphertext
+  /// depuis Supabase et retente `_crypto.decrypt` à chaque appel (voir
+  /// `SenderKeyService.decryptWithSenderKey` : `chainIndex < senderKey.chainIndex`
+  /// renvoie `null` sans jamais réussir une seconde fois). Le cache local,
+  /// qui contient le texte déjà déchiffré avec succès la première fois, se
+  /// faisait alors écraser par ce résultat en échec.
+  List<MessageModel> _healUndecryptableMessages(
+    String conversationId,
+    List<MessageModel> freshMessages,
+  ) {
+    final hasFailure = freshMessages.any(
+      (m) => _undecryptablePlaceholders.contains(m.content),
+    );
+    if (!hasFailure) return freshMessages;
+
+    final knownGoodContent = <String, String>{};
+    for (final cached in cacheService.getCachedMessages(conversationId)) {
+      final id = cached['id'] as String?;
+      final content = cached['content'] as String?;
+      if (id != null &&
+          content != null &&
+          content.isNotEmpty &&
+          !_undecryptablePlaceholders.contains(content)) {
+        knownGoodContent[id] = content;
+      }
+    }
+    if (knownGoodContent.isEmpty) return freshMessages;
+
+    return freshMessages.map((m) {
+      if (!_undecryptablePlaceholders.contains(m.content)) return m;
+      final healedContent = knownGoodContent[m.id];
+      return healedContent == null ? m : m.copyWith(content: healedContent);
+    }).toList();
   }
 
   @override
