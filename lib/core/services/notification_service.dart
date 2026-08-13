@@ -162,13 +162,21 @@ Future<void> notificationActionBackgroundHandler(
   final input = response.input; // Texte de la réponse directe
   final notificationId = response.id;
 
-  if (payload == null) return;
+  if (payload == null) {
+    debugPrint('notificationActionBackgroundHandler: action "$actionId" reçue sans payload');
+    return;
+  }
 
   try {
     final data = jsonDecode(payload) as Map<String, dynamic>;
     final conversationId = data['conversationId'] as String?;
 
-    if (conversationId == null) return;
+    if (conversationId == null) {
+      debugPrint(
+        'notificationActionBackgroundHandler: conversationId absent du payload pour "$actionId"',
+      );
+      return;
+    }
 
     if (actionId == kReplyActionId && input != null && input.isNotEmpty) {
       // Envoyer la réponse via le service background
@@ -2708,10 +2716,26 @@ class NotificationService {
               );
             }
           }
+          return;
         }
+
+        // Un actionId connu (reply/mark-read) est arrivé jusqu'ici sans
+        // matcher un des blocs ci-dessus (conversationId absent du payload,
+        // ou input vide) : sans log, ce cas se referme en silence — la
+        // notification reste bloquée sur son indicateur d'envoi côté Android
+        // puisque personne n'appelle jamais sendReply/markAsRead ni ne
+        // referme la notification. Vécu sur SM A515F le 2026-08-13.
+        debugPrint(
+          'NotificationService: action "$actionId" non traitée — '
+          'conversationId=$conversationId input="${input ?? ''}"',
+        );
       } catch (e) {
-        // debugPrint('Error parsing notification payload: $e');
+        debugPrint('NotificationService: erreur parsing payload notification: $e');
       }
+    } else if (actionId != null && actionId.isNotEmpty) {
+      debugPrint(
+        'NotificationService: action "$actionId" reçue sans payload — impossible de router',
+      );
     }
   }
 
