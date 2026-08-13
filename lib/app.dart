@@ -8,6 +8,7 @@ import 'core/theme/theme_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/l10n/locale_provider.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/e2ee/notification_decryption_service.dart';
 import 'core/services/tracking_consent_service.dart';
 import 'core/providers/app_settings_provider.dart';
 import 'shared/widgets/reconnection_summary.dart';
@@ -26,6 +27,7 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
     // Setup callback after first frame to ensure router is ready
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _setupNotificationCallback();
+      _setupE2EEDecryptionCallback();
       // ATT (iOS) + démarrage d'AdMob. Après la première frame : Apple exige
       // que l'app soit visible pour présenter la boîte de dialogue de suivi,
       // sinon elle est ignorée en silence.
@@ -41,6 +43,23 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
       SchedulerBinding.instance.addPostFrameCallback((_) {
         _navigateToNotificationTarget(type, targetId, data);
       });
+    });
+  }
+
+  /// Branche le déchiffrement E2EE des aperçus de notification (premier
+  /// plan uniquement — jamais câblé jusqu'ici, cf TESTS_APPAREIL_A_FAIRE.md).
+  void _setupE2EEDecryptionCallback() {
+    final decryptionService = ref.read(notificationDecryptionServiceProvider);
+    NotificationService().setE2EEDecryptionCallback((
+      senderId,
+      cryptoPayload,
+      messageType,
+    ) {
+      return decryptionService.decryptPreview(
+        senderId: senderId,
+        cryptoPayload: cryptoPayload,
+        messageType: messageType,
+      );
     });
   }
 

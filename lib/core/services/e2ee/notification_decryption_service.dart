@@ -1,15 +1,25 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'message_crypto_service.dart';
 import 'messaging_e2ee_service.dart';
-import 'models/e2ee_models.dart';
 
 /// Provider pour le service de déchiffrement des notifications
 final notificationDecryptionServiceProvider =
     Provider<NotificationDecryptionService>((ref) {
   final e2eeService = ref.watch(messagingE2EEServiceProvider);
-  return NotificationDecryptionService(e2eeService: e2eeService);
+  final cryptoService = ref.watch(messageCryptoServiceProvider);
+  return NotificationDecryptionService(
+    e2eeService: e2eeService,
+    cryptoService: cryptoService,
+  );
 });
+
+/// Marqueur interne de MessageCryptoService.decrypt() quand aucune session
+/// Signal locale ne permet de déchiffrer (pas une vraie donnée de message).
+const _kE2EESessionRequise = '[🔐 E2EE — session requise]';
 
 /// Service de déchiffrement des notifications E2EE
 ///
@@ -21,25 +31,29 @@ final notificationDecryptionServiceProvider =
 /// Les notifications en arrière-plan utilisent des previews génériques.
 class NotificationDecryptionService {
   final MessagingE2EEService _e2eeService;
+  final MessageCryptoService _cryptoService;
 
   NotificationDecryptionService({
     required MessagingE2EEService e2eeService,
-  }) : _e2eeService = e2eeService;
+    required MessageCryptoService cryptoService,
+  })  : _e2eeService = e2eeService,
+        _cryptoService = cryptoService;
 
   /// Tente de déchiffrer le preview d'un message pour une notification
   ///
   /// [senderId] - L'ID de l'expéditeur du message
-  /// [encryptedPreview] - Le preview chiffré (format E2EE Firebase string)
+  /// [cryptoPayload] - Les champs chiffrés bruts reçus dans la donnée FCM
+  ///   (`e2eePayloads`, `e2eePayload` ou `senderKeyPayload` — mêmes formats
+  ///   que ceux écrits par MessageCryptoService côté envoi)
   /// [messageType] - Le type de message (text, image, video, etc.)
   ///
   /// Retourne le texte déchiffré ou un fallback générique si le déchiffrement échoue
   Future<String> decryptPreview({
     required String senderId,
-    required String? encryptedPreview,
+    required Map<String, dynamic> cryptoPayload,
     required String messageType,
   }) async {
-    // Si pas de preview chiffré, retourner le fallback
-    if (encryptedPreview == null || encryptedPreview.isEmpty) {
+    if (cryptoPayload.isEmpty) {
       return getFallbackPreview(messageType);
     }
 
@@ -50,18 +64,12 @@ class NotificationDecryptionService {
     }
 
     try {
-      // Parser le message chiffré
-      final encryptedMessage = E2EEEncryptedMessage.fromFirebaseString(
-        encryptedPreview,
+      final decrypted = await _cryptoService.decrypt(
+        payload: cryptoPayload,
+        senderId: senderId,
       );
 
-      // Déchiffrer le message
-      final decrypted = await _e2eeService.decryptMessage(
-        senderId,
-        encryptedMessage,
-      );
-
-      if (decrypted != null && decrypted.isNotEmpty) {
+      if (decrypted.isNotEmpty && decrypted != _kE2EESessionRequise) {
         // Limiter la longueur pour la notification
         if (decrypted.length > 100) {
           return '${decrypted.substring(0, 100)}...';
@@ -74,6 +82,37 @@ class NotificationDecryptionService {
       debugPrint('NotificationDecryption: Error decrypting: $e');
       return getFallbackPreview(messageType);
     }
+  }
+
+  /// Reconstruit la charge utile de déchiffrement à partir de la donnée FCM
+  /// brute (où les valeurs objet ont été json-encodées côté serveur pour
+  /// respecter le format `data` de FCM, qui n'accepte que des chaînes).
+  static Map<String, dynamic> cryptoPayloadFromFcmData(
+    Map<String, dynamic> fcmData,
+  ) {
+    final payload = <String, dynamic>{};
+
+    final senderKeyPayload = fcmData['senderKeyPayload'];
+    if (senderKeyPayload is String && senderKeyPayload.isNotEmpty) {
+      payload['senderKeyPayload'] = senderKeyPayload;
+    }
+
+    final e2eePayload = fcmData['e2eePayload'];
+    if (e2eePayload is String && e2eePayload.isNotEmpty) {
+      payload['e2eePayload'] = e2eePayload;
+    }
+
+    final e2eePayloadsRaw = fcmData['e2eePayloads'];
+    if (e2eePayloadsRaw is String && e2eePayloadsRaw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(e2eePayloadsRaw);
+        if (decoded is Map) payload['e2eePayloads'] = decoded;
+      } catch (e) {
+        debugPrint('NotificationDecryption: e2eePayloads parse error: $e');
+      }
+    }
+
+    return payload;
   }
 
   /// Retourne un preview générique basé sur le type de message
@@ -109,18 +148,18 @@ class NotificationDecryptionService {
     final type = fcmData['type'] as String? ?? '';
     final messageType = fcmData['messageType'] as String? ?? 'text';
     final senderId = fcmData['senderId'] as String? ?? '';
-    final encryptedPreview = fcmData['encryptedPreview'] as String?;
+    final cryptoPayload = cryptoPayloadFromFcmData(fcmData);
     final isE2EE = fcmData['isE2EE'] == 'true';
 
     String title = fcmData['title'] as String? ?? 'Nouvelle notification';
     String body = fcmData['body'] as String? ?? '';
     bool wasDecrypted = false;
 
-    // Si c'est un message E2EE avec un preview chiffré
-    if (type == 'message' && isE2EE && encryptedPreview != null) {
+    // Si c'est un message E2EE avec un payload chiffré exploitable
+    if (type == 'message' && isE2EE && cryptoPayload.isNotEmpty) {
       final decryptedBody = await decryptPreview(
         senderId: senderId,
-        encryptedPreview: encryptedPreview,
+        cryptoPayload: cryptoPayload,
         messageType: messageType,
       );
 
