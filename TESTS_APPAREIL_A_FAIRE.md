@@ -121,13 +121,39 @@ le routeur.
     de faux positifs (`events`, et la moitié de `blocked_users`). Plus rien
     en attente avant d'envisager le `REVOKE` général des droits table
     `anon`.
-  - [ ] **Jamais vérifié sur appareil** : démarrer l'app hors ligne (ou
-    réseau très lent) après une session Firebase existante, et confirmer que
-    `/home` s'affiche toujours sans blocage (le point que le correctif du
-    2026-08-04 protégeait), avec le profil/les membres proches/le statut de
-    blocage en état de chargement/erreur géré plutôt qu'un crash — et que le
-    badge de messages non lus finit par se mettre à jour (nouvel essai à
-    5 s) sans qu'il faille recevoir un message pour le déclencher.
+  - [x] **Vérifié sur appareil le 2026-08-13** (SM A515F, APK debug rebuild
+    depuis ce worktree, `lastUpdateTime` confirmé postérieur aux 4 commits de
+    correctif). Mode avion + Wi-Fi coupé par Salim, confirmé par
+    `dumpsys connectivity` (`Active default network: none`, pas seulement
+    `airplane_mode_on`, cf. le piège VPN déjà documenté) — puis app arrêtée
+    (`am force-stop`) et relancée à froid.
+    - Aucun crash (`E/flutter`, `FATAL EXCEPTION` : zéro occurrence sur toute
+      la capture logcat). `/home`, Messages et Groupes s'affichent tous
+      normalement, aucun écran bloqué sur `/splash`.
+    - Le badge « 1 non lu » s'affiche correctement dès le démarrage à froid
+      hors ligne (données en cache, cohérent avec le cache-first existant).
+    - `markAsDelivered`/`mark_messages_as_read` échouent proprement
+      (`AuthRetryableFetchException` catché et loggé, pas de crash) —
+      confirme le comportement best-effort du correctif accusés livré/lu.
+    - Reprise réseau confirmée propre : `SupabaseAuthBridge: session sync OK`
+      dans les 2 s suivant le rétablissement, puis opérations Supabase
+      réelles qui réussissent de nouveau (`MarkAsRead: Synced dismiss to
+      other devices`).
+    - **Nuance découverte** : `_startFromLocalSession` (le chemin de repli à
+      8 s dans `auth_provider.dart`) ne s'est en fait jamais déclenché
+      pendant ce test — son log dédié (« profil serveur injoignable ») est
+      absent de toute la capture. `getCurrentUser()` a résolu plus vite que
+      le timeout, via sa propre résilience interne, sans jamais passer par
+      ce chemin précis. Les gardes `ensureReadableSession()` restent
+      correctes indépendamment de ce détail (elles ne testent que
+      `hasValidSession`, pas la raison de l'état d'authentification), mais
+      ce test précis n'isole pas la fenêtre étroite (réseau bon mais pont pas
+      encore confirmé) que ces gardes visent spécifiquement — seulement le
+      cas plus large « pas de réseau du tout ».
+    - **Trouvaille incidente, hors périmètre** : `setState() called after
+      dispose()` dans `_startGroupConversation`
+      (`group_detail_screen.dart:632`), capturé par Crashlytics. Pas un
+      crash, mais une fuite mémoire potentielle. Tâche séparée créée.
 
 ---
 
