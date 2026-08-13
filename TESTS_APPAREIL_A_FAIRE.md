@@ -14,6 +14,56 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Cartographie des accès `anon` réellement nécessaires (2026-08-13)
+
+Suite à l'audit des RPC (section suivante) : `anon` a INSERT/UPDATE/DELETE/SELECT
+au niveau table sur quasiment tout le schéma public par accident
+(`ALTER DEFAULT PRIVILEGES`), et RLS (activée sur 100% des tables, vérifié)
+est la seule barrière. Avant d'envisager un `REVOKE` généralisé, cartographie
+de ce que l'app a réellement besoin en `anon` — c'est-à-dire avant qu'une
+session Supabase authentifiée existe.
+
+**L'app n'a aucun mode invité.** Le routeur ([app_router.dart:246-247](lib/core/router/app_router.dart:246))
+redirige tout écran non technique vers `/auth/login` tant que Firebase n'est
+pas authentifié — aucun aperçu public (profil, post, événement, groupe via
+lien de partage) ne se construit avant connexion. Les pages légales (CGU,
+confidentialité) sont servies depuis **Firestore**, pas Supabase.
+
+**Besoins réels identifiés** (tous liés à la même fenêtre : `auth_provider.dart`
+`_startFromLocalSession` (lignes 152-185) bascule l'utilisateur en
+« authentifié » depuis la session Firebase locale **sans confirmer** que le
+pont Supabase a abouti — le vrai bug de fond) :
+- `users` SELECT — `profileNotifierProvider`/`nearbyProfilesNotifierProvider`
+  au montage de `HomeScreen`, et `isHandleAvailable` pendant l'inscription
+  ([handle_field.dart:81-91](lib/features/profile/presentation/widgets/handle_field.dart:81))
+- `blocked_users` SELECT — `usersWhoBlockedMeProvider`
+- `conversations` SELECT — `totalUnreadCountProvider`
+- `events` SELECT — `eventsNotifierProvider`
+
+**Aucune écriture n'est légitimement nécessaire en `anon`, nulle part** —
+chaque écriture inspectée (`profile_supabase_datasource.dart` et consorts)
+est déjà gardée par `ensureAuthenticated()`/`_requireAuth()` côté Dart et
+échoue proprement sans le grant. Aucune lecture nécessaire sur les ~80
+autres tables (`orders`, `payment_accounts`, `escrow_transactions`,
+`e2ee_*`, `messages`, `posts`, `groups`, `businesses`, `podcasts`,
+`admin_*`...).
+
+**Angle mort** : `audio_rooms`, `businesses`, `calls`, `embassies`, `friends`,
+`marketplace`, `payment_accounts`, `podcasts`, `reports`, `search`,
+`stickers`, `support`, `transfers` n'ont pas le réflexe `ensureAuthenticated()`
+présent dans `auth`/`feed`/`groups`/`messages`/`profile` — protégés
+aujourd'hui uniquement par la garde du routeur, pas par le datasource
+lui-même. Un `REVOKE` général sur les écritures `anon` serait le filet qui
+les couvre si un futur chemin de code (deep link, tâche de fond) contournait
+le routeur.
+
+- [ ] **Décision en attente (demandée à Salim)** : écrire la migration
+  REVOKE/GRANT maintenant (méthode habituelle : transaction annulée pour
+  vérifier avant déploiement), ou corriger d'abord `auth_provider.dart` pour
+  fermer la fenêtre plutôt que d'ouvrir 4 SELECT en permanence.
+
+---
+
 ## Accusés livré/lu séparés — sheet infos du message (2026-08-13)
 
 `mark_messages_as_delivered` marquait `readBy`/`readAt` en même temps que
