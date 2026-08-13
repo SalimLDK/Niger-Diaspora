@@ -185,4 +185,35 @@ class SupabaseAuthBridge {
     await syncWithFirebase(firebaseUser);
     return hasValidSession;
   }
+
+  /// Variante bornée d'[ensureAuthenticated], pour les lectures qui ne
+  /// doivent jamais rester bloquées.
+  ///
+  /// `_startFromLocalSession` (auth_provider.dart) débloque volontairement
+  /// `/home` sur la seule foi de Firebase quand le pont Supabase n'a pas
+  /// répondu sous 8 s (splash bloqué constaté le 2026-08-04) — pendant cette
+  /// fenêtre, les lectures faites depuis `/home` tournent en `anon` tant que
+  /// personne ne les borne. Contrairement à [ensureAuthenticated], un
+  /// timeout ici ne fait PAS échouer la lecture : mieux vaut dégrader (état
+  /// en cache, vide, ou repli existant de l'appelant) que geler l'écran en
+  /// attendant un réseau lent. La synchronisation continue en tâche de fond
+  /// (dédupliquée via [syncWithFirebase]) et profite au prochain appelant,
+  /// écriture ou lecture.
+  Future<bool> ensureReadableSession({
+    Duration timeout = const Duration(seconds: 3),
+  }) async {
+    if (hasValidSession) return true;
+
+    final firebaseUser = firebase_auth.FirebaseAuth.instance.currentUser;
+    if (firebaseUser == null) return false;
+
+    try {
+      await syncWithFirebase(firebaseUser).timeout(timeout);
+    } on TimeoutException {
+      // Repli intentionnel : voir docstring.
+    } catch (e) {
+      debugPrint('SupabaseAuthBridge.ensureReadableSession: $e');
+    }
+    return hasValidSession;
+  }
 }

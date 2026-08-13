@@ -73,12 +73,21 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   /// privé, donc un double de test ne pourrait pas en hériter.
   final Future<bool> Function() _ensureAuth;
 
+  /// Variante bornée pour les lectures — voir
+  /// [SupabaseAuthBridge.ensureReadableSession]. Séparée de [_ensureAuth] :
+  /// une écriture doit échouer si la session n'est pas établie, une lecture
+  /// doit seulement éviter de partir en anon, pas bloquer l'écran.
+  final Future<bool> Function() _ensureReadableAuth;
+
   ProfileSupabaseDataSource({
     SupabaseClient? supabase,
     Future<bool> Function()? ensureAuth,
+    Future<bool> Function()? ensureReadableAuth,
   }) : _clientOverride = supabase,
        _ensureAuth =
-           ensureAuth ?? SupabaseAuthBridge.instance.ensureAuthenticated;
+           ensureAuth ?? SupabaseAuthBridge.instance.ensureAuthenticated,
+       _ensureReadableAuth =
+           ensureReadableAuth ?? SupabaseAuthBridge.instance.ensureReadableSession;
 
   /// Garde obligatoire avant toute écriture.
   ///
@@ -97,6 +106,13 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
 
   @override
   Future<ProfileModel> getProfile(String userId) async {
+    // Session non confirmée (fenêtre `_startFromLocalSession`) : attendre
+    // brièvement plutôt que d'interroger en anon. `ProfileNotifier` a déjà un
+    // cache-first + repli silencieux sur `_fetchAndRefresh` — cette exception
+    // rejoint le chemin d'erreur existant, pas un nouveau.
+    if (!await _ensureReadableAuth()) {
+      throw ServerException('Session Supabase non établie – réessayez');
+    }
     final data =
         await _supabase.from('users').select().eq('id', userId).maybeSingle();
     if (data == null) throw ServerException('Profile not found: $userId');
@@ -150,6 +166,11 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     double longitude,
     double radiusKm,
   ) async {
+    // Session non confirmée (fenêtre `_startFromLocalSession`) : voir
+    // getProfile ci-dessus pour le contexte complet.
+    if (!await _ensureReadableAuth()) {
+      throw ServerException('Session Supabase non établie – réessayez');
+    }
     final delta = radiusKm / 111.0;
     final data = await _supabase
         .from('users')
@@ -400,6 +421,12 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     final normalized = handle.trim().toLowerCase();
     if (normalized.isEmpty) return false;
     try {
+      // Session non confirmée (fenêtre `_startFromLocalSession`, voir
+      // SupabaseAuthBridge.ensureReadableSession) : ne pas interroger en
+      // anon, la contrainte UNIQUE serveur tranchera au moment du save.
+      if (!await _ensureReadableAuth()) {
+        return true;
+      }
       // ilike insensible à la casse ; on ne récupère que l'id pour le test.
       final rows = await _supabase
           .from('users')

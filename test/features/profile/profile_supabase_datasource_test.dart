@@ -68,4 +68,78 @@ void main() {
     await expectLater(ds.updateLastLogin('u1'), throwsA(isNot(isA<ServerException>())));
     expect(guardCalled, isTrue);
   });
+
+  /// Pendant la fenêtre `_startFromLocalSession` (auth_provider.dart), l'app
+  /// est déjà sur /home alors que la session Supabase n'est pas confirmée.
+  /// Ces lectures ne doivent pas interroger la table en anon.
+  group('session non confirmée (lecture)', () {
+    test('getProfile refuse de lire', () async {
+      var guardCalled = false;
+      final ds = ProfileSupabaseDataSource(
+        ensureReadableAuth: () async {
+          guardCalled = true;
+          return false;
+        },
+      );
+
+      await expectLater(
+        ds.getProfile('u1'),
+        throwsA(
+          isA<ServerException>().having(
+            (e) => e.message,
+            'message',
+            contains('Session Supabase'),
+          ),
+        ),
+      );
+      expect(guardCalled, isTrue, reason: 'la garde n\'a pas été consultée');
+    });
+
+    test('getNearbyProfiles refuse de lire', () async {
+      var guardCalled = false;
+      final ds = ProfileSupabaseDataSource(
+        ensureReadableAuth: () async {
+          guardCalled = true;
+          return false;
+        },
+      );
+
+      await expectLater(
+        ds.getNearbyProfiles(13.51, 2.11, 50),
+        throwsA(isA<ServerException>()),
+      );
+      expect(guardCalled, isTrue);
+    });
+
+    test('isHandleAvailable se replie sur "disponible" sans interroger', () async {
+      var guardCalled = false;
+      final ds = ProfileSupabaseDataSource(
+        ensureReadableAuth: () async {
+          guardCalled = true;
+          return false;
+        },
+      );
+
+      // Repli identique à celui déjà utilisé pour une erreur réseau : la
+      // contrainte UNIQUE serveur tranche au moment du save.
+      expect(await ds.isHandleAvailable('salim'), isTrue);
+      expect(guardCalled, isTrue);
+    });
+  });
+
+  test('session confirmée : la garde de lecture laisse passer', () async {
+    var guardCalled = false;
+    final ds = ProfileSupabaseDataSource(
+      ensureReadableAuth: () async {
+        guardCalled = true;
+        return true;
+      },
+    );
+
+    // Aucun client Supabase n'est initialisé ici : l'appel échoue quand même,
+    // mais *après* la garde — preuve qu'une session confirmée n'est pas
+    // bloquée.
+    await expectLater(ds.getProfile('u1'), throwsA(isNot(isA<ServerException>())));
+    expect(guardCalled, isTrue);
+  });
 }
