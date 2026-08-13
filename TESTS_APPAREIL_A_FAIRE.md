@@ -41,8 +41,24 @@ largeur de la bulle n'a jamais été vu en vrai à cette taille de police.
     appareil) puis un état « Connexion en cours... » resté bloqué >40s —
     observation isolée, pas reproduite volontairement, probablement liée au
     nombre de kill/reinstall consécutifs plutôt qu'au correctif de police.
-- [ ] **`font_scale` à 1.1** : toujours pas vérifié à cette taille de police
-      (piège connu, cf. section « Comment tester » plus bas).
+- [x] **`font_scale` à 1.1 — VÉRIFIÉ SUR SM A515F (2026-08-13)** : réglé via
+      `adb shell settings put system font_scale 1.1` (déjà actif au moment du
+      test, probablement réglé par Salim). Vérifié en paysage (l'appareil a
+      basculé d'orientation plusieurs fois pendant le test, hors de mon
+      contrôle) :
+  - **1:1** (« Salim L. ») : le même message test se replie proprement sur
+    2 lignes (largeur plus grande en paysage), toujours aucun débordement.
+  - **Groupe** (« Diaspora Niger — Canada ») : la fin du message de
+    stress-test s'affiche sur 2 lignes, entièrement contenue dans la bulle
+    envoyée, aucun débordement.
+  - ⚠ **Débordement réel observé, mais ailleurs** : `BOTTOM OVERFLOWED BY
+    43 PIXELS` sur l'**aperçu du brouillon du composer** (pas une bulle
+    envoyée) quand un brouillon très long (le brouillon de stress-test
+    existant, 224/2000 caractères) est combiné au clavier ouvert en
+    paysage. Correspond au défaut déjà loggé par Salim (commit
+    `a9b1fa5`/`6d86b58`, « reconfirme overflow paysage 47px avec brouillon
+    de 2 lignes ») — reproduit indépendamment ici à 43px, même famille de
+    bug, pas un nouveau défaut de ce correctif-ci.
 
 ---
 
