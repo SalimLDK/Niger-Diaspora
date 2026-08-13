@@ -4825,7 +4825,7 @@ passe sur un rail de navigation latéral, et la conversation reste correcte.
 
 **Deux débordements, tous deux hors du périmètre des quatre lots :**
 
-- [ ] ⚠ **RÉDUIT (pas éliminé) le 2026-08-13, vérifié sur appareil.**
+- [x] ⚠ **CORRIGÉ le 2026-08-13, vérifié sur appareil (0 px).**
   Conversation « Salim L. » en paysage : `BOTTOM OVERFLOWED BY 240 PIXELS`.
   Reproduit avec le bandeau « Restaurez vos clés de chiffrement »
   affiché **et** un brouillon de 6 lignes dans le composeur. La cause est
@@ -4881,15 +4881,24 @@ passe sur un rail de navigation latéral, et la conversation reste correcte.
     pixels. Le `ConstrainedBox` ne peut rien y faire : il borne
     `MessageInput`, il ne le compresse pas en dessous de son contenu
     minimal.
-  - Pistes non tentées pour aller à zéro : réduire le padding vertical du
-    composeur spécifiquement en paysage, ou étendre le seuil
-    `placeRappelCles` (déjà présent pour le bandeau de restauration) à un
-    second palier qui masque aussi le bandeau épinglé sous une hauteur
-    encore plus faible.
+  - **Plancher éliminé le 2026-08-13** en réduisant le padding vertical du
+    composeur, spécifiquement en paysage (`MediaQuery.of(context).orientation
+    == Orientation.landscape`), en deux temps :
+    1. Marge extérieure de la barre (6→2 en haut, 8→2 en bas de la marge de
+       sécurité) et padding interne de la pilule (6→3) : `21 PIXELS` → `5,1
+       PIXELS` mesuré sur le même écran (bandeau restauration + composeur
+       vide).
+    2. `contentPadding` du `TextField` (12→9 haut/bas) et plancher
+       `minHeight` de la ligne du champ (44→38) : `5,1 PIXELS` → **0**,
+       revérifié sur appareil, clavier ouvert, bandeau épinglé + bandeau de
+       restauration des clés tous deux affichés.
+    Rien de touché en portrait (toutes les valeurs sont conditionnelles à
+    `isLandscape`) — seule la géométrie paysage change.
   - Non revérifié : l'écran précis qui montrait `240 PIXELS` (bandeau +
-    brouillon 6 lignes + panneau ouvert) — seuls les cas `47`/`21`/`12
-    PIXELS` ont été rejoués. Compte tenu de ce qui précède, ce cas déborde
-    probablement encore, en plus petit.
+    brouillon 6 lignes + panneau ouvert) — mais la cause de ce cas était la
+    même famille (plancher du composeur + `ConstrainedBox` déjà posé), donc
+    vraisemblablement également résolue ; à confirmer si le cas se
+    représente.
 - [x] ⚠ **Écran de recherche des messages en paysage, clavier levé :
   `OVERFLOWED BY 190`.** Cet écran n'a été touché par aucun des lots — c'est
   le même défaut structurel, ailleurs. **Corrigé le 2026-08-05, mais pas où

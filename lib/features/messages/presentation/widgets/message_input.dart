@@ -940,6 +940,16 @@ class _MessageInputState extends State<MessageInput>
     Widget panneau(Widget enfant) =>
         bornee ? Flexible(fit: FlexFit.loose, child: enfant) : enfant;
 
+    // En paysage clavier ouvert, la hauteur disponible peut être si faible
+    // qu'un composeur VIDE, sans aucune bannière, déborde déjà de quelques
+    // pixels (mesuré : jusqu'à 12 px sur SM A515F). Le ConstrainedBox posé
+    // côté conversation borne MessageInput, il ne le compresse pas sous son
+    // contenu minimal — desserrer ce padding en paysage réduit ce plancher
+    // au lieu de le déplacer ailleurs. Voir TESTS_APPAREIL_A_FAIRE.md,
+    // section « Paysage — overflow quand le chrome dépasse la hauteur ».
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -962,9 +972,9 @@ class _MessageInputState extends State<MessageInput>
         Padding(
           padding: EdgeInsets.fromLTRB(
             6,
+            isLandscape ? 2 : 6,
             6,
-            6,
-            MediaQuery.of(context).padding.bottom + 8,
+            MediaQuery.of(context).padding.bottom + (isLandscape ? 2 : 8),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -1001,9 +1011,9 @@ class _MessageInputState extends State<MessageInput>
                               ),
                             ],
                   ),
-                  padding: const EdgeInsets.symmetric(
+                  padding: EdgeInsets.symmetric(
                     horizontal: 8,
-                    vertical: 6,
+                    vertical: isLandscape ? 3 : 6,
                   ),
                   child:
                       _isRecording
@@ -1197,12 +1207,16 @@ class _MessageInputState extends State<MessageInput>
     // ferait déborder la colonne avant même que le panneau s'ouvre. On lui
     // laisse au plus la moitié de la place, ~22 dp par ligne.
     final maxLignes = borne.isFinite ? (borne / 2 / 22).floor().clamp(1, 6) : 6;
+    // Dernier point de compression du plancher paysage (cf. `_buildColumn`) :
+    // desserre aussi le padding vertical interne du champ lui-même.
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           // Aucun cadre ni fond : la saisie se fond dans la barre flottante.
-          constraints: const BoxConstraints(minHeight: 44),
+          constraints: BoxConstraints(minHeight: isLandscape ? 38 : 44),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -1253,11 +1267,11 @@ class _MessageInputState extends State<MessageInput>
                     // Seul le « + » est hors de la pilule : 10 + les 8 du
                     // Container = 18 réels à gauche. À droite, la pastille
                     // emoji fait office de marge, d'où le 4.
-                    contentPadding: const EdgeInsets.only(
+                    contentPadding: EdgeInsets.only(
                       left: 10,
                       right: 4,
-                      top: 12,
-                      bottom: 12,
+                      top: isLandscape ? 9 : 12,
+                      bottom: isLandscape ? 9 : 12,
                     ),
                   ),
                 ),
