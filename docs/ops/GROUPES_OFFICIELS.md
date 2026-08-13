@@ -26,10 +26,13 @@ signalement utilisateur :
   silence par RLS — ce groupe n'avait donc **aucun administrateur
   fonctionnel**, malgré ce que l'UI laissait croire.
 
-Correctif appliqué : un compte plateforme distinct, réassigné comme
-`creator_id`, avec une ligne `group_members` `role='owner'` — et *seulement*
-lui, par décision explicite de Salim : aucun compte personnel ne conserve de
-droit de gestion implicite sur ce groupe.
+Correctif appliqué le 2026-08-13 : compte plateforme distinct créé
+(`czk5UoUclLOFmbRtUIZ5XYLYKo52`, email `support@diasponiger.com`), réassigné
+comme `creator_id`, avec une ligne `group_members` `role='owner'` — et
+*seulement* lui, par décision explicite de Salim : aucun compte personnel ne
+conserve de droit de gestion implicite sur ce groupe. Vérifié sur SM A515F,
+connecté sous un compte tiers (Sim A) : « Membres · 3 », ligne créateur sans
+tap possible, cohérente partout sur la fiche.
 
 ## Règle pour tout nouveau groupe officiel
 
@@ -71,11 +74,11 @@ Vérifier après coup, en session applicative du compte plateforme :
 SELECT is_group_admin('<group_id>');  -- doit rendre TRUE
 ```
 
-## Amorcer le compte plateforme (une seule fois)
+## Amorcer un compte plateforme
 
-Pas de compte plateforme générique aujourd'hui — un seul existe, créé pour
-« Diaspo Niger ». Pour un futur compte distinct (par pays, par organisation
-partenaire…) :
+Un seul existe aujourd'hui, `czk5UoUclLOFmbRtUIZ5XYLYKo52` (« Diaspo Niger »,
+email `support@diasponiger.com`), déjà `owner` du groupe officiel actuel.
+Pour un futur compte distinct (par pays, par organisation partenaire…) :
 
 1. Créer le compte Firebase Auth (Console → Authentication → Add user) —
    **hors de portée d'un agent** : action de création de compte, à faire à la

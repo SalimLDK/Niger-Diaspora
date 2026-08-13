@@ -6657,6 +6657,24 @@ créateur quand `group.isOfficial` est vrai.
   « Diaspo Niger · Créateur » (sans profession) sur la fiche ET sur l'écran
   « Tout voir », cohérent avec « Créé par Diaspo Niger » en bas de fiche.
 
+**Réassignation en base faite le 2026-08-13** (voir
+`docs/ops/GROUPES_OFFICIELS.md`) : Salim a créé un vrai compte plateforme
+(`czk5UoUclLOFmbRtUIZ5XYLYKo52`, email `support@diasponiger.com`), connecté
+une fois dans l'app pour amorcer le pont Supabase standard. Ensuite, en SQL :
+`users.display_name = 'Diaspo Niger'` + `is_verified = true`,
+`groups.creator_id` réassigné dessus pour le groupe officiel, et une ligne
+`group_members` `role='owner'` — lui seul, aucun compte perso ne garde de
+droit de gestion implicite (décision explicite de Salim). `member_count`
+recalé à 3 (le trigger `group_members_count_trigger` ne s'est pas déclenché
+sur cet insert direct, même symptôme que documenté plus haut dans ce fichier
+pour la migration des groupes hérités).
+
+- [x] **Vérifié sur SM A515F, connecté en Sim A** (donc point de vue d'un
+  membre normal, pas du compte plateforme) : la fiche affiche « Membres · 3 »,
+  la ligne « Diaspo Niger · Créateur » sans chevron ni tap possible, et
+  « Salim L. » apparaît comme 3e membre (compte déjà présent en base,
+  simplement jamais vu résolu avant ce test).
+
 ---
 
 ## Comment tester (rappel de la config utilisée précédemment)
