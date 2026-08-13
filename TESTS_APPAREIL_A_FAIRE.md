@@ -6695,6 +6695,14 @@ pose le compte plateforme comme `creator_id`, et ajoute la ligne
   `member_count = 1`, aucune trace laissée par le ROLLBACK, les 4 triggers de
   `groups` réactivés après coup. Cas pays déjà couvert (Canada) : retour
   identique à avant, aucun INSERT déclenché.
+- [ ] **Vérification sur appareil demandée par Salim** : dès qu'un vrai
+  compte renseigne pour la première fois un pays sans groupe officiel
+  existant, confirmer sur cet appareil que le groupe apparaît normalement
+  (nom, « Créé par Diaspo Niger », membre compté) — la transaction annulée
+  ci-dessus prouve la logique SQL, pas le chemin réel `ProfileNotifier` →
+  RPC → écran groupe de bout en bout. Repérable via
+  `select id, name, country_code, created_at from groups where is_official
+  order by created_at desc;` (un nouveau pays = une ligne de plus).
 
 ---
 
