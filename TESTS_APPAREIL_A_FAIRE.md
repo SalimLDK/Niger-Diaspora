@@ -5519,6 +5519,40 @@ Reste à voir à l'écran — c'est tout ce que la base ne peut pas prouver :
 
 ---
 
+## Notification push — le ciphertext AES sortait en clair dans l'aperçu (2026-08-13)
+
+Signalé : « les pushnotifications affiche les messages crypté ».
+
+**Cause.** `message_preview_for_notification` (SQL) ne masquait le contenu que
+si `encryptionLevel = 'e2ee'` ou si `content` commençait par le préfixe legacy
+`gcm:`. Mais le repli AES réellement utilisé aujourd'hui côté client
+(`MessageCryptoService.encrypt1to1`/`encryptGroup`, quand aucune session
+Signal n'est établie) écrit `encryptionLevel: 'aes'` et un `content` au format
+`iv:base64ciphertext` (`EncryptionService.encryptText`) — qui ne matche pas
+`gcm:%`. Ces messages tombaient dans la branche ELSE et exposaient le
+ciphertext brut comme corps de la notification push, envoyé tel quel via FCM.
+
+**Correctif** (`supabase/migrations/20260813120000_fix_push_preview_leaks_aes_ciphertext.sql`) :
+toute valeur de `encryptionLevel` ('aes' OU 'e2ee') déclenche désormais le
+preview générique par type (🔒 Nouveau message / 📸 Photo / …), comme c'était
+déjà le cas pour 'e2ee' seul.
+
+**Pas vérifiable sans device + vrai envoi FCM** — la base a été relue, pas
+rejouée :
+
+- [ ] Appliquer la migration (`supabase db push`, jamais fait sans
+      approbation explicite — voir règle RTDB plus haut, même logique).
+- [ ] Envoyer un message texte à un destinataire **sans session Signal
+      établie** (le cas courant, repli AES) et vérifier que la notification
+      reçue affiche « 🔒 Nouveau message », pas un blob base64.
+- [ ] Vérifier aussi la liste de notifications in-app (même table `body`).
+- [ ] Les lignes `notifications` déjà en base avant ce correctif gardent leur
+      `body` en ciphertext (une UPDATE de rattrapage n'a pas été tentée — trop
+      de risque de mal cibler les lignes) : à purger ou ignorer selon la
+      politique de rétention choisie.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
