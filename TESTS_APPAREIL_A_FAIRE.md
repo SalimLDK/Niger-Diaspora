@@ -99,16 +99,35 @@ le routeur.
     aucun harnais de test existant (contrairement à `profile`), et tester un
     `StreamController` + un `Timer` de 5 s proprement demanderait
     `fake_async` — pas fait, hors périmètre de cette session.
-  - **`blocked_users` laissé tel quel** — a déjà un repli sûr
-    (`.handleError((Object _) {})` → ensemble vide), priorité plus basse,
-    non traité.
+  - **`blocked_users` fait le 2026-08-13, suite** —
+    [`watchBlockedBy`](lib/features/settings/data/datasources/blocked_by_supabase_datasource.dart:31)
+    (`usersWhoBlockedMeProvider`, sens « qui m'a bloqué »). Plus simple que
+    `conversations` : `.stream()` (le helper Supabase Flutter) gère déjà sa
+    propre reconnexion, donc pas besoin d'un `Timer` de nouvel essai — la
+    méthode devient un générateur `async*` qui attend la garde puis
+    `yield*` le flux réel. Au-delà du délai borné (3 s), l'abonnement part
+    quand même (comme avant), le repli `.handleError` du provider couvre le
+    reste. Callback injectable, 2 tests ajoutés
+    (`test/features/settings/blocked_by_supabase_datasource_test.dart`,
+    pas de `fake_async` nécessaire ici). `flutter analyze` propre sur
+    `lib/features/settings`.
+    Au passage : `blockedUsersProvider` (sens direct, « qui j'ai bloqué »)
+    est lui aussi un faux positif comme `events` — il lit **Firestore**
+    (`BlockedUsersDataSourceImpl`), pas Supabase ; seule l'écriture miroir
+    vers Supabase existe et est déjà gardée (`_refleterDansSupabase`,
+    `ensureAuthenticated()`).
+  - **Cartographie soldée** : les 4 lectures identifiées sont maintenant
+    soit fermées côté code (`users`, `conversations`, `blocked_users`), soit
+    de faux positifs (`events`, et la moitié de `blocked_users`). Plus rien
+    en attente avant d'envisager le `REVOKE` général des droits table
+    `anon`.
   - [ ] **Jamais vérifié sur appareil** : démarrer l'app hors ligne (ou
     réseau très lent) après une session Firebase existante, et confirmer que
     `/home` s'affiche toujours sans blocage (le point que le correctif du
-    2026-08-04 protégeait), avec le profil/les membres proches en état de
-    chargement/erreur géré plutôt qu'un crash — et que le badge de messages
-    non lus finit par se mettre à jour (nouvel essai à 5 s) sans qu'il faille
-    recevoir un message pour le déclencher.
+    2026-08-04 protégeait), avec le profil/les membres proches/le statut de
+    blocage en état de chargement/erreur géré plutôt qu'un crash — et que le
+    badge de messages non lus finit par se mettre à jour (nouvel essai à
+    5 s) sans qu'il faille recevoir un message pour le déclencher.
 
 ---
 
