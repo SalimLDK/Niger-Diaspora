@@ -53,6 +53,45 @@ git -C <depot-principal> diff -U0 -- <fichier> | grep '^@@'
 Si elles se chevauchent, ne pas livrer : le conflit sera pour lui, au milieu
 de son travail. Consigner dans `TESTS_APPAREIL_A_FAIRE.md` et attendre.
 
+**`git rebase` est refusé par le classificateur de permissions de Claude Code
+dans ce dépôt** (bloqué avant même que git ne s'exécute), alors que `git
+merge` passe. Pour intégrer les commits distants : stasher son propre WIP de
+façon **ciblée** (jamais `-A` sur tout l'index — voir la règle
+`--` ci-dessus), `git merge origin/<branche> --no-edit`, résoudre les
+conflits à la main, puis `git stash pop`. `git push` peut se faire rejeter
+une seconde fois si l'autre agent pousse pendant l'opération : refaire
+fetch/merge/push jusqu'à ce que ça passe, jamais de force.
+
+## Migrations Supabase sur la branche partagée
+
+Le worktree isole l'index et l'arbre, mais **pas le contenu une fois fusionné
+sur la branche partagée** — deux pièges de `db push` restent possibles même
+en travaillant proprement dans un worktree.
+
+**1. Collision d'horodatage.** Deux agents qui créent une migration la même
+plage horaire choisissent parfois le même préfixe à 14 chiffres. Git ne le
+voit pas — les noms de fichiers diffèrent après le préfixe, la fusion passe
+sans conflit — mais `supabase_migrations.schema_migrations` indexe par ce
+préfixe seul : `db push` échoue dessus, en silence côté git. Détecter avant
+de pousser :
+
+```bash
+ls supabase/migrations | sort | awk -F_ '{print $1}' | uniq -d
+```
+
+Sortie vide = ok. Sinon, renuméroter **celle qui n'a jamais été appliquée**
+(le message de commit le dit en général), après la dernière migration
+existante — jamais avant, sinon désordre d'ordonnancement.
+
+**2. `db push` s'arrête à la première migration en échec**, et bloque tout ce
+qui suit dans la file — y compris une migration sans rapport, à quelqu'un
+d'autre. Un fichier qui recrée une fonction (`CREATE FUNCTION` sans
+`OR REPLACE`) doit `DROP` **toutes** ses surcharges existantes, pas seulement
+celle qu'il vise à remplacer, sinon 42723 « already exists with same argument
+types ». Avant de corriger et retenter : `supabase db push --dry-run` pour
+confirmer que la transaction en échec a bien annulé proprement (rien resté à
+moitié appliqué).
+
 ## Suivi des tests appareil
 
 `TESTS_APPAREIL_A_FAIRE.md` (racine du repo) recense tout ce qui n'a jamais
