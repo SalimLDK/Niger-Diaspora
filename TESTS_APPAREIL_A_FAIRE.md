@@ -5777,13 +5777,27 @@ deux actions ne sont ajoutées que si `type == 'message' && conversationId !=
 null` — donc pratiquement tous les messages de chat), silencieusement, sans
 crash visible côté utilisateur.
 
-Pas encore su si ça touche aussi le cas app tuée/arrière-plan (où Android
-peut afficher directement le champ `notification` FCM sans passer par ce
-code) ou seulement le premier plan (`onMessage` → `_showLocalNotification`,
-le seul chemin exercé par ce test). **Pas corrigé** — hors périmètre de la
-demande d'aujourd'hui (fuite de ciphertext), à traiter séparément : soit
-retirer les deux actions, soit ajouter les fichiers manquants aux 5
-densités.
+Pas su si ça touche aussi le cas app tuée/arrière-plan (où Android peut
+afficher directement le champ `notification` FCM sans passer par ce code) —
+seul le premier plan (`onMessage` → `_showLocalNotification`) a été exercé.
+
+- [x] **Corrigé et vérifié sur SM A515F, 2026-08-13** (à la demande de
+      Salim). Dix PNG générés (System.Drawing, PAS de vector — cf l'incident
+      du 2026-08-06 où un vector avait fait disparaître toutes les
+      notifications) aux 5 densités pour `ic_reply` et `ic_mark_read`.
+      Rebuild (`flutter build apk --debug`, ~130 s Gradle) + réinstall
+      (`adb install -r`, session Firebase et clés E2EE conservées) +
+      **même test rejoué** : plus d'exception, la notification poste avec
+      les deux actions visibles (« Répondre », « Marquer comme lu ») et le
+      bon texte —
+      ```
+      android.title = "Salim L."
+      android.text  = "🔒 Nouveau message"
+      actions: [0] "Répondre"  [1] "Marquer comme lu"
+      ```
+      Donnée de test retirée après coup. Cas app tuée toujours pas exercé
+      (nécessiterait `input keyevent KEYCODE_HOME`, refusé par le
+      classificateur de permissions dans cette session).
 
 ---
 
