@@ -33,7 +33,7 @@ final class MessageModel {
   final bool deletedForEveryone;
   final DateTime? deletedAt;
   final List<String> reportedBy;
-  final List<String> reactions;
+  final Map<String, String> reactions; // userId -> emoji, une par personne
   final String? replyToId;
   final Map<String, dynamic>? replyToMessageData;
   final Map<String, dynamic>? productData;
@@ -103,7 +103,7 @@ final class MessageModel {
     this.deletedForEveryone = false,
     this.deletedAt,
     this.reportedBy = const [],
-    this.reactions = const [],
+    this.reactions = const {},
     this.replyToId,
     this.replyToMessageData,
     this.productData,
@@ -164,7 +164,7 @@ final class MessageModel {
       deletedForEveryone: json['deletedForEveryone'] as bool? ?? false,
       deletedAt: _parseDateTime(json['deletedAt']),
       reportedBy: _parseStringList(json['reportedBy']),
-      reactions: _parseStringList(json['reactions']),
+      reactions: _parseReactions(json['reactions']),
       replyToId: json['replyToId'] as String?,
       replyToMessageData: json['replyToMessageData'] as Map<String, dynamic>?,
       productData: json['productData'] as Map<String, dynamic>?,
@@ -475,7 +475,7 @@ final class MessageModel {
     bool? deletedForEveryone,
     DateTime? deletedAt,
     List<String>? reportedBy,
-    List<String>? reactions,
+    Map<String, String>? reactions,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,
@@ -593,6 +593,16 @@ final class MessageModel {
     if (data == null) return {};
     if (data is Map) {
       return Map<String, dynamic>.from(data);
+    }
+    return {};
+  }
+
+  /// userId -> emoji. L'ancien format (`List<String>` d'emojis sans auteur)
+  /// ne permet pas de retrouver qui a réagi : on l'ignore plutôt que de lui
+  /// inventer un auteur.
+  static Map<String, String> _parseReactions(dynamic data) {
+    if (data is Map) {
+      return data.map((k, v) => MapEntry(k.toString(), v.toString()));
     }
     return {};
   }

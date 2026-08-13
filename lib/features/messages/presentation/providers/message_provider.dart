@@ -598,37 +598,43 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
     state = state.copyWith(messages: messages);
   }
 
+  /// Une réaction par personne et par message : poser un nouvel emoji
+  /// remplace le précédent de cet utilisateur ; reposer le même l'enlève.
   Future<void> toggleReaction(String messageId, String emoji) async {
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
+    if (currentUser == null) return;
     if (!mounted) return;
+
     final messageIndex = state.messages.indexWhere((m) => m.id == messageId);
     if (messageIndex == -1) return;
 
     final message = state.messages[messageIndex];
-    final currentReactions = List<String>.from(message.reactions);
-    final hasReaction = currentReactions.contains(emoji);
+    final wasMine = message.reactions[currentUser.id] == emoji;
 
-    if (hasReaction) {
-      currentReactions.remove(emoji);
+    final updatedReactions = Map<String, String>.from(message.reactions);
+    if (wasMine) {
+      updatedReactions.remove(currentUser.id);
     } else {
-      currentReactions.add(emoji);
+      updatedReactions[currentUser.id] = emoji;
     }
 
-    final updatedMessage = message.copyWith(reactions: currentReactions);
+    final updatedMessage = message.copyWith(reactions: updatedReactions);
     final updatedMessages = List<MessageEntity>.from(state.messages);
     updatedMessages[messageIndex] = updatedMessage;
     state = state.copyWith(messages: updatedMessages);
 
     try {
-      if (hasReaction) {
+      if (wasMine) {
         await _ref.read(messageRemoteDataSourceProvider).removeReaction(
           conversationId: conversationId,
           messageId: messageId,
-          emoji: emoji,
+          userId: currentUser.id,
         );
       } else {
         await _ref.read(messageRemoteDataSourceProvider).addReaction(
           conversationId: conversationId,
           messageId: messageId,
+          userId: currentUser.id,
           emoji: emoji,
         );
       }

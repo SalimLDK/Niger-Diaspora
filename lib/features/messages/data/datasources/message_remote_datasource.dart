@@ -332,18 +332,20 @@ abstract class MessageRemoteDataSource {
   /// Stream of users currently typing in a conversation
   Stream<Map<String, bool>> getTypingStatusStream(String conversationId);
 
-  /// Add an emoji reaction to a message
+  /// Set this user's emoji reaction on a message. One reaction per person
+  /// per message: replaces any reaction this user already had.
   Future<void> addReaction({
     required String conversationId,
     required String messageId,
+    required String userId,
     required String emoji,
   });
 
-  /// Remove an emoji reaction from a message
+  /// Remove this user's reaction from a message
   Future<void> removeReaction({
     required String conversationId,
     required String messageId,
-    required String emoji,
+    required String userId,
   });
 
   /// Send a system message (e.g., "User joined the group")
@@ -2608,27 +2610,12 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
   Future<void> addReaction({
     required String conversationId,
     required String messageId,
+    required String userId,
     required String emoji,
   }) async {
     try {
       final messageRef = _messagesRef(conversationId).child(messageId);
-
-      // Get current reactions
-      final snapshot = await messageRef.child('reactions').get();
-      final List<String> reactions = [];
-
-      if (snapshot.value != null) {
-        final data = snapshot.value;
-        if (data is List) {
-          reactions.addAll(data.cast<String>());
-        }
-      }
-
-      // Add new reaction
-      reactions.add(emoji);
-
-      // Update in database
-      await messageRef.update({'reactions': reactions});
+      await messageRef.child('reactions').update({userId: emoji});
     } catch (e) {
       throw ServerException(
         'Erreur lors de l\'ajout de la réaction: ${e.toString()}',
@@ -2640,29 +2627,11 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
   Future<void> removeReaction({
     required String conversationId,
     required String messageId,
-    required String emoji,
+    required String userId,
   }) async {
     try {
       final messageRef = _messagesRef(conversationId).child(messageId);
-
-      // Get current reactions
-      final snapshot = await messageRef.child('reactions').get();
-      final List<String> reactions = [];
-
-      if (snapshot.value != null) {
-        final data = snapshot.value;
-        if (data is List) {
-          reactions.addAll(data.cast<String>());
-        }
-      }
-
-      // Remove the reaction (only first occurrence)
-      if (reactions.contains(emoji)) {
-        reactions.remove(emoji);
-      }
-
-      // Update in database
-      await messageRef.update({'reactions': reactions});
+      await messageRef.child('reactions').child(userId).remove();
     } catch (e) {
       throw ServerException(
         'Erreur lors de la suppression de la réaction: ${e.toString()}',

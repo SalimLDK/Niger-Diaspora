@@ -1922,15 +1922,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   Future<void> addReaction({
     required String conversationId,
     required String messageId,
-    required String emoji,
-  }) async {
-    await _mergeMsgData(messageId, {'reactions': emoji}, appendToList: true);
-  }
-
-  @override
-  Future<void> removeReaction({
-    required String conversationId,
-    required String messageId,
+    required String userId,
     required String emoji,
   }) async {
     try {
@@ -1943,8 +1935,41 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       final data = Map<String, dynamic>.from(
         (rows.first['data'] as Map?) ?? {},
       );
-      final reactions = List<String>.from(data['reactions'] as List? ?? []);
-      reactions.remove(emoji);
+      // Une réaction par personne : la nouvelle emoji remplace la précédente.
+      final reactions = Map<String, dynamic>.from(
+        data['reactions'] as Map? ?? {},
+      );
+      reactions[userId] = emoji;
+      data['reactions'] = reactions;
+      await _supabase
+          .from('messages')
+          .update({'data': data})
+          .eq('id', messageId);
+    } catch (e) {
+      throw ServerException('addReaction error: $e');
+    }
+  }
+
+  @override
+  Future<void> removeReaction({
+    required String conversationId,
+    required String messageId,
+    required String userId,
+  }) async {
+    try {
+      final rows = await _supabase
+          .from('messages')
+          .select('data')
+          .eq('id', messageId)
+          .limit(1);
+      if (rows.isEmpty) return;
+      final data = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
+      final reactions = Map<String, dynamic>.from(
+        data['reactions'] as Map? ?? {},
+      );
+      reactions.remove(userId);
       data['reactions'] = reactions;
       await _supabase
           .from('messages')

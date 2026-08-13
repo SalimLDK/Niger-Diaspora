@@ -11,7 +11,6 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../profile/domain/entities/profile_entity.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/message_entity.dart';
-import '../../domain/services/message_action_service.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Sheet affichant les informations de statut d'un message :
@@ -37,15 +36,11 @@ class MessageInfoSheet extends ConsumerStatefulWidget {
 class _MessageInfoSheetState extends ConsumerState<MessageInfoSheet>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  Map<String, List<String>> _reactions = {};
-  bool _reactionsLoading = true;
-  String? _reactionsError;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _loadReactions();
   }
 
   @override
@@ -54,39 +49,14 @@ class _MessageInfoSheetState extends ConsumerState<MessageInfoSheet>
     super.dispose();
   }
 
-  Future<void> _loadReactions() async {
-    try {
-      final service = ref.read(messageActionServiceProvider);
-      final result = await service.getReactions(
-        conversationId: widget.conversationId,
-        messageId: widget.message.id,
-      );
-      result.fold(
-        (failure) {
-          if (mounted) {
-            setState(() {
-              _reactionsError = failure.message;
-              _reactionsLoading = false;
-            });
-          }
-        },
-        (reactions) {
-          if (mounted) {
-            setState(() {
-              _reactions = reactions;
-              _reactionsLoading = false;
-            });
-          }
-        },
-      );
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _reactionsError = e.toString();
-          _reactionsLoading = false;
-        });
-      }
-    }
+  /// Regroupe les réactions (userId -> emoji, une par personne) par emoji
+  /// pour l'affichage : emoji -> [userId, ...].
+  Map<String, List<String>> get _reactionsByEmoji {
+    final result = <String, List<String>>{};
+    widget.message.reactions.forEach((userId, emoji) {
+      (result[emoji] ??= []).add(userId);
+    });
+    return result;
   }
 
   List<String> get _readerIds {
@@ -101,9 +71,7 @@ class _MessageInfoSheetState extends ConsumerState<MessageInfoSheet>
         .toList();
   }
 
-  int get _totalReactions {
-    return _reactions.values.fold<int>(0, (sum, list) => sum + list.length);
-  }
+  int get _totalReactions => widget.message.reactions.length;
 
   @override
   Widget build(BuildContext context) {
@@ -134,11 +102,7 @@ class _MessageInfoSheetState extends ConsumerState<MessageInfoSheet>
                 tabs: [
                   Tab(text: l10n.tabReadBy(_readerIds.length)),
                   Tab(text: l10n.tabDeliveredTo(_deliveredIds.length)),
-                  Tab(
-                    text: l10n.tabReactions(
-                      _reactionsLoading ? 0 : _totalReactions,
-                    ),
-                  ),
+                  Tab(text: l10n.tabReactions(_totalReactions)),
                 ],
               ),
               Expanded(
@@ -157,12 +121,7 @@ class _MessageInfoSheetState extends ConsumerState<MessageInfoSheet>
                       emptyTitle: l10n.notDeliveredYet,
                       emptyIcon: Icons.done_all,
                     ),
-                    _ReactionsTab(
-                      reactions: _reactions,
-                      isLoading: _reactionsLoading,
-                      error: _reactionsError,
-                      onRetry: _loadReactions,
-                    ),
+                    _ReactionsTab(reactions: _reactionsByEmoji),
                   ],
                 ),
               ),
@@ -380,16 +339,8 @@ class _DeliveredTab extends StatelessWidget {
 
 class _ReactionsTab extends StatefulWidget {
   final Map<String, List<String>> reactions;
-  final bool isLoading;
-  final String? error;
-  final VoidCallback onRetry;
 
-  const _ReactionsTab({
-    required this.reactions,
-    required this.isLoading,
-    required this.error,
-    required this.onRetry,
-  });
+  const _ReactionsTab({required this.reactions});
 
   @override
   State<_ReactionsTab> createState() => _ReactionsTabState();
@@ -416,14 +367,6 @@ class _ReactionsTabState extends State<_ReactionsTab> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
-    if (widget.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (widget.error != null) {
-      return _ErrorView(message: widget.error!, onRetry: widget.onRetry);
-    }
 
     if (_items.isEmpty) {
       return _EmptyStateView(
@@ -764,40 +707,6 @@ class _EmptyStateView extends StatelessWidget {
   }
 }
 
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppIcon(AppIcon.error, size: 40, color: context.errorColor),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: context.textSecondaryColor),
-            ),
-            const SizedBox(height: 16),
-            TextButton.icon(
-              onPressed: onRetry,
-              icon: AppIcon(AppIcon.refresh, color: Theme.of(context).iconTheme.color!),
-              label: Text(l10n.retry),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ========================= HELPERS =========================
 

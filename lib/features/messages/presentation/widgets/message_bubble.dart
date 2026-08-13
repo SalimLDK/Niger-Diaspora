@@ -842,16 +842,13 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
   /// Rangée de réactions rapides de la feuille d'actions (§27a).
   ///
-  /// Un émoji déjà posé sur le message est mis en avant.
-  ///
-  /// `MessageEntity.reactions` est une simple `List<String>` sans auteur :
-  /// on peut donc dire « cette réaction est présente », mais pas
-  /// « c'est la mienne ». Tant que le modèle ne porte pas l'auteur, la
-  /// pastille ne le prétend pas.
+  /// L'émoji que l'utilisateur courant a déjà posé est mis en avant.
   Widget _buildQuickReactions(BuildContext sheetContext) {
     const emojis = ['\u{1F44D}', '\u{2764}\u{FE0F}', '\u{1F602}',
         '\u{1F64F}', '\u{1F62E}'];
-    final posees = widget.message.reactions.toSet();
+    final myReaction = widget.currentUserId != null
+        ? widget.message.myReaction(widget.currentUserId!)
+        : null;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -859,7 +856,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         for (final emoji in emojis)
           _QuickReactionButton(
             emoji: emoji,
-            selected: posees.contains(emoji),
+            selected: emoji == myReaction,
             onTap: () {
               Navigator.pop(sheetContext);
               HapticFeedback.lightImpact();
@@ -936,17 +933,24 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   }
 
   /// Chips de réaction, posés sur la même ligne que l'heure (fiche 6b).
+  ///
+  /// `reactions` est userId -> emoji (une par personne) ; les chips
+  /// regroupent par emoji pour l'affichage du compte.
   List<Widget> _buildReactionChips(
     BuildContext context,
-    List<String> reactions,
+    Map<String, String> reactions,
   ) {
+    final myReaction = widget.currentUserId != null
+        ? reactions[widget.currentUserId!]
+        : null;
     final reactionCounts = <String, int>{};
-    for (final reaction in reactions) {
-      reactionCounts[reaction] = (reactionCounts[reaction] ?? 0) + 1;
+    for (final emoji in reactions.values) {
+      reactionCounts[emoji] = (reactionCounts[emoji] ?? 0) + 1;
     }
 
     return reactionCounts.entries.map((entry) {
-      // Re-tap sur une réaction = toggle → retire l'emoji déjà posé.
+      final isMine = entry.key == myReaction;
+      // Re-tap sur sa propre réaction = toggle → la retire.
       return GestureDetector(
         onTap:
             widget.onReact == null
@@ -958,10 +962,14 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: context.surfaceVariantColor,
+            color: isMine
+                ? context.adaptivePrimaryColor.withValues(alpha: 0.12)
+                : context.surfaceVariantColor,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: context.outlineColor.withValues(alpha: 0.2),
+              color: isMine
+                  ? context.adaptivePrimaryColor.withValues(alpha: 0.6)
+                  : context.outlineColor.withValues(alpha: 0.2),
               width: 1,
             ),
           ),

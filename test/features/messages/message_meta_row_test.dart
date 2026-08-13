@@ -26,7 +26,7 @@ final _hhmm = DateFormat.Hm().format(_sentAt);
 MessageEntity _message({
   required MessageType type,
   String content = 'Salut ! Tu as reçu les papiers du consulat ?',
-  List<String> reactions = const [],
+  Map<String, String> reactions = const {},
   List<String> readBy = const [],
   List<String> deliveredTo = const [],
 }) {
@@ -125,7 +125,7 @@ void main() {
   testWidgets('la réaction partage la ligne de l\'heure', (tester) async {
     await _pump(
       tester,
-      _message(type: MessageType.text, reactions: const ['👍']),
+      _message(type: MessageType.text, reactions: const {'aicha': '👍'}),
     );
 
     final heure = tester.getRect(find.text(_hhmm));

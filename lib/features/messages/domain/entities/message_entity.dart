@@ -55,8 +55,8 @@ class MessageEntity extends Equatable {
   deletedForEveryone; // If true, message is deleted for all participants
   final DateTime? deletedAt; // When the message was deleted for everyone
   final List<String> reportedBy;
-  final List<String>
-  reactions; // List of emoji reactions (e.g., ['❤️', '👍', '😂'])
+  final Map<String, String>
+  reactions; // Une réaction par personne : userId -> emoji
 
   // Reply fields
   final String? replyToId; // ID of the message being replied to
@@ -155,7 +155,7 @@ class MessageEntity extends Equatable {
     this.deletedForEveryone = false,
     this.deletedAt,
     this.reportedBy = const [],
-    this.reactions = const [],
+    this.reactions = const {},
     this.replyToId,
     this.replyToMessageData,
     this.productData,
@@ -314,6 +314,10 @@ class MessageEntity extends Equatable {
   /// Check if message is starred by a specific user
   bool isStarredBy(String userId) => starredBy.contains(userId);
 
+  /// L'emoji posé par cet utilisateur sur ce message, s'il y en a un.
+  /// Une seule réaction par personne et par message.
+  String? myReaction(String userId) => reactions[userId];
+
   /// Link preview getters
   bool get hasLinkPreview => linkPreviewData != null && linkPreviewData!.isNotEmpty;
   String? get linkPreviewUrl => linkPreviewData?['url'] as String?;
@@ -349,7 +353,7 @@ class MessageEntity extends Equatable {
     bool? deletedForEveryone,
     DateTime? deletedAt,
     List<String>? reportedBy,
-    List<String>? reactions,
+    Map<String, String>? reactions,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     Map<String, dynamic>? productData,

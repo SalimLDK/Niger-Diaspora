@@ -14,6 +14,41 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Réactions emoji : une par personne et par message (2026-08-13)
+
+`MessageEntity.reactions` était une simple `List<String>` sans auteur : le
+compteur affiché était juste le nombre d'emojis posés, mais rien ne
+distinguait « la mienne » des autres, et retirer sa réaction pouvait retirer
+celle de quelqu'un d'autre (premier élément de la liste égal à cet emoji).
+Passé à `Map<String, String>` (userId -> emoji, une seule par personne) dans
+[message_entity.dart](lib/features/messages/domain/entities/message_entity.dart),
+[message_model.dart](lib/features/messages/data/models/message_model.dart),
+les deux datasources (`message_supabase_datasource.dart`,
+`message_remote_datasource.dart`) et
+[message_provider.dart:601](lib/features/messages/presentation/providers/message_provider.dart:601)
+(`toggleReaction` se basait sur *n'importe quel* utilisateur ayant déjà posé
+cet emoji, pas sur l'utilisateur courant). L'onglet « Réactions » de la fiche
+message ([message_info_sheet.dart](lib/features/messages/presentation/widgets/message_info_sheet.dart))
+chargeait en plus depuis un service RTDB Firebase mort (`MessageActionService`)
+que les vraies réactions Supabase n'ont jamais alimenté — toujours vide en
+pratique ; il lit maintenant `message.reactions` directement. `flutter
+analyze`/`flutter test` propres, mais rien de tout ça n'a été vu sur un
+appareil réel (gestes de sélection, surbrillance de « ma » réaction,
+remplacement d'un emoji par un autre, onglet « qui a réagi »).
+
+- [ ] Poser une réaction (double-tap ou appui long → sélecteur rapide), la
+  voir apparaître avec la bonne surbrillance (bordure/fond teintés).
+- [ ] Reposer la même réaction → elle disparaît (toggle off).
+- [ ] Poser un emoji différent sur un message déjà réagi par soi → remplace
+  l'ancien, ne l'additionne pas.
+- [ ] Deux comptes différents réagissant au même message avec le même emoji
+  → le chip affiche bien un compteur à 2, et chacun ne peut retirer que sa
+  propre réaction.
+- [ ] Fiche message (appui long → « Infos ») → onglet Réactions liste
+  effectivement qui a réagi et avec quel emoji.
+
+---
+
 ## Retour à la ligne des bulles de discussion après l'agrandissement du texte (2026-08-13)
 
 `fontSize` du texte des bulles porté à 17 (texte, liens, mentions) et padding
