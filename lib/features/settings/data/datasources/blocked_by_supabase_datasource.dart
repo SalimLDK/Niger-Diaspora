@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/services/supabase_auth_bridge.dart';
+
 /// Qui m'a bloqué — le sens INVERSE du blocage.
 ///
 /// Ce sens n'a jamais fonctionné. `blockUser` écrit pourtant bien l'auteur du
@@ -16,11 +18,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// jamais rien — un refus silencieux, le pire mode d'échec pour un garde de
 /// confidentialité.
 class BlockedBySupabaseDataSource {
-  BlockedBySupabaseDataSource({SupabaseClient? supabase})
-    : _clientOverride = supabase;
+  BlockedBySupabaseDataSource({
+    SupabaseClient? supabase,
+    Future<bool> Function()? ensureReadableAuth,
+  }) : _clientOverride = supabase,
+       _ensureReadableAuth =
+           ensureReadableAuth ?? SupabaseAuthBridge.instance.ensureReadableSession;
 
   final SupabaseClient? _clientOverride;
   SupabaseClient get _supabase => _clientOverride ?? Supabase.instance.client;
+
+  /// Garde bornée avant de s'abonner — voir
+  /// [SupabaseAuthBridge.ensureReadableSession]. Injectable pour les tests.
+  final Future<bool> Function() _ensureReadableAuth;
 
   /// Flux des identifiants qui ont bloqué [userId].
   ///
@@ -28,8 +38,16 @@ class BlockedBySupabaseDataSource {
   /// par la même migration, avec `REPLICA IDENTITY FULL` pour que les
   /// suppressions (déblocages) portent l'ancienne ligne et passent la RLS.
   /// Sans ça, un déblocage ne serait visible qu'au prochain lancement.
-  Stream<Set<String>> watchBlockedBy(String userId) {
-    return _supabase
+  Stream<Set<String>> watchBlockedBy(String userId) async* {
+    // Session non confirmée (fenêtre `_startFromLocalSession`,
+    // auth_provider.dart) : attendre brièvement avant de s'abonner, pour ne
+    // pas partir en anon. Contrairement à `getConversations`, `.stream()`
+    // gère lui-même sa reconnexion — un simple délai avant l'abonnement
+    // suffit, pas besoin d'un nouvel essai manuel. Best-effort : au-delà du
+    // délai, on s'abonne quand même (comportement actuel inchangé), le repli
+    // `.handleError` de `usersWhoBlockedMeProvider` couvre le reste.
+    await _ensureReadableAuth();
+    yield* _supabase
         .from('blocked_users')
         .stream(primaryKey: ['blocker_id', 'blocked_id'])
         .eq('blocked_id', userId)
