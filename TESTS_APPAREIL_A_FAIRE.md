@@ -5935,6 +5935,53 @@ seul le premier plan (`onMessage` → `_showLocalNotification`) a été exercé.
 
 ---
 
+## Aperçu de notification en clair (2026-08-13)
+
+Demande de Salim, en suite directe du correctif ci-dessus : « je veux que les
+messages soient en clair » — précisé par lui-même : l'aperçu de notification,
+pas le chiffrement des messages en base (confirmé explicitement avant de
+toucher au code).
+
+**Repli AES** (`encryptionLevel: 'aes'`, cas majoritaire) : déchiffré
+**côté serveur** via `pgcrypto` (`decrypt_aes_fallback`,
+`20260813160000_real_plaintext_push_preview.sql`) — même clé partagée que
+`EncryptionService` côté client, déjà dans l'APK, pas un nouveau secret.
+
+- [x] **Interopérabilité vérifiée avant déploiement** : un vrai ciphertext
+      généré par le code Dart de l'app (`encrypt.AES(key, mode: cbc)`, clé de
+      32 octets) a été déchiffré avec succès par `decrypt_iv(...,
+      'aes-cbc/pad:pkcs')` côté Postgres — texte clair identique à l'octet
+      près. Script Dart jetable, supprimé après usage.
+
+**E2EE Signal réel** (`e2eePayloads`/`senderKeyPayload`) : le serveur ne peut
+toujours pas déchiffrer — la ligne `notifications` transporte désormais le
+vrai payload chiffré (au lieu du placeholder `'[E2EE]'`) pour un
+déchiffrement côté client. **Trouvaille en marge** : `setE2EEDecryptionCallback`
+n'était appelé **nulle part** dans l'app (vérifié par grep sur tout le
+dépôt) — le déchiffrement foreground n'avait donc jamais fonctionné, même
+avant ce correctif. Câblé maintenant dans `app.dart`. Ne fonctionnera qu'au
+premier plan ; l'arrière-plan nécessiterait de charger tout le magasin de
+sessions Signal dans un isolate séparé — non fait, hors périmètre.
+
+- [x] `flutter analyze` propre sur les 3 fichiers touchés.
+- [x] Migration appliquée en production (`supabase db push` : « Applying
+      migration 20260813150000... / 20260813160000... / Finished », aucune
+      erreur).
+- [ ] **Non rejoué de bout en bout sur device après application.** Le CLI
+      `supabase` s'est mis à refuser **toute** commande (y compris
+      `--version`) juste après le `db push`, classificateur de permissions —
+      impossible d'insérer un message de test ou de relire la base pour
+      confirmer. Le push lui-même n'a affiché aucune erreur, mais ça reste
+      une lecture du texte de sortie, pas une notification vue à l'écran.
+- [ ] Reste à vérifier : un vrai message texte envoyé à un destinataire sans
+      session Signal (repli AES) doit afficher son contenu réel dans la
+      notification, pas « 🔒 Nouveau message ». Et pour le cas E2EE Signal
+      établi, au premier plan, le texte réel doit apparaître aussi (à
+      confirmer avec deux comptes ayant une session Signal active entre eux
+      — pas certain qu'un tel cas existe sur les comptes de test actuels).
+
+---
+
 ## Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06)
 
 `c7f4141` a fait pointer `GroupRequestDataSource` vers Supabase au lieu d'une
