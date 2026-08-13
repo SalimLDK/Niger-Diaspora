@@ -6738,9 +6738,15 @@ pose le compte plateforme comme `creator_id`, et ajoute la ligne
   « À l'instant · Envoyé », le 1er n'en porte aucun. La queue de bulle
   (`_getBorderRadius`) suit aussi la correction attendue — petit rayon en
   bas à droite sur la bulle du bas (fin de rafale) au lieu du haut. Pas
-  d'erreur en logcat. `showSenderInfo` (nom affiché en groupe) n'a pas été
-  testé sur cet écran (self-chat, pas de nom affiché) — reste à confirmer
-  en groupe si l'occasion se présente.
+  d'erreur en logcat.
+  **`showSenderInfo` vérifié le 2026-08-13** dans le groupe « Testeurs »,
+  côté réception (Sim A regarde une rafale de « Salim L. ») : 2e ligne
+  insérée directement en base (`messages`, même `sender_id`, +5 s, nettoyée
+  juste après par un `DELETE` sur son id) pour simuler une rafale de
+  l'autre membre sans dépendre d'un 2e appareil. Le nom « Salim L. » +
+  badge « Admin » ne s'affichent que sur la bulle du HAUT (la plus
+  ancienne) ; la bulle du bas n'a ni nom ni badge — comportement attendu
+  confirmé côté réception aussi, pas seulement côté émission.
 
 ---
 
