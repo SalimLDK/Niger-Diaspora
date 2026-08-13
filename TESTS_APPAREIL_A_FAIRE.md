@@ -43,16 +43,52 @@ hors-ligne (`processPendingMessages`, jusqu'ici jamais appelée) se vide
 maintenant à chaque connexion connue. `flutter analyze` propre, mais rien de
 tout ça n'exerce le vrai réveil d'isolate Android ni Supabase.
 
-- [ ] Recevoir une notification de message avec l'app en arrière-plan (ou
+- [x] Recevoir une notification de message avec l'app en arrière-plan (ou
   fermée), répondre directement depuis l'action « Répondre » de la
   notification → la confirmation « Message envoyé » s'affiche, ET le message
   apparaît réellement dans la conversation (à l'écran si rouverte, et pour
-  le destinataire).
+  le destinataire). **Vérifié partiellement le 2026-08-13 sur SM A515F** —
+  voir « Troisième bug » ci-dessous : la notification affichée en
+  arrière-plan n'a **aucun bouton** tant que le correctif serveur n'est pas
+  déployé, donc l'action « Répondre » elle-même reste hors d'atteinte en
+  conditions réelles pour l'instant. Le reste (écriture Supabase,
+  currentUserId) est confirmé correct par lecture directe en base.
+- [ ] Une fois le correctif serveur (send-push data-only) déployé : refaire
+  ce test en tapant réellement sur le bouton « Répondre » depuis le volet de
+  notifications (pas une insertion SQL directe), taper du texte, envoyer, et
+  vérifier le message + la confirmation.
 - [ ] Même test avec le téléphone en mode avion au moment de la réponse →
   le message part en file d'attente, puis rouvrir l'app une fois reconnecté
   doit l'envoyer automatiquement (pas besoin de le retaper).
 - [ ] Action « Marquer comme lu » depuis une notification → le compteur non
   lu de la conversation redescend à 0 dans la liste des conversations.
+
+**Troisième bug, trouvé en vérifiant celui-ci sur appareil (2026-08-13) :**
+même les deux correctifs ci-dessus posés, la notification reçue app en
+arrière-plan n'affichait **aucun bouton d'action**. Cause : `send-push`
+([supabase/functions/send-push/index.ts:324-338](supabase/functions/send-push/index.ts))
+envoie un message FCM avec un bloc `notification` **et** un bloc `data`. Sur
+Android, quand l'app est en arrière-plan, un bloc `notification` présent fait
+que le système affiche lui-même la bannière **nativement**, sans jamais
+invoquer `onBackgroundMessage`/`firebaseMessagingBackgroundHandler` côté
+Dart — confirmé par `adb logcat` : la notification est postée par
+`NotificationService` système (PID système) à l'horodatage du push, aucune
+ligne Flutter ne s'exécute. `_showFallbackMessageNotification` (le repli qui
+construit les actions Répondre/Marquer comme lu) ne sert donc que pour les
+OEM qui suppriment activement le bloc `notification` — pas le cas ici, donc
+jamais atteint. Corrigé côté client
+([notification_service.dart](lib/core/services/notification_service.dart)) :
+`_showFallbackMessageNotification` porte maintenant les mêmes actions que
+`_showLocalNotification`, et son payload est du JSON valide (l'ancien
+`'message:$conversationId'` aurait fait échouer même un simple tap). Mais
+tant que `send-push` envoie encore le bloc `notification`, ce correctif
+client ne s'exécute jamais dans le cas courant — **correctif serveur requis**
+(passer les messages `type === 'message'` en `data`-only, en reconstruisant
+`aps.alert` explicitement pour ne pas perdre l'alerte iOS) avant que la
+réponse rapide soit utilisable en pratique. Pas déployé — à valider avec
+Salim avant tout `supabase functions deploy send-push` (fonction de
+production partagée par toutes les notifications de message, tous
+utilisateurs).
 
 ## Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour (2026-08-13)
 

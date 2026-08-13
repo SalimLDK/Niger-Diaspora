@@ -452,6 +452,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         conversationId: conversationId,
         title: title,
         body: body,
+        data: data,
       );
     }
   }
@@ -459,11 +460,23 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 /// Shows a minimal local notification for a message when the OS may have
 /// suppressed the FCM notification (background state on restrictive Android OEMs).
+///
+/// C'est aussi, en pratique, le SEUL chemin qui affiche une notification de
+/// message quand l'app est en arrière-plan ou fermée : `_showLocalNotification`
+/// (avec les actions Répondre/Marquer comme lu) n'est câblée que sur
+/// `FirebaseMessaging.onMessage`, strictement premier plan. Sans `actions`
+/// ici, la réponse rapide n'était donc jamais accessible dans le scénario où
+/// elle sert réellement — vérifié sur SM A515F le 2026-08-13 (notification
+/// reçue, zéro bouton d'action). Le payload doit être le même JSON que celui
+/// que `notificationActionBackgroundHandler` décode (`jsonDecode(payload)`) :
+/// l'ancien payload `'message:$conversationId'` n'était pas du JSON valide et
+/// aurait fait échouer même un simple tap sur la notification.
 @pragma('vm:entry-point')
 Future<void> _showFallbackMessageNotification({
   required String conversationId,
   required String title,
   required String body,
+  required Map<String, dynamic> data,
 }) async {
   final plugin = FlutterLocalNotificationsPlugin();
   const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -493,6 +506,26 @@ Future<void> _showFallbackMessageNotification({
         // blanc — vérifié à l'écran le 2026-08-06.
         icon: '@drawable/ic_stat_notification',
         color: AppColors.primary,
+        actions: <AndroidNotificationAction>[
+          AndroidNotificationAction(
+            kReplyActionId,
+            _getLocalizedString('reply'),
+            icon: const DrawableResourceAndroidBitmap('@drawable/ic_reply'),
+            showsUserInterface: false,
+            inputs: <AndroidNotificationActionInput>[
+              AndroidNotificationActionInput(
+                label: _getLocalizedString('type_reply'),
+                allowFreeFormInput: true,
+              ),
+            ],
+          ),
+          AndroidNotificationAction(
+            kMarkReadActionId,
+            _getLocalizedString('mark_read'),
+            icon: const DrawableResourceAndroidBitmap('@drawable/ic_mark_read'),
+            showsUserInterface: false,
+          ),
+        ],
       ),
       iOS: const DarwinNotificationDetails(
         presentAlert: true,
@@ -500,7 +533,7 @@ Future<void> _showFallbackMessageNotification({
         presentSound: true,
       ),
     ),
-    payload: 'message:$conversationId',
+    payload: jsonEncode(data),
   );
 }
 
