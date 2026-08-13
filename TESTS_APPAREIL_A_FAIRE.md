@@ -5673,11 +5673,17 @@ toute valeur de `encryptionLevel` ('aes' OU 'e2ee') déclenche désormais le
 preview générique par type (🔒 Nouveau message / 📸 Photo / …), comme c'était
 déjà le cas pour 'e2ee' seul.
 
-**Pas vérifiable sans device + vrai envoi FCM** — la base a été relue, pas
-rejouée :
+- [x] **Migration appliquée** (`supabase db push`, 2026-08-13, approuvée par
+      Salim). Bloquée un temps par un bug sans rapport dans la migration
+      précédente de la file (`20260813130000_fix_receipts_uuid_type_and_anon_grant.sql`,
+      Jules — `mark_messages_as_delivered(TEXT, TEXT)` recréée sans DROP
+      préalable, 42723 already exists) : DROP manquant ajouté, la file est
+      repassée d'un coup. `migration list` confirme les deux versions
+      Local = Remote.
 
-- [ ] Appliquer la migration (`supabase db push`, jamais fait sans
-      approbation explicite — voir règle RTDB plus haut, même logique).
+**Pas vérifiable sans device + vrai envoi FCM** — la base a été relue et la
+migration appliquée, pas rejouée de bout en bout :
+
 - [ ] Envoyer un message texte à un destinataire **sans session Signal
       établie** (le cas courant, repli AES) et vérifier que la notification
       reçue affiche « 🔒 Nouveau message », pas un blob base64.
@@ -5686,6 +5692,7 @@ rejouée :
       `body` en ciphertext (une UPDATE de rattrapage n'a pas été tentée — trop
       de risque de mal cibler les lignes) : à purger ou ignorer selon la
       politique de rétention choisie.
+
 ---
 
 ## Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06)
