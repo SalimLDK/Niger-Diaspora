@@ -102,8 +102,23 @@ const String kMarkReadActionId = 'mark_read_action';
 /// Helper to get localized strings in background context where BuildContext is unavailable
 /// Uses stored locale preference to determine which language to use
 String _getLocalizedString(String key) {
-  final prefs = PreferencesService.instance;
-  final locale = prefs.locale ?? 'fr'; // Default to French
+  // PreferencesService.instance est un singleton PAR ISOLATE — dans un
+  // isolate background frais (celui que spawn firebaseMessagingBackgroundHandler
+  // / notificationActionBackgroundHandler), `initialize()` n'a jamais été
+  // appelé, donc `.locale` lève un StateError. Vérifié sur SM A515F le
+  // 2026-08-13 : « FlutterFire Messaging: An error occurred in your
+  // background messaging handler / Bad state: PreferencesService not
+  // initialized » — la notification (et ses actions Répondre/Marquer comme
+  // lu) n'était alors jamais affichée du tout, l'exception remontant non
+  // rattrapée jusqu'au plugin. Repli sur 'fr', comme si la préférence était
+  // simplement absente.
+  String? locale;
+  try {
+    locale = PreferencesService.instance.locale;
+  } catch (e) {
+    debugPrint('_getLocalizedString: PreferencesService indisponible ($e)');
+  }
+  locale ??= 'fr'; // Default to French
 
   // Notification strings map
   final strings = {
@@ -456,12 +471,21 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final body = data['isE2EE'] == 'true'
           ? '🔒 Nouveau message'
           : (data['body'] as String? ?? 'Nouveau message');
-      await _showFallbackMessageNotification(
-        conversationId: conversationId,
-        title: title,
-        body: body,
-        data: data,
-      );
+      try {
+        await _showFallbackMessageNotification(
+          conversationId: conversationId,
+          title: title,
+          body: body,
+          data: data,
+        );
+      } catch (e) {
+        // Sans ce try/catch dédié, une exception ici remonte non rattrapée
+        // jusqu'au wrapper FlutterFire Messaging générique — le message
+        // « An error occurred in your background messaging handler » ne dit
+        // pas QUELLE étape a échoué. Vécu sur SM A515F le 2026-08-13
+        // (PreferencesService non initialisé dans cet isolate).
+        debugPrint('firebaseMessagingBackgroundHandler: notification fallback error: $e');
+      }
     }
   }
 }
