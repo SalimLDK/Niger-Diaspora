@@ -32,9 +32,17 @@
 --    Toute nouvelle RPC doit donc `REVOKE ... FROM PUBLIC, anon` explicitement.
 --    D'autres fonctions du projet sont probablement dans le même cas — hors
 --    périmètre ici, à auditer séparément.
+--
+-- 3) DROP manquant. `db push` échouait sur ce fichier : le DROP de la
+--    surcharge UUID était présent, mais pas celui de la surcharge (TEXT,
+--    TEXT) déployée depuis 20260720120300 — le CREATE FUNCTION plus bas
+--    tombait donc sur 42723 « already exists with same argument types ».
+--    Ajouté ci-dessous, même motif que les deux DROP déjà là pour
+--    mark_messages_as_read.
 -- =============================================================================
 
 DROP FUNCTION IF EXISTS public.mark_messages_as_delivered(UUID, TEXT);
+DROP FUNCTION IF EXISTS public.mark_messages_as_delivered(TEXT, TEXT);
 DROP FUNCTION IF EXISTS public.mark_messages_as_read(UUID, TEXT);
 DROP FUNCTION IF EXISTS public.mark_messages_as_read(TEXT, TEXT);
 
