@@ -25,13 +25,27 @@ appelée uniquement à l'ouverture réelle de la conversation) — voir
 [20260813120000_split_delivered_from_read.sql](supabase/migrations/20260813120000_split_delivered_from_read.sql)
 et [message_supabase_datasource.dart:1548](lib/features/messages/data/datasources/message_supabase_datasource.dart:1548).
 
-`flutter analyze` propre, mais rien de tout ça n'est vérifiable sans deux
-comptes réels échangeant un message :
+`flutter analyze` propre. Les deux migrations sont **déployées** sur le
+distant (Diapo Niger, `zyrfkcjjrhddpfxcgezo`) et vérifiées par requête directe
+(`supabase db query --linked`, transaction annulée pour ne rien persister) :
+`mark_messages_as_delivered` tourne sans erreur et ne touche plus `readBy`.
+Mais rien de tout ça n'est vérifiable **dans l'app** sans deux comptes réels
+échangeant un message :
 
-- [ ] **Migration à déployer** (`supabase db push` ou équivalent) avant que
-  `mark_messages_as_read` existe côté distant — tant qu'elle n'est pas
-  déployée, l'appel échoue en silence (best-effort, voir le code) et le
-  comportement reste celui d'avant (lu = livré).
+- [x] ~~Migration à déployer~~ — fait le 2026-08-13, en deux temps :
+  [20260813120000_split_delivered_from_read.sql](supabase/migrations/20260813120000_split_delivered_from_read.sql)
+  puis [20260813130000_fix_receipts_uuid_type_and_anon_grant.sql](supabase/migrations/20260813130000_fix_receipts_uuid_type_and_anon_grant.sql)
+  — la première utilisait un paramètre `UUID` copié de l'ancienne RPC alors que
+  `messages.conversation_id` est en réalité `TEXT` sur le distant (jamais
+  `UUID`, malgré ce qu'affirmait `20260727180000`) : la RPC livrée existait
+  mais plantait à chaque appel (`operator does not exist: text = uuid`),
+  avalé en silence par le `catch` Dart. Bonus découvert au passage : une
+  `mark_messages_as_read(TEXT, TEXT)` orpheline traînait déjà côté distant,
+  sans vérification de participant et **accessible à `anon`** — remplacée par
+  la version correcte. Cause structurelle notée dans la migration : le
+  `REVOKE ALL ... FROM PUBLIC` classique ne retire pas l'accès `anon`, accordé
+  directement par `ALTER DEFAULT PRIVILEGES` sur ce projet — probablement vrai
+  pour d'autres RPC du projet, **non auditées ici**.
 - [ ] Envoyer un message depuis le compte A à un compte B **avec le compte B
   hors ligne** (notification push reçue, app fermée) : vérifier dans le sheet
   infos du message (appui long → Infos) que l'onglet « Livré à » liste B mais
@@ -39,6 +53,9 @@ comptes réels échangeant un message :
 - [ ] Ouvrir la conversation côté B : vérifier que B apparaît alors dans « Lu
   par », et que le coche du message (côté A) passe au double-coche bleu à ce
   moment-là, pas avant.
+- [ ] Auditer les autres RPC `SECURITY DEFINER` du projet pour le même trou
+  `anon` (`REVOKE ALL FROM PUBLIC` sans `anon` explicite) — piste ouverte par
+  la découverte ci-dessus, périmètre non couvert par cette session.
 
 ---
 
