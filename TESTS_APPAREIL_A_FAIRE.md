@@ -57,10 +57,37 @@ lui-même. Un `REVOKE` général sur les écritures `anon` serait le filet qui
 les couvre si un futur chemin de code (deep link, tâche de fond) contournait
 le routeur.
 
-- [ ] **Décision en attente (demandée à Salim)** : écrire la migration
-  REVOKE/GRANT maintenant (méthode habituelle : transaction annulée pour
-  vérifier avant déploiement), ou corriger d'abord `auth_provider.dart` pour
-  fermer la fenêtre plutôt que d'ouvrir 4 SELECT en permanence.
+- [x] ~~Décision en attente~~ — Salim a choisi de fermer d'abord la fenêtre
+  plutôt que d'ouvrir des SELECT en permanence. Fait le 2026-08-13 pour 3 des
+  4 lectures :
+  - Nouveau [`SupabaseAuthBridge.ensureReadableSession()`](lib/core/services/supabase_auth_bridge.dart)
+    — variante **bornée** (3 s) d'`ensureAuthenticated()`. Contrairement à
+    celle-ci, un timeout ne fait PAS échouer : la synchro continue en tâche
+    de fond (dédupliquée) et profite au prochain appelant. Choix délibéré
+    pour ne pas régresser le correctif du 2026-08-04 (splash bloqué 2 min) —
+    `_startFromLocalSession` (auth_provider.dart) n'est PAS touchée, elle
+    continue de débloquer `/home` sans réseau.
+  - Câblé dans `profile_supabase_datasource.dart` : `getProfile`,
+    `getNearbyProfiles` (lèvent désormais une `ServerException` déjà gérée
+    par les écrans appelants au lieu d'interroger en anon), `isHandleAvailable`
+    (se replie sur « disponible », comme pour une erreur réseau).
+  - Callback injectable `_ensureReadableAuth`, même motif que `_ensureAuth`
+    pour les écritures — 4 tests ajoutés dans
+    `profile_supabase_datasource_test.dart` (13/13 passent).
+  - `flutter analyze` propre sur `lib/features/profile`, `lib/features/auth`,
+    `lib/core/services/supabase_auth_bridge.dart`.
+  - **Pas encore fait** : `blocked_users` (déjà un repli sûr — `.handleError`
+    → ensemble vide — priorité plus basse) et `events`/`conversations`
+    (streams réutilisés bien plus largement que la seule fenêtre de démarrage,
+    changement plus risqué à faire sans appareil pour vérifier). Prochaine
+    étape avant le REVOKE des droits table `anon` : soit fermer ces deux
+    derniers, soit accepter de les laisser en SELECT `anon` (repli déjà sûr
+    pour `blocked_users`, à re-évaluer pour `events`/`conversations`).
+  - [ ] **Jamais vérifié sur appareil** : démarrer l'app hors ligne (ou
+    réseau très lent) après une session Firebase existante, et confirmer que
+    `/home` s'affiche toujours sans blocage (le point que le correctif du
+    2026-08-04 protégeait), avec le profil/les membres proches en état de
+    chargement/erreur géré plutôt qu'un crash.
 
 ---
 
