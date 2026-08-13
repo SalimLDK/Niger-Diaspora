@@ -17,6 +17,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 import '../constants/app_colors.dart';
+import 'e2ee/notification_decryption_service.dart';
 import 'background_location_service.dart';
 import 'background_reply_service.dart';
 import 'native_call_service.dart';
@@ -1709,16 +1710,19 @@ class NotificationService {
     // Pour les messages E2EE, tenter de déchiffrer le contenu au premier plan
     final isE2EE = data['isE2EE'] == 'true';
     if (isE2EE && _e2eeDecryptionCallback != null && type == 'message') {
-      final encryptedPreview = data['encryptedPreview'] as String?;
+      final cryptoPayload =
+          NotificationDecryptionService.cryptoPayloadFromFcmData(data);
 
-      try {
-        body = await _e2eeDecryptionCallback!(
-          senderId,
-          encryptedPreview,
-          messageType,
-        );
-      } catch (e) {
-        // En cas d'erreur, garder le body générique de FCM
+      if (cryptoPayload.isNotEmpty) {
+        try {
+          body = await _e2eeDecryptionCallback!(
+            senderId,
+            cryptoPayload,
+            messageType,
+          );
+        } catch (e) {
+          // En cas d'erreur, garder le body générique de FCM
+        }
       }
     }
 
@@ -2483,7 +2487,7 @@ class NotificationService {
   // Callback pour le déchiffrement E2EE des notifications (foreground uniquement)
   Future<String> Function(
     String senderId,
-    String? encryptedPreview,
+    Map<String, dynamic> cryptoPayload,
     String messageType,
   )?
   _e2eeDecryptionCallback;
@@ -2546,12 +2550,12 @@ class NotificationService {
   /// Définit le callback pour déchiffrer les notifications E2EE (foreground)
   ///
   /// Ce callback est appelé quand une notification E2EE arrive au premier plan.
-  /// Il reçoit: senderId, encryptedPreview, messageType
+  /// Il reçoit: senderId, cryptoPayload (e2eePayloads/e2eePayload/senderKeyPayload), messageType
   /// Il retourne: le texte déchiffré ou un fallback générique
   void setE2EEDecryptionCallback(
     Future<String> Function(
       String senderId,
-      String? encryptedPreview,
+      Map<String, dynamic> cryptoPayload,
       String messageType,
     )
     callback,
