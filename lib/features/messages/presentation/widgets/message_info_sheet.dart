@@ -153,8 +153,6 @@ class _MessagePreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final icon = _messageTypeIcon(message.type);
-    final previewText = _previewText(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -165,98 +163,12 @@ class _MessagePreviewCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: context.borderColor.withValues(alpha: 0.2)),
         ),
-        child: Row(
-          children: [
-            _EncryptionIcon(message: message),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(icon, size: 16, color: context.textSecondaryColor),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          previewText,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: context.textPrimaryColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    l10n.messageSentAt(_formatFullDateTime(message.createdAt)),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: context.textTertiaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _previewText(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    if (message.isText || message.isSticker) return message.content;
-    if (message.isImage) return l10n.photoLabel;
-    if (message.isVideo) return l10n.videoLabel;
-    if (message.isAudio || message.isVoiceNote) return l10n.audioLabel;
-    if (message.isFile) return message.fileName ?? l10n.fileLabel;
-    if (message.isLocation) return l10n.location;
-    if (message.isCall) return l10n.callTitle;
-    return l10n.message;
-  }
-
-  IconData _messageTypeIcon(MessageType type) {
-    return switch (type) {
-      MessageType.text => Icons.chat_bubble_outline,
-      MessageType.image => Icons.image_outlined,
-      MessageType.file => Icons.insert_drive_file_outlined,
-      MessageType.audio => Icons.audiotrack_outlined,
-      MessageType.voiceNote => Icons.mic_none,
-      MessageType.video => Icons.videocam_outlined,
-      MessageType.location => Icons.location_on_outlined,
-      MessageType.call => Icons.call_outlined,
-      MessageType.sticker => Icons.emoji_emotions_outlined,
-      MessageType.system => Icons.info_outline,
-    };
-  }
-}
-
-class _EncryptionIcon extends StatelessWidget {
-  final MessageEntity message;
-
-  const _EncryptionIcon({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    final isE2ee = message.encryptionLevel == MessageEncryptionLevel.e2ee;
-    return Tooltip(
-      message: isE2ee ? 'End-to-end encrypted' : 'Encrypted',
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: (isE2ee ? Colors.green : Colors.blue).withValues(alpha: 0.1),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          isE2ee ? Icons.lock_outline : Icons.vpn_key_outlined,
-          size: 18,
-          color: isE2ee ? Colors.green : Colors.blue,
+        child: Text(
+          l10n.messageSentAt(_formatFullDateTime(message.createdAt)),
+          style: TextStyle(
+            fontSize: 13,
+            color: context.textSecondaryColor,
+          ),
         ),
       ),
     );
