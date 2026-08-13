@@ -14,6 +14,43 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)
+
+Signal (1:1) et Sender Key (groupes) avancent un ratchet à sens unique à
+chaque déchiffrement réussi, sans conserver les clés de message déjà
+consommées. `getMessagesPaginated` re-fetch pourtant le même ciphertext
+depuis Supabase et retente `_crypto.decrypt` à chaque appel (réouverture
+de conversation, pull-to-refresh, pagination) —
+`SenderKeyService.decryptWithSenderKey` refuse alors tout `chainIndex`
+déjà dépassé et renvoie le placeholder « session requise », qui écrasait
+le texte clair déjà mis en cache. Correctif dans
+[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`_healUndecryptableMessages`) : on restaure depuis le cache local le
+texte des messages qu'un rechargement réseau vient de rendre
+indéchiffrables, avant d'écraser le cache — même principe que
+`_reconcileEcho` (message_provider.dart) pour l'écho temps réel, mais
+côté rechargement paginé. `flutter analyze` propre, mais rien de tout ça
+n'exerce le vrai ratchet Signal ni Supabase.
+
+- [ ] Ouvrir une conversation de groupe avec un historique de messages
+  texte de plusieurs membres, vérifier qu'ils se déchiffrent tous, puis
+  **quitter et rouvrir la conversation** (ou tirer pour rafraîchir) → les
+  mêmes messages doivent rester lisibles, pas basculer sur
+  « 🔐 Message chiffré » / « session requise ».
+- [ ] Faire défiler vers le haut pour charger une page plus ancienne
+  (pagination `loadMore`) dans un groupe déjà ouvert → les messages
+  récents déjà affichés restent lisibles pendant le chargement de la
+  page suivante.
+- [ ] Même scénario sur une conversation **1:1** (pas seulement groupe) —
+  la cause racine (ratchet Signal à sens unique) s'applique aussi aux
+  messages reçus en 1:1, pas seulement à l'écho de ses propres messages
+  déjà couvert par `_reconcileEcho`.
+- [ ] Redémarrer l'app à froid sur une conversation de groupe déjà lue →
+  le cache local (Hive) doit resservir le texte déchiffré, pas une
+  nouvelle tentative de déchiffrement en échec.
+
+---
+
 ## Réactions emoji : une par personne et par message (2026-08-13)
 
 `MessageEntity.reactions` était une simple `List<String>` sans auteur : le
