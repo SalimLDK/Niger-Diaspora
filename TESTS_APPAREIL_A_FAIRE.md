@@ -53,9 +53,58 @@ Mais rien de tout ça n'est vérifiable **dans l'app** sans deux comptes réels
 - [ ] Ouvrir la conversation côté B : vérifier que B apparaît alors dans « Lu
   par », et que le coche du message (côté A) passe au double-coche bleu à ce
   moment-là, pas avant.
-- [ ] Auditer les autres RPC `SECURITY DEFINER` du projet pour le même trou
-  `anon` (`REVOKE ALL FROM PUBLIC` sans `anon` explicite) — piste ouverte par
-  la découverte ci-dessus, périmètre non couvert par cette session.
+- [x] ~~Auditer les autres RPC `SECURITY DEFINER` du projet pour le même trou
+  `anon`~~ — fait le 2026-08-13. ~45 fonctions `SECURITY DEFINER` accessibles
+  à `anon` passées en revue (corps + appelants Dart). Sept avaient un vrai
+  trou (aucune vérification d'appelant, pas seulement le grant par défaut) :
+  - 🔴 **`lock_escrow_for_release(uuid, text)`** — libère l'escrow d'une
+    commande marketplace (déclenche le virement Stripe). `p_caller_id = NULL`
+    contournait entièrement le contrôle d'appartenance ; même renseigné,
+    c'était une valeur fournie par l'appelant, jamais vérifiée contre une
+    session. Seul appelant légitime : l'Edge Function
+    `process-escrow-release`, qui valide déjà le JWT et appelle en
+    `service_role`. Corrigé en fermant l'accès direct anon/authenticated
+    (`service_role` uniquement) et en rendant le contrôle NULL strict.
+  - 🟠 **`e2ee_add_active_device`/`e2ee_remove_active_device(text, text)`** —
+    zéro vérification : n'importe qui pouvait ajouter/retirer un appareil de
+    la liste des appareils actifs E2EE **de n'importe quel utilisateur**
+    (risque d'écoute via un appareil injecté, ou déni de service en retirant
+    les appareils d'une victime). Corrigé : `p_user_id` doit désormais
+    matcher `firebase_uid()`.
+  - 🟠 **`consume_one_time_prekey(text, text)`** — cross-utilisateur par
+    conception (Alice consomme une clé de Bob), mais accessible sans compte
+    du tout, ce qui rend l'épuisement du stock de clés gratuit et anonyme.
+    Relevé à « authentifié » minimum.
+  - 🟡 **`increment_column`** — allowlist déjà en place (compteurs Heritage),
+    mais aucune vérification d'appelant. Relevé à « authentifié ».
+  - Voir [20260813150000_close_anon_rpc_holes.sql](supabase/migrations/20260813150000_close_anon_rpc_holes.sql).
+    Testé sur le distant en transaction annulée (rien persisté) : le bug
+    NULL de l'escrow est bien fermé (preuve indirecte — l'appel avec le bon
+    buyer_id n'aurait pas pu réussir si un appel précédent avait déjà fait
+    passer `escrow_status` à `releasing`).
+  - ~15 RPC de compteurs vanité (likes/vues/partages posts, podcasts,
+    produits) : anon peut gonfler des métriques, aucun impact
+    données/argent — **non corrigées**, laissées telles quelles.
+  - `delete_group`, `accept_friend_request`, `insert_group`,
+    `join_group_conversation`, `create_user_notification`,
+    `get_or_create_official_group`, `get_feed_reposts` : déjà correctement
+    gardées en interne (ou lecture de contenu déjà public) malgré le grant
+    `anon` inutile — pas des trous réels.
+  - 🔴 **Découverte plus large, non corrigée** : `anon` a en fait
+    INSERT/UPDATE/DELETE au niveau **table** sur quasiment tout le schéma
+    public (`users`, `messages`, `orders`, `payment_accounts`,
+    `transactions`, `escrow_transactions`, `e2ee_user_keys`,
+    `admin_audit_logs`...) — même `ALTER DEFAULT PRIVILEGES` que pour les
+    fonctions, mais sur les tables. RLS est donc la **seule** barrière,
+    projet entier, sans aucun filet au niveau des droits. Conséquence
+    directe : `array_append_unique`/`array_remove_element` (mutateurs
+    génériques sans allowlist, appelés aujourd'hui seulement sur
+    `audio_rooms`) restent exploitables sur n'importe quelle table si sa RLS
+    a un trou — non auditée table par table, périmètre bien plus large
+    qu'une session. **Prochain audit à faire : lister les accès anon
+    réellement nécessaires (signup, vérif téléphone, lecture profils
+    publics...) avant d'envisager un `REVOKE` généralisé — risque réel de
+    casser des parcours anonymes légitimes si fait à l'aveugle.**
 
 ---
 
