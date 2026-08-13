@@ -637,6 +637,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           groupId: group.id, // Pass the group ID
         );
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
     if (conversation != null && mounted) {
