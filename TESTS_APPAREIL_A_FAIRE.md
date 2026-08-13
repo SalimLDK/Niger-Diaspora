@@ -3025,6 +3025,7 @@ explicitement tracé.
 ## Groupes & événements en conversation
 
 - [ ] **Bulle `EventMessageCard` en conversation + différenciation groupe** (commit `267d7d3`) : visibilité « publier dans le fil » DM/groupe, badge Admin sur les bulles, « Vu par N » sur messages de groupe lus, boutons appel/vidéo de groupe dans l'app bar, auto-adhésion au groupe pays au chargement du profil — aucun sous-élément vérifié sur device.
+- [ ] **Alignement des bulles reçues dans une série de groupe** (`message_bubble.dart`) : le padding gauche des messages reçus en groupe passait de 8 (avatar affiché sur le 1er message d'une série) à 16 (pas d'avatar sur les suivants) — un saut de 28px, les bulles d'une même série n'étaient pas alignées verticalement. Corrigé en réservant toujours la largeur de l'avatar (`SizedBox(width: 28)` en son absence) pour tout message reçu d'un groupe (`groupId` non nul). `flutter analyze` propre ; non vérifié sur device (rendu visuel, pas testable par l'analyseur).
 
 ## Sécurité / Comptes connectés
 

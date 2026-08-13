@@ -231,6 +231,11 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       widget.groupPosition == MessageGroupPosition.last ||
       widget.groupPosition == MessageGroupPosition.single;
 
+  /// Message reçu (pas de moi) dans une discussion de groupe : la colonne
+  /// avatar doit rester réservée même quand elle n'affiche rien (voir
+  /// `_isGroupReceived` ci-dessous, sur le calcul du padding gauche).
+  bool get _isGroupReceived => !widget.isMe && widget.groupId != null;
+
   @override
   void initState() {
     super.initState();
@@ -510,7 +515,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
               offset: Offset(_swipeOffset, 0),
               child: Padding(
                 padding: EdgeInsets.only(
-                  left: widget.isMe ? 64 : (widget.showSenderInfo ? 8 : 16),
+                  left: widget.isMe ? 64 : (_isGroupReceived ? 8 : 16),
                   right: widget.isMe ? 16 : 64,
                   top: _getVerticalPadding(),
                   bottom: _getVerticalPadding(),
@@ -519,55 +524,75 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Mini-avatar for group messages (non-me)
-                    if (widget.showSenderInfo && !widget.isMe)
+                    // Colonne avatar des messages de groupe (non-moi) : réservée
+                    // sur TOUS les messages reçus d'un groupe, pas seulement le
+                    // premier d'une série — sinon la bulle des messages suivants
+                    // saute de 28px vers la gauche faute d'avatar à afficher, et
+                    // la série ne reste plus alignée verticalement.
+                    if (_isGroupReceived)
                       Padding(
                         padding: const EdgeInsets.only(right: 8, bottom: 2),
-                        child: GestureDetector(
-                          onTap:
-                              () => widget.onSenderTap?.call(
-                                widget.message.senderId,
-                              ),
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              CircleAvatar(
-                                radius: 14,
-                                backgroundColor: UserColorUtils.getUserColor(
-                                  widget.message.senderId,
-                                ),
-                                backgroundImage:
-                                    widget.message.senderPhotoUrl != null
-                                        ? CachedNetworkImageProvider(
-                                          widget.message.senderPhotoUrl!,
-                                        )
-                                        : null,
-                                child:
-                                    widget.message.senderPhotoUrl == null
-                                        ? Text(
-                                          widget.message.senderName.isNotEmpty
-                                              ? widget.message.senderName[0]
-                                                  .toUpperCase()
-                                              : '?',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                        child:
+                            widget.showSenderInfo
+                                ? GestureDetector(
+                                  onTap:
+                                      () => widget.onSenderTap?.call(
+                                        widget.message.senderId,
+                                      ),
+                                  child: Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 14,
+                                        backgroundColor:
+                                            UserColorUtils.getUserColor(
+                                              widget.message.senderId,
+                                            ),
+                                        backgroundImage:
+                                            widget.message.senderPhotoUrl !=
+                                                    null
+                                                ? CachedNetworkImageProvider(
+                                                  widget
+                                                      .message
+                                                      .senderPhotoUrl!,
+                                                )
+                                                : null,
+                                        child:
+                                            widget.message.senderPhotoUrl ==
+                                                    null
+                                                ? Text(
+                                                  widget
+                                                          .message
+                                                          .senderName
+                                                          .isNotEmpty
+                                                      ? widget
+                                                          .message
+                                                          .senderName[0]
+                                                          .toUpperCase()
+                                                      : '?',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight:
+                                                        FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                )
+                                                : null,
+                                      ),
+                                      if (widget.message.senderIsVerified)
+                                        const Positioned(
+                                          bottom: -2,
+                                          right: -2,
+                                          child: VerificationBadge(
+                                            size: VerificationBadgeSize.small,
                                           ),
-                                        )
-                                        : null,
-                              ),
-                              if (widget.message.senderIsVerified)
-                                const Positioned(
-                                  bottom: -2,
-                                  right: -2,
-                                  child: VerificationBadge(
-                                    size: VerificationBadgeSize.small,
+                                        ),
+                                    ],
                                   ),
-                                ),
-                            ],
-                          ),
-                        ),
+                                )
+                                // Pas premier d'une série : pas d'avatar, mais
+                                // la même largeur pour garder l'alignement.
+                                : const SizedBox(width: 28),
                       ),
                     Expanded(
                       child: Column(
