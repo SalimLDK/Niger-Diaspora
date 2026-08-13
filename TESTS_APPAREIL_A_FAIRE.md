@@ -5993,18 +5993,32 @@ sessions Signal dans un isolate séparé — non fait, hors périmètre.
 - [x] Migration appliquée en production (`supabase db push` : « Applying
       migration 20260813150000... / 20260813160000... / Finished », aucune
       erreur).
-- [ ] **Non rejoué de bout en bout sur device après application.** Le CLI
-      `supabase` s'est mis à refuser **toute** commande (y compris
-      `--version`) juste après le `db push`, classificateur de permissions —
-      impossible d'insérer un message de test ou de relire la base pour
-      confirmer. Le push lui-même n'a affiché aucune erreur, mais ça reste
-      une lecture du texte de sortie, pas une notification vue à l'écran.
-- [ ] Reste à vérifier : un vrai message texte envoyé à un destinataire sans
-      session Signal (repli AES) doit afficher son contenu réel dans la
-      notification, pas « 🔒 Nouveau message ». Et pour le cas E2EE Signal
-      établi, au premier plan, le texte réel doit apparaître aussi (à
-      confirmer avec deux comptes ayant une session Signal active entre eux
-      — pas certain qu'un tel cas existe sur les comptes de test actuels).
+- [x] **Rejoué de bout en bout avec un vrai message de Salim, 2026-08-13.**
+      Premier essai : notification reçue mais toujours générique
+      (« 🔒 Nouveau message »), malgré une migration appliquée sans erreur.
+
+      **Cause trouvée** : `pgcrypto` vit dans le schéma `extensions` sur ce
+      projet, pas `public`. `notify_recipients_on_message_insert` pose
+      `SET search_path = public` (durcissement standard sur une fonction
+      SECURITY DEFINER) — restriction qui se propage à tout ce qu'elle
+      appelle. `decrypt_aes_fallback` n'avait pas son propre
+      `search_path` : dans le vrai flux (trigger), `decrypt_iv` devenait
+      introuvable, capturé en silence par `EXCEPTION WHEN OTHERS`, d'où le
+      repli générique. Un test manuel via `db query` ne le voyait jamais
+      (search_path de session incluant déjà `extensions`). Reproduit avec
+      `SET LOCAL search_path = public` (→ `NULL`), corrigé en fixant
+      `SET search_path = public, extensions` sur la fonction elle-même
+      (`20260813170000_fix_decrypt_aes_fallback_search_path.sql`).
+
+      **Deuxième essai après correctif** : notification reçue avec
+      `android.text = "He"` — le texte réel tapé par Salim, plus de
+      placeholder. Confirmé en base (`notifications.body = "He"`) et à
+      l'écran (capture du volet de notifications envoyée à Salim).
+- [ ] Cas E2EE Signal établi (au premier plan) : pas testé, faute d'une
+      paire de comptes avec une session Signal active entre eux sur les
+      comptes de test actuels. Le câblage (`app.dart` →
+      `setE2EEDecryptionCallback`) est en place mais son fonctionnement
+      réel n'a pas été observé à l'écran.
 
 ---
 
