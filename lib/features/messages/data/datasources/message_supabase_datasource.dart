@@ -25,12 +25,20 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   MessageSupabaseDataSource({
     SupabaseClient? client,
     MessageCryptoService? cryptoService,
+    Future<bool> Function()? ensureReadableAuth,
   }) : _supabase = client ?? Supabase.instance.client,
-       _crypto = cryptoService;
+       _crypto = cryptoService,
+       _ensureReadableAuth =
+           ensureReadableAuth ?? SupabaseAuthBridge.instance.ensureReadableSession;
 
   final SupabaseClient _supabase;
   final MessageCryptoService? _crypto;
   static const _uuid = Uuid();
+
+  /// Garde bornée avant une lecture — voir
+  /// [SupabaseAuthBridge.ensureReadableSession] et le même motif dans
+  /// `profile_supabase_datasource.dart`. Injectable pour les tests.
+  final Future<bool> Function() _ensureReadableAuth;
 
   // ── Channel registry ─────────────────────────────────────────────────────
 
@@ -341,6 +349,17 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
     Future<void> fetch() async {
       try {
+        // Session non confirmée (fenêtre `_startFromLocalSession`,
+        // auth_provider.dart) : ne pas interroger en anon. `conversationsProvider`
+        // aura déjà émis son cache le temps que la session se confirme ; sans
+        // ce nouvel essai, le stream resterait bloqué sur ce cache jusqu'au
+        // prochain événement realtime (potentiellement jamais).
+        if (!await _ensureReadableAuth()) {
+          if (!controller.isClosed) {
+            Timer(const Duration(seconds: 5), fetch);
+          }
+          return;
+        }
         final rows = await _supabase
             .from('conversations')
             .select()
