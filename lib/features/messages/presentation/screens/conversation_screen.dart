@@ -1079,21 +1079,28 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         messages[index + 1].senderId == message.senderId;
 
     if (hasDateBreak) {
-      // After date separator (visually), treat as last message of group
+      // After date separator (visually), treat as first message of group
       if (hasNewerSameSender && !hasNextDateBreak) {
-        return MessageGroupPosition.last;
+        return MessageGroupPosition.first;
       }
       return MessageGroupPosition.single;
     }
 
+    // hasNewerSameSender/hasOlderSameSender sont exprimés en index de la
+    // liste inversée (index 0 = message le plus récent). "first"/"last"
+    // doivent rester alignés sur l'ordre chronologique réel — c'est la
+    // convention qu'utilisent déjà _getBorderRadius() (queue de bulle sur
+    // "last") et showSenderInfo (nom affiché sur "first") : sans quoi le
+    // message le plus ANCIEN du groupe hérite de "last", donc de l'accusé
+    // "Envoyé" porté par _isLastInGroup, à la place du plus récent.
     if (!hasNewerSameSender && !hasOlderSameSender) {
       return MessageGroupPosition.single;
     } else if (!hasNewerSameSender && hasOlderSameSender) {
-      return MessageGroupPosition.first;
+      return MessageGroupPosition.last;
     } else if (hasNewerSameSender && hasOlderSameSender) {
       return MessageGroupPosition.middle;
     } else {
-      return MessageGroupPosition.last;
+      return MessageGroupPosition.first;
     }
   }
 
