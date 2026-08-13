@@ -1514,7 +1514,21 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     ),
                   )
                 else
-                  MessageInput(
+                  // Borne explicitement MessageInput a la hauteur mesuree par
+                  // le LayoutBuilder englobant (`zoneCorps`) : sans ca,
+                  // `RenderFlex` lui donne toujours `maxHeight: Infinity`
+                  // (enfant non-flexible de cette Column), et son propre
+                  // garde-fou interne (`_buildColumn`/`panneau` dans
+                  // message_input.dart) ne s'active jamais -- cause du
+                  // `BOTTOM OVERFLOWED` en paysage quand banniere(s) + brouillon
+                  // depassent la hauteur restante. Voir TESTS_APPAREIL_A_FAIRE.md,
+                  // section "Paysage -- overflow quand le chrome depasse la
+                  // hauteur".
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: zoneCorps.maxHeight,
+                    ),
+                    child: MessageInput(
                     conversationId: widget.conversationId,
                     isLoading: sendMessageState.isLoading,
                     replyToMessage: _replyToMessage,
@@ -1822,6 +1836,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                         if (_replyToMessage != null) _cancelReply();
                       }
                     },
+                  ),
                   ),
               ],
                 );

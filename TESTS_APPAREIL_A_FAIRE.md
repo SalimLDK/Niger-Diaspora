@@ -4797,8 +4797,9 @@ passe sur un rail de navigation latéral, et la conversation reste correcte.
 
 **Deux débordements, tous deux hors du périmètre des quatre lots :**
 
-- [ ] ⚠ **Conversation « Salim L. » en paysage : `BOTTOM OVERFLOWED BY 240
-  PIXELS`.** Reproduit avec le bandeau « Restaurez vos clés de chiffrement »
+- [ ] ⚠ **RÉDUIT (pas éliminé) le 2026-08-13, vérifié sur appareil.**
+  Conversation « Salim L. » en paysage : `BOTTOM OVERFLOWED BY 240 PIXELS`.
+  Reproduit avec le bandeau « Restaurez vos clés de chiffrement »
   affiché **et** un brouillon de 6 lignes dans le composeur. La cause est
   `computeMessagePickerHeight` (`message_input.dart`) : elle réserve **176 dp
   de chrome en dur**, calibrés sur en-tête 58 + composeur 64 + bandeau épinglé
@@ -4816,6 +4817,51 @@ passe sur un rail de navigation latéral, et la conversation reste correcte.
   voir avec `message_bubble.dart` (agrandissement du texte des bulles à 17,
   commits `83ca2e4`/`a9b1fa5`) : l'overflow touche uniquement la barre de
   saisie, pas le rendu des bulles envoyées.
+
+  **Corrigé partiellement le 2026-08-13** en activant enfin le garde-fou déjà
+  écrit dans `message_input.dart` (`_buildColumn`/`panneau`, voir la section
+  suivante) : `MessageInput` est désormais enveloppé dans un
+  `ConstrainedBox(constraints: BoxConstraints(maxHeight: zoneCorps.maxHeight))`
+  dans `conversation_screen.dart`, avec `zoneCorps` la contrainte déjà mesurée
+  par le `LayoutBuilder` qui entoure le corps de la conversation (celui qui
+  pilote aussi `placeRappelCles`). Sans ça `RenderFlex` donnait toujours
+  `maxHeight: Infinity` à ce widget (enfant non-flexible de la `Column`), donc
+  son propre `LayoutBuilder` interne voyait `bornee == false` en permanence et
+  ne rétrécissait jamais ses panneaux. Volontairement **pas** de `Flexible`
+  autour de `MessageInput` dans la `Column` externe (le piège documenté plus
+  bas : ça se partagerait l'espace libre avec l'`Expanded` de la liste des
+  messages et la raboterait même quand il y a largement la place). `flutter
+  analyze` propre sur les deux fichiers.
+
+  **Vérifié sur SM A515F, en vrai paysage clavier ouvert (pas seulement
+  `flutter analyze`)** : le correctif réduit le débordement, il ne l'élimine
+  pas.
+  - Bandeau de restauration des clés affiché + brouillon vide (juste le
+    placeholder « Votre message... ») : `BOTTOM OVERFLOWED BY 21 PIXELS`,
+    contre 47 avant correctif avec un brouillon de 2 lignes — nette
+    amélioration, mais pas zéro.
+  - Fait rejouer ensuite avec un texte tapé dans le champ : l'overflow ne
+    grandit plus avec la longueur du brouillon (c'est bien ce que corrige le
+    `ConstrainedBox`), mais un cas minimal persiste : composeur vide, **sans
+    aucune bannière visible** (juste l'en-tête), toujours en paysage clavier
+    ouvert — `BOTTOM OVERFLOWED BY 12 PIXELS`.
+  - Ce résidu n'est donc pas un débordement des *panneaux* de `MessageInput`
+    (ce que le `ConstrainedBox` corrige) mais un **plancher irréductible** :
+    sur cette géométrie (paysage + clavier logiciel), en-tête + hauteur
+    minimale du composeur (une ligne + rangée de boutons + marge de sécurité
+    bas d'écran) dépasse à elle seule la hauteur disponible de quelques
+    pixels. Le `ConstrainedBox` ne peut rien y faire : il borne
+    `MessageInput`, il ne le compresse pas en dessous de son contenu
+    minimal.
+  - Pistes non tentées pour aller à zéro : réduire le padding vertical du
+    composeur spécifiquement en paysage, ou étendre le seuil
+    `placeRappelCles` (déjà présent pour le bandeau de restauration) à un
+    second palier qui masque aussi le bandeau épinglé sous une hauteur
+    encore plus faible.
+  - Non revérifié : l'écran précis qui montrait `240 PIXELS` (bandeau +
+    brouillon 6 lignes + panneau ouvert) — seuls les cas `47`/`21`/`12
+    PIXELS` ont été rejoués. Compte tenu de ce qui précède, ce cas déborde
+    probablement encore, en plus petit.
 - [x] ⚠ **Écran de recherche des messages en paysage, clavier levé :
   `OVERFLOWED BY 190`.** Cet écran n'a été touché par aucun des lots — c'est
   le même défaut structurel, ailleurs. **Corrigé le 2026-08-05, mais pas où

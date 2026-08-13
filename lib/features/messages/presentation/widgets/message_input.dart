@@ -910,18 +910,21 @@ class _MessageInputState extends State<MessageInput>
     // colonne de hauteur infinie lèverait une assertion, d'où la condition
     // plutôt qu'un `Flexible` inconditionnel.
     //
-    // ⚠ AUJOURD'HUI CE GARDE-FOU NE S'ACTIVE JAMAIS EN PRODUCTION. Le
-    // commentaire disait « la conversation le fait » : c'est faux. Dans
+    // Ce garde-fou est resté longtemps inerte en production : un commentaire
+    // affirmait « la conversation le fait », mais dans
     // `conversation_screen.dart` (`body > Container > Stack > Column`), ce
-    // widget est un enfant **non-flexible** de la `Column` ; `RenderFlex`
-    // donne alors à ses enfants non-flexibles `maxHeight: Infinity`. Mesuré :
-    // `BoxConstraints(0.0<=w<=800.0, 0.0<=h<=Infinity)` — donc `bornee` vaut
-    // `false` et `panneau()` renvoie l'enfant tel quel.
-    // C'est la cause du `BOTTOM OVERFLOWED BY 240` en paysage (bandeau de
-    // restauration des clés + brouillon de 6 lignes + panneau ouvert).
-    // Le corriger demande de borner ce widget côté conversation — pas ici :
-    // un `Flexible` de plus dans cette `Column` se partagerait l'espace libre
-    // avec l'`Expanded` de la liste des messages et la raboterait. Voir
+    // widget était un enfant **non-flexible** de la `Column` ; `RenderFlex`
+    // donne alors à ses enfants non-flexibles `maxHeight: Infinity`, donc
+    // `bornee` valait `false` et `panneau()` renvoyait l'enfant tel quel.
+    // C'était la cause du `BOTTOM OVERFLOWED` en paysage (bandeau de
+    // restauration des clés + brouillon long, jusqu'à 240px avec un panneau
+    // ouvert, encore 47px avec un brouillon de 2 lignes seulement).
+    // Corrigé côté conversation (pas ici — un `Flexible` de plus dans cette
+    // `Column` se serait partagé l'espace libre avec l'`Expanded` de la liste
+    // des messages et l'aurait rabotée) : `conversation_screen.dart` borne
+    // désormais ce widget dans un `ConstrainedBox(maxHeight: zoneCorps
+    // .maxHeight)`, où `zoneCorps` vient du `LayoutBuilder` qui mesure déjà
+    // la hauteur réelle du corps de la conversation. Voir
     // TESTS_APPAREIL_A_FAIRE.md, section « Paysage — overflow quand le chrome
     // dépasse la hauteur ».
     return LayoutBuilder(
