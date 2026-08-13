@@ -38,7 +38,15 @@ pont Supabase a abouti — le vrai bug de fond) :
   ([handle_field.dart:81-91](lib/features/profile/presentation/widgets/handle_field.dart:81))
 - `blocked_users` SELECT — `usersWhoBlockedMeProvider`
 - `conversations` SELECT — `totalUnreadCountProvider`
-- `events` SELECT — `eventsNotifierProvider`
+
+~~`events` SELECT — `eventsNotifierProvider`~~ — **faux positif, corrigé le
+2026-08-13** : `eventsNotifierProvider` lit en réalité **Firestore**
+(`EventRemoteDataSourceImpl`, `event_remote_datasource.dart:36-46`), pas
+Supabase. L'agent d'exploration précédent avait confondu la fonctionnalité
+« événements » avec la table Supabase `events` — celle-ci existe bien et
+`anon` y a SELECT/écriture, mais son seul lecteur applicatif est
+`admin_provider.dart` (back-office, déjà réservé aux admins authentifiés,
+hors de la fenêtre de démarrage). Rien à corriger côté code pour ce point.
 
 **Aucune écriture n'est légitimement nécessaire en `anon`, nulle part** —
 chaque écriture inspectée (`profile_supabase_datasource.dart` et consorts)
@@ -76,18 +84,31 @@ le routeur.
     `profile_supabase_datasource_test.dart` (13/13 passent).
   - `flutter analyze` propre sur `lib/features/profile`, `lib/features/auth`,
     `lib/core/services/supabase_auth_bridge.dart`.
-  - **Pas encore fait** : `blocked_users` (déjà un repli sûr — `.handleError`
-    → ensemble vide — priorité plus basse) et `events`/`conversations`
-    (streams réutilisés bien plus largement que la seule fenêtre de démarrage,
-    changement plus risqué à faire sans appareil pour vérifier). Prochaine
-    étape avant le REVOKE des droits table `anon` : soit fermer ces deux
-    derniers, soit accepter de les laisser en SELECT `anon` (repli déjà sûr
-    pour `blocked_users`, à re-évaluer pour `events`/`conversations`).
+  - **`conversations` fait le 2026-08-13, suite** — même mécanisme, câblé
+    dans `getConversations` ([message_supabase_datasource.dart:339](lib/features/messages/data/datasources/message_supabase_datasource.dart:339)) :
+    la fonction interne `fetch()` (appelée à l'abonnement initial ET à chaque
+    événement realtime) vérifie désormais `_ensureReadableAuth()` avant
+    d'interroger. Différence avec les lectures profil : c'est un
+    `StreamController` de longue durée, pas un Future ponctuel — sans filet,
+    un échec silencieux laisserait le flux bloqué sur son dernier état
+    jusqu'au prochain événement realtime (potentiellement jamais). Un seul
+    nouvel essai programmé 5 s plus tard comble ce trou, sans machinerie de
+    retry plus lourde. Callback injectable `_ensureReadableAuth` ajouté à
+    `MessageSupabaseDataSource`, même motif que `profile_supabase_datasource.dart`.
+    `flutter analyze` propre. **Pas de test automatisé** : ce datasource n'a
+    aucun harnais de test existant (contrairement à `profile`), et tester un
+    `StreamController` + un `Timer` de 5 s proprement demanderait
+    `fake_async` — pas fait, hors périmètre de cette session.
+  - **`blocked_users` laissé tel quel** — a déjà un repli sûr
+    (`.handleError((Object _) {})` → ensemble vide), priorité plus basse,
+    non traité.
   - [ ] **Jamais vérifié sur appareil** : démarrer l'app hors ligne (ou
     réseau très lent) après une session Firebase existante, et confirmer que
     `/home` s'affiche toujours sans blocage (le point que le correctif du
     2026-08-04 protégeait), avec le profil/les membres proches en état de
-    chargement/erreur géré plutôt qu'un crash.
+    chargement/erreur géré plutôt qu'un crash — et que le badge de messages
+    non lus finit par se mettre à jour (nouvel essai à 5 s) sans qu'il faille
+    recevoir un message pour le déclencher.
 
 ---
 
