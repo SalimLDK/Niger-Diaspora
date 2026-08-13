@@ -5691,17 +5691,50 @@ avais une raison de ne PAS dropper cette surcharge (une autre fonction encore
 dessus, un appelant qui en dépend), vérifie — je n'ai vu que l'échec du push,
 pas ton intention complète sur ce fichier.
 
-**Pas vérifiable sans device + vrai envoi FCM** — la base a été relue et la
-migration appliquée, pas rejouée de bout en bout :
-
-- [ ] Envoyer un message texte à un destinataire **sans session Signal
-      établie** (le cas courant, repli AES) et vérifier que la notification
-      reçue affiche « 🔒 Nouveau message », pas un blob base64.
-- [ ] Vérifier aussi la liste de notifications in-app (même table `body`).
+- [x] **Rejoué de bout en bout sur SM A515F (Sim A, `vQZE49dTdyRtLwSG6lMIbhAqoFG2`),
+      2026-08-13.** Message de test inséré directement en base, forme repli
+      AES exacte (`encryptionLevel: 'aes'`, `content` en `iv:base64...`),
+      dans une vraie conversation Salim L. ↔ Sim A (`883c9d96-…`), donnée de
+      test retirée après coup. Chaîne vérifiée à chaque étape :
+      - ligne `notifications` produite par le trigger : `body = "🔒 Nouveau
+        message"` — pas le ciphertext ;
+      - `net._http_response` : `{"sent":1,"removed":0}`, FCM a accepté et
+        livré au bon appareil ;
+      - logcat de l'appareil : le payload est bien arrivé côté app
+        (`FlutterFirebaseMessagingBackgroundService`, tentative de
+        `showNotification` au bon timestamp).
+      **Non vu à l'écran** : un bug sans rapport a empêché le rendu — voir
+      ci-dessous. Le texte correct était déjà fixé sur le builder de
+      notification avant que ce bug ne fasse échouer l'appel natif, donc rien
+      n'indique que le fix lui-même serait en cause.
+- [x] Ligne `notifications` in-app : même colonne `body`, donc même preuve
+      que ci-dessus — pas rejoué séparément à l'écran.
 - [ ] Les lignes `notifications` déjà en base avant ce correctif gardent leur
       `body` en ciphertext (une UPDATE de rattrapage n'a pas été tentée — trop
       de risque de mal cibler les lignes) : à purger ou ignorer selon la
       politique de rétention choisie.
+
+### Bug sans rapport trouvé en vérifiant : les icônes d'action de notif n'existent pas
+
+`DrawableResourceAndroidBitmap('@drawable/ic_reply')` et
+`'@drawable/ic_mark_read'` ([notification_service.dart:1790](lib/core/services/notification_service.dart:1790),
+[:1802](lib/core/services/notification_service.dart:1802)) référencent des
+ressources absentes de `android/app/src/main/res/` (`find` : aucun fichier
+`ic_reply*`/`ic_mark_read*`, aucune densité). Résultat mesuré sur l'appareil :
+`IllegalArgumentException: Drawable resource ID must not be 0` dans
+`FlutterLocalNotificationsPlugin.getIconFromSource` →
+`showNotification` échoue **pour toute notification de type message** (ces
+deux actions ne sont ajoutées que si `type == 'message' && conversationId !=
+null` — donc pratiquement tous les messages de chat), silencieusement, sans
+crash visible côté utilisateur.
+
+Pas encore su si ça touche aussi le cas app tuée/arrière-plan (où Android
+peut afficher directement le champ `notification` FCM sans passer par ce
+code) ou seulement le premier plan (`onMessage` → `_showLocalNotification`,
+le seul chemin exercé par ce test). **Pas corrigé** — hors périmètre de la
+demande d'aujourd'hui (fuite de ciphertext), à traiter séparément : soit
+retirer les deux actions, soit ajouter les fichiers manquants aux 5
+densités.
 
 ---
 
