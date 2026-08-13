@@ -6724,7 +6724,7 @@ pose le compte plateforme comme `creator_id`, et ajoute la ligne
 
 ---
 
-- [ ] **Accusé « Envoyé » sur rafale de messages (`conversation_screen.dart`,
+- [x] **Accusé « Envoyé » sur rafale de messages (`conversation_screen.dart`,
   `_getMessageGroupPositionReversed`)** : `first`/`last` étaient inversés —
   dans une liste inversée (index 0 = plus récent), le message le plus ANCIEN
   d'une rafale du même expéditeur héritait de `MessageGroupPosition.last`,
@@ -6732,13 +6732,15 @@ pose le compte plateforme comme `creator_id`, et ajoute la ligne
   ([message_bubble.dart:230](lib/features/messages/presentation/widgets/message_bubble.dart:230)),
   à la place du plus récent — symptôme rapporté : « j'envoie deux messages
   d'affilée, je ne vois "Envoyé" que sur le 1er ». Corrigé en échangeant les
-  deux branches. Effet de bord attendu (même cause, non signalé mais
-  probablement présent) : en groupe, le nom de l'expéditeur
-  (`showSenderInfo`) et la queue de bulle (`_getBorderRadius`) devraient
-  désormais aussi se poser sur la bonne bulle de la rafale. À vérifier sur
-  appareil : envoyer 2-3 messages coup sur coup, seul le dernier doit porter
-  l'heure + « Envoyé », et la queue de bulle (petit rayon) doit être en bas
-  de la rafale, pas en haut.
+  deux branches.
+  **Vérifié sur SM A515F le 2026-08-13** (compte Sim A, conversation « Mes
+  notes », 2 messages envoyés coup sur coup) : seul le 2e message porte
+  « À l'instant · Envoyé », le 1er n'en porte aucun. La queue de bulle
+  (`_getBorderRadius`) suit aussi la correction attendue — petit rayon en
+  bas à droite sur la bulle du bas (fin de rafale) au lieu du haut. Pas
+  d'erreur en logcat. `showSenderInfo` (nom affiché en groupe) n'a pas été
+  testé sur cet écran (self-chat, pas de nom affiché) — reste à confirmer
+  en groupe si l'occasion se présente.
 
 ## Comment tester (rappel de la config utilisée précédemment)
 
