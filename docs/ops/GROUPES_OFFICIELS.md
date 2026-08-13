@@ -65,6 +65,44 @@ d'exception, `creator_id` correctement posé sur le compte plateforme,
 `member_count` correct. Le chemin « pays déjà couvert » (retour anticipé,
 aucun INSERT) reste inchangé et vérifié intact.
 
+## Qui peut gérer un groupe officiel au quotidien
+
+Le compte plateforme reste le point d'ancrage réel (`creator_id`, seul
+chemin de suppression via `groups_delete`), mais il n'est **pas** censé être
+le seul moyen d'agir au jour le jour — se reconnecter comme « Diaspo Niger »
+à chaque modification n'est pas praticable.
+
+Salim est déjà superAdmin de la plateforme (`users.is_admin = true`,
+`admin_role = 'superAdmin'`), mais `groups_update_admin` ne regardait à
+l'origine que `is_group_admin(id)` — qui ne lit que `group_members.role`.
+Un superAdmin sans ligne `owner`/`admin` sur un groupe donné n'avait donc
+**aucun droit dessus**, y compris sur un groupe officiel.
+
+Corrigé (migration `20260813234500_superadmin_manages_official_groups.sql`) :
+`groups_update_admin` devient `is_group_admin(id) OR (is_official AND
+is_admin())`. Portée volontairement étroite — **uniquement** les groupes
+officiels, jamais les groupes privés des utilisateurs, qui restent hors de
+portée d'un superAdmin. La suppression (`groups_delete`) reste inchangée :
+plus lourde qu'une modification courante, réservée au compte plateforme.
+
+Vérifié (voir piège de méthode plus bas) : un superAdmin peut modifier le
+groupe officiel avec son propre compte ; le même compte reste bloqué sur un
+groupe privé qui ne lui appartient pas.
+
+⚠️ **Piège de méthode rencontré en vérifiant ceci** : `supabase db query
+--linked` se connecte en `postgres`, un rôle avec `rolbypassrls = true` — il
+contourne RLS **entièrement**, quel que soit le `request.jwt.claims` posé
+avec `SET LOCAL`. Un test qui se contente de `SET LOCAL request.jwt.claims`
+sans changer de rôle ne prouve donc RIEN sur l'enforcement d'une policy :
+l'UPDATE passe même si la policy devrait le refuser. Pour tester une policy
+RLS pour de vrai, il faut en plus `SET LOCAL ROLE authenticated;` (rôle sans
+`BYPASSRLS`, celui que PostgREST utilise réellement) avant de poser le JWT.
+Les fonctions `SECURITY DEFINER` (comme `get_or_create_official_group`)
+échappent à ce piège : elles s'exécutent avec les privilèges de leur
+propriétaire quel que soit l'appelant, donc leur logique interne était bien
+testée même avant cette correction de méthode — seule la vérification
+directe d'une policy sur une table (`UPDATE groups ...`) était faussée.
+
 ## Règle pour tout nouveau groupe officiel
 
 1. **`creator_id` doit être le compte plateforme**, jamais un compte

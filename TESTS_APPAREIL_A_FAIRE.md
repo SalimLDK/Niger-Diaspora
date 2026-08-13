@@ -6742,6 +6742,43 @@ pose le compte plateforme comme `creator_id`, et ajoute la ligne
   testé sur cet écran (self-chat, pas de nom affiché) — reste à confirmer
   en groupe si l'occasion se présente.
 
+---
+
+## Groupes officiels — organisation de la gestion au quotidien (2026-08-13)
+
+Suite du correctif creator_id/RPC pays : Salim est déjà superAdmin plateforme
+mais n'avait aucun droit RLS sur un groupe officiel sans ligne
+`group_members` dédiée — impraticable au quotidien (aurait fallu se
+reconnecter comme le compte plateforme à chaque action). Corrigé par
+migration `20260813234500_superadmin_manages_official_groups.sql` :
+`groups_update_admin` accepte désormais `is_group_admin(id) OR (is_official
+AND is_admin())`, portée volontairement limitée aux groupes officiels (pas
+un accès superAdmin global à `groups`). Détail complet dans
+`docs/ops/GROUPES_OFFICIELS.md`.
+
+⚠️ **Piège de méthode découvert en vérifiant ce correctif** : `supabase db
+query --linked` se connecte en `postgres` (`rolbypassrls = true`) —
+contourne RLS entièrement, quel que soit `request.jwt.claims` posé avec `SET
+LOCAL`. Un premier test « groupe privé refusé » avait silencieusement réussi
+alors qu'il aurait dû échouer — faux positif pur, RLS jamais évalué.
+Refait avec `SET LOCAL ROLE authenticated;` en plus (rôle sans
+`BYPASSRLS`, celui que PostgREST utilise réellement) : les fonctions
+`SECURITY DEFINER` (`get_or_create_official_group`) n'étaient pas affectées
+par ce piège — elles s'exécutent avec les privilèges de leur propriétaire
+quel que soit l'appelant — mais toute vérification directe d'une policy sur
+une table (`UPDATE`/`DELETE` brut) l'est.
+
+- [x] **Testé en base avec la méthode corrigée** (transaction annulée par
+  `ROLLBACK`, `SET LOCAL ROLE authenticated` + `request.jwt.claims`) :
+  Salim (superAdmin, son propre compte) peut modifier le groupe officiel ;
+  le même compte reste bloqué (0 ligne) sur un groupe privé de Sim A dont il
+  n'est ni créateur ni membre. Pas testé sur appareil — nécessiterait de
+  construire un écran de modification de groupe officiel côté app, qui
+  n'existe pas encore (le bouton « Modifier » existant n'a jamais été
+  vérifié bout en bout, cf plus haut dans ce fichier).
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
