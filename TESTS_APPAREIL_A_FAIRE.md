@@ -6844,6 +6844,58 @@ toujours le lire.
 
 ---
 
+## Avertissement Android « pages de 16 Ko » — une seule vraie cause, correctif bloqué en cascade (2026-08-14)
+
+Popup système sur appareil (build **debuggable** uniquement, en français :
+« Cette appli n'est pas compatible avec les pages de 16 Ko ») citant 4
+bibliothèques : `libflutter.so`, `libdatastore_shared_counter.so`,
+`libVkLayer_khronos_validation.so`, `libnoise.so`.
+
+Vérifié en extrayant les 4 `.so` de l'APK (debug **et** release,
+`build/app/outputs/apk/`) et en lisant leurs en-têtes ELF
+(`llvm-readelf -l`, NDK r27 déjà installé) : **seule `libnoise.so` est
+réellement mal alignée** (segment LOAD à 4 Ko au lieu de 16). Les 3 autres
+sont déjà à 16 Ko ou 64 Ko — le popup les signale par erreur (« erreur
+inconnue », pas un vrai défaut d'alignement).
+
+`libnoise.so` vient de `com.github.paramsen:noise:2.0.0`, tirée par le
+`build.gradle` Android de **`livekit_client`** (pas `flutter_webrtc`, malgré
+l'intuition de départ) — une petite lib FFT utilisée pour la détection de
+niveau audio en temps réel (indicateur « parle en ce moment » des salons
+audio / appels de groupe, cf [[project_widgets_alimentes_en_dur]]). LiveKit
+l'a corrigée en la republiant `io.livekit:noise:2.0.0` (vérifié : LOAD à
+16 Ko dans l'AAR téléchargé depuis Maven Central), correctif présent à partir
+de `livekit_client 2.6.0`.
+
+**Le correctif n'est pas accessible sans remonter toute une chaîne.**
+`livekit_client ≥2.6.0` épingle une version exacte de `flutter_webrtc`
+(1.2.1 → 1.6.0 selon la sous-version, jamais notre `^0.12.12` actuel), qui
+entraîne `connectivity_plus ^7.0.0` (exige AGP ≥8.12.1 et Gradle ≥8.13 —
+projet en 8.7.0 / 8.10.2), et selon la sous-version exacte de
+`livekit_client` :
+- 2.6.0–2.6.4 : `device_info_plus ^12.2.0` (projet en `^11.4.0`, probablement
+  anodin) ;
+- ≥2.6.5 : `dart_jsonwebtoken ^3.3.2` → `pointycastle ^4.0.0`, **incompatible
+  avec `encrypt: ^5.0.3`** (`pointycastle ^3.6.2`) — `encrypt` sert au repli
+  AES de l'E2EE (cf [[project_e2ee_status]]), donc pas un paquet à bumper à
+  la légère pour un warning de debug.
+
+Décision prise le 2026-08-14 : reporter. Pas de preuve de crash réel en
+production (le popup ne s'affiche qu'en build debuggable), et le correctif
+complet toucherait WebRTC + connectivité + outillage Android + potentiellement
+la crypto — un chantier à part entière, pas un fix ponctuel.
+
+- [ ] Si repris : bump couplé `livekit_client` + `flutter_webrtc` +
+  `connectivity_plus` (+ AGP/Gradle, + vérifier `encrypt`/`pointycastle`),
+  puis tester au doigt sur SM A515F : appels 1:1, appels de groupe, salons
+  audio (indicateur de parole en particulier, puisque c'est lui qui dépend de
+  la lib corrigée), et un parcours E2EE complet si `encrypt` a bougé.
+- [ ] Revérifier l'alignement après coup avec la même méthode
+  (`llvm-readelf -l` sur les `.so` extraits de l'APK, chercher `LOAD` et
+  vérifier que `p_align` ≥ `0x4000`).
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
