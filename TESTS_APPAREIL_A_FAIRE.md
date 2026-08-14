@@ -5095,13 +5095,17 @@ Corrigé : `_GroupInfoCard` lit maintenant `conversationPinnedItemsProvider`
 via l'id de conversation du groupe (déjà résolu pour la ligne Médias juste en
 dessous). `groupPinnedItemsProvider` et la branche `groupId` de
 `GroupPinnedBanner` sont supprimés (plus aucun appelant ne les utilisait).
-`flutter analyze` propre sur les 3 fichiers touchés ; **non vérifié sur
-appareil**.
+`flutter analyze` propre sur les 3 fichiers touchés.
 
-- [ ] Ouvrir la fiche d'un groupe où au moins un message est épinglé dans le
-  fil : la ligne « Épinglés » doit apparaître dans la carte info, avec le bon
-  compte et un résumé cohérent avec ce que montre le bandeau de conversation.
-- [ ] Groupe sans rien d'épinglé : la ligne doit rester absente (comme avant).
+- [x] **Vérifié sur SM A515F le 2026-08-14.** Dans « Groupe de test privé »
+  (0 épingle au départ) : épinglage d'un message via Autres actions →
+  Épingler → bandeau de conversation affiche bien « Message épinglé » (donc
+  le contournement RLS conversation_id du 2026-08-05 tient toujours) ; retour
+  à la fiche groupe → la ligne « Épinglés · 1 message » apparaît, compte
+  correct. Avant ce correctif elle n'aurait jamais pu s'afficher, quel que
+  soit l'état des épingles.
+- [ ] Groupe sans rien d'épinglé : la ligne doit rester absente (comme avant)
+  — pas revérifié isolément mais découle du même code que la ligne Médias.
 
 ### Troisième bug trouvé le 2026-08-14 : aucun ordre stable entre plusieurs épingles
 
@@ -5118,13 +5122,25 @@ réellement montré pouvait sauter vers un autre sans la moindre action de
 l'utilisateur.
 
 Corrigé : tri désormais sur `pinned_at` (seule colonne unique/stable du lot),
-dans `getPinnedItemsStream`. `flutter analyze` propre ; **non vérifié sur
-appareil** — demande au moins 2 épingles dans la même conversation.
+dans `getPinnedItemsStream`. `flutter analyze` propre ; racine du bug
+confirmée en base (`sort_order` = `0` sur toutes les lignes, vu par
+`information_schema.columns`) — mais **non vérifié sur appareil**, faute
+d'avoir pu poser une 2e épingle dans la même conversation le 2026-08-14 (le
+SM A515F a cessé de répondre aux `input tap`/`input text` scriptés à mi-passe
+— navigation qui ne bouge plus, `input text` qui n'atteint pas le composeur,
+alors que `input keyevent KEYCODE_HOME` fonctionnait toujours : signe d'une
+app bloquée sur un état précis plutôt que d'un appareil mort. Cause la plus
+probable, jamais confirmée : usage concurrent du même téléphone physique par
+l'autre agent/session — cf. `lastUpdateTime` qui avait déjà bougé sous mes
+pieds en tout début de passe. Pas conclu à un bug applicatif sur cette seule
+base, voir la règle du doigt réel dans `project_device_testing`.
 
 - [ ] Épingler 2-3 messages dans une même conversation, rouvrir l'écran
   plusieurs fois (ou faire apparaître/disparaître le clavier plusieurs fois) :
   l'ordre `1/n`, `2/n`… doit rester identique à chaque fois (le plus ancien
-  épinglé en premier).
+  épinglé en premier). « Groupe de test privé » porte déjà 1 épingle
+  (message « Message de test pour verifier 9c et 9d ») posée pendant cette
+  passe — il suffit d'en épingler un second pour tester.
 
 ---
 
