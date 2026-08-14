@@ -6853,6 +6853,23 @@ implicitement que l'appelant reste participant après l'update.
 
 ---
 
+## Heure/accusé masqués au tap sur une rafale envoyée (2026-08-14)
+
+[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart) :
+un message envoyé qui n'est pas le dernier d'une rafale masquait déjà son
+heure par regroupement visuel, mais sans aucun moyen de la consulter
+individuellement. Un tap sur la ligne meta (zone masquée sous la bulle) la
+révèle, un second tap la remasque. Les messages reçus ne sont pas concernés.
+
+- [x] **Testé sur SM A515F** (build debug fraîchement compilé) : conversation
+  avec deux messages envoyés consécutifs (« bvvgc » puis « bvvgcv »). Le
+  premier n'affiche aucune heure par défaut ; un tap sur la zone sous la
+  bulle révèle « 19:55 · Lu » ; un second tap la remasque. Le dernier message
+  de la rafale (« bvvgcv ») et tous les messages reçus affichent leur heure
+  en permanence, sans interaction, comme attendu.
+
+---
+
 ## Avertissement Android « pages de 16 Ko » — une seule vraie cause, correctif bloqué en cascade (2026-08-14)
 
 Popup système sur appareil (build **debuggable** uniquement, en français :
