@@ -6813,6 +6813,37 @@ une table (`UPDATE`/`DELETE` brut) l'est.
 
 ---
 
+## Modération des membres de groupe : trou RLS fermé + bug de départ trouvé (2026-08-14)
+
+`conversations_update` (`participant_ids @> [firebase_uid()]`) autorisait
+n'importe quel participant à écrire `data.adminIds`/`participant_ids` sans
+vérification de rôle — n'importe quel membre pouvait s'auto-promouvoir admin
+ou exclure quelqu'un via une écriture directe, dans n'importe quel groupe
+(pas seulement officiel). Fermé par un trigger `BEFORE UPDATE`
+(`20260814000500_guard_conversation_admin_fields.sql`), pas par une policy
+RLS seule (comparaison OLD/NEW propre, cf [[project_rls_testing_bypass_pitfall]]
+pour la méthode de vérification utilisée). Détail dans
+`docs/ops/GROUPES_OFFICIELS.md`.
+
+- [x] **Testé en base** (`SET LOCAL ROLE authenticated` + `request.jwt.claims`,
+  transaction annulée) : promotion par un non-admin refusée (42501),
+  promotion par un admin existant acceptée, champ sans rapport (`mutedBy`)
+  toujours modifiable par un simple participant, superAdmin accepté sur le
+  groupe officiel sans être dans `adminIds` ni `group_members`.
+
+⚠️ **Trouvé en testant, pas encore corrigé** : `leaveGroup()`
+(`group_supabase_datasource.dart:343`) ne supprime que la ligne
+`group_members` — ne touche jamais `conversations.participant_ids`. Un
+membre qui quitte un groupe reste participant de sa conversation, avec accès
+en lecture aux messages envoyés après son départ (`conversations_select` se
+fie à `participant_ids`). Pas testé sur appareil (comportement trouvé par
+requête SQL directe, pas par le parcours réel « Quitter le groupe » dans
+l'app) — à vérifier au doigt : quitter un groupe, puis, depuis un autre
+compte membre, envoyer un message et voir si celui qui est parti peut
+toujours le lire.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

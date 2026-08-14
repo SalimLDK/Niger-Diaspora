@@ -103,6 +103,43 @@ propriétaire quel que soit l'appelant, donc leur logique interne était bien
 testée même avant cette correction de méthode — seule la vérification
 directe d'une policy sur une table (`UPDATE groups ...`) était faussée.
 
+## Modérer les membres (promouvoir/exclure) : un système à part
+
+Le bouton "gérer" de `group_members_screen.dart` (promouvoir/rétrograder un
+admin, exclure un membre) n'écrit **pas** dans `groups`/`group_members` —
+il écrit dans `conversations.data.adminIds` et `conversations.participant_ids`,
+un système distinct de celui décrit plus haut. Jusqu'au 2026-08-14,
+`conversations_update` (`participant_ids @> [firebase_uid()]`) autorisait
+**n'importe quel participant** à écrire ces champs, sans vérification de
+rôle côté serveur — l'app cachait juste le bouton (`canModerate`).
+N'importe quel membre, dans n'importe quel groupe (officiel ou non), pouvait
+donc s'auto-promouvoir admin ou exclure quelqu'un en écrivant directement la
+ligne.
+
+Corrigé par un trigger `BEFORE UPDATE` (migration
+`20260814000500_guard_conversation_admin_fields.sql`), pas par une policy
+RLS : RLS ne peut pas comparer proprement OLD/NEW à l'intérieur d'un même
+JSONB (`conversations.data`) sans un self-join fragile, un trigger le fait
+sans ambiguïté. Toute modification de `adminIds`/`participant_ids` exige
+désormais que l'appelant soit déjà admin de la conversation, `is_group_admin()`
+sur le groupe lié, ou superAdmin sur un groupe officiel — sauf le cas d'un
+participant qui se retire lui-même, resté libre. Vérifié avec la méthode
+`SET LOCAL ROLE authenticated` (voir plus haut) : promotion par un non-admin
+refusée, promotion par un admin existant acceptée, champ sans rapport
+(`mutedBy`) non bloqué, superAdmin sur le groupe officiel accepté.
+
+⚠️ **Trouvé en testant, non corrigé** : `leaveGroup()`
+(`group_supabase_datasource.dart:343`) ne supprime que la ligne
+`group_members` — `conversations.participant_ids` n'est jamais mis à jour.
+Un membre qui quitte un groupe reste donc **participant de sa conversation**
+indéfiniment, avec accès en lecture aux messages envoyés après son départ
+(`conversations_select` se fie à `participant_ids`). Repéré par accident : une
+tentative de test (retrait volontaire de `participant_ids`) a été bloquée par
+`conversations_update` lui-même (`WITH CHECK` implicite = `USING`, qui exige
+que l'appelant reste dans `participant_ids` après l'update) — donc même un
+retrait volontaire par ce chemin échouerait s'il existait. Portée plus large
+que les groupes officiels, à traiter séparément.
+
 ## Règle pour tout nouveau groupe officiel
 
 1. **`creator_id` doit être le compte plateforme**, jamais un compte
