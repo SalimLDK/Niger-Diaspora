@@ -6887,9 +6887,15 @@ implicitement que l'appelant reste participant après l'update.
   une fonction `SECURITY DEFINER` créée **après** `SET LOCAL ROLE
   authenticated` appartient à `authenticated`, pas `postgres` — elle reste
   soumise à RLS malgré son mot-clé (deux faux échecs avant de comprendre).
-- [ ] **Pas testé sur appareil** — à vérifier au doigt : quitter un groupe,
-  puis, depuis un autre compte membre, envoyer un message et voir si celui
-  qui est parti peut toujours le lire (avant le correctif, il pouvait).
+- [x] **Vérifié sur SM A515F le 2026-08-14** (compte Sim A, groupe « Testeurs »,
+  2 membres). Fiche groupe → menu ⋮ → « Quitter » → confirmation : bandeau
+  « Vous avez quitté le groupe » dans la discussion, aucun plantage. Confirmé
+  en base dans la foulée : `group_members` et `conversations.participant_ids`
+  ne portent plus que Salim. Accès en lecture testé en insérant un message
+  comme Salim juste après (`SET ROLE authenticated` + JWT de Sim A) : `select`
+  rend **0 ligne** — avant le correctif, Sim A l'aurait encore lu. Message de
+  test supprimé, Sim A rejoint le groupe ensuite pour restaurer l'état
+  antérieur (`group_members` + `participant_ids`).
 
 ---
 

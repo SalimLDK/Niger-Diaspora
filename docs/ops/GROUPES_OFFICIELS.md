@@ -162,9 +162,14 @@ départ retire bien l'appelant de `participant_ids` (et de `adminIds` s'il y
 était), un appel sur un groupe dont on n'est pas membre ne fait rien sans
 erreur.
 
-Pas testé sur appareil (comportement vérifié par requête SQL directe, pas
-par le parcours réel « Quitter le groupe » dans l'app). Portée plus large
-que les groupes officiels — s'applique à tous les groupes.
+**Vérifié sur SM A515F le 2026-08-14**, parcours réel « Quitter le groupe »
+(pas seulement en base) : bandeau « Vous avez quitté le groupe », aucun
+plantage. En base juste après : `group_members` et
+`conversations.participant_ids` ne portent plus le compte parti. Accès en
+lecture confirmé fermé : un message inséré comme l'autre membre juste après
+le départ rend 0 ligne pour `messages_select` sous l'identité de celui qui
+est parti. Portée plus large que les groupes officiels — s'applique à tous
+les groupes.
 
 ## Règle pour tout nouveau groupe officiel
 
