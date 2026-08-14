@@ -5080,6 +5080,29 @@ refuse désormais un id `temp_…` (à vérifier sur un build à jour) :
   l'épingler » et ne rien écrire en base. Vérifier ensuite qu'une fois le
   message parti, l'épinglage fonctionne normalement.
 
+### Second système mort trouvé le 2026-08-14 : la ligne « Épinglés » de la fiche groupe
+
+`_GroupInfoCard` (`group_detail_screen.dart`, fiche 9d — la carte Épinglés /
+Médias / Prochaine rencontre) lisait `groupPinnedItemsProvider(group.id)`,
+filtré sur `group_pinned_items.group_id`. Depuis le contournement du
+2026-08-05 ci-dessus, plus rien n'écrit jamais cette colonne — `_pinMessage`
+ne pose que `conversation_id`. La ligne « Épinglés » restait donc **en
+permanence vide et invisible** (`pinned.isNotEmpty` toujours faux) sur tous
+les groupes, y compris ceux où le bandeau de conversation affichait bien des
+épingles juste au-dessus — deux lectures divergentes de la même table.
+
+Corrigé : `_GroupInfoCard` lit maintenant `conversationPinnedItemsProvider`
+via l'id de conversation du groupe (déjà résolu pour la ligne Médias juste en
+dessous). `groupPinnedItemsProvider` et la branche `groupId` de
+`GroupPinnedBanner` sont supprimés (plus aucun appelant ne les utilisait).
+`flutter analyze` propre sur les 3 fichiers touchés ; **non vérifié sur
+appareil**.
+
+- [ ] Ouvrir la fiche d'un groupe où au moins un message est épinglé dans le
+  fil : la ligne « Épinglés » doit apparaître dans la carte info, avec le bon
+  compte et un résumé cohérent avec ce que montre le bandeau de conversation.
+- [ ] Groupe sans rien d'épinglé : la ligne doit rester absente (comme avant).
+
 ---
 
 ## Paysage — overflow quand le chrome dépasse la hauteur (2026-08-05)
