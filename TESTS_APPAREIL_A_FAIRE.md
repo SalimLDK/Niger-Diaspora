@@ -7007,6 +7007,43 @@ la crypto — un chantier à part entière, pas un fix ponctuel.
 
 ---
 
+## Supprimer un groupe ne supprimait que la ligne `groups` (2026-08-14)
+
+Signalement de Salim (« la gestion des groupes se passe pas bien ») en
+creusant le comportement de « Quitter »/« Supprimer » un groupe. `delete_group()`
+(bouton « Supprimer le groupe » de la fiche d'édition, admin/créateur
+seulement) ne supprimait que la ligne `groups`. Contrairement à
+`events`/`post_polls`/`group_pinned_items` (déjà `ON DELETE CASCADE` depuis
+`groups.id`), `group_members` et `conversations` n'ont **aucune** contrainte
+de clé étrangère vers `groups` : `group_members` restait avec des lignes
+orphelines, et **la conversation + tous ses messages restaient intacts et
+lisibles indéfiniment** par tous les anciens membres — « supprimer le
+groupe » ne supprimait pas la discussion du tout.
+
+Décision de Salim : supprimer un groupe doit le dissoudre pour **tout le
+monde**, comme quitter mais appliqué à tous les membres d'un coup — pas
+seulement pour l'admin qui agit. Corrigé (migration
+`20260814003000_delete_group_cascades_membership_and_conversation.sql`) :
+`delete_group()` supprime aussi `conversations` (cascade déjà en place vers
+`messages`/`group_pinned_items`/`events` liés à la conversation) et
+`group_members` avant de supprimer `groups`. Autorisation inchangée
+(`creator_id = v_uid` uniquement) — pas étendue au superAdmin comme
+`groups_update_admin` l'a été : la suppression reste une action plus lourde,
+réservée au compte plateforme pour un groupe officiel.
+
+- [x] **Testé en base** (groupe/membres/conversation/message jetables créés
+  dans une transaction annulée par `ROLLBACK`) : avant suppression — 1
+  groupe, 2 membres, 1 conversation, 1 message ; tentative par un
+  non-créateur — bloquée (`not_authorized`) ; suppression par le vrai
+  créateur — les quatre compteurs tombent à 0. Rien laissé en base.
+- [ ] **Pas testé sur appareil** — à vérifier au doigt : créer un groupe de
+  test à deux comptes, un membre envoie un message, le créateur supprime le
+  groupe depuis la fiche d'édition, vérifier qu'aucun des deux comptes ne
+  revoit plus le groupe ni la conversation nulle part dans l'app (liste des
+  groupes, liste des messages, lien profond direct vers l'ancien id).
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
