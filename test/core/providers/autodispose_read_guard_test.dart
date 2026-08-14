@@ -27,7 +27,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   final lib = Directory('lib');
 
-  List<({String path, int line, String text})> _lignes() {
+  List<({String path, int line, String text})> lignes() {
     final out = <({String path, int line, String text})>[];
     for (final f in lib.listSync(recursive: true).whereType<File>()) {
       if (!f.path.endsWith('.dart')) continue;
@@ -44,7 +44,7 @@ void main() {
     // quand le résultat est utilisé, mais la forme est assez proche du correct
     // pour être écrite par réflexe — elle l'a été deux fois pendant la
     // conversion. Il faut `(await x)?.y`.
-    final fautifs = _lignes()
+    final fautifs = lignes()
         .where((l) => RegExp(
               r'await\s+_?ref\.read\(currentUserAsyncProvider\.future\)\?\.',
             ).hasMatch(l.text))
@@ -89,7 +89,7 @@ void main() {
     // bloc n'est pas visé : c'est la forme d'un repli, pas d'un abandon.
     final abandon = RegExp(r'if\s*\(.*==\s*null\).*return[^;]*;');
 
-    final toutes = _lignes();
+    final toutes = lignes();
     final parFichier = <String, List<String>>{};
     for (var i = 0; i < toutes.length; i++) {
       final l = toutes[i];
@@ -150,7 +150,7 @@ void main() {
     final motif = RegExp(r'_?ref\.read\(profileNotifierProvider\([^)]*\)\)\.valueOrNull');
     final abandon = RegExp(r'if\s*\(.*==\s*null\).*return[^;]*;');
 
-    final toutes = _lignes();
+    final toutes = lignes();
     final inattendus = <String>[];
     for (var i = 0; i < toutes.length; i++) {
       final l = toutes[i];
