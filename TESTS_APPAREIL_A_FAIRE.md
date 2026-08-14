@@ -6791,13 +6791,30 @@ pose le compte plateforme comme `creator_id`, et ajoute la ligne
   bas à droite sur la bulle du bas (fin de rafale) au lieu du haut. Pas
   d'erreur en logcat.
   **`showSenderInfo` vérifié le 2026-08-13** dans le groupe « Testeurs »,
-  côté réception (Sim A regarde une rafale de « Salim L. ») : 2e ligne
-  insérée directement en base (`messages`, même `sender_id`, +5 s, nettoyée
-  juste après par un `DELETE` sur son id) pour simuler une rafale de
-  l'autre membre sans dépendre d'un 2e appareil. Le nom « Salim L. » +
-  badge « Admin » ne s'affichent que sur la bulle du HAUT (la plus
-  ancienne) ; la bulle du bas n'a ni nom ni badge — comportement attendu
-  confirmé côté réception aussi, pas seulement côté émission.
+  côté réception (Sim A regarde une rafale de « Salim L. ») : rafale de 3
+  lignes insérée directement en base (`messages`, même `sender_id`, +5 s
+  et +10 s, nettoyée juste après par un `DELETE` sur leurs ids) pour
+  simuler une rafale de l'autre membre sans dépendre d'un 2e appareil. Le
+  nom « Salim L. » + badge « Admin » ne s'affichent que sur la bulle du
+  HAUT (la plus ancienne) ; les 2 bulles suivantes n'ont ni nom ni badge —
+  comportement attendu confirmé côté réception aussi, pas seulement côté
+  émission.
+  **Tap-to-reveal vérifié le 2026-08-13** dans la conversation « Salim L. »
+  (1:1, 2 messages envoyés coup sur coup « bvvgc »/« bvvgcv ») : le message
+  précédent (« bvvgc ») n'affiche rien par défaut, un tap sur la ligne
+  méta (sous la bulle) révèle « 19:55 · Lu » — confirmé via
+  `uiautomator dump` (content-desc passe de `"bvvgc"` à `"bvvgc\n19:55"`)
+  et capture d'écran. Les messages reçus (rafale de 5 dans la conversation
+  « Salim L. ») affichent chacun leur heure individuellement sans tap,
+  comme attendu (`showTimeInfo = _isLastInGroup || !isMe || _metaRevealed`).
+  ⚠️ Piège rencontré en testant : un premier build (`flutter build apk
+  --debug`) avait son démon Gradle tué en cours (autre agent qui buildait
+  en parallèle) — le retry a réussi mais a silencieusement produit un APK
+  au comportement incohérent avec le code source (rafales reçues
+  n'affichant l'heure que sur le dernier message, contredisant le code
+  lu). Un `flutter clean` + rebuild complet a résolu l'incohérence. Ne pas
+  faire confiance à un build qui a suivi un échec de démon Gradle, même
+  si le retry annonce un succès — repartir d'un `flutter clean`.
 
 ---
 
