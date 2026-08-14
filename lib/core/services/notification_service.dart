@@ -99,6 +99,24 @@ class NotificationGroup {
 const String kReplyActionId = 'reply_action';
 const String kMarkReadActionId = 'mark_read_action';
 
+/// Masque les boutons Répondre/Marquer comme lu sur Android (iOS non
+/// concerné, mécanisme différent — voir plus bas).
+///
+/// Les deux actions passent par `showsUserInterface: false`, donc par le
+/// même dispatch background natif → Dart de flutter_local_notifications
+/// (`ActionBroadcastReceiver` → `notificationActionBackgroundHandler`).
+/// Vérifié sur SM A515F le 2026-08-14, à trois reprises (build debug, build
+/// profile, après redémarrage complet de l'app à chaque fois) : le broadcast
+/// est bien délivré par Android (confirmé dans `dumpsys`/logcat système),
+/// mais AUCUN code Dart ne s'exécute ensuite — aucune ligne de log, y compris
+/// une ligne ajoutée spécifiquement pour ce diagnostic. Le bouton restait
+/// donc silencieusement mort : le champ de saisie s'ouvrait, l'envoi semblait
+/// fonctionner côté UI, mais rien n'atteignait jamais la base.
+///
+/// Remettre à `true` seulement après avoir confirmé que ce dispatch
+/// fonctionne de nouveau sur appareil réel (pas seulement `flutter analyze`).
+const bool kNotificationQuickActionsEnabled = false;
+
 /// Helper to get localized strings in background context where BuildContext is unavailable
 /// Uses stored locale preference to determine which language to use
 String _getLocalizedString(String key) {
@@ -205,6 +223,18 @@ Future<void> notificationActionBackgroundHandler(
         conversationId: conversationId,
         success: success,
         notificationId: notificationId,
+      );
+    } else if (actionId == kReplyActionId) {
+      // `input` null/vide : Android n'a pas remonté le texte du RemoteInput.
+      // Sans cette branche, ce cas retombait en silence dans le fond du
+      // bloc try — zéro log, zéro notification, indiscernable d'un succès
+      // tant qu'on n'a pas vérifié la base. Repéré sur SM A515F le
+      // 2026-08-14 : le bouton Répondre affichait bien le champ de saisie,
+      // l'envoi semblait fonctionner côté UI, mais rien n'atteignait jamais
+      // BackgroundReplyService.sendReply.
+      debugPrint(
+        'notificationActionBackgroundHandler: action reply reçue sans texte '
+        '(input=${input == null ? "null" : "vide"}) — rien envoyé',
       );
     } else if (actionId == kMarkReadActionId) {
       // Marquer la conversation comme lue
@@ -538,26 +568,28 @@ Future<void> _showFallbackMessageNotification({
         // blanc — vérifié à l'écran le 2026-08-06.
         icon: '@drawable/ic_stat_notification',
         color: AppColors.primary,
-        actions: <AndroidNotificationAction>[
-          AndroidNotificationAction(
-            kReplyActionId,
-            _getLocalizedString('reply'),
-            icon: const DrawableResourceAndroidBitmap('@drawable/ic_reply'),
-            showsUserInterface: false,
-            inputs: <AndroidNotificationActionInput>[
-              AndroidNotificationActionInput(
-                label: _getLocalizedString('type_reply'),
-                allowFreeFormInput: true,
-              ),
-            ],
-          ),
-          AndroidNotificationAction(
-            kMarkReadActionId,
-            _getLocalizedString('mark_read'),
-            icon: const DrawableResourceAndroidBitmap('@drawable/ic_mark_read'),
-            showsUserInterface: false,
-          ),
-        ],
+        actions: kNotificationQuickActionsEnabled
+            ? <AndroidNotificationAction>[
+                AndroidNotificationAction(
+                  kReplyActionId,
+                  _getLocalizedString('reply'),
+                  icon: const DrawableResourceAndroidBitmap('@drawable/ic_reply'),
+                  showsUserInterface: false,
+                  inputs: <AndroidNotificationActionInput>[
+                    AndroidNotificationActionInput(
+                      label: _getLocalizedString('type_reply'),
+                      allowFreeFormInput: true,
+                    ),
+                  ],
+                ),
+                AndroidNotificationAction(
+                  kMarkReadActionId,
+                  _getLocalizedString('mark_read'),
+                  icon: const DrawableResourceAndroidBitmap('@drawable/ic_mark_read'),
+                  showsUserInterface: false,
+                ),
+              ]
+            : const <AndroidNotificationAction>[],
       ),
       iOS: const DarwinNotificationDetails(
         presentAlert: true,
@@ -1896,7 +1928,7 @@ class NotificationService {
 
     // Actions de notification pour les messages (répondre, marquer comme lu)
     final List<AndroidNotificationAction> androidActions =
-        isMessageNotification
+        isMessageNotification && kNotificationQuickActionsEnabled
             ? [
               AndroidNotificationAction(
                 kReplyActionId,

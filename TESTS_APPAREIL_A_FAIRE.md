@@ -44,24 +44,22 @@ maintenant à chaque connexion connue. `flutter analyze` propre, mais rien de
 tout ça n'exerce le vrai réveil d'isolate Android ni Supabase.
 
 - [x] Recevoir une notification de message avec l'app en arrière-plan (ou
-  fermée), répondre directement depuis l'action « Répondre » de la
-  notification → la confirmation « Message envoyé » s'affiche, ET le message
-  apparaît réellement dans la conversation (à l'écran si rouverte, et pour
-  le destinataire). **Vérifié partiellement le 2026-08-13 sur SM A515F** —
-  voir « Troisième bug » ci-dessous : la notification affichée en
-  arrière-plan n'a **aucun bouton** tant que le correctif serveur n'est pas
-  déployé, donc l'action « Répondre » elle-même reste hors d'atteinte en
-  conditions réelles pour l'instant. Le reste (écriture Supabase,
-  currentUserId) est confirmé correct par lecture directe en base.
-- [ ] Une fois le correctif serveur (send-push data-only) déployé : refaire
-  ce test en tapant réellement sur le bouton « Répondre » depuis le volet de
-  notifications (pas une insertion SQL directe), taper du texte, envoyer, et
-  vérifier le message + la confirmation.
+  fermée) → la notification s'affiche avec les deux boutons d'action
+  (Répondre, Marquer comme lu). **Vérifié le 2026-08-14 sur SM A515F**, à
+  trois reprises (build debug, build debug après redémarrage complet, build
+  profile) : le correctif serveur data-only fonctionne, `actions=2` confirmé
+  dans `dumpsys notification`.
+- [ ] Taper « Répondre », taper du texte, envoyer → la confirmation
+  « Message envoyé » s'affiche, ET le message apparaît réellement dans la
+  conversation. **Reste bloqué — voir « Quatrième bug » ci-dessous, action
+  masquée en attendant.**
 - [ ] Même test avec le téléphone en mode avion au moment de la réponse →
   le message part en file d'attente, puis rouvrir l'app une fois reconnecté
-  doit l'envoyer automatiquement (pas besoin de le retaper).
+  doit l'envoyer automatiquement (pas besoin de le retaper). Bloqué par le
+  même « Quatrième bug ».
 - [ ] Action « Marquer comme lu » depuis une notification → le compteur non
   lu de la conversation redescend à 0 dans la liste des conversations.
+  Bloqué par le même « Quatrième bug » (même mécanisme de dispatch).
 
 **Troisième bug, trouvé en vérifiant celui-ci sur appareil (2026-08-13) :**
 même les deux correctifs ci-dessus posés, la notification reçue app en
@@ -90,8 +88,57 @@ de bloc `notification` ni `android.notification`), avec `aps.alert`
 reconstruit explicitement côté APNs pour ne pas perdre l'alerte iOS. Les
 autres types de notification (amis, groupes, événements...) gardent le bloc
 `notification` classique — comportement inchangé, aucune action requise pour
-eux. Reste à confirmer sur appareil que ça fait bien apparaître les boutons
-en pratique (test en cours).
+eux. **Confirmé en pratique le 2026-08-14** : `dumpsys notification` montre
+`actions=2` sur la notification reçue app en arrière-plan.
+
+**Quatrième bug, trouvé en testant le tap réel sur « Répondre » (2026-08-14),
+bloquant :** les trois bugs ci-dessus posés et vérifiés (currentUserId,
+écriture Supabase, boutons visibles), taper « Répondre » ouvre bien le champ
+de saisie inline par-dessus la notification (comportement Android correct,
+confirmé par capture), taper du texte et valider ferme bien ce champ — mais
+**aucun message n'atteint jamais la base**, et strictement aucun code Dart ne
+s'exécute ensuite. Isolé précisément par `adb logcat` :
+- Android délivre bien le broadcast à notre récepteur (confirmé à chaque
+  tentative) :
+  `ActivityManager: Received BROADCAST intent … act=com.dexterous.
+  flutterlocalnotifications.ActionBroadcastReceiver.ACTION_TAPPED
+  cmp=com.diasponiger.diasponiger/com.dexterous.flutterlocalnotifications.
+  ActionBroadcastReceiver … sent=0` ;
+- `RemoteInputQuickSettingsDisabler: setRemoteInputActive : false` juste
+  après le tap confirme que le texte a bien été capturé côté système ;
+- mais après ce broadcast, **zéro ligne de log Flutter**, y compris une
+  ligne ajoutée spécifiquement comme diagnostic dans
+  `notificationActionBackgroundHandler` pour le cas où l'input serait
+  vide/null (elle ne s'est jamais déclenchée non plus — le handler Dart ne
+  s'exécute donc pas du tout, ce n'est pas juste une branche de code
+  manquante).
+
+Reproduit à l'identique sur **trois builds différents**, avec redémarrage
+complet de l'app (`am force-stop` + relance) avant chacun : `flutter build
+apk --debug`, le même après un redémarrage complet, puis `flutter build apk
+--profile` — élimine à la fois « process resté sale » et « artefact du mode
+JIT/debug » comme explications. Recherche dans les issues GitHub de
+`flutter_local_notifications` (MaikuB/flutter_local_notifications#2011,
+#2148) : catégorie de bug connue et non résolue côté mainteneurs, sans cause
+racine publiée — `onDidReceiveBackgroundNotificationResponse` qui ne
+s'exécute jamais malgré `@pragma('vm:entry-point')` correctement posé.
+
+**Décision avec Salim (2026-08-14) :** masquer les deux boutons (Répondre
+**et** Marquer comme lu — même mécanisme de dispatch, donc même panne, même
+si seul Répondre a été testé bouton par bouton) plutôt que de laisser une
+action qui échoue en silence. Un seul commutateur,
+`kNotificationQuickActionsEnabled` dans
+[notification_service.dart](lib/core/services/notification_service.dart),
+contrôle les deux emplacements où les actions Android sont construites
+(`_showLocalNotification` et `_showFallbackMessageNotification`). iOS non
+touché — mécanisme de dispatch différent (délégué `UNUserNotificationCenter`,
+pas de `ActionBroadcastReceiver`), jamais mis en cause par ce diagnostic.
+
+- [ ] Avant de remettre `kNotificationQuickActionsEnabled` à `true` : relancer
+  ce test bout-en-bout sur appareil réel, pas seulement `flutter analyze`.
+- [ ] Vérifier que la notification s'affiche toujours normalement (tap sur le
+  corps → ouvre la conversation) avec les actions masquées — pas testé
+  explicitement, seule l'absence des boutons a été vérifiée par `dumpsys`.
 
 ## Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour (2026-08-13)
 
