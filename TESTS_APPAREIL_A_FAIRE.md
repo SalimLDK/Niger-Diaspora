@@ -7036,11 +7036,14 @@ réservée au compte plateforme pour un groupe officiel.
   groupe, 2 membres, 1 conversation, 1 message ; tentative par un
   non-créateur — bloquée (`not_authorized`) ; suppression par le vrai
   créateur — les quatre compteurs tombent à 0. Rien laissé en base.
-- [ ] **Pas testé sur appareil** — à vérifier au doigt : créer un groupe de
-  test à deux comptes, un membre envoie un message, le créateur supprime le
-  groupe depuis la fiche d'édition, vérifier qu'aucun des deux comptes ne
-  revoit plus le groupe ni la conversation nulle part dans l'app (liste des
-  groupes, liste des messages, lien profond direct vers l'ancien id).
+- [x] **Vérifié sur SM A515F le 2026-08-14** (compte Sim A, groupe « A
+  supprimer (test) » créé pour l'occasion : Sim A créateur, Salim membre, un
+  message échangé). Fiche groupe → menu ⋮ → « Modifier » → icône poubelle →
+  « Voulez-vous vraiment supprimer ce groupe ? Cette action est
+  irréversible. » → confirmation : bandeau « Groupe supprimé », retour propre
+  à la liste (3 → 2 groupes rejoints), aucun plantage. Confirmé en base dans
+  la foulée : `groups`, `group_members`, `conversations` et `messages`
+  retombent tous à 0 ligne pour ce groupe.
 
 ---
 
