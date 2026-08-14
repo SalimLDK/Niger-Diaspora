@@ -383,11 +383,19 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     await SupabaseAuthBridge.instance.ensureAuthenticated();
     final column = groupId != null ? 'group_id' : 'conversation_id';
     final value = groupId ?? conversationId!;
+    // `sort_order` vaut `0` par défaut en base et `pinItem` ne le renseigne
+    // jamais : trier dessus ne départage donc rien entre plusieurs épingles,
+    // et Postgres ne garantit aucun ordre stable entre des lignes à égalité.
+    // Le bandeau se re-souscrit souvent (clavier, ré-auth, autoDispose) — sans
+    // tri déterministe, l'ordre pouvait changer d'une re-souscription à
+    // l'autre et faire sauter silencieusement l'épingle affichée (l'index du
+    // bandeau pointe sur une position, pas sur un id). `pinned_at` est, lui,
+    // unique et stable.
     yield* _supabase
         .from('group_pinned_items')
         .stream(primaryKey: ['id'])
         .eq(column, value)
-        .order('sort_order')
+        .order('pinned_at')
         .map((rows) => rows.map(GroupPinnedItemModel.fromJson).toList());
   }
 

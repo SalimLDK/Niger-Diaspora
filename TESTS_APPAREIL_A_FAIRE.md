@@ -5103,6 +5103,29 @@ appareil**.
   compte et un résumé cohérent avec ce que montre le bandeau de conversation.
 - [ ] Groupe sans rien d'épinglé : la ligne doit rester absente (comme avant).
 
+### Troisième bug trouvé le 2026-08-14 : aucun ordre stable entre plusieurs épingles
+
+`group_pinned_items.sort_order` vaut `0` par défaut en base (vérifié via
+`information_schema.columns` sur le projet lié) et `pinItem` ne l'a jamais
+renseigné à l'insertion. `getPinnedItemsStream` triait dessus
+(`.order('sort_order')`) — un tri qui ne départage donc rien entre deux
+épingles ou plus : Postgres ne garantit **aucun** ordre stable entre des
+lignes à égalité. Or le bandeau se re-souscrit souvent en pratique (clavier,
+`ensureAuthenticated`, `autoDispose` du provider) — l'ordre pouvait donc
+changer d'une re-souscription à l'autre, et comme l'index affiché dans le
+bandeau (`i/n`) pointe une **position** dans la liste et non un id, l'item
+réellement montré pouvait sauter vers un autre sans la moindre action de
+l'utilisateur.
+
+Corrigé : tri désormais sur `pinned_at` (seule colonne unique/stable du lot),
+dans `getPinnedItemsStream`. `flutter analyze` propre ; **non vérifié sur
+appareil** — demande au moins 2 épingles dans la même conversation.
+
+- [ ] Épingler 2-3 messages dans une même conversation, rouvrir l'écran
+  plusieurs fois (ou faire apparaître/disparaître le clavier plusieurs fois) :
+  l'ordre `1/n`, `2/n`… doit rester identique à chaque fois (le plus ancien
+  épinglé en premier).
+
 ---
 
 ## Paysage — overflow quand le chrome dépasse la hauteur (2026-08-05)
