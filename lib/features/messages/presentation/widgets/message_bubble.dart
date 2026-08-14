@@ -168,6 +168,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Révélateur « Autres actions » de la feuille (§27a).
   bool _moreOptionsOpen = false;
 
+  /// Un message envoyé qui n'est pas le dernier d'une rafale masque son
+  /// heure/accusé par défaut (`_isLastInGroup`) ; un tap la révèle ici, un
+  /// second tap la remasque. Les messages reçus l'affichent toujours, cette
+  /// bascule ne les concerne pas — voir `_buildMetaRow`.
+  bool _metaRevealed = false;
+
   // Cached emoji-only check (computed once)
   late final bool _cachedIsEmojiOnly;
 
@@ -2362,11 +2368,31 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// couleurs ne dépendent plus de `isMe`. C'est la seule ligne de méta de la
   /// discussion — aucune bulle spécialisée (image, vidéo, document, note
   /// vocale, sticker, localisation) ne réaffiche l'heure de son côté.
+  ///
+  /// Reçus vs envoyés : un message reçu affiche toujours son heure
+  /// individuellement (pas de regroupement pour l'heure, même si la bulle
+  /// reste visuellement groupée) ; un message envoyé qui n'est pas le
+  /// dernier d'une rafale la masque par défaut, et un tap la révèle/masque
+  /// (`_metaRevealed`).
   Widget _buildMetaRow(BuildContext context) {
     final hasReactions = widget.message.reactions.isNotEmpty;
-    // L'heure ne s'affiche que sous le dernier message d'une grappe ; les
-    // réactions, elles, suivent toujours le message qu'elles décorent.
-    if (!_isLastInGroup && !hasReactions) return const SizedBox.shrink();
+    final canToggle = widget.isMe && !_isLastInGroup && !widget.message.deletedForEveryone;
+    final showTimeInfo = _isLastInGroup || !widget.isMe || _metaRevealed;
+
+    if (!showTimeInfo && !hasReactions) {
+      if (!canToggle) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(top: 3, left: 4, right: 4),
+        child: Align(
+          alignment: widget.isMe ? Alignment.centerRight : Alignment.centerLeft,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(() => _metaRevealed = true),
+            child: const SizedBox(width: 48, height: 16),
+          ),
+        ),
+      );
+    }
 
     final isStarred =
         widget.currentUserId != null &&
@@ -2381,6 +2407,54 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             .where((id) => id != widget.message.senderId)
             .length;
 
+    Widget? timeRow;
+    if (showTimeInfo) {
+      timeRow = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isStarred) ...[
+            AppIcon(AppIcon.star, size: 12, color: metaColor),
+            const SizedBox(width: 2),
+          ],
+          // Edited indicator
+          if (widget.message.isEdited) ...[
+            Text(
+              l10n.edited,
+              style: TextStyle(
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+                color: metaColor,
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+          // Ephemeral indicator
+          if (widget.message.isEphemeral) ...[
+            Icon(Icons.timer_outlined, size: 12, color: metaColor),
+            const SizedBox(width: 2),
+          ],
+          Text(
+            _formatTime(widget.message.createdAt),
+            style: TextStyle(fontSize: 11, color: metaColor),
+          ),
+          // « 09:24 · Envoyé » (fiche 26b) : l'accusé de réception se
+          // lit, il ne se déchiffre plus. Une coche simple, une double
+          // et une double bleue demandaient d'avoir appris le code.
+          if (widget.isMe && !widget.message.deletedForEveryone)
+            _buildReceiptLabel(context, groupReadCount),
+        ],
+      );
+      // Seule la révélation par tap doit pouvoir se remasquer — l'affichage
+      // « dernier de la rafale » ou « message reçu » reste permanent.
+      if (canToggle) {
+        timeRow = GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => setState(() => _metaRevealed = false),
+          child: timeRow,
+        );
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.only(top: 3, left: 4, right: 4),
       child: Wrap(
@@ -2389,42 +2463,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         crossAxisAlignment: WrapCrossAlignment.center,
         alignment: widget.isMe ? WrapAlignment.end : WrapAlignment.start,
         children: [
-          if (_isLastInGroup)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isStarred) ...[
-                  AppIcon(AppIcon.star, size: 12, color: metaColor),
-                  const SizedBox(width: 2),
-                ],
-                // Edited indicator
-                if (widget.message.isEdited) ...[
-                  Text(
-                    l10n.edited,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontStyle: FontStyle.italic,
-                      color: metaColor,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                ],
-                // Ephemeral indicator
-                if (widget.message.isEphemeral) ...[
-                  Icon(Icons.timer_outlined, size: 12, color: metaColor),
-                  const SizedBox(width: 2),
-                ],
-                Text(
-                  _formatTime(widget.message.createdAt),
-                  style: TextStyle(fontSize: 11, color: metaColor),
-                ),
-                // « 09:24 · Envoyé » (fiche 26b) : l'accusé de réception se
-                // lit, il ne se déchiffre plus. Une coche simple, une double
-                // et une double bleue demandaient d'avoir appris le code.
-                if (widget.isMe && !widget.message.deletedForEveryone)
-                  _buildReceiptLabel(context, groupReadCount),
-              ],
-            ),
+          if (timeRow != null) timeRow,
           if (hasReactions)
             ..._buildReactionChips(context, widget.message.reactions),
         ],
