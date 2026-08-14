@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/onboarding_local_datasource.dart';
 import '../../data/datasources/onboarding_remote_datasource.dart';
@@ -18,7 +17,6 @@ Future<OnboardingRepository> onboardingRepository(Ref ref) async {
 
   final localDataSource = OnboardingLocalDataSourceImpl(prefs: prefs);
   final remoteDataSource = OnboardingRemoteDataSourceImpl(
-    firestore: FirebaseFirestore.instance,
     auth: FirebaseAuth.instance,
   );
 

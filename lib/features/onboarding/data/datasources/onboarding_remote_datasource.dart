@@ -1,6 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/services/supabase_auth_bridge.dart';
 
 abstract class OnboardingRemoteDataSource {
   Future<bool> hasSeenOnboarding();
@@ -13,107 +15,84 @@ abstract class OnboardingRemoteDataSource {
   Future<void> setProfileConfigComplete();
 }
 
+/// Persiste les drapeaux d'onboarding sur `public.users` (Supabase).
+///
+/// Lisait auparavant `users/{uid}` sur Cloud Firestore — un reliquat de
+/// l'architecture pré-Supabase que plus rien d'autre dans l'app n'écrit ni ne
+/// lit. L'étage « serveur » de l'onboarding ne servait donc à rien en
+/// pratique : seul le drapeau local (`OnboardingLocalDataSourceImpl`, effacé
+/// à chaque réinstallation) faisait foi, alors que la table `users` réelle —
+/// celle qui porte `share_location`, `is_visible`, etc. — vit sur Supabase
+/// depuis la bascule.
 class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
-  final FirebaseFirestore _firestore;
+  final SupabaseClient _supabase;
   final FirebaseAuth _auth;
 
+  /// Garde d'authentification, injectable pour les tests — même contrat que
+  /// [SupabaseAuthBridge] utilisé par `ProfileSupabaseDataSource`.
+  final Future<bool> Function() _ensureAuth;
+  final Future<bool> Function() _ensureReadableAuth;
+
   OnboardingRemoteDataSourceImpl({
-    required FirebaseFirestore firestore,
     required FirebaseAuth auth,
-  })  : _firestore = firestore,
-        _auth = auth;
+    SupabaseClient? supabase,
+    Future<bool> Function()? ensureAuth,
+    Future<bool> Function()? ensureReadableAuth,
+  }) : _auth = auth,
+       _supabase = supabase ?? Supabase.instance.client,
+       _ensureAuth = ensureAuth ?? SupabaseAuthBridge.instance.ensureAuthenticated,
+       _ensureReadableAuth =
+           ensureReadableAuth ?? SupabaseAuthBridge.instance.ensureReadableSession;
 
-  @override
-  Future<bool> hasSeenOnboarding() async {
+  Future<bool> _readFlag(String column) async {
     try {
       final user = _auth.currentUser;
-      if (user == null) {
-        return false;
-      }
+      if (user == null) return false;
+      if (!await _ensureReadableAuth()) return false;
 
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (!doc.exists) {
-        return false;
-      }
-
-      final data = doc.data();
-      return data?['hasSeenOnboarding'] ?? false;
+      final row = await _supabase
+          .from('users')
+          .select(column)
+          .eq('id', user.uid)
+          .maybeSingle();
+      return (row?[column] as bool?) ?? false;
     } catch (e) {
-      throw ServerException('Erreur lors de la verification onboarding');
+      throw ServerException('Erreur lors de la lecture de $column');
     }
   }
 
-  @override
-  Future<void> setOnboardingComplete() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        throw ServerException('Utilisateur non connecte');
-      }
-
-      await _firestore.collection('users').doc(user.uid).set({
-        'hasSeenOnboarding': true,
-      }, SetOptions(merge: true));
-    } catch (e) {
-      throw ServerException('Erreur lors de la mise a jour onboarding');
-    }
-  }
-
-  @override
-  Future<bool> hasSeenCoachMarks() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        return false;
-      }
-
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (!doc.exists) {
-        return false;
-      }
-
-      final data = doc.data();
-      return data?['hasSeenCoachMarks'] ?? false;
-    } catch (e) {
-      throw ServerException('Erreur lors de la verification coach marks');
-    }
-  }
-
-  @override
-  Future<void> setCoachMarksComplete() async {
+  Future<void> _writeFlag(String column) async {
     try {
       final user = _auth.currentUser;
       if (user == null) {
         throw ServerException('Utilisateur non connecte');
       }
+      if (!await _ensureAuth()) {
+        throw ServerException('Session Supabase non etablie');
+      }
 
-      await _firestore.collection('users').doc(user.uid).set({
-        'hasSeenCoachMarks': true,
-      }, SetOptions(merge: true));
+      await _supabase.from('users').update({column: true}).eq('id', user.uid);
+    } on ServerException {
+      rethrow;
     } catch (e) {
-      throw ServerException('Erreur lors de la mise a jour coach marks');
+      throw ServerException('Erreur lors de la mise a jour de $column');
     }
   }
 
   @override
-  Future<bool> hasGivenConsent() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        return false;
-      }
+  Future<bool> hasSeenOnboarding() => _readFlag('has_seen_onboarding');
 
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (!doc.exists) {
-        return false;
-      }
+  @override
+  Future<void> setOnboardingComplete() => _writeFlag('has_seen_onboarding');
 
-      final data = doc.data();
-      return data?['hasGivenConsent'] ?? false;
-    } catch (e) {
-      throw ServerException('Erreur lors de la verification du consentement');
-    }
-  }
+  @override
+  Future<bool> hasSeenCoachMarks() => _readFlag('has_seen_coach_marks');
+
+  @override
+  Future<void> setCoachMarksComplete() => _writeFlag('has_seen_coach_marks');
+
+  @override
+  Future<bool> hasGivenConsent() => _readFlag('has_given_consent');
 
   @override
   Future<void> setConsentGiven() async {
@@ -122,51 +101,26 @@ class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
       if (user == null) {
         throw ServerException('Utilisateur non connecte');
       }
+      if (!await _ensureAuth()) {
+        throw ServerException('Session Supabase non etablie');
+      }
 
-      await _firestore.collection('users').doc(user.uid).set({
-        'hasGivenConsent': true,
-        'consentDate': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      await _supabase.from('users').update({
+        'has_given_consent': true,
+        'consent_date': DateTime.now().toUtc().toIso8601String(),
+      }).eq('id', user.uid);
+    } on ServerException {
+      rethrow;
     } catch (e) {
       throw ServerException('Erreur lors de la mise a jour du consentement');
     }
   }
 
   @override
-  Future<bool> hasCompletedProfileConfig() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        return false;
-      }
-
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (!doc.exists) {
-        return false;
-      }
-
-      final data = doc.data();
-      return data?['profileConfigComplete'] ?? false;
-    } catch (e) {
-      throw ServerException(
-          'Erreur lors de la verification de la configuration du profil');
-    }
-  }
+  Future<bool> hasCompletedProfileConfig() =>
+      _readFlag('profile_config_complete');
 
   @override
-  Future<void> setProfileConfigComplete() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        throw ServerException('Utilisateur non connecte');
-      }
-
-      await _firestore.collection('users').doc(user.uid).set({
-        'profileConfigComplete': true,
-      }, SetOptions(merge: true));
-    } catch (e) {
-      throw ServerException(
-          'Erreur lors de la mise a jour de la configuration du profil');
-    }
-  }
+  Future<void> setProfileConfigComplete() =>
+      _writeFlag('profile_config_complete');
 }

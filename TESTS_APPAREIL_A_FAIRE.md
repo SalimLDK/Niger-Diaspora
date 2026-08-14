@@ -4437,6 +4437,34 @@ inchangé (c'est un filtre d'affichage, pas un consentement).
   position (reproduire l'état d'Ibrahim) : relancer l'app et vérifier
   l'auto-guérison, sans toucher à aucun réglage.
 
+## Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)
+
+Repéré en corrigeant le point ci-dessus : `hasSeenOnboarding`,
+`hasSeenCoachMarks`, `hasGivenConsent`, `hasCompletedProfileConfig`
+(`OnboardingRemoteDataSourceImpl`) lisaient/écrivaient `users/{uid}` sur
+**Cloud Firestore** — un reliquat pré-Supabase que rien d'autre dans l'app ne
+touche. L'étage « serveur » de l'onboarding ne servait donc à rien : seul le
+drapeau local (`OnboardingLocalDataSourceImpl`, effacé à chaque
+réinstallation) faisait foi, d'où l'assistant de configuration de profil qui
+revient à chaque réinstall même quand le profil réel est déjà complet.
+
+Corrigé : `OnboardingRemoteDataSourceImpl` lit/écrit maintenant les colonnes
+`has_seen_onboarding` / `has_seen_coach_marks` / `has_given_consent` /
+`consent_date` / `profile_config_complete` sur `public.users` (Supabase) — ces
+colonnes existaient déjà en production, jamais suivies en migration
+(`20260813235500_document_onboarding_flags_drift.sql` corrige la dérive).
+
+**Non vérifiable par `flutter analyze`/`flutter test` seuls** — nécessite un
+vrai cycle désinstall/réinstall :
+
+- [ ] Compte avec profil déjà complété : désinstaller puis réinstaller l'app
+  (signature identique, sinon `INSTALL_FAILED_UPDATE_INCOMPATIBLE`) →
+  l'assistant de configuration de profil en 4 étapes ne doit **pas**
+  réapparaître, puisque `profile_config_complete = true` est lu depuis
+  Supabase dès la case locale absente.
+- [ ] Même vérification pour l'écran de consentement (`hasGivenConsent`) et
+  les coach marks.
+
 | Colonne | Valeur d'origine | Valeur posée |
 |---|---|---|
 | `share_location` | `false` | `true` |
