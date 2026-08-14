@@ -128,17 +128,43 @@ participant qui se retire lui-même, resté libre. Vérifié avec la méthode
 refusée, promotion par un admin existant acceptée, champ sans rapport
 (`mutedBy`) non bloqué, superAdmin sur le groupe officiel accepté.
 
-⚠️ **Trouvé en testant, non corrigé** : `leaveGroup()`
-(`group_supabase_datasource.dart:343`) ne supprime que la ligne
-`group_members` — `conversations.participant_ids` n'est jamais mis à jour.
-Un membre qui quitte un groupe reste donc **participant de sa conversation**
-indéfiniment, avec accès en lecture aux messages envoyés après son départ
-(`conversations_select` se fie à `participant_ids`). Repéré par accident : une
-tentative de test (retrait volontaire de `participant_ids`) a été bloquée par
-`conversations_update` lui-même (`WITH CHECK` implicite = `USING`, qui exige
-que l'appelant reste dans `participant_ids` après l'update) — donc même un
-retrait volontaire par ce chemin échouerait s'il existait. Portée plus large
-que les groupes officiels, à traiter séparément.
+**Corrigé aussi** (2026-08-14, migration
+`20260814001500_leave_group_removes_conversation_participant.sql`) :
+`leaveGroup()` (`group_supabase_datasource.dart:343`) ne supprimait que la
+ligne `group_members` — `conversations.participant_ids` n'était jamais mis
+à jour. Un membre qui quittait un groupe restait donc **participant de sa
+conversation** indéfiniment, avec accès en lecture aux messages envoyés
+après son départ (`conversations_select` se fie à `participant_ids`). Un
+simple `UPDATE` côté client aurait de toute façon échoué :
+`conversations_update` n'a pas de `WITH CHECK` explicite, donc Postgres
+réutilise `USING` (`participant_ids @> [firebase_uid()]`) comme `WITH
+CHECK` — qui exige que l'appelant reste participant **après** l'update, ce
+qu'un départ volontaire contredit par définition.
+
+Plutôt que d'assouplir `conversations_update` (risque d'ouvrir une case plus
+large, ex. permettre d'ajouter n'importe qui à `participant_ids`), une RPC
+`SECURITY DEFINER` dédiée (`leave_group_conversation(p_group_id text)`) :
+elle contourne `conversations_update` (privilèges du propriétaire), mais
+reste soumise au trigger `conversations_guard_admin_fields_trigger`
+(attaché à la table, pas à la policy) — qui autorise déjà explicitement ce
+cas précis. N'agit que sur `firebase_uid()` (l'appelant), jamais sur un
+`userId` fourni par le client. `leaveGroup()` l'appelle en plus du `DELETE`
+existant sur `group_members`.
+
+⚠️ **Piège de test rencontré en le vérifiant** : une fonction `SECURITY
+DEFINER` créée par accident **après** `SET LOCAL ROLE authenticated`
+appartient à `authenticated`, pas à `postgres` — elle n'a alors plus rien
+de spécial et reste soumise à RLS, malgré son mot-clé. Deux faux
+« ça ne marche pas » avant de comprendre : créer les fonctions de
+vérification **avant** tout changement de rôle, ou utiliser `RESET ROLE;`
+avant la lecture de contrôle. Vérifié une fois la méthode corrigée : le
+départ retire bien l'appelant de `participant_ids` (et de `adminIds` s'il y
+était), un appel sur un groupe dont on n'est pas membre ne fait rien sans
+erreur.
+
+Pas testé sur appareil (comportement vérifié par requête SQL directe, pas
+par le parcours réel « Quitter le groupe » dans l'app). Portée plus large
+que les groupes officiels — s'applique à tous les groupes.
 
 ## Règle pour tout nouveau groupe officiel
 

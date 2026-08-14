@@ -6831,16 +6831,25 @@ pour la méthode de vérification utilisée). Détail dans
   toujours modifiable par un simple participant, superAdmin accepté sur le
   groupe officiel sans être dans `adminIds` ni `group_members`.
 
-⚠️ **Trouvé en testant, pas encore corrigé** : `leaveGroup()`
-(`group_supabase_datasource.dart:343`) ne supprime que la ligne
-`group_members` — ne touche jamais `conversations.participant_ids`. Un
-membre qui quitte un groupe reste participant de sa conversation, avec accès
-en lecture aux messages envoyés après son départ (`conversations_select` se
-fie à `participant_ids`). Pas testé sur appareil (comportement trouvé par
-requête SQL directe, pas par le parcours réel « Quitter le groupe » dans
-l'app) — à vérifier au doigt : quitter un groupe, puis, depuis un autre
-compte membre, envoyer un message et voir si celui qui est parti peut
-toujours le lire.
+**Corrigé aussi** : `leaveGroup()` (`group_supabase_datasource.dart:343`) ne
+supprimait que la ligne `group_members` — ne touchait jamais
+`conversations.participant_ids`. Un membre qui quittait un groupe restait
+participant de sa conversation, avec accès en lecture aux messages envoyés
+après son départ (`conversations_select` se fie à `participant_ids`). RPC
+`SECURITY DEFINER` dédiée (`leave_group_conversation`,
+`20260814001500_leave_group_removes_conversation_participant.sql`) — un
+simple `UPDATE` échoue de toute façon sur `conversations_update`, qui exige
+implicitement que l'appelant reste participant après l'update.
+
+- [x] **Testé en base** (même méthode) : le départ retire bien l'appelant de
+  `participant_ids` (et de `adminIds` s'il y était), un appel sur un groupe
+  dont on n'est pas membre ne fait rien sans erreur. ⚠️ Piège de test :
+  une fonction `SECURITY DEFINER` créée **après** `SET LOCAL ROLE
+  authenticated` appartient à `authenticated`, pas `postgres` — elle reste
+  soumise à RLS malgré son mot-clé (deux faux échecs avant de comprendre).
+- [ ] **Pas testé sur appareil** — à vérifier au doigt : quitter un groupe,
+  puis, depuis un autre compte membre, envoyer un message et voir si celui
+  qui est parti peut toujours le lire (avant le correctif, il pouvait).
 
 ---
 

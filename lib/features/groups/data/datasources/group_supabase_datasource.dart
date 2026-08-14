@@ -346,6 +346,16 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
         .delete()
         .eq('group_id', groupId)
         .eq('user_id', userId);
+    // Sans ça, la personne restait participante de la conversation du
+    // groupe indéfiniment après son départ (accès en lecture aux messages
+    // envoyés après coup) : `group_members` et `conversations.participant_ids`
+    // sont deux tables distinctes, ce DELETE ne touche que la première. La
+    // RPC agit sur l'appelant authentifié (firebase_uid), jamais sur `userId`
+    // fourni par le client — cohérent avec le fait que `leaveGroup` n'est
+    // appelé aujourd'hui qu'avec `currentUser.id`.
+    await _supabase.rpc('leave_group_conversation', params: {
+      'p_group_id': groupId,
+    });
   }
 
   @override
