@@ -1234,13 +1234,10 @@ class _GroupInfoCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final pinned =
-        ref.watch(groupPinnedItemsProvider(group.id)).valueOrNull ??
-        const <GroupPinnedItemEntity>[];
     final event = ref.watch(groupNextEventProvider(group.id)).valueOrNull;
 
-    // Les médias vivent sur la conversation du groupe, qui n'existe qu'à
-    // partir du premier message.
+    // Les médias et les épingles vivent sur la conversation du groupe, qui
+    // n'existe qu'à partir du premier message.
     final conversationId =
         isMember
             ? ref.watch(groupConversationIdProvider(group.id)).valueOrNull
@@ -1249,6 +1246,18 @@ class _GroupInfoCard extends ConsumerWidget {
         conversationId == null
             ? null
             : ref.watch(conversationMediaProvider(conversationId));
+    // Les épingles sont toujours indexées par `conversation_id`, groupe
+    // compris (voir `_pinMessage` dans `conversation_screen.dart`) : lire ici
+    // par `group_id` (ex-`groupPinnedItemsProvider`) rendait cette ligne
+    // définitivement vide, même quand des messages étaient bien épinglés
+    // dans le fil du groupe.
+    final pinned =
+        conversationId == null
+            ? const <GroupPinnedItemEntity>[]
+            : ref
+                    .watch(conversationPinnedItemsProvider(conversationId))
+                    .valueOrNull ??
+                const <GroupPinnedItemEntity>[];
 
     final rows = <Widget>[
       if (pinned.isNotEmpty)

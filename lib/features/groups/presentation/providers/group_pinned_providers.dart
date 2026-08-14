@@ -9,16 +9,6 @@ final _groupSupabaseDataSourceProvider = Provider<GroupSupabaseDataSource>(
   (ref) => GroupSupabaseDataSource(),
 );
 
-final groupPinnedItemsProvider =
-    StreamProvider.autoDispose.family<List<GroupPinnedItemEntity>, String>(
-  (ref, groupId) {
-    final ds = ref.watch(_groupSupabaseDataSourceProvider);
-    return ds.getPinnedItemsStream(groupId: groupId).map(
-          (models) => models.map((m) => m.toEntity()).toList(),
-        );
-  },
-);
-
 final conversationPinnedItemsProvider =
     StreamProvider.autoDispose.family<List<GroupPinnedItemEntity>, String>(
   (ref, conversationId) {

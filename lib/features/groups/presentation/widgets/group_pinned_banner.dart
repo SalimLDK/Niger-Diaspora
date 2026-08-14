@@ -31,14 +31,14 @@ Widget _trailingOnlyRow(Widget? trailing) {
   );
 }
 
-/// Bandeau des éléments épinglés en tête d'un groupe OU d'une conversation
-/// 1-à-1, façon Telegram : une seule ligne fine fixée sous l'en-tête,
-/// toujours visible. Quand plusieurs éléments sont épinglés, un compteur
-/// « i/n » permet de les faire défiler en tapant. Fournir groupId OU
-/// conversationId (pas les deux).
+/// Bandeau des éléments épinglés en tête d'une conversation (1-à-1 ou de
+/// groupe — les épingles sont toujours indexées par `conversation_id`, voir
+/// `_pinMessage` dans `conversation_screen.dart`), façon Telegram : une seule
+/// ligne fine fixée sous l'en-tête, toujours visible. Quand plusieurs
+/// éléments sont épinglés, un compteur « i/n » permet de les faire défiler
+/// en tapant.
 class GroupPinnedBanner extends ConsumerStatefulWidget {
-  final String? groupId;
-  final String? conversationId;
+  final String conversationId;
 
   /// Conversation dont les messages sont chargés, pour résoudre le texte d'un
   /// message épinglé (le contenu réel plutôt qu'un libellé générique).
@@ -56,12 +56,11 @@ class GroupPinnedBanner extends ConsumerStatefulWidget {
 
   const GroupPinnedBanner({
     super.key,
-    this.groupId,
-    this.conversationId,
+    required this.conversationId,
     this.messageConversationId,
     this.onOpenMessage,
     this.trailing,
-  }) : assert(groupId != null || conversationId != null);
+  });
 
   @override
   ConsumerState<GroupPinnedBanner> createState() => _GroupPinnedBannerState();
@@ -79,12 +78,9 @@ class _GroupPinnedBannerState extends ConsumerState<GroupPinnedBanner> {
 
   @override
   Widget build(BuildContext context) {
-    final itemsAsync =
-        widget.groupId != null
-            ? ref.watch(groupPinnedItemsProvider(widget.groupId!))
-            : ref.watch(
-              conversationPinnedItemsProvider(widget.conversationId!),
-            );
+    final itemsAsync = ref.watch(
+      conversationPinnedItemsProvider(widget.conversationId),
+    );
 
     // Met à jour le cache dès qu'une vraie valeur arrive (data), sinon garde
     // la dernière connue pendant loading/error.
