@@ -14,6 +14,29 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Carte « Pour commencer » : chaque ligne gagne son propre critère (2026-08-14)
+
+Les 3 lignes de `_PourCommencerCard`
+([home_screen_widgets.dart](lib/features/home/presentation/screens/home_screen_widgets.dart))
+restaient toutes affichées tant que le *profil* était incomplet (photo/ville/
+pays/profession/bio), même si l'utilisateur avait déjà rejoint des groupes ou
+discuté avec quelqu'un — aucune des 3 actions n'était suivie individuellement.
+Chaque ligne se masque désormais sur son propre signal, calculé dans
+[home_screen.dart](lib/features/home/presentation/screens/home_screen.dart) :
+- « Trouver des proches » : `conversationsProvider` contient une conversation
+  individuelle qui n'est pas « Mes notes » (`isIndividual && !isSelfNotesFor`) ;
+- « Rejoindre un groupe » : `myGroupsNotifierProvider` non vide ;
+- « Activer la carte » : `_locationError == null` (même signal que la ligne
+  « membres proches » du bloc « Aujourd'hui », déjà en prod).
+
+`flutter analyze` propre sur les deux fichiers touchés. **Non vérifié sur
+appareil** : il faudrait un compte avec profil incomplet MAIS déjà dans un
+groupe (ou déjà en conversation) pour confirmer que la ligne correspondante
+disparaît bien sans faire disparaître les deux autres, et que la carte entière
+se masque quand les 3 sont accomplies pendant que le profil reste incomplet.
+
+---
+
 ## Un second appel qui arrive pendant qu'on est déjà en ligne était perdu en silence (2026-08-14)
 
 Trouvé en rejouant le logcat d'un vrai test (deux comptes qui s'appelaient
@@ -211,13 +234,20 @@ maintenant `unreadCount`/`requestStatus` comme
 propre, mais rien de tout ça n'exerce un vrai appel WebRTC/coturn ni
 Supabase.
 
-- [ ] Passer ou recevoir un appel (audio ou vidéo), le laisser sonner sans
+- [x] Passer ou recevoir un appel (audio ou vidéo), le laisser sonner sans
   décrocher puis raccrocher → dans la liste des conversations, la
   conversation remonte en tête et l'aperçu affiche « 📞 Appel {audio/vidéo}
-  manqué/refusé/sortant » (pas l'ancien dernier message texte).
-- [ ] Depuis le téléphone qui n'a **pas** initié l'appel, vérifier que le
+  manqué/refusé/sortant » (pas l'ancien dernier message texte). **Vérifié le
+  2026-08-14 sur SM A515F (compte Sim) ↔ Pixel 10 Pro XL (compte Salim L.),
+  vrai appel audio 1:1 non décroché** : côté Sim, « Salim L. / Vous : Appel
+  audio manqué » remonte en tête de liste ; seul le variant manqué/pas de
+  réponse a été exercé, pas refusé/occupé/sortant annulé.
+- [x] Depuis le téléphone qui n'a **pas** initié l'appel, vérifier que le
   badge non-lu de cette conversation s'incrémente après l'appel (et
-  redescend à 0 en rouvrant la conversation).
+  redescend à 0 en rouvrant la conversation). **Vérifié le 2026-08-14** :
+  côté Salim L. (non-initiateur), badge rouge « 1 » sur la conversation
+  « Sim A » après l'appel manqué. Redescente à 0 à la réouverture non
+  contrôlée séparément (la conversation a été ouverte dans la foulée).
 - [ ] Passer un premier appel vers un contact sans conversation 1:1
   existante → une nouvelle conversation est créée et apparaît normalement
   dans la liste (aperçu + badge), pas seulement après l'envoi d'un
@@ -248,10 +278,17 @@ comme partout ailleurs où l'app écrit dans Supabase. `_ensureParticipantsInRTD
 sans rapport avec l'affichage du message. `flutter analyze` propre, mais rien
 de tout ça n'exerce un vrai appel WebRTC/coturn ni Supabase.
 
-- [ ] Passer ou recevoir un appel (audio ou vidéo), raccrocher → une bulle
+- [x] Passer ou recevoir un appel (audio ou vidéo), raccrocher → une bulle
   d'appel apparaît dans la conversation (pas seulement l'aperçu en liste),
   avec la bonne icône/couleur selon le statut (terminé, manqué, refusé,
-  occupé, sortant annulé) et la durée si décroché.
+  occupé, sortant annulé) et la durée si décroché. **Vérifié le 2026-08-14
+  sur SM A515F (Sim) ↔ Pixel 10 Pro XL (Salim L.), vrai appel audio 1:1** :
+  bulle rouge « Appel manqué / Pas de réponse - HH:MM » visible des deux
+  côtés (alignée à droite chez l'appelant Sim, à gauche chez Salim L.),
+  icône téléphone barré rouge, callback icon présent. Seul le statut
+  manqué/pas de réponse a été exercé (deux tentatives, l'app de Salim L.
+  n'étant pas au premier plan) ; terminé/refusé/occupé/sortant annulé
+  restent à vérifier.
 - [ ] Taper sur la bulle → rappelle le contact. Appui long → menu contextuel
   (rappeler / infos / supprimer si auteur ou admin).
 
