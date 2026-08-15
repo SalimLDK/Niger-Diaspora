@@ -26,7 +26,9 @@ import '../widgets/uploading_media_skeleton.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
-import '../../../groups/domain/entities/group_pinned_item_entity.dart';
+// Fonctionnalité épingle mise en pause : `GroupPinnedItemType` n'est plus
+// utilisé en dehors des blocs commentés ci-dessous.
+// import '../../../groups/domain/entities/group_pinned_item_entity.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
 import '../../../groups/presentation/providers/group_pinned_providers.dart';
 import '../../../groups/presentation/widgets/group_pinned_banner.dart';
@@ -560,117 +562,124 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     ForwardConversationPicker.show(context, messages: [message]);
   }
 
-  Future<void> _pinMessage(MessageEntity message) async {
-    final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
-    if (currentUserId == null) return;
-
-    // Un message encore optimiste porte un id local `temp_…` (message_provider)
-    // qui n'existera JAMAIS côté serveur : l'épingler enregistrait une entrée
-    // définitivement irrésolvable — le bandeau la lisait « Élément
-    // indisponible », ou masquait tout quand c'était la seule épingle. Deux
-    // orphelines de ce type ont été trouvées en base (16 et 17/07/2026).
-    if (message.id.startsWith('temp_')) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Attendez l\'envoi du message pour l\'épingler'),
-          ),
-        );
-      }
-      return;
-    }
-
-    // L'épingle est TOUJOURS portée par la conversation, groupe compris.
-    //
-    // `group_pinned_items.group_id` a une clé étrangère vers `groups(id)`, or
-    // les groupes de l'app vivent encore dans Firestore : leur identifiant
-    // (ex. `yflqsRLMMhTPpiW0NFHx`) n'existe pas dans `public.groups`, donc
-    // l'insertion violait la contrainte et l'utilisateur voyait « Impossible
-    // d'épingler ce message » — reproduit sur appareil le 2026-08-05. La
-    // colonne `conversation_id` pointe, elle, sur une table réellement peuplée
-    // dans les deux cas.
-    //
-    // ⚠ Contrepartie : ce sont alors les policies RLS « Conversation
-    // participants » qui s'appliquent. La permission de groupe « qui peut
-    // épingler » n'est plus vérifiée par la base — seul `canPin`, côté écran,
-    // filtre encore. À revoir quand les groupes seront dans Supabase.
-    final success = await ref
-        .read(groupPinActionsNotifierProvider.notifier)
-        .pinItem(
-          conversationId: widget.conversationId,
-          itemType: GroupPinnedItemType.message,
-          itemId: message.id,
-          pinnedBy: currentUserId,
-        );
-
-    // Rafraîchit le bandeau immédiatement : le stream Supabase ne reçoit pas
-    // toujours l'insert en temps réel (réplication realtime pas garantie sur
-    // `group_pinned_items`), donc sans ça le bandeau ne s'affichait qu'au
-    // prochain ouverture de la conversation.
-    if (success) _refreshPinnedBanner();
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'Message épinglé' : 'Impossible d\'épingler ce message',
-          ),
-        ),
-      );
-    }
-  }
-
-  /// Force le re-fetch de la liste des épingles (auto-dispose StreamProvider),
-  /// pour un affichage immédiat après épinglage/désépinglage local.
-  void _refreshPinnedBanner() {
-    ref.invalidate(conversationPinnedItemsProvider(widget.conversationId));
-  }
-
-  /// Détache un message épinglé depuis son menu contextuel : le bandeau ne
-  /// porte plus de croix, c'est le seul chemin de désépinglage (comme Telegram).
-  Future<void> _unpinMessage(MessageEntity message) async {
-    final items =
-        ref
-            .read(conversationPinnedItemsProvider(widget.conversationId))
-            .valueOrNull;
-    final pin =
-        items
-            ?.where(
-              (i) =>
-                  i.itemType == GroupPinnedItemType.message &&
-                  i.itemId == message.id,
-            )
-            .firstOrNull;
-    if (pin == null) {
-      // La liste d'épingles locale (ref.read, snapshot synchrone) ne
-      // contenait pas ce message : sans ce retour explicite, l'utilisateur
-      // tapait « Détacher » et rien ne se passait, sans le moindre signal.
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.messageUnpinFailed)),
-        );
-      }
-      return;
-    }
-
-    final success = await ref
-        .read(groupPinActionsNotifierProvider.notifier)
-        .unpinItem(pin.id);
-
-    // Idem épinglage : rafraîchit le bandeau immédiatement (le retrait n'est
-    // pas garanti en temps réel via le stream Supabase).
-    if (success) _refreshPinnedBanner();
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'Message détaché' : l10n.messageUnpinFailed,
-          ),
-        ),
-      );
-    }
-  }
+  // Fonctionnalité épingle mise en pause (2026-08-14) : `_pinMessage`,
+  // `_unpinMessage` et `_refreshPinnedBanner` n'ont plus d'appelant (`canPin`
+  // figé à `false` plus bas fait retomber `onPin`/`onUnpin` sur `null`).
+  // Gardées en commentaire pour réactivation plutôt que supprimées — voir
+  // aussi group_pinned_banner.dart et `_GroupInfoCard` dans
+  // group_detail_screen.dart pour le reste de la pause.
+  //
+  // Future<void> _pinMessage(MessageEntity message) async {
+  //   final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
+  //   if (currentUserId == null) return;
+  //
+  //   // Un message encore optimiste porte un id local `temp_…` (message_provider)
+  //   // qui n'existera JAMAIS côté serveur : l'épingler enregistrait une entrée
+  //   // définitivement irrésolvable — le bandeau la lisait « Élément
+  //   // indisponible », ou masquait tout quand c'était la seule épingle. Deux
+  //   // orphelines de ce type ont été trouvées en base (16 et 17/07/2026).
+  //   if (message.id.startsWith('temp_')) {
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(
+  //           content: Text('Attendez l\'envoi du message pour l\'épingler'),
+  //         ),
+  //       );
+  //     }
+  //     return;
+  //   }
+  //
+  //   // L'épingle est TOUJOURS portée par la conversation, groupe compris.
+  //   //
+  //   // `group_pinned_items.group_id` a une clé étrangère vers `groups(id)`, or
+  //   // les groupes de l'app vivent encore dans Firestore : leur identifiant
+  //   // (ex. `yflqsRLMMhTPpiW0NFHx`) n'existe pas dans `public.groups`, donc
+  //   // l'insertion violait la contrainte et l'utilisateur voyait « Impossible
+  //   // d'épingler ce message » — reproduit sur appareil le 2026-08-05. La
+  //   // colonne `conversation_id` pointe, elle, sur une table réellement peuplée
+  //   // dans les deux cas.
+  //   //
+  //   // ⚠ Contrepartie : ce sont alors les policies RLS « Conversation
+  //   // participants » qui s'appliquent. La permission de groupe « qui peut
+  //   // épingler » n'est plus vérifiée par la base — seul `canPin`, côté écran,
+  //   // filtre encore. À revoir quand les groupes seront dans Supabase.
+  //   final success = await ref
+  //       .read(groupPinActionsNotifierProvider.notifier)
+  //       .pinItem(
+  //         conversationId: widget.conversationId,
+  //         itemType: GroupPinnedItemType.message,
+  //         itemId: message.id,
+  //         pinnedBy: currentUserId,
+  //       );
+  //
+  //   // Rafraîchit le bandeau immédiatement : le stream Supabase ne reçoit pas
+  //   // toujours l'insert en temps réel (réplication realtime pas garantie sur
+  //   // `group_pinned_items`), donc sans ça le bandeau ne s'affichait qu'au
+  //   // prochain ouverture de la conversation.
+  //   if (success) _refreshPinnedBanner();
+  //
+  //   if (mounted) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(
+  //           success ? 'Message épinglé' : 'Impossible d\'épingler ce message',
+  //         ),
+  //       ),
+  //     );
+  //   }
+  // }
+  //
+  // /// Force le re-fetch de la liste des épingles (auto-dispose StreamProvider),
+  // /// pour un affichage immédiat après épinglage/désépinglage local.
+  // void _refreshPinnedBanner() {
+  //   ref.invalidate(conversationPinnedItemsProvider(widget.conversationId));
+  // }
+  //
+  // /// Détache un message épinglé depuis son menu contextuel : le bandeau ne
+  // /// porte plus de croix, c'est le seul chemin de désépinglage (comme Telegram).
+  // Future<void> _unpinMessage(MessageEntity message) async {
+  //   final items =
+  //       ref
+  //           .read(conversationPinnedItemsProvider(widget.conversationId))
+  //           .valueOrNull;
+  //   final pin =
+  //       items
+  //           ?.where(
+  //             (i) =>
+  //                 i.itemType == GroupPinnedItemType.message &&
+  //                 i.itemId == message.id,
+  //           )
+  //           .firstOrNull;
+  //   if (pin == null) {
+  //     // La liste d'épingles locale (ref.read, snapshot synchrone) ne
+  //     // contenait pas ce message : sans ce retour explicite, l'utilisateur
+  //     // tapait « Détacher » et rien ne se passait, sans le moindre signal.
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text(l10n.messageUnpinFailed)),
+  //       );
+  //     }
+  //     return;
+  //   }
+  //
+  //   final success = await ref
+  //       .read(groupPinActionsNotifierProvider.notifier)
+  //       .unpinItem(pin.id);
+  //
+  //   // Idem épinglage : rafraîchit le bandeau immédiatement (le retrait n'est
+  //   // pas garanti en temps réel via le stream Supabase).
+  //   if (success) _refreshPinnedBanner();
+  //
+  //   if (mounted) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(
+  //           success ? 'Message détaché' : l10n.messageUnpinFailed,
+  //         ),
+  //       ),
+  //     );
+  //   }
+  // }
 
   void _handleSelect(MessageEntity message) {
     setState(() {
@@ -2159,28 +2168,40 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             (groupForAdminCheck.creatorId == message.senderId ||
                 groupForAdminCheck.adminIds.contains(message.senderId));
 
+        // Fonctionnalité épingle mise en pause (2026-08-14) : `canPin` forcé
+        // à `false` désactive d'un coup le bouton Épingler/Détacher du menu
+        // contextuel (`message_bubble.dart` le gate déjà sur `widget.canPin`)
+        // — `onPin`/`onUnpin` ci-dessous retombent sur `null` via
+        // `canPin ? ... : null`, rien d'autre à toucher. Voir aussi
+        // group_pinned_banner.dart et `_GroupInfoCard` dans
+        // group_detail_screen.dart pour le reste de la pause.
         // En 1-a-1, les deux participants peuvent epingler ; en groupe, selon
         // les permissions du groupe.
-        final canPin =
-            !_isGroup
-                ? true
-                : (groupForAdminCheck?.permissions.canPin(isAdmin: isAdmin) ??
-                    false);
+        // final canPin =
+        //     !_isGroup
+        //         ? true
+        //         : (groupForAdminCheck?.permissions.canPin(isAdmin: isAdmin) ??
+        //             false);
+        const canPin = false;
 
+        // Fonctionnalité épingle mise en pause (2026-08-14) : plus besoin de
+        // s'abonner à `conversationPinnedItemsProvider` ici tant que le
+        // menu Épingler/Détacher est désactivé (`canPin` ci-dessus) —
+        // `MessageBubble.isPinned` retombe sur son défaut `false`.
         // Ids des messages déjà épinglés : le menu contextuel bascule alors
         // « Épingler » en « Détacher » (le bandeau n'a plus de croix).
-        final pinnedMessageIds =
-            (ref
-                        .watch(
-                          conversationPinnedItemsProvider(
-                            widget.conversationId,
-                          ),
-                        )
-                        .valueOrNull ??
-                    const [])
-                .where((i) => i.itemType == GroupPinnedItemType.message)
-                .map((i) => i.itemId)
-                .toSet();
+        // final pinnedMessageIds =
+        //     (ref
+        //                 .watch(
+        //                   conversationPinnedItemsProvider(
+        //                     widget.conversationId,
+        //                   ),
+        //                 )
+        //                 .valueOrNull ??
+        //             const [])
+        //         .where((i) => i.itemType == GroupPinnedItemType.message)
+        //         .map((i) => i.itemId)
+        //         .toSet();
 
         // Check if we need to show unread separator
         // In reversed list, first unread is at a different index
@@ -2226,9 +2247,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             currentUserId: currentUserId,
                             isAdmin: isAdmin,
                             canPin: canPin,
-                            isPinned: pinnedMessageIds.contains(message.id),
-                            onPin: canPin ? _pinMessage : null,
-                            onUnpin: canPin ? _unpinMessage : null,
+                            // isPinned: pinnedMessageIds.contains(message.id),
+                            // `canPin` est figé à `false` tant que la pause
+                            // dure (voir plus haut) : `analyze` prouve alors
+                            // que la branche `_pinMessage`/`_unpinMessage`
+                            // est morte et la signale — mis directement à
+                            // `null` pour rester propre sans perdre `_pinMessage`
+                            // /`_unpinMessage`, réactivées avec `canPin`.
+                            onPin: null,
+                            onUnpin: null,
                             onReply: _handleReply,
                             onReact: _handleReact,
                             onForward: _handleForward,

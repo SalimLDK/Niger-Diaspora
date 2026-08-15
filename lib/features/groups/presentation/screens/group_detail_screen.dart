@@ -15,8 +15,11 @@ import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/group_request_entity.dart';
 import 'package:intl/intl.dart';
 import '../providers/group_provider.dart';
-import '../providers/group_pinned_providers.dart';
-import '../../domain/entities/group_pinned_item_entity.dart';
+// Fonctionnalité épingle mise en pause (2026-08-14) : la ligne « Épinglés »
+// de cette fiche est commentée plus bas (`_GroupInfoCard.build` et
+// `_pinnedSummary`), ces deux imports n'ont donc plus d'usage vivant ici.
+// import '../providers/group_pinned_providers.dart';
+// import '../../domain/entities/group_pinned_item_entity.dart';
 import '../../../events/presentation/providers/group_next_event_provider.dart';
 import '../../../events/domain/entities/event_entity.dart';
 import '../widgets/share_group_modal.dart';
@@ -1251,40 +1254,45 @@ class _GroupInfoCard extends ConsumerWidget {
         conversationId == null
             ? null
             : ref.watch(conversationMediaProvider(conversationId));
+    // Fonctionnalité épingle mise en pause (2026-08-14) : la ligne « Épinglés »
+    // ne s'affiche plus dans cette carte. Les épingles restent en base ; voir
+    // aussi `canPin` dans conversation_screen.dart et
+    // group_pinned_banner.dart pour le reste de la pause.
+    //
     // Les épingles sont toujours indexées par `conversation_id`, groupe
     // compris (voir `_pinMessage` dans `conversation_screen.dart`) : lire ici
     // par `group_id` (ex-`groupPinnedItemsProvider`) rendait cette ligne
     // définitivement vide, même quand des messages étaient bien épinglés
     // dans le fil du groupe.
-    final pinned =
-        conversationId == null
-            ? const <GroupPinnedItemEntity>[]
-            : ref
-                    .watch(conversationPinnedItemsProvider(conversationId))
-                    .valueOrNull ??
-                const <GroupPinnedItemEntity>[];
+    // final pinned =
+    //     conversationId == null
+    //         ? const <GroupPinnedItemEntity>[]
+    //         : ref
+    //                 .watch(conversationPinnedItemsProvider(conversationId))
+    //                 .valueOrNull ??
+    //             const <GroupPinnedItemEntity>[];
 
     final rows = <Widget>[
-      if (pinned.isNotEmpty)
-        _InfoRow(
-          icon: AppIcon(
-            AppIcon.pinnedMessage,
-            size: 18,
-            color: context.adaptivePrimaryColor,
-          ),
-          title: 'Épinglés',
-          subtitle: _pinnedSummary(pinned),
-          trailing: Text(
-            '${pinned.length}',
-            style: TextStyle(
-              fontFamily: 'monospace',
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-              color: context.textSecondaryColor,
-            ),
-          ),
-          onTap: null,
-        ),
+      // if (pinned.isNotEmpty)
+      //   _InfoRow(
+      //     icon: AppIcon(
+      //       AppIcon.pinnedMessage,
+      //       size: 18,
+      //       color: context.adaptivePrimaryColor,
+      //     ),
+      //     title: 'Épinglés',
+      //     subtitle: _pinnedSummary(pinned),
+      //     trailing: Text(
+      //       '${pinned.length}',
+      //       style: TextStyle(
+      //         fontFamily: 'monospace',
+      //         fontSize: 12.5,
+      //         fontWeight: FontWeight.w600,
+      //         color: context.textSecondaryColor,
+      //       ),
+      //     ),
+      //     onTap: null,
+      //   ),
       if (media != null && !media.isEmpty)
         _InfoRow(
           icon: Icon(
@@ -1356,26 +1364,28 @@ class _GroupInfoCard extends ConsumerWidget {
     );
   }
 
-  /// « 1 sondage · 2 messages » — décrit les épinglés par type. Leur libellé
-  /// réel demanderait une requête par élément (l'entité ne porte qu'un id).
-  static String _pinnedSummary(List<GroupPinnedItemEntity> items) {
-    final counts = <GroupPinnedItemType, int>{};
-    for (final item in items) {
-      counts[item.itemType] = (counts[item.itemType] ?? 0) + 1;
-    }
-    const labels = {
-      GroupPinnedItemType.event: ['événement', 'événements'],
-      GroupPinnedItemType.poll: ['sondage', 'sondages'],
-      GroupPinnedItemType.message: ['message', 'messages'],
-    };
-    final parts = <String>[];
-    for (final type in GroupPinnedItemType.values) {
-      final n = counts[type];
-      if (n == null || n == 0) continue;
-      parts.add('$n ${labels[type]![n > 1 ? 1 : 0]}');
-    }
-    return parts.join(' · ');
-  }
+  // Fonctionnalité épingle mise en pause (2026-08-14) : plus aucun appelant
+  // (voir `rows` ci-dessus). Gardé en commentaire pour réactivation.
+  // /// « 1 sondage · 2 messages » — décrit les épinglés par type. Leur libellé
+  // /// réel demanderait une requête par élément (l'entité ne porte qu'un id).
+  // static String _pinnedSummary(List<GroupPinnedItemEntity> items) {
+  //   final counts = <GroupPinnedItemType, int>{};
+  //   for (final item in items) {
+  //     counts[item.itemType] = (counts[item.itemType] ?? 0) + 1;
+  //   }
+  //   const labels = {
+  //     GroupPinnedItemType.event: ['événement', 'événements'],
+  //     GroupPinnedItemType.poll: ['sondage', 'sondages'],
+  //     GroupPinnedItemType.message: ['message', 'messages'],
+  //   };
+  //   final parts = <String>[];
+  //   for (final type in GroupPinnedItemType.values) {
+  //     final n = counts[type];
+  //     if (n == null || n == 0) continue;
+  //     parts.add('$n ${labels[type]![n > 1 ? 1 : 0]}');
+  //   }
+  //   return parts.join(' · ');
+  // }
 
   static String _mediaSummary(MediaGalleryState media) {
     final parts = <String>[];
