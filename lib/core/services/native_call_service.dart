@@ -295,6 +295,16 @@ class NativeCallService {
     debugPrint('NativeCallService: All calls ended');
   }
 
+  /// Ferme la bannière native d'un appel précis, par son callId LOGIQUE,
+  /// SANS toucher à `_activeCallUuid`/`_activeCallId`. Sert à faire
+  /// disparaître un second appel qu'on vient de refuser pour cause
+  /// d'occupation, sans couper l'appel réellement en cours (contrairement à
+  /// `endAllCalls`, qui les emporterait tous les deux).
+  Future<void> endCallById(String callId) async {
+    await FlutterCallkitIncoming.endCall(callKitUuidFor(callId));
+    debugPrint('NativeCallService: Ended call $callId (busy)');
+  }
+
   /// Hide incoming call notification (when call is handled in-app)
   Future<void> hideIncomingCall() async {
     if (_activeCallUuid != null) {

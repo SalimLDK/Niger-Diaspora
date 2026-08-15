@@ -234,6 +234,14 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
   /// l'utilisateur sur un écran d'appel déjà terminé.
   static const Duration _remoteBookkeepingTimeout = Duration(seconds: 10);
 
+  /// Plafond sur la création distante de l'appel (Firestore + callerId/
+  /// calleeId RTDB). Sans lui, un réseau dégradé au moment de composer
+  /// (perte DNS, session Supabase/Firebase en cours de resynchronisation)
+  /// laisse `initiateCall` pendu — le bouton d'appel semble mort, sans
+  /// aucun message, potentiellement plus d'une minute, le temps que le SDK
+  /// épuise ses propres tentatives internes.
+  static const Duration _initiateCallTimeout = Duration(seconds: 15);
+
   @override
   CurrentCallState build() {
     ref.onDispose(() {
@@ -324,17 +332,24 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
 
     state = state.copyWith(isConnecting: true, isInitiating: true, error: null);
 
-    final result = await ref
-        .read(callRepositoryProvider)
-        .initiateCall(
-          callerId: currentUser.id,
-          callerName: currentUser.displayName ?? 'Utilisateur',
-          callerPhotoUrl: currentUser.photoUrl,
-          calleeId: calleeId,
-          calleeName: calleeName,
-          calleePhotoUrl: calleePhotoUrl,
-          type: type,
-        );
+    Either<Failure, CallEntity> result;
+    try {
+      result = await ref
+          .read(callRepositoryProvider)
+          .initiateCall(
+            callerId: currentUser.id,
+            callerName: currentUser.displayName ?? 'Utilisateur',
+            callerPhotoUrl: currentUser.photoUrl,
+            calleeId: calleeId,
+            calleeName: calleeName,
+            calleePhotoUrl: calleePhotoUrl,
+            type: type,
+          )
+          .timeout(_initiateCallTimeout);
+    } on TimeoutException {
+      debugPrint('CurrentCallNotifier: initiateCall a expiré après $_initiateCallTimeout');
+      result = const Left(NetworkFailure('Réseau indisponible, réessayez'));
+    }
 
     return result.fold(
       (failure) {
@@ -439,6 +454,22 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
         'CurrentCallNotifier: answerCall ignoré - appel ${state.call!.id} '
         'déjà en cours (demandé: ${call.id})',
       );
+      // Un DEUXIÈME appel distinct arrive pendant qu'on est déjà en ligne
+      // (ou en train d'en composer un) : sans ceci, l'appelant sonnait dans
+      // le vide jusqu'au timeout et la bannière CallKit locale restait
+      // affichée sans plus jamais réagir au tap — silencieusement, aucun des
+      // deux appels n'aboutissait. On signale « occupé » côté distant et on
+      // referme SA bannière (endCallById, pas endAllCalls : ça emporterait
+      // aussi l'appel réellement en cours).
+      if (state.call!.id != call.id) {
+        unawaited(
+          _guardRemote(
+            'declineCall(busy)',
+            () => ref.read(callRepositoryProvider).declineCall(call.id),
+          ),
+        );
+        unawaited(ref.read(nativeCallServiceProvider).endCallById(call.id));
+      }
       return false;
     }
 

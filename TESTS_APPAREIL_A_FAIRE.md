@@ -14,6 +14,44 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Un second appel qui arrive pendant qu'on est déjà en ligne était perdu en silence (2026-08-14)
+
+Trouvé en rejouant le logcat d'un vrai test (deux comptes qui s'appelaient
+quasi en même temps, 21:53-21:54) : `incomingCallProvider`
+([call_provider.dart:1122](lib/features/calls/presentation/providers/call_provider.dart))
+renvoie `null` dès que `state.call` est déjà occupé — y compris par un appel
+que l'utilisateur vient de composer lui-même. L'évènement natif `accepted`
+tombe alors dans le repli `_answerCallFromBackground`, qui appelle bien
+`answerCall()` avec le BON callId, mais le garde anti-double-acceptation de
+`answerCall()` ([call_provider.dart:436](lib/features/calls/presentation/providers/call_provider.dart))
+le rejette silencieusement parce qu'un AUTRE appel est déjà dans `state.call`
+— `return false`, aucun retour à l'appelant, aucun message à l'utilisateur.
+Résultat observé : l'écran d'appel affiché reste celui du premier appel (le
+sien), qui finit enregistré `cancelled` faute de réponse, et le second — celui
+qu'on vient d'accepter — ne démarre jamais.
+
+Correctif : dans ce cas précis (callId différent de celui déjà en cours),
+`answerCall()` décline maintenant le second appel côté distant
+(`declineCall`) et referme sa bannière CallKit spécifique
+(`NativeCallService.endCallById`, nouveau — n'touche pas `_activeCallUuid` du
+premier appel). L'appelant du second appel doit désormais recevoir un signal
+« occupé » au lieu de sonner dans le vide. En même temps, ajout d'un plafond
+de 15 s sur `initiateCall` (`_initiateCallTimeout`) : la même session a montré
+`initiateCall` pendu ~62 s sans aucun retour visible, le temps qu'une session
+Supabase invalide (`Session Supabase non établie`, pertes DNS ponctuelles) se
+resynchronise — probablement un aléa réseau réel plutôt qu'un bug, mais sans
+plafond le bouton d'appel semblait juste mort.
+
+`flutter analyze` propre sur les deux fichiers touchés
+([call_provider.dart](lib/features/calls/presentation/providers/call_provider.dart),
+[native_call_service.dart](lib/core/services/native_call_service.dart)).
+**Non vérifié en situation réelle** : il faudrait deux appareils qui
+s'appellent l'un l'autre à quelques secondes d'écart pour confirmer que
+l'appelant du second appel voit bien « occupé » plutôt que de sonner dans le
+vide, et que le premier appel n'est pas perturbé au passage.
+
+---
+
 ## Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)
 
 Deux bugs cumulés. (1) `currentUserId` dans SharedPreferences — lu par
