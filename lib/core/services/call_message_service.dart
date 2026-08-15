@@ -69,28 +69,42 @@ class CallMessageService {
         callDuration,
       );
 
-      // Write to Realtime Database (where messages are read from)
-      // IMPORTANT: senderId must be the current authenticated user for Firebase rules
-      final messageRef = _database.ref().child('messages').child(convId).push();
+      // Write to the Supabase `messages` table — c'est la seule source lue
+      // par la conversation (MessageSupabaseDataSource.getMessages stream sur
+      // Supabase, plus rien ne lit `messages/{convId}` en RTDB depuis la
+      // migration). Écrire en RTDB ici produisait un message d'appel que
+      // l'écran de conversation ne voyait jamais : la bulle n'apparaissait
+      // jamais, sans erreur nulle part.
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        debugPrint('appel: ERROR createCallMessage - Supabase session introuvable');
+        return;
+      }
+
+      final msgId = const Uuid().v4();
       final now = DateTime.now().toUtc().toIso8601String();
-      final messageData = {
-        'conversationId': convId,
-        'senderId': currentUserId, // Must be auth.uid for Firebase rules
+      final msgData = <String, dynamic>{
         'senderName': currentUserName,
-        'type': 'call',
+        'content': messageContent,
+        'status': 'sent',
         'callType': callType,
         'callStatus': callStatus,
-        'callDuration': callDuration,
+        if (callDuration != null) 'callDuration': callDuration,
         'callId': callId,
         'callerId': callerId, // Keep original caller info for display
         'calleeId': calleeId, // Keep original callee info for display
-        'content': messageContent,
-        'createdAt': now,
-        'status': 'sent',
+        'readBy': [currentUserId],
+        'deliveredTo': [currentUserId],
       };
 
-      await messageRef.set(messageData);
-      debugPrint('appel: Message written to RTDB at ${messageRef.path}');
+      await Supabase.instance.client.from('messages').insert({
+        'id': msgId,
+        'conversation_id': convId,
+        'sender_id': currentUserId, // Must be auth.uid for RLS
+        'type': 'call',
+        'created_at': now,
+        'data': msgData,
+      });
+      debugPrint('appel: Message written to Supabase messages/$msgId (conv=$convId)');
 
       // Mettre à jour la conversation dans Supabase avec le dernier message
       // (clés `data` en camelCase + colonne top-level `last_message_at` —
