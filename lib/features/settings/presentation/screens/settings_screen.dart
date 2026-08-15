@@ -40,7 +40,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   bool _noiseSuppressionEnabled = true;
-  bool _dataSaverMode = false;
+  // Mode éco (données réduites) désactivé temporairement.
+  // bool _dataSaverMode = false;
   ChatBackgroundEntity? _globalBackground;
   bool _isExportingData = false;
 
@@ -49,7 +50,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     super.initState();
     _noiseSuppressionEnabled =
         PreferencesService.instance.noiseSuppressionEnabled;
-    _dataSaverMode = PreferencesService.instance.dataSaverMode;
+    // _dataSaverMode = PreferencesService.instance.dataSaverMode;
     _loadGlobalBackground();
   }
 
@@ -91,11 +92,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     PreferencesService.instance.setNoiseSuppressionEnabled(value);
   }
 
-  void _toggleDataSaverMode(bool value) {
-    HapticFeedback.lightImpact();
-    setState(() => _dataSaverMode = value);
-    PreferencesService.instance.setDataSaverMode(value);
-  }
+  // void _toggleDataSaverMode(bool value) {
+  //   HapticFeedback.lightImpact();
+  //   setState(() => _dataSaverMode = value);
+  //   PreferencesService.instance.setDataSaverMode(value);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -308,13 +309,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         value: _noiseSuppressionEnabled,
                         onChanged: _toggleNoiseSuppression,
                       ),
-                      DesignSettingsSwitchTile(
-                        icon: const Icon(Icons.data_saver_on_outlined),
-                        title: l10n.dataSaverMode,
-                        subtitle: l10n.dataSaverModeSubtitle,
-                        value: _dataSaverMode,
-                        onChanged: _toggleDataSaverMode,
-                      ),
+                      // DesignSettingsSwitchTile(
+                      //   icon: const Icon(Icons.data_saver_on_outlined),
+                      //   title: l10n.dataSaverMode,
+                      //   subtitle: l10n.dataSaverModeSubtitle,
+                      //   value: _dataSaverMode,
+                      //   onChanged: _toggleDataSaverMode,
+                      // ),
                       DesignSettingsTile(
                         icon: const Icon(Icons.support_agent_outlined),
                         title: l10n.helpFaq,
