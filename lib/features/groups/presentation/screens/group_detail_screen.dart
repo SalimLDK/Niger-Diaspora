@@ -131,7 +131,12 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
     final isMember = group.memberIds.contains(currentUser?.id);
     final isCreator = group.creatorId == currentUser?.id;
-    final isAdmin = group.adminIds.contains(currentUser?.id);
+    // Un superAdmin plateforme gère tout groupe officiel sans détenir de ligne
+    // group_members owner/admin (cf. migration 20260813234500 côté RLS) — sans
+    // ce repli, l'UI cache le menu même quand l'écriture serait acceptée.
+    final isAdmin =
+        group.adminIds.contains(currentUser?.id) ||
+        (group.isOfficial && (currentUser?.isAdmin ?? false));
 
     return PopScope(
       canPop: false,
@@ -205,7 +210,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                           width: 66,
                           height: 66,
                           decoration: BoxDecoration(
-                            // Vert de groupe de la fiche 9d/9e (#1B5E32) :
+                            // Vert de groupe de la fiche 9d/9e (#06871D) :
                             // c'est la couleur qui identifie « groupe » dans
                             // toute la messagerie, pas l'accent du compte.
                             color: context.successColor,

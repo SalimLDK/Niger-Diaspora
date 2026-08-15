@@ -82,9 +82,14 @@ class _GroupMembersScreenState extends ConsumerState<GroupMembersScreen> {
                 itemCount: groupEntity.memberIds.length,
                 itemBuilder: (context, index) {
                   final memberId = groupEntity.memberIds[index];
+                  // Un superAdmin plateforme gère tout groupe officiel sans
+                  // détenir de ligne group_members owner/admin (cf. migration
+                  // 20260813234500 côté RLS) — sans ce repli, l'écran cache le
+                  // menu même quand l'écriture serait acceptée côté serveur.
                   final isCurrentUserAdmin =
                       currentUser != null &&
-                      groupEntity.adminIds.contains(currentUser.id);
+                      (groupEntity.adminIds.contains(currentUser.id) ||
+                          (groupEntity.isOfficial && currentUser.isAdmin));
                   return _MemberListItem(
                     group: groupEntity,
                     memberId: memberId,
