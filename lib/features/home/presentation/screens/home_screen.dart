@@ -28,6 +28,7 @@ import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../events/domain/entities/event_entity.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../settings/presentation/providers/notification_preferences_provider.dart';
+import '../../../groups/presentation/providers/group_provider.dart';
 import '../providers/home_provider.dart';
 
 import '../widgets/home_section_header.dart';
@@ -537,6 +538,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final upcomingEvents = ref.watch(eventsNotifierProvider);
 
+    // Accomplissement réel des raccourcis « Pour commencer » — indépendant de
+    // la complétude du profil, pour ne pas re-suggérer une action déjà faite.
+    final hasJoinedGroup =
+        ref.watch(myGroupsNotifierProvider).valueOrNull?.isNotEmpty ?? false;
+    final conversations = ref.watch(conversationsProvider).valueOrNull ?? const [];
+    final hasConnection = authUser != null &&
+        conversations.any(
+          (c) => c.isIndividual && !c.isSelfNotesFor(authUser.id),
+        );
+
     // Écouter les changements d'utilisateur pour recharger les données si nécessaire
     ref.listen(currentUserAsyncProvider, (previous, next) {
       final user = next.valueOrNull;
@@ -869,6 +880,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // Premier lancement : raccourcis d'onboarding (maquette 8a).
                   if (showOnboarding) ...[
                     _PourCommencerCard(
+                      hasConnection: hasConnection,
+                      hasJoinedGroup: hasJoinedGroup,
+                      hasActivatedMap: _locationError == null,
                       groupsCount: homeStats.valueOrNull?.groupsCount ?? 0,
                       onFindFriends: () => context.push('/qr-scanner'),
                       onJoinGroup: () => context.push('/groups'),

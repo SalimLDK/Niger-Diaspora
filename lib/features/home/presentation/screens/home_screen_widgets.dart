@@ -957,13 +957,24 @@ class _ProfileCompletionCard extends StatelessWidget {
 /// Carte « Pour commencer » : raccourcis d'onboarding (retrouver ses proches,
 /// rejoindre un groupe, activer la carte). Réutilise les lignes du bloc
 /// « Aujourd'hui » (maquette 8a).
+///
+/// Chaque ligne est masquée dès que son action est réellement accomplie
+/// (conversation individuelle démarrée, groupe rejoint, position active) —
+/// pas seulement tant que le PROFIL est incomplet, sinon un utilisateur ayant
+/// déjà rejoint 5 groupes se voyait quand même suggérer de le faire.
 class _PourCommencerCard extends StatelessWidget {
+  final bool hasConnection;
+  final bool hasJoinedGroup;
+  final bool hasActivatedMap;
   final int groupsCount;
   final VoidCallback onFindFriends;
   final VoidCallback onJoinGroup;
   final VoidCallback onActivateMap;
 
   const _PourCommencerCard({
+    required this.hasConnection,
+    required this.hasJoinedGroup,
+    required this.hasActivatedMap,
     required this.groupsCount,
     required this.onFindFriends,
     required this.onJoinGroup,
@@ -982,6 +993,41 @@ class _PourCommencerCard extends StatelessWidget {
     final groupSubtitle = groupsCount > 0
         ? l10n.homeGroupsToDiscover(groupsCount)
         : l10n.homeFindYourCommunity;
+
+    final rows = <Widget>[
+      if (!hasConnection)
+        _TodayRow(
+          bg: context.successColor.withValues(alpha: 0.12),
+          iconColor: context.successColor,
+          icon: Icons.person_add_alt_1_outlined,
+          title: l10n.homeFindRelatives,
+          subtitle: l10n.homeFindRelativesSub,
+          trailing: chevron(),
+          onTap: onFindFriends,
+        ),
+      if (!hasJoinedGroup)
+        _TodayRow(
+          bg: _homeOrange.withValues(alpha: 0.12),
+          iconColor: _homeOrange,
+          icon: Icons.groups_outlined,
+          title: l10n.homeJoinGroup,
+          subtitle: groupSubtitle,
+          trailing: chevron(),
+          onTap: onJoinGroup,
+        ),
+      if (!hasActivatedMap)
+        _TodayRow(
+          bg: context.adaptivePrimaryColor.withValues(alpha: 0.10),
+          iconColor: context.adaptivePrimaryColor,
+          icon: Icons.map_outlined,
+          title: l10n.homeEnableMemberMap,
+          subtitle: l10n.homeEnableMemberMapSub,
+          trailing: chevron(),
+          onTap: onActivateMap,
+        ),
+    ];
+
+    if (rows.isEmpty) return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
@@ -1004,35 +1050,10 @@ class _PourCommencerCard extends StatelessWidget {
               color: context.textTertiaryColor,
             ),
           ),
-          _TodayRow(
-            bg: context.successColor.withValues(alpha: 0.12),
-            iconColor: context.successColor,
-            icon: Icons.person_add_alt_1_outlined,
-            title: l10n.homeFindRelatives,
-            subtitle: l10n.homeFindRelativesSub,
-            trailing: chevron(),
-            onTap: onFindFriends,
-          ),
-          Divider(height: 1, color: context.borderColor),
-          _TodayRow(
-            bg: _homeOrange.withValues(alpha: 0.12),
-            iconColor: _homeOrange,
-            icon: Icons.groups_outlined,
-            title: l10n.homeJoinGroup,
-            subtitle: groupSubtitle,
-            trailing: chevron(),
-            onTap: onJoinGroup,
-          ),
-          Divider(height: 1, color: context.borderColor),
-          _TodayRow(
-            bg: context.adaptivePrimaryColor.withValues(alpha: 0.10),
-            iconColor: context.adaptivePrimaryColor,
-            icon: Icons.map_outlined,
-            title: l10n.homeEnableMemberMap,
-            subtitle: l10n.homeEnableMemberMapSub,
-            trailing: chevron(),
-            onTap: onActivateMap,
-          ),
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0) Divider(height: 1, color: context.borderColor),
+            rows[i],
+          ],
         ],
       ),
     );
