@@ -461,22 +461,26 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
 
     // Ajouter l'indicateur en ligne et/ou le badge de certification
     if (otherUserId != null && otherUserId.isNotEmpty) {
+      // Le Stack doit envelopper l'avatar exactement (50x50) : un SizedBox
+      // plus grand laissait l'avatar collé en haut à gauche et le badge
+      // ancré au coin de la boîte, donc décroché du coin réel de la photo.
       return SizedBox(
-        width: 60,
-        height: 60,
+        width: 50,
+        height: 50,
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
             avatarWidget,
             if (isVerified)
               const Positioned(
-                right: 0,
-                bottom: 0,
+                right: -2,
+                bottom: -2,
                 child: VerificationBadge(size: VerificationBadgeSize.normal),
               )
             else
               Positioned(
-                right: 0,
-                bottom: 0,
+                right: -2,
+                bottom: -2,
                 child: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
