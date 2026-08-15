@@ -315,9 +315,9 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
         decoration: BoxDecoration(
           color: Colors.grey[900],
           borderRadius: BorderRadius.circular(12),
-          // Orateur actif encadré 2 px #5BA674 (§12).
+          // Orateur actif encadré 2 px #32E252 (§12).
           border: isSpeaking
-              ? Border.all(color: const Color(0xFF5BA674), width: 2)
+              ? Border.all(color: const Color(0xFF32E252), width: 2)
               : null,
         ),
         child: Stack(
@@ -378,7 +378,7 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF5BA674),
+                        color: const Color(0xFF32E252),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: const Text(

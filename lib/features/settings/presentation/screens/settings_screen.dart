@@ -546,7 +546,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     bool isSelected,
   ) {
     // Aperçu de l'accent : la valeur que le thème rendra, donc l'orange
-    // d'action `#B85E24` et non la teinte claire de la famille orange.
+    // d'action `#9F3E0A` et non la teinte claire de la famille orange.
     final Color previewColor =
         color == AppThemeColor.green
             ? AppColors.secondary

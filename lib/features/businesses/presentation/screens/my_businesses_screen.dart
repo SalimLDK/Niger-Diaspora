@@ -298,7 +298,7 @@ class _StatusPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final color = isVerified ? const Color(0xFF1B5E32) : const Color(0xFFB85E24);
+    final color = isVerified ? const Color(0xFF06871D) : const Color(0xFF9F3E0A);
     final bg = isVerified
         ? const Color(0xFFE8F0EA)
         : const Color(0xFFF7ECD9);

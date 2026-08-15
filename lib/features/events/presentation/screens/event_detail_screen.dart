@@ -317,8 +317,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: event.isFree
-                                  ? const Color(0xFF1B5E32)
-                                  : const Color(0xFFB85E24),
+                                  ? const Color(0xFF06871D)
+                                  : const Color(0xFF9F3E0A),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(

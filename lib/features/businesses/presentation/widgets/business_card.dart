@@ -288,7 +288,7 @@ class BusinessCard extends ConsumerWidget {
     );
     if (offer == null) return const SizedBox.shrink();
 
-    const orange = Color(0xFFB85E24);
+    const orange = Color(0xFF9F3E0A);
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Container(

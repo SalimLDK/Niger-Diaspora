@@ -185,7 +185,7 @@ class EmbassyDetailScreen extends StatelessWidget {
   Widget _buildStatusBanner(BuildContext context, ThemeData theme) {
     final l10n = AppLocalizations.of(context)!;
     final closed = embassy.isTemporarilyClosed;
-    final fg = closed ? const Color(0xFFC23E2D) : const Color(0xFF2D7D46);
+    final fg = closed ? const Color(0xFFC23E2D) : const Color(0xFF0DB02B);
     final todayHours = _todayHours();
 
     return Container(

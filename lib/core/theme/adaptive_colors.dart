@@ -33,7 +33,7 @@ extension AdaptiveColors on BuildContext {
 
   /// Couleur sur primaire (texte/icônes)
   ///
-  /// Règle nocturne du guide de style : sur l'accent `#F4A574` on pose du
+  /// Règle nocturne du guide de style : sur l'accent `#FA7E3B` on pose du
   /// **texte foncé, jamais blanc** — et l'encre inverse `#1C1815`, pas du noir
   /// pur, pour rester dans le registre chaud de la palette.
   Color get onPrimaryColor =>
@@ -134,8 +134,8 @@ extension AdaptiveColors on BuildContext {
 
   /// Repère terracotta : ce qui signale sans agir — bascule ÉCO de la
   /// discussion, libellés de section du panneau de stickers, marques
-  /// d'épinglage. `#B85E24` (l'orange d'action du guide) en clair, `#F4A574`
-  /// en nocturne où le foncé serait illisible.
+  /// d'épinglage. `#9F3E0A` (l'orange d'action, recoloré 2026-08-14) en
+  /// clair, `#FA7E3B` en nocturne où le foncé serait illisible.
   ///
   /// La paire était recopiée en dur à chaque usage ; elle a un nom depuis
   /// qu'un troisième écran en a eu besoin.

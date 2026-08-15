@@ -4,9 +4,13 @@ import 'package:flutter/material.dart';
 /// Palette inspiree du drapeau nigerien et des tons saheliens
 ///
 /// Source : « Guide de style » (Claude Design), palettes ② Sahel clair et
-/// ③ Nocturne. Les valeurs nommées par le guide font foi ; les jetons non
-/// listés par le guide ([warning], [primary], les dégradés) restent propres à
-/// l'app. Les trois autres palettes du système vivent ailleurs :
+/// ③ Nocturne. Les valeurs nommées par le guide faisaient foi jusqu'au
+/// 2026-08-14 ; à cette date, [primary] et [secondary] (et leurs variantes)
+/// ont été recolorées sur demande produit (`#E05206` / `#0DB02B`) et **ne
+/// reflètent plus le document du guide** — ne pas les "corriger" vers les
+/// anciennes valeurs du guide en croyant réparer une dérive. Les jetons non
+/// listés par le guide ([warning], les dégradés) restent propres à l'app.
+/// Les trois autres palettes du système vivent ailleurs :
 /// ① Organic dans `features/feed/…/feed_tokens.dart`, ④ DNColors dans
 /// `core/theme/dn_colors.dart`, ⑤ Admin dans `core/theme/admin_colors.dart`.
 class AppColors {
@@ -16,45 +20,41 @@ class AppColors {
   // PRIMARY COLORS - ORANGE SAHELIEN
   // ============================================
 
-  /// Orange terre cuite principal - Sahel Orange
-  static const Color primary = Color(0xFFE07B39);
+  /// Orange principal (recoloré 2026-08-14, ex Sahel Orange `#E07B39`)
+  static const Color primary = Color(0xFFE05206);
 
-  /// Version claire - Sunset Glow
-  static const Color primaryLight = Color(0xFFF4A574);
+  /// Version claire
+  static const Color primaryLight = Color(0xFFFA7E3B);
 
-  /// Version tres claire - Dawn Mist (backgrounds)
-  ///
-  /// Guide § Sahel clair, « Orange clair » des fonds pastel.
-  static const Color primaryLighter = Color(0xFFF7E9DE);
+  /// Version tres claire - fonds pastel
+  static const Color primaryLighter = Color(0xFFF7EAE3);
 
-  /// Version foncee - Terracotta
-  ///
-  /// Guide § Sahel clair, « Orange — action » : c'est **cette** valeur qui
-  /// habille l'action principale, pas [primary] (qui reste la teinte d'accent
-  /// choisie par l'utilisateur dans le thème orange).
-  static const Color primaryDark = Color(0xFFB85E24);
+  /// Version foncee - c'est **cette** valeur qui habille l'action
+  /// principale, pas [primary] (qui reste la teinte d'accent choisie par
+  /// l'utilisateur dans le thème orange).
+  static const Color primaryDark = Color(0xFF9F3E0A);
 
-  /// Version tres foncee - Burnt Sienna
-  static const Color primaryDarker = Color(0xFF8B4513);
+  /// Version tres foncee
+  static const Color primaryDarker = Color(0xFF662705);
 
   // ============================================
   // SECONDARY COLORS - VERT NIGER
   // ============================================
 
-  /// Vert foret principal - Niger Green
-  static const Color secondary = Color(0xFF2D7D46);
+  /// Vert principal (recoloré 2026-08-14, ex Niger Green `#2D7D46`)
+  static const Color secondary = Color(0xFF0DB02B);
 
-  /// Version claire - Sahel Grass
-  static const Color secondaryLight = Color(0xFF5BA674);
+  /// Version claire
+  static const Color secondaryLight = Color(0xFF32E252);
 
-  /// Version tres claire - Oasis Mist (backgrounds)
-  static const Color secondaryLighter = Color(0xFFE3F2E8);
+  /// Version tres claire - fonds pastel
+  static const Color secondaryLighter = Color(0xFFEAF6EC);
 
-  /// Version foncee - Forest Deep
-  static const Color secondaryDark = Color(0xFF1B5E32);
+  /// Version foncee
+  static const Color secondaryDark = Color(0xFF06871D);
 
-  /// Version tres foncee - Jungle Night
-  static const Color secondaryDarker = Color(0xFF0F3D20);
+  /// Version tres foncee
+  static const Color secondaryDarker = Color(0xFF055A14);
 
   // ============================================
   // NEUTRAL COLORS - LIGHT THEME

@@ -26,7 +26,7 @@ class AppTheme {
         primaryContainer: AppColors.secondaryLighter,
         onPrimaryContainer: AppColors.secondaryDark,
         // SECONDARY is now ORANGE (was Green)
-        // Même orange d'action que dans le thème orange : `#B85E24`.
+        // Même orange d'action que dans le thème orange : `#9F3E0A`.
         secondary: AppColors.primaryDark,
         onSecondary: AppColors.textInverse,
         secondaryContainer: AppColors.primaryLighter,
@@ -437,11 +437,11 @@ class AppTheme {
 
       // Color Scheme - ORANGE PRIMARY (Original)
       //
-      // L'accent est `primaryDark` (`#B85E24`), pas `primary` (`#E07B39`) :
-      // le guide de style désigne `#B85E24` comme l'« Orange — action » de la
-      // palette Sahel clair. `AppColors.primary` reste la teinte de la
-      // famille orange utilisée par les dégradés, mais n'habille plus
-      // d'action.
+      // L'accent est `primaryDark` (`#9F3E0A`), pas `primary` (`#E05206`) :
+      // c'est cette valeur qui joue l'« Orange — action » de la palette
+      // Sahel clair (recolorée le 2026-08-14, ne reflète plus le document du
+      // guide). `AppColors.primary` reste la teinte de la famille orange
+      // utilisée par les dégradés, mais n'habille plus d'action.
       colorScheme: const ColorScheme.light(
         primary: AppColors.primaryDark,
         onPrimary: AppColors.textInverse,

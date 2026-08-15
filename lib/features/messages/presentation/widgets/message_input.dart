@@ -1100,18 +1100,18 @@ class _MessageInputState extends State<MessageInput>
   }
 
   /// Emoji en pastille propre, à droite de la barre (fiche 26b : cercle 44,
-  /// fond `#F7E9DE`, glyphe `#B85E24`). Il bascule en icône clavier quand le
+  /// fond `#F7EAE3`, glyphe `#9F3E0A`). Il bascule en icône clavier quand le
   /// panneau est ouvert, comme lorsqu'il vivait dans le champ.
   ///
   /// Les valeurs de la fiche sont la version claire : en nocturne l'aplat
   /// pastel deviendrait un pavé lumineux, on le remplace par l'accent teinté.
   Widget _buildEmojiButton(BuildContext context) {
     final isDark = context.isDarkMode;
-    final glyph = isDark ? const Color(0xFFF4A574) : const Color(0xFFB85E24);
+    final glyph = isDark ? const Color(0xFFFA7E3B) : const Color(0xFF9F3E0A);
     final fill =
         isDark
             ? glyph.withValues(alpha: _showPicker ? 0.28 : 0.18)
-            : (_showPicker ? const Color(0xFFF0DAC8) : const Color(0xFFF7E9DE));
+            : (_showPicker ? const Color(0xFFF0DAC8) : const Color(0xFFF7EAE3));
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -2075,8 +2075,8 @@ class _MessageInputState extends State<MessageInput>
   static const Color _kE2eeBlueLight = Color(0xFF5B9BFF);
 
   /// Vert du bouton vocal, indépendant du thème.
-  static const Color _kVoiceGreen = Color(0xFF1B5E32);
-  static const Color _kVoiceGreenLight = Color(0xFF2D7D46);
+  static const Color _kVoiceGreen = Color(0xFF06871D);
+  static const Color _kVoiceGreenLight = Color(0xFF0DB02B);
 
   /// Chrome de la barre flottante et du bandeau d'enregistrement.
   ///

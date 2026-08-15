@@ -769,13 +769,13 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
             widget.conversation.lastMessageDeliveredTo.contains(otherId);
 
         if (isRead) {
-          // Vert de lecture de la fiche 9a (#2D7D46). Le bleu WhatsApp
+          // Vert de lecture de la fiche 9a (#0DB02B). Le bleu WhatsApp
           // n'appartient à aucune des cinq palettes du guide, et il jurait
           // avec le crème.
           return const AppIcon(
             AppIcon.doneAll,
             size: 16,
-            color: Color(0xFF2D7D46),
+            color: Color(0xFF0DB02B),
           );
         }
         if (isDelivered) {
@@ -822,7 +822,7 @@ class _HighlightedName extends StatelessWidget {
                 Theme.of(context).brightness == Brightness.dark
                     ? const TextStyle(
                       backgroundColor: Color(0xFF3A2A1C),
-                      color: Color(0xFFF4A574),
+                      color: Color(0xFFFA7E3B),
                     )
                     : const TextStyle(
                       backgroundColor: Color(0xFFF7E0CE),

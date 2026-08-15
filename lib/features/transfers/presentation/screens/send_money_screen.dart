@@ -87,7 +87,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
   // Plus rien n'est figé ici. L'accent suit `colorScheme.primary` — donc le
   // thème choisi par le compte, et sa version éclaircie en nocturne — et
   // l'étape à venir `colorScheme.outline`. Les deux recopiaient un jeton
-  // (`#B85E24`, `#E8DFD4`) et gardaient donc leur valeur de thème clair en
+  // (`#9F3E0A`, `#E8DFD4`) et gardaient donc leur valeur de thème clair en
   // mode nuit. Le texte posé sur l'accent passe par `colorScheme.onPrimary` :
   // le guide impose de l'encre foncée sur l'accent nocturne, jamais du blanc.
 
@@ -719,10 +719,10 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
                       isDark ? const Color(0xFF16241A) : const Color(0xFFF0F4EA);
                   final border =
                       isDark
-                          ? const Color(0xFF2D7D46).withValues(alpha: 0.4)
+                          ? const Color(0xFF0DB02B).withValues(alpha: 0.4)
                           : const Color(0xFFDCE6CE);
                   final amountColor =
-                      isDark ? const Color(0xFF5BA674) : const Color(0xFF1B5E32);
+                      isDark ? const Color(0xFF32E252) : const Color(0xFF06871D);
                   return Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),

@@ -3090,7 +3090,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Vert et non accent : ces trois lignes sont des garanties tenues,
-          // pas des actions — la fiche 8c les met en #1B5E32.
+          // pas des actions — la fiche 8c les met en #06871D.
           Icon(icon, size: 16, color: context.successColor),
           const SizedBox(width: 9),
           Expanded(
