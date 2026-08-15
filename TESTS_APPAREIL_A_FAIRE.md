@@ -7185,6 +7185,44 @@ distinct).
 
 ---
 
+## Fonctionnalité épingle mise en pause (2026-08-14)
+
+Sur demande, le bouton Épingler/Détacher (menu contextuel d'un message), le
+bandeau épinglé (`GroupPinnedBanner`) et la ligne « Épinglés » de la fiche
+groupe (`_GroupInfoCard`) ont été désactivés — commentés, pas supprimés, pour
+réactivation future :
+- `lib/features/messages/presentation/screens/conversation_screen.dart` :
+  `canPin` figé à `false` ; `_pinMessage`/`_unpinMessage`/
+  `_refreshPinnedBanner`/`pinnedMessageIds` commentés.
+- `lib/features/groups/presentation/widgets/group_pinned_banner.dart` :
+  `_GroupPinnedBannerState.build` ne rend plus que la pastille `trailing`
+  (bascule ÉCO — **doit rester visible**, elle n'a rien à voir avec
+  l'épinglage) ; `_PinnedRow` et son bloc de rendu commentés en entier.
+- `lib/features/groups/presentation/screens/group_detail_screen.dart` :
+  la ligne « Épinglés » et `_pinnedSummary` commentées dans `_GroupInfoCard`.
+- `lib/features/groups/data/datasources/group_supabase_datasource.dart` et
+  `group_pinned_providers.dart` : le paramètre `groupId` de `pinItem`/
+  `getPinnedItemsStream` (déjà mort avant la pause, jamais alimenté par le
+  seul appelant réel) commenté au même moment.
+
+`flutter analyze` propre (aucun avertissement de code mort/import inutilisé)
+après ce commentage — les nombreux items `[ ]` ci-dessus datant d'avant le
+2026-08-14 portent sur une fonctionnalité désormais désactivée : les
+retester n'a de sens qu'après réactivation.
+
+- [ ] **Bascule ÉCO toujours visible** sur une conversation (1:1 et groupe),
+  malgré la pause : c'est le point de vigilance le plus probable de casser
+  en silence (elle partage la ligne avec le bandeau épinglé disparu).
+- [ ] **Aucun bouton Épingler/Détacher** dans le menu contextuel d'un
+  message, 1:1 comme groupe.
+- [ ] **Aucune ligne « Épinglés »** sur la fiche groupe, même sur un groupe
+  qui avait des épingles avant la pause.
+- [ ] Build + install pas encore faits sur SM A515F depuis ce changement
+  (travail réalisé dans un worktree isolé, dépôt principal occupé par une
+  autre session au moment de l'écriture).
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

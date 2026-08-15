@@ -24,7 +24,8 @@ class GroupPinActionsNotifier extends AutoDisposeNotifier<void> {
   void build() {}
 
   Future<bool> pinItem({
-    String? groupId,
+    // `groupId` désactivé : voir GroupSupabaseDataSource.pinItem.
+    // String? groupId,
     String? conversationId,
     required GroupPinnedItemType itemType,
     required String itemId,
@@ -32,7 +33,7 @@ class GroupPinActionsNotifier extends AutoDisposeNotifier<void> {
   }) async {
     try {
       await ref.read(_groupSupabaseDataSourceProvider).pinItem(
-            groupId: groupId,
+            // groupId: groupId,
             conversationId: conversationId,
             itemType: itemType.value,
             itemId: itemId,

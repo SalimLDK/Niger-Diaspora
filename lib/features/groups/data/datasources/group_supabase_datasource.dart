@@ -374,15 +374,22 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
   Future<void> sendGroupRenamedSystemMessage(String groupId, String newName) async {}
 
   Stream<List<GroupPinnedItemModel>> getPinnedItemsStream({
-    String? groupId,
+    // `groupId` désactivé (inutilisable) : `group_pinned_items.group_id` a une
+    // FK vers `groups(id)`, or les groupes de l'app vivent encore dans
+    // Firestore — aucun appelant ne peut donc plus le passer sans violer la
+    // contrainte. Seul `conversationId` est utilisé en pratique (voir
+    // `_pinMessage` dans conversation_screen.dart). Gardé en commentaire,
+    // pas supprimé : à réactiver quand les groupes existeront dans
+    // `public.groups`.
+    // String? groupId,
     String? conversationId,
   }) async* {
-    assert(groupId != null || conversationId != null);
+    assert(conversationId != null);
     // Session d'abord (voir getGroupStream) : sinon RLS anon = bandeau
     // épinglé définitivement vide.
     await SupabaseAuthBridge.instance.ensureAuthenticated();
-    final column = groupId != null ? 'group_id' : 'conversation_id';
-    final value = groupId ?? conversationId!;
+    // final column = groupId != null ? 'group_id' : 'conversation_id';
+    // final value = groupId ?? conversationId!;
     // `sort_order` vaut `0` par défaut en base et `pinItem` ne le renseigne
     // jamais : trier dessus ne départage donc rien entre plusieurs épingles,
     // et Postgres ne garantit aucun ordre stable entre des lignes à égalité.
@@ -394,26 +401,28 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     yield* _supabase
         .from('group_pinned_items')
         .stream(primaryKey: ['id'])
-        .eq(column, value)
+        .eq('conversation_id', conversationId!)
         .order('pinned_at')
         .map((rows) => rows.map(GroupPinnedItemModel.fromJson).toList());
   }
 
   Future<GroupPinnedItemModel> pinItem({
-    String? groupId,
+    // `groupId` désactivé pour la même raison que dans `getPinnedItemsStream`
+    // ci-dessus. Gardé en commentaire pour réactivation future.
+    // String? groupId,
     String? conversationId,
     required String itemType,
     required String itemId,
     required String pinnedBy,
   }) async {
-    assert(groupId != null || conversationId != null);
+    assert(conversationId != null);
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
       throw ServerException('Session Supabase non établie – reconnectez-vous');
     }
     final row = await _supabase
         .from('group_pinned_items')
         .insert({
-          'group_id': groupId,
+          // 'group_id': groupId,
           'conversation_id': conversationId,
           'item_type': itemType,
           'item_id': itemId,

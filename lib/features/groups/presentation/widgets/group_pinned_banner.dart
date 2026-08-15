@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/adaptive_colors.dart';
-import '../../../messages/domain/entities/message_entity.dart';
-import '../../../messages/presentation/providers/message_provider.dart';
-import '../../../polls/presentation/providers/poll_provider.dart';
-import '../../domain/entities/group_pinned_item_entity.dart';
-import '../providers/group_pinned_providers.dart';
-import '../../../events/presentation/providers/event_by_id_provider.dart';
+// Fonctionnalité épingle mise en pause (2026-08-14) : plus aucun de ces
+// imports n'est utilisé par du code actif dans ce fichier — tout ce qui les
+// consommait (`_PinnedRow` et les accents/motifs ci-dessous) est commenté
+// plus bas. Les réactiver en même temps que ce bloc.
+// import 'package:go_router/go_router.dart';
+// import '../../../../core/theme/adaptive_colors.dart';
+// import '../../../messages/domain/entities/message_entity.dart';
+// import '../../../messages/presentation/providers/message_provider.dart';
+// import '../../../polls/presentation/providers/poll_provider.dart';
+// import '../../domain/entities/group_pinned_item_entity.dart';
+// import '../providers/group_pinned_providers.dart';
+// import '../../../events/presentation/providers/event_by_id_provider.dart';
 
-const _pollAccent = Color(0xFF6B5CE0);
-const _pinAccent = Color(0xFF2F9E6E);
+// const _pollAccent = Color(0xFF6B5CE0);
+// const _pinAccent = Color(0xFF2F9E6E);
 
-/// Filet de sécurité : un contenu chiffré « iv:ciphertext » en base64 ne doit
-/// jamais être affiché tel quel dans le bandeau (repli sur un libellé générique).
-final _kCiphertextPattern = RegExp(
-  r'^[A-Za-z0-9+/]{16,}={0,2}:[A-Za-z0-9+/]{16,}={0,2}$',
-);
+// /// Filet de sécurité : un contenu chiffré « iv:ciphertext » en base64 ne doit
+// /// jamais être affiché tel quel dans le bandeau (repli sur un libellé générique).
+// final _kCiphertextPattern = RegExp(
+//   r'^[A-Za-z0-9+/]{16,}={0,2}:[A-Za-z0-9+/]{16,}={0,2}$',
+// );
 
 /// Ligne sans bandeau : rien n'est épinglé, ou l'épingle n'est pas (encore)
 /// résoluble. La pastille (bascule ÉCO, fiche 6b) reste alignée à droite —
@@ -37,6 +41,12 @@ Widget _trailingOnlyRow(Widget? trailing) {
 /// ligne fine fixée sous l'en-tête, toujours visible. Quand plusieurs
 /// éléments sont épinglés, un compteur « i/n » permet de les faire défiler
 /// en tapant.
+///
+/// **Fonctionnalité mise en pause (2026-08-14)** : le contenu épinglé n'est
+/// plus rendu (voir `_GroupPinnedBannerState.build`) — le widget ne montre
+/// plus que sa pastille `trailing` (bascule ÉCO), qui n'a rien à voir avec
+/// l'épinglage et doit rester visible. Les épingles existantes restent en
+/// base, prêtes à réapparaître en réactivant le bloc commenté ci-dessous.
 class GroupPinnedBanner extends ConsumerStatefulWidget {
   final String conversationId;
 
@@ -67,42 +77,48 @@ class GroupPinnedBanner extends ConsumerStatefulWidget {
 }
 
 class _GroupPinnedBannerState extends ConsumerState<GroupPinnedBanner> {
-  int _index = 0;
-
-  /// Dernière liste d'épingles connue. Le stream Supabase repasse en « loading »
-  /// à chaque re-souscription (rebuild clavier, `ensureAuthenticated`, auto-
-  /// dispose…), ce qui faisait **clignoter / disparaître** le bandeau. On
-  /// conserve donc le dernier état affiché tant qu'aucune nouvelle donnée
-  /// (y compris une liste vide = désépinglé) n'arrive.
-  List<GroupPinnedItemEntity> _lastItems = const [];
+  // Champs utilisés par le rendu réel (paramètre du bloc commenté ci-dessous
+  // dans `build`) : plus lus/écrits tant que la pause dure.
+  // int _index = 0;
+  // List<GroupPinnedItemEntity> _lastItems = const [];
 
   @override
   Widget build(BuildContext context) {
-    final itemsAsync = ref.watch(
-      conversationPinnedItemsProvider(widget.conversationId),
-    );
-
-    // Met à jour le cache dès qu'une vraie valeur arrive (data), sinon garde
-    // la dernière connue pendant loading/error.
-    if (itemsAsync.hasValue) _lastItems = itemsAsync.value!;
-    final items = itemsAsync.valueOrNull ?? _lastItems;
-
-    if (items.isEmpty) return _trailingOnlyRow(widget.trailing);
-    final index = _index % items.length;
-    return _PinnedRow(
-      item: items[index],
-      index: index,
-      total: items.length,
-      messageConversationId: widget.messageConversationId,
-      onOpenMessage: widget.onOpenMessage,
-      trailing: widget.trailing,
-      onCycle:
-          items.length > 1
-              ? () => setState(() => _index = (index + 1) % items.length)
-              : null,
-    );
+    // Fonctionnalité épingle mise en pause : le bandeau ne montre plus que
+    // sa pastille de droite (ÉCO), jamais le contenu épinglé. Voir aussi
+    // `canPin` dans conversation_screen.dart et `_GroupInfoCard` dans
+    // group_detail_screen.dart pour le reste de la pause.
+    //
+    // final itemsAsync = ref.watch(
+    //   conversationPinnedItemsProvider(widget.conversationId),
+    // );
+    //
+    // // Met à jour le cache dès qu'une vraie valeur arrive (data), sinon garde
+    // // la dernière connue pendant loading/error.
+    // if (itemsAsync.hasValue) _lastItems = itemsAsync.value!;
+    // final items = itemsAsync.valueOrNull ?? _lastItems;
+    //
+    // if (items.isEmpty) return _trailingOnlyRow(widget.trailing);
+    // final index = _index % items.length;
+    // return _PinnedRow(
+    //   item: items[index],
+    //   index: index,
+    //   total: items.length,
+    //   messageConversationId: widget.messageConversationId,
+    //   onOpenMessage: widget.onOpenMessage,
+    //   trailing: widget.trailing,
+    //   onCycle:
+    //       items.length > 1
+    //           ? () => setState(() => _index = (index + 1) % items.length)
+    //           : null,
+    // );
+    return _trailingOnlyRow(widget.trailing);
   }
 }
+
+/* Fonctionnalité épingle mise en pause (2026-08-14) : `_PinnedRow` ne sert
+   plus qu'à `_GroupPinnedBannerState.build`, qui ne l'instancie plus (voir
+   ci-dessus). Gardé en commentaire pour réactivation plutôt que supprimé.
 
 class _PinnedRow extends ConsumerWidget {
   final GroupPinnedItemEntity item;
@@ -386,3 +402,4 @@ class _PinnedRow extends ConsumerWidget {
     );
   }
 }
+*/
