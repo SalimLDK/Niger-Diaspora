@@ -1453,14 +1453,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 // `_isGroup` passe de false à true en cours de vie (un tel
                 // changement démonterait les éléments suivants, dont le
                 // TextField du composer — deux taps pour lever le clavier).
-                // La bascule ÉCO vit à droite de cette ligne (fiche 6b), au
+                // La bascule ÉCO vivait à droite de cette ligne (fiche 6b), au
                 // lieu d'occuper une sous-barre à elle. Le raccourci Médias a
                 // rejoint le menu ⋮.
+                // Bouton ÉCO désactivé temporairement (cf. settings_screen.dart,
+                // fix(reglages) desactive temporairement le mode donnees reduites).
                 GroupPinnedBanner(
                   conversationId: widget.conversationId,
                   messageConversationId: widget.conversationId,
                   onOpenMessage: _scrollToMessage,
-                  trailing: _ecoChip(context, conversation),
+                  // trailing: _ecoChip(context, conversation),
                 ),
                 // Invitation a restaurer les cles, quand des messages de ce
                 // fil ne sont pas dechiffrables sur cet appareil.
@@ -2866,39 +2868,42 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     );
   }
 
-  /// Bascule « données réduites », posée à droite de la ligne épinglée
-  /// (fiche 6b). Escamotée pour « Mes notes » et pour une demande de message
-  /// en attente, où elle n'aurait rien à réduire.
-  Widget? _ecoChip(BuildContext context, dynamic conversation) {
-    if (_isSelfNotes) return null;
-    if (conversation?.isPendingRequest ?? false) return null;
-
-    final eco = PreferencesService.instance.dataSaverMode;
-    // #F5F0E8 clair / #252119 sombre : c'est `surfaceVariant` en clair mais
-    // `surfaceElevated` en nocturne — la pastille se pose sur le fond de la
-    // conversation, pas sur une carte, et `surfaceVariantDark` (#2D2820) la
-    // ferait ressortir davantage que la fiche ne le demande.
-    final tileBg =
-        context.isDarkMode
-            ? AppColors.surfaceElevatedDark
-            : AppColors.surfaceVariant;
-    final repere = context.repereColor;
-
-    return _SubBarTile(
-      bg: eco ? repere.withValues(alpha: 0.15) : tileBg,
-      icon: Icon(
-        Icons.data_saver_on,
-        size: 15,
-        color: eco ? repere : context.textSecondaryColor,
-      ),
-      label: l10n.messageEcoBadge,
-      labelColor: eco ? repere : context.textSecondaryColor,
-      onTap: () async {
-        await PreferencesService.instance.setDataSaverMode(!eco);
-        if (mounted) setState(() {});
-      },
-    );
-  }
+  // Bascule « données réduites », posée à droite de la ligne épinglée
+  // (fiche 6b). Escamotée pour « Mes notes » et pour une demande de message
+  // en attente, où elle n'aurait rien à réduire.
+  // Désactivée temporairement (cf. settings_screen.dart) : le service et les
+  // points de lecture ailleurs dans l'app restent intacts pour une
+  // réactivation ultérieure.
+  // Widget? _ecoChip(BuildContext context, dynamic conversation) {
+  //   if (_isSelfNotes) return null;
+  //   if (conversation?.isPendingRequest ?? false) return null;
+  //
+  //   final eco = PreferencesService.instance.dataSaverMode;
+  //   // #F5F0E8 clair / #252119 sombre : c'est `surfaceVariant` en clair mais
+  //   // `surfaceElevated` en nocturne — la pastille se pose sur le fond de la
+  //   // conversation, pas sur une carte, et `surfaceVariantDark` (#2D2820) la
+  //   // ferait ressortir davantage que la fiche ne le demande.
+  //   final tileBg =
+  //       context.isDarkMode
+  //           ? AppColors.surfaceElevatedDark
+  //           : AppColors.surfaceVariant;
+  //   final repere = context.repereColor;
+  //
+  //   return _SubBarTile(
+  //     bg: eco ? repere.withValues(alpha: 0.15) : tileBg,
+  //     icon: Icon(
+  //       Icons.data_saver_on,
+  //       size: 15,
+  //       color: eco ? repere : context.textSecondaryColor,
+  //     ),
+  //     label: l10n.messageEcoBadge,
+  //     labelColor: eco ? repere : context.textSecondaryColor,
+  //     onTap: () async {
+  //       await PreferencesService.instance.setDataSaverMode(!eco);
+  //       if (mounted) setState(() {});
+  //     },
+  //   );
+  // }
 
   PreferredSizeWidget _buildAppBar(
     dynamic otherUser,
@@ -3470,50 +3475,51 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   }
 }
 
-/// Pastille de la ligne épinglée (rayon 12, fond #F5F0E8 / #252119).
-/// Seule la bascule ÉCO l'utilise depuis que la sous-barre a disparu.
-class _SubBarTile extends StatelessWidget {
-  final Color bg;
-  final Widget icon;
-  final String label;
-  final Color labelColor;
-  final VoidCallback onTap;
-
-  const _SubBarTile({
-    required this.bg,
-    required this.icon,
-    required this.label,
-    required this.labelColor,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: bg,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              icon,
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: labelColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+// Pastille de la ligne épinglée (rayon 12, fond #F5F0E8 / #252119).
+// Seule la bascule ÉCO l'utilisait ; commentée avec elle (voir _ecoChip
+// ci-dessus) pour éviter un avertissement de déclaration inutilisée.
+// class _SubBarTile extends StatelessWidget {
+//   final Color bg;
+//   final Widget icon;
+//   final String label;
+//   final Color labelColor;
+//   final VoidCallback onTap;
+//
+//   const _SubBarTile({
+//     required this.bg,
+//     required this.icon,
+//     required this.label,
+//     required this.labelColor,
+//     required this.onTap,
+//   });
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Material(
+//       color: bg,
+//       borderRadius: BorderRadius.circular(12),
+//       child: InkWell(
+//         borderRadius: BorderRadius.circular(12),
+//         onTap: onTap,
+//         child: Padding(
+//           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+//           child: Row(
+//             mainAxisSize: MainAxisSize.min,
+//             children: [
+//               icon,
+//               const SizedBox(width: 6),
+//               Text(
+//                 label,
+//                 style: TextStyle(
+//                   fontSize: 12.5,
+//                   fontWeight: FontWeight.w600,
+//                   color: labelColor,
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
