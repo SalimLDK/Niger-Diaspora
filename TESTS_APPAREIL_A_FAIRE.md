@@ -7164,6 +7164,27 @@ réservée au compte plateforme pour un groupe officiel.
 
 ---
 
+## Recoloriage orange/vert de marque (2026-08-14)
+
+Demande produit : `AppColors.primary` (orange) `#E07B39` → `#E05206`,
+`AppColors.secondary` (vert) `#2D7D46` → `#0DB02B`, avec les variantes
+claire/pastel/foncée dérivées en HSL (teinte + rapports de luminosité
+préservés) dans `lib/core/constants/app_colors.dart`, plus 20 fichiers qui
+recopiaient ces teintes en dur (bulles, avatars, badges, appels de groupe).
+`AppColors.success`/`successLight`/`successDark` gardés inchangés
+(coïncidaient en valeur avec l'ancien vert mais sont un token sémantique
+distinct).
+
+- [x] **Vérifié sur SM A515F le 2026-08-14** (rebuild + install de l'APK
+  debug) : splash, accueil, fiche groupes — orange et vert nouveaux bien
+  affichés. Confirmé par échantillonnage de pixels exact sur les captures
+  (pas seulement à l'œil) : barre de progression `#9F3E0A`, icône filtre
+  `#FA7E3B`, icône de groupe `#32E252`, bouton « Ouvrir » dans le nouveau
+  vert vif — correspondance exacte aux valeurs dérivées, nettement
+  distinctes des anciennes (vert forêt terne, orange terre cuite).
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
