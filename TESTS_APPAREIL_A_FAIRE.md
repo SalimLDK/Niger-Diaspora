@@ -185,6 +185,38 @@ Supabase.
   dans la liste (aperçu + badge), pas seulement après l'envoi d'un
   message texte ultérieur.
 
+## La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14)
+
+Signalé par l'utilisateur : « les bulles des appels ne s'affiche jamais ».
+Le correctif du 2026-08-13 ci-dessus a réparé l'aperçu de conversation et le
+badge non-lu, mais pas le symptôme racine — même famille de bug que
+« Réponse rapide depuis la notification » plus haut sur cette page.
+`createCallMessage` dans
+[call_message_service.dart](lib/core/services/call_message_service.dart)
+écrivait le message d'appel (`type: 'call'`) dans Firebase Realtime Database
+(`messages/{conversationId}` via `_database.ref()...push().set(...)`), un
+backend que plus rien ne lit : `MessageSupabaseDataSource.getMessages`
+([message_supabase_datasource.dart:445-453](lib/features/messages/data/datasources/message_supabase_datasource.dart))
+— le seul datasource câblé dans `messageRemoteDataSourceProvider` — stream
+uniquement la table Supabase `messages`. Le message était donc bien créé (les
+logs `debugPrint('appel: ...')` le confirmaient), mais dans un endroit que
+l'écran de conversation ne consulte jamais : aucune bulle, aucune erreur.
+
+Correctif : `createCallMessage` insère maintenant dans la table Supabase
+`messages` avec le même schéma `data` JSONB (camelCase) que
+`sendTextMessage`, précédé d'un `SupabaseAuthBridge.ensureAuthenticated()`
+comme partout ailleurs où l'app écrit dans Supabase. `_ensureParticipantsInRTDB`
+(RTDB) est conservée telle quelle — sert aux règles de permission des appels,
+sans rapport avec l'affichage du message. `flutter analyze` propre, mais rien
+de tout ça n'exerce un vrai appel WebRTC/coturn ni Supabase.
+
+- [ ] Passer ou recevoir un appel (audio ou vidéo), raccrocher → une bulle
+  d'appel apparaît dans la conversation (pas seulement l'aperçu en liste),
+  avec la bonne icône/couleur selon le statut (terminé, manqué, refusé,
+  occupé, sortant annulé) et la durée si décroché.
+- [ ] Taper sur la bulle → rappelle le contact. Appui long → menu contextuel
+  (rappeler / infos / supprimer si auteur ou admin).
+
 ## Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)
 
 Signal (1:1) et Sender Key (groupes) avancent un ratchet à sens unique à
