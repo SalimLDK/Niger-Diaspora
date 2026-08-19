@@ -86,7 +86,19 @@ partielle) corrigés dans le module admin :
 
 Couvert par `test/features/admin/feature_flags_maintenance_test.dart`
 (aller-retour modèle, copyWith, écriture réelle du provider sur faux
-datasource). **Non vérifié sur appareil** :
+datasource).
+
+**État prod lu le 2026-08-19** (admin SDK, lecture seule) : `featureFlags` =
+audioRooms `false`, podcasts `false`, businessDirectory `false`, marketplace
+`false`, moneyTransfer `false`, events/groups/embassies `true`, pas de clé
+`feed` ; **`lastUpdated` = 2026-05-22** → aucune sauvegarde du back-office
+n'a abouti depuis 3 mois. La règle déployée exige
+`users/{uid}.adminRole == 'superAdmin'` pour écrire `app_config/*`, et la
+famille « faux succès » des `set()` Firestore masquerait un refus : le test
+appareil ci-dessous doit donc se juger sur le **document** (le `lastUpdated`
+doit bouger), pas sur l'absence d'erreur à l'écran.
+
+**Non vérifié sur appareil** :
 - [ ] Back-office : activer « Salons audio » et « Podcasts », sauvegarder,
   relancer l'app → `/audio-rooms` et `/podcasts` ne redirigent plus sur
   `/home` (première fois que ces interrupteurs peuvent réellement agir).
