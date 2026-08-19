@@ -48,11 +48,13 @@ import '../../../../core/errors/failure_mapper.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/providers/in_app_notification_provider.dart';
 import '../../domain/services/message_deletion_service.dart';
-import '../../../calls/domain/entities/call_entity.dart';
-import '../../../calls/presentation/providers/call_provider.dart';
+// Appels 1-à-1 mis en pause (voir _startCall/_handleCallBack plus bas) :
+// imports devenus inutilisés, conservés en commentaire pour réactivation.
+// import '../../../calls/domain/entities/call_entity.dart';
+// import '../../../calls/presentation/providers/call_provider.dart';
 import '../../../group_calls/domain/entities/group_call_entity.dart';
 import '../../../group_calls/presentation/providers/group_call_provider.dart';
-import '../../../calls/presentation/screens/call_screen.dart';
+// import '../../../calls/presentation/screens/call_screen.dart';
 import '../../../gifs/domain/entities/gif_entity.dart';
 import '../../../stickers/domain/entities/sticker_entity.dart';
 import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
@@ -700,40 +702,43 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   }
 
   /// Handle call back from a call message bubble
-  Future<void> _handleCallBack(MessageEntity message) async {
-    // Only allow call back in 1:1 conversations
-    if (_isGroup || _effectiveOtherUserId == null) {
-      return;
-    }
-
-    // Determine call type from the message
-    final callType =
-        message.callType == 'video' ? CallType.video : CallType.audio;
-
-    // Initiate call
-    final l10n = AppLocalizations.of(context)!;
-    final call = await ref
-        .read(currentCallProvider.notifier)
-        .initiateCall(
-          calleeId: _effectiveOtherUserId!,
-          calleeName: widget.conversationName ?? l10n.user,
-          calleePhotoUrl: widget.conversationImageUrl,
-          type: callType,
-        );
-
-    if (call != null && mounted) {
-      // Navigate to call screen
-      context.push('/calls/${call.id}');
-    } else if (mounted) {
-      final callState = ref.read(currentCallProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(callState.error ?? l10n.callError),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
+  // Appels 1-à-1 mis en pause (fiabilité en cours de vérification sur
+  // appareil réel — 2026-08-14) : plus aucun appelant, code conservé pour
+  // réactivation. Voir TESTS_APPAREIL_A_FAIRE.md.
+  // Future<void> _handleCallBack(MessageEntity message) async {
+  //   // Only allow call back in 1:1 conversations
+  //   if (_isGroup || _effectiveOtherUserId == null) {
+  //     return;
+  //   }
+  //
+  //   // Determine call type from the message
+  //   final callType =
+  //       message.callType == 'video' ? CallType.video : CallType.audio;
+  //
+  //   // Initiate call
+  //   final l10n = AppLocalizations.of(context)!;
+  //   final call = await ref
+  //       .read(currentCallProvider.notifier)
+  //       .initiateCall(
+  //         calleeId: _effectiveOtherUserId!,
+  //         calleeName: widget.conversationName ?? l10n.user,
+  //         calleePhotoUrl: widget.conversationImageUrl,
+  //         type: callType,
+  //       );
+  //
+  //   if (call != null && mounted) {
+  //     // Navigate to call screen
+  //     context.push('/calls/${call.id}');
+  //   } else if (mounted) {
+  //     final callState = ref.read(currentCallProvider);
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(callState.error ?? l10n.callError),
+  //         backgroundColor: AppColors.error,
+  //       ),
+  //     );
+  //   }
+  // }
 
   /// Démarre un appel de groupe (audio/vidéo) avec tous les membres.
   Future<void> _startGroupCall({required bool isVideo}) async {
@@ -2302,12 +2307,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                               message.id,
                             ),
                             onSelect: _handleSelect,
-                            onCallBack:
-                                (!_isGroup &&
-                                        _effectiveOtherUserId != null &&
-                                        message.isCall)
-                                    ? () => _handleCallBack(message)
-                                    : null,
+                            // Rappel en un geste mis en pause avec les
+                            // boutons d'appel ci-dessus (même correctif).
+                            onCallBack: null,
                             skipAnimation: true,
                             isPendingRequest: isPendingRequestFromMe,
                             onRetry:
@@ -2425,70 +2427,72 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   }
 
   /// Start a call with the other user
-  Future<void> _startCall({required bool isVideo}) async {
-    if (_effectiveOtherUserId == null) return;
-
-    final l10n = AppLocalizations.of(context)!;
-
-    // Get other user info from watched data
-    final otherUserAsync = ref.read(userStreamProvider(_effectiveOtherUserId!));
-    final otherUser = otherUserAsync.valueOrNull;
-
-    final calleeName =
-        otherUser?.displayName ?? widget.conversationName ?? l10n.user;
-    final calleePhotoUrl = otherUser?.photoUrl ?? widget.conversationImageUrl;
-
-    // Vérifier si le destinataire peut recevoir des notifications (en ligne OU a un token FCM)
-    final isCalleeOnline = otherUser?.canReceiveNotifications ?? false;
-
-    // Create the call in Firestore via CurrentCall provider
-    final call = await ref
-        .read(currentCallProvider.notifier)
-        .initiateCall(
-          calleeId: _effectiveOtherUserId!,
-          calleeName: calleeName,
-          calleePhotoUrl: calleePhotoUrl,
-          type: isVideo ? CallType.video : CallType.audio,
-        );
-
-    if (call == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.unableToStartCall),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      return;
-    }
-
-    // Navigate to call screen with the real call ID from Firestore
-    if (mounted) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder:
-              (context) => CallScreen(
-                callId: call.id,
-                isInitiator: true,
-                isVideo: isVideo,
-                calleeName: calleeName,
-                calleePhotoUrl: calleePhotoUrl,
-                isCalleeOnline: isCalleeOnline,
-              ),
-        ),
-      );
-    }
-
-    // Log analytics
-    AnalyticsService.instance.logEvent(
-      name: 'start_call',
-      parameters: {
-        'call_type': isVideo ? 'video' : 'audio',
-        'callee_id': _effectiveOtherUserId!,
-      },
-    );
-  }
+  // Appels 1-à-1 mis en pause avec _handleCallBack ci-dessus (même
+  // correctif) : plus aucun appelant, code conservé pour réactivation.
+  // Future<void> _startCall({required bool isVideo}) async {
+  //   if (_effectiveOtherUserId == null) return;
+  //
+  //   final l10n = AppLocalizations.of(context)!;
+  //
+  //   // Get other user info from watched data
+  //   final otherUserAsync = ref.read(userStreamProvider(_effectiveOtherUserId!));
+  //   final otherUser = otherUserAsync.valueOrNull;
+  //
+  //   final calleeName =
+  //       otherUser?.displayName ?? widget.conversationName ?? l10n.user;
+  //   final calleePhotoUrl = otherUser?.photoUrl ?? widget.conversationImageUrl;
+  //
+  //   // Vérifier si le destinataire peut recevoir des notifications (en ligne OU a un token FCM)
+  //   final isCalleeOnline = otherUser?.canReceiveNotifications ?? false;
+  //
+  //   // Create the call in Firestore via CurrentCall provider
+  //   final call = await ref
+  //       .read(currentCallProvider.notifier)
+  //       .initiateCall(
+  //         calleeId: _effectiveOtherUserId!,
+  //         calleeName: calleeName,
+  //         calleePhotoUrl: calleePhotoUrl,
+  //         type: isVideo ? CallType.video : CallType.audio,
+  //       );
+  //
+  //   if (call == null) {
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text(l10n.unableToStartCall),
+  //           backgroundColor: Colors.red,
+  //         ),
+  //       );
+  //     }
+  //     return;
+  //   }
+  //
+  //   // Navigate to call screen with the real call ID from Firestore
+  //   if (mounted) {
+  //     Navigator.of(context).push(
+  //       MaterialPageRoute(
+  //         builder:
+  //             (context) => CallScreen(
+  //               callId: call.id,
+  //               isInitiator: true,
+  //               isVideo: isVideo,
+  //               calleeName: calleeName,
+  //               calleePhotoUrl: calleePhotoUrl,
+  //               isCalleeOnline: isCalleeOnline,
+  //             ),
+  //       ),
+  //     );
+  //   }
+  //
+  //   // Log analytics
+  //   AnalyticsService.instance.logEvent(
+  //     name: 'start_call',
+  //     parameters: {
+  //       'call_type': isVideo ? 'video' : 'audio',
+  //       'callee_id': _effectiveOtherUserId!,
+  //     },
+  //   );
+  // }
 
   /// Obtenir les initiales du nom
   String _getInitials(String? name) {
@@ -3176,27 +3180,29 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         ),
       ),
       actions: [
-        // Call buttons for individual chats only (not for « Mes notes »)
-        if (!_isGroup && !isDeletedUser && !_isSelfNotes) ...[
-          IconButton(
-            onPressed: () => _startCall(isVideo: false),
-            icon: AppIcon(
-              AppIcon.call,
-              size: 21,
-              color: context.textPrimaryColor,
-            ),
-            tooltip: l10n.voiceCall,
-          ),
-          IconButton(
-            onPressed: () => _startCall(isVideo: true),
-            icon: AppIcon(
-              AppIcon.video,
-              size: 21,
-              color: context.textPrimaryColor,
-            ),
-            tooltip: l10n.videoCall,
-          ),
-        ],
+        // Appels 1-à-1 mis en pause (fiabilité en cours de vérification sur
+        // appareil réel — 2026-08-14) : boutons masqués, code conservé pour
+        // réactivation. Voir TESTS_APPAREIL_A_FAIRE.md.
+        // if (!_isGroup && !isDeletedUser && !_isSelfNotes) ...[
+        //   IconButton(
+        //     onPressed: () => _startCall(isVideo: false),
+        //     icon: AppIcon(
+        //       AppIcon.call,
+        //       size: 21,
+        //       color: context.textPrimaryColor,
+        //     ),
+        //     tooltip: l10n.voiceCall,
+        //   ),
+        //   IconButton(
+        //     onPressed: () => _startCall(isVideo: true),
+        //     icon: AppIcon(
+        //       AppIcon.video,
+        //       size: 21,
+        //       color: context.textPrimaryColor,
+        //     ),
+        //     tooltip: l10n.videoCall,
+        //   ),
+        // ],
         // Appels de groupe (comme en 1-a-1, mais pour tout le groupe)
         if (_isGroup && !_isSelfNotes) ...[
           IconButton(

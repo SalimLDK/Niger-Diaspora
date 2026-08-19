@@ -241,14 +241,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     subtitle: l10n.qrCodeAndShareLink,
                     onTap: () => _showShareProfileModal(),
                   ),
-                  // CallHistoryScreen était injoignable : la route existait,
-                  // mais aucun écran n'y renvoyait.
-                  DesignSettingsTile(
-                    icon: const Icon(Icons.call_outlined),
-                    title: l10n.callHistoryTitle,
-                    subtitle: l10n.callHistorySubtitle,
-                    onTap: () => context.push('/calls/history'),
-                  ),
+                  // Appels 1-à-1 mis en pause (fiabilité en cours de
+                  // vérification sur appareil réel — 2026-08-14) : entrée
+                  // masquée avec les boutons d'appel, code conservé pour
+                  // réactivation. Voir TESTS_APPAREIL_A_FAIRE.md.
+                  // DesignSettingsTile(
+                  //   icon: const Icon(Icons.call_outlined),
+                  //   title: l10n.callHistoryTitle,
+                  //   subtitle: l10n.callHistorySubtitle,
+                  //   onTap: () => context.push('/calls/history'),
+                  // ),
                   DesignSettingsTile(
                     icon: const Icon(Icons.notifications_outlined),
                     // Cette ligne mène à la LISTE des notifications reçues,

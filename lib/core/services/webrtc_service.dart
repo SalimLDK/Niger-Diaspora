@@ -745,13 +745,10 @@ class WebRTCService {
       return;
     }
 
-    _reconnectionAttempts++;
-    debugPrint(
-      'WebRTCService: Attempting reconnection (attempt $_reconnectionAttempts/$_maxReconnectionAttempts)',
-    );
     _updateConnectionState(WebRTCConnectionState.reconnecting);
 
-    // Start timeout timer
+    // Start timeout timer — couvre toute la SÉQUENCE de reconnexion, pas une
+    // seule tentative : les relances en cas d'échec restent sous ce délai.
     _reconnectionTimer?.cancel();
     _reconnectionTimer = Timer(_reconnectionTimeout, () {
       if (_connectionState == WebRTCConnectionState.reconnecting) {
@@ -760,15 +757,37 @@ class WebRTCService {
       }
     });
 
+    await _retryIceRestart();
+  }
+
+  /// Tente un ICE restart et relance jusqu'à `_maxReconnectionAttempts` en
+  /// cas d'échec (ex. jeton Firebase en cours de renouvellement au moment de
+  /// l'écriture RTDB).
+  ///
+  /// Séparé d'`_attemptReconnection` : rappeler cette dernière pour relancer
+  /// tombait sur son propre garde anti-doublon (`_connectionState ==
+  /// reconnecting`, posé une ligne plus haut et jamais retiré entre deux
+  /// tentatives) — la relance retournait donc immédiatement sans rien
+  /// retenter. Un seul échec de signalisation, même transitoire, abandonnait
+  /// l'appel au bout du timeout de 30 s au lieu d'épuiser ses 3 tentatives.
+  Future<void> _retryIceRestart() async {
+    _reconnectionAttempts++;
+    debugPrint(
+      'WebRTCService: Attempting reconnection (attempt $_reconnectionAttempts/$_maxReconnectionAttempts)',
+    );
+
     try {
-      // Perform ICE restart
       await _performIceRestart();
     } catch (e) {
       debugPrint('WebRTCService: Error during reconnection: $e');
+      if (_connectionState != WebRTCConnectionState.reconnecting) {
+        // hangUp() ou une reconnexion réussie a tourné entre-temps : ne pas
+        // relancer sur un appel qui n'est plus en train de se reconnecter.
+        return;
+      }
       if (_reconnectionAttempts < _maxReconnectionAttempts) {
-        // Wait a bit before trying again
         await Future.delayed(const Duration(seconds: 2));
-        _attemptReconnection();
+        await _retryIceRestart();
       } else {
         _updateConnectionState(WebRTCConnectionState.failed);
       }

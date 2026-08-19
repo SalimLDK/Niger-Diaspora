@@ -275,7 +275,9 @@ class CallMessageBubble extends StatelessWidget {
       return l10n.outgoingCall;
     }
     if (isMissed) {
-      return l10n.missedCall;
+      // For the caller, "Missed call" is wrong — they didn't miss anything,
+      // the callee never answered. Same distinction as the declined case below.
+      return isOutgoing ? l10n.noAnswer : l10n.missedCall;
     }
     if (isDeclined) {
       // For the caller, show "No answer" instead of "Declined"

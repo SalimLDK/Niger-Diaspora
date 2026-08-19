@@ -11,6 +11,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/e2ee/notification_decryption_service.dart';
 import 'core/services/tracking_consent_service.dart';
 import 'core/providers/app_settings_provider.dart';
+import 'features/calls/presentation/providers/call_provider.dart';
 import 'shared/widgets/reconnection_summary.dart';
 
 class NigerDiasporaApp extends ConsumerStatefulWidget {
@@ -150,6 +151,15 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
     // Sync admin settings (like location interval) to SharedPreferences
     // for background services that don't have access to Riverpod
     ref.watch(locationIntervalSyncProvider);
+
+    // Sans ce `watch`, ce Notifier n'est jamais construit — Riverpod est
+    // paresseux et rien d'autre dans l'app ne le lit. Conséquence vérifiée
+    // sur appareil (2026-08-14) : `_listenToNativeCallEvents` et
+    // `_checkPendingCallsOnStart` ne tournaient JAMAIS, donc aucun
+    // évènement CallKit natif (accepter/refuser/raccrocher) n'atteignait
+    // jamais `answerCall()` — répondre à un appel entrant depuis l'écran de
+    // verrouillage ne faisait rigoureusement rien.
+    ref.watch(callNotificationHandlerProvider);
 
     return MaterialApp.router(
       title: 'Diaspo Niger',

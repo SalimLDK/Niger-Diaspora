@@ -3551,6 +3551,75 @@ en solo.
   « Utilisateur non connecté », « Échec de la connexion », « X est déjà en
   appel ». À relire à l'écran : historique d'appels, écran d'appel, overlay
   d'appel entrant.
+
+## 🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien
+
+Trouvé en testant à deux appareils réels (SM A515F + émulateur) après un
+signalement « les appels ne passent pas ». Trois bugs empilés, chacun
+suffisant à lui seul pour expliquer le symptôme :
+
+- [x] **`callNotificationHandlerProvider` n'était jamais lu** (`lib/app.dart`) —
+  Riverpod est paresseux : sans un `ref.watch` quelque part, ce `Notifier` ne
+  se construit jamais, donc `_listenToNativeCallEvents()` et
+  `_checkPendingCallsOnStart()` ne tournaient JAMAIS. Confirmé par
+  `git log -S` sur tout l'historique : ce provider n'a été lu nulle part
+  depuis sa création (`fcf821b`). Conséquence : accepter un appel depuis la
+  bannière CallKit native (écran verrouillé ou app tuée) n'invoquait jamais
+  `answerCall()` — la bannière se refermait, rien d'autre ne se passait.
+  Explique pourquoi les vérifications « Acceptation depuis l'écran verrouillé »
+  du bloc précédent (2026-08-03) n'ont jamais pu être concluantes : le
+  réglage manifest était correct, mais rien en dessous n'écoutait.
+  Correctif : `ref.watch(callNotificationHandlerProvider)` ajouté dans
+  `_NigerDiasporaAppState.build()`. **Vérifié sur device (SM A515F +
+  émulateur, 2026-08-14) : décroché, connecté.**
+- [x] **Second appel pendant qu'un premier est en cours** (`call_provider.dart`,
+  commit `6f572a9`) : `answerCall()` refusait en silence tout appel entrant
+  différent de celui déjà suivi par `state.call` — y compris quand ce
+  `state.call` était son PROPRE appel sortant en cours de composition.
+  Décline désormais explicitement (occupé) et referme la bannière CallKit du
+  second appel via `NativeCallService.endCallById` (nouveau).
+- [x] **La reconnexion ICE ne retentait jamais réellement**
+  (`webrtc_service.dart`) : `_attemptReconnection()` posait
+  `WebRTCConnectionState.reconnecting` puis s'auto-rappelait en cas d'échec —
+  mais son propre garde anti-doublon (basé sur ce même état) bloquait la
+  relance. Un seul échec de signalisation transitoire (ex. jeton Firebase en
+  cours de renouvellement pendant l'écriture RTDB de `ice_restart_offer`)
+  achevait l'appel au bout du timeout de 30 s au lieu d'épuiser ses 3
+  tentatives. Logique de relance extraite dans `_retryIceRestart()`, séparée
+  du garde d'état.
+- [x] Confusion « appel manqué » côté appelant (`call_message_service.dart`,
+  `call_message_bubble.dart`, `conversation_item.dart`) : le même aperçu de
+  message est vu par les deux côtés d'un appel sans réponse ; « manqué »
+  sous-entend « vous avez manqué cet appel », faux pour l'appelant. Libellé
+  neutre (« Pas de réponse ») des deux côtés.
+
+**Les trois premiers correctifs sont vérifiés fonctionnels sur device**
+(appel décroché et connecté avec succès entre SM A515F et émulateur). Mais la
+session de test a été chaotique (émulateur repris par une autre
+activité/session en cours de route, plusieurs faux départs) — **pas assez de
+cycles propres pour être confiant sur la fiabilité bout-en-bout**
+(reconnexion ICE en particulier, jamais vue aboutir jusqu'au bout dans un
+test propre). Décision : couper l'accès utilisateur à la fonctionnalité le
+temps d'une vérification à deux VRAIS téléphones, sans contention.
+
+**Ce qui a été commenté (code conservé, pas supprimé)** :
+- `conversation_screen.dart` : les deux `IconButton` d'appel 1-à-1 dans
+  l'AppBar (audio/vidéo — les boutons d'appel de GROUPE juste en dessous
+  restent actifs, système différent/LiveKit, pas concerné) ; le rappel en un
+  geste sur une bulle d'appel (`onCallBack: null`) ; les méthodes
+  `_startCall`/`_handleCallBack` et leurs imports (`call_entity.dart`,
+  `call_provider.dart`, `call_screen.dart`) devenus inutilisés.
+- `profile_screen.dart` : l'entrée « Historique des appels » (menu Profil).
+
+**Pour réactiver** : décommenter ces blocs (cherchez « Appels 1-à-1 mis en
+pause » dans les deux fichiers), puis reprendre EXACTEMENT ce test avant de
+relivrer — deux téléphones réels, pas d'émulateur, personne d'autre dessus :
+1. Appel connecté normalement des deux côtés.
+2. Couper le wifi ~10 s côté appelé en pleine communication (force une
+   coupure ICE réelle) : l'appel doit survivre via `_retryIceRestart()`, pas
+   raccrocher après le timeout de 30 s.
+3. Appeler B depuis A pendant que A a déjà un appel sortant en cours vers un
+   tiers : B doit recevoir un refus « occupé » propre, pas un plantage muet.
 - [ ] **Sonnerie côté appelé (push d'appel entrant)** — *le test le plus
   important* : le trigger `onCallCreated` était **mort au chargement** depuis le
   2026-07-19 (`require("dotenv")` et `require("livekit-server-sdk")` absents des

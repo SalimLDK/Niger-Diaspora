@@ -616,7 +616,13 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
     if (isCallMessage) {
       // Color based on call status in message content
       final lastMessage = conversation.lastMessage ?? '';
-      if (lastMessage.contains('missed') || lastMessage.contains(l10n.callStatusMissed)) {
+      // « Pas de réponse » (l10n.noAnswer) is the neutral wording
+      // CallMessageService now uses for a missed/unanswered call — it avoids
+      // "manqué" (implies "you missed it"), which reads wrong for the caller
+      // since this same preview text is shown to both sides of the call.
+      if (lastMessage.contains('missed') ||
+          lastMessage.contains(l10n.callStatusMissed) ||
+          lastMessage.contains(l10n.noAnswer)) {
         textColor = AppColors.error;
       } else if (lastMessage.contains('declined') || lastMessage.contains(l10n.callStatusDeclined)) {
         textColor = Colors.orange;

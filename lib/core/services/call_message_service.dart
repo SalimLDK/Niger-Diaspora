@@ -286,7 +286,11 @@ class CallMessageService {
         }
         return typeStr;
       case 'missed':
-        return '$typeStr manqué';
+        // Un seul aperçu est stocké pour toute la conversation — vu par
+        // l'appelant ET l'appelé. « manqué » sous-entend « vous avez
+        // manqué cet appel », faux pour l'appelant qui l'a passé sans
+        // réponse. Formulation neutre, correcte des deux côtés.
+        return '$typeStr - Pas de réponse';
       case 'declined':
         return '$typeStr refusé';
       case 'cancelled':
