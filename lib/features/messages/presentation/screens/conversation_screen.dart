@@ -50,6 +50,9 @@ import '../../../../core/providers/in_app_notification_provider.dart';
 import '../../domain/services/message_deletion_service.dart';
 // Appels 1-à-1 mis en pause (voir _startCall/_handleCallBack plus bas) :
 // imports devenus inutilisés, conservés en commentaire pour réactivation.
+// TODO(appels): réactiver après vérification à deux vrais téléphones —
+// protocole dans TESTS_APPAREIL_A_FAIRE.md, section « Appels 1-à-1 mis en
+// PAUSE (2026-08-14) ».
 // import '../../../calls/domain/entities/call_entity.dart';
 // import '../../../calls/presentation/providers/call_provider.dart';
 import '../../../group_calls/domain/entities/group_call_entity.dart';
@@ -705,6 +708,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   // Appels 1-à-1 mis en pause (fiabilité en cours de vérification sur
   // appareil réel — 2026-08-14) : plus aucun appelant, code conservé pour
   // réactivation. Voir TESTS_APPAREIL_A_FAIRE.md.
+  // TODO(appels): réactiver après vérification à deux vrais téléphones.
   // Future<void> _handleCallBack(MessageEntity message) async {
   //   // Only allow call back in 1:1 conversations
   //   if (_isGroup || _effectiveOtherUserId == null) {
@@ -2309,6 +2313,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             onSelect: _handleSelect,
                             // Rappel en un geste mis en pause avec les
                             // boutons d'appel ci-dessus (même correctif).
+                            // TODO(appels): réactiver après vérification à
+                            // deux vrais téléphones.
                             onCallBack: null,
                             skipAnimation: true,
                             isPendingRequest: isPendingRequestFromMe,
@@ -2429,6 +2435,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// Start a call with the other user
   // Appels 1-à-1 mis en pause avec _handleCallBack ci-dessus (même
   // correctif) : plus aucun appelant, code conservé pour réactivation.
+  // TODO(appels): réactiver après vérification à deux vrais téléphones.
   // Future<void> _startCall({required bool isVideo}) async {
   //   if (_effectiveOtherUserId == null) return;
   //
@@ -3183,6 +3190,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         // Appels 1-à-1 mis en pause (fiabilité en cours de vérification sur
         // appareil réel — 2026-08-14) : boutons masqués, code conservé pour
         // réactivation. Voir TESTS_APPAREIL_A_FAIRE.md.
+        // TODO(appels): réactiver après vérification à deux vrais téléphones.
         // if (!_isGroup && !isDeletedUser && !_isSelfNotes) ...[
         //   IconButton(
         //     onPressed: () => _startCall(isVideo: false),
