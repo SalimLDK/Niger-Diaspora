@@ -24,11 +24,13 @@ Demande de Salim : icônes plus grandes sur les tuiles de services.
   [quick_action_card.dart](lib/features/home/presentation/widgets/quick_action_card.dart),
   utilisé uniquement par cet écran) : 28 → 36.
 
-**Non vérifié sur appareil** :
-- [ ] Pas de débordement des cartes « Tous les services » (grille 2 colonnes,
-  `childAspectRatio: 1.1`) avec la font scale 1.1 du SM A515F — marge calculée
-  ≈ 8 px seulement.
-- [ ] Rendu de la grille accueil en 3 et 4 colonnes (icône 32 dans le carré).
+Vérifié sur SM A515F le 2026-08-19 (thème sombre, captures dans la session) :
+- [x] Pas de débordement des cartes « Tous les services » (grille 2 colonnes,
+  `childAspectRatio: 1.1`) avec la font scale 1.1 du SM A515F — 5 tuiles
+  affichées, icône 36 nette dans la pastille, aucune troncature.
+- [x] Rendu de la grille accueil en 3 colonnes (icône 32 dans le carré) —
+  le cas 4 colonnes reste à voir (il faut ≥ 4 tuiles actives).
+- [ ] Thème clair non capturé (téléphone en sombre).
 
 ---
 
@@ -43,11 +45,15 @@ renvoient `true` en dur
 interrupteurs du back-office sont affichés verrouillés sur « Toujours actif »
 ([admin_feature_flags_screen.dart](lib/features/admin/presentation/screens/admin_feature_flags_screen.dart)).
 
-**Non vérifié sur appareil** :
-- [ ] Accueil et « Tous les services » montrent bien Annuaire + Ambassades
+Vérifié sur SM A515F le 2026-08-19 — probant : la prod a `businessDirectory:
+false` (lu le même jour, voir l'entrée ci-dessous), donc ces tuiles ne
+peuvent venir que du « toujours actif » :
+- [x] Accueil et « Tous les services » montrent bien Annuaire + Ambassades
   même si le back-office les avait désactivés (c'était le symptôme de départ :
-  seule « Ambassades » s'affichait).
-- [ ] `/businesses` s'ouvre (plus de redirection silencieuse vers /home).
+  seule « Ambassades » s'affichait). Accueil = Fil/Annuaire/Ambassades,
+  « Tous les services » = + Événements + Amis.
+- [x] `/businesses` s'ouvre (écran « Annuaire Business », vide de données
+  mais fonctionnel — plus de redirection silencieuse vers /home).
 - [ ] Back-office → Fonctionnalités : les deux interrupteurs Annuaire et
   Ambassades apparaissent grisés, verrouillés sur actif, avec le sous-titre
   explicatif ; les autres restent manœuvrables.
@@ -122,12 +128,13 @@ Ajoutés : **Le fil** (`/feed`, sans flag, comme sur l'accueil), **Événements*
 (`/events`, gaté `isEventsEnabledProvider` — le module avait un flag et une
 route mais aucune tuile nulle part), **Amis** (`/friends`, sans flag).
 
-**Non vérifié sur appareil** :
-- [ ] Rendu de la grille 2 colonnes avec 3+ tuiles de plus (pas de
-  débordement, `childAspectRatio: 1.1`), thème clair et sombre.
+Partiellement vérifié sur SM A515F le 2026-08-19 (thème sombre) :
+- [x] Rendu de la grille 2 colonnes avec les tuiles de plus (5 affichées,
+  pas de débordement, `childAspectRatio: 1.1`) — thème sombre ; clair non vu.
 - [ ] Tap sur chaque nouvelle tuile : Fil, Événements, Amis s'ouvrent et le
-  retour revient bien sur « Tous les services ».
-- [ ] Couleur `Colors.teal` de la tuile Événements lisible en thème sombre.
+  retour revient bien sur « Tous les services » (seul le tap Annuaire a été
+  fait pendant la session).
+- [x] Couleur `Colors.teal` de la tuile Événements lisible en thème sombre.
 
 À noter (vu pendant la session, non corrigé ici) : si le back-office affiche
 des fonctionnalités actives que l'app ne montre pas, l'écriture des flags a pu
