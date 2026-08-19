@@ -14,6 +14,24 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Icônes des tuiles de services agrandies (2026-08-19)
+
+Demande de Salim : icônes plus grandes sur les tuiles de services.
+- Grille de l'accueil (`_ServiceTile`,
+  [home_screen_widgets.dart](lib/features/home/presentation/screens/home_screen_widgets.dart)) :
+  26 → 32.
+- « Tous les services » (`QuickActionCard`,
+  [quick_action_card.dart](lib/features/home/presentation/widgets/quick_action_card.dart),
+  utilisé uniquement par cet écran) : 28 → 36.
+
+**Non vérifié sur appareil** :
+- [ ] Pas de débordement des cartes « Tous les services » (grille 2 colonnes,
+  `childAspectRatio: 1.1`) avec la font scale 1.1 du SM A515F — marge calculée
+  ≈ 8 px seulement.
+- [ ] Rendu de la grille accueil en 3 et 4 colonnes (icône 32 dans le carré).
+
+---
+
 ## Annuaire, Fil et Ambassades toujours actifs — plus de flag (2026-08-19)
 
 Décision produit : ces trois services ne dépendent plus du back-office.
