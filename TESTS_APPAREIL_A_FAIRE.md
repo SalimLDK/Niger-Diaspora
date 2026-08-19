@@ -14,6 +14,43 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Flags Salons audio / Podcasts / Fil enfin sérialisés + maintenance sans écrasement (2026-08-19)
+
+Deux bugs de la même famille que les préférences profil (reconstruction
+partielle) corrigés dans le module admin :
+
+1. `FeatureFlagsModel`
+   ([app_settings_model.dart](lib/features/admin/data/models/app_settings_model.dart))
+   ne sérialisait **pas du tout** `audioRooms`, `podcasts`, `feed` : les
+   interrupteurs « Salons audio » et « Podcasts » du back-office étaient
+   perdus à l'écriture, et la lecture retombait toujours sur les défauts de
+   l'entité (salons/podcasts désactivés) quoi que contienne Firestore. C'est
+   une cause plus simple que la piste « écriture refusée en silence » notée
+   le 2026-08-19 ci-dessous : même acceptée, l'écriture ne contenait pas ces
+   clés.
+2. `toggleMaintenanceMode`
+   ([app_settings_provider.dart](lib/features/admin/presentation/providers/app_settings_provider.dart))
+   reconstruisait l'entité champ par champ (6 flags sur 9) : basculer la
+   maintenance aurait écrasé `audioRooms`/`podcasts`/`feed` avec les défauts.
+   Réécrit en `copyWith`, avec sentinelle dans
+   [app_settings_entity.dart](lib/features/admin/domain/entities/app_settings_entity.dart)
+   pour que `maintenanceMessage: null` efface vraiment le message (l'écran
+   admin passait déjà `null` pour effacer — no-op silencieux avant).
+
+Couvert par `test/features/admin/feature_flags_maintenance_test.dart`
+(aller-retour modèle, copyWith, écriture réelle du provider sur faux
+datasource). **Non vérifié sur appareil** :
+- [ ] Back-office : activer « Salons audio » et « Podcasts », sauvegarder,
+  relancer l'app → `/audio-rooms` et `/podcasts` ne redirigent plus sur
+  `/home` (première fois que ces interrupteurs peuvent réellement agir).
+- [ ] Back-office : basculer le mode maintenance ON puis OFF → les
+  interrupteurs Salons audio/Podcasts et le Fil gardent leur état (avant le
+  correctif ils seraient retombés à désactivé/désactivé/activé).
+- [ ] Effacer le message de maintenance (vider le champ) puis sauvegarder →
+  le message ne réapparaît pas à la réouverture de l'écran.
+
+---
+
 ## « Tous les services » complété : Fil, Événements, Amis (2026-08-19)
 
 L'écran « Tous les services »

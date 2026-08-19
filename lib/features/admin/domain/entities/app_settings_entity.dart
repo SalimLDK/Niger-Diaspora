@@ -598,6 +598,11 @@ class FeatureFlagsEntity extends Equatable {
     this.maintenanceMessage,
   });
 
+  /// Sentinelle distinguant « paramètre non passé » de « null explicite » :
+  /// `maintenanceMessage` étant nullable, un `?? this.x` rendrait impossible
+  /// son effacement via copyWith (l'écran admin passe null pour effacer).
+  static const Object _unset = Object();
+
   FeatureFlagsEntity copyWith({
     bool? moneyTransfer,
     bool? marketplace,
@@ -609,7 +614,7 @@ class FeatureFlagsEntity extends Equatable {
     bool? podcasts,
     bool? feed,
     bool? maintenanceMode,
-    String? maintenanceMessage,
+    Object? maintenanceMessage = _unset,
   }) {
     return FeatureFlagsEntity(
       moneyTransfer: moneyTransfer ?? this.moneyTransfer,
@@ -622,7 +627,9 @@ class FeatureFlagsEntity extends Equatable {
       podcasts: podcasts ?? this.podcasts,
       feed: feed ?? this.feed,
       maintenanceMode: maintenanceMode ?? this.maintenanceMode,
-      maintenanceMessage: maintenanceMessage ?? this.maintenanceMessage,
+      maintenanceMessage: identical(maintenanceMessage, _unset)
+          ? this.maintenanceMessage
+          : maintenanceMessage as String?,
     );
   }
 
