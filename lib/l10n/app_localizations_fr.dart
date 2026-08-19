@@ -5659,6 +5659,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get businessCreatedSuccess => 'Entreprise créée avec succès !';
 
   @override
+  String get editBusiness => 'Modifier l\'entreprise';
+
+  @override
+  String get businessUpdatedSuccess => 'Entreprise mise à jour';
+
+  @override
+  String get businessPositionOnMap => 'Position sur la carte';
+
+  @override
+  String get setBusinessPosition => 'Définir la position exacte';
+
+  @override
+  String get businessPositionHelp =>
+      'Elle permet d\'afficher votre entreprise sur la carte de l\'app.';
+
+  @override
+  String get useThisPosition => 'Utiliser cette position';
+
+  @override
   String get creationError => 'Erreur lors de la création';
 
   @override

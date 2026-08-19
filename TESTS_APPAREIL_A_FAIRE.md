@@ -68,9 +68,9 @@ peuvent venir que du « toujours actif » :
   filtre sur `latitude`/`longitude`, mais ni la création ni l'édition
   d'entreprise ne renseignent ces champs — un doc créé par l'app est exclu
   par la range query, et le filtre longitude rejette les null. Même famille
-  que les « champs jamais alimentés ». Créer une entreprise de test ne
-  produirait donc aucun pin ; à re-tester seulement après le correctif
-  « capturer une position à la création » (tâche proposée le 2026-08-19).
+  que les « champs jamais alimentés ». **Correctif livré le 2026-08-19
+  (même jour, session worktree) : voir la section « Position des entreprises »
+  ci-dessous pour les vérifications appareil.**
 
 Bloqué pour la session du 2026-08-19 (agent seul avec le téléphone) :
 - Le back-office est une app séparée (`lib/features/admin/main.dart`) dont
@@ -87,6 +87,47 @@ Bloqué pour la session du 2026-08-19 (agent seul avec le téléphone) :
 À savoir : les hash de `feature_flag_service.g.dart` n'ont pas été régénérés
 (build_runner non relancé — signatures inchangées, seul le hot-reload debug
 de ces 3 providers peut être moins fin).
+
+---
+
+## Position des entreprises : création/édition alimentent enfin latitude/longitude (2026-08-19)
+
+Correctif de la couche « entreprises » morte de la carte (voir l'entrée
+« Pins entreprises » ci-dessus). Ce qui a changé :
+
+- [create_business_screen.dart](lib/features/businesses/presentation/screens/create_business_screen.dart)
+  gagne une tuile « Position sur la carte » (section Localisation) qui ouvre
+  le `LocationPickerModal` de la messagerie (GPS, tap carte, recherche de
+  lieu) ; à défaut de choix explicite, l'adresse saisie est géocodée à la
+  soumission (meilleur effort, 5 s, jamais bloquant).
+- Le même écran devient l'écran d'édition (`/businesses/:id/edit`) : **cette
+  route n'existait pas** — le menu « Modifier » de la fiche poussait dans le
+  vide depuis toujours.
+- `getNearbyBusinesses` : le calcul du delta de longitude utilisait une
+  fonction `_cos` qui convertissait en radians **sans jamais appliquer le
+  cosinus** (à Niamey, fenêtre ~4× trop large). Corrigé avec `dart:math`.
+- `updateBusiness` (datasource) n'écrase plus les champs serveur
+  (`createdAt`, compteurs, boost, `isVerified`) — sinon la première édition
+  aurait retapé `createdAt` en chaîne ISO et cassé les tris.
+
+Aucune reprise de données à faire : l'annuaire est vide en prod au
+2026-08-19 (constaté sur l'écran « Annuaire Business » le même jour).
+
+À vérifier sur appareil (rien de tout ceci n'a tourné sur un vrai téléphone) :
+- [ ] Créer une entreprise avec position choisie sur la carte (permission
+  localisation runtime, gestes du modal dans le bottom sheet, thème sombre
+  de la tuile et du modal), puis vérifier que le **pin apparaît sur la
+  carte** (couche entreprises activée) et que son tap ouvre la fiche.
+- [ ] Créer une entreprise **sans** toucher la carte mais avec une adresse
+  réelle : le géocodage de repli doit poser lat/lng (à vérifier en base ou
+  par le pin) ; hors ligne ou adresse introuvable, la création doit passer
+  quand même, juste sans pin.
+- [ ] Menu « Modifier » de la fiche (propriétaire) : l'écran s'ouvre
+  prérempli (photos existantes supprimables, pays, téléphone re-séparé
+  indicatif/numéro), la position existante s'affiche et se modifie, et la
+  fiche détail montre les changements au retour.
+- [ ] `viewCount`/`averageRating`/`isBoosted` inchangés en base après une
+  édition (garde anti-écrasement du datasource).
 
 ---
 

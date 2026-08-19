@@ -684,6 +684,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      // Édition : la fiche pousse cette route avec l'entité en extra ; par
+      // lien profond extra est null et l'écran recharge via l'id.
+      GoRoute(
+        path: '/businesses/:businessId/edit',
+        builder: (context, state) {
+          final businessId = state.pathParameters['businessId']!;
+          final business = state.extra as BusinessEntity?;
+          return CreateBusinessScreen(
+            editBusinessId: businessId,
+            initial: business,
+          );
+        },
+      ),
       GoRoute(
         path: '/businesses/:businessId/boost',
         builder: (context, state) {
