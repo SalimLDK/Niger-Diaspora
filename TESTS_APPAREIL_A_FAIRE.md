@@ -56,12 +56,28 @@ peuvent venir que du « toujours actif » :
   « Tous les services » = + Événements + Amis.
 - [x] `/businesses` s'ouvre (écran « Annuaire Business », vide de données
   mais fonctionnel — plus de redirection silencieuse vers /home).
-- [ ] Back-office → Fonctionnalités : les deux interrupteurs Annuaire et
-  Ambassades apparaissent grisés, verrouillés sur actif, avec le sous-titre
-  explicatif ; les autres restent manœuvrables.
+- [x] Back-office → Fonctionnalités : les deux interrupteurs Annuaire et
+  Ambassades verrouillés sur actif (sous-titre explicatif, les autres
+  manœuvrables) — couvert par un test de widget plutôt qu'un test appareil :
+  `test/features/admin/feature_flags_toujours_actifs_test.dart` (le serveur
+  dit `false`, l'écran doit quand même les montrer actifs et non
+  manœuvrables ; exactement 2 interrupteurs verrouillés).
 - [ ] Pins « entreprises » de la carte : dépendent maintenant du seul
   interrupteur utilisateur `_showBusinesses` (map_screen), vérifier qu'ils
-  s'affichent.
+  s'affichent — invérifiable tant que l'annuaire est vide (aucune entreprise
+  créée au 2026-08-19).
+
+Bloqué pour la session du 2026-08-19 (agent seul avec le téléphone) :
+- Le back-office est une app séparée (`lib/features/admin/main.dart`) dont
+  l'écran de connexion n'a **aucune reprise de session** — login manuel
+  obligatoire, donc test « sauvegarde → `lastUpdated` bouge » à faire par
+  Salim avec le compte « Salim L. » (vérifié `adminRole=superAdmin` en base :
+  la règle d'écriture passera ; le compte « Sim A » du téléphone est un autre
+  compte). La sérialisation étant corrigée (voir entrée dédiée), les
+  interrupteurs Salons/Podcasts devraient enfin agir.
+- Le cas 4 colonnes de l'accueil : l'écriture directe du flag `audioRooms`
+  en prod a été refusée par le classificateur de permissions de la session —
+  à voir après une vraie sauvegarde back-office.
 
 À savoir : les hash de `feature_flag_service.g.dart` n'ont pas été régénérés
 (build_runner non relancé — signatures inchangées, seul le hot-reload debug
