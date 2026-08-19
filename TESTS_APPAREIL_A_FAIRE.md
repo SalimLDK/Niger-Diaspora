@@ -14,6 +14,31 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## « Tous les services » complété : Fil, Événements, Amis (2026-08-19)
+
+L'écran « Tous les services »
+([services_screen.dart](lib/features/home/presentation/screens/services_screen.dart))
+ne listait que 6 tuiles (Transfert, Marketplace, Annuaire, Ambassades, Salons
+audio, Podcasts) — moins que la grille de l'accueil, qui a en plus « Le fil ».
+Ajoutés : **Le fil** (`/feed`, sans flag, comme sur l'accueil), **Événements**
+(`/events`, gaté `isEventsEnabledProvider` — le module avait un flag et une
+route mais aucune tuile nulle part), **Amis** (`/friends`, sans flag).
+
+**Non vérifié sur appareil** :
+- [ ] Rendu de la grille 2 colonnes avec 3+ tuiles de plus (pas de
+  débordement, `childAspectRatio: 1.1`), thème clair et sombre.
+- [ ] Tap sur chaque nouvelle tuile : Fil, Événements, Amis s'ouvrent et le
+  retour revient bien sur « Tous les services ».
+- [ ] Couleur `Colors.teal` de la tuile Événements lisible en thème sombre.
+
+À noter (vu pendant la session, non corrigé ici) : si le back-office affiche
+des fonctionnalités actives que l'app ne montre pas, l'écriture des flags a pu
+être refusée en silence (règle Firestore `isSuperAdmin()` sur `app_config` +
+famille « faux succès » des `set()` Firestore) — diagnostic en cours côté
+prod.
+
+---
+
 ## Carte « Pour commencer » : chaque ligne gagne son propre critère (2026-08-14)
 
 Les 3 lignes de `_PourCommencerCard`
