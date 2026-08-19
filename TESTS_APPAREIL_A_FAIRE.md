@@ -62,10 +62,15 @@ peuvent venir que du « toujours actif » :
   `test/features/admin/feature_flags_toujours_actifs_test.dart` (le serveur
   dit `false`, l'écran doit quand même les montrer actifs et non
   manœuvrables ; exactement 2 interrupteurs verrouillés).
-- [ ] Pins « entreprises » de la carte : dépendent maintenant du seul
-  interrupteur utilisateur `_showBusinesses` (map_screen), vérifier qu'ils
-  s'affichent — invérifiable tant que l'annuaire est vide (aucune entreprise
-  créée au 2026-08-19).
+- [ ] Pins « entreprises » de la carte : **structurellement morts, pas juste
+  faute de données** (constat 2026-08-19). `getNearbyBusinesses`
+  ([business_remote_datasource.dart](lib/features/businesses/data/datasources/business_remote_datasource.dart))
+  filtre sur `latitude`/`longitude`, mais ni la création ni l'édition
+  d'entreprise ne renseignent ces champs — un doc créé par l'app est exclu
+  par la range query, et le filtre longitude rejette les null. Même famille
+  que les « champs jamais alimentés ». Créer une entreprise de test ne
+  produirait donc aucun pin ; à re-tester seulement après le correctif
+  « capturer une position à la création » (tâche proposée le 2026-08-19).
 
 Bloqué pour la session du 2026-08-19 (agent seul avec le téléphone) :
 - Le back-office est une app séparée (`lib/features/admin/main.dart`) dont
