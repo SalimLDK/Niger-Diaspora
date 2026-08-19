@@ -30,7 +30,9 @@ Vérifié sur SM A515F le 2026-08-19 (thème sombre, captures dans la session) :
   affichées, icône 36 nette dans la pastille, aucune troncature.
 - [x] Rendu de la grille accueil en 3 colonnes (icône 32 dans le carré) —
   le cas 4 colonnes reste à voir (il faut ≥ 4 tuiles actives).
-- [ ] Thème clair non capturé (téléphone en sombre).
+- [x] Thème clair (basculé via `cmd uimode night no`, remis en sombre
+  ensuite) : accueil et « Tous les services » propres, pastilles teintées
+  lisibles, aucune troncature.
 
 ---
 
@@ -128,12 +130,12 @@ Ajoutés : **Le fil** (`/feed`, sans flag, comme sur l'accueil), **Événements*
 (`/events`, gaté `isEventsEnabledProvider` — le module avait un flag et une
 route mais aucune tuile nulle part), **Amis** (`/friends`, sans flag).
 
-Partiellement vérifié sur SM A515F le 2026-08-19 (thème sombre) :
+Vérifié sur SM A515F le 2026-08-19 (thèmes sombre ET clair) :
 - [x] Rendu de la grille 2 colonnes avec les tuiles de plus (5 affichées,
-  pas de débordement, `childAspectRatio: 1.1`) — thème sombre ; clair non vu.
-- [ ] Tap sur chaque nouvelle tuile : Fil, Événements, Amis s'ouvrent et le
-  retour revient bien sur « Tous les services » (seul le tap Annuaire a été
-  fait pendant la session).
+  pas de débordement, `childAspectRatio: 1.1`) — dans les deux thèmes.
+- [x] Tap sur chaque nouvelle tuile : Fil (posts affichés), Événements
+  (liste vide fonctionnelle), Amis (1 ami listé) s'ouvrent, et le retour
+  système revient bien sur « Tous les services » à chaque fois.
 - [x] Couleur `Colors.teal` de la tuile Événements lisible en thème sombre.
 
 À noter (vu pendant la session, non corrigé ici) : si le back-office affiche
