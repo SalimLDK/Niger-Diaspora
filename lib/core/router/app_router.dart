@@ -277,8 +277,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isOnboardingRoute ? null : '/onboarding/intro';
       }
 
-      // 9. PHASE 2 FEATURE FLAGS — protège transferts, marketplace, entreprises,
-      // podcasts et salons audio.
+      // 9. PHASE 2 FEATURE FLAGS — protège transferts, marketplace,
+      // podcasts et salons audio. (/businesses n'y figure plus : l'annuaire
+      // est toujours actif depuis le 2026-08-19, comme le fil et les
+      // ambassades — voir feature_flag_service.dart.)
       //
       // `loadedFeatureFlagsProvider` vaut null tant que app_config/settings
       // n'est pas revenu : on laisse alors passer. Bloquer pendant le
@@ -290,7 +292,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         final phase2Paths = <String, AppFeature>{
           '/transfers': AppFeature.moneyTransfer,
           '/marketplace': AppFeature.marketplace,
-          '/businesses': AppFeature.businessDirectory,
           '/podcasts': AppFeature.podcasts,
           '/payment-accounts': AppFeature.moneyTransfer,
           '/payment-history': AppFeature.moneyTransfer,

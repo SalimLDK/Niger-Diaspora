@@ -14,6 +14,35 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Annuaire, Fil et Ambassades toujours actifs — plus de flag (2026-08-19)
+
+Décision produit : ces trois services ne dépendent plus du back-office.
+`isBusinessDirectoryEnabled`, `isEmbassiesEnabled` et `isFeedEnabled`
+renvoient `true` en dur
+([feature_flag_service.dart](lib/core/services/feature_flag_service.dart)),
+`/businesses` est sorti du garde du routeur, les tuiles des deux grilles
+(accueil + « Tous les services ») sont inconditionnelles, et les deux
+interrupteurs du back-office sont affichés verrouillés sur « Toujours actif »
+([admin_feature_flags_screen.dart](lib/features/admin/presentation/screens/admin_feature_flags_screen.dart)).
+
+**Non vérifié sur appareil** :
+- [ ] Accueil et « Tous les services » montrent bien Annuaire + Ambassades
+  même si le back-office les avait désactivés (c'était le symptôme de départ :
+  seule « Ambassades » s'affichait).
+- [ ] `/businesses` s'ouvre (plus de redirection silencieuse vers /home).
+- [ ] Back-office → Fonctionnalités : les deux interrupteurs Annuaire et
+  Ambassades apparaissent grisés, verrouillés sur actif, avec le sous-titre
+  explicatif ; les autres restent manœuvrables.
+- [ ] Pins « entreprises » de la carte : dépendent maintenant du seul
+  interrupteur utilisateur `_showBusinesses` (map_screen), vérifier qu'ils
+  s'affichent.
+
+À savoir : les hash de `feature_flag_service.g.dart` n'ont pas été régénérés
+(build_runner non relancé — signatures inchangées, seul le hot-reload debug
+de ces 3 providers peut être moins fin).
+
+---
+
 ## « Tous les services » complété : Fil, Événements, Amis (2026-08-19)
 
 L'écran « Tous les services »

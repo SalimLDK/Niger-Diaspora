@@ -354,20 +354,20 @@ class _ServicesGrid extends ConsumerWidget {
           color: context.adaptiveSecondaryColor,
           onTap: () => context.push('/marketplace'),
         ),
-      if (ref.watch(isBusinessDirectoryEnabledProvider))
-        _ServiceTile(
-          icon: Icons.business_rounded,
-          label: l10n.homeDirectory,
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
-          onTap: () => context.push('/businesses'),
-        ),
-      if (ref.watch(isEmbassiesEnabledProvider))
-        _ServiceTile(
-          icon: Icons.account_balance,
-          label: l10n.embassies,
-          color: context.adaptiveSecondaryColor,
-          onTap: () => context.push('/embassies'),
-        ),
+      // Annuaire et ambassades : toujours présents, comme le Fil (décision
+      // produit 2026-08-19 — plus de flag).
+      _ServiceTile(
+        icon: Icons.business_rounded,
+        label: l10n.homeDirectory,
+        color: Theme.of(context).colorScheme.onPrimaryContainer,
+        onTap: () => context.push('/businesses'),
+      ),
+      _ServiceTile(
+        icon: Icons.account_balance,
+        label: l10n.embassies,
+        color: context.adaptiveSecondaryColor,
+        onTap: () => context.push('/embassies'),
+      ),
       // Salons audio et Podcasts n'avaient aucun point d'entrée dans l'app :
       // les écrans et les routes existaient, mais rien n'y menait — seuls des
       // liens internes à ces deux modules référençaient leurs routes.

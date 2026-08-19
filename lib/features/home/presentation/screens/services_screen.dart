@@ -37,20 +37,20 @@ class ServicesScreen extends ConsumerWidget {
           color: context.adaptiveSecondaryColor,
           route: '/marketplace',
         ),
-      if (ref.watch(isBusinessDirectoryEnabledProvider))
-        _ServiceItem(
-          icon: Icons.business_rounded,
-          label: l10n.homeDirectory,
-          color: AppColors.primaryDark,
-          route: '/businesses',
-        ),
-      if (ref.watch(isEmbassiesEnabledProvider))
-        _ServiceItem(
-          icon: Icons.account_balance,
-          label: l10n.embassies,
-          color: Colors.indigo,
-          route: '/embassies',
-        ),
+      // Annuaire et ambassades : toujours présents, comme le Fil (décision
+      // produit 2026-08-19 — plus de flag).
+      _ServiceItem(
+        icon: Icons.business_rounded,
+        label: l10n.homeDirectory,
+        color: AppColors.primaryDark,
+        route: '/businesses',
+      ),
+      _ServiceItem(
+        icon: Icons.account_balance,
+        label: l10n.embassies,
+        color: Colors.indigo,
+        route: '/embassies',
+      ),
       // Absents de la grille alors que les modules sont livrés : sans ces deux
       // entrées, /audio-rooms et /podcasts n'étaient joignables par aucun
       // chemin depuis l'app.
