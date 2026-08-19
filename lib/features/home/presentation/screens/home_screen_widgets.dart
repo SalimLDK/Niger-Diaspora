@@ -450,7 +450,7 @@ class _ServiceTile extends StatelessWidget {
                         ),
                       ],
               ),
-              child: Icon(icon, size: 26, color: color),
+              child: Icon(icon, size: 32, color: color),
             ),
           ),
           const SizedBox(height: 8),
