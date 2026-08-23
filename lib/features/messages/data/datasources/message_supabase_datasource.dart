@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/e2ee/message_crypto_service.dart';
+import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 
 import '../models/conversation_model.dart';
@@ -169,7 +170,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       } catch (e) {
         debugPrint('MessageSupabaseDataSource: decrypt error: $e');
         if (data['encryptionLevel'] == 'e2ee') {
-          data['content'] = '🔐 Message chiffré';
+          data['content'] = kEncryptedMessagePlaceholder;
         }
       }
     }
