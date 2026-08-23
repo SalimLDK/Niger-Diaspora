@@ -5659,6 +5659,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get businessCreatedSuccess => 'Entreprise créée avec succès !';
 
   @override
+  String get editBusiness => 'Modifier l\'entreprise';
+
+  @override
+  String get businessUpdatedSuccess => 'Entreprise mise à jour';
+
+  @override
+  String get businessPositionOnMap => 'Position sur la carte';
+
+  @override
+  String get setBusinessPosition => 'Définir la position exacte';
+
+  @override
+  String get businessPositionHelp =>
+      'Elle permet d\'afficher votre entreprise sur la carte de l\'app.';
+
+  @override
+  String get useThisPosition => 'Utiliser cette position';
+
+  @override
   String get creationError => 'Erreur lors de la création';
 
   @override
@@ -15376,7 +15395,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get setupHandleInvalid => 'Choisissez un nom d\'utilisateur libre';
+  String get setupHandleInvalid => 'Choisissez un pseudo libre';
 
   @override
   String get setupErrorConnection =>
@@ -15396,7 +15415,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get handleLabel => 'Nom d\'utilisateur';
+  String get handleLabel => 'Pseudo';
 
   @override
   String get handleExample => 'moussa';
@@ -15410,10 +15429,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Disponible · sert à vous retrouver et à vous mentionner';
 
   @override
-  String get handleTaken => 'Ce nom d\'utilisateur est déjà pris';
+  String get handleTaken => 'Ce pseudo est déjà pris';
 
   @override
   String get handleFormat => '3 à 20 caractères : lettres, chiffres, _';
+
+  @override
+  String get handleChooseCta => 'Choisir mon pseudo';
 
   @override
   String messagesActiveGroups(int count) {

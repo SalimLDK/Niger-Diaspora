@@ -32,7 +32,6 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
 import '../../../groups/presentation/providers/group_pinned_providers.dart';
 import '../../../groups/presentation/widgets/group_pinned_banner.dart';
-import '../../../../core/extensions/profile_entity_extensions.dart';
 import '../../../polls/domain/entities/poll_entity.dart';
 import '../../../polls/presentation/widgets/create_poll_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -60,7 +59,8 @@ import '../../../group_calls/presentation/providers/group_call_provider.dart';
 // import '../../../calls/presentation/screens/call_screen.dart';
 import '../../../gifs/domain/entities/gif_entity.dart';
 import '../../../stickers/domain/entities/sticker_entity.dart';
-import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
+import '../../../feed/domain/entities/post_entity.dart'
+    show MentionCandidate;
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class ConversationScreen extends ConsumerStatefulWidget {
@@ -1205,19 +1205,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     }
 
     final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
-    final List<MentionedUser> groupMembers =
-        _isGroup && groupData != null
-            ? ref
-                    .watch(
-                      groupMemberNamesProvider(
-                        (groupData.memberIds as List<String>)
-                            .where((id) => id != currentUserId)
-                            .toList(),
-                      ),
-                    )
-                    .valueOrNull ??
-                []
-            : [];
+    // Membres proposés derrière un `@` dans un groupe. Porte aussi la poignée
+    // publique, qui sert de pseudo de mention quand elle existe.
+    //
+    // Clé : l'identifiant du groupe. Passer la liste des membres créait une
+    // nouvelle instance de provider à chaque build — voir le commentaire de
+    // `groupMentionCandidatesProvider`.
+    final List<MentionCandidate> mentionCandidates =
+        _isGroup && _effectiveGroupId != null
+            ? ref.watch(groupMentionCandidatesProvider(_effectiveGroupId!))
+            : const [];
 
     // Création événement/sondage depuis le menu « + » du composer.
     // DM : événement toujours possible ; groupe : selon les permissions.
@@ -1266,6 +1263,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 l10n.group)
             : (otherUser?.displayName ?? widget.conversationName ?? l10n.user);
 
+    // Maintient vivant le notifier de frappe tant que l'écran l'est.
+    //
+    // Il n'était jamais observé : chaque frappe faisait un `ref.read` sur un
+    // provider autoDispose sans auditeur, que Riverpod détruisait dans la
+    // foulée — sa destruction effaçant aussitôt la présence qu'il venait de
+    // poser. L'autre appareil ne voyait donc jamais « écrit… ». Cette ligne
+    // fixe son cycle de vie sur celui de la discussion : vivant tant qu'on y
+    // est, détruit (donc présence effacée) quand on en sort.
+    ref.watch(typingIndicatorNotifierProvider);
+
     // Typing users for the in-list bubble
     final typingStatusValue = ref.watch(
       typingStatusProvider(widget.conversationId),
@@ -1283,7 +1290,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         <String>[];
     final Map<String, String>? typingNames =
         _isGroup
-            ? {for (final m in groupMembers) m.id: m.name}
+            ? {for (final c in mentionCandidates) c.id: c.displayName}
             : (_effectiveOtherUserId != null
                 ? {_effectiveOtherUserId!: displayName}
                 : null);
@@ -1560,7 +1567,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     isLoading: sendMessageState.isLoading,
                     replyToMessage: _replyToMessage,
                     onCancelReply: _cancelReply,
-                    groupMembers: groupMembers,
+                    mentionCandidates: mentionCandidates,
                     onCreateEvent:
                         canCreateEvent
                             ? () => context.push(

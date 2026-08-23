@@ -717,6 +717,48 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
+                              ]
+                              // Cet écran sert aussi son propre profil
+                              // (`/profile/:userId` avec son propre id) : sans
+                              // pseudo, même appel que sur l'onglet Profil.
+                              // Jamais sur le profil de quelqu'un d'autre —
+                              // on n'y peut rien.
+                              else if (_isCurrentUser) ...[
+                                const SizedBox(height: 3),
+                                InkWell(
+                                  onTap:
+                                      () => context.push(
+                                        '/profile/edit?focus=handle',
+                                      ),
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 2,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.alternate_email_rounded,
+                                          size: 14,
+                                          color: context.adaptivePrimaryColor,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            l10n.handleChooseCta,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color:
+                                                  context.adaptivePrimaryColor,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ],
 
                               // Statut en ligne (masqué si bloqué)

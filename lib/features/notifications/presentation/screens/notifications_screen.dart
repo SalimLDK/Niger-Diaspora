@@ -359,6 +359,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     NotificationType.eventAttendance,
     NotificationType.nearbyMember,
     NotificationType.proximityAlert,
+    // Les vraies mentions, justement : elles n'existaient pas encore comme
+    // type quand ce filtre a été écrit.
+    NotificationType.mentioned,
+    NotificationType.groupMention,
+    NotificationType.commentReply,
   };
 
   List<NotificationEntity> _filterNotifications(
@@ -525,8 +530,28 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         // All order-related notifications go to my orders
         context.push('/marketplace/my-orders');
         break;
+      // Fil d'actualité : la cible est toujours l'identifiant de la
+      // publication (cf. `notify_on_post_insert`, qui écrit `postId` ET
+      // `targetId`).
+      case NotificationType.newPost:
+      case NotificationType.mentioned:
+      case NotificationType.groupMention:
+      case NotificationType.postCommented:
+      case NotificationType.commentReply:
+        if (notification.targetId != null) {
+          context.push('/feed/${notification.targetId}');
+        } else {
+          context.push('/notifications/${notification.id}');
+        }
+        break;
+      case NotificationType.reportResolved:
+      case NotificationType.groupCallInvitation:
       case NotificationType.general:
-        // No specific navigation
+        // Pas de destination propre : la fiche de la notification reste plus
+        // utile qu'un appui sans effet — c'est précisément ce que faisait
+        // `general` avant, et rien ne distinguait à l'écran une notification
+        // « cliquable » d'une autre.
+        context.push('/notifications/${notification.id}');
         break;
     }
   }

@@ -2,6 +2,9 @@ import 'dart:async' show unawaited;
 import 'dart:io';
 
 import 'package:flutter/gestures.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/utils/mention_handle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -232,7 +235,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     );
   }
 
-  /// Dernier message d'un groupe (ou message isolé) : porte l'horodatage.
+  /// Dernier message d'une rafale (ou message isolé) : porte l'horodatage.
   bool get _isLastInGroup =>
       widget.groupPosition == MessageGroupPosition.last ||
       widget.groupPosition == MessageGroupPosition.single;
@@ -2073,8 +2076,22 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   );
 
   // Rich text formatting regex: *bold*, _italic_, ~strikethrough~, `code`
+  //
+  // Les délimiteurs doivent être ISOLÉS (rien d'alphanumérique juste avant ni
+  // juste après) et encadrer du contenu qui ne commence ni ne finit par une
+  // espace. Sans ces gardes, le marqueur était reconnu au MILIEU d'un mot et
+  // supprimé de l'affichage : `taux_change_2026` perdait ses tirets bas et
+  // passait en italique, `5*4*3` perdait ses astérisques. Même règle que
+  // WhatsApp et Signal.
   static final _richTextRegex = RegExp(
-    r'(\*[^*\n]+\*)|(_[^_\n]+_)|(~[^~\n]+~)|(`[^`\n]+`)',
+    r'(?<![\w*_~`])'
+    r'(?:'
+    r'\*(?=\S)[^*\n]*[^*\s]\*'
+    r'|_(?=\S)[^_\n]*[^_\s]_'
+    r'|~(?=\S)[^~\n]*[^~\s]~'
+    r'|`(?=\S)[^`\n]*[^`\s]`'
+    r')'
+    r'(?![\w*_~`])',
   );
 
   /// Build a RichText widget with clickable URLs, phone numbers, and emails
@@ -2143,8 +2160,13 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     // Mentions — highlight @Name for each confirmed mentioned user
     final mentionedUsers = widget.message.mentionedUsers;
     if (mentionedUsers.isNotEmpty) {
+      // Du plus long au plus court : l'alternation d'une RegExp s'arrête à la
+      // première branche qui correspond, donc `@Ali` placé avant `@Alichina`
+      // n'aurait coloré que les trois premières lettres de la seconde.
+      final names = mentionedUsers.map((m) => m.name).toList()
+        ..sort((a, b) => b.length.compareTo(a.length));
       final mentionPattern = RegExp(
-        mentionedUsers.map((m) => RegExp.escape('@${m.name}')).join('|'),
+        names.map((n) => RegExp.escape('@$n')).join('|'),
       );
       for (final match in mentionPattern.allMatches(text)) {
         final hasOverlap = allMatches.any(
@@ -2207,6 +2229,11 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                       : Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
+            // Une mention ne menait nulle part : elle était colorée, et c'est
+            // tout. Même geste que dans le fil, où taper une mention ouvre le
+            // profil.
+            recognizer:
+                TapGestureRecognizer()..onTap = () => _handleLinkTap(match),
           ),
         );
       } else {
@@ -2369,15 +2396,24 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// discussion — aucune bulle spécialisée (image, vidéo, document, note
   /// vocale, sticker, localisation) ne réaffiche l'heure de son côté.
   ///
-  /// Rafales : dans une suite de messages consécutifs du même expéditeur,
-  /// seul le dernier porte son heure — la règle vaut pour les messages reçus
-  /// comme pour les messages envoyés. Les précédents la masquent par défaut,
-  /// et un tap la révèle/masque (`_metaRevealed`).
+  /// Rafales : dans une suite de messages consécutifs du même expéditeur, seul
+  /// le dernier porte son heure — la règle vaut pour les messages reçus comme
+  /// pour les messages envoyés. Les précédents la masquent, et un tap la
+  /// révèle/masque (`_metaRevealed`).
+  ///
+  /// Ce masquage avait été retiré (« chaque message porte son heure », 92326fe)
+  /// au motif qu'envoyer trois messages d'affilée n'en horodatait qu'un et que
+  /// rien n'annonçait le tap. Il est rétabli à la demande, et étendu aux
+  /// messages reçus qui en étaient exemptés. Le regroupement visuel (queue de
+  /// bulle, nom de l'expéditeur, rayons) n'a jamais dépendu de cette ligne.
   Widget _buildMetaRow(BuildContext context) {
     final hasReactions = widget.message.reactions.isNotEmpty;
-    final canToggle = !_isLastInGroup && !widget.message.deletedForEveryone;
+    final canToggle =
+        !_isLastInGroup && !widget.message.deletedForEveryone;
     final showTimeInfo = _isLastInGroup || _metaRevealed;
 
+    // Rien à montrer : on garde une cible tactile pour révéler l'heure, sans
+    // quoi le masquage serait un cul-de-sac.
     if (!showTimeInfo && !hasReactions) {
       if (!canToggle) return const SizedBox.shrink();
       return Padding(
@@ -2810,7 +2846,15 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         }
         break;
       case _LinkType.mention:
-        // No action for mentions
+        // `match.text` porte le `@` : le pseudo commence après.
+        final handle = match.text.startsWith('@')
+            ? match.text.substring(1)
+            : match.text;
+        final userId = widget.message.mentionedUsers
+            .where((m) => mentionHandleMatches(m.name, handle))
+            .map((m) => m.id)
+            .firstOrNull;
+        if (userId != null && mounted) context.push('/profile/$userId');
         break;
     }
   }

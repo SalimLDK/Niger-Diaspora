@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/utils/mention_handle.dart';
 import 'package:diaspo_niger/core/utils/rich_text_parser.dart';
 import '../../../polls/presentation/providers/poll_provider.dart';
 import '../../../polls/presentation/widgets/poll_card.dart';
@@ -82,9 +83,12 @@ class PostCard extends ConsumerWidget {
                   mentionColor: tokens.hashtagColor,
                   hashtagColor: tokens.hashtagColor,
                   onMentionTap: (handle, _) {
+                    // Repli sur l'ancienne forme ASCII du pseudo : les
+                    // publications d'avant le correctif ont été enregistrées
+                    // avec `Madaoua` là où un texte récent porte `Maïdaoua`.
                     final uid =
                         post.mentionedUsers
-                            .where((m) => m.name == handle)
+                            .where((m) => mentionHandleMatches(m.name, handle))
                             .map((m) => m.id)
                             .firstOrNull;
                     if (uid != null) context.push('/profile/$uid');

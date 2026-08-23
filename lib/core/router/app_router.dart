@@ -277,8 +277,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isOnboardingRoute ? null : '/onboarding/intro';
       }
 
-      // 9. PHASE 2 FEATURE FLAGS — protège transferts, marketplace, entreprises,
-      // podcasts et salons audio.
+      // 9. PHASE 2 FEATURE FLAGS — protège transferts, marketplace,
+      // podcasts et salons audio. (/businesses n'y figure plus : l'annuaire
+      // est toujours actif depuis le 2026-08-19, comme le fil et les
+      // ambassades — voir feature_flag_service.dart.)
       //
       // `loadedFeatureFlagsProvider` vaut null tant que app_config/settings
       // n'est pas revenu : on laisse alors passer. Bloquer pendant le
@@ -290,7 +292,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         final phase2Paths = <String, AppFeature>{
           '/transfers': AppFeature.moneyTransfer,
           '/marketplace': AppFeature.marketplace,
-          '/businesses': AppFeature.businessDirectory,
           '/podcasts': AppFeature.podcasts,
           '/payment-accounts': AppFeature.moneyTransfer,
           '/payment-history': AppFeature.moneyTransfer,
@@ -373,8 +374,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Routes outside of shell (no bottom navigation)
       GoRoute(
         path: '/profile/edit',
-        // ?focus=photo|city|job|languages|bio — le bandeau de complétude
-        // (§11f) ouvre le formulaire sur le champ qu'il propose d'ajouter.
+        // ?focus=photo|city|job|languages|bio|handle — le bandeau de
+        // complétude (§11f) ouvre le formulaire sur le champ qu'il propose
+        // d'ajouter ; `handle` vient de la ligne d'appel du profil (« Choisir
+        // mon pseudo », affichée à la place du @ manquant).
         builder:
             (context, state) => EditProfileScreen(
               focusField: state.uri.queryParameters['focus'],
@@ -680,6 +683,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           return BusinessDetailScreen(
             businessId: businessId,
             initialBusiness: business,
+          );
+        },
+      ),
+      // Édition : la fiche pousse cette route avec l'entité en extra ; par
+      // lien profond extra est null et l'écran recharge via l'id.
+      GoRoute(
+        path: '/businesses/:businessId/edit',
+        builder: (context, state) {
+          final businessId = state.pathParameters['businessId']!;
+          final business = state.extra as BusinessEntity?;
+          return CreateBusinessScreen(
+            editBusinessId: businessId,
+            initial: business,
           );
         },
       ),

@@ -206,19 +206,14 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     String? message,
     String updatedBy,
   ) async {
+    // copyWith et non une reconstruction champ par champ : updateFeatureFlags
+    // écrit la section entière, tout flag omis ici écraserait la valeur
+    // serveur avec le défaut de l'entité (audioRooms/podcasts/feed déjà
+    // victimes de ce motif).
     final current =
         state.valueOrNull?.featureFlags ?? const FeatureFlagsEntity();
     await updateFeatureFlags(
-      FeatureFlagsEntity(
-        moneyTransfer: current.moneyTransfer,
-        marketplace: current.marketplace,
-        businessDirectory: current.businessDirectory,
-        events: current.events,
-        groups: current.groups,
-        embassies: current.embassies,
-        maintenanceMode: enabled,
-        maintenanceMessage: message,
-      ),
+      current.copyWith(maintenanceMode: enabled, maintenanceMessage: message),
       updatedBy,
     );
   }

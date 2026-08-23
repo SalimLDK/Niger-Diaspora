@@ -10442,6 +10442,42 @@ abstract class AppLocalizations {
   /// **'Entreprise créée avec succès !'**
   String get businessCreatedSuccess;
 
+  /// No description provided for @editBusiness.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'entreprise'**
+  String get editBusiness;
+
+  /// No description provided for @businessUpdatedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entreprise mise à jour'**
+  String get businessUpdatedSuccess;
+
+  /// No description provided for @businessPositionOnMap.
+  ///
+  /// In fr, this message translates to:
+  /// **'Position sur la carte'**
+  String get businessPositionOnMap;
+
+  /// No description provided for @setBusinessPosition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Définir la position exacte'**
+  String get setBusinessPosition;
+
+  /// No description provided for @businessPositionHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Elle permet d\'afficher votre entreprise sur la carte de l\'app.'**
+  String get businessPositionHelp;
+
+  /// No description provided for @useThisPosition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utiliser cette position'**
+  String get useThisPosition;
+
   /// No description provided for @creationError.
   ///
   /// In fr, this message translates to:
@@ -28280,10 +28316,10 @@ abstract class AppLocalizations {
   /// **'Profil complété à {percent} % : vous êtes visible sur la carte des membres de {city} et dans la recherche.'**
   String setupCompletionSummaryCity(int percent, String city);
 
-  /// Blocage a l etape 1/4 si la poignee est prise
+  /// Blocage a l etape 1/4 si le pseudo est pris
   ///
   /// In fr, this message translates to:
-  /// **'Choisissez un nom d\'utilisateur libre'**
+  /// **'Choisissez un pseudo libre'**
   String get setupHandleInvalid;
 
   /// Echec d enregistrement du profil
@@ -28310,41 +28346,47 @@ abstract class AppLocalizations {
   /// **'Erreur : {details}'**
   String setupErrorGeneric(String details);
 
-  /// Libelle du champ poignee
+  /// Libelle du champ pseudo
   ///
   /// In fr, this message translates to:
-  /// **'Nom d\'utilisateur'**
+  /// **'Pseudo'**
   String get handleLabel;
 
-  /// Exemple de poignee
+  /// Exemple de pseudo
   ///
   /// In fr, this message translates to:
   /// **'moussa'**
   String get handleExample;
 
-  /// Aide du champ poignee au repos
+  /// Aide du champ pseudo au repos
   ///
   /// In fr, this message translates to:
   /// **'Sert à vous retrouver et à vous mentionner · optionnel'**
   String get handleHint;
 
-  /// Aide du champ poignee, disponible
+  /// Aide du champ pseudo, disponible
   ///
   /// In fr, this message translates to:
   /// **'Disponible · sert à vous retrouver et à vous mentionner'**
   String get handleAvailableHint;
 
-  /// Aide du champ poignee, deja prise
+  /// Aide du champ pseudo, deja pris
   ///
   /// In fr, this message translates to:
-  /// **'Ce nom d\'utilisateur est déjà pris'**
+  /// **'Ce pseudo est déjà pris'**
   String get handleTaken;
 
-  /// Aide du champ poignee, format invalide
+  /// Aide du champ pseudo, format invalide
   ///
   /// In fr, this message translates to:
   /// **'3 à 20 caractères : lettres, chiffres, _'**
   String get handleFormat;
+
+  /// Ligne d appel sur son propre profil quand aucun pseudo n est defini
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir mon pseudo'**
+  String get handleChooseCta;
 
   /// Ligne de contexte de la messagerie
   ///

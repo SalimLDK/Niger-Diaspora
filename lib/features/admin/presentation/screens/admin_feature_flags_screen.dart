@@ -461,13 +461,17 @@ class _AdminFeatureFlagsScreenState
           value: _flags.marketplace,
           onChanged: (v) => _updateFlag(_flags.copyWith(marketplace: v)),
         ),
+        // Annuaire et ambassades : toujours actifs dans l'app depuis le
+        // 2026-08-19 (feature_flag_service.dart ignore ces flags). Interrupteur
+        // désactivé plutôt que retiré : un interrupteur qui n'agit plus sur
+        // rien mais reste manœuvrable est un mensonge d'interface.
         _buildFeatureToggle(
           title: l10n.featureBusinessDirectory,
-          subtitle: l10n.featureBusinessDirectoryDesc,
+          subtitle: 'Toujours actif — ce flag n\'est plus consulté par l\'app',
           icon: Icons.business_rounded,
           color: AdminColors.actionBlueLight,
-          value: _flags.businessDirectory,
-          onChanged: (v) => _updateFlag(_flags.copyWith(businessDirectory: v)),
+          value: true,
+          onChanged: null,
         ),
         _buildFeatureToggle(
           title: l10n.adminEventsLabel,
@@ -487,11 +491,11 @@ class _AdminFeatureFlagsScreenState
         ),
         _buildFeatureToggle(
           title: l10n.adminEmbassies,
-          subtitle: l10n.featureEmbassiesDesc,
+          subtitle: 'Toujours actif — ce flag n\'est plus consulté par l\'app',
           icon: Icons.account_balance_rounded,
           color: AdminColors.statusGreen,
-          value: _flags.embassies,
-          onChanged: (v) => _updateFlag(_flags.copyWith(embassies: v)),
+          value: true,
+          onChanged: null,
         ),
         // Sans ces deux interrupteurs, audioRooms et podcasts restaient bloques
         // sur leur valeur par defaut (false) : /audio-rooms et /podcasts
@@ -522,7 +526,9 @@ class _AdminFeatureFlagsScreenState
     required IconData icon,
     required Color color,
     required bool value,
-    required ValueChanged<bool> onChanged,
+    // null = fonctionnalité toujours active : l'interrupteur s'affiche
+    // grisé/verrouillé (comportement natif de Switch.onChanged null).
+    required ValueChanged<bool>? onChanged,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

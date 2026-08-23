@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
-import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
+import '../../../feed/domain/entities/post_entity.dart' show MentionCandidate;
 
 class MentionSuggestionOverlay extends StatelessWidget {
-  final List<MentionedUser> suggestions;
-  final void Function(MentionedUser) onSelect;
+  final List<MentionCandidate> suggestions;
+  final void Function(MentionCandidate) onSelect;
 
   const MentionSuggestionOverlay({
     super.key,
@@ -34,14 +34,17 @@ class MentionSuggestionOverlay extends StatelessWidget {
                 : Colors.black12,
           ),
           itemBuilder: (context, index) {
-            final user = suggestions[index];
+            final candidate = suggestions[index];
+            final token = candidate.mentionToken;
             return ListTile(
               dense: true,
               leading: CircleAvatar(
                 radius: 16,
                 backgroundColor: context.adaptivePrimaryColor.withValues(alpha: 0.15),
                 child: Text(
-                  user.name.isNotEmpty ? user.name[0].toUpperCase() : '@',
+                  candidate.displayName.isNotEmpty
+                      ? candidate.displayName[0].toUpperCase()
+                      : '@',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -49,11 +52,19 @@ class MentionSuggestionOverlay extends StatelessWidget {
                   ),
                 ),
               ),
+              // Le nom se lit, le pseudo s'écrit : la ligne montre les deux,
+              // sinon on choisit un `@` sans savoir à qui il correspond.
               title: Text(
-                '@${user.name}',
+                candidate.displayName,
                 style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                overflow: TextOverflow.ellipsis,
               ),
-              onTap: () => onSelect(user),
+              subtitle: Text(
+                '@$token',
+                style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () => onSelect(candidate),
             );
           },
         ),

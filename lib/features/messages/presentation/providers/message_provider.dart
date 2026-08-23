@@ -205,7 +205,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
       (cachedMessages) {
         if (cachedMessages.isNotEmpty) {
           state = MessagePaginationState(
-            messages: cachedMessages,
+            messages: _withPendingLocalMessages(cachedMessages),
             hasMore: cachedMessages.length >= _pageSize,
             lastMessageId: cachedMessages.first.id,
             oldestMessageTimestamp: cachedMessages.first.createdAt,
@@ -259,7 +259,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
       },
       (paginatedMessages) {
         state = MessagePaginationState(
-          messages: paginatedMessages.messages,
+          messages: _withPendingLocalMessages(paginatedMessages.messages),
           hasMore: paginatedMessages.hasMore,
           lastMessageId: paginatedMessages.lastMessageId,
           oldestMessageTimestamp: paginatedMessages.oldestMessageTimestamp,
@@ -274,6 +274,28 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
         _listenForMessageUpdates();
       },
     );
+  }
+
+  /// Réinjecte les messages purement locaux (en cours d'envoi ou en échec)
+  /// dans une liste fraîchement chargée.
+  ///
+  /// `_loadNetworkData` remplaçait l'état ENTIER par la réponse serveur : un
+  /// message en échec, qui n'existe que côté client, disparaissait donc à la
+  /// moindre recharge (changement de filtre de date, retour en ligne, nouvelle
+  /// pagination initiale) sans que rien ne le signale. Il n'y a pas de file
+  /// d'attente persistée : ces messages restent perdus si l'écran est quitté,
+  /// mais ils ne doivent au moins pas s'évaporer sous les yeux de la personne.
+  List<MessageEntity> _withPendingLocalMessages(List<MessageEntity> fresh) {
+    final pending = state.messages
+        .where((m) =>
+            m.id.startsWith('temp_') &&
+            (m.status == MessageStatus.sending ||
+                m.status == MessageStatus.failed))
+        .toList();
+    if (pending.isEmpty) return fresh;
+
+    return [...fresh, ...pending]
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
 
   @override
@@ -974,11 +996,19 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     );
   }
 
+  /// Renvoie un message dont l'envoi a échoué.
+  ///
+  /// La bulle en échec n'est retirée QUE sur un chemin qui sait effectivement
+  /// renvoyer, et juste avant de le faire. Auparavant le retrait était en tête
+  /// de méthode, avant même le `switch` : pour un média, la branche retournait
+  /// `false` sans rien renvoyer, et le message avait déjà disparu de l'écran.
+  /// Taper « réessayer » était donc le moyen le plus sûr de perdre le message.
   Future<bool> retryFailedMessage({
     required String conversationId,
     required MessageEntity failedMessage,
   }) async {
-    _ref.read(paginatedMessagesProvider(conversationId).notifier).removeMessageOptimistically(failedMessage.id);
+    final pagination =
+        _ref.read(paginatedMessagesProvider(conversationId).notifier);
 
     MessageEntity? replyToMessage;
     if (failedMessage.replyToId != null && failedMessage.replyToMessageData != null) {
@@ -1002,6 +1032,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
     switch (failedMessage.type) {
       case MessageType.text:
+        pagination.removeMessageOptimistically(failedMessage.id);
         return sendText(
           conversationId: conversationId,
           content: failedMessage.content,
@@ -1009,11 +1040,32 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
           productData: failedMessage.productData,
           eventData: failedMessage.eventData,
         );
+      case MessageType.audio:
+      case MessageType.voiceNote:
+        // Le fichier enregistré est encore là tant que l'envoi n'a pas abouti :
+        // sendAudioMessage ne le supprime qu'après un téléversement réussi.
+        final path = failedMessage.localFilePath;
+        if (path != null && File(path).existsSync()) {
+          pagination.removeMessageOptimistically(failedMessage.id);
+          return sendAudio(
+            conversationId: conversationId,
+            audioFile: File(path),
+            duration: failedMessage.audioDuration ?? 0,
+            waveform: failedMessage.audioWaveform ?? const [],
+            replyToMessage: replyToMessage,
+          );
+        }
+        // Plus de fichier local (message d'une session précédente) : on garde
+        // la bulle, elle est tout ce qui reste de ce message.
+        state = AsyncValue.error(
+          "Impossible de renvoyer ce message vocal : l'enregistrement n'est "
+          'plus disponible.',
+          StackTrace.current,
+        );
+        return false;
       case MessageType.image:
       case MessageType.file:
       case MessageType.video:
-      case MessageType.audio:
-      case MessageType.voiceNote:
         state = AsyncValue.error(
           'Impossible de renvoyer ce type de message. Veuillez le renvoyer manuellement.',
           StackTrace.current,
@@ -1021,6 +1073,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         return false;
       case MessageType.location:
         if (failedMessage.latitude != null && failedMessage.longitude != null) {
+          pagination.removeMessageOptimistically(failedMessage.id);
           return sendLocation(
             conversationId: conversationId,
             latitude: failedMessage.latitude!,
@@ -1035,6 +1088,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         return false;
       case MessageType.sticker:
         if (failedMessage.stickerPackId != null && failedMessage.stickerId != null && failedMessage.fileUrl != null) {
+          pagination.removeMessageOptimistically(failedMessage.id);
           return sendSticker(
             conversationId: conversationId,
             stickerPackId: failedMessage.stickerPackId!,
@@ -1148,6 +1202,9 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
       content: '',
       type: MessageType.voiceNote,
       status: MessageStatus.sending,
+      // Retenu pour le renvoi : sans le chemin du fichier, un vocal en échec
+      // n'avait plus rien à téléverser (cf. retryFailedMessage).
+      localFilePath: audioFile.path,
       audioDuration: duration,
       audioWaveform: waveform,
       createdAt: DateTime.now(),

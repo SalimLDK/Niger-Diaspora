@@ -2625,6 +2625,12 @@
   "servicesOffered": "Services offered",
   "createTheBusiness": "Create the business",
   "businessCreatedSuccess": "Business created successfully!",
+  "editBusiness": "Edit business",
+  "businessUpdatedSuccess": "Business updated",
+  "businessPositionOnMap": "Position on the map",
+  "setBusinessPosition": "Set the exact position",
+  "businessPositionHelp": "It lets your business appear on the app map.",
+  "useThisPosition": "Use this position",
   "creationError": "Error during creation",
   "boost": "Boost",
   "writeReview": "Write a review",
@@ -6326,9 +6332,9 @@
       }
     }
   },
-  "setupHandleInvalid": "Choose an available username",
+  "setupHandleInvalid": "Choose an available handle",
   "@setupHandleInvalid": {
-    "description": "Blocage a l etape 1/4 si la poignee est prise"
+    "description": "Blocage a l etape 1/4 si le pseudo est pris"
   },
   "setupErrorConnection": "Connection error. Check your internet connection.",
   "@setupErrorConnection": {
@@ -6351,29 +6357,33 @@
       }
     }
   },
-  "handleLabel": "Username",
+  "handleLabel": "Handle",
   "@handleLabel": {
-    "description": "Libelle du champ poignee"
+    "description": "Libelle du champ pseudo"
   },
   "handleExample": "moussa",
   "@handleExample": {
-    "description": "Exemple de poignee"
+    "description": "Exemple de pseudo"
   },
   "handleHint": "Used to find and mention you · optional",
   "@handleHint": {
-    "description": "Aide du champ poignee au repos"
+    "description": "Aide du champ pseudo au repos"
   },
   "handleAvailableHint": "Available · used to find and mention you",
   "@handleAvailableHint": {
-    "description": "Aide du champ poignee, disponible"
+    "description": "Aide du champ pseudo, disponible"
   },
-  "handleTaken": "This username is already taken",
+  "handleTaken": "This handle is already taken",
   "@handleTaken": {
-    "description": "Aide du champ poignee, deja prise"
+    "description": "Aide du champ pseudo, deja pris"
   },
   "handleFormat": "3 to 20 characters: letters, digits, _",
   "@handleFormat": {
-    "description": "Aide du champ poignee, format invalide"
+    "description": "Aide du champ pseudo, format invalide"
+  },
+  "handleChooseCta": "Choose my handle",
+  "@handleChooseCta": {
+    "description": "Ligne d appel sur son propre profil quand aucun pseudo n est defini"
   },
   "messagesActiveGroups": "{count, plural, =0{No active group} =1{1 active group} other{{count} active groups}}",
   "@messagesActiveGroups": {

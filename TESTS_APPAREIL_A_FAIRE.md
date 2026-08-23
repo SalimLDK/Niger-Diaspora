@@ -14,6 +14,536 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## `MaÃ¯daoua` : l'échange de jeton Firebase corrompait le nom en base (2026-08-23)
+
+**Cause enfin trouvée, et prouvée de bout en bout.**
+`supabase/functions/auth-firebase-exchange/index.ts` décodait le JWT Firebase
+avec `JSON.parse(atob(...))`. `atob` rend une chaîne **binaire** — un caractère
+JS par octet, c'est-à-dire les octets UTF-8 relus comme du Latin-1. Le claim
+`name` « Ibrahim Yacouba Maïdaoua » (`… 4d 61 c3 af 64 …`) devenait donc
+« Ibrahim Yacouba MaÃ¯daoua », et la ligne `display_name: payload.name` de la
+même fonction l'écrivait tel quel dans `users`.
+
+Mesures prises pendant la session :
+
+| Couche | État |
+|---|---|
+| Firebase Auth (source) | `4d61 c3af` — **propre** |
+| Edge Function `auth-firebase-exchange` | produit `MaÃ¯daoua` |
+| `users.display_name` en prod | `4d61 c383 c2af` — **corrompu** |
+| Application (capture d'écran) | affiche « Ibrahim Yacouba MaÃ¯daoua » |
+
+**Pourquoi c'était intermittent.** Deux écrivains se disputent la ligne :
+`_upsertUserToSupabase` (Dart) écrit le nom CORRECT depuis le SDK Firebase,
+l'Edge Function écrit le nom corrompu. Le dernier qui passe gagne. La même
+ligne était propre en début de session et corrompue quelques heures plus tard,
+sans que personne ne touche au profil — seulement une connexion.
+
+Corrigé par `decodeJwtPart()`, qui repasse par `Uint8Array` + `TextDecoder`.
+L'`atob` de la **signature** est laissé tel quel : là, l'interprétation octet
+par octet est justement ce qu'on veut.
+
+- [ ] **NON DÉPLOYÉ** — `supabase functions deploy auth-firebase-exchange`
+      reste à faire.
+- [ ] **DONNÉE NON RÉPARÉE** — une ligne à corriger :
+      `UPDATE users SET display_name = convert_from(convert_to(display_name,'LATIN1'),'UTF8')
+       WHERE id = 'DfSyAWiGuSQfCFpbhp1SVk5eQ8F2';`
+      À ne lancer qu'**après** le déploiement, sinon la prochaine connexion de
+      ce compte la re-corrompt.
+
+---
+
+## Mentions de groupe : vérifié sur SM A515F (2026-08-23)
+
+Build debug installé sur l'appareil, compte `Sim A`, groupe « Diaspora
+Niger — Canada » (3 membres).
+
+**Défaut trouvé sur appareil, invisible aux tests : la liste de suggestions ne
+s'ouvrait jamais.** `groupMentionCandidatesProvider` était un
+`FutureProvider.autoDispose.family` **clé par `List<String>`**. Une `family`
+Riverpod compare ses clés avec `==`, et deux `List` de même contenu ne sont
+jamais égales en Dart : chaque `build` de l'écran créait donc une nouvelle
+instance de provider, qui repartait en chargement, et `.valueOrNull` rendait
+`null` indéfiniment. La clé est désormais l'identifiant du groupe, et ce n'est
+plus un `FutureProvider` (il ne fait que lire d'autres providers).
+
+Le prédécesseur `groupMemberNamesProvider` avait exactement la même forme :
+**mentionner quelqu'un dans un groupe n'avait probablement jamais fonctionné**,
+quelle que soit la forme du pseudo.
+
+- [x] Taper `@sa` ouvre la liste — « Salim L. » en titre, `@SalimL` en
+      sous-titre. Le filtre trouve bien par le **début d'un mot** du nom
+      affiché, pas seulement par le début du nom complet.
+- [x] Sélectionner insère `@SalimL ` — pseudo sans espace, espace après,
+      curseur derrière, liste refermée. Le point de « Salim L. » est bien
+      retiré.
+- [x] Le membre `diaspo_ne` n'apparaît pas sur `@sa` : le filtrage est correct,
+      il ne propose pas tout le monde.
+- [ ] Coloration de la mention dans la bulle — **demande d'envoyer un message
+      dans un vrai groupe**, non fait sans accord.
+- [ ] Tap sur la mention → ouvre le profil — même raison.
+- [ ] Compte **avec** poignée : vérifier que c'est `@diaspo_ne` qui est inséré
+      et non l'identifiant. Le filtre `@sa` ne le proposait pas ; à retenter
+      avec `@dia`.
+- [x] Le garde anti-e-mail fonctionne — trop bien, même : un `@` précédé d'un
+      caractère de mot n'ouvre pas la liste. Rencontré pour de vrai, un
+      brouillon `@sa` restant en place faisait que le second `@sa` tapé
+      derrière n'ouvrait rien. C'est le comportement voulu, mais il surprend.
+
+---
+
+## Mentionner quelqu'un par son pseudo dans un groupe (2026-08-23)
+
+Mentionner dans un groupe insérait le **nom affiché complet** :
+`@Ibrahim Yacouba Maïdaoua`. Un jeton à espaces, que la détection ne savait pas
+relire — `_detectMentionTrigger` abandonne dès qu'une espace apparaît dans la
+saisie, donc seul le **premier mot** était cherchable, et taper `@Maï` ne
+proposait personne.
+
+Les messages passent au même pseudo que le fil
+([mention_handle.dart](lib/core/utils/mention_handle.dart)) : la **poignée
+publique** (`users.handle`) quand la personne en a choisi une, sinon le pseudo
+dérivé du nom. Au 2026-08-23, 2 comptes sur 11 seulement avaient une poignée —
+le repli est le cas courant, pas le cas limite.
+
+Ce qui change :
+
+- [group_pinned_providers.dart](lib/features/groups/presentation/providers/group_pinned_providers.dart) :
+  `groupMemberNamesProvider` → `groupMentionCandidatesProvider`, qui porte
+  aussi la poignée (nouveau type `MentionCandidate`).
+- [message_input.dart](lib/features/messages/presentation/widgets/message_input.dart) :
+  filtrage sur le pseudo **et sur chaque mot** du nom affiché, accents repliés
+  (`@mai` trouve « Maïdaoua » — taper `ï` demande un appui long au clavier) ;
+  insertion du pseudo ; un `@` collé à un caractère de mot n'ouvre plus la
+  liste (adresse e-mail en cours de frappe).
+- [mention_suggestion_overlay.dart](lib/features/messages/presentation/widgets/mention_suggestion_overlay.dart) :
+  la ligne montre le nom **et** le `@pseudo` — on choisissait un `@` sans
+  savoir à qui il correspondait.
+- [message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart) :
+  la mention devient **cliquable** (elle était colorée et c'est tout) et ouvre
+  le profil, comme dans le fil ; les motifs de coloration sont triés du plus
+  long au plus court, sinon `@Ali` placé avant `@Alichina` ne colorait que les
+  trois premières lettres de la seconde.
+
+Les messages déjà envoyés portent le nom affiché dans `mentionedUsers[].name` :
+le rapprochement se fait sur ce qui est stocké, ils restent donc colorés et
+cliquables tels quels.
+
+14 tests dans
+[mention_groupe_test.dart](test/features/messages/mention_groupe_test.dart).
+
+**À vérifier sur appareil** (nécessite un groupe avec au moins deux membres) :
+
+1. Dans un groupe, taper `@` puis `mai` → la personne doit apparaître, avec son
+   nom en titre et `@pseudo` en dessous.
+2. La sélectionner → le texte doit contenir `@<pseudo>` **sans espace**, suivi
+   d'une espace, curseur juste après.
+3. Envoyer → la mention doit être colorée en entier dans la bulle, chez
+   l'expéditeur comme chez le destinataire.
+4. **Taper sur la mention** → doit ouvrir le profil de la personne.
+5. Sur un compte qui a choisi une poignée (`@…` dans Profil), vérifier que
+   c'est bien elle qui est insérée, et pas le nom collé.
+6. Taper une adresse e-mail (`a@b.com`) dans un groupe : la liste de
+   suggestions ne doit **pas** s'ouvrir.
+7. Ouvrir un ancien message qui contient une mention : elle doit rester colorée.
+
+**Non traité** : mentionner quelqu'un dans un groupe ne produit pas de
+notification distincte — le déclencheur SQL envoie déjà une notification de
+message à tous les participants, une notification « mention » demanderait une
+migration.
+
+**Dette laissée en place** : les `TapGestureRecognizer` des liens, téléphones et
+désormais mentions sont créés à chaque `build` sans être libérés. C'était déjà
+le cas pour les liens ; corriger l'ensemble est un chantier à part.
+
+---
+
+## Le pseudo de mention mangeait les lettres accentuées (2026-08-23)
+
+`_toMentionHandle` produisait le `@pseudo` avec
+`replaceAll(RegExp(r'[^\w]'), '')`. En Dart, `\w` vaut `[A-Za-z0-9_]` — de
+l'ASCII pur : mentionner « Ibrahim Yacouba Maïdaoua » écrivait
+`@IbrahimYacoubaMadaoua`, le `ï` purement supprimé. Même effet sur « Aïcha »,
+« Boubé », ou tout nom non latin (`李明` donnait une chaîne vide).
+
+Quatre endroits partageaient la même limite ASCII et sont passés sur
+[mention_handle.dart](lib/core/utils/mention_handle.dart) :
+
+- génération, détection et remplacement du pseudo dans
+  [mention_text_field.dart](lib/features/feed/presentation/widgets/mention_text_field.dart) ;
+- coloration en direct dans le champ de saisie
+  ([hashtag_highlighting_controller.dart](lib/features/feed/presentation/widgets/hashtag_highlighting_controller.dart)) ;
+- reconnaissance de la mention à l'affichage
+  ([rich_text_parser.dart](lib/core/utils/rich_text_parser.dart)) — le motif
+  s'arrêtait au `ï`, la mention n'était donc ni colorée en entier ni cliquable ;
+- résolution du profil au tap dans
+  [post_card.dart](lib/features/feed/presentation/widgets/post_card.dart) et
+  [comment_tile.dart](lib/features/feed/presentation/widgets/comment_tile.dart).
+
+**Repli sur les deux formes.** Les publications et commentaires déjà en base
+portent l'ancien pseudo, dans leur texte comme dans `mentioned_users[].name`,
+et rien ne les réécrit. `mentionHandleMatches` compare les deux réduits à
+l'ASCII, dans les deux sens, avec une garde pour que deux noms non latins (qui
+se réduisent tous les deux au vide) ne se confondent pas.
+
+Le `#hashtag` reste volontairement sur `\w` : c'est ce que `extractHashtags`
+enregistre et recherche, l'élargir changerait la donnée stockée.
+
+16 tests dans
+[mention_handle_test.dart](test/core/utils/mention_handle_test.dart), dont un
+test de widget qui construit vraiment la RegExp du contrôleur de coloration
+(elle est `static final` : invalide, elle ne se verrait qu'à la première frappe
+dans « nouvelle publication »).
+
+**À vérifier sur appareil** :
+
+1. Nouvelle publication → taper `@Maï` : la personne doit apparaître dans les
+   suggestions, et la sélectionner doit insérer `@IbrahimYacoubaMaïdaoua`
+   **avec le tréma**, coloré en entier pendant la frappe.
+2. Publier, puis taper sur la mention dans le fil : elle doit ouvrir le profil.
+3. **Le cas du repli** : ouvrir une publication ou un commentaire **ancien**
+   qui contient déjà une mention (forme ASCII), taper dessus — elle doit
+   toujours ouvrir le bon profil.
+4. Même chose dans les commentaires (`comment_tile`).
+
+Non couvert par les tests : le rendu réel de la liste de suggestions et le
+comportement du clavier pendant la saisie du `@`.
+
+---
+
+## Neuf défauts signalés à l'usage — correctifs du 2026-08-22
+
+Salim a remonté neuf symptômes après usage réel. Huit ont une cause trouvée et
+corrigée, le neuvième attend un exemple. **Aucun n'est vérifié sur appareil.**
+
+### 1. L'appui sur une notification ne faisait rien
+
+Deux causes indépendantes, toutes deux corrigées :
+
+- `NotificationService.createNotification`
+  ([notification_service.dart](lib/core/services/notification_service.dart))
+  n'écrivait que `target_id` dans `data`, quand le modèle ne lisait que
+  `targetId`. Toutes les branches de navigation étant gardées par
+  `if (targetId != null)`, l'appui était sans effet — demandes d'ami,
+  participations aux événements, tout ce qui passe par cette RPC.
+- Les types écrits par les déclencheurs SQL (`new_post`, `mentioned`,
+  `group_mention`) et par le client (`report_resolved`, `groupCallInvitation`,
+  `postCommented`, `commentReply`) n'existaient pas dans `NotificationType` :
+  ils étaient repliés sur `general`, dont le `case` de navigation est vide.
+
+**À vérifier sur appareil** : ouvrir la page Notifications sur un compte qui a
+reçu (a) une demande d'ami, (b) une notification de publication du fil, (c) un
+commentaire. Chacune doit ouvrir sa destination. Une notification sans
+destination connue ouvre désormais sa fiche au lieu de ne rien faire.
+
+### 2. « Erreur de chargement » intermittente sur les notifications
+
+Le flux temps réel s'abonnait sans attendre la session Supabase (course avec le
+pont Firebase vers Supabase : abonnement en `anon`, RLS muette), et une seule
+ligne au `title`/`body` nul faisait échouer le `.map()` du flux ENTIER. Corrigé
+dans [notification_supabase_datasource.dart](lib/features/notifications/data/datasources/notification_supabase_datasource.dart) :
+attente de session, réessai avec conservation de la dernière liste connue, et
+ligne illisible écartée au lieu de tout emporter.
+
+**À vérifier** : ouvrir la page Notifications juste après un démarrage à froid
+(le cas où la course se produit), puis couper/rétablir le réseau en restant sur
+l'écran — la liste doit revenir seule, sans message d'erreur.
+
+### 3. Le bandeau de restauration des clés revenait sans arrêt
+
+`acknowledge()` ne vivait qu'en mémoire, et `bootstrap()` est appelé depuis
+quatre endroits d'`AuthNotifier`. Le bandeau revenait donc à chaque démarrage et
+à chaque rechargement de profil, indéfiniment (`needsRestore` reste vrai tant
+que la sauvegarde n'est pas restaurée). Mise en veille désormais persistée
+7 jours, et `bootstrap` ne tourne qu'une fois par compte et par session
+([e2ee_backup_coordinator.dart](lib/core/services/e2ee/e2ee_backup_coordinator.dart)).
+
+**À vérifier** : écarter le bandeau avec « Pas maintenant », tuer l'app, la
+rouvrir — il ne doit pas revenir. Puis faire une vraie sauvegarde depuis
+Sécurité : la veille est effacée.
+
+### 4. Caractères spéciaux mal affichés — PARTIELLEMENT traité
+
+Une cause identifiée et corrigée : le motif de mise en forme (gras, italique,
+barré, code) de
+[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)
+reconnaissait ses marqueurs au MILIEU d'un mot et les supprimait de
+l'affichage — `taux_change_2026` perdait ses tirets bas et passait en italique.
+Les délimiteurs doivent désormais être isolés (règle WhatsApp/Signal).
+
+**Reste ouvert** : si le symptôme concerne d'autres caractères (emoji, accents,
+caractères zarma/haoussa), il faut un exemple précis — quel caractère, à quel
+endroit, et ce qui s'affiche à la place. Rien d'autre n'a été trouvé dans le
+code (aucun mojibake dans le dépôt, apostrophes ICU correctes dans les ARB
+générés).
+
+### 5. La bulle « écrit… » ne s'affichait jamais
+
+`typingIndicatorNotifierProvider` est `autoDispose` et n'était jamais observé :
+chaque frappe le créait via `ref.read`, Riverpod le détruisait aussitôt, et sa
+destruction appelait `_clearTypingStatus()`. La présence était donc posée puis
+retirée dans le même tour de boucle. `ConversationScreen` l'observe désormais
+dans son `build` ; `setTypingStatus` attend en plus que le canal realtime soit
+rejoint avant de publier la présence.
+
+**À vérifier — nécessite DEUX téléphones** : A tape, B doit voir la bulle
+apparaître, et disparaître ~3 s après l'arrêt de la frappe puis à l'envoi. B
+quitte la discussion : la présence doit s'effacer chez A.
+
+### 6. Les messages vocaux ne partaient pas
+
+`MessageSupabaseDataSource.sendAudioMessage` levait `UnimplementedError`, que le
+repository attrapait dans son `catch (e)` générique : tout message vocal
+échouait en silence. Implémenté (téléversement Firebase Storage, insertion
+`messages` de type `voiceNote`, mise à jour du dernier message).
+
+**À vérifier** : enregistrer un vocal, l'envoyer, vérifier qu'il arrive chez le
+destinataire, qu'il se lit des deux côtés, que la forme d'onde et la durée sont
+justes, et que l'aperçu de la conversation affiche « Message vocal ».
+
+### 7. Les messages en échec disparaissaient au lieu d'être renvoyés
+
+`retryFailedMessage` retirait la bulle **en tête de méthode**, avant le
+`switch` — puis, pour un média, retournait `false` sans rien renvoyer : taper
+« réessayer » était le moyen le plus sûr de perdre le message. Le retrait n'a
+lieu que sur un chemin qui renvoie réellement, et un vocal en échec retient
+désormais le chemin de son fichier local (`MessageEntity.localFilePath`) pour
+pouvoir être retéléversé. En prime, `_loadNetworkData` remplaçait l'état entier
+par la réponse serveur, ce qui effaçait aussi les messages en échec à chaque
+rechargement.
+
+**À vérifier** : couper le réseau, envoyer un texte et un vocal, attendre le
+passage en échec, rétablir le réseau, taper « réessayer » sur chacun — les deux
+doivent partir. Puis refaire un échec, changer d'écran et revenir : la bulle en
+échec doit toujours être là. **Limite connue** : rien n'est persisté sur disque,
+quitter l'app perd les messages en échec.
+
+### 8. Un seul horodatage par rafale de messages envoyés
+
+C'était volontaire (regroupement visuel des rafales, heure révélée par un tap),
+mais illisible à l'usage. Chaque bulle porte désormais son heure, envoyée comme
+reçue — le regroupement visuel (queue de bulle, nom, rayons) est inchangé.
+
+**À vérifier** : envoyer trois messages d'affilée, les trois doivent afficher
+leur heure ; vérifier que l'accusé « Envoyé / Lu » reste correct et que la mise
+en page ne déborde pas avec des réactions.
+
+### 9. L'app restait utilisable par-dessus l'écran de verrouillage — SÉCURITÉ
+
+`android:showWhenLocked="true"` était posé sur `MainActivity` dans le manifeste
+pour que l'écran d'appel s'affiche par-dessus le keyguard. Un attribut de
+manifeste vaut pour toute la vie de l'activité : verrouiller le téléphone avec
+Diaspo Niger au premier plan puis rallumer l'écran rouvrait l'application
+entière — messages compris — sans demander le code. Le drapeau est retiré du
+manifeste et demandé à l'exécution par l'écran d'appel seulement
+([lock_screen_service.dart](lib/core/services/lock_screen_service.dart), canal
+`diaspo_niger/lockscreen`).
+
+**À vérifier sur appareil, en deux temps** :
+
+1. App ouverte sur une discussion, verrouiller, rallumer l'écran : le keyguard
+   DOIT demander le code, l'app ne doit pas être visible.
+2. Recevoir un appel téléphone verrouillé, accepter depuis la bannière :
+   l'écran d'appel doit s'afficher par-dessus le keyguard et l'écran s'allumer.
+   Raccrocher, verrouiller à nouveau, puis revalider le point 1 (le privilège
+   doit avoir été rendu).
+
+---
+
+## Icônes des tuiles de services agrandies (2026-08-19)
+
+Demande de Salim : icônes plus grandes sur les tuiles de services.
+- Grille de l'accueil (`_ServiceTile`,
+  [home_screen_widgets.dart](lib/features/home/presentation/screens/home_screen_widgets.dart)) :
+  26 → 32.
+- « Tous les services » (`QuickActionCard`,
+  [quick_action_card.dart](lib/features/home/presentation/widgets/quick_action_card.dart),
+  utilisé uniquement par cet écran) : 28 → 36.
+
+Vérifié sur SM A515F le 2026-08-19 (thème sombre, captures dans la session) :
+- [x] Pas de débordement des cartes « Tous les services » (grille 2 colonnes,
+  `childAspectRatio: 1.1`) avec la font scale 1.1 du SM A515F — 5 tuiles
+  affichées, icône 36 nette dans la pastille, aucune troncature.
+- [x] Rendu de la grille accueil en 3 colonnes (icône 32 dans le carré) —
+  le cas 4 colonnes reste à voir (il faut ≥ 4 tuiles actives).
+- [x] Thème clair (basculé via `cmd uimode night no`, remis en sombre
+  ensuite) : accueil et « Tous les services » propres, pastilles teintées
+  lisibles, aucune troncature.
+
+---
+
+## Annuaire, Fil et Ambassades toujours actifs — plus de flag (2026-08-19)
+
+Décision produit : ces trois services ne dépendent plus du back-office.
+`isBusinessDirectoryEnabled`, `isEmbassiesEnabled` et `isFeedEnabled`
+renvoient `true` en dur
+([feature_flag_service.dart](lib/core/services/feature_flag_service.dart)),
+`/businesses` est sorti du garde du routeur, les tuiles des deux grilles
+(accueil + « Tous les services ») sont inconditionnelles, et les deux
+interrupteurs du back-office sont affichés verrouillés sur « Toujours actif »
+([admin_feature_flags_screen.dart](lib/features/admin/presentation/screens/admin_feature_flags_screen.dart)).
+
+Vérifié sur SM A515F le 2026-08-19 — probant : la prod a `businessDirectory:
+false` (lu le même jour, voir l'entrée ci-dessous), donc ces tuiles ne
+peuvent venir que du « toujours actif » :
+- [x] Accueil et « Tous les services » montrent bien Annuaire + Ambassades
+  même si le back-office les avait désactivés (c'était le symptôme de départ :
+  seule « Ambassades » s'affichait). Accueil = Fil/Annuaire/Ambassades,
+  « Tous les services » = + Événements + Amis.
+- [x] `/businesses` s'ouvre (écran « Annuaire Business », vide de données
+  mais fonctionnel — plus de redirection silencieuse vers /home).
+- [x] Back-office → Fonctionnalités : les deux interrupteurs Annuaire et
+  Ambassades verrouillés sur actif (sous-titre explicatif, les autres
+  manœuvrables) — couvert par un test de widget plutôt qu'un test appareil :
+  `test/features/admin/feature_flags_toujours_actifs_test.dart` (le serveur
+  dit `false`, l'écran doit quand même les montrer actifs et non
+  manœuvrables ; exactement 2 interrupteurs verrouillés).
+- [ ] Pins « entreprises » de la carte : **structurellement morts, pas juste
+  faute de données** (constat 2026-08-19). `getNearbyBusinesses`
+  ([business_remote_datasource.dart](lib/features/businesses/data/datasources/business_remote_datasource.dart))
+  filtre sur `latitude`/`longitude`, mais ni la création ni l'édition
+  d'entreprise ne renseignent ces champs — un doc créé par l'app est exclu
+  par la range query, et le filtre longitude rejette les null. Même famille
+  que les « champs jamais alimentés ». **Correctif livré le 2026-08-19
+  (même jour, session worktree) : voir la section « Position des entreprises »
+  ci-dessous pour les vérifications appareil.**
+
+Bloqué pour la session du 2026-08-19 (agent seul avec le téléphone) :
+- Le back-office est une app séparée (`lib/features/admin/main.dart`) dont
+  l'écran de connexion n'a **aucune reprise de session** — login manuel
+  obligatoire, donc test « sauvegarde → `lastUpdated` bouge » à faire par
+  Salim avec le compte « Salim L. » (vérifié `adminRole=superAdmin` en base :
+  la règle d'écriture passera ; le compte « Sim A » du téléphone est un autre
+  compte). La sérialisation étant corrigée (voir entrée dédiée), les
+  interrupteurs Salons/Podcasts devraient enfin agir.
+- Le cas 4 colonnes de l'accueil : l'écriture directe du flag `audioRooms`
+  en prod a été refusée par le classificateur de permissions de la session —
+  à voir après une vraie sauvegarde back-office.
+
+À savoir : les hash de `feature_flag_service.g.dart` n'ont pas été régénérés
+(build_runner non relancé — signatures inchangées, seul le hot-reload debug
+de ces 3 providers peut être moins fin).
+
+---
+
+## Position des entreprises : création/édition alimentent enfin latitude/longitude (2026-08-19)
+
+Correctif de la couche « entreprises » morte de la carte (voir l'entrée
+« Pins entreprises » ci-dessus). Ce qui a changé :
+
+- [create_business_screen.dart](lib/features/businesses/presentation/screens/create_business_screen.dart)
+  gagne une tuile « Position sur la carte » (section Localisation) qui ouvre
+  le `LocationPickerModal` de la messagerie (GPS, tap carte, recherche de
+  lieu) ; à défaut de choix explicite, l'adresse saisie est géocodée à la
+  soumission (meilleur effort, 5 s, jamais bloquant).
+- Le même écran devient l'écran d'édition (`/businesses/:id/edit`) : **cette
+  route n'existait pas** — le menu « Modifier » de la fiche poussait dans le
+  vide depuis toujours.
+- `getNearbyBusinesses` : le calcul du delta de longitude utilisait une
+  fonction `_cos` qui convertissait en radians **sans jamais appliquer le
+  cosinus** (à Niamey, fenêtre ~4× trop large). Corrigé avec `dart:math`.
+- `updateBusiness` (datasource) n'écrase plus les champs serveur
+  (`createdAt`, compteurs, boost, `isVerified`) — sinon la première édition
+  aurait retapé `createdAt` en chaîne ISO et cassé les tris.
+
+Aucune reprise de données à faire : l'annuaire est vide en prod au
+2026-08-19 (constaté sur l'écran « Annuaire Business » le même jour).
+
+À vérifier sur appareil (rien de tout ceci n'a tourné sur un vrai téléphone) :
+- [ ] Créer une entreprise avec position choisie sur la carte (permission
+  localisation runtime, gestes du modal dans le bottom sheet, thème sombre
+  de la tuile et du modal), puis vérifier que le **pin apparaît sur la
+  carte** (couche entreprises activée) et que son tap ouvre la fiche.
+- [ ] Créer une entreprise **sans** toucher la carte mais avec une adresse
+  réelle : le géocodage de repli doit poser lat/lng (à vérifier en base ou
+  par le pin) ; hors ligne ou adresse introuvable, la création doit passer
+  quand même, juste sans pin.
+- [ ] Menu « Modifier » de la fiche (propriétaire) : l'écran s'ouvre
+  prérempli (photos existantes supprimables, pays, téléphone re-séparé
+  indicatif/numéro), la position existante s'affiche et se modifie, et la
+  fiche détail montre les changements au retour.
+- [ ] `viewCount`/`averageRating`/`isBoosted` inchangés en base après une
+  édition (garde anti-écrasement du datasource).
+
+---
+
+## Flags Salons audio / Podcasts / Fil enfin sérialisés + maintenance sans écrasement (2026-08-19)
+
+Deux bugs de la même famille que les préférences profil (reconstruction
+partielle) corrigés dans le module admin :
+
+1. `FeatureFlagsModel`
+   ([app_settings_model.dart](lib/features/admin/data/models/app_settings_model.dart))
+   ne sérialisait **pas du tout** `audioRooms`, `podcasts`, `feed` : les
+   interrupteurs « Salons audio » et « Podcasts » du back-office étaient
+   perdus à l'écriture, et la lecture retombait toujours sur les défauts de
+   l'entité (salons/podcasts désactivés) quoi que contienne Firestore. C'est
+   une cause plus simple que la piste « écriture refusée en silence » notée
+   le 2026-08-19 ci-dessous : même acceptée, l'écriture ne contenait pas ces
+   clés.
+2. `toggleMaintenanceMode`
+   ([app_settings_provider.dart](lib/features/admin/presentation/providers/app_settings_provider.dart))
+   reconstruisait l'entité champ par champ (6 flags sur 9) : basculer la
+   maintenance aurait écrasé `audioRooms`/`podcasts`/`feed` avec les défauts.
+   Réécrit en `copyWith`, avec sentinelle dans
+   [app_settings_entity.dart](lib/features/admin/domain/entities/app_settings_entity.dart)
+   pour que `maintenanceMessage: null` efface vraiment le message (l'écran
+   admin passait déjà `null` pour effacer — no-op silencieux avant).
+
+Couvert par `test/features/admin/feature_flags_maintenance_test.dart`
+(aller-retour modèle, copyWith, écriture réelle du provider sur faux
+datasource).
+
+**État prod lu le 2026-08-19** (admin SDK, lecture seule) : `featureFlags` =
+audioRooms `false`, podcasts `false`, businessDirectory `false`, marketplace
+`false`, moneyTransfer `false`, events/groups/embassies `true`, pas de clé
+`feed` ; **`lastUpdated` = 2026-05-22** → aucune sauvegarde du back-office
+n'a abouti depuis 3 mois. La règle déployée exige
+`users/{uid}.adminRole == 'superAdmin'` pour écrire `app_config/*`, et la
+famille « faux succès » des `set()` Firestore masquerait un refus : le test
+appareil ci-dessous doit donc se juger sur le **document** (le `lastUpdated`
+doit bouger), pas sur l'absence d'erreur à l'écran.
+
+**Non vérifié sur appareil** :
+- [ ] Back-office : activer « Salons audio » et « Podcasts », sauvegarder,
+  relancer l'app → `/audio-rooms` et `/podcasts` ne redirigent plus sur
+  `/home` (première fois que ces interrupteurs peuvent réellement agir).
+- [ ] Back-office : basculer le mode maintenance ON puis OFF → les
+  interrupteurs Salons audio/Podcasts gardent leur état (avant le correctif
+  ils seraient retombés à désactivé). Le flag `feed` est lui aussi préservé
+  dans Firestore, même s'il n'agit plus sur l'app depuis que le Fil est
+  toujours actif (voir l'entrée ci-dessus).
+- [ ] Effacer le message de maintenance (vider le champ) puis sauvegarder →
+  le message ne réapparaît pas à la réouverture de l'écran.
+
+---
+
+## « Tous les services » complété : Fil, Événements, Amis (2026-08-19)
+
+L'écran « Tous les services »
+([services_screen.dart](lib/features/home/presentation/screens/services_screen.dart))
+ne listait que 6 tuiles (Transfert, Marketplace, Annuaire, Ambassades, Salons
+audio, Podcasts) — moins que la grille de l'accueil, qui a en plus « Le fil ».
+Ajoutés : **Le fil** (`/feed`, sans flag, comme sur l'accueil), **Événements**
+(`/events`, gaté `isEventsEnabledProvider` — le module avait un flag et une
+route mais aucune tuile nulle part), **Amis** (`/friends`, sans flag).
+
+Vérifié sur SM A515F le 2026-08-19 (thèmes sombre ET clair) :
+- [x] Rendu de la grille 2 colonnes avec les tuiles de plus (5 affichées,
+  pas de débordement, `childAspectRatio: 1.1`) — dans les deux thèmes.
+- [x] Tap sur chaque nouvelle tuile : Fil (posts affichés), Événements
+  (liste vide fonctionnelle), Amis (1 ami listé) s'ouvrent, et le retour
+  système revient bien sur « Tous les services » à chaque fois.
+- [x] Couleur `Colors.teal` de la tuile Événements lisible en thème sombre.
+
+À noter (vu pendant la session, non corrigé ici) : si le back-office affiche
+des fonctionnalités actives que l'app ne montre pas, l'écriture des flags a pu
+être refusée en silence (règle Firestore `isSuperAdmin()` sur `app_config` +
+famille « faux succès » des `set()` Firestore) — diagnostic en cours côté
+prod.
+
+---
+
 ## Carte « Pour commencer » : chaque ligne gagne son propre critère (2026-08-14)
 
 Les 3 lignes de `_PourCommencerCard`
@@ -7327,6 +7857,31 @@ retester n'a de sens qu'après réactivation.
   (travail réalisé dans un worktree isolé, dépôt principal occupé par une
   autre session au moment de l'écriture).
 
+
+## Pseudo (@handle) — ligne d'appel sur son propre profil
+
+Contexte : la ligne `@handle` disparaît purement et simplement quand le champ
+est vide, et 9 comptes sur 11 en prod n'en ont aucun — rien n'indiquait que
+la fonctionnalité existait. Une ligne d'appel prend désormais la place du
+`@handle` manquant, **uniquement sur son propre profil**.
+
+- [ ] Onglet **Profil** avec un compte sans pseudo : la ligne
+  « Choisir mon pseudo » (icône @) s'affiche sous le nom
+  (`lib/features/profile/presentation/screens/profile_screen.dart`).
+- [ ] Le tap ouvre l'édition **avec le curseur dans le champ**, donc le champ
+  défilé à l'écran (`/profile/edit?focus=handle`,
+  `edit_profile_screen.dart` + `widgets/handle_field.dart`).
+- [ ] Avec un compte **qui a** un pseudo (`sim`, `diaspo_ne`) :
+  c'est bien `@sim` qui s'affiche, pas l'appel.
+- [ ] Profil de **quelqu'un d'autre** sans pseudo : **aucune** ligne
+  d'appel (on ne peut rien y faire)
+  — `profile_view_screen.dart`, garde `_isCurrentUser`.
+- [ ] Son propre profil ouvert par `/profile/<son id>` (lien profond, QR,
+  liste de membres) : même appel que sur l'onglet Profil.
+- [ ] Lisibilité en **thème sombre** (couleur `adaptivePrimaryColor`) et à
+  `font_scale 1.1` : la ligne est dans un `Flexible`, vérifier l'absence de
+  débordement à côté du nom.
+
 ---
 
 ## Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)
@@ -7356,8 +7911,14 @@ dans `notification_service.dart`) n'est pas touché — c'est un autre système.
 
 **2. Dans une rafale, seul le dernier message affiche son heure**
 ([message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)).
-La règle existait déjà pour les messages *envoyés* ; elle vaut désormais aussi
-pour les messages *reçus* (`showTimeInfo = _isLastInGroup || _metaRevealed`).
+La règle existait pour les messages *envoyés* ; elle vaut désormais aussi pour
+les messages *reçus* (`showTimeInfo = _isLastInGroup || _metaRevealed`).
+
+⚠️ Ce changement **annule `92326fe` (« chaque bulle porte son heure »)**, poussé
+quelques heures plus tôt sur la branche partagée, qui avait retiré ce masquage
+en jugeant qu'il se lisait comme un défaut. Le masquage est rétabli à la
+demande explicite, et étendu aux messages reçus. Si le rendu déplaît à
+l'usage, c'est ce commit-là qu'il faut relire avant de trancher à nouveau.
 
 - [ ] 3 messages reçus d'affilée : **seul le dernier** porte son heure.
 - [ ] Un **tap** sur un message masqué (reçu comme envoyé) révèle son heure ;
