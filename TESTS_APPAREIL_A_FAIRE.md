@@ -7960,13 +7960,16 @@ l'usage, c'est ce commit-là qu'il faut relire avant de trancher à nouveau.
   s'attrape sans gêner le tap sur la bulle elle-même.
 - [ ] L'accusé de réception (« Envoyé »/« Lu »/« Vu par N ») reste sur les
   seuls messages envoyés.
-- [ ] ⚠️ **Point de vigilance** : une rafale se définit par
-  « même expéditeur, même jour » — il n'y a **aucune rupture sur l'écart de
-  temps**. Deux messages du même expéditeur à 09:00 et 18:00 le même jour sont
-  une seule rafale, donc l'heure de 09:00 est masquée. Vérifier si c'est
-  gênant à l'usage ; si oui, ajouter une rupture (p. ex. > 15 min) dans
-  `_getMessageGroupPositionReversed`
-  ([conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)).
+- [ ] **Rupture de 15 minutes** (`kDureeRafale`,
+  [message_grouping.dart](lib/features/messages/presentation/utils/message_grouping.dart)) :
+  deux messages du même expéditeur espacés de plus de 15 min ne forment plus
+  une rafale — celui du matin retrouve son heure. La rupture casse aussi le
+  regroupement **visuel** (queue de bulle, nom de l'expéditeur en groupe) :
+  c'est voulu, mais c'est le point à regarder en premier au téléphone. Le
+  seuil est une constante, facile à retoucher si 15 min tombe mal.
+  Comportement verrouillé par
+  [rafale_position_test.dart](test/features/messages/rafale_position_test.dart)
+  (7 cas), mais aucun test ne couvre le **rendu**.
 - [ ] Build + install pas encore faits sur SM A515F depuis ce changement
   (travail réalisé dans un worktree isolé).
 

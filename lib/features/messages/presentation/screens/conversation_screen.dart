@@ -19,6 +19,7 @@ import '../providers/media_upload_provider.dart';
 import '../widgets/conversation_options_modal.dart';
 import '../widgets/forward_conversation_picker.dart';
 import '../widgets/message_bubble.dart';
+import '../utils/message_grouping.dart';
 import '../widgets/message_input.dart';
 import '../widgets/note_poll_draft_sheet.dart';
 import '../widgets/typing_indicator_widget.dart';
@@ -1084,43 +1085,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     String? currentUserId, {
     required bool hasDateBreak,
     required bool hasNextDateBreak,
-  }) {
-    final message = messages[index];
-
-    // In reversed list: lower index = newer, higher index = older
-    // "Previous" visually (below) = index - 1 (newer)
-    // "Next" visually (above) = index + 1 (older)
-    final hasNewerSameSender =
-        index > 0 && messages[index - 1].senderId == message.senderId;
-    final hasOlderSameSender =
-        index < messages.length - 1 &&
-        messages[index + 1].senderId == message.senderId;
-
-    if (hasDateBreak) {
-      // After date separator (visually), treat as first message of group
-      if (hasNewerSameSender && !hasNextDateBreak) {
-        return MessageGroupPosition.first;
-      }
-      return MessageGroupPosition.single;
-    }
-
-    // hasNewerSameSender/hasOlderSameSender sont exprimés en index de la
-    // liste inversée (index 0 = message le plus récent). "first"/"last"
-    // doivent rester alignés sur l'ordre chronologique réel — c'est la
-    // convention qu'utilisent déjà _getBorderRadius() (queue de bulle sur
-    // "last") et showSenderInfo (nom affiché sur "first") : sans quoi le
-    // message le plus ANCIEN du groupe hérite de "last", donc de l'accusé
-    // "Envoyé" porté par _isLastInGroup, à la place du plus récent.
-    if (!hasNewerSameSender && !hasOlderSameSender) {
-      return MessageGroupPosition.single;
-    } else if (!hasNewerSameSender && hasOlderSameSender) {
-      return MessageGroupPosition.last;
-    } else if (hasNewerSameSender && hasOlderSameSender) {
-      return MessageGroupPosition.middle;
-    } else {
-      return MessageGroupPosition.first;
-    }
-  }
+  }) => positionDansRafale(
+    messages,
+    index,
+    hasDateBreak: hasDateBreak,
+    hasNextDateBreak: hasNextDateBreak,
+  );
 
   @override
   Widget build(BuildContext context) {
