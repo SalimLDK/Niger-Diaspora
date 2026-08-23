@@ -343,6 +343,17 @@ class NotificationDetailScreen extends ConsumerWidget {
         // All order-related notifications go to my orders
         context.push('/marketplace/my-orders');
         break;
+      case NotificationType.newPost:
+      case NotificationType.mentioned:
+      case NotificationType.groupMention:
+      case NotificationType.postCommented:
+      case NotificationType.commentReply:
+        if (notification.targetId != null) {
+          context.push('/feed/${notification.targetId}');
+        }
+        break;
+      case NotificationType.reportResolved:
+      case NotificationType.groupCallInvitation:
       case NotificationType.general:
         break;
     }
@@ -398,6 +409,19 @@ class NotificationDetailScreen extends ConsumerWidget {
         return 'Commande annulée';
       case NotificationType.orderCompleted:
         return 'Commande terminée';
+      case NotificationType.newPost:
+        return 'Nouvelle publication';
+      case NotificationType.mentioned:
+      case NotificationType.groupMention:
+        return 'Mention';
+      case NotificationType.postCommented:
+        return 'Nouveau commentaire';
+      case NotificationType.commentReply:
+        return 'Réponse à votre commentaire';
+      case NotificationType.reportResolved:
+        return 'Signalement traité';
+      case NotificationType.groupCallInvitation:
+        return 'Appel de groupe';
       case NotificationType.general:
         return l10n.notificationsTitle;
     }

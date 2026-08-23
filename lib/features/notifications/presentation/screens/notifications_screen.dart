@@ -152,6 +152,17 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.nearbyMember:
       case NotificationType.proximityAlert:
         return 'location_alerts';
+      case NotificationType.newPost:
+      case NotificationType.mentioned:
+      case NotificationType.groupMention:
+      case NotificationType.postCommented:
+      case NotificationType.commentReply:
+        // Regroupé par publication : trois commentaires sur le même post font
+        // une ligne, pas trois.
+        return 'post_${n.targetId ?? 'unknown'}';
+      case NotificationType.groupCallInvitation:
+        return 'group_call_${n.targetId ?? 'unknown'}';
+      case NotificationType.reportResolved:
       case NotificationType.general:
         return 'general_${n.id}'; // Pas de groupement
     }
@@ -462,6 +473,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     NotificationType.eventAttendance,
     NotificationType.nearbyMember,
     NotificationType.proximityAlert,
+    // Les vraies mentions, justement : elles n'existaient pas encore comme
+    // type quand ce filtre a été écrit.
+    NotificationType.mentioned,
+    NotificationType.groupMention,
+    NotificationType.commentReply,
   };
 
   List<NotificationEntity> _filterNotifications(
@@ -628,8 +644,28 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         // All order-related notifications go to my orders
         context.push('/marketplace/my-orders');
         break;
+      // Fil d'actualité : la cible est toujours l'identifiant de la
+      // publication (cf. `notify_on_post_insert`, qui écrit `postId` ET
+      // `targetId`).
+      case NotificationType.newPost:
+      case NotificationType.mentioned:
+      case NotificationType.groupMention:
+      case NotificationType.postCommented:
+      case NotificationType.commentReply:
+        if (notification.targetId != null) {
+          context.push('/feed/${notification.targetId}');
+        } else {
+          context.push('/notifications/${notification.id}');
+        }
+        break;
+      case NotificationType.reportResolved:
+      case NotificationType.groupCallInvitation:
       case NotificationType.general:
-        // No specific navigation
+        // Pas de destination propre : la fiche de la notification reste plus
+        // utile qu'un appui sans effet — c'est précisément ce que faisait
+        // `general` avant, et rien ne distinguait à l'écran une notification
+        // « cliquable » d'une autre.
+        context.push('/notifications/${notification.id}');
         break;
     }
   }
@@ -1225,6 +1261,15 @@ class _NotificationGroup {
       case NotificationType.nearbyMember:
       case NotificationType.proximityAlert:
         return l10n.notifGroupProximity;
+      case NotificationType.newPost:
+      case NotificationType.mentioned:
+      case NotificationType.groupMention:
+      case NotificationType.postCommented:
+      case NotificationType.commentReply:
+        return 'Fil';
+      case NotificationType.groupCallInvitation:
+        return 'Appels de groupe';
+      case NotificationType.reportResolved:
       case NotificationType.general:
         return 'Notifications';
     }
@@ -1285,6 +1330,17 @@ class _NotificationGroup {
       case NotificationType.nearbyMember:
       case NotificationType.proximityAlert:
         return Icons.location_on;
+      case NotificationType.newPost:
+        return Icons.article;
+      case NotificationType.mentioned:
+      case NotificationType.groupMention:
+        return Icons.alternate_email;
+      case NotificationType.postCommented:
+      case NotificationType.commentReply:
+        return Icons.mode_comment;
+      case NotificationType.groupCallInvitation:
+        return Icons.groups;
+      case NotificationType.reportResolved:
       case NotificationType.general:
         return Icons.notifications;
     }

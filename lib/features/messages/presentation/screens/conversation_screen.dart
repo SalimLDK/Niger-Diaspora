@@ -32,7 +32,6 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
 import '../../../groups/presentation/providers/group_pinned_providers.dart';
 import '../../../groups/presentation/widgets/group_pinned_banner.dart';
-import '../../../../core/extensions/profile_entity_extensions.dart';
 import '../../../polls/domain/entities/poll_entity.dart';
 import '../../../polls/presentation/widgets/create_poll_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -1265,6 +1264,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 groupData?.name ??
                 l10n.group)
             : (otherUser?.displayName ?? widget.conversationName ?? l10n.user);
+
+    // Maintient vivant le notifier de frappe tant que l'écran l'est.
+    //
+    // Il n'était jamais observé : chaque frappe faisait un `ref.read` sur un
+    // provider autoDispose sans auditeur, que Riverpod détruisait dans la
+    // foulée — sa destruction effaçant aussitôt la présence qu'il venait de
+    // poser. L'autre appareil ne voyait donc jamais « écrit… ». Cette ligne
+    // fixe son cycle de vie sur celui de la discussion : vivant tant qu'on y
+    // est, détruit (donc présence effacée) quand on en sort.
+    ref.watch(typingIndicatorNotifierProvider);
 
     // Typing users for the in-list bubble
     final typingStatusValue = ref.watch(

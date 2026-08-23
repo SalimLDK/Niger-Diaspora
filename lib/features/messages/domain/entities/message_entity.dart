@@ -124,11 +124,20 @@ class MessageEntity extends Equatable {
   // optimistic-update matching. Null on messages received from other users.
   final String? clientMessageId;
 
+  /// Chemin du fichier local d'un média pas encore téléversé.
+  ///
+  /// Purement local : jamais sérialisé, jamais reçu du serveur. Il permet de
+  /// RENVOYER un message vocal en échec — sans lui, `retryFailedMessage`
+  /// n'avait plus rien à téléverser et se contentait de faire disparaître la
+  /// bulle.
+  final String? localFilePath;
+
   /// How the message content is encrypted. Exposed to the UI so it can show
   /// a lock icon that accurately reflects the security level.
   final MessageEncryptionLevel encryptionLevel;
 
   const MessageEntity({
+    this.localFilePath,
     required this.id,
     required this.senderId,
     required this.senderName,
@@ -327,6 +336,7 @@ class MessageEntity extends Equatable {
   String? get linkPreviewSiteName => linkPreviewData?['siteName'] as String?;
 
   MessageEntity copyWith({
+    String? localFilePath,
     String? id,
     String? senderId,
     String? senderName,
@@ -385,6 +395,7 @@ class MessageEntity extends Equatable {
     MessageEncryptionLevel? encryptionLevel,
   }) {
     return MessageEntity(
+      localFilePath: localFilePath ?? this.localFilePath,
       id: id ?? this.id,
       senderId: senderId ?? this.senderId,
       senderName: senderName ?? this.senderName,
@@ -446,6 +457,7 @@ class MessageEntity extends Equatable {
 
   @override
   List<Object?> get props => [
+    localFilePath,
     id,
     senderId,
     senderName,

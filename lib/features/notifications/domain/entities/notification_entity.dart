@@ -51,6 +51,20 @@ enum NotificationType {
   orderDelivered,
   orderCancelled,
   orderCompleted,
+  // Fil d'actualité. Ces types-là étaient écrits en base (déclencheur SQL
+  // `notify_on_post_insert`, providers du fil) mais absents de cette énumération :
+  // `_parseNotificationType` les repliait donc tous sur `general`, dont le `case`
+  // de navigation est vide. Une notification de publication, de mention ou de
+  // commentaire ne réagissait à AUCUN appui.
+  newPost,
+  mentioned,
+  groupMention,
+  postCommented,
+  commentReply,
+  // Modération : écrite par `report_remote_datasource` et l'admin.
+  reportResolved,
+  // Invitation à un appel de groupe (`group_call_provider`).
+  groupCallInvitation,
 }
 
 extension NotificationTypeExtension on NotificationType {
@@ -102,6 +116,19 @@ extension NotificationTypeExtension on NotificationType {
         return 'Commande annulée';
       case NotificationType.orderCompleted:
         return 'Commande terminée';
+      case NotificationType.newPost:
+        return 'Nouvelle publication';
+      case NotificationType.mentioned:
+      case NotificationType.groupMention:
+        return 'Mention';
+      case NotificationType.postCommented:
+        return 'Nouveau commentaire';
+      case NotificationType.commentReply:
+        return 'Réponse à votre commentaire';
+      case NotificationType.reportResolved:
+        return 'Signalement traité';
+      case NotificationType.groupCallInvitation:
+        return 'Appel de groupe';
     }
   }
 
@@ -153,6 +180,18 @@ extension NotificationTypeExtension on NotificationType {
         return 'cancel';
       case NotificationType.orderCompleted:
         return 'check_circle';
+      case NotificationType.newPost:
+        return 'article';
+      case NotificationType.mentioned:
+      case NotificationType.groupMention:
+        return 'alternate_email';
+      case NotificationType.postCommented:
+      case NotificationType.commentReply:
+        return 'chat_bubble_outline';
+      case NotificationType.reportResolved:
+        return 'gavel';
+      case NotificationType.groupCallInvitation:
+        return 'groups';
     }
   }
 }

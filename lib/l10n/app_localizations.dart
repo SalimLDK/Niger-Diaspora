@@ -10442,6 +10442,42 @@ abstract class AppLocalizations {
   /// **'Entreprise créée avec succès !'**
   String get businessCreatedSuccess;
 
+  /// No description provided for @editBusiness.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'entreprise'**
+  String get editBusiness;
+
+  /// No description provided for @businessUpdatedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entreprise mise à jour'**
+  String get businessUpdatedSuccess;
+
+  /// No description provided for @businessPositionOnMap.
+  ///
+  /// In fr, this message translates to:
+  /// **'Position sur la carte'**
+  String get businessPositionOnMap;
+
+  /// No description provided for @setBusinessPosition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Définir la position exacte'**
+  String get setBusinessPosition;
+
+  /// No description provided for @businessPositionHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Elle permet d\'afficher votre entreprise sur la carte de l\'app.'**
+  String get businessPositionHelp;
+
+  /// No description provided for @useThisPosition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utiliser cette position'**
+  String get useThisPosition;
+
   /// No description provided for @creationError.
   ///
   /// In fr, this message translates to:

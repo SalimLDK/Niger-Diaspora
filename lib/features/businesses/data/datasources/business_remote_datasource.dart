@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/app_error_messages.dart';
@@ -150,7 +152,10 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
 
       // Calcul du bounding box approximatif
       final latDelta = radiusKm / 111.0; // ~111km par degré de latitude
-      final lonDelta = radiusKm / (111.0 * _cos(lat));
+      // Un degré de longitude vaut ~111km * cos(latitude) ; borner près des
+      // pôles pour ne pas diviser par ~0.
+      final cosLat = math.cos(lat * math.pi / 180.0).abs();
+      final lonDelta = radiusKm / (111.0 * math.max(cosLat, 0.01));
 
       final snapshot = await _businessesCollection
           .where('latitude', isGreaterThan: lat - latDelta)
@@ -172,10 +177,6 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la recherche');
     }
-  }
-
-  double _cos(double degrees) {
-    return degrees * 3.14159265359 / 180.0;
   }
 
   @override
@@ -324,6 +325,16 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
     try {
       final data = business.toJson();
       data.remove('id');
+      // Champs gérés côté serveur : les réécrire depuis le client écraserait
+      // les compteurs, le statut boost/vérifié, et remplacerait le Timestamp
+      // `createdAt` par une chaîne ISO (ce qui casse les orderBy).
+      data.remove('createdAt');
+      data.remove('viewCount');
+      data.remove('averageRating');
+      data.remove('reviewCount');
+      data.remove('isBoosted');
+      data.remove('boostExpiresAt');
+      data.remove('isVerified');
       data['updatedAt'] = FieldValue.serverTimestamp();
 
       await _businessesCollection.doc(business.id).update(data);

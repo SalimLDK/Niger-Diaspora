@@ -72,11 +72,21 @@
             android:enabled="true"
             />
 
-        <!-- showWhenLocked / turnScreenOn : quand l'utilisateur accepte un appel
-             depuis la bannière CallKit sur l'écran verrouillé, MainActivity doit
-             pouvoir s'afficher par-dessus le verrouillage et rallumer l'écran.
-             Sans ça l'appel était accepté mais l'écran d'appel restait invisible
-             derrière le keyguard.
+        <!-- PAS de android:showWhenLocked ici — voir MainActivity.setShowWhenLocked().
+
+             Le drapeau était posé statiquement dans ce manifeste pour que l'écran
+             d'appel puisse s'afficher par-dessus le keyguard. Mais un attribut de
+             manifeste vaut pour TOUTE la vie de l'activité, pas seulement pendant
+             un appel : l'application entière (messages, notifications, profil)
+             restait donc accessible par-dessus l'écran de verrouillage. Verrouiller
+             le téléphone avec l'app au premier plan puis rallumer l'écran rouvrait
+             Diaspo Niger sans demander le code.
+
+             Le besoin CallKit est réel mais ponctuel : il est désormais couvert par
+             setShowWhenLocked(true)/setTurnScreenOn(true) appelés à l'ouverture de
+             l'écran d'appel et remis à false à sa fermeture (canal
+             `diaspo_niger/lockscreen`). Même effet pendant l'appel, keyguard rendu
+             le reste du temps.
 
              launchMode singleTask et non singleTop : vérifié sur appareil le
              2026-08-04, avec singleTop un lien reçu alors que l'app tournait
@@ -91,8 +101,6 @@
             android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">

@@ -168,12 +168,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Révélateur « Autres actions » de la feuille (§27a).
   bool _moreOptionsOpen = false;
 
-  /// Un message envoyé qui n'est pas le dernier d'une rafale masque son
-  /// heure/accusé par défaut (`_isLastInGroup`) ; un tap la révèle ici, un
-  /// second tap la remasque. Les messages reçus l'affichent toujours, cette
-  /// bascule ne les concerne pas — voir `_buildMetaRow`.
-  bool _metaRevealed = false;
-
   // Cached emoji-only check (computed once)
   late final bool _cachedIsEmojiOnly;
 
@@ -231,11 +225,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
               ),
     );
   }
-
-  /// Dernier message d'un groupe (ou message isolé) : porte l'horodatage.
-  bool get _isLastInGroup =>
-      widget.groupPosition == MessageGroupPosition.last ||
-      widget.groupPosition == MessageGroupPosition.single;
 
   /// Message reçu (pas de moi) dans une discussion de groupe : la colonne
   /// avatar doit rester réservée même quand elle n'affiche rien (voir
@@ -2073,8 +2062,22 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   );
 
   // Rich text formatting regex: *bold*, _italic_, ~strikethrough~, `code`
+  //
+  // Les délimiteurs doivent être ISOLÉS (rien d'alphanumérique juste avant ni
+  // juste après) et encadrer du contenu qui ne commence ni ne finit par une
+  // espace. Sans ces gardes, le marqueur était reconnu au MILIEU d'un mot et
+  // supprimé de l'affichage : `taux_change_2026` perdait ses tirets bas et
+  // passait en italique, `5*4*3` perdait ses astérisques. Même règle que
+  // WhatsApp et Signal.
   static final _richTextRegex = RegExp(
-    r'(\*[^*\n]+\*)|(_[^_\n]+_)|(~[^~\n]+~)|(`[^`\n]+`)',
+    r'(?<![\w*_~`])'
+    r'(?:'
+    r'\*(?=\S)[^*\n]*[^*\s]\*'
+    r'|_(?=\S)[^_\n]*[^_\s]_'
+    r'|~(?=\S)[^~\n]*[^~\s]~'
+    r'|`(?=\S)[^`\n]*[^`\s]`'
+    r')'
+    r'(?![\w*_~`])',
   );
 
   /// Build a RichText widget with clickable URLs, phone numbers, and emails
@@ -2369,30 +2372,17 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// discussion — aucune bulle spécialisée (image, vidéo, document, note
   /// vocale, sticker, localisation) ne réaffiche l'heure de son côté.
   ///
-  /// Reçus vs envoyés : un message reçu affiche toujours son heure
-  /// individuellement (pas de regroupement pour l'heure, même si la bulle
-  /// reste visuellement groupée) ; un message envoyé qui n'est pas le
-  /// dernier d'une rafale la masque par défaut, et un tap la révèle/masque
-  /// (`_metaRevealed`).
+  /// Chaque message porte son heure, envoyé comme reçu.
+  ///
+  /// Les messages envoyés la masquaient tant qu'ils n'étaient pas le dernier
+  /// d'une rafale, et il fallait taper la bulle pour la révéler. C'était un
+  /// choix délibéré (regroupement visuel des rafales), mais il se lit comme un
+  /// défaut à l'usage : envoyer trois messages d'affilée n'en horodatait qu'un,
+  /// et rien n'indiquait qu'un tap révélait le reste. Le regroupement visuel
+  /// (queue de bulle, nom de l'expéditeur, rayons) est inchangé — seule l'heure
+  /// ne se cache plus.
   Widget _buildMetaRow(BuildContext context) {
     final hasReactions = widget.message.reactions.isNotEmpty;
-    final canToggle = widget.isMe && !_isLastInGroup && !widget.message.deletedForEveryone;
-    final showTimeInfo = _isLastInGroup || !widget.isMe || _metaRevealed;
-
-    if (!showTimeInfo && !hasReactions) {
-      if (!canToggle) return const SizedBox.shrink();
-      return Padding(
-        padding: const EdgeInsets.only(top: 3, left: 4, right: 4),
-        child: Align(
-          alignment: widget.isMe ? Alignment.centerRight : Alignment.centerLeft,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() => _metaRevealed = true),
-            child: const SizedBox(width: 48, height: 16),
-          ),
-        ),
-      );
-    }
 
     final isStarred =
         widget.currentUserId != null &&
@@ -2407,53 +2397,41 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             .where((id) => id != widget.message.senderId)
             .length;
 
-    Widget? timeRow;
-    if (showTimeInfo) {
-      timeRow = Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isStarred) ...[
-            AppIcon(AppIcon.star, size: 12, color: metaColor),
-            const SizedBox(width: 2),
-          ],
-          // Edited indicator
-          if (widget.message.isEdited) ...[
-            Text(
-              l10n.edited,
-              style: TextStyle(
-                fontSize: 11,
-                fontStyle: FontStyle.italic,
-                color: metaColor,
-              ),
-            ),
-            const SizedBox(width: 4),
-          ],
-          // Ephemeral indicator
-          if (widget.message.isEphemeral) ...[
-            Icon(Icons.timer_outlined, size: 12, color: metaColor),
-            const SizedBox(width: 2),
-          ],
-          Text(
-            _formatTime(widget.message.createdAt),
-            style: TextStyle(fontSize: 11, color: metaColor),
-          ),
-          // « 09:24 · Envoyé » (fiche 26b) : l'accusé de réception se
-          // lit, il ne se déchiffre plus. Une coche simple, une double
-          // et une double bleue demandaient d'avoir appris le code.
-          if (widget.isMe && !widget.message.deletedForEveryone)
-            _buildReceiptLabel(context, groupReadCount),
+    final Widget timeRow = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (isStarred) ...[
+          AppIcon(AppIcon.star, size: 12, color: metaColor),
+          const SizedBox(width: 2),
         ],
-      );
-      // Seule la révélation par tap doit pouvoir se remasquer — l'affichage
-      // « dernier de la rafale » ou « message reçu » reste permanent.
-      if (canToggle) {
-        timeRow = GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => setState(() => _metaRevealed = false),
-          child: timeRow,
-        );
-      }
-    }
+        // Edited indicator
+        if (widget.message.isEdited) ...[
+          Text(
+            l10n.edited,
+            style: TextStyle(
+              fontSize: 11,
+              fontStyle: FontStyle.italic,
+              color: metaColor,
+            ),
+          ),
+          const SizedBox(width: 4),
+        ],
+        // Ephemeral indicator
+        if (widget.message.isEphemeral) ...[
+          Icon(Icons.timer_outlined, size: 12, color: metaColor),
+          const SizedBox(width: 2),
+        ],
+        Text(
+          _formatTime(widget.message.createdAt),
+          style: TextStyle(fontSize: 11, color: metaColor),
+        ),
+        // « 09:24 · Envoyé » (fiche 26b) : l'accusé de réception se
+        // lit, il ne se déchiffre plus. Une coche simple, une double
+        // et une double bleue demandaient d'avoir appris le code.
+        if (widget.isMe && !widget.message.deletedForEveryone)
+          _buildReceiptLabel(context, groupReadCount),
+      ],
+    );
 
     return Padding(
       padding: const EdgeInsets.only(top: 3, left: 4, right: 4),
@@ -2463,7 +2441,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         crossAxisAlignment: WrapCrossAlignment.center,
         alignment: widget.isMe ? WrapAlignment.end : WrapAlignment.start,
         children: [
-          if (timeRow != null) timeRow,
+          timeRow,
           if (hasReactions)
             ..._buildReactionChips(context, widget.message.reactions),
         ],

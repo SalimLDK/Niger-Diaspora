@@ -5593,6 +5593,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get businessCreatedSuccess => 'Business created successfully!';
 
   @override
+  String get editBusiness => 'Edit business';
+
+  @override
+  String get businessUpdatedSuccess => 'Business updated';
+
+  @override
+  String get businessPositionOnMap => 'Position on the map';
+
+  @override
+  String get setBusinessPosition => 'Set the exact position';
+
+  @override
+  String get businessPositionHelp =>
+      'It lets your business appear on the app map.';
+
+  @override
+  String get useThisPosition => 'Use this position';
+
+  @override
   String get creationError => 'Error during creation';
 
   @override
