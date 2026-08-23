@@ -14,6 +14,83 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)
+
+Le « SECURITY ALERT — Possible MITM attack » du journal n'est ni une clé
+corrompue ni une attaque : **les deux côtés n'utilisent pas la même clé
+publique.**
+
+- **Signature**, `KeyManagerService._sign` : l'Identity Key est une paire
+  **X25519**, et sa clé **privée** sert de graine à une paire **Ed25519** qui
+  produit la signature.
+- **Vérification**, `MessagingE2EEService._verifySignedPreKeySignature` : elle
+  vérifie avec les octets de l'Identity Key **publique X25519**, simplement
+  réétiquetés `KeyPairType.ed25519`.
+
+Or `Ed25519.newKeyPairFromSeed(privéeX25519).publicKey` n'a aucun rapport avec
+`publiqueX25519` : les deux courbes dérivent la publique différemment. La
+vérification est donc **structurellement impossible à passer, pour tout le
+monde, depuis toujours**.
+
+Prouvé par
+[signed_pre_key_signature_test.dart](test/core/services/e2ee/signed_pre_key_signature_test.dart),
+qui rejoue les deux fonctions de l'app : la vérification échoue, la même
+signature passe avec la bonne clé Ed25519, et les deux publiques ne sont jamais
+égales.
+
+Le vrai Signal utilise XEdDSA — signer avec la privée X25519, vérifier avec la
+publique X25519 convertie en Ed25519 par l'application birationnelle. Le paquet
+`cryptography` ne fournit pas XEdDSA. Ce code ne fait ni l'un ni l'autre.
+
+### Ce que ça entraîne, en cascade
+
+`establishSession` **lève** dès qu'il vérifie → aucune session Signal ne peut
+s'établir avec qui que ce soit → la distribution de Sender Key échoue toujours
+→ les groupes restent en AES, et le 1-à-1 aussi (`encrypt1to1` rattrape
+l'exception et retombe sur AES en silence).
+
+Mesuré en base le 2026-08-23, sur toute la table `messages` :
+
+| `encryptionLevel` | messages |
+|---|---|
+| `aes` | 33 |
+| `null` (ancien, en clair) | 10 |
+| `e2ee` | 3 |
+
+Et les 3 `e2ee` sont exactement les messages de groupe **que personne ne peut
+lire** (Sender Key jamais distribuée, cf. entrée dédiée). Autrement dit :
+**aucun message lisible n'est chiffré de bout en bout aujourd'hui.** Tout passe
+par la clé AES partagée, qui est embarquée dans l'APK *et* recopiée dans une
+fonction Postgres (`decrypt_aes_fallback`) pour les aperçus de notification.
+
+### Ce que ça veut dire pour l'utilisateur
+
+L'app **affirme** le chiffrement de bout en bout : cadenas dans l'en-tête,
+« Message chiffré » sur les bulles, et cette phrase dans la recherche — « Le
+contenu des messages est chiffré de bout en bout : il ne peut pas être cherché
+depuis le serveur ». Cette affirmation est fausse en l'état.
+
+- [ ] **Décision à prendre** avant tout correctif : soit réparer le E2EE, soit
+      cesser de l'affirmer dans l'interface. Les deux sont défendables ; laisser
+      les deux en l'état ne l'est pas.
+- [ ] **Non vérifié** : que réparer la signature suffise. Elle débloque
+      `establishSession`, mais rien ne dit qu'il n'y a pas d'autre défaut en
+      aval — le chemin n'a jamais tourné en vrai.
+
+### Piste de correctif (non implémentée)
+
+La signature est produite par une paire Ed25519 déterministe, dérivée de la
+graine de l'Identity Key. Sa clé **publique** est donc calculable par le
+publieur, mais pas par le vérifieur. Il faut donc la **publier** dans le
+bundle, à côté de l'Identity Key, et vérifier contre elle.
+
+Conséquences à trancher : une colonne de plus, une republication des clés par
+tous les appareils, et une règle pour les bundles existants qui n'ont pas le
+champ (les traiter comme « pas de E2EE » — repli AES, désormais visible grâce
+au cadenas ouvert).
+
+---
+
 ## Le repli AES d'un groupe est désormais signalé (2026-08-23)
 
 Le trou laissé ouvert par le correctif Sender Key : un groupe pouvait tourner
