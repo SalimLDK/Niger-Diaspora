@@ -14,6 +14,39 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Le premier message d'un groupe est illisible par son propre expéditeur (2026-08-23)
+
+Constaté sur SM A515F en voulant vérifier la coloration des mentions. Envoi
+d'un message dans « Diaspora Niger — Canada » (3 membres, aucun message
+jusque-là), depuis le compte `Sim A` :
+
+1. Le message part — accusé « À l'instant · Envoyé ».
+2. La bulle affiche **« 🔒 Message chiffré — clé de groupe introuvable »** avec
+   un bouton « Récupérer la clé de groupe ». **L'expéditeur ne peut pas lire ce
+   qu'il vient d'écrire.**
+3. Le bouton répond « Clé de groupe récupérée — demandez à renvoyer le
+   message » : la clé est bien retrouvée, mais **le message déjà envoyé reste
+   illisible**. Il n'est pas rejoué, et son contenu est perdu pour tout le
+   monde.
+
+Le message porte pourtant « Vu par 1 » : il a bien été distribué.
+
+Ce n'est pas un défaut des mentions — le contenu n'est pas rendu comme du texte
+du tout, donc ni la coloration ni le tap ne sont observables. C'est ce qui
+bloque les deux dernières cases du protocole de mentions ci-dessous.
+
+**Piste à creuser** : la Sender Key du groupe n'est pas établie au moment du
+premier envoi. `_preEstablishE2EESessions` / `distributeGroupSenderKey`
+(message_provider.dart) sont lancés en « fire and forget » au chargement de la
+conversation — un envoi qui les précède chiffre avec une clé que l'appareil ne
+sait pas relire ensuite. À confirmer.
+
+**Non vérifié** : est-ce que ça arrive à *chaque* premier message d'un groupe,
+ou seulement quand la conversation vient d'être ouverte ? Et le message
+suivant, une fois la clé récupérée, est-il lisible ?
+
+---
+
 ## `MaÃ¯daoua` : l'échange de jeton Firebase corrompait le nom en base (2026-08-23)
 
 **Cause enfin trouvée, et prouvée de bout en bout.**
@@ -43,13 +76,12 @@ Corrigé par `decodeJwtPart()`, qui repasse par `Uint8Array` + `TextDecoder`.
 L'`atob` de la **signature** est laissé tel quel : là, l'interprétation octet
 par octet est justement ce qu'on veut.
 
-- [ ] **NON DÉPLOYÉ** — `supabase functions deploy auth-firebase-exchange`
-      reste à faire.
-- [ ] **DONNÉE NON RÉPARÉE** — une ligne à corriger :
+- [x] **DÉPLOYÉE** le 2026-08-23.
+- [x] **DONNÉE RÉPARÉE** le 2026-08-23, après le déploiement. Requête utilisée :
       `UPDATE users SET display_name = convert_from(convert_to(display_name,'LATIN1'),'UTF8')
        WHERE id = 'DfSyAWiGuSQfCFpbhp1SVk5eQ8F2';`
-      À ne lancer qu'**après** le déploiement, sinon la prochaine connexion de
-      ce compte la re-corrompt.
+      Vérifié ensuite dans l'application : « Ibrahim Yacouba Maïdaoua »
+      s'affiche correctement.
 
 ---
 
@@ -79,9 +111,11 @@ quelle que soit la forme du pseudo.
       retiré.
 - [x] Le membre `diaspo_ne` n'apparaît pas sur `@sa` : le filtrage est correct,
       il ne propose pas tout le monde.
-- [ ] Coloration de la mention dans la bulle — **demande d'envoyer un message
-      dans un vrai groupe**, non fait sans accord.
-- [ ] Tap sur la mention → ouvre le profil — même raison.
+- [ ] Coloration de la mention dans la bulle — **bloqué**, pas par les
+      mentions : le message envoyé s'affiche « clé de groupe introuvable »
+      (voir l'entrée E2EE ci-dessus). Le contenu n'est pas rendu comme du
+      texte, donc rien à colorer.
+- [ ] Tap sur la mention → ouvre le profil — bloqué par la même chose.
 - [ ] Compte **avec** poignée : vérifier que c'est `@diaspo_ne` qui est inséré
       et non l'identifiant. Le filtre `@sa` ne le proposait pas ; à retenter
       avec `@dia`.
