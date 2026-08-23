@@ -7932,6 +7932,14 @@ SEMAINE »…) et les trois filtres (Tout / Non lues / Mentions) sont conservés
 Le résumé des notifications **push** Android (`setAsGroupSummary`, InboxStyle
 dans `notification_service.dart`) n'est pas touché — c'est un autre système.
 
+- [ ] ⚠️ **Rien n'a pu être vérifié le 2026-08-23** : la page affiche
+  « Erreur de chargement » sur le compte de test, alors que le badge de la
+  cloche annonce 19 notifications. Le message vient de la branche `error:` de
+  `notificationsAsync` — donc **le chargement échoue en amont**, dans
+  `watchNotifications` (flux Supabase `notifications`, qui réessaie 4 fois puis
+  laisse remonter l'erreur), et non dans l'affichage retouché ici. À
+  diagnostiquer séparément ; tant que ça dure, la mise à plat reste
+  invérifiable à l'écran.
 - [ ] Une conversation qui a envoyé 3 messages produit **3 lignes séparées**
   dans la page, plus une tuile dépliable.
 - [ ] Le **balayage** (supprimer / marquer comme lu) fonctionne sur ces
@@ -7954,7 +7962,18 @@ en jugeant qu'il se lisait comme un défaut. Le masquage est rétabli à la
 demande explicite, et étendu aux messages reçus. Si le rendu déplaît à
 l'usage, c'est ce commit-là qu'il faut relire avant de trancher à nouveau.
 
-- [ ] 3 messages reçus d'affilée : **seul le dernier** porte son heure.
+- [x] **Vérifié SM A515F le 2026-08-23** (build debug depuis le worktree) :
+  3 messages envoyés d'affilée dans « Mes notes » (`rafale_A`, `rafale_B`,
+  `rafale_C`) → seul `rafale_C` porte « À l'instant · Envoyé ».
+- [ ] Le même cas sur des messages **reçus** : **pas vérifié**, aucun message
+  reçu disponible sur le compte de test (les deux conversations ne contiennent
+  que des messages envoyés ; celle du groupe est en « clé de groupe
+  introuvable »). C'est pourtant la moitié de la demande — à refaire avec un
+  second compte.
+- [x] **Tap vérifié SM A515F le 2026-08-23** sur messages **envoyés** : un tap
+  sur la bulle révèle « 05:14 · Envoyé », un second tap la remasque, et le
+  double-tap pose toujours la réaction ❤️. Le retard de ~300 ms n'a pas pu être
+  jugé (pilotage par `adb`, pas au doigt). Reste à faire sur une bulle **reçue**.
 - [ ] Un **tap sur la bulle** (reçue comme envoyée) révèle son heure ; un
   second tap la remasque. ⚠️ Signalé cassé à l'usage le 2026-08-23 : le
   `GestureDetector` de la bulle ne portait que `onLongPress`/`onDoubleTap`,
@@ -7966,8 +7985,20 @@ l'usage, c'est ce commit-là qu'il faut relire avant de trancher à nouveau.
   - le double-tap pose toujours la réaction ❤️ ;
   - le tap simple accuse ~300 ms de retard (Flutter attend d'écarter le
     double-tap) — dire si c'est perceptible au point de gêner.
+- [ ] ⚠️ **Scintillement observé le 2026-08-23** : juste après avoir posé une
+  réaction ❤️, **toutes** les bulles de la conversation ont affiché leur heure
+  d'un coup (le regroupement s'était défait), puis c'est rentré dans l'ordre à
+  la réouverture. Piste : pendant le rebuild qui suit l'écriture, la liste passe
+  par un état où les voisins d'index ne sont plus les voisins chronologiques, ce
+  qui fait échouer `memeRafale`. Sans conséquence durable, mais à confirmer — et
+  à corriger si ça se voit à chaque réaction.
 - [ ] L'accusé de réception (« Envoyé »/« Lu »/« Vu par N ») reste sur les
   seuls messages envoyés.
+- [x] **Rupture de 15 minutes vérifiée SM A515F le 2026-08-23**, deux fois :
+  dans « Mes notes », le sondage de 05:18 garde son heure bien qu'il soit suivi
+  de `rafale_A` du même expéditeur le même jour ; dans le groupe « Diaspora
+  Niger — Canada », 05:55 et 06:30 (35 min) forment deux rafales et la bulle du
+  milieu est masquée. Sans la rupture, 05:55 aurait disparu.
 - [ ] **Rupture de 15 minutes** (`kDureeRafale`,
   [message_grouping.dart](lib/features/messages/presentation/utils/message_grouping.dart)) :
   deux messages du même expéditeur espacés de plus de 15 min ne forment plus
