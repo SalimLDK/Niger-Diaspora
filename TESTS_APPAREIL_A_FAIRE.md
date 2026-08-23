@@ -14,6 +14,63 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Sender Key : l'envoi fabriquait une clé que personne n'avait — RÉSOLU (2026-08-23)
+
+La cause de fond des messages de groupe illisibles, sous le symptôme déjà
+traité côté affichage.
+
+`SenderKeyService.encryptWithSenderKey` faisait
+`senderKey ??= await createSenderKey(groupId)`. **L'envoi fabriquait donc une
+Sender Key à la volée et chiffrait avec, sans la remettre à personne.** Le
+message était illisible par tout le groupe, définitivement — et pas rattrapable
+après coup : `decryptWithSenderKey` refuse un index de chaîne passé, et le
+ratchet avance à l'émission. Distribuer ensuite arrive toujours trop tard d'un
+cran.
+
+Le repli AES existait pourtant, annoncé par le commentaire de `encryptGroup`
+(« AES-GCM fallback for groups without established Sender Keys ») — mais cette
+ligne le rendait **inatteignable**.
+
+Ce qui change :
+
+- `E2EESenderKey` porte `isDistributed`, faux par défaut **y compris pour les
+  clés déjà en stockage** : elles ont été fabriquées par l'ancien chemin, les
+  relire comme distribuées produirait de nouveaux messages illisibles.
+- `distributeSenderKey` renvoie désormais `true`/`false` — elle échouait en
+  silence quand aucune session Signal n'existait avec le membre.
+- `distributeSenderKeyToGroup` ne marque la clé distribuée que si **chaque**
+  autre membre l'a reçue. Sinon on reste en AES : un message qu'une partie du
+  groupe ne peut pas lire est pire qu'un message chiffré avec la clé partagée.
+- `encryptWithSenderKey` ne crée plus rien et rend `null` tant que la clé n'est
+  pas distribuée → repli AES, lisible par tout le monde.
+
+**Vérifié sur SM A515F**, et confirmé en base :
+
+- [x] Message envoyé dans « Diaspora Niger — Canada » : **lisible** à l'envoi.
+- [x] **Toujours lisible** après avoir quitté la discussion et l'avoir rouverte
+      — ce qui valide au passage la persistance du texte clair, non vérifiée à
+      la session précédente.
+- [x] `messages.data->>'encryptionLevel'` : le nouveau message est `aes`, les
+      trois anciens sont `e2ee`. Le repli est bien pris, et le diagnostic est
+      confirmé par la donnée.
+
+**Conséquence assumée** : le premier message d'un groupe part en AES tant que la
+distribution n'a pas abouti pour tous les membres. C'est un cran de moins que le
+chiffrement de groupe, mais c'est le comportement que le code annonçait déjà —
+et infiniment mieux qu'un message que personne ne peut lire.
+
+**Reste ouvert** : la distribution n'aboutit que si une session Signal 1:1
+existe avec chaque membre. Si un membre n'a jamais publié ses clés, le groupe
+restera en AES indéfiniment, en silence. Rien ne le signale aujourd'hui — ni
+dans l'app, ni dans un compteur. À instrumenter si le chiffrement de groupe doit
+être garanti.
+
+**Non réparable** : les messages envoyés avant ce correctif restent illisibles
+pour toujours. Il en traîne trois dans « Diaspora Niger — Canada », dont mes
+messages de test.
+
+---
+
 ## Le message de groupe illisible par son propre expéditeur — CAUSE TROUVÉE (2026-08-23)
 
 Constaté sur SM A515F : le message qu'on vient d'envoyer dans un groupe
@@ -46,10 +103,9 @@ le texte clair en cache dès l'envoi.
 
 - [x] **Point 1 vérifié sur appareil** : « essai after fix » reste lisible
       douze secondes après l'envoi, là où il basculait en placeholder.
-- [ ] **Point 2 NON vérifié** : l'automatisation de l'écran a dérapé (un tap a
-      ouvert le composeur téléphonique — aucun appel passé) et j'ai arrêté là.
-      Scénario à rejouer, trois gestes : envoyer un message dans un groupe,
-      quitter la discussion, la rouvrir. Le texte doit rester lisible.
+- [x] **Point 2 vérifié** le 2026-08-23, en même temps que le correctif Sender
+      Key ci-dessus : message envoyé dans un groupe, discussion quittée puis
+      rouverte — le texte reste lisible.
 
 **Ce qui reste vrai, et n'est pas corrigé** : les messages envoyés AVANT ce
 correctif restent illisibles pour toujours — leur texte clair n'a jamais été
