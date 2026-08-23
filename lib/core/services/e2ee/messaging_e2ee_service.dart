@@ -167,11 +167,25 @@ class MessagingE2EEService {
       type: KeyPairType.x25519,
     );
 
-    // C2 Security Fix: Verify the signed pre-key signature before using it.
-    // Without this check, a MITM could substitute a different signed pre-key
-    // and establish a session they can decrypt.
+    // Vérifier la signature de la Signed Pre-Key avant de s'en servir : sans
+    // ça, un intermédiaire pourrait substituer sa propre clé et lire la suite.
+    //
+    // La vérification se fait contre `identitySigningKey`, la clé publique
+    // Ed25519 publiée avec le bundle — PAS contre l'Identity Key X25519, qui
+    // ne correspond à rien ici (voir le commentaire de `identitySigningKey`).
+    // Un appareil qui n'a pas encore republié ses clés depuis le correctif
+    // n'en a pas : on ne peut pas vérifier, donc on n'établit pas de session.
+    final signingKey = bundle.identitySigningKey;
+    if (signingKey == null) {
+      debugPrint(
+        'MessagingE2EEService: $recipientId (appareil ${bundle.deviceId}) n\'a '
+        'pas publié sa clé de signature — session Signal impossible, repli AES',
+      );
+      return null;
+    }
+
     final signatureValid = await _verifySignedPreKeySignature(
-      identityKeyBase64: bundle.identityKey,
+      identitySigningKeyBase64: signingKey,
       signedPreKeyPublicBase64: bundle.signedPreKeyPublic,
       signatureBase64: bundle.signedPreKeySignature,
     );
@@ -253,21 +267,33 @@ class MessagingE2EEService {
   /// derived using the montgomery-to-edwards conversion to produce signatures.
   ///
   /// Returns `true` if the signature is valid, `false` otherwise.
+  /// Vérifie la signature de la Signed Pre-Key.
+  ///
+  /// ⚠️ Cette fonction vérifiait contre l'Identity Key **X25519**, réétiquetée
+  /// `ed25519`. Or `KeyManagerService._sign` signe avec une paire Ed25519
+  /// dérivée de la clé privée X25519 prise comme graine : sa publique n'a aucun
+  /// rapport avec la publique X25519. La vérification était donc
+  /// structurellement impossible à passer — pour tout le monde, depuis
+  /// toujours. `establishSession` levait à chaque fois, aucune session Signal
+  /// ne s'établissait, et TOUT retombait sur la clé AES partagée : au
+  /// 2026-08-23, sur 46 messages en base, aucun n'était lisible et chiffré de
+  /// bout en bout.
+  ///
+  /// La bonne clé publique est désormais publiée avec le bundle. Le test
+  /// `signed_pre_key_signature_test.dart` fige les deux comportements.
   Future<bool> _verifySignedPreKeySignature({
-    required String identityKeyBase64,
+    required String identitySigningKeyBase64,
     required String signedPreKeyPublicBase64,
     required String signatureBase64,
   }) async {
     try {
       final signatureBytes = base64Decode(signatureBase64);
       final signedPreKeyBytes = base64Decode(signedPreKeyPublicBase64);
-      final identityKeyBytes = base64Decode(identityKeyBase64);
+      final signingKeyBytes = base64Decode(identitySigningKeyBase64);
 
-      // In Signal Protocol, the X25519 identity key is converted to its
-      // Ed25519 equivalent for signature verification.
-      // The signed data is the raw bytes of the signed pre-key public key.
+      // La donnée signée est la clé publique brute de la Signed Pre-Key.
       final ed25519PublicKey = SimplePublicKey(
-        identityKeyBytes,
+        signingKeyBytes,
         type: KeyPairType.ed25519,
       );
 

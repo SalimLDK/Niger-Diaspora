@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:cryptography/cryptography.dart';
@@ -90,6 +91,22 @@ class KeyManagerService {
     final keyPair = await algorithm.newKeyPairFromSeed(privateKey);
     final signature = await algorithm.sign(data, keyPair: keyPair);
     return Uint8List.fromList(signature.bytes);
+  }
+
+  /// Clé publique Ed25519 correspondant aux signatures produites par [_sign].
+  ///
+  /// [_sign] dérive une paire Ed25519 en prenant la clé privée X25519 de
+  /// l'Identity Key comme graine. La publique de cette paire n'a AUCUN rapport
+  /// avec la publique X25519 — les deux courbes ne dérivent pas pareil. C'est
+  /// exactement ce qui faisait échouer toute vérification de signature, donc
+  /// toute session Signal, donc tout le chiffrement de bout en bout.
+  ///
+  /// Le vérifieur n'ayant pas la privée, il ne peut pas la recalculer : elle
+  /// doit être publiée avec le bundle.
+  Future<Uint8List> identitySigningPublicKey(Uint8List identityPrivateKey) async {
+    final keyPair = await Ed25519().newKeyPairFromSeed(identityPrivateKey);
+    final publicKey = await keyPair.extractPublicKey();
+    return Uint8List.fromList(publicKey.bytes);
   }
 
   /// Verifies an Ed25519 signature against the signer's public key.
@@ -230,6 +247,43 @@ class KeyManagerService {
       if (row == null || activeDevices.isEmpty) {
         debugPrint('KeyManagerService: Keys not on Supabase — re-publishing');
         await _publishWithRetry(userId);
+        return;
+      }
+
+      // Republier aussi quand ce qui EST publié est incomplet.
+      //
+      // Le bundle transporte depuis peu `identitySigningKey`, sans laquelle
+      // personne ne peut vérifier notre signature de Signed Pre-Key — donc
+      // sans laquelle aucune session Signal ne s'établit avec nous. Les
+      // appareils déjà publiés avaient une ligne valide et ne repassaient
+      // jamais par la publication : le correctif n'aurait rien changé pour eux,
+      // et le chiffrement de bout en bout serait resté inerte indéfiniment.
+      //
+      // La publication étant rejouée à chaque `initialize`, cette garde suffit
+      // à faire migrer tout le parc sans migration ni intervention.
+      final deviceId = await _storage.getDeviceId(userId);
+      if (deviceId == null) return;
+
+      final deviceRow = await _supabase
+          .from('e2ee_devices')
+          .select('signed_pre_key')
+          .eq('user_id', userId)
+          .eq('device_id', deviceId)
+          .maybeSingle();
+
+      final publishedSignedPreKey =
+          deviceRow?['signed_pre_key'] as Map<String, dynamic>?;
+      final hasSigningKey =
+          (publishedSignedPreKey?['identitySigningKey'] as String?)
+              ?.isNotEmpty ==
+          true;
+
+      if (!hasSigningKey) {
+        debugPrint(
+          'KeyManagerService: bundle publié sans clé de signature — '
+          're-publication',
+        );
+        await _publishWithRetry(userId);
       }
     } catch (e) {
       debugPrint('KeyManagerService: _ensurePublishedToSupabase error: $e');
@@ -292,6 +346,13 @@ class KeyManagerService {
         'keyId': signedPreKey.keyId,
         'publicKey': signedPreKey.publicKeyBase64,
         'signature': signedPreKey.signatureBase64,
+        // Sans elle, personne ne peut vérifier la signature ci-dessus. Logée
+        // dans le JSONB existant plutôt que dans une colonne : la publication
+        // est rejouée à chaque `initialize`, tous les appareils se mettent donc
+        // à jour d'eux-mêmes, sans migration.
+        'identitySigningKey': base64Encode(
+          await identitySigningPublicKey(identityKeyPair.privateKey),
+        ),
         'createdAt': signedPreKey.createdAt.toUtc().toIso8601String(),
       },
       'platform': defaultTargetPlatform.name,
@@ -455,6 +516,7 @@ class KeyManagerService {
         signedPreKeyId: signedPreKey['keyId'] as int,
         signedPreKeyPublic: signedPreKey['publicKey'] as String,
         signedPreKeySignature: signedPreKey['signature'] as String,
+        identitySigningKey: signedPreKey['identitySigningKey'] as String?,
         oneTimePreKeyId: otpKeyId,
         oneTimePreKeyPublic: otpPublicKey,
       );

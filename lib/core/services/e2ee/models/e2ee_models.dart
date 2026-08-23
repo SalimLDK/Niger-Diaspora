@@ -242,6 +242,19 @@ class E2EEPreKeyBundle {
   final String signedPreKeyPublic;
   final String signedPreKeySignature;
 
+  /// Clé publique **Ed25519** qui a produit [signedPreKeySignature].
+  ///
+  /// Elle est nécessaire parce que la signature n'est PAS faite avec
+  /// l'Identity Key telle quelle : `KeyManagerService._sign` dérive une paire
+  /// Ed25519 depuis la clé privée X25519 utilisée comme graine. Sa publique
+  /// n'a donc aucun rapport avec [identityKey], et le vérifieur — qui n'a pas
+  /// la privée — ne peut pas la recalculer. Il faut la lui donner.
+  ///
+  /// `null` pour un appareil qui n'a pas encore republié ses clés depuis le
+  /// correctif : sa signature est alors invérifiable, et la session Signal ne
+  /// s'établit pas (repli AES, visible dans l'en-tête de la conversation).
+  final String? identitySigningKey;
+
   /// One-Time Pre-Key (optionnel, peut être null si épuisées)
   final int? oneTimePreKeyId;
   final String? oneTimePreKeyPublic;
@@ -254,6 +267,7 @@ class E2EEPreKeyBundle {
     required this.signedPreKeyId,
     required this.signedPreKeyPublic,
     required this.signedPreKeySignature,
+    this.identitySigningKey,
     this.oneTimePreKeyId,
     this.oneTimePreKeyPublic,
   });
@@ -266,6 +280,8 @@ class E2EEPreKeyBundle {
         'signedPreKeyId': signedPreKeyId,
         'signedPreKeyPublic': signedPreKeyPublic,
         'signedPreKeySignature': signedPreKeySignature,
+        if (identitySigningKey != null)
+          'identitySigningKey': identitySigningKey,
         if (oneTimePreKeyId != null) 'oneTimePreKeyId': oneTimePreKeyId,
         if (oneTimePreKeyPublic != null)
           'oneTimePreKeyPublic': oneTimePreKeyPublic,
@@ -280,6 +296,7 @@ class E2EEPreKeyBundle {
       signedPreKeyId: json['signedPreKeyId'] as int,
       signedPreKeyPublic: json['signedPreKeyPublic'] as String,
       signedPreKeySignature: json['signedPreKeySignature'] as String,
+      identitySigningKey: json['identitySigningKey'] as String?,
       oneTimePreKeyId: json['oneTimePreKeyId'] as int?,
       oneTimePreKeyPublic: json['oneTimePreKeyPublic'] as String?,
     );

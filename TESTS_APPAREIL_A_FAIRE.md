@@ -14,6 +14,64 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## E2EE réparé : la clé de signature est publiée avec le bundle (2026-08-23)
+
+Suite de l'entrée « La signature de clé pré-signée ne peut JAMAIS vérifier ».
+
+La signature est produite par une paire **Ed25519 dérivée de la clé privée
+X25519 prise comme graine**. Sa publique n'a aucun rapport avec la publique
+X25519, et le vérifieur — qui n'a pas la privée — ne peut pas la recalculer.
+Elle est donc désormais **publiée avec le bundle**, dans le JSONB
+`e2ee_devices.signed_pre_key` sous la clé `identitySigningKey`.
+
+**Aucune migration** : la publication est rejouée à chaque `initialize`, et
+`_ensurePublishedToSupabase` republie maintenant aussi quand ce qui est publié
+est **incomplet** — pas seulement quand la ligne manque. Sans cette seconde
+condition, les appareils déjà publiés n'auraient jamais repassé par la
+publication et le correctif n'aurait rien changé pour eux. C'est le piège dans
+lequel je suis tombé au premier essai : le code était bon, la clé n'était
+jamais écrite.
+
+Un appareil qui n'a pas encore republié n'a pas le champ : sa signature est
+invérifiable, on n'établit pas de session, et le repli AES devient **visible**
+grâce au cadenas ouvert. Plus de « SECURITY ALERT / Possible MITM » trompeur
+pour ce cas — il est réservé à une vraie signature invalide.
+
+### Vérifié sur SM A515F
+
+- [x] Après mise à jour, l'appareil republie : `signed_pre_key` porte
+      `identitySigningKey` en base (appareil `be32f0e9…`, actif à 22:43).
+- [x] Le journal dit la vérité au lieu d'accuser un MITM :
+      « U64HK… (appareil 1) n'a pas publié sa clé de signature — session Signal
+      impossible, repli AES », puis « Sender Key remise à 0/2 membres — repli
+      AES maintenu ».
+- [x] **L'en-tête affiche « 3 membres 🔓 Clé partagée »** — ce qui valide au
+      passage l'indicateur du commit précédent, que je n'avais pas pu voir.
+- [x] Le débordement introduit au premier jet (« 3 me… » tronqué) est corrigé :
+      les deux libellés sont `Flexible` avec ellipsis.
+
+### Ce qui reste, et qui ne peut pas être vérifié avec un seul téléphone
+
+- [ ] **Une vraie session Signal de bout en bout.** Elle demande que les DEUX
+      côtés aient republié. Un seul appareil a la nouvelle version : tous les
+      autres comptes sont encore sans `identitySigningKey`, donc tout reste en
+      AES. À revérifier quand un second téléphone aura la mise à jour — le
+      signal attendu est un message dont `encryptionLevel` vaut `e2ee` **et**
+      qui reste lisible des deux côtés.
+- [ ] **Que ça suffise.** Le correctif débloque `establishSession`, mais ce
+      chemin n'a jamais tourné en vrai : rien ne dit qu'il n'y a pas d'autre
+      défaut en aval (X3DH, Double Ratchet, multi-appareils). Le premier
+      échange réel entre deux appareils à jour est le seul juge.
+
+### Décision toujours ouverte
+
+Tant qu'aucun échange E2EE réel n'est constaté, l'app continue d'**affirmer**
+le chiffrement de bout en bout dans son interface (phrase de l'écran de
+recherche, « Message chiffré »). Ce n'est pas encore vrai. Soit on confirme que
+le correctif suffit, soit on retire l'affirmation.
+
+---
+
 ## La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)
 
 Le « SECURITY ALERT — Possible MITM attack » du journal n'est ni une clé
@@ -153,11 +211,10 @@ code de vérification. À trancher avant de conclure quoi que ce soit sur un
       [group_encryption_status_test.dart](test/features/messages/group_encryption_status_test.dart)
       (9 tests) : distribution complète / partielle / impossible, et le fait
       qu'un groupe sans autre membre ne compte pas comme « chiffré ».
-- [ ] **Rendu à l'écran NON vérifié** : le téléphone s'est verrouillé avant que
-      je puisse le voir, et je ne peux pas le déverrouiller. Scénario :
-      ouvrir « Diaspora Niger — Canada » (dont la distribution échoue, cf.
-      ci-dessus) → le cadenas doit être **ouvert** avec « Chiffrement
-      partagé », et l'appui doit nommer `Diaspo Niger`.
+- [x] **Rendu vérifié** le 2026-08-23 : « Diaspora Niger — Canada » affiche
+      « 3 membres 🔓 Clé partagée » dans l'en-tête. Le libellé a été raccourci
+      et rendu `Flexible` — au premier jet il tronquait le compte de membres
+      en « 3 me… ».
 - [ ] Vérifier aussi le cas nominal : un groupe dont tous les membres ont des
       clés valides doit garder le cadenas fermé, sans mention.
 
