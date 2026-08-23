@@ -549,6 +549,35 @@ class E2EESenderKey {
   }
 }
 
+/// Ce qu'a donné une tentative de distribution de Sender Key à un groupe.
+///
+/// La distribution échoue en silence pour un membre avec qui aucune session
+/// Signal n'existe — il n'a jamais publié ses clés, ou jamais ouvert l'app
+/// depuis. Sans ce compte rendu, le groupe restait en repli AES **sans que
+/// rien ne le dise**, ni à l'utilisateur ni dans les logs.
+class SenderKeyDistribution {
+  /// Membres qui ont bien reçu notre Sender Key.
+  final int delivered;
+
+  /// Membres qui ne l'ont pas reçue : tant qu'il en reste un, chiffrer avec la
+  /// Sender Key produirait un message qu'il ne pourrait pas lire.
+  final List<String> missingMemberIds;
+
+  const SenderKeyDistribution({
+    required this.delivered,
+    required this.missingMemberIds,
+  });
+
+  int get total => delivered + missingMemberIds.length;
+
+  /// Vrai si tout le monde l'a : le chiffrement de groupe peut servir.
+  ///
+  /// Un groupe sans autre membre (`total == 0`) n'est pas « complet » : il n'y
+  /// a personne à qui distribuer, donc rien ne garantit que la clé serve à
+  /// quelque chose.
+  bool get isComplete => total > 0 && missingMemberIds.isEmpty;
+}
+
 /// Backup chiffré des clés
 class E2EEEncryptedBackup {
   /// Version du format de backup

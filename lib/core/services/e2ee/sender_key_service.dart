@@ -121,17 +121,34 @@ class SenderKeyService {
     // Récupérer notre Sender Key pour ce groupe
     var senderKey = await _storage.getSenderKey(groupId, userId, deviceId);
 
-    // Créer si n'existe pas
+    // Créer si n'existe pas — ici c'est légitime : on est sur le point de la
+    // distribuer, contrairement au chemin d'émission.
     senderKey ??= await createSenderKey(groupId);
 
     // Créer le message de distribution
     final distributionMessage = _createDistributionMessage(senderKey);
 
-    // Chiffrer et envoyer via E2EE 1-1
-    final encrypted = await _e2eeService.encryptMessage(
-      recipientId,
-      jsonEncode(distributionMessage),
-    );
+    // Chiffrer et envoyer via E2EE 1-1.
+    //
+    // ⚠️ Cet appel LÈVE quand les clés publiées du membre ne vérifient pas
+    // (« Signed pre-key signature verification failed »). Sans ce try, un seul
+    // membre dans ce cas faisait avorter la boucle de `distributeSenderKeyToGroup`,
+    // l'exception remontait jusqu'au `catch` de `MessageCryptoService`, et le
+    // groupe restait en AES sans qu'aucun compte rendu ne soit produit — donc
+    // sans que rien ne soit signalé à l'utilisateur. Constaté sur appareil le
+    // 2026-08-23 avec le compte plateforme.
+    final E2EEEncryptedMessage? encrypted;
+    try {
+      encrypted = await _e2eeService.encryptMessage(
+        recipientId,
+        jsonEncode(distributionMessage),
+      );
+    } catch (e) {
+      debugPrint(
+        'SenderKeyService: distribution vers $recipientId impossible — $e',
+      );
+      return false;
+    }
 
     if (encrypted != null) {
       await _supabase.from('e2ee_sender_key_distributions').upsert({
@@ -160,27 +177,38 @@ class SenderKeyService {
   /// Sinon on reste en repli AES : un message qu'une partie du groupe ne peut
   /// pas lire est pire qu'un message chiffré avec la clé partagée — d'autant
   /// que son auteur ne pourrait pas le relire non plus.
-  Future<void> distributeSenderKeyToGroup(
+  Future<SenderKeyDistribution> distributeSenderKeyToGroup(
     String groupId,
     List<String> memberIds,
   ) async {
     final userId = _e2eeService.currentUserId;
-    if (userId == null) return;
-
-    final recipients = memberIds.where((id) => id != userId).toList();
-    var delivered = 0;
-    for (final memberId in recipients) {
-      if (await distributeSenderKey(groupId, memberId)) delivered++;
+    if (userId == null) {
+      return const SenderKeyDistribution(delivered: 0, missingMemberIds: []);
     }
 
-    final complete = recipients.isNotEmpty && delivered == recipients.length;
-    if (complete) await _markSenderKeyDistributed(groupId);
+    final recipients = memberIds.where((id) => id != userId).toList();
+    final missing = <String>[];
+    var delivered = 0;
+    for (final memberId in recipients) {
+      if (await distributeSenderKey(groupId, memberId)) {
+        delivered++;
+      } else {
+        missing.add(memberId);
+      }
+    }
+
+    final result = SenderKeyDistribution(
+      delivered: delivered,
+      missingMemberIds: missing,
+    );
+    if (result.isComplete) await _markSenderKeyDistributed(groupId);
 
     debugPrint(
       'SenderKeyService: Sender Key remise à $delivered/${recipients.length} '
       'membres de $groupId — '
-      '${complete ? "chiffrement de groupe actif" : "repli AES maintenu"}',
+      '${result.isComplete ? "chiffrement de groupe actif" : "repli AES maintenu"}',
     );
+    return result;
   }
 
   /// Note que notre Sender Key de [groupId] est entre les mains de tous les

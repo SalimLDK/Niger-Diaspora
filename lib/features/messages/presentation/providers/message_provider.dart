@@ -6,6 +6,8 @@ import 'package:uuid/uuid.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../../../core/services/e2ee/message_crypto_service.dart';
+import '../../../../core/services/e2ee/models/e2ee_models.dart';
+import 'group_encryption_status_provider.dart';
 import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../data/datasources/message_supabase_datasource.dart';
 import 'package:flutter/foundation.dart';
@@ -184,11 +186,24 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
           .preEstablishSessions(recipients)
           .catchError((e) => debugPrint('E2EE pre-establish error: $e'));
     } else {
+      // Le compte rendu de la distribution alimente le cadenas de l'en-tête :
+      // sans lui, un groupe pouvait rester en repli AES indéfiniment sans que
+      // rien ne le signale (cf. group_encryption_status_provider.dart).
       crypto
           .distributeGroupSenderKey(
             groupId: conversationId,
             memberIds: conversation.participantIds,
           )
+          .then((dynamic result) {
+            // `null` = le chiffrement E2EE n'est pas prêt sur cet appareil,
+            // donc rien n'a même pu être tenté. C'est un repli AES aussi, et
+            // le taire était précisément le trou qu'on bouche ici.
+            _ref
+                .read(groupEncryptionStatusProvider(conversationId).notifier)
+                .state = result is SenderKeyDistribution
+                ? GroupEncryptionStatus.fromDistribution(result)
+                : const GroupEncryptionStatus.keysUnavailable();
+          })
           .catchError((e) => debugPrint('Sender Key distribution error: $e'));
     }
   }

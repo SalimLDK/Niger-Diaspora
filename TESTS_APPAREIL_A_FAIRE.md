@@ -14,6 +14,78 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Le repli AES d'un groupe est désormais signalé (2026-08-23)
+
+Le trou laissé ouvert par le correctif Sender Key : un groupe pouvait tourner
+en repli AES **indéfiniment, sans que rien ne le dise** — ni l'app, ni un
+compteur. On ne pouvait le découvrir qu'en lisant `encryptionLevel` en base,
+message par message.
+
+Le cadenas de l'en-tête de conversation était **fermé en toutes
+circonstances**. Il dit maintenant la vérité :
+
+- Sender Key distribuée à tous → cadenas fermé, inchangé.
+- Repli AES → **cadenas ouvert + « Chiffrement partagé »** en couleur
+  d'avertissement, et l'appui ouvre une feuille qui explique ce que ça change
+  et **nomme les membres concernés**.
+- Tant que la distribution n'a pas répondu → rien n'est affirmé (`unknown`),
+  cadenas fermé comme avant. Afficher un cadenas fermé *par défaut* était
+  précisément ce qui masquait le problème ; le laisser pendant la mesure est un
+  compromis assumé, la mesure prenant moins d'une seconde.
+
+Deux causes distinctes de repli, deux textes différents — accuser un membre
+quand c'est notre propre appareil qui n'a pas ses clés serait faux :
+
+- des membres n'ont pas reçu la clé → ils sont nommés ;
+- nos clés locales ne sont pas prêtes → renvoi vers Réglages › Sécurité.
+
+**Un défaut trouvé en route, et corrigé** : `distributeSenderKey` **lève** quand
+les clés publiées d'un membre ne vérifient pas. La boucle de
+`distributeSenderKeyToGroup` avortait donc au premier membre fautif, les
+suivants n'étaient jamais tentés, et l'exception remontait jusqu'au `catch` de
+`MessageCryptoService` — qui rendait `null`, donc aucun compte rendu, donc
+aucun signalement. Chaque membre est maintenant tenté indépendamment.
+
+### ⚠️ À REGARDER : les clés du compte plateforme ne vérifient pas
+
+Relevé dans logcat en ouvrant « Diaspora Niger — Canada » :
+
+```
+MessagingE2EEService: SECURITY ALERT — signed pre-key signature verification
+FAILED for czk5UoUclLOFmbRtUIZ5XYLYKo52
+MessageCryptoService: Sender Key setup failed: Bad state: Signed pre-key
+signature verification failed. Possible MITM attack.
+```
+
+`czk5UoUclLOFmbRtUIZ5XYLYKo52` est le compte **`diaspo_ne`** (le compte
+plateforme, créateur des groupes officiels). Sa clé pré-signée publiée ne passe
+pas la vérification de signature. Conséquence directe : **aucun groupe
+contenant ce compte ne pourra jamais activer le chiffrement de groupe** — la
+distribution échouera toujours sur lui.
+
+Confirmé côté base : `e2ee_sender_key_distributions` ne contient **aucune**
+ligne pour ce groupe.
+
+Cause non établie — clé réellement corrompue à la publication, ou défaut du
+code de vérification. À trancher avant de conclure quoi que ce soit sur un
+« MITM ».
+
+### Vérifications
+
+- [x] Logique couverte par
+      [group_encryption_status_test.dart](test/features/messages/group_encryption_status_test.dart)
+      (9 tests) : distribution complète / partielle / impossible, et le fait
+      qu'un groupe sans autre membre ne compte pas comme « chiffré ».
+- [ ] **Rendu à l'écran NON vérifié** : le téléphone s'est verrouillé avant que
+      je puisse le voir, et je ne peux pas le déverrouiller. Scénario :
+      ouvrir « Diaspora Niger — Canada » (dont la distribution échoue, cf.
+      ci-dessus) → le cadenas doit être **ouvert** avec « Chiffrement
+      partagé », et l'appui doit nommer `Diaspo Niger`.
+- [ ] Vérifier aussi le cas nominal : un groupe dont tous les membres ont des
+      clés valides doit garder le cadenas fermé, sans mention.
+
+---
+
 ## Sender Key : l'envoi fabriquait une clé que personne n'avait — RÉSOLU (2026-08-23)
 
 La cause de fond des messages de groupe illisibles, sous le symptôme déjà
@@ -59,11 +131,9 @@ distribution n'a pas abouti pour tous les membres. C'est un cran de moins que le
 chiffrement de groupe, mais c'est le comportement que le code annonçait déjà —
 et infiniment mieux qu'un message que personne ne peut lire.
 
-**Reste ouvert** : la distribution n'aboutit que si une session Signal 1:1
-existe avec chaque membre. Si un membre n'a jamais publié ses clés, le groupe
-restera en AES indéfiniment, en silence. Rien ne le signale aujourd'hui — ni
-dans l'app, ni dans un compteur. À instrumenter si le chiffrement de groupe doit
-être garanti.
+**Traité** le 2026-08-23 : le repli AES est désormais signalé dans l'en-tête de
+la conversation (cadenas ouvert + « Chiffrement partagé », appui explicatif).
+Voir l'entrée « Le repli AES d'un groupe est désormais signalé » ci-dessus.
 
 **Non réparable** : les messages envoyés avant ce correctif restent illisibles
 pour toujours. Il en traîne trois dans « Diaspora Niger — Canada », dont mes
