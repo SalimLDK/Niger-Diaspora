@@ -14,6 +14,145 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Neuf défauts signalés à l'usage — correctifs du 2026-08-22
+
+Salim a remonté neuf symptômes après usage réel. Huit ont une cause trouvée et
+corrigée, le neuvième attend un exemple. **Aucun n'est vérifié sur appareil.**
+
+### 1. L'appui sur une notification ne faisait rien
+
+Deux causes indépendantes, toutes deux corrigées :
+
+- `NotificationService.createNotification`
+  ([notification_service.dart](lib/core/services/notification_service.dart))
+  n'écrivait que `target_id` dans `data`, quand le modèle ne lisait que
+  `targetId`. Toutes les branches de navigation étant gardées par
+  `if (targetId != null)`, l'appui était sans effet — demandes d'ami,
+  participations aux événements, tout ce qui passe par cette RPC.
+- Les types écrits par les déclencheurs SQL (`new_post`, `mentioned`,
+  `group_mention`) et par le client (`report_resolved`, `groupCallInvitation`,
+  `postCommented`, `commentReply`) n'existaient pas dans `NotificationType` :
+  ils étaient repliés sur `general`, dont le `case` de navigation est vide.
+
+**À vérifier sur appareil** : ouvrir la page Notifications sur un compte qui a
+reçu (a) une demande d'ami, (b) une notification de publication du fil, (c) un
+commentaire. Chacune doit ouvrir sa destination. Une notification sans
+destination connue ouvre désormais sa fiche au lieu de ne rien faire.
+
+### 2. « Erreur de chargement » intermittente sur les notifications
+
+Le flux temps réel s'abonnait sans attendre la session Supabase (course avec le
+pont Firebase vers Supabase : abonnement en `anon`, RLS muette), et une seule
+ligne au `title`/`body` nul faisait échouer le `.map()` du flux ENTIER. Corrigé
+dans [notification_supabase_datasource.dart](lib/features/notifications/data/datasources/notification_supabase_datasource.dart) :
+attente de session, réessai avec conservation de la dernière liste connue, et
+ligne illisible écartée au lieu de tout emporter.
+
+**À vérifier** : ouvrir la page Notifications juste après un démarrage à froid
+(le cas où la course se produit), puis couper/rétablir le réseau en restant sur
+l'écran — la liste doit revenir seule, sans message d'erreur.
+
+### 3. Le bandeau de restauration des clés revenait sans arrêt
+
+`acknowledge()` ne vivait qu'en mémoire, et `bootstrap()` est appelé depuis
+quatre endroits d'`AuthNotifier`. Le bandeau revenait donc à chaque démarrage et
+à chaque rechargement de profil, indéfiniment (`needsRestore` reste vrai tant
+que la sauvegarde n'est pas restaurée). Mise en veille désormais persistée
+7 jours, et `bootstrap` ne tourne qu'une fois par compte et par session
+([e2ee_backup_coordinator.dart](lib/core/services/e2ee/e2ee_backup_coordinator.dart)).
+
+**À vérifier** : écarter le bandeau avec « Pas maintenant », tuer l'app, la
+rouvrir — il ne doit pas revenir. Puis faire une vraie sauvegarde depuis
+Sécurité : la veille est effacée.
+
+### 4. Caractères spéciaux mal affichés — PARTIELLEMENT traité
+
+Une cause identifiée et corrigée : le motif de mise en forme (gras, italique,
+barré, code) de
+[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)
+reconnaissait ses marqueurs au MILIEU d'un mot et les supprimait de
+l'affichage — `taux_change_2026` perdait ses tirets bas et passait en italique.
+Les délimiteurs doivent désormais être isolés (règle WhatsApp/Signal).
+
+**Reste ouvert** : si le symptôme concerne d'autres caractères (emoji, accents,
+caractères zarma/haoussa), il faut un exemple précis — quel caractère, à quel
+endroit, et ce qui s'affiche à la place. Rien d'autre n'a été trouvé dans le
+code (aucun mojibake dans le dépôt, apostrophes ICU correctes dans les ARB
+générés).
+
+### 5. La bulle « écrit… » ne s'affichait jamais
+
+`typingIndicatorNotifierProvider` est `autoDispose` et n'était jamais observé :
+chaque frappe le créait via `ref.read`, Riverpod le détruisait aussitôt, et sa
+destruction appelait `_clearTypingStatus()`. La présence était donc posée puis
+retirée dans le même tour de boucle. `ConversationScreen` l'observe désormais
+dans son `build` ; `setTypingStatus` attend en plus que le canal realtime soit
+rejoint avant de publier la présence.
+
+**À vérifier — nécessite DEUX téléphones** : A tape, B doit voir la bulle
+apparaître, et disparaître ~3 s après l'arrêt de la frappe puis à l'envoi. B
+quitte la discussion : la présence doit s'effacer chez A.
+
+### 6. Les messages vocaux ne partaient pas
+
+`MessageSupabaseDataSource.sendAudioMessage` levait `UnimplementedError`, que le
+repository attrapait dans son `catch (e)` générique : tout message vocal
+échouait en silence. Implémenté (téléversement Firebase Storage, insertion
+`messages` de type `voiceNote`, mise à jour du dernier message).
+
+**À vérifier** : enregistrer un vocal, l'envoyer, vérifier qu'il arrive chez le
+destinataire, qu'il se lit des deux côtés, que la forme d'onde et la durée sont
+justes, et que l'aperçu de la conversation affiche « Message vocal ».
+
+### 7. Les messages en échec disparaissaient au lieu d'être renvoyés
+
+`retryFailedMessage` retirait la bulle **en tête de méthode**, avant le
+`switch` — puis, pour un média, retournait `false` sans rien renvoyer : taper
+« réessayer » était le moyen le plus sûr de perdre le message. Le retrait n'a
+lieu que sur un chemin qui renvoie réellement, et un vocal en échec retient
+désormais le chemin de son fichier local (`MessageEntity.localFilePath`) pour
+pouvoir être retéléversé. En prime, `_loadNetworkData` remplaçait l'état entier
+par la réponse serveur, ce qui effaçait aussi les messages en échec à chaque
+rechargement.
+
+**À vérifier** : couper le réseau, envoyer un texte et un vocal, attendre le
+passage en échec, rétablir le réseau, taper « réessayer » sur chacun — les deux
+doivent partir. Puis refaire un échec, changer d'écran et revenir : la bulle en
+échec doit toujours être là. **Limite connue** : rien n'est persisté sur disque,
+quitter l'app perd les messages en échec.
+
+### 8. Un seul horodatage par rafale de messages envoyés
+
+C'était volontaire (regroupement visuel des rafales, heure révélée par un tap),
+mais illisible à l'usage. Chaque bulle porte désormais son heure, envoyée comme
+reçue — le regroupement visuel (queue de bulle, nom, rayons) est inchangé.
+
+**À vérifier** : envoyer trois messages d'affilée, les trois doivent afficher
+leur heure ; vérifier que l'accusé « Envoyé / Lu » reste correct et que la mise
+en page ne déborde pas avec des réactions.
+
+### 9. L'app restait utilisable par-dessus l'écran de verrouillage — SÉCURITÉ
+
+`android:showWhenLocked="true"` était posé sur `MainActivity` dans le manifeste
+pour que l'écran d'appel s'affiche par-dessus le keyguard. Un attribut de
+manifeste vaut pour toute la vie de l'activité : verrouiller le téléphone avec
+Diaspo Niger au premier plan puis rallumer l'écran rouvrait l'application
+entière — messages compris — sans demander le code. Le drapeau est retiré du
+manifeste et demandé à l'exécution par l'écran d'appel seulement
+([lock_screen_service.dart](lib/core/services/lock_screen_service.dart), canal
+`diaspo_niger/lockscreen`).
+
+**À vérifier sur appareil, en deux temps** :
+
+1. App ouverte sur une discussion, verrouiller, rallumer l'écran : le keyguard
+   DOIT demander le code, l'app ne doit pas être visible.
+2. Recevoir un appel téléphone verrouillé, accepter depuis la bannière :
+   l'écran d'appel doit s'afficher par-dessus le keyguard et l'écran s'allumer.
+   Raccrocher, verrouiller à nouveau, puis revalider le point 1 (le privilège
+   doit avoir été rendu).
+
+---
+
 ## Carte « Pour commencer » : chaque ligne gagne son propre critère (2026-08-14)
 
 Les 3 lignes de `_PourCommencerCard`
