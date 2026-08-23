@@ -643,7 +643,24 @@ class _NotificationItem extends ConsumerWidget {
         // registre au lieu de disparaître, c'est justement ce que la nouvelle
         // hiérarchie rend visible.
         if (direction == DismissDirection.startToEnd) {
-          onMarkAsRead();
+          // L'écriture est différée jusqu'à la fin de l'animation de retour.
+          //
+          // Appelée ici même, elle faisait basculer `isRead` **pendant** que
+          // le `Dismissible` ramenait la ligne en place : son enfant changeait
+          // alors de type (carte non lue → ligne lue), donc l'élément était
+          // démonté et remonté sous une animation en cours. Un aplat rouge
+          // plein écran — le fond « Supprimer », étiré et vidé de son
+          // libellé — est resté affiché une fois à la place de toute la liste
+          // (SM A515F, 2026-08-23), et n'est parti qu'en rouvrant l'écran.
+          //
+          // Le délai couvre `kDismissibleResizeDuration` (300 ms, la seule
+          // durée que `Dismissible` expose) : l'animation est terminée quand
+          // l'état change, il n'y a plus de concurrence. Le retard ne se voit
+          // pas — la ligne revient d'abord en place, puis change de registre.
+          Future<void>.delayed(
+            const Duration(milliseconds: 320),
+            onMarkAsRead,
+          );
           return false;
         }
         return true;
@@ -651,18 +668,53 @@ class _NotificationItem extends ConsumerWidget {
       onDismissed: (direction) {
         if (direction == DismissDirection.endToStart) onDelete();
       },
-      child: notification.isRead
-          ? _ReadRow(
-              notification: notification,
-              onTap: onTap,
-              onLongPress: onLongPress,
-            )
-          : _UnreadCard(
-              notification: notification,
-              onTap: onTap,
-              onLongPress: onLongPress,
-              onMarkAsRead: onMarkAsRead,
-            ),
+      // Type **stable** quel que soit `isRead` : c'est `_NotificationRow` qui
+      // choisit le registre à l'intérieur. Un enfant dont le type change sous
+      // un `Dismissible` fait remonter son élément au pire moment (voir
+      // `confirmDismiss` ci-dessus).
+      child: _NotificationRow(
+        notification: notification,
+        onTap: onTap,
+        onLongPress: onLongPress,
+        onMarkAsRead: onMarkAsRead,
+      ),
+    );
+  }
+}
+
+/// Choisit le registre de la ligne — carte tant qu'elle n'est pas lue, ligne
+/// nue une fois lue — sans que le type du widget change.
+///
+/// Ce niveau n'existe que pour ça : offrir au `Dismissible` un enfant de type
+/// constant. La bascule se joue désormais **sous** lui, là où un remontage
+/// n'atteint plus l'animation de balayage en cours.
+class _NotificationRow extends StatelessWidget {
+  final NotificationEntity notification;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+  final VoidCallback onMarkAsRead;
+
+  const _NotificationRow({
+    required this.notification,
+    required this.onTap,
+    required this.onLongPress,
+    required this.onMarkAsRead,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (notification.isRead) {
+      return _ReadRow(
+        notification: notification,
+        onTap: onTap,
+        onLongPress: onLongPress,
+      );
+    }
+    return _UnreadCard(
+      notification: notification,
+      onTap: onTap,
+      onLongPress: onLongPress,
+      onMarkAsRead: onMarkAsRead,
     );
   }
 }
