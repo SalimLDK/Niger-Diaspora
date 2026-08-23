@@ -14,6 +14,155 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)
+
+Le « SECURITY ALERT — Possible MITM attack » du journal n'est ni une clé
+corrompue ni une attaque : **les deux côtés n'utilisent pas la même clé
+publique.**
+
+- **Signature**, `KeyManagerService._sign` : l'Identity Key est une paire
+  **X25519**, et sa clé **privée** sert de graine à une paire **Ed25519** qui
+  produit la signature.
+- **Vérification**, `MessagingE2EEService._verifySignedPreKeySignature` : elle
+  vérifie avec les octets de l'Identity Key **publique X25519**, simplement
+  réétiquetés `KeyPairType.ed25519`.
+
+Or `Ed25519.newKeyPairFromSeed(privéeX25519).publicKey` n'a aucun rapport avec
+`publiqueX25519` : les deux courbes dérivent la publique différemment. La
+vérification est donc **structurellement impossible à passer, pour tout le
+monde, depuis toujours**.
+
+Prouvé par
+[signed_pre_key_signature_test.dart](test/core/services/e2ee/signed_pre_key_signature_test.dart),
+qui rejoue les deux fonctions de l'app : la vérification échoue, la même
+signature passe avec la bonne clé Ed25519, et les deux publiques ne sont jamais
+égales.
+
+Le vrai Signal utilise XEdDSA — signer avec la privée X25519, vérifier avec la
+publique X25519 convertie en Ed25519 par l'application birationnelle. Le paquet
+`cryptography` ne fournit pas XEdDSA. Ce code ne fait ni l'un ni l'autre.
+
+### Ce que ça entraîne, en cascade
+
+`establishSession` **lève** dès qu'il vérifie → aucune session Signal ne peut
+s'établir avec qui que ce soit → la distribution de Sender Key échoue toujours
+→ les groupes restent en AES, et le 1-à-1 aussi (`encrypt1to1` rattrape
+l'exception et retombe sur AES en silence).
+
+Mesuré en base le 2026-08-23, sur toute la table `messages` :
+
+| `encryptionLevel` | messages |
+|---|---|
+| `aes` | 33 |
+| `null` (ancien, en clair) | 10 |
+| `e2ee` | 3 |
+
+Et les 3 `e2ee` sont exactement les messages de groupe **que personne ne peut
+lire** (Sender Key jamais distribuée, cf. entrée dédiée). Autrement dit :
+**aucun message lisible n'est chiffré de bout en bout aujourd'hui.** Tout passe
+par la clé AES partagée, qui est embarquée dans l'APK *et* recopiée dans une
+fonction Postgres (`decrypt_aes_fallback`) pour les aperçus de notification.
+
+### Ce que ça veut dire pour l'utilisateur
+
+L'app **affirme** le chiffrement de bout en bout : cadenas dans l'en-tête,
+« Message chiffré » sur les bulles, et cette phrase dans la recherche — « Le
+contenu des messages est chiffré de bout en bout : il ne peut pas être cherché
+depuis le serveur ». Cette affirmation est fausse en l'état.
+
+- [ ] **Décision à prendre** avant tout correctif : soit réparer le E2EE, soit
+      cesser de l'affirmer dans l'interface. Les deux sont défendables ; laisser
+      les deux en l'état ne l'est pas.
+- [ ] **Non vérifié** : que réparer la signature suffise. Elle débloque
+      `establishSession`, mais rien ne dit qu'il n'y a pas d'autre défaut en
+      aval — le chemin n'a jamais tourné en vrai.
+
+### Piste de correctif (non implémentée)
+
+La signature est produite par une paire Ed25519 déterministe, dérivée de la
+graine de l'Identity Key. Sa clé **publique** est donc calculable par le
+publieur, mais pas par le vérifieur. Il faut donc la **publier** dans le
+bundle, à côté de l'Identity Key, et vérifier contre elle.
+
+Conséquences à trancher : une colonne de plus, une republication des clés par
+tous les appareils, et une règle pour les bundles existants qui n'ont pas le
+champ (les traiter comme « pas de E2EE » — repli AES, désormais visible grâce
+au cadenas ouvert).
+
+---
+
+## Le repli AES d'un groupe est désormais signalé (2026-08-23)
+
+Le trou laissé ouvert par le correctif Sender Key : un groupe pouvait tourner
+en repli AES **indéfiniment, sans que rien ne le dise** — ni l'app, ni un
+compteur. On ne pouvait le découvrir qu'en lisant `encryptionLevel` en base,
+message par message.
+
+Le cadenas de l'en-tête de conversation était **fermé en toutes
+circonstances**. Il dit maintenant la vérité :
+
+- Sender Key distribuée à tous → cadenas fermé, inchangé.
+- Repli AES → **cadenas ouvert + « Chiffrement partagé »** en couleur
+  d'avertissement, et l'appui ouvre une feuille qui explique ce que ça change
+  et **nomme les membres concernés**.
+- Tant que la distribution n'a pas répondu → rien n'est affirmé (`unknown`),
+  cadenas fermé comme avant. Afficher un cadenas fermé *par défaut* était
+  précisément ce qui masquait le problème ; le laisser pendant la mesure est un
+  compromis assumé, la mesure prenant moins d'une seconde.
+
+Deux causes distinctes de repli, deux textes différents — accuser un membre
+quand c'est notre propre appareil qui n'a pas ses clés serait faux :
+
+- des membres n'ont pas reçu la clé → ils sont nommés ;
+- nos clés locales ne sont pas prêtes → renvoi vers Réglages › Sécurité.
+
+**Un défaut trouvé en route, et corrigé** : `distributeSenderKey` **lève** quand
+les clés publiées d'un membre ne vérifient pas. La boucle de
+`distributeSenderKeyToGroup` avortait donc au premier membre fautif, les
+suivants n'étaient jamais tentés, et l'exception remontait jusqu'au `catch` de
+`MessageCryptoService` — qui rendait `null`, donc aucun compte rendu, donc
+aucun signalement. Chaque membre est maintenant tenté indépendamment.
+
+### ⚠️ À REGARDER : les clés du compte plateforme ne vérifient pas
+
+Relevé dans logcat en ouvrant « Diaspora Niger — Canada » :
+
+```
+MessagingE2EEService: SECURITY ALERT — signed pre-key signature verification
+FAILED for czk5UoUclLOFmbRtUIZ5XYLYKo52
+MessageCryptoService: Sender Key setup failed: Bad state: Signed pre-key
+signature verification failed. Possible MITM attack.
+```
+
+`czk5UoUclLOFmbRtUIZ5XYLYKo52` est le compte **`diaspo_ne`** (le compte
+plateforme, créateur des groupes officiels). Sa clé pré-signée publiée ne passe
+pas la vérification de signature. Conséquence directe : **aucun groupe
+contenant ce compte ne pourra jamais activer le chiffrement de groupe** — la
+distribution échouera toujours sur lui.
+
+Confirmé côté base : `e2ee_sender_key_distributions` ne contient **aucune**
+ligne pour ce groupe.
+
+Cause non établie — clé réellement corrompue à la publication, ou défaut du
+code de vérification. À trancher avant de conclure quoi que ce soit sur un
+« MITM ».
+
+### Vérifications
+
+- [x] Logique couverte par
+      [group_encryption_status_test.dart](test/features/messages/group_encryption_status_test.dart)
+      (9 tests) : distribution complète / partielle / impossible, et le fait
+      qu'un groupe sans autre membre ne compte pas comme « chiffré ».
+- [ ] **Rendu à l'écran NON vérifié** : le téléphone s'est verrouillé avant que
+      je puisse le voir, et je ne peux pas le déverrouiller. Scénario :
+      ouvrir « Diaspora Niger — Canada » (dont la distribution échoue, cf.
+      ci-dessus) → le cadenas doit être **ouvert** avec « Chiffrement
+      partagé », et l'appui doit nommer `Diaspo Niger`.
+- [ ] Vérifier aussi le cas nominal : un groupe dont tous les membres ont des
+      clés valides doit garder le cadenas fermé, sans mention.
+
+---
+
 ## Sender Key : l'envoi fabriquait une clé que personne n'avait — RÉSOLU (2026-08-23)
 
 La cause de fond des messages de groupe illisibles, sous le symptôme déjà
@@ -59,11 +208,9 @@ distribution n'a pas abouti pour tous les membres. C'est un cran de moins que le
 chiffrement de groupe, mais c'est le comportement que le code annonçait déjà —
 et infiniment mieux qu'un message que personne ne peut lire.
 
-**Reste ouvert** : la distribution n'aboutit que si une session Signal 1:1
-existe avec chaque membre. Si un membre n'a jamais publié ses clés, le groupe
-restera en AES indéfiniment, en silence. Rien ne le signale aujourd'hui — ni
-dans l'app, ni dans un compteur. À instrumenter si le chiffrement de groupe doit
-être garanti.
+**Traité** le 2026-08-23 : le repli AES est désormais signalé dans l'en-tête de
+la conversation (cadenas ouvert + « Chiffrement partagé », appui explicatif).
+Voir l'entrée « Le repli AES d'un groupe est désormais signalé » ci-dessus.
 
 **Non réparable** : les messages envoyés avant ce correctif restent illisibles
 pour toujours. Il en traîne trois dans « Diaspora Niger — Canada », dont mes
