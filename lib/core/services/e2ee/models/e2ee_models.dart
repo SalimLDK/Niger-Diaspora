@@ -476,6 +476,19 @@ class E2EESenderKey {
   /// Index de la chaîne (incrémenté à chaque message)
   final int chainIndex;
 
+  /// Cette clé a-t-elle été remise à TOUS les autres membres du groupe ?
+  ///
+  /// Chiffrer avec une clé non distribuée produit un message que **personne**
+  /// ne peut lire — pas même son auteur, le ratchet ayant avancé à l'émission.
+  /// Et ce n'est pas rattrapable après coup : `decryptWithSenderKey` refuse un
+  /// index de chaîne passé, donc distribuer ensuite (à l'index suivant) ne
+  /// sauve pas les messages déjà partis.
+  ///
+  /// Faux par défaut, y compris pour les clés déjà en stockage : elles ont été
+  /// créées par l'ancien chemin, qui fabriquait une clé à l'émission sans la
+  /// distribuer. On repasse donc en repli AES jusqu'à une vraie distribution.
+  final bool isDistributed;
+
   const E2EESenderKey({
     required this.groupId,
     required this.senderId,
@@ -485,6 +498,7 @@ class E2EESenderKey {
     required this.signatureKeyPublic,
     this.signatureKeyPrivate,
     this.chainIndex = 0,
+    this.isDistributed = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -497,6 +511,7 @@ class E2EESenderKey {
         if (signatureKeyPrivate != null)
           'signatureKeyPrivate': base64Encode(signatureKeyPrivate!),
         'chainIndex': chainIndex,
+        'isDistributed': isDistributed,
       };
 
   factory E2EESenderKey.fromJson(Map<String, dynamic> json) {
@@ -511,12 +526,14 @@ class E2EESenderKey {
           ? base64Decode(json['signatureKeyPrivate'] as String)
           : null,
       chainIndex: json['chainIndex'] as int? ?? 0,
+      isDistributed: json['isDistributed'] as bool? ?? false,
     );
   }
 
   E2EESenderKey copyWith({
     Uint8List? chainKey,
     int? chainIndex,
+    bool? isDistributed,
   }) {
     return E2EESenderKey(
       groupId: groupId,
@@ -527,6 +544,7 @@ class E2EESenderKey {
       signatureKeyPublic: signatureKeyPublic,
       signatureKeyPrivate: signatureKeyPrivate,
       chainIndex: chainIndex ?? this.chainIndex,
+      isDistributed: isDistributed ?? this.isDistributed,
     );
   }
 }
