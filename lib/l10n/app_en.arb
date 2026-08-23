@@ -6375,6 +6375,10 @@
   "@handleFormat": {
     "description": "Aide du champ poignee, format invalide"
   },
+  "handleChooseCta": "Choose my username",
+  "@handleChooseCta": {
+    "description": "Ligne d appel sur son propre profil quand aucun nom d utilisateur n est defini"
+  },
   "messagesActiveGroups": "{count, plural, =0{No active group} =1{1 active group} other{{count} active groups}}",
   "@messagesActiveGroups": {
     "description": "Ligne de contexte de la messagerie",

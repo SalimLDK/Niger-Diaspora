@@ -484,6 +484,41 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                ] else ...[
+                  // Sans nom d'utilisateur, la ligne @ disparaît purement et
+                  // simplement : rien n'indique qu'elle existe, ni comment
+                  // s'en donner un. Neuf comptes sur onze n'en avaient aucun.
+                  // L'appel prend la place exacte du @handle manquant et ouvre
+                  // le formulaire **sur le champ** (`?focus=handle`).
+                  const SizedBox(height: 3),
+                  InkWell(
+                    onTap: () => context.push('/profile/edit?focus=handle'),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.alternate_email_rounded,
+                            size: 14,
+                            color: context.adaptivePrimaryColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              l10n.handleChooseCta,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: context.adaptivePrimaryColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
                 if (locationLine.isNotEmpty) ...[
                   const SizedBox(height: 4),

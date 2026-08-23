@@ -15266,6 +15266,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get handleFormat => '3 to 20 characters: letters, digits, _';
 
   @override
+  String get handleChooseCta => 'Choose my username';
+
+  @override
   String messagesActiveGroups(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

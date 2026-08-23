@@ -21,11 +21,17 @@ class HandleField extends ConsumerStatefulWidget {
   final String? userId;
   final void Function(String? normalizedHandle, bool isValid) onChanged;
 
+  /// Permet au parent d'ouvrir le formulaire directement sur ce champ
+  /// (`/profile/edit?focus=handle`, depuis l'appel du profil quand aucun nom
+  /// d'utilisateur n'est defini). Le focus fait defiler le champ a l'ecran.
+  final FocusNode? focusNode;
+
   const HandleField({
     super.key,
     required this.onChanged,
     this.initialHandle,
     this.userId,
+    this.focusNode,
   });
 
   @override
@@ -149,6 +155,7 @@ class _HandleFieldState extends ConsumerState<HandleField> {
         DesignFieldLabel(l10n.handleLabel),
         TextFormField(
           controller: _controller,
+          focusNode: widget.focusNode,
           onChanged: _onChanged,
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),

@@ -15416,6 +15416,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get handleFormat => '3 à 20 caractères : lettres, chiffres, _';
 
   @override
+  String get handleChooseCta => 'Choisir mon nom d\'utilisateur';
+
+  @override
   String messagesActiveGroups(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -28346,6 +28346,12 @@ abstract class AppLocalizations {
   /// **'3 à 20 caractères : lettres, chiffres, _'**
   String get handleFormat;
 
+  /// Ligne d appel sur son propre profil quand aucun nom d utilisateur n est defini
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir mon nom d\'utilisateur'**
+  String get handleChooseCta;
+
   /// Ligne de contexte de la messagerie
   ///
   /// In fr, this message translates to:

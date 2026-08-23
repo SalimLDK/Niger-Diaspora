@@ -7327,6 +7327,31 @@ retester n'a de sens qu'après réactivation.
   (travail réalisé dans un worktree isolé, dépôt principal occupé par une
   autre session au moment de l'écriture).
 
+
+## Nom d'utilisateur (@handle) — ligne d'appel sur son propre profil
+
+Contexte : la ligne `@handle` disparaît purement et simplement quand le champ
+est vide, et 9 comptes sur 11 en prod n'en ont aucun — rien n'indiquait que
+la fonctionnalité existait. Une ligne d'appel prend désormais la place du
+`@handle` manquant, **uniquement sur son propre profil**.
+
+- [ ] Onglet **Profil** avec un compte sans nom d'utilisateur : la ligne
+  « Choisir mon nom d'utilisateur » (icône @) s'affiche sous le nom
+  (`lib/features/profile/presentation/screens/profile_screen.dart`).
+- [ ] Le tap ouvre l'édition **avec le curseur dans le champ**, donc le champ
+  défilé à l'écran (`/profile/edit?focus=handle`,
+  `edit_profile_screen.dart` + `widgets/handle_field.dart`).
+- [ ] Avec un compte **qui a** un nom d'utilisateur (`sim`, `diaspo_ne`) :
+  c'est bien `@sim` qui s'affiche, pas l'appel.
+- [ ] Profil de **quelqu'un d'autre** sans nom d'utilisateur : **aucune** ligne
+  d'appel (on ne peut rien y faire)
+  — `profile_view_screen.dart`, garde `_isCurrentUser`.
+- [ ] Son propre profil ouvert par `/profile/<son id>` (lien profond, QR,
+  liste de membres) : même appel que sur l'onglet Profil.
+- [ ] Lisibilité en **thème sombre** (couleur `adaptivePrimaryColor`) et à
+  `font_scale 1.1` : la ligne est dans un `Flexible`, vérifier l'absence de
+  débordement à côté du nom.
+
 ---
 
 ## Comment tester (rappel de la config utilisée précédemment)
