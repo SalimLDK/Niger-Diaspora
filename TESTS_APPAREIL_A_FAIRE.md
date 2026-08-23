@@ -7949,16 +7949,20 @@ SEMAINE »…) et les trois filtres (Tout / Non lues / Mentions) sont conservés
 Le résumé des notifications **push** Android (`setAsGroupSummary`, InboxStyle
 dans `notification_service.dart`) n'est pas touché — c'est un autre système.
 
-- [ ] ⚠️ **Rien n'a pu être vérifié le 2026-08-23** : la page affiche
-  « Erreur de chargement » sur le compte de test, alors que le badge de la
-  cloche annonce 19 notifications. Le message vient de la branche `error:` de
-  `notificationsAsync` — donc **le chargement échoue en amont**, dans
-  `watchNotifications` (flux Supabase `notifications`, qui réessaie 4 fois puis
-  laisse remonter l'erreur), et non dans l'affichage retouché ici. À
-  diagnostiquer séparément ; tant que ça dure, la mise à plat reste
-  invérifiable à l'écran.
-- [ ] Une conversation qui a envoyé 3 messages produit **3 lignes séparées**
-  dans la page, plus une tuile dépliable.
+- [x] ✅ **Cause trouvée et corrigée le 2026-08-23.** La page affichait
+  « Erreur de chargement » : la table `notifications` n'était pas dans la
+  publication `supabase_realtime` (contrairement à `messages` et
+  `conversations`), donc le `.stream()` de l'écran échouait —
+  `RealtimeSubscribeException(status: channelError)` dans le logcat du
+  SM A515F, quatre réessais puis erreur. Migration
+  `20260823170000_notifications_realtime.sql`, appliquée en production.
+  Rien à voir avec la mise à plat : l'erreur venait de la branche `error:` du
+  provider, en amont de tout affichage.
+- [x] ✅ **Mise à plat vérifiée SM A515F le 2026-08-23** : sept notifications
+  du même expéditeur (« Salim L. », 14 août) s'affichent sur **sept lignes
+  séparées**, sans tuile dépliable. Avant, elles étaient repliées derrière une
+  seule tuile (`groupKey = messages_<senderId>`). Les trois filtres (Tous /
+  Non lues 19 / Mentions) et la tranche « CE MOIS-CI » sont bien là.
 - [ ] Le **balayage** (supprimer / marquer comme lu) fonctionne sur ces
   lignes redevenues individuelles.
 - [ ] Les **actions en ligne** (Accepter/Refuser une demande d'ami, les
