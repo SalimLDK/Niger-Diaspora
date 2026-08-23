@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../../../core/services/e2ee/message_crypto_service.dart';
+import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../data/datasources/message_supabase_datasource.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -549,15 +550,24 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   ///
   /// Adopte l'id réel et les métadonnées du serveur, mais conserve le contenu
   /// déjà déchiffré localement : un message Signal ne peut pas être re-déchiffré
-  /// par son propre expéditeur, donc la ligne temps réel remplacerait sinon notre
-  /// texte clair par le placeholder « 🔐 Message chiffré ».
+  /// par son propre expéditeur, donc la ligne temps réel remplacerait sinon
+  /// notre texte clair par un placeholder.
+  ///
+  /// ⚠️ Ce filtre ne connaissait QUE « 🔐 Message chiffré ». Les groupes
+  /// remontent l'autre placeholder, `[🔐 E2EE — session requise]` : l'écho
+  /// passait donc au travers et écrasait le texte clair. Vu sur appareil le
+  /// 2026-08-23 — le premier message envoyé dans un groupe devenait illisible
+  /// par son propre auteur, une seconde après l'envoi. La liste vit désormais
+  /// dans `undecryptable_placeholders.dart`, avec le rechargement paginé qui
+  /// s'appuyait déjà dessus (`_healUndecryptable`).
   MessageEntity _reconcileEcho(MessageEntity local, MessageEntity incoming) {
-    final incomingIsUnreadable =
-        incoming.content.isEmpty || incoming.content == '🔐 Message chiffré';
-    if (incomingIsUnreadable && local.content.isNotEmpty) {
-      return incoming.copyWith(content: local.content);
-    }
-    return incoming;
+    final content = reconcileEchoContent(
+      local: local.content,
+      incoming: incoming.content,
+    );
+    return content == incoming.content
+        ? incoming
+        : incoming.copyWith(content: content);
   }
 
   /// Check if an optimistic message matches a new message from the server

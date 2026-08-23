@@ -8,6 +8,7 @@ import 'key_manager_service.dart';
 import 'messaging_e2ee_service.dart';
 import 'models/e2ee_models.dart';
 import 'sender_key_service.dart';
+import 'undecryptable_placeholders.dart';
 
 final messageCryptoServiceProvider = Provider<MessageCryptoService>((ref) {
   return MessageCryptoService(
@@ -170,7 +171,7 @@ class MessageCryptoService {
           debugPrint('MessageCryptoService: Sender Key decrypt failed: $e');
         }
       }
-      return '[🔐 E2EE — session requise]';
+      return kE2EESessionRequiredPlaceholder;
     }
 
     // ── Format 2: Multi-device 1:1 (e2eePayloads) ──────────────────────────
@@ -197,7 +198,7 @@ class MessageCryptoService {
           }
         }
       }
-      return '[🔐 E2EE — session requise]';
+      return kE2EESessionRequiredPlaceholder;
     }
 
     // ── Format 3: Legacy single-device 1:1 ─────────────────────────────────
@@ -214,7 +215,7 @@ class MessageCryptoService {
           debugPrint('MessageCryptoService: legacy decrypt failed: $e');
         }
       }
-      return '[🔐 E2EE — session requise]';
+      return kE2EESessionRequiredPlaceholder;
     }
 
     // ── Format 4: AES-GCM ──────────────────────────────────────────────────
