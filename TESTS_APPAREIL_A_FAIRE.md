@@ -14,6 +14,84 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## `MaÃ¯daoua` : l'échange de jeton Firebase corrompait le nom en base (2026-08-23)
+
+**Cause enfin trouvée, et prouvée de bout en bout.**
+`supabase/functions/auth-firebase-exchange/index.ts` décodait le JWT Firebase
+avec `JSON.parse(atob(...))`. `atob` rend une chaîne **binaire** — un caractère
+JS par octet, c'est-à-dire les octets UTF-8 relus comme du Latin-1. Le claim
+`name` « Ibrahim Yacouba Maïdaoua » (`… 4d 61 c3 af 64 …`) devenait donc
+« Ibrahim Yacouba MaÃ¯daoua », et la ligne `display_name: payload.name` de la
+même fonction l'écrivait tel quel dans `users`.
+
+Mesures prises pendant la session :
+
+| Couche | État |
+|---|---|
+| Firebase Auth (source) | `4d61 c3af` — **propre** |
+| Edge Function `auth-firebase-exchange` | produit `MaÃ¯daoua` |
+| `users.display_name` en prod | `4d61 c383 c2af` — **corrompu** |
+| Application (capture d'écran) | affiche « Ibrahim Yacouba MaÃ¯daoua » |
+
+**Pourquoi c'était intermittent.** Deux écrivains se disputent la ligne :
+`_upsertUserToSupabase` (Dart) écrit le nom CORRECT depuis le SDK Firebase,
+l'Edge Function écrit le nom corrompu. Le dernier qui passe gagne. La même
+ligne était propre en début de session et corrompue quelques heures plus tard,
+sans que personne ne touche au profil — seulement une connexion.
+
+Corrigé par `decodeJwtPart()`, qui repasse par `Uint8Array` + `TextDecoder`.
+L'`atob` de la **signature** est laissé tel quel : là, l'interprétation octet
+par octet est justement ce qu'on veut.
+
+- [ ] **NON DÉPLOYÉ** — `supabase functions deploy auth-firebase-exchange`
+      reste à faire.
+- [ ] **DONNÉE NON RÉPARÉE** — une ligne à corriger :
+      `UPDATE users SET display_name = convert_from(convert_to(display_name,'LATIN1'),'UTF8')
+       WHERE id = 'DfSyAWiGuSQfCFpbhp1SVk5eQ8F2';`
+      À ne lancer qu'**après** le déploiement, sinon la prochaine connexion de
+      ce compte la re-corrompt.
+
+---
+
+## Mentions de groupe : vérifié sur SM A515F (2026-08-23)
+
+Build debug installé sur l'appareil, compte `Sim A`, groupe « Diaspora
+Niger — Canada » (3 membres).
+
+**Défaut trouvé sur appareil, invisible aux tests : la liste de suggestions ne
+s'ouvrait jamais.** `groupMentionCandidatesProvider` était un
+`FutureProvider.autoDispose.family` **clé par `List<String>`**. Une `family`
+Riverpod compare ses clés avec `==`, et deux `List` de même contenu ne sont
+jamais égales en Dart : chaque `build` de l'écran créait donc une nouvelle
+instance de provider, qui repartait en chargement, et `.valueOrNull` rendait
+`null` indéfiniment. La clé est désormais l'identifiant du groupe, et ce n'est
+plus un `FutureProvider` (il ne fait que lire d'autres providers).
+
+Le prédécesseur `groupMemberNamesProvider` avait exactement la même forme :
+**mentionner quelqu'un dans un groupe n'avait probablement jamais fonctionné**,
+quelle que soit la forme du pseudo.
+
+- [x] Taper `@sa` ouvre la liste — « Salim L. » en titre, `@SalimL` en
+      sous-titre. Le filtre trouve bien par le **début d'un mot** du nom
+      affiché, pas seulement par le début du nom complet.
+- [x] Sélectionner insère `@SalimL ` — pseudo sans espace, espace après,
+      curseur derrière, liste refermée. Le point de « Salim L. » est bien
+      retiré.
+- [x] Le membre `diaspo_ne` n'apparaît pas sur `@sa` : le filtrage est correct,
+      il ne propose pas tout le monde.
+- [ ] Coloration de la mention dans la bulle — **demande d'envoyer un message
+      dans un vrai groupe**, non fait sans accord.
+- [ ] Tap sur la mention → ouvre le profil — même raison.
+- [ ] Compte **avec** poignée : vérifier que c'est `@diaspo_ne` qui est inséré
+      et non l'identifiant. Le filtre `@sa` ne le proposait pas ; à retenter
+      avec `@dia`.
+- [x] Le garde anti-e-mail fonctionne — trop bien, même : un `@` précédé d'un
+      caractère de mot n'ouvre pas la liste. Rencontré pour de vrai, un
+      brouillon `@sa` restant en place faisait que le second `@sa` tapé
+      derrière n'ouvrait rien. C'est le comportement voulu, mais il surprend.
+
+---
+
 ## Mentionner quelqu'un par son pseudo dans un groupe (2026-08-23)
 
 Mentionner dans un groupe insérait le **nom affiché complet** :

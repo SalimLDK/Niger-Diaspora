@@ -1205,21 +1205,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     }
 
     final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
-    // Membres proposes derriere un `@` dans un groupe. Porte aussi la poignee
+    // Membres proposés derrière un `@` dans un groupe. Porte aussi la poignée
     // publique, qui sert de pseudo de mention quand elle existe.
+    //
+    // Clé : l'identifiant du groupe. Passer la liste des membres créait une
+    // nouvelle instance de provider à chaque build — voir le commentaire de
+    // `groupMentionCandidatesProvider`.
     final List<MentionCandidate> mentionCandidates =
-        _isGroup && groupData != null
-            ? ref
-                    .watch(
-                      groupMentionCandidatesProvider(
-                        (groupData.memberIds as List<String>)
-                            .where((id) => id != currentUserId)
-                            .toList(),
-                      ),
-                    )
-                    .valueOrNull ??
-                []
-            : [];
+        _isGroup && _effectiveGroupId != null
+            ? ref.watch(groupMentionCandidatesProvider(_effectiveGroupId!))
+            : const [];
 
     // Création événement/sondage depuis le menu « + » du composer.
     // DM : événement toujours possible ; groupe : selon les permissions.
