@@ -240,6 +240,28 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       widget.groupPosition == MessageGroupPosition.last ||
       widget.groupPosition == MessageGroupPosition.single;
 
+  /// Tap sur la bulle : révèle (ou remasque) l'heure d'un message qui n'est
+  /// pas le dernier de sa rafale.
+  ///
+  /// Sans lui, la seule cible tactile était une bande **invisible** de 48×16
+  /// posée sous la bulle (voir `_buildMetaRow`) : personne ne la trouve, et le
+  /// geste naturel — taper le message — ne déclenchait rien, le
+  /// `GestureDetector` de la bulle ne portant que `onLongPress` et
+  /// `onDoubleTap`. Le masquage était donc un cul-de-sac en pratique.
+  ///
+  /// Retourne `null` — donc aucun recognizer installé, donc aucune compétition
+  /// dans l'arène de gestes — dans les trois cas où le tap ne nous appartient
+  /// pas : mode sélection (le tap sélectionne), dernier message de la rafale
+  /// (son heure est déjà là, en permanence), message supprimé pour tous.
+  ///
+  /// Les taps des enfants (ouvrir une image, relancer un envoi en échec)
+  /// gagnent l'arène avant ce détecteur parent : ils ne sont pas volés.
+  VoidCallback? get _onTapRevelerHeure {
+    if (widget.isSelectionMode) return null;
+    if (_isLastInGroup || widget.message.deletedForEveryone) return null;
+    return () => setState(() => _metaRevealed = !_metaRevealed);
+  }
+
   /// Message reçu (pas de moi) dans une discussion de groupe : la colonne
   /// avatar doit rester réservée même quand elle n'affiche rien (voir
   /// `_isGroupReceived` ci-dessous, sur le calcul du padding gauche).
@@ -370,6 +392,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Build emoji-only content without bubble
   Widget _buildEmojiOnlyContent(BuildContext context) {
     return GestureDetector(
+      onTap: _onTapRevelerHeure,
       onLongPress: _onLongPress,
       onDoubleTap: _onDoubleTap,
       child: Column(
@@ -618,6 +641,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                           _isEmojiOnlyTextMessage()
                               ? _buildEmojiOnlyContent(context)
                               : GestureDetector(
+                                onTap: _onTapRevelerHeure,
                                 onLongPress: _onLongPress,
                                 onDoubleTap: _onDoubleTap,
                                 child: ClipRRect(
