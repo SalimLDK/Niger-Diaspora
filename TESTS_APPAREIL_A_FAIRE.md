@@ -14,36 +14,53 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
-## Le premier message d'un groupe est illisible par son propre expéditeur (2026-08-23)
+## Le message de groupe illisible par son propre expéditeur — CAUSE TROUVÉE (2026-08-23)
 
-Constaté sur SM A515F en voulant vérifier la coloration des mentions. Envoi
-d'un message dans « Diaspora Niger — Canada » (3 membres, aucun message
-jusque-là), depuis le compte `Sim A` :
+Constaté sur SM A515F : le message qu'on vient d'envoyer dans un groupe
+s'affiche **« 🔒 Message chiffré — clé de groupe introuvable »**, à son propre
+auteur, une seconde après l'envoi. Il porte pourtant « Vu par 1 ».
 
-1. Le message part — accusé « À l'instant · Envoyé ».
-2. La bulle affiche **« 🔒 Message chiffré — clé de groupe introuvable »** avec
-   un bouton « Récupérer la clé de groupe ». **L'expéditeur ne peut pas lire ce
-   qu'il vient d'écrire.**
-3. Le bouton répond « Clé de groupe récupérée — demandez à renvoyer le
-   message » : la clé est bien retrouvée, mais **le message déjà envoyé reste
-   illisible**. Il n'est pas rejoué, et son contenu est perdu pour tout le
-   monde.
+**Ce n'est pas un défaut de chiffrement.** Signal (1:1) comme Sender Key
+(groupes) font avancer le ratchet à l'émission et ne conservent pas la clé du
+message envoyé : le texte clair de NOS messages n'existe que localement, par
+construction. C'est un choix du protocole, pas un accident. Deux endroits le
+laissaient filer.
 
-Le message porte pourtant « Vu par 1 » : il a bien été distribué.
+**1. L'écho temps réel écrasait le texte clair.** `_reconcileEcho` gardait bien
+la copie locale quand l'écho revenait illisible — mais son filtre ne
+connaissait QUE `🔐 Message chiffré`. Les groupes remontent l'autre
+placeholder, `[🔐 E2EE — session requise]` : l'écho passait au travers. La
+liste existait en double, ici et dans `_undecryptablePlaceholders` du
+repository — qui, lui, connaissait les deux — et elle avait divergé. Elle vit
+désormais dans
+[undecryptable_placeholders.dart](lib/core/services/e2ee/undecryptable_placeholders.dart),
+avec la règle de fusion sous forme de fonction pure, testée.
 
-Ce n'est pas un défaut des mentions — le contenu n'est pas rendu comme du texte
-du tout, donc ni la coloration ni le tap ne sont observables. C'est ce qui
-bloque les deux dernières cases du protocole de mentions ci-dessous.
+**2. Le cache était empoisonné.** `getNewMessagesStream` mettait en cache les
+messages du serveur tels quels, placeholder compris, et `cacheMessages`
+fusionne par id avec la nouvelle version qui l'emporte. Le texte clair de
+l'expéditeur n'était donc **jamais persisté** : à la réouverture de la
+discussion, `_healUndecryptable` n'avait plus rien de bon à récupérer. Le flux
+passe maintenant par le même soin que la pagination, et `sendTextMessage` met
+le texte clair en cache dès l'envoi.
 
-**Piste à creuser** : la Sender Key du groupe n'est pas établie au moment du
-premier envoi. `_preEstablishE2EESessions` / `distributeGroupSenderKey`
-(message_provider.dart) sont lancés en « fire and forget » au chargement de la
-conversation — un envoi qui les précède chiffre avec une clé que l'appareil ne
-sait pas relire ensuite. À confirmer.
+- [x] **Point 1 vérifié sur appareil** : « essai after fix » reste lisible
+      douze secondes après l'envoi, là où il basculait en placeholder.
+- [ ] **Point 2 NON vérifié** : l'automatisation de l'écran a dérapé (un tap a
+      ouvert le composeur téléphonique — aucun appel passé) et j'ai arrêté là.
+      Scénario à rejouer, trois gestes : envoyer un message dans un groupe,
+      quitter la discussion, la rouvrir. Le texte doit rester lisible.
 
-**Non vérifié** : est-ce que ça arrive à *chaque* premier message d'un groupe,
-ou seulement quand la conversation vient d'être ouverte ? Et le message
-suivant, une fois la clé récupérée, est-il lisible ?
+**Ce qui reste vrai, et n'est pas corrigé** : les messages envoyés AVANT ce
+correctif restent illisibles pour toujours — leur texte clair n'a jamais été
+persisté nulle part, et le chiffré ne se relit pas. Trois d'entre eux traînent
+dans « Diaspora Niger — Canada ».
+
+**Non exploré** : pourquoi la Sender Key n'est-elle pas établie au moment du
+premier envoi ? `distributeGroupSenderKey` part en « fire and forget » au
+chargement de la conversation (message_provider.dart) ; un envoi qui le précède
+chiffre avec une clé que l'appareil ne sait pas relire. Le correctif ci-dessus
+rend le symptôme invisible, il ne change pas ça.
 
 ---
 
