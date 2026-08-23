@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/utils/mention_handle.dart';
 
 enum PostMediaType { none, images, video }
 
@@ -10,6 +11,33 @@ class MentionedUser extends Equatable {
 
   @override
   List<Object?> get props => [id, name];
+}
+
+/// Personne proposée derrière un `@` pendant la saisie.
+///
+/// À ne pas confondre avec [MentionedUser] : celui-là est ce qu'on ENREGISTRE
+/// avec le message ou la publication (identifiant + pseudo tel qu'écrit dans le
+/// texte), celui-ci est ce qu'on PROPOSE. La liste de suggestions a besoin du
+/// nom affiché pour être lisible, et de la poignée pour construire le pseudo.
+class MentionCandidate extends Equatable {
+  final String id;
+  final String displayName;
+
+  /// Poignée publique (`users.handle`), nulle tant qu'elle n'est pas choisie.
+  final String? handle;
+
+  const MentionCandidate({
+    required this.id,
+    required this.displayName,
+    this.handle,
+  });
+
+  /// Ce qui sera écrit derrière le `@`.
+  String get mentionToken =>
+      mentionTokenFor(handle: handle, displayName: displayName);
+
+  @override
+  List<Object?> get props => [id, displayName, handle];
 }
 
 class MentionedGroup extends Equatable {

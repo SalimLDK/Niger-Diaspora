@@ -59,7 +59,8 @@ import '../../../group_calls/presentation/providers/group_call_provider.dart';
 // import '../../../calls/presentation/screens/call_screen.dart';
 import '../../../gifs/domain/entities/gif_entity.dart';
 import '../../../stickers/domain/entities/sticker_entity.dart';
-import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
+import '../../../feed/domain/entities/post_entity.dart'
+    show MentionCandidate;
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class ConversationScreen extends ConsumerStatefulWidget {
@@ -1204,11 +1205,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     }
 
     final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
-    final List<MentionedUser> groupMembers =
+    // Membres proposes derriere un `@` dans un groupe. Porte aussi la poignee
+    // publique, qui sert de pseudo de mention quand elle existe.
+    final List<MentionCandidate> mentionCandidates =
         _isGroup && groupData != null
             ? ref
                     .watch(
-                      groupMemberNamesProvider(
+                      groupMentionCandidatesProvider(
                         (groupData.memberIds as List<String>)
                             .where((id) => id != currentUserId)
                             .toList(),
@@ -1292,7 +1295,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         <String>[];
     final Map<String, String>? typingNames =
         _isGroup
-            ? {for (final m in groupMembers) m.id: m.name}
+            ? {for (final c in mentionCandidates) c.id: c.displayName}
             : (_effectiveOtherUserId != null
                 ? {_effectiveOtherUserId!: displayName}
                 : null);
@@ -1569,7 +1572,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     isLoading: sendMessageState.isLoading,
                     replyToMessage: _replyToMessage,
                     onCancelReply: _cancelReply,
-                    groupMembers: groupMembers,
+                    mentionCandidates: mentionCandidates,
                     onCreateEvent:
                         canCreateEvent
                             ? () => context.push(

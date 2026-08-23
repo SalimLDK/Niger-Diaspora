@@ -2,6 +2,9 @@ import 'dart:async' show unawaited;
 import 'dart:io';
 
 import 'package:flutter/gestures.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/utils/mention_handle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -2146,8 +2149,13 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     // Mentions — highlight @Name for each confirmed mentioned user
     final mentionedUsers = widget.message.mentionedUsers;
     if (mentionedUsers.isNotEmpty) {
+      // Du plus long au plus court : l'alternation d'une RegExp s'arrête à la
+      // première branche qui correspond, donc `@Ali` placé avant `@Alichina`
+      // n'aurait coloré que les trois premières lettres de la seconde.
+      final names = mentionedUsers.map((m) => m.name).toList()
+        ..sort((a, b) => b.length.compareTo(a.length));
       final mentionPattern = RegExp(
-        mentionedUsers.map((m) => RegExp.escape('@${m.name}')).join('|'),
+        names.map((n) => RegExp.escape('@$n')).join('|'),
       );
       for (final match in mentionPattern.allMatches(text)) {
         final hasOverlap = allMatches.any(
@@ -2210,6 +2218,11 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                       : Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
+            // Une mention ne menait nulle part : elle était colorée, et c'est
+            // tout. Même geste que dans le fil, où taper une mention ouvre le
+            // profil.
+            recognizer:
+                TapGestureRecognizer()..onTap = () => _handleLinkTap(match),
           ),
         );
       } else {
@@ -2789,7 +2802,15 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         }
         break;
       case _LinkType.mention:
-        // No action for mentions
+        // `match.text` porte le `@` : le pseudo commence après.
+        final handle = match.text.startsWith('@')
+            ? match.text.substring(1)
+            : match.text;
+        final userId = widget.message.mentionedUsers
+            .where((m) => mentionHandleMatches(m.name, handle))
+            .map((m) => m.id)
+            .firstOrNull;
+        if (userId != null && mounted) context.push('/profile/$userId');
         break;
     }
   }

@@ -60,21 +60,29 @@ final groupPinActionsNotifierProvider =
   GroupPinActionsNotifier.new,
 );
 
-final groupMemberNamesProvider =
-    FutureProvider.autoDispose.family<List<MentionedUser>, List<String>>(
+/// Membres d'un groupe, prêts à être proposés derrière un `@`.
+///
+/// Remplace `groupMemberNamesProvider`, qui ne rendait que le nom affiché.
+/// La poignée publique est nécessaire ici : c'est elle qui sert de pseudo de
+/// mention quand la personne en a choisi une (cf. `mentionTokenFor`).
+final groupMentionCandidatesProvider =
+    FutureProvider.autoDispose.family<List<MentionCandidate>, List<String>>(
   (ref, memberIds) async {
-    final names = <MentionedUser>[];
+    final candidates = <MentionCandidate>[];
     for (final id in memberIds) {
       final profile = ref.watch(profileNotifierProvider(id)).valueOrNull;
-      names.add(
-        MentionedUser(
+      final name = profile?.displayName?.trim();
+      candidates.add(
+        MentionCandidate(
           id: id,
-          name: profile?.displayName?.trim().isNotEmpty == true
-              ? profile!.displayName!.trim()
-              : id,
+          // Le profil n'est pas encore chargé au premier build : l'identifiant
+          // tient lieu de nom, comme avant, et la liste se recompose quand il
+          // arrive.
+          displayName: (name != null && name.isNotEmpty) ? name : id,
+          handle: profile?.handle,
         ),
       );
     }
-    return names;
+    return candidates;
   },
 );

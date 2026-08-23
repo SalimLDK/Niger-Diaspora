@@ -70,3 +70,66 @@ final RegExp mentionTokenPattern = RegExp(
   '@$mentionHandleCharClass+',
   unicode: true,
 );
+
+/// Pseudo à écrire derrière le `@` pour désigner quelqu'un.
+///
+/// La poignée publique (`users.handle`, §16f) quand elle existe — c'est la
+/// forme courte et stable, celle que la personne a choisie. Sinon, le pseudo
+/// dérivé du nom affiché, pour que tout le monde reste mentionnable : au
+/// 2026-08-23, 2 comptes sur 11 seulement avaient choisi une poignée.
+String mentionTokenFor({String? handle, required String displayName}) {
+  final normalized = handle?.trim();
+  if (normalized != null && normalized.isNotEmpty) return normalized;
+  return mentionHandle(displayName);
+}
+
+/// Replie les diacritiques courants pour la RECHERCHE seulement — jamais pour
+/// écrire un pseudo.
+///
+/// Taper `ï` demande un appui long sur un clavier de téléphone : sans ce repli,
+/// `@mai` ne trouverait pas « Maïdaoua » et la personne serait, en pratique,
+/// impossible à mentionner. `legacyMentionHandle` ne convient pas ici : il
+/// SUPPRIME le caractère (`Maïdaoua` → `Madaoua`) au lieu de le replier.
+String foldForMentionSearch(String value) {
+  final buffer = StringBuffer();
+  for (final unit in value.toLowerCase().split('')) {
+    buffer.write(_foldings[unit] ?? unit);
+  }
+  return buffer.toString();
+}
+
+/// Latin-1 courant, plus les lettres haoussa / zarma / peul qu'on croise dans
+/// les noms de la diaspora.
+const Map<String, String> _foldings = {
+  'à': 'a', 'á': 'a', 'â': 'a', 'ä': 'a', 'ã': 'a', 'å': 'a',
+  'ç': 'c',
+  'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
+  'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
+  'ñ': 'n', 'ŋ': 'n', 'ɲ': 'n',
+  'ò': 'o', 'ó': 'o', 'ô': 'o', 'ö': 'o', 'õ': 'o',
+  'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
+  'ý': 'y', 'ÿ': 'y', 'ƴ': 'y',
+  'ɓ': 'b', 'ɗ': 'd', 'ƙ': 'k',
+  'æ': 'ae', 'œ': 'oe', 'ß': 'ss',
+};
+
+/// La saisie [query] (ce qui suit le `@`) désigne-t-elle cette personne ?
+///
+/// On accepte le début du pseudo, mais aussi le début de **n'importe quel mot**
+/// du nom affiché : personne ne tape `@IbrahimYacoubaMaïdaoua` en entier, on
+/// tape `@mai`. Comparaison insensible à la casse et aux accents.
+bool mentionQueryMatches({
+  required String query,
+  required String token,
+  required String displayName,
+}) {
+  final needle = foldForMentionSearch(query.trim());
+  if (needle.isEmpty) return true;
+  if (foldForMentionSearch(token).startsWith(needle)) return true;
+
+  for (final word in displayName.split(RegExp(r'[\s\-_.]+'))) {
+    if (word.isEmpty) continue;
+    if (foldForMentionSearch(word).startsWith(needle)) return true;
+  }
+  return false;
+}

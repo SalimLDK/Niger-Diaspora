@@ -14,6 +14,72 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Mentionner quelqu'un par son pseudo dans un groupe (2026-08-23)
+
+Mentionner dans un groupe insérait le **nom affiché complet** :
+`@Ibrahim Yacouba Maïdaoua`. Un jeton à espaces, que la détection ne savait pas
+relire — `_detectMentionTrigger` abandonne dès qu'une espace apparaît dans la
+saisie, donc seul le **premier mot** était cherchable, et taper `@Maï` ne
+proposait personne.
+
+Les messages passent au même pseudo que le fil
+([mention_handle.dart](lib/core/utils/mention_handle.dart)) : la **poignée
+publique** (`users.handle`) quand la personne en a choisi une, sinon le pseudo
+dérivé du nom. Au 2026-08-23, 2 comptes sur 11 seulement avaient une poignée —
+le repli est le cas courant, pas le cas limite.
+
+Ce qui change :
+
+- [group_pinned_providers.dart](lib/features/groups/presentation/providers/group_pinned_providers.dart) :
+  `groupMemberNamesProvider` → `groupMentionCandidatesProvider`, qui porte
+  aussi la poignée (nouveau type `MentionCandidate`).
+- [message_input.dart](lib/features/messages/presentation/widgets/message_input.dart) :
+  filtrage sur le pseudo **et sur chaque mot** du nom affiché, accents repliés
+  (`@mai` trouve « Maïdaoua » — taper `ï` demande un appui long au clavier) ;
+  insertion du pseudo ; un `@` collé à un caractère de mot n'ouvre plus la
+  liste (adresse e-mail en cours de frappe).
+- [mention_suggestion_overlay.dart](lib/features/messages/presentation/widgets/mention_suggestion_overlay.dart) :
+  la ligne montre le nom **et** le `@pseudo` — on choisissait un `@` sans
+  savoir à qui il correspondait.
+- [message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart) :
+  la mention devient **cliquable** (elle était colorée et c'est tout) et ouvre
+  le profil, comme dans le fil ; les motifs de coloration sont triés du plus
+  long au plus court, sinon `@Ali` placé avant `@Alichina` ne colorait que les
+  trois premières lettres de la seconde.
+
+Les messages déjà envoyés portent le nom affiché dans `mentionedUsers[].name` :
+le rapprochement se fait sur ce qui est stocké, ils restent donc colorés et
+cliquables tels quels.
+
+14 tests dans
+[mention_groupe_test.dart](test/features/messages/mention_groupe_test.dart).
+
+**À vérifier sur appareil** (nécessite un groupe avec au moins deux membres) :
+
+1. Dans un groupe, taper `@` puis `mai` → la personne doit apparaître, avec son
+   nom en titre et `@pseudo` en dessous.
+2. La sélectionner → le texte doit contenir `@<pseudo>` **sans espace**, suivi
+   d'une espace, curseur juste après.
+3. Envoyer → la mention doit être colorée en entier dans la bulle, chez
+   l'expéditeur comme chez le destinataire.
+4. **Taper sur la mention** → doit ouvrir le profil de la personne.
+5. Sur un compte qui a choisi une poignée (`@…` dans Profil), vérifier que
+   c'est bien elle qui est insérée, et pas le nom collé.
+6. Taper une adresse e-mail (`a@b.com`) dans un groupe : la liste de
+   suggestions ne doit **pas** s'ouvrir.
+7. Ouvrir un ancien message qui contient une mention : elle doit rester colorée.
+
+**Non traité** : mentionner quelqu'un dans un groupe ne produit pas de
+notification distincte — le déclencheur SQL envoie déjà une notification de
+message à tous les participants, une notification « mention » demanderait une
+migration.
+
+**Dette laissée en place** : les `TapGestureRecognizer` des liens, téléphones et
+désormais mentions sont créés à chaque `build` sans être libérés. C'était déjà
+le cas pour les liens ; corriger l'ensemble est un chantier à part.
+
+---
+
 ## Le pseudo de mention mangeait les lettres accentuées (2026-08-23)
 
 `_toMentionHandle` produisait le `@pseudo` avec
