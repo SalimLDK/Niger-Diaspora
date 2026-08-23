@@ -7955,9 +7955,17 @@ demande explicite, et étendu aux messages reçus. Si le rendu déplaît à
 l'usage, c'est ce commit-là qu'il faut relire avant de trancher à nouveau.
 
 - [ ] 3 messages reçus d'affilée : **seul le dernier** porte son heure.
-- [ ] Un **tap** sur un message masqué (reçu comme envoyé) révèle son heure ;
-  un second tap la remasque. La zone tactile fait 48×16 dp — vérifier qu'elle
-  s'attrape sans gêner le tap sur la bulle elle-même.
+- [ ] Un **tap sur la bulle** (reçue comme envoyée) révèle son heure ; un
+  second tap la remasque. ⚠️ Signalé cassé à l'usage le 2026-08-23 : le
+  `GestureDetector` de la bulle ne portait que `onLongPress`/`onDoubleTap`,
+  donc le tap ne déclenchait **rien** — la seule cible était une bande
+  *invisible* de 48×16 dp posée sous la bulle, introuvable. Corrigé par
+  `_onTapRevelerHeure`. À vérifier en priorité, avec trois sous-points :
+  - le tap ne vole pas les gestes voisins (ouvrir une image, relancer un
+    envoi en échec, sélection multiple, appui long, swipe pour répondre) ;
+  - le double-tap pose toujours la réaction ❤️ ;
+  - le tap simple accuse ~300 ms de retard (Flutter attend d'écarter le
+    double-tap) — dire si c'est perceptible au point de gêner.
 - [ ] L'accusé de réception (« Envoyé »/« Lu »/« Vu par N ») reste sur les
   seuls messages envoyés.
 - [ ] **Rupture de 15 minutes** (`kDureeRafale`,
