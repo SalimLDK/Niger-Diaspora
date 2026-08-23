@@ -33,6 +33,17 @@ public class MainActivity extends AudioServiceFragmentActivity {
     /** Canal par lequel une route reçue à chaud est remise au routeur Dart. */
     private static final String DEEP_LINK_CHANNEL = "diaspo_niger/deep_link";
 
+    /**
+     * Canal par lequel l'écran d'appel demande à s'afficher par-dessus le keyguard.
+     *
+     * Remplace les attributs `android:showWhenLocked` / `android:turnScreenOn` du
+     * manifeste : posés là, ils valaient pour toute la vie de l'activité, donc
+     * l'application entière restait consultable par-dessus l'écran de
+     * verrouillage. Ici le privilège est demandé à l'ouverture de l'écran d'appel
+     * et rendu à sa fermeture.
+     */
+    private static final String LOCKSCREEN_CHANNEL = "diaspo_niger/lockscreen";
+
     /** Retenu pour pouvoir émettre depuis `onNewIntent`. */
     private MethodChannel deepLinkChannel;
 
@@ -72,6 +83,52 @@ public class MainActivity extends AudioServiceFragmentActivity {
         deepLinkChannel =
                 new MethodChannel(
                         flutterEngine.getDartExecutor().getBinaryMessenger(), DEEP_LINK_CHANNEL);
+
+        new MethodChannel(
+                        flutterEngine.getDartExecutor().getBinaryMessenger(), LOCKSCREEN_CHANNEL)
+                .setMethodCallHandler(
+                        (call, result) -> {
+                            if ("setShowWhenLocked".equals(call.method)) {
+                                Boolean enabled = call.argument("enabled");
+                                setShowOverKeyguard(Boolean.TRUE.equals(enabled));
+                                result.success(null);
+                            } else {
+                                result.notImplemented();
+                            }
+                        });
+    }
+
+    /**
+     * Autorise (ou retire) l'affichage par-dessus l'écran de verrouillage.
+     *
+     * setShowWhenLocked/setTurnScreenOn existent depuis l'API 27 ; en dessous, le
+     * même effet passait par des drapeaux de fenêtre. minSdk du projet étant plus
+     * bas que 27 sur le papier, on garde le repli plutôt que de ne rien faire —
+     * sans quoi accepter un appel depuis le keyguard redeviendrait invisible sur
+     * ces appareils.
+     */
+    private void setShowOverKeyguard(boolean enabled) {
+        runOnUiThread(
+                () -> {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
+                        setShowWhenLocked(enabled);
+                        setTurnScreenOn(enabled);
+                    } else if (enabled) {
+                        getWindow()
+                                .addFlags(
+                                        android.view.WindowManager.LayoutParams
+                                                        .FLAG_SHOW_WHEN_LOCKED
+                                                | android.view.WindowManager.LayoutParams
+                                                        .FLAG_TURN_SCREEN_ON);
+                    } else {
+                        getWindow()
+                                .clearFlags(
+                                        android.view.WindowManager.LayoutParams
+                                                        .FLAG_SHOW_WHEN_LOCKED
+                                                | android.view.WindowManager.LayoutParams
+                                                        .FLAG_TURN_SCREEN_ON);
+                    }
+                });
     }
 
     /**
