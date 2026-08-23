@@ -35,10 +35,11 @@ bool isMarketplaceEnabled(Ref ref) {
   return ref.watch(featureFlagsProvider).marketplace;
 }
 
-/// Provider to check if business directory feature is enabled
+/// Annuaire des entreprises : toujours actif (décision produit 2026-08-19),
+/// le flag distant n'est plus consulté. Même règle pour ambassades et fil.
 @riverpod
 bool isBusinessDirectoryEnabled(Ref ref) {
-  return ref.watch(featureFlagsProvider).businessDirectory;
+  return true;
 }
 
 /// Provider to check if events feature is enabled
@@ -53,16 +54,16 @@ bool isGroupsEnabled(Ref ref) {
   return ref.watch(featureFlagsProvider).groups;
 }
 
-/// Provider to check if embassies feature is enabled
+/// Ambassades : toujours actif (décision produit 2026-08-19).
 @riverpod
 bool isEmbassiesEnabled(Ref ref) {
-  return ref.watch(featureFlagsProvider).embassies;
+  return true;
 }
 
-/// Provider to check if social feed feature is enabled
+/// Fil d'actualité : toujours actif (décision produit 2026-08-19).
 @riverpod
 bool isFeedEnabled(Ref ref) {
-  return ref.watch(featureFlagsProvider).feed;
+  return true;
 }
 
 /// Provider to check if app is in maintenance mode
@@ -115,13 +116,15 @@ class FeatureFlagService {
     return switch (feature) {
       AppFeature.moneyTransfer => flags.moneyTransfer,
       AppFeature.marketplace => flags.marketplace,
-      AppFeature.businessDirectory => flags.businessDirectory,
+      // Annuaire, ambassades et fil : toujours actifs (décision produit
+      // 2026-08-19), alignés sur les providers ci-dessus.
+      AppFeature.businessDirectory => true,
       AppFeature.podcasts => flags.podcasts,
       AppFeature.audioRooms => flags.audioRooms,
       AppFeature.events => flags.events,
       AppFeature.groups => flags.groups,
-      AppFeature.embassies => flags.embassies,
-      AppFeature.feed => flags.feed,
+      AppFeature.embassies => true,
+      AppFeature.feed => true,
     };
   }
 }

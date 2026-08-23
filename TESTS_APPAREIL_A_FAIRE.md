@@ -153,6 +153,200 @@ manifeste et demandé à l'exécution par l'écran d'appel seulement
 
 ---
 
+## Icônes des tuiles de services agrandies (2026-08-19)
+
+Demande de Salim : icônes plus grandes sur les tuiles de services.
+- Grille de l'accueil (`_ServiceTile`,
+  [home_screen_widgets.dart](lib/features/home/presentation/screens/home_screen_widgets.dart)) :
+  26 → 32.
+- « Tous les services » (`QuickActionCard`,
+  [quick_action_card.dart](lib/features/home/presentation/widgets/quick_action_card.dart),
+  utilisé uniquement par cet écran) : 28 → 36.
+
+Vérifié sur SM A515F le 2026-08-19 (thème sombre, captures dans la session) :
+- [x] Pas de débordement des cartes « Tous les services » (grille 2 colonnes,
+  `childAspectRatio: 1.1`) avec la font scale 1.1 du SM A515F — 5 tuiles
+  affichées, icône 36 nette dans la pastille, aucune troncature.
+- [x] Rendu de la grille accueil en 3 colonnes (icône 32 dans le carré) —
+  le cas 4 colonnes reste à voir (il faut ≥ 4 tuiles actives).
+- [x] Thème clair (basculé via `cmd uimode night no`, remis en sombre
+  ensuite) : accueil et « Tous les services » propres, pastilles teintées
+  lisibles, aucune troncature.
+
+---
+
+## Annuaire, Fil et Ambassades toujours actifs — plus de flag (2026-08-19)
+
+Décision produit : ces trois services ne dépendent plus du back-office.
+`isBusinessDirectoryEnabled`, `isEmbassiesEnabled` et `isFeedEnabled`
+renvoient `true` en dur
+([feature_flag_service.dart](lib/core/services/feature_flag_service.dart)),
+`/businesses` est sorti du garde du routeur, les tuiles des deux grilles
+(accueil + « Tous les services ») sont inconditionnelles, et les deux
+interrupteurs du back-office sont affichés verrouillés sur « Toujours actif »
+([admin_feature_flags_screen.dart](lib/features/admin/presentation/screens/admin_feature_flags_screen.dart)).
+
+Vérifié sur SM A515F le 2026-08-19 — probant : la prod a `businessDirectory:
+false` (lu le même jour, voir l'entrée ci-dessous), donc ces tuiles ne
+peuvent venir que du « toujours actif » :
+- [x] Accueil et « Tous les services » montrent bien Annuaire + Ambassades
+  même si le back-office les avait désactivés (c'était le symptôme de départ :
+  seule « Ambassades » s'affichait). Accueil = Fil/Annuaire/Ambassades,
+  « Tous les services » = + Événements + Amis.
+- [x] `/businesses` s'ouvre (écran « Annuaire Business », vide de données
+  mais fonctionnel — plus de redirection silencieuse vers /home).
+- [x] Back-office → Fonctionnalités : les deux interrupteurs Annuaire et
+  Ambassades verrouillés sur actif (sous-titre explicatif, les autres
+  manœuvrables) — couvert par un test de widget plutôt qu'un test appareil :
+  `test/features/admin/feature_flags_toujours_actifs_test.dart` (le serveur
+  dit `false`, l'écran doit quand même les montrer actifs et non
+  manœuvrables ; exactement 2 interrupteurs verrouillés).
+- [ ] Pins « entreprises » de la carte : **structurellement morts, pas juste
+  faute de données** (constat 2026-08-19). `getNearbyBusinesses`
+  ([business_remote_datasource.dart](lib/features/businesses/data/datasources/business_remote_datasource.dart))
+  filtre sur `latitude`/`longitude`, mais ni la création ni l'édition
+  d'entreprise ne renseignent ces champs — un doc créé par l'app est exclu
+  par la range query, et le filtre longitude rejette les null. Même famille
+  que les « champs jamais alimentés ». **Correctif livré le 2026-08-19
+  (même jour, session worktree) : voir la section « Position des entreprises »
+  ci-dessous pour les vérifications appareil.**
+
+Bloqué pour la session du 2026-08-19 (agent seul avec le téléphone) :
+- Le back-office est une app séparée (`lib/features/admin/main.dart`) dont
+  l'écran de connexion n'a **aucune reprise de session** — login manuel
+  obligatoire, donc test « sauvegarde → `lastUpdated` bouge » à faire par
+  Salim avec le compte « Salim L. » (vérifié `adminRole=superAdmin` en base :
+  la règle d'écriture passera ; le compte « Sim A » du téléphone est un autre
+  compte). La sérialisation étant corrigée (voir entrée dédiée), les
+  interrupteurs Salons/Podcasts devraient enfin agir.
+- Le cas 4 colonnes de l'accueil : l'écriture directe du flag `audioRooms`
+  en prod a été refusée par le classificateur de permissions de la session —
+  à voir après une vraie sauvegarde back-office.
+
+À savoir : les hash de `feature_flag_service.g.dart` n'ont pas été régénérés
+(build_runner non relancé — signatures inchangées, seul le hot-reload debug
+de ces 3 providers peut être moins fin).
+
+---
+
+## Position des entreprises : création/édition alimentent enfin latitude/longitude (2026-08-19)
+
+Correctif de la couche « entreprises » morte de la carte (voir l'entrée
+« Pins entreprises » ci-dessus). Ce qui a changé :
+
+- [create_business_screen.dart](lib/features/businesses/presentation/screens/create_business_screen.dart)
+  gagne une tuile « Position sur la carte » (section Localisation) qui ouvre
+  le `LocationPickerModal` de la messagerie (GPS, tap carte, recherche de
+  lieu) ; à défaut de choix explicite, l'adresse saisie est géocodée à la
+  soumission (meilleur effort, 5 s, jamais bloquant).
+- Le même écran devient l'écran d'édition (`/businesses/:id/edit`) : **cette
+  route n'existait pas** — le menu « Modifier » de la fiche poussait dans le
+  vide depuis toujours.
+- `getNearbyBusinesses` : le calcul du delta de longitude utilisait une
+  fonction `_cos` qui convertissait en radians **sans jamais appliquer le
+  cosinus** (à Niamey, fenêtre ~4× trop large). Corrigé avec `dart:math`.
+- `updateBusiness` (datasource) n'écrase plus les champs serveur
+  (`createdAt`, compteurs, boost, `isVerified`) — sinon la première édition
+  aurait retapé `createdAt` en chaîne ISO et cassé les tris.
+
+Aucune reprise de données à faire : l'annuaire est vide en prod au
+2026-08-19 (constaté sur l'écran « Annuaire Business » le même jour).
+
+À vérifier sur appareil (rien de tout ceci n'a tourné sur un vrai téléphone) :
+- [ ] Créer une entreprise avec position choisie sur la carte (permission
+  localisation runtime, gestes du modal dans le bottom sheet, thème sombre
+  de la tuile et du modal), puis vérifier que le **pin apparaît sur la
+  carte** (couche entreprises activée) et que son tap ouvre la fiche.
+- [ ] Créer une entreprise **sans** toucher la carte mais avec une adresse
+  réelle : le géocodage de repli doit poser lat/lng (à vérifier en base ou
+  par le pin) ; hors ligne ou adresse introuvable, la création doit passer
+  quand même, juste sans pin.
+- [ ] Menu « Modifier » de la fiche (propriétaire) : l'écran s'ouvre
+  prérempli (photos existantes supprimables, pays, téléphone re-séparé
+  indicatif/numéro), la position existante s'affiche et se modifie, et la
+  fiche détail montre les changements au retour.
+- [ ] `viewCount`/`averageRating`/`isBoosted` inchangés en base après une
+  édition (garde anti-écrasement du datasource).
+
+---
+
+## Flags Salons audio / Podcasts / Fil enfin sérialisés + maintenance sans écrasement (2026-08-19)
+
+Deux bugs de la même famille que les préférences profil (reconstruction
+partielle) corrigés dans le module admin :
+
+1. `FeatureFlagsModel`
+   ([app_settings_model.dart](lib/features/admin/data/models/app_settings_model.dart))
+   ne sérialisait **pas du tout** `audioRooms`, `podcasts`, `feed` : les
+   interrupteurs « Salons audio » et « Podcasts » du back-office étaient
+   perdus à l'écriture, et la lecture retombait toujours sur les défauts de
+   l'entité (salons/podcasts désactivés) quoi que contienne Firestore. C'est
+   une cause plus simple que la piste « écriture refusée en silence » notée
+   le 2026-08-19 ci-dessous : même acceptée, l'écriture ne contenait pas ces
+   clés.
+2. `toggleMaintenanceMode`
+   ([app_settings_provider.dart](lib/features/admin/presentation/providers/app_settings_provider.dart))
+   reconstruisait l'entité champ par champ (6 flags sur 9) : basculer la
+   maintenance aurait écrasé `audioRooms`/`podcasts`/`feed` avec les défauts.
+   Réécrit en `copyWith`, avec sentinelle dans
+   [app_settings_entity.dart](lib/features/admin/domain/entities/app_settings_entity.dart)
+   pour que `maintenanceMessage: null` efface vraiment le message (l'écran
+   admin passait déjà `null` pour effacer — no-op silencieux avant).
+
+Couvert par `test/features/admin/feature_flags_maintenance_test.dart`
+(aller-retour modèle, copyWith, écriture réelle du provider sur faux
+datasource).
+
+**État prod lu le 2026-08-19** (admin SDK, lecture seule) : `featureFlags` =
+audioRooms `false`, podcasts `false`, businessDirectory `false`, marketplace
+`false`, moneyTransfer `false`, events/groups/embassies `true`, pas de clé
+`feed` ; **`lastUpdated` = 2026-05-22** → aucune sauvegarde du back-office
+n'a abouti depuis 3 mois. La règle déployée exige
+`users/{uid}.adminRole == 'superAdmin'` pour écrire `app_config/*`, et la
+famille « faux succès » des `set()` Firestore masquerait un refus : le test
+appareil ci-dessous doit donc se juger sur le **document** (le `lastUpdated`
+doit bouger), pas sur l'absence d'erreur à l'écran.
+
+**Non vérifié sur appareil** :
+- [ ] Back-office : activer « Salons audio » et « Podcasts », sauvegarder,
+  relancer l'app → `/audio-rooms` et `/podcasts` ne redirigent plus sur
+  `/home` (première fois que ces interrupteurs peuvent réellement agir).
+- [ ] Back-office : basculer le mode maintenance ON puis OFF → les
+  interrupteurs Salons audio/Podcasts gardent leur état (avant le correctif
+  ils seraient retombés à désactivé). Le flag `feed` est lui aussi préservé
+  dans Firestore, même s'il n'agit plus sur l'app depuis que le Fil est
+  toujours actif (voir l'entrée ci-dessus).
+- [ ] Effacer le message de maintenance (vider le champ) puis sauvegarder →
+  le message ne réapparaît pas à la réouverture de l'écran.
+
+---
+
+## « Tous les services » complété : Fil, Événements, Amis (2026-08-19)
+
+L'écran « Tous les services »
+([services_screen.dart](lib/features/home/presentation/screens/services_screen.dart))
+ne listait que 6 tuiles (Transfert, Marketplace, Annuaire, Ambassades, Salons
+audio, Podcasts) — moins que la grille de l'accueil, qui a en plus « Le fil ».
+Ajoutés : **Le fil** (`/feed`, sans flag, comme sur l'accueil), **Événements**
+(`/events`, gaté `isEventsEnabledProvider` — le module avait un flag et une
+route mais aucune tuile nulle part), **Amis** (`/friends`, sans flag).
+
+Vérifié sur SM A515F le 2026-08-19 (thèmes sombre ET clair) :
+- [x] Rendu de la grille 2 colonnes avec les tuiles de plus (5 affichées,
+  pas de débordement, `childAspectRatio: 1.1`) — dans les deux thèmes.
+- [x] Tap sur chaque nouvelle tuile : Fil (posts affichés), Événements
+  (liste vide fonctionnelle), Amis (1 ami listé) s'ouvrent, et le retour
+  système revient bien sur « Tous les services » à chaque fois.
+- [x] Couleur `Colors.teal` de la tuile Événements lisible en thème sombre.
+
+À noter (vu pendant la session, non corrigé ici) : si le back-office affiche
+des fonctionnalités actives que l'app ne montre pas, l'écriture des flags a pu
+être refusée en silence (règle Firestore `isSuperAdmin()` sur `app_config` +
+famille « faux succès » des `set()` Firestore) — diagnostic en cours côté
+prod.
+
+---
+
 ## Carte « Pour commencer » : chaque ligne gagne son propre critère (2026-08-14)
 
 Les 3 lignes de `_PourCommencerCard`

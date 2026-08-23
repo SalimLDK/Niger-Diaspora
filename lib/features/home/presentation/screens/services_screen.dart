@@ -15,6 +15,14 @@ class ServicesScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     // Collect available services
     final services = [
+      // Le fil est toujours disponible (même règle que la grille de
+      // l'accueil : pas de flag).
+      _ServiceItem(
+        icon: Icons.dynamic_feed_rounded,
+        label: l10n.homeServiceFeed,
+        color: context.adaptivePrimaryColor,
+        route: '/feed',
+      ),
       if (ref.watch(isMoneyTransferEnabledProvider))
         _ServiceItem(
           icon: Icons.send_rounded,
@@ -29,20 +37,20 @@ class ServicesScreen extends ConsumerWidget {
           color: context.adaptiveSecondaryColor,
           route: '/marketplace',
         ),
-      if (ref.watch(isBusinessDirectoryEnabledProvider))
-        _ServiceItem(
-          icon: Icons.business_rounded,
-          label: l10n.homeDirectory,
-          color: AppColors.primaryDark,
-          route: '/businesses',
-        ),
-      if (ref.watch(isEmbassiesEnabledProvider))
-        _ServiceItem(
-          icon: Icons.account_balance,
-          label: l10n.embassies,
-          color: Colors.indigo,
-          route: '/embassies',
-        ),
+      // Annuaire et ambassades : toujours présents, comme le Fil (décision
+      // produit 2026-08-19 — plus de flag).
+      _ServiceItem(
+        icon: Icons.business_rounded,
+        label: l10n.homeDirectory,
+        color: AppColors.primaryDark,
+        route: '/businesses',
+      ),
+      _ServiceItem(
+        icon: Icons.account_balance,
+        label: l10n.embassies,
+        color: Colors.indigo,
+        route: '/embassies',
+      ),
       // Absents de la grille alors que les modules sont livrés : sans ces deux
       // entrées, /audio-rooms et /podcasts n'étaient joignables par aucun
       // chemin depuis l'app.
@@ -60,6 +68,22 @@ class ServicesScreen extends ConsumerWidget {
           color: context.adaptiveSecondaryColor,
           route: '/podcasts',
         ),
+      // Événements et Amis manquaient : le module événements a un flag et une
+      // route depuis longtemps mais aucune tuile, et /friends n'était joignable
+      // que depuis le profil.
+      if (ref.watch(isEventsEnabledProvider))
+        _ServiceItem(
+          icon: Icons.event_rounded,
+          label: l10n.eventsTitle,
+          color: Colors.teal,
+          route: '/events',
+        ),
+      _ServiceItem(
+        icon: Icons.people_alt_rounded,
+        label: l10n.friends,
+        color: context.adaptivePrimaryColor,
+        route: '/friends',
+      ),
     ];
 
     return Scaffold(
