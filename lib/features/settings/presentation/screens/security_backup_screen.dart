@@ -6,6 +6,7 @@ import '../../../../core/theme/design_kit.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
 import '../../../../core/services/e2ee/key_backup_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -118,6 +119,11 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
       await backupService.createAndUploadBackup(userId, passphrase);
 
       _showSuccessSnackBar(l10n.backupCreatedSuccess);
+      // La sauvegarde existe : le bandeau d'invitation n'a plus lieu d'être,
+      // et sa mise en veille non plus.
+      await ref
+          .read(e2eeBackupCoordinatorProvider.notifier)
+          .clearSnooze(userId);
       _passphraseController.clear();
       _confirmPassphraseController.clear();
       setState(() => _generatedPassphrase = null);
@@ -153,6 +159,9 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
       await backupService.downloadAndRestoreBackup(userId, passphrase);
 
       _showSuccessSnackBar(l10n.keysRestoredSuccess);
+      await ref
+          .read(e2eeBackupCoordinatorProvider.notifier)
+          .clearSnooze(userId);
       _restorePassphraseController.clear();
 
       if (mounted) {
