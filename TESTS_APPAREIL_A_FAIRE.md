@@ -8025,19 +8025,31 @@ dans `notification_service.dart`) n'est pas touché — c'est un autre système.
     (`confirmDismiss` rend `false`), et le compteur passe de 25 à 24 ;
   - vers la **gauche** = supprimer — « Test diagnostic input » disparaît bien
     de la liste.
-- [ ] ⚠️ **Aplat rouge plein écran** observé une fois, juste après un balayage
-  vers la droite : le `secondaryBackground` (rouge « Supprimer ») a occupé
-  toute la hauteur de la liste et y est resté, masquant toutes les lignes ;
-  résorbé en quittant et rouvrant la page. **Non reproduit** au second essai.
-  Il s'est produit pendant que le flux temps réel poussait de nouvelles
-  notifications (compteur 19 → 28 dans le même instant), donc piste d'un
-  rebuild concurrent pendant l'animation du `Dismissible` — d'autant que son
-  enfant **change de type** (`_UnreadCard` → `_ReadRow`) au moment précis où
-  `confirmDismiss` demande le retour en place. À retenter en provoquant des
-  arrivées temps réel pendant un balayage.
-- [ ] ⚠️ Le compteur « non lues » **n'a pas décrémenté** après la suppression
-  d'une notification non lue (24 avant, 24 après). Une arrivée temps réel a pu
-  compenser au même instant — à confirmer sur une liste au repos.
+- [x] **Aplat rouge : correctif posé et non-régression vérifiée** (SM A515F,
+  2026-08-23). Le fond « Supprimer » avait occupé toute la hauteur de la liste
+  et y était resté, masquant toutes les lignes. Cause retenue : l'écriture
+  « marquer lu » partait de `confirmDismiss`, donc `isRead` basculait pendant
+  l'animation de retour et l'enfant du `Dismissible` changeait de type
+  (`_UnreadCard` → `_ReadRow`), ce qui remonte l'élément sous une animation en
+  cours. Deux verrous : écriture différée de 320 ms (au-delà de
+  `kDismissibleResizeDuration`) et enfant de type stable `_NotificationRow`.
+  Après correctif, les deux fonds s'affichent **à la hauteur de leur seule
+  ligne**, libellé et icône visibles (« Marquer comme lu » vert, « Supprimer »
+  rouge), et la liste reste intacte.
+  ⚠️ **Ce n'est pas une preuve** : le défaut n'avait jamais pu être reproduit
+  (une seule occurrence, et le pilotage `adb` par coordonnées dérive trop pour
+  tenter des rafales). Si l'aplat revient, c'est cette cause qu'il faut
+  abandonner.
+- [x] Compteur de non lues : **ce n'est pas un défaut de rafraîchissement.**
+  Il est calculé sur la liste **paginée** —
+  `notificationsAsync.valueOrNull?.where((n) => !n.isRead).length`, limite 20 —
+  et non sur un total serveur. Supprimer une non lue fait entrer une autre non
+  lue depuis la suite, d'où un compteur qui ne bouge pas ; c'est aussi ce qui
+  explique ses sauts (19 → 28 → 25 → 24) au fil des chargements. Préexistant,
+  sans rapport avec la mise à plat. À reprendre si l'on veut un vrai total.
+- [x] Suppression vérifiée jusqu'au bout : « A supprimer (test) » est absente
+  de la liste **après avoir quitté et rouvert l'écran** — la ligne n'est donc
+  pas seulement retirée de l'arbre, elle est bien partie de la base.
 - [x] ✅ **Actions en ligne vérifiées** : « J'y vais » / « Voir » s'affichent
   sur un rappel d'événement non lu, après la mise à plat.
 - [ ] **Accepter / Refuser** d'une demande d'ami : **invérifiable sur ce
