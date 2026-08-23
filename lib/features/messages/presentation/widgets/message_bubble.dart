@@ -168,10 +168,10 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Révélateur « Autres actions » de la feuille (§27a).
   bool _moreOptionsOpen = false;
 
-  /// Un message envoyé qui n'est pas le dernier d'une rafale masque son
-  /// heure/accusé par défaut (`_isLastInGroup`) ; un tap la révèle ici, un
-  /// second tap la remasque. Les messages reçus l'affichent toujours, cette
-  /// bascule ne les concerne pas — voir `_buildMetaRow`.
+  /// Un message qui n'est pas le dernier d'une rafale masque son heure/accusé
+  /// par défaut (`_isLastInGroup`) ; un tap la révèle ici, un second tap la
+  /// remasque. Vaut dans les deux sens — envoyé comme reçu — voir
+  /// `_buildMetaRow`.
   bool _metaRevealed = false;
 
   // Cached emoji-only check (computed once)
@@ -2369,15 +2369,14 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// discussion — aucune bulle spécialisée (image, vidéo, document, note
   /// vocale, sticker, localisation) ne réaffiche l'heure de son côté.
   ///
-  /// Reçus vs envoyés : un message reçu affiche toujours son heure
-  /// individuellement (pas de regroupement pour l'heure, même si la bulle
-  /// reste visuellement groupée) ; un message envoyé qui n'est pas le
-  /// dernier d'une rafale la masque par défaut, et un tap la révèle/masque
-  /// (`_metaRevealed`).
+  /// Rafales : dans une suite de messages consécutifs du même expéditeur,
+  /// seul le dernier porte son heure — la règle vaut pour les messages reçus
+  /// comme pour les messages envoyés. Les précédents la masquent par défaut,
+  /// et un tap la révèle/masque (`_metaRevealed`).
   Widget _buildMetaRow(BuildContext context) {
     final hasReactions = widget.message.reactions.isNotEmpty;
-    final canToggle = widget.isMe && !_isLastInGroup && !widget.message.deletedForEveryone;
-    final showTimeInfo = _isLastInGroup || !widget.isMe || _metaRevealed;
+    final canToggle = !_isLastInGroup && !widget.message.deletedForEveryone;
+    final showTimeInfo = _isLastInGroup || _metaRevealed;
 
     if (!showTimeInfo && !hasReactions) {
       if (!canToggle) return const SizedBox.shrink();
@@ -2444,8 +2443,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             _buildReceiptLabel(context, groupReadCount),
         ],
       );
-      // Seule la révélation par tap doit pouvoir se remasquer — l'affichage
-      // « dernier de la rafale » ou « message reçu » reste permanent.
+      // Seule la révélation par tap doit pouvoir se remasquer — l'heure du
+      // dernier message d'une rafale reste permanente.
       if (canToggle) {
         timeRow = GestureDetector(
           behavior: HitTestBehavior.opaque,

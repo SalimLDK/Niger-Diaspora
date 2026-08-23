@@ -7329,6 +7329,54 @@ retester n'a de sens qu'après réactivation.
 
 ---
 
+## Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)
+
+Deux changements distincts, aucun couvert par `flutter test`.
+
+**1. Le regroupement de la page Notifications est retiré**
+([notifications_screen.dart](lib/features/notifications/presentation/screens/notifications_screen.dart)).
+Les tuiles pliées « 3 nouveaux messages » / « 2 demandes d'ami »
+(`_NotificationGroup`, `_NotificationGroupItem`, `_CompactNotificationItem`,
+et les helpers `_groupNotifications`/`_autoGenerateGroupKey`) sont supprimées :
+une notification = une ligne. Les tranches de temps (« AUJOURD'HUI », « CETTE
+SEMAINE »…) et les trois filtres (Tout / Non lues / Mentions) sont conservés.
+Le résumé des notifications **push** Android (`setAsGroupSummary`, InboxStyle
+dans `notification_service.dart`) n'est pas touché — c'est un autre système.
+
+- [ ] Une conversation qui a envoyé 3 messages produit **3 lignes séparées**
+  dans la page, plus une tuile dépliable.
+- [ ] Le **balayage** (supprimer / marquer comme lu) fonctionne sur ces
+  lignes redevenues individuelles.
+- [ ] Les **actions en ligne** (Accepter/Refuser une demande d'ami, les
+  boutons d'événement) s'affichent toujours — elles vivaient aussi dans les
+  tuiles compactes du groupe, qui viennent de disparaître.
+- [ ] La **pagination au défilement** tient toujours avec beaucoup de lignes
+  (le compte d'éléments affichés n'est plus réduit par le regroupement).
+- [ ] Les **tranches de temps** restent correctes et ne se répètent pas.
+
+**2. Dans une rafale, seul le dernier message affiche son heure**
+([message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)).
+La règle existait déjà pour les messages *envoyés* ; elle vaut désormais aussi
+pour les messages *reçus* (`showTimeInfo = _isLastInGroup || _metaRevealed`).
+
+- [ ] 3 messages reçus d'affilée : **seul le dernier** porte son heure.
+- [ ] Un **tap** sur un message masqué (reçu comme envoyé) révèle son heure ;
+  un second tap la remasque. La zone tactile fait 48×16 dp — vérifier qu'elle
+  s'attrape sans gêner le tap sur la bulle elle-même.
+- [ ] L'accusé de réception (« Envoyé »/« Lu »/« Vu par N ») reste sur les
+  seuls messages envoyés.
+- [ ] ⚠️ **Point de vigilance** : une rafale se définit par
+  « même expéditeur, même jour » — il n'y a **aucune rupture sur l'écart de
+  temps**. Deux messages du même expéditeur à 09:00 et 18:00 le même jour sont
+  une seule rafale, donc l'heure de 09:00 est masquée. Vérifier si c'est
+  gênant à l'usage ; si oui, ajouter une rupture (p. ex. > 15 min) dans
+  `_getMessageGroupPositionReversed`
+  ([conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)).
+- [ ] Build + install pas encore faits sur SM A515F depuis ce changement
+  (travail réalisé dans un worktree isolé).
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

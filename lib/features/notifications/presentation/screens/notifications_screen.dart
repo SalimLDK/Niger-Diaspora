@@ -3,7 +3,6 @@ import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../shared/widgets/loading_indicator.dart';
@@ -75,86 +74,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     if (chargees < ref.read(notificationLimitProvider)) return;
 
     ref.read(notificationsNotifierProvider.notifier).loadMore();
-  }
-
-  /// Groupement intelligent style WhatsApp
-  /// - Messages: groupés par conversation
-  /// - Groupes: groupés par groupe
-  /// - Événements: groupés par événement
-  /// - Amis: groupés ensemble
-  List<dynamic> _groupNotifications(List<NotificationEntity> notifications) {
-    if (notifications.isEmpty) return [];
-
-    final groupedMap = <String, List<NotificationEntity>>{};
-
-    // First pass: auto-generate groupKey if not present, then group
-    for (var n in notifications) {
-      final groupKey = n.groupKey ?? _autoGenerateGroupKey(n);
-      groupedMap.putIfAbsent(groupKey, () => []).add(n);
-    }
-
-    final result = <dynamic>[];
-    final processedGroups = <String>{};
-
-    for (var n in notifications) {
-      final groupKey = n.groupKey ?? _autoGenerateGroupKey(n);
-
-      if (!processedGroups.contains(groupKey)) {
-        final groupItems = groupedMap[groupKey]!;
-        if (groupItems.length > 1) {
-          result.add(
-            _NotificationGroup(
-              key: groupKey,
-              notifications: groupItems,
-              type: n.type,
-            ),
-          );
-          processedGroups.add(groupKey);
-        } else {
-          result.add(n);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  /// Génère automatiquement un groupKey basé sur le type de notification
-  String _autoGenerateGroupKey(NotificationEntity n) {
-    switch (n.type) {
-      case NotificationType.message:
-        // Grouper par conversation (senderId ou targetId)
-        return 'messages_${n.senderId ?? n.targetId ?? 'unknown'}';
-      case NotificationType.groupInvite:
-      case NotificationType.groupJoinRequest:
-      case NotificationType.groupRequestApproved:
-      case NotificationType.groupRequestRejected:
-      case NotificationType.newMember:
-        return 'group_${n.targetId ?? 'unknown'}';
-      case NotificationType.eventReminder:
-      case NotificationType.eventUpdate:
-      case NotificationType.eventAttendance:
-        return 'event_${n.targetId ?? 'unknown'}';
-      case NotificationType.friendRequest:
-      case NotificationType.friendRequestAccepted:
-      case NotificationType.friendAccepted:
-      case NotificationType.newFollower:
-        return 'friend_requests';
-      case NotificationType.order:
-      case NotificationType.newOrder:
-      case NotificationType.orderPaid:
-      case NotificationType.orderShipped:
-      case NotificationType.orderDelivered:
-      case NotificationType.orderCancelled:
-      case NotificationType.orderCompleted:
-        return 'order_${n.targetId ?? 'unknown'}';
-      case NotificationType.localEvent:
-      case NotificationType.nearbyMember:
-      case NotificationType.proximityAlert:
-        return 'location_alerts';
-      case NotificationType.general:
-        return 'general_${n.id}'; // Pas de groupement
-    }
   }
 
   @override
@@ -347,12 +266,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             );
           }
 
-          final groupedItems = _groupNotifications(filteredNotifications);
           // §12c : la liste se lit par tranches de temps
-          // (« AUJOURD'HUI », « CETTE SEMAINE », puis le mois). Le
-          // sectionnement vient après le regroupement : un groupe se range
-          // sous la tranche de sa notification la plus récente.
-          final sections = _sectionByDate(groupedItems);
+          // (« AUJOURD'HUI », « CETTE SEMAINE », puis le mois). Une
+          // notification = une ligne : le regroupement par conversation a été
+          // retiré, la liste reste donc plate à l'intérieur d'une tranche.
+          final sections = _sectionByDate(filteredNotifications);
 
           return ListView.builder(
             controller: _scrollController,
@@ -376,65 +294,44 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       );
   }
 
-  Widget _buildItem(BuildContext context, WidgetRef ref, Object item) {
-    if (item is _NotificationGroup) {
-      return _NotificationGroupItem(
-        key: ValueKey('group_${item.key}'),
-        group: item,
-        onTap: (n) => _handleNotificationTap(context, ref, n),
-        onLongPress: () => context.push('/notifications/${item.summary.id}'),
-        onDelete: (n) {
-          ref
-              .read(notificationsNotifierProvider.notifier)
-              .deleteNotification(n.id);
-        },
-        onMarkAsRead: (n) {
-          ref.read(notificationsNotifierProvider.notifier).markAsRead(n.id);
-        },
-      );
-    }
-    if (item is NotificationEntity) {
-      return _NotificationItem(
-        key: ValueKey('item_${item.id}'),
-        notification: item,
-        onTap: () => _handleNotificationTap(context, ref, item),
-        onLongPress: () => context.push('/notifications/${item.id}'),
-        onDelete: () {
-          ref
-              .read(notificationsNotifierProvider.notifier)
-              .deleteNotification(item.id);
-        },
-        onMarkAsRead: () {
-          ref.read(notificationsNotifierProvider.notifier).markAsRead(item.id);
-        },
-      );
-    }
-    return const SizedBox.shrink();
+  Widget _buildItem(
+    BuildContext context,
+    WidgetRef ref,
+    NotificationEntity item,
+  ) {
+    return _NotificationItem(
+      key: ValueKey('item_${item.id}'),
+      notification: item,
+      onTap: () => _handleNotificationTap(context, ref, item),
+      onLongPress: () => context.push('/notifications/${item.id}'),
+      onDelete: () {
+        ref
+            .read(notificationsNotifierProvider.notifier)
+            .deleteNotification(item.id);
+      },
+      onMarkAsRead: () {
+        ref.read(notificationsNotifierProvider.notifier).markAsRead(item.id);
+      },
+    );
   }
 
-  /// Découpe la liste déjà regroupée en tranches de temps (§12c).
+  /// Découpe la liste en tranches de temps (§12c).
   ///
   /// L'ordre des éléments est conservé tel quel — le flux arrive déjà trié du
   /// plus récent au plus ancien, et re-trier ici ferait diverger l'affichage
   /// de la pagination.
-  List<({String label, List<Object> items})> _sectionByDate(
-    List<dynamic> items,
+  List<({String label, List<NotificationEntity> items})> _sectionByDate(
+    List<NotificationEntity> items,
   ) {
-    final sections = <({String label, List<Object> items})>[];
+    final sections = <({String label, List<NotificationEntity> items})>[];
     for (final item in items) {
-      final label = _sectionLabel(_itemDate(item));
+      final label = _sectionLabel(item.createdAt);
       if (sections.isEmpty || sections.last.label != label) {
-        sections.add((label: label, items: <Object>[]));
+        sections.add((label: label, items: <NotificationEntity>[]));
       }
-      sections.last.items.add(item as Object);
+      sections.last.items.add(item);
     }
     return sections;
-  }
-
-  DateTime? _itemDate(Object item) {
-    if (item is _NotificationGroup) return item.summary.createdAt;
-    if (item is NotificationEntity) return item.createdAt;
-    return null;
   }
 
   String _sectionLabel(DateTime? date) {
@@ -1166,526 +1063,6 @@ class _EventActionsState extends ConsumerState<_EventActions> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _NotificationGroup {
-  final String key;
-  final List<NotificationEntity> notifications;
-  final NotificationType type;
-
-  _NotificationGroup({
-    required this.key,
-    required this.notifications,
-    required this.type,
-  });
-
-  NotificationEntity get summary => notifications.first;
-
-  /// Nombre de notifications non lues
-  int get unreadCount => notifications.where((n) => !n.isRead).length;
-
-  /// Titre du groupe style WhatsApp
-  String getGroupTitle(AppLocalizations l10n) {
-    switch (type) {
-      case NotificationType.message:
-        final senderNames = notifications
-            .map((n) => n.title.split(':').first)
-            .toSet()
-            .toList();
-        if (senderNames.length == 1) {
-          return senderNames.first;
-        }
-        return '${notifications.length} messages';
-      case NotificationType.groupInvite:
-      case NotificationType.groupJoinRequest:
-      case NotificationType.groupRequestApproved:
-      case NotificationType.groupRequestRejected:
-      case NotificationType.newMember:
-        return l10n.groupsTitle;
-      case NotificationType.eventReminder:
-      case NotificationType.eventUpdate:
-      case NotificationType.eventAttendance:
-        return l10n.eventsTitle;
-      case NotificationType.friendRequest:
-      case NotificationType.friendRequestAccepted:
-      case NotificationType.friendAccepted:
-      case NotificationType.newFollower:
-        return l10n.filterFriends;
-      case NotificationType.order:
-      case NotificationType.newOrder:
-      case NotificationType.orderPaid:
-      case NotificationType.orderShipped:
-      case NotificationType.orderDelivered:
-      case NotificationType.orderCancelled:
-      case NotificationType.orderCompleted:
-        return 'Commandes';
-      case NotificationType.localEvent:
-      case NotificationType.nearbyMember:
-      case NotificationType.proximityAlert:
-        return l10n.notifGroupProximity;
-      case NotificationType.general:
-        return 'Notifications';
-    }
-  }
-
-  /// Sous-titre du groupe style WhatsApp
-  String getGroupSubtitle(AppLocalizations l10n) {
-    final count = notifications.length;
-    switch (type) {
-      case NotificationType.message:
-        final senderNames = notifications
-            .map((n) => n.title.split(':').first)
-            .toSet()
-            .toList();
-        if (senderNames.length == 1) {
-          return '$count nouveaux messages';
-        }
-        return l10n.notificationsGroupedMessages(count, senderNames.length);
-      case NotificationType.friendRequest:
-      case NotificationType.friendRequestAccepted:
-      case NotificationType.friendAccepted:
-      case NotificationType.newFollower:
-        return '$count demandes d\'ami';
-      default:
-        return '$count notifications';
-    }
-  }
-
-  /// Icône du groupe
-  IconData getGroupIcon() {
-    switch (type) {
-      case NotificationType.message:
-        return Icons.chat_bubble;
-      case NotificationType.groupInvite:
-      case NotificationType.groupJoinRequest:
-      case NotificationType.groupRequestApproved:
-      case NotificationType.groupRequestRejected:
-      case NotificationType.newMember:
-        return Icons.group;
-      case NotificationType.eventReminder:
-      case NotificationType.eventUpdate:
-      case NotificationType.eventAttendance:
-        return Icons.event;
-      case NotificationType.friendRequest:
-      case NotificationType.friendRequestAccepted:
-      case NotificationType.friendAccepted:
-      case NotificationType.newFollower:
-        return Icons.person_add;
-      case NotificationType.order:
-      case NotificationType.newOrder:
-      case NotificationType.orderPaid:
-      case NotificationType.orderShipped:
-      case NotificationType.orderDelivered:
-      case NotificationType.orderCancelled:
-      case NotificationType.orderCompleted:
-        return Icons.shopping_bag;
-      case NotificationType.localEvent:
-      case NotificationType.nearbyMember:
-      case NotificationType.proximityAlert:
-        return Icons.location_on;
-      case NotificationType.general:
-        return Icons.notifications;
-    }
-  }
-}
-
-class _NotificationGroupItem extends StatefulWidget {
-  final _NotificationGroup group;
-  final Function(NotificationEntity) onTap;
-  final VoidCallback onLongPress;
-  final Function(NotificationEntity) onDelete;
-  final Function(NotificationEntity) onMarkAsRead;
-
-  const _NotificationGroupItem({
-    super.key,
-    required this.group,
-    required this.onTap,
-    required this.onLongPress,
-    required this.onDelete,
-    required this.onMarkAsRead,
-  });
-
-  @override
-  State<_NotificationGroupItem> createState() => _NotificationGroupItemState();
-}
-
-class _NotificationGroupItemState extends State<_NotificationGroupItem>
-    with SingleTickerProviderStateMixin {
-  bool _isExpanded = false;
-  late AnimationController _animationController;
-  late Animation<double> _expandAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _expandAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  void _toggleExpanded() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-      if (_isExpanded) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final unreadCount = widget.group.unreadCount;
-    final groupTitle = widget.group.getGroupTitle(l10n);
-    final groupSubtitle = widget.group.getGroupSubtitle(l10n);
-    final latestNotification = widget.group.notifications.first;
-    final hasUnread = unreadCount > 0;
-
-    // Même partition que pour une notification isolée (§12c) : carte tramée
-    // tant qu'il reste du non-lu, ligne nue quand tout est lu. L'accordéon est
-    // conservé — c'est le seul endroit d'où l'on voit les notifications du
-    // groupe une par une — mais il adopte les deux registres.
-    return Container(
-      padding: hasUnread ? const EdgeInsets.all(14) : EdgeInsets.zero,
-      decoration: hasUnread
-          ? BoxDecoration(
-              color: context.adaptivePrimaryColor.withValues(
-                alpha: context.isDarkMode ? 0.09 : 0.05,
-              ),
-              borderRadius: BorderRadius.circular(kNotificationCardRadius),
-              border: Border.all(
-                color: context.adaptivePrimaryColor.withValues(alpha: 0.16),
-              ),
-            )
-          : null,
-      child: Column(
-        children: [
-          // Balayage vers la droite = marquer le groupe lu.
-          //
-          // L'en-tête n'avait **aucun** `Dismissible` : le geste n'existait
-          // que sur une notification isolée. Un compte dont toutes les
-          // notifications sont groupées — le cas courant, c'est le but du
-          // regroupement — n'avait donc aucun moyen de marquer lu au doigt.
-          // Seul l'en-tête est enveloppé, pas la carte entière : sinon le
-          // dépliant déplié avalerait les gestes de ses propres lignes.
-          Dismissible(
-            key: ValueKey('group_dismiss_${widget.group.key}'),
-            direction: hasUnread
-                ? DismissDirection.startToEnd
-                : DismissDirection.none,
-            background: _SwipeBackground(
-              color: context.successColor,
-              icon: Icons.mark_email_read_outlined,
-              label: l10n.markAsRead,
-              alignment: Alignment.centerLeft,
-            ),
-            confirmDismiss: (_) async {
-              for (final n in widget.group.notifications) {
-                if (!n.isRead) widget.onMarkAsRead(n);
-              }
-              // La ligne reste : elle change de registre, elle ne part pas.
-              return false;
-            },
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _toggleExpanded,
-                // `onLongPress` était déclaré, passé par la liste, et **jamais
-                // branché ici** : l'appui long dépliait le groupe comme un tap
-                // ordinaire. Comme le compte de test n'a que des notifications
-                // groupées, l'écran de détail était injoignable en pratique.
-                onLongPress: widget.onLongPress,
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: hasUnread ? 0 : 4,
-                  vertical: hasUnread ? 0 : 10,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Le compteur remplace le badge flottant vert WhatsApp :
-                    // il tient dans la pastille, sans déborder ni imiter une
-                    // autre application.
-                    _TypeBadge(type: widget.group.type, filled: hasUnread),
-                    const SizedBox(width: 13),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  groupTitle,
-                                  style: TextStyle(
-                                    fontSize: hasUnread ? 15 : 14.5,
-                                    height: 1.25,
-                                    fontWeight: hasUnread
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                    color: context.textPrimaryColor,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              if (hasUnread)
-                                Container(
-                                  margin: const EdgeInsets.only(top: 4),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 7,
-                                    vertical: 2,
-                                  ),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 20,
-                                  ),
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: context.adaptivePrimaryColor,
-                                    borderRadius: BorderRadius.circular(9),
-                                  ),
-                                  child: Text(
-                                    unreadCount > 99 ? '99+' : '$unreadCount',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: context.onPrimaryColor,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 3),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  groupSubtitle,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    height: 1.35,
-                                    color: context.textSecondaryColor,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              AnimatedRotation(
-                                turns: _isExpanded ? 0.5 : 0,
-                                duration: const Duration(milliseconds: 200),
-                                child: Icon(
-                                  Icons.keyboard_arrow_down,
-                                  color: context.textTertiaryColor,
-                                  size: 20,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (hasUnread && latestNotification.body.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(
-                                latestNotification.body,
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  color: context.textTertiaryColor,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          const SizedBox(height: 6),
-                          _Stamp(date: latestNotification.createdAt),
-                        ],
-                      ),
-                    ),
-                  ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Le dépliant : les notifications du groupe une par une.
-          SizeTransition(
-            sizeFactor: _expandAnimation,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 57, top: 6, bottom: 2),
-                  child: Divider(height: 1, color: context.dividerColor),
-                ),
-                ...widget.group.notifications.map((notification) {
-                  return _CompactNotificationItem(
-                    key: ValueKey('compact_row_${notification.id}'),
-                    notification: notification,
-                    onTap: () => widget.onTap(notification),
-                    onDelete: () => widget.onDelete(notification),
-                    onMarkAsRead: () => widget.onMarkAsRead(notification),
-                  );
-                }),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Ligne du dépliant d'un groupe : la même notification, en plus serré.
-class _CompactNotificationItem extends ConsumerWidget {
-  final NotificationEntity notification;
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
-  final VoidCallback onMarkAsRead;
-
-  const _CompactNotificationItem({
-    super.key,
-    required this.notification,
-    required this.onTap,
-    required this.onDelete,
-    required this.onMarkAsRead,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    return Dismissible(
-      key: ValueKey('compact_${notification.id}'),
-      // La ligne du dépliant n'acceptait que la suppression : le geste
-      // « marquer lu » manquait ici comme sur l'en-tête du groupe.
-      direction: DismissDirection.horizontal,
-      background: _SwipeBackground(
-        color: context.successColor,
-        icon: Icons.mark_email_read_outlined,
-        label: l10n.markAsRead,
-        alignment: Alignment.centerLeft,
-      ),
-      secondaryBackground: _SwipeBackground(
-        color: context.errorColor,
-        icon: Icons.delete_outline,
-        label: l10n.delete,
-        alignment: Alignment.centerRight,
-      ),
-      confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          if (!notification.isRead) onMarkAsRead();
-          return false;
-        }
-        return true;
-      },
-      onDismissed: (_) => onDelete(),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            if (!notification.isRead) {
-              onMarkAsRead();
-            }
-            onTap();
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-            margin: const EdgeInsets.only(left: 45),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: context.dividerColor.withValues(alpha: 0.4),
-                  width: 0.5,
-                ),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Point de non-lu — il était en vert WhatsApp codé en dur.
-                if (!notification.isRead)
-                  Container(
-                    width: 7,
-                    height: 7,
-                    margin: const EdgeInsets.only(right: 9, top: 6),
-                    decoration: BoxDecoration(
-                      color: context.adaptivePrimaryColor,
-                      shape: BoxShape.circle,
-                    ),
-                  )
-                else
-                  const SizedBox(width: 16),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        notification.title,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: notification.isRead
-                              ? FontWeight.normal
-                              : FontWeight.w600,
-                          color: context.textPrimaryColor,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (notification.body.isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          notification.body,
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: context.textSecondaryColor,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                      // Actions en ligne (§12c) : ami et événement.
-                      _InlineActions(
-                        notification: notification,
-                        onHandled: onMarkAsRead,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    DateFormat('HH:mm').format(
-                      notification.createdAt ?? DateTime.now(),
-                    ),
-                    style: GoogleFonts.robotoMono(
-                      fontSize: 10,
-                      letterSpacing: 0.6,
-                      color: context.textTertiaryColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
