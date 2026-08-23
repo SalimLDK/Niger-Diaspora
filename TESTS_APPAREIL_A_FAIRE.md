@@ -8019,11 +8019,37 @@ dans `notification_service.dart`) n'est pas touché — c'est un autre système.
   séparées**, sans tuile dépliable. Avant, elles étaient repliées derrière une
   seule tuile (`groupKey = messages_<senderId>`). Les trois filtres (Tous /
   Non lues 19 / Mentions) et la tranche « CE MOIS-CI » sont bien là.
-- [ ] Le **balayage** (supprimer / marquer comme lu) fonctionne sur ces
-  lignes redevenues individuelles.
-- [ ] Les **actions en ligne** (Accepter/Refuser une demande d'ami, les
-  boutons d'événement) s'affichent toujours — elles vivaient aussi dans les
-  tuiles compactes du groupe, qui viennent de disparaître.
+- [x] ✅ **Balayage vérifié SM A515F le 2026-08-23**, les deux sens :
+  - vers la **droite** = marquer lu — la carte orange devient une ligne
+    discrète (`_UnreadCard` → `_ReadRow`), la ligne **reste** dans la liste
+    (`confirmDismiss` rend `false`), et le compteur passe de 25 à 24 ;
+  - vers la **gauche** = supprimer — « Test diagnostic input » disparaît bien
+    de la liste.
+- [ ] ⚠️ **Aplat rouge plein écran** observé une fois, juste après un balayage
+  vers la droite : le `secondaryBackground` (rouge « Supprimer ») a occupé
+  toute la hauteur de la liste et y est resté, masquant toutes les lignes ;
+  résorbé en quittant et rouvrant la page. **Non reproduit** au second essai.
+  Il s'est produit pendant que le flux temps réel poussait de nouvelles
+  notifications (compteur 19 → 28 dans le même instant), donc piste d'un
+  rebuild concurrent pendant l'animation du `Dismissible` — d'autant que son
+  enfant **change de type** (`_UnreadCard` → `_ReadRow`) au moment précis où
+  `confirmDismiss` demande le retour en place. À retenter en provoquant des
+  arrivées temps réel pendant un balayage.
+- [ ] ⚠️ Le compteur « non lues » **n'a pas décrémenté** après la suppression
+  d'une notification non lue (24 avant, 24 après). Une arrivée temps réel a pu
+  compenser au même instant — à confirmer sur une liste au repos.
+- [x] ✅ **Actions en ligne vérifiées** : « J'y vais » / « Voir » s'affichent
+  sur un rappel d'événement non lu, après la mise à plat.
+- [ ] **Accepter / Refuser** d'une demande d'ami : **invérifiable sur ce
+  compte**, pour deux raisons cumulées — la seule notification « Nouvelle
+  demande d'ami » (13 août) est **lue**, or `_InlineActions` n'est rendu que
+  dans `_UnreadCard` ; et `friend_requests` ne contient **aucune** ligne pour
+  ce compte, tous statuts confondus, donc `_FriendRequestActions` ne rendrait
+  rien même sur une carte non lue (il exige une demande en attente — c'est le
+  comportement voulu). Le chemin de code est cependant le même que celui des
+  boutons d'événement ci-dessus : même `_UnreadCard`, même `_InlineActions`,
+  seul le `case` du switch diffère. À refaire avec une vraie demande d'ami
+  entrante.
 - [ ] La **pagination au défilement** tient toujours avec beaucoup de lignes
   (le compte d'éléments affichés n'est plus réduit par le regroupement).
 - [ ] Les **tranches de temps** restent correctes et ne se répètent pas.
