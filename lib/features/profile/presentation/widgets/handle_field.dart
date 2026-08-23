@@ -22,8 +22,8 @@ class HandleField extends ConsumerStatefulWidget {
   final void Function(String? normalizedHandle, bool isValid) onChanged;
 
   /// Permet au parent d'ouvrir le formulaire directement sur ce champ
-  /// (`/profile/edit?focus=handle`, depuis l'appel du profil quand aucun nom
-  /// d'utilisateur n'est defini). Le focus fait defiler le champ a l'ecran.
+  /// (`/profile/edit?focus=handle`, depuis l'appel du profil quand aucun
+  /// pseudo n'est defini). Le focus fait defiler le champ a l'ecran.
   final FocusNode? focusNode;
 
   const HandleField({

@@ -485,9 +485,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     ),
                   ),
                 ] else ...[
-                  // Sans nom d'utilisateur, la ligne @ disparaît purement et
-                  // simplement : rien n'indique qu'elle existe, ni comment
-                  // s'en donner un. Neuf comptes sur onze n'en avaient aucun.
+                  // Sans pseudo, la ligne @ disparaît purement et simplement :
+                  // rien n'indique qu'elle existe, ni comment s'en donner un.
+                  // Neuf comptes sur onze n'en avaient aucun.
                   // L'appel prend la place exacte du @handle manquant et ouvre
                   // le formulaire **sur le champ** (`?focus=handle`).
                   const SizedBox(height: 3),

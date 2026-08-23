@@ -28316,10 +28316,10 @@ abstract class AppLocalizations {
   /// **'Profil complété à {percent} % : vous êtes visible sur la carte des membres de {city} et dans la recherche.'**
   String setupCompletionSummaryCity(int percent, String city);
 
-  /// Blocage a l etape 1/4 si la poignee est prise
+  /// Blocage a l etape 1/4 si le pseudo est pris
   ///
   /// In fr, this message translates to:
-  /// **'Choisissez un nom d\'utilisateur libre'**
+  /// **'Choisissez un pseudo libre'**
   String get setupHandleInvalid;
 
   /// Echec d enregistrement du profil
@@ -28346,46 +28346,46 @@ abstract class AppLocalizations {
   /// **'Erreur : {details}'**
   String setupErrorGeneric(String details);
 
-  /// Libelle du champ poignee
+  /// Libelle du champ pseudo
   ///
   /// In fr, this message translates to:
-  /// **'Nom d\'utilisateur'**
+  /// **'Pseudo'**
   String get handleLabel;
 
-  /// Exemple de poignee
+  /// Exemple de pseudo
   ///
   /// In fr, this message translates to:
   /// **'moussa'**
   String get handleExample;
 
-  /// Aide du champ poignee au repos
+  /// Aide du champ pseudo au repos
   ///
   /// In fr, this message translates to:
   /// **'Sert à vous retrouver et à vous mentionner · optionnel'**
   String get handleHint;
 
-  /// Aide du champ poignee, disponible
+  /// Aide du champ pseudo, disponible
   ///
   /// In fr, this message translates to:
   /// **'Disponible · sert à vous retrouver et à vous mentionner'**
   String get handleAvailableHint;
 
-  /// Aide du champ poignee, deja prise
+  /// Aide du champ pseudo, deja pris
   ///
   /// In fr, this message translates to:
-  /// **'Ce nom d\'utilisateur est déjà pris'**
+  /// **'Ce pseudo est déjà pris'**
   String get handleTaken;
 
-  /// Aide du champ poignee, format invalide
+  /// Aide du champ pseudo, format invalide
   ///
   /// In fr, this message translates to:
   /// **'3 à 20 caractères : lettres, chiffres, _'**
   String get handleFormat;
 
-  /// Ligne d appel sur son propre profil quand aucun nom d utilisateur n est defini
+  /// Ligne d appel sur son propre profil quand aucun pseudo n est defini
   ///
   /// In fr, this message translates to:
-  /// **'Choisir mon nom d\'utilisateur'**
+  /// **'Choisir mon pseudo'**
   String get handleChooseCta;
 
   /// Ligne de contexte de la messagerie

@@ -720,9 +720,9 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                               ]
                               // Cet écran sert aussi son propre profil
                               // (`/profile/:userId` avec son propre id) : sans
-                              // nom d'utilisateur, même appel que sur l'onglet
-                              // Profil. Jamais sur le profil de quelqu'un
-                              // d'autre — on n'y peut rien.
+                              // pseudo, même appel que sur l'onglet Profil.
+                              // Jamais sur le profil de quelqu'un d'autre —
+                              // on n'y peut rien.
                               else if (_isCurrentUser) ...[
                                 const SizedBox(height: 3),
                                 InkWell(

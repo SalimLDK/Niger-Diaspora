@@ -7477,9 +7477,9 @@
       }
     }
   },
-  "setupHandleInvalid": "Choisissez un nom d'utilisateur libre",
+  "setupHandleInvalid": "Choisissez un pseudo libre",
   "@setupHandleInvalid": {
-    "description": "Blocage a l etape 1/4 si la poignee est prise"
+    "description": "Blocage a l etape 1/4 si le pseudo est pris"
   },
   "setupErrorConnection": "Erreur de connexion. Vérifiez votre connexion internet.",
   "@setupErrorConnection": {
@@ -7502,33 +7502,33 @@
       }
     }
   },
-  "handleLabel": "Nom d'utilisateur",
+  "handleLabel": "Pseudo",
   "@handleLabel": {
-    "description": "Libelle du champ poignee"
+    "description": "Libelle du champ pseudo"
   },
   "handleExample": "moussa",
   "@handleExample": {
-    "description": "Exemple de poignee"
+    "description": "Exemple de pseudo"
   },
   "handleHint": "Sert à vous retrouver et à vous mentionner · optionnel",
   "@handleHint": {
-    "description": "Aide du champ poignee au repos"
+    "description": "Aide du champ pseudo au repos"
   },
   "handleAvailableHint": "Disponible · sert à vous retrouver et à vous mentionner",
   "@handleAvailableHint": {
-    "description": "Aide du champ poignee, disponible"
+    "description": "Aide du champ pseudo, disponible"
   },
-  "handleTaken": "Ce nom d'utilisateur est déjà pris",
+  "handleTaken": "Ce pseudo est déjà pris",
   "@handleTaken": {
-    "description": "Aide du champ poignee, deja prise"
+    "description": "Aide du champ pseudo, deja pris"
   },
   "handleFormat": "3 à 20 caractères : lettres, chiffres, _",
   "@handleFormat": {
-    "description": "Aide du champ poignee, format invalide"
+    "description": "Aide du champ pseudo, format invalide"
   },
-  "handleChooseCta": "Choisir mon nom d'utilisateur",
+  "handleChooseCta": "Choisir mon pseudo",
   "@handleChooseCta": {
-    "description": "Ligne d appel sur son propre profil quand aucun nom d utilisateur n est defini"
+    "description": "Ligne d appel sur son propre profil quand aucun pseudo n est defini"
   },
   "messagesActiveGroups": "{count, plural, =0{Aucun groupe actif} =1{1 groupe actif} other{{count} groupes actifs}}",
   "@messagesActiveGroups": {

@@ -15248,7 +15248,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get setupHandleInvalid => 'Choose an available username';
+  String get setupHandleInvalid => 'Choose an available handle';
 
   @override
   String get setupErrorConnection =>
@@ -15267,7 +15267,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get handleLabel => 'Username';
+  String get handleLabel => 'Handle';
 
   @override
   String get handleExample => 'moussa';
@@ -15279,13 +15279,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get handleAvailableHint => 'Available · used to find and mention you';
 
   @override
-  String get handleTaken => 'This username is already taken';
+  String get handleTaken => 'This handle is already taken';
 
   @override
   String get handleFormat => '3 to 20 characters: letters, digits, _';
 
   @override
-  String get handleChooseCta => 'Choose my username';
+  String get handleChooseCta => 'Choose my handle';
 
   @override
   String messagesActiveGroups(int count) {

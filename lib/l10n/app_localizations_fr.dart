@@ -15395,7 +15395,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get setupHandleInvalid => 'Choisissez un nom d\'utilisateur libre';
+  String get setupHandleInvalid => 'Choisissez un pseudo libre';
 
   @override
   String get setupErrorConnection =>
@@ -15415,7 +15415,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get handleLabel => 'Nom d\'utilisateur';
+  String get handleLabel => 'Pseudo';
 
   @override
   String get handleExample => 'moussa';
@@ -15429,13 +15429,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Disponible · sert à vous retrouver et à vous mentionner';
 
   @override
-  String get handleTaken => 'Ce nom d\'utilisateur est déjà pris';
+  String get handleTaken => 'Ce pseudo est déjà pris';
 
   @override
   String get handleFormat => '3 à 20 caractères : lettres, chiffres, _';
 
   @override
-  String get handleChooseCta => 'Choisir mon nom d\'utilisateur';
+  String get handleChooseCta => 'Choisir mon pseudo';
 
   @override
   String messagesActiveGroups(int count) {

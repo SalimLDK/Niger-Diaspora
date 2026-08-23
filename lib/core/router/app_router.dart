@@ -376,7 +376,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/profile/edit',
         // ?focus=photo|city|job|languages|bio|handle — le bandeau de
         // complétude (§11f) ouvre le formulaire sur le champ qu'il propose
-        // d'ajouter ; `handle` vient de la ligne d'appel du profil.
+        // d'ajouter ; `handle` vient de la ligne d'appel du profil (« Choisir
+        // mon pseudo », affichée à la place du @ manquant).
         builder:
             (context, state) => EditProfileScreen(
               focusField: state.uri.queryParameters['focus'],
