@@ -2,6 +2,8 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'mention_handle.dart';
+
 /// Represents a parsed text segment with its type and content
 class TextSegment {
   final String text;
@@ -56,7 +58,13 @@ class RichTextParser {
     r'https?://[^\s<>\[\]()]+|www\.[^\s<>\[\]()]+',
     caseSensitive: false,
   );
-  static final _mentionPattern = RegExp(r'@(\w+)');
+  // Le pseudo de mention garde les accents (cf. mention_handle.dart) : sur
+  // `\w+`, le motif s'arrêtait au premier caractère accentué — `@Maïdaoua`
+  // n'était reconnu que jusqu'au `ï`, donc ni coloré en entier ni cliquable.
+  static final _mentionPattern = RegExp(
+    '@($mentionHandleCharClass+)',
+    unicode: true,
+  );
   static final _hashtagPattern = RegExp(r'#(\w+)');
 
   /// Parse text and return a list of TextSegments
@@ -72,9 +80,10 @@ class RichTextParser {
       r'(~~(.+?)~~)|' // Strikethrough
       r'(`([^`]+)`)|' // Code
       r'(https?://[^\s<>\[\]()]+|www\.[^\s<>\[\]()]+)|' // URLs
-      r'(@\w+)|' // Mentions
+      '(@$mentionHandleCharClass+)|' // Mentions
       r'(#\w+)', // Hashtags
       caseSensitive: false,
+      unicode: true,
     );
 
     for (final match in combinedPattern.allMatches(text)) {

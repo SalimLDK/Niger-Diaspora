@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import 'package:diaspo_niger/core/utils/mention_handle.dart';
 import 'package:diaspo_niger/core/utils/rich_text_parser.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
@@ -123,8 +124,10 @@ class CommentTile extends ConsumerWidget {
                   mentionColor: tokens.hashtagColor,
                   hashtagColor: tokens.hashtagColor,
                   onMentionTap: (handle, _) {
+                    // Même repli que dans post_card : un commentaire ancien
+                    // porte le pseudo ASCII, un récent le pseudo accentué.
                     final uid = comment.mentionedUsers
-                        .where((m) => m.name == handle)
+                        .where((m) => mentionHandleMatches(m.name, handle))
                         .map((m) => m.id)
                         .firstOrNull;
                     if (uid != null) context.push('/profile/$uid');

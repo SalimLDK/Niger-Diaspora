@@ -14,6 +14,59 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Le pseudo de mention mangeait les lettres accentuées (2026-08-23)
+
+`_toMentionHandle` produisait le `@pseudo` avec
+`replaceAll(RegExp(r'[^\w]'), '')`. En Dart, `\w` vaut `[A-Za-z0-9_]` — de
+l'ASCII pur : mentionner « Ibrahim Yacouba Maïdaoua » écrivait
+`@IbrahimYacoubaMadaoua`, le `ï` purement supprimé. Même effet sur « Aïcha »,
+« Boubé », ou tout nom non latin (`李明` donnait une chaîne vide).
+
+Quatre endroits partageaient la même limite ASCII et sont passés sur
+[mention_handle.dart](lib/core/utils/mention_handle.dart) :
+
+- génération, détection et remplacement du pseudo dans
+  [mention_text_field.dart](lib/features/feed/presentation/widgets/mention_text_field.dart) ;
+- coloration en direct dans le champ de saisie
+  ([hashtag_highlighting_controller.dart](lib/features/feed/presentation/widgets/hashtag_highlighting_controller.dart)) ;
+- reconnaissance de la mention à l'affichage
+  ([rich_text_parser.dart](lib/core/utils/rich_text_parser.dart)) — le motif
+  s'arrêtait au `ï`, la mention n'était donc ni colorée en entier ni cliquable ;
+- résolution du profil au tap dans
+  [post_card.dart](lib/features/feed/presentation/widgets/post_card.dart) et
+  [comment_tile.dart](lib/features/feed/presentation/widgets/comment_tile.dart).
+
+**Repli sur les deux formes.** Les publications et commentaires déjà en base
+portent l'ancien pseudo, dans leur texte comme dans `mentioned_users[].name`,
+et rien ne les réécrit. `mentionHandleMatches` compare les deux réduits à
+l'ASCII, dans les deux sens, avec une garde pour que deux noms non latins (qui
+se réduisent tous les deux au vide) ne se confondent pas.
+
+Le `#hashtag` reste volontairement sur `\w` : c'est ce que `extractHashtags`
+enregistre et recherche, l'élargir changerait la donnée stockée.
+
+16 tests dans
+[mention_handle_test.dart](test/core/utils/mention_handle_test.dart), dont un
+test de widget qui construit vraiment la RegExp du contrôleur de coloration
+(elle est `static final` : invalide, elle ne se verrait qu'à la première frappe
+dans « nouvelle publication »).
+
+**À vérifier sur appareil** :
+
+1. Nouvelle publication → taper `@Maï` : la personne doit apparaître dans les
+   suggestions, et la sélectionner doit insérer `@IbrahimYacoubaMaïdaoua`
+   **avec le tréma**, coloré en entier pendant la frappe.
+2. Publier, puis taper sur la mention dans le fil : elle doit ouvrir le profil.
+3. **Le cas du repli** : ouvrir une publication ou un commentaire **ancien**
+   qui contient déjà une mention (forme ASCII), taper dessus — elle doit
+   toujours ouvrir le bon profil.
+4. Même chose dans les commentaires (`comment_tile`).
+
+Non couvert par les tests : le rendu réel de la liste de suggestions et le
+comportement du clavier pendant la saisie du `@`.
+
+---
+
 ## Neuf défauts signalés à l'usage — correctifs du 2026-08-22
 
 Salim a remonté neuf symptômes après usage réel. Huit ont une cause trouvée et

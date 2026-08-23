@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/utils/mention_handle.dart';
 import '../../../../features/profile/data/datasources/profile_supabase_datasource.dart';
 import '../../domain/entities/post_entity.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
-
-/// Returns a `\w+`-compatible handle from a display name.
-String _toMentionHandle(String displayName) =>
-    displayName.replaceAll(RegExp(r'[^\w]'), '');
 
 /// Extracts all #hashtags from text as lowercase strings.
 List<String> extractHashtags(String text) => RegExp(r'#(\w+)')
@@ -143,7 +140,7 @@ class _MentionTextFieldState extends State<MentionTextField> {
 
     final offset = sel.baseOffset.clamp(0, text.length);
     final textBefore = text.substring(0, offset);
-    final mentionMatch = RegExp(r'@(\w*)$').firstMatch(textBefore);
+    final mentionMatch = mentionTypingPattern.firstMatch(textBefore);
 
     if (mentionMatch != null) {
       final query = mentionMatch.group(1)!;
@@ -254,12 +251,12 @@ class _MentionTextFieldState extends State<MentionTextField> {
   }
 
   void _selectSuggestion(_Suggestion s) {
-    final handle = _toMentionHandle(s.displayName);
+    final handle = mentionHandle(s.displayName);
     final text = widget.controller.text;
     final offset = widget.controller.selection.baseOffset.clamp(0, text.length);
     final before = text.substring(0, offset);
     final after = text.substring(offset);
-    final newBefore = before.replaceAll(RegExp(r'@\w*$'), '@$handle ');
+    final newBefore = before.replaceAll(mentionTypingPattern, '@$handle ');
     final newText = newBefore + after;
 
     widget.controller.value = TextEditingValue(
@@ -289,16 +286,28 @@ class _MentionTextFieldState extends State<MentionTextField> {
     final text = widget.controller.text;
 
     final activeUsers = _confirmedUsers.entries
-        .where((e) => text.contains('@${e.key}'))
+        .where((e) => _handleStillInText(text, e.key))
         .map((e) => e.value)
         .toList();
 
     final activeGroups = _confirmedGroups.entries
-        .where((e) => text.contains('@${e.key}'))
+        .where((e) => _handleStillInText(text, e.key))
         .map((e) => e.value)
         .toList();
 
     widget.onTagsChanged!(activeUsers, activeGroups, extractHashtags(text));
+  }
+
+  /// La mention confirmée est-elle toujours écrite dans le texte ?
+  ///
+  /// On accepte aussi l'ancienne forme ASCII du pseudo : quelqu'un qui reprend
+  /// à la main une mention écrite avant le correctif (`@Madaoua` là où le
+  /// pseudo vaut désormais `@Maïdaoua`) ne doit pas la voir se détacher en
+  /// silence de la personne visée.
+  bool _handleStillInText(String text, String handle) {
+    if (text.contains('@$handle')) return true;
+    final legacy = legacyMentionHandle(handle);
+    return legacy.isNotEmpty && legacy != handle && text.contains('@$legacy');
   }
 
   @override
