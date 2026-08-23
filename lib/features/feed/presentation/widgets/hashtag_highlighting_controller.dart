@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:diaspo_niger/core/utils/mention_handle.dart';
+
 /// `TextEditingController` qui colore en direct les `#hashtags` et `@mentions`
 /// saisis dans le champ (§13). Purement visuel : la logique de mentions de
 /// `MentionTextField` ne lit que `.text`/`.selection`, donc ce contrôleur s'y
@@ -15,7 +17,14 @@ class HashtagHighlightingController extends TextEditingController {
   /// Couleur des `#hashtags` (et `@mentions`). `null` = rendu par défaut.
   Color? highlightColor;
 
-  static final _tokenPattern = RegExp(r'[#@]\w+');
+  // `#` reste sur `\w` (ASCII) : c'est ce que `extractHashtags` enregistre et
+  // recherche, le colorer plus large mentirait sur ce qui est réellement
+  // stocké. `@`, lui, suit le pseudo de mention, accents compris
+  // (cf. mention_handle.dart).
+  static final _tokenPattern = RegExp(
+    r'#\w+' '|@$mentionHandleCharClass+',
+    unicode: true,
+  );
 
   @override
   TextSpan buildTextSpan({
