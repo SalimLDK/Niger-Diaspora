@@ -68,11 +68,30 @@ class NotificationModel with _$NotificationModel {
         createdAt: entity.createdAt,
       );
 
+  /// Traduit le `type` stocké en base en [NotificationType].
+  ///
+  /// La base mélange deux conventions : les déclencheurs SQL écrivent en
+  /// serpent (`new_post`, `group_mention`, `report_resolved`), le client en
+  /// chameau (`friendRequest`, `groupCallInvitation`). Une comparaison stricte
+  /// sur `e.name` ne voyait donc que la moitié des types et repliait l'autre
+  /// sur `general` — dont la navigation est un `break` vide : ces
+  /// notifications-là ne réagissaient à aucun appui. On normalise les deux
+  /// écritures avant de comparer.
   static NotificationType _parseNotificationType(String value) {
-    return NotificationType.values.firstWhere(
-      (e) => e.name == value,
-      orElse: () => NotificationType.general,
-    );
+    final normalized = _toCamelCase(value.trim());
+    for (final type in NotificationType.values) {
+      if (type.name.toLowerCase() == normalized.toLowerCase()) return type;
+    }
+    return NotificationType.general;
+  }
+
+  /// `new_post` → `newPost`. Laisse intact ce qui est déjà en chameau.
+  static String _toCamelCase(String value) {
+    if (!value.contains('_')) return value;
+    final parts = value.split('_').where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return value;
+    return parts.first +
+        parts.skip(1).map((p) => p[0].toUpperCase() + p.substring(1)).join();
   }
 
   static String? _timestampToIso(dynamic timestamp) {
