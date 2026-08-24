@@ -8276,6 +8276,22 @@ l'usage, c'est ce commit-là qu'il faut relire avant de trancher à nouveau.
 
 ---
 
+## ⚠️ L'appareil porte une RELEASE depuis le 2026-08-23
+
+Le SM A515F a été rebasculé en build **release** (construite depuis le
+worktree, avec tout le travail de la session). Deux conséquences pour les
+prochaines vérifications :
+
+- **`debugPrint` ne sort plus dans logcat.** C'est exactement ce qui a permis
+  de trouver la cause de l'écran Notifications en erreur ce jour-là
+  (`NotificationSupabaseDataSource: flux interrompu … RealtimeSubscribeException`).
+  Pour un diagnostic du même genre, il faudra réinstaller un build debug —
+  donc désinstaller la release, **donc effacer les données locales**.
+- Les données de l'app ont été effacées par la désinstallation (session, cache,
+  clés E2EE locales). Une sauvegarde de clés a été créée par l'utilisateur juste
+  avant, le 23/8/2026 à 21:53 depuis ce même appareil ; la restauration se fait
+  depuis Réglages → Sécurité → Sauvegarde des clés, avec sa passphrase.
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
