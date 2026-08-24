@@ -8372,6 +8372,35 @@ prochaines vérifications :
   avant, le 23/8/2026 à 21:53 depuis ce même appareil ; la restauration se fait
   depuis Réglages → Sécurité → Sauvegarde des clés, avec sa passphrase.
 
+### Re-vérifié sur la release, après reconnexion et restauration des clés
+
+Tout ce qui suit a été revu sur le build **release** installé le 2026-08-23,
+une fois l'utilisateur reconnecté et ses clés restaurées. Les mêmes points
+avaient été validés en debug plus tôt dans la journée ; cette passe confirme
+qu'ils survivent au changement de build et à la réinstallation.
+
+- [x] **Démarrage à froid** (`am force-stop` puis relance) : l'app arrive
+  directement sur l'accueil connecté, sans repasser par l'écran de connexion.
+- [x] **Aucun crash** dans logcat. Le bruit restant est attendu : profil ART
+  périmé après réinstallation (`ClassLoaderContext mismatch`), refus SELinux
+  bénin sur `max_map_count`, et `GoogleCertificatesRslt: not allowed` — normal
+  pour un APK signé avec la clé de dev.
+- [x] **Messages déchiffrés et lisibles** : la restauration des clés a bien
+  fonctionné.
+- [x] **Page Notifications** : charge (17 non lues), liste **à plat**, actions
+  en ligne « J'y vais » / « Voir » présentes.
+- [x] **Rafales** : `rafale_A` / `rafale_B` / `rafale_C` → seul le dernier porte
+  son heure.
+- [x] **Rupture de 15 min** : le sondage de 05:18 garde son heure, séparé de la
+  rafale suivante du même expéditeur.
+- [x] **Tap sur une bulle masquée** : révèle son heure.
+- [x] La réaction ❤️ posée avant la réinstallation est toujours là.
+
+⚠️ **Portée de ce « aucune erreur »** : en release les `debugPrint` ne sortent
+pas, donc le contrôle logcat ne couvre que les crashes natifs et les exceptions
+Java. Une erreur Dart silencieuse ne s'y verrait pas — elle partirait chez
+Crashlytics.
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
