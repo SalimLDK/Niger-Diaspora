@@ -14,6 +14,29 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Transfert et Boutique retirés de « Tous les services » (2026-08-23)
+
+Deux tuiles de la grille de
+[services_screen.dart](lib/features/home/presentation/screens/services_screen.dart)
+— « Transfert » (`/transfers`) et « Boutique » (`/marketplace`) — sont
+commentées (`TODO(services)`), à la demande. Restent cinq entrées : Fil,
+Annuaire et Ambassades (toujours affichées, décision produit 2026-08-19),
+Salons audio et Podcasts (chacune derrière son drapeau).
+
+`flutter analyze` propre sur le fichier. **Non vérifié sur appareil** :
+- la grille 2 colonnes se réordonne (Annuaire remonte en première ligne à
+  côté du Fil) — vérifier qu'il ne reste ni trou ni tuile orpheline, et que
+  le cas « drapeaux salons/podcasts à faux » laisse une grille de 3 tuiles
+  correctement alignée ;
+- les deux routes restent joignables ailleurs (raccourcis de l'accueil dans
+  [home_screen_widgets.dart](lib/features/home/presentation/screens/home_screen_widgets.dart),
+  encarts du fil dans
+  [internal_ad_card.dart](lib/features/feed/presentation/widgets/internal_ad_card.dart))
+  — confirmer au doigt que ces chemins-là marchent toujours, sinon les deux
+  modules deviennent inatteignables.
+
+---
+
 ## E2EE réparé : la clé de signature est publiée avec le bundle (2026-08-23)
 
 Suite de l'entrée « La signature de clé pré-signée ne peut JAMAIS vérifier ».
@@ -8342,6 +8365,51 @@ l'usage, c'est ce commit-là qu'il faut relire avant de trancher à nouveau.
   (travail réalisé dans un worktree isolé).
 
 ---
+
+## ⚠️ L'appareil porte une RELEASE depuis le 2026-08-23
+
+Le SM A515F a été rebasculé en build **release** (construite depuis le
+worktree, avec tout le travail de la session). Deux conséquences pour les
+prochaines vérifications :
+
+- **`debugPrint` ne sort plus dans logcat.** C'est exactement ce qui a permis
+  de trouver la cause de l'écran Notifications en erreur ce jour-là
+  (`NotificationSupabaseDataSource: flux interrompu … RealtimeSubscribeException`).
+  Pour un diagnostic du même genre, il faudra réinstaller un build debug —
+  donc désinstaller la release, **donc effacer les données locales**.
+- Les données de l'app ont été effacées par la désinstallation (session, cache,
+  clés E2EE locales). Une sauvegarde de clés a été créée par l'utilisateur juste
+  avant, le 23/8/2026 à 21:53 depuis ce même appareil ; la restauration se fait
+  depuis Réglages → Sécurité → Sauvegarde des clés, avec sa passphrase.
+
+### Re-vérifié sur la release, après reconnexion et restauration des clés
+
+Tout ce qui suit a été revu sur le build **release** installé le 2026-08-23,
+une fois l'utilisateur reconnecté et ses clés restaurées. Les mêmes points
+avaient été validés en debug plus tôt dans la journée ; cette passe confirme
+qu'ils survivent au changement de build et à la réinstallation.
+
+- [x] **Démarrage à froid** (`am force-stop` puis relance) : l'app arrive
+  directement sur l'accueil connecté, sans repasser par l'écran de connexion.
+- [x] **Aucun crash** dans logcat. Le bruit restant est attendu : profil ART
+  périmé après réinstallation (`ClassLoaderContext mismatch`), refus SELinux
+  bénin sur `max_map_count`, et `GoogleCertificatesRslt: not allowed` — normal
+  pour un APK signé avec la clé de dev.
+- [x] **Messages déchiffrés et lisibles** : la restauration des clés a bien
+  fonctionné.
+- [x] **Page Notifications** : charge (17 non lues), liste **à plat**, actions
+  en ligne « J'y vais » / « Voir » présentes.
+- [x] **Rafales** : `rafale_A` / `rafale_B` / `rafale_C` → seul le dernier porte
+  son heure.
+- [x] **Rupture de 15 min** : le sondage de 05:18 garde son heure, séparé de la
+  rafale suivante du même expéditeur.
+- [x] **Tap sur une bulle masquée** : révèle son heure.
+- [x] La réaction ❤️ posée avant la réinstallation est toujours là.
+
+⚠️ **Portée de ce « aucune erreur »** : en release les `debugPrint` ne sortent
+pas, donc le contrôle logcat ne couvre que les crashes natifs et les exceptions
+Java. Une erreur Dart silencieuse ne s'y verrait pas — elle partirait chez
+Crashlytics.
 
 ## Comment tester (rappel de la config utilisée précédemment)
 
