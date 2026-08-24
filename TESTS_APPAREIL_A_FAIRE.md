@@ -14,6 +14,29 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Transfert et Boutique retirés de « Tous les services » (2026-08-23)
+
+Les deux premières tuiles de la grille de
+[services_screen.dart](lib/features/home/presentation/screens/services_screen.dart)
+— « Transfert » (`/transfers`) et « Boutique » (`/marketplace`) — sont
+commentées (`TODO(services)`), à la demande. Les quatre entrées restantes
+(Annuaire, Ambassades, Salons audio, Podcasts) dépendent chacune de leur
+drapeau de fonctionnalité.
+
+`flutter analyze` propre sur le fichier. **Non vérifié sur appareil** :
+- la grille 2 colonnes se réordonne (Annuaire et Ambassades passent en
+  première ligne) — vérifier qu'il ne reste ni trou ni tuile orpheline, et
+  que le cas « 0 service actif » (tous les drapeaux à faux) n'affiche pas
+  une grille vide sans message ;
+- les deux routes restent joignables ailleurs (raccourcis de l'accueil dans
+  [home_screen_widgets.dart](lib/features/home/presentation/screens/home_screen_widgets.dart),
+  encarts du fil dans
+  [internal_ad_card.dart](lib/features/feed/presentation/widgets/internal_ad_card.dart))
+  — confirmer au doigt que ces chemins-là marchent toujours, sinon les deux
+  modules deviennent inatteignables.
+
+---
+
 ## Carte « Pour commencer » : chaque ligne gagne son propre critère (2026-08-14)
 
 Les 3 lignes de `_PourCommencerCard`

@@ -15,20 +15,26 @@ class ServicesScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     // Collect available services
     final services = [
-      if (ref.watch(isMoneyTransferEnabledProvider))
-        _ServiceItem(
-          icon: Icons.send_rounded,
-          label: l10n.serviceTransfer,
-          color: AppColors.primary,
-          route: '/transfers',
-        ),
-      if (ref.watch(isMarketplaceEnabledProvider))
-        _ServiceItem(
-          icon: Icons.storefront_rounded,
-          label: l10n.serviceMarketplace,
-          color: context.adaptiveSecondaryColor,
-          route: '/marketplace',
-        ),
+      // Transfert et Boutique masqués de la grille « Tous les services »
+      // (2026-08-23) : code conservé pour réactivation. Les deux routes
+      // restent joignables ailleurs (raccourcis de l'accueil, encarts du
+      // fil), donc /transfers et /marketplace ne deviennent pas orphelines.
+      // TODO(services): remettre ces deux entrées quand les modules seront
+      // prêts à être exposés dans la grille.
+      // if (ref.watch(isMoneyTransferEnabledProvider))
+      //   _ServiceItem(
+      //     icon: Icons.send_rounded,
+      //     label: l10n.serviceTransfer,
+      //     color: AppColors.primary,
+      //     route: '/transfers',
+      //   ),
+      // if (ref.watch(isMarketplaceEnabledProvider))
+      //   _ServiceItem(
+      //     icon: Icons.storefront_rounded,
+      //     label: l10n.serviceMarketplace,
+      //     color: context.adaptiveSecondaryColor,
+      //     route: '/marketplace',
+      //   ),
       if (ref.watch(isBusinessDirectoryEnabledProvider))
         _ServiceItem(
           icon: Icons.business_rounded,
