@@ -14,6 +14,28 @@ interface FirebaseTokenPayload {
 }
 
 /**
+ * Décode un segment de JWT (base64url) en UTF-8.
+ *
+ * ⚠️ NE PAS revenir à `JSON.parse(atob(...))`. `atob` rend une chaîne
+ * *binaire* : un caractère JS par octet, c'est-à-dire les octets UTF-8 relus
+ * comme du Latin-1. Le claim `name` du jeton Firebase, « Ibrahim Yacouba
+ * Maïdaoua » (octets `… 4d 61 c3 af 64 …`), devenait donc la chaîne
+ * « Ibrahim Yacouba MaÃ¯daoua », que la ligne `display_name` ci-dessous
+ * écrivait telle quelle dans `users`.
+ *
+ * Constaté en production le 2026-08-23 : la ligne de ce compte portait
+ * `4d61 c383 c2af` (« MaÃ¯daoua ») au lieu de `4d61 c3af`, et l'application
+ * l'affichait ainsi PARTOUT. Le défaut était intermittent parce que
+ * `_upsertUserToSupabase`, côté Dart, réécrit le nom CORRECT depuis le SDK
+ * Firebase : les deux écritures se disputaient la ligne, la dernière gagnait.
+ */
+function decodeJwtPart(part: string): any {
+  const base64 = part.replace(/-/g, '+').replace(/_/g, '/')
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
+  return JSON.parse(new TextDecoder().decode(bytes))
+}
+
+/**
  * Vérifie un Firebase ID token via les clés publiques Google (JWKS).
  */
 async function verifyFirebaseToken(idToken: string): Promise<FirebaseTokenPayload> {
@@ -25,7 +47,7 @@ async function verifyFirebaseToken(idToken: string): Promise<FirebaseTokenPayloa
   const jwks: { keys: JsonWebKey[] } = await keysRes.json()
   const [headerB64, payloadB64, sigB64] = idToken.split('.')
 
-  const header = JSON.parse(atob(headerB64.replace(/-/g, '+').replace(/_/g, '/')))
+  const header = decodeJwtPart(headerB64)
   const kid: string = header.kid
 
   const jwk = jwks.keys.find((k: JsonWebKey & { kid?: string }) => k.kid === kid)
@@ -48,9 +70,7 @@ async function verifyFirebaseToken(idToken: string): Promise<FirebaseTokenPayloa
   const valid = await crypto.subtle.verify({ name: 'RSASSA-PKCS1-v1_5' }, cryptoKey, signature, data)
   if (!valid) throw new Error('Firebase token signature invalid')
 
-  const payload: FirebaseTokenPayload = JSON.parse(
-    atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'))
-  )
+  const payload: FirebaseTokenPayload = decodeJwtPart(payloadB64)
 
   const now = Math.floor(Date.now() / 1000)
   if (payload.exp < now) throw new Error('Firebase token expired')
@@ -147,7 +167,7 @@ Deno.serve(async (req) => {
     let expiresIn = session.session!.expires_in
 
     const jwtParts = accessToken.split('.')
-    const jwtPayload = JSON.parse(atob(jwtParts[1].replace(/-/g, '+').replace(/_/g, '/')))
+    const jwtPayload = decodeJwtPart(jwtParts[1])
 
     if (!jwtPayload?.app_metadata?.firebase_uid) {
       console.warn('firebase_uid missing from JWT on first attempt — retrying after metadata write')

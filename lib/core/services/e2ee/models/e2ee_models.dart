@@ -242,6 +242,19 @@ class E2EEPreKeyBundle {
   final String signedPreKeyPublic;
   final String signedPreKeySignature;
 
+  /// Clé publique **Ed25519** qui a produit [signedPreKeySignature].
+  ///
+  /// Elle est nécessaire parce que la signature n'est PAS faite avec
+  /// l'Identity Key telle quelle : `KeyManagerService._sign` dérive une paire
+  /// Ed25519 depuis la clé privée X25519 utilisée comme graine. Sa publique
+  /// n'a donc aucun rapport avec [identityKey], et le vérifieur — qui n'a pas
+  /// la privée — ne peut pas la recalculer. Il faut la lui donner.
+  ///
+  /// `null` pour un appareil qui n'a pas encore republié ses clés depuis le
+  /// correctif : sa signature est alors invérifiable, et la session Signal ne
+  /// s'établit pas (repli AES, visible dans l'en-tête de la conversation).
+  final String? identitySigningKey;
+
   /// One-Time Pre-Key (optionnel, peut être null si épuisées)
   final int? oneTimePreKeyId;
   final String? oneTimePreKeyPublic;
@@ -254,6 +267,7 @@ class E2EEPreKeyBundle {
     required this.signedPreKeyId,
     required this.signedPreKeyPublic,
     required this.signedPreKeySignature,
+    this.identitySigningKey,
     this.oneTimePreKeyId,
     this.oneTimePreKeyPublic,
   });
@@ -266,6 +280,8 @@ class E2EEPreKeyBundle {
         'signedPreKeyId': signedPreKeyId,
         'signedPreKeyPublic': signedPreKeyPublic,
         'signedPreKeySignature': signedPreKeySignature,
+        if (identitySigningKey != null)
+          'identitySigningKey': identitySigningKey,
         if (oneTimePreKeyId != null) 'oneTimePreKeyId': oneTimePreKeyId,
         if (oneTimePreKeyPublic != null)
           'oneTimePreKeyPublic': oneTimePreKeyPublic,
@@ -280,6 +296,7 @@ class E2EEPreKeyBundle {
       signedPreKeyId: json['signedPreKeyId'] as int,
       signedPreKeyPublic: json['signedPreKeyPublic'] as String,
       signedPreKeySignature: json['signedPreKeySignature'] as String,
+      identitySigningKey: json['identitySigningKey'] as String?,
       oneTimePreKeyId: json['oneTimePreKeyId'] as int?,
       oneTimePreKeyPublic: json['oneTimePreKeyPublic'] as String?,
     );
@@ -476,6 +493,19 @@ class E2EESenderKey {
   /// Index de la chaîne (incrémenté à chaque message)
   final int chainIndex;
 
+  /// Cette clé a-t-elle été remise à TOUS les autres membres du groupe ?
+  ///
+  /// Chiffrer avec une clé non distribuée produit un message que **personne**
+  /// ne peut lire — pas même son auteur, le ratchet ayant avancé à l'émission.
+  /// Et ce n'est pas rattrapable après coup : `decryptWithSenderKey` refuse un
+  /// index de chaîne passé, donc distribuer ensuite (à l'index suivant) ne
+  /// sauve pas les messages déjà partis.
+  ///
+  /// Faux par défaut, y compris pour les clés déjà en stockage : elles ont été
+  /// créées par l'ancien chemin, qui fabriquait une clé à l'émission sans la
+  /// distribuer. On repasse donc en repli AES jusqu'à une vraie distribution.
+  final bool isDistributed;
+
   const E2EESenderKey({
     required this.groupId,
     required this.senderId,
@@ -485,6 +515,7 @@ class E2EESenderKey {
     required this.signatureKeyPublic,
     this.signatureKeyPrivate,
     this.chainIndex = 0,
+    this.isDistributed = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -497,6 +528,7 @@ class E2EESenderKey {
         if (signatureKeyPrivate != null)
           'signatureKeyPrivate': base64Encode(signatureKeyPrivate!),
         'chainIndex': chainIndex,
+        'isDistributed': isDistributed,
       };
 
   factory E2EESenderKey.fromJson(Map<String, dynamic> json) {
@@ -511,12 +543,14 @@ class E2EESenderKey {
           ? base64Decode(json['signatureKeyPrivate'] as String)
           : null,
       chainIndex: json['chainIndex'] as int? ?? 0,
+      isDistributed: json['isDistributed'] as bool? ?? false,
     );
   }
 
   E2EESenderKey copyWith({
     Uint8List? chainKey,
     int? chainIndex,
+    bool? isDistributed,
   }) {
     return E2EESenderKey(
       groupId: groupId,
@@ -527,8 +561,38 @@ class E2EESenderKey {
       signatureKeyPublic: signatureKeyPublic,
       signatureKeyPrivate: signatureKeyPrivate,
       chainIndex: chainIndex ?? this.chainIndex,
+      isDistributed: isDistributed ?? this.isDistributed,
     );
   }
+}
+
+/// Ce qu'a donné une tentative de distribution de Sender Key à un groupe.
+///
+/// La distribution échoue en silence pour un membre avec qui aucune session
+/// Signal n'existe — il n'a jamais publié ses clés, ou jamais ouvert l'app
+/// depuis. Sans ce compte rendu, le groupe restait en repli AES **sans que
+/// rien ne le dise**, ni à l'utilisateur ni dans les logs.
+class SenderKeyDistribution {
+  /// Membres qui ont bien reçu notre Sender Key.
+  final int delivered;
+
+  /// Membres qui ne l'ont pas reçue : tant qu'il en reste un, chiffrer avec la
+  /// Sender Key produirait un message qu'il ne pourrait pas lire.
+  final List<String> missingMemberIds;
+
+  const SenderKeyDistribution({
+    required this.delivered,
+    required this.missingMemberIds,
+  });
+
+  int get total => delivered + missingMemberIds.length;
+
+  /// Vrai si tout le monde l'a : le chiffrement de groupe peut servir.
+  ///
+  /// Un groupe sans autre membre (`total == 0`) n'est pas « complet » : il n'y
+  /// a personne à qui distribuer, donc rien ne garantit que la clé serve à
+  /// quelque chose.
+  bool get isComplete => total > 0 && missingMemberIds.isEmpty;
 }
 
 /// Backup chiffré des clés

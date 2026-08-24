@@ -165,6 +165,7 @@ class MyBusinessNotifier extends _$MyBusinessNotifier {
       state = AsyncValue.data(created);
       // Refresh the global list
       ref.read(businessesNotifierProvider.notifier).refresh();
+      ref.invalidate(myBusinessesNotifierProvider);
       return true;
     });
   }
@@ -176,6 +177,7 @@ class MyBusinessNotifier extends _$MyBusinessNotifier {
       state = AsyncValue.data(updated);
       // Refresh the global list
       ref.read(businessesNotifierProvider.notifier).refresh();
+      ref.invalidate(myBusinessesNotifierProvider);
       return true;
     });
   }
@@ -187,6 +189,7 @@ class MyBusinessNotifier extends _$MyBusinessNotifier {
       state = const AsyncValue.data(null);
       // Refresh the global list
       ref.read(businessesNotifierProvider.notifier).refresh();
+      ref.invalidate(myBusinessesNotifierProvider);
       return true;
     });
   }

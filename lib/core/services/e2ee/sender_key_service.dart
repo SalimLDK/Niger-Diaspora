@@ -105,10 +105,15 @@ class SenderKeyService {
   // DISTRIBUTION DES SENDER KEYS
   // ============================================================
 
-  /// Distribue notre Sender Key à un membre du groupe via E2EE 1-1
-  Future<void> distributeSenderKey(String groupId, String recipientId) async {
+  /// Distribue notre Sender Key à un membre du groupe via E2EE 1-1.
+  ///
+  /// Renvoie `true` seulement si la remise a effectivement eu lieu. Elle échoue
+  /// silencieusement quand aucune session Signal n'existe avec ce membre —
+  /// `encryptMessage` rend alors `null` — et l'appelant DOIT le savoir : une
+  /// clé partiellement distribuée ne doit pas servir à chiffrer.
+  Future<bool> distributeSenderKey(String groupId, String recipientId) async {
     final userId = _e2eeService.currentUserId;
-    if (userId == null) return;
+    if (userId == null) return false;
 
     final deviceIdStr = await _storage.getDeviceId(userId);
     final deviceId = int.tryParse(deviceIdStr ?? '1') ?? 1;
@@ -116,17 +121,34 @@ class SenderKeyService {
     // Récupérer notre Sender Key pour ce groupe
     var senderKey = await _storage.getSenderKey(groupId, userId, deviceId);
 
-    // Créer si n'existe pas
+    // Créer si n'existe pas — ici c'est légitime : on est sur le point de la
+    // distribuer, contrairement au chemin d'émission.
     senderKey ??= await createSenderKey(groupId);
 
     // Créer le message de distribution
     final distributionMessage = _createDistributionMessage(senderKey);
 
-    // Chiffrer et envoyer via E2EE 1-1
-    final encrypted = await _e2eeService.encryptMessage(
-      recipientId,
-      jsonEncode(distributionMessage),
-    );
+    // Chiffrer et envoyer via E2EE 1-1.
+    //
+    // ⚠️ Cet appel LÈVE quand les clés publiées du membre ne vérifient pas
+    // (« Signed pre-key signature verification failed »). Sans ce try, un seul
+    // membre dans ce cas faisait avorter la boucle de `distributeSenderKeyToGroup`,
+    // l'exception remontait jusqu'au `catch` de `MessageCryptoService`, et le
+    // groupe restait en AES sans qu'aucun compte rendu ne soit produit — donc
+    // sans que rien ne soit signalé à l'utilisateur. Constaté sur appareil le
+    // 2026-08-23 avec le compte plateforme.
+    final E2EEEncryptedMessage? encrypted;
+    try {
+      encrypted = await _e2eeService.encryptMessage(
+        recipientId,
+        jsonEncode(distributionMessage),
+      );
+    } catch (e) {
+      debugPrint(
+        'SenderKeyService: distribution vers $recipientId impossible — $e',
+      );
+      return false;
+    }
 
     if (encrypted != null) {
       await _supabase.from('e2ee_sender_key_distributions').upsert({
@@ -139,21 +161,67 @@ class SenderKeyService {
       }, onConflict: 'group_id,sender_id,recipient_id',);
 
       debugPrint('SenderKeyService: Distributed sender key to $recipientId');
+      return true;
     }
+
+    debugPrint(
+      'SenderKeyService: aucune session Signal avec $recipientId — '
+      'Sender Key NON distribuée',
+    );
+    return false;
   }
 
-  /// Distribue notre Sender Key à tous les membres d'un groupe
-  Future<void> distributeSenderKeyToGroup(String groupId, List<String> memberIds) async {
+  /// Distribue notre Sender Key à tous les membres d'un groupe.
+  ///
+  /// La clé n'est marquée distribuée que si **chaque** autre membre l'a reçue.
+  /// Sinon on reste en repli AES : un message qu'une partie du groupe ne peut
+  /// pas lire est pire qu'un message chiffré avec la clé partagée — d'autant
+  /// que son auteur ne pourrait pas le relire non plus.
+  Future<SenderKeyDistribution> distributeSenderKeyToGroup(
+    String groupId,
+    List<String> memberIds,
+  ) async {
     final userId = _e2eeService.currentUserId;
-    if (userId == null) return;
+    if (userId == null) {
+      return const SenderKeyDistribution(delivered: 0, missingMemberIds: []);
+    }
 
-    for (final memberId in memberIds) {
-      if (memberId != userId) {
-        await distributeSenderKey(groupId, memberId);
+    final recipients = memberIds.where((id) => id != userId).toList();
+    final missing = <String>[];
+    var delivered = 0;
+    for (final memberId in recipients) {
+      if (await distributeSenderKey(groupId, memberId)) {
+        delivered++;
+      } else {
+        missing.add(memberId);
       }
     }
 
-    debugPrint('SenderKeyService: Distributed sender key to ${memberIds.length - 1} members');
+    final result = SenderKeyDistribution(
+      delivered: delivered,
+      missingMemberIds: missing,
+    );
+    if (result.isComplete) await _markSenderKeyDistributed(groupId);
+
+    debugPrint(
+      'SenderKeyService: Sender Key remise à $delivered/${recipients.length} '
+      'membres de $groupId — '
+      '${result.isComplete ? "chiffrement de groupe actif" : "repli AES maintenu"}',
+    );
+    return result;
+  }
+
+  /// Note que notre Sender Key de [groupId] est entre les mains de tous les
+  /// membres : elle peut désormais servir à chiffrer.
+  Future<void> _markSenderKeyDistributed(String groupId) async {
+    final userId = _e2eeService.currentUserId;
+    if (userId == null) return;
+    final deviceIdStr = await _storage.getDeviceId(userId);
+    final deviceId = int.tryParse(deviceIdStr ?? '1') ?? 1;
+
+    final senderKey = await _storage.getSenderKey(groupId, userId, deviceId);
+    if (senderKey == null || senderKey.isDistributed) return;
+    await _storage.storeSenderKey(senderKey.copyWith(isDistributed: true));
   }
 
   /// Crée le message de distribution de Sender Key
@@ -211,9 +279,28 @@ class SenderKeyService {
     final deviceIdStr = await _storage.getDeviceId(userId);
     final deviceId = int.tryParse(deviceIdStr ?? '1') ?? 1;
 
-    // Récupérer notre Sender Key
-    var senderKey = await _storage.getSenderKey(groupId, userId, deviceId);
-    senderKey ??= await createSenderKey(groupId);
+    // Notre Sender Key — et seulement si elle a été distribuée.
+    //
+    // ⚠️ Il y avait ici `senderKey ??= await createSenderKey(groupId)`. L'envoi
+    // fabriquait donc une clé à la volée et chiffrait avec, SANS la remettre à
+    // personne : le message était illisible par tout le groupe, définitivement.
+    // Pas rattrapable après coup non plus — `decryptWithSenderKey` refuse un
+    // index de chaîne passé, et le ratchet avance à l'émission, donc distribuer
+    // ensuite arrive toujours trop tard d'un cran.
+    //
+    // Rendre `null` fait retomber `MessageCryptoService.encryptGroup` sur le
+    // repli AES, que son propre commentaire annonçait déjà (« AES-GCM fallback
+    // for groups without established Sender Keys ») mais que cette ligne
+    // rendait inatteignable. Le message est alors lisible par tout le monde, et
+    // la distribution lancée à l'ouverture de la conversation fait passer les
+    // suivants en vrai chiffrement de groupe.
+    final senderKey = await _storage.getSenderKey(groupId, userId, deviceId);
+    if (senderKey == null || !senderKey.isDistributed) {
+      debugPrint(
+        'SenderKeyService: pas de Sender Key distribuée pour $groupId — repli AES',
+      );
+      return null;
+    }
 
     // Dériver la clé de message à partir de la chain key
     final messageKey = await _deriveMessageKey(senderKey.chainKey, senderKey.chainIndex);

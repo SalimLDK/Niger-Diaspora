@@ -9,6 +9,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/e2ee/message_crypto_service.dart';
+import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 
 import '../models/conversation_model.dart';
@@ -48,6 +49,46 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
   RealtimeChannel _channel(String name) {
     return _channels.putIfAbsent(name, () => _supabase.channel(name));
+  }
+
+  /// Canaux dont l'abonnement realtime a été confirmé par le serveur.
+  ///
+  /// `RealtimeChannel.isJoined` existe mais est marqué `@internal` par le
+  /// paquet : on tient donc l'information nous-mêmes, depuis le rappel de
+  /// `subscribe`. Publier une présence sur un canal pas encore rejoint est
+  /// perdu sans la moindre erreur.
+  final Set<String> _joinedChannels = {};
+
+  /// Canaux pour lesquels un `subscribe()` est déjà parti : le rappeler sur le
+  /// même canal lève « tried to subscribe multiple times ».
+  final Set<String> _subscribingChannels = {};
+
+  /// S'abonne au canal si besoin, et attend la confirmation du serveur.
+  ///
+  /// Renvoie `false` si le canal n'a pas rejoint dans le délai : l'appelant
+  /// abandonne alors son écriture plutôt que de la perdre en silence.
+  Future<bool> _ensureJoined(String name) async {
+    if (_joinedChannels.contains(name)) return true;
+
+    final ch = _channel(name);
+    if (_subscribingChannels.add(name)) {
+      ch.subscribe((status, _) {
+        if (status == RealtimeSubscribeStatus.subscribed) {
+          _joinedChannels.add(name);
+        }
+      });
+    }
+
+    for (var i = 0; i < 20 && !_joinedChannels.contains(name); i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    return _joinedChannels.contains(name);
+  }
+
+  void _forgetChannel(String name) {
+    _channels.remove(name);
+    _joinedChannels.remove(name);
+    _subscribingChannels.remove(name);
   }
 
   // ── Row → Model helpers ───────────────────────────────────────────────────
@@ -129,7 +170,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       } catch (e) {
         debugPrint('MessageSupabaseDataSource: decrypt error: $e');
         if (data['encryptionLevel'] == 'e2ee') {
-          data['content'] = '🔐 Message chiffré';
+          data['content'] = kEncryptedMessagePlaceholder;
         }
       }
     }
@@ -489,11 +530,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         }
       }
       if (!controller.isClosed) controller.add(result);
-    }).subscribe();
+    });
+    // Passe par _ensureJoined pour que l'état « rejoint » soit enregistré :
+    // c'est lui que consulte setTypingStatus avant de publier la présence.
+    unawaited(_ensureJoined(channelName));
 
     controller.onCancel = () {
       ch.unsubscribe();
-      _channels.remove(channelName);
+      _forgetChannel(channelName);
     };
 
     return controller.stream;
@@ -637,6 +681,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     try {
       final channelName = 'typing:$conversationId';
       final ch = _channel(channelName);
+
+      // `track` sur un canal pas encore rejoint est perdu sans erreur. En
+      // pratique le canal est déjà rejoint par getTypingStatusStream (l'écran
+      // l'observe dès son build), mais les premières frappes peuvent tomber
+      // pendant le join : on l'attend plutôt que d'écrire dans le vide.
+      if (!await _ensureJoined(channelName)) return;
+
       if (isTyping) {
         await ch.track({'user_id': userId, 'is_typing': true});
       } else {
@@ -876,6 +927,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     }
   }
 
+  /// Envoi d'un message vocal.
+  ///
+  /// Cette méthode levait `UnimplementedError` : le repository l'attrapait dans
+  /// son `catch (e)` générique et renvoyait un `ServerFailure`, donc TOUT
+  /// message vocal échouait sans que rien ne dise pourquoi. Le chemin est le
+  /// même que `sendMediaMessage` (le média part toujours sur Firebase Storage,
+  /// cf. [uploadMediaFile]), avec le type `voiceNote` et les métadonnées audio.
   @override
   Future<MessageModel> sendAudioMessage({
     required String conversationId,
@@ -889,9 +947,103 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     Map<String, dynamic>? replyToMessageData,
     bool isForwarded = false,
   }) async {
-    throw UnimplementedError(
-      'sendAudioMessage: upload via Firebase Storage then call sendMediaMessage.',
-    );
+    try {
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        throw ServerException('Supabase session introuvable');
+      }
+
+      final fileName = audioFile.path.split(RegExp(r'[/\\]')).last;
+      final dotIndex = fileName.lastIndexOf('.');
+      final extension = dotIndex > 0 ? fileName.substring(dotIndex) : '.m4a';
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+      final storageRef = FirebaseStorage.instance.ref().child(
+        'messages/$conversationId/audio_$timestamp$extension',
+      );
+      await storageRef.putFile(audioFile);
+      final fileUrl = await storageRef.getDownloadURL();
+
+      final fileSize = await audioFile.length();
+      final msgId = _uuid.v4();
+      final nowDateTime = DateTime.now();
+      final now = nowDateTime.toUtc().toIso8601String();
+
+      final msgData = <String, dynamic>{
+        'senderName': senderName,
+        if (senderPhotoUrl != null) 'senderPhotoUrl': senderPhotoUrl,
+        'content': '',
+        'status': 'sent',
+        'fileUrl': fileUrl,
+        'fileName': fileName,
+        'fileSize': fileSize,
+        'mimeType': _audioMimeType(extension),
+        'audioDuration': duration,
+        'audioWaveform': waveform,
+        'readBy': [senderId],
+        'readAt': {senderId: now},
+        'deliveredTo': [senderId],
+        'deliveredAt': {senderId: now},
+        'encryptionLevel': 'aes',
+        if (replyToId != null) 'replyToId': replyToId,
+        if (replyToMessageData != null)
+          'replyToMessageData': replyToMessageData,
+        if (isForwarded) 'isForwarded': true,
+        'mediaExpiresAt':
+            nowDateTime.add(const Duration(days: 15)).toUtc().toIso8601String(),
+        'mediaExpired': false,
+      };
+
+      await _supabase.from('messages').insert({
+        'id': msgId,
+        'conversation_id': conversationId,
+        'sender_id': senderId,
+        'type': 'voiceNote',
+        'created_at': now,
+        'data': msgData,
+      });
+
+      await _updateConversationLastMessage(
+        conversationId,
+        text: '\u{1F399}\u{FE0F} Message vocal',
+        senderId: senderId,
+        type: 'voiceNote',
+        at: now,
+      );
+
+      // Le fichier temporaire de l'enregistreur n'a plus de raison d'être une
+      // fois téléversé. Best-effort : un échec de suppression ne doit pas faire
+      // rater un envoi réussi.
+      try {
+        if (await audioFile.exists()) await audioFile.delete();
+      } catch (_) {}
+
+      return MessageModel.fromJson({
+        ...msgData,
+        'id': msgId,
+        'senderId': senderId,
+        'type': 'voiceNote',
+        'createdAt': now,
+      });
+    } catch (e) {
+      throw ServerException('sendAudioMessage error: $e');
+    }
+  }
+
+  /// Type MIME d'un enregistrement, d'après son extension.
+  static String _audioMimeType(String extension) {
+    switch (extension.toLowerCase()) {
+      case '.mp3':
+        return 'audio/mpeg';
+      case '.ogg':
+      case '.opus':
+        return 'audio/ogg';
+      case '.wav':
+        return 'audio/wav';
+      case '.webm':
+        return 'audio/webm';
+      default:
+        return 'audio/mp4';
+    }
   }
 
   @override

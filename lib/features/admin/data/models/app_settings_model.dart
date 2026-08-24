@@ -733,6 +733,14 @@ class FeatureFlagsModel {
   final bool events;
   final bool groups;
   final bool embassies;
+
+  /// Ces trois flags manquaient au modèle alors que l'entité et le routeur
+  /// les consomment : les interrupteurs du back-office étaient perdus à la
+  /// sérialisation et la lecture retombait sur les défauts de l'entité.
+  final bool audioRooms;
+  final bool podcasts;
+  final bool feed;
+
   final bool maintenanceMode;
   final String? maintenanceMessage;
 
@@ -743,6 +751,9 @@ class FeatureFlagsModel {
     this.events = true,
     this.groups = true,
     this.embassies = true,
+    this.audioRooms = false,
+    this.podcasts = false,
+    this.feed = true,
     this.maintenanceMode = false,
     this.maintenanceMessage,
   });
@@ -755,6 +766,11 @@ class FeatureFlagsModel {
         events: json['events'] as bool? ?? true,
         groups: json['groups'] as bool? ?? true,
         embassies: json['embassies'] as bool? ?? true,
+        // Repli aligné sur les défauts de FeatureFlagsEntity : un document
+        // qui n'a pas encore ces clés garde le comportement d'avant.
+        audioRooms: json['audioRooms'] as bool? ?? false,
+        podcasts: json['podcasts'] as bool? ?? false,
+        feed: json['feed'] as bool? ?? true,
         maintenanceMode: json['maintenanceMode'] as bool? ?? false,
         maintenanceMessage: json['maintenanceMessage'] as String?,
       );
@@ -766,6 +782,9 @@ class FeatureFlagsModel {
     'events': events,
     'groups': groups,
     'embassies': embassies,
+    'audioRooms': audioRooms,
+    'podcasts': podcasts,
+    'feed': feed,
     'maintenanceMode': maintenanceMode,
     'maintenanceMessage': maintenanceMessage,
   };
@@ -777,6 +796,9 @@ class FeatureFlagsModel {
     events: events,
     groups: groups,
     embassies: embassies,
+    audioRooms: audioRooms,
+    podcasts: podcasts,
+    feed: feed,
     maintenanceMode: maintenanceMode,
     maintenanceMessage: maintenanceMessage,
   );
@@ -789,6 +811,9 @@ class FeatureFlagsModel {
         events: entity.events,
         groups: entity.groups,
         embassies: entity.embassies,
+        audioRooms: entity.audioRooms,
+        podcasts: entity.podcasts,
+        feed: entity.feed,
         maintenanceMode: entity.maintenanceMode,
         maintenanceMessage: entity.maintenanceMessage,
       );

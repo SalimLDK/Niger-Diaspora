@@ -6,6 +6,9 @@ import 'package:uuid/uuid.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../../../core/services/e2ee/message_crypto_service.dart';
+import '../../../../core/services/e2ee/models/e2ee_models.dart';
+import 'group_encryption_status_provider.dart';
+import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../data/datasources/message_supabase_datasource.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -183,11 +186,24 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
           .preEstablishSessions(recipients)
           .catchError((e) => debugPrint('E2EE pre-establish error: $e'));
     } else {
+      // Le compte rendu de la distribution alimente le cadenas de l'en-tête :
+      // sans lui, un groupe pouvait rester en repli AES indéfiniment sans que
+      // rien ne le signale (cf. group_encryption_status_provider.dart).
       crypto
           .distributeGroupSenderKey(
             groupId: conversationId,
             memberIds: conversation.participantIds,
           )
+          .then((dynamic result) {
+            // `null` = le chiffrement E2EE n'est pas prêt sur cet appareil,
+            // donc rien n'a même pu être tenté. C'est un repli AES aussi, et
+            // le taire était précisément le trou qu'on bouche ici.
+            _ref
+                .read(groupEncryptionStatusProvider(conversationId).notifier)
+                .state = result is SenderKeyDistribution
+                ? GroupEncryptionStatus.fromDistribution(result)
+                : const GroupEncryptionStatus.keysUnavailable();
+          })
           .catchError((e) => debugPrint('Sender Key distribution error: $e'));
     }
   }
@@ -205,7 +221,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
       (cachedMessages) {
         if (cachedMessages.isNotEmpty) {
           state = MessagePaginationState(
-            messages: cachedMessages,
+            messages: _withPendingLocalMessages(cachedMessages),
             hasMore: cachedMessages.length >= _pageSize,
             lastMessageId: cachedMessages.first.id,
             oldestMessageTimestamp: cachedMessages.first.createdAt,
@@ -259,7 +275,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
       },
       (paginatedMessages) {
         state = MessagePaginationState(
-          messages: paginatedMessages.messages,
+          messages: _withPendingLocalMessages(paginatedMessages.messages),
           hasMore: paginatedMessages.hasMore,
           lastMessageId: paginatedMessages.lastMessageId,
           oldestMessageTimestamp: paginatedMessages.oldestMessageTimestamp,
@@ -274,6 +290,28 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
         _listenForMessageUpdates();
       },
     );
+  }
+
+  /// Réinjecte les messages purement locaux (en cours d'envoi ou en échec)
+  /// dans une liste fraîchement chargée.
+  ///
+  /// `_loadNetworkData` remplaçait l'état ENTIER par la réponse serveur : un
+  /// message en échec, qui n'existe que côté client, disparaissait donc à la
+  /// moindre recharge (changement de filtre de date, retour en ligne, nouvelle
+  /// pagination initiale) sans que rien ne le signale. Il n'y a pas de file
+  /// d'attente persistée : ces messages restent perdus si l'écran est quitté,
+  /// mais ils ne doivent au moins pas s'évaporer sous les yeux de la personne.
+  List<MessageEntity> _withPendingLocalMessages(List<MessageEntity> fresh) {
+    final pending = state.messages
+        .where((m) =>
+            m.id.startsWith('temp_') &&
+            (m.status == MessageStatus.sending ||
+                m.status == MessageStatus.failed))
+        .toList();
+    if (pending.isEmpty) return fresh;
+
+    return [...fresh, ...pending]
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
 
   @override
@@ -527,15 +565,24 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   ///
   /// Adopte l'id réel et les métadonnées du serveur, mais conserve le contenu
   /// déjà déchiffré localement : un message Signal ne peut pas être re-déchiffré
-  /// par son propre expéditeur, donc la ligne temps réel remplacerait sinon notre
-  /// texte clair par le placeholder « 🔐 Message chiffré ».
+  /// par son propre expéditeur, donc la ligne temps réel remplacerait sinon
+  /// notre texte clair par un placeholder.
+  ///
+  /// ⚠️ Ce filtre ne connaissait QUE « 🔐 Message chiffré ». Les groupes
+  /// remontent l'autre placeholder, `[🔐 E2EE — session requise]` : l'écho
+  /// passait donc au travers et écrasait le texte clair. Vu sur appareil le
+  /// 2026-08-23 — le premier message envoyé dans un groupe devenait illisible
+  /// par son propre auteur, une seconde après l'envoi. La liste vit désormais
+  /// dans `undecryptable_placeholders.dart`, avec le rechargement paginé qui
+  /// s'appuyait déjà dessus (`_healUndecryptable`).
   MessageEntity _reconcileEcho(MessageEntity local, MessageEntity incoming) {
-    final incomingIsUnreadable =
-        incoming.content.isEmpty || incoming.content == '🔐 Message chiffré';
-    if (incomingIsUnreadable && local.content.isNotEmpty) {
-      return incoming.copyWith(content: local.content);
-    }
-    return incoming;
+    final content = reconcileEchoContent(
+      local: local.content,
+      incoming: incoming.content,
+    );
+    return content == incoming.content
+        ? incoming
+        : incoming.copyWith(content: content);
   }
 
   /// Check if an optimistic message matches a new message from the server
@@ -974,11 +1021,19 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     );
   }
 
+  /// Renvoie un message dont l'envoi a échoué.
+  ///
+  /// La bulle en échec n'est retirée QUE sur un chemin qui sait effectivement
+  /// renvoyer, et juste avant de le faire. Auparavant le retrait était en tête
+  /// de méthode, avant même le `switch` : pour un média, la branche retournait
+  /// `false` sans rien renvoyer, et le message avait déjà disparu de l'écran.
+  /// Taper « réessayer » était donc le moyen le plus sûr de perdre le message.
   Future<bool> retryFailedMessage({
     required String conversationId,
     required MessageEntity failedMessage,
   }) async {
-    _ref.read(paginatedMessagesProvider(conversationId).notifier).removeMessageOptimistically(failedMessage.id);
+    final pagination =
+        _ref.read(paginatedMessagesProvider(conversationId).notifier);
 
     MessageEntity? replyToMessage;
     if (failedMessage.replyToId != null && failedMessage.replyToMessageData != null) {
@@ -1002,6 +1057,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
     switch (failedMessage.type) {
       case MessageType.text:
+        pagination.removeMessageOptimistically(failedMessage.id);
         return sendText(
           conversationId: conversationId,
           content: failedMessage.content,
@@ -1009,11 +1065,32 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
           productData: failedMessage.productData,
           eventData: failedMessage.eventData,
         );
+      case MessageType.audio:
+      case MessageType.voiceNote:
+        // Le fichier enregistré est encore là tant que l'envoi n'a pas abouti :
+        // sendAudioMessage ne le supprime qu'après un téléversement réussi.
+        final path = failedMessage.localFilePath;
+        if (path != null && File(path).existsSync()) {
+          pagination.removeMessageOptimistically(failedMessage.id);
+          return sendAudio(
+            conversationId: conversationId,
+            audioFile: File(path),
+            duration: failedMessage.audioDuration ?? 0,
+            waveform: failedMessage.audioWaveform ?? const [],
+            replyToMessage: replyToMessage,
+          );
+        }
+        // Plus de fichier local (message d'une session précédente) : on garde
+        // la bulle, elle est tout ce qui reste de ce message.
+        state = AsyncValue.error(
+          "Impossible de renvoyer ce message vocal : l'enregistrement n'est "
+          'plus disponible.',
+          StackTrace.current,
+        );
+        return false;
       case MessageType.image:
       case MessageType.file:
       case MessageType.video:
-      case MessageType.audio:
-      case MessageType.voiceNote:
         state = AsyncValue.error(
           'Impossible de renvoyer ce type de message. Veuillez le renvoyer manuellement.',
           StackTrace.current,
@@ -1021,6 +1098,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         return false;
       case MessageType.location:
         if (failedMessage.latitude != null && failedMessage.longitude != null) {
+          pagination.removeMessageOptimistically(failedMessage.id);
           return sendLocation(
             conversationId: conversationId,
             latitude: failedMessage.latitude!,
@@ -1035,6 +1113,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         return false;
       case MessageType.sticker:
         if (failedMessage.stickerPackId != null && failedMessage.stickerId != null && failedMessage.fileUrl != null) {
+          pagination.removeMessageOptimistically(failedMessage.id);
           return sendSticker(
             conversationId: conversationId,
             stickerPackId: failedMessage.stickerPackId!,
@@ -1148,6 +1227,9 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
       content: '',
       type: MessageType.voiceNote,
       status: MessageStatus.sending,
+      // Retenu pour le renvoi : sans le chemin du fichier, un vocal en échec
+      // n'avait plus rien à téléverser (cf. retryFailedMessage).
+      localFilePath: audioFile.path,
       audioDuration: duration,
       audioWaveform: waveform,
       createdAt: DateTime.now(),

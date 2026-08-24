@@ -14,11 +14,13 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
+import '../providers/group_encryption_status_provider.dart';
 import '../providers/typing_indicator_provider.dart';
 import '../providers/media_upload_provider.dart';
 import '../widgets/conversation_options_modal.dart';
 import '../widgets/forward_conversation_picker.dart';
 import '../widgets/message_bubble.dart';
+import '../utils/message_grouping.dart';
 import '../widgets/message_input.dart';
 import '../widgets/note_poll_draft_sheet.dart';
 import '../widgets/typing_indicator_widget.dart';
@@ -32,7 +34,6 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
 import '../../../groups/presentation/providers/group_pinned_providers.dart';
 import '../../../groups/presentation/widgets/group_pinned_banner.dart';
-import '../../../../core/extensions/profile_entity_extensions.dart';
 import '../../../polls/domain/entities/poll_entity.dart';
 import '../../../polls/presentation/widgets/create_poll_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -60,7 +61,8 @@ import '../../../group_calls/presentation/providers/group_call_provider.dart';
 // import '../../../calls/presentation/screens/call_screen.dart';
 import '../../../gifs/domain/entities/gif_entity.dart';
 import '../../../stickers/domain/entities/sticker_entity.dart';
-import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
+import '../../../feed/domain/entities/post_entity.dart'
+    show MentionCandidate;
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class ConversationScreen extends ConsumerStatefulWidget {
@@ -1084,43 +1086,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     String? currentUserId, {
     required bool hasDateBreak,
     required bool hasNextDateBreak,
-  }) {
-    final message = messages[index];
-
-    // In reversed list: lower index = newer, higher index = older
-    // "Previous" visually (below) = index - 1 (newer)
-    // "Next" visually (above) = index + 1 (older)
-    final hasNewerSameSender =
-        index > 0 && messages[index - 1].senderId == message.senderId;
-    final hasOlderSameSender =
-        index < messages.length - 1 &&
-        messages[index + 1].senderId == message.senderId;
-
-    if (hasDateBreak) {
-      // After date separator (visually), treat as first message of group
-      if (hasNewerSameSender && !hasNextDateBreak) {
-        return MessageGroupPosition.first;
-      }
-      return MessageGroupPosition.single;
-    }
-
-    // hasNewerSameSender/hasOlderSameSender sont exprimés en index de la
-    // liste inversée (index 0 = message le plus récent). "first"/"last"
-    // doivent rester alignés sur l'ordre chronologique réel — c'est la
-    // convention qu'utilisent déjà _getBorderRadius() (queue de bulle sur
-    // "last") et showSenderInfo (nom affiché sur "first") : sans quoi le
-    // message le plus ANCIEN du groupe hérite de "last", donc de l'accusé
-    // "Envoyé" porté par _isLastInGroup, à la place du plus récent.
-    if (!hasNewerSameSender && !hasOlderSameSender) {
-      return MessageGroupPosition.single;
-    } else if (!hasNewerSameSender && hasOlderSameSender) {
-      return MessageGroupPosition.last;
-    } else if (hasNewerSameSender && hasOlderSameSender) {
-      return MessageGroupPosition.middle;
-    } else {
-      return MessageGroupPosition.first;
-    }
-  }
+  }) => positionDansRafale(
+    messages,
+    index,
+    hasDateBreak: hasDateBreak,
+    hasNextDateBreak: hasNextDateBreak,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -1205,19 +1176,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     }
 
     final currentUserId = ref.read(currentUserProvider).valueOrNull?.id;
-    final List<MentionedUser> groupMembers =
-        _isGroup && groupData != null
-            ? ref
-                    .watch(
-                      groupMemberNamesProvider(
-                        (groupData.memberIds as List<String>)
-                            .where((id) => id != currentUserId)
-                            .toList(),
-                      ),
-                    )
-                    .valueOrNull ??
-                []
-            : [];
+    // Membres proposés derrière un `@` dans un groupe. Porte aussi la poignée
+    // publique, qui sert de pseudo de mention quand elle existe.
+    //
+    // Clé : l'identifiant du groupe. Passer la liste des membres créait une
+    // nouvelle instance de provider à chaque build — voir le commentaire de
+    // `groupMentionCandidatesProvider`.
+    final List<MentionCandidate> mentionCandidates =
+        _isGroup && _effectiveGroupId != null
+            ? ref.watch(groupMentionCandidatesProvider(_effectiveGroupId!))
+            : const [];
 
     // Création événement/sondage depuis le menu « + » du composer.
     // DM : événement toujours possible ; groupe : selon les permissions.
@@ -1266,6 +1234,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 l10n.group)
             : (otherUser?.displayName ?? widget.conversationName ?? l10n.user);
 
+    // Maintient vivant le notifier de frappe tant que l'écran l'est.
+    //
+    // Il n'était jamais observé : chaque frappe faisait un `ref.read` sur un
+    // provider autoDispose sans auditeur, que Riverpod détruisait dans la
+    // foulée — sa destruction effaçant aussitôt la présence qu'il venait de
+    // poser. L'autre appareil ne voyait donc jamais « écrit… ». Cette ligne
+    // fixe son cycle de vie sur celui de la discussion : vivant tant qu'on y
+    // est, détruit (donc présence effacée) quand on en sort.
+    ref.watch(typingIndicatorNotifierProvider);
+
     // Typing users for the in-list bubble
     final typingStatusValue = ref.watch(
       typingStatusProvider(widget.conversationId),
@@ -1283,7 +1261,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         <String>[];
     final Map<String, String>? typingNames =
         _isGroup
-            ? {for (final m in groupMembers) m.id: m.name}
+            ? {for (final c in mentionCandidates) c.id: c.displayName}
             : (_effectiveOtherUserId != null
                 ? {_effectiveOtherUserId!: displayName}
                 : null);
@@ -1560,7 +1538,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     isLoading: sendMessageState.isLoading,
                     replyToMessage: _replyToMessage,
                     onCancelReply: _cancelReply,
-                    groupMembers: groupMembers,
+                    mentionCandidates: mentionCandidates,
                     onCreateEvent:
                         canCreateEvent
                             ? () => context.push(
@@ -3248,14 +3226,142 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// Statut + cadenas chiffrement (§4a) : Signal pour 1-à-1/groupes, AES
   /// local pour « Mes notes » — jamais affiché pour un compte supprimé
   /// (géré en amont, cette méthode n'est pas appelée dans ce cas).
+  ///
+  /// Dans un groupe, le cadenas dit maintenant la VÉRITÉ. Il était fermé en
+  /// toutes circonstances, alors qu'un groupe peut très bien tourner en repli
+  /// AES — c'est le cas dès qu'un membre n'a pas reçu la Sender Key, parce
+  /// qu'il n'a jamais publié ses clés Signal. Rien ne le signalait : ni l'app,
+  /// ni un compteur ; il fallait lire `encryptionLevel` en base, message par
+  /// message.
   Widget _buildStatusWithLock(Widget status) {
-    return Row(
+    final encryption =
+        _isGroup && !_isSelfNotes
+            ? ref.watch(groupEncryptionStatusProvider(widget.conversationId))
+            : const GroupEncryptionStatus();
+    final isFallback =
+        encryption.level == GroupEncryptionLevel.aesFallback;
+
+    final row = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Flexible(child: status),
         const SizedBox(width: 4),
-        AppIcon(AppIcon.lock, size: 11, color: context.textTertiaryColor),
+        AppIcon(
+          isFallback ? AppIcon.lockOpen : AppIcon.lock,
+          size: 11,
+          color: isFallback ? context.warningColor : context.textTertiaryColor,
+        ),
+        if (isFallback) ...[
+          const SizedBox(width: 3),
+          // `Flexible` + ellipsis des DEUX côtés : sans ça, la mention prenait
+          // toute sa largeur et rognait « 3 membres » en « 3 me… ». Les deux
+          // informations comptent, aucune ne doit manger l'autre.
+          Flexible(
+            child: Text(
+              'Clé partagée',
+              style: TextStyle(fontSize: 11, color: context.warningColor),
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+            ),
+          ),
+        ],
       ],
+    );
+
+    if (!isFallback) return row;
+
+    // Un cadenas ouvert sans explication inquiète sans informer : l'appui dit
+    // ce que ça change, et qui manque.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _showGroupEncryptionSheet(encryption),
+      child: row,
+    );
+  }
+
+  /// Explique pourquoi le groupe est retombé sur la clé partagée, et nomme les
+  /// membres concernés.
+  Future<void> _showGroupEncryptionSheet(GroupEncryptionStatus status) async {
+    final noms =
+        status.membersWithoutKey
+            .map(
+              (id) =>
+                  ref.read(profileNotifierProvider(id)).valueOrNull?.displayName
+                      ?.trim(),
+            )
+            .whereType<String>()
+            .where((n) => n.isNotEmpty)
+            .toList();
+
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: context.surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder:
+          (sheetContext) => Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    AppIcon(
+                      AppIcon.lockOpen,
+                      size: 18,
+                      color: context.warningColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Chiffrement de groupe indisponible',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: context.textPrimaryColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  status.localKeysUnavailable
+                      ? "Vos clés de chiffrement ne sont pas prêtes sur cet "
+                          'appareil. Rendez-vous dans Réglages › Sécurité pour '
+                          'les restaurer ou en créer une sauvegarde.'
+                      : (noms.isEmpty
+                          ? "Un membre du groupe n'a pas encore de clé de "
+                              'chiffrement utilisable sur son appareil.'
+                          : (noms.length == 1
+                              ? "${noms.first} n'a pas encore de clé de "
+                                  'chiffrement utilisable sur son appareil.'
+                              : "${noms.join(', ')} n'ont pas encore de clé de "
+                                  'chiffrement utilisable sur leur appareil.')),
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Vos messages restent chiffrés, mais avec la clé partagée de '
+                  "l'application plutôt qu'avec une clé propre au groupe. Le "
+                  'chiffrement de groupe reprendra tout seul dès que la '
+                  'situation sera réglée.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
     );
   }
 

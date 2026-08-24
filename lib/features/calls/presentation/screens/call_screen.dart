@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/services/gsm_call_service.dart';
+import '../../../../core/services/lock_screen_service.dart';
 import '../../../../core/services/pip_service.dart';
 import '../../../../core/services/proximity_service.dart';
 import '../../../../core/services/ringtone_service.dart';
@@ -110,6 +111,12 @@ class _CallScreenState extends ConsumerState<CallScreen>
         ref.read(isOnCallScreenProvider.notifier).state = true;
       }
     });
+
+    // Le temps de l'appel — et seulement ce temps — l'activité a le droit de
+    // s'afficher par-dessus l'écran de verrouillage. Le privilège était posé
+    // statiquement dans le manifeste, ce qui rendait TOUTE l'app consultable
+    // sans déverrouiller le téléphone. Rendu dans dispose().
+    unawaited(LockScreenService.instance.acquire());
 
     // Vérifier les permissions avant d'initialiser l'appel
     _checkPermissionsAndInitialize();
@@ -685,6 +692,8 @@ class _CallScreenState extends ConsumerState<CallScreen>
     } catch (_) {
       // Widget already disposed, ignore
     }
+    // Rendre le droit de s'afficher par-dessus le keyguard (pris dans initState).
+    unawaited(LockScreenService.instance.release());
     // Don't dispose the service renderer - it's managed by WebRTCService
     super.dispose();
   }

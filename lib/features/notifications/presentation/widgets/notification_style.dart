@@ -27,6 +27,11 @@ Color notificationTint(BuildContext context, NotificationType type) {
     // Messages et contenu courant : l'accent de l'app.
     case NotificationType.message:
     case NotificationType.general:
+    case NotificationType.newPost:
+    case NotificationType.mentioned:
+    case NotificationType.groupMention:
+    case NotificationType.postCommented:
+    case NotificationType.commentReply:
       return context.adaptivePrimaryColor;
 
     // Ce qui rassemble : groupes et événements.
@@ -38,6 +43,7 @@ Color notificationTint(BuildContext context, NotificationType type) {
     case NotificationType.eventUpdate:
     case NotificationType.eventAttendance:
     case NotificationType.localEvent:
+    case NotificationType.groupCallInvitation:
       return context.successColor;
 
     // Les gens : demandes, abonnements, présence à proximité.
@@ -58,9 +64,10 @@ Color notificationTint(BuildContext context, NotificationType type) {
     case NotificationType.orderCompleted:
       return context.goldColor;
 
-    // Ce qui a échoué.
+    // Ce qui a échoué, et la modération.
     case NotificationType.groupRequestRejected:
     case NotificationType.orderCancelled:
+    case NotificationType.reportResolved:
       return context.errorColor;
   }
 }
@@ -110,6 +117,18 @@ IconData notificationIcon(NotificationType type) {
       return Icons.cancel_outlined;
     case NotificationType.general:
       return Icons.notifications_none;
+    case NotificationType.newPost:
+      return Icons.article_outlined;
+    case NotificationType.mentioned:
+    case NotificationType.groupMention:
+      return Icons.alternate_email;
+    case NotificationType.postCommented:
+    case NotificationType.commentReply:
+      return Icons.mode_comment_outlined;
+    case NotificationType.reportResolved:
+      return Icons.gavel_outlined;
+    case NotificationType.groupCallInvitation:
+      return Icons.groups_outlined;
   }
 }
 

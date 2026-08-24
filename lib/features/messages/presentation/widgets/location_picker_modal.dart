@@ -18,7 +18,22 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 class LocationPickerModal extends StatefulWidget {
   final Function(double lat, double lng, String address) onLocationSelected;
 
-  const LocationPickerModal({super.key, required this.onLocationSelected});
+  /// Titre et libellé du bouton de validation ; à défaut, les textes
+  /// « partage de position » de la messagerie.
+  final String? title;
+  final String? confirmLabel;
+
+  /// Position de départ : si fournie, la carte s'ouvre dessus sans
+  /// demander la permission de géolocalisation (cas de l'édition).
+  final LatLng? initialLocation;
+
+  const LocationPickerModal({
+    super.key,
+    required this.onLocationSelected,
+    this.title,
+    this.confirmLabel,
+    this.initialLocation,
+  });
 
   @override
   State<LocationPickerModal> createState() => _LocationPickerModalState();
@@ -46,7 +61,16 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
+    final initial = widget.initialLocation;
+    if (initial != null) {
+      _selectedLocation = initial;
+      _isLoading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _getAddressFromLatLng(initial);
+      });
+    } else {
+      _getCurrentLocation();
+    }
     _searchFocusNode.addListener(() {
       if (!_searchFocusNode.hasFocus && _searchResults.isEmpty) {
         setState(() => _showSearchResults = false);
@@ -259,7 +283,7 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
             child: Row(
               children: [
                 Text(
-                  l10n.shareALocation,
+                  widget.title ?? l10n.shareALocation,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -607,7 +631,7 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text(l10n.sendThisLocation),
+                        child: Text(widget.confirmLabel ?? l10n.sendThisLocation),
                       ),
                     ),
                   ],

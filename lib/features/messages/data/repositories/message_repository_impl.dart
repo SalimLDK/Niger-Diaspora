@@ -1,6 +1,8 @@
 import 'dart:developer' as dev;
 import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'dart:async';
+
+import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
@@ -30,14 +32,15 @@ class MessageRepositoryImpl implements MessageRepository {
   /// Placeholders posés par la couche crypto quand un déchiffrement échoue.
   /// Signal (1:1) et Sender Key (groupes) consomment la clé de message au
   /// premier déchiffrement réussi — aucun cache de clés sautées côté client —
-  /// donc retenter sur le MÊME message échoue toujours après coup. Voir
-  /// `_reconcileEcho` dans message_provider.dart pour le même constat côté
-  /// écho temps réel ; ceci couvre le rechargement paginé (réouverture de
-  /// conversation, pull-to-refresh, pagination).
-  static const _undecryptablePlaceholders = {
-    '[🔐 E2EE — session requise]',
-    '🔐 Message chiffré',
-  };
+  /// donc retenter sur le MÊME message échoue toujours après coup. Ceci couvre
+  /// le rechargement paginé (réouverture de conversation, pull-to-refresh,
+  /// pagination) ; `_reconcileEcho` dans message_provider.dart fait le même
+  /// constat côté écho temps réel.
+  ///
+  /// La liste elle-même vit dans `undecryptable_placeholders.dart` : elle
+  /// existait ici en double et a divergé, au prix d'un message de groupe rendu
+  /// illisible à son propre auteur.
+  static const _undecryptablePlaceholders = kUndecryptablePlaceholders;
 
   // DocumentSnapshot? _lastDocument; // Removed: using stateless cursor via beforeMessageId (RTDB key)
 
@@ -268,6 +271,17 @@ class MessageRepositoryImpl implements MessageRepository {
         participantIds: participantIds,
         selfNote: selfNote,
       );
+
+      // Le texte clair de NOS messages n'existe que localement : le serveur ne
+      // saura jamais nous le rendre — Signal comme Sender Key font avancer le
+      // ratchet à l'émission sans garder la clé du message envoyé. On le met en
+      // cache tout de suite, sinon l'écho temps réel (qui arrive, lui, avec le
+      // placeholder) devient la seule version persistée, et le message
+      // redevient illisible à la réouverture de la discussion.
+      unawaited(
+        cacheService.cacheMessages(conversationId, [message.toJson()]),
+      );
+
       return Right(message.toEntity());
     } on E2EEException catch (e) {
       return Left(E2EEFailure(e.message));
@@ -837,12 +851,16 @@ class MessageRepositoryImpl implements MessageRepository {
           afterTimestamp: afterTimestamp,
         )
         .map((messages) {
-          // Cache new messages
-          final messageMaps = messages.map((m) => m.toJson()).toList();
+          // `cacheMessages` fusionne par id, et la nouvelle version l'emporte :
+          // sans ce soin, l'écho d'un message qu'on vient d'envoyer écrasait
+          // dans le cache le texte clair par son placeholder. Le rechargement
+          // suivant n'avait alors plus rien de bon à récupérer.
+          final healed = _healUndecryptableMessages(conversationId, messages);
+          final messageMaps = healed.map((m) => m.toJson()).toList();
           cacheService.cacheMessages(conversationId, messageMaps);
 
           return Right<Failure, List<MessageEntity>>(
-            messages.map((m) => m.toEntity()).toList(),
+            healed.map((m) => m.toEntity()).toList(),
           );
         })
         .handleError((error) {

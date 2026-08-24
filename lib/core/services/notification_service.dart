@@ -2860,7 +2860,11 @@ class NotificationService {
         'p_type': type,
         'p_title': title,
         'p_body': body,
-        'p_data': {...?data, 'target_id': targetId},
+        // Les DEUX écritures : le client lisait `targetId` (chameau) quand
+        // seul `target_id` était écrit ici — la cible arrivait donc nulle, et
+        // l'appui sur la notification, gardé par `if (targetId != null)`, ne
+        // faisait rien. Le serpent est conservé pour les consommateurs SQL.
+        'p_data': {...?data, 'target_id': targetId, 'targetId': targetId},
       });
     } catch (e) {
       debugPrint('Error creating notification: $e');

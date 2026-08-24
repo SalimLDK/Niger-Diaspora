@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/services/lock_screen_service.dart';
 import '../../../../core/services/pip_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/group_call_entity.dart';
@@ -47,6 +50,10 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
     // Enable PiP (Picture-in-Picture) for group calls
     _pipService.setVideoCallActive(active: true, autoPipEnabled: true);
     _pipService.onPipAction = _handlePipAction;
+
+    // Droit de s'afficher par-dessus le keyguard, le temps de l'appel seulement
+    // (cf. LockScreenService). Rendu dans dispose().
+    unawaited(LockScreenService.instance.acquire());
   }
 
   @override
@@ -55,6 +62,7 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
     // Clean up PiP
     _pipService.onPipAction = null;
     _pipService.setVideoCallActive(active: false);
+    unawaited(LockScreenService.instance.release());
     super.dispose();
   }
 

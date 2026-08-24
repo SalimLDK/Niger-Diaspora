@@ -8,6 +8,7 @@ import 'key_manager_service.dart';
 import 'messaging_e2ee_service.dart';
 import 'models/e2ee_models.dart';
 import 'sender_key_service.dart';
+import 'undecryptable_placeholders.dart';
 
 final messageCryptoServiceProvider = Provider<MessageCryptoService>((ref) {
   return MessageCryptoService(
@@ -170,7 +171,7 @@ class MessageCryptoService {
           debugPrint('MessageCryptoService: Sender Key decrypt failed: $e');
         }
       }
-      return '[🔐 E2EE — session requise]';
+      return kE2EESessionRequiredPlaceholder;
     }
 
     // ── Format 2: Multi-device 1:1 (e2eePayloads) ──────────────────────────
@@ -197,7 +198,7 @@ class MessageCryptoService {
           }
         }
       }
-      return '[🔐 E2EE — session requise]';
+      return kE2EESessionRequiredPlaceholder;
     }
 
     // ── Format 3: Legacy single-device 1:1 ─────────────────────────────────
@@ -214,7 +215,7 @@ class MessageCryptoService {
           debugPrint('MessageCryptoService: legacy decrypt failed: $e');
         }
       }
-      return '[🔐 E2EE — session requise]';
+      return kE2EESessionRequiredPlaceholder;
     }
 
     // ── Format 4: AES-GCM ──────────────────────────────────────────────────
@@ -255,18 +256,31 @@ class MessageCryptoService {
   /// Distribute this user's Sender Key to all group members and fetch any
   /// pending distributions from other members.
   /// Call when opening a group conversation (fire-and-forget).
-  Future<void> distributeGroupSenderKey({
+  /// Renvoie le compte rendu de la distribution, ou `null` si elle n'a pas pu
+  /// être tentée — l'appelant peut alors en informer l'utilisateur, au lieu de
+  /// laisser le groupe retomber en AES sans que rien ne le dise.
+  Future<SenderKeyDistribution?> distributeGroupSenderKey({
     required String groupId,
     required List<String> memberIds,
   }) async {
-    if (!_e2ee.isInitialized) return;
+    if (!_e2ee.isInitialized) return null;
+
+    // Récupérer d'abord les distributions reçues pendant qu'on était hors
+    // ligne. Un échec ici ne doit pas empêcher la NÔTRE de partir.
     try {
-      // First fetch distributions we may have missed while offline
       await _senderKeys.fetchPendingDistributions(groupId);
-      // Then distribute our own Sender Key to all members
-      await _senderKeys.distributeSenderKeyToGroup(groupId, memberIds);
+    } catch (e) {
+      debugPrint('MessageCryptoService: fetchPendingDistributions failed: $e');
+    }
+
+    try {
+      return await _senderKeys.distributeSenderKeyToGroup(groupId, memberIds);
     } catch (e) {
       debugPrint('MessageCryptoService: Sender Key setup failed: $e');
+      // Rendre `null` ici reviendrait à ne rien signaler : le groupe tourne en
+      // AES et l'utilisateur doit le savoir. On rend un compte rendu vide,
+      // qui vaut « personne n'a la clé ».
+      return const SenderKeyDistribution(delivered: 0, missingMemberIds: []);
     }
   }
 

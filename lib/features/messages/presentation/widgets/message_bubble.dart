@@ -2,6 +2,10 @@ import 'dart:async' show unawaited;
 import 'dart:io';
 
 import 'package:flutter/gestures.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
+import '../../../../core/utils/mention_handle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -168,10 +172,10 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Révélateur « Autres actions » de la feuille (§27a).
   bool _moreOptionsOpen = false;
 
-  /// Un message envoyé qui n'est pas le dernier d'une rafale masque son
-  /// heure/accusé par défaut (`_isLastInGroup`) ; un tap la révèle ici, un
-  /// second tap la remasque. Les messages reçus l'affichent toujours, cette
-  /// bascule ne les concerne pas — voir `_buildMetaRow`.
+  /// Un message qui n'est pas le dernier d'une rafale masque son heure/accusé
+  /// par défaut (`_isLastInGroup`) ; un tap la révèle ici, un second tap la
+  /// remasque. Vaut dans les deux sens — envoyé comme reçu — voir
+  /// `_buildMetaRow`.
   bool _metaRevealed = false;
 
   // Cached emoji-only check (computed once)
@@ -232,10 +236,32 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     );
   }
 
-  /// Dernier message d'un groupe (ou message isolé) : porte l'horodatage.
+  /// Dernier message d'une rafale (ou message isolé) : porte l'horodatage.
   bool get _isLastInGroup =>
       widget.groupPosition == MessageGroupPosition.last ||
       widget.groupPosition == MessageGroupPosition.single;
+
+  /// Tap sur la bulle : révèle (ou remasque) l'heure d'un message qui n'est
+  /// pas le dernier de sa rafale.
+  ///
+  /// Sans lui, la seule cible tactile était une bande **invisible** de 48×16
+  /// posée sous la bulle (voir `_buildMetaRow`) : personne ne la trouve, et le
+  /// geste naturel — taper le message — ne déclenchait rien, le
+  /// `GestureDetector` de la bulle ne portant que `onLongPress` et
+  /// `onDoubleTap`. Le masquage était donc un cul-de-sac en pratique.
+  ///
+  /// Retourne `null` — donc aucun recognizer installé, donc aucune compétition
+  /// dans l'arène de gestes — dans les trois cas où le tap ne nous appartient
+  /// pas : mode sélection (le tap sélectionne), dernier message de la rafale
+  /// (son heure est déjà là, en permanence), message supprimé pour tous.
+  ///
+  /// Les taps des enfants (ouvrir une image, relancer un envoi en échec)
+  /// gagnent l'arène avant ce détecteur parent : ils ne sont pas volés.
+  VoidCallback? get _onTapRevelerHeure {
+    if (widget.isSelectionMode) return null;
+    if (_isLastInGroup || widget.message.deletedForEveryone) return null;
+    return () => setState(() => _metaRevealed = !_metaRevealed);
+  }
 
   /// Message reçu (pas de moi) dans une discussion de groupe : la colonne
   /// avatar doit rester réservée même quand elle n'affiche rien (voir
@@ -367,6 +393,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Build emoji-only content without bubble
   Widget _buildEmojiOnlyContent(BuildContext context) {
     return GestureDetector(
+      onTap: _onTapRevelerHeure,
       onLongPress: _onLongPress,
       onDoubleTap: _onDoubleTap,
       child: Column(
@@ -615,6 +642,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                           _isEmojiOnlyTextMessage()
                               ? _buildEmojiOnlyContent(context)
                               : GestureDetector(
+                                onTap: _onTapRevelerHeure,
                                 onLongPress: _onLongPress,
                                 onDoubleTap: _onDoubleTap,
                                 child: ClipRRect(
@@ -2073,8 +2101,22 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   );
 
   // Rich text formatting regex: *bold*, _italic_, ~strikethrough~, `code`
+  //
+  // Les délimiteurs doivent être ISOLÉS (rien d'alphanumérique juste avant ni
+  // juste après) et encadrer du contenu qui ne commence ni ne finit par une
+  // espace. Sans ces gardes, le marqueur était reconnu au MILIEU d'un mot et
+  // supprimé de l'affichage : `taux_change_2026` perdait ses tirets bas et
+  // passait en italique, `5*4*3` perdait ses astérisques. Même règle que
+  // WhatsApp et Signal.
   static final _richTextRegex = RegExp(
-    r'(\*[^*\n]+\*)|(_[^_\n]+_)|(~[^~\n]+~)|(`[^`\n]+`)',
+    r'(?<![\w*_~`])'
+    r'(?:'
+    r'\*(?=\S)[^*\n]*[^*\s]\*'
+    r'|_(?=\S)[^_\n]*[^_\s]_'
+    r'|~(?=\S)[^~\n]*[^~\s]~'
+    r'|`(?=\S)[^`\n]*[^`\s]`'
+    r')'
+    r'(?![\w*_~`])',
   );
 
   /// Build a RichText widget with clickable URLs, phone numbers, and emails
@@ -2143,8 +2185,13 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     // Mentions — highlight @Name for each confirmed mentioned user
     final mentionedUsers = widget.message.mentionedUsers;
     if (mentionedUsers.isNotEmpty) {
+      // Du plus long au plus court : l'alternation d'une RegExp s'arrête à la
+      // première branche qui correspond, donc `@Ali` placé avant `@Alichina`
+      // n'aurait coloré que les trois premières lettres de la seconde.
+      final names = mentionedUsers.map((m) => m.name).toList()
+        ..sort((a, b) => b.length.compareTo(a.length));
       final mentionPattern = RegExp(
-        mentionedUsers.map((m) => RegExp.escape('@${m.name}')).join('|'),
+        names.map((n) => RegExp.escape('@$n')).join('|'),
       );
       for (final match in mentionPattern.allMatches(text)) {
         final hasOverlap = allMatches.any(
@@ -2207,6 +2254,11 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                       : Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
+            // Une mention ne menait nulle part : elle était colorée, et c'est
+            // tout. Même geste que dans le fil, où taper une mention ouvre le
+            // profil.
+            recognizer:
+                TapGestureRecognizer()..onTap = () => _handleLinkTap(match),
           ),
         );
       } else {
@@ -2302,7 +2354,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
   Widget _buildTextContent(BuildContext context) {
     // E2EE session missing — show contextual re-establish UI instead of raw text.
-    if (widget.message.content == '[🔐 E2EE — session requise]') {
+    if (widget.message.content == kE2EESessionRequiredPlaceholder) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: E2EESessionRequiredBubble(
@@ -2369,16 +2421,24 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// discussion — aucune bulle spécialisée (image, vidéo, document, note
   /// vocale, sticker, localisation) ne réaffiche l'heure de son côté.
   ///
-  /// Reçus vs envoyés : un message reçu affiche toujours son heure
-  /// individuellement (pas de regroupement pour l'heure, même si la bulle
-  /// reste visuellement groupée) ; un message envoyé qui n'est pas le
-  /// dernier d'une rafale la masque par défaut, et un tap la révèle/masque
-  /// (`_metaRevealed`).
+  /// Rafales : dans une suite de messages consécutifs du même expéditeur, seul
+  /// le dernier porte son heure — la règle vaut pour les messages reçus comme
+  /// pour les messages envoyés. Les précédents la masquent, et un tap la
+  /// révèle/masque (`_metaRevealed`).
+  ///
+  /// Ce masquage avait été retiré (« chaque message porte son heure », 92326fe)
+  /// au motif qu'envoyer trois messages d'affilée n'en horodatait qu'un et que
+  /// rien n'annonçait le tap. Il est rétabli à la demande, et étendu aux
+  /// messages reçus qui en étaient exemptés. Le regroupement visuel (queue de
+  /// bulle, nom de l'expéditeur, rayons) n'a jamais dépendu de cette ligne.
   Widget _buildMetaRow(BuildContext context) {
     final hasReactions = widget.message.reactions.isNotEmpty;
-    final canToggle = widget.isMe && !_isLastInGroup && !widget.message.deletedForEveryone;
-    final showTimeInfo = _isLastInGroup || !widget.isMe || _metaRevealed;
+    final canToggle =
+        !_isLastInGroup && !widget.message.deletedForEveryone;
+    final showTimeInfo = _isLastInGroup || _metaRevealed;
 
+    // Rien à montrer : on garde une cible tactile pour révéler l'heure, sans
+    // quoi le masquage serait un cul-de-sac.
     if (!showTimeInfo && !hasReactions) {
       if (!canToggle) return const SizedBox.shrink();
       return Padding(
@@ -2444,8 +2504,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             _buildReceiptLabel(context, groupReadCount),
         ],
       );
-      // Seule la révélation par tap doit pouvoir se remasquer — l'affichage
-      // « dernier de la rafale » ou « message reçu » reste permanent.
+      // Seule la révélation par tap doit pouvoir se remasquer — l'heure du
+      // dernier message d'une rafale reste permanente.
       if (canToggle) {
         timeRow = GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -2811,7 +2871,15 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         }
         break;
       case _LinkType.mention:
-        // No action for mentions
+        // `match.text` porte le `@` : le pseudo commence après.
+        final handle = match.text.startsWith('@')
+            ? match.text.substring(1)
+            : match.text;
+        final userId = widget.message.mentionedUsers
+            .where((m) => mentionHandleMatches(m.name, handle))
+            .map((m) => m.id)
+            .firstOrNull;
+        if (userId != null && mounted) context.push('/profile/$userId');
         break;
     }
   }

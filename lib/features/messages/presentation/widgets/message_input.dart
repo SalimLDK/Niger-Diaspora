@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' as emoji_picker;
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/mention_handle.dart';
 import '../widgets/emoji_sticker_picker.dart';
 import '../../../../core/services/audio_recording_service.dart';
 import '../../../../core/services/permission_service.dart';
@@ -22,7 +23,8 @@ import '../screens/media_preview_screen.dart';
 import '../../domain/entities/message_entity.dart';
 import '../../../gifs/domain/entities/gif_entity.dart';
 import '../../../stickers/domain/entities/sticker_entity.dart';
-import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
+import '../../../feed/domain/entities/post_entity.dart'
+    show MentionCandidate, MentionedUser;
 import '../widgets/mention_suggestion_overlay.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
@@ -74,7 +76,7 @@ class MessageInput extends StatefulWidget {
   final VoidCallback? onCancelReply;
 
   // Mention support (empty for non-group conversations)
-  final List<MentionedUser> groupMembers;
+  final List<MentionCandidate> mentionCandidates;
 
   // Création d'événement/sondage depuis le menu « + » (null = option masquée)
   final VoidCallback? onCreateEvent;
@@ -94,7 +96,7 @@ class MessageInput extends StatefulWidget {
     this.isLoading = false,
     this.replyToMessage,
     this.onCancelReply,
-    this.groupMembers = const [],
+    this.mentionCandidates = const [],
     this.onCreateEvent,
     this.onCreatePoll,
   });
@@ -137,7 +139,7 @@ class _MessageInputState extends State<MessageInput>
 
   // Mention state
   List<MentionedUser> _pendingMentions = [];
-  List<MentionedUser> _mentionSuggestions = [];
+  List<MentionCandidate> _mentionSuggestions = [];
   String? _activeMentionQuery;
   int? _mentionTriggerOffset;
 
@@ -309,7 +311,7 @@ class _MessageInputState extends State<MessageInput>
   }
 
   void _detectMentionTrigger() {
-    if (widget.groupMembers.isEmpty) return;
+    if (widget.mentionCandidates.isEmpty) return;
     final text = _controller.text;
     final cursor = _controller.selection.baseOffset;
     if (cursor < 0) return;
@@ -321,15 +323,30 @@ class _MessageInputState extends State<MessageInput>
       return;
     }
 
+    // Un `@` collé à un caractère de mot n'ouvre pas une mention : c'est une
+    // adresse e-mail qu'on est en train de taper.
+    if (atIndex > 0 && RegExp(r'[\w.]').hasMatch(before[atIndex - 1])) {
+      _clearMentionState();
+      return;
+    }
+
     final query = before.substring(atIndex + 1);
     if (query.contains(' ') || query.contains('\n')) {
       _clearMentionState();
       return;
     }
 
+    // Le pseudo, mais aussi n'importe quel mot du nom affiché, accents repliés :
+    // on tape `@mai`, pas `@IbrahimYacoubaMaïdaoua`.
     final filtered =
-        widget.groupMembers
-            .where((m) => m.name.toLowerCase().startsWith(query.toLowerCase()))
+        widget.mentionCandidates
+            .where(
+              (c) => mentionQueryMatches(
+                query: query,
+                token: c.mentionToken,
+                displayName: c.displayName,
+              ),
+            )
             .toList();
 
     if (_activeMentionQuery != query ||
@@ -353,18 +370,24 @@ class _MessageInputState extends State<MessageInput>
     }
   }
 
-  void _onMentionSelected(MentionedUser user) {
+  void _onMentionSelected(MentionCandidate candidate) {
+    // On écrit le PSEUDO, pas le nom affiché. Avant, la mention insérait
+    // `@Ibrahim Yacouba Maïdaoua` : un jeton à espaces, que la détection ne
+    // savait pas relire — elle abandonne dès qu'une espace apparaît, donc seul
+    // le premier mot était cherchable.
+    final token = candidate.mentionToken;
     final text = _controller.text;
     final triggerOffset = _mentionTriggerOffset!;
     final cursor = _controller.selection.baseOffset;
-    final newText = text.replaceRange(triggerOffset, cursor, '@${user.name} ');
+    final newText = text.replaceRange(triggerOffset, cursor, '@$token ');
     _controller.text = newText;
     _controller.selection = TextSelection.collapsed(
-      offset: triggerOffset + user.name.length + 2,
+      offset: triggerOffset + token.length + 2,
     );
 
-    if (!_pendingMentions.any((m) => m.id == user.id)) {
-      _pendingMentions = [..._pendingMentions, user];
+    final mention = MentionedUser(id: candidate.id, name: token);
+    if (!_pendingMentions.any((m) => m.id == mention.id)) {
+      _pendingMentions = [..._pendingMentions, mention];
     }
     _clearMentionState();
     _focusNode.requestFocus();

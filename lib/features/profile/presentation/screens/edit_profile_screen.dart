@@ -48,6 +48,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   /// concerné, ce qui le fait défiler à l'écran par la même occasion.
   final _bioFocus = FocusNode();
   final _cityFocus = FocusNode();
+  final _handleFocus = FocusNode();
   final _customProfessionController = TextEditingController();
   final _customCountryController = TextEditingController();
   final _customOriginCityController = TextEditingController();
@@ -149,6 +150,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           _cityFocus.requestFocus();
         case 'bio':
           _bioFocus.requestFocus();
+        case 'handle':
+          _handleFocus.requestFocus();
         // `job` est un sélecteur : lui « donner le focus » n'ouvrirait rien
         // d'utile, le formulaire s'ouvre simplement en haut.
       }
@@ -278,6 +281,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     _currentCityController.dispose();
     _bioFocus.dispose();
     _cityFocus.dispose();
+    _handleFocus.dispose();
     _customProfessionController.dispose();
     _customCountryController.dispose();
     _customOriginCityController.dispose();
@@ -721,6 +725,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                           // d'identité de « Mon espace » (5a).
                           HandleField(
                             initialHandle: _initialHandle,
+                            focusNode: _handleFocus,
                             userId: ref
                                 .read(authNotifierProvider)
                                 .maybeWhen(
