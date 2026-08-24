@@ -142,8 +142,19 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
     if (success) {
       Navigator.pop(context);
     } else {
+      // Le message generique a masque pendant des mois un refus RLS sur
+      // post_poll_options : on affiche desormais la cause remontee par le
+      // notifier quand il y en a une.
+      final cause = ref.read(pollActionsNotifierProvider).error?.toString();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossible de créer le sondage')),
+        SnackBar(
+          content: Text(
+            cause == null || cause.isEmpty
+                ? 'Impossible de créer le sondage'
+                : 'Impossible de créer le sondage : $cause',
+          ),
+          duration: const Duration(seconds: 6),
+        ),
       );
     }
   }

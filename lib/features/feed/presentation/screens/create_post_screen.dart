@@ -327,6 +327,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
     final hashtags = finalHashtags.isNotEmpty ? finalHashtags : _hashtags;
 
     final bool success;
+    // Le sondage est cree apres le post : son echec ne doit pas passer sous
+    // le toast « Publication creee », qui laisserait croire a un sondage joint.
+    bool pollFailed = false;
     if (_isEditing) {
       final editing = widget.editingPost!;
       // Post vidéo : on préserve le média existant, sinon on fusionne
@@ -404,7 +407,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
       // Le sondage n'est créé qu'une fois le post publié (son id n'existait
       // pas avant) — voir le doc-comment de _pollDraft/showCreatePollSheet.
       if (created != null && _pollDraft != null) {
-        await ref.read(pollActionsNotifierProvider.notifier).createPostPoll(
+        pollFailed = !await ref
+            .read(pollActionsNotifierProvider.notifier)
+            .createPostPoll(
               postId: created.id,
               question: _pollDraft!.question,
               optionLabels: _pollDraft!.optionLabels,
@@ -422,7 +427,14 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
     if (mounted) {
       setState(() => _isPublishing = false);
       if (success) {
-        if (!_isEditing) showFeedToast(context, 'Publication créée');
+        if (!_isEditing) {
+          showFeedToast(
+            context,
+            pollFailed
+                ? "Publication créée, mais le sondage n'a pas pu être joint"
+                : 'Publication créée',
+          );
+        }
         context.pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

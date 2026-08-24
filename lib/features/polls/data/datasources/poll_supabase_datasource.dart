@@ -83,16 +83,30 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
 
     final pollId = pollRow['id'] as String;
 
-    final optionsData = await _supabase
-        .from('post_poll_options')
-        .insert([
-          for (var i = 0; i < optionLabels.length; i++)
-            {'poll_id': pollId, 'label': optionLabels[i], 'position': i},
-        ])
-        .select();
+    // Un sondage sans option n'est pas un sondage : si la seconde ecriture
+    // echoue (RLS, reseau), on retire la question plutot que de laisser une
+    // coquille vide en base — six d'entre elles y ont sejourne le temps que
+    // la politique INSERT manquante sur post_poll_options soit posee.
+    final List<dynamic> optionsData;
+    try {
+      optionsData = await _supabase
+          .from('post_poll_options')
+          .insert([
+            for (var i = 0; i < optionLabels.length; i++)
+              {'poll_id': pollId, 'label': optionLabels[i], 'position': i},
+          ])
+          .select();
+    } catch (_) {
+      try {
+        await _supabase.from('post_polls').delete().eq('id', pollId);
+      } catch (_) {
+        // Le nettoyage est un bonus : l'echec d'origine reste la vraie cause.
+      }
+      rethrow;
+    }
 
     return PollModel.fromJson(
-      _mapPoll(pollRow, (optionsData as List).cast<Map<String, dynamic>>()),
+      _mapPoll(pollRow, optionsData.cast<Map<String, dynamic>>()),
     );
   }
 
