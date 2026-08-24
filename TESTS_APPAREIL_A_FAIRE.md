@@ -14,6 +14,46 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Créer un sondage était impossible pour tout le monde (2026-08-23)
+
+`post_poll_options` a le RLS activé et **aucune politique INSERT** : la
+création se fait en deux écritures (la question dans `post_polls`, puis ses
+options), et la seconde était refusée `42501` pour tout le monde, depuis
+toujours. Signature en production : 6 questions, **toutes sans une seule
+option** — les tentatives successives d'un même utilisateur.
+
+Corrigé par
+[20260823180000_fix_post_poll_options_rls.sql](supabase/migrations/20260823180000_fix_post_poll_options_rls.sql),
+**appliqué en production** le 2026-08-23. Même migration : les triggers de
+comptage passent en `SECURITY DEFINER` (leur `UPDATE` sur
+`post_poll_options` / `post_polls` était soumis au RLS de l'appelant, qui n'a
+aucune politique UPDATE → 0 ligne touchée, sans erreur : le vote était
+enregistré mais les compteurs restaient à 0).
+
+Vérifié en base (transaction annulée, rôle `authenticated`, `request.jwt.claims`
+posé) : création 2 options ✅, vote → `vote_count=1` / `total_votes=1` ✅,
+retrait du vote → retour à 0 ✅, et un **non-propriétaire** reste refusé ✅.
+
+À vérifier sur appareil :
+
+- [ ] Groupe → trombone → **Sondage** : question + 2 options → « Publier ».
+      La feuille se ferme sans erreur et le sondage apparaît **avec ses
+      options** (avant : « Impossible de créer le sondage »).
+- [ ] Voter : la barre et le compteur bougent (avant : figés à 0).
+- [ ] Retirer/changer son vote : le compteur redescend.
+- [ ] Fil → nouveau post → **Sondage** joint : le sondage s'affiche sous le
+      post publié. En cas d'échec, le toast dit maintenant « Publication
+      créée, mais le sondage n'a pas pu être joint »
+      ([create_post_screen.dart](lib/features/feed/presentation/screens/create_post_screen.dart)).
+- [ ] Message d'erreur : la feuille affiche désormais la cause réelle et non
+      plus un texte générique
+      ([create_poll_sheet.dart](lib/features/polls/presentation/widgets/create_poll_sheet.dart)).
+
+⚠️ Restent en base les **6 questions orphelines** (sans option) créées par les
+tentatives échouées : elles s'afficheront comme des sondages vides dans
+« Groupe de test privé » et « Diaspora Niger — Canada ». À supprimer sur
+décision (non fait : suppression de données de production).
+
 ## Transfert et Boutique retirés de « Tous les services » (2026-08-23)
 
 Deux tuiles de la grille de
