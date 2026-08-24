@@ -14,6 +14,36 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⚠️ COLLISION DE MIGRATION — à lire par l'autre agent (2026-08-23)
+
+**Le correctif RLS des sondages est déjà livré et déjà appliqué en production**
+(`20260823180000_fix_post_poll_options_rls.sql`, commits `0514986` / `8a51664`
+/ `ae7dfd5`).
+
+Le worktree `.claude/worktrees/sondage-options-rls` porte, non committé, un
+fichier `20260823180000_rls_post_poll_options_insert_et_compteurs.sql` — **le
+même préfixe d'horodatage `20260823180000`**. Git ne verra jamais le conflit
+(les noms diffèrent après le préfixe, la fusion passera sans broncher), mais
+`supabase_migrations.schema_migrations` indexe par ce préfixe **seul** : la
+version est déjà enregistrée, donc ce second fichier sera **ignoré en silence**
+au `db push`. Le croire appliqué serait faux.
+
+Ce qu'il faut faire avant de livrer dessus :
+
+1. `git fetch && git merge origin/wip-jules-2025-12-29T23-58-34-776Z`, puis
+   comparer le contenu — la politique `Poll owners can add options` et le
+   passage des triggers `increment/decrement_poll_vote_count` en
+   `SECURITY DEFINER` sont **déjà en production** (vérifié : `prosecdef=true`,
+   politique présente dans `pg_policies`).
+2. Si le fichier local n'apporte rien de plus : le supprimer.
+3. S'il apporte autre chose : le **renuméroter** après `20260823180000`
+   (jamais avant), et vérifier avec la commande de CLAUDE.md :
+   `ls supabase/migrations | sort | awk -F_ '{print $1}' | uniq -d`.
+
+Le datasource `lib/features/polls/data/datasources/poll_supabase_datasource.dart`
+est modifié des deux côtés (ici : nettoyage de la question orpheline si les
+options échouent). Comparer avant de livrer, la zone est la même.
+
 ## Créer un sondage était impossible pour tout le monde (2026-08-23)
 
 `post_poll_options` a le RLS activé et **aucune politique INSERT** : la
