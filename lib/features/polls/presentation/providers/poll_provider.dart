@@ -54,7 +54,9 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() => const AsyncValue.data(null);
 
-  Future<bool> createGroupPoll({
+  /// Rend le sondage cree, ou null en cas d'echec — l'appelant a besoin de
+  /// son id pour publier la bulle dans la conversation.
+  Future<PollEntity?> createGroupPoll({
     required String groupId,
     required String question,
     required List<String> optionLabels,
@@ -77,12 +79,12 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
     return result.fold(
       (failure) {
         state = AsyncValue.error(failure.message, StackTrace.current);
-        return false;
+        return null;
       },
-      (_) {
+      (poll) {
         state = const AsyncValue.data(null);
         ref.invalidate(groupPollsProvider(groupId));
-        return true;
+        return poll;
       },
     );
   }
@@ -90,7 +92,7 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
   /// Sondage sur un post du fil — mirror de [createGroupPoll]. Le post doit
   /// déjà exister (contrairement à un groupe, son id n'est connu qu'après
   /// publication : voir `create_post_screen.dart`).
-  Future<bool> createPostPoll({
+  Future<PollEntity?> createPostPoll({
     required String postId,
     required String question,
     required List<String> optionLabels,
@@ -113,12 +115,12 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
     return result.fold(
       (failure) {
         state = AsyncValue.error(failure.message, StackTrace.current);
-        return false;
+        return null;
       },
-      (_) {
+      (poll) {
         state = const AsyncValue.data(null);
         ref.invalidate(postPollsProvider(postId));
-        return true;
+        return poll;
       },
     );
   }
@@ -145,6 +147,10 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
         state = const AsyncValue.data(null);
         if (groupId != null) ref.invalidate(groupPollsProvider(groupId));
         if (postId != null) ref.invalidate(postPollsProvider(postId));
+        // La bulle de conversation lit le sondage par ce stream : sans cette
+        // invalidation, le votant devait quitter l'ecran pour voir son propre
+        // vote compte (le realtime sert les AUTRES membres).
+        ref.invalidate(pollStreamProvider(pollId));
         return true;
       },
     );

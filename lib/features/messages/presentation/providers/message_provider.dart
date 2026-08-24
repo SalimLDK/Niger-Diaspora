@@ -1111,6 +1111,18 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
       case MessageType.system:
       case MessageType.call:
         return false;
+      case MessageType.poll:
+        // Le sondage lui-meme est deja en base : seule la bulle a echoue,
+        // il suffit donc de la republier avec le meme id.
+        if (failedMessage.pollId != null) {
+          pagination.removeMessageOptimistically(failedMessage.id);
+          return sendPoll(
+            conversationId: conversationId,
+            pollId: failedMessage.pollId!,
+            question: failedMessage.content,
+          );
+        }
+        return false;
       case MessageType.sticker:
         if (failedMessage.stickerPackId != null && failedMessage.stickerId != null && failedMessage.fileUrl != null) {
           pagination.removeMessageOptimistically(failedMessage.id);
@@ -1345,6 +1357,69 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     );
   }
 
+  /// Publie un sondage deja cree (post_polls) comme bulle de la conversation.
+  ///
+  /// La bulle ne porte que l'id : `PollCard` lit options et votes en direct,
+  /// donc le message n'a jamais a etre reecrit quand quelqu'un vote.
+  Future<bool> sendPoll({
+    required String conversationId,
+    required String pollId,
+    required String question,
+  }) async {
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
+    if (currentUser == null) return false;
+
+    final tempId = 'temp_poll_${DateTime.now().millisecondsSinceEpoch}';
+
+    final optimisticMessage = MessageEntity(
+      id: tempId,
+      senderId: currentUser.id,
+      senderName: currentUser.displayName ?? 'Utilisateur',
+      senderPhotoUrl: currentUser.photoUrl,
+      content: question,
+      type: MessageType.poll,
+      status: MessageStatus.sending,
+      pollId: pollId,
+      createdAt: DateTime.now(),
+      readBy: [],
+      readAt: {},
+    );
+
+    _ref
+        .read(paginatedMessagesProvider(conversationId).notifier)
+        .addOptimisticMessage(optimisticMessage);
+
+    final result = await _ref.read(messageRepositoryProvider).sendPollMessage(
+          conversationId: conversationId,
+          senderId: currentUser.id,
+          senderName: currentUser.displayName ?? 'Utilisateur',
+          senderPhotoUrl: currentUser.photoUrl,
+          pollId: pollId,
+          question: question,
+        );
+
+    return result.fold(
+      (failure) {
+        _ref
+            .read(paginatedMessagesProvider(conversationId).notifier)
+            .updateMessageStatus(tempId, MessageStatus.failed);
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return false;
+      },
+      (message) {
+        _ref
+            .read(paginatedMessagesProvider(conversationId).notifier)
+            .updateMessageStatusAndCancelTimeout(
+              tempId,
+              MessageStatus.sent,
+              message.id,
+            );
+        state = const AsyncValue.data(null);
+        return true;
+      },
+    );
+  }
+
   Future<bool> sendSticker({
     required String conversationId,
     required String stickerPackId,
@@ -1519,6 +1594,15 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
       case MessageType.system:
       case MessageType.call:
+        return false;
+
+      case MessageType.poll:
+        // Un sondage de groupe n'est lisible que par ses membres (RLS) :
+        // transfere ailleurs, la bulle n'afficherait rien. On refuse.
+        state = AsyncValue.error(
+          'Un sondage ne peut pas être transféré : il appartient à son groupe.',
+          StackTrace.current,
+        );
         return false;
 
       case MessageType.sticker:

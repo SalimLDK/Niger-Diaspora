@@ -1551,11 +1551,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             ? null
                             : _isSelfNotes
                             ? () => _createPollDraft()
-                            : () => showCreatePollSheet(
-                              context,
-                              contextType: PollContextType.group,
-                              contextId: _effectiveGroupId!,
-                            ),
+                            : () => _createAndPublishPoll(_effectiveGroupId!),
                     onTyping: () {
                       ref
                           .read(typingIndicatorNotifierProvider.notifier)
@@ -2781,6 +2777,37 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  /// Cree le sondage puis le publie comme bulle de la conversation.
+  ///
+  /// Sans cette seconde etape, la ligne de `post_polls` n'etait lue par aucun
+  /// ecran : le sondage existait en base et restait invisible partout.
+  Future<void> _createAndPublishPoll(String groupId) async {
+    final poll = await showCreatePollSheet(
+      context,
+      contextType: PollContextType.group,
+      contextId: groupId,
+    );
+    if (poll == null || !mounted) return;
+
+    final published = await ref
+        .read(sendMessageProvider.notifier)
+        .sendPoll(
+          conversationId: widget.conversationId,
+          pollId: poll.id,
+          question: poll.question,
+        );
+
+    if (!mounted || published) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          "Le sondage est créé, mais sa publication dans la discussion a "
+          "échoué. Réessayez.",
+        ),
+      ),
     );
   }
 

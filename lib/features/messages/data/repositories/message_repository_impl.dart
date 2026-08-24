@@ -965,6 +965,37 @@ class MessageRepositoryImpl implements MessageRepository {
   }
 
   @override
+  Future<Either<Failure, MessageEntity>> sendPollMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String pollId,
+    required String question,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure(AppErrorMessages.networkError));
+    }
+
+    try {
+      final message = await remoteDataSource.sendPollMessage(
+        conversationId: conversationId,
+        senderId: senderId,
+        senderName: senderName,
+        senderPhotoUrl: senderPhotoUrl,
+        pollId: pollId,
+        question: question,
+      );
+      return Right(message.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
+    }
+  }
+
+  @override
   Future<Either<Failure, MessageEntity>> sendStickerMessage({
     required String conversationId,
     required String senderId,

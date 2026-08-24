@@ -1955,6 +1955,8 @@ class _MessageInputState extends State<MessageInput>
         return l10n.messageTypeCall;
       case MessageType.location:
         return l10n.messageTypeLocation;
+      case MessageType.poll:
+        return 'Sondage';
       case MessageType.sticker:
         return l10n.messageTypeSticker;
     }

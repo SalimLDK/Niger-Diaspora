@@ -407,9 +407,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
       // Le sondage n'est créé qu'une fois le post publié (son id n'existait
       // pas avant) — voir le doc-comment de _pollDraft/showCreatePollSheet.
       if (created != null && _pollDraft != null) {
-        pollFailed = !await ref
-            .read(pollActionsNotifierProvider.notifier)
-            .createPostPoll(
+        pollFailed = null ==
+            await ref.read(pollActionsNotifierProvider.notifier).createPostPoll(
               postId: created.id,
               question: _pollDraft!.question,
               optionLabels: _pollDraft!.optionLabels,

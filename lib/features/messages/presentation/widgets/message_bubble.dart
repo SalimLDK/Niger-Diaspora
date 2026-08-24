@@ -45,6 +45,7 @@ import '../widgets/post_message_card.dart';
 import '../widgets/event_message_card.dart';
 import '../widgets/product_message_card.dart';
 import '../widgets/location_message_bubble.dart';
+import 'poll_message_bubble.dart';
 import '../../../stickers/presentation/widgets/sticker_bubble.dart';
 
 /// Position of a message in a group of consecutive messages from the same sender
@@ -1546,6 +1547,10 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         return ReportContentModal.textMessageSnapshot(
           '${l10n.location}: ${message.locationAddress ?? l10n.sharedLocation}',
         );
+      case MessageType.poll:
+        return ReportContentModal.textMessageSnapshot(
+          'Sondage : ${message.content}',
+        );
       case MessageType.sticker:
         return ReportContentModal.imageSnapshot(message.fileUrl ?? '');
     }
@@ -1954,6 +1959,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onRetry: widget.onRetry,
         );
 
+      case MessageType.poll:
+        return PollMessageBubble(
+          pollId: widget.message.pollId ?? '',
+          fallbackQuestion: widget.message.content,
+        );
+
       case MessageType.sticker:
         return StickerBubble(
           stickerUrl: widget.message.fileUrl ?? '',
@@ -2076,6 +2087,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         return Icons.insert_drive_file;
       case MessageType.location:
         return Icons.location_on;
+      case MessageType.poll:
+        return Icons.bar_chart;
       case MessageType.sticker:
         return Icons.emoji_emotions;
       default:
@@ -2552,6 +2565,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         return '📞 ${l10n.call}';
       case MessageType.location:
         return '📍 ${l10n.location}';
+      case MessageType.poll:
+        return '📊 Sondage';
       case MessageType.sticker:
         return l10n.messageTypeSticker;
     }

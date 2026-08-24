@@ -537,13 +537,26 @@ class _ConversationOptionsModalState
               _buildOption(
                 iconWidget: const AppIcon(AppIcon.poll, size: 20, color: _pollAccent),
                 title: 'Créer un sondage',
-                onTap: () {
-                  Navigator.pop(context);
-                  showCreatePollSheet(
+                onTap: () async {
+                  final navigator = Navigator.of(context);
+                  final groupId = widget.groupId!;
+                  navigator.pop();
+                  // Meme enchainement que depuis le composer : creer ne suffit
+                  // pas, il faut publier la bulle sinon le sondage n'est lu
+                  // par aucun ecran.
+                  final poll = await showCreatePollSheet(
                     context,
                     contextType: PollContextType.group,
-                    contextId: widget.groupId!,
+                    contextId: groupId,
                   );
+                  if (poll == null) return;
+                  await ref
+                      .read(sendMessageProvider.notifier)
+                      .sendPoll(
+                        conversationId: widget.conversationId,
+                        pollId: poll.id,
+                        question: poll.question,
+                      );
                 },
               ),
             if ((widget.isGroup &&

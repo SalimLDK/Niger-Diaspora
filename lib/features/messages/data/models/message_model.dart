@@ -65,6 +65,8 @@ final class MessageModel {
   final double? latitude;
   final double? longitude;
   final String? locationAddress;
+  // Sondage publie dans la conversation
+  final String? pollId;
   // Sticker fields
   final String? stickerPackId;
   final String? stickerId;
@@ -127,6 +129,7 @@ final class MessageModel {
     this.latitude,
     this.longitude,
     this.locationAddress,
+    this.pollId,
     this.stickerPackId,
     this.stickerId,
     this.isAnimatedSticker = false,
@@ -188,6 +191,7 @@ final class MessageModel {
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       locationAddress: json['locationAddress'] as String?,
+      pollId: json['pollId'] as String?,
       stickerPackId: json['stickerPackId'] as String?,
       stickerId: json['stickerId'] as String?,
       isAnimatedSticker: json['isAnimatedSticker'] as bool? ?? false,
@@ -262,6 +266,7 @@ final class MessageModel {
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
       if (locationAddress != null) 'locationAddress': locationAddress,
+      if (pollId != null) 'pollId': pollId,
       if (stickerPackId != null) 'stickerPackId': stickerPackId,
       if (stickerId != null) 'stickerId': stickerId,
       if (isAnimatedSticker) 'isAnimatedSticker': isAnimatedSticker,
@@ -371,6 +376,7 @@ final class MessageModel {
     latitude: latitude,
     longitude: longitude,
     locationAddress: locationAddress,
+    pollId: pollId,
     stickerPackId: stickerPackId,
     stickerId: stickerId,
     isAnimatedSticker: isAnimatedSticker,
@@ -435,6 +441,7 @@ final class MessageModel {
     latitude: entity.latitude,
     longitude: entity.longitude,
     locationAddress: entity.locationAddress,
+    pollId: entity.pollId,
     stickerPackId: entity.stickerPackId,
     stickerId: entity.stickerId,
     isAnimatedSticker: entity.isAnimatedSticker,
@@ -496,6 +503,7 @@ final class MessageModel {
     DateTime? expiresAt,
     DateTime? mediaExpiresAt,
     bool? mediaExpired,
+    String? pollId,
     String? stickerPackId,
     String? stickerId,
     bool? isAnimatedSticker,
@@ -549,6 +557,7 @@ final class MessageModel {
       expiresAt: expiresAt ?? this.expiresAt,
       mediaExpiresAt: mediaExpiresAt ?? this.mediaExpiresAt,
       mediaExpired: mediaExpired ?? this.mediaExpired,
+      pollId: pollId ?? this.pollId,
       stickerPackId: stickerPackId ?? this.stickerPackId,
       stickerId: stickerId ?? this.stickerId,
       isAnimatedSticker: isAnimatedSticker ?? this.isAnimatedSticker,

@@ -1110,6 +1110,61 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   }
 
   @override
+  Future<MessageModel> sendPollMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String pollId,
+    required String question,
+  }) async {
+    try {
+      final msgId = _uuid.v4();
+      final now = DateTime.now().toUtc().toIso8601String();
+
+      final msgData = <String, dynamic>{
+        'senderName': senderName,
+        if (senderPhotoUrl != null) 'senderPhotoUrl': senderPhotoUrl,
+        'content': question,
+        'status': 'sent',
+        'pollId': pollId,
+        'readBy': [senderId],
+        'readAt': {senderId: now},
+        'deliveredTo': [senderId],
+        'deliveredAt': {senderId: now},
+        'encryptionLevel': 'aes',
+      };
+
+      await _supabase.from('messages').insert({
+        'id': msgId,
+        'conversation_id': conversationId,
+        'sender_id': senderId,
+        'type': 'poll',
+        'created_at': now,
+        'data': msgData,
+      });
+
+      await _updateConversationLastMessage(
+        conversationId,
+        text: '📊 $question',
+        senderId: senderId,
+        type: 'poll',
+        at: now,
+      );
+
+      return MessageModel.fromJson({
+        ...msgData,
+        'id': msgId,
+        'senderId': senderId,
+        'type': 'poll',
+        'createdAt': now,
+      });
+    } catch (e) {
+      throw ServerException('sendPollMessage error: $e');
+    }
+  }
+
+  @override
   Future<MessageModel> sendStickerMessage({
     required String conversationId,
     required String senderId,

@@ -25,13 +25,15 @@ typedef PollDraftCallback = void Function(
 /// [onDraft] : si fourni, la soumission n'appelle PAS le repository — elle
 /// renvoie les champs composés à l'appelant (voir `create_post_screen.dart`,
 /// qui crée le sondage seulement après avoir obtenu l'id du post publié).
-Future<void> showCreatePollSheet(
+/// Rend le sondage cree, ou null (annulation, echec, ou mode brouillon) —
+/// l'appelant en a besoin pour publier la bulle dans la conversation.
+Future<PollEntity?> showCreatePollSheet(
   BuildContext context, {
   required PollContextType contextType,
   required String contextId,
   PollDraftCallback? onDraft,
 }) {
-  return showModalBottomSheet(
+  return showModalBottomSheet<PollEntity>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
@@ -120,7 +122,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
 
     setState(() => _isSubmitting = true);
 
-    final success = widget.contextType == PollContextType.group
+    final poll = widget.contextType == PollContextType.group
         ? await ref.read(pollActionsNotifierProvider.notifier).createGroupPoll(
               groupId: widget.contextId,
               question: question,
@@ -139,8 +141,8 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
-    if (success) {
-      Navigator.pop(context);
+    if (poll != null) {
+      Navigator.pop(context, poll);
     } else {
       // Le message generique a masque pendant des mois un refus RLS sur
       // post_poll_options : on affiche desormais la cause remontee par le

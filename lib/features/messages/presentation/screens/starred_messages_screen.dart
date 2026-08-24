@@ -304,6 +304,8 @@ class _StarredMessageTile extends StatelessWidget {
         return 'Appel';
       case MessageType.location:
         return '📍 ${message.locationAddress ?? 'Position'}';
+      case MessageType.poll:
+        return '📊 ${message.content}';
       case MessageType.sticker:
         return '🎭 Sticker';
     }

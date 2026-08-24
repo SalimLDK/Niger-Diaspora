@@ -189,6 +189,16 @@ abstract class MessageRepository {
     Map<String, dynamic>? replyToMessageData,
   });
 
+  /// Publier un sondage dans la conversation (bulle votable).
+  Future<Either<Failure, MessageEntity>> sendPollMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String pollId,
+    required String question,
+  });
+
   /// Envoyer un sticker
   Future<Either<Failure, MessageEntity>> sendStickerMessage({
     required String conversationId,

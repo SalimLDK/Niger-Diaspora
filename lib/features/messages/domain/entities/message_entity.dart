@@ -8,7 +8,7 @@ enum MessageStatus {
   failed, // Échec d'envoi
 }
 
-enum MessageType { text, image, file, audio, video, system, call, location, sticker, voiceNote }
+enum MessageType { text, image, file, audio, video, system, call, location, sticker, voiceNote, poll }
 
 /// Encryption level of a message, written to RTDB and surfaced in the UI.
 enum MessageEncryptionLevel {
@@ -112,6 +112,10 @@ class MessageEntity extends Equatable {
   final double? longitude;
   final String? locationAddress;
 
+  // Sondage publie dans la conversation : la bulle ne porte que l'id, le
+  // contenu vit dans post_polls / post_poll_options (et suit ses votes).
+  final String? pollId;
+
   // Sticker fields
   final String? stickerPackId;
   final String? stickerId;
@@ -188,6 +192,7 @@ class MessageEntity extends Equatable {
     this.latitude,
     this.longitude,
     this.locationAddress,
+    this.pollId,
     this.stickerPackId,
     this.stickerId,
     this.isAnimatedSticker = false,
@@ -207,6 +212,8 @@ class MessageEntity extends Equatable {
   bool get isSystem => type == MessageType.system;
   bool get isCall => type == MessageType.call;
   bool get isLocation => type == MessageType.location;
+
+  bool get isPoll => type == MessageType.poll;
   bool get isSticker => type == MessageType.sticker;
 
   /// Check if message has been edited
@@ -387,6 +394,7 @@ class MessageEntity extends Equatable {
     double? latitude,
     double? longitude,
     String? locationAddress,
+    String? pollId,
     String? stickerPackId,
     String? stickerId,
     bool? isAnimatedSticker,
@@ -446,6 +454,7 @@ class MessageEntity extends Equatable {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       locationAddress: locationAddress ?? this.locationAddress,
+      pollId: pollId ?? this.pollId,
       stickerPackId: stickerPackId ?? this.stickerPackId,
       stickerId: stickerId ?? this.stickerId,
       isAnimatedSticker: isAnimatedSticker ?? this.isAnimatedSticker,
@@ -508,6 +517,7 @@ class MessageEntity extends Equatable {
     latitude,
     longitude,
     locationAddress,
+    pollId,
     stickerPackId,
     stickerId,
     isAnimatedSticker,

@@ -202,6 +202,19 @@ abstract class MessageRemoteDataSource {
     Map<String, dynamic>? replyToMessageData,
   });
 
+  /// Publier un sondage dans la conversation.
+  ///
+  /// La bulle ne transporte que `pollId` et la question : les options et les
+  /// votes vivent dans `post_polls` / `post_poll_options`, lus par `PollCard`.
+  Future<MessageModel> sendPollMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String pollId,
+    required String question,
+  });
+
   /// Envoyer un sticker
   Future<MessageModel> sendStickerMessage({
     required String conversationId,
@@ -2162,6 +2175,23 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         'Erreur lors de l\'envoi de la position: ${e.toString()}',
       );
     }
+  }
+
+  @override
+  Future<MessageModel> sendPollMessage({
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String pollId,
+    required String question,
+  }) {
+    // Les sondages vivent dans Supabase (post_polls) et ne sont publies que
+    // par MessageSupabaseDataSource, seule implementation branchee pour
+    // l'envoi. Ce chemin RTDB ne sert plus qu'a la recherche.
+    throw UnimplementedError(
+      'sendPollMessage : les sondages passent par MessageSupabaseDataSource',
+    );
   }
 
   @override

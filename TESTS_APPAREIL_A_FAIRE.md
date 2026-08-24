@@ -14,6 +14,51 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Le sondage de groupe s'affiche enfin : bulle dans la discussion (2026-08-24)
+
+Créer marchait (correctif RLS de la veille) mais **aucun écran n'affichait les
+sondages de groupe** : `groupPollsProvider` n'était watché nulle part,
+`PollCard` n'était montée que pour les posts du fil, et rien ne créait jamais
+d'épingle de type `poll`. La ligne de `post_polls` existait, lisible, et
+restait invisible partout. Vérifié sur appareil le 2026-08-24 : sondage créé
+(« egggyy », 2 options), introuvable à l'écran.
+
+Le sondage arrive maintenant comme **bulle dans la conversation** :
+`MessageType.poll` + `pollId` sur le message, `PollMessageBubble` qui relit
+`post_polls` et monte `PollCard` (vote intégré). La bulle ne porte que l'id :
+voter ne réécrit jamais le message, c'est la carte qui se met à jour.
+
+Côté base ([20260824010000_poll_message_realtime_et_apercu.sql](supabase/migrations/20260824010000_poll_message_realtime_et_apercu.sql),
+appliqué en production) : `post_polls` et `post_poll_options` entrent dans la
+publication `supabase_realtime` avec `REPLICA IDENTITY FULL` — sans ça le
+`.stream()` de `PollCard` ne faisait que son chargement initial et aucun vote
+n'apparaissait ; et `message_preview_for_notification` connaît le type `poll`,
+sinon la notification affichait « 🔒 Nouveau message ». Vérifié en base :
+`realtime: post_polls, post_poll_options` et `apercu poll = 📊 Sondage`.
+
+À vérifier sur appareil :
+
+- [ ] Groupe → trombone → **Sondage** : après « Publier », une **bulle de
+      sondage** apparaît dans la discussion, avec la question et ses options.
+- [ ] **Voter depuis la bulle** : la barre, le pourcentage et le total bougent
+      immédiatement (invalidation de `pollStreamProvider` après le vote).
+- [ ] Sur un **second téléphone / compte**, le vote de l'autre remonte sans
+      quitter l'écran (c'est ce que la publication realtime apporte).
+- [ ] Le même chemin depuis le menu **⋮ → Créer un sondage** publie aussi la
+      bulle (`conversation_options_modal.dart`).
+- [ ] **Liste des conversations** : l'aperçu affiche « 📊 <question> ».
+- [ ] **Notification push** reçue par un autre membre : « 📊 Sondage » (la
+      question ne part pas dans la notification, même choix que la position).
+- [ ] **Transférer** une bulle de sondage est refusé avec un message clair
+      (un sondage de groupe n'est lisible que par ses membres).
+- [ ] Sondage **terminé** (durée 24 h dépassée) : la bulle montre les
+      résultats sans permettre de voter.
+
+⚠️ Non couvert, à savoir : la question du sondage est écrite **en clair** dans
+`messages.data.content`, exactement comme l'adresse d'une position partagée —
+le transport « structuré » de ce projet n'est pas chiffré. Si ça doit changer,
+c'est un chantier commun position/sticker/sondage, pas propre au sondage.
+
 ## ⚠️ COLLISION DE MIGRATION — à lire par l'autre agent (2026-08-23)
 
 **Le correctif RLS des sondages est déjà livré et déjà appliqué en production**
