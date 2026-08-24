@@ -3253,9 +3253,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         ),
         if (isFallback) ...[
           const SizedBox(width: 3),
-          Text(
-            'Chiffrement partagé',
-            style: TextStyle(fontSize: 11, color: context.warningColor),
+          // `Flexible` + ellipsis des DEUX côtés : sans ça, la mention prenait
+          // toute sa largeur et rognait « 3 membres » en « 3 me… ». Les deux
+          // informations comptent, aucune ne doit manger l'autre.
+          Flexible(
+            child: Text(
+              'Clé partagée',
+              style: TextStyle(fontSize: 11, color: context.warningColor),
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+            ),
           ),
         ],
       ],

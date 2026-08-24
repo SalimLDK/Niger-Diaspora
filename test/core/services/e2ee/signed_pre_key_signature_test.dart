@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
+import 'package:diaspo_niger/core/services/e2ee/models/e2ee_models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Reproduit exactement ce que fait l'application : la SIGNATURE côté
@@ -34,8 +35,9 @@ void main() {
   }
 
   test(
-    "la vérification échoue TOUJOURS : elle utilise la clé publique X25519 "
-    "là où la signature vient d'un couple Ed25519 dérivé de la clé privée",
+    "L'ANCIEN CHEMIN, pour mémoire : vérifier avec la clé publique X25519 "
+    "échoue toujours, la signature venant d'un couple Ed25519 dérivé de la "
+    'clé privée',
     () async {
       final identity = await identityKeyPair();
       final signedPreKey = await x25519.newKeyPair();
@@ -66,7 +68,9 @@ void main() {
       expect(
         verifiedTheAppWay,
         isFalse,
-        reason: 'si ceci passe au vert, le défaut est corrigé ailleurs',
+        reason:
+            "ce test reproduit à la main le code d'AVANT le correctif ; "
+            'il documente pourquoi rien ne pouvait marcher',
       );
     },
   );
@@ -114,4 +118,93 @@ void main() {
       expect(signingPublicKey.bytes, isNot(equals(identity.publicKey)));
     },
   );
+
+  test(
+    'APRÈS LE CORRECTIF : vérifier avec la clé de signature publiée marche',
+    () async {
+      // C'est exactement ce que fait désormais
+      // `MessagingE2EEService._verifySignedPreKeySignature` : il reçoit
+      // `bundle.identitySigningKey` au lieu de `bundle.identityKey`.
+      final identity = await identityKeyPair();
+      final signedPreKey = await x25519.newKeyPair();
+      final signedPreKeyPublic = Uint8List.fromList(
+        (await signedPreKey.extractPublicKey()).bytes,
+      );
+      final signature = await signLikeKeyManager(
+        signedPreKeyPublic,
+        identity.privateKey,
+      );
+
+      // Ce que publie `KeyManagerService.identitySigningPublicKey`.
+      final publishedSigningKey = Uint8List.fromList(
+        (await (await ed25519.newKeyPairFromSeed(
+          identity.privateKey,
+        )).extractPublicKey()).bytes,
+      );
+
+      final verified = await ed25519.verify(
+        signedPreKeyPublic,
+        signature: Signature(
+          signature,
+          publicKey: SimplePublicKey(
+            publishedSigningKey,
+            type: KeyPairType.ed25519,
+          ),
+        ),
+      );
+
+      expect(verified, isTrue);
+    },
+  );
+
+  test('une signature substituée ne passe pas', () async {
+    // La garde doit rester une garde : un attaquant qui remplace la Signed
+    // Pre-Key sans pouvoir signer doit toujours être rejeté.
+    final identity = await identityKeyPair();
+    final vraie = await x25519.newKeyPair();
+    final substituee = await x25519.newKeyPair();
+
+    final signature = await signLikeKeyManager(
+      Uint8List.fromList((await vraie.extractPublicKey()).bytes),
+      identity.privateKey,
+    );
+    final publishedSigningKey =
+        await (await ed25519.newKeyPairFromSeed(
+          identity.privateKey,
+        )).extractPublicKey();
+
+    final verified = await ed25519.verify(
+      Uint8List.fromList((await substituee.extractPublicKey()).bytes),
+      signature: Signature(signature, publicKey: publishedSigningKey),
+    );
+
+    expect(verified, isFalse);
+  });
+
+  group('le bundle transporte la clé de signature', () {
+    E2EEPreKeyBundle bundle({String? signingKey}) => E2EEPreKeyBundle(
+      userId: 'u1',
+      deviceId: 1,
+      registrationId: 42,
+      identityKey: 'aWs=',
+      signedPreKeyId: 7,
+      signedPreKeyPublic: 'c3Br',
+      signedPreKeySignature: 'c2ln',
+      identitySigningKey: signingKey,
+    );
+
+    test('aller-retour JSON', () {
+      final revenu = E2EEPreKeyBundle.fromJson(bundle(signingKey: 'ZWQ=').toJson());
+      expect(revenu.identitySigningKey, 'ZWQ=');
+    });
+
+    test("un appareil qui n'a pas republié ses clés rend null", () {
+      // Ces bundles-là existent en base tant que l'appareil n'a pas rouvert
+      // l'app. On ne peut pas vérifier leur signature : la session Signal ne
+      // s'établit pas, et le repli AES devient visible dans l'en-tête.
+      final json = bundle().toJson();
+      expect(json.containsKey('identitySigningKey'), isFalse);
+      expect(E2EEPreKeyBundle.fromJson(json).identitySigningKey, isNull);
+    });
+  });
 }
