@@ -49,10 +49,10 @@ retrait du vote → retour à 0 ✅, et un **non-propriétaire** reste refusé �
       plus un texte générique
       ([create_poll_sheet.dart](lib/features/polls/presentation/widgets/create_poll_sheet.dart)).
 
-⚠️ Restent en base les **6 questions orphelines** (sans option) créées par les
-tentatives échouées : elles s'afficheront comme des sondages vides dans
-« Groupe de test privé » et « Diaspora Niger — Canada ». À supprimer sur
-décision (non fait : suppression de données de production).
+Les **6 questions orphelines** (sans option) laissées par les tentatives
+échouées ont été supprimées en base le 2026-08-23, sur accord — `post_polls`
+est reparti de zéro. Il n'y a donc plus aucun sondage en production : le
+premier créé après ce correctif est aussi le premier test.
 
 ## Transfert et Boutique retirés de « Tous les services » (2026-08-23)
 
