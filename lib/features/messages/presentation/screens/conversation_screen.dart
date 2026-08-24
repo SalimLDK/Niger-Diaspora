@@ -14,7 +14,6 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
-import '../providers/group_encryption_status_provider.dart';
 import '../providers/typing_indicator_provider.dart';
 import '../providers/media_upload_provider.dart';
 import '../widgets/conversation_options_modal.dart';
@@ -3227,141 +3226,23 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// local pour « Mes notes » — jamais affiché pour un compte supprimé
   /// (géré en amont, cette méthode n'est pas appelée dans ce cas).
   ///
-  /// Dans un groupe, le cadenas dit maintenant la VÉRITÉ. Il était fermé en
-  /// toutes circonstances, alors qu'un groupe peut très bien tourner en repli
-  /// AES — c'est le cas dès qu'un membre n'a pas reçu la Sender Key, parce
-  /// qu'il n'a jamais publié ses clés Signal. Rien ne le signalait : ni l'app,
-  /// ni un compteur ; il fallait lire `encryptionLevel` en base, message par
-  /// message.
+  /// ⚠️ Ce cadenas ne dit PAS le niveau de chiffrement réel. Un groupe peut
+  /// tourner en repli AES — le cadenas reste le même. L'indicateur qui le
+  /// signalait (cadenas ouvert + libellé + feuille explicative) a été retiré
+  /// le 2026-08-23 à la demande de Salim.
+  ///
+  /// L'état reste mesuré et disponible dans `groupEncryptionStatusProvider`,
+  /// et les journaux de `SenderKeyService` disent « repli AES maintenu » avec
+  /// le compte de membres servis : c'est par là qu'il faut passer pour savoir
+  /// où en est un groupe.
   Widget _buildStatusWithLock(Widget status) {
-    final encryption =
-        _isGroup && !_isSelfNotes
-            ? ref.watch(groupEncryptionStatusProvider(widget.conversationId))
-            : const GroupEncryptionStatus();
-    final isFallback =
-        encryption.level == GroupEncryptionLevel.aesFallback;
-
-    final row = Row(
+    return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Flexible(child: status),
         const SizedBox(width: 4),
-        AppIcon(
-          isFallback ? AppIcon.lockOpen : AppIcon.lock,
-          size: 11,
-          color: isFallback ? context.warningColor : context.textTertiaryColor,
-        ),
-        if (isFallback) ...[
-          const SizedBox(width: 3),
-          // `Flexible` + ellipsis des DEUX côtés : sans ça, la mention prenait
-          // toute sa largeur et rognait « 3 membres » en « 3 me… ». Les deux
-          // informations comptent, aucune ne doit manger l'autre.
-          Flexible(
-            child: Text(
-              'Clé partagée',
-              style: TextStyle(fontSize: 11, color: context.warningColor),
-              overflow: TextOverflow.ellipsis,
-              softWrap: false,
-            ),
-          ),
-        ],
+        AppIcon(AppIcon.lock, size: 11, color: context.textTertiaryColor),
       ],
-    );
-
-    if (!isFallback) return row;
-
-    // Un cadenas ouvert sans explication inquiète sans informer : l'appui dit
-    // ce que ça change, et qui manque.
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _showGroupEncryptionSheet(encryption),
-      child: row,
-    );
-  }
-
-  /// Explique pourquoi le groupe est retombé sur la clé partagée, et nomme les
-  /// membres concernés.
-  Future<void> _showGroupEncryptionSheet(GroupEncryptionStatus status) async {
-    final noms =
-        status.membersWithoutKey
-            .map(
-              (id) =>
-                  ref.read(profileNotifierProvider(id)).valueOrNull?.displayName
-                      ?.trim(),
-            )
-            .whereType<String>()
-            .where((n) => n.isNotEmpty)
-            .toList();
-
-    if (!mounted) return;
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: context.surfaceColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder:
-          (sheetContext) => Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    AppIcon(
-                      AppIcon.lockOpen,
-                      size: 18,
-                      color: context.warningColor,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Chiffrement de groupe indisponible',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: context.textPrimaryColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  status.localKeysUnavailable
-                      ? "Vos clés de chiffrement ne sont pas prêtes sur cet "
-                          'appareil. Rendez-vous dans Réglages › Sécurité pour '
-                          'les restaurer ou en créer une sauvegarde.'
-                      : (noms.isEmpty
-                          ? "Un membre du groupe n'a pas encore de clé de "
-                              'chiffrement utilisable sur son appareil.'
-                          : (noms.length == 1
-                              ? "${noms.first} n'a pas encore de clé de "
-                                  'chiffrement utilisable sur son appareil.'
-                              : "${noms.join(', ')} n'ont pas encore de clé de "
-                                  'chiffrement utilisable sur leur appareil.')),
-                  style: TextStyle(
-                    fontSize: 14,
-                    height: 1.5,
-                    color: context.textSecondaryColor,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Vos messages restent chiffrés, mais avec la clé partagée de '
-                  "l'application plutôt qu'avec une clé propre au groupe. Le "
-                  'chiffrement de groupe reprendra tout seul dès que la '
-                  'situation sera réglée.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    height: 1.5,
-                    color: context.textSecondaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
     );
   }
 

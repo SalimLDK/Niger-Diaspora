@@ -211,10 +211,20 @@ code de vérification. À trancher avant de conclure quoi que ce soit sur un
       [group_encryption_status_test.dart](test/features/messages/group_encryption_status_test.dart)
       (9 tests) : distribution complète / partielle / impossible, et le fait
       qu'un groupe sans autre membre ne compte pas comme « chiffré ».
-- [x] **Rendu vérifié** le 2026-08-23 : « Diaspora Niger — Canada » affiche
-      « 3 membres 🔓 Clé partagée » dans l'en-tête. Le libellé a été raccourci
-      et rendu `Flexible` — au premier jet il tronquait le compte de membres
-      en « 3 me… ».
+- [x] **Rendu vérifié** le 2026-08-23 : « Diaspora Niger — Canada » affichait
+      « 3 membres 🔓 Clé partagée » dans l'en-tête.
+- ⚠️ **RETIRÉ le 2026-08-23**, à la demande de Salim : d'abord le libellé, puis
+      le cadenas ouvert. L'en-tête ne signale donc plus rien — le cadenas §4a
+      est de nouveau fermé en toutes circonstances, et la feuille explicative
+      (qui nommait les membres sans clé) n'est plus atteignable.
+
+      **Ce qui reste pour savoir où en est un groupe** : le provider
+      `groupEncryptionStatusProvider`, toujours alimenté, et les journaux de
+      `SenderKeyService` (« Sender Key remise à N/M membres — repli AES
+      maintenu »). Rien dans l'interface.
+
+      Le trou d'origine — « un groupe reste en AES sans que rien ne le dise » —
+      est donc **rouvert côté utilisateur**, volontairement.
 - [ ] Vérifier aussi le cas nominal : un groupe dont tous les membres ont des
       clés valides doit garder le cadenas fermé, sans mention.
 
