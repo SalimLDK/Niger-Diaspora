@@ -28049,7 +28049,7 @@ abstract class AppLocalizations {
   /// Legende de l emplacement d illustration 1/5
   ///
   /// In fr, this message translates to:
-  /// **'illustration — la diaspora'**
+  /// **'la diaspora'**
   String get onbWelcomeIllustration;
 
   /// Titre 2/5
@@ -28067,7 +28067,7 @@ abstract class AppLocalizations {
   /// Legende de l emplacement d illustration 2/5
   ///
   /// In fr, this message translates to:
-  /// **'illustration — carte des membres'**
+  /// **'carte des membres'**
   String get onbMembersIllustration;
 
   /// Reassurance 2/5
@@ -28097,7 +28097,7 @@ abstract class AppLocalizations {
   /// Legende de l emplacement d illustration 3/5
   ///
   /// In fr, this message translates to:
-  /// **'illustration — rejoindre un groupe'**
+  /// **'rejoindre un groupe'**
   String get onbGroupsIllustration;
 
   /// Reassurance 3/5
@@ -28127,7 +28127,7 @@ abstract class AppLocalizations {
   /// Legende de l emplacement d illustration 4/5
   ///
   /// In fr, this message translates to:
-  /// **'illustration — fête de la République'**
+  /// **'fête de la République'**
   String get onbEventsIllustration;
 
   /// Reassurance 4/5
@@ -28157,7 +28157,7 @@ abstract class AppLocalizations {
   /// Legende de l emplacement d illustration 5/5
   ///
   /// In fr, this message translates to:
-  /// **'illustration — rester connectés'**
+  /// **'rester connectés'**
   String get onbConnectedIllustration;
 
   /// Sous-titre de l autorisation notifications

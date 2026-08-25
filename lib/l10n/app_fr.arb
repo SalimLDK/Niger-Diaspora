@@ -7274,7 +7274,7 @@
   "@onbWelcomeBody": {
     "description": "Promesse 1/5"
   },
-  "onbWelcomeIllustration": "illustration — la diaspora",
+  "onbWelcomeIllustration": "la diaspora",
   "@onbWelcomeIllustration": {
     "description": "Legende de l emplacement d illustration 1/5"
   },
@@ -7286,7 +7286,7 @@
   "@onbMembersBody": {
     "description": "Promesse 2/5"
   },
-  "onbMembersIllustration": "illustration — carte des membres",
+  "onbMembersIllustration": "carte des membres",
   "@onbMembersIllustration": {
     "description": "Legende de l emplacement d illustration 2/5"
   },
@@ -7306,7 +7306,7 @@
   "@onbGroupsBody": {
     "description": "Promesse 3/5"
   },
-  "onbGroupsIllustration": "illustration — rejoindre un groupe",
+  "onbGroupsIllustration": "rejoindre un groupe",
   "@onbGroupsIllustration": {
     "description": "Legende de l emplacement d illustration 3/5"
   },
@@ -7326,7 +7326,7 @@
   "@onbEventsBody": {
     "description": "Promesse 4/5"
   },
-  "onbEventsIllustration": "illustration — fête de la République",
+  "onbEventsIllustration": "fête de la République",
   "@onbEventsIllustration": {
     "description": "Legende de l emplacement d illustration 4/5"
   },
@@ -7346,7 +7346,7 @@
   "@onbConnectedBody": {
     "description": "Promesse 5/5"
   },
-  "onbConnectedIllustration": "illustration — rester connectés",
+  "onbConnectedIllustration": "rester connectés",
   "@onbConnectedIllustration": {
     "description": "Legende de l emplacement d illustration 5/5"
   },

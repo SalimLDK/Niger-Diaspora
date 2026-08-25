@@ -15230,7 +15230,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'La communauté nigérienne, où qu\'elle soit : retrouvez vos proches, entraidez-vous, restez au pays même de loin.';
 
   @override
-  String get onbWelcomeIllustration => 'illustration — la diaspora';
+  String get onbWelcomeIllustration => 'la diaspora';
 
   @override
   String get onbMembersTitle => 'Découvrez\nles membres';
@@ -15240,7 +15240,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Voyez qui vit près de chez vous : métier, ville d\'origine, langues parlées — de quoi trouver la bonne personne au bon moment.';
 
   @override
-  String get onbMembersIllustration => 'illustration — carte des membres';
+  String get onbMembersIllustration => 'carte des membres';
 
   @override
   String get onbMembersBullet1 =>
@@ -15258,7 +15258,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Entraide de quartier, associations, promos d\'étudiants : trouvez les vôtres près de chez vous ou au pays.';
 
   @override
-  String get onbGroupsIllustration => 'illustration — rejoindre un groupe';
+  String get onbGroupsIllustration => 'rejoindre un groupe';
 
   @override
   String get onbGroupsBullet1 => 'Groupes publics ou privés, à vous de choisir';
@@ -15274,7 +15274,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Fêtes, permanences administratives, rencontres sportives : inscrivez-vous en un geste et ajoutez la date à votre agenda.';
 
   @override
-  String get onbEventsIllustration => 'illustration — fête de la République';
+  String get onbEventsIllustration => 'fête de la République';
 
   @override
   String get onbEventsBullet1 => 'En présentiel ou en ligne';
@@ -15290,7 +15290,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Deux autorisations et vous êtes prêt. Vous pourrez les changer à tout moment dans Réglages.';
 
   @override
-  String get onbConnectedIllustration => 'illustration — rester connectés';
+  String get onbConnectedIllustration => 'rester connectés';
 
   @override
   String get onbNotificationsSubtitle =>

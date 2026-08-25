@@ -15085,7 +15085,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'The Nigerien community, wherever it is: find your people, help each other out, stay close to home even from far away.';
 
   @override
-  String get onbWelcomeIllustration => 'illustration — the diaspora';
+  String get onbWelcomeIllustration => 'the diaspora';
 
   @override
   String get onbMembersTitle => 'Discover\nthe members';
@@ -15095,7 +15095,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'See who lives near you: occupation, home town, languages spoken — everything you need to find the right person at the right time.';
 
   @override
-  String get onbMembersIllustration => 'illustration — member map';
+  String get onbMembersIllustration => 'member map';
 
   @override
   String get onbMembersBullet1 =>
@@ -15112,7 +15112,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Neighbourhood support, associations, student cohorts: find your own near you or back home.';
 
   @override
-  String get onbGroupsIllustration => 'illustration — joining a group';
+  String get onbGroupsIllustration => 'joining a group';
 
   @override
   String get onbGroupsBullet1 => 'Public or private groups, your call';
@@ -15128,7 +15128,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Celebrations, admin help desks, sports meet-ups: sign up in one tap and add the date to your calendar.';
 
   @override
-  String get onbEventsIllustration => 'illustration — Republic Day';
+  String get onbEventsIllustration => 'Republic Day';
 
   @override
   String get onbEventsBullet1 => 'In person or online';
@@ -15144,7 +15144,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Two permissions and you are ready. You can change them at any time in Settings.';
 
   @override
-  String get onbConnectedIllustration => 'illustration — staying connected';
+  String get onbConnectedIllustration => 'staying connected';
 
   @override
   String get onbNotificationsSubtitle =>
