@@ -70,7 +70,8 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
         DateTime.fromMillisecondsSinceEpoch(at),
       );
       return since < _snoozeDuration;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('E2EEBackupCoordinator: _isSnoozed failed: $e');
       return false;
     }
   }
@@ -82,9 +83,10 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
         _snoozeKey(userId, prompt),
         DateTime.now().millisecondsSinceEpoch,
       );
-    } catch (_) {
+    } catch (e) {
       // Sans persistance, on retombe sur l'ancien comportement : le bandeau
       // reviendra au prochain démarrage. Pas de quoi bloquer la connexion.
+      debugPrint('E2EEBackupCoordinator: _snooze failed: $e');
     }
   }
 
