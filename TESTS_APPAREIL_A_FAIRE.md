@@ -14,6 +14,38 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Le thème choisi (clair/sombre, orange/vert) ne survit jamais à un redémarrage (2026-08-25)
+
+Découvert en essayant de vérifier la pastille « DN » en clair/vert sur le
+SM A515F (cf. entrée du 2026-08-25 plus bas sur les illustrations
+d'onboarding). Réglages → Thème → Clair + Vert s'écrit correctement sur
+disque (`FlutterSharedPreferences.xml` : `theme_mode=light`,
+`theme_color=green`, vérifié via `adb run-as ... cat`), **mais après
+`am force-stop` + relance à froid, l'app retombe systématiquement sur
+Système + Orange** — reproduit deux fois de suite, écran de connexion et
+accueil. Rouvrir Réglages confirme que même la ligne « Thème » **en mémoire**
+réaffiche « Système », alors que le fichier sur disque dit toujours
+`light`/`green` : ce n'est pas un rafraîchissement d'UI en retard, l'état
+Riverpod ne charge jamais la valeur persistée.
+
+Piste probable (non confirmée) : `ThemeModeNotifier.build()` /
+`ThemeColorNotifier.build()` dans
+[theme_provider.dart](lib/core/theme/theme_provider.dart) appellent
+`_loadTheme()`/`_loadColor()` **sans les attendre**, avant de retourner le
+défaut synchrone (`AppThemeMode.system` / `AppThemeColor.orange`). La mise à
+jour asynchrone de `state` qui devrait suivre ne semble jamais aboutir.
+Détails complets : mémoire `project_theme_pref_not_restored`.
+
+Appareil laissé propre : réglages restaurés à `system`/`orange` (valeurs
+d'origine) via l'IU avant de rendre la main.
+
+- [ ] Non corrigé cette session (hors périmètre initial). Bloque la
+  vérification de `AuthBrandMark` (pastille DN) en thème clair + accent vert.
+- [ ] Une fois corrigé : revérifier que le thème choisi survit bien à un
+  `force-stop` + relance à froid, pas seulement à un hot-reload.
+
+---
+
 ## Bandeau « Restaurez vos clés » toujours répété malgré la mise en veille du 22/08 (2026-08-25)
 
 Salim signale que le bandeau (`e2eeRestoreNudgeMessage`, main_shell.dart)
