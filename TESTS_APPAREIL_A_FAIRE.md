@@ -14,6 +14,46 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)
+
+Demande de Salim : la pastille de marque affichait un seul « D » à deux
+endroits au lieu de « DN » ; et les 5 écrans d'onboarding n'avaient jamais eu
+de vraie illustration (juste un pictogramme Material générique sur fond
+rayé, en attente explicite dans le commentaire du code).
+
+- **Sigle** : [auth_scaffold.dart](lib/features/auth/presentation/widgets/auth_scaffold.dart)
+  (`AuthBrandMark`, écrans de connexion/inscription) et
+  [design_kit.dart](lib/core/theme/design_kit.dart) (`DesignIllustration`,
+  repli `brandMark`) — `'D'` → `'DN'`, taille de police réduite (24→17 et
+  32→21) pour que les deux lettres tiennent dans la même pastille.
+- **Illustrations** : nouveau fichier
+  [onboarding_illustrations.dart](lib/features/onboarding/presentation/widgets/onboarding_illustrations.dart),
+  une composition par écran (cercle teinté + pictogramme + pastilles
+  d'accent, en widgets Flutter — pas des PNG — pour rester adaptatif au
+  thème sombre et à la couleur d'accent choisie). Écran « fête de la
+  République » (onboarding 4/5) utilise les couleurs du drapeau (orange
+  `AppColors.primary` / blanc / vert `AppColors.secondary`) en dur, volontairement
+  indépendantes de la couleur d'accent du compte.
+- `DesignIllustration` gagne un paramètre `illustration` (widget) qui prend le
+  pas sur `icon`/`brandMark` ; `OnboardingPageData` ne porte plus `icon`ni
+  `brandMark`, seulement `illustration`.
+
+`flutter analyze` propre. Jamais vu sur appareil ni en preview visuelle —
+aucune capture cette session.
+
+- [ ] Les 5 écrans d'onboarding (`/onboarding` ou réinitialiser
+  `has_seen_onboarding`) : composition centrée dans le bloc rayé, pas de
+  débordement à la font scale 1.1 du SM A515F, lisible en thème clair
+  **et** sombre.
+- [ ] Pastille « DN » de connexion/inscription (`AuthBrandMark`) : les deux
+  lettres tiennent dans le carré 46×46 sans être coupées, dans les deux
+  couleurs d'accent (orange et vert).
+- [ ] Écran « fête de la République » (onboarding 4/5) : les 3 pastilles
+  orange/blanc/vert restent lisibles sur fond sombre (celle en blanc a un
+  cerclage `borderStrongColor` pour ne pas se fondre dans la carte).
+
+---
+
 ## Le sondage de groupe s'affiche enfin : bulle dans la discussion (2026-08-24)
 
 Créer marchait (correctif RLS de la veille) mais **aucun écran n'affichait les

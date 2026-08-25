@@ -19,11 +19,9 @@ class OnboardingPageData {
   /// Légende de l'emplacement d'illustration.
   final String illustrationCaption;
 
-  /// Pictogramme de l'emplacement, ignoré si [brandMark] est vrai.
-  final IconData? icon;
-
-  /// Écran de bienvenue : pastille de marque au lieu du pictogramme.
-  final bool brandMark;
+  /// Composition affichée dans le bloc d'illustration (voir
+  /// `onboarding_illustrations.dart`).
+  final Widget illustration;
 
   /// Puces de réassurance sous la promesse (aucune sur le 1er et le dernier).
   final List<String> bullets;
@@ -32,9 +30,8 @@ class OnboardingPageData {
     required this.title,
     required this.description,
     required this.illustrationCaption,
+    required this.illustration,
     this.eyebrow,
-    this.icon,
-    this.brandMark = false,
     this.bullets = const [],
   });
 }
@@ -57,8 +54,7 @@ class OnboardingPage extends StatelessWidget {
         children: [
           DesignIllustration(
             caption: data.illustrationCaption,
-            icon: data.icon,
-            brandMark: data.brandMark,
+            illustration: data.illustration,
           ),
           const SizedBox(height: 28),
           if (data.eyebrow != null) ...[

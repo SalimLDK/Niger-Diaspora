@@ -7,6 +7,7 @@ import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../providers/onboarding_provider.dart';
 import '../../../../core/theme/design_kit.dart';
+import '../widgets/onboarding_illustrations.dart';
 import '../widgets/onboarding_page.dart';
 
 /// Onboarding en cinq écrans (maquettes 14a → 14e).
@@ -49,34 +50,34 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
       title: l10n.onbWelcomeTitle,
       description: l10n.onbWelcomeBody,
       illustrationCaption: l10n.onbWelcomeIllustration,
-      brandMark: true,
+      illustration: const WelcomeIllustration(),
     ),
     OnboardingPageData(
       title: l10n.onbMembersTitle,
       description: l10n.onbMembersBody,
       illustrationCaption: l10n.onbMembersIllustration,
-      icon: Icons.people_outline,
+      illustration: const MembersIllustration(),
       bullets: [l10n.onbMembersBullet1, l10n.onbMembersBullet2],
     ),
     OnboardingPageData(
       title: l10n.onbGroupsTitle,
       description: l10n.onbGroupsBody,
       illustrationCaption: l10n.onbGroupsIllustration,
-      icon: Icons.groups_outlined,
+      illustration: const GroupsIllustration(),
       bullets: [l10n.onbGroupsBullet1, l10n.onbGroupsBullet2],
     ),
     OnboardingPageData(
       title: l10n.onbEventsTitle,
       description: l10n.onbEventsBody,
       illustrationCaption: l10n.onbEventsIllustration,
-      icon: Icons.event_outlined,
+      illustration: const EventsIllustration(),
       bullets: [l10n.onbEventsBullet1, l10n.onbEventsBullet2],
     ),
     OnboardingPageData(
       title: l10n.onbConnectedTitle,
       description: l10n.onbConnectedBody,
       illustrationCaption: l10n.onbConnectedIllustration,
-      icon: Icons.chat_bubble_outline,
+      illustration: const ConnectedIllustration(),
     ),
   ];
 

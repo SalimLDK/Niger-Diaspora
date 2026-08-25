@@ -73,8 +73,8 @@ class AuthScaffold extends StatelessWidget {
   }
 }
 
-/// Pastille de marque : carré arrondi terracotta portant l'initiale, aligné à
-/// gauche (les maquettes ont abandonné le gros logo centré « DN »).
+/// Pastille de marque : carré arrondi terracotta portant le sigle « DN »,
+/// aligné à gauche (les maquettes ont abandonné le gros logo centré).
 class AuthBrandMark extends StatelessWidget {
   const AuthBrandMark({super.key});
 
@@ -91,9 +91,9 @@ class AuthBrandMark extends StatelessWidget {
         ),
         alignment: Alignment.center,
         child: Text(
-          'D',
+          'DN',
           style: GoogleFonts.playfairDisplay(
-            fontSize: 24,
+            fontSize: 17,
             fontWeight: FontWeight.w700,
             color: context.onPrimaryColor,
             height: 1,

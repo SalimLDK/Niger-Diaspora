@@ -121,17 +121,20 @@ class DesignBody extends StatelessWidget {
 }
 
 /// Bloc d'illustration des maquettes : rectangle arrondi sable, rayures
-/// diagonales, pictogramme centré et légende en chasse fixe.
+/// diagonales, composition centrée et légende en chasse fixe.
 ///
-/// Les maquettes sont explicites sur le fait que ce sont des emplacements
-/// (« illustration — carte des membres ») : le bloc reste donc un réceptacle
-/// tant que les vraies illustrations n'existent pas.
+/// [illustration] porte la vraie composition (voir
+/// `onboarding_illustrations.dart`) ; [icon] et [brandMark] restent des
+/// replis génériques pour un appelant qui n'en fournit pas encore une.
 class DesignIllustration extends StatelessWidget {
   final String caption;
   final IconData? icon;
 
-  /// Affiche la pastille de marque terracotta portant l'initiale à la place
-  /// du pictogramme (écran de bienvenue).
+  /// Composition centrale à la place du pictogramme générique.
+  final Widget? illustration;
+
+  /// Affiche la pastille de marque terracotta portant le sigle à la place
+  /// du pictogramme.
   final bool brandMark;
 
   final double aspectRatio;
@@ -140,6 +143,7 @@ class DesignIllustration extends StatelessWidget {
     super.key,
     required this.caption,
     this.icon,
+    this.illustration,
     this.brandMark = false,
     this.aspectRatio = 1.35,
   });
@@ -160,7 +164,9 @@ class DesignIllustration extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (brandMark)
+                if (illustration != null)
+                  illustration!
+                else if (brandMark)
                   Container(
                     width: 62,
                     height: 62,
@@ -170,9 +176,9 @@ class DesignIllustration extends StatelessWidget {
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      'D',
+                      'DN',
                       style: GoogleFonts.playfairDisplay(
-                        fontSize: 32,
+                        fontSize: 21,
                         fontWeight: FontWeight.w700,
                         color: context.onPrimaryColor,
                         height: 1,
