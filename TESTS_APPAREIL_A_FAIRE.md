@@ -38,19 +38,26 @@ rayé, en attente explicite dans le commentaire du code).
   pas sur `icon`/`brandMark` ; `OnboardingPageData` ne porte plus `icon`ni
   `brandMark`, seulement `illustration`.
 
-`flutter analyze` propre. Jamais vu sur appareil ni en preview visuelle —
-aucune capture cette session.
+`flutter analyze` propre.
 
-- [ ] Les 5 écrans d'onboarding (`/onboarding` ou réinitialiser
-  `has_seen_onboarding`) : composition centrée dans le bloc rayé, pas de
-  débordement à la font scale 1.1 du SM A515F, lisible en thème clair
-  **et** sombre.
-- [ ] Pastille « DN » de connexion/inscription (`AuthBrandMark`) : les deux
-  lettres tiennent dans le carré 46×46 sans être coupées, dans les deux
-  couleurs d'accent (orange et vert).
-- [ ] Écran « fête de la République » (onboarding 4/5) : les 3 pastilles
-  orange/blanc/vert restent lisibles sur fond sombre (celle en blanc a un
-  cerclage `borderStrongColor` pour ne pas se fondre dans la carte).
+- [x] Les 5 écrans d'onboarding — vérifié sur SM A515F le 2026-08-25 (thème
+  sombre, accent orange, `font_scale` 1.0) : composition centrée dans le
+  bloc rayé, aucun débordement, texte et pastilles lisibles sur les 5 écrans.
+  Atteint sans toucher au compte : bascule temporaire et **non committée**
+  de `initialLocation`/`redirect` dans `app_router.dart` (`kDebugMode`
+  uniquement, revert + rebuild + réinstall juste après la capture — le dépôt
+  et l'APK sur l'appareil sont repartis strictement sur le commit `8f5ec44`).
+  Encore ouvert : **thème clair** et **accent vert** (seule la combinaison
+  sombre/orange du compte de test a pu être vue — `font_scale` 1.1 aussi,
+  l'appareil était repassé à 1.0 depuis la dernière session).
+- [ ] Pastille « DN » de connexion/inscription (`AuthBrandMark`) : pas
+  vérifiée sur appareil (nécessiterait une déconnexion du compte connecté,
+  écartée pour ne pas risquer une reconnexion SSO forcée) — seulement en
+  preview HTML fidèle aux valeurs réelles. Les deux lettres devraient tenir
+  dans le carré 46×46 sans être coupées, dans les deux couleurs d'accent.
+- [x] Écran « fête de la République » (onboarding 4/5) : les 3 pastilles
+  orange/blanc/vert restent lisibles sur fond sombre, celle en blanc se
+  détache bien grâce au cerclage `borderStrongColor`. Vu sur SM A515F.
 
 ---
 
