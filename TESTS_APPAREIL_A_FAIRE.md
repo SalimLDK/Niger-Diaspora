@@ -14,6 +14,40 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Bandeau « Restaurez vos clés » toujours répété malgré la mise en veille du 22/08 (2026-08-25)
+
+Salim signale que le bandeau (`e2eeRestoreNudgeMessage`, main_shell.dart)
+revient encore « très très souvent » — y compris après un tap sur
+« Pas maintenant » — alors que le correctif de mise en veille persistée 7 jours
+(commit `4464780`, 2026-08-22) est bien dans l'APK installé
+(`lastUpdateTime=2026-08-25 11:40`, largement postérieur au commit).
+
+**Constaté sur SM A515F** (compte Sim A, `vQZE49dTdyRtLwSG6lMIbhAqoFG2`) :
+`run-as com.diasponiger.diasponiger cat shared_prefs/FlutterSharedPreferences.xml`
+ne contient **aucune** clé `e2ee_prompt_snoozed_*`, alors que d'autres prefs
+du même fichier (session Supabase, thème, `has_seen_onboarding_…`) sont bien
+présentes. Le mécanisme de mise en veille n'a donc jamais réussi à écrire sur
+cet appareil — ou n'a jamais été déclenché avec succès.
+
+Cause non confirmée : `_isSnoozed`/`_snooze`
+([e2ee_backup_coordinator.dart](lib/core/services/e2ee/e2ee_backup_coordinator.dart))
+avalaient toute exception sans laisser de trace, impossible de distinguer
+« jamais appelé » de « appelé et en échec ». Un `debugPrint` a été ajouté sur
+l'échec (poussé sur la branche partagée). Le compte de test étant déconnecté
+au moment du diagnostic (session Firebase invalidée, écran de login affiché),
+impossible d'aller plus loin sans se reconnecter — évité pour ne pas risquer
+une reconnexion SSO au nom de Salim.
+
+- [ ] **À faire à la prochaine session avec le compte connecté** : ouvrir
+  l'app jusqu'au bandeau, taper « Pas maintenant », puis IMMÉDIATEMENT (sans
+  tuer l'app) relire `FlutterSharedPreferences.xml` via `run-as` — si la clé
+  apparaît, le problème est la survie de l'écriture à un kill de process
+  (à durcir côté natif/plugin) ; si elle n'apparaît pas, chercher le
+  `debugPrint('E2EEBackupCoordinator: _snooze failed: …')` dans `adb logcat`
+  pour la cause exacte (le tag `flutter` était absent du logcat de cette
+  session — build non lancé en mode attaché, vérifier avec `flutter run`
+  plutôt qu'un `monkey` launch si les prints n'apparaissent toujours pas).
+
 ## Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)
 
 Demande de Salim : la pastille de marque affichait un seul « D » à deux
