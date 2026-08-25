@@ -37,16 +37,21 @@ rayé, en attente explicite dans le commentaire du code).
 - `DesignIllustration` gagne un paramètre `illustration` (widget) qui prend le
   pas sur `icon`/`brandMark` ; `OnboardingPageData` ne porte plus `icon`ni
   `brandMark`, seulement `illustration`.
+- **Légendes** (`onbWelcomeIllustration` etc., `app_fr.arb`/`app_en.arb`) :
+  retiré le préfixe « illustration — » (« illustration — la diaspora » →
+  « la diaspora »), redondant maintenant qu'une vraie composition existe.
 
 `flutter analyze` propre.
 
 - [x] Les 5 écrans d'onboarding — vérifié sur SM A515F le 2026-08-25 (thème
   sombre, accent orange, `font_scale` 1.0) : composition centrée dans le
   bloc rayé, aucun débordement, texte et pastilles lisibles sur les 5 écrans.
-  Atteint sans toucher au compte : bascule temporaire et **non committée**
-  de `initialLocation`/`redirect` dans `app_router.dart` (`kDebugMode`
-  uniquement, revert + rebuild + réinstall juste après la capture — le dépôt
-  et l'APK sur l'appareil sont repartis strictement sur le commit `8f5ec44`).
+  Légendes sans « illustration — » reconfirmées après ce correctif, même
+  passe device. Atteint sans toucher au compte : bascule temporaire et **non
+  committée** de `initialLocation`/`redirect` dans `app_router.dart`
+  (`kDebugMode` uniquement, revert + rebuild + réinstall juste après chaque
+  capture — le dépôt et l'APK sur l'appareil sont repartis strictement sur
+  le dernier commit poussé, `96cea66`).
   Encore ouvert : **thème clair** et **accent vert** (seule la combinaison
   sombre/orange du compte de test a pu être vue — `font_scale` 1.1 aussi,
   l'appareil était repassé à 1.0 depuis la dernière session).
