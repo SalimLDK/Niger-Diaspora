@@ -61,24 +61,26 @@ du même fichier (session Supabase, thème, `has_seen_onboarding_…`) sont bien
 présentes. Le mécanisme de mise en veille n'a donc jamais réussi à écrire sur
 cet appareil — ou n'a jamais été déclenché avec succès.
 
-Cause non confirmée : `_isSnoozed`/`_snooze`
+Cause non confirmée à ce stade : `_isSnoozed`/`_snooze`
 ([e2ee_backup_coordinator.dart](lib/core/services/e2ee/e2ee_backup_coordinator.dart))
 avalaient toute exception sans laisser de trace, impossible de distinguer
 « jamais appelé » de « appelé et en échec ». Un `debugPrint` a été ajouté sur
-l'échec (poussé sur la branche partagée). Le compte de test étant déconnecté
-au moment du diagnostic (session Firebase invalidée, écran de login affiché),
-impossible d'aller plus loin sans se reconnecter — évité pour ne pas risquer
-une reconnexion SSO au nom de Salim.
+l'échec (poussé sur la branche partagée).
 
-- [ ] **À faire à la prochaine session avec le compte connecté** : ouvrir
-  l'app jusqu'au bandeau, taper « Pas maintenant », puis IMMÉDIATEMENT (sans
-  tuer l'app) relire `FlutterSharedPreferences.xml` via `run-as` — si la clé
-  apparaît, le problème est la survie de l'écriture à un kill de process
-  (à durcir côté natif/plugin) ; si elle n'apparaît pas, chercher le
-  `debugPrint('E2EEBackupCoordinator: _snooze failed: …')` dans `adb logcat`
-  pour la cause exacte (le tag `flutter` était absent du logcat de cette
-  session — build non lancé en mode attaché, vérifier avec `flutter run`
-  plutôt qu'un `monkey` launch si les prints n'apparaissent toujours pas).
+- [x] **Reproduit et confirmé fonctionnel le 2026-08-25, même session, une
+  fois le compte reconnecté par Salim.** Séquence : app au premier plan
+  (compte Sim A), tap « Pas maintenant », `run-as … cat
+  FlutterSharedPreferences.xml` → `flutter.e2ee_prompt_snoozed_needsRestore_…`
+  bien présent. Puis `am force-stop` + relance à froid (`monkey`, ~16 s) :
+  la clé **survit** (même valeur), et le bandeau **ne réapparaît pas** sur
+  l'écran d'accueil. Le mécanisme fonctionne donc correctement dans l'usage
+  normal (app ouverte le temps du tap, puis fermée). La série de 7
+  redémarrages sans aucune clé écrite, observée plus tôt dans la même
+  session, reste inexpliquée avec certitude — hypothèse la plus probable :
+  aucun de ces redémarrages n'incluait un tap réel sur « Pas maintenant »
+  (compte déconnecté à un moment donné pendant cette série). Le
+  `debugPrint` ajouté reste utile en filet si un échec d'écriture silencieux
+  se reproduit.
 
 ## Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)
 
