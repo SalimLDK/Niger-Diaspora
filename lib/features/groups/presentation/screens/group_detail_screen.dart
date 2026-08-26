@@ -213,7 +213,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                           width: 66,
                           height: 66,
                           decoration: BoxDecoration(
-                            // Vert de groupe de la fiche 9d/9e (#06871D) :
+                            // Vert de groupe de la fiche 9d/9e (#009600) :
                             // c'est la couleur qui identifie « groupe » dans
                             // toute la messagerie, pas l'accent du compte.
                             color: context.successColor,

@@ -729,7 +729,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                       width: 13,
                       height: 13,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0DB02B),
+                        color: const Color(0xFF009600),
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: context.backgroundColor,

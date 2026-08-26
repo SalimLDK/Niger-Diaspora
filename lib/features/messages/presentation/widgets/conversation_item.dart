@@ -779,13 +779,13 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
             widget.conversation.lastMessageDeliveredTo.contains(otherId);
 
         if (isRead) {
-          // Vert de lecture de la fiche 9a (#0DB02B). Le bleu WhatsApp
+          // Vert de lecture de la fiche 9a (#009600). Le bleu WhatsApp
           // n'appartient à aucune des cinq palettes du guide, et il jurait
           // avec le crème.
           return const AppIcon(
             AppIcon.doneAll,
             size: 16,
-            color: Color(0xFF0DB02B),
+            color: Color(0xFF009600),
           );
         }
         if (isDelivered) {

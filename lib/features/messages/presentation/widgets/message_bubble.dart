@@ -200,9 +200,9 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   // L'accusé de lecture bleu vit désormais dans AppColors.readReceiptBlue.
 
   // ── Bulles opaques (refonte Discussion — contraste AA) ────────────────────
-  /// Bulle envoyée : `#06871D` (clair) / `#0DB02B` (sombre).
-  static const Color _kSentBubbleLight = Color(0xFF06871D);
-  static const Color _kSentBubbleDark = Color(0xFF0DB02B);
+  /// Bulle envoyée : `#009600` (clair) / `#009600` (sombre).
+  static const Color _kSentBubbleLight = Color(0xFF009600);
+  static const Color _kSentBubbleDark = Color(0xFF009600);
 
   /// Bulle reçue : `#FFFFFF` (clair) / `#252119` (sombre).
   static const Color _kRecvBubbleLight = Color(0xFFFFFFFF);

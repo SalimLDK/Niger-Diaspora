@@ -901,7 +901,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               _AccentSwatch(
                 // La pastille est l'aperçu de l'accent choisi : elle doit
                 // porter la valeur que le thème rendra réellement, soit
-                // l'orange d'action `#9F3E0A` — pas la teinte claire de la
+                // l'orange d'action `#FA7D00` — pas la teinte claire de la
                 // famille.
                 color: AppColors.primaryDark,
                 label: l10n.orangeColor,

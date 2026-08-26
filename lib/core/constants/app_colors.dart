@@ -10,6 +10,13 @@ import 'package:flutter/material.dart';
 /// reflètent plus le document du guide** — ne pas les "corriger" vers les
 /// anciennes valeurs du guide en croyant réparer une dérive. Les jetons non
 /// listés par le guide ([warning], les dégradés) restent propres à l'app.
+///
+/// Recolorées à nouveau le 2026-08-25 sur demande produit : [primary] et
+/// [primaryDark] valent désormais toutes deux `#FA7D00`, [secondary] et
+/// [secondaryDark] valent toutes deux `#009600`. Les variantes claires et
+/// très foncées ([primaryLight]/[primaryLighter]/[primaryDarker],
+/// [secondaryLight]/[secondaryLighter]/[secondaryDarker]) n'ont volontairement
+/// pas été touchées — elles peuvent avoir dérivé de la base précédente.
 /// Les trois autres palettes du système vivent ailleurs :
 /// ① Organic dans `features/feed/…/feed_tokens.dart`, ④ DNColors dans
 /// `core/theme/dn_colors.dart`, ⑤ Admin dans `core/theme/admin_colors.dart`.
@@ -20,8 +27,8 @@ class AppColors {
   // PRIMARY COLORS - ORANGE SAHELIEN
   // ============================================
 
-  /// Orange principal (recoloré 2026-08-14, ex Sahel Orange `#E07B39`)
-  static const Color primary = Color(0xFFE05206);
+  /// Orange principal (recoloré 2026-08-25, ex `#E05206`)
+  static const Color primary = Color(0xFFFA7D00);
 
   /// Version claire
   static const Color primaryLight = Color(0xFFFA7E3B);
@@ -31,8 +38,9 @@ class AppColors {
 
   /// Version foncee - c'est **cette** valeur qui habille l'action
   /// principale, pas [primary] (qui reste la teinte d'accent choisie par
-  /// l'utilisateur dans le thème orange).
-  static const Color primaryDark = Color(0xFF9F3E0A);
+  /// l'utilisateur dans le thème orange). Les deux valent `#FA7D00` depuis
+  /// le 2026-08-25 (recolorées ensemble sur demande produit).
+  static const Color primaryDark = Color(0xFFFA7D00);
 
   /// Version tres foncee
   static const Color primaryDarker = Color(0xFF662705);
@@ -41,8 +49,8 @@ class AppColors {
   // SECONDARY COLORS - VERT NIGER
   // ============================================
 
-  /// Vert principal (recoloré 2026-08-14, ex Niger Green `#2D7D46`)
-  static const Color secondary = Color(0xFF0DB02B);
+  /// Vert principal (recoloré 2026-08-25, ex `#0DB02B`)
+  static const Color secondary = Color(0xFF009600);
 
   /// Version claire
   static const Color secondaryLight = Color(0xFF32E252);
@@ -50,8 +58,8 @@ class AppColors {
   /// Version tres claire - fonds pastel
   static const Color secondaryLighter = Color(0xFFEAF6EC);
 
-  /// Version foncee
-  static const Color secondaryDark = Color(0xFF06871D);
+  /// Version foncee - vaut `#009600` comme [secondary] depuis le 2026-08-25.
+  static const Color secondaryDark = Color(0xFF009600);
 
   /// Version tres foncee
   static const Color secondaryDarker = Color(0xFF055A14);

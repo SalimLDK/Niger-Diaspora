@@ -2,9 +2,9 @@ part of 'home_screen.dart';
 
 // ── Refonte 8a : ligne de contexte, bloc « Aujourd'hui », grille services ────
 
-const _homeLocation = Color(0xFF9F3E0A);
-const _homeGreen = Color(0xFF0DB02B);
-const _homeOrange = Color(0xFF9F3E0A);
+const _homeLocation = Color(0xFFFA7D00);
+const _homeGreen = Color(0xFF009600);
+const _homeOrange = Color(0xFFFA7D00);
 const _homeBadgeRed = Color(0xFFC23E2D);
 
 /// Date courte d'un événement (« 2 août »). Le mois vient d'`intl`, pas
@@ -1459,8 +1459,8 @@ class _NotifyNextToggle extends ConsumerWidget {
 /// Palette d'avatars (orange, vert, sarcelle, brique, violet) alignée sur la
 /// maquette. La couleur est stable pour un même profil via son id.
 const _avatarPalette = <Color>[
-  Color(0xFF9F3E0A), // orange
-  Color(0xFF0DB02B), // vert
+  Color(0xFFFA7D00), // orange
+  Color(0xFF009600), // vert
   Color(0xFF2A7F7B), // sarcelle
   Color(0xFFC23E2D), // brique
   Color(0xFF7A5AA8), // violet

@@ -870,7 +870,7 @@ class _EventCardState extends ConsumerState<_EventCard> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF06871D),
+                          color: const Color(0xFF009600),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -930,7 +930,7 @@ class _EventCardState extends ConsumerState<_EventCard> {
                               fontSize: 19,
                               fontWeight: FontWeight.w700,
                               height: 1,
-                              color: const Color(0xFF9F3E0A),
+                              color: const Color(0xFFFA7D00),
                             ),
                           ),
                           const SizedBox(height: 2),

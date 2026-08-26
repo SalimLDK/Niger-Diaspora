@@ -134,7 +134,7 @@ extension AdaptiveColors on BuildContext {
 
   /// Repère terracotta : ce qui signale sans agir — bascule ÉCO de la
   /// discussion, libellés de section du panneau de stickers, marques
-  /// d'épinglage. `#9F3E0A` (l'orange d'action, recoloré 2026-08-14) en
+  /// d'épinglage. `#FA7D00` (l'orange d'action, recoloré 2026-08-14) en
   /// clair, `#FA7E3B` en nocturne où le foncé serait illisible.
   ///
   /// La paire était recopiée en dur à chaque usage ; elle a un nom depuis

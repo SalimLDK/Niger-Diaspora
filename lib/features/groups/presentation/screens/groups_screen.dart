@@ -1153,7 +1153,7 @@ class _GroupActivityBadge extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final isActive = DateTime.now().difference(lastActivity).inHours < 24;
     // Vert lisible en clair comme en sombre pour ACTIF ; neutre pour CALME.
-    const activeColor = Color(0xFF0DB02B);
+    const activeColor = Color(0xFF009600);
     final fg = isActive ? activeColor : context.textSecondaryColor;
     final bg = isActive
         ? activeColor.withValues(alpha: 0.14)

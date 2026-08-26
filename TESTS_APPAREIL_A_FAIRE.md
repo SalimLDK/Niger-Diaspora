@@ -14,6 +14,32 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)
+
+Demande produit : `AppColors.primary`/`primaryDark` (orange) `#E05206`/`#9F3E0A`
+→ `#FA7D00` unique (`#FC7C00` d'abord appliqué puis corrigé en cours de session),
+`AppColors.secondary`/`secondaryDark` (vert) `#0DB02B`/`#06871D` → `#009600`
+unique. Appliqué dans [app_colors.dart](lib/core/constants/app_colors.dart) et
+propagé aux ~19 fichiers qui dupliquaient ces hex en dur (bulles de message,
+accueil, groupes, événements, transferts, annuaire entreprises, ambassades...).
+`flutter analyze` propre.
+
+- [x] **Thème Système/Orange, sombre, sur SM A515F (build debug réinstallé,
+  `lastUpdateTime` confirmé postérieur au commit)** : splash `DN`, bouton
+  « Ajouter mon pays », onglet actif « Messages », avatar « SL », icônes
+  « Le fil »/« Annuaire » en `#FA7D00` — texte/icônes blancs bien lisibles
+  dessus. Avatars de groupe et bulle de message envoyée en `#009600` — lisible
+  aussi. Capture confirmée à l'œil, pas de risque de contraste constaté.
+- [ ] Thème clair (Orange et Vert) jamais vu avec ces valeurs.
+- [ ] Thème Système/**Vert** (bascule complète primary↔secondary dans
+  `app_theme.dart`, pas juste les bulles/avatars qui restent verts quel que
+  soit le thème) jamais vu avec ces valeurs.
+- [ ] Comparer visuellement `primary`/`primaryDark` maintenant identiques
+  (plus de dégradé entre les deux dans les endroits qui s'appuyaient dessus,
+  ex. `primaryGradient`) — pas vérifié à l'œil, juste déduit du code.
+
+---
+
 ## ✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)
 
 Découvert en essayant de vérifier la pastille « DN » en clair/vert sur le
