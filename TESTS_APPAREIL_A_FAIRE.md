@@ -14,35 +14,38 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
-## Le thème choisi (clair/sombre, orange/vert) ne survit jamais à un redémarrage (2026-08-25)
+## ✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)
 
 Découvert en essayant de vérifier la pastille « DN » en clair/vert sur le
-SM A515F (cf. entrée du 2026-08-25 plus bas sur les illustrations
-d'onboarding). Réglages → Thème → Clair + Vert s'écrit correctement sur
-disque (`FlutterSharedPreferences.xml` : `theme_mode=light`,
-`theme_color=green`, vérifié via `adb run-as ... cat`), **mais après
-`am force-stop` + relance à froid, l'app retombe systématiquement sur
-Système + Orange** — reproduit deux fois de suite, écran de connexion et
-accueil. Rouvrir Réglages confirme que même la ligne « Thème » **en mémoire**
-réaffiche « Système », alors que le fichier sur disque dit toujours
-`light`/`green` : ce n'est pas un rafraîchissement d'UI en retard, l'état
-Riverpod ne charge jamais la valeur persistée.
+SM A515F (cf. entrée plus bas sur les illustrations d'onboarding). Réglages →
+Thème → Clair + Vert s'écrivait correctement sur disque
+(`FlutterSharedPreferences.xml` : `theme_mode=light`, `theme_color=green`),
+mais après `am force-stop` + relance à froid, l'app retombait
+systématiquement sur Système + Orange.
 
-Piste probable (non confirmée) : `ThemeModeNotifier.build()` /
-`ThemeColorNotifier.build()` dans
-[theme_provider.dart](lib/core/theme/theme_provider.dart) appellent
-`_loadTheme()`/`_loadColor()` **sans les attendre**, avant de retourner le
-défaut synchrone (`AppThemeMode.system` / `AppThemeColor.orange`). La mise à
-jour asynchrone de `state` qui devrait suivre ne semble jamais aboutir.
-Détails complets : mémoire `project_theme_pref_not_restored`.
+**Cause confirmée** : `ThemeModeNotifier.build()` / `ThemeColorNotifier.build()`
+dans [theme_provider.dart](lib/core/theme/theme_provider.dart) appelaient
+`_loadTheme()`/`_loadColor()`, des méthodes `async` **sans aucun `await`
+interne** — Dart les exécute donc de façon synchrone à l'appel, et
+`state = mode` s'exécutait bien mais *pendant* `build()`, juste avant que
+`build()` n'écrase avec son propre retour `system`/`orange`. Corrigé en
+faisant lire `build()` directement dans les préférences (commit `fc9ea35`).
+Test de non-régression : [theme_provider_test.dart](test/core/theme/theme_provider_test.dart)
+(confirmé qu'il échoue sur l'ancien code, passe sur le nouveau). Détails :
+mémoire `project_theme_pref_not_restored`.
+
+- [x] **Reconfirmé sur SM A515F, même cycle** : Réglages → Clair + Vert →
+  `force-stop` + relance à froid → **accueil rendu en crème/vert**, pour la
+  première fois (avant le correctif, ce cycle retombait toujours en
+  sombre/orange, reproduit deux fois).
+- [x] Pastille « DN » (`AuthBrandMark`, écran de connexion) vue en clair/vert
+  sur l'appareil — capture envoyée à Salim. Les deux lettres tiennent dans
+  le carré 46×46.
+- [ ] Combinaison sombre + accent vert jamais vue à l'œil sur cet appareil
+  (comportement attendu vu le correctif, mais pas observé).
 
 Appareil laissé propre : réglages restaurés à `system`/`orange` (valeurs
 d'origine) via l'IU avant de rendre la main.
-
-- [ ] Non corrigé cette session (hors périmètre initial). Bloque la
-  vérification de `AuthBrandMark` (pastille DN) en thème clair + accent vert.
-- [ ] Une fois corrigé : revérifier que le thème choisi survit bien à un
-  `force-stop` + relance à froid, pas seulement à un hot-reload.
 
 ---
 
