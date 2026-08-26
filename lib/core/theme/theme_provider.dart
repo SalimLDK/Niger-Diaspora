@@ -28,20 +28,12 @@ class ThemeModeNotifier extends _$ThemeModeNotifier {
 
   @override
   AppThemeMode build() {
-    _loadTheme();
-    return AppThemeMode.system;
-  }
-
-  Future<void> _loadTheme() async {
     final themeString = _prefs.themeMode;
-
-    if (themeString != null) {
-      final mode = AppThemeMode.values.firstWhere(
-        (e) => e.name == themeString,
-        orElse: () => AppThemeMode.system,
-      );
-      state = mode;
-    }
+    if (themeString == null) return AppThemeMode.system;
+    return AppThemeMode.values.firstWhere(
+      (e) => e.name == themeString,
+      orElse: () => AppThemeMode.system,
+    );
   }
 
   Future<void> setThemeMode(AppThemeMode mode) async {
@@ -78,25 +70,19 @@ class ThemeColorNotifier extends _$ThemeColorNotifier {
 
   @override
   AppThemeColor build() {
-    _loadColor();
+    final colorString = _prefs.themeColor;
+    if (colorString != null) {
+      return AppThemeColor.values.firstWhere(
+        (e) => e.name == colorString,
+        orElse: () => AppThemeColor.orange,
+      );
+    }
     // Terracotta par défaut : c'est la couleur des maquettes. Le vert
     // restait le défaut alors que toute la refonte est dessinée en orange,
     // donc une installation neuve affichait la refonte dans la mauvaise
     // couleur. Le choix explicite d'un membre est préservé — il est relu
-    // juste en dessous.
+    // juste au-dessus.
     return AppThemeColor.orange;
-  }
-
-  Future<void> _loadColor() async {
-    final colorString = _prefs.themeColor;
-
-    if (colorString != null) {
-      final color = AppThemeColor.values.firstWhere(
-        (e) => e.name == colorString,
-        orElse: () => AppThemeColor.orange,
-      );
-      state = color;
-    }
   }
 
   Future<void> setThemeColor(AppThemeColor color) async {
