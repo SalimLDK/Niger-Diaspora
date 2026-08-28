@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
+import '../../core/constants/app_config.dart';
 
 /// Résultat de recherche de lieu, avec coordonnées optionnelles (déjà connues
 /// lorsque le résultat vient du repli géocodage plutôt que de Places).
@@ -34,7 +34,7 @@ class PlaceSearchResult {
 class PlaceSearchService {
   const PlaceSearchService();
 
-  String get _apiKey => dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
+  String get _apiKey => AppConfig.googleMapsApiKey;
 
   /// Recherche des suggestions de lieux pour [query] (max 5 résultats).
   Future<List<PlaceSearchResult>> search(String query) async {

@@ -14,6 +14,29 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Configuration distante `app-config` (2026-08-27)
+
+L'app va chercher sa configuration publique auprès de l'Edge Function
+`app-config` au démarrage, avec le `.env` embarqué en filet.
+Fichiers : `supabase/functions/app-config/index.ts`,
+`lib/core/services/remote_config_service.dart`, `lib/core/constants/app_config.dart`.
+
+`flutter analyze` propre, 330/330 tests passent — mais aucun test ne démarre
+l'app réelle ni n'atteint le réseau. Les quatre chemins à voir sur appareil :
+
+- [ ] **Nominal** : fonction déployée, l'app démarre et la carte / les liens
+      profonds / LiveKit fonctionnent (valeurs venues du serveur)
+- [ ] **Hors ligne au tout premier lancement** : aucun cache, aucun réseau →
+      l'app doit démarrer sur le `.env` sans ralentissement visible
+- [ ] **Fonction non déployée** (404) : même exigence, démarrage normal
+- [ ] **Bascule à chaud** : changer `LIVEKIT_SERVER_URL` par
+      `supabase secrets set`, redémarrer l'app, la nouvelle valeur doit
+      s'appliquer **sans réinstaller l'APK** — c'est tout l'intérêt
+- [ ] Vérifier que le délai de 4 s ne retarde jamais le premier écran
+
+⚠️ `SUPABASE_URL` et `SUPABASE_ANON_KEY` restent volontairement dans le `.env` :
+ils ouvrent la connexion qui sert à joindre `app-config`.
+
 ## ⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)
 
 `GIPHY_API_KEY` et `TENOR_API_KEY` ne sont plus dans le `.env` embarqué : les

@@ -1,5 +1,7 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import '../services/remote_config_service.dart';
+
 /// Application configuration for API keys and environment settings.
 ///
 /// This file centralizes all configuration constants including Stripe keys,
@@ -26,10 +28,23 @@ class AppConfig {
   // HELPER: read --dart-define first, then .env
   // ============================================
 
+  /// Ordre : `--dart-define` (fige au build) > configuration distante
+  /// (`app-config`, modifiable sans republier) > `.env` embarque > repli.
+  ///
+  /// Le `.env` reste le filet : [RemoteConfigService.value] rend null tant que
+  /// la configuration distante n'est pas chargee -- au premier lancement, hors
+  /// ligne, ou si la fonction n'est pas deployee, l'app demarre comme avant.
+  /// C'est aussi ce qui rend l'ordre de demarrage sur : `SUPABASE_URL` et
+  /// `SUPABASE_ANON_KEY` sont lus avant l'appel distant et viennent forcement
+  /// du `.env` -- ils ouvrent la connexion qui sert a joindre `app-config`.
   static String _read(String dartDefineKey, {String fallback = ''}) {
     final fromDartDefine = String.fromEnvironment(dartDefineKey);
     if (fromDartDefine.isNotEmpty) {
       return fromDartDefine;
+    }
+    final fromRemote = RemoteConfigService.instance.value(dartDefineKey);
+    if (fromRemote != null) {
+      return fromRemote;
     }
     try {
       final fromDotEnv = dotenv.env[dartDefineKey];
@@ -145,6 +160,22 @@ class AppConfig {
       _googleWebClientIdFromEnv.isNotEmpty
           ? _googleWebClientIdFromEnv
           : _defaultGoogleWebClientId;
+
+  // ============================================
+  // SERVICES PILOTABLES A DISTANCE
+  // ============================================
+  //
+  // Ces trois valeurs lisaient `dotenv.env[...]` en direct, ce qui court-circuitait
+  // `--dart-define` comme la configuration distante. Elles passent desormais par
+  // [_read], donc par la meme cascade que tout le reste.
+
+  static String get deepLinkBaseUrl =>
+      _read('DEEP_LINK_BASE_URL', fallback: 'https://diasponiger.web.app');
+
+  static String get livekitServerUrl =>
+      _read('LIVEKIT_SERVER_URL', fallback: 'wss://livekit.diasponiger.com');
+
+  static String get googleMapsApiKey => _read('GOOGLE_MAPS_API_KEY');
 
   // ============================================
   // GIFS (GIPHY / TENOR)
