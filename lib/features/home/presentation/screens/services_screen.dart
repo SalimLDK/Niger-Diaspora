@@ -60,20 +60,20 @@ class ServicesScreen extends ConsumerWidget {
       // Absents de la grille alors que les modules sont livrés : sans ces deux
       // entrées, /audio-rooms et /podcasts n'étaient joignables par aucun
       // chemin depuis l'app.
-      if (ref.watch(isAudioRoomsEnabledProvider))
-        _ServiceItem(
-          icon: Icons.podcasts_rounded,
-          label: 'Salons audio',
-          color: context.adaptivePrimaryColor,
-          route: '/audio-rooms',
-        ),
-      if (ref.watch(isPodcastsEnabledProvider))
-        _ServiceItem(
-          icon: Icons.mic_rounded,
-          label: l10n.podcasts,
-          color: context.adaptiveSecondaryColor,
-          route: '/podcasts',
-        ),
+      // if (ref.watch(isAudioRoomsEnabledProvider))
+      //   _ServiceItem(
+      //     icon: Icons.podcasts_rounded,
+      //     label: 'Salons audio',
+      //     color: context.adaptivePrimaryColor,
+      //     route: '/audio-rooms',
+      //   ),
+      // if (ref.watch(isPodcastsEnabledProvider))
+      //   _ServiceItem(
+      //     icon: Icons.mic_rounded,
+      //     label: l10n.podcasts,
+      //     color: context.adaptiveSecondaryColor,
+      //     route: '/podcasts',
+      //   ),
       // Événements et Amis manquaient : le module événements a un flag et une
       // route depuis longtemps mais aucune tuile, et /friends n'était joignable
       // que depuis le profil.
