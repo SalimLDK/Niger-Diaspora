@@ -1,42 +1,41 @@
-import 'package:dio/dio.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../core/constants/app_config.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/gif_entity.dart';
 import 'gif_remote_datasource.dart';
 
 /// Fournisseur Tenor (Google) — API v2.
 ///
+/// L'appel passe par l'Edge Function `gif-proxy`, seule détentrice de la clé.
+/// Elle vivait auparavant dans le `.env` embarqué comme asset dans l'APK, donc
+/// extractible par quiconque décompresse l'application — quota et facturation
+/// compris.
+///
 /// Docs : https://developers.google.com/tenor/guides/endpoints
 class TenorDataSource implements GifRemoteDataSource {
-  static const String _baseUrl = 'https://tenor.googleapis.com/v2';
+  static const String _functionName = 'gif-proxy';
 
-  /// Filtre de contenu Tenor : `high` = le plus strict.
-  static const String _contentFilter = 'high';
+  final SupabaseClient _supabase;
 
-  final Dio _dio;
-
-  TenorDataSource({Dio? dio})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                connectTimeout: const Duration(seconds: 10),
-                receiveTimeout: const Duration(seconds: 10),
-              ),
-            );
+  TenorDataSource({SupabaseClient? supabase})
+      : _supabase = supabase ?? Supabase.instance.client;
 
   @override
   GifProvider get provider => GifProvider.tenor;
 
+  /// La clé vit côté serveur : le client ne peut plus savoir si elle est
+  /// renseignée. `gif-proxy` répond 503 quand elle manque, ce qui fait basculer
+  /// [GifRepository] sur le fournisseur suivant — même comportement qu'avant,
+  /// décidé au bon endroit.
   @override
-  bool get isConfigured => AppConfig.isTenorConfigured;
+  bool get isConfigured => true;
 
   @override
   Future<List<GifEntity>> trending({
     GifContentType type = GifContentType.gif,
     int limit = 30,
   }) {
-    return _fetch('$_baseUrl/featured', type: type, limit: limit);
+    return _fetch('trending', type: type, limit: limit);
   }
 
   @override
@@ -45,44 +44,41 @@ class TenorDataSource implements GifRemoteDataSource {
     GifContentType type = GifContentType.gif,
     int limit = 30,
   }) {
-    return _fetch(
-      '$_baseUrl/search',
-      type: type,
-      limit: limit,
-      extraQuery: {'q': query},
-    );
+    return _fetch('search', type: type, limit: limit, query: query);
   }
 
   Future<List<GifEntity>> _fetch(
-    String url, {
+    String endpoint, {
     required GifContentType type,
     required int limit,
-    Map<String, dynamic> extraQuery = const {},
+    String? query,
   }) async {
-    if (!isConfigured) {
-      throw ServerException('Clé API Tenor absente (TENOR_API_KEY)');
-    }
-
     try {
-      final response = await _dio.get<Map<String, dynamic>>(
-        url,
-        queryParameters: {
-          'key': AppConfig.tenorApiKey,
+      final response = await _supabase.functions.invoke(
+        _functionName,
+        body: {
+          'provider': 'tenor',
+          'endpoint': endpoint,
+          'type': type == GifContentType.sticker ? 'sticker' : 'gif',
           'limit': limit,
-          'contentfilter': _contentFilter,
-          'media_filter': 'gif,tinygif',
-          if (type == GifContentType.sticker) 'searchfilter': 'sticker',
-          ...extraQuery,
+          if (query != null) 'q': query,
         },
       );
 
-      final results = response.data?['results'] as List? ?? const [];
+      if (response.status != 200) {
+        throw ServerException('Tenor indisponible : HTTP ${response.status}');
+      }
+
+      // `gif-proxy` relaie la charge utile Tenor verbatim : la forme
+      // `results[]` est celle de l'API, le parsing ci-dessous est inchangé.
+      final payload = response.data as Map<String, dynamic>?;
+      final results = payload?['results'] as List? ?? const [];
       return results
           .map((e) => _fromJson(e as Map<String, dynamic>))
           .whereType<GifEntity>()
           .toList();
-    } on DioException catch (e) {
-      throw ServerException('Tenor indisponible : ${e.message}');
+    } on FunctionException catch (e) {
+      throw ServerException('Tenor indisponible : ${e.reasonPhrase ?? e.status}');
     }
   }
 

@@ -1,42 +1,41 @@
-import 'package:dio/dio.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../core/constants/app_config.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../domain/entities/gif_entity.dart';
 import 'gif_remote_datasource.dart';
 
 /// Fournisseur Giphy — API v1. Utilisé en repli de [TenorDataSource].
 ///
+/// L'appel passe par l'Edge Function `gif-proxy`, seule détentrice de la clé.
+/// Elle vivait auparavant dans le `.env` embarqué comme asset dans l'APK, donc
+/// extractible par quiconque décompresse l'application — quota et facturation
+/// compris.
+///
 /// Docs : https://developers.giphy.com/docs/api/endpoint
 class GiphyDataSource implements GifRemoteDataSource {
-  static const String _baseUrl = 'https://api.giphy.com/v1';
+  static const String _functionName = 'gif-proxy';
 
-  /// Classification Giphy : `g` = tout public.
-  static const String _rating = 'g';
+  final SupabaseClient _supabase;
 
-  final Dio _dio;
-
-  GiphyDataSource({Dio? dio})
-      : _dio = dio ??
-            Dio(
-              BaseOptions(
-                connectTimeout: const Duration(seconds: 10),
-                receiveTimeout: const Duration(seconds: 10),
-              ),
-            );
+  GiphyDataSource({SupabaseClient? supabase})
+      : _supabase = supabase ?? Supabase.instance.client;
 
   @override
   GifProvider get provider => GifProvider.giphy;
 
+  /// La clé vit côté serveur : le client ne peut plus savoir si elle est
+  /// renseignée. `gif-proxy` répond 503 quand elle manque, ce qui fait basculer
+  /// [GifRepository] sur le fournisseur suivant — même comportement qu'avant,
+  /// décidé au bon endroit.
   @override
-  bool get isConfigured => AppConfig.isGiphyConfigured;
+  bool get isConfigured => true;
 
   @override
   Future<List<GifEntity>> trending({
     GifContentType type = GifContentType.gif,
     int limit = 30,
   }) {
-    return _fetch('${_segment(type)}/trending', limit: limit);
+    return _fetch('trending', type: type, limit: limit);
   }
 
   @override
@@ -45,44 +44,41 @@ class GiphyDataSource implements GifRemoteDataSource {
     GifContentType type = GifContentType.gif,
     int limit = 30,
   }) {
-    return _fetch(
-      '${_segment(type)}/search',
-      limit: limit,
-      extraQuery: {'q': query},
-    );
+    return _fetch('search', type: type, limit: limit, query: query);
   }
 
-  /// Giphy expose les stickers sur un chemin distinct de celui des GIFs.
-  String _segment(GifContentType type) =>
-      type == GifContentType.sticker ? '$_baseUrl/stickers' : '$_baseUrl/gifs';
-
   Future<List<GifEntity>> _fetch(
-    String url, {
+    String endpoint, {
+    required GifContentType type,
     required int limit,
-    Map<String, dynamic> extraQuery = const {},
+    String? query,
   }) async {
-    if (!isConfigured) {
-      throw ServerException('Clé API Giphy absente (GIPHY_API_KEY)');
-    }
-
     try {
-      final response = await _dio.get<Map<String, dynamic>>(
-        url,
-        queryParameters: {
-          'api_key': AppConfig.giphyApiKey,
+      final response = await _supabase.functions.invoke(
+        _functionName,
+        body: {
+          'provider': 'giphy',
+          'endpoint': endpoint,
+          'type': type == GifContentType.sticker ? 'sticker' : 'gif',
           'limit': limit,
-          'rating': _rating,
-          ...extraQuery,
+          if (query != null) 'q': query,
         },
       );
 
-      final results = response.data?['data'] as List? ?? const [];
+      if (response.status != 200) {
+        throw ServerException('Giphy indisponible : HTTP ${response.status}');
+      }
+
+      // `gif-proxy` relaie la charge utile Giphy verbatim : la forme `data[]`
+      // est celle de l'API, le parsing ci-dessous est inchangé.
+      final payload = response.data as Map<String, dynamic>?;
+      final results = payload?['data'] as List? ?? const [];
       return results
           .map((e) => _fromJson(e as Map<String, dynamic>))
           .whereType<GifEntity>()
           .toList();
-    } on DioException catch (e) {
-      throw ServerException('Giphy indisponible : ${e.message}');
+    } on FunctionException catch (e) {
+      throw ServerException('Giphy indisponible : ${e.reasonPhrase ?? e.status}');
     }
   }
 

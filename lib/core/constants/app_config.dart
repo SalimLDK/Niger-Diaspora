@@ -147,44 +147,17 @@ class AppConfig {
           : _defaultGoogleWebClientId;
 
   // ============================================
-  // GIPHY CONFIGURATION
+  // GIFS (GIPHY / TENOR)
   // ============================================
-
-  /// Giphy API key from build arguments.
-  /// Set via --dart-define=GIPHY_API_KEY=xxx
-  static const String _giphyApiKeyFromEnv = String.fromEnvironment(
-    'GIPHY_API_KEY',
-    defaultValue: '',
-  );
-
-  /// Get the active Giphy API key. Dart-define wins ; sinon fallback `.env`
-  /// (comme Stripe/RevenueCat/Supabase) — sans lui, une clé posée dans .env
-  /// n'est jamais lue au runtime.
-  static String get giphyApiKey => _giphyApiKeyFromEnv.isNotEmpty
-      ? _giphyApiKeyFromEnv
-      : (dotenv.env['GIPHY_API_KEY'] ?? '');
-
-  /// Validate that Giphy is properly configured.
-  static bool get isGiphyConfigured => giphyApiKey.isNotEmpty;
-
-  // ============================================
-  // TENOR CONFIGURATION
-  // ============================================
-
-  /// Tenor API key from build arguments.
-  /// Set via --dart-define=TENOR_API_KEY=xxx
-  static const String _tenorApiKeyFromEnv = String.fromEnvironment(
-    'TENOR_API_KEY',
-    defaultValue: '',
-  );
-
-  /// Get the active Tenor API key. Dart-define wins ; sinon fallback `.env`.
-  static String get tenorApiKey => _tenorApiKeyFromEnv.isNotEmpty
-      ? _tenorApiKeyFromEnv
-      : (dotenv.env['TENOR_API_KEY'] ?? '');
-
-  /// Validate that Tenor is properly configured.
-  static bool get isTenorConfigured => tenorApiKey.isNotEmpty;
+  //
+  // Aucune clé ici, volontairement. `GIPHY_API_KEY` et `TENOR_API_KEY` sont
+  // détenues par l'Edge Function `gif-proxy` : le `.env` est déclaré comme
+  // asset dans pubspec.yaml, donc tout ce qu'il contient part dans l'APK et
+  // s'extrait avec un simple dézippage. Ces deux clés-là portent quota et
+  // facturation, contrairement aux clés publiques (Firebase, Maps, reCAPTCHA)
+  // qui restent ici faute de pouvoir en sortir.
+  //
+  // Voir lib/features/gifs/data/datasources/.
 
   /// Get configuration info for debugging
   static Map<String, dynamic> get configInfo => {
