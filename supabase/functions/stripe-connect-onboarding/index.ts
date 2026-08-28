@@ -5,7 +5,13 @@ const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 const SUPABASE_SERVICE_ROLE_KEY = (Deno.env.get('SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!
 const STRIPE_SECRET_KEY = Deno.env.get('STRIPE_SECRET_KEY')!
-const APP_DEEP_LINK_BASE = Deno.env.get('APP_DEEP_LINK_BASE') ?? 'https://diasponiger.com'
+// Le secret pose s'appelle DEEP_LINK_BASE_URL -- meme nom que cote client.
+// Cette ligne lisait APP_DEEP_LINK_BASE, qui n'existait nulle part : le repli
+// en dur s'appliquait toujours, en silence, sur un hote different de celui
+// reellement configure.
+// ⚠️ Trou distinct, non corrige ici : aucune route de l'app ne traite
+// /stripe/return ni /stripe/refresh.
+const APP_DEEP_LINK_BASE = Deno.env.get('DEEP_LINK_BASE_URL') ?? 'https://diasponiger.web.app'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
