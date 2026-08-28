@@ -68,6 +68,9 @@ functions/node_modules/
 # Environment files
 .env
 .env.*
+# ... sauf les gabarits, qui ne contiennent aucune valeur et sont le seul
+# document dont un nouveau poste dispose pour reconstituer sa configuration.
+!.env.example
 
 # Claude Code local settings
 .claude/settings.local.json
