@@ -28,7 +28,9 @@
 
 ## 2. Conclusion en une phrase
 
-La fonctionnalité « Mes notes » est **déjà implémentée et commitée** dans le dépôt sur **presque toutes les couches** (données, provider, écran de conversation, widget de brouillon de sondage), **mais son point d'entrée dans l'interface n'est PAS câblé** — donc, en l'état, **tu ne peux pas encore l'ouvrir depuis l'app**. Cette session n'a laissé **aucune modification durable** sur ces fichiers (l'arbre git est propre côté `lib/`).
+La fonctionnalité « Mes notes » est **entièrement implémentée, câblée et commitée** dans le dépôt — **y compris son point d'entrée UI** (tuile épinglée + navigation), finalisé par l'autre agent (Jules) dans des commits arrivés au fil de la session (HEAD passé de `2ca815c` à `dce2f94`). **Il n'y a plus rien à développer ni à câbler.** Cette session n'a laissé **aucune modification de code durable** ; son seul apport durable est le présent rapport.
+
+> ⚠️ Correction en cours de session : une version antérieure de ce rapport indiquait le point d'entrée « manquant ». C'était vrai à un HEAD plus ancien ; la re-vérification en direct dans le HEAD actuel (`dce2f94`) montre qu'il est **présent et complet** (voir §4). La source de vérité est toujours l'état git du moment.
 
 ---
 
@@ -62,11 +64,12 @@ Concept retenu : **self-chat** (« Messages sauvegardés » façon Telegram) = u
 | **Provider** | `message_provider.dart` → `selfNotesConversationProvider`, `ensureSelfNotesProvider`, `EnsureSelfNotesNotifier`, logique `selfNote` dans `sendText` | ✅ Présent |
 | **Écran de conversation** | `conversation_screen.dart` → param `isSelfNotes`, titre **« Mes notes »**, boutons d'appel désactivés, entrée sondage → brouillon | ✅ Présent |
 | **Widget brouillon de sondage** | `note_poll_draft_sheet.dart` → `showNotePollDraftSheet()` : compose une **note texte structurée** (question + options), **aucun sondage votable**, retourne le texte ou `null` | ✅ Présent |
-| **Point d'entrée UI (tuile)** | `messages_screen.dart` : **aucune** tuile « Mes notes » | ❌ **Manquant** |
-| **Routeur** | `app_router.dart` : **aucun** flag `isSelfNotes` transmis | ❌ **Manquant** |
-| **Déclencheur** | Aucun appel à `ensureSelfNotesProvider` ni navigation `isSelfNotes: true` hors du provider | ❌ **Manquant** |
+| **Point d'entrée UI (tuile)** | `messages_screen.dart:835` `_buildSelfNotesTile` + `:809` `_openSelfNotes` | ✅ **Présent** (tuile épinglée, icône `bookmark_border`, aperçu dernière note, spinner, SnackBar d'erreur, self-conv exclue de la liste) |
+| **Routeur** | `app_router.dart:899` → `isSelfNotes: extra?['isSelfNotes']` | ✅ **Présent** |
+| **Déclencheur** | `messages_screen.dart:811` + `new_conversation_screen.dart:90` → `ensureSelfNotesProvider.notifier.ensure()` puis `push(isSelfNotes: true)` | ✅ **Présent** (2 points d'entrée) |
+| **i18n** | `l10n.messagesMyNotes` / `messagesMyNotesSubtitle` | ✅ **Présent** |
 
-**➡️ Le seul verrou restant : rien n'ouvre « Mes notes » depuis l'interface.**
+**➡️ Feature complète de bout en bout. HEAD de référence : `dce2f94`.**
 
 ---
 
@@ -89,21 +92,19 @@ Concept retenu : **self-chat** (« Messages sauvegardés » façon Telegram) = u
 
 ---
 
-## 7. Reste à faire pour rendre « Mes notes » utilisable
+## 7. Reste à faire
 
-1. **Câbler le point d'entrée** dans `messages_screen.dart` : une tuile épinglée « Mes notes » (icône marque-page) en haut de la liste, qui :
-   - appelle `ensureSelfNotesProvider.notifier.ensure()` (get-or-create de la conversation),
-   - navigue vers `/messages/:id` avec `isSelfNotes: true`.
-2. **Transmettre `isSelfNotes`** dans `app_router.dart` (lecture de `extra['isSelfNotes']`).
-3. **Exclure** la self-conv de la liste normale des conversations (sinon doublon avec la tuile).
-4. **Vérifier la RLS Supabase** : au 1er tap, l'INSERT d'une conversation à **un seul participant** doit passer la policy (à confirmer sur l'appareil).
-5. Test manuel bout-en-bout : ouvrir la tuile, envoyer une note texte, un média, puis un **brouillon de sondage** via le menu « + ».
+Le développement est **terminé**. Ne restent que des **vérifications sur appareil réel** (que `flutter analyze`/`test` ne couvrent pas) :
 
-> ⚠️ Zone activement travaillée par l'autre agent (Jules) — commentaires datés/testés sur appareil (« observé le 2026-08-06 »). Câbler l'entrée doit se faire de préférence dans un **worktree isolé** (cf. CLAUDE.md) pour éviter toute collision.
+1. **RLS Supabase** : au 1er tap sur « Mes notes », l'INSERT d'une conversation à **un seul participant** doit passer la policy — à confirmer sur le SM A515F (si ça échoue, la tuile affiche « Impossible d'ouvrir Mes notes »).
+2. **Parcours bout-en-bout** : ouvrir la tuile → envoyer une note texte → un média → une note vocale → un **brouillon de sondage** via le menu « + » → rouvrir l'app et vérifier que tout est bien rechargé/déchiffré.
+3. **Rendu** : titre « Mes notes », absence des boutons d'appel, aperçu de la dernière note dans la tuile.
+
+> Un tour dans un **worktree isolé** a confirmé que l'entrée était déjà câblée dans le HEAD courant — **aucune ligne de code n'a été ajoutée**, le worktree a été supprimé.
 
 ---
 
 ## 8. Réponse directe à tes deux questions
 
-- **« Toutes les modifications de cette session sont-elles appliquées ? »** → **Non**, et surtout : cette session n'a produit **aucune modification durable** sur le code de « Mes notes ». Le code existant vient d'un travail **antérieur** ; il est complet **sauf le point d'entrée UI** (manquant).
+- **« Toutes les modifications de cette session sont-elles appliquées ? »** → Cette session n'a produit **aucune modification de code durable** sur « Mes notes ». Ce n'est pas un problème : le code existant (venu d'un travail antérieur + finalisé par Jules pendant la session) est **complet, point d'entrée UI inclus**. Il n'y avait rien à ajouter.
 - **« As-tu accès à toutes les infos de cette session ? »** → J'ai le fil de conversation, mais je **ne m'y fie pas** pour l'état du code : la **source de vérité** est git/le disque, que j'ai interrogés en direct (section 3). C'est ce qui a permis de corriger ma crainte initiale d'un code cassé.
