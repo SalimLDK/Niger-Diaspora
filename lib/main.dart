@@ -17,6 +17,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/google_maps_service.dart';
 import 'core/services/preferences_service.dart';
+import 'core/services/remote_config_service.dart';
 import 'core/services/stripe_service.dart';
 import 'core/services/background_location_service.dart';
 import 'core/services/location_publisher_service.dart';
@@ -65,6 +66,14 @@ void main() async {
 
   // Initialize preferences service FIRST
   await PreferencesService.instance.initialize();
+
+  // Configuration publique servie par l'Edge Function `app-config`, pour
+  // pouvoir changer une cle sans republier d'APK. Placee ici : apres Supabase
+  // (qui porte l'appel) et apres les preferences (qui portent le cache), mais
+  // avant Maps / Stripe / LiveKit / liens profonds, qui la consomment.
+  // N'echoue jamais et ne bloque jamais : hors ligne ou fonction absente,
+  // AppConfig retombe sur le `.env` embarque.
+  await RemoteConfigService.instance.initialize();
 
   // Initialize encryption service for message encryption/decryption
   await EncryptionService.instance.initialize();

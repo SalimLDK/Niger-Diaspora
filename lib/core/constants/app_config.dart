@@ -1,5 +1,7 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import '../services/remote_config_service.dart';
+
 /// Application configuration for API keys and environment settings.
 ///
 /// This file centralizes all configuration constants including Stripe keys,
@@ -26,10 +28,23 @@ class AppConfig {
   // HELPER: read --dart-define first, then .env
   // ============================================
 
+  /// Ordre : `--dart-define` (fige au build) > configuration distante
+  /// (`app-config`, modifiable sans republier) > `.env` embarque > repli.
+  ///
+  /// Le `.env` reste le filet : [RemoteConfigService.value] rend null tant que
+  /// la configuration distante n'est pas chargee -- au premier lancement, hors
+  /// ligne, ou si la fonction n'est pas deployee, l'app demarre comme avant.
+  /// C'est aussi ce qui rend l'ordre de demarrage sur : `SUPABASE_URL` et
+  /// `SUPABASE_ANON_KEY` sont lus avant l'appel distant et viennent forcement
+  /// du `.env` -- ils ouvrent la connexion qui sert a joindre `app-config`.
   static String _read(String dartDefineKey, {String fallback = ''}) {
     final fromDartDefine = String.fromEnvironment(dartDefineKey);
     if (fromDartDefine.isNotEmpty) {
       return fromDartDefine;
+    }
+    final fromRemote = RemoteConfigService.instance.value(dartDefineKey);
+    if (fromRemote != null) {
+      return fromRemote;
     }
     try {
       final fromDotEnv = dotenv.env[dartDefineKey];
@@ -147,44 +162,33 @@ class AppConfig {
           : _defaultGoogleWebClientId;
 
   // ============================================
-  // GIPHY CONFIGURATION
+  // SERVICES PILOTABLES A DISTANCE
   // ============================================
+  //
+  // Ces trois valeurs lisaient `dotenv.env[...]` en direct, ce qui court-circuitait
+  // `--dart-define` comme la configuration distante. Elles passent desormais par
+  // [_read], donc par la meme cascade que tout le reste.
 
-  /// Giphy API key from build arguments.
-  /// Set via --dart-define=GIPHY_API_KEY=xxx
-  static const String _giphyApiKeyFromEnv = String.fromEnvironment(
-    'GIPHY_API_KEY',
-    defaultValue: '',
-  );
+  static String get deepLinkBaseUrl =>
+      _read('DEEP_LINK_BASE_URL', fallback: 'https://diasponiger.web.app');
 
-  /// Get the active Giphy API key. Dart-define wins ; sinon fallback `.env`
-  /// (comme Stripe/RevenueCat/Supabase) — sans lui, une clé posée dans .env
-  /// n'est jamais lue au runtime.
-  static String get giphyApiKey => _giphyApiKeyFromEnv.isNotEmpty
-      ? _giphyApiKeyFromEnv
-      : (dotenv.env['GIPHY_API_KEY'] ?? '');
+  static String get livekitServerUrl =>
+      _read('LIVEKIT_SERVER_URL', fallback: 'wss://livekit.diasponiger.com');
 
-  /// Validate that Giphy is properly configured.
-  static bool get isGiphyConfigured => giphyApiKey.isNotEmpty;
+  static String get googleMapsApiKey => _read('GOOGLE_MAPS_API_KEY');
 
   // ============================================
-  // TENOR CONFIGURATION
+  // GIFS (GIPHY / TENOR)
   // ============================================
-
-  /// Tenor API key from build arguments.
-  /// Set via --dart-define=TENOR_API_KEY=xxx
-  static const String _tenorApiKeyFromEnv = String.fromEnvironment(
-    'TENOR_API_KEY',
-    defaultValue: '',
-  );
-
-  /// Get the active Tenor API key. Dart-define wins ; sinon fallback `.env`.
-  static String get tenorApiKey => _tenorApiKeyFromEnv.isNotEmpty
-      ? _tenorApiKeyFromEnv
-      : (dotenv.env['TENOR_API_KEY'] ?? '');
-
-  /// Validate that Tenor is properly configured.
-  static bool get isTenorConfigured => tenorApiKey.isNotEmpty;
+  //
+  // Aucune clé ici, volontairement. `GIPHY_API_KEY` et `TENOR_API_KEY` sont
+  // détenues par l'Edge Function `gif-proxy` : le `.env` est déclaré comme
+  // asset dans pubspec.yaml, donc tout ce qu'il contient part dans l'APK et
+  // s'extrait avec un simple dézippage. Ces deux clés-là portent quota et
+  // facturation, contrairement aux clés publiques (Firebase, Maps, reCAPTCHA)
+  // qui restent ici faute de pouvoir en sortir.
+  //
+  // Voir lib/features/gifs/data/datasources/.
 
   /// Get configuration info for debugging
   static Map<String, dynamic> get configInfo => {

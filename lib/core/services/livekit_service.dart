@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/widgets.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
 
 import '../../features/group_calls/domain/entities/group_participant_entity.dart';
 import 'preferences_service.dart';
+import '../constants/app_config.dart';
 
 /// Callback types for LiveKit events
 typedef OnLiveKitParticipantCallback =
@@ -34,7 +34,7 @@ class LiveKitService {
   static LiveKitService get instance => _instance;
 
   // LiveKit server URL (configure for your self-hosted instance)
-  static String get _serverUrl => dotenv.env['LIVEKIT_SERVER_URL'] ?? 'wss://livekit.diasponiger.com';
+  static String get _serverUrl => AppConfig.livekitServerUrl;
 
   // Cloud Functions for token generation
   final _functions = FirebaseFunctions.instance;

@@ -43,7 +43,7 @@ class GifRepository {
     final configured = _sources.where((s) => s.isConfigured).toList();
     if (configured.isEmpty) {
       throw ServerException(
-        'Aucun fournisseur de GIFs configuré (TENOR_API_KEY ou GIPHY_API_KEY)',
+        'Aucun fournisseur de GIFs disponible',
       );
     }
 

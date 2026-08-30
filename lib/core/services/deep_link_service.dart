@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:share_plus/share_plus.dart';
+import '../constants/app_config.dart';
 
 /// Service pour gérer les liens dynamiques et le partage social
 class DeepLinkService {
@@ -11,7 +11,7 @@ class DeepLinkService {
 
   // Base URL pour les liens (utilise Firebase Hosting)
   // Note: Firebase Dynamic Links est déprécié depuis août 2025
-  static String get _baseUrl => dotenv.env['DEEP_LINK_BASE_URL'] ?? 'https://diasponiger.web.app';
+  static String get _baseUrl => AppConfig.deepLinkBaseUrl;
 
   // ==================== Génération de liens ====================
 
