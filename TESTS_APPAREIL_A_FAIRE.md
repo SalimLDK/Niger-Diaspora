@@ -14,6 +14,34 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Transfert, Boutique, Salons audio et Podcasts retirés de la grille d'accueil (2026-08-30)
+
+Même traitement, à la demande, sur la seconde grille : les quatre tuiles de
+`_ServicesGrid` dans
+[home_screen_widgets.dart](lib/features/home/presentation/screens/home_screen_widgets.dart)
+sont commentées (elles l'étaient déjà côté
+[services_screen.dart](lib/features/home/presentation/screens/services_screen.dart)
+depuis le 2026-08-23/27, voir plus bas). Restent trois tuiles inconditionnelles :
+Fil, Annuaire, Ambassades.
+
+⚠️ **Salons audio et Podcasts n'ont plus aucun point d'entrée dans l'app.**
+Cette grille était leur seul chemin de navigation (ajouté le 2026-08-03 pour
+corriger leur injoignabilité totale) ; les deux écrans restent accessibles
+uniquement par lien profond direct vers `/audio-rooms` / `/podcasts`. À l'inverse,
+Transfert et Boutique restent joignables via les encarts du fil
+([internal_ad_card.dart](lib/features/feed/presentation/widgets/internal_ad_card.dart)).
+
+`flutter analyze` propre sur le fichier et sa librairie parente
+(`home_screen.dart`). **Non vérifié sur appareil** :
+- la grille ne compte plus que 3 tuiles → `items.length >= 4 ? 4 : 3` retombe
+  systématiquement sur 3 colonnes ; vérifier que l'alignement et les marges
+  restent corrects avec exactement 3 tuiles (aucun trou, pas de tuile étirée) ;
+- confirmer au doigt qu'aucun autre raccourci vers `/audio-rooms` ou
+  `/podcasts` n'a été oublié ailleurs dans l'app avant de considérer ces deux
+  modules comme volontairement injoignables.
+
+---
+
 ## Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)
 
 Bug signalé : une vidéo envoyée en conversation s'affichait et se comportait
