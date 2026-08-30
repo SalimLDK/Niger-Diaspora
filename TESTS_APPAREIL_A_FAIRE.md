@@ -40,6 +40,16 @@ Transfert et Boutique restent joignables via les encarts du fil
   `/podcasts` n'a été oublié ailleurs dans l'app avant de considérer ces deux
   modules comme volontairement injoignables.
 
+**Correctif du même jour** : un audit du code a trouvé qu'un troisième accès
+non commenté subsistait — l'encart « Sponsorisé » Salons audio dans le fil
+([internal_ad_card.dart](lib/features/feed/presentation/widgets/internal_ad_card.dart)),
+poussant vers `/audio-rooms` derrière le même flag. Aucun encart équivalent
+n'existait pour Podcasts. L'encart Salons audio est désormais commenté aussi ;
+`/audio-rooms` est maintenant dans le même état que `/podcasts` : injoignable
+hors lien profond. Point non vérifié sur appareil : confirmer que le fil
+n'affiche plus cet encart, et que les trois encarts restants (Transfert,
+Groupes, Boutique) tournent normalement sans lui.
+
 ---
 
 ## Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)
