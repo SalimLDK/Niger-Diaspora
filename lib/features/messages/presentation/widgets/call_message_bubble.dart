@@ -159,21 +159,6 @@ class CallMessageBubble extends StatelessWidget {
                                     : context.textSecondaryColor,
                           ),
                         ),
-                      Text(
-                        ' - ',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: context.textTertiaryColor,
-                        ),
-                      ),
-                      // Heure
-                      Text(
-                        DateFormat.Hm().format(message.createdAt),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: context.textTertiaryColor,
-                        ),
-                      ),
                     ],
                   ),
                 ],

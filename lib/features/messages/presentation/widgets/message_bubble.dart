@@ -243,6 +243,16 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       widget.groupPosition == MessageGroupPosition.last ||
       widget.groupPosition == MessageGroupPosition.single;
 
+  /// Seul le texte simple peut masquer son heure. Une bulle média (image,
+  /// vidéo, document, audio, note vocale, position, sticker, sondage, appel)
+  /// porte déjà son propre `GestureDetector` — ouvrir le fichier, rappeler…
+  /// — qui gagne systématiquement l'arène de gestes face à celui posé plus
+  /// haut dans l'arbre : `_onTapRevelerHeure` n'y reçoit donc jamais le tap.
+  /// Masquer son heure la rendrait irrévocable en pratique, la seule
+  /// autre cible étant une bande de repli de 48×16 quasi invisible sous la
+  /// bulle (voir `_buildMetaRow`).
+  bool get _canMaskTime => widget.message.type == MessageType.text;
+
   /// Tap sur la bulle : révèle (ou remasque) l'heure d'un message qui n'est
   /// pas le dernier de sa rafale.
   ///
@@ -253,13 +263,15 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// `onDoubleTap`. Le masquage était donc un cul-de-sac en pratique.
   ///
   /// Retourne `null` — donc aucun recognizer installé, donc aucune compétition
-  /// dans l'arène de gestes — dans les trois cas où le tap ne nous appartient
-  /// pas : mode sélection (le tap sélectionne), dernier message de la rafale
-  /// (son heure est déjà là, en permanence), message supprimé pour tous.
+  /// dans l'arène de gestes — dans les quatre cas où le tap ne nous
+  /// appartient pas : bulle média (`_canMaskTime`, voir ci-dessus), mode
+  /// sélection (le tap sélectionne), dernier message de la rafale (son heure
+  /// est déjà là, en permanence), message supprimé pour tous.
   ///
   /// Les taps des enfants (ouvrir une image, relancer un envoi en échec)
   /// gagnent l'arène avant ce détecteur parent : ils ne sont pas volés.
   VoidCallback? get _onTapRevelerHeure {
+    if (!_canMaskTime) return null;
     if (widget.isSelectionMode) return null;
     if (_isLastInGroup || widget.message.deletedForEveryone) return null;
     return () => setState(() => _metaRevealed = !_metaRevealed);
@@ -2457,11 +2469,15 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// rien n'annonçait le tap. Il est rétabli à la demande, et étendu aux
   /// messages reçus qui en étaient exemptés. Le regroupement visuel (queue de
   /// bulle, nom de l'expéditeur, rayons) n'a jamais dépendu de cette ligne.
+  ///
+  /// Ne s'applique qu'au texte simple (`_canMaskTime`) : une bulle média a
+  /// déjà son propre tap (ouvrir, rappeler…), qui gagne toujours l'arène —
+  /// la masquer y aurait rendu l'heure indéfiniment inaccessible.
   Widget _buildMetaRow(BuildContext context) {
     final hasReactions = widget.message.reactions.isNotEmpty;
     final canToggle =
-        !_isLastInGroup && !widget.message.deletedForEveryone;
-    final showTimeInfo = _isLastInGroup || _metaRevealed;
+        _canMaskTime && !_isLastInGroup && !widget.message.deletedForEveryone;
+    final showTimeInfo = !_canMaskTime || _isLastInGroup || _metaRevealed;
 
     // Rien à montrer : on garde une cible tactile pour révéler l'heure, sans
     // quoi le masquage serait un cul-de-sac.

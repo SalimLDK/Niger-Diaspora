@@ -8805,6 +8805,42 @@ pas, donc le contrôle logcat ne couvre que les crashes natifs et les exceptions
 Java. Une erreur Dart silencieuse ne s'y verrait pas — elle partirait chez
 Crashlytics.
 
+## Discussion — heure absente/dupliquée sur les bulles média (2026-08-30)
+
+Deux défauts distincts sous le même symptôme rapporté (« l'horodatage
+persiste ») :
+
+- **Dupliquée sur les appels.** `CallMessageBubble` affichait sa propre heure
+  inline (« Manqué - 14:32 ») **en plus** de celle posée par `_buildMetaRow`
+  juste en dessous — la seule ligne de méta censée exister depuis la refonte
+  du 2026-08-05. Heure retirée de `call_message_bubble.dart`, celle de
+  `_buildMetaRow` reste la seule.
+- **Irrécupérable sur toute bulle média.** Le masquage « une heure par
+  rafale, tap pour révéler » (`_metaRevealed`) posait son `GestureDetector`
+  sur la bulle générique, mais une bulle média (image, vidéo, document,
+  audio, note vocale, position, sticker, appel) a **son propre**
+  `GestureDetector` pour ouvrir/rappeler, posé plus profond dans l'arbre —
+  il gagne toujours l'arène de gestes. Le tap cité comme solution dans
+  `874e964` ne fonctionne donc que sur le texte simple ; sur tout le reste,
+  un message masqué (pas le dernier de sa rafale) n'avait **aucun** moyen
+  pratique de révéler son heure (la bande de repli de 48×16 sous la bulle
+  est quasi invisible). Masquage désormais limité au texte (`_canMaskTime`
+  dans `message_bubble.dart`) — une bulle média affiche toujours son heure.
+
+Couvert par `flutter analyze` (propre) et `message_meta_row_test.dart`
+(inchangé, passe toujours — il ne teste que `groupPosition: single`, donc
+ne couvrait déjà pas le cas masqué). Ce que le test ne peut pas voir :
+
+- [ ] **Rafale de messages texte** : seul le dernier porte son heure, le tap
+  sur les précédents la révèle toujours (non-régression du comportement
+  voulu, inchangé pour le texte).
+- [ ] **Rafale d'images/vidéos/documents/notes vocales/positions/stickers**
+  du même expéditeur : chaque bulle doit désormais porter son heure — plus
+  de masquage.
+- [ ] **Message d'appel** (manqué, décroché, groupe) : une seule heure
+  affichée, sous la bulle — plus de doublon « - 14:32 » dans la ligne de
+  statut.
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
