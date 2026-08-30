@@ -52,7 +52,7 @@ Groupes, Boutique) tournent normalement sans lui.
 
 ---
 
-## Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)
+## ✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)
 
 Bug signalé : une vidéo envoyée en conversation s'affichait et se comportait
 comme un fichier générique (`DocumentBubble`), pas comme une vidéo
@@ -66,19 +66,30 @@ et fonctionnait, mais n'était jamais atteint. Corrigé en propageant le vrai
 `MessageType` (image/vidéo/fichier) de bout en bout, et en câblant `onTap` sur
 `VideoBubble` (absent jusqu'ici) pour ouvrir `VideoPlayerScreen`.
 `flutter analyze` propre, `flutter test test/features/messages/message_input_composer_test.dart`
-propre. **Rien vérifié sur appareil physique** — aucun device connecté
-pendant la session.
+propre.
 
+⚠️ **Piège rencontré en vérifiant** : le premier `flutter install --debug`
+(sans `flutter clean` préalable) a réinstallé « avec succès » mais produit un
+APK **périmé** — deux vidéos envoyées via la caméra unifiée se sont encore
+affichées en `DocumentBubble` malgré le correctif dans les sources. Seul un
+`flutter clean` + rebuild complet a fait apparaître le vrai comportement
+corrigé. Voir [[project_build_gotchas]] (§4, déjà documenté pour une cause
+différente — démon Gradle tué — mais même symptôme : succès annoncé, APK pas
+à jour). Ce rebuild complet a aussi déconnecté la session (retour à l'écran
+de connexion, clés E2EE à restaurer) — voir [[project_device_testing]].
+
+- [x] **Envoyer une vidéo depuis la caméra unifiée (`CameraCaptureScreen`),
+  mode vidéo explicite, sur SM A515F** : bulle `VideoBubble` correcte
+  (cadre 16:9, bouton lecture), confirmée sur le build reconstruit à neuf.
+- [x] **Taper sur une bulle vidéo reçue → `VideoPlayerScreen` en plein écran,
+  sur SM A515F** : lecteur ouvert, barre de progression et minuteur actifs.
 - [ ] Envoyer une vidéo depuis la galerie intégrée (`GalleryPickerScreen`,
   sélection unique) : la bulle doit afficher une vignette + bouton lecture,
   pas une icône de fichier.
-- [ ] Envoyer une vidéo depuis la caméra unifiée (`CameraCaptureScreen`).
 - [ ] Envoyer une vidéo via le sélecteur système dédié (`_pickVideo`,
   `image_picker`).
 - [ ] Envoyer plusieurs vidéos/photos mélangées en un lot (revue groupée
   `MediaBatchPreviewScreen`) : chaque vidéo du lot doit garder son type.
-- [ ] Taper sur une bulle vidéo reçue → doit ouvrir `VideoPlayerScreen` en
-  plein écran (lecture in-app), pas une ouverture externe façon fichier.
 - [ ] Vérifier que l'onglet vidéos de la galerie média
   (`media_gallery_provider.dart`) liste bien les nouvelles vidéos envoyées.
 - [ ] Vérifier la vignette shimmer pendant l'upload d'une vidéo (actuellement
