@@ -58,7 +58,7 @@ double computeMessagePickerHeight({
 class MessageInput extends StatefulWidget {
   final String conversationId;
   final Function(String, List<MentionedUser>) onSendText;
-  final Function(File, bool isImage, {String? caption}) onSendFile;
+  final Function(File, MessageType type, {String? caption}) onSendFile;
   final Function(File audioFile, {String? caption})? onSendAudioFile;
   final Function(File audioFile, int duration, List<double> waveform)?
   onSendAudio;
@@ -511,7 +511,7 @@ class _MessageInputState extends State<MessageInput>
     );
 
     if (result != null && result.files.single.path != null) {
-      widget.onSendFile(File(result.files.single.path!), false);
+      widget.onSendFile(File(result.files.single.path!), MessageType.file);
     }
   }
 
@@ -531,7 +531,7 @@ class _MessageInputState extends State<MessageInput>
         );
       } else {
         // Fallback for legacy callers.
-        widget.onSendFile(file, false);
+        widget.onSendFile(file, MessageType.file);
       }
       _controller.clear();
       setState(() => _hasText = false);
@@ -557,7 +557,7 @@ class _MessageInputState extends State<MessageInput>
       );
 
       if (result != null && mounted) {
-        widget.onSendFile(result.file, false, caption: result.caption);
+        widget.onSendFile(result.file, MessageType.video, caption: result.caption);
       }
     }
   }
@@ -572,7 +572,7 @@ class _MessageInputState extends State<MessageInput>
     );
     if (result == null || result.picks.isEmpty || !mounted) return;
     for (final p in result.picks) {
-      widget.onSendFile(p.file, !p.isVideo);
+      widget.onSendFile(p.file, p.isVideo ? MessageType.video : MessageType.image);
     }
   }
 
@@ -592,7 +592,10 @@ class _MessageInputState extends State<MessageInput>
     );
     if (result == null || result.isEmpty || !mounted) return;
     if (result.length == 1) {
-      widget.onSendFile(result.first.file, !result.first.isVideo);
+      widget.onSendFile(
+        result.first.file,
+        result.first.isVideo ? MessageType.video : MessageType.image,
+      );
       return;
     }
     await _reviewAndSendBatch(
@@ -624,7 +627,11 @@ class _MessageInputState extends State<MessageInput>
         ),
       );
       if (result != null && mounted) {
-        widget.onSendFile(result.file, result.isImage, caption: result.caption);
+        widget.onSendFile(
+          result.file,
+          result.type == MediaType.video ? MessageType.video : MessageType.image,
+          caption: result.caption,
+        );
       }
     } else {
       await _reviewAndSendBatch(picks);

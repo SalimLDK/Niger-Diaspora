@@ -1620,7 +1620,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     },
                     onSendFile: (
                       File file,
-                      bool isImage, {
+                      MessageType type, {
                       String? caption,
                     }) async {
                       // If blocked, don't send file (file messages don't support sentWhileBlockedBy yet)
@@ -1635,8 +1635,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                           .sendFile(
                             conversationId: widget.conversationId,
                             file: file,
-                            type:
-                                isImage ? MessageType.image : MessageType.file,
+                            type: type,
                             caption: caption,
                             replyToMessage: _replyToMessage,
                           );
@@ -1647,7 +1646,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                         AnalyticsService.instance.logEvent(
                           name: 'send_message',
                           parameters: {
-                            'type': isImage ? 'image' : 'file',
+                            'type': type.name,
                             'conversation_id': widget.conversationId,
                             'is_group': _isGroup ? 'true' : 'false',
                           },

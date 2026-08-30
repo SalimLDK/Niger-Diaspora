@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:diaspo_niger/core/services/preferences_service.dart';
+import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
 import 'package:diaspo_niger/features/messages/presentation/widgets/message_input.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -33,7 +34,7 @@ Future<void> _pump(WidgetTester tester) async {
         body: MessageInput(
           conversationId: 'conv-test',
           onSendText: (_, __) {},
-          onSendFile: (File file, bool isImage, {String? caption}) {},
+          onSendFile: (File file, MessageType type, {String? caption}) {},
         ),
       ),
     ),
@@ -211,7 +212,7 @@ void main() {
             MessageInput(
               conversationId: 'conv-overflow',
               onSendText: (_, __) {},
-              onSendFile: (File file, bool isImage, {String? caption}) {},
+              onSendFile: (File file, MessageType type, {String? caption}) {},
               onSendAudio: (_, __, ___) {},
             ),
           ],

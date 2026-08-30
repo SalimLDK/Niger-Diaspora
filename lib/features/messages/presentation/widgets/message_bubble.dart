@@ -41,6 +41,7 @@ import '../widgets/message_info_sheet.dart';
 import '../widgets/optimized_image_bubble.dart';
 import '../widgets/document_bubble.dart';
 import '../widgets/video_bubble.dart';
+import '../screens/video_player_screen.dart';
 import '../widgets/post_message_card.dart';
 import '../widgets/event_message_card.dart';
 import '../widgets/product_message_card.dart';
@@ -1895,7 +1896,13 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onShare: () => _shareMessage(),
         );
 
-      case MessageType.video:
+      case MessageType.video: {
+        final videoCaption =
+            widget.message.content == widget.message.fileName ||
+                    widget.message.content == widget.message.fileUrl ||
+                    widget.message.content.isEmpty
+                ? null
+                : widget.message.content;
         return DataSaverGate(
           messageId: widget.message.id,
           isMe: widget.isMe,
@@ -1905,17 +1912,22 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           videoUrl: widget.message.fileUrl ?? '',
           thumbnailUrl: widget.message.thumbnailUrl,
           duration: widget.message.videoDuration,
-          caption:
-              widget.message.content == widget.message.fileName ||
-                      widget.message.content == widget.message.fileUrl ||
-                      widget.message.content.isEmpty
-                  ? null
-                  : widget.message.content,
+          caption: videoCaption,
           isMe: widget.isMe,
           showSenderInfo: widget.showSenderInfo && !widget.isMe,
           senderName: widget.message.senderName,
           messageId: widget.message.id,
           blurhash: widget.message.blurhash,
+          onTap:
+              widget.message.fileUrl != null
+                  ? () => VideoPlayerScreen.show(
+                        context,
+                        videoUrl: widget.message.fileUrl!,
+                        senderName: widget.message.senderName,
+                        timestamp: widget.message.createdAt,
+                        caption: videoCaption,
+                      )
+                  : null,
           onForward:
               widget.onForward != null
                   ? () => widget.onForward?.call(widget.message)
@@ -1929,6 +1941,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onLongPress: _onLongPress,
           ),
         );
+      }
 
       case MessageType.audio:
         return AudioFileBubble(message: widget.message, isMe: widget.isMe);

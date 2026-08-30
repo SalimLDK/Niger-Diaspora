@@ -314,7 +314,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
     );
     if (result != null && mounted) {
       Navigator.pop(context, <CameraMedia>[
-        CameraMedia(file: result.file, isVideo: !result.isImage),
+        CameraMedia(file: result.file, isVideo: result.type == MediaType.video),
       ]);
     }
     // sinon : on reste sur la caméra (retake).

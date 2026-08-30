@@ -16,10 +16,12 @@ enum _SubEditor { paint, crop, blur }
 
 class MediaPreviewResult {
   final File file;
-  final bool isImage;
+  final MediaType type;
   final String? caption;
 
-  MediaPreviewResult({required this.file, required this.isImage, this.caption});
+  MediaPreviewResult({required this.file, required this.type, this.caption});
+
+  bool get isImage => type == MediaType.image;
 }
 
 /// Écran de preview pour les médias avant envoi (style Signal) : outils
@@ -185,7 +187,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
       context,
       MediaPreviewResult(
         file: fileToSend,
-        isImage: widget.type == MediaType.image,
+        type: widget.type,
         caption: _captionController.text.trim().isNotEmpty
             ? _captionController.text.trim()
             : null,

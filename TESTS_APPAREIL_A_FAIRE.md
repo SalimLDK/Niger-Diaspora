@@ -14,6 +14,41 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)
+
+Bug signalé : une vidéo envoyée en conversation s'affichait et se comportait
+comme un fichier générique (`DocumentBubble`), pas comme une vidéo
+(`VideoBubble` avec vignette + bouton lecture). Cause : le callback
+`onSendFile` de [message_input.dart](lib/features/messages/presentation/widgets/message_input.dart)
+ne recevait qu'un booléen `isImage` — toute vidéo (caméra, galerie, sélecteur
+dédié) passait donc `isImage: false` et [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
+retombait sur `MessageType.file` faute d'alternative. Le pipeline d'envoi
+(miniature blurhash, durée, `VideoBubble`, `VideoPlayerScreen`) existait déjà
+et fonctionnait, mais n'était jamais atteint. Corrigé en propageant le vrai
+`MessageType` (image/vidéo/fichier) de bout en bout, et en câblant `onTap` sur
+`VideoBubble` (absent jusqu'ici) pour ouvrir `VideoPlayerScreen`.
+`flutter analyze` propre, `flutter test test/features/messages/message_input_composer_test.dart`
+propre. **Rien vérifié sur appareil physique** — aucun device connecté
+pendant la session.
+
+- [ ] Envoyer une vidéo depuis la galerie intégrée (`GalleryPickerScreen`,
+  sélection unique) : la bulle doit afficher une vignette + bouton lecture,
+  pas une icône de fichier.
+- [ ] Envoyer une vidéo depuis la caméra unifiée (`CameraCaptureScreen`).
+- [ ] Envoyer une vidéo via le sélecteur système dédié (`_pickVideo`,
+  `image_picker`).
+- [ ] Envoyer plusieurs vidéos/photos mélangées en un lot (revue groupée
+  `MediaBatchPreviewScreen`) : chaque vidéo du lot doit garder son type.
+- [ ] Taper sur une bulle vidéo reçue → doit ouvrir `VideoPlayerScreen` en
+  plein écran (lecture in-app), pas une ouverture externe façon fichier.
+- [ ] Vérifier que l'onglet vidéos de la galerie média
+  (`media_gallery_provider.dart`) liste bien les nouvelles vidéos envoyées.
+- [ ] Vérifier la vignette shimmer pendant l'upload d'une vidéo (actuellement
+  affiche le squelette générique « document », pas retouché dans cette
+  session — hors périmètre du bug signalé mais visuellement incohérent).
+
+---
+
 ## ✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)
 
 Demande produit : `AppColors.primary`/`primaryDark` (orange) `#E05206`/`#9F3E0A`
