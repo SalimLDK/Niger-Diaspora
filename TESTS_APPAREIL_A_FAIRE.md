@@ -8824,19 +8824,27 @@ persiste ») :
   `874e964` ne fonctionne donc que sur le texte simple ; sur tout le reste,
   un message masqué (pas le dernier de sa rafale) n'avait **aucun** moyen
   pratique de révéler son heure (la bande de repli de 48×16 sous la bulle
-  est quasi invisible). Masquage désormais limité au texte (`_canMaskTime`
-  dans `message_bubble.dart`) — une bulle média affiche toujours son heure.
+  est quasi invisible).
+
+**Suite dans la même session : demande explicite de Salim de retirer le
+masquage entièrement** (« plus besoin du système de tap pour afficher,
+juste affiche ça tout le temps »). `_metaRevealed`, `_isLastInGroup`,
+`_canMaskTime` (le correctif intermédiaire ci-dessus qui limitait le
+masquage au texte) et `_onTapRevelerHeure` sont supprimés de
+`message_bubble.dart` — `_buildMetaRow` affiche désormais l'heure de
+façon inconditionnelle, sur tout type de message, dans une rafale ou non.
+Troisième aller-retour sur cette fonctionnalité (`8db5215` l'introduit,
+`92326fe`/`dc54282` la retirent, `874e964` la remet ; ce commit la retire
+pour de bon) — ne pas la réintroduire sans redemander à Salim.
 
 Couvert par `flutter analyze` (propre) et `message_meta_row_test.dart`
-(inchangé, passe toujours — il ne teste que `groupPosition: single`, donc
-ne couvrait déjà pas le cas masqué). Ce que le test ne peut pas voir :
+(inchangé, passe toujours — il ne testait déjà que `groupPosition: single`,
+qui affichait déjà l'heure). Ce que le test ne peut pas voir :
 
-- [ ] **Rafale de messages texte** : seul le dernier porte son heure, le tap
-  sur les précédents la révèle toujours (non-régression du comportement
-  voulu, inchangé pour le texte).
-- [ ] **Rafale d'images/vidéos/documents/notes vocales/positions/stickers**
-  du même expéditeur : chaque bulle doit désormais porter son heure — plus
-  de masquage.
+- [ ] **Rafale de messages texte, images, vidéos, documents, notes vocales,
+  positions, stickers** du même expéditeur : chaque bulle doit désormais
+  porter son heure, y compris celles qui n'étaient pas le dernier message
+  de la rafale.
 - [ ] **Message d'appel** (manqué, décroché, groupe) : une seule heure
   affichée, sous la bulle — plus de doublon « - 14:32 » dans la ligne de
   statut.

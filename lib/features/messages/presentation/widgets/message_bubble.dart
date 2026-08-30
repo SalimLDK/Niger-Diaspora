@@ -174,12 +174,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Révélateur « Autres actions » de la feuille (§27a).
   bool _moreOptionsOpen = false;
 
-  /// Un message qui n'est pas le dernier d'une rafale masque son heure/accusé
-  /// par défaut (`_isLastInGroup`) ; un tap la révèle ici, un second tap la
-  /// remasque. Vaut dans les deux sens — envoyé comme reçu — voir
-  /// `_buildMetaRow`.
-  bool _metaRevealed = false;
-
   // Cached emoji-only check (computed once)
   late final bool _cachedIsEmojiOnly;
 
@@ -236,45 +230,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                 width: 1,
               ),
     );
-  }
-
-  /// Dernier message d'une rafale (ou message isolé) : porte l'horodatage.
-  bool get _isLastInGroup =>
-      widget.groupPosition == MessageGroupPosition.last ||
-      widget.groupPosition == MessageGroupPosition.single;
-
-  /// Seul le texte simple peut masquer son heure. Une bulle média (image,
-  /// vidéo, document, audio, note vocale, position, sticker, sondage, appel)
-  /// porte déjà son propre `GestureDetector` — ouvrir le fichier, rappeler…
-  /// — qui gagne systématiquement l'arène de gestes face à celui posé plus
-  /// haut dans l'arbre : `_onTapRevelerHeure` n'y reçoit donc jamais le tap.
-  /// Masquer son heure la rendrait irrévocable en pratique, la seule
-  /// autre cible étant une bande de repli de 48×16 quasi invisible sous la
-  /// bulle (voir `_buildMetaRow`).
-  bool get _canMaskTime => widget.message.type == MessageType.text;
-
-  /// Tap sur la bulle : révèle (ou remasque) l'heure d'un message qui n'est
-  /// pas le dernier de sa rafale.
-  ///
-  /// Sans lui, la seule cible tactile était une bande **invisible** de 48×16
-  /// posée sous la bulle (voir `_buildMetaRow`) : personne ne la trouve, et le
-  /// geste naturel — taper le message — ne déclenchait rien, le
-  /// `GestureDetector` de la bulle ne portant que `onLongPress` et
-  /// `onDoubleTap`. Le masquage était donc un cul-de-sac en pratique.
-  ///
-  /// Retourne `null` — donc aucun recognizer installé, donc aucune compétition
-  /// dans l'arène de gestes — dans les quatre cas où le tap ne nous
-  /// appartient pas : bulle média (`_canMaskTime`, voir ci-dessus), mode
-  /// sélection (le tap sélectionne), dernier message de la rafale (son heure
-  /// est déjà là, en permanence), message supprimé pour tous.
-  ///
-  /// Les taps des enfants (ouvrir une image, relancer un envoi en échec)
-  /// gagnent l'arène avant ce détecteur parent : ils ne sont pas volés.
-  VoidCallback? get _onTapRevelerHeure {
-    if (!_canMaskTime) return null;
-    if (widget.isSelectionMode) return null;
-    if (_isLastInGroup || widget.message.deletedForEveryone) return null;
-    return () => setState(() => _metaRevealed = !_metaRevealed);
   }
 
   /// Message reçu (pas de moi) dans une discussion de groupe : la colonne
@@ -407,7 +362,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Build emoji-only content without bubble
   Widget _buildEmojiOnlyContent(BuildContext context) {
     return GestureDetector(
-      onTap: _onTapRevelerHeure,
       onLongPress: _onLongPress,
       onDoubleTap: _onDoubleTap,
       child: Column(
@@ -656,7 +610,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                           _isEmojiOnlyTextMessage()
                               ? _buildEmojiOnlyContent(context)
                               : GestureDetector(
-                                onTap: _onTapRevelerHeure,
                                 onLongPress: _onLongPress,
                                 onDoubleTap: _onDoubleTap,
                                 child: ClipRRect(
@@ -2457,45 +2410,20 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Elle vit hors de la bulle, donc sur le fond de la conversation : ses
   /// couleurs ne dépendent plus de `isMe`. C'est la seule ligne de méta de la
   /// discussion — aucune bulle spécialisée (image, vidéo, document, note
-  /// vocale, sticker, localisation) ne réaffiche l'heure de son côté.
+  /// vocale, sticker, localisation, appel) ne réaffiche l'heure de son côté.
   ///
-  /// Rafales : dans une suite de messages consécutifs du même expéditeur, seul
-  /// le dernier porte son heure — la règle vaut pour les messages reçus comme
-  /// pour les messages envoyés. Les précédents la masquent, et un tap la
-  /// révèle/masque (`_metaRevealed`).
-  ///
-  /// Ce masquage avait été retiré (« chaque message porte son heure », 92326fe)
-  /// au motif qu'envoyer trois messages d'affilée n'en horodatait qu'un et que
-  /// rien n'annonçait le tap. Il est rétabli à la demande, et étendu aux
-  /// messages reçus qui en étaient exemptés. Le regroupement visuel (queue de
-  /// bulle, nom de l'expéditeur, rayons) n'a jamais dépendu de cette ligne.
-  ///
-  /// Ne s'applique qu'au texte simple (`_canMaskTime`) : une bulle média a
-  /// déjà son propre tap (ouvrir, rappeler…), qui gagne toujours l'arène —
-  /// la masquer y aurait rendu l'heure indéfiniment inaccessible.
+  /// Inconditionnelle : chaque message porte son heure, qu'il soit regroupé
+  /// ou non avec ses voisins (rafale). Un masquage « une heure par rafale,
+  /// tap pour révéler » a existé et a été retiré deux fois pour la même
+  /// raison — illisible (un tap sans affordance) et, sur toute bulle média,
+  /// irrécupérable (son propre geste de tap gagne toujours l'arène avant
+  /// celui du masquage) — avant d'être remis en place à la demande. Retiré
+  /// une troisième fois, cette fois pour de bon : demande explicite de
+  /// Salim, plus de bascule du tout, l'heure s'affiche toujours. Le
+  /// regroupement visuel (queue de bulle, nom de l'expéditeur, rayons) n'a
+  /// jamais dépendu de cette ligne.
   Widget _buildMetaRow(BuildContext context) {
     final hasReactions = widget.message.reactions.isNotEmpty;
-    final canToggle =
-        _canMaskTime && !_isLastInGroup && !widget.message.deletedForEveryone;
-    final showTimeInfo = !_canMaskTime || _isLastInGroup || _metaRevealed;
-
-    // Rien à montrer : on garde une cible tactile pour révéler l'heure, sans
-    // quoi le masquage serait un cul-de-sac.
-    if (!showTimeInfo && !hasReactions) {
-      if (!canToggle) return const SizedBox.shrink();
-      return Padding(
-        padding: const EdgeInsets.only(top: 3, left: 4, right: 4),
-        child: Align(
-          alignment: widget.isMe ? Alignment.centerRight : Alignment.centerLeft,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => setState(() => _metaRevealed = true),
-            child: const SizedBox(width: 48, height: 16),
-          ),
-        ),
-      );
-    }
-
     final isStarred =
         widget.currentUserId != null &&
         widget.message.isStarredBy(widget.currentUserId!);
@@ -2509,53 +2437,41 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             .where((id) => id != widget.message.senderId)
             .length;
 
-    Widget? timeRow;
-    if (showTimeInfo) {
-      timeRow = Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isStarred) ...[
-            AppIcon(AppIcon.star, size: 12, color: metaColor),
-            const SizedBox(width: 2),
-          ],
-          // Edited indicator
-          if (widget.message.isEdited) ...[
-            Text(
-              l10n.edited,
-              style: TextStyle(
-                fontSize: 11,
-                fontStyle: FontStyle.italic,
-                color: metaColor,
-              ),
-            ),
-            const SizedBox(width: 4),
-          ],
-          // Ephemeral indicator
-          if (widget.message.isEphemeral) ...[
-            Icon(Icons.timer_outlined, size: 12, color: metaColor),
-            const SizedBox(width: 2),
-          ],
-          Text(
-            _formatTime(widget.message.createdAt),
-            style: TextStyle(fontSize: 11, color: metaColor),
-          ),
-          // « 09:24 · Envoyé » (fiche 26b) : l'accusé de réception se
-          // lit, il ne se déchiffre plus. Une coche simple, une double
-          // et une double bleue demandaient d'avoir appris le code.
-          if (widget.isMe && !widget.message.deletedForEveryone)
-            _buildReceiptLabel(context, groupReadCount),
+    final timeRow = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (isStarred) ...[
+          AppIcon(AppIcon.star, size: 12, color: metaColor),
+          const SizedBox(width: 2),
         ],
-      );
-      // Seule la révélation par tap doit pouvoir se remasquer — l'heure du
-      // dernier message d'une rafale reste permanente.
-      if (canToggle) {
-        timeRow = GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => setState(() => _metaRevealed = false),
-          child: timeRow,
-        );
-      }
-    }
+        // Edited indicator
+        if (widget.message.isEdited) ...[
+          Text(
+            l10n.edited,
+            style: TextStyle(
+              fontSize: 11,
+              fontStyle: FontStyle.italic,
+              color: metaColor,
+            ),
+          ),
+          const SizedBox(width: 4),
+        ],
+        // Ephemeral indicator
+        if (widget.message.isEphemeral) ...[
+          Icon(Icons.timer_outlined, size: 12, color: metaColor),
+          const SizedBox(width: 2),
+        ],
+        Text(
+          _formatTime(widget.message.createdAt),
+          style: TextStyle(fontSize: 11, color: metaColor),
+        ),
+        // « 09:24 · Envoyé » (fiche 26b) : l'accusé de réception se
+        // lit, il ne se déchiffre plus. Une coche simple, une double
+        // et une double bleue demandaient d'avoir appris le code.
+        if (widget.isMe && !widget.message.deletedForEveryone)
+          _buildReceiptLabel(context, groupReadCount),
+      ],
+    );
 
     return Padding(
       padding: const EdgeInsets.only(top: 3, left: 4, right: 4),
@@ -2565,7 +2481,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         crossAxisAlignment: WrapCrossAlignment.center,
         alignment: widget.isMe ? WrapAlignment.end : WrapAlignment.start,
         children: [
-          if (timeRow != null) timeRow,
+          timeRow,
           if (hasReactions)
             ..._buildReactionChips(context, widget.message.reactions),
         ],
