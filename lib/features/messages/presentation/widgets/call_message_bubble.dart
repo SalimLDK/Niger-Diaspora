@@ -159,6 +159,24 @@ class CallMessageBubble extends StatelessWidget {
                                     : context.textSecondaryColor,
                           ),
                         ),
+                      Text(
+                        ' - ',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.textTertiaryColor,
+                        ),
+                      ),
+                      // Un message d'appel retourne tôt dans
+                      // MessageBubble.build() (`widget.message.isCall`), avant
+                      // le Column qui pose _buildMetaRow sous la bulle : c'est
+                      // la SEULE heure qu'un appel affiche, pas un doublon.
+                      Text(
+                        DateFormat.Hm().format(message.createdAt),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: context.textTertiaryColor,
+                        ),
+                      ),
                     ],
                   ),
                 ],

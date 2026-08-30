@@ -2408,9 +2408,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// réactions (fiches 4a/6b — « 09:12 👍 1 »).
   ///
   /// Elle vit hors de la bulle, donc sur le fond de la conversation : ses
-  /// couleurs ne dépendent plus de `isMe`. C'est la seule ligne de méta de la
-  /// discussion — aucune bulle spécialisée (image, vidéo, document, note
-  /// vocale, sticker, localisation, appel) ne réaffiche l'heure de son côté.
+  /// couleurs ne dépendent plus de `isMe`. C'est la seule ligne de méta pour
+  /// tout message qui l'atteint — aucune bulle spécialisée (image, vidéo,
+  /// document, note vocale, sticker, localisation) ne réaffiche l'heure de
+  /// son côté. Exception : un message d'appel (`widget.message.isCall`)
+  /// retourne tôt dans `build()`, avant le `Column` qui pose cette ligne —
+  /// `CallMessageBubble` affiche donc sa propre heure, seule pour ce type.
   ///
   /// Inconditionnelle : chaque message porte son heure, qu'il soit regroupé
   /// ou non avec ses voisins (rafale). Un masquage « une heure par rafale,

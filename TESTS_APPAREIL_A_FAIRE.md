@@ -8810,11 +8810,21 @@ Crashlytics.
 Deux défauts distincts sous le même symptôme rapporté (« l'horodatage
 persiste ») :
 
-- **Dupliquée sur les appels.** `CallMessageBubble` affichait sa propre heure
-  inline (« Manqué - 14:32 ») **en plus** de celle posée par `_buildMetaRow`
-  juste en dessous — la seule ligne de méta censée exister depuis la refonte
-  du 2026-08-05. Heure retirée de `call_message_bubble.dart`, celle de
-  `_buildMetaRow` reste la seule.
+- **Dupliquée sur les appels — diagnostic initial faux, corrigé après test
+  sur appareil.** `CallMessageBubble` affiche sa propre heure inline
+  (« Pas de réponse - 23:40 »). Ça ressemblait à un doublon avec
+  `_buildMetaRow` posée juste en dessous, donc retirée dans un premier
+  temps — mais `MessageBubble.build()` retourne tôt pour
+  `widget.message.isCall` (avant le `Column` qui pose `_buildMetaRow`) :
+  un appel ne passe **jamais** par cette ligne de méta. La retirer de
+  `CallMessageBubble` a fait disparaître l'heure de tous les messages
+  d'appel, sans exception — repéré en ouvrant une vraie conversation sur
+  le SM A515F (rien sous « Pas de réponse » / « Appel sortant »), écarté
+  l'hypothèse d'un APK périmé par un `flutter clean` complet (même
+  résultat), puis retrouvé le retour anticipé en relisant `build()`.
+  Heure remise dans `call_message_bubble.dart` — c'est la SEULE heure
+  qu'un appel affiche, pas un doublon. Le commentaire de `_buildMetaRow`
+  documente maintenant cette exception explicitement.
 - **Irrécupérable sur toute bulle média.** Le masquage « une heure par
   rafale, tap pour révéler » (`_metaRevealed`) posait son `GestureDetector`
   sur la bulle générique, mais une bulle média (image, vidéo, document,
@@ -8845,9 +8855,12 @@ qui affichait déjà l'heure). Ce que le test ne peut pas voir :
   positions, stickers** du même expéditeur : chaque bulle doit désormais
   porter son heure, y compris celles qui n'étaient pas le dernier message
   de la rafale.
-- [ ] **Message d'appel** (manqué, décroché, groupe) : une seule heure
-  affichée, sous la bulle — plus de doublon « - 14:32 » dans la ligne de
-  statut.
+- [x] **Message d'appel** ✅ **vérifié 2026-08-30 sur SM A515F** : rafale de
+  6 appels consécutifs (manqués sortants/entrants + un décroché 15 s),
+  chacun affiche sa propre heure dans la ligne de statut (« Pas de réponse
+  - 23:40 », « Appel terminé - 23:44 »…) — jamais deux fois la même,
+  jamais absente. Restent non vérifiés sur appareil : appel de groupe,
+  et le cas décliné (`isDeclined`, libellé orange).
 
 ## Comment tester (rappel de la config utilisée précédemment)
 
