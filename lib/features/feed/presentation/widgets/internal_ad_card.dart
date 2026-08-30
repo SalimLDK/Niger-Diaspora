@@ -59,15 +59,19 @@ final _kAds = [
     feature: AppFeature.marketplace,
     route: '/marketplace',
   ),
-  _InternalAd(
-    title: (l10n) => l10n.adAudioRoomsTitle,
-    subtitle: (l10n) => l10n.adAudioRoomsSubtitle,
-    ctaLabel: (l10n) => l10n.adAudioRoomsCta,
-    icon: const AppIcon(AppIcon.mic, color: Color(0xFF6A1B9A), size: 24),
-    color: const Color(0xFF6A1B9A),
-    feature: AppFeature.audioRooms,
-    route: '/audio-rooms',
-  ),
+  // Encart Salons audio masqué (2026-08-30) : c'était le dernier accès à
+  // /audio-rooms non commenté dans l'app (grille d'accueil et « Tous les
+  // services » déjà masquées le même jour). Route désormais injoignable
+  // hors lien profond, comme /podcasts.
+  // _InternalAd(
+  //   title: (l10n) => l10n.adAudioRoomsTitle,
+  //   subtitle: (l10n) => l10n.adAudioRoomsSubtitle,
+  //   ctaLabel: (l10n) => l10n.adAudioRoomsCta,
+  //   icon: const AppIcon(AppIcon.mic, color: Color(0xFF6A1B9A), size: 24),
+  //   color: const Color(0xFF6A1B9A),
+  //   feature: AppFeature.audioRooms,
+  //   route: '/audio-rooms',
+  // ),
 ];
 
 class InternalAdCard extends ConsumerWidget {
