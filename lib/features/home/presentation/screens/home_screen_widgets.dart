@@ -340,20 +340,24 @@ class _ServicesGrid extends ConsumerWidget {
         color: context.adaptivePrimaryColor,
         onTap: () => context.push('/feed'),
       ),
-      if (ref.watch(isMoneyTransferEnabledProvider))
-        _ServiceTile(
-          icon: Icons.send_rounded,
-          label: l10n.serviceTransfer,
-          color: context.adaptivePrimaryColor,
-          onTap: () => context.push('/transfers'),
-        ),
-      if (ref.watch(isMarketplaceEnabledProvider))
-        _ServiceTile(
-          icon: Icons.storefront_rounded,
-          label: l10n.serviceMarketplace,
-          color: context.adaptiveSecondaryColor,
-          onTap: () => context.push('/marketplace'),
-        ),
+      // Transfert et Boutique masqués de la grille d'accueil (même règle que
+      // « Tous les services », 2026-08-23) : code conservé pour réactivation.
+      // TODO(services): remettre ces deux tuiles quand les modules seront
+      // prêts à être exposés.
+      // if (ref.watch(isMoneyTransferEnabledProvider))
+      //   _ServiceTile(
+      //     icon: Icons.send_rounded,
+      //     label: l10n.serviceTransfer,
+      //     color: context.adaptivePrimaryColor,
+      //     onTap: () => context.push('/transfers'),
+      //   ),
+      // if (ref.watch(isMarketplaceEnabledProvider))
+      //   _ServiceTile(
+      //     icon: Icons.storefront_rounded,
+      //     label: l10n.serviceMarketplace,
+      //     color: context.adaptiveSecondaryColor,
+      //     onTap: () => context.push('/marketplace'),
+      //   ),
       // Annuaire et ambassades : toujours présents, comme le Fil (décision
       // produit 2026-08-19 — plus de flag).
       _ServiceTile(
@@ -368,23 +372,25 @@ class _ServicesGrid extends ConsumerWidget {
         color: context.adaptiveSecondaryColor,
         onTap: () => context.push('/embassies'),
       ),
-      // Salons audio et Podcasts n'avaient aucun point d'entrée dans l'app :
-      // les écrans et les routes existaient, mais rien n'y menait — seuls des
-      // liens internes à ces deux modules référençaient leurs routes.
-      if (ref.watch(isAudioRoomsEnabledProvider))
-        _ServiceTile(
-          icon: Icons.podcasts_rounded,
-          label: 'Salons',
-          color: context.adaptivePrimaryColor,
-          onTap: () => context.push('/audio-rooms'),
-        ),
-      if (ref.watch(isPodcastsEnabledProvider))
-        _ServiceTile(
-          icon: Icons.mic_rounded,
-          label: l10n.podcasts,
-          color: context.adaptiveSecondaryColor,
-          onTap: () => context.push('/podcasts'),
-        ),
+      // Salons audio et Podcasts masqués ici aussi (2026-08-30) : cette
+      // grille était l'unique point d'entrée vers ces deux modules, ajouté
+      // le 2026-08-03 pour corriger leur injoignabilité totale — tant que ce
+      // bloc reste commenté, /audio-rooms et /podcasts ne sont plus
+      // atteignables que par lien profond.
+      // if (ref.watch(isAudioRoomsEnabledProvider))
+      //   _ServiceTile(
+      //     icon: Icons.podcasts_rounded,
+      //     label: 'Salons',
+      //     color: context.adaptivePrimaryColor,
+      //     onTap: () => context.push('/audio-rooms'),
+      //   ),
+      // if (ref.watch(isPodcastsEnabledProvider))
+      //   _ServiceTile(
+      //     icon: Icons.mic_rounded,
+      //     label: l10n.podcasts,
+      //     color: context.adaptiveSecondaryColor,
+      //     onTap: () => context.push('/podcasts'),
+      //   ),
     ];
 
     // 4 colonnes dès qu'il y a assez de tuiles, sinon 3 (peu de services).
