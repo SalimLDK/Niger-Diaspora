@@ -8855,12 +8855,14 @@ qui affichait déjà l'heure). Ce que le test ne peut pas voir :
   positions, stickers** du même expéditeur : chaque bulle doit désormais
   porter son heure, y compris celles qui n'étaient pas le dernier message
   de la rafale.
-- [x] **Message d'appel** ✅ **vérifié 2026-08-30 sur SM A515F** : rafale de
-  6 appels consécutifs (manqués sortants/entrants + un décroché 15 s),
-  chacun affiche sa propre heure dans la ligne de statut (« Pas de réponse
-  - 23:40 », « Appel terminé - 23:44 »…) — jamais deux fois la même,
-  jamais absente. Restent non vérifiés sur appareil : appel de groupe,
-  et le cas décliné (`isDeclined`, libellé orange).
+- [x] **Message d'appel** ✅ **vérifié 2026-08-30 sur SM A515F, deux fois** :
+  rafale de 6 appels consécutifs (manqués sortants/entrants + un décroché
+  15 s), chacun affiche sa propre heure dans la ligne de statut (« Pas de
+  réponse - 23:40 », « Appel terminé - 23:44 »…) — jamais deux fois la
+  même, jamais absente. Reconfirmé sur un second `flutter run` tout frais
+  (pas un hot reload de la même session) pour écarter un état résiduel.
+  Restent non vérifiés sur appareil : appel de groupe, et le cas décliné
+  (`isDeclined`, libellé orange).
 
 ## Comment tester (rappel de la config utilisée précédemment)
 
@@ -8878,3 +8880,18 @@ qui affichait déjà l'heure). Ce que le test ne peut pas voir :
   adb shell rm /sdcard/s.png
   ```
 - Piège connu : un VPN persistant sur le téléphone masque l'état hors-ligne réel (transport VPN toujours "connecté" même en mode avion).
+- Piège connu (2026-08-30) : au démarrage froid, l'app est très chargée sur
+  le thread principal (Maps, Firebase, App Check — logcat montre plusieurs
+  « Skipped N frames ») pendant plusieurs secondes. Un `adb shell input tap`
+  envoyé pendant cette fenêtre est silencieusement perdu — aucune erreur,
+  l'écran ne change simplement pas. Ça s'est fait passer pour un bug de
+  navigation (bouton mort) alors que l'app n'avait juste pas fini de
+  respirer. Laisser ~15-20 s après le splash avant le premier tap.
+- Piège connu (2026-08-30) : `flutter run` perd la connexion au débogueur
+  (« Lost connection to device. ») de façon fiable quand l'app repasse en
+  arrière-plan (bouton Accueil/Retour système) pendant la session de debug
+  sur cet appareil — l'app elle-même continue de tourner, seul le pont de
+  debug tombe. Se traduit par la tâche qui se termine sans erreur visible.
+  Retour à l'app : `adb shell monkey ...` (ci-dessus) ; pour reprendre le
+  hot reload, relancer `flutter run` (pas de perte d'état app, juste du
+  débogueur).
