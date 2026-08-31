@@ -40,12 +40,14 @@ inexistante, d'où l'impression de blocage total.
   supprimées en prod (`supabase db query --linked`, confirmé avec Salim avant
   le DELETE). Ce sont exclusivement de vieilles notifs de test antérieures à
   la purge — aucune conversation live touchée.
-- [ ] **Corrigé côté code, non vérifié sur appareil** : `_buildAppBar` reçoit
-  désormais `isDeleted` et affiche « Cette conversation a été supprimée »/
-  « Ce groupe a été supprimé » au lieu du générique « Utilisateur ». Pas
-  testé au doigt — un `flutter run`/build tournait déjà sur le téléphone de
-  Salim (test vidéo en parallèle), rebuild à faire pour vérifier l'écran
-  réel d'une conversation supprimée.
+- [x] **Corrigé et vérifié sur SM A515F (2026-08-30)** : `_buildAppBar` reçoit
+  désormais `isDeleted` et affiche « Conversation supprimée » au lieu du
+  générique « Utilisateur ». Repro par lien profond (`am start -a VIEW -d
+  https://diasponiger.web.app/messages/883c9d96-…`, id déjà confirmé
+  inexistant en base) plutôt que par insertion de notification de test — un
+  `INSERT` sur `notifications` a été refusé par le classificateur de
+  permissions même en compte de test, l'écriture directe en base reste
+  réservée à Salim. Session préservée par le rebuild+`install -r`.
 
 ---
 
