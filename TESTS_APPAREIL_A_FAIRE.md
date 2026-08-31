@@ -1953,6 +1953,10 @@ Mais rien de tout ça n'est vérifiable **dans l'app** sans deux comptes réels
 - [ ] Ouvrir la conversation côté B : vérifier que B apparaît alors dans « Lu
   par », et que le coche du message (côté A) passe au double-coche bleu à ce
   moment-là, pas avant.
+- [x] **`mark_messages_as_read` re-testée le 2026-08-30 avec deux vrais comptes** (transaction annulée, zéro donnée persistée) :
+  - 1:1 réel (conversation `bb974232-…`, comptes `U64HK…`/`DfSyA…`) : un appel du vrai destinataire pose `readBy`+`readAt` **et** `deliveredTo`+`deliveredAt` en un seul passage (« lire implique avoir reçu », comme documenté dans la RPC) ; un second appel est sans effet (idempotent, pas de doublon).
+  - Groupe réel (conversation `53fac82c-…`, 3 comptes) : un message déjà lu par 1 participant, lu ensuite par le 3e (compte réel `czk5U…`, jusque-là absent) → `readBy` passe correctement à 3 entrées (sender + 2 lecteurs), ce qui alimente `groupReadCount` (`message_bubble.dart:2438`) et donc « Vu par 2 ».
+  - Reste non fait : la confirmation **à l'écran** (bascule visuelle du coche + sheet Infos en direct). Tentée sur le SM A515F mais **abandonnée** — l'écran a changé tout seul entre deux captures (menu conversation → Médias partagés) sans action de ma part, signe d'une session déjà active sur l'appareil (Salim ou l'autre agent) ; réflexe [[project_device_testing]] : ne pas insister dessus.
 - [x] ~~Auditer les autres RPC `SECURITY DEFINER` du projet pour le même trou
   `anon`~~ — fait le 2026-08-13. ~45 fonctions `SECURITY DEFINER` accessibles
   à `anon` passées en revue (corps + appelants Dart). Sept avaient un vrai
