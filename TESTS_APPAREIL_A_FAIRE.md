@@ -14,6 +14,40 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## Notification de message → « Utilisateur », écran bloqué (2026-08-30)
+
+Signalé par Salim : taper une notification de message dans `/notifications`
+ouvrait `/messages/<id>` sur un en-tête « Utilisateur » et rien d'exploitable
+— pas un bug de code, de la donnée périmée. Confirmé par logcat en direct
+(sans toucher au téléphone pendant que Salim l'utilisait) :
+
+```
+markAsDelivered error: PostgrestException(message: mark_messages_as_delivered: user is not a participant, code: P0001…)
+```
+
+Les conversations visées (`883c9d96-…`, `54de1817-…`, notifications datées du
+12–14 août) ont été détruites par la purge `messages`/`conversations` du
+2026-08-14 (voir [[project_messages_conversations_purge_2026_08_14]]) ; les
+notifications, elles, ont survécu à la purge et pointaient vers un id mort.
+`ConversationScreen` a bien un état `isDeleted` (ligne ~1124) qui affiche
+« Ce groupe a été supprimé »/« Cette conversation a été supprimée » à la
+place du composeur — mais l'en-tête retombe sur le texte générique
+« Utilisateur » faute de pouvoir dériver un nom d'une conversation
+inexistante, d'où l'impression de blocage total.
+
+- [x] **Corrigé côté donnée** : 29 notifications `type='message'` dont
+  `data->>targetId` ne correspond plus à aucune ligne `conversations` ont été
+  supprimées en prod (`supabase db query --linked`, confirmé avec Salim avant
+  le DELETE). Ce sont exclusivement de vieilles notifs de test antérieures à
+  la purge — aucune conversation live touchée.
+- [ ] **Pas corrigé côté code** : l'en-tête d'une conversation dans l'état
+  `isDeleted` affiche toujours « Utilisateur »/« Groupe » au lieu d'un
+  libellé du type « Conversation supprimée ». Repli mineur mais trompeur —
+  si une conversation live est supprimée pendant que quelqu'un a encore sa
+  notification, le symptôme reviendra à l'identique.
+
+---
+
 ## Transfert, Boutique, Salons audio et Podcasts retirés de la grille d'accueil (2026-08-30)
 
 Même traitement, à la demande, sur la seconde grille : les quatre tuiles de
