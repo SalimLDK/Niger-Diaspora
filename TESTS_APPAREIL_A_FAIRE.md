@@ -122,13 +122,26 @@ l'écran de connexion, clés E2EE à restaurer).
   sur SM A515F** : lecteur ouvert, barre de progression et minuteur actifs.
 - [ ] Envoyer une vidéo depuis la galerie intégrée (`GalleryPickerScreen`,
   sélection unique) : la bulle doit afficher une vignette + bouton lecture,
-  pas une icône de fichier.
+  pas une icône de fichier. **Bloqué le 2026-08-30** : aucune vidéo dans la
+  galerie partagée du SM A515F pour la sélectionner (les vidéos captées par
+  l'app restent en stockage privé, jamais dans `DCIM`/`Movies`), et trois
+  tentatives pour en déposer une ont échoué — `am start -a VIDEO_CAPTURE`
+  sans Activity appelante ne persiste rien, l'appli Caméra stock (Samsung)
+  utilise un sélecteur de mode PHOTO/VIDÉO en `SeekBar` (glisser, pas taper)
+  qui a déclenché à la place un contrôle d'exposition puis un geste système
+  de retour, et un swipe de défilement dans la conversation a été interprété
+  comme un geste système (retour à l'app relancée). À reprendre avec une
+  vraie vidéo poussée par `adb push` + `MEDIA_SCANNER_SCAN_FILE` plutôt que
+  par UI.
 - [ ] Envoyer une vidéo via le sélecteur système dédié (`_pickVideo`,
-  `image_picker`).
+  `image_picker`) — même blocage : nécessite une vidéo déjà dans la galerie.
 - [ ] Envoyer plusieurs vidéos/photos mélangées en un lot (revue groupée
-  `MediaBatchPreviewScreen`) : chaque vidéo du lot doit garder son type.
-- [ ] Vérifier que l'onglet vidéos de la galerie média
-  (`media_gallery_provider.dart`) liste bien les nouvelles vidéos envoyées.
+  `MediaBatchPreviewScreen`) : chaque vidéo du lot doit garder son type —
+  même blocage.
+- [x] **Vérifier que l'onglet vidéos de la galerie média liste bien les
+  nouvelles vidéos envoyées, sur SM A515F** : « Options de la conversation »
+  → « Médias partagés » → onglet « Vidéos · 3 » affiche bien les 3 vidéos
+  envoyées dans la conversation, en grille avec vignette + bouton lecture.
 
 ---
 
@@ -158,6 +171,13 @@ dépôt.
   difficiles à distinguer visuellement dans cette lumière).
 - [ ] Vérifier qu'annuler l'upload pendant qu'une vidéo est en cours
   (bouton croix sur l'anneau de progression) fonctionne comme pour une image.
+  **Tenté le 2026-08-30, non concluant** : sur un clip de 2,3 Mo (wifi
+  correct), l'upload se termine en moins de temps qu'il n'en faut pour
+  enchaîner « capturer l'écran → taper la croix » via automation — le bouton
+  était encore visible sur la capture mais le message était déjà « Envoyé »
+  au moment du tap. Pas un échec du bouton (jamais atteint dans l'état
+  voulu) : à refaire au doigt, ou avec une vidéo assez lourde pour laisser
+  quelques secondes de marge.
 
 ---
 
