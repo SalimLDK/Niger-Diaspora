@@ -1318,7 +1318,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
               ? _buildSelectionAppBar(paginationState.messages)
               : _isSearchMode
               ? _buildSearchAppBar()
-              : _buildAppBar(otherUser, groupData, conversation),
+              : _buildAppBar(otherUser, groupData, conversation, isDeleted),
       body: Container(
         decoration:
             _chatBackground != null && !_chatBackground!.isDefault
@@ -2923,6 +2923,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     dynamic otherUser,
     dynamic groupData,
     ConversationEntity? conversation,
+    bool isDeleted,
   ) {
     final l10n = AppLocalizations.of(context)!;
     // For groups: use passed name, fallback to loaded group data, then default
@@ -2937,8 +2938,18 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // appareil le 2026-08-05 : « Diaspora Niger — Canada » s'affichait
     // « Groupe », alors que la liste des messages — qui lit `conversation.name`
     // — montrait le bon nom.
+    //
+    // `isDeleted` prime sur tout le reste : une conversation dont le flux a
+    // livré `null` (supprimée, ou notification pointant vers un id détruit
+    // par la purge du 2026-08-14 — voir
+    // project_messages_conversations_purge_2026_08_14) n'a plus de nom à
+    // dériver nulle part. Sans ce garde, l'en-tête retombait sur le
+    // générique « Utilisateur », qui se lisait comme un blocage plutôt que
+    // comme une conversation supprimée.
     final displayName =
-        _isSelfNotes
+        isDeleted
+            ? (_isGroup ? l10n.thisGroupWasDeleted : l10n.conversationDeleted)
+            : _isSelfNotes
             ? l10n.messagesMyNotes
             : _isGroup
             ? (widget.conversationName ??
