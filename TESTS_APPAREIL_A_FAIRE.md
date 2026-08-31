@@ -73,10 +73,10 @@ propre.
 APK **périmé** — deux vidéos envoyées via la caméra unifiée se sont encore
 affichées en `DocumentBubble` malgré le correctif dans les sources. Seul un
 `flutter clean` + rebuild complet a fait apparaître le vrai comportement
-corrigé. Voir [[project_build_gotchas]] (§4, déjà documenté pour une cause
-différente — démon Gradle tué — mais même symptôme : succès annoncé, APK pas
-à jour). Ce rebuild complet a aussi déconnecté la session (retour à l'écran
-de connexion, clés E2EE à restaurer) — voir [[project_device_testing]].
+corrigé (déjà documenté §4 des pièges de build pour une cause différente —
+démon Gradle tué — mais même symptôme : succès annoncé, APK pas à jour). Ce
+rebuild complet a aussi déconnecté la session au moins une fois (retour à
+l'écran de connexion, clés E2EE à restaurer).
 
 - [x] **Envoyer une vidéo depuis la caméra unifiée (`CameraCaptureScreen`),
   mode vidéo explicite, sur SM A515F** : bulle `VideoBubble` correcte
@@ -92,9 +92,56 @@ de connexion, clés E2EE à restaurer) — voir [[project_device_testing]].
   `MediaBatchPreviewScreen`) : chaque vidéo du lot doit garder son type.
 - [ ] Vérifier que l'onglet vidéos de la galerie média
   (`media_gallery_provider.dart`) liste bien les nouvelles vidéos envoyées.
-- [ ] Vérifier la vignette shimmer pendant l'upload d'une vidéo (actuellement
-  affiche le squelette générique « document », pas retouché dans cette
-  session — hors périmètre du bug signalé mais visuellement incohérent).
+
+---
+
+## ✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)
+
+Suite du point précédent : demande produit de retoucher le design pendant
+l'envoi. Avant ce correctif, l'upload d'une vidéo affichait le squelette
+générique « document » (`_buildDocumentUpload` dans
+[uploading_media_skeleton.dart](lib/features/messages/presentation/widgets/uploading_media_skeleton.dart)
+— petite icône de fichier + nom + `%`), car `MediaUploadState` ne
+transportait qu'un booléen `isImage`, jamais `true` pour une vidéo. Corrigé
+en remplaçant ce booléen par le vrai `MessageType` (même schéma que le
+correctif précédent) et en ajoutant une branche `_buildVideoUpload` : vraie
+vignette extraite localement du fichier vidéo via `video_thumbnail`
+(`_VideoThumbnailPreview`, package déjà présent pour le blurhash serveur),
+assombrie + effet shimmer comme l'aperçu image, badge caméra en coin haut
+gauche (même langage visuel que `VideoBubble`), anneau de progression +
+bouton annuler, légende si saisie. `flutter analyze` propre sur tout le
+dépôt.
+
+- [x] **Envoyer une vidéo (caméra unifiée) et observer la bulle pendant
+  l'upload, sur SM A515F** : vignette assombrie + badge caméra + anneau de
+  progression affichés (capture prise pendant l'upload, avant la fin) ; la
+  bulle finale devient bien `VideoBubble` à la fin, aucune régression.
+- [ ] Vérifier la vignette avec une vidéo bien éclairée (testée dans une
+  pièce sombre — la vignette réelle vs le placeholder shimmer étaient
+  difficiles à distinguer visuellement dans cette lumière).
+- [ ] Vérifier qu'annuler l'upload pendant qu'une vidéo est en cours
+  (bouton croix sur l'anneau de progression) fonctionne comme pour une image.
+
+---
+
+## ✅ Badge de durée manquant sur les bulles vidéo (2026-08-30)
+
+En vérifiant le point précédent sur appareil, aucune des vidéos envoyées
+n'affichait le badge de durée (coin haut droit) que `VideoBubble` sait
+pourtant déjà dessiner (`if (duration != null) ...`). Cause : rien dans
+[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+`sendFileMessage` ne calculait `videoDuration` avant l'envoi — le champ
+existait de bout en bout côté modèle/datasource/DB (déjà utilisé par
+Fil/Stories/Podcasts via `VideoUploadService`) mais jamais alimenté côté
+messagerie. Corrigé en lisant la durée localement via
+`VideoCompress.getMediaInfo` (déjà une dépendance du projet, méthode qui ne
+compresse pas — lecture de métadonnées seule) avant l'upload, même schéma que
+`audioDuration` juste au-dessus dans la même fonction. `flutter analyze`
+propre sur tout le dépôt.
+
+- [x] **Envoyer une vidéo et vérifier que le badge de durée apparaît, sur
+  SM A515F** : badge « 🎥 0:02 » en coin haut droit sur la bulle envoyée
+  (clip de 3 s), lecture correcte de la durée réelle.
 
 ---
 

@@ -6,6 +6,7 @@ import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:video_compress/video_compress.dart';
 // import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/exceptions.dart';
@@ -406,6 +407,12 @@ class MessageRepositoryImpl implements MessageRepository {
           audioDuration = await AudioPlaybackService.getDurationFromFile(file.path);
         }
 
+        // Extract video duration for the VideoBubble duration badge.
+        int? videoDuration;
+        if (type == MessageType.video) {
+          videoDuration = await _getVideoDurationSeconds(file.path);
+        }
+
         // Map app MessageType to DB type string.
         final dbType = type == MessageType.audio ? 'audioFile' : type.name;
 
@@ -423,6 +430,7 @@ class MessageRepositoryImpl implements MessageRepository {
           replyToId: replyToId,
           replyToMessageData: replyToMessageData,
           blurhash: blurhash,
+          videoDuration: videoDuration,
           audioDuration: audioDuration,
         );
         return Right(message.toEntity());
@@ -432,6 +440,24 @@ class MessageRepositoryImpl implements MessageRepository {
     } catch (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
       return Left(ServerFailure(AppErrorMessages.unexpectedError));
+    }
+  }
+
+  /// Lit la durée d'une vidéo locale sans la compresser (juste ses métadonnées),
+  /// pour le badge de durée de `VideoBubble`.
+  Future<int?> _getVideoDurationSeconds(String path) async {
+    try {
+      final info = await VideoCompress.getMediaInfo(path);
+      final durationMs = info.duration;
+      if (durationMs == null) return null;
+      return (durationMs / 1000).round();
+    } catch (e) {
+      dev.log(
+        'Impossible de lire la durée vidéo',
+        name: 'message_repository_impl',
+        error: e,
+      );
+      return null;
     }
   }
 

@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../domain/entities/message_entity.dart';
+
 part 'media_upload_provider.g.dart';
 
 /// State for media upload with progress and cancellation support
@@ -13,7 +15,7 @@ class MediaUploadState {
   final double progress; // 0.0 to 1.0
   final String? fileName;
   final File? file;
-  final bool isImage;
+  final MessageType type;
   final String? caption;
   final String? error;
   final String? conversationId;
@@ -23,7 +25,7 @@ class MediaUploadState {
     this.progress = 0.0,
     this.fileName,
     this.file,
-    this.isImage = true,
+    this.type = MessageType.file,
     this.caption,
     this.error,
     this.conversationId,
@@ -34,7 +36,7 @@ class MediaUploadState {
     double? progress,
     String? fileName,
     File? file,
-    bool? isImage,
+    MessageType? type,
     String? caption,
     String? error,
     String? conversationId,
@@ -44,7 +46,7 @@ class MediaUploadState {
       progress: progress ?? this.progress,
       fileName: fileName ?? this.fileName,
       file: file ?? this.file,
-      isImage: isImage ?? this.isImage,
+      type: type ?? this.type,
       caption: caption ?? this.caption,
       error: error,
       conversationId: conversationId ?? this.conversationId,
@@ -71,7 +73,7 @@ class MediaUpload extends _$MediaUpload {
   void startUpload({
     required File file,
     required String conversationId,
-    required bool isImage,
+    required MessageType type,
     String? caption,
   }) {
     _isCancelled = false;
@@ -82,7 +84,7 @@ class MediaUpload extends _$MediaUpload {
       progress: 0.0,
       file: file,
       fileName: file.path.split('/').last.split('\\').last,
-      isImage: isImage,
+      type: type,
       caption: caption,
       conversationId: conversationId,
     );

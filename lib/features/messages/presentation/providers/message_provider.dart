@@ -1166,7 +1166,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     uploadNotifier.startUpload(
       file: file,
       conversationId: conversationId,
-      isImage: type == MessageType.image,
+      type: type,
       caption: caption,
     );
 

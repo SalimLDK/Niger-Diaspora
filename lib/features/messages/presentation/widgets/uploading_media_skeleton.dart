@@ -1,8 +1,13 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../domain/entities/message_entity.dart';
 import '../providers/media_upload_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
@@ -51,10 +56,11 @@ class UploadingMediaSkeleton extends ConsumerWidget {
               bottomLeft: Radius.circular(20),
               bottomRight: Radius.circular(4),
             ),
-            child:
-                uploadState.isImage
-                    ? _buildImageUpload(context, ref, uploadState)
-                    : _buildDocumentUpload(context, ref, uploadState),
+            child: switch (uploadState.type) {
+              MessageType.image => _buildImageUpload(context, ref, uploadState),
+              MessageType.video => _buildVideoUpload(context, ref, uploadState),
+              _ => _buildDocumentUpload(context, ref, uploadState),
+            },
           ),
         ),
       ),
@@ -113,31 +119,87 @@ class UploadingMediaSkeleton extends ConsumerWidget {
 
         // Caption if present
         if (uploadState.caption != null && uploadState.caption!.isNotEmpty)
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.6),
-                  ],
-                ),
-              ),
-              child: Text(
-                uploadState.caption!,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+          _buildCaptionOverlay(uploadState.caption!),
+      ],
+    );
+  }
+
+  /// Aperçu vidéo pendant l'upload : même traitement que l'image (image
+  /// réelle assombrie + effet shimmer) au lieu du squelette générique
+  /// « document », plus un badge vidéo pour rester cohérent avec `VideoBubble`.
+  Widget _buildVideoUpload(
+    BuildContext context,
+    WidgetRef ref,
+    MediaUploadState uploadState,
+  ) {
+    return Stack(
+      children: [
+        if (uploadState.file != null)
+          SizedBox(
+            width: 250,
+            height: 200,
+            child: _VideoThumbnailPreview(
+              key: ValueKey(uploadState.file!.path),
+              file: uploadState.file!,
+              placeholderBuilder: () => _buildShimmerPlaceholder(context),
+            ),
+          )
+        else
+          _buildShimmerPlaceholder(context),
+
+        Positioned(top: 8, left: 8, child: _buildVideoBadge()),
+
+        // Progress overlay
+        Positioned.fill(
+          child: Container(
+            color: Colors.black.withValues(alpha: 0.4),
+            child: Center(
+              child: _buildProgressIndicator(context, ref, uploadState),
             ),
           ),
+        ),
+
+        if (uploadState.caption != null && uploadState.caption!.isNotEmpty)
+          _buildCaptionOverlay(uploadState.caption!),
       ],
+    );
+  }
+
+  Widget _buildVideoBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: const Icon(Icons.videocam_rounded, color: Colors.white, size: 14),
+    );
+  }
+
+  Widget _buildCaptionOverlay(String caption) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Colors.black.withValues(alpha: 0.6),
+            ],
+          ),
+        ),
+        child: Text(
+          caption,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
     );
   }
 
@@ -280,6 +342,83 @@ class UploadingMediaSkeleton extends ConsumerWidget {
         height: 200,
         color: context.surfaceVariantColor,
       ),
+    );
+  }
+}
+
+/// Extrait une vignette de la première image du fichier vidéo local (pas
+/// encore de blurhash serveur à ce stade) et l'affiche assombrie, avec le
+/// même effet shimmer que l'aperçu image. Widget à état séparé pour ne
+/// générer la vignette qu'une fois, indépendamment des rebuilds fréquents du
+/// parent pendant que la progression avance.
+class _VideoThumbnailPreview extends StatefulWidget {
+  final File file;
+  final Widget Function() placeholderBuilder;
+
+  const _VideoThumbnailPreview({
+    super.key,
+    required this.file,
+    required this.placeholderBuilder,
+  });
+
+  @override
+  State<_VideoThumbnailPreview> createState() =>
+      _VideoThumbnailPreviewState();
+}
+
+class _VideoThumbnailPreviewState extends State<_VideoThumbnailPreview> {
+  Uint8List? _thumbnail;
+
+  @override
+  void initState() {
+    super.initState();
+    _generate();
+  }
+
+  @override
+  void didUpdateWidget(covariant _VideoThumbnailPreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.file.path != widget.file.path) {
+      _thumbnail = null;
+      _generate();
+    }
+  }
+
+  Future<void> _generate() async {
+    try {
+      final bytes = await VideoThumbnail.thumbnailData(
+        video: widget.file.path,
+        imageFormat: ImageFormat.JPEG,
+        maxWidth: 400,
+        quality: 60,
+      );
+      if (mounted) setState(() => _thumbnail = bytes);
+    } catch (_) {
+      // Le shimmer reste affiché si l'extraction échoue.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = _thumbnail;
+    if (bytes == null) return widget.placeholderBuilder();
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            Colors.black.withValues(alpha: 0.3),
+            BlendMode.darken,
+          ),
+          child: Image.memory(bytes, fit: BoxFit.cover, gaplessPlayback: true),
+        ),
+        Shimmer.fromColors(
+          baseColor: Colors.transparent,
+          highlightColor: Colors.white.withValues(alpha: 0.15),
+          child: Container(color: Colors.white),
+        ),
+      ],
     );
   }
 }
