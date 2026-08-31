@@ -40,11 +40,12 @@ inexistante, d'où l'impression de blocage total.
   supprimées en prod (`supabase db query --linked`, confirmé avec Salim avant
   le DELETE). Ce sont exclusivement de vieilles notifs de test antérieures à
   la purge — aucune conversation live touchée.
-- [ ] **Pas corrigé côté code** : l'en-tête d'une conversation dans l'état
-  `isDeleted` affiche toujours « Utilisateur »/« Groupe » au lieu d'un
-  libellé du type « Conversation supprimée ». Repli mineur mais trompeur —
-  si une conversation live est supprimée pendant que quelqu'un a encore sa
-  notification, le symptôme reviendra à l'identique.
+- [ ] **Corrigé côté code, non vérifié sur appareil** : `_buildAppBar` reçoit
+  désormais `isDeleted` et affiche « Cette conversation a été supprimée »/
+  « Ce groupe a été supprimé » au lieu du générique « Utilisateur ». Pas
+  testé au doigt — un `flutter run`/build tournait déjà sur le téléphone de
+  Salim (test vidéo en parallèle), rebuild à faire pour vérifier l'écran
+  réel d'une conversation supprimée.
 
 ---
 
