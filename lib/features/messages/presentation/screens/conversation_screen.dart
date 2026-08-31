@@ -1166,6 +1166,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     final otherUser = otherUserAsync?.valueOrNull;
 
+    // Vrai tant qu'on n'a pas encore de quoi nommer l'interlocuteur : par
+    // lien profond/notification, `widget.conversationName` est nul, et il
+    // faut DEUX allers-retours successifs (conversation, puis profil de
+    // l'autre participant une fois son id connu) avant d'avoir un vrai nom.
+    // Sans ce garde, l'en-tête affichait « Utilisateur » (repli final de
+    // `displayName`) pendant cette fenêtre, avant de corriger tout seul —
+    // lu par Salim comme un défaut, pas comme un chargement.
+    final identityLoading =
+        !_isGroup &&
+        !_isSelfNotes &&
+        (!conversationAsync.hasValue ||
+            (_effectiveOtherUserId != null &&
+                !(otherUserAsync?.hasValue ?? false)));
+
     // Stream group data if it's a group chat and we have groupId
     // This ensures we can display group name/image even when navigating from notifications
     dynamic groupData;
@@ -1318,7 +1332,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
               ? _buildSelectionAppBar(paginationState.messages)
               : _isSearchMode
               ? _buildSearchAppBar()
-              : _buildAppBar(otherUser, groupData, conversation, isDeleted),
+              : _buildAppBar(
+                otherUser,
+                groupData,
+                conversation,
+                isDeleted,
+                identityLoading,
+              ),
       body: Container(
         decoration:
             _chatBackground != null && !_chatBackground!.isDefault
@@ -2924,6 +2944,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     dynamic groupData,
     ConversationEntity? conversation,
     bool isDeleted,
+    bool identityLoading,
   ) {
     final l10n = AppLocalizations.of(context)!;
     // For groups: use passed name, fallback to loaded group data, then default
@@ -2946,9 +2967,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // dériver nulle part. Sans ce garde, l'en-tête retombait sur le
     // générique « Utilisateur », qui se lisait comme un blocage plutôt que
     // comme une conversation supprimée.
+    //
+    // `identityLoading` prime sur le repli `l10n.user` : ce dernier ne doit
+    // dire « Utilisateur » qu'une fois l'attente terminée et le profil
+    // effectivement introuvable, jamais pendant les deux allers-retours
+    // encore en vol (conversation, puis profil de l'autre participant).
     final displayName =
         isDeleted
             ? (_isGroup ? l10n.thisGroupWasDeleted : l10n.conversationDeleted)
+            : identityLoading
+            ? (widget.conversationName ?? l10n.loading)
             : _isSelfNotes
             ? l10n.messagesMyNotes
             : _isGroup
