@@ -48,6 +48,20 @@ inexistante, d'où l'impression de blocage total.
   `INSERT` sur `notifications` a été refusé par le classificateur de
   permissions même en compte de test, l'écriture directe en base reste
   réservée à Salim. Session préservée par le rebuild+`install -r`.
+- [x] **Second signalement, même jour : le flash « Utilisateur » pendant le
+  chargement d'une conversation bien vivante** (pas supprimée). Par lien
+  profond/notification, `widget.conversationName` est nul — il faut deux
+  allers-retours successifs (conversation, puis profil du correspondant)
+  avant d'avoir un vrai nom, et `displayName` retombait sur `l10n.user`
+  pendant cette fenêtre avant de se corriger tout seul. Ajouté un garde
+  `identityLoading` qui affiche `l10n.loading` (« Chargement... ») tant que
+  l'un des deux flux n'a pas encore émis. `flutter analyze` propre. Repro
+  device par lien profond vers une conversation vivante (`debef5f0-…`) après
+  démarrage à froid (`force-stop` + relance) : la fenêtre s'est résolue plus
+  vite que le round-trip `adb screencap` (deux captures rapprochées montrent
+  directement le bon nom, jamais « Utilisateur ») — la correction n'a donc
+  pas pu être observée à l'écran dans le mauvais état, seulement vérifiée par
+  lecture de code + absence de régression sur l'état final.
 
 ---
 
