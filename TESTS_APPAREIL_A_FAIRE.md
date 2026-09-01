@@ -107,10 +107,12 @@ Swift : même comportement avec l'`AppDelegate` d'origine, test A/B fait.
 - [x] **Schéma `diasponiger://` reconnu par iOS.** `simctl openurl` déclenche
       bien « Ouvrir dans Diaspo Niger ? » : la déclaration
       `CFBundleURLSchemes` d'`Info.plist` est correcte.
-- [ ] **Le routage lui-même n'est pas vérifié.** iOS impose une confirmation à
-      tout `openurl`, et le simulateur n'est pas pilotable en frappe ici. Il
-      reste à cliquer « Ouvrir » à la main et confirmer l'arrivée sur
-      `/auth/register`.
+- [x] **Routage vérifié.** `diasponiger:///auth/register` amène bien sur
+      « Créer un compte ». **Ça valide la décision de ne PAS porter le canal
+      `diaspo_niger/deep_link` sur iOS** : la route est arrivée par le canal de
+      navigation de l'embedding — aucune trace du gestionnaire
+      `_bindNativeDeepLinks` dans les journaux — donc ajouter le canal aurait
+      fait naviguer deux fois.
 - [ ] **Universal Links intestables sans compte développeur.**
       `https://diasponiger.web.app/auth/register` s'ouvre **dans Safari**, pas
       dans l'app : l'association de domaine exige une app signée portant
