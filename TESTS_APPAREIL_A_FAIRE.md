@@ -80,13 +80,30 @@ deux seulement méritaient d'être portés :
 - [ ] À vérifier sur appareil : que les liens profonds arrivent bien par ce
       chemin natif iOS, l'hypothèse ci-dessus n'ayant pas pu être testée.
 
-**Écran vide derrière la demande d'autorisation (à confirmer).** Sur
+**Écran vide derrière la demande d'autorisation (non tranché).** Sur
 simulateur, l'app demande l'autorisation de notifications au démarrage et la
 vue Flutter reste grise tant que personne ne répond à l'alerte système. Le tout
 premier lancement, lui, avait bien affiché l'écran de connexion avec l'alerte
-par-dessus. Écarté comme régression : le comportement est identique avec
-l'`AppDelegate` d'origine (test A/B fait). Reste à confirmer d'un simple appui
-sur « Autoriser » — impossible sans contrôle du simulateur.
+par-dessus.
+
+Ce qui est établi :
+
+- **Ce n'est pas une régression de la parité Swift** : comportement identique
+  en remettant l'`AppDelegate` d'origine (test A/B fait le 2026-09-01).
+- **L'app n'a pas planté** : la VM Dart écoute, et les journaux montrent
+  l'initialisation complète (chiffrement, GoogleMapsService, NativeCallService).
+
+Ce qui manque pour trancher : **`Simulator.app` n'existe pas sur la machine.**
+L'Xcode 27 beta installé est amputé — `.xip` de 1,8 Go pour ~8-10 Go attendus,
+`Contents/Developer/Applications/` et `SimulatorKit.framework` absents. Le
+simulateur tourne donc **sans fenêtre** : on peut compiler, installer, lancer
+et capturer via `simctl`, mais pas toucher l'écran. D'où l'hypothèse à
+vérifier en priorité une fois un Xcode complet installé — sans scène visible,
+l'app peut ne jamais passer au premier plan, et Flutter ne dessine alors aucune
+image.
+
+- [ ] Rejouer le lancement avec `Simulator.app` ouvert, répondre à l'alerte,
+      confirmer que l'écran de connexion est bien là derrière.
 
 À noter, sans lien avec iOS : les canaux `gsm_state`, `pip` et `proximity` ne
 sont implémentés **sur aucune des deux plateformes** — le code Dart de
