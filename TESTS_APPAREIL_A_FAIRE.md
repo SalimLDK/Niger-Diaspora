@@ -80,30 +80,43 @@ deux seulement méritaient d'être portés :
 - [ ] À vérifier sur appareil : que les liens profonds arrivent bien par ce
       chemin natif iOS, l'hypothèse ci-dessus n'ayant pas pu être testée.
 
-**Écran vide derrière la demande d'autorisation (non tranché).** Sur
-simulateur, l'app demande l'autorisation de notifications au démarrage et la
-vue Flutter reste grise tant que personne ne répond à l'alerte système. Le tout
-premier lancement, lui, avait bien affiché l'écran de connexion avec l'alerte
-par-dessus.
+## ⚠️ Simulateur : lancer DeviceHub AVANT de démarrer l'app (2026-09-01)
 
-Ce qui est établi :
+**Sans fenêtre de simulateur ouverte, l'app se lance mais Flutter ne dessine
+jamais rien** — écran gris uniforme, aucune erreur, aucun plantage, la VM Dart
+répond et les journaux montrent l'initialisation complète. On croit à un bug
+de l'app ; c'en est un du poste de travail. Une demi-heure perdue à chercher
+au mauvais endroit.
 
-- **Ce n'est pas une régression de la parité Swift** : comportement identique
-  en remettant l'`AppDelegate` d'origine (test A/B fait le 2026-09-01).
-- **L'app n'a pas planté** : la VM Dart écoute, et les journaux montrent
-  l'initialisation complète (chiffrement, GoogleMapsService, NativeCallService).
+Xcode 27 n'a plus de `Simulator.app` : c'est **`DeviceHub.app`** qui porte la
+fenêtre, dans `Contents/Applications/` et non plus
+`Contents/Developer/Applications/`.
 
-Ce qui manque pour trancher : **`Simulator.app` n'existe pas sur la machine.**
-L'Xcode 27 beta installé est amputé — `.xip` de 1,8 Go pour ~8-10 Go attendus,
-`Contents/Developer/Applications/` et `SimulatorKit.framework` absents. Le
-simulateur tourne donc **sans fenêtre** : on peut compiler, installer, lancer
-et capturer via `simctl`, mais pas toucher l'écran. D'où l'hypothèse à
-vérifier en priorité une fois un Xcode complet installé — sans scène visible,
-l'app peut ne jamais passer au premier plan, et Flutter ne dessine alors aucune
-image.
+```bash
+open /Users/mouba/Downloads/Xcode-beta.app/Contents/Applications/DeviceHub.app
+```
 
-- [ ] Rejouer le lancement avec `Simulator.app` ouvert, répondre à l'alerte,
-      confirmer que l'écran de connexion est bien là derrière.
+Une fois lancée, l'écran de connexion s'affiche immédiatement et correctement
+(thème clair, fond crème). Écarté au passage comme régression de la parité
+Swift : même comportement avec l'`AppDelegate` d'origine, test A/B fait.
+
+- [x] Écran de connexion vérifié sur simulateur iPhone 17 (iOS 26.1).
+
+## Liens profonds iOS : la moitié testable est bonne (2026-09-01)
+
+- [x] **Schéma `diasponiger://` reconnu par iOS.** `simctl openurl` déclenche
+      bien « Ouvrir dans Diaspo Niger ? » : la déclaration
+      `CFBundleURLSchemes` d'`Info.plist` est correcte.
+- [ ] **Le routage lui-même n'est pas vérifié.** iOS impose une confirmation à
+      tout `openurl`, et le simulateur n'est pas pilotable en frappe ici. Il
+      reste à cliquer « Ouvrir » à la main et confirmer l'arrivée sur
+      `/auth/register`.
+- [ ] **Universal Links intestables sans compte développeur.**
+      `https://diasponiger.web.app/auth/register` s'ouvre **dans Safari**, pas
+      dans l'app : l'association de domaine exige une app signée portant
+      l'entitlement Associated Domains, plus le fichier AASA validé par le CDN
+      d'Apple. Rien à corriger côté code — à revérifier après la première
+      signature.
 
 À noter, sans lien avec iOS : les canaux `gsm_state`, `pip` et `proximity` ne
 sont implémentés **sur aucune des deux plateformes** — le code Dart de
