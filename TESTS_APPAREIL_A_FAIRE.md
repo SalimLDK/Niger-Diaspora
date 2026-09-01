@@ -54,18 +54,39 @@ sur un iPhone réel, et une partie exige un compte Apple Developer :
 - [ ] Achats RevenueCat après la montée en version majeure 8 → 10.
 - [ ] Deep links / Universal Links (exige Associated Domains signés).
 
-**Parité native Swift non faite.** `AppDelegate.swift` fait 15 lignes là où
-`MainActivity.java` en fait 230. Quatre canaux natifs n'existent que côté
-Android — l'app fonctionne sans eux, mais ces fonctions sont muettes sur iOS :
+**Parité native Swift — premier passage fait le 2026-09-01.** `AppDelegate.swift`
+passe de 15 à 100 lignes. Après lecture de chacun des quatre canaux Android,
+deux seulement méritaient d'être portés :
 
-- [ ] `diaspo_niger/deep_link` — liens profonds inertes.
-- [ ] `diaspo_niger/share_intent` — partage entrant ; porte aussi
-      `getInstallationId`, d'où l'ID d'appareil E2EE stable. Sur iOS il retombe
-      sur un UUID aléatoire, donc les identités mortes s'accumulent dans
-      `e2ee_devices` à chaque réinstallation (`identifierForVendor` est
-      l'équivalent exact du SSAID et réglerait le problème).
-- [ ] `diaspo_niger/lockscreen` — appel sur écran verrouillé.
-- [ ] Délégué `UNUserNotificationCenter` absent : aucune notification locale.
+- [x] `diaspo_niger/share_intent` → `getInstallationId` rendu par
+      `identifierForVendor`, équivalent iOS du SSAID. Le garde Dart de
+      `stableDeviceId` s'ouvre à iOS en conséquence. Sans ça, chaque
+      régénération de clés créait une ligne de plus dans `e2ee_devices`, et
+      tout message destiné au compte doit être chiffré pour chacune.
+      `clearSharedIntent` répond sans rien faire : il manipule l'intent d'une
+      activité Android, notion inexistante ici.
+- [x] Délégué `UNUserNotificationCenter` posé — sans lui,
+      `flutter_local_notifications` ne peut rien afficher au premier plan et
+      iOS supprime la bannière en silence.
+- [x] `diaspo_niger/lockscreen` — **volontairement non porté.** Il remplace
+      `showWhenLocked`/`turnScreenOn` d'Android ; sur iOS c'est CallKit qui
+      gouverne l'affichage d'un appel sur écran verrouillé.
+      `LockScreenService._apply` sort déjà avant l'appel hors Android.
+- [x] `diaspo_niger/deep_link` — **volontairement non porté.** Côté Android il
+      contourne un défaut réel (le moteur mis en cache par `audio_service`
+      empêche le canal de navigation d'aboutir). Ce montage n'existe pas sur
+      iOS : `FlutterDeepLinkingEnabled` étant à `true`, `FlutterAppDelegate`
+      relaie lui-même les liens. Le porter ferait **naviguer deux fois**.
+- [ ] À vérifier sur appareil : que les liens profonds arrivent bien par ce
+      chemin natif iOS, l'hypothèse ci-dessus n'ayant pas pu être testée.
+
+**Écran vide derrière la demande d'autorisation (à confirmer).** Sur
+simulateur, l'app demande l'autorisation de notifications au démarrage et la
+vue Flutter reste grise tant que personne ne répond à l'alerte système. Le tout
+premier lancement, lui, avait bien affiché l'écran de connexion avec l'alerte
+par-dessus. Écarté comme régression : le comportement est identique avec
+l'`AppDelegate` d'origine (test A/B fait). Reste à confirmer d'un simple appui
+sur « Autoriser » — impossible sans contrôle du simulateur.
 
 À noter, sans lien avec iOS : les canaux `gsm_state`, `pip` et `proximity` ne
 sont implémentés **sur aucune des deux plateformes** — le code Dart de
