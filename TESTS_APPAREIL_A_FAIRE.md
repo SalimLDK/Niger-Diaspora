@@ -102,6 +102,44 @@ Swift : même comportement avec l'`AppDelegate` d'origine, test A/B fait.
 
 - [x] Écran de connexion vérifié sur simulateur iPhone 17 (iOS 26.1).
 
+## Supabase branché sur iOS — deux réserves (2026-09-01)
+
+`SUPABASE_ANON_KEY` renseignée, `***** Supabase init completed *****` dans les
+journaux, et GoRouter route normalement (`/splash` → `/auth/login`). Le
+dialogue App Tracking Transparency s'affiche aussi, donc
+`NSUserTrackingUsageDescription` est correcte.
+
+- [x] Initialisation Supabase vérifiée sur simulateur.
+
+**1. App Check échoue en 403 « App attestation failed ».** Attendu sur
+simulateur : l'app produit bien un jeton de debug, mais il n'est pas déclaré
+côté Firebase, donc l'échange est refusé.
+
+```
+Firebase App Check Debug Token: E42FC20C-8AE4-4474-BCFC-9A52B36DECEB
+```
+
+- [ ] Déclarer ce jeton dans *Firebase Console › App Check › l'app iOS ›
+      Gérer les jetons de debug*. **Sans lui, tout parcours authentifié est
+      intestable sur simulateur** dès que App Check est en mode contraint.
+      Le jeton est propre à cette installation : il change à chaque
+      réinstallation complète.
+
+**2. L'Edge Function `app-config` répond 404.** Le mécanisme de configuration
+distante — celui qui permet de changer une clé sans republier — n'est donc pas
+opérationnel. L'app retombe proprement sur le `.env` embarqué, rien n'est
+cassé, mais rien n'est pilotable à distance non plus.
+
+Vérifié au curl : `/auth/v1/settings` répond 200 (clé et projet valides),
+`/rest/v1/` répond 401 sans session (conforme : les RLS bloquent), mais
+**toutes** les Edge Functions répondent 404, `gif-proxy` compris. Ce n'est donc
+pas propre à `app-config`, et pas propre à iOS non plus.
+
+- [ ] Confirmer si les Edge Functions sont réellement déployées sur
+      `zyrfkcjjrhddpfxcgezo` (`supabase functions list`). Si oui, le 404 vient
+      d'ailleurs et mérite un examen ; si non, la config distante et le proxy
+      GIF sont hors service sur les deux plateformes.
+
 ## Liens profonds iOS : la moitié testable est bonne (2026-09-01)
 
 - [x] **Schéma `diasponiger://` reconnu par iOS.** `simctl openurl` déclenche
