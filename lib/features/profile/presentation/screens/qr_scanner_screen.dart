@@ -264,7 +264,10 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
               controller: _controller,
               onDetect: _onDetect,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, child) {
+              // mobile_scanner 7.x a retire le troisieme parametre `child` de
+              // `errorBuilder` : il n'etait jamais fourni. Signature a deux
+              // arguments desormais.
+              errorBuilder: (context, error) {
                 return Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

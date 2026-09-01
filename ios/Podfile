@@ -1,0 +1,74 @@
+# Diaspo Niger — Podfile
+#
+# iOS 15.0 et pas moins : `google_maps_flutter_ios` dépend de
+# `GoogleMaps >= 8.4, < 10.0`, et CocoaPods résout sur la 9.x qui exige iOS 15.
+# Les 36 plugins Flutter du projet plafonnent eux à iOS 13 (Firebase, WebRTC,
+# LiveKit, RevenueCat) — c'est donc Maps qui fixe le plancher.
+platform :ios, '15.0'
+
+# CocoaPods analytics envoie des stats réseau à chaque build, ce qui rallonge
+# la phase de résolution.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    target.build_configurations.each do |config|
+      # Sans ça, chaque pod garde son propre minimum (parfois 8.0 ou 11.0) et
+      # Xcode 26 refuse de lier des cibles plus anciennes que l'app.
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+
+      # Le simulateur arm64 (Mac Apple Silicon) : certains pods embarquent des
+      # slices x86_64 uniquement, ce qui casse l'édition de liens.
+      config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'
+
+      # permission_handler compile TOUTES les permissions par défaut, y compris
+      # celles dont l'app n'a pas la clé Info.plist correspondante — ce qui vaut
+      # un rejet App Store automatique. On n'active que les cinq réellement
+      # demandées dans lib/ (camera, microphone, photos, notification,
+      # localisation) ; toute autre permission renvoie `denied` sans crasher.
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'PERMISSION_CAMERA=1',
+        'PERMISSION_MICROPHONE=1',
+        'PERMISSION_PHOTOS=1',
+        'PERMISSION_NOTIFICATIONS=1',
+        'PERMISSION_LOCATION=1',
+      ]
+    end
+  end
+end

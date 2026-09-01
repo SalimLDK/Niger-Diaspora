@@ -76,6 +76,19 @@
 	<string>Nous avons besoin de votre localisation pour vous connecter avec les membres de la diaspora nigérienne à proximité</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Nous avons besoin de cette permission pour sauvegarder des images dans votre galerie</string>
+	<!-- Lecture de la galerie : `image_picker` et `photo_manager` la réclament.
+	     Son absence ne se voit pas à la compilation — iOS tue le processus au
+	     moment précis où l'utilisateur ouvre le sélecteur de photos.
+	     `NSPhotoLibraryAddUsageDescription` ci-dessus ne couvre QUE l'écriture. -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Nous avons besoin d'accéder à vos photos pour les partager dans vos discussions et publications</string>
+	<!-- `add_2_calendar` (rappels d'événements). Depuis iOS 17, l'ajout seul
+	     relève de la clé WriteOnly ; on déclare les deux pour couvrir iOS 15-16
+	     et iOS 17+. -->
+	<key>NSCalendarsUsageDescription</key>
+	<string>Nous avons besoin d'accéder à votre calendrier pour y ajouter les événements auxquels vous participez</string>
+	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+	<string>Nous avons besoin d'ajouter à votre calendrier les événements auxquels vous participez</string>
 	<!-- App Tracking Transparency : requis dès qu'une SDK pub (AdMob) peut accéder
 	     à l'IDFA. Sans cette clé, l'appel à requestTrackingAuthorization crashe et
 	     App Store rejette le build. -->

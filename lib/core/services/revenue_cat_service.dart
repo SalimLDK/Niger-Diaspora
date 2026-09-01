@@ -177,7 +177,11 @@ class RevenueCatService {
   Future<CustomerInfo?> purchasePackage(Package package) async {
     if (!_isInitialized) return null;
     try {
-      _cachedCustomerInfo = await Purchases.purchasePackage(package);
+      // purchases_flutter 10.x : `purchasePackage` est deprecie au profit de
+      // `purchase(PurchaseParams)`, qui renvoie un `PurchaseResult` enveloppant
+      // le `CustomerInfo` au lieu de le renvoyer directement.
+      final result = await Purchases.purchase(PurchaseParams.package(package));
+      _cachedCustomerInfo = result.customerInfo;
       return _cachedCustomerInfo;
     } on PurchasesErrorCode catch (e) {
       if (e == PurchasesErrorCode.purchaseCancelledError) {

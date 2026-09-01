@@ -14,6 +14,66 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## iOS : premier build réussi, sur simulateur (2026-09-01)
+
+La cible iOS n'avait **jamais été compilée**. Elle l'est désormais :
+`flutter build ios --simulator --debug` aboutit, l'app s'installe et démarre
+sur un simulateur iPhone 17 (iOS 26.1), l'écran de connexion s'affiche
+correctement et la demande d'autorisation de notifications apparaît — donc
+Firebase s'initialise.
+
+Quatre défauts bloquants trouvés et corrigés au passage :
+
+1. **`ios/Podfile` n'avait jamais existé** (absent de tout l'historique git).
+2. **`ios/Runner.xcodeproj/project.pbxproj` corrompu** : `GoogleService-Info.plist`
+   figurait dans la phase *Resources* en `PBXFileReference` au lieu d'un
+   `PBXBuildFile`, sous un UUID inventé (`ABCDEF1234567890ABCDEF12`). CocoaPods
+   refusait de s'exécuter, et **le fichier de configuration Firebase n'était pas
+   correctement embarqué dans le bundle**.
+3. **`NSPhotoLibraryUsageDescription` absent d'`Info.plist`** — seule la variante
+   `…AddUsageDescription` (écriture) était déclarée. iOS tue le processus à
+   l'ouverture du sélecteur de photos. `NSCalendars…` ajoutées aussi
+   (`add_2_calendar`).
+4. **Conflit `GoogleDataTransport`** : `firebase_messaging` le veut en `~> 10.0`,
+   `mobile_scanner` 5.2.3 en `< 10.0`. Résolu en montant `mobile_scanner` en
+   7.4.0 (une signature de `errorBuilder` à adapter) et, dans la foulée,
+   `purchases_flutter` 8 → 10.10.1 (RevenueCat 5.32.0 ne compile pas sous le
+   Swift d'Xcode 27 ; `purchasePackage` → `purchase(PurchaseParams)`).
+
+Cible de déploiement montée **iOS 12 → 15**, imposée par `GoogleMaps 9.x`.
+
+**Ce que le simulateur ne peut pas couvrir** — tout ce qui suit reste à faire
+sur un iPhone réel, et une partie exige un compte Apple Developer :
+
+- [ ] Caméra réelle : scan QR (`mobile_scanner` 7.x, API changée), photos,
+      vidéo WebRTC.
+- [ ] Micro réel : messages vocaux, appels.
+- [ ] Notifications push reçues (exige clé APNs + compte développeur).
+- [ ] Appels CallKit/PushKit (exige compte développeur).
+- [ ] Localisation réelle et carte Google Maps.
+- [ ] Achats RevenueCat après la montée en version majeure 8 → 10.
+- [ ] Deep links / Universal Links (exige Associated Domains signés).
+
+**Parité native Swift non faite.** `AppDelegate.swift` fait 15 lignes là où
+`MainActivity.java` en fait 230. Quatre canaux natifs n'existent que côté
+Android — l'app fonctionne sans eux, mais ces fonctions sont muettes sur iOS :
+
+- [ ] `diaspo_niger/deep_link` — liens profonds inertes.
+- [ ] `diaspo_niger/share_intent` — partage entrant ; porte aussi
+      `getInstallationId`, d'où l'ID d'appareil E2EE stable. Sur iOS il retombe
+      sur un UUID aléatoire, donc les identités mortes s'accumulent dans
+      `e2ee_devices` à chaque réinstallation (`identifierForVendor` est
+      l'équivalent exact du SSAID et réglerait le problème).
+- [ ] `diaspo_niger/lockscreen` — appel sur écran verrouillé.
+- [ ] Délégué `UNUserNotificationCenter` absent : aucune notification locale.
+
+À noter, sans lien avec iOS : les canaux `gsm_state`, `pip` et `proximity` ne
+sont implémentés **sur aucune des deux plateformes** — le code Dart de
+`proximity_service` et `pip_service` les appelle pourtant explicitement sur
+iOS *et* Android. À trancher : implémenter ou retirer.
+
+---
+
 ## Notification de message → « Utilisateur », écran bloqué (2026-08-30)
 
 Signalé par Salim : taper une notification de message dans `/notifications`

@@ -1,1 +1,15 @@
+#include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
 #include "Generated.xcconfig"
+
+// Simulateur : n'assembler que arm64.
+//
+// En universel (arm64 + x86_64), l'etape `debug_unpack_ios` de Flutter 3.38.1
+// echoue sur « Flutter.framework/Flutter does not contain architectures
+// "arm64 x86_64" » alors que `lipo -info` liste bien les deux — le diagnostic
+// de l'outil se contredit lui-meme. Constate avec Xcode 27 beta ; la meme
+// compilation forcee sur arm64 seul passe sans rien changer d'autre.
+//
+// Sans consequence sur un Mac Apple Silicon, dont le simulateur est arm64.
+// A retirer si le projet doit compiler sur un Mac Intel, ou des que Flutter
+// aura rattrape Xcode 27.
+EXCLUDED_ARCHS[sdk=iphonesimulator*] = x86_64
