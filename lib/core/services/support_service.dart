@@ -25,10 +25,15 @@ class SupportService {
   static const String defaultFeedbackEmail = 'feedback@diasponiger.com';
   static const String defaultModerationEmail = 'moderation@diasponiger.com';
 
+  // Les deux liens etaient faux et menaient a une page « app introuvable ».
+  // `com.diasponiger.app` n'a jamais existe : l'`applicationId` reel est
+  // `com.diasponiger.diasponiger` (android/app/build.gradle.kts). Et
+  // `id123456789` etait un identifiant invente ; le vrai, attribue le
+  // 2026-09-01 a la creation de la fiche, est `6807607258`.
   static const String playStoreUrl =
-      'https://play.google.com/store/apps/details?id=com.diasponiger.app';
+      'https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger';
   static const String appStoreUrl =
-      'https://apps.apple.com/app/diasponiger/id123456789';
+      'https://apps.apple.com/app/id6807607258';
 
   SupportService({SystemUrlsEntity? urls})
       : urls = urls ?? const SystemUrlsEntity();

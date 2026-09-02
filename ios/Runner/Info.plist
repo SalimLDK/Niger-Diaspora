@@ -104,6 +104,15 @@
 			<string>cstr6suwn9.skadnetwork</string>
 		</dict>
 	</array>
+	<!-- Conformité export. C'est une DÉCLARATION LÉGALE, pas un réglage
+	     technique : l'app chiffre de bout en bout (protocole Signal), pas
+	     seulement via le TLS du système, donc la lecture honnête est
+	     « chiffrement non exempté ». Conséquence assumée : App Store Connect
+	     réclamera un CCATS ou un numéro d'auto-classification (ERN) déposé
+	     auprès du BIS. Passer à `false` sans exemption formellement établie
+	     serait une fausse déclaration à un régulateur. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<true/>
 	<key>FlutterDeepLinkingEnabled</key>
 	<true/>
 	<key>UIBackgroundModes</key>
