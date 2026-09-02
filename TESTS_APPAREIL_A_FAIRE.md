@@ -1990,10 +1990,17 @@ le routeur.
       ce test précis n'isole pas la fenêtre étroite (réseau bon mais pont pas
       encore confirmé) que ces gardes visent spécifiquement — seulement le
       cas plus large « pas de réseau du tout ».
-    - **Trouvaille incidente, hors périmètre** : `setState() called after
-      dispose()` dans `_startGroupConversation`
-      (`group_detail_screen.dart:632`), capturé par Crashlytics. Pas un
-      crash, mais une fuite mémoire potentielle. Tâche séparée créée.
+    - **Trouvaille incidente, hors périmètre — CORRIGÉE le 2026-09-01** :
+      `setState() called after dispose()` dans `_startGroupConversation`
+      (`group_detail_screen.dart:640`), capturé par Crashlytics. Pas un
+      crash, mais une fuite mémoire potentielle. Un `if (!mounted) return;`
+      est posé après l'`await` de `createGroup()`. Le correctif existait
+      depuis le 2026-08-13 sur la branche `claude/reverent-payne-8d5b4d`,
+      jamais rapatriée — repris tel quel.
+      - [ ] **À vérifier sur appareil** : ouvrir la fiche d'un groupe, taper
+        « Ouvrir la discussion » et revenir en arrière aussitôt (ou couper
+        le réseau pour faire traîner l'appel). Plus aucun `setState() called
+        after dispose()` dans Crashlytics ni dans logcat.
 
 ---
 
