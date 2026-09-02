@@ -169,10 +169,20 @@ class _TypingStatusProviderElement
 }
 
 String _$typingIndicatorNotifierHash() =>
-    r'34e01c34df2be8bb6de1ed423928dd04ef175675';
+    r'572ef67a9a9bc6cfd029942d8832317f9e07ffbc';
 
 /// Notifier to manage the current user's typing status
 /// Includes debouncing to prevent excessive updates
+///
+/// **Doit rester observé (`ref.watch`) par l'écran de conversation.**
+/// Il ne l'était pas : chaque frappe faisait un `ref.read(...notifier)` sur un
+/// provider `autoDispose` que personne n'écoutait. Riverpod le créait, exécutait
+/// `onUserTyping`, puis le détruisait aussitôt — et `ref.onDispose` appelait
+/// `_clearTypingStatus()`. La présence était donc posée puis retirée dans le
+/// même tour de boucle : l'autre appareil ne voyait jamais rien, et la bulle
+/// « écrit… » ne s'affichait pas. `ConversationScreen` l'observe désormais dans
+/// son `build`, ce qui le maintient vivant tant que l'écran l'est — et le
+/// détruit (donc efface la présence) quand on quitte la discussion.
 ///
 /// Copied from [TypingIndicatorNotifier].
 @ProviderFor(TypingIndicatorNotifier)

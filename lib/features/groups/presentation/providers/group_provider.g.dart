@@ -7,9 +7,38 @@ part of 'group_provider.dart';
 // **************************************************************************
 
 String _$groupRemoteDataSourceHash() =>
-    r'dea53a877fc09739063e6f86acc605c8912b7c2c';
+    r'4a42f10b0c3698e45632ae94db564c9123018f37';
 
-/// See also [groupRemoteDataSource].
+/// Source de données des groupes : **Supabase**, depuis le 2026-08-06.
+///
+/// Elle a toujours rendu l'implémentation Firestore
+/// (`GroupRemoteDataSourceImpl`), depuis le commit initial et sans exception,
+/// alors que les groupes vivent dans Supabase et que la collection Firestore
+/// `groups` est vide. C'est le seul point de câblage de toute la
+/// fonctionnalité — liste, découverte, fiche, création, adhésion, recherche —
+/// si bien que tout le travail fait sur `GroupSupabaseDataSource` (session
+/// avant lecture, appartenance lue dans `group_members`, garde « Officiel »)
+/// portait sur une classe que ce provider n'instanciait pas.
+///
+/// Conséquences observées, toutes le même défaut :
+/// - « Découvrir » annonçait « Aucun groupe public » sur trois groupes publics,
+///   et la recherche ne remontait rien ;
+/// - l'onglet « Mes groupes » ne montrait AUCUN groupe Supabase ;
+/// - la fiche d'un groupe Supabase affichait « Erreur de chargement » et rien
+///   d'autre : ni ouverture de la discussion, ni membres, ni quitter/partager ;
+/// - le menu « + » du composer n'offrait ni sondage ni événement, leurs
+///   permissions dérivant de l'entité groupe restée nulle ;
+/// - le groupe officiel du pays n'était jamais rejoint à l'inscription :
+///   `GroupRemoteDataSourceImpl.ensureOfficialGroup` lève `UnimplementedError`,
+///   que `GroupRepositoryImpl` traduit en `Left(...)` que
+///   `ProfileNotifier._joinOfficialGroup` ignore (`(failure) async {}`).
+///
+/// ⚠️ Les groupes hérités de Firestore (id de 20 caractères, hors de
+/// `public.groups` dont l'`id` est `uuid`) ne sont PAS lisibles par cette
+/// source. Ils doivent être migrés — voir `tools/migrate_legacy_groups.sql`,
+/// qui leur attribue un uuid et réaligne `conversations.group_id`.
+///
+/// Copied from [groupRemoteDataSource].
 @ProviderFor(groupRemoteDataSource)
 final groupRemoteDataSourceProvider =
     AutoDisposeProvider<GroupRemoteDataSource>.internal(
@@ -28,7 +57,7 @@ final groupRemoteDataSourceProvider =
 typedef GroupRemoteDataSourceRef =
     AutoDisposeProviderRef<GroupRemoteDataSource>;
 String _$groupRequestDataSourceHash() =>
-    r'fddd1a1254177a8bcfaf6d962602066c3dec3b92';
+    r'cbdbd94f4e16489aff3f8e53159c1e230f081bfa';
 
 /// See also [groupRequestDataSource].
 @ProviderFor(groupRequestDataSource)
@@ -776,7 +805,7 @@ final availableGroupRegionsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AvailableGroupRegionsRef = AutoDisposeProviderRef<List<String>>;
-String _$groupsNotifierHash() => r'25b035e59ab8e14b591948968b7e6e8f50f25f16';
+String _$groupsNotifierHash() => r'e11d91554352a3a7356ff1e607a351fb2785aacd';
 
 /// See also [GroupsNotifier].
 @ProviderFor(GroupsNotifier)

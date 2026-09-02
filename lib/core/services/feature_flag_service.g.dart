@@ -49,9 +49,10 @@ final isMarketplaceEnabledProvider = AutoDisposeProvider<bool>.internal(
 // ignore: unused_element
 typedef IsMarketplaceEnabledRef = AutoDisposeProviderRef<bool>;
 String _$isBusinessDirectoryEnabledHash() =>
-    r'05b0c5deaf51954eb9984a3503893b18e3acacec';
+    r'2b63c8571014029f585ae75e9c6920702090ae2f';
 
-/// Provider to check if business directory feature is enabled
+/// Annuaire des entreprises : toujours actif (décision produit 2026-08-19),
+/// le flag distant n'est plus consulté. Même règle pour ambassades et fil.
 ///
 /// Copied from [isBusinessDirectoryEnabled].
 @ProviderFor(isBusinessDirectoryEnabled)
@@ -110,9 +111,9 @@ final isGroupsEnabledProvider = AutoDisposeProvider<bool>.internal(
 // ignore: unused_element
 typedef IsGroupsEnabledRef = AutoDisposeProviderRef<bool>;
 String _$isEmbassiesEnabledHash() =>
-    r'675763160f6fbe121dde862bc3141576725b27b2';
+    r'b0ff32f5db80ae07cb5fb05289088c62356f4cfb';
 
-/// Provider to check if embassies feature is enabled
+/// Ambassades : toujours actif (décision produit 2026-08-19).
 ///
 /// Copied from [isEmbassiesEnabled].
 @ProviderFor(isEmbassiesEnabled)
@@ -130,9 +131,9 @@ final isEmbassiesEnabledProvider = AutoDisposeProvider<bool>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef IsEmbassiesEnabledRef = AutoDisposeProviderRef<bool>;
-String _$isFeedEnabledHash() => r'594212695149b94d4c50a4f1ab32c391a879ba91';
+String _$isFeedEnabledHash() => r'f0552523672396249b6899afc0fe55f5faff0b6a';
 
-/// Provider to check if social feed feature is enabled
+/// Fil d'actualité : toujours actif (décision produit 2026-08-19).
 ///
 /// Copied from [isFeedEnabled].
 @ProviderFor(isFeedEnabled)

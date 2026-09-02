@@ -136,7 +136,7 @@ final pendingReportsCountProvider = AutoDisposeFutureProvider<int>.internal(
 // ignore: unused_element
 typedef PendingReportsCountRef = AutoDisposeFutureProviderRef<int>;
 String _$submitReportNotifierHash() =>
-    r'2cef7e528aa77c8933332a726210cfb71aee3a19';
+    r'edea36c9809f3357cfe9c2edb4f63c0a2d3dda8b';
 
 /// See also [SubmitReportNotifier].
 @ProviderFor(SubmitReportNotifier)
@@ -156,7 +156,7 @@ final submitReportNotifierProvider = AutoDisposeNotifierProvider<
 
 typedef _$SubmitReportNotifier = AutoDisposeNotifier<AsyncValue<void>>;
 String _$adminReportNotifierHash() =>
-    r'dbb70863ccfc64891d3cb46a87289f0f969709b9';
+    r'126a16e53c18fa45a97f5a7e18ac060f4eb9d448';
 
 /// See also [AdminReportNotifier].
 @ProviderFor(AdminReportNotifier)
