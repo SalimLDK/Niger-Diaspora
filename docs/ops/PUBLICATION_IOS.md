@@ -37,7 +37,7 @@ maintenant, pas après la première publication.
 |---|---|
 | Apps dans App Store Connect | ✅ « Diaspo Niger », iOS 1.0, à finaliser |
 | Identifiers (App IDs) | ✅ créé, Push + Associated Domains |
-| Keys (clés APNs) | **aucune** |
+| Keys (clés APNs) | ✅ créée le 2026-09-01 (`Sandbox & Production`, Team Scoped) — import Firebase à faire |
 | Certificates | **aucun** |
 | Accès API App Store Connect | ✅ **approuvé** le 2026-09-01 — aucune clé générée |
 | Contrat applications gratuites | ✅ actif, 1 sept. 2026 → 7 janv. 2027 |
@@ -98,25 +98,48 @@ Ne rien cocher d'autre. Une capability activée mais non utilisée fait
 `merchant.` dans le projet, et l'app n'a qu'une seule cible (`Runner`) — pas
 de Share Extension. Ces deux lignes tombent tant que ça n'existe pas.
 
-### ⬜ Étape 4 — Clé APNs
+### ◐ Étape 4 — Clé APNs (créée le 2026-09-01, import Firebase à faire)
 
-Certificates, Identifiers & Profiles → Keys → « Create a key ».
+Certificates, Identifiers & Profiles → Keys → « Create a key », cocher
+**Apple Push Notifications service (APNs)**.
 
-- Nom : `Diaspo Niger APNs`
-- Cocher **Apple Push Notifications service (APNs)**
+**Deux pièges, tous deux définitifs.**
+
+**1. L'environnement par défaut est `Sandbox`, et il n'est pas modifiable
+après enregistrement.** Cocher APNs fait apparaître un bouton *Configure*
+et l'avertissement « The APNs configuration for accessible environment and
+key restriction type can't be changed once saved ». Laissé sur `Sandbox`,
+tout marche en debug et **rien ne part sur une build App Store ou
+TestFlight** — sans la moindre erreur. Mettre **`Sandbox & Production`**.
+
+Apple recommande à cet endroit d'utiliser des clés distinctes par
+environnement. Ça vaut pour une équipe avec des workflows séparés ; ici
+Firebase n'accepte qu'un projet, donc une clé combinée est le bon choix.
+
+**2. `Key Restriction` doit rester `Team Scoped (All Topics)`** : la clé
+sert alors tous les bundle IDs de l'équipe et survit à l'ajout d'une
+extension. `Topic Specific` la fige sur une liste de topics.
+
+Autre détail : le champ **Key Name refuse les caractères spéciaux, tiret
+compris** — `Diaspo Niger APNs` passe, `diaspo-niger-apns` non.
 
 ⚠️ **Le fichier `AuthKey_XXXXXXXXXX.p8` ne se télécharge qu'une seule fois.**
 Perdu, il faut révoquer la clé et recommencer. Le stocker hors du dépôt
 (`android/key.properties` et `*.jks` sont déjà gitignorés ; le `.p8` ne doit
 pas non plus y entrer).
 
-Ensuite, Firebase Console → Paramètres du projet → Cloud Messaging →
-Configuration iOS → téléverser le `.p8` avec :
-- **Key ID** : les 10 caractères du nom de fichier
-- **Team ID** : `3WM7VK48T3`
+**Côté Firebase** — Console → Paramètres du projet → Cloud Messaging →
+Configuration de l'application Apple. La section « Clé d'authentification
+APNs » a **deux emplacements distincts, développement et production**. Avec
+une clé `Sandbox & Production`, **le même fichier va dans les deux**, sinon
+un des deux environnements reste muet. Chaque import demande :
 
-Sans ce téléversement, la chaîne push documentée dans
-`project_push_pipeline` s'arrête à la frontière iOS, en silence.
+- le fichier `.p8`
+- **ID de clé** : les 10 caractères du nom de fichier
+- **ID d'équipe** : `3WM7VK48T3`
+
+Sans cet import, la chaîne push documentée dans `project_push_pipeline`
+s'arrête à la frontière iOS, en silence.
 
 ### ◐ Étape 5 — Accès API App Store Connect (accès accordé, clé à générer)
 
