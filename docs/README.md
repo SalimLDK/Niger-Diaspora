@@ -20,6 +20,7 @@ Sommaire de la documentation du projet. Les documents historiques (audits termin
 - [OAUTH_SECURITY_SETUP.md](configuration/OAUTH_SECURITY_SETUP.md) — Sécurisation des flux OAuth (Google Cloud Console).
 - [APP_LINKS_SETUP.md](configuration/APP_LINKS_SETUP.md) — App Links Android / Universal Links iOS (liens profonds).
 - [IOS_CONFIGURATION.md](configuration/IOS_CONFIGURATION.md) — Configuration iOS complète (Info.plist, entitlements, capacités, App Store).
+- [SESSION_IOS_PREMIERE_BUILD.md](SESSION_IOS_PREMIERE_BUILD.md) — **2026-09-01** : première compilation iOS réussie. Les quatre défauts qui l'empêchaient, la parité native Swift (et les deux canaux volontairement non portés), « Se connecter avec Apple », et les pièges de poste de travail — dont l'écran gris quand aucune fenêtre de simulateur n'est ouverte.
 
 ## Déploiement
 
