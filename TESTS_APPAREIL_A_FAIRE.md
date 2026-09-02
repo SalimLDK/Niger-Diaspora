@@ -102,6 +102,32 @@ Swift : même comportement avec l'`AppDelegate` d'origine, test A/B fait.
 
 - [x] Écran de connexion vérifié sur simulateur iPhone 17 (iOS 26.1).
 
+## « Se connecter avec Apple » ajouté (2026-09-01)
+
+Apple exige ce fournisseur de toute app en proposant déjà un tiers — Google
+ici — et son absence vaut un rejet à la soumission. Le bouton n'apparaît que
+sur iOS/macOS : sur Android il ouvrirait un parcours web réclamant une
+configuration Service ID distincte, absente aujourd'hui, et échouerait sous
+les yeux de l'utilisateur.
+
+- [ ] **Parcours complet à vérifier** — impossible sur simulateur non signé :
+      la feuille système Apple exige la capability « Sign In with Apple » sur
+      l'App ID, donc un compte développeur. Le bouton s'affiche, mais
+      l'autorisation sera refusée.
+- [ ] **Le nom n'est donné qu'à la PREMIÈRE autorisation.** Apple ne renvoie
+      `givenName`/`familyName` qu'une fois, jamais ensuite, et jamais dans le
+      jeton. Le code les capte et appelle `updateDisplayName` dans la foulée —
+      **à vérifier sur un compte Apple neuf**, car un second essai avec le même
+      compte ne rejouera pas ce cas. Pour le reproduire : *Réglages › Apple ID ›
+      Connexion et sécurité › Connexion avec Apple*, puis retirer l'app.
+- [ ] **« Masquer mon adresse e-mail »** donne une adresse
+      `@privaterelay.appleid.com`. Vérifier que le profil se crée normalement,
+      et garder en tête que tout courriel envoyé hors du relais Apple
+      n'arrivera pas.
+- [ ] Rendu du bouton en thème sombre : le logo Apple est monochrome, il est
+      teinté par `AuthButton.tintIcon` avec la couleur du texte. Dessiné en noir
+      sans cette teinte, il disparaîtrait sur fond sombre.
+
 ## Supabase branché sur iOS — deux réserves (2026-09-01)
 
 `SUPABASE_ANON_KEY` renseignée, `***** Supabase init completed *****` dans les

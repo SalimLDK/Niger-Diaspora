@@ -12,6 +12,7 @@ import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/sign_in_with_email.dart';
+import '../../domain/usecases/sign_in_with_apple.dart';
 import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/sign_up.dart';
 import '../../domain/usecases/sign_out.dart';
@@ -56,6 +57,11 @@ SignInWithEmail signInWithEmailUseCase(Ref ref) {
 @riverpod
 SignInWithGoogle signInWithGoogleUseCase(Ref ref) {
   return SignInWithGoogle(ref.watch(authRepositoryProvider));
+}
+
+@riverpod
+SignInWithApple signInWithAppleUseCase(Ref ref) {
+  return SignInWithApple(ref.watch(authRepositoryProvider));
 }
 
 @riverpod
@@ -277,6 +283,34 @@ class AuthNotifier extends _$AuthNotifier {
     } catch (e, stackTrace) {
       dev.log('AuthNotifier.signInWithGoogle: EXCEPTION - ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
       dev.log('Erreur inattendue', name: _tag, error: e);
+      state = AuthState.error(AppErrorMessages.unexpectedError);
+    }
+  }
+
+  Future<void> signInWithApple() async {
+    dev.log('=== AuthNotifier.signInWithApple: DEBUT ===', name: _tag);
+    state = const AuthState.loading();
+
+    try {
+      final result = await ref.read(signInWithAppleUseCaseProvider).call();
+
+      result.fold(
+        (failure) {
+          dev.log('AuthNotifier.signInWithApple: ECHEC - ${failure.message}', name: _tag);
+          state = AuthState.error(failure.message);
+        },
+        (user) {
+          dev.log('AuthNotifier.signInWithApple: SUCCES - user.id=${user.id}', name: _tag);
+          state = AuthState.authenticated(user);
+          SessionService.instance.initialize(user.id, isNewLogin: true);
+          _initializeE2EE(user.id);
+          ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
+          ref.read(onboardingNotifierProvider.notifier).refresh();
+          dev.log('=== AuthNotifier.signInWithApple: FIN SUCCES ===', name: _tag);
+        },
+      );
+    } catch (e, stackTrace) {
+      dev.log('AuthNotifier.signInWithApple: EXCEPTION - ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
       state = AuthState.error(AppErrorMessages.unexpectedError);
     }
   }

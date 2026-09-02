@@ -10,6 +10,8 @@ abstract class AuthRepository {
 
   Future<Either<Failure, UserEntity>> signInWithGoogle();
 
+  Future<Either<Failure, UserEntity>> signInWithApple();
+
   Future<Either<Failure, UserEntity>> signUp({
     required String email,
     required String password,

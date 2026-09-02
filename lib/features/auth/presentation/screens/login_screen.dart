@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,6 +46,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void _handleGoogleSignIn() {
     ref.read(authNotifierProvider.notifier).signInWithGoogle();
     AnalyticsService.instance.logLogin(method: 'google');
+  }
+
+  void _handleAppleSignIn() {
+    ref.read(authNotifierProvider.notifier).signInWithApple();
+    AnalyticsService.instance.logLogin(method: 'apple');
   }
 
   @override
@@ -98,6 +105,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               label: l10n.continueWithGoogle,
               isLoading: isLoading,
             ),
+
+            // Apple exige ce bouton de toute app proposant deja un
+            // fournisseur tiers — Google juste au-dessus. Il n'est affiche que
+            // la ou le systeme sait le traiter : sur Android il ouvrirait un
+            // parcours web qui reclame une configuration Service ID distincte,
+            // absente aujourd'hui, et echouerait donc sous les yeux de
+            // l'utilisateur.
+            if (Platform.isIOS || Platform.isMacOS) ...[
+              const SizedBox(height: 12),
+              AuthButton(
+                onPressed: _handleAppleSignIn,
+                iconAsset: AuthButton.appleAsset,
+                tintIcon: true,
+                label: l10n.continueWithApple,
+                isLoading: isLoading,
+              ),
+            ],
 
             const SizedBox(height: 22),
             AuthDivider(label: l10n.or),

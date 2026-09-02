@@ -62,6 +62,26 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, UserEntity>> signInWithApple() async {
+    try {
+      final userModel = await remoteDataSource.signInWithApple();
+
+      await NotificationService().saveTokenForUser(
+        userModel.id,
+        displayName: userModel.displayName,
+        photoUrl: userModel.photoUrl,
+      );
+
+      return Right(userModel.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
+    }
+  }
+
+  @override
   Future<Either<Failure, UserEntity>> signUp({
     required String email,
     required String password,

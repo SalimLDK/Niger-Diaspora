@@ -99,6 +99,7 @@ dependencies:
 
   # Auth
   google_sign_in: ^7.1.0
+  sign_in_with_apple: ^6.1.4
   country_picker: ^2.0.26
 
   # Networking

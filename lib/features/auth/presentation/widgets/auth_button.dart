@@ -9,6 +9,7 @@ import 'auth_scaffold.dart';
 /// multicolore et `AppIcon` l'aplatirait en une seule couleur.
 class AuthButton extends StatelessWidget {
   static const googleAsset = 'icon_google.svg';
+  static const appleAsset = 'icon_apple.svg';
 
   final VoidCallback onPressed;
 
@@ -16,6 +17,13 @@ class AuthButton extends StatelessWidget {
   final String? icon;
   final String? iconAsset;
   final String label;
+
+  /// Teinte [iconAsset] avec la couleur du texte.
+  ///
+  /// À laisser à `false` pour un logo multicolore comme Google, que la teinte
+  /// aplatirait. À passer à `true` pour un logo monochrome comme celui
+  /// d'Apple : dessiné en noir, il disparaîtrait sinon en thème sombre.
+  final bool tintIcon;
 
   /// Null = suit le thème. Les valeurs par défaut étaient figées sur les
   /// jetons clairs (blanc / texte sombre), ce qui rendait le bouton illisible
@@ -33,6 +41,7 @@ class AuthButton extends StatelessWidget {
     this.backgroundColor,
     this.textColor,
     this.isLoading = false,
+    this.tintIcon = false,
   });
 
   @override
@@ -71,6 +80,10 @@ class AuthButton extends StatelessWidget {
                         'assets/icons/$iconAsset',
                         width: 19,
                         height: 19,
+                        colorFilter:
+                            tintIcon
+                                ? ColorFilter.mode(foreground, BlendMode.srcIn)
+                                : null,
                       )
                     else if (icon != null)
                       Text(icon!, style: const TextStyle(fontSize: 20)),

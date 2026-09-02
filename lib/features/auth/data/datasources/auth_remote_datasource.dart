@@ -1,11 +1,18 @@
+import 'dart:convert';
 import 'dart:developer' as dev;
+import 'dart:math';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 // AuthException est masquee : celle du projet (core/errors) porte le code
 // Firebase, celle de Supabase n est pas utilisee ici.
-import 'package:supabase_flutter/supabase_flutter.dart' hide User, AuthException;
+// OAuthProvider aussi : gotrue en declare un homonyme, et c'est celui de
+// firebase_auth qu'il faut pour forger le credential Apple.
+import 'package:supabase_flutter/supabase_flutter.dart'
+    hide User, AuthException, OAuthProvider;
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/secure_preferences_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
@@ -20,6 +27,8 @@ abstract class AuthRemoteDataSource {
   });
 
   Future<UserModel> signInWithGoogle();
+
+  Future<UserModel> signInWithApple();
 
   Future<UserModel> signUp({
     required String email,
@@ -199,6 +208,152 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (kDebugMode) dev.log('ERREUR Exception: ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
       throw ServerException('Echec de la connexion Google: ${e.toString()}');
     }
+  }
+
+  /// Connexion « Se connecter avec Apple ».
+  ///
+  /// Apple l'impose a toute application qui propose deja un fournisseur tiers
+  /// — Google ici. Son absence vaut un rejet a la soumission App Store.
+  ///
+  /// Deux pieges propres a ce fournisseur, tous deux traites ci-dessous.
+  ///
+  /// **1. Le nom n'est donne qu'UNE SEULE FOIS.** Apple ne renvoie
+  /// `givenName`/`familyName` qu'a la toute premiere autorisation, jamais aux
+  /// connexions suivantes — et il ne les met pas dans le jeton d'identite. Si
+  /// on ne les capte pas a cet instant precis, le compte reste sans nom pour
+  /// toujours, y compris apres desinstallation et reinstallation. D'ou
+  /// `updateDisplayName` immediatement apres la creation du compte.
+  ///
+  /// **2. Le nonce doit etre hache a l'aller, brut au retour.** Apple recoit
+  /// le SHA-256 du nonce, Firebase recoit le nonce d'origine et verifie qu'il
+  /// correspond au condense scelle dans le jeton. Envoyer le meme des deux
+  /// cotes fait echouer Firebase en `invalid-credential`. C'est ce qui protege
+  /// du rejeu d'un jeton intercepte.
+  ///
+  /// A savoir : avec « Masquer mon adresse e-mail », l'adresse recue est un
+  /// relais `@privaterelay.appleid.com`. C'est une adresse valide et stable,
+  /// rien de particulier a faire — mais tout courriel envoye hors du relais
+  /// Apple n'arrivera pas.
+  @override
+  Future<UserModel> signInWithApple() async {
+    if (kDebugMode) dev.log('=== DEBUT signInWithApple ===', name: _tag);
+    try {
+      final rawNonce = _genererNonce();
+      final credentialApple = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: sha256.convert(utf8.encode(rawNonce)).toString(),
+      );
+
+      if (kDebugMode) {
+        dev.log(
+          'Credential Apple obtenu — email: ${credentialApple.email ?? "(absent)"}, '
+          'nom: ${credentialApple.givenName ?? "(absent)"}',
+          name: _tag,
+        );
+      }
+
+      // `identityToken` est nullable dans l'API du paquet. Le passer tel quel a
+      // Firebase donnerait une `invalid-credential` opaque, impossible a
+      // distinguer d'un nonce mal forme au moment du diagnostic.
+      final jetonIdentite = credentialApple.identityToken;
+      if (jetonIdentite == null || jetonIdentite.isEmpty) {
+        throw ServerException("Apple n'a pas renvoye de jeton d'identite");
+      }
+
+      final userCredential = await _firebaseAuth.signInWithCredential(
+        OAuthProvider('apple.com').credential(
+          idToken: jetonIdentite,
+          rawNonce: rawNonce,
+        ),
+      );
+
+      final user = userCredential.user;
+      if (user == null) {
+        throw ServerException('Utilisateur nul apres la connexion Apple');
+      }
+
+      // Voir le piege n°1 : c'est la seule occasion de recuperer le nom.
+      final nomApple = [
+        credentialApple.givenName,
+        credentialApple.familyName,
+      ].where((p) => p != null && p.isNotEmpty).join(' ');
+
+      if (nomApple.isNotEmpty && (user.displayName?.isEmpty ?? true)) {
+        try {
+          await user.updateDisplayName(nomApple);
+          await user.reload();
+        } catch (e) {
+          // Non fatal : le compte existe, seul son nom manque.
+          if (kDebugMode) {
+            dev.log('updateDisplayName echoue: $e', name: _tag);
+          }
+        }
+      }
+
+      // Nom retenu pour Supabase : celui relu depuis Firebase apres `reload()`,
+      // sinon celui d'Apple.
+      //
+      // Le test porte sur « nul OU vide », pas sur `??` seul : Firebase rend
+      // volontiers une chaine VIDE plutot que `null` quand aucun nom n'est
+      // pose, et `??` ne s'en saisit pas. On aurait alors ecrase le nom Apple
+      // par du vide -- au seul moment ou Apple accepte de le donner.
+      final nomFirebase = _firebaseAuth.currentUser?.displayName;
+      final nomRetenu =
+          (nomFirebase != null && nomFirebase.isNotEmpty)
+              ? nomFirebase
+              : (nomApple.isNotEmpty ? nomApple : null);
+
+      await SupabaseAuthBridge.instance.syncWithFirebase(user);
+      try {
+        await _upsertUserToSupabase(
+          user,
+          displayName: nomRetenu,
+          email: user.email ?? credentialApple.email,
+          photoUrl: user.photoURL,
+        );
+      } catch (e) {
+        if (kDebugMode) {
+          dev.log('Upsert Supabase echoue (non-fatal): $e', name: _tag);
+        }
+      }
+
+      final userModel = await _getUserDataFromSupabase(user);
+      if (kDebugMode) {
+        dev.log('=== FIN signInWithApple - SUCCES === ${userModel.id}', name: _tag);
+      }
+      return userModel;
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) {
+        throw ServerException('Connexion Apple annulee');
+      }
+      throw ServerException('Echec de la connexion Apple: ${e.message}');
+    } on FirebaseAuthException catch (e) {
+      throw ServerException(_mapFirebaseAuthError(e.code));
+    } on ServerException {
+      rethrow;
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        dev.log('ERREUR signInWithApple: $e', name: _tag, error: e, stackTrace: stackTrace);
+      }
+      throw ServerException('Echec de la connexion Apple: ${e.toString()}');
+    }
+  }
+
+  /// Nonce aleatoire pour la connexion Apple.
+  ///
+  /// `Random.secure()` et non `Random()` : c'est un jeton anti-rejeu, un
+  /// generateur previsible le viderait de son sens.
+  String _genererNonce([int longueur = 32]) {
+    const alphabet =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._';
+    final rnd = Random.secure();
+    return List.generate(
+      longueur,
+      (_) => alphabet[rnd.nextInt(alphabet.length)],
+    ).join();
   }
 
   @override
