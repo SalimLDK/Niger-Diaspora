@@ -39,7 +39,7 @@ maintenant, pas après la première publication.
 | Identifiers (App IDs) | ✅ créé, Push + Associated Domains |
 | Keys (clés APNs) | ✅ `V2L2C994JJ` — `Sandbox & Production`, Team Scoped, importée dans les deux emplacements Firebase |
 | Certificates | **aucun** |
-| Accès API App Store Connect | ✅ **approuvé** le 2026-09-01 — aucune clé générée |
+| Accès API App Store Connect | ✅ **clé `M5WX9RLU5D` créée** le 2026-09-01 — `.p8` rangé hors dépôt |
 | Contrat applications gratuites | ✅ actif, 1 sept. 2026 → 7 janv. 2027 |
 | Contrat applications payantes | ❌ « Nouveau » — non signé |
 | Statut de commerçant (DSA) | ❌ non fourni |
@@ -153,26 +153,25 @@ disponible. Ce qui est établi, c'est que la configuration est complète et
 cohérente des deux côtés — pas qu'une notification arrive. La preuve
 attendra une build sur un vrai iPhone.
 
-### ◐ Étape 5 — Accès API App Store Connect (accès accordé, clé à générer)
+### ◐ Étape 5 — Clé API App Store Connect (créée le 2026-09-01, Issuer ID à relever)
 
 **L'accès a été demandé et approuvé le 2026-09-01.** L'approbation a été
 immédiate : la mention « les organisations recevront leur accès avant les
 utilisateurs individuels » n'a rien retardé ici, alors que le compte est en
 personne physique.
 
-Reste à faire : App Store Connect → Utilisateurs et accès → Intégrations →
-API App Store Connect → **« Générer une clé API »**, avec le rôle
-**App Manager**.
+**La clé a été générée dans la foulée : `M5WX9RLU5D`.** Son `.p8` est rangé
+hors du dépôt, avec celui d'APNs, dans `~/.secrets/apple/` — il ne se
+télécharge qu'une fois, et le périmètre d'une clé est **figé à la
+création** : elle ne peut pas être élargie après coup à d'autres services.
 
-Deux points à savoir avant de cliquer :
-
-- le `.p8` produit **ne se télécharge qu'une fois**, comme celui d'APNs ;
-- une clé **ne peut pas être élargie après coup** à d'autres services : le
-  périmètre est figé à la création. En choisir un assez large du premier
-  coup.
-
-L'**Issuer ID** (UUID) n'apparaît sur la page qu'**une fois la première clé
-créée** — inutile de le chercher avant.
+**Ce qui manque encore pour s'en servir : l'Issuer ID.** C'est un UUID, et
+il n'apparaît sur la page qu'**une fois la première clé créée** — donc
+maintenant, et pas avant. Le relever sur App Store Connect → Utilisateurs et
+accès → Intégrations → API App Store Connect, en tête de la liste des clés,
+et le consigner en section 1. Le `.p8` seul ne signe aucune requête : le JWT
+d'App Store Connect porte le Key ID **et** l'Issuer ID, les deux vont par
+paire.
 
 L'engagement accepté au moment de la demande limite l'usage de l'API au
 développement, aux tests et aux rapports internes : interdiction de fournir
@@ -293,6 +292,7 @@ précédents**, et il n'y en a aucun.
 | Fiche App Store Connect | « Diaspo Niger », iOS, français (fr-FR), accès complet |
 | Apple ID de l'app | `6807607258` |
 | UGS | `diasponiger-ios-001` |
+| Clé API App Store Connect | `M5WX9RLU5D` — `.p8` hors dépôt, Issuer ID pas encore relevé |
 
 Conséquence directe dans le code : `lib/core/services/support_service.dart`
 pointait sur `id123456789`, un identifiant inventé. Corrigé avec le vrai.
@@ -306,7 +306,7 @@ Le lien Play Store de la même paire de constantes était faux aussi
 |---|---|
 | Carte bancaire (étape 1) | saisie de coordonnées bancaires — jamais délégable |
 | Clé APNs (étape 4) | le `.p8` ne se télécharge **qu'une fois** ; un secret à usage unique se génère et se range soi-même |
-| Clé API ASC (étape 5) | idem — l'accès est accordé, mais le `.p8` de la clé reste un secret à usage unique |
+| Clé API ASC (étape 5) | idem — créée par toi le 2026-09-01 (`M5WX9RLU5D`), le `.p8` étant un secret à usage unique |
 | Statut DSA (étape 2) | saisie de données personnelles qui seront **publiées** sur la fiche App Store |
 | Contrat payantes (étape 9) | signature d'un accord juridique |
 
