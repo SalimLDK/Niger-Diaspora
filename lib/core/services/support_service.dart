@@ -26,9 +26,9 @@ class SupportService {
   static const String defaultModerationEmail = 'moderation@diasponiger.com';
 
   static const String playStoreUrl =
-      'https://play.google.com/store/apps/details?id=com.diasponiger.app';
+      'https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger';
   static const String appStoreUrl =
-      'https://apps.apple.com/app/diasponiger/id123456789';
+      'https://apps.apple.com/app/id6807607258';
 
   SupportService({SystemUrlsEntity? urls})
       : urls = urls ?? const SystemUrlsEntity();

@@ -14,6 +14,26 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Les deux liens « noter l'app » étaient morts (2026-09-01)
+
+`lib/core/services/support_service.dart` exposait deux constantes fausses,
+utilisées ligne 130 selon la plateforme :
+
+- `appStoreUrl` pointait sur `id123456789` — un identifiant inventé. Le vrai
+  Apple ID est `6807607258` (fiche App Store Connect créée ce jour).
+- `playStoreUrl` pointait sur `com.diasponiger.app`, alors que
+  l'`applicationId` réel est `com.diasponiger.diasponiger`.
+
+Autrement dit, l'action « noter l'app » ouvrait une page inexistante **sur
+les deux plateformes**. Jamais remonté parce que le bouton s'ouvre dans un
+navigateur externe : l'app ne voit pas le 404.
+
+- ⬜ sur SM A515F : déclencher l'action et vérifier que le Play Store ouvre
+      bien la fiche Diaspo Niger (et non une page « introuvable »)
+- ⬜ côté iOS : invérifiable tant qu'aucun build n'existe, et la fiche App
+      Store n'est de toute façon pas publiée — le lien ne résoudra qu'après
+      la première mise en vente
+
 ## ⬜ iOS : signature et conformité export jamais compilées (2026-09-01)
 
 Le compte Apple a été lu en direct : Team ID `3WM7VK48T3`, aucun App ID,
