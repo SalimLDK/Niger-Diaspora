@@ -14,6 +14,35 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ iOS : signature et conformité export jamais compilées (2026-09-01)
+
+Le compte Apple a été lu en direct : Team ID `3WM7VK48T3`, aucun App ID,
+aucune clé APNs, aucun certificat, aucune app dans App Store Connect. État
+complet et marche à suivre dans `docs/ops/PUBLICATION_IOS.md`.
+
+Deux modifications ont été faites en aveugle dans le dépôt :
+
+- `ios/Runner.xcodeproj/project.pbxproj` — `DEVELOPMENT_TEAM = 3WM7VK48T3`
+  sur les 3 configurations de la cible `Runner`.
+- `ios/Runner/Info.plist` — `ITSAppUsesNonExemptEncryption` à `<true/>`.
+
+**Ni l'une ni l'autre n'a été compilée.** Le poste est sous Windows ; un
+build iOS exige macOS + Xcode. Le plist est validé par `plistlib` et
+l'insertion pbxproj respecte la syntaxe du fichier, mais ça ne prouve pas
+que Xcode ouvre le projet ni que l'archive se signe.
+
+À vérifier dès qu'un Mac est disponible :
+
+- ⬜ Xcode ouvre `ios/Runner.xcworkspace` sans erreur de projet corrompu
+- ⬜ l'équipe `3WM7VK48T3` apparaît bien dans Signing & Capabilities
+- ⬜ `flutter build ipa` produit une archive signée
+- ⬜ App Store Connect accepte le téléversement et pose la question export
+      attendue (conséquence directe du `<true/>`)
+
+Rappel : rien de tout ça ne peut aboutir tant que l'App ID n'est pas
+enregistré chez Apple (étape 3 du document ci-dessus) — la capability Push
+notamment conditionne la signature.
+
 ## Notification de message → « Utilisateur », écran bloqué (2026-08-30)
 
 Signalé par Salim : taper une notification de message dans `/notifications`

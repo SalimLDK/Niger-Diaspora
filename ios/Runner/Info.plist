@@ -102,6 +102,15 @@
 		<string>remote-notification</string>
 		<string>voip</string>
 	</array>
+	<!-- Conformite export. L'app chiffre les messages de bout en bout
+	     (protocole Signal, lib/features/chat) : ce n'est pas le TLS fourni
+	     par le systeme, donc la declaration honnete est « chiffrement non
+	     exempte ». App Store Connect reclamera en consequence soit un
+	     CCATS, soit un numero d'auto-classification (ERN) depose aupres du
+	     BIS. Ne passer a <false/> QUE si l'exemption est formellement
+	     etablie : c'est une declaration legale, pas un reglage technique. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<true/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
