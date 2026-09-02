@@ -39,7 +39,7 @@ maintenant, pas après la première publication.
 | Identifiers (App IDs) | ✅ créé, Push + Associated Domains |
 | Keys (clés APNs) | **aucune** |
 | Certificates | **aucun** |
-| Accès API App Store Connect | **non accordé** (bouton « Demander l'accès ») |
+| Accès API App Store Connect | ✅ **approuvé** le 2026-09-01 — aucune clé générée |
 | Contrat applications gratuites | ✅ actif, 1 sept. 2026 → 7 janv. 2027 |
 | Contrat applications payantes | ❌ « Nouveau » — non signé |
 | Statut de commerçant (DSA) | ❌ non fourni |
@@ -118,15 +118,31 @@ Configuration iOS → téléverser le `.p8` avec :
 Sans ce téléversement, la chaîne push documentée dans
 `project_push_pipeline` s'arrête à la frontière iOS, en silence.
 
-### ⬜ Étape 5 — Accès API App Store Connect (facultatif mais recommandé)
+### ◐ Étape 5 — Accès API App Store Connect (accès accordé, clé à générer)
 
-App Store Connect → Utilisateurs et accès → Intégrations → API App Store
-Connect → **« Demander l'accès »**.
+**L'accès a été demandé et approuvé le 2026-09-01.** L'approbation a été
+immédiate : la mention « les organisations recevront leur accès avant les
+utilisateurs individuels » n'a rien retardé ici, alors que le compte est en
+personne physique.
 
-Une fois accordé, générer une clé de rôle **App Manager**. Ça donne
-l'Issuer ID (UUID) et un second `.p8` — également téléchargeable une seule
-fois. C'est ce qui permet ensuite d'automatiser les téléversements
-(`fastlane`, CI) au lieu de tout faire à la main dans Xcode.
+Reste à faire : App Store Connect → Utilisateurs et accès → Intégrations →
+API App Store Connect → **« Générer une clé API »**, avec le rôle
+**App Manager**.
+
+Deux points à savoir avant de cliquer :
+
+- le `.p8` produit **ne se télécharge qu'une fois**, comme celui d'APNs ;
+- une clé **ne peut pas être élargie après coup** à d'autres services : le
+  périmètre est figé à la création. En choisir un assez large du premier
+  coup.
+
+L'**Issuer ID** (UUID) n'apparaît sur la page qu'**une fois la première clé
+créée** — inutile de le chercher avant.
+
+L'engagement accepté au moment de la demande limite l'usage de l'API au
+développement, aux tests et aux rapports internes : interdiction de fournir
+des services à des tiers, et de partager les identifiants d'autorisation
+hors de l'équipe.
 
 ### ✅ Étape 6 — Fiche de l'app (créée le 2026-09-01)
 
@@ -255,6 +271,7 @@ Le lien Play Store de la même paire de constantes était faux aussi
 |---|---|
 | Carte bancaire (étape 1) | saisie de coordonnées bancaires — jamais délégable |
 | Clé APNs (étape 4) | le `.p8` ne se télécharge **qu'une fois** ; un secret à usage unique se génère et se range soi-même |
+| Clé API ASC (étape 5) | idem — l'accès est accordé, mais le `.p8` de la clé reste un secret à usage unique |
 | Statut DSA (étape 2) | saisie de données personnelles qui seront **publiées** sur la fiche App Store |
 | Contrat payantes (étape 9) | signature d'un accord juridique |
 
