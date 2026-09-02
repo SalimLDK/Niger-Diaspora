@@ -37,7 +37,7 @@ maintenant, pas après la première publication.
 |---|---|
 | Apps dans App Store Connect | ✅ « Diaspo Niger », iOS 1.0, à finaliser |
 | Identifiers (App IDs) | ✅ créé, Push + Associated Domains |
-| Keys (clés APNs) | ✅ créée le 2026-09-01 (`Sandbox & Production`, Team Scoped) — import Firebase à faire |
+| Keys (clés APNs) | ✅ `V2L2C994JJ` — `Sandbox & Production`, Team Scoped, importée dans les deux emplacements Firebase |
 | Certificates | **aucun** |
 | Accès API App Store Connect | ✅ **approuvé** le 2026-09-01 — aucune clé générée |
 | Contrat applications gratuites | ✅ actif, 1 sept. 2026 → 7 janv. 2027 |
@@ -98,7 +98,7 @@ Ne rien cocher d'autre. Une capability activée mais non utilisée fait
 `merchant.` dans le projet, et l'app n'a qu'une seule cible (`Runner`) — pas
 de Share Extension. Ces deux lignes tombent tant que ça n'existe pas.
 
-### ◐ Étape 4 — Clé APNs (créée le 2026-09-01, import Firebase à faire)
+### ✅ Étape 4 — Clé APNs (faite le 2026-09-01, des deux côtés)
 
 Certificates, Identifiers & Profiles → Keys → « Create a key », cocher
 **Apple Push Notifications service (APNs)**.
@@ -138,8 +138,20 @@ un des deux environnements reste muet. Chaque import demande :
 - **ID de clé** : les 10 caractères du nom de fichier
 - **ID d'équipe** : `3WM7VK48T3`
 
-Sans cet import, la chaîne push documentée dans `project_push_pipeline`
-s'arrête à la frontière iOS, en silence.
+**État au 2026-09-01, vérifié dans la console** : projet `diaspo-niger`,
+app `com.diasponiger.diaspoNiger`, FCM V1 actif, et les **deux** lignes
+renseignées avec `V2L2C994JJ` / `3WM7VK48T3` :
+
+| Emplacement Firebase | ID de clé | ID d'équipe |
+|---|---|---|
+| APNs développement | `V2L2C994JJ` | `3WM7VK48T3` |
+| APNs production | `V2L2C994JJ` | `3WM7VK48T3` |
+
+⚠️ **Configuré n'est pas vérifié.** Aucune notification n'a jamais traversé
+cette chaîne : il n'existe aucune build iOS, et aucun appareil iOS n'est
+disponible. Ce qui est établi, c'est que la configuration est complète et
+cohérente des deux côtés — pas qu'une notification arrive. La preuve
+attendra une build sur un vrai iPhone.
 
 ### ◐ Étape 5 — Accès API App Store Connect (accès accordé, clé à générer)
 
