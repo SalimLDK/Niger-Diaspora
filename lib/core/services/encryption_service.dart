@@ -8,6 +8,29 @@ final encryptionServiceProvider = Provider<EncryptionService>((ref) {
   return EncryptionService.instance;
 });
 
+/// Levée quand le chiffrement est demandé alors que la clé n'est pas
+/// disponible, ou que le chiffrement lui-même a échoué.
+///
+/// Elle existe pour une seule raison : rendre IMPOSSIBLE le retour du texte
+/// clair depuis [EncryptionService.encryptText]. Avant, les deux chemins
+/// d'échec renvoyaient `plainText` — l'appelant écrivait donc le message en
+/// clair en base sans qu'aucune erreur ne remonte nulle part.
+///
+/// Aujourd'hui aucun de ces chemins n'est atteignable : la clé est une
+/// constante du binaire, `initialize()` ne peut pas échouer. Le filet est posé
+/// pour la suite, quand la clé viendra d'une Edge Function — c'est là qu'une
+/// fenêtre « pas encore de clé » deviendra réelle.
+///
+/// Un appelant qui l'attrape ne doit JAMAIS retomber sur le texte clair :
+/// abandonner l'écriture et le signaler est la seule issue correcte.
+class EncryptionUnavailableException implements Exception {
+  final String message;
+  const EncryptionUnavailableException(this.message);
+
+  @override
+  String toString() => 'EncryptionUnavailableException: $message';
+}
+
 class EncryptionService {
   // Singleton pattern
   static final EncryptionService instance = EncryptionService._internal();
@@ -56,6 +79,10 @@ class EncryptionService {
       _isInitialized = true;
       debugPrint('🔐 Encryption service initialized with shared key');
     } catch (e) {
+      // Volontairement non propagé : `initialize()` est appelé au démarrage
+      // (main.dart) et depuis l'isolate de réponse rapide. Y lever ferait d'une
+      // panne de clé une panne de lancement. C'est [encryptText] qui refuse de
+      // travailler sans clé — au point d'usage, pas au boot.
       debugPrint('❌ Error initializing encryption service: $e');
       _isInitialized = false;
     }
@@ -68,14 +95,20 @@ class EncryptionService {
     }
   }
 
-  /// Chiffre le texte et retourne "iv:base64ciphertext"
-  /// Cette méthode est synchrone mais nécessite une initialisation préalable
+  /// Chiffre le texte et retourne "iv:base64ciphertext".
+  ///
+  /// Synchrone, donc exige une initialisation préalable ([initialize], faite
+  /// au démarrage). Lève [EncryptionUnavailableException] plutôt que de rendre
+  /// le texte clair : un appel qui échoue ne doit jamais produire une écriture
+  /// en clair silencieuse. La chaîne vide reste rendue telle quelle — il n'y a
+  /// rien à protéger, et les appelants s'appuient sur ce cas.
   String encryptText(String plainText) {
     if (plainText.isEmpty) return plainText;
 
     if (!_isInitialized || _encrypter == null) {
-      debugPrint('⚠️ EncryptionService not initialized, returning plain text');
-      return plainText;
+      throw const EncryptionUnavailableException(
+        'clé indisponible : initialize() non appelé ou échoué',
+      );
     }
 
     try {
@@ -85,7 +118,7 @@ class EncryptionService {
       return '${iv.base64}:${encrypted.base64}';
     } catch (e) {
       debugPrint('❌ Error encrypting text: $e');
-      return plainText;
+      throw EncryptionUnavailableException('chiffrement échoué : $e');
     }
   }
 
@@ -172,4 +205,16 @@ class EncryptionService {
 
   /// Check if the service is initialized
   bool get isInitialized => _isInitialized;
+
+  /// Remet le service à l'état « jamais armé ».
+  ///
+  /// Réservé aux tests : le singleton survit d'un test à l'autre, donc sans ça
+  /// on ne peut pas exercer le chemin « pas de clé » — celui-là même qui
+  /// écrivait en clair.
+  @visibleForTesting
+  void resetForTests() {
+    _key = null;
+    _encrypter = null;
+    _isInitialized = false;
+  }
 }

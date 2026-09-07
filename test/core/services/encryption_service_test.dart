@@ -7,9 +7,9 @@ void main() {
 
     setUp(() async {
       encryptionService = EncryptionService();
-      // Sans initialize(), encryptText retombe volontairement en passe-plat et
-      // renvoie le texte clair : les assertions de chiffrement échouaient donc
-      // sur un service jamais armé, pas sur un défaut de chiffrement.
+      // Le service est un singleton : sans initialize(), il n'est pas armé et
+      // encryptText refuse de travailler (il levait autrefois en passe-plat le
+      // texte clair — voir le groupe « refus de dégrader » plus bas).
       await encryptionService.initialize();
     });
 
@@ -52,6 +52,54 @@ void main() {
 
       expect(encryptionService.decryptText(encrypted1), equals(plainText));
       expect(encryptionService.decryptText(encrypted2), equals(plainText));
+    });
+  });
+
+  // Ces trois tests sont la garantie que le repli AES ne peut plus dégrader en
+  // écriture en clair. C'est la propriété qui compte : `encryptText` était
+  // synchrone et renvoyait `plainText` sur ses deux chemins d'échec, donc un
+  // message pouvait finir en clair en base sans qu'aucune erreur ne remonte.
+  //
+  // Le jour où la clé viendra d'une Edge Function (au lieu d'être une constante
+  // du binaire), ces chemins deviendront atteignables pour de bon.
+  group('EncryptionService — refus de dégrader en clair', () {
+    late EncryptionService service;
+
+    setUp(() {
+      service = EncryptionService();
+      service.resetForTests();
+    });
+
+    tearDown(() async {
+      // Rendre le singleton utilisable aux tests suivants, quel que soit
+      // l'ordre d'exécution.
+      await service.initialize();
+    });
+
+    test('sans clé, encryptText lève au lieu de rendre le texte clair', () {
+      const secret = 'Mon numero de compte';
+
+      expect(
+        () => service.encryptText(secret),
+        throwsA(isA<EncryptionUnavailableException>()),
+      );
+    });
+
+    test('sans clé, aucun appel ne peut rendre le texte initial', () {
+      const secret = 'IBAN NE0000000000';
+
+      String? renvoye;
+      try {
+        renvoye = service.encryptText(secret);
+      } on EncryptionUnavailableException {
+        renvoye = null;
+      }
+
+      expect(renvoye, isNull, reason: 'un retour non nul serait le clair');
+    });
+
+    test('la chaîne vide reste tolérée sans clé (rien à protéger)', () {
+      expect(service.encryptText(''), isEmpty);
     });
   });
 }
