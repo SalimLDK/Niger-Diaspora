@@ -64,6 +64,13 @@ sauvegarde de sessions Signal, la réponse rapide depuis notification.
       ni « Nouveau message ».
 - [ ] **Changement de compte** sur le même téléphone : après déconnexion, les
       clés du compte précédent ne doivent plus être lisibles (`vider()`).
+- [ ] **Après le rechiffrement de l'existant** (migration `20260907100000`) :
+      rouvrir une conversation ancienne. Les 32 messages rechiffrés doivent
+      s'afficher normalement. S'ils virent tous à « [Message illisible] »,
+      c'est que le `conversationId` ne descend pas jusqu'au déchiffrement —
+      exactement le défaut corrigé le 2026-09-07, à re-vérifier là.
+- [ ] **Messages du datasource hérité** (RTDB) : ils restent sur la clé
+      globale par choix. Vérifier qu'ils s'affichent toujours, eux aussi.
 
 ⚠️ La réponse rapide depuis notification (`background_reply_service`) chiffre
 depuis un isolate séparé. Ce chemin est de toute façon inaccessible aujourd'hui
