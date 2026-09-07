@@ -112,14 +112,24 @@ class DerivedKeyStore {
     }
 
     // Absente localement : conversation nouvelle, réinstallation, ou cache vidé.
+    debugPrint('DerivedKeyStore: $portee absente du cache (v$v), appel réseau');
     final obtenues = await rafraichir(
       conversationIds: portee.startsWith('conv:')
           ? [portee.substring(5)]
           : const <String>[],
       versions: [v],
     );
-    if (!obtenues) return null;
-    return _memoire[entree];
+    if (!obtenues) {
+      debugPrint('DerivedKeyStore: échec de récupération pour $portee');
+      return null;
+    }
+    final apres = _memoire[entree];
+    if (apres == null) {
+      debugPrint(
+        'DerivedKeyStore: appel abouti mais $portee absente de la réponse',
+      );
+    }
+    return apres;
   }
 
   /// Rappelle `crypto-keys` et met à jour cache mémoire + keystore.
@@ -178,6 +188,10 @@ class DerivedKeyStore {
           }
         }
       }
+
+      debugPrint(
+        'DerivedKeyStore: $enregistrees clé(s) reçue(s), version $_versionCourante',
+      );
 
       if (corps['truncated'] == true) {
         // Le serveur a coupé la liste : les conversations manquantes seront

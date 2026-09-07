@@ -14,6 +14,38 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⚠️ Clés dérivées : premier test appareil (2026-09-07, SM A515F)
+
+Testé sur SM A515F avec un build propre (`flutter clean` obligatoire — un APK
+du 30 août traînait dans `build/` et se serait installé en silence).
+
+**Vérifié bon** : démarrage, `SupabaseAuthBridge: session sync OK`, liste des
+conversations et aperçus en clair, messages en clé globale lisibles, aucun
+crash (le process tué en cours de test l'a été par une commande externe, pas
+par une exception).
+
+**DÉFAUT TROUVÉ ET CORRIGÉ** : tous les messages rechiffrés s'affichaient
+`[Message illisible]`. L'Edge Function `crypto-keys` filtrait les conversations
+avec `.contains('participant_ids', [user.id])`, où `user.id` est l'uuid
+Supabase — alors que `participant_ids` contient des **UID Firebase hérités**
+(`vQZE49dTdyRtLwSG6lMIbhAqoFG2`). Le filtre ne correspondait jamais :
+l'endpoint répondait **200 avec une liste vide**, donc aucune clé de
+conversation, donc tout illisible. Aucune erreur nulle part.
+
+Trace décisive, une fois l'instrumentation ajoutée :
+`DerivedKeyStore: 1 clé(s) reçue(s)` — la clé utilisateur seule, zéro
+conversation, alors que le compte en a 4.
+
+Corrigé en retirant le filtre : la RLS de `conversations`
+(`participant_ids @> ARRAY[firebase_uid()]`) faisait déjà le travail,
+correctement. **Ne jamais réintroduire ce filtre applicatif.**
+
+- [ ] **À revérifier après redéploiement de `crypto-keys`** : rouvrir la
+      conversation `debef5f0…`, ses 2 messages rechiffrés doivent s'afficher.
+- [ ] Puis envoyer un message : il doit partir au format `v1:…` en base.
+
+---
+
 ## ⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)
 
 Chantier en cours : remplacer la clé AES globale (constante de l'APK, donc
