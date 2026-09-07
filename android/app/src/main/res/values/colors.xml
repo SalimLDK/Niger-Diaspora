@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#E97424</color>
+    <!-- Fond de l'icone adaptive du lanceur. Doit rester egal a
+         `adaptive_icon_background` (pubspec.yaml) : flutter_launcher_icons
+         reecrit cette ressource a chaque generation, une valeur divergente
+         ici serait ecrasee au prochain `dart run flutter_launcher_icons`.
+         Vert #009600 depuis le 2026-09-07 (etait l'orange #E97424). -->
+    <color name="ic_launcher_background">#009600</color>
     <!-- Teinte de la petite icône et du filet des notifications système.
          DOIT valoir AppColors.primary (app_colors.dart) : les notifications
          sont posées par deux chemins — le SDK Firebase lit cette ressource,
          le repli local passe AppColors.primary. Deux valeurs = deux orangés
-         selon l'état de l'app. #E97424 est la couleur du fond d'icône du
-         lanceur, pas la primaire ; c'était l'écart. -->
+         selon l'état de l'app. Le fond d'icône du lanceur
+         (`ic_launcher_background`, vert depuis le 2026-09-07) n'est pas la
+         primaire ; c'était l'écart. -->
     <color name="notification_accent">#E07B39</color>
 </resources>
