@@ -245,4 +245,9 @@ flutter:
     # déclaration, `GoogleMap.style` reste nul et la carte garde le rendu
     # Google par défaut — clair, même en thème nocturne.
     - assets/map_styles/
+    # Démarches consulaires extraites du site du MAE nigérien. Données
+    # figées et datées : la source n'est plus maintenue depuis 2023 et ne
+    # publie ni délai ni tarif. Voir le bloc `source` du JSON avant de
+    # les afficher à un usager.
+    - assets/data/
 
