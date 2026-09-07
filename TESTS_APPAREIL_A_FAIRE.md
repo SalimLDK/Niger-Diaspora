@@ -14,6 +14,43 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Icône du lanceur repeinte en vert (2026-09-07)
+
+Suite de l'entrée ci-dessous : sur un vrai téléphone, l'orange qu'on voit en
+premier au lancement n'est pas l'écran Flutter mais **l'écran de lancement du
+système**, qui affiche l'icône du lanceur (vérifié sur SM A515F : ~15 s sur un
+build debug avant que Flutter ne peigne quoi que ce soit).
+
+Repeint : le dégradé orange `#E97424 → #F59942` devient `#009600 → #00C000`
+dans `assets/import_icons/dn_ultra_minimal{_icon,_hd}.png` + son SVG source et
+`dn_adaptive_background*`, le fond de l'icône adaptive
+(`adaptive_icon_background` dans `pubspec.yaml`, `ic_launcher_background` dans
+`android/app/src/main/res/values/colors.xml`) et les couleurs web
+(`manifest.json`). Les PNG ont été repeints pixel par pixel — le sigle blanc,
+son anticrénelage et les coins transparents sont préservés — puis
+`dart run flutter_launcher_icons` a régénéré Android, iOS et web.
+
+`dn_dark_mode*` (DN orange sur fond sombre) n'a **pas** été touché : aucun
+chemin de l'app ne le lit, il n'est référencé que par le README du dossier.
+
+- [ ] **Icône dans le tiroir d'applications et sur l'écran d'accueil.** Vert
+      `#009600`, sigle blanc lisible, forme adaptive correcte (le lanceur
+      découpe en cercle/squircle selon le thème du téléphone).
+- [ ] **Écran de lancement système.** Tuer l'app, la relancer : One UI affiche
+      l'icône sur un fond plein — vérifier que le vert n'y est pas délavé.
+- [ ] **Icône de notification.** Elle est indépendante
+      (`ic_stat_notification` + `notification_accent`, toujours orange) : elle
+      ne doit pas avoir changé.
+- [ ] **iOS.** Icônes régénérées mais jamais compilées ni vues (aucun Mac dans
+      la boucle) — cf. l'entrée « iOS : signature et conformité export ».
+
+⚠️ Écart préexistant relevé au passage, **non corrigé** : le commentaire de
+`colors.xml` dit que `notification_accent` doit valoir `AppColors.primary`,
+or il vaut `#E07B39` alors que `AppColors.primary` vaut `#FA7D00` depuis le
+2026-08-25. Deux orangés de notification selon le chemin d'envoi.
+
+---
+
 ## ⬜ Écran de démarrage repeint en vert (2026-09-07)
 
 Demande produit : sur l'écran d'attente `/splash` (le premier écran Flutter
@@ -35,6 +72,13 @@ app orange — c'est voulu, pas une dérive à corriger.
       prévue pour cette pastille, contrairement à `primaryGradientDark`).
 - [ ] **Compte en thème Orange.** Confirmer que seul le splash est vert et que
       le reste de l'app reste orange (pas de contamination).
+- [x] **Sigle et arc du cercle verts, vus sur SM A515F** (thème Système/Orange,
+      nuit, APK debug dont le `md5sum` a été confronté à `base.apk` sur
+      l'appareil — la première installation avait posé un APK du dépôt
+      principal, d'où un premier constat faussement orange).
+- [ ] **Filet du cercle.** Il retombait sur `circularTrackColor` du thème,
+      donc brun-orangé pour un compte en thème Orange ; il est désormais
+      épinglé à `secondary` à 20 %. Non revu sur appareil depuis le correctif.
 
 ---
 

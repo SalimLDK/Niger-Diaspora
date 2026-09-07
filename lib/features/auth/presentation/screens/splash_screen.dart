@@ -65,8 +65,15 @@ class SplashScreen extends StatelessWidget {
               ).textTheme.bodyLarge?.copyWith(color: context.textSecondaryColor),
             ),
             const SizedBox(height: 48),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.secondary),
+            // Le filet du cercle (`backgroundColor`) est posé ici aussi : sans
+            // lui, il retombe sur `progressIndicatorTheme.circularTrackColor`,
+            // qui suit l'accent du compte — un compte en thème Orange gardait
+            // un anneau brun-orangé autour de l'arc vert (vu sur SM A515F).
+            CircularProgressIndicator(
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                AppColors.secondary,
+              ),
+              backgroundColor: AppColors.secondary.withValues(alpha: 0.2),
             ),
           ],
         ),
