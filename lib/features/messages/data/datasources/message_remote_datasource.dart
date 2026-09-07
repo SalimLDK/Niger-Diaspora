@@ -765,19 +765,22 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
           orElse: () => '',
         );
         if (recipientId.isNotEmpty) {
+          // Volontairement SANS `conversationId` : ce datasource déchiffre le
+          // repli AES dans `_decryptMessageFields`, une passe SYNCHRONE qui ne
+          // sait lire que la clé globale. Lui faire produire le format dérivé
+          // « v<n>:… » rendrait ses propres messages illisibles par son propre
+          // chemin de lecture. Le format dérivé est réservé au chemin Supabase,
+          // qui déchiffre en asynchrone et dispose de l'identifiant de
+          // conversation.
           return _crypto.encrypt1to1(
             plaintext: plaintext,
             recipientId: recipientId,
-            conversationId: conversationId,
           );
         }
       }
       // Group conversation — Sender Key encryption
-      return _crypto.encryptGroup(
-        plaintext,
-        groupId: conversationId,
-        conversationId: conversationId,
-      );
+      // Même raison que ci-dessus : pas de clé dérivée sur ce chemin.
+      return _crypto.encryptGroup(plaintext, groupId: conversationId);
     }
     return CryptoResult(
       {'content': _encryptionService.encryptText(plaintext), 'encryptionLevel': 'aes'},

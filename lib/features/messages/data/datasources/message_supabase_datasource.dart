@@ -159,13 +159,18 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
     // Always decrypt when crypto is available — handles all 3 formats:
     //   'e2ee' → Signal (e2eePayloads / senderKeyPayload)
-    //   'aes'  → AES-GCM ('gcm:…') or legacy plaintext (returned as-is)
+    //   'aes'  → clé dérivée (« v<n>:… »), clé globale (« iv:ct »), ou clair
     if (_crypto != null) {
       try {
         final senderId = (row['sender_id'] as String?) ?? '';
+        // `conversationId` est indispensable au repli AES chiffré avec une clé
+        // DÉRIVÉE : c'est de lui que la clé est reconstruite. Sans lui, un
+        // message au format « v<n>:… » s'affiche « [Message illisible] » — et
+        // rien d'autre ne le signale, puisque ce n'est pas une erreur.
         data['content'] = await _crypto.decrypt(
           payload: data,
           senderId: senderId,
+          conversationId: row['conversation_id'] as String?,
         );
       } catch (e) {
         debugPrint('MessageSupabaseDataSource: decrypt error: $e');
