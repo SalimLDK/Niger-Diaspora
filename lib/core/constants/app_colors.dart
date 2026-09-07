@@ -209,6 +209,23 @@ class AppColors {
   /// Fond pastel de l'or (guide, « Or clair »).
   static const Color goldBackground = Color(0xFFF7EBD6);
 
+  /// Teinte des notifications systeme : Android colore avec elle la petite
+  /// icone de la barre d'etat (qui n'est qu'une silhouette blanche, son propre
+  /// PNG n'a pas de couleur) et le filet du bandeau dans le volet.
+  ///
+  /// **DOIT rester egale a `notification_accent`**
+  /// (`android/app/src/main/res/values/colors.xml`) : une notification est
+  /// posee par deux chemins selon l'etat de l'app — le SDK Firebase lit la
+  /// ressource XML (via `default_notification_color` du manifeste), le repli
+  /// `flutter_local_notifications` passe cette constante-ci. Deux valeurs
+  /// differentes = deux teintes selon le chemin, ce qui a deja ete le cas
+  /// (`#E07B39` cote XML contre l'orange primaire cote Dart).
+  ///
+  /// Vert `#009600` depuis le 2026-09-07 sur demande produit. Volontairement
+  /// distincte de [primary] : la teinte des notifications ne suit plus
+  /// l'orange de l'app, ne pas la "corriger" vers [primary].
+  static const Color notificationAccent = Color(0xFF009600);
+
   // ============================================
   // BASE COLORS
   // ============================================

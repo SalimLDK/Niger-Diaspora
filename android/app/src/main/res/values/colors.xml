@@ -7,11 +7,13 @@
          Vert #009600 depuis le 2026-09-07 (etait l'orange #E97424). -->
     <color name="ic_launcher_background">#009600</color>
     <!-- Teinte de la petite icône et du filet des notifications système.
-         DOIT valoir AppColors.primary (app_colors.dart) : les notifications
-         sont posées par deux chemins — le SDK Firebase lit cette ressource,
-         le repli local passe AppColors.primary. Deux valeurs = deux orangés
-         selon l'état de l'app. Le fond d'icône du lanceur
-         (`ic_launcher_background`, vert depuis le 2026-09-07) n'est pas la
-         primaire ; c'était l'écart. -->
-    <color name="notification_accent">#E07B39</color>
+         DOIT valoir AppColors.notificationAccent (app_colors.dart) : les
+         notifications sont posées par deux chemins — le SDK Firebase lit
+         cette ressource (via `default_notification_color` du manifeste), le
+         repli flutter_local_notifications passe la constante Dart. Deux
+         valeurs = deux teintes selon l'état de l'app, ce qui était le cas
+         jusqu'au 2026-09-07 (#E07B39 ici contre l'orange primaire côté Dart).
+         Vert #009600 depuis cette date, sur demande produit : ce n'est plus
+         la primaire de l'app, ne pas "réaligner" sur AppColors.primary. -->
+    <color name="notification_accent">#009600</color>
 </resources>

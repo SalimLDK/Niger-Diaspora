@@ -43,6 +43,49 @@ correctement. **Ne jamais réintroduire ce filtre applicatif.**
 - [ ] **À revérifier après redéploiement de `crypto-keys`** : rouvrir la
       conversation `debef5f0…`, ses 2 messages rechiffrés doivent s'afficher.
 - [ ] Puis envoyer un message : il doit partir au format `v1:…` en base.
+## ⬜ Teinte des notifications système en vert (2026-09-07)
+
+La petite icône de la barre d'état (`ic_stat_notification`) est une
+**silhouette blanche sur transparent** — c'est Android qui la colore, avec la
+teinte d'accent. La repeindre revient donc à changer cette teinte, pas le PNG.
+
+Elle est posée par **deux chemins** selon l'état de l'app, et les deux ont dû
+être changés : `notification_accent` dans
+`android/app/src/main/res/values/colors.xml` (lu par le SDK Firebase via
+`default_notification_color` du manifeste, chemin utilisé pour tous les types
+sauf `message`) et la nouvelle constante `AppColors.notificationAccent`
+(passée par `flutter_local_notifications` — les messages partent en *data-only*
+depuis `send-push`, donc c'est le client qui construit leur notification).
+
+Au passage, ça **solde l'écart** signalé la veille : les deux chemins valaient
+`#E07B39` et `#FA7D00`, soit deux orangés différents selon l'état de l'app.
+Ils valent maintenant tous deux `#009600`.
+
+Cinq `AndroidNotificationDetails` pointent sur la constante ; le
+`general_channel` n'en avait **aucune** (le système ne teintait donc rien sur
+ce canal), il en a une désormais.
+
+- [ ] **Notification de message, app tuée.** C'est le chemin
+      `flutter_local_notifications`. Petite icône verte dans la barre d'état
+      et filet vert dans le volet. ⚠️ `am force-stop` empêche la livraison FCM
+      — lancer l'app, attendre, puis `KEYCODE_HOME` (cf. méthode plus bas).
+- [ ] **Notification d'un autre type** (demande d'ami, événement…). C'est le
+      chemin SDK Firebase, donc la ressource XML. Même vert attendu.
+- [ ] **Canal « general_channel ».** Il n'était pas teinté du tout avant :
+      vérifier qu'il l'est maintenant, et que rien n'y a régressé.
+- [ ] **Silhouette intacte.** Le PNG n'a pas été touché ; vérifier qu'aucune
+      notification ne montre un carré ou un disque blanc (le symptôme quand
+      Android retombe sur `@mipmap/ic_launcher`).
+
+Non touché, volontairement : les `ledColor` (couleur de la LED de
+notification, sémantique par type — bleu pour les amis, violet pour les
+groupes…), les deux teintes d'état de l'upload (`#4CAF50` succès /
+`#FF9800` en attente), et l'icône orange `#E97424` en dur du dialogue
+« Activer les notifications » (`notification_service.dart`), qui est un
+élément d'interface in-app et non une notification.
+
+---
+
 ## ⬜ Icône du lanceur repeinte en vert (2026-09-07)
 
 Suite de l'entrée ci-dessous : sur un vrai téléphone, l'orange qu'on voit en
