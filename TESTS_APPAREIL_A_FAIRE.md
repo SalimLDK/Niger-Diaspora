@@ -36,8 +36,11 @@ chemin de l'app ne le lit, il n'est référencé que par le README du dossier.
 - [ ] **Icône dans le tiroir d'applications et sur l'écran d'accueil.** Vert
       `#009600`, sigle blanc lisible, forme adaptive correcte (le lanceur
       découpe en cercle/squircle selon le thème du téléphone).
-- [ ] **Écran de lancement système.** Tuer l'app, la relancer : One UI affiche
-      l'icône sur un fond plein — vérifier que le vert n'y est pas délavé.
+- [x] **Écran de lancement système, vu sur SM A515F (2026-09-07).** Icône
+      verte `#009600`, sigle blanc net, aucun reste d'orange. C'est la preuve
+      que le paquet installé porte bien la nouvelle icône ; le rendu dans le
+      tiroir d'applications n'a pas été retrouvé (l'app n'était pas sur les
+      pages parcourues) et reste donc à cocher ci-dessus.
 - [ ] **Icône de notification.** Elle est indépendante
       (`ic_stat_notification` + `notification_accent`, toujours orange) : elle
       ne doit pas avoir changé.
@@ -76,9 +79,10 @@ app orange — c'est voulu, pas une dérive à corriger.
       nuit, APK debug dont le `md5sum` a été confronté à `base.apk` sur
       l'appareil — la première installation avait posé un APK du dépôt
       principal, d'où un premier constat faussement orange).
-- [ ] **Filet du cercle.** Il retombait sur `circularTrackColor` du thème,
-      donc brun-orangé pour un compte en thème Orange ; il est désormais
-      épinglé à `secondary` à 20 %. Non revu sur appareil depuis le correctif.
+- [x] **Filet du cercle, vu sur SM A515F (2026-09-07).** Il retombait sur
+      `circularTrackColor` du thème, donc brun-orangé pour un compte en thème
+      Orange ; épinglé à `secondary` à 20 %, l'anneau est maintenant vert
+      sombre sur toute sa circonférence.
 
 ---
 
