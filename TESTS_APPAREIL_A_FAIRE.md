@@ -65,6 +65,11 @@ Cinq `AndroidNotificationDetails` pointent sur la constante ; le
 `general_channel` n'en avait **aucune** (le système ne teintait donc rien sur
 ce canal), il en a une désormais.
 
+- [x] **Ressource compilée dans l'APK installé (2026-09-07).**
+      `aapt2 dump resources` sur l'APK, dont le `md5sum` a été confronté à
+      `base.apk` sur le SM A515F : `color/notification_accent` et
+      `color/ic_launcher_background` valent tous deux `#ff009600`. Ça prouve
+      la chaîne ressource → paquet installé, pas le rendu à l'écran.
 - [ ] **Notification de message, app tuée.** C'est le chemin
       `flutter_local_notifications`. Petite icône verte dans la barre d'état
       et filet vert dans le volet. ⚠️ `am force-stop` empêche la livraison FCM
