@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../../../core/services/crypto/derived_key_store.dart';
 import '../../../../core/errors/failures.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -117,6 +118,23 @@ class AuthNotifier extends _$AuthNotifier {
         .read(e2eeBackupCoordinatorProvider.notifier)
         .bootstrap(userId)
         .catchError((Object e) => dev.log('E2EE bootstrap failed: $e'));
+
+    // Peupler les clés dérivées du repli AES pour toutes les conversations de
+    // ce compte, en tâche de fond.
+    //
+    // Volontairement `unawaited` et sans remontée d'erreur : un échec ici ne
+    // doit jamais retarder ni bloquer la connexion. Il se traduit par un repli
+    // sur la clé globale — dégradé, mais fonctionnel — et la prochaine
+    // tentative aura lieu au premier message envoyé.
+    unawaited(
+      ref.read(derivedKeyStoreProvider).rafraichir().then((abouti) {
+        if (!abouti) {
+          dev.log('Clés dérivées non récupérées — repli sur la clé globale');
+        }
+      }).catchError((Object e) {
+        dev.log('Clés dérivées : $e');
+      }),
+    );
   }
 
   Future<void> _loadUserData(String userId) async {

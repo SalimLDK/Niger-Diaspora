@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../crypto/derived_key_store.dart';
 import '../encryption_service.dart';
 import 'key_manager_service.dart';
 import 'messaging_e2ee_service.dart';
@@ -16,6 +17,7 @@ final messageCryptoServiceProvider = Provider<MessageCryptoService>((ref) {
     e2ee: ref.watch(messagingE2EEServiceProvider),
     keyManager: ref.watch(keyManagerServiceProvider),
     senderKeys: ref.watch(senderKeyServiceProvider),
+    cles: ref.watch(derivedKeyStoreProvider),
   );
 });
 
@@ -48,16 +50,66 @@ class MessageCryptoService {
   final MessagingE2EEService _e2ee;
   final KeyManagerService _keyManager;
   final SenderKeyService _senderKeys;
+  final DerivedKeyStore _cles;
 
   const MessageCryptoService({
     required EncryptionService aes,
     required MessagingE2EEService e2ee,
     required KeyManagerService keyManager,
     required SenderKeyService senderKeys,
+    required DerivedKeyStore cles,
   })  : _aes = aes,
         _e2ee = e2ee,
         _keyManager = keyManager,
-        _senderKeys = senderKeys;
+        _senderKeys = senderKeys,
+        _cles = cles;
+
+  // ── Repli AES ───────────────────────────────────────────────────────────────
+
+  /// Chiffre le repli AES avec la clé dérivée de la conversation quand elle est
+  /// disponible, sinon avec la clé globale héritée.
+  ///
+  /// **Ce repli-du-repli est délibéré, et il est temporaire.** Refuser d'écrire
+  /// faute de clé dérivée rendrait l'envoi impossible hors ligne, à la première
+  /// installation, ou dès que `crypto-keys` a un incident — une régression
+  /// fonctionnelle franche pour un gain de confidentialité qui reste partiel
+  /// tant que l'existant est chiffré à la clé globale de toute façon.
+  ///
+  /// La contrepartie doit être dite : tant que ce repli existe, la
+  /// confidentialité n'est PAS acquise. Quelqu'un capable de faire échouer la
+  /// récupération de clé (couper le réseau au bon moment) obtient un message
+  /// chiffré avec la clé globale, que tout porteur de l'APK sait lire.
+  ///
+  /// Le format dit lequel des deux a servi (`v<n>:…` contre `<iv>:<ct>`), donc
+  /// le taux de repli est mesurable en base sans instrumentation
+  /// supplémentaire — même méthode que pour le repli Signal → AES :
+  ///
+  ///     SELECT count(*) FILTER (WHERE data->>'content' LIKE 'v%:%:%') AS derivee,
+  ///            count(*) FILTER (WHERE data->>'encryptionLevel' = 'aes')  AS total
+  ///     FROM messages;
+  ///
+  /// Quand ce taux approche 100 %, ce repli doit devenir un refus.
+  Future<String> _chiffrerRepli(String plaintext, String? conversationId) async {
+    if (conversationId != null && conversationId.isNotEmpty) {
+      try {
+        final cle = await _cles.cleConversation(conversationId);
+        final version = _cles.versionCourante;
+        if (cle != null && version != null) {
+          return _aes.encryptWithDerivedKey(
+            plaintext,
+            keyBase64: cle,
+            version: version,
+          );
+        }
+      } catch (e) {
+        debugPrint('MessageCryptoService: clé dérivée indisponible ($e)');
+      }
+      debugPrint(
+        'MessageCryptoService: repli sur la clé globale pour $conversationId',
+      );
+    }
+    return _aes.encryptText(plaintext);
+  }
 
   // ── 1:1 Encryption ─────────────────────────────────────────────────────────
 
@@ -66,6 +118,7 @@ class MessageCryptoService {
   Future<CryptoResult> encrypt1to1({
     required String plaintext,
     required String recipientId,
+    String? conversationId,
   }) async {
     if (_e2ee.isInitialized) {
       try {
@@ -97,7 +150,7 @@ class MessageCryptoService {
       }
     }
     return CryptoResult(
-      {'content': _aes.encryptText(plaintext), _levelKey: 'aes'},
+      {'content': await _chiffrerRepli(plaintext, conversationId), _levelKey: 'aes'},
       'aes',
     );
   }
@@ -108,16 +161,34 @@ class MessageCryptoService {
   /// parties, on ne peut donc pas établir de session avec soi-même. La note est
   /// chiffrée **au repos** avec la clé AES globale — le même repli que celui
   /// déjà utilisé pour les aperçus, la localisation et les médias.
-  CryptoResult encryptSelfNote(String plaintext) => CryptoResult(
-        {'content': _aes.encryptText(plaintext), _levelKey: 'aes'},
-        'aes',
-      );
+  /// La portée naturelle est ici l'UTILISATEUR, pas une conversation : une note
+  /// n'a pas de destinataire. D'où `cleUtilisateur()` plutôt que
+  /// `cleConversation()` — et le passage en asynchrone, la clé pouvant demander
+  /// un aller-retour réseau la première fois.
+  Future<CryptoResult> encryptSelfNote(String plaintext) async {
+    String contenu;
+    try {
+      final cle = await _cles.cleUtilisateur();
+      final version = _cles.versionCourante;
+      contenu = (cle != null && version != null)
+          ? _aes.encryptWithDerivedKey(plaintext, keyBase64: cle, version: version)
+          : _aes.encryptText(plaintext);
+    } catch (e) {
+      debugPrint('MessageCryptoService: clé utilisateur indisponible ($e)');
+      contenu = _aes.encryptText(plaintext);
+    }
+    return CryptoResult({'content': contenu, _levelKey: 'aes'}, 'aes');
+  }
 
   // ── Group Encryption (Sender Keys) ─────────────────────────────────────────
 
   /// Encrypt for a group using Signal Sender Keys.
   /// Falls back to AES-GCM if E2EE is not initialized or Sender Key unavailable.
-  Future<CryptoResult> encryptGroup(String plaintext, {String? groupId}) async {
+  Future<CryptoResult> encryptGroup(
+    String plaintext, {
+    String? groupId,
+    String? conversationId,
+  }) async {
     if (_e2ee.isInitialized && groupId != null) {
       try {
         final skMsg = await _senderKeys.encryptWithSenderKey(groupId, plaintext);
@@ -137,7 +208,12 @@ class MessageCryptoService {
     }
     // AES-GCM fallback for groups without established Sender Keys
     return CryptoResult(
-      {'content': _aes.encryptText(plaintext), _levelKey: 'aes'},
+      // `conversationId` seulement, JAMAIS `groupId` en remplacement : la clé
+      // est dérivée de « conv:<conversation_id> », et c'est cet identifiant-là
+      // que Postgres a sous la main pour reconstruire la même clé. Dériver sur
+      // le groupId produirait un message que le serveur ne saurait pas relire
+      // — donc plus d'aperçu de notification, sans la moindre erreur.
+      {'content': await _chiffrerRepli(plaintext, conversationId), _levelKey: 'aes'},
       'aes',
     );
   }
@@ -153,6 +229,7 @@ class MessageCryptoService {
     required Map<String, dynamic> payload,
     required String senderId,
     String? currentDeviceId,
+    String? conversationId,
   }) async {
     // ── Format 1: Group Sender Key ──────────────────────────────────────────
     final skRaw = payload[_senderKeyPayload];
@@ -218,8 +295,29 @@ class MessageCryptoService {
       return kE2EESessionRequiredPlaceholder;
     }
 
-    // ── Format 4: AES-GCM ──────────────────────────────────────────────────
-    return _aes.decryptText(payload['content'] as String? ?? '');
+    // ── Format 4: repli AES ────────────────────────────────────────────────
+    //
+    // Deux sous-formats, et la lecture doit accepter les deux : un message
+    // d'avant le chantier (clé globale) et un message d'après (clé dérivée)
+    // cohabitent dans la même conversation, sans migration préalable.
+    final contenu = payload['content'] as String? ?? '';
+    if (!EncryptionService.estFormatVersionne(contenu)) {
+      return _aes.decryptText(contenu);
+    }
+
+    if (conversationId == null || conversationId.isEmpty) {
+      debugPrint('MessageCryptoService: contenu versionné sans conversationId');
+      return _aes.decryptWithDerivedKey(contenu);
+    }
+
+    // Redemander la version PORTÉE PAR LE MESSAGE, pas la version courante :
+    // après une rotation, un message ancien reste lisible avec sa racine
+    // d'origine. Sans ça, toute rotation rendrait le passé illisible.
+    final cle = await _cles.cleConversation(
+      conversationId,
+      version: EncryptionService.versionDe(contenu),
+    );
+    return _aes.decryptWithDerivedKey(contenu, keyBase64: cle);
   }
 
   String decryptLegacy(String encryptedContent) => _aes.decryptText(encryptedContent);

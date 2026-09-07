@@ -26,9 +26,29 @@ l'Edge Function `supabase/functions/crypto-keys/`, le banc de vecteurs
 `tools/crypto_tests/derivation_croisee.mjs`, et le magasin client
 `lib/core/services/crypto/derived_key_store.dart`.
 
-**Rien de tout ça n'est encore branché sur le chemin de chiffrement** : l'app
-se comporte exactement comme avant. Les points ci-dessous ne pourront être
-vérifiés qu'une fois le branchement fait ET la racine posée en secret.
+**Branché depuis le 2026-09-06** sur le chemin des messages : `encrypt1to1`,
+`encryptGroup` et `encryptSelfNote` utilisent la clé dérivée quand elle est
+disponible, et retombent sur la clé globale sinon. Le magasin est amorcé au
+démarrage (`main.dart`, depuis le keystore, sans réseau) et rafraîchi après
+connexion (`auth_provider._initializeE2EE`).
+
+⚠️ **Tant que le repli sur la clé globale existe, la confidentialité n'est pas
+acquise** : quelqu'un capable de faire échouer la récupération de clé obtient
+un message chiffré avec la clé que tout porteur de l'APK sait lire. Le format
+dit lequel a servi, donc le taux est mesurable :
+
+```sql
+SELECT count(*) FILTER (WHERE data->>'content' LIKE 'v%:%:%') AS derivee,
+       count(*) FILTER (WHERE data->>'encryptionLevel' = 'aes') AS total
+FROM messages;
+```
+
+Quand ce taux approche 100 %, le repli doit devenir un refus.
+
+**Pas encore branchés** (toujours sur la clé globale, et lisibles : la lecture
+accepte les deux formats) : `lastMessage`, la localisation et l'édition de
+message dans `message_remote_datasource`, les comptes de paiement, la
+sauvegarde de sessions Signal, la réponse rapide depuis notification.
 
 - [ ] **Premier lancement hors ligne.** Installer, couper le réseau, tenter
       d'envoyer un message. Attendu : refus visible, jamais un message écrit en

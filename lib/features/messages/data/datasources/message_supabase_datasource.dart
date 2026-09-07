@@ -210,10 +210,12 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     // « Mes notes » : self-chat, donc aucun destinataire par construction — et
     // aucune session Signal possible avec soi-même. On court-circuite AVANT les
     // deux gardes ci-dessous : ni l'initialisation E2EE ni la présence d'un
-    // destinataire ne sont pertinentes ici. Chiffrement au repos, clé AES
-    // globale — le même repli que les aperçus, la localisation et les médias.
+    // destinataire ne sont pertinentes ici. Chiffrement au repos — désormais
+    // avec la clé dérivée de l'UTILISATEUR quand elle est disponible (une note
+    // n'a pas de destinataire, sa portée naturelle est le compte), et la clé
+    // globale en repli.
     if (selfNote) {
-      final selfResult = _crypto.encryptSelfNote(plaintext);
+      final selfResult = await _crypto.encryptSelfNote(plaintext);
       unawaited(
         AnalyticsService.instance.logMessageEncryption(
           level: selfResult.encryptionLevel,
@@ -271,6 +273,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         result = await _crypto.encrypt1to1(
           plaintext: plaintext,
           recipientId: recipientId,
+          conversationId: conversationId,
         );
       } else {
         // Groups: distribute Sender Key to all members before encrypting.
@@ -284,7 +287,15 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         } on TimeoutException {
           debugPrint('MessageSupabaseDataSource: Sender Key setup timed out');
         }
-        result = await _crypto.encryptGroup(plaintext, groupId: conversationId);
+        // `conversationId` est passé explicitement en plus de `groupId` : ici
+        // les deux coïncident, mais c'est de l'identifiant de CONVERSATION que
+        // la clé est dérivée — et c'est lui que Postgres a sous la main pour
+        // reconstruire la même clé côté aperçu de notification.
+        result = await _crypto.encryptGroup(
+          plaintext,
+          groupId: conversationId,
+          conversationId: conversationId,
+        );
       }
 
       // Instrumentation continue du taux de repli AES (fire-and-forget, non

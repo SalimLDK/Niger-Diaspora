@@ -765,11 +765,19 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
           orElse: () => '',
         );
         if (recipientId.isNotEmpty) {
-          return _crypto.encrypt1to1(plaintext: plaintext, recipientId: recipientId);
+          return _crypto.encrypt1to1(
+            plaintext: plaintext,
+            recipientId: recipientId,
+            conversationId: conversationId,
+          );
         }
       }
       // Group conversation — Sender Key encryption
-      return _crypto.encryptGroup(plaintext, groupId: conversationId);
+      return _crypto.encryptGroup(
+        plaintext,
+        groupId: conversationId,
+        conversationId: conversationId,
+      );
     }
     return CryptoResult(
       {'content': _encryptionService.encryptText(plaintext), 'encryptionLevel': 'aes'},

@@ -22,6 +22,7 @@ import 'core/services/stripe_service.dart';
 import 'core/services/background_location_service.dart';
 import 'core/services/location_publisher_service.dart';
 import 'core/services/online_status_service.dart';
+import 'core/services/crypto/derived_key_store.dart';
 import 'core/services/encryption_service.dart';
 
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -77,6 +78,13 @@ void main() async {
 
   // Initialize encryption service for message encryption/decryption
   await EncryptionService.instance.initialize();
+
+  // Version de clé dérivée déjà connue, relue depuis le keystore — sans réseau.
+  // Sans cette reprise, `versionCourante` serait nul au démarrage et TOUT
+  // retomberait sur la clé globale jusqu'au premier aller-retour vers
+  // `crypto-keys` : le branchement ne servirait à rien hors ligne, c'est-à-dire
+  // précisément quand on en a besoin.
+  await DerivedKeyStore.instance.reprendreDepuisLeCache();
 
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
