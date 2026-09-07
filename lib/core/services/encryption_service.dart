@@ -128,6 +128,124 @@ class EncryptionService {
     return encryptText(plainText);
   }
 
+  // ── Clés dérivées ──────────────────────────────────────────────────────────
+  //
+  // Format produit : « v<version>:<ivB64>:<ctB64> ».
+  //
+  // Trois formats coexistent en base, et il faut savoir les distinguer sans
+  // ambiguïté :
+  //   « gcm:… »            schéma historique, plus personne ne sait le lire
+  //   « <iv>:<ct> »        clé globale, constante du binaire — tout l'existant
+  //   « v<n>:<iv>:<ct> »   clé dérivée, de portée réduite — le nouveau
+  //
+  // Le base64 ne contient jamais « : », donc compter les segments suffit. La
+  // même règle est appliquée côté Postgres (`decrypt_aes_fallback`) : les deux
+  // doivent rester d'accord, sinon les aperçus de notification retombent en
+  // générique sans que rien ne le signale.
+
+  static const String _prefixeVersion = 'v';
+
+  /// Chiffre avec une clé dérivée (base64, 32 octets) plutôt qu'avec la clé
+  /// globale.
+  ///
+  /// Ne dépend pas de [initialize] : la clé vient de l'appelant, pas de la
+  /// constante du binaire. Lève [EncryptionUnavailableException] si la clé est
+  /// inutilisable — jamais de retour en clair, et surtout jamais de repli
+  /// silencieux sur la clé globale, qui annulerait tout le bénéfice de portée.
+  String encryptWithDerivedKey(
+    String plainText, {
+    required String keyBase64,
+    required int version,
+  }) {
+    if (plainText.isEmpty) return plainText;
+
+    final encrypteur = _encrypteurPour(keyBase64);
+    try {
+      final iv = encrypt.IV.fromLength(16);
+      final chiffre = encrypteur.encrypt(plainText, iv: iv);
+      return '$_prefixeVersion$version:${iv.base64}:${chiffre.base64}';
+    } catch (e) {
+      debugPrint('❌ Chiffrement avec clé dérivée impossible : $e');
+      throw EncryptionUnavailableException('chiffrement échoué : $e');
+    }
+  }
+
+  /// Déchiffre un contenu, quel que soit son format.
+  ///
+  /// C'est la lecture à deux clés qui rend la bascule possible : un message
+  /// écrit avant le chantier (clé globale) et un message écrit après (clé
+  /// dérivée) se relisent tous les deux, sans migration préalable et sans que
+  /// l'utilisateur voie la différence.
+  ///
+  /// [keyBase64] n'est nécessaire que pour le format versionné. Son absence sur
+  /// un contenu versionné rend le marqueur illisible habituel, pas une
+  /// exception : ne pas pouvoir lire un message n'est pas une faute de
+  /// l'appelant, contrairement à ne pas pouvoir en chiffrer un.
+  String decryptWithDerivedKey(String encrypted, {String? keyBase64}) {
+    if (encrypted.isEmpty) return encrypted;
+
+    if (!estFormatVersionne(encrypted)) {
+      // Formats hérités (« iv:ct », « gcm:… », clair) : chemin inchangé.
+      return decryptText(encrypted);
+    }
+
+    if (keyBase64 == null) {
+      debugPrint('⚠️ Contenu versionné sans clé dérivée fournie');
+      return '[Message illisible]';
+    }
+
+    try {
+      final parties = encrypted.split(':');
+      final iv = encrypt.IV.fromBase64(parties[1]);
+      final charge = encrypt.Encrypted.fromBase64(parties[2]);
+      return _encrypteurPour(keyBase64).decrypt(charge, iv: iv);
+    } catch (e) {
+      // Mauvaise clé, version inconnue, contenu corrompu : même issue que le
+      // chemin hérité — un marqueur, jamais le ciphertext brut.
+      debugPrint('⚠️ Déchiffrement avec clé dérivée impossible : $e');
+      return '[Message illisible]';
+    }
+  }
+
+  /// `true` si le contenu est au format `v<n>:<iv>:<ct>`.
+  ///
+  /// Sert aux appelants pour savoir s'ils doivent aller chercher une clé
+  /// dérivée avant de déchiffrer — sans quoi ils la demanderaient pour tous les
+  /// messages hérités, donc à chaque ouverture de conversation.
+  static bool estFormatVersionne(String contenu) {
+    final parties = contenu.split(':');
+    if (parties.length != 3) return false;
+    final tete = parties[0];
+    if (tete.length < 2 || !tete.startsWith(_prefixeVersion)) return false;
+    return int.tryParse(tete.substring(1)) != null;
+  }
+
+  /// Version de clé portée par un contenu versionné, `null` sinon.
+  ///
+  /// Nécessaire pour redemander la BONNE racine après une rotation : un message
+  /// ancien reste lisible avec sa version d'origine.
+  static int? versionDe(String contenu) {
+    if (!estFormatVersionne(contenu)) return null;
+    return int.tryParse(contenu.split(':')[0].substring(1));
+  }
+
+  encrypt.Encrypter _encrypteurPour(String keyBase64) {
+    final Uint8List octets;
+    try {
+      octets = base64Decode(keyBase64);
+    } catch (e) {
+      throw EncryptionUnavailableException('clé dérivée illisible : $e');
+    }
+    if (octets.length != 32) {
+      throw EncryptionUnavailableException(
+        'clé dérivée de ${octets.length} octets, 32 attendus (AES-256)',
+      );
+    }
+    return encrypt.Encrypter(
+      encrypt.AES(encrypt.Key(octets), mode: encrypt.AESMode.cbc),
+    );
+  }
+
   /// Vérifie si une chaîne est du base64 valide
   bool _isValidBase64(String str) {
     if (str.isEmpty) return false;
