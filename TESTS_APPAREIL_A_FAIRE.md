@@ -14,6 +14,30 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Écran de démarrage repeint en vert (2026-09-07)
+
+Demande produit : sur l'écran d'attente `/splash` (le premier écran Flutter
+affiché, `initialLocation` du routeur), la pastille « DN » et le cercle de
+progression passent de l'orange primaire au vert `AppColors.secondary`
+(`#009600`) / `secondaryGradient`. Fichier :
+[splash_screen.dart](lib/features/auth/presentation/screens/splash_screen.dart).
+
+La teinte est **fixe** : elle ne suit pas l'accent choisi par le compte
+(orange ou vert). Un compte en thème Orange verra donc un splash vert puis une
+app orange — c'est voulu, pas une dérive à corriger.
+
+- [ ] **Splash au démarrage à froid, thème clair.** Tuer l'app, la relancer :
+      pastille « DN » et cercle de progression verts, sigle blanc lisible sur
+      le vert, ombre portée verte discrète.
+- [ ] **Splash au démarrage à froid, thème sombre.** Même écran sur fond
+      `surfaceVariantDark` (`#2D2820`) : vérifier que le vert `#009600` ne
+      devient pas terne sur le fond foncé (aucune variante nocturne n'est
+      prévue pour cette pastille, contrairement à `primaryGradientDark`).
+- [ ] **Compte en thème Orange.** Confirmer que seul le splash est vert et que
+      le reste de l'app reste orange (pas de contamination).
+
+---
+
 ## ⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)
 
 Chantier en cours : remplacer la clé AES globale (constante de l'APK, donc
