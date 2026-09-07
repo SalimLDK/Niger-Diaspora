@@ -14,8 +14,27 @@ class EncryptionService {
   factory EncryptionService() => instance;
   EncryptionService._internal();
 
-  // Shared key with Firebase Cloud Functions (functions/encryption.js)
-  // IMPORTANT: This key must match the KEY_STRING in functions/encryption.js
+  // Clé du repli AES-256-CBC. Elle fait AUTORITÉ : c'est elle qui a chiffré
+  // tout ce qui est déjà en base (`encryptionLevel = 'aes'`, comptes de
+  // paiement, coordonnées de localisation). La changer rend cet existant
+  // illisible — voir docs/ops/secrets_production.md § 2.
+  //
+  // Elle est recopiée à l'identique à DEUX autres endroits, qui doivent suivre
+  // toute modification faite ici :
+  //   1. `decrypt_aes_fallback()` en base — supabase/migrations/
+  //      20260813170000_fix_decrypt_aes_fallback_search_path.sql. C'est le
+  //      chemin VIVANT : il construit l'aperçu des notifications push.
+  //   2. `ENCRYPTION_KEY` dans functions/.env, lu par functions/encryption.js
+  //      (`decryptText`, aperçus des triggers Firestore hérités).
+  //
+  // Elle n'est PAS lue depuis `.env` : `dotenv` n'est jamais interrogé pour
+  // cette valeur. Un `ENCRYPTION_KEY` posé dans le .env racine n'aurait donc
+  // aucun effet — c'est ce qui a laissé functions/.env dériver sans que rien
+  // ne le signale (corrigé le 2026-09-06).
+  //
+  // Ce n'est pas un secret : constante d'un binaire distribué, donc extractible
+  // de l'APK. Le vrai chiffrement est Signal (E2EE) ; ceci n'est que le repli
+  // quand aucune session Signal n'est établie.
   static const String _sharedKeyString = 'DiaspoNigerSecureKey2025ForApps!';
 
   encrypt.Key? _key;

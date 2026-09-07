@@ -26,7 +26,7 @@ Deux mécanismes, dans cet ordre de priorité :
 1. **`--dart-define`** à la compilation (prioritaire — utilisé pour les builds de production).
 2. **Fichier `.env`** à la racine, chargé par `flutter_dotenv` au démarrage (`main.dart`) — utilisé en développement.
 
-Le modèle de référence est **`.env.example`** (racine) : copier en `.env` et remplir. Il couvre : chiffrement (`ENCRYPTION_KEY`, 32 caractères), Firebase (clés par plateforme), Google OAuth & Maps, ReCAPTCHA (App Check), Stripe, **Supabase** (`SUPABASE_URL`, `SUPABASE_ANON_KEY`), Twilio (OTP SMS), LiveKit (appels de groupe), RevenueCat, `TURN_SECRET` (coturn), deep links, Tenor/Giphy (GIFs).
+Le modèle de référence est **`.env.example`** (racine) : copier en `.env` et remplir. Il couvre : Firebase (clés par plateforme), Google OAuth & Maps, ReCAPTCHA (App Check), Stripe, **Supabase** (`SUPABASE_URL`, `SUPABASE_ANON_KEY`), Twilio (OTP SMS), LiveKit (appels de groupe), RevenueCat, `TURN_SECRET` (coturn), deep links, Tenor/Giphy (GIFs).
 
 > ⚠️ Ne jamais commiter `.env` (déjà dans `.gitignore`).
 
@@ -154,11 +154,35 @@ Le modèle de référence est **`functions/.env.example`**. Variables actuelles 
 |---|---|
 | `STRIPE_SECRET_KEY` | Clé secrète Stripe |
 | `STRIPE_WEBHOOK_SECRET` | Secret du webhook paiements |
-| `ENCRYPTION_KEY` | Clé AES-256 (32 caractères) — **doit être identique** à celle de l'app Flutter ; la changer casse le déchiffrement des messages existants |
+| `ENCRYPTION_KEY` | Clé AES-256 (32 caractères) — **recopier mot pour mot** `_sharedKeyString` de [`encryption_service.dart`](../../lib/core/services/encryption_service.dart) (voir « Les trois copies » ci-dessous) ; la changer casse le déchiffrement des messages existants |
 | `REVENUECAT_WEBHOOK_AUTH` | Header d'autorisation du webhook RevenueCat |
 | `TURN_SECRET` | Secret partagé HMAC pour les credentials TURN éphémères — **doit être identique** au `static-auth-secret` du serveur coturn (voir [COTURN_VPS_SETUP.md](../ops/COTURN_VPS_SETUP.md)) |
 
 Le `.env` est injecté automatiquement au déploiement (`firebase deploy` affiche `injecting env (N) from .env`). En production, préférer les Firebase Secrets pour les clés live.
+
+### Les trois copies de `ENCRYPTION_KEY`
+
+La clé du repli AES existe **en trois exemplaires**, et rien ne les compare
+automatiquement. L'original est le client — c'est lui qui chiffre :
+
+| Où | Forme | Rôle |
+|---|---|---|
+| `lib/core/services/encryption_service.dart` (`_sharedKeyString`) | constante Dart en dur | **source de vérité** — chiffre et déchiffre dans l'app |
+| `decrypt_aes_fallback()` (migration `20260813170000_…`) | littéral SQL | construit l'aperçu en clair des notifications push — **chemin vivant** |
+| `functions/.env` → `functions/encryption.js` | variable d'environnement | aperçus des triggers Firestore hérités |
+
+Le `.env` **racine ne contient pas cette clé** : le code Dart ne consulte jamais
+`dotenv` pour elle. En poser une n'a aucun effet.
+
+Une divergence ne lève aucune erreur. `decryptText` (Node) et
+`decrypt_aes_fallback` (SQL) rendent tous deux **le texte chiffré tel quel**
+quand la clé est fausse — l'utilisateur voit du base64 en corps de
+notification. C'est ce qui est arrivé à `functions/.env`, désaligné jusqu'au
+2026-09-06.
+
+Après toute modification, vérifier l'alignement par un aller-retour réel :
+chiffrer avec la clé Dart (AES-256-CBC, PKCS7, format `ivB64:ctB64`) et relire
+avec `decryptText` de `functions/encryption.js`.
 
 ### Déployer et vérifier
 

@@ -14,6 +14,47 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Clé AES de repli : Firebase Functions avait divergé (2026-09-06)
+
+`functions/.env` portait une valeur de `ENCRYPTION_KEY` différente de celle du
+client (`_sharedKeyString`, `lib/core/services/encryption_service.dart`). Les
+deux font 32 octets, le format et le mode sont identiques (AES-256-CBC, PKCS7,
+`ivB64:ctB64`) — seule la valeur divergeait, donc **rien ne le signalait** :
+`decryptText` rend le texte chiffré tel quel quand la clé est fausse, sans
+exception ni log.
+
+État mesuré avant correction (SHA-256 des valeurs) :
+
+| Emplacement | Verdict |
+|---|---|
+| Client Dart `_sharedKeyString` | référence — c'est lui qui chiffre |
+| `decrypt_aes_fallback()` **en prod** (vérifié via `pg_proc`) | aligné |
+| `functions/.env` → `functions/encryption.js` | **divergent** |
+| Secret Supabase Edge Functions `ENCRYPTION_KEY` | **divergent** (dormant : aucune Edge Function ne le lit) |
+| `.env` racine | divergent, mais **jamais lu** — variable retirée |
+
+Corrigé : `functions/.env` aligné sur le Dart. Prouvé hors appareil par un
+aller-retour réel (chiffrement au format client en Node → `decryptText`) :
+texte restitué à l'identique après, base64 brut avant.
+
+**À vérifier sur appareil** — ce que le banc ne peut pas couvrir :
+
+- [ ] Recevoir un message en repli AES (`encryptionLevel = 'aes'`) app en
+      arrière-plan, et lire le **corps de la notification** : doit afficher le
+      texte, pas du base64 ni « Nouveau message ». C'est le chemin Postgres
+      (`decrypt_aes_fallback`), déjà aligné avant cette session — le test
+      confirme qu'il l'est bien en pratique.
+- [ ] Vérifier qu'un compte de paiement (`mobileNumber` / `iban` / `bic`,
+      chiffrés avec cette même clé) se relit correctement après la correction.
+
+`sendChatNotification` (trigger Firestore, `us-central1`) est **encore
+déployée** et appelle `decryptText` — mais les messages vivent sur Supabase
+depuis la migration, donc elle ne doit plus se déclencher. Si un aperçu push
+correct apparaît malgré tout par ce chemin, c'est qu'elle reçoit encore du
+trafic : à investiguer.
+
+---
+
 ## ⬜ Les deux liens « noter l'app » étaient morts (2026-09-01)
 
 `lib/core/services/support_service.dart` exposait deux constantes fausses,
