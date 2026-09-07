@@ -14,6 +14,45 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)
+
+Chantier en cours : remplacer la clé AES globale (constante de l'APK, donc
+lisible par tout utilisateur, donc **aucune confidentialité entre comptes**)
+par des clés dérivées d'une racine qui ne quitte pas le serveur —
+`K_conv(convId)` et `K_user(uid)`, HKDF-SHA256.
+
+Livré à ce stade : le refus de dégrader en clair (`EncryptionUnavailableException`),
+l'Edge Function `supabase/functions/crypto-keys/`, le banc de vecteurs
+`tools/crypto_tests/derivation_croisee.mjs`, et le magasin client
+`lib/core/services/crypto/derived_key_store.dart`.
+
+**Rien de tout ça n'est encore branché sur le chemin de chiffrement** : l'app
+se comporte exactement comme avant. Les points ci-dessous ne pourront être
+vérifiés qu'une fois le branchement fait ET la racine posée en secret.
+
+- [ ] **Premier lancement hors ligne.** Installer, couper le réseau, tenter
+      d'envoyer un message. Attendu : refus visible, jamais un message écrit en
+      clair en base. C'est le mode de panne central de tout le chantier.
+- [ ] **Réinstallation.** Désinstaller/réinstaller, se reconnecter, ouvrir une
+      conversation ancienne : les messages d'avant doivent rester lisibles
+      (lecture à deux clés) et les nouveaux partir chiffrés.
+- [ ] **Nouvelle conversation.** Démarrer une conversation qui n'existait pas
+      au dernier `rafraichir` : la clé doit être demandée à la volée, sans que
+      l'envoi échoue.
+- [ ] **Aperçu de notification** après le branchement : le corps doit rester le
+      vrai texte (`decrypt_aes_fallback` devra dériver `K_conv`), pas du base64
+      ni « Nouveau message ».
+- [ ] **Changement de compte** sur le même téléphone : après déconnexion, les
+      clés du compte précédent ne doivent plus être lisibles (`vider()`).
+
+⚠️ La réponse rapide depuis notification (`background_reply_service`) chiffre
+depuis un isolate séparé. Ce chemin est de toute façon inaccessible aujourd'hui
+(boutons masqués depuis le 2026-08-14), mais s'il est réactivé un jour, il
+devra lire le cache du keystore — l'isolate initialise déjà Supabase et les
+plugins, donc c'est possible, mais non vérifié.
+
+---
+
 ## ⬜ Clé AES de repli : Firebase Functions avait divergé (2026-09-06)
 
 `functions/.env` portait une valeur de `ENCRYPTION_KEY` différente de celle du

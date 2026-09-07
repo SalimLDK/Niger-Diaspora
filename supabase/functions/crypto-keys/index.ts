@@ -136,12 +136,17 @@ Deno.serve(async (req) => {
 
 /// HKDF-SHA256 → 32 octets, encodés en base64.
 ///
-/// Ce schéma est reproduit à l'identique côté Dart et côté Postgres. Les trois
-/// implémentations DOIVENT rester d'accord : c'est exactement le genre de
-/// triplet qui a déjà dérivé en silence dans ce dépôt (cf. la clé AES globale,
-/// désalignée pendant des mois sans qu'aucune erreur ne remonte). Le banc
-/// `tools/crypto_tests/derivation_croisee.mjs` compare les trois — le lancer
-/// après toute modification ici.
+/// Le schéma n'est écrit qu'à DEUX endroits : ici, et dans
+/// `decrypt_aes_fallback()` côté Postgres (pour les aperçus push). Le client
+/// Dart ne dérive rien — il reçoit ces clés toutes faites, ce qui retire un
+/// troisième endroit où diverger.
+///
+/// Les deux qui restent doivent rester d'accord, et rien ne les compare à
+/// l'exécution : un désaccord ne lève aucune erreur, le déchiffrement rend
+/// simplement le texte chiffré tel quel. C'est ce qui a laissé la clé AES
+/// globale diverger pendant des mois dans ce dépôt. D'où le banc
+/// `tools/crypto_tests/derivation_croisee.mjs`, qui fige des vecteurs — le
+/// lancer après toute modification ici.
 async function deriver(racine: ArrayBuffer, info: string): Promise<string> {
   const cle = await crypto.subtle.importKey('raw', racine, 'HKDF', false, ['deriveBits'])
   const bits = await crypto.subtle.deriveBits(
