@@ -14,6 +14,48 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)
+
+Play Console refuse toute mise à jour à partir du **31/10/2026** si l'app ne
+cible pas l'API 36. La 1.2.0 publiée cible 35.
+
+La cause n'était pas dans le dépôt : `build.gradle.kts` disait
+`targetSdk = flutter.targetSdkVersion`, une valeur qui **vient du SDK Flutter
+installé sur le poste**, pas du code. Flutter 3.29 (le poste au moment de la
+release) répond 35, Flutter 3.44.2 répond 36 — le même commit produit donc
+deux binaires différents selon la machine, sans un mot dans les logs. La
+valeur est maintenant épinglée à `36` en dur.
+
+Ce que ce passage change au comportement Android — à regarder sur appareil,
+`flutter analyze`/`flutter test` n'en voient rien :
+
+- [ ] **Bord à bord (edge-to-edge) imposé, sans dérogation possible.** L'app
+      était déjà concernée en ciblant 35 ; en 36 l'échappatoire
+      `windowOptOutEdgeToEdgeEnforcement` est ignorée. Revoir les écrans qui
+      dessinent jusqu'en bas : barres d'onglets, champ de saisie de
+      discussion, feuilles modales — vérifier qu'aucun contenu ne passe sous
+      la barre de navigation gestuelle ni sous l'encoche.
+- [ ] **Verrou d'orientation ignoré sur grand écran.** À partir de 36, sur un
+      écran de largeur ≥ 600 dp, `setRequestedOrientation()` ne fait plus
+      rien. Seul appelant côté app :
+      `lib/features/messages/presentation/screens/video_player_screen.dart:78`
+      (paysage forcé en plein écran). Sur téléphone (SM A515F) le verrou
+      tient toujours ; sur tablette / pliable ouvert il sera ignoré. À voir
+      si la vidéo reste regardable sans le verrou.
+- [ ] **Retour prédictif** : `enableOnBackInvokedCallback="true"` est déjà
+      posé au manifeste, donc rien de nouveau à activer — mais l'animation
+      système devient le défaut. Revérifier les sorties d'écran par geste de
+      retour, notamment les routes de lien profond (cf. la règle
+      « couvrir les TROIS sorties »).
+- [ ] **Alignement 16 Ko des bibliothèques natives.** Indépendant du
+      targetSdk mais contrôlé au même endroit par Play : toute `.so` embarquée
+      (flutter_webrtc, Maps, Firebase…) doit être alignée sur 16 Ko. NDK 27
+      le fait par défaut pour ce qui est compilé ici, mais pas pour les `.so`
+      préconstruites d'un plugin. Se voit à l'upload de l'AAB, ou en amont
+      sur le bundle produit.
+
+**Version portée à `1.2.1+11`** (la 1.2.0+10 est celle en production).
+
 ## ✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)
 
 Notifications, Annuaire des entreprises, Événements et Ambassades sont
