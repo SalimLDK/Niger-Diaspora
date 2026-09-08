@@ -101,6 +101,20 @@ les règles ProGuard manquantes (écran blanc, réflexion cassée, plugin muet).
 
 - ⬜ Démarrage à froid du **build release** sur SM A515F (Android 13) : pas
       d'écran blanc, pas de crash, connexion et messagerie fonctionnelles.
+
+  ⚠️ **Toujours pas fait au 2026-09-08, et pas par oubli.** Les captures de
+  la fiche ont été prises avec un build **debug** de l'arbre fusionné, parce
+  que l'app déjà installée est signée `CN=Android Debug` : installer le
+  release exige `adb uninstall`, qui efface les données et **déconnecte le
+  compte**. Le rendu à l'écran est identique entre debug et release — c'est
+  la même source — donc les captures sont valides. Ce qui reste **non
+  couvert**, c'est tout ce que seul le release exerce : R8, `shrinkResources`,
+  et les règles ProGuard manquantes (écran blanc, réflexion cassée, plugin
+  muet). Rien de tout cela n'a été vu tourner.
+
+  Pour le faire : `adb uninstall com.diasponiger.diasponiger`, installer
+  `build/app/outputs/flutter-apk/app-release.apk`, **se reconnecter à la
+  main**, puis parcourir messagerie, appel, caméra, carte.
 - ⬜ Idem sur Pixel 10 Pro XL (**Android 17, API 37**) — c'est le seul appareil
       qui exerce réellement `targetSdk = 36`.
 - ⬜ Permissions runtime en release : caméra, micro, localisation,
@@ -138,6 +152,17 @@ court. Les copies d'écran intégrées viennent du build release.
 
 - ⬜ Relire les captures livrées : aucune donnée personnelle réelle visible
       (nom, numéro, adresse, photo d'un tiers) avant publication.
+      À ce stade, `05_accueil.png` montre le prénom « Sim » et « Montréal,
+      Canada » — données du compte de test, à valider ou à masquer.
+- [x] **Captures prises sur SM A515F le 2026-09-08** : accueil, ambassades,
+      fiche d'un poste, carte (mode privé), groupes « Découvrir ». Build de
+      l'arbre fusionné, md5 local et appareil comparés avant chaque prise.
+- Trois écrans écartés faute de contenu présentable, **et non corrigés** :
+  l'annuaire des entreprises est vide, le fil ne porte que des publications de
+  test (« a ignorer »), la liste des groupes affiche « Groupe de test prive ».
+- ⬜ Le Pixel 10 Pro XL n'a pas pu être capturé : il redemande son code de
+      verrouillage. À refaire déverrouillé si des captures Android 17 sont
+      souhaitées.
 ## ⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)
 
 Play Console refuse toute mise à jour à partir du **31/10/2026** si l'app ne
