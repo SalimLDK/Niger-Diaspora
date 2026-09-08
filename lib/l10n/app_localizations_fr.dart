@@ -11449,6 +11449,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get e2eeRestoreNudgeAction => 'Restaurer';
 
   @override
+  String get e2eeNudgeMuteAction => 'Ne plus me le rappeler';
+
+  @override
   String get securityRestoreKeys => 'Restaurer les clés';
 
   @override

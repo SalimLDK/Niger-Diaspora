@@ -37,6 +37,8 @@ import '../../../polls/domain/entities/poll_entity.dart';
 import '../../../polls/presentation/widgets/create_poll_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
+import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../settings/data/models/chat_background_model.dart';
@@ -1114,6 +1116,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final blockedUsersAsync = ref.watch(blockedUsersProvider);
     final blockedUsers = blockedUsersAsync.valueOrNull ?? [];
 
+    // Veille des rappels de clés. Relevée ici, dans `build` : le bandeau qui
+    // s'en sert est posé depuis un `LayoutBuilder`, donc pendant la mise en
+    // page, où `ref.watch` n'a plus cours.
+    final rappelClesMuet = ref.watch(e2eeRestoreNudgeMutedProvider);
+
     final l10n = AppLocalizations.of(context)!;
 
     // La conversation est réputée absente **seulement** si le flux a livré une
@@ -1477,7 +1484,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 // Ce rappel est informatif : il revient des que le clavier se
                 // replie ou que l'ecran repasse en portrait.
                 if (placeRappelCles)
-                  _buildE2eeRestoreBanner(context, paginationState.messages),
+                  _buildE2eeRestoreBanner(
+                    context,
+                    paginationState.messages,
+                    rappelMuet: rappelClesMuet,
+                  ),
                 // Messages
                 Expanded(
                   child: _buildMessageList(
@@ -2845,11 +2856,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   /// Sous-barre sous l'en-tête : tuiles « Médias » (galerie partagée) et
   /// « ÉCO » (mode données réduites, lié à `PreferencesService.dataSaverMode`).
-  /// Placeholder pose par `message_supabase_datasource.dart` quand le
-  /// dechiffrement echoue. Duplique ici faute de constante partagee —
-  /// `message_provider.dart` fait deja le meme test.
-  static const String _kUndecryptable = '🔐 Message chiffré';
-
   /// Bandeau d'invitation a restaurer les cles (§3b).
   ///
   /// Sans lui, un fil dont les cles ont ete perdues n'affiche qu'une suite de
@@ -2857,9 +2863,23 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// chaines existaient dans l'ARB mais n'etaient branchees nulle part.
   Widget _buildE2eeRestoreBanner(
     BuildContext context,
-    List<MessageEntity> messages,
-  ) {
-    if (!messages.any((m) => m.content == _kUndecryptable)) {
+    List<MessageEntity> messages, {
+    required bool rappelMuet,
+  }) {
+    // La liste des placeholders vit dans `undecryptable_placeholders.dart`.
+    // La copie locale n'en connaissait qu'un des deux, et les groupes posent
+    // l'autre (« session requise ») : sur un fil de groupe entièrement
+    // illisible, ce bandeau ne s'affichait jamais. Vu sur SM A515F le
+    // 2026-09-08. `isUndecryptableContent` ne convient pas ici : il tient
+    // aussi le contenu vide pour illisible, ce qu'est tout média sans légende.
+    if (!messages.any((m) => kUndecryptablePlaceholders.contains(m.content))) {
+      return const SizedBox.shrink();
+    }
+
+    // Le rappel a été écarté depuis le bandeau global : ne pas le répéter ici.
+    // Sans ça, ce bandeau-ci n'avait aucune mise en veille et revenait à chaque
+    // ouverture d'un fil contenant un message indéchiffrable.
+    if (rappelMuet) {
       return const SizedBox.shrink();
     }
 

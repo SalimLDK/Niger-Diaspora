@@ -67,6 +67,62 @@ bannière de consentement), elle n'a pas été prise ici.
 
 ---
 
+## ✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)
+
+Deux bandeaux répétaient le même message et un seul savait se taire. Celui de
+`MainShell` se mettait en veille 7 jours sur « Pas maintenant » ; celui posé en
+tête de conversation (`_buildE2eeRestoreBanner`, conversation_screen.dart)
+n'avait **aucune** veille — il revenait à chaque ouverture d'un fil contenant un
+message indéchiffrable, même juste après avoir écarté l'autre.
+
+Désormais : un troisième bouton « Ne plus me le rappeler » (`dismissForever`)
+écrit `-1` à la place de l'horodatage — une veille que le temps n'éteint plus —
+et les deux bandeaux lisent le même `e2eeRestoreNudgeMutedProvider`.
+
+Couvert par `test/core/services/e2ee/e2ee_backup_coordinator_test.dart`
+(5 cas, veille / expiration à 7 jours / effacement / cloisonnement des deux
+rappels). Vérifié sur SM A515F le 2026-09-08 (compte « Sim », sans clés
+locales donc réellement en `needsRestore`, build debug md5
+`3f780aa56b964976b0ba5c488f85c520`) :
+
+- [x] **Le bandeau global à trois boutons.** « Ne plus me le rappeler » +
+      « Pas maintenant » + « Restaurer », en français, portrait, densité 420 /
+      échelle de police 1,0 : aucun débordement, `OverflowBar` empile les trois
+      actions. ⚠️ Il occupe alors ~22 % de la hauteur d'écran — voir la note
+      plus bas. Reste à voir à l'échelle de police 1,3 et en paysage.
+- [x] **Le rappel se tait pour de bon.** Tap « Ne plus me le rappeler » →
+      `e2ee_prompt_snoozed_needsRestore_<uid>` passe à `-1` immédiatement →
+      `am force-stop` + relance à froid : le bandeau ne revient pas. Confirmé
+      aussi après réinstallation de l'APK (la veille survit à `install -r`).
+- [x] **Le bandeau de conversation obéit — dans les deux sens.** Fil de groupe
+      « Diaspora Niger — Canada », entièrement illisible : veille active → pas
+      de bandeau jaune ; veille retirée → bandeau jaune présent, avec le
+      bandeau global au-dessus.
+- [ ] **Une vraie sauvegarde rend la parole.** Non vérifié : il aurait fallu
+      créer ou restaurer une vraie sauvegarde (donc manipuler une passphrase
+      réelle sur le compte). `clearSnooze` reste couvert par le test unitaire
+      seul.
+
+**Trouvé pendant le test — corrigé.** Le bandeau de conversation ne
+s'affichait **jamais** sur un fil de groupe : `conversation_screen` gardait sa
+propre copie du placeholder (« 🔐 Message chiffré ») alors que les groupes
+posent l'autre placeholder de la liste partagée, « [🔐 E2EE — session
+requise] ». Il lit désormais `kUndecryptablePlaceholders`
+(`undecryptable_placeholders.dart`). Sans ce correctif, la moitié « fil » de
+cette fiche n'aurait rien pu montrer.
+
+**À juger sur pièce** : trois actions en français ne tiennent pas sur une
+ligne, `MaterialBanner` les empile donc verticalement et le bandeau prend
+~540 px sur 2400. Rien ne déborde, mais c'est lourd. Un libellé plus court
+(« Ne plus afficher ») les remettrait probablement sur une seule ligne.
+
+⚠️ Ce qu'il faut avoir en tête en testant : taire le rappel de restauration
+laisse l'appareil sur le **repli AES** sans plus rien pour le signaler (le
+coordinateur ne génère pas de clés quand une sauvegarde distante existe). La
+sortie reste Réglages › Sécurité, qui n'a pas bougé.
+
+---
+
 ## ⬜ Site web repeint sur la palette ① Organic du guide (2026-09-08)
 
 Le « Guide de style » Claude Design assigne explicitement la palette ①
@@ -219,12 +275,45 @@ l'appareil identiques : `5dd681b4…` — le piège de l'APK périmé est écart
       2026-09-08 : `SessionService._handleForceLogout()` a ouvert sa boîte
       par-dessus le dialogue de déconnexion, et le tap de confirmation a
       atterri dessus — première mesure perdue. À vérifier avant d'appuyer.
-      Au passage, cette voie de déconnexion forcée ne fait que
-      `FirebaseAuth.signOut()` + `clearSessionId()` : **ni purge des caches,
-      ni retrait du jeton FCM**. Le compte suivant sur ce téléphone hérite
-      donc des données du précédent, et l'appareil reste inscrit pour ses
-      notifications — la famille de défauts que le correctif de latence vient
-      justement de traiter sur la voie normale. Non corrigé, hors périmètre.
+
+## ⬜ Déconnexion forcée « Connecté ailleurs » — trois trous refermés
+
+Trouvée en mesurant la latence ci-dessus. Cette voie ne faisait que
+`FirebaseAuth.signOut()` + `clearSessionId()`, d'où trois défauts :
+
+- **ni purge des caches, ni des préférences personnelles, ni des pièces
+  jointes en clair** — le compte suivant sur ce téléphone en héritait ;
+- **ni retrait du jeton FCM** — l'appareil restait inscrit aux notifications
+  du compte sorti ;
+- **`AuthState` restait sur `authenticated`** alors que Firebase était sorti :
+  le garde du routeur (« si non authentifié → /auth/login ») ne voyait rien,
+  seule la navigation explicite du bouton OK masquait l'incohérence.
+
+C'est la famille de défauts que le correctif de latence venait de traiter sur
+la voie normale — la duplication garantissait la divergence. Elle délègue
+désormais à la déconnexion complète d'`AuthNotifier`, via une fermeture posée
+par le notifier (`SessionService.onForceLogout`), avec repli sur l'ancien
+comportement si elle manque ou échoue : une sortie incomplète vaut mieux que
+pas de sortie. Le dialogue passe aussi par l10n — les clés
+`connectedElsewhere` / `connectedElsewhereMessage` existaient depuis toujours,
+inutilisées, et le texte était en dur en français.
+
+Verrouillé par `test/features/auth/deconnexion_forcee_test.dart` (câblage et
+délégation, repli compris ; vérifié rouge en retirant le branchement).
+
+- [ ] **Provoquer la déconnexion forcée** : se connecter au même compte sur un
+      second appareil, et sur le premier vérifier que le dialogue apparaît,
+      que OK mène bien à l'écran de connexion, et que le texte est traduit
+      (basculer la langue de l'appareil pour voir la version anglaise).
+- [ ] **Nettoyage après déconnexion forcée** : sur l'appareil éjecté, vérifier
+      que les boîtes Hive de `app_flutter/` sont à 0 octet, que
+      `currentUserId` a disparu de `FlutterSharedPreferences.xml`, et que le
+      jeton FCM de cet appareil ne figure plus dans `users.fcm_tokens`. Rien
+      de tout cela n'avait lieu avant.
+- [ ] **Cohérence du routeur** : après l'éjection, ne pas toucher OK et tenter
+      d'atteindre un écran protégé par lien profond — le garde doit renvoyer
+      sur `/auth/login`, ce qu'il ne faisait pas quand `AuthState` restait
+      `authenticated`.
 - [x] **Jeton FCM réellement retiré** — vérifié le 2026-09-08. Le jeton de
       l'appareil (`shared_prefs/com.google.android.gms.appid.xml`, début
       `fcAFKu1JQ_au…`) ne figure plus dans `users.fcm_tokens` après la

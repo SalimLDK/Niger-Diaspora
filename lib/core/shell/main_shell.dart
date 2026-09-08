@@ -179,6 +179,16 @@ class _MainShellState extends ConsumerState<MainShell> {
         ),
         leading: const Icon(Icons.lock_outline),
         actions: [
+          // Sortie définitive : « Pas maintenant » ne met en veille que 7 jours,
+          // et `needsRestore` reste vrai tant que la restauration n'a pas eu
+          // lieu — le bandeau revenait donc indéfiniment.
+          TextButton(
+            onPressed: () {
+              messenger.hideCurrentMaterialBanner();
+              ref.read(e2eeBackupCoordinatorProvider.notifier).dismissForever();
+            },
+            child: Text(l10n.e2eeNudgeMuteAction),
+          ),
           TextButton(
             onPressed: () {
               messenger.hideCurrentMaterialBanner();

@@ -11331,6 +11331,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get e2eeRestoreNudgeAction => 'Restore';
 
   @override
+  String get e2eeNudgeMuteAction => 'Don\'t remind me again';
+
+  @override
   String get securityRestoreKeys => 'Restore keys';
 
   @override

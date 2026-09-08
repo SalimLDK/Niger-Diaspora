@@ -4752,6 +4752,7 @@
   "e2eeBackupNudgeAction": "Back up",
   "e2eeRestoreNudgeMessage": "Restore your encryption keys to read your encrypted messages on this device.",
   "e2eeRestoreNudgeAction": "Restore",
+  "e2eeNudgeMuteAction": "Don't remind me again",
   "securityRestoreKeys": "Restore keys",
   "securityGeneratePassphrase": "Generate secure passphrase",
   "securityCreateBackup": "Create backup",
