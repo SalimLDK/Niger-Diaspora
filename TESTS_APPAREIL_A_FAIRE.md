@@ -14,7 +14,7 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
-## ⬜ Rappel des clés : « Ne plus me le rappeler » et le bandeau de conversation (2026-09-08)
+## ✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)
 
 Deux bandeaux répétaient le même message et un seul savait se taire. Celui de
 `MainShell` se mettait en veille 7 jours sur « Pas maintenant » ; celui posé en
@@ -28,24 +28,40 @@ et les deux bandeaux lisent le même `e2eeRestoreNudgeMutedProvider`.
 
 Couvert par `test/core/services/e2ee/e2ee_backup_coordinator_test.dart`
 (5 cas, veille / expiration à 7 jours / effacement / cloisonnement des deux
-rappels). Reste à voir sur appareil :
+rappels). Vérifié sur SM A515F le 2026-09-08 (compte « Sim », sans clés
+locales donc réellement en `needsRestore`, build debug md5
+`3f780aa56b964976b0ba5c488f85c520`) :
 
-- [ ] **Le bandeau global à trois boutons ne déborde pas.** « Ne plus me le
-      rappeler » + « Pas maintenant » + « Restaurer » en français, sur les
-      réglages qui ont déjà fait tomber d'autres rangées (densité 440, échelle
-      de police 1,3). `MaterialBanner` empile via `OverflowBar` — à confirmer de
-      visu, en portrait **et** en paysage.
-- [ ] **Le rappel se tait pour de bon.** Taper « Ne plus me le rappeler », puis
-      `am force-stop` + relance à froid (protocole du 2026-08-25) : le bandeau
-      ne doit pas revenir. Vérifier la clé côté prefs —
-      `run-as com.diasponiger.diasponiger cat shared_prefs/FlutterSharedPreferences.xml`
-      doit montrer `e2ee_prompt_snoozed_needsRestore_<uid>` à `-1`.
-- [ ] **Le bandeau de conversation obéit.** Ouvrir ensuite un fil contenant un
-      « 🔐 Message chiffré » : plus de bandeau jaune en tête de fil non plus.
-      C'est le vrai point neuf — l'ancien code le réaffichait quoi qu'il arrive.
-- [ ] **Une vraie sauvegarde rend la parole.** Réglages › Sécurité › Sauvegarde
-      des clés, créer (ou restaurer) une sauvegarde : `clearSnooze` doit effacer
-      la clé de veille, et un cas neuf doit pouvoir se re-proposer plus tard.
+- [x] **Le bandeau global à trois boutons.** « Ne plus me le rappeler » +
+      « Pas maintenant » + « Restaurer », en français, portrait, densité 420 /
+      échelle de police 1,0 : aucun débordement, `OverflowBar` empile les trois
+      actions. ⚠️ Il occupe alors ~22 % de la hauteur d'écran — voir la note
+      plus bas. Reste à voir à l'échelle de police 1,3 et en paysage.
+- [x] **Le rappel se tait pour de bon.** Tap « Ne plus me le rappeler » →
+      `e2ee_prompt_snoozed_needsRestore_<uid>` passe à `-1` immédiatement →
+      `am force-stop` + relance à froid : le bandeau ne revient pas. Confirmé
+      aussi après réinstallation de l'APK (la veille survit à `install -r`).
+- [x] **Le bandeau de conversation obéit — dans les deux sens.** Fil de groupe
+      « Diaspora Niger — Canada », entièrement illisible : veille active → pas
+      de bandeau jaune ; veille retirée → bandeau jaune présent, avec le
+      bandeau global au-dessus.
+- [ ] **Une vraie sauvegarde rend la parole.** Non vérifié : il aurait fallu
+      créer ou restaurer une vraie sauvegarde (donc manipuler une passphrase
+      réelle sur le compte). `clearSnooze` reste couvert par le test unitaire
+      seul.
+
+**Trouvé pendant le test — corrigé.** Le bandeau de conversation ne
+s'affichait **jamais** sur un fil de groupe : `conversation_screen` gardait sa
+propre copie du placeholder (« 🔐 Message chiffré ») alors que les groupes
+posent l'autre placeholder de la liste partagée, « [🔐 E2EE — session
+requise] ». Il lit désormais `kUndecryptablePlaceholders`
+(`undecryptable_placeholders.dart`). Sans ce correctif, la moitié « fil » de
+cette fiche n'aurait rien pu montrer.
+
+**À juger sur pièce** : trois actions en français ne tiennent pas sur une
+ligne, `MaterialBanner` les empile donc verticalement et le bandeau prend
+~540 px sur 2400. Rien ne déborde, mais c'est lourd. Un libellé plus court
+(« Ne plus afficher ») les remettrait probablement sur une seule ligne.
 
 ⚠️ Ce qu'il faut avoir en tête en testant : taire le rappel de restauration
 laisse l'appareil sur le **repli AES** sans plus rien pour le signaler (le
