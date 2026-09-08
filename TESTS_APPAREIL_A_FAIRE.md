@@ -106,19 +106,49 @@ Flutter, pas `DesignBackLeading`. Les trois fiches à image de couverture
 (entreprise, ambassade, produit) la reçoivent sans pastille — c'est déjà
 ainsi que leurs actions `partager` / `modifier` sont posées sur l'image.
 
-À vérifier sur appareil (aucun de ces 36 écrans n'a été rouvert depuis) :
+**Vu sur SM A515F le 2026-09-08 — 8 fichiers sur 36.** Méthode : l'arbre
+d'accessibilité expose la flèche comme `content-desc="Retour"`
+(`uiautomator dump`), ce qui est bien plus fiable que de lire des pixels.
+Confirmés : `/friends`, `/support`, `/businesses/mine`, `/admin/support`,
+`/messages/new`, `/profile/reposts`, `/settings/security/backup`,
+`/embassies/employees`.
 
-- [ ] Un échantillon par famille, en entrée normale **et** par lien profond :
-      `/transfers/send`, `/marketplace/cart`, `/support`, `/friends`,
-      `/payment-history`.
-- [ ] Les trois fiches à image de couverture : la flèche est-elle **lisible**
-      sur la photo ? `/businesses/:id`, `/embassies/:id`,
-      `/marketplace/:productId`. C'est le seul endroit où le contraste n'est
-      pas garanti par le thème.
-- [ ] Les écrans à plusieurs `AppBar` : vérifier l'état **vide** et l'état
-      **chargement**, pas seulement l'état nominal — `/marketplace/cart`
-      (panier vide), `/marketplace/my-listings`, `/payment-history`,
-      `/payment-accounts`, `/marketplace/my-orders`.
+**Non vérifiables sur cet appareil — 18 fichiers sur 36.** Les familles
+`/transfers`, `/marketplace`, `/payment-accounts`, `/payment-history`,
+`/podcasts` et `/audio-rooms` sont derrière un feature-flag : le routeur les
+renvoie sur `/home` (étape 9 du `redirect`). Aucun de leurs écrans n'est
+atteignable tant que les drapeaux sont à false.
+
+Reste à voir, par ordre d'intérêt :
+
+- [ ] **La flèche est-elle lisible sur une image de couverture ?** C'est le
+      seul endroit où le contraste n'est pas garanti par le thème :
+      `/businesses/:id` et `/marketplace/:productId` posent une vraie photo
+      (`CachedNetworkImage`). Non testable ici — l'annuaire est vide sur ce
+      compte et la boutique est derrière un drapeau. `/embassies/:id` ne
+      compte pas : son en-tête est un aplat teinté, pas une photo.
+- [ ] **Les états vide et chargement** des écrans à plusieurs `AppBar` :
+      `/marketplace/cart` panier vide, `/marketplace/my-listings`,
+      `/payment-history`, `/payment-accounts`, `/marketplace/my-orders`.
+      Tous derrière un drapeau aujourd'hui.
+- [ ] Les ~10 écrans restants atteignables mais non atteints (voir le piège
+      d'`am start` ci-dessous).
+
+**Deux pièges de méthode rencontrés, à retenir :**
+
+1. **L'autre agent installe son APK sur le même téléphone.** À 01:13:54 le
+   `base.apk` a changé en plein test : mes mesures des dix minutes suivantes
+   ne portaient pas sur mon build, et j'ai failli conclure qu'un écran
+   corrigé n'avait pas de flèche. Encadrer **chaque** mesure d'un contrôle
+   `md5sum` local ↔ appareil, avant *et* après — pas seulement à
+   l'installation.
+2. **Le lien profond à froid retombe sur `/home` de façon intermittente.**
+   Course entre le `redirect` de démarrage (auth, consentement, config) et le
+   rejeu du lien mis de côté. Un `uiautomator dump` qui montre `Bonjour,`
+   (accueil) ou `Diaspo Niger` (splash) est une mesure **ratée**, pas un
+   écran sans flèche : toujours identifier l'écran atteint avant de conclure.
+   Plus fiable : lancer l'app, attendre qu'elle soit posée, puis envoyer les
+   intents à chaud.
 
 - [ ] Rendu en **thème clair** : les quatre écrans n'ont été vus qu'en sombre.
 - [ ] Zone tactile de `DesignBackLeading` : 28x34 dp, sous les 48 dp
@@ -232,10 +262,39 @@ suit n'a été vu sur un téléphone.
       provider de profil et la lecture qui n'en tolère pas l'erreur, pas un
       chemin de code fixe.
 
-- [ ] Reproduire l'écran rouge **avec l'instrumentation active** pour obtenir
-      la ligne exacte. C'est maintenant possible : la pile s'imprime. Il faut
-      surtout gagner la course — relancer plusieurs fois hors ligne, l'app
-      restant par ailleurs souvent bloquée au splash dans ces conditions.
+**Quatre campagnes de reproduction, ~34 lancements à froid hors ligne, avec
+l'instrumentation active : la course ne s'est JAMAIS reproduite.**
+
+Une seule campagne est méthodologiquement valable, et c'est important de le
+dire : les trois autres n'ont rien prouvé.
+
+| # | Méthode | Verdict |
+|---|---|---|
+| 1 | Taps à l'aveugle (8 essais) | ❌ **invalide** — GoRouter ne montre aucun `/embassies/`, les taps n'ont jamais atteint l'écran |
+| 2 | Lien profond direct vers la fiche, 10 essais | ✅ **valable** — route poussée vérifiée à chaque tour, **0 exception** |
+| 3 | Lien profond vers la liste + tap « Détails » (10) | ❌ le tap n'ouvre jamais la fiche (`pushing /embassies/` = 0) |
+| 4 | Idem, attentes portées à 75 s (6) | ❌ même échec, ce n'était donc pas un problème de timing |
+
+**Ce qui est acquis** : sur la fiche atteinte directement, 10 démarrages à
+froid hors ligne d'affilée, aucune exception. **Ce qui ne l'est pas** : les
+deux occurrences réelles venaient du parcours par la liste, et je n'ai pas
+réussi à automatiser ce parcours-là de façon vérifiable.
+
+- [ ] Reprendre la reproduction **par le parcours réel**, à la main plutôt
+      qu'en script : liste → fiche → « Demande », hors ligne, à froid,
+      plusieurs fois. La pile s'imprime maintenant, donc une seule occurrence
+      suffira à trancher.
+      ⚠️ Obstacle non résolu : `input tap` sur « Détails » n'ouvre pas la
+      fiche quand la liste vient d'un lien profond (`diasponiger://embassies`).
+      Ni les coordonnées ni l'attente (jusqu'à 75 s) n'y changent rien —
+      la cause reste à trouver, et c'est ce qui a bloqué l'automatisation.
+
+**Recommandation, indépendamment de la traque.** Vu la rareté du défaut, le
+gain n'est pas dans la ligne exacte mais dans le fait qu'**une exception ne
+devrait jamais s'afficher telle quelle**. Poser un `ErrorWidget.builder`
+global qui rende un message neutre en release réglerait le symptôme — hôte
+Supabase et identifiant de compte compris — quelle que soit la ligne
+fautive.
 - [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
       compte** dans un message d'erreur visible par l'usager.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
@@ -9820,6 +9879,49 @@ contre **30 sur le SM A515F** (Genève et New York masqués faute de pays connu)
   un reliquat. Vérifier avec `pm list packages --user 0`, pas avec `pm path`.
 - Le compte y étant réel (pas un compte de test), toute action sortante doit
   être faite hors ligne ou pas du tout.
+
+---
+
+## Postes diplomatiques sur la carte : 21 pins posés, 11 fiches sans position (2026-09-08)
+
+Les 32 fiches importées le 2026-09-07 sont arrivées **sans latitude ni
+longitude** : `diplomatie.gouv.ne` ne publie que des adresses postales, dont
+huit sont de simples boîtes postales. Depuis l'import, aucun poste n'a jamais
+eu de pin — `map_screen.dart` saute toute fiche sans coordonnées, et le bouton
+« voir sur la carte » du détail est masqué par `hasCoordinates`.
+
+Migration `20260908120000_coordonnees_postes_diplomatiques.sql` : 19 positions
+relevées dans OpenStreetMap (au bâtiment), 2 par géocodage de l'adresse
+officielle (Paris/UNESCO et Kano). Le script est rejouable :
+`tools/geocode_postes_diplomatiques.mjs`.
+
+- [ ] **Les pins bleus d'ambassade apparaissent** sur la carte principale, à
+      côté des membres — vérifier au moins un poste (Paris, Cotonou, Abuja
+      selon la position du testeur), et que la bascule « Ambassades » du menu
+      de filtres les fait bien disparaître/réapparaître.
+- [ ] **Le tap sur un pin** ouvre la fiche flottante (nom, adresse, tél, mail,
+      services) et « Voir la fiche complète » mène au détail.
+- [ ] **Le bouton « voir sur la carte » du détail** est désormais visible sur
+      les 21 postes placés — et toujours masqué sur les 11 autres.
+- [ ] **Écart à confirmer auprès du poste** : Copenhague (OSM place
+      l'ambassade Rosbaeksvej/Østerbro, l'annuaire publie « Niels Juels Gade
+      5 » — 5,1 km) et Dakar (OSM « Voie de Dégagement Nord, Point E » contre
+      « 8 avenue Léopold Sédar Senghor » — 5,2 km). Position OSM retenue : le
+      nœud porte le nom du poste. À trancher par un appel ou une photo.
+- [ ] **11 postes restent sans pin** (Addis-Abeba, Le Caire, Rabat, La Havane,
+      Doha, Koweït, New Delhi, Djeddah, Dubaï, Khartoum, Pékin) : vérifier
+      qu'ils restent bien **visibles dans la liste** avec leur adresse, et
+      qu'ils ne se retrouvent pas au point (0, 0) dans le golfe de Guinée.
+      Addis-Abeba est volontairement laissé de côté : OSM n'y cartographie que
+      la **résidence** de l'ambassadeur, pas la chancellerie.
+
+⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
+sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
+et `Places API (New)` répondent toutes `REQUEST_DENIED` /
+`SERVICE_DISABLED` — donc `PlaceSearchService` (barre de recherche de la carte,
+sélecteur de position des entreprises et du partage de lieu) tombe **toujours**
+sur son repli `geocoding` côté appareil, sans que rien ne le signale. À vérifier
+sur appareil : la recherche de lieu renvoie-t-elle des résultats utilisables ?
 
 ---
 
