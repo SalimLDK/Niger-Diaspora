@@ -232,10 +232,39 @@ suit n'a été vu sur un téléphone.
       provider de profil et la lecture qui n'en tolère pas l'erreur, pas un
       chemin de code fixe.
 
-- [ ] Reproduire l'écran rouge **avec l'instrumentation active** pour obtenir
-      la ligne exacte. C'est maintenant possible : la pile s'imprime. Il faut
-      surtout gagner la course — relancer plusieurs fois hors ligne, l'app
-      restant par ailleurs souvent bloquée au splash dans ces conditions.
+**Quatre campagnes de reproduction, ~34 lancements à froid hors ligne, avec
+l'instrumentation active : la course ne s'est JAMAIS reproduite.**
+
+Une seule campagne est méthodologiquement valable, et c'est important de le
+dire : les trois autres n'ont rien prouvé.
+
+| # | Méthode | Verdict |
+|---|---|---|
+| 1 | Taps à l'aveugle (8 essais) | ❌ **invalide** — GoRouter ne montre aucun `/embassies/`, les taps n'ont jamais atteint l'écran |
+| 2 | Lien profond direct vers la fiche, 10 essais | ✅ **valable** — route poussée vérifiée à chaque tour, **0 exception** |
+| 3 | Lien profond vers la liste + tap « Détails » (10) | ❌ le tap n'ouvre jamais la fiche (`pushing /embassies/` = 0) |
+| 4 | Idem, attentes portées à 75 s (6) | ❌ même échec, ce n'était donc pas un problème de timing |
+
+**Ce qui est acquis** : sur la fiche atteinte directement, 10 démarrages à
+froid hors ligne d'affilée, aucune exception. **Ce qui ne l'est pas** : les
+deux occurrences réelles venaient du parcours par la liste, et je n'ai pas
+réussi à automatiser ce parcours-là de façon vérifiable.
+
+- [ ] Reprendre la reproduction **par le parcours réel**, à la main plutôt
+      qu'en script : liste → fiche → « Demande », hors ligne, à froid,
+      plusieurs fois. La pile s'imprime maintenant, donc une seule occurrence
+      suffira à trancher.
+      ⚠️ Obstacle non résolu : `input tap` sur « Détails » n'ouvre pas la
+      fiche quand la liste vient d'un lien profond (`diasponiger://embassies`).
+      Ni les coordonnées ni l'attente (jusqu'à 75 s) n'y changent rien —
+      la cause reste à trouver, et c'est ce qui a bloqué l'automatisation.
+
+**Recommandation, indépendamment de la traque.** Vu la rareté du défaut, le
+gain n'est pas dans la ligne exacte mais dans le fait qu'**une exception ne
+devrait jamais s'afficher telle quelle**. Poser un `ErrorWidget.builder`
+global qui rende un message neutre en release réglerait le symptôme — hôte
+Supabase et identifiant de compte compris — quelle que soit la ligne
+fautive.
 - [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
       compte** dans un message d'erreur visible par l'usager.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
