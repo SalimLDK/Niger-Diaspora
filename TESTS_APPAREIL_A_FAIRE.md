@@ -98,13 +98,23 @@ Ce que ce passage change au comportement Android — à regarder sur appareil,
       retour, notamment les routes de lien profond (cf. la règle
       « couvrir les TROIS sorties »).
 - [ ] **Alignement 16 Ko des bibliothèques natives.** Indépendant du
-      targetSdk mais contrôlé au même endroit par Play : toute `.so` embarquée
-      (flutter_webrtc, Maps, Firebase…) doit être alignée sur 16 Ko. NDK 27
-      le fait par défaut pour ce qui est compilé ici, mais pas pour les `.so`
-      préconstruites d'un plugin. Se voit à l'upload de l'AAB, ou en amont
-      sur le bundle produit.
+      targetSdk mais contrôlé au même endroit par Play. Mesuré sur l'AAB du
+      jour : 6 des 8 `.so` arm64 sont conformes (dont `libflutter.so`,
+      `libapp.so`, `libjingle_peerconnection_so.so`), **2 ne le sont pas**
+      (`p_align` = 4096) — `libbarhopper_v3.so`
+      (`com.google.mlkit:barcode-scanning:17.2.0`, tiré par `mobile_scanner`)
+      et `libnoise.so` (`com.github.paramsen:noise:2.0.0`, transitive de
+      `livekit_client`). NDK 27 aligne ce qui est compilé ici, pas les `.so`
+      préconstruites d'un plugin. Traité dans une session dédiée ; à
+      revérifier ensuite sur le scanner QR et un appel LiveKit, les deux
+      dépendances touchées.
 
-**Version portée à `1.2.1+11`** (la 1.2.0+10 est celle en production).
+**Version portée à `1.2.1+11`.** ⚠️ Correction : j'avais écrit ici que la
+1.2.0+10 était « en production ». C'est faux — la fiche publique renvoie 404
+dans les cinq pays testés. Le bundle 1.2.0+10 a seulement été **téléversé**
+(piste de test ou brouillon), ce qui suffit à déclencher l'avertissement de
+la console. Le versionCode 10 est donc pris, mais aucune fiche publique
+n'existe encore à mettre à jour.
 
 ---
 ## ⚠️→✅ La garde d'organisateur refusait l'organisateur (2026-09-08)
