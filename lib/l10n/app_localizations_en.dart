@@ -15834,6 +15834,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not show this event. It may have been deleted, or your connection is unstable.';
 
   @override
+  String get eventRecapNotAllowedTitle =>
+      'Only the organiser can write the recap';
+
+  @override
+  String get eventRecapNotAllowedMessage =>
+      'Only the person who created this event can publish its recap. The photos stay visible on the event page.';
+
+  @override
   String get eventEditNotAllowedTitle => 'Only the organiser can edit';
 
   @override

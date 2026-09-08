@@ -10,6 +10,7 @@ import 'package:diaspo_niger/features/auth/presentation/providers/auth_provider.
 import 'package:diaspo_niger/features/events/domain/entities/event_entity.dart';
 import 'package:diaspo_niger/features/events/presentation/providers/event_by_id_provider.dart';
 import 'package:diaspo_niger/features/events/presentation/screens/edit_event_screen.dart';
+import 'package:diaspo_niger/features/events/presentation/screens/event_recap_screen.dart';
 import 'package:diaspo_niger/features/events/presentation/screens/event_edit_routes.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
@@ -42,9 +43,10 @@ void main() {
     required UserEntity? moi,
     required EventEntity? resolu,
     EventEntity? extra,
+    bool recap = false,
   }) {
     final router = GoRouter(
-      initialLocation: '/events/${event.id}/edit',
+      initialLocation: '/events/${event.id}/${recap ? 'recap' : 'edit'}',
       routes: [
         GoRoute(
           path: '/events',
@@ -58,6 +60,14 @@ void main() {
           path: '/events/:eventId/edit',
           builder:
               (context, state) => EventEditRoute(
+                eventId: state.pathParameters['eventId']!,
+                initialEvent: extra,
+              ),
+        ),
+        GoRoute(
+          path: '/events/:eventId/recap',
+          builder:
+              (context, state) => EventRecapRoute(
                 eventId: state.pathParameters['eventId']!,
                 initialEvent: extra,
               ),
@@ -147,5 +157,58 @@ void main() {
     await tester.tap(sortie);
     await tester.pumpAndSettle();
     expect(find.text('liste'), findsOneWidget);
+  });
+
+  testWidgets("Récap : l'organisateur atteint le formulaire", (tester) async {
+    await tester.pumpWidget(
+      boot(moi: organisateur, resolu: event, recap: true),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(EventRecapScreen), findsOneWidget);
+  });
+
+  testWidgets("Récap : quelqu'un d'autre ne peut pas écrire", (
+    tester,
+  ) async {
+    // Ce n'était pas gardé du tout : l'accueil ouvrait ce formulaire à qui
+    // voulait dès qu'un événement passé avait des photos, donc n'importe qui
+    // pouvait réécrire le récapitulatif de l'événement d'autrui.
+    await tester.pumpWidget(
+      boot(moi: quelquunDautre, resolu: event, recap: true),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(EventRecapScreen), findsNothing);
+    expect(find.text("Récap réservé à l'organisateur"), findsOneWidget);
+  });
+
+  testWidgets('Récap : la sortie mène à la fiche, où les photos sont visibles', (
+    tester,
+  ) async {
+    // Le refus ne doit pas couper l'accès à ce qui était consultable :
+    // `EventDetailScreen` affiche description et grille de photos du récap.
+    await tester.pumpWidget(
+      boot(moi: quelquunDautre, resolu: event, recap: true),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text("Voir l'événement"));
+    await tester.pumpAndSettle();
+    expect(find.text('fiche'), findsOneWidget);
+  });
+
+  testWidgets("Récap : la garde vaut aussi pour l'entité passée par extra", (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      boot(moi: quelquunDautre, resolu: null, extra: event, recap: true),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EventRecapScreen), findsNothing);
+    expect(find.text("Récap réservé à l'organisateur"), findsOneWidget);
   });
 }

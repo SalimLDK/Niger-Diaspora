@@ -58,13 +58,34 @@ groupes officiels compris, et couverte par 11 tests widget.
 Aucun test ne montait cet écran ; il est apparu à la première tentative.
 À rejouer sur appareil sur un vrai événement.
 
-⚠️ **Non corrigé, à trancher** : `EventRecapScreen` est un **formulaire**
-(description + photos) sans aucune garde d'organisateur, et l'accueil l'ouvre
-pour tout le monde dès qu'un événement passé a des photos
-(`home_screen_widgets.dart`). Je n'ai pas ajouté de garde : ça changerait un
-comportement existant, au-delà du défaut traité. Mais soit c'est voulu (un
-récapitulatif collaboratif), soit n'importe qui peut réécrire le récap de
-l'événement d'autrui.
+✅ **Tranché le 2026-09-08 : le récap est réservé à l'organisateur.**
+`EventRecapScreen` est un **formulaire** (« Créer / Modifier le récap »,
+description, dix photos, bouton d'enregistrement) sans mode lecture, et
+l'accueil l'ouvrait pour tout le monde dès qu'un événement passé avait des
+photos — n'importe qui pouvait donc réécrire le récapitulatif de l'événement
+d'autrui. `EventRecapRoute` porte désormais la même garde que l'édition.
+
+Deux précautions pour que la garde ne retire rien à personne :
+- la sortie mène à `/events/:eventId`, **pas** à la liste : la fiche affiche
+  déjà le récapitulatif (description + grille de photos), donc un
+  non-organisateur voit toujours ce qu'il voyait ;
+- la carte « rien de prévu » de l'accueil (`home_screen_widgets.dart`)
+  n'envoie plus au formulaire que l'organisateur ; les autres vont à la fiche.
+  Sans ça, la pastille « Photos » aurait mené tout le monde contre un mur.
+
+- [ ] Vérifier sur appareil qu'un non-organisateur voit bien « Récap réservé
+      à l'organisateur », et que « Voir l'événement » l'amène aux photos.
+      **Impossible cette session : la base ne contient aucun événement**
+      (« Aucun événement à venir », onglet Passés vide). Couvert par 4 tests
+      widget, vérifiés par mutation.
+- [ ] Vérifier que l'organisateur, lui, atteint toujours le formulaire.
+
+⚠️ **Trouvé en vérifiant ça, non corrigé** : la carte de l'accueil est le
+**seul** chemin vers le récapitulatif, et elle ne s'y rend que si
+`recapPhotoUrls.isNotEmpty`. Un organisateur dont l'événement passé n'a pas
+encore de photos n'a donc **aucun moyen d'en créer un** — l'écran porte
+pourtant un mode « Créer » (`eventCreateRecap`, `eventRecapCreateButton`).
+Il manque une entrée depuis la fiche de l'événement. Antérieur à la garde.
 
 ⚠️ **Piège de méthode, revu deux fois aujourd'hui** : après avoir supprimé des
 clés ARB, l'APK incrémental gardait l'ancien code compilé — la route affichait

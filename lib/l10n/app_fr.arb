@@ -8118,6 +8118,8 @@
   "backToGroups": "Retour aux groupes",
   "eventLoadFailedTitle": "Chargement impossible",
   "eventLoadFailedMessage": "Impossible d'afficher cet événement. Il a peut-être été supprimé, ou votre connexion est instable.",
+  "eventRecapNotAllowedTitle": "Récap réservé à l'organisateur",
+  "eventRecapNotAllowedMessage": "Seule la personne qui a créé cet événement peut publier son récapitulatif. Les photos, elles, restent visibles sur la fiche de l'événement.",
   "eventEditNotAllowedTitle": "Modification réservée à l'organisateur",
   "eventEditNotAllowedMessage": "Seule la personne qui a créé cet événement peut le modifier.",
   "backToEvent": "Voir l'événement",

@@ -6973,6 +6973,8 @@
   "backToGroups": "Back to groups",
   "eventLoadFailedTitle": "Could not load",
   "eventLoadFailedMessage": "Could not show this event. It may have been deleted, or your connection is unstable.",
+  "eventRecapNotAllowedTitle": "Only the organiser can write the recap",
+  "eventRecapNotAllowedMessage": "Only the person who created this event can publish its recap. The photos stay visible on the event page.",
   "eventEditNotAllowedTitle": "Only the organiser can edit",
   "eventEditNotAllowedMessage": "Only the person who created this event can change it.",
   "backToEvent": "View the event",

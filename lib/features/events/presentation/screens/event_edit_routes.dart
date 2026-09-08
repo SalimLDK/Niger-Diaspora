@@ -23,15 +23,38 @@ import 'event_recap_screen.dart';
 /// L'identifiant est dans `pathParameters` depuis toujours ; il suffisait de
 /// s'en servir.
 
+/// Refus opposé à qui n'est pas l'organisateur.
+///
+/// La sortie mène à la fiche de l'événement, pas à la liste : c'est là que le
+/// récapitulatif est **consultable** (description et grille de photos, cf.
+/// `event_detail_screen.dart`). Un non-organisateur n'y perd donc rien de ce
+/// qu'il pouvait voir ; il perd seulement le droit d'écrire.
+Widget _reserveALOrganisateur(
+  BuildContext context,
+  AppLocalizations l10n,
+  String eventId,
+  String titre,
+  String message,
+) {
+  return Scaffold(
+    body: DesignUnavailableBody(
+      icon: AppIcon(AppIcon.lock, size: 32, color: context.textSecondaryColor),
+      title: titre,
+      message: message,
+      exitLabel: l10n.backToEvent,
+      fallbackRoute: '/events/$eventId',
+    ),
+  );
+}
+
 /// `/events/:eventId/edit`.
 ///
 /// ⚠️ Cette route porte **la seule** vérification d'autorisation du parcours :
 /// `EditEventScreen` n'en fait aucune, elle faisait confiance à son appelant.
 /// Le bouton « modifier » de la fiche est masqué derrière `isOrganizer`
 /// (event_detail_screen.dart), mais un lien profond court-circuite la fiche.
-/// Sans la garde ci-dessous, résoudre l'identifiant ouvrirait le formulaire
-/// d'édition de l'événement de n'importe qui — le plantage, lui, fermait au
-/// moins la porte.
+/// Sans la garde, résoudre l'identifiant ouvrirait le formulaire d'édition de
+/// l'événement de n'importe qui — le plantage, lui, fermait au moins la porte.
 class EventEditRoute extends ConsumerWidget {
   final String eventId;
   final EventEntity? initialEvent;
@@ -46,41 +69,38 @@ class EventEditRoute extends ConsumerWidget {
     // interne mal gardé la contournerait.
     final me = ref.watch(currentUserProvider).valueOrNull?.id;
 
-    Widget guard(EventEntity event) {
-      if (me == null || event.organizerId != me) {
-        return Scaffold(
-          body: DesignUnavailableBody(
-            icon: AppIcon(
-              AppIcon.lock,
-              size: 32,
-              color: context.textSecondaryColor,
-            ),
-            title: l10n.eventEditNotAllowedTitle,
-            message: l10n.eventEditNotAllowedMessage,
-            exitLabel: l10n.backToEvent,
-            fallbackRoute: '/events/$eventId',
-          ),
-        );
-      }
-      return EditEventScreen(event: event);
-    }
-
     return _EventResolver(
       eventId: eventId,
       initialEvent: initialEvent,
-      builder: guard,
+      builder:
+          (event) =>
+              (me == null || event.organizerId != me)
+                  ? _reserveALOrganisateur(
+                    context,
+                    l10n,
+                    eventId,
+                    l10n.eventEditNotAllowedTitle,
+                    l10n.eventEditNotAllowedMessage,
+                  )
+                  : EditEventScreen(event: event),
     );
   }
 }
 
 /// `/events/:eventId/recap`.
 ///
-/// Pas de garde d'organisateur ajoutée ici, volontairement : l'accueil ouvre
-/// déjà ce récapitulatif pour tout le monde dès qu'un événement passé a des
-/// photos (home_screen_widgets.dart). En poser une changerait un comportement
-/// existant, au-delà du défaut traité. Que l'écran soit un formulaire ouvert
-/// à tous est une question distincte, consignée dans
-/// TESTS_APPAREIL_A_FAIRE.md.
+/// Même garde que l'édition, et pour la même raison : `EventRecapScreen` est
+/// un **formulaire** — titre « Créer / Modifier le récap », description,
+/// jusqu'à dix photos, bouton d'enregistrement — sans aucune vérification à
+/// lui. Il n'a pas de mode lecture : la consultation du récapitulatif se fait
+/// sur la fiche de l'événement.
+///
+/// Cette garde **change un comportement existant**, et c'est assumé : la carte
+/// « rien de prévu » de l'accueil ouvrait ce formulaire à tout le monde dès
+/// qu'un événement passé avait des photos, si bien que n'importe qui pouvait
+/// réécrire le récapitulatif de l'événement d'autrui. La carte, corrigée au
+/// même endroit (`home_screen_widgets.dart`), n'y envoie plus que
+/// l'organisateur ; les autres vont à la fiche, où les photos sont visibles.
 class EventRecapRoute extends ConsumerWidget {
   final String eventId;
   final EventEntity? initialEvent;
@@ -89,10 +109,23 @@ class EventRecapRoute extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final me = ref.watch(currentUserProvider).valueOrNull?.id;
+
     return _EventResolver(
       eventId: eventId,
       initialEvent: initialEvent,
-      builder: (event) => EventRecapScreen(event: event),
+      builder:
+          (event) =>
+              (me == null || event.organizerId != me)
+                  ? _reserveALOrganisateur(
+                    context,
+                    l10n,
+                    eventId,
+                    l10n.eventRecapNotAllowedTitle,
+                    l10n.eventRecapNotAllowedMessage,
+                  )
+                  : EventRecapScreen(event: event),
     );
   }
 }
