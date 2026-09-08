@@ -2,7 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/network_info.dart';
 import '../../data/datasources/embassies_local_datasource.dart';
-import '../../data/datasources/embassy_remote_datasource.dart';
+import '../../data/datasources/embassies_supabase_datasource.dart';
 import '../../data/repositories/embassies_repository_impl.dart';
 import '../../domain/entities/embassy_entity.dart';
 import '../../domain/repositories/embassies_repository.dart';
@@ -17,19 +17,33 @@ EmbassiesLocalDataSource embassiesLocalDataSource(Ref ref) {
   return EmbassiesLocalDataSource();
 }
 
+// Source distante : l'annuaire vient de Supabase depuis la migration
+// `20260907180000_annuaire_postes_diplomatiques`. La collection Firestore
+// `embassies` qu'on lisait avant n'a jamais contenu la moindre fiche.
+@riverpod
+EmbassiesDataSource embassiesDataSource(Ref ref) {
+  return EmbassiesSupabaseDataSource();
+}
+
 // Repository Provider
 @riverpod
 EmbassiesRepository embassiesRepository(Ref ref) {
-  final remoteDataSource = EmbassyRemoteDataSourceImpl();
+  final remoteDataSource = ref.watch(embassiesDataSourceProvider);
   final localDataSource = ref.watch(embassiesLocalDataSourceProvider);
   final networkInfo = ref.watch(networkInfoProvider);
 
-  // EmbassyRepositoryImpl should implement EmbassiesRepository
   return EmbassiesRepositoryImpl(
     remoteDataSource: remoteDataSource,
     localDataSource: localDataSource,
     networkInfo: networkInfo,
   );
+}
+
+/// Date de la copie locale servie hors ligne, pour que l'écran puisse dire
+/// « données du 3 septembre » plutôt que de les présenter comme courantes.
+@riverpod
+Future<DateTime?> embassiesCachedAt(Ref ref) {
+  return ref.watch(embassiesRepositoryProvider).cachedAt();
 }
 
 // Imports moved to top

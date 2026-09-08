@@ -29179,6 +29179,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Motif'**
   String get reportReasonPrefix;
+
+  /// No description provided for @embassyFax.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fax'**
+  String get embassyFax;
+
+  /// No description provided for @embassyOtherPhones.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autres lignes'**
+  String get embassyOtherPhones;
+
+  /// No description provided for @embassyDataNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réserve sur cette fiche'**
+  String get embassyDataNote;
+
+  /// No description provided for @embassySourceLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Source : {source}, relevé le {date}'**
+  String embassySourceLine(Object date, Object source);
 }
 
 class _AppLocalizationsDelegate

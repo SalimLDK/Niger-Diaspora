@@ -6962,5 +6962,9 @@
   "transferMobileOperatorRequired": "Mobile operator *",
   "messageEcoBadge": "ECO",
   "reportStatusUnderReview": "Under review",
-  "reportReasonPrefix": "Reason"
+  "reportReasonPrefix": "Reason",
+  "embassyFax": "Fax",
+  "embassyOtherPhones": "Other lines",
+  "embassyDataNote": "Note on this record",
+  "embassySourceLine": "Source: {source}, checked on {date}"
 }

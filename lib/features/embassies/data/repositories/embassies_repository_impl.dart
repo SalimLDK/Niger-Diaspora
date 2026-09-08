@@ -1,12 +1,19 @@
 import '../../domain/entities/embassy_entity.dart';
 import '../../domain/repositories/embassies_repository.dart';
 import '../datasources/embassies_local_datasource.dart';
-import '../datasources/embassy_remote_datasource.dart';
+import '../datasources/embassies_supabase_datasource.dart';
+import '../models/embassy_model.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/errors/exceptions.dart';
 
+/// L'annuaire : Supabase quand le réseau répond, copie locale sinon.
+///
+/// La copie locale est réécrite à **chaque** lecture distante réussie, et
+/// relue sans condition d'âge : quelqu'un qui cherche le numéro de son
+/// consulat est souvent précisément celui qui n'a pas de réseau. Une fiche de
+/// la semaine dernière vaut mieux qu'un écran vide.
 class EmbassiesRepositoryImpl implements EmbassiesRepository {
-  final EmbassyRemoteDataSource remoteDataSource;
+  final EmbassiesDataSource remoteDataSource;
   final EmbassiesLocalDataSource localDataSource;
   final NetworkInfo networkInfo;
 
@@ -24,38 +31,55 @@ class EmbassiesRepositoryImpl implements EmbassiesRepository {
         await localDataSource.cacheEmbassies(remoteEmbassies);
         return remoteEmbassies.map((e) => e.toEntity()).toList();
       } on ServerException {
-        // If remote fails, try cache
-        try {
-          final localEmbassies = await localDataSource.getLastEmbassies();
-          return localEmbassies.map((e) => e.toEntity()).toList();
-        } on CacheException {
-          return [];
-        }
+        return _fromCache();
       }
-    } else {
-      try {
-        final localEmbassies = await localDataSource.getLastEmbassies();
-        return localEmbassies.map((e) => e.toEntity()).toList();
-      } on CacheException {
-        return [];
-      }
+    }
+    return _fromCache();
+  }
+
+  Future<List<EmbassyEntity>> _fromCache() async {
+    try {
+      final localEmbassies = await localDataSource.getLastEmbassies();
+      return localEmbassies.map((e) => e.toEntity()).toList();
+    } on CacheException {
+      return [];
     }
   }
 
   @override
+  Future<DateTime?> cachedAt() => localDataSource.cachedAt();
+
+  @override
   Future<EmbassyEntity?> getEmbassyById(String id) async {
+    // La fiche vient de la liste déjà chargée : c'est la seule voie qui marche
+    // hors ligne, et l'annuaire tient en une trentaine de lignes.
     final embassies = await getEmbassies();
-    try {
-      return embassies.firstWhere((e) => e.id == id);
-    } catch (_) {
-      return null;
+    for (final embassy in embassies) {
+      if (embassy.id == id) return embassy;
     }
+
+    // Absente du cache : tenter le distant, au cas où la fiche serait plus
+    // récente que la dernière copie locale.
+    if (await networkInfo.isConnected) {
+      try {
+        final model = await remoteDataSource.getEmbassyById(id);
+        return model?.toEntity();
+      } on ServerException {
+        return null;
+      }
+    }
+    return null;
   }
 
   @override
   Future<List<EmbassyEntity>> searchEmbassies(String query) async {
+    // Filtrage local plutôt qu'un aller-retour réseau : la liste est courte,
+    // le résultat est instantané, et la recherche continue de fonctionner
+    // hors ligne.
     final embassies = await getEmbassies();
-    final lowerQuery = query.toLowerCase();
+    final lowerQuery = query.toLowerCase().trim();
+    if (lowerQuery.isEmpty) return embassies;
+
     return embassies.where((e) {
       return e.name.toLowerCase().contains(lowerQuery) ||
           e.country.toLowerCase().contains(lowerQuery) ||
@@ -70,18 +94,23 @@ class EmbassiesRepositoryImpl implements EmbassiesRepository {
     bool? isSuspended,
     String? rejectionReason,
   }) async {
-    // This would call remote data source in production
-    // For now, just update local cache
-    try {
-      await remoteDataSource.updateEmbassyStatus(
-        id,
-        isVerified: isVerified,
-        isSuspended: isSuspended,
-        rejectionReason: rejectionReason,
-      );
-    } catch (_) {
-      // If remote fails, we can't update
-      rethrow;
-    }
+    await remoteDataSource.updateEmbassyStatus(
+      id,
+      isVerified: isVerified,
+      isSuspended: isSuspended,
+      rejectionReason: rejectionReason,
+    );
+    // Le cache porte encore l'ancien statut : le vider force la prochaine
+    // lecture à repasser par Supabase.
+    await localDataSource.clear();
+  }
+
+  @override
+  Future<String> createEmbassy(EmbassyEntity embassy) async {
+    final id = await remoteDataSource.createEmbassy(
+      EmbassyModel.fromEntity(embassy),
+    );
+    await localDataSource.clear();
+    return id;
   }
 }
