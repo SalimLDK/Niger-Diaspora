@@ -48,8 +48,12 @@ import 'package:timezone/data/latest_all.dart' as tz;
 /// que sur le thème, et le `FittedBox` qui évite un débordement quand le
 /// widget ne remplace qu'une petite zone.
 Widget construireEcranErreurNeutre(FlutterErrorDetails details) {
+  // Lu sur le binding, pas sur `PlatformDispatcher.instance` : c'est le seul
+  // des deux qu'un test puisse forcer (`platformBrightnessTestValue`). En
+  // production les deux rendent la même chose.
   final sombre =
-      PlatformDispatcher.instance.platformBrightness == Brightness.dark;
+      WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+          Brightness.dark;
   final fond = sombre ? const Color(0xFF121212) : const Color(0xFFF7F7F7);
   final texte = sombre ? const Color(0xFFF5F5F5) : const Color(0xFF1A1A1A);
   final secondaire =

@@ -978,6 +978,48 @@ class DesignBackLeading extends StatelessWidget {
   }
 }
 
+/// Corps d'un état **sans contenu** (chargement, erreur, « non trouvé ») sur
+/// un écran dont la barre vit dans la branche « données ».
+///
+/// Ces écrans-là — fiche entreprise, fiche produit — posent leur
+/// `SliverAppBar` à l'intérieur du contenu : leur `Scaffold` n'a pas
+/// d'`appBar`, donc les autres états n'ont **aucune** sortie. Vu sur
+/// SM A515F le 2026-09-08 : `/businesses/<id>` sur une entreprise absente
+/// affiche « Entreprise non trouvée » et rien pour revenir.
+class DesignExitOnlyBody extends StatelessWidget {
+  final Widget child;
+
+  /// Route utilisée quand il n'y a rien à dépiler.
+  final String fallbackRoute;
+
+  const DesignExitOnlyBody({
+    super.key,
+    required this.child,
+    this.fallbackRoute = '/home',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: BackButton(
+              onPressed:
+                  () =>
+                      context.canPop()
+                          ? context.pop()
+                          : context.go(fallbackRoute),
+            ),
+          ),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+}
+
 /// Grand en-tête d'onglet : titre serif, ligne de contexte chiffrée, actions
 /// carrées à droite. Les maquettes 8a→12d ont abandonné le bandeau dégradé
 /// au profit d'un en-tête plat sur le fond crème.
