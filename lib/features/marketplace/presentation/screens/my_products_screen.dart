@@ -18,7 +18,15 @@ class MyProductsScreen extends ConsumerWidget {
 
     if (currentUser == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.myProducts)),
+        appBar: AppBar(
+          // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+          // `canPop()` est faux (lien profond, notification système).
+          // Cf. test/core/router/fleche_retour_test.dart.
+          leading: BackButton(
+            onPressed:
+                () => context.canPop() ? context.pop() : context.go('/marketplace'),
+          ),
+          title: Text(l10n.myProducts)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -27,6 +35,10 @@ class MyProductsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/marketplace'),
+        ),
         title: Text(l10n.myProducts),
         actions: [
           IconButton(

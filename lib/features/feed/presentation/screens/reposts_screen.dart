@@ -24,6 +24,13 @@ class RepostsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: tokens.bg,
       appBar: AppBar(
+        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+        // `canPop()` est faux (lien profond, notification système).
+        // Cf. test/core/router/fleche_retour_test.dart.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/profile'),
+        ),
         backgroundColor: tokens.bg,
         title: Text(l10n.repostsTitle, style: FeedText.heading(tokens, size: 18)),
         elevation: 0,

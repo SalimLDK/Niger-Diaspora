@@ -95,6 +95,13 @@ class _CreateTicketScreenState extends ConsumerState<CreateTicketScreen> {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
+        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+        // `canPop()` est faux (lien profond, notification système).
+        // Cf. test/core/router/fleche_retour_test.dart.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/support'),
+        ),
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,

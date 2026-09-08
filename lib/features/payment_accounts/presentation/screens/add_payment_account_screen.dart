@@ -133,7 +133,15 @@ class _AddPaymentAccountScreenState
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.addPaymentAccount)),
+      appBar: AppBar(
+        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+        // `canPop()` est faux (lien profond, notification système).
+        // Cf. test/core/router/fleche_retour_test.dart.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/payment-accounts'),
+        ),
+        title: Text(l10n.addPaymentAccount)),
       body: Form(
         key: _formKey,
         child: ListView(

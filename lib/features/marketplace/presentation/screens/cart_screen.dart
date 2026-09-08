@@ -27,6 +27,13 @@ class CartScreen extends ConsumerWidget {
     if (cartItems.isEmpty) {
       return Scaffold(
         appBar: AppBar(
+          // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+          // `canPop()` est faux (lien profond, notification système).
+          // Cf. test/core/router/fleche_retour_test.dart.
+          leading: BackButton(
+            onPressed:
+                () => context.canPop() ? context.pop() : context.go('/marketplace'),
+          ),
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -61,6 +68,10 @@ class CartScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/marketplace'),
+        ),
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,

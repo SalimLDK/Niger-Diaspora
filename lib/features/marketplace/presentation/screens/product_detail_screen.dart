@@ -67,6 +67,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               slivers: [
                 // App bar with images
                 SliverAppBar(
+                  // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+                  // `canPop()` est faux (lien profond, notification système).
+                  // Cf. test/core/router/fleche_retour_test.dart.
+                  leading: BackButton(
+                    onPressed:
+                        () => context.canPop() ? context.pop() : context.go('/marketplace'),
+                  ),
                   expandedHeight: 300,
                   pinned: true,
                   actions: [

@@ -63,6 +63,13 @@ class EmbassyDetailScreen extends StatelessWidget {
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
                 SliverAppBar(
+                  // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+                  // `canPop()` est faux (lien profond, notification système).
+                  // Cf. test/core/router/fleche_retour_test.dart.
+                  leading: BackButton(
+                    onPressed:
+                        () => context.canPop() ? context.pop() : context.go('/embassies'),
+                  ),
                   // 140 et non 200 : ce bandeau est prevu pour une image de
                   // couverture, or aucune fiche officielle n'en a (`imageUrl`
                   // est nul sur les 32). Il ne reste que le gabarit, autant

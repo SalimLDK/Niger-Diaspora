@@ -99,6 +99,13 @@ class _ScheduleRoomScreenState extends ConsumerState<ScheduleRoomScreen> {
     return Scaffold(
       backgroundColor: dn.surface,
       appBar: AppBar(
+        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+        // `canPop()` est faux (lien profond, notification système).
+        // Cf. test/core/router/fleche_retour_test.dart.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/audio-rooms'),
+        ),
         backgroundColor: dn.surface,
         elevation: 0,
         title: Column(
