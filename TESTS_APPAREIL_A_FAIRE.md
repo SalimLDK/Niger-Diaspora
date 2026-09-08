@@ -645,9 +645,28 @@ SupabaseAuthBridge: [firebase_auth/network-request-failed] …
 — et l'annuaire attend derrière. C'est le cas du premier lancement hors ligne
 après installation, donc celui d'un usager qui installe l'app dans le train.
 
-- [ ] Borner les tentatives de `SupabaseAuthBridge` (nombre ou délai) et
-      laisser l'écran retomber sur son état d'erreur ou son état vide plutôt
-      que de tourner sans fin.
+- [x] **Boucle bornée — vu sur SM A515F (2026-09-08).** Le journal montre
+      exactement six tentatives, en repli croissant (13 s, 13 s, 23 s… au lieu
+      de ~5 s constant), puis « abandon après 6 tentatives — la session reste
+      anon jusqu'au retour du réseau ». La cause était que
+      `auth_remote_datasource` rappelle `syncWithFirebase` à chaque émission
+      de `authStateChanges()`, ce qui court-circuitait le repli exponentiel
+      déjà présent : `PolitiqueDeReprise` pose désormais une fenêtre de calme
+      qui vaut pour **tous** les appelants.
+
+- [ ] ⛔ **Mais l'écran tourne toujours.** Vérifié juste après : hors ligne
+      avec un cache vide, l'annuaire affiche encore son spinner sans fin.
+      Borner l'authentification n'était donc PAS la cause du symptôme — la
+      requête de l'annuaire elle-même ne rend jamais la main. À traiter là où
+      elle part (`embassies_supabase_datasource` / `embassies_repository_impl`),
+      probablement par un `timeout` qui laisse retomber sur la copie locale.
+
+- [ ] La reprise au retour du réseau (`reprendreApresRetourReseau`) n'est
+      **pas vérifiée sur appareil**. Un premier essai a montré qu'elle ne
+      partait jamais — `_etaitConnecte` valait `true` alors qu'on s'abonne
+      *pendant* la coupure, donc le `true` du retour ne ressemblait pas à une
+      transition. Corrigé, mais le second essai n'a pas abouti : le processus
+      a été relancé avant la fin des six tentatives.
 - [x] **Corrigé et vu sur SM A515F (2026-09-08).** Le repli joue :
       réseau coupé, l'annuaire sert ses 30 postes depuis la copie locale
       (vérifié à 11h52, 12h25 et 02h00, sans réinstaller entre-temps). Ce
