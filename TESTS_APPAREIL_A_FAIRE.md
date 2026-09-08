@@ -870,6 +870,21 @@ suit n'a été vu sur un téléphone.
       avion. Le catalogue vient du cache, toutes les pièces s'affichent, et le
       bandeau « Formulaire pré-rempli » disparaît de lui-même puisque le
       profil n'est pas joignable — la dégradation voulue.
+- [ ] **En ligne, le pré-remplissage n'a jamais été vu se remplir.** Ouvrir
+      « Demande » avec du réseau et vérifier que le nom, le téléphone et
+      l'e-mail arrivent du profil, et que le bandeau vert « Formulaire
+      pré-rempli » s'affiche — par les **deux** chemins, qui n'ouvrent pas les
+      mêmes providers : annuaire → fiche → « Demande », puis à froid par lien
+      profond `diasponiger://embassies/<id>` → « Demande ».
+
+      C'est ce qui valide la tolérance posée sur cet écran dans
+      `test/core/providers/autodispose_read_guard_test.dart`. La lecture
+      synchrone de `currentUserAsyncProvider` y est acceptée sur un seul
+      argument : `embassiesListProvider` est `keepAlive` et regarde les deux
+      providers que lit `_preFillFromProfile`, et les deux chemins vers le
+      formulaire passent par lui. Si le bandeau manque **par lien profond
+      seulement**, l'argument est faux et la méthode doit passer en `async`
+      (`unawaited(...)` + `await ref.read(...future)` sous `try`).
 - [ ] ⛔ **Le suffixe d'origine du pied de source reste non vu.** Il devrait
       afficher « · liste enregistrée hors ligne » (cache) ou « · liste fournie
       avec l'application » (asset). C'est le seul élément d'affichage de cet
