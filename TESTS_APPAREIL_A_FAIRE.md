@@ -106,19 +106,49 @@ Flutter, pas `DesignBackLeading`. Les trois fiches à image de couverture
 (entreprise, ambassade, produit) la reçoivent sans pastille — c'est déjà
 ainsi que leurs actions `partager` / `modifier` sont posées sur l'image.
 
-À vérifier sur appareil (aucun de ces 36 écrans n'a été rouvert depuis) :
+**Vu sur SM A515F le 2026-09-08 — 8 fichiers sur 36.** Méthode : l'arbre
+d'accessibilité expose la flèche comme `content-desc="Retour"`
+(`uiautomator dump`), ce qui est bien plus fiable que de lire des pixels.
+Confirmés : `/friends`, `/support`, `/businesses/mine`, `/admin/support`,
+`/messages/new`, `/profile/reposts`, `/settings/security/backup`,
+`/embassies/employees`.
 
-- [ ] Un échantillon par famille, en entrée normale **et** par lien profond :
-      `/transfers/send`, `/marketplace/cart`, `/support`, `/friends`,
-      `/payment-history`.
-- [ ] Les trois fiches à image de couverture : la flèche est-elle **lisible**
-      sur la photo ? `/businesses/:id`, `/embassies/:id`,
-      `/marketplace/:productId`. C'est le seul endroit où le contraste n'est
-      pas garanti par le thème.
-- [ ] Les écrans à plusieurs `AppBar` : vérifier l'état **vide** et l'état
-      **chargement**, pas seulement l'état nominal — `/marketplace/cart`
-      (panier vide), `/marketplace/my-listings`, `/payment-history`,
-      `/payment-accounts`, `/marketplace/my-orders`.
+**Non vérifiables sur cet appareil — 18 fichiers sur 36.** Les familles
+`/transfers`, `/marketplace`, `/payment-accounts`, `/payment-history`,
+`/podcasts` et `/audio-rooms` sont derrière un feature-flag : le routeur les
+renvoie sur `/home` (étape 9 du `redirect`). Aucun de leurs écrans n'est
+atteignable tant que les drapeaux sont à false.
+
+Reste à voir, par ordre d'intérêt :
+
+- [ ] **La flèche est-elle lisible sur une image de couverture ?** C'est le
+      seul endroit où le contraste n'est pas garanti par le thème :
+      `/businesses/:id` et `/marketplace/:productId` posent une vraie photo
+      (`CachedNetworkImage`). Non testable ici — l'annuaire est vide sur ce
+      compte et la boutique est derrière un drapeau. `/embassies/:id` ne
+      compte pas : son en-tête est un aplat teinté, pas une photo.
+- [ ] **Les états vide et chargement** des écrans à plusieurs `AppBar` :
+      `/marketplace/cart` panier vide, `/marketplace/my-listings`,
+      `/payment-history`, `/payment-accounts`, `/marketplace/my-orders`.
+      Tous derrière un drapeau aujourd'hui.
+- [ ] Les ~10 écrans restants atteignables mais non atteints (voir le piège
+      d'`am start` ci-dessous).
+
+**Deux pièges de méthode rencontrés, à retenir :**
+
+1. **L'autre agent installe son APK sur le même téléphone.** À 01:13:54 le
+   `base.apk` a changé en plein test : mes mesures des dix minutes suivantes
+   ne portaient pas sur mon build, et j'ai failli conclure qu'un écran
+   corrigé n'avait pas de flèche. Encadrer **chaque** mesure d'un contrôle
+   `md5sum` local ↔ appareil, avant *et* après — pas seulement à
+   l'installation.
+2. **Le lien profond à froid retombe sur `/home` de façon intermittente.**
+   Course entre le `redirect` de démarrage (auth, consentement, config) et le
+   rejeu du lien mis de côté. Un `uiautomator dump` qui montre `Bonjour,`
+   (accueil) ou `Diaspo Niger` (splash) est une mesure **ratée**, pas un
+   écran sans flèche : toujours identifier l'écran atteint avant de conclure.
+   Plus fiable : lancer l'app, attendre qu'elle soit posée, puis envoyer les
+   intents à chaud.
 
 - [ ] Rendu en **thème clair** : les quatre écrans n'ont été vus qu'en sombre.
 - [ ] Zone tactile de `DesignBackLeading` : 28x34 dp, sous les 48 dp
