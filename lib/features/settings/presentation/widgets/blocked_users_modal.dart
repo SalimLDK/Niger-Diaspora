@@ -6,6 +6,7 @@ import '../../domain/entities/blocked_user_entity.dart';
 import '../providers/blocked_users_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class BlockedUsersModal extends ConsumerWidget {
   const BlockedUsersModal({super.key});
@@ -82,8 +83,7 @@ class BlockedUsersModal extends ConsumerWidget {
             error:
                 (error, _) => Padding(
                   padding: const EdgeInsets.all(40),
-                  child: Text(
-                    '${l10n.error}: $error',
+                  child: Text(messageErreurUsager(error),
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),

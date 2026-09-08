@@ -79,6 +79,15 @@ class EmbassyEntity extends Equatable {
   /// (« fax non repris : le numéro publié est amputé de deux chiffres »).
   final String? dataNotes;
 
+  /// Vrai quand la position est connue mais qu'on ne s'y fie pas.
+  ///
+  /// « On a une position » et « on lui fait confiance » sont deux choses
+  /// différentes : Copenhague porte des coordonnées à 5 km d'une autre source.
+  /// Sans ce drapeau, le bouton « Y aller » s'affichait actif, en orange,
+  /// exactement comme sur une fiche sûre — pendant que la réserve juste
+  /// au-dessus prévenait du contraire.
+  final bool isPositionUncertain;
+
   const EmbassyEntity({
     required this.id,
     required this.name,
@@ -111,16 +120,24 @@ class EmbassyEntity extends Equatable {
     this.sourceUrl,
     this.sourceCheckedAt,
     this.dataNotes,
+    this.isPositionUncertain = false,
   });
 
   /// Vrai quand la fiche porte une réserve connue, à signaler à l'usager.
   bool get hasDataNotes => dataNotes != null && dataNotes!.trim().isNotEmpty;
 
-  /// Vrai quand le poste peut être situé sur une carte.
+  /// Vrai quand le poste porte des coordonnées.
   ///
-  /// Aucune des fiches officielles ne porte de coordonnées : sans ce garde, le
-  /// bouton « voir sur la carte » s'ouvre sur le point (0, 0).
+  /// Ne dit rien de leur fiabilité : voir [canNavigate] pour décider d'ouvrir
+  /// une carte.
   bool get hasCoordinates => latitude != null && longitude != null;
+
+  /// Vrai quand on peut envoyer l'usager à cette position sans réserve.
+  ///
+  /// C'est ce que doit tester tout bouton « Y aller » / « Itinéraire » —
+  /// jamais `latitude != null` seul, qui ouvrait la carte sur une position
+  /// dont on sait qu'elle est peut-être fausse.
+  bool get canNavigate => hasCoordinates && !isPositionUncertain;
 
   /// Toutes les lignes téléphoniques du poste, principale en tête.
   List<String> get allPhones => [
@@ -161,5 +178,6 @@ class EmbassyEntity extends Equatable {
     sourceUrl,
     sourceCheckedAt,
     dataNotes,
+    isPositionUncertain,
   ];
 }

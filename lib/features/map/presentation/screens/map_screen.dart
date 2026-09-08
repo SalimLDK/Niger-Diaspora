@@ -1200,14 +1200,22 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// - Contenu: Emoji 🏛️
   Future<BitmapDescriptor> _createEmbassyMarker(
     String embassyId,
-    bool isSelected,
-  ) async {
+    bool isSelected, {
+    bool positionIncertaine = false,
+  }) async {
     const double markerSize = 48.0;
     const double canvasSize = 64.0;
     const double borderWidth = 3.0;
-    const embassyColor = Color(0xFF1976D2);
+    // Ambre plutôt que bleu quand la position est douteuse : la convention
+    // cartographique veut qu'un contour discontinu signale un tracé
+    // approximatif, et la couleur d'alerte se lit avant même le pointillé.
+    final embassyColor =
+        positionIncertaine ? const Color(0xFFE0A106) : const Color(0xFF1976D2);
 
-    final cacheKey = 'embassy_circular_$isSelected';
+    // ⚠ `positionIncertaine` DOIT figurer dans la clé : le cache est partagé
+    // par toutes les ambassades, et sans ce discriminant la première épingle
+    // dessinée serait resservie à toutes les autres.
+    final cacheKey = 'embassy_circular_${isSelected}_$positionIncertaine';
     if (_markerCache.containsKey(cacheKey) && _isCacheValid(cacheKey)) {
       return _markerCache[cacheKey]!;
     }
@@ -1248,13 +1256,30 @@ class _MapScreenState extends ConsumerState<MapScreen>
           ..style = PaintingStyle.fill;
     canvas.drawCircle(center, radius, bgPaint);
 
-    // 3. Bordure colorée de 3px
+    // 3. Bordure colorée de 3px — continue, ou discontinue si la position
+    //    n'est pas sûre.
     final borderPaint =
         Paint()
           ..color = embassyColor
           ..style = PaintingStyle.stroke
           ..strokeWidth = borderWidth;
-    canvas.drawCircle(center, radius, borderPaint);
+    if (positionIncertaine) {
+      // Douze tirets : assez pour se lire comme un pointillé à la taille
+      // réelle de l'épingle, pas au point de la brouiller.
+      const int tirets = 12;
+      const double pas = 2 * pi / tirets;
+      for (int i = 0; i < tirets; i++) {
+        canvas.drawArc(
+          Rect.fromCircle(center: center, radius: radius),
+          i * pas,
+          pas * 0.55,
+          false,
+          borderPaint,
+        );
+      }
+    } else {
+      canvas.drawCircle(center, radius, borderPaint);
+    }
 
     // 4. Emoji 🏛️ au centre
     const textSpan = TextSpan(text: '🏛️', style: TextStyle(fontSize: 22));
@@ -1312,7 +1337,13 @@ class _MapScreenState extends ConsumerState<MapScreen>
       if (embassy.latitude == 0.0 && embassy.longitude == 0.0) continue;
 
       final isSelected = _selectedMarkerId == 'embassy_${embassy.id}';
-      final icon = await _createEmbassyMarker(embassy.id, isSelected);
+      // Une position douteuse reste sur la carte -- la retirer ferait
+      // disparaître l'ambassade -- mais elle se signale.
+      final icon = await _createEmbassyMarker(
+        embassy.id,
+        isSelected,
+        positionIncertaine: embassy.isPositionUncertain,
+      );
 
       embassyMarkers.add(
         Marker(

@@ -12,6 +12,7 @@ import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 /// Screen to add a friend as a recipient for money transfers
 class FriendRecipientSelectScreen extends ConsumerStatefulWidget {
@@ -56,7 +57,7 @@ class _FriendRecipientSelectScreenState
             child: friendsAsync.when(
               data: (friends) => _buildFriendsList(friends),
               loading: () => const LoadingIndicator(),
-              error: (error, _) => Center(child: Text('Erreur: $error')),
+              error: (error, _) => Center(child: Text(messageErreurUsager(error))),
             ),
           ),
         ],

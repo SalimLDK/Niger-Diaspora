@@ -10,6 +10,7 @@ import '../../domain/entities/transaction_entity.dart';
 import '../providers/transfer_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -129,7 +130,7 @@ class _TransactionHistoryScreenState
               children: [
                 Icon(Icons.error_outline, size: 48, color: AppColors.error),
                 const SizedBox(height: 16),
-                Text('Erreur: $error'),
+                Text(messageErreurUsager(error)),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed:
