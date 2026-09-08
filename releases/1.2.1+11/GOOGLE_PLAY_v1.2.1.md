@@ -117,13 +117,31 @@ Première version publiée sur le Play Store.
 |---|---|---|---|
 | Icône | 512×512, PNG 32 bits **avec** alpha, ≤1024 Ko | `assets/import_icons/dn_ultra_minimal_icon.png` | conforme (512×512 RGBA, 24 Ko) |
 | Feature graphic | 1024×500, JPEG ou PNG 24 bits **sans** alpha | `releases/1.2.1+11/play/feature_graphic.png` | régénéré |
-| Captures téléphone | côté long ≤ 2× côté court, sans alpha, 2 minimum | `releases/1.2.1+11/play/screenshots/` | régénérées |
+| Captures téléphone | côté long ≤ 2× côté court, sans alpha, 2 minimum | `releases/1.2.1+11/play/screenshots/` | **8**, 1080×1920 |
 
 **Pourquoi les captures ne sont pas des copies d'écran brutes :** les deux
 appareils de test sont en 1080×2400, soit un rapport 2,22:1. Google impose que
 le côté le plus long n'excède pas deux fois le plus court — une capture brute
 est donc refusée. Les visuels livrés sont en 1080×1920 (9:16), le format
 explicitement recommandé par Google, avec la copie d'écran réelle intégrée.
+
+Les huit visuels, dans l'ordre de la fiche :
+
+| # | Fichier | Légende |
+|---|---|---|
+| 1 | `01_accueil.png` | Tout ce qui vous relie, au même endroit |
+| 2 | `02_ambassades.png` | Les représentations du Niger dans le monde |
+| 3 | `03_demarches.png` | Vingt démarches consulaires détaillées |
+| 4 | `04_dossier.png` | Les pièces à réunir, avant de vous déplacer |
+| 5 | `05_fiche.png` | Adresse, contact et itinéraire de chaque poste |
+| 6 | `06_carte.png` | Votre position, sous votre contrôle |
+| 7 | `07_groupes.png` | Des groupes par ville et par pays |
+| 8 | `08_profil.png` | Votre profil, votre visibilité |
+
+L'ordre place en tête ce qui distingue l'app : l'accueil, puis tout le volet
+consulaire, dont le contenu est réel et dense. Le fil et l'annuaire restent
+absents — le premier ne porte que des publications de test, le second est
+vide.
 
 L'ancien `feature_graphic.png` de la racine faisait **1024×1024** : il aurait
 été refusé tel quel.

@@ -154,9 +154,17 @@ court. Les copies d'écran intégrées viennent du build release.
       (nom, numéro, adresse, photo d'un tiers) avant publication.
       À ce stade, `05_accueil.png` montre le prénom « Sim » et « Montréal,
       Canada » — données du compte de test, à valider ou à masquer.
-- [x] **Captures prises sur SM A515F le 2026-09-08** : accueil, ambassades,
-      fiche d'un poste, carte (mode privé), groupes « Découvrir ». Build de
+- [x] **Huit captures prises sur SM A515F le 2026-09-08** : accueil (défilé),
+      annuaire des postes, liste des démarches, formulaire de demande, fiche
+      d'un poste, carte (mode privé), groupes « Découvrir », profil. Build de
       l'arbre fusionné, md5 local et appareil comparés avant chaque prise.
+- Trois choix de cadrage, chacun pour une raison vue à l'écran :
+  l'accueil est **défilé** parce qu'en haut de page il ouvre sur
+  « Complétez votre profil 3/5 » et « 0 membres · 0 groupes » ; la liste des
+  démarches est rognée à 254 px du bas parce que la boîte de dialogue laisse
+  voir l'écran sous-jacent coupé en pleine phrase ; et **12 px sont retirés de
+  chaque côté** sur toutes, sinon la barre de défilement Android laisse un
+  filet clair le long du bord gauche du visuel fini.
 - Trois écrans écartés faute de contenu présentable, **et non corrigés** :
   l'annuaire des entreprises est vide, le fil ne porte que des publications de
   test (« a ignorer »), la liste des groupes affiche « Groupe de test prive ».
