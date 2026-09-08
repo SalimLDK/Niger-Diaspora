@@ -57,13 +57,20 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final user = ref.read(currentUserAsyncProvider).value;
+      // `valueOrNull`, jamais `.value` : en Riverpod 2 ce dernier **relance**
+      // l'erreur au lieu de rendre `null`. Hors ligne, `userStreamProvider`
+      // echoue (lecture Supabase `users`), et l'envoi echouait alors sur une
+      // panne de lecture de profil au lieu de l'ecriture elle-meme -- le
+      // message d'erreur designait le mauvais coupable. Le profil n'est ici
+      // qu'un confort de pre-remplissage : les trois champs qui en viennent
+      // ont deja leur repli.
+      final user = ref.read(currentUserAsyncProvider).valueOrNull;
       if (user == null) {
         throw Exception(l10n.userNotLoggedIn);
       }
 
       final profileAsync = ref.read(userStreamProvider(user.id));
-      final profile = profileAsync.value;
+      final profile = profileAsync.valueOrNull;
 
       final dataSource = EmbassyRemoteDataSourceImpl();
       await dataSource.sendMessageToEmbassy(
@@ -79,18 +86,21 @@ class _EmbassyMessageScreenState extends ConsumerState<EmbassyMessageScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Message envoyé avec succès!'),
+          SnackBar(
+            content: Text(l10n.embassyMessageSent),
             backgroundColor: Colors.green,
           ),
         );
         Navigator.of(context).pop(true);
       }
     } catch (e) {
+      // La trace brute portait l'hote Supabase et l'identifiant du compte.
+      // Elle va dans les logs, pas dans une SnackBar.
+      debugPrint('sendMessageToEmbassy error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: ${e.toString()}'),
+            content: Text(l10n.embassyMessageSendError),
             backgroundColor: Colors.red,
           ),
         );

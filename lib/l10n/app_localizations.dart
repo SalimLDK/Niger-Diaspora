@@ -29209,6 +29209,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Impossible de charger l\'annuaire. Vérifiez votre connexion et réessayez.'**
   String get embassyLoadError;
+
+  /// No description provided for @embassyMessageSendError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'envoyer le message. Vérifiez votre connexion et réessayez.'**
+  String get embassyMessageSendError;
 }
 
 class _AppLocalizationsDelegate

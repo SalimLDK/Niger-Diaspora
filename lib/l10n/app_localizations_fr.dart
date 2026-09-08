@@ -15964,4 +15964,8 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get embassyLoadError =>
       'Impossible de charger l\'annuaire. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get embassyMessageSendError =>
+      'Impossible d\'envoyer le message. Vérifiez votre connexion et réessayez.';
 }
