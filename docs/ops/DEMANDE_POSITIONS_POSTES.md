@@ -23,8 +23,12 @@
 > - **Abuja** : le pin a été déplacé de Diplomatic Drive à Maitama, où
 >   l'annuaire et Google se rejoignent. Une confirmation ne ferait pas de mal.
 >
-> Les messages ci-dessous restent valables tels quels pour ces cas : seule la
-> liste des destinataires change.
+> Ces deux cas ont désormais leur propre message : **Copenhague (§12)** et
+> **Abuja (§13)**. Ils ne demandent pas une position manquante mais l'arbitrage
+> d'une contradiction — la rédaction diffère donc des dix premiers.
+>
+> **À envoyer aujourd'hui : §2 Djeddah, §5 Khartoum, §12 Copenhague,
+> §13 Abuja.**
 
 
 Onze postes de l'annuaire n'ont pas de coordonnées géographiques, et **aucune
@@ -731,6 +735,148 @@ malentendu qui coûterait la réponse.
 > mission covers Cuba.
 >
 > Thank you in advance. Yours faithfully,
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
+
+---
+
+## 12. Ambassade du Niger au Danemark — Copenhague
+
+> ℹ️ **Ce message ne demande pas une position manquante : il fait arbitrer une
+> contradiction.** Deux sources placent l'ambassade à 5,1 km l'une de l'autre,
+> et rien ne permet de les départager de l'extérieur.
+
+**À :** ambassade@niger.dk
+**Objet :** Adresse de la chancellerie — deux localisations divergentes
+**Subject:** Chancery address — two conflicting locations
+
+> Excellence, Madame, Monsieur,
+>
+> Je développe **Diaspo Niger**, une application indépendante destinée aux
+> Nigériens de l'étranger. Elle recense les ambassades et consulats du Niger
+> afin que nos compatriotes puissent vous joindre et se rendre chez vous.
+>
+> Je rencontre une contradiction que je ne peux pas trancher de l'extérieur :
+>
+> - le ministère des Affaires étrangères publie votre adresse comme
+>   *Niels Juels Gade 5* ;
+> - les données cartographiques ouvertes (OpenStreetMap) situent l'ambassade
+>   du Niger dans le quartier d'**Østerbro, sur Rosbækvej**.
+>
+> Les deux emplacements sont distants de plus de cinq kilomètres. Afficher le
+> mauvais enverrait nos compatriotes à l'autre bout de Copenhague.
+>
+> **Laquelle est la bonne ?** Si vous avez déménagé, l'annuaire du ministère
+> mériterait sans doute d'être mis à jour. Le plus simple pour me confirmer
+> l'emplacement est d'ouvrir Google Maps, de poser un repère sur le bâtiment,
+> puis « Partager » et de me renvoyer le lien.
+>
+> Je signale par la même occasion que le **code postal publié est incomplet** :
+> le site indique « Dk-059 », alors qu'un code danois comporte quatre chiffres.
+>
+> Si vous en avez le temps, vos **horaires d'ouverture au public**
+> compléteraient utilement la fiche.
+>
+> Je vous remercie par avance et vous prie d'agréer, Excellence, Madame,
+> Monsieur, l'expression de ma haute considération.
+>
+> [VOTRE NOM]
+> [VOTRE FONCTION] — Diaspo Niger
+>
+> ---
+>
+> Your Excellency, Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> I have come across a contradiction I cannot resolve from the outside:
+>
+> - the Ministry of Foreign Affairs publishes your address as
+>   *Niels Juels Gade 5*;
+> - open mapping data (OpenStreetMap) places the Embassy of Niger in the
+>   **Østerbro district, on Rosbækvej**.
+>
+> The two locations are more than five kilometres apart. Showing the wrong one
+> would send our compatriots to the other side of Copenhagen.
+>
+> **Which is correct?** If you have moved, the Ministry's directory would
+> likely benefit from an update. The simplest way to confirm the location is to
+> open Google Maps, drop a pin on the building, then tap "Share" and send me
+> the link.
+>
+> May I also note that the **published postcode is incomplete**: the website
+> shows "Dk-059", whereas Danish postcodes have four digits.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Please accept, Your Excellency, Dear Sir or Madam, the
+> assurance of my highest consideration.
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
+
+---
+
+## 13. Ambassade du Niger au Nigeria — Abuja
+
+> ℹ️ **Simple confirmation.** L'adresse publiée et les données cartographiques
+> concordent ; il s'agit seulement de valider le point avant de le montrer.
+
+**À :** embniger@yahoo.fr
+**Objet :** Confirmation de l'emplacement de la chancellerie
+**Subject:** Confirming the location of your Chancery
+
+> Excellence, Madame, Monsieur,
+>
+> Je développe **Diaspo Niger**, une application indépendante destinée aux
+> Nigériens de l'étranger. Elle recense les ambassades et consulats du Niger
+> afin que nos compatriotes puissent vous joindre et se rendre chez vous.
+>
+> L'adresse publiée par le ministère pour votre ambassade est *Plot 933,
+> Pope John Paul II Street, Maitama District*, et les données cartographiques
+> la confirment. Avant d'afficher ce point à nos utilisateurs, je préfère le
+> faire valider par vos soins.
+>
+> **Pourriez-vous me confirmer que la chancellerie se trouve bien à cette
+> adresse ?** Si c'est le cas, une simple réponse « c'est exact » suffit. Sinon,
+> le plus simple est d'ouvrir Google Maps, de poser un repère sur le bâtiment,
+> puis « Partager » et de me renvoyer le lien.
+>
+> Si vous en avez le temps, vos **horaires d'ouverture au public**
+> compléteraient utilement la fiche.
+>
+> Je vous remercie par avance et vous prie d'agréer, Excellence, Madame,
+> Monsieur, l'expression de ma haute considération.
+>
+> [VOTRE NOM]
+> [VOTRE FONCTION] — Diaspo Niger
+>
+> ---
+>
+> Your Excellency, Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> The address the Ministry publishes for your Embassy is *Plot 933, Pope John
+> Paul II Street, Maitama District*, and mapping data agrees with it. Before
+> showing this location to our users, I would rather have it confirmed by you.
+>
+> **Could you confirm that the Chancery is indeed at this address?** If so, a
+> simple "that is correct" is enough. If not, the simplest way is to open
+> Google Maps, drop a pin on the building, then tap "Share" and send me the
+> link.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Please accept, Your Excellency, Dear Sir or Madam, the
+> assurance of my highest consideration.
 >
 > [YOUR NAME]
 > [YOUR ROLE] — Diaspo Niger
