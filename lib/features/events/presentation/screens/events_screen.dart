@@ -71,7 +71,6 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 20,
-        automaticallyImplyLeading: false,
         title: DesignTitle(l10n.eventsTitle, size: 24),
         actions: [
           DesignSquareAction(

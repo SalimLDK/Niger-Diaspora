@@ -14,6 +14,54 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Quatre écrans du menu principal sans flèche de retour (2026-09-07)
+
+Notifications, Annuaire des entreprises, Événements et Ambassades sont
+atteints par `push` depuis l'accueil (ou « Tous les services »), mais
+n'affichaient aucun moyen de revenir : seul le bouton système ramenait en
+arrière. Deux causes distinctes, invisibles en lisant l'écran seul :
+
+- `DesignScreenHeader.leading` est facultatif — les cinq onglets racines
+  n'en veulent pas — donc un écran poussé qui recopie l'en-tête d'un onglet
+  hérite de son absence de flèche (Notifications, Entreprises) ;
+- `automaticallyImplyLeading: false` supprime la flèche que Flutter aurait
+  posée seul ; le drapeau, justifié sur un onglet, avait été recopié sur
+  deux écrans poussés (Événements, Ambassades).
+
+La flèche est désormais une brique unique du kit, `DesignBackLeading`
+(`lib/core/theme/design_kit.dart`), et non plus une recopie par écran : les
+Réglages la dessinaient déjà à la main, ils passent dessus. Elle replie sur
+une route quand la pile est vide (`canPop() ? pop() : go('/home')`), le cas
+d'une entrée par notification système — `/notifications` est justement une
+cible de `router.push` depuis `lib/app.dart`.
+
+Vérifié par `test/core/router/fleche_retour_test.dart` (lit le routeur, donc
+sait quelle route est poussée et laquelle est un onglet ; liste d'exceptions
+nommées, elle ne doit que rétrécir).
+
+À vérifier sur appareil :
+
+- [ ] La flèche est **visible** en haut à gauche des quatre écrans, en thème
+      clair **et** sombre — `DesignBackLeading` prend
+      `context.textPrimaryColor`, jamais vu à l'écran.
+- [ ] Elle est **atteignable au doigt** sur les trois écrans à
+      `DesignScreenHeader` : la zone tactile de `DesignBackLeading` fait
+      28x34 dp, sous les 48 dp recommandés. C'est la dimension que les
+      Réglages embarquaient déjà ; elle n'a jamais été jugée sur appareil.
+      Les deux écrans à `AppBar` (Événements, Ambassades) utilisent la flèche
+      de Flutter, donc ses métriques (48 dp) — vérifier au passage que la
+      flèche ne saute pas visiblement de place entre les deux familles
+      d'en-tête.
+- [ ] Elle **ramène bien** à l'accueil et pas ailleurs, depuis les deux
+      chemins d'entrée : accueil → tuile, et accueil → « Tous les services ».
+- [ ] Le repli : ouvrir une notification système alors que l'app est fermée,
+      puis taper la flèche de l'écran Notifications — doit mener à l'accueil,
+      pas à un écran noir.
+- [ ] Les Réglages, dont la flèche a changé d'implémentation, reviennent
+      toujours (entrée depuis Profil **et** depuis la Carte).
+
+---
+
 ## ⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)
 
 Chantier en cours : remplacer la clé AES globale (constante de l'APK, donc

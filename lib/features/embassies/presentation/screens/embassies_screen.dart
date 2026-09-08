@@ -200,7 +200,6 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 20,
-        automaticallyImplyLeading: false,
         title: const DesignTitle('Ambassades & consulats', size: 24),
       ),
       body: embassiesAsync.when(

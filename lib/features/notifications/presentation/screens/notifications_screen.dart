@@ -113,6 +113,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           children: [
             DesignScreenHeader(
               title: l10n.notificationsTitle,
+              leading: const DesignBackLeading(),
               subtitle: unreadCount > 0
                   ? l10n.notificationsUnreadCount(unreadCount)
                   : '',

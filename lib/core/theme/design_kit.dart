@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../constants/app_colors.dart';
@@ -942,6 +943,36 @@ class DesignSummaryCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Flèche de retour des écrans atteints par `push` : la seule brique de
+/// retour du kit, pour que deux écrans voisins aient la même.
+///
+/// `context.pop()` seul ne suffit pas : `/notifications` est ouvert
+/// directement par `router.push` depuis `app.dart` au tap sur une
+/// notification système. Sur une app fermée, la pile ne contient alors que
+/// cet écran, et la flèche ramènerait à un écran noir. D'où le repli.
+class DesignBackLeading extends StatelessWidget {
+  /// Route utilisée quand il n'y a rien à dépiler (entrée par lien profond
+  /// ou par notification).
+  final String fallbackRoute;
+
+  const DesignBackLeading({super.key, this.fallbackRoute = '/home'});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap:
+          () =>
+              context.canPop() ? context.pop() : context.go(fallbackRoute),
+      child: SizedBox(
+        width: 28,
+        height: 34,
+        child: Icon(Icons.arrow_back, color: context.textPrimaryColor),
       ),
     );
   }

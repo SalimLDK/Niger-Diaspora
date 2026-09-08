@@ -53,6 +53,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
         children: [
           DesignScreenHeader(
             title: l10n.businessDirectory,
+            leading: const DesignBackLeading(),
             actions: [
               DesignSquareAction(
                 icon: Icons.storefront_outlined,

@@ -115,18 +115,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           children: [
             DesignScreenHeader(
               title: l10n.settings,
-              leading: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => context.pop(),
-                child: SizedBox(
-                  width: 28,
-                  height: 34,
-                  child: Icon(
-                    Icons.arrow_back,
-                    color: context.textPrimaryColor,
-                  ),
-                ),
-              ),
+              leading: const DesignBackLeading(),
             ),
             const SizedBox(height: 12),
             Padding(
