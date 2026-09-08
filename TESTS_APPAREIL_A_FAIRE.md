@@ -78,6 +78,155 @@ comme « fournie avec l'application ».
 
 ---
 
+## ⚠️ Clés dérivées : premier test appareil (2026-09-07, SM A515F)
+
+Testé sur SM A515F avec un build propre (`flutter clean` obligatoire — un APK
+du 30 août traînait dans `build/` et se serait installé en silence).
+
+**Vérifié bon** : démarrage, `SupabaseAuthBridge: session sync OK`, liste des
+conversations et aperçus en clair, messages en clé globale lisibles, aucun
+crash (le process tué en cours de test l'a été par une commande externe, pas
+par une exception).
+
+**DÉFAUT TROUVÉ ET CORRIGÉ** : tous les messages rechiffrés s'affichaient
+`[Message illisible]`. L'Edge Function `crypto-keys` filtrait les conversations
+avec `.contains('participant_ids', [user.id])`, où `user.id` est l'uuid
+Supabase — alors que `participant_ids` contient des **UID Firebase hérités**
+(`vQZE49dTdyRtLwSG6lMIbhAqoFG2`). Le filtre ne correspondait jamais :
+l'endpoint répondait **200 avec une liste vide**, donc aucune clé de
+conversation, donc tout illisible. Aucune erreur nulle part.
+
+Trace décisive, une fois l'instrumentation ajoutée :
+`DerivedKeyStore: 1 clé(s) reçue(s)` — la clé utilisateur seule, zéro
+conversation, alors que le compte en a 4.
+
+Corrigé en retirant le filtre : la RLS de `conversations`
+(`participant_ids @> ARRAY[firebase_uid()]`) faisait déjà le travail,
+correctement. **Ne jamais réintroduire ce filtre applicatif.**
+
+- [ ] **À revérifier après redéploiement de `crypto-keys`** : rouvrir la
+      conversation `debef5f0…`, ses 2 messages rechiffrés doivent s'afficher.
+- [ ] Puis envoyer un message : il doit partir au format `v1:…` en base.
+## ⬜ Teinte des notifications système en vert (2026-09-07)
+
+La petite icône de la barre d'état (`ic_stat_notification`) est une
+**silhouette blanche sur transparent** — c'est Android qui la colore, avec la
+teinte d'accent. La repeindre revient donc à changer cette teinte, pas le PNG.
+
+Elle est posée par **deux chemins** selon l'état de l'app, et les deux ont dû
+être changés : `notification_accent` dans
+`android/app/src/main/res/values/colors.xml` (lu par le SDK Firebase via
+`default_notification_color` du manifeste, chemin utilisé pour tous les types
+sauf `message`) et la nouvelle constante `AppColors.notificationAccent`
+(passée par `flutter_local_notifications` — les messages partent en *data-only*
+depuis `send-push`, donc c'est le client qui construit leur notification).
+
+Au passage, ça **solde l'écart** signalé la veille : les deux chemins valaient
+`#E07B39` et `#FA7D00`, soit deux orangés différents selon l'état de l'app.
+Ils valent maintenant tous deux `#009600`.
+
+Cinq `AndroidNotificationDetails` pointent sur la constante ; le
+`general_channel` n'en avait **aucune** (le système ne teintait donc rien sur
+ce canal), il en a une désormais.
+
+- [x] **Ressource compilée dans l'APK installé (2026-09-07).**
+      `aapt2 dump resources` sur l'APK, dont le `md5sum` a été confronté à
+      `base.apk` sur le SM A515F : `color/notification_accent` et
+      `color/ic_launcher_background` valent tous deux `#ff009600`. Ça prouve
+      la chaîne ressource → paquet installé, pas le rendu à l'écran.
+- [ ] **Notification de message, app tuée.** C'est le chemin
+      `flutter_local_notifications`. Petite icône verte dans la barre d'état
+      et filet vert dans le volet. ⚠️ `am force-stop` empêche la livraison FCM
+      — lancer l'app, attendre, puis `KEYCODE_HOME` (cf. méthode plus bas).
+- [ ] **Notification d'un autre type** (demande d'ami, événement…). C'est le
+      chemin SDK Firebase, donc la ressource XML. Même vert attendu.
+- [ ] **Canal « general_channel ».** Il n'était pas teinté du tout avant :
+      vérifier qu'il l'est maintenant, et que rien n'y a régressé.
+- [ ] **Silhouette intacte.** Le PNG n'a pas été touché ; vérifier qu'aucune
+      notification ne montre un carré ou un disque blanc (le symptôme quand
+      Android retombe sur `@mipmap/ic_launcher`).
+
+Non touché, volontairement : les `ledColor` (couleur de la LED de
+notification, sémantique par type — bleu pour les amis, violet pour les
+groupes…), les deux teintes d'état de l'upload (`#4CAF50` succès /
+`#FF9800` en attente), et l'icône orange `#E97424` en dur du dialogue
+« Activer les notifications » (`notification_service.dart`), qui est un
+élément d'interface in-app et non une notification.
+
+---
+
+## ⬜ Icône du lanceur repeinte en vert (2026-09-07)
+
+Suite de l'entrée ci-dessous : sur un vrai téléphone, l'orange qu'on voit en
+premier au lancement n'est pas l'écran Flutter mais **l'écran de lancement du
+système**, qui affiche l'icône du lanceur (vérifié sur SM A515F : ~15 s sur un
+build debug avant que Flutter ne peigne quoi que ce soit).
+
+Repeint : le dégradé orange `#E97424 → #F59942` devient `#009600 → #00C000`
+dans `assets/import_icons/dn_ultra_minimal{_icon,_hd}.png` + son SVG source et
+`dn_adaptive_background*`, le fond de l'icône adaptive
+(`adaptive_icon_background` dans `pubspec.yaml`, `ic_launcher_background` dans
+`android/app/src/main/res/values/colors.xml`) et les couleurs web
+(`manifest.json`). Les PNG ont été repeints pixel par pixel — le sigle blanc,
+son anticrénelage et les coins transparents sont préservés — puis
+`dart run flutter_launcher_icons` a régénéré Android, iOS et web.
+
+`dn_dark_mode*` (DN orange sur fond sombre) n'a **pas** été touché : aucun
+chemin de l'app ne le lit, il n'est référencé que par le README du dossier.
+
+- [ ] **Icône dans le tiroir d'applications et sur l'écran d'accueil.** Vert
+      `#009600`, sigle blanc lisible, forme adaptive correcte (le lanceur
+      découpe en cercle/squircle selon le thème du téléphone).
+- [x] **Écran de lancement système, vu sur SM A515F (2026-09-07).** Icône
+      verte `#009600`, sigle blanc net, aucun reste d'orange. C'est la preuve
+      que le paquet installé porte bien la nouvelle icône ; le rendu dans le
+      tiroir d'applications n'a pas été retrouvé (l'app n'était pas sur les
+      pages parcourues) et reste donc à cocher ci-dessus.
+- [ ] **Icône de notification.** Elle est indépendante
+      (`ic_stat_notification` + `notification_accent`, toujours orange) : elle
+      ne doit pas avoir changé.
+- [ ] **iOS.** Icônes régénérées mais jamais compilées ni vues (aucun Mac dans
+      la boucle) — cf. l'entrée « iOS : signature et conformité export ».
+
+⚠️ Écart préexistant relevé au passage, **non corrigé** : le commentaire de
+`colors.xml` dit que `notification_accent` doit valoir `AppColors.primary`,
+or il vaut `#E07B39` alors que `AppColors.primary` vaut `#FA7D00` depuis le
+2026-08-25. Deux orangés de notification selon le chemin d'envoi.
+
+---
+
+## ⬜ Écran de démarrage repeint en vert (2026-09-07)
+
+Demande produit : sur l'écran d'attente `/splash` (le premier écran Flutter
+affiché, `initialLocation` du routeur), la pastille « DN » et le cercle de
+progression passent de l'orange primaire au vert `AppColors.secondary`
+(`#009600`) / `secondaryGradient`. Fichier :
+[splash_screen.dart](lib/features/auth/presentation/screens/splash_screen.dart).
+
+La teinte est **fixe** : elle ne suit pas l'accent choisi par le compte
+(orange ou vert). Un compte en thème Orange verra donc un splash vert puis une
+app orange — c'est voulu, pas une dérive à corriger.
+
+- [ ] **Splash au démarrage à froid, thème clair.** Tuer l'app, la relancer :
+      pastille « DN » et cercle de progression verts, sigle blanc lisible sur
+      le vert, ombre portée verte discrète.
+- [ ] **Splash au démarrage à froid, thème sombre.** Même écran sur fond
+      `surfaceVariantDark` (`#2D2820`) : vérifier que le vert `#009600` ne
+      devient pas terne sur le fond foncé (aucune variante nocturne n'est
+      prévue pour cette pastille, contrairement à `primaryGradientDark`).
+- [ ] **Compte en thème Orange.** Confirmer que seul le splash est vert et que
+      le reste de l'app reste orange (pas de contamination).
+- [x] **Sigle et arc du cercle verts, vus sur SM A515F** (thème Système/Orange,
+      nuit, APK debug dont le `md5sum` a été confronté à `base.apk` sur
+      l'appareil — la première installation avait posé un APK du dépôt
+      principal, d'où un premier constat faussement orange).
+- [x] **Filet du cercle, vu sur SM A515F (2026-09-07).** Il retombait sur
+      `circularTrackColor` du thème, donc brun-orangé pour un compte en thème
+      Orange ; épinglé à `secondary` à 20 %, l'anneau est maintenant vert
+      sombre sur toute sa circonférence.
+
+---
+
 ## ⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)
 
 Chantier en cours : remplacer la clé AES globale (constante de l'APK, donc
