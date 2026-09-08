@@ -146,6 +146,13 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
       slivers: [
         // App bar with image
         SliverAppBar(
+          // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+          // `canPop()` est faux (lien profond, notification système).
+          // Cf. test/core/router/fleche_retour_test.dart.
+          leading: BackButton(
+            onPressed:
+                () => context.canPop() ? context.pop() : context.go('/businesses'),
+          ),
           expandedHeight: 200,
           pinned: true,
           flexibleSpace: FlexibleSpaceBar(

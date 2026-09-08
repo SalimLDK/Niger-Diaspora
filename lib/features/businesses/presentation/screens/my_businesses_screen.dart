@@ -20,7 +20,15 @@ class MyBusinessesScreen extends ConsumerWidget {
     final businessesAsync = ref.watch(myBusinessesNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Mes entreprises')),
+      appBar: AppBar(
+        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+        // `canPop()` est faux (lien profond, notification système).
+        // Cf. test/core/router/fleche_retour_test.dart.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/businesses'),
+        ),
+        title: const Text('Mes entreprises')),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/businesses/create'),

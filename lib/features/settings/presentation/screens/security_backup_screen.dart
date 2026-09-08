@@ -12,6 +12,7 @@ import '../../../../l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
 
+import 'package:go_router/go_router.dart';
 /// Écran de sauvegarde et restauration des clés E2EE
 class SecurityBackupScreen extends ConsumerStatefulWidget {
   const SecurityBackupScreen({super.key});
@@ -250,6 +251,13 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+        // `canPop()` est faux (lien profond, notification système).
+        // Cf. test/core/router/fleche_retour_test.dart.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/settings'),
+        ),
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,

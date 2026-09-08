@@ -21,7 +21,15 @@ class PaymentHistoryScreen extends ConsumerWidget {
 
     if (currentUser == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.paymentHistory)),
+        appBar: AppBar(
+          // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+          // `canPop()` est faux (lien profond, notification système).
+          // Cf. test/core/router/fleche_retour_test.dart.
+          leading: BackButton(
+            onPressed:
+                () => context.canPop() ? context.pop() : context.go('/home'),
+          ),
+          title: Text(l10n.paymentHistory)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -30,6 +38,10 @@ class PaymentHistoryScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/home'),
+        ),
         title: Text(l10n.paymentHistory),
       ),
       body: Column(

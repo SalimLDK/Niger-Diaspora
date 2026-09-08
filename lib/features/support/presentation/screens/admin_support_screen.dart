@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
@@ -25,7 +26,15 @@ class _AdminSupportScreenState extends ConsumerState<AdminSupportScreen> {
     final datasource = ref.watch(supportTicketDatasourceProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.supportTickets)),
+      appBar: AppBar(
+        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+        // `canPop()` est faux (lien profond, notification système).
+        // Cf. test/core/router/fleche_retour_test.dart.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/admin/support'),
+        ),
+        title: Text(l10n.supportTickets)),
       body: Column(
         children: [
           // Status filter chips
@@ -348,6 +357,10 @@ class _AdminTicketDetailScreenState
 
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/admin/support'),
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

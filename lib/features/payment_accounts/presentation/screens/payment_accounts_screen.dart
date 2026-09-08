@@ -22,7 +22,15 @@ class PaymentAccountsScreen extends ConsumerWidget {
 
     if (currentUser == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.paymentAccounts)),
+        appBar: AppBar(
+          // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+          // `canPop()` est faux (lien profond, notification système).
+          // Cf. test/core/router/fleche_retour_test.dart.
+          leading: BackButton(
+            onPressed:
+                () => context.canPop() ? context.pop() : context.go('/home'),
+          ),
+          title: Text(l10n.paymentAccounts)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -31,6 +39,10 @@ class PaymentAccountsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/home'),
+        ),
         title: Text(l10n.paymentAccounts),
       ),
       floatingActionButton: FloatingActionButton.extended(

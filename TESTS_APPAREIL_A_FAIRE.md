@@ -86,13 +86,39 @@ minute** à peindre l'écran d'un lien profond à froid, et affiche entre-temps
 un aplat gris-bleu vide. Une capture à 30 s montre le gris et se lit comme un
 écran cassé. Rafale de `screencap` toutes les 15 s, garder la plus grosse.
 
-**Reste ouvert, mesuré, non corrigé — 38 routes.** Le même défaut de lien
-profond touche tout l'écran qui s'en remet à la flèche implicite de l'AppBar :
+**Les 38 autres routes ont été traitées dans la foulée.** Le même défaut de
+lien profond touchait tout écran s'en remettant à la flèche implicite —
 `/businesses/:businessId`, `/marketplace/:productId`, `/transfers/send`,
-`/support/:ticketId`, `/payment-history`, `/friends`… (57 routes ont au
-contraire une sortie explicite). Aucune n'est cassée en navigation normale ;
-elles le sont uniquement en entrée directe. Correctif mécanique mais large
-(38 fichiers) : à trancher, pas fait ici.
+`/support/:ticketId`, `/payment-history`, `/friends`… 36 fichiers, 43 barres
+(certains écrans ont une `AppBar` par état : vide, chargement, données — il
+fallait les trois). Chacune reçoit un `BackButton` avec repli vers le parent
+logique de la route (`/marketplace/cart` → `/marketplace`,
+`/transfers/send` → `/transfers`…), et 9 fichiers ont gagné l'import
+`go_router`.
+
+Il ne reste **aucune** route poussée sans sortie explicite : le garde-fou
+l'exige maintenant partout, avec deux exceptions nommées seulement
+(`/calls/:callId`, qui sort par « raccrocher », et `/share`, feuille modale
+présentée par `MainShell`).
+
+Choix de style assumé : dans une `AppBar`, la flèche est le `BackButton` de
+Flutter, pas `DesignBackLeading`. Les trois fiches à image de couverture
+(entreprise, ambassade, produit) la reçoivent sans pastille — c'est déjà
+ainsi que leurs actions `partager` / `modifier` sont posées sur l'image.
+
+À vérifier sur appareil (aucun de ces 36 écrans n'a été rouvert depuis) :
+
+- [ ] Un échantillon par famille, en entrée normale **et** par lien profond :
+      `/transfers/send`, `/marketplace/cart`, `/support`, `/friends`,
+      `/payment-history`.
+- [ ] Les trois fiches à image de couverture : la flèche est-elle **lisible**
+      sur la photo ? `/businesses/:id`, `/embassies/:id`,
+      `/marketplace/:productId`. C'est le seul endroit où le contraste n'est
+      pas garanti par le thème.
+- [ ] Les écrans à plusieurs `AppBar` : vérifier l'état **vide** et l'état
+      **chargement**, pas seulement l'état nominal — `/marketplace/cart`
+      (panier vide), `/marketplace/my-listings`, `/payment-history`,
+      `/payment-accounts`, `/marketplace/my-orders`.
 
 - [ ] Rendu en **thème clair** : les quatre écrans n'ont été vus qu'en sombre.
 - [ ] Zone tactile de `DesignBackLeading` : 28x34 dp, sous les 48 dp
