@@ -32,6 +32,16 @@
 -- Ce que cette migration ne fait PAS : les messages aux ambassades, les
 -- employes et les demandes administratives restent sur Firestore. Seul
 -- l'annuaire (la liste et la fiche) passe a Supabase.
+--
+-- DERIVE DE SCHEMA -- decouverte au premier `db push` du 2026-09-07.
+-- Une table `embassies` existait DEJA en production (27 colonnes, vide),
+-- creee hors du dossier `supabase/migrations` : aucun fichier du depot ne la
+-- mentionne. Le `CREATE TABLE IF NOT EXISTS` l'a donc sautee en silence, et
+-- la migration a echoue deux instructions plus loin sur un index portant une
+-- colonne absente (42703). D'ou la forme ci-dessous : creation pour une base
+-- vierge, puis `ADD COLUMN IF NOT EXISTS` pour rattraper la table en place.
+-- La colonne du type de poste s'appelle `type` cote production, pas
+-- `post_type` : c'est ce nom qui fait foi.
 -- =============================================================================
 
 -- 1. La table ----------------------------------------------------------------
@@ -40,11 +50,10 @@ CREATE TABLE IF NOT EXISTS public.embassies (
 
   -- Cle naturelle stable : permet de rejouer le seed sans creer de doublon,
   -- et de corriger une fiche par une nouvelle migration.
-  slug                  text UNIQUE,
+  slug                  text,
 
   name                  text NOT NULL,
-  post_type             text NOT NULL DEFAULT 'embassy'
-                          CHECK (post_type IN ('embassy', 'consulate', 'permanent_mission')),
+  type                  text NOT NULL DEFAULT 'embassy',
   country               text NOT NULL,
   city                  text NOT NULL,
   address               text,
@@ -86,8 +95,52 @@ CREATE TABLE IF NOT EXISTS public.embassies (
   updated_at            timestamptz NOT NULL DEFAULT now()
 );
 
+-- 1b. Rattrapage de la table deja presente en production ---------------------
+--     `CREATE TABLE IF NOT EXISTS` ne touche pas une table existante : sans
+--     ces ALTER, les colonnes ajoutees par cette migration n'existeraient que
+--     sur une base vierge.
+ALTER TABLE public.embassies ADD COLUMN IF NOT EXISTS slug              text;
+ALTER TABLE public.embassies ADD COLUMN IF NOT EXISTS type              text NOT NULL DEFAULT 'embassy';
+ALTER TABLE public.embassies ADD COLUMN IF NOT EXISTS additional_phones text[] NOT NULL DEFAULT '{}';
+ALTER TABLE public.embassies ADD COLUMN IF NOT EXISTS fax               text;
+ALTER TABLE public.embassies ADD COLUMN IF NOT EXISTS source            text;
+ALTER TABLE public.embassies ADD COLUMN IF NOT EXISTS source_url        text;
+ALTER TABLE public.embassies ADD COLUMN IF NOT EXISTS source_checked_at timestamptz;
+ALTER TABLE public.embassies ADD COLUMN IF NOT EXISTS data_notes        text;
+
+-- La table en place impose NOT NULL sur `address`, or deux postes (La Havane,
+-- Doha) n'en publient aucune. Mieux vaut l'absence assumee qu'une chaine vide
+-- qui se lirait comme une adresse connue.
+ALTER TABLE public.embassies ALTER COLUMN address DROP NOT NULL;
+
+-- Ces colonnes sont NOT NULL *sans valeur par defaut* : toute insertion qui ne
+-- les cite pas echoue, y compris celle de l'ecran d'administration. On leur
+-- donne le defaut vide qui va de soi. Sans effet la ou il existe deja.
+ALTER TABLE public.embassies ALTER COLUMN id                     SET DEFAULT gen_random_uuid();
+ALTER TABLE public.embassies ALTER COLUMN activities             SET DEFAULT '[]'::jsonb;
+ALTER TABLE public.embassies ALTER COLUMN news                   SET DEFAULT '[]'::jsonb;
+ALTER TABLE public.embassies ALTER COLUMN opening_hours          SET DEFAULT '{}'::jsonb;
+ALTER TABLE public.embassies ALTER COLUMN services               SET DEFAULT '{}';
+ALTER TABLE public.embassies ALTER COLUMN upcoming_services      SET DEFAULT '{}';
+ALTER TABLE public.embassies ALTER COLUMN jurisdiction_countries SET DEFAULT '{}';
+ALTER TABLE public.embassies ALTER COLUMN is_verified            SET DEFAULT FALSE;
+ALTER TABLE public.embassies ALTER COLUMN is_suspended           SET DEFAULT FALSE;
+ALTER TABLE public.embassies ALTER COLUMN is_temporarily_closed  SET DEFAULT FALSE;
+ALTER TABLE public.embassies ALTER COLUMN created_at             SET DEFAULT now();
+ALTER TABLE public.embassies ALTER COLUMN updated_at             SET DEFAULT now();
+
+-- `slug` porte la cle naturelle du seed : sans l'unicite, le `ON CONFLICT`
+-- plus bas n'a pas d'index sur lequel s'appuyer et la migration echoue.
+CREATE UNIQUE INDEX IF NOT EXISTS embassies_slug_key ON public.embassies (slug);
+
+-- La contrainte sur les trois natures de poste, posee separement : la table
+-- existante ne l'avait pas, et elle est vide, donc rien a nettoyer d'abord.
+ALTER TABLE public.embassies DROP CONSTRAINT IF EXISTS embassies_type_check;
+ALTER TABLE public.embassies ADD  CONSTRAINT embassies_type_check
+  CHECK (type IN ('embassy', 'consulate', 'mission', 'delegation'));
+
 CREATE INDEX IF NOT EXISTS embassies_country_idx   ON public.embassies (country);
-CREATE INDEX IF NOT EXISTS embassies_post_type_idx ON public.embassies (post_type);
+CREATE INDEX IF NOT EXISTS embassies_type_idx ON public.embassies (type);
 -- La liste ne montre que les fiches verifiees et non suspendues : c'est le
 -- filtre de tous les appels, il merite son index partiel.
 CREATE INDEX IF NOT EXISTS embassies_visible_idx
@@ -115,6 +168,13 @@ CREATE TRIGGER embassies_touch_updated_at
 -- L'annuaire est une donnee publique : aucune ligne ne contient de donnee
 -- personnelle, et un usager doit pouvoir trouver son consulat avant meme
 -- d'ouvrir un compte. La lecture est donc ouverte, y compris a `anon`.
+--
+-- Constate au push du 2026-09-07 : la table existante n'avait AUCUNE politique
+-- (les quatre `DROP POLICY IF EXISTS` ci-dessous ont tous repondu « does not
+-- exist, skipping ») et `anon` la lisait quand meme -- donc RLS n'y etait pas
+-- active. Or `anon` dispose des privileges INSERT/UPDATE/DELETE au niveau
+-- TABLE sur presque tout ce schema : n'importe qui pouvait ecrire dans
+-- l'annuaire officiel. C'est ce que ferme le bloc suivant.
 ALTER TABLE public.embassies ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "embassies_select_all" ON public.embassies;
@@ -149,7 +209,7 @@ GRANT INSERT, UPDATE, DELETE ON public.embassies TO authenticated;
 -- `ON CONFLICT (slug)` : la migration est rejouable, et une correction future
 -- se fait en reinserant la meme ligne.
 INSERT INTO public.embassies (
-  slug, name, post_type, country, city, address,
+  slug, name, type, country, city, address,
   phone, additional_phones, fax, email,
   jurisdiction_countries,
   is_verified, verified_at,
@@ -340,21 +400,21 @@ INSERT INTO public.embassies (
 -- Niger auprès d'une organisation. Le site les fait figurer à la fois dans
 -- « Les ambassades » et dans une page dédiée -- avec, pour Genève, deux
 -- numéros de téléphone différents.
-('geneve-mission', 'Mission permanente du Niger à Genève', 'permanent_mission',
+('geneve-mission', 'Mission permanente du Niger à Genève', 'mission',
  'Suisse', 'Genève', '23 avenue de France, 1202 Genève',
  '+41 22 979 24 52', '{}', '+41 22 979 24 51', 'missionduniger1@gmail.com',
  '{"Suisse","Autriche","Liechtenstein"}', TRUE, now(),
  'diplomatie.gouv.ne', 'https://diplomatie.gouv.ne/index.php/representations-diplomatiques/les-representations-et-les-delegations-permanentes-aupres-des-organisations-internationales', '2026-09-07',
  'Téléphone repris de la page « représentations permanentes » du ministère (…452). La page des ambassades publie par erreur le numéro de fax (…451) dans les deux champs.'),
 
-('new-york-mission', 'Mission permanente du Niger auprès des Nations unies', 'permanent_mission',
+('new-york-mission', 'Mission permanente du Niger auprès des Nations unies', 'mission',
  'États-Unis', 'New York', '417 East 50th Street, New York NY',
  '+1 212 421 3260', '{}', '+1 212 753 6931', 'nigermission@ymail.com',
  '{"Venezuela"}', TRUE, now(),
  'diplomatie.gouv.ne', 'https://diplomatie.gouv.ne/index.php/representations-diplomatiques/les-representations-et-les-delegations-permanentes-aupres-des-organisations-internationales', '2026-09-07',
  'Accréditée auprès des Nations unies et du Venezuela. Pour les États-Unis, le poste compétent est l''ambassade à Washington.'),
 
-('paris-unesco-mission', 'Délégation permanente du Niger auprès de l''UNESCO', 'permanent_mission',
+('paris-unesco-mission', 'Délégation permanente du Niger auprès de l''UNESCO', 'delegation',
  'France', 'Paris', '1 rue Miollis, 75015 Paris',
  '+33 1 45 68 25 68', '{}', '+33 1 45 68 25 69', NULL,
  '{}', TRUE, now(),
@@ -392,7 +452,7 @@ INSERT INTO public.embassies (
 
 ON CONFLICT (slug) DO UPDATE SET
   name                   = EXCLUDED.name,
-  post_type              = EXCLUDED.post_type,
+  type              = EXCLUDED.type,
   country                = EXCLUDED.country,
   city                   = EXCLUDED.city,
   address                = EXCLUDED.address,

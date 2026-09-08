@@ -31,7 +31,7 @@ abstract class EmbassiesDataSource {
 /// Énumérées plutôt que `*` : une colonne ajoutée plus tard par une migration
 /// ne changera pas silencieusement la charge utile de chaque ouverture d'écran.
 const String _embassyColumns = '''
-  id, name, post_type, country, city, address,
+  id, name, type, country, city, address,
   phone, additional_phones, fax, email, website,
   latitude, longitude, image_url,
   services, upcoming_services, opening_hours, jurisdiction_countries,
@@ -75,7 +75,7 @@ Map<String, dynamic> _mapEmbassy(Map<String, dynamic> row) {
     'latitude': (row['latitude'] as num?)?.toDouble(),
     'longitude': (row['longitude'] as num?)?.toDouble(),
     'imageUrl': row['image_url'],
-    'type': row['post_type'] ?? 'embassy',
+    'type': row['type'] ?? 'embassy',
     'services': _stringList(row['services']),
     'upcomingServices': _stringList(row['upcoming_services']),
     'openingHours': _stringMap(row['opening_hours']),
@@ -102,7 +102,7 @@ Map<String, dynamic> _mapEmbassy(Map<String, dynamic> row) {
 Map<String, dynamic> _toRow(EmbassyModel e) {
   return {
     'name': e.name,
-    'post_type': e.type,
+    'type': e.type,
     'country': e.country,
     'city': e.city,
     'address': e.address.isEmpty ? null : e.address,
