@@ -628,12 +628,21 @@ après installation, donc celui d'un usager qui installe l'app dans le train.
       déjà présent : `PolitiqueDeReprise` pose désormais une fenêtre de calme
       qui vaut pour **tous** les appelants.
 
-- [ ] ⛔ **Mais l'écran tourne toujours.** Vérifié juste après : hors ligne
-      avec un cache vide, l'annuaire affiche encore son spinner sans fin.
-      Borner l'authentification n'était donc PAS la cause du symptôme — la
-      requête de l'annuaire elle-même ne rend jamais la main. À traiter là où
-      elle part (`embassies_supabase_datasource` / `embassies_repository_impl`),
-      probablement par un `timeout` qui laisse retomber sur la copie locale.
+- [x] **Spinner sans fin corrigé — vu sur SM A515F (2026-09-08).**
+      `EmbassiesRepositoryImpl.getEmbassies` borne la lecture distante à 10 s
+      et retombe sur la copie locale. Mode avion vérifié avant, pendant et
+      après : l'annuaire se résout en ~16 s et affiche ses 30 postes, au lieu
+      de tourner au-delà de 85 s.
+
+      ⚠️ Réserve : ce parcours-là a pu emprunter la branche hors-ligne
+      directe (`isConnected` à `false`) plutôt que le délai. C'est
+      `annuaire_repli_hors_ligne_test.dart` qui prouve le délai lui-même —
+      ses cas mettent exactement 10 s, avec un distant qui ne rend jamais la
+      main.
+
+- [ ] Reproduire le cas où `isConnected` **ment** (VPN persistant actif, qui
+      le fait rendre `true` hors ligne) pour voir le délai jouer sur
+      l'appareil. C'est la configuration qui avait produit le spinner.
 
 - [ ] La reprise au retour du réseau (`reprendreApresRetourReseau`) n'est
       **pas vérifiée sur appareil**. Un premier essai a montré qu'elle ne
