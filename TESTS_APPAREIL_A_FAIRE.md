@@ -10026,6 +10026,23 @@ où j'ai trouvé le défaut.
       apparaître dans la liste — l'écran écrivait dans Firestore, donc dans
       une collection que plus personne ne lit.
 
+**Position douteuse : « Y aller » grisé** (2026-09-08, ✅ vérifié sur Pixel).
+Copenhague portait des coordonnées ET une réserve disant qu'elles sont à 5 km
+d'une autre source — le bouton restait pourtant actif et orange, comme sur une
+fiche sûre. `latitude != null` ne suffisait plus à décider : « on a une
+position » et « on lui fait confiance » sont deux choses différentes. Colonne
+`position_uncertain` (migration `20260908183500`), getter `canNavigate`, et les
+**deux** boutons d'itinéraire s'y réfèrent — celui de la fiche et celui de la
+carte de liste, qui disparaît complètement. Verrouillé par
+`test/features/embassies/position_douteuse_test.dart`.
+
+Bilan : 29 fiches navigables, 3 non — Djeddah et Khartoum faute de
+coordonnées, Copenhague faute de confiance.
+
+⚠️ **Reste ouvert** : la carte (`map_screen.dart`) place toujours une épingle
+pour Copenhague, sans marque d'incertitude. Le bouton et la carte se
+contredisent donc encore, à un endroit de moins qu'avant.
+
 **Trois défauts trouvés PAR ce test appareil**, invisibles à `flutter analyze` :
 
 1. **Ville doublée** — « Machnower Str. 24, **Berlin, Berlin**, Allemagne ».
