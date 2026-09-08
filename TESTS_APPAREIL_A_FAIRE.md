@@ -56,6 +56,203 @@ Ce que ce passage change au comportement Android — à regarder sur appareil,
 
 **Version portée à `1.2.1+11`** (la 1.2.0+10 est celle en production).
 
+---
+## ⚠️→✅ La garde d'organisateur refusait l'organisateur (2026-09-08)
+
+Trouvé **en vérifiant autre chose** : le A51, compte organisateur, affichait
+« Modification réservée à l'organisateur » sur un lien qui avait ouvert le
+formulaire une minute plus tôt.
+
+La cause est dans la garde que je venais d'écrire :
+`ref.watch(currentUserProvider).valueOrNull` rend `null` aussi bien pour
+« déconnecté » que pour « pas encore chargé », et je traitais les deux comme
+un refus. Au démarrage à froid — précisément le cas du lien profond — la
+session n'a pas encore émis : **la garde tranchait avant de savoir qui
+regarde**. Défaut intermittent, et l'écran de refus n'offre rien à réessayer.
+
+Corrigé dans les trois routes gardées : on attend que la session soit
+*résolue* (valeur **ou** erreur) avant de décider ; en attendant, l'état de
+chargement, qui a sa sortie. Le test porte sur l'absence de valeur et
+d'erreur plutôt que sur `isLoading`, ce dernier étant aussi vrai pendant un
+rafraîchissement — il ferait clignoter un écran déjà rendu.
+
+- [x] A51 (organisateur), **démarrage à froid** : « Modifier l'événement »
+      s'ouvre. C'est la condition exacte qui produisait le faux refus.
+- [x] Pixel (non-organisateur) : « Modification réservée à l'organisateur »
+      s'affiche toujours — la correction n'a pas ouvert la porte.
+- [x] L'étiquette du champ description dit « Description » et non plus
+      « La description est requise ».
+
+À retenir : **`.valueOrNull` sur une session ne peut pas décider d'une
+autorisation.** Le motif se lit bien, passe l'analyse, passe les tests qui
+donnent une session immédiate, et ne se voit qu'au démarrage à froid sur
+appareil. Les autres écrans s'en tirent parce qu'ils dégradent en douceur
+(un bouton masqué) au lieu d'accuser.
+
+---
+
+## ✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)
+
+Même famille que la fiche d'ambassade ci-dessous, mais en plus brutal : là où
+`/embassies/:id` faisait un `!`, ces trois-là transtypaient `state.extra` vers
+un type **non nullable**, donc `TypeError` avant même le montage de l'écran.
+
+- `/events/:eventId/edit` — `state.extra as EventEntity`
+- `/events/:eventId/recap` — idem
+- `/groups/:groupId/edit` — `state.extra as GroupEntity`
+
+Les routes résolvent maintenant l'identifiant (`EventEditRoute`,
+`EventRecapRoute`, `GroupEditRoute`), et l'état sans contenu passe par une
+brique partagée, `DesignUnavailableBody` (design_kit), que la fiche
+d'ambassade utilise aussi désormais.
+
+⚠️ **La vraie question n'était pas le plantage.** `EditEventScreen` et
+`EditGroupScreen` n'ont **aucune** vérification d'autorisation : elles
+faisaient confiance à leur appelant, dont le bouton est masqué derrière
+`isOrganizer` / `isCreator || isAdmin`. Un lien profond court-circuite cet
+appelant — résoudre l'identifiant sans garde aurait donc ouvert le formulaire
+d'édition de l'événement ou du groupe de n'importe qui. Le plantage, lui,
+fermait la porte. La garde est portée par les routes, repli superAdmin sur les
+groupes officiels compris, et couverte par 11 tests widget.
+
+- [x] Les trois liens profonds, **en ligne** : plus aucune exception dans
+      logcat ; chacun aboutit à « Chargement impossible » avec « Réessayer »
+      et sa sortie nommée, en thème sombre.
+- [x] `/groups/:groupId/edit` en **mode avion** : même écran, après ~3 min
+      (le temps que `getGroupById` renonce).
+- [x] Lien vers l'**édition d'un événement dont on n'est pas
+      organisateur** : « Modification réservée à l'organisateur » + « Voir
+      l'événement ». Vu sur **Pixel 10 Pro XL** (compte « Salim »), sur
+      l'événement `LmCs74hv84NSbKM7TDrx` organisé par le compte du A51.
+- [x] L'ayant droit n'est pas gêné : sur le A51 (compte organisateur), le
+      même lien ouvre « Modifier l'événement » pré-rempli — **« Gérer les
+      affiches (0/5) »** compris, c'est-à-dire la ligne exacte qui levait le
+      `LateInitializationError`. Le correctif `_currentPosterUrls` est donc
+      vérifié sur un vrai événement.
+- [ ] L'équivalent pour un **groupe** dont on n'est pas administrateur :
+      toujours pas vu (il faudrait un groupe partagé entre les deux comptes).
+
+⚠️ **Trouvé au passage, corrigé** : `EditEventScreen._currentPosterUrls` est
+`late` et n'était **jamais assigné**, alors qu'il est lu dès le premier
+`build` (« Gérer les affiches (n/5) »). L'écran levait donc un
+`LateInitializationError` à **chaque** ouverture, y compris par le bouton
+« modifier » — modifier un événement était impossible pour tout le monde.
+Aucun test ne montait cet écran ; il est apparu à la première tentative.
+À rejouer sur appareil sur un vrai événement.
+
+✅ **Tranché le 2026-09-08 : le récap est réservé à l'organisateur.**
+`EventRecapScreen` est un **formulaire** (« Créer / Modifier le récap »,
+description, dix photos, bouton d'enregistrement) sans mode lecture, et
+l'accueil l'ouvrait pour tout le monde dès qu'un événement passé avait des
+photos — n'importe qui pouvait donc réécrire le récapitulatif de l'événement
+d'autrui. `EventRecapRoute` porte désormais la même garde que l'édition.
+
+Deux précautions pour que la garde ne retire rien à personne :
+- la sortie mène à `/events/:eventId`, **pas** à la liste : la fiche affiche
+  déjà le récapitulatif (description + grille de photos), donc un
+  non-organisateur voit toujours ce qu'il voyait ;
+- la carte « rien de prévu » de l'accueil (`home_screen_widgets.dart`)
+  n'envoie plus au formulaire que l'organisateur ; les autres vont à la fiche.
+  Sans ça, la pastille « Photos » aurait mené tout le monde contre un mur.
+
+- [x] Un non-organisateur voit bien « Récap réservé à l'organisateur » —
+      **Pixel 10 Pro XL**, compte « Salim », le 2026-09-08.
+- [x] « Voir l'événement » l'amène à la fiche de l'événement. Celle-ci
+      n'affiche **aucun bouton « modifier »** pour lui : c'est la logique
+      préexistante de l'écran (`isOrganizer`) qui confirme, indépendamment de
+      ma garde, que ce compte n'est bien pas l'organisateur.
+- [x] L'organisateur, lui, atteint toujours le formulaire : sur le A51,
+      « Créer un récapitulatif » s'ouvre normalement.
+
+**Méthode : aucun événement de test n'a été créé.** Le premier réflexe était
+d'en écrire un en base de production ; c'était inutile. Les deux téléphones
+portent **deux comptes différents** (« Sim » sur le A515F, « Salim » sur le
+Pixel), donc n'importe quel événement existant est « le mien » d'un côté et
+« celui d'autrui » de l'autre. À retenir pour toute garde d'autorisation à
+vérifier.
+
+⚠️ **Piège de mesure, retombé dessus** : le A51 s'est retrouvé avec un APK
+qui n'était pas le mien (`3edc4fa6` au lieu de `a5326f74`) entre deux essais —
+un autre build l'a écrasé en cours de session. L'écran d'erreur neutre que
+j'y voyais n'était pas mon code. Comparer `md5sum` local/appareil **avant**
+chaque conclusion, pas seulement après l'installation.
+
+⚠️ **Trouvé en regardant l'écran d'édition, non corrigé** : le champ
+description a pour étiquette « La description est requise »
+(`l10n.descriptionRequired`, edit_event_screen.dart:410) au lieu de
+« Description ». Le message de validation, lui, a sa propre clé
+(`descriptionRequiredError`). Purement cosmétique, mais visible.
+
+⚠️ **Trouvé en vérifiant ça, non corrigé** : la carte de l'accueil est le
+**seul** chemin vers le récapitulatif, et elle ne s'y rend que si
+`recapPhotoUrls.isNotEmpty`. Un organisateur dont l'événement passé n'a pas
+encore de photos n'a donc **aucun moyen d'en créer un** — l'écran porte
+pourtant un mode « Créer » (`eventCreateRecap`, `eventRecapCreateButton`).
+Il manque une entrée depuis la fiche de l'événement. Antérieur à la garde.
+
+⚠️ **Piège de méthode, revu deux fois aujourd'hui** : après avoir supprimé des
+clés ARB, l'APK incrémental gardait l'ancien code compilé — la route affichait
+l'écran d'erreur neutre, sans **aucune** trace dans logcat (`presentError` est
+noyé par le bruit Supabase hors ligne). Deux reproductions à froid et un test
+témoin sur une route non modifiée ont été nécessaires avant de penser au
+`flutter clean`, qui a tout réglé. md5 local == md5 appareil ne prouve rien
+ici : les deux portaient le même APK périmé.
+
+---
+
+## ✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)
+
+`/embassies/:id` ne lisait que `state.extra` et terminait par
+`EmbassyDetailScreen(embassy: embassy!)` — un `!` sur la valeur qu'elle venait
+de tester nulle. `state.extra` étant nul par construction hors navigation
+interne, l'écran rouge « Null check operator used on a null value » était
+systématique. **Et pas seulement par lien profond** : le bouton de la fiche
+d'ambassade sur la carte (`map_screen.dart:1521`) pousse la route sans objet,
+donc il plantait depuis l'app elle-même.
+
+La route résout maintenant l'identifiant (`EmbassyDetailRoute` +
+`embassyByIdProvider`), avec un état de chargement et deux états nommés, tous
+munis d'une sortie (`DesignExitOnlyBody` + bouton « Retour à l'annuaire »).
+
+- [x] Lien profond vers une fiche réelle, démarrage à froid, **en ligne** :
+      `diasponiger:///embassies/aa643d7b-373a-47a5-bc94-c33545a43cad` ouvre
+      « Ambassade du Niger en Italie ». Aucune exception dans logcat.
+- [x] Le même lien **en mode avion** : la fiche s'ouvre depuis la copie
+      locale. C'est l'usage principal de cet écran (chercher le numéro de son
+      consulat sans réseau).
+- [x] Identifiant inconnu, mode avion : on aboutit à « Chargement
+      impossible » avec « Réessayer » **et** « Retour à l'annuaire », en
+      thème sombre. Pas « Fiche introuvable » — c'est voulu : hors ligne on
+      ignore si la fiche existe, l'affirmer serait faux.
+- [x] Identifiant inconnu **en ligne** : affiche bien « Fiche introuvable »
+      (et non « Chargement impossible »), avec « Retour à l'annuaire » pour
+      seule action — vérifié SM A515F le 2026-09-08, réseau rétabli. Pas de
+      bouton « Réessayer », et c'est voulu : une fiche absente ne se recharge
+      pas.
+- [ ] Bouton « détails » de la fiche d'ambassade **sur la carte** : c'est le
+      second chemin qui plantait, corrigé par ricochet mais jamais rejoué à
+      la main sur appareil.
+- [ ] Fiche hors de la juridiction de l'usager ouverte par lien partagé :
+      elle doit s'afficher (le filtre de juridiction ne vaut que pour la
+      liste). Couvert en test widget, pas sur appareil.
+
+⚠️ **Découvert au passage, non corrigé** : `getEmbassies()` n'a aucun délai de
+garde. Derrière un VPN persistant en mode avion, `networkInfo` se croit
+connecté et la requête Supabase reste suspendue **~2 minutes** avant de servir
+la copie locale. Ça retarde d'autant tout ce qui attend l'annuaire — la fiche
+comme la liste. Le provider `embassyById` borne son propre appel à 8 s, mais
+il ne peut rien contre celui qui le précède. Vérifier si l'écran de liste
+mérite le même traitement.
+
+⚠️ **Même famille, non corrigé** : trois autres routes castent `state.extra`
+vers un type **non nullable**, donc plantent identiquement par lien profond ou
+notification — `/events/:eventId/edit` et `/events/:eventId/recap`
+(`state.extra as EventEntity`), `/groups/:groupId/edit`
+(`state.extra as GroupEntity`). Elles n'ont pas été touchées : chacune demande
+son propre état de chargement et d'introuvable.
+
+---
+
 ## ✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)
 
 Notifications, Annuaire des entreprises, Événements et Ambassades sont
@@ -148,19 +345,74 @@ Flutter, pas `DesignBackLeading`. Les trois fiches à image de couverture
 (entreprise, ambassade, produit) la reçoivent sans pastille — c'est déjà
 ainsi que leurs actions `partager` / `modifier` sont posées sur l'image.
 
-À vérifier sur appareil (aucun de ces 36 écrans n'a été rouvert depuis) :
+**Vu sur SM A515F le 2026-09-08 — 8 fichiers sur 36.** Méthode : l'arbre
+d'accessibilité expose la flèche comme `content-desc="Retour"`
+(`uiautomator dump`), ce qui est bien plus fiable que de lire des pixels.
+Confirmés : `/friends`, `/support`, `/businesses/mine`, `/admin/support`,
+`/messages/new`, `/profile/reposts`, `/settings/security/backup`,
+`/embassies/employees`.
 
-- [ ] Un échantillon par famille, en entrée normale **et** par lien profond :
-      `/transfers/send`, `/marketplace/cart`, `/support`, `/friends`,
-      `/payment-history`.
-- [ ] Les trois fiches à image de couverture : la flèche est-elle **lisible**
-      sur la photo ? `/businesses/:id`, `/embassies/:id`,
-      `/marketplace/:productId`. C'est le seul endroit où le contraste n'est
-      pas garanti par le thème.
-- [ ] Les écrans à plusieurs `AppBar` : vérifier l'état **vide** et l'état
-      **chargement**, pas seulement l'état nominal — `/marketplace/cart`
-      (panier vide), `/marketplace/my-listings`, `/payment-history`,
-      `/payment-accounts`, `/marketplace/my-orders`.
+**Non vérifiables sur cet appareil — 18 fichiers sur 36.** Les familles
+`/transfers`, `/marketplace`, `/payment-accounts`, `/payment-history`,
+`/podcasts` et `/audio-rooms` sont derrière un feature-flag : le routeur les
+renvoie sur `/home` (étape 9 du `redirect`). Aucun de leurs écrans n'est
+atteignable tant que les drapeaux sont à false.
+
+Reste à voir, par ordre d'intérêt :
+
+- [ ] **La flèche est-elle lisible sur une image de couverture ?** C'est le
+      seul endroit où le contraste n'est pas garanti par le thème :
+      `/businesses/:id` et `/marketplace/:productId` posent une vraie photo
+      (`CachedNetworkImage`). Non testable ici — l'annuaire est vide sur ce
+      compte et la boutique est derrière un drapeau. `/embassies/:id` ne
+      compte pas : son en-tête est un aplat teinté, pas une photo.
+- [ ] **Les états vide et chargement** des écrans à plusieurs `AppBar` :
+      `/marketplace/cart` panier vide, `/marketplace/my-listings`,
+      `/payment-history`, `/payment-accounts`, `/marketplace/my-orders`.
+      Tous derrière un drapeau aujourd'hui.
+- [ ] Les ~10 écrans restants atteignables mais non atteints (voir le piège
+      d'`am start` ci-dessous).
+
+**Troisième forme du défaut, trouvée à l'écran le 2026-09-08 — corrigée.**
+`/businesses/<id>` sur une entreprise absente affichait « Entreprise non
+trouvée » **et rien pour revenir**. La fiche pose sa `SliverAppBar` *à
+l'intérieur* de la branche « données » : son `Scaffold` n'a pas d'`appBar`,
+donc les états chargement / erreur / « non trouvé » n'ont aucune sortie. Le
+fichier contenait pourtant un `BackButton` — d'où l'aveuglement d'un garde
+qui raisonne au fichier. Trois écrans avaient cette forme :
+`business_detail_screen`, `product_detail_screen`, et le `Scaffold` de
+chargement de `transfer_screen`. Tous passés sur une brique unique du kit,
+`DesignExitOnlyBody`.
+
+- [x] **Vérifié sur SM A515F** : « Entreprise non trouvée » expose maintenant
+      un contrôle « Retour ».
+
+**⛔ Défaut sans rapport, trouvé au passage et NON corrigé : `/embassies/<id>`
+plante.** Le builder de la route lit `state.extra as EmbassyEntity?` puis
+termine par `EmbassyDetailScreen(embassy: embassy!)` — un `!` sur la valeur
+qu'il vient de tester nulle. `state.extra` étant toujours nul par lien
+profond et par notification, **toute** entrée directe sur une fiche
+ambassade donne l'écran rouge « Null check operator used on a null value »
+(reproduit à l'identique sur appareil). Les commentaires du code admettent
+que le repli n'est pas implémenté. Même famille que
+`project_state_extra_not_authoritative`. Hors sujet de ce lot, laissé tel
+quel : il faut charger l'ambassade par son id.
+
+**Deux pièges de méthode rencontrés, à retenir :**
+
+1. **L'autre agent installe son APK sur le même téléphone.** À 01:13:54 le
+   `base.apk` a changé en plein test : mes mesures des dix minutes suivantes
+   ne portaient pas sur mon build, et j'ai failli conclure qu'un écran
+   corrigé n'avait pas de flèche. Encadrer **chaque** mesure d'un contrôle
+   `md5sum` local ↔ appareil, avant *et* après — pas seulement à
+   l'installation.
+2. **Le lien profond à froid retombe sur `/home` de façon intermittente.**
+   Course entre le `redirect` de démarrage (auth, consentement, config) et le
+   rejeu du lien mis de côté. Un `uiautomator dump` qui montre `Bonjour,`
+   (accueil) ou `Diaspo Niger` (splash) est une mesure **ratée**, pas un
+   écran sans flèche : toujours identifier l'écran atteint avant de conclure.
+   Plus fiable : lancer l'app, attendre qu'elle soit posée, puis envoyer les
+   intents à chaud.
 
 - [ ] Rendu en **thème clair** : les quatre écrans n'ont été vus qu'en sombre.
 - [ ] Zone tactile de `DesignBackLeading` : 28x34 dp, sous les 48 dp
@@ -274,12 +526,70 @@ suit n'a été vu sur un téléphone.
       provider de profil et la lecture qui n'en tolère pas l'erreur, pas un
       chemin de code fixe.
 
-- [ ] Reproduire l'écran rouge **avec l'instrumentation active** pour obtenir
-      la ligne exacte. C'est maintenant possible : la pile s'imprime. Il faut
-      surtout gagner la course — relancer plusieurs fois hors ligne, l'app
-      restant par ailleurs souvent bloquée au splash dans ces conditions.
-- [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
-      compte** dans un message d'erreur visible par l'usager.
+**Quatre campagnes de reproduction, ~34 lancements à froid hors ligne, avec
+l'instrumentation active : la course ne s'est JAMAIS reproduite.**
+
+Une seule campagne est méthodologiquement valable, et c'est important de le
+dire : les trois autres n'ont rien prouvé.
+
+| # | Méthode | Verdict |
+|---|---|---|
+| 1 | Taps à l'aveugle (8 essais) | ❌ **invalide** — GoRouter ne montre aucun `/embassies/`, les taps n'ont jamais atteint l'écran |
+| 2 | Lien profond direct vers la fiche, 10 essais | ✅ **valable** — route poussée vérifiée à chaque tour, **0 exception** |
+| 3 | Lien profond vers la liste + tap « Détails » (10) | ❌ le tap n'ouvre jamais la fiche (`pushing /embassies/` = 0) |
+| 4 | Idem, attentes portées à 75 s (6) | ❌ même échec, ce n'était donc pas un problème de timing |
+
+**Ce qui est acquis** : sur la fiche atteinte directement, 10 démarrages à
+froid hors ligne d'affilée, aucune exception. **Ce qui ne l'est pas** : les
+deux occurrences réelles venaient du parcours par la liste, et je n'ai pas
+réussi à automatiser ce parcours-là de façon vérifiable.
+
+- [ ] Reprendre la reproduction **par le parcours réel**, à la main plutôt
+      qu'en script : liste → fiche → « Demande », hors ligne, à froid,
+      plusieurs fois. La pile s'imprime maintenant, donc une seule occurrence
+      suffira à trancher.
+      ⚠️ Obstacle non résolu : `input tap` sur « Détails » n'ouvre pas la
+      fiche quand la liste vient d'un lien profond (`diasponiger://embassies`).
+      Ni les coordonnées ni l'attente (jusqu'à 75 s) n'y changent rien —
+      la cause reste à trouver, et c'est ce qui a bloqué l'automatisation.
+
+**✅ Symptôme traité, indépendamment de la traque.** Vu la rareté du défaut,
+le gain n'était pas dans la ligne exacte mais dans le fait qu'**une exception
+ne doit jamais s'afficher telle quelle**. `main.dart` pose désormais un
+`ErrorWidget.builder` global (`construireEcranErreurNeutre`) qui rend
+« Une erreur est survenue » à la place du message brut — donc plus d'hôte
+Supabase ni d'identifiant de compte à l'écran, quelle que soit la ligne
+fautive. Posé en debug aussi, pour que ce chemin soit réellement exercé ; la
+pile continue de sortir en console via `presentError`.
+
+Couvert par `test/core/ecran_erreur_neutre_test.dart` (4 cas) : l'exception
+réellement observée est rejouée et le test échoue si `supabase.co`,
+l'identifiant du compte ou `SocketException` réapparaissent à l'écran. Les
+deux autres cas couvrent les contraintes du widget — zone minuscule, absence
+de `Directionality`/`Theme` au-dessus.
+
+**Les deux thèmes sont vérifiés** (2026-09-08), par deux moyens qui se
+complètent : des assertions déterministes sur les couleurs et le contraste
+(`computeLuminance`), et un rendu rasterisé inspecté pour la mise en page.
+Clair : fond `#F7F7F7`, titre `#1A1A1A`. Sombre : fond `#121212`, titre
+`#F5F5F5`. Contenu centré, icône présente, seconde ligne plus pâle dans les
+deux cas.
+
+⚠️ Ce rendu suit la luminosité du **système**, pas le thème de l'app — un
+`ErrorWidget` peut être posé au-dessus de `MaterialApp`, donc sans `Theme` à
+interroger. Conséquence assumée : qui force dans l'app un thème contraire à
+celui du système verra cet écran-là dans l'autre sens. C'est pourquoi les
+tests exigent que **chacun des deux rendus soit lisible seul**.
+
+- [ ] Reste à voir sur un vrai téléphone, pour les glyphes : `flutter test`
+      dessine le texte avec sa police de test (chaque caractère devient un
+      pavé plein), donc l'image prouve les couleurs et la mise en page, pas
+      le texte. Suppose de provoquer une levée à la demande — et celle qu'on
+      connaît ne se reproduit pas.
+- [x] **Fait pour l'écran rouge de Flutter (2026-09-08)** :
+      `ErrorWidget.builder` rend « Une erreur est survenue » à la place du
+      message brut. ⚠️ Ne couvre PAS les états d'erreur que les écrans
+      rendent eux-mêmes — voir la section « Annuaire » ci-dessous.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
       liste embarquée, pas un spinner ni une erreur. (Même blocage que
       ci-dessus.)
@@ -336,8 +646,9 @@ désormais. `20260907210000` retire donc la colonne `post_type` devenue
 orpheline — deux colonnes décrivant la même chose divergeraient dès la
 première fiche modifiée par le back-office.
 
-- [ ] Vérifier sur appareil que l'annuaire s'affiche toujours après ce retrait
-      (l'app ne doit plus citer `post_type` nulle part).
+- [x] **Vu sur SM A515F (2026-09-08).** L'annuaire affiche ses 30 postes
+      après le retrait de `post_type`, en ligne comme hors ligne, sur cinq
+      passages étalés entre 11h49 et 02h00.
 
 **2. Hors ligne, l'écran affiche une exception brute — avec l'identifiant du
 projet Supabase.** Réseau coupé, « Ambassades » montre :
@@ -349,14 +660,133 @@ details: WebSocketChannelException: SocketException: Failed host lookup:
 hostname, errno = 7)))
 ```
 
-- [ ] **Ne pas exposer la trace ni le hôte Supabase à l'usager** : le ref du
-      projet est un identifiant interne, il n'a rien à faire à l'écran.
-      Message générique côté UI, détail dans les logs.
-- [ ] **Le repli hors ligne ne joue pas sur ce chemin** : la liste avait été
-      chargée et mise en cache cinq minutes plus tôt, et l'écran tombe quand
-      même en erreur — l'échec vient de l'abonnement realtime, pas de la
-      lecture. Un canal realtime injoignable ne devrait pas empêcher
-      d'afficher la copie locale.
+- [~] **À moitié seulement — attention à ne pas croire ce point réglé.**
+      Il y a DEUX écrans d'erreur distincts, et un seul est traité :
+
+      - l'**écran rouge de Flutter** (une exception pendant un `build`) est
+        couvert depuis le 2026-09-08 par `ErrorWidget.builder`
+        (`construireEcranErreurNeutre` dans `main.dart`) ;
+      - l'**état d'erreur propre à l'écran** — celui de la capture ci-dessus,
+        avec son bouton « Réessayer » — ne l'est PAS. Il affiche
+        `error.toString()`, donc l'hôte et l'identifiant, et
+        `ErrorWidget.builder` n'y peut rien : ce n'est pas une levée, c'est
+        un `AsyncValue.error` rendu volontairement.
+
+- [x] **Fait le 2026-09-08 — et c'était bien plus large que l'annuaire.**
+      Le défaut touchait **42 sites dans 30 fichiers** : transferts,
+      marketplace, profil, admin, amis, paiements… tous de la forme
+      `Text('Erreur: $e')`. Tous passent par `messageErreurUsager`
+      (`lib/core/errors/message_erreur.dart`), qui classe la panne en trois
+      familles — réseau, droits, le reste — pour que le conseil donné soit
+      juste, sans jamais rendre le texte de l'exception.
+
+      Deux tests le tiennent : `message_erreur_test.dart` rejoue les
+      exceptions réellement observées et échoue si l'hôte, l'identifiant du
+      compte ou le nom de l'exception ressortent ; `aucune_erreur_brute_test.dart`
+      relit tout `lib/` et échoue si quelqu'un réintroduit le motif.
+
+**Essayé sur SM A515F le 2026-09-08, et voici ce qui s'est réellement passé.**
+
+- [x] **L'écran d'erreur neutre a été vu, et il était FAUX.** Cache vidé par
+      la réinstallation + mode avion : `construireEcranErreurNeutre` s'est
+      affiché. Le message était bon — plus d'hôte Supabase ni d'identifiant
+      de compte — mais le texte était peint **en chasse fixe, doublement
+      souligné de jaune**. C'est le style de secours de Flutter : un
+      `ErrorWidget` n'a aucun `Material` au-dessus de lui, donc rien ne
+      fournit de `DefaultTextStyle`, et fixer couleur et taille ne suffit
+      pas. Corrigé (`DefaultTextStyle` posé dans le widget) et épinglé par un
+      cas de test. **Aucun test ne pouvait le voir** : ils ne regardaient que
+      les couleurs, et le rendu rasterisé utilise une police de test.
+
+- [ ] ⛔ **`messageErreurUsager` n'a PAS pu être vu sur appareil.** Ni l'un ni
+      l'autre des deux états atteignables ne le déclenche :
+
+      - cache peuplé + hors ligne → la copie locale est servie, pas d'erreur ;
+      - cache vide + hors ligne → **attente infinie**, voir ci-dessous.
+
+      À reprendre par un écran sans repli local. `Annuaire Business` a été
+      essayé : il dégrade en état vide, pas en erreur.
+
+**🆕 Hors ligne avec un cache vide, l'annuaire tourne indéfiniment.** Spinner
+toujours présent après 85 s, sans message ni bouton. Le journal en donne la
+cause : `SupabaseAuthBridge` réessaie le rafraîchissement du jeton **en
+boucle, toutes les ~5 s, sans jamais abandonner** —
+
+```
+supabase.auth: WARNING: Notifying exception AuthRetryableFetchException(
+  message: ClientException with SocketException: Failed host lookup: …
+  uri=…/auth/v1/token?grant_type=refresh_token)
+SupabaseAuthBridge: [firebase_auth/network-request-failed] …
+```
+
+— et l'annuaire attend derrière. C'est le cas du premier lancement hors ligne
+après installation, donc celui d'un usager qui installe l'app dans le train.
+
+- [x] **Boucle bornée — vu sur SM A515F (2026-09-08).** Le journal montre
+      exactement six tentatives, en repli croissant (13 s, 13 s, 23 s… au lieu
+      de ~5 s constant), puis « abandon après 6 tentatives — la session reste
+      anon jusqu'au retour du réseau ». La cause était que
+      `auth_remote_datasource` rappelle `syncWithFirebase` à chaque émission
+      de `authStateChanges()`, ce qui court-circuitait le repli exponentiel
+      déjà présent : `PolitiqueDeReprise` pose désormais une fenêtre de calme
+      qui vaut pour **tous** les appelants.
+
+- [x] **Spinner sans fin corrigé — vu sur SM A515F (2026-09-08).**
+      `EmbassiesRepositoryImpl.getEmbassies` borne la lecture distante à 10 s
+      et retombe sur la copie locale. Mode avion vérifié avant, pendant et
+      après : l'annuaire se résout en ~16 s et affiche ses 30 postes, au lieu
+      de tourner au-delà de 85 s.
+
+      ⚠️ Réserve : ce parcours-là a pu emprunter la branche hors-ligne
+      directe (`isConnected` à `false`) plutôt que le délai. C'est
+      `annuaire_repli_hors_ligne_test.dart` qui prouve le délai lui-même —
+      ses cas mettent exactement 10 s, avec un distant qui ne rend jamais la
+      main.
+
+**Cas du « réseau menteur » reproduit le 2026-09-08 — et le délai NE SUFFIT
+PAS.** C'est le résultat important de la journée sur ce point.
+
+*Comment le fabriquer* (utile, la condition est difficile à obtenir autrement) :
+DNS privé en mode strict vers un hôte inexistant. Le WiFi reste `CONNECTED`,
+donc `connectivity_plus` voit son transport et `isConnected` rend `true`, mais
+toute résolution meurt.
+
+```bash
+adb shell settings put global private_dns_mode hostname
+adb shell settings put global private_dns_specifier dns-inexistant.invalid
+# vérification : `ping <hôte>` doit répondre « unknown host »
+# restauration OBLIGATOIRE :
+adb shell settings put global private_dns_mode opportunistic
+adb shell settings delete global private_dns_specifier
+```
+
+*Ce qu'on observe* : l'annuaire tourne encore à 6 s, à 16 s, **et à 60 s** —
+alors que le délai du dépôt est de 10 s.
+
+*Hypothèse de tête, à confirmer* : `embassiesList` observe
+`currentUserAsyncProvider` **et** `userStreamProvider`. Chaque tentative du
+pont d'authentification fait réémettre ces flux, donc reconstruit le provider
+et **redémarre le compte à rebours** avant qu'il n'arrive à terme. Le délai
+borne bien *une* tentative — c'est ce que prouve
+`annuaire_repli_hors_ligne_test.dart` — mais il ne peut rien contre un
+provider qu'on relance sans cesse.
+
+- [ ] Vérifier cette hypothèse (journaliser les reconstructions de
+      `embassiesList`), puis traiter la cause : ne pas faire dépendre la
+      liste de flux d'authentification qui s'agitent pendant une panne, ou
+      mémoriser le premier résultat plutôt que tout rejouer.
+
+- [ ] La reprise au retour du réseau (`reprendreApresRetourReseau`) n'est
+      **pas vérifiée sur appareil**. Un premier essai a montré qu'elle ne
+      partait jamais — `_etaitConnecte` valait `true` alors qu'on s'abonne
+      *pendant* la coupure, donc le `true` du retour ne ressemblait pas à une
+      transition. Corrigé, mais le second essai n'a pas abouti : le processus
+      a été relancé avant la fin des six tentatives.
+- [x] **Corrigé et vu sur SM A515F (2026-09-08).** Le repli joue :
+      réseau coupé, l'annuaire sert ses 30 postes depuis la copie locale
+      (vérifié à 11h52, 12h25 et 02h00, sans réinstaller entre-temps). Ce
+      point était par ailleurs faussé par un piège de méthode — voir le n°3
+      ci-dessous, `adb install -r` vide le cache.
 
 **3. La vraie cause du n°2 : `.value` sur un `AsyncValue` en erreur.**
 Le cas propre a été refait le 2026-09-08 (chargement en ligne, **sans
@@ -379,13 +809,16 @@ Le même défaut existait dans `administrative_request_screen.dart` (4
 occurrences, dont deux dans `initState`, donc levée avant tout rendu) : **il y
 est corrigé**, `.value` → `.valueOrNull`.
 
-- [ ] Corriger les lignes 56 et 63 de `embassies_provider.dart`. ⚠️ J'ai
-      essayé et **je suis revenu en arrière** : passer à `valueOrNull` laisse
-      le code atteindre `repository.getEmbassies()`, qui attend l'expiration
-      du délai réseau — l'écran reste alors en **attente indéfinie** (plus de
-      70 s constatées), sans message ni bouton « Réessayer ». Ce n'est pas
-      mieux qu'une erreur. La correction doit traiter les deux bouts : ne plus
-      relever, **et** ne pas partir sur le réseau quand il n'y en a pas.
+- [x] **Corrigé par l'auteur de l'annuaire (`fd0735e`), vu sur SM A515F
+      (2026-09-08).** Sa correction traite les deux bouts : `valueOrNull` aux
+      lignes 56 et 63, **et** un garde qui évite d'observer le profil quand
+      il n'y a pas d'utilisateur.
+
+      Mon propre essai, lui, avait été **annulé** : `valueOrNull` seul
+      laissait le code atteindre `repository.getEmbassies()` et attendre
+      l'expiration du délai réseau — écran en attente indéfinie, plus de 70 s
+      mesurées, sans message ni « Réessayer ». Ce n'était pas mieux qu'une
+      erreur. À garder en tête si quelqu'un refait le raccourci.
 
 ---
 
@@ -9753,6 +10186,43 @@ où j'ai trouvé le défaut.
       apparaître dans la liste — l'écran écrivait dans Firestore, donc dans
       une collection que plus personne ne lit.
 
+**Position douteuse : « Y aller » grisé** (2026-09-08, ✅ vérifié sur Pixel).
+Copenhague portait des coordonnées ET une réserve disant qu'elles sont à 5 km
+d'une autre source — le bouton restait pourtant actif et orange, comme sur une
+fiche sûre. `latitude != null` ne suffisait plus à décider : « on a une
+position » et « on lui fait confiance » sont deux choses différentes. Colonne
+`position_uncertain` (migration `20260908183500`), getter `canNavigate`, et les
+**deux** boutons d'itinéraire s'y réfèrent — celui de la fiche et celui de la
+carte de liste, qui disparaît complètement. Verrouillé par
+`test/features/embassies/position_douteuse_test.dart`.
+
+Bilan : 29 fiches navigables, 3 non — Djeddah et Khartoum faute de
+coordonnées, Copenhague faute de confiance.
+
+**Épingle distincte sur la carte** (2026-09-08) — la carte plaçait toujours une
+épingle ordinaire pour Copenhague. Elle y reste (la retirer ferait disparaître
+l'ambassade) mais se signale : **bordure discontinue et ambre** au lieu du
+cercle bleu plein, convention cartographique du tracé approximatif.
+
+⚠ Piège évité : la clé de cache des épingles était `embassy_circular_$isSelected`,
+**partagée par toutes les ambassades**. Sans y ajouter le drapeau, la première
+épingle dessinée aurait été resservie aux 29 autres.
+
+- [ ] **NON VÉRIFIÉ SUR APPAREIL.** Trois obstacles cumulés :
+  1. sur le **Pixel**, la carte est derrière l'écran « Mode privé activé » —
+     l'ouvrir demande d'activer le partage de position sur le compte réel de
+     Salim, ce qui est un réglage de confidentialité que je ne touche pas ;
+  2. sur le **SM A515F**, l'autre agent pilotait l'appareil au même moment
+     (écran « Modifier l'événement » apparu sous mes taps) — usage concurrent,
+     mesure abandonnée ;
+  3. et même avec l'accès, **Google Maps rend dans un `SurfaceView`**, que
+     `adb shell screencap` capture en noir. Une capture d'écran ne prouverait
+     donc probablement rien.
+
+  La bonne façon de le vérifier serait un test de rendu sur la fonction qui
+  peint l'épingle — mais elle est privée dans l'État de `map_screen.dart` et
+  l'extraire dépasse ce qui a été demandé.
+
 **Trois défauts trouvés PAR ce test appareil**, invisibles à `flutter analyze` :
 
 1. **Ville doublée** — « Machnower Str. 24, **Berlin, Berlin**, Allemagne ».
@@ -9773,6 +10243,145 @@ où j'ai trouvé le défaut.
    `if (user == null) return []` court-circuitait tout — 32 fiches en cache
    sur l'appareil, écran vide. Or la table est en lecture publique par
    conception : l'annuaire ne dépend plus d'une session.
+
+**Quatre défauts d'affichage de la fiche, trouvés en regardant l'écran**
+(2026-09-08, Pixel, thème sombre) — aucun ne sort de `flutter analyze`, et
+aucun ne lève de `RenderFlex overflowed` :
+
+1. **Onglet actif illisible.** `TabBar(labelColor: Colors.black87)` était figé :
+   noir sur fond noir en thème sombre. Même famille que les 48 jetons clairs
+   corrigés le 2026-08-04. Passé aux jetons `colorScheme`.
+2. **Titre tronqué** — « Ambassade du Niger … ». Deux causes cumulées : les
+   noms officiels du seed sont longs (36 caractères), et `FlexibleSpaceBar`
+   agrandit encore le titre de 1,5× quand l'en-tête est déplié. Deux lignes,
+   facteur ramené à 1,25.
+3. **200 px de bandeau vide.** `expandedHeight: 200` réserve la place d'une
+   image de couverture, or `imageUrl` est nul sur les 32 fiches ; le gabarit
+   (`primaryColor` à 10 %, icône à 50 %) disparaissait sous le dégradé noir.
+   Ramené à 140 px avec des couleurs réellement visibles.
+4. **Icône du gabarit sous la barre d'état**, puis par-dessus le titre :
+   le bandeau s'étend sous le statut, il faut décaler de
+   `MediaQuery.paddingOf(context).top`.
+
+✅ Vérifié après correction sur Pixel (capture `fiche_finale.png`).
+
+**Deux troncatures de plus sur l'écran de LISTE** (2026-09-08, Pixel) —
+distinctes des quatre ci-dessus, qui portaient sur la fiche :
+
+5. **« Ambassades & consul… »** — le titre de l'AppBar. `DesignTitle` est une
+   brique partagée du design kit, donc corrigé au point d'appel par un
+   `FittedBox(fit: scaleDown)` plutôt qu'en touchant au kit. À noter : ça
+   rentrait sur le SM A515F et débordait sur le Pixel — la police système est
+   plus large. Un écran validé sur un seul appareil ne prouve pas grand-chose.
+6. **« Rechercher par nom, pays o… »** — invite du champ de recherche,
+   raccourcie en « Nom, pays ou ville » ; l'icône loupe dit déjà qu'on cherche.
+
+Les deux chaînes étaient en **français figé** dans un écran par ailleurs
+traduit : passées en l10n au passage (`embassiesAndConsulates` existait déjà,
+`embassySearchHint` ajoutée).
+
+✅ Vérifié sur Pixel (capture `liste_corrigee.png`) **et sur SM A515F**
+(`a515f_liste.png`, `a515f_havane.png`) — les six correctifs d'affichage
+tiennent sur les deux appareils, polices système différentes comprises.
+
+**Découvert en repassant sur le SM A515F** : l'autre agent a **géocodé 21 des
+32 fiches** le 2026-09-08 à 09:51. Conséquence directe sur le correctif n° 4
+du lot précédent (`latitude ?? 0.0`) — il ne s'agit plus d'un bouton
+uniformément grisé, mais d'une vraie distinction :
+
+- les **21 fiches géocodées** affichent « Itinéraire » actif, et la carte
+  « Le plus proche · 792 km — Ambassade du Niger aux États-Unis » apparaît en
+  tête de liste (compte situé à Montréal) ;
+- les **11 sans coordonnées** (Addis-Abeba, Djeddah, Doha, Dubaï, Khartoum,
+  Koweït, La Havane, Le Caire, New Delhi, Pékin, Rabat) gardent « Y aller »
+  grisé.
+
+Sans le correctif, les 32 auraient toutes pointé sur (0, 0). Vérifié des deux
+côtés : La Havane grisée, Washington active.
+
+### Géocodage des 11 restantes : ce que j'ai conclu trop vite (2026-09-08)
+
+> ⚠️ **Ce constat était faux dans sa portée.** Il concluait « aucune source
+> publique ne les contient » et « ne pas refaire sans source nouvelle ». Le
+> même jour, l'autre agent en a géocodé **neuf sur onze** avec la Geocoding API
+> de Google (migration `20260908150000_coordonnees_postes_google.sql`) — il ne
+> reste que Djeddah et Khartoum. **30 des 32 postes ont désormais des
+> coordonnées.**
+>
+> **Ce qui m'a manqué n'est pas une source, c'est une reformulation.** Je
+> cherchais par *adresse postale*, en français ; il a cherché par **nom du
+> poste, dans la langue du pays d'accueil** — Le Caire ne répond qu'à l'arabe,
+> La Havane qu'à l'espagnol. Et j'avais écarté la piste payante en reprenant
+> l'argument du script d'origine (« disproportionné pour 32 lignes ») sans le
+> réexaminer, alors que c'était le seul verrou réel.
+>
+> **La leçon à garder** : « la source ne contient pas la donnée » et « ma
+> requête ne la trouve pas » sont deux constats différents. Avant de conclure
+> à l'absence, faire varier la formulation — langue locale, nom de
+> l'institution plutôt qu'adresse — et rouvrir explicitement les pistes
+> écartées pour des raisons de coût.
+>
+> Trois résultats de Google recoupent l'adresse du ministère, ce qui les
+> confirme mutuellement : Le Caire (101 Al Haram = avenue des Pyramides),
+> Rabat (Av. Al Haour) et Dubaï — où « Abu Hail » explique le « Abau Hain
+> Street » que je n'arrivais pas à situer.
+
+Ce qui suit reste exact, et documente ce que les sources **gratuites**
+contiennent — utile si l'API payante venait à être coupée.
+
+**OpenStreetMap n'a aucun nœud** pour le poste du Niger dans 10 de ces 11
+villes — vérifié en interrogeant Overpass sur `country=NE` puis, plus large,
+par nom : 36 nœuds dans le monde, aucun à moins de 80 km de Djeddah, Doha,
+Dubaï, Khartoum, Koweït, La Havane, Le Caire, New Delhi, Pékin ni Rabat. La
+seule exception est **Addis-Abeba**, et c'est la *résidence de l'ambassadeur*,
+que le script écarte à raison : envoyer un usager au domicile privé plutôt
+qu'à la chancellerie est pire que de ne rien afficher.
+
+**Le géocodage d'adresse échoue aussi**, y compris en reformulant en anglais
+et en arabe. Ce que Nominatim renvoie n'est jamais le poste :
+
+| Ville | Meilleur résultat obtenu | Verdict |
+|---|---|---|
+| Le Caire | « Cairo Pyramids Hotel », puis une maison au 101 rue des Pyramides | un hôtel ; le n° 101 est plausible mais invérifiable |
+| Rabat | un **arrêt de bus** à Hay Riad | non |
+| Dubaï | une salle à Bur Dubaï | mauvais quartier (l'adresse dit Deira) |
+| Addis-Abeba, Koweït | centroïdes de district | non |
+| New Delhi, Pékin | rien | — |
+
+Et quatre postes n'ont **rien à géocoder** : Doha et La Havane ne publient
+aucune adresse, Djeddah et Khartoum n'ont qu'une boîte postale — qui ne
+désigne aucun bâtiment.
+
+**Écrire un de ces points serait un défaut, pas un progrès** : « Y aller »
+deviendrait actif et ouvrirait la carte au mauvais endroit, la carte « Le plus
+proche » calculerait une distance depuis un point faux, et rien à l'écran ne
+distinguerait cette coordonnée d'une vraie. C'est exactement ce que le refus
+du centre-ville, dans `tools/geocode_postes_diplomatiques.mjs`, protège.
+
+Voies qui marcheraient vraiment : demander la position aux postes eux-mêmes
+(la donnée leur appartient), ou la relever une fois puis la contribuer à OSM —
+ce qui profiterait aussi à tout le monde.
+
+**État au 2026-09-08 après le géocodage Google** — deux postes seulement
+restent sans coordonnées, et pour eux la demande par courriel garde tout son
+sens (`docs/ops/DEMANDE_POSITIONS_POSTES.md`, §2 et §5) :
+
+- **Djeddah** : le seul résultat est à 22 km au nord du centre et n'est pas
+  typé `embassy` — trop faible pour être écrit en base.
+- **Khartoum** : Google ne connaît aucun lieu d'ambassade dans la ville.
+
+Et deux questions se sont **ouvertes** avec ce géocodage, à trancher :
+
+- **Copenhague** : OSM place l'ambassade à Rosbækvej/Østerbro, l'annuaire
+  publie « Niels Juels Gade 5 » — **5,1 km d'écart**, rien pour départager.
+  Écrire à `ambassade@niger.dk`.
+- **Abuja** : le point a été déplacé de Diplomatic Drive à Maitama, où
+  l'annuaire et Google se rejoignent. Une confirmation serait prudente —
+  `embniger@yahoo.fr`.
+
+Contribuer les positions confirmées à OpenStreetMap reste souhaitable : le
+script gratuit les retrouverait seul, et l'information servirait au-delà de
+cette application.
 
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
@@ -9807,6 +10416,136 @@ contre **30 sur le SM A515F** (Genève et New York masqués faute de pays connu)
   un reliquat. Vérifier avec `pm list packages --user 0`, pas avec `pm path`.
 - Le compte y étant réel (pas un compte de test), toute action sortante doit
   être faite hors ligne ou pas du tout.
+
+---
+
+## Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)
+
+Les 32 fiches importées le 2026-09-07 sont arrivées **sans latitude ni
+longitude** : `diplomatie.gouv.ne` ne publie que des adresses postales, dont
+huit sont de simples boîtes postales. Depuis l'import, aucun poste n'a jamais
+eu de pin — `map_screen.dart` saute toute fiche sans coordonnées, et le bouton
+« voir sur la carte » du détail est masqué par `hasCoordinates`.
+
+Deux migrations, dans cet ordre. `20260908120000_coordonnees_postes_diplomatiques.sql`
+place 21 postes avec les seules sources ouvertes : 19 relevés dans
+OpenStreetMap (au bâtiment), 2 par géocodage de l'adresse officielle
+(Paris/UNESCO et Kano). `20260908150000_coordonnees_postes_google.sql` en
+ajoute 9 via la Geocoding API de Google — activée pour l'occasion — et
+**corrige Abuja**, dont le pin était à 5,7 km. Le script est rejouable :
+`tools/geocode_postes_diplomatiques.mjs`.
+
+Ce qui a débloqué les 9 : chercher le poste **par son nom, dans la langue du
+pays d'accueil**. Le Caire ne répond qu'à l'arabe, La Havane qu'à l'espagnol,
+l'anglais couvre le reste — le français presque rien. Et le nom vaut mieux que
+l'adresse : à Addis-Abeba, « Kirkos Sub-city, Kebele 02/03 » rend un point
+quelconque du quartier, à 5,7 km du lieu que Google connaît comme une
+ambassade.
+
+- [ ] **Les pins bleus d'ambassade apparaissent** sur la carte principale, à
+      côté des membres — vérifier au moins un poste (Paris, Cotonou, Abuja
+      selon la position du testeur), et que la bascule « Ambassades » du menu
+      de filtres les fait bien disparaître/réapparaître.
+- [ ] **Le tap sur un pin** ouvre la fiche flottante (nom, adresse, tél, mail,
+      services) et « Voir la fiche complète » mène au détail.
+- [x] **Le bouton « Y aller » du détail** (et « Itinéraire » sur la carte de
+      liste) est actif sur les postes placés, absent sur les autres.
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, sans réinstaller l'app :
+      les coordonnées viennent de la base, l'APK en place suffit. Alger →
+      « Appeler / Itinéraire / Détails » et « Y aller » actif sur la fiche ;
+      Le Caire → « Appeler / Détails » seulement. Revérifié après la seconde
+      migration : Le Caire affiche désormais « Itinéraire » et remonte de la
+      zone « Autres » à « Afrique ».*
+- [ ] **Écart à confirmer auprès du poste** : Copenhague (OSM place
+      l'ambassade Rosbaeksvej/Østerbro, l'annuaire publie « Niels Juels Gade
+      5 » — 5,1 km) et Dakar (OSM « Voie de Dégagement Nord, Point E » contre
+      « 8 avenue Léopold Sédar Senghor » — 5,2 km). Position OSM retenue : le
+      nœud porte le nom du poste. À trancher par un appel ou une photo.
+- [x] **Un poste sans pin reste visible dans la liste**, sous « Autres », avec
+      son adresse — vu sur le Pixel le 2026-09-08, avant la seconde migration.
+      Aucun ne tombe au point (0, 0) : le modèle ne convertit plus `null` en
+      `0.0`.
+- [ ] **2 postes restent sans pin, et c'est délibéré.** Khartoum : aucune
+      source ne le connaît. Djeddah : le seul résultat (Al Kausar, 22 km au
+      nord du centre) n'est pas typé `embassy` par Google, contrairement aux
+      neuf autres — une position fausse enverrait l'usager à 22 km. À
+      confirmer auprès des deux postes.
+- [ ] **Abuja a bougé de 5,7 km** : le nœud OSM (« 305 Diplomatic Drive »,
+      quartier des affaires) est contredit par l'annuaire officiel
+      (« Maitama District ») **et** par le lieu typé `embassy` de Google, tous
+      deux à Maitama. Vérifier que le pin d'Abuja est bien à Maitama.
+- [x] **Dakar et Pretoria : divergence tranchée en faveur d'OSM.** Leur adresse
+      publiée tombait à 5,2 km et 2,4 km du nœud ; Google y place une ambassade
+      à 7 m et 14 m du nœud. C'est l'annuaire officiel qui est en retard.
+- [ ] **Copenhague reste ouvert** : nœud OSM (Rosbæksvej, Østerbro) contre
+      adresse publiée (Niels Juels Gade 5), 5,1 km, et Google n'y connaît aucun
+      lieu typé `embassy` pour départager. Position OSM retenue en attendant.
+- [x] **Regroupement par zone, corrigé dans la foulée** (`ZoneGeographique`,
+      testé à froid) : Alger s'affichait sous **Europe** (constaté sur le
+      Pixel : « Europe · 9 » contenait l'Algérie) et Riyad serait tombé en
+      **Afrique**.
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, APK reconstruit et réinstallé
+      (md5 du binaire local et de `base.apk` identiques) : Alger → **Afrique**,
+      Riyad → **Asie**, Ankara → **Europe**, Khartoum (sans coordonnées) →
+      **Autres**, toujours visible dans la liste. En-tête « Près de vous · 2 »
+      et « Le plus proche · 538 km » sur la mission auprès des Nations unies,
+      cohérents avec un profil situé au Canada.*
+- [ ] ⚠️ **En anglais**, le repli des postes sans coordonnées valait
+      « Others » alors que l'écran n'affiche que les zones de sa liste
+      française : **tout poste sans coordonnées disparaissait de l'annuaire**
+      (le compteur, lui, les comptait). Corrigé par une constante partagée,
+      mais **vérifié en français seulement** — à revoir en basculant la langue
+      du téléphone.
+- [x] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
+      vu sur Pixel 10 Pro XL le 2026-09-08) : dès que le clavier s'ouvre sur la
+      recherche de l'annuaire en **paysage**, un bandeau
+      « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ.
+      *Corrigé le 2026-09-08 — et ce n'était **pas** la famille du panneau
+      ancré des messages.* Aucun inset périmé, aucune animation, rien à relire
+      dans `View.of(context)` : la `Column` posait le champ, la carte « le plus
+      proche » et la ligne de comptage en hauteur fixe au-dessus d'un
+      `Expanded`. Le clavier en paysage ne laisse que **42 dp** de `body`
+      (392 dp d'écran à la densité forcée 440, moins la barre d'état,
+      l'`AppBar` et 266 dp de Gboard) là où le seul champ en fait 60 à
+      l'échelle de police 1.3 du testeur : l'`Expanded` tombait à 0 et le
+      contenu fixe débordait du reste. Les deux chiffres constatés se
+      recoupent — 69 px la carte masquée (recherche en cours), **188 px** carte
+      affichée, reproduit ici. L'en-tête est devenu défilant
+      (`CustomScrollView`), ce qui supprime la contrainte au lieu de l'ajuster :
+      aucune hauteur seuil ne tiendrait, elle dépend de l'échelle de police et
+      du clavier. Banc : `test/features/embassies/annuaire_clavier_paysage_test.dart`,
+      aux métriques relevées à l'adb (rouge à 54 px / 67 px avant correctif).
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, APK debug reconstruit depuis
+      le bout de la branche après `flutter clean` et réinstallé (md5 local et
+      `base.apk` identiques — vérification obligatoire : entre deux passes, un
+      autre build s'était installé sur l'appareil et le md5 ne correspondait
+      plus).*
+      **Paysage** : trois ouvertures du clavier, chacune instrumentée
+      (`cur=2404x1080` relu à chaque fois, `mInputShown` passant de `false` à
+      `true`), aucun bandeau ; carte « le plus proche » affichée (cas 188 px)
+      comme masquée par une requête (cas 69 px) ; l'en-tête défile sous le doigt
+      et la ligne de comptage remonte, clavier ouvert. **Portrait** : inchangé —
+      champ, carte, comptage et liste tiennent tous au-dessus du clavier, les
+      résultats filtrés restent lisibles pendant la frappe.
+      **Trois pièges de méthode, tous rencontrés ici** : `input keyevent 111`
+      (ÉCHAP) **ne ferme pas** le clavier — `mInputShown` reste à `true`, donc
+      re-taper le champ ne prouve aucun second cycle ; `keyevent 4` le ferme
+      mais **fait ensuite quitter l'application**, et les captures suivantes ne
+      sont plus celles de l'app ; et quitter l'app **libère le verrou
+      d'orientation**, si bien que le tap paysage tombe hors écran en portrait.
+      La seule boucle fiable est de **relancer l'écran par lien profond** à
+      chaque cycle, en relisant l'orientation *et* l'état du clavier avant de
+      conclure. Sans cette mesure, trois captures byte-identiques se lisent
+      comme « stable » alors qu'elles peuvent n'être qu'un seul et même état
+      jamais rejoué.
+
+⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
+sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
+et `Places API (New)` répondent toutes `REQUEST_DENIED` /
+`SERVICE_DISABLED` — donc `PlaceSearchService` (barre de recherche de la carte,
+sélecteur de position des entreprises et du partage de lieu) tombe **toujours**
+sur son repli `geocoding` côté appareil, sans que rien ne le signale. À vérifier
+sur appareil : la recherche de lieu renvoie-t-elle des résultats utilisables ?
 
 ---
 

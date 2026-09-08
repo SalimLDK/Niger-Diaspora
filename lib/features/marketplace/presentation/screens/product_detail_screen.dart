@@ -12,6 +12,7 @@ import '../../../reports/presentation/widgets/report_content_modal.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final String productId;
@@ -304,9 +305,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading:
+              () => const DesignExitOnlyBody(
+                fallbackRoute: '/marketplace',
+                child: Center(child: CircularProgressIndicator()),
+              ),
           error:
-              (error, _) => Center(
+              (error, _) => DesignExitOnlyBody(
+                fallbackRoute: '/marketplace',
+                child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -316,7 +323,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       color: theme.colorScheme.error,
                     ),
                     const SizedBox(height: 16),
-                    Text('Erreur: $error'),
+                    Text(messageErreurUsager(error)),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed:
@@ -326,6 +333,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                   ],
                 ),
+              ),
               ),
         ),
         bottomNavigationBar: productAsync.whenOrNull(

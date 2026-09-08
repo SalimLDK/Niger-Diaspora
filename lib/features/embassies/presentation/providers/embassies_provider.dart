@@ -156,3 +156,69 @@ class EmbassiesController extends _$EmbassiesController {
     );
   }
 }
+
+/// La fiche d'un poste, résolue par son identifiant seul.
+///
+/// Le lien profond (`diasponiger:///embassies/<id>`) et la notification
+/// n'arrivent jamais avec l'entité en `state.extra` — c'est nul par
+/// construction. Sans cette voie, la route n'avait que l'objet passé par la
+/// liste, et un `!` sur ce nul faisait l'écran rouge « Null check operator
+/// used on a null value » dès qu'on l'atteignait autrement.
+///
+/// Rend `null` — et non une erreur — quand la fiche n'existe pas ou n'est pas
+/// montrable : l'écran distingue « introuvable » (rien à réessayer) de
+/// « chargement impossible » (réessayer a du sens).
+@riverpod
+Future<EmbassyEntity?> embassyById(Ref ref, String id) async {
+  // 1. L'annuaire, **attendu** et non simplement échantillonné.
+  //
+  //    Lire sa valeur courante ne servirait à rien ici : au démarrage à froid
+  //    — précisément le cas du lien profond — la liste est encore en vol, on
+  //    la verrait vide, et on repartirait vers le réseau pour une fiche que
+  //    le même chargement était en train de ramener. Mesuré sur SM A515F le
+  //    2026-09-08 : hors ligne, la liste sert la copie locale en quelques
+  //    secondes là où ce second appel reste suspendu jusqu'à son délai de
+  //    garde. La fiche s'ouvre donc en mode avion, ce qui est l'usage même
+  //    de cet écran.
+  //
+  //    L'échec de la liste n'est pas notre échec : le dépôt sait encore
+  //    servir le cache, donc on l'avale ici plutôt que de le propager.
+  List<EmbassyEntity> visibles = const [];
+  try {
+    visibles = await ref.watch(embassiesListProvider.future);
+  } catch (_) {
+    // Volontairement ignoré -- l'étape 2 reste à essayer.
+  }
+  for (final embassy in visibles) {
+    if (embassy.id == id) return embassy;
+  }
+
+  // 2. Absente de la liste : la fiche est hors de la juridiction de
+  //    l'utilisateur, ou elle n'existe pas. Le premier cas est légitime sur
+  //    un lien partagé — le consulat de Paris envoyé à quelqu'un qui vit au
+  //    Canada — donc on passe par le dépôt, qui ne filtre pas.
+  //
+  //    Avec un délai de garde, parce que cet appel-là n'en a aucun : la
+  //    requête Supabase attend indéfiniment quand le réseau est un trou noir
+  //    plutôt qu'absent (VPN par-dessus le mode avion — `networkInfo` le voit
+  //    connecté). Vérifié sur SM A515F le 2026-09-08 : sans cette borne, un
+  //    identifiant inconnu laissait tourner le rond de chargement sans jamais
+  //    atteindre « Fiche introuvable ».
+  //
+  //    Le dépassement est **relancé**, pas avalé : on ne sait pas si la fiche
+  //    existe, donc l'écran doit dire « Chargement impossible » et proposer
+  //    de réessayer, jamais affirmer qu'elle est introuvable.
+  final embassy = await ref
+      .watch(embassiesRepositoryProvider)
+      .getEmbassyById(id)
+      .timeout(const Duration(seconds: 8));
+  if (embassy == null) return null;
+
+  // 3. Le filtre de juridiction ne s'applique pas au lien direct, mais la
+  //    modération si : une fiche non vérifiée ou suspendue reste invisible,
+  //    exactement comme dans la liste. L'admin voit tout, comme ailleurs.
+  final user = ref.watch(currentUserAsyncProvider).valueOrNull;
+  if (user?.isAdmin ?? false) return embassy;
+  if (!embassy.isVerified || embassy.isSuspended) return null;
+  return embassy;
+}

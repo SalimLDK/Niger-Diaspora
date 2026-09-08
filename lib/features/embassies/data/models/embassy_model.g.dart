@@ -68,6 +68,7 @@ _$EmbassyModelImpl _$$EmbassyModelImplFromJson(
     json['sourceCheckedAt'],
   ),
   dataNotes: json['dataNotes'] as String?,
+  isPositionUncertain: json['isPositionUncertain'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$$EmbassyModelImplToJson(_$EmbassyModelImpl instance) =>
@@ -105,4 +106,5 @@ Map<String, dynamic> _$$EmbassyModelImplToJson(_$EmbassyModelImpl instance) =>
         instance.sourceCheckedAt,
       ),
       'dataNotes': instance.dataNotes,
+      'isPositionUncertain': instance.isPositionUncertain,
     };

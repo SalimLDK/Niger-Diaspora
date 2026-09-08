@@ -15,6 +15,7 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class CreateProductScreen extends ConsumerStatefulWidget {
   final ProductEntity? product; // For editing
@@ -325,7 +326,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text(messageErreurUsager(e))));
       }
     } finally {
       if (mounted) {

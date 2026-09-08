@@ -6,6 +6,9 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'connectivity_service.dart';
+import 'politique_de_reprise.dart';
+
 /// Synchronise la session Firebase Auth avec Supabase.
 ///
 /// Après chaque login Firebase, échange le Firebase ID token contre un
@@ -13,6 +16,43 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Le client Supabase peut ensuite utiliser les RLS policies.
 class SupabaseAuthBridge {
   SupabaseAuthBridge._();
+
+  /// Dernier état connu : on ne veut réagir qu'à la TRANSITION vers connecté,
+  /// pas à chaque émission (le flux répète l'état sur bien des appareils).
+  bool _etaitConnecte = true;
+  bool _ecouteLeReseau = false;
+
+  /// S'abonne au retour du réseau, une seule fois, et seulement une fois
+  /// qu'on a abandonné.
+  ///
+  /// **Paresseux à dessein.** S'abonner dans le constructeur touchait un
+  /// `EventChannel`, donc le binding Flutter : les tests unitaires du profil
+  /// (de simples `test()`, sans binding) tombaient tous sur « Binding has not
+  /// yet been initialized » dès que le pont était instancié. Au moment où on
+  /// abandonne, l'app tourne pour de bon et le binding existe.
+  ///
+  /// Jamais annulé : le pont est un singleton qui vit aussi longtemps que
+  /// l'app, l'abonnement doit lui survivre d'une session à l'autre.
+  void _ecouterRetourReseau() {
+    if (_ecouteLeReseau) return;
+    _ecouteLeReseau = true;
+    // On ne s'abonne QUE depuis l'abandon, donc on est hors ligne à cet
+    // instant. Sans ce faux de départ, `_etaitConnecte` resterait à `true` et
+    // le `true` du retour ne ressemblerait pas à une transition : la reprise
+    // ne partait jamais (constaté sur SM A515F le 2026-09-08).
+    _etaitConnecte = false;
+    try {
+      ConnectivityService.instance.onConnectivityChanged.listen((connecte) {
+        if (connecte && !_etaitConnecte) reprendreApresRetourReseau();
+        _etaitConnecte = connecte;
+      });
+    } catch (e) {
+      // Pas de plugin (test, plateforme réduite) : on s'en passe, la reprise
+      // se fera au prochain appel externe passé la fenêtre de repos.
+      _ecouteLeReseau = false;
+      debugPrint('SupabaseAuthBridge: écoute réseau indisponible ($e)');
+    }
+  }
 
   static final SupabaseAuthBridge instance = SupabaseAuthBridge._();
 
@@ -33,11 +73,24 @@ class SupabaseAuthBridge {
   /// bout d'une heure avec « InvalidJWTToken: Token has expired ».
   Timer? _renewTimer;
 
+  /// Quand une nouvelle tentative vaut la peine. Voir `politique_de_reprise.dart`.
+  final PolitiqueDeReprise _reprise = PolitiqueDeReprise();
+
   /// Échange le token Firebase contre une session Supabase.
   /// À appeler après chaque `FirebaseAuth.instance.authStateChanges()` non-null.
   Future<void> syncWithFirebase(firebase_auth.User firebaseUser) {
     final pending = _inFlightSync;
     if (pending != null) return pending;
+
+    // `_inFlightSync` ne dedoublonne que les appels SIMULTANES. Ceux qui
+    // arrivent ENTRE deux tentatives passaient au travers, et
+    // `auth_remote_datasource` en emet un a chaque `authStateChanges()` --
+    // c'est-a-dire a chaque echec de rafraichissement Firebase. Resultat vu
+    // sur SM A515F : une tentative toutes les ~5 s, sans fin, malgre le repli
+    // exponentiel ci-dessous. La fenetre de calme, elle, vaut pour tout le
+    // monde.
+    if (!_reprise.peutTenter) return Future.value();
+
     final sync = _doSync(firebaseUser).whenComplete(() => _inFlightSync = null);
     _inFlightSync = sync;
     return sync;
@@ -106,7 +159,7 @@ class SupabaseAuthBridge {
       // canaux (feed, messages) reconnectent avec l'ancien token expiré.
       _supabase.realtime.setAuth(accessToken);
 
-      _retryCount = 0;
+      _reprise.enregistrerSucces();
       _scheduleRenewal(expiresIn);
       debugPrint('SupabaseAuthBridge: session sync OK');
     } catch (e) {
@@ -116,23 +169,45 @@ class SupabaseAuthBridge {
     }
   }
 
-  /// Nombre d'échecs consécutifs de l'échange (pour le backoff).
-  int _retryCount = 0;
-
-  /// Ré-essaie l'échange après un échec (backoff 5 s → 80 s max).
+  /// Ré-essaie l'échange après un échec, puis finit par abandonner.
   ///
-  /// Sans retry, un seul échec au démarrage (réseau, 401 transitoire) laissait
-  /// la session Supabase en anon : RLS filtrait tout et le realtime restait
-  /// muet jusqu'au redémarrage de l'app.
+  /// Sans retry du tout, un seul échec au démarrage (réseau, 401 transitoire)
+  /// laissait la session Supabase en anon : RLS filtrait tout et le realtime
+  /// restait muet jusqu'au redémarrage de l'app. Mais retenter sans fin n'est
+  /// pas mieux : hors ligne, l'app s'acharnait toutes les ~5 s et les écrans
+  /// qui attendent la session tournaient indéfiniment (SM A515F, 2026-09-08).
+  ///
+  /// La politique tranche les deux : repli exponentiel, puis abandon au bout
+  /// de six tentatives — avec une fenêtre de repos, parce que le réseau peut
+  /// revenir sans que rien ne nous le signale.
   void _scheduleRetry() {
     _renewTimer?.cancel();
-    final delay = Duration(seconds: min(5 * (1 << min(_retryCount, 4)), 80));
-    _retryCount++;
-    _renewTimer = Timer(delay, () {
+    final delai = _reprise.enregistrerEchec();
+
+    if (delai == null) {
+      debugPrint(
+        'SupabaseAuthBridge: abandon après '
+        '${_reprise.echecsConsecutifs} tentatives — la session reste anon '
+        'jusqu\'au retour du réseau',
+      );
+      _ecouterRetourReseau();
+      return;
+    }
+
+    _renewTimer = Timer(delai, () {
       if (hasValidSession) return;
       final user = firebase_auth.FirebaseAuth.instance.currentUser;
       if (user != null) syncWithFirebase(user);
     });
+  }
+
+  /// Le réseau est revenu, ou l'app repasse au premier plan : on redonne
+  /// une chance immédiate sans attendre la fin du repos.
+  void reprendreApresRetourReseau() {
+    _reprise.autoriserUneTentative();
+    if (hasValidSession) return;
+    final user = firebase_auth.FirebaseAuth.instance.currentUser;
+    if (user != null) syncWithFirebase(user);
   }
 
   void _scheduleRenewal(int expiresInSeconds) {
@@ -148,6 +223,8 @@ class SupabaseAuthBridge {
   Future<void> signOut() async {
     _renewTimer?.cancel();
     _renewTimer = null;
+    // L'abonnement connectivité survit volontairement à la déconnexion : le
+    // pont est un singleton, il resservira à la prochaine session.
     try {
       await _supabase.auth.signOut();
     } catch (e) {

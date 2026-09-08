@@ -23,7 +23,7 @@ import '../../features/groups/presentation/screens/groups_screen.dart';
 import '../../features/groups/presentation/screens/group_detail_screen.dart';
 import '../../features/groups/presentation/screens/create_group_screen.dart';
 import '../../features/groups/presentation/screens/groups_map_screen.dart';
-import '../../features/groups/presentation/screens/edit_group_screen.dart';
+import '../../features/groups/presentation/screens/group_edit_route.dart';
 import '../../features/groups/domain/entities/group_entity.dart';
 import '../../features/groups/presentation/screens/group_members_screen.dart';
 import '../../features/groups/presentation/screens/group_requests_screen.dart';
@@ -48,8 +48,7 @@ import '../../features/feed/presentation/screens/follows_screen.dart';
 import '../../features/events/presentation/screens/events_screen.dart';
 import '../../features/events/presentation/screens/create_event_screen.dart';
 import '../../features/events/presentation/screens/event_detail_screen.dart';
-import '../../features/events/presentation/screens/edit_event_screen.dart';
-import '../../features/events/presentation/screens/event_recap_screen.dart';
+import '../../features/events/presentation/screens/event_edit_routes.dart';
 import '../../features/events/domain/entities/event_entity.dart';
 import '../../features/polls/presentation/screens/poll_results_screen.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
@@ -93,7 +92,7 @@ import '../../features/transfers/domain/entities/recipient_entity.dart';
 import '../../features/notifications/presentation/screens/notification_detail_screen.dart';
 // Embassies
 import '../../features/embassies/presentation/screens/embassies_screen.dart';
-import '../../features/embassies/presentation/screens/embassy_detail_screen.dart';
+import '../../features/embassies/presentation/screens/embassy_detail_route.dart';
 import '../../features/embassies/domain/entities/embassy_entity.dart';
 import '../../features/admin/presentation/screens/admin_embassy_verification_screen.dart';
 import '../../features/admin/presentation/screens/admin_create_embassy_screen.dart';
@@ -458,15 +457,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/events/:eventId/edit',
         builder: (context, state) {
-          final event = state.extra as EventEntity;
-          return EditEventScreen(event: event);
+          // `state.extra as EventEntity` — vers un type NON nullable —
+          // levait un `TypeError` par lien profond et par notification, où
+          // `extra` est nul par construction. L'identifiant, lui, est
+          // toujours là. La garde d'organisateur est dans `EventEditRoute` :
+          // `EditEventScreen` n'en a aucune.
+          final eventId = state.pathParameters['eventId']!;
+          final extra = state.extra;
+          return EventEditRoute(
+            eventId: eventId,
+            initialEvent: extra is EventEntity ? extra : null,
+          );
         },
       ),
       GoRoute(
         path: '/events/:eventId/recap',
         builder: (context, state) {
-          final event = state.extra as EventEntity;
-          return EventRecapScreen(event: event);
+          // Même cast non nullable, même plantage.
+          final eventId = state.pathParameters['eventId']!;
+          final extra = state.extra;
+          return EventRecapRoute(
+            eventId: eventId,
+            initialEvent: extra is EventEntity ? extra : null,
+          );
         },
       ),
       // Groups routes
@@ -504,8 +517,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/groups/:groupId/edit',
         builder: (context, state) {
-          final group = state.extra as GroupEntity;
-          return EditGroupScreen(group: group);
+          // Même cast non nullable que les deux routes d'événement. La garde
+          // créateur/administrateur est dans `GroupEditRoute` :
+          // `EditGroupScreen` n'en a aucune.
+          final groupId = state.pathParameters['groupId']!;
+          final extra = state.extra;
+          return GroupEditRoute(
+            groupId: groupId,
+            initialGroup: extra is GroupEntity ? extra : null,
+          );
         },
       ),
       GoRoute(
@@ -644,20 +664,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/embassies/:id',
         builder: (context, state) {
-          // final id = state.pathParameters['id']!; // Id unused currently, relying on object passed via extra
-          final embassy = state.extra as EmbassyEntity?;
-          if (embassy != null) {
-            return EmbassyDetailScreen(
-              embassy: embassy,
-            ); // Optimization: Pass object if available
-          }
-          // Fallback: Fetch by ID if deep linked (Not implemented yet in screen, assumes extra passed for now)
-          // Ideally screen handles ID, but for now we expect extra navigation.
-          // To be safe, we might need a wrapper or refetch.
-          // For now let's assume navigation always provides extra or we handle null in screen if we modified it.
-          // But EmbassyDetailScreen requires 'embassy'.
-          // Let's rely on internal navigation for now.
-          return EmbassyDetailScreen(embassy: embassy!);
+          // L'identifiant est la seule chose dont on soit sûr : `state.extra`
+          // est nul par lien profond et par notification, et l'est aussi
+          // depuis la carte, dont la fiche pousse la route sans objet
+          // (map_screen.dart). C'est lui qui fait autorité ; l'entité n'est
+          // qu'un raccourci d'affichage quand la liste l'a déjà en main.
+          final id = state.pathParameters['id']!;
+          final extra = state.extra;
+          return EmbassyDetailRoute(
+            embassyId: id,
+            initialEmbassy: extra is EmbassyEntity ? extra : null,
+          );
         },
       ),
       // Business Directory routes

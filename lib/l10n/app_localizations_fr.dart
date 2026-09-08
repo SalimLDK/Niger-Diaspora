@@ -15968,4 +15968,69 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get embassyMessageSendError =>
       'Impossible d\'envoyer le message. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get backToEvents => 'Retour aux événements';
+
+  @override
+  String get backToGroups => 'Retour aux groupes';
+
+  @override
+  String get eventLoadFailedTitle => 'Chargement impossible';
+
+  @override
+  String get eventLoadFailedMessage =>
+      'Impossible d\'afficher cet événement. Il a peut-être été supprimé, ou votre connexion est instable.';
+
+  @override
+  String get eventRecapNotAllowedTitle => 'Récap réservé à l\'organisateur';
+
+  @override
+  String get eventRecapNotAllowedMessage =>
+      'Seule la personne qui a créé cet événement peut publier son récapitulatif. Les photos, elles, restent visibles sur la fiche de l\'événement.';
+
+  @override
+  String get eventEditNotAllowedTitle =>
+      'Modification réservée à l\'organisateur';
+
+  @override
+  String get eventEditNotAllowedMessage =>
+      'Seule la personne qui a créé cet événement peut le modifier.';
+
+  @override
+  String get backToEvent => 'Voir l\'événement';
+
+  @override
+  String get groupLoadFailedTitle => 'Chargement impossible';
+
+  @override
+  String get groupLoadFailedMessage =>
+      'Impossible d\'afficher ce groupe. Il a peut-être été supprimé, ou votre connexion est instable.';
+
+  @override
+  String get groupEditNotAllowedTitle =>
+      'Modification réservée aux administrateurs';
+
+  @override
+  String get groupEditNotAllowedMessage =>
+      'Seuls le créateur et les administrateurs de ce groupe peuvent le modifier.';
+
+  @override
+  String get backToGroup => 'Voir le groupe';
+
+  @override
+  String get embassyNotFoundTitle => 'Fiche introuvable';
+
+  @override
+  String get embassyNotFoundMessage =>
+      'Ce poste diplomatique n\'est plus dans l\'annuaire, ou le lien est incorrect.';
+
+  @override
+  String get embassyLoadFailedTitle => 'Chargement impossible';
+
+  @override
+  String get backToEmbassies => 'Retour à l\'annuaire';
+
+  @override
+  String get embassySearchHint => 'Nom, pays ou ville';
 }
