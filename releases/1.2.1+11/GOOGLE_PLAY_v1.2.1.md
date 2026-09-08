@@ -64,13 +64,13 @@ LE FIL
 • Partagez un contenu hors de l'app en un geste
 
 DÉMARCHES ET REPRÉSENTATIONS
-• Les 32 postes diplomatiques et consulaires du Niger
+• L'annuaire des représentations diplomatiques et consulaires du Niger
 • 20 démarches consulaires détaillées : pièces à fournir, étapes, contacts
 • Coordonnées, horaires et localisation de chaque poste
 
 ANNUAIRE
-• Les professionnels et entreprises de la diaspora
-• Recherche par activité et par ville
+• Référencez votre activité et trouvez celle des autres
+• Recherche par catégorie et par ville
 
 ÉVÉNEMENTS
 • Les rendez-vous de la communauté
@@ -87,7 +87,7 @@ Confidentialité : https://www.diasponiger.com/privacy
 ```
 Première version publiée sur le Play Store.
 
-• Annuaire des 32 postes diplomatiques et consulaires du Niger
+• Annuaire des représentations diplomatiques et consulaires
 • 20 démarches consulaires détaillées
 • Messagerie chiffrée : vidéos, sondages, messages épinglés
 • Carte des membres à proximité, en temps réel
@@ -180,6 +180,15 @@ L'ancien `feature_graphic.png` de la racine faisait **1024×1024** : il aurait
    part** — le partage continu passe par un service de premier plan
    (`foregroundServiceType="location"`). S'il fonctionne sans cette permission,
    la retirer du manifeste supprime toute cette procédure.
+
+   **Bonne nouvelle constatée sur appareil le 2026-09-08 :** l'écran Carte
+   affiche déjà, *avant* toute demande système, un panneau « Mode privé
+   activé » qui énonce « position approximative, jamais votre adresse
+   exacte », « désactivable à tout moment » et « invisible pour les comptes
+   que vous bloquez », avec un bouton ACTIVER explicite. C'est exactement
+   l'information préalable que Google exige, et elle filme bien : c'est le
+   plan d'ouverture de la vidéo de démonstration. Capture livrée en
+   `play/screenshots/03_carte.png`.
 2. **Achats intégrés** à déclarer (RevenueCat présent).
 3. **Sécurité des données** : position, contacts, photos, messages,
    identifiants — chaque poste à renseigner et à faire correspondre au code.
@@ -187,6 +196,30 @@ L'ancien `feature_graphic.png` de la racine faisait **1024×1024** : il aurait
    messagerie ⇒ questionnaire à remplir en conséquence, pas « Tout public ».
 5. **Politique de confidentialité** : l'URL doit être vivante au moment de
    l'examen.
+
+---
+
+## 10. Chiffres vérifiés en base, et deux écarts à connaître
+
+Mesuré le 2026-09-08 sur le projet `zyrfkcjjrhddpfxcgezo` :
+
+| Donnée | En base | Affiché par l'app |
+|---|---|---|
+| Postes diplomatiques (`embassies`) | **32** (25 ambassades, 4 consulats, 2 missions, 1 délégation) | **30** |
+| Démarches consulaires (`demarches_consulaires`) | **20** | 20 |
+
+**Écart 1 — 30 au lieu de 32.** L'écran annonce « 30 ambassade(s) trouvée(s) » ;
+les deux entrées de type `mission` n'apparaissent pas. Non élucidé (filtre
+délibéré ou type non géré). **Conséquence pour la fiche : aucun chiffre n'est
+annoncé** — un examinateur qui compte trouverait 30 là où la description dirait
+32. Le chiffre « 20 démarches », lui, est exact et peut rester.
+
+**Écart 2 — l'annuaire des entreprises est vide.** Écran capturé :
+« Aucune entreprise trouvée — Soyez le premier à ajouter votre entreprise ! ».
+La fonction existe et marche, mais son contenu est utilisateur. La description
+a été reformulée en conséquence (« référencez votre activité » plutôt que
+« les professionnels de la diaspora », qui laisserait attendre un annuaire
+peuplé), et **aucune capture ne montre cet écran**.
 
 ---
 

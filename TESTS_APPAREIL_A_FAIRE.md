@@ -14,6 +14,52 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)
+
+Google Play refuse au dépôt tout AAB qui cible l'API 35+ et embarque un `.so`
+64 bits aligné sur 4 Ko. Sur l'AAB du 2026-09-08, 6 des 8 bibliothèques
+arm64-v8a étaient conformes ; deux ne l'étaient pas, et **rien en local ne le
+disait** — la compilation passe, l'installation passe, `flutter analyze` ne
+regarde pas les `.so`. Le refus n'arrive qu'en Play Console.
+
+Les deux venaient de dépendances transitives de plugins, remplacées dans
+`android/build.gradle.kts` :
+
+- `libbarhopper_v3.so` — `com.google.mlkit:barcode-scanning:17.2.0`, épinglé
+  par `mobile_scanner 5.2.3`. Forcé en **17.3.0**, alignée 16 Ko, même API,
+  minSdk 21 contre 24 pour l'app.
+- `libnoise.so` — `com.github.paramsen:noise:2.0.0` (JitPack, abandonné),
+  tiré par `livekit_client 2.4.1`. Substitué par **`io.livekit:noise:2.0.0`**
+  sur Maven Central : LiveKit a republié le *même* artefact recompilé en
+  16 Ko — mêmes classes, même package `com.paramsen.noise`. C'est ce que
+  `livekit_client` utilise lui-même depuis sa 2.5.0.
+
+Vérification reproductible : `python tools/verifie_alignement_16k.py
+build/app/outputs/bundle/release/app-release.aab`.
+
+**Aucune ligne de Dart n'a changé** — seule la résolution Gradle. Le risque
+n'est donc pas dans l'UI mais dans le code natif chargé à l'exécution, que
+`flutter analyze` et `flutter test` ne touchent pas :
+
+- [ ] **Scanner QR** (`/qr-scanner`, atteint depuis l'accueil « Trouver des
+      amis », la modale de partage de profil et celle de partage de groupe) :
+      la caméra démarre, un QR de profil est décodé et ouvre la bonne fiche.
+      C'est le seul consommateur de `libbarhopper_v3.so` — s'il se charge, la
+      montée MLKit est bonne ; s'il échoue, ce sera un écran caméra noir ou
+      un code jamais reconnu, pas une erreur Dart.
+- [ ] **Appel audio de groupe** puis **appel vidéo** (LiveKit) : connexion,
+      son dans les deux sens, caméra. `libnoise.so` n'est chargé que par le
+      visualiseur audio natif de LiveKit (`createVisualizer`), que l'app
+      n'appelle **nulle part** — le remplacement ne devrait donc rien changer,
+      mais c'est une substitution de module au niveau Gradle : elle mérite un
+      appel réel avant publication.
+- [ ] **Salon audio** et **podcast en direct** : même moteur LiveKit, autres
+      écrans d'entrée.
+
+C'est la suite directe du point « Alignement 16 Ko » de l'entrée targetSdk 36
+plus bas, qui chiffrait l'écart (6 conformes sur 8) et renvoyait à une session
+dédiée.
+
 ## ⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)
 
 `lib/features/embassies/presentation/screens/embassy_detail_screen.dart` :
@@ -100,6 +146,20 @@ les règles ProGuard manquantes (écran blanc, réflexion cassée, plugin muet).
 
 - ⬜ Démarrage à froid du **build release** sur SM A515F (Android 13) : pas
       d'écran blanc, pas de crash, connexion et messagerie fonctionnelles.
+
+  ⚠️ **Toujours pas fait au 2026-09-08, et pas par oubli.** Les captures de
+  la fiche ont été prises avec un build **debug** de l'arbre fusionné, parce
+  que l'app déjà installée est signée `CN=Android Debug` : installer le
+  release exige `adb uninstall`, qui efface les données et **déconnecte le
+  compte**. Le rendu à l'écran est identique entre debug et release — c'est
+  la même source — donc les captures sont valides. Ce qui reste **non
+  couvert**, c'est tout ce que seul le release exerce : R8, `shrinkResources`,
+  et les règles ProGuard manquantes (écran blanc, réflexion cassée, plugin
+  muet). Rien de tout cela n'a été vu tourner.
+
+  Pour le faire : `adb uninstall com.diasponiger.diasponiger`, installer
+  `build/app/outputs/flutter-apk/app-release.apk`, **se reconnecter à la
+  main**, puis parcourir messagerie, appel, caméra, carte.
 - ⬜ Idem sur Pixel 10 Pro XL (**Android 17, API 37**) — c'est le seul appareil
       qui exerce réellement `targetSdk = 36`.
 - ⬜ Permissions runtime en release : caméra, micro, localisation,
@@ -137,6 +197,17 @@ court. Les copies d'écran intégrées viennent du build release.
 
 - ⬜ Relire les captures livrées : aucune donnée personnelle réelle visible
       (nom, numéro, adresse, photo d'un tiers) avant publication.
+      À ce stade, `05_accueil.png` montre le prénom « Sim » et « Montréal,
+      Canada » — données du compte de test, à valider ou à masquer.
+- [x] **Captures prises sur SM A515F le 2026-09-08** : accueil, ambassades,
+      fiche d'un poste, carte (mode privé), groupes « Découvrir ». Build de
+      l'arbre fusionné, md5 local et appareil comparés avant chaque prise.
+- Trois écrans écartés faute de contenu présentable, **et non corrigés** :
+  l'annuaire des entreprises est vide, le fil ne porte que des publications de
+  test (« a ignorer »), la liste des groupes affiche « Groupe de test prive ».
+- ⬜ Le Pixel 10 Pro XL n'a pas pu être capturé : il redemande son code de
+      verrouillage. À refaire déverrouillé si des captures Android 17 sont
+      souhaitées.
 ## ⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)
 
 Play Console refuse toute mise à jour à partir du **31/10/2026** si l'app ne
@@ -170,7 +241,7 @@ Ce que ce passage change au comportement Android — à regarder sur appareil,
       système devient le défaut. Revérifier les sorties d'écran par geste de
       retour, notamment les routes de lien profond (cf. la règle
       « couvrir les TROIS sorties »).
-- [ ] **Alignement 16 Ko des bibliothèques natives.** Indépendant du
+- [x] **Alignement 16 Ko des bibliothèques natives.** Indépendant du
       targetSdk mais contrôlé au même endroit par Play. Mesuré sur l'AAB du
       jour : 6 des 8 `.so` arm64 sont conformes (dont `libflutter.so`,
       `libapp.so`, `libjingle_peerconnection_so.so`), **2 ne le sont pas**
@@ -178,9 +249,11 @@ Ce que ce passage change au comportement Android — à regarder sur appareil,
       (`com.google.mlkit:barcode-scanning:17.2.0`, tiré par `mobile_scanner`)
       et `libnoise.so` (`com.github.paramsen:noise:2.0.0`, transitive de
       `livekit_client`). NDK 27 aligne ce qui est compilé ici, pas les `.so`
-      préconstruites d'un plugin. Traité dans une session dédiée ; à
-      revérifier ensuite sur le scanner QR et un appel LiveKit, les deux
-      dépendances touchées.
+      préconstruites d'un plugin. **Réglé le 2026-09-08** : les 8 `.so`
+      arm64-v8a et les 8 x86_64 de l'AAB reconstruit sont à >= 16 Ko — voir
+      la section « Deux bibliothèques natives réalignées sur 16 Ko » en tête
+      de ce fichier, qui porte les deux vérifications appareil restantes
+      (scanner QR, appel LiveKit).
 
 **Version portée à `1.2.1+11`.** ⚠️ Correction : j'avais écrit ici que la
 1.2.0+10 était « en production ». C'est faux — la fiche publique renvoie 404
