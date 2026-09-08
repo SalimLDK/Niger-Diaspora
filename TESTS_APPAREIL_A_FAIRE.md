@@ -14,7 +14,7 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
-## ⚠️ Quatre écrans sans flèche de retour — corrigés, vus sur SM A515F (2026-09-08)
+## ✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)
 
 Notifications, Annuaire des entreprises, Événements et Ambassades sont
 atteints par `push` depuis l'accueil, mais n'affichaient aucun moyen de
@@ -67,13 +67,19 @@ Revérifié après ce correctif, en démarrage à froid :
       **l'accueil** (pas d'écran noir) — le repli fonctionne.
 - [x] `diasponiger:///notifications` et `diasponiger:///businesses` :
       flèche présente (mesurée à x=68-110 sur la capture).
-- [ ] ⚠️ `diasponiger:///embassies` : **toujours aucune flèche**, deux fois
-      de suite, alors que la source porte le même `BackButton` que
-      Événements et que `flutter analyze` passe. L'APK installé a pourtant
-      le bon `md5sum` (comparé local ↔ `pm path` sur l'appareil). Piège
-      d'APK périmé déjà connu ici (démon Gradle) : reconstruction après
-      `flutter clean` en cours, **conclusion non acquise**. Ne pas cocher
-      Ambassades sans l'avoir revu.
+- [x] `diasponiger:///embassies` : flèche présente, et le tap ramène à
+      l'accueil.
+
+      ⚠️ **Mais elle a demandé un `flutter clean`**, et ça vaut d'être retenu :
+      deux builds incrémentaux de suite ont produit un APK où Événements
+      avait le nouveau `BackButton` et Ambassades non — **deux fichiers
+      modifiés dans le même geste, un seul embarqué**. `flutter analyze`
+      passait, et le `md5sum` de l'APK correspondait entre le poste et
+      l'appareil : la vérification d'APK habituelle **ne détecte pas ce
+      cas**, elle prouve seulement qu'on a installé ce qu'on a construit,
+      pas que ce qu'on a construit contient le code source. Le seul signal
+      était l'écran. En cas de doute sur un correctif qui « ne prend pas » :
+      `flutter clean` avant de conclure quoi que ce soit sur le code.
 
 Piège de test relevé au passage : en debug, ce téléphone met **plus d'une
 minute** à peindre l'écran d'un lien profond à froid, et affiche entre-temps
