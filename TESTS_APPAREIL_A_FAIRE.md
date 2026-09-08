@@ -289,12 +289,27 @@ réussi à automatiser ce parcours-là de façon vérifiable.
       Ni les coordonnées ni l'attente (jusqu'à 75 s) n'y changent rien —
       la cause reste à trouver, et c'est ce qui a bloqué l'automatisation.
 
-**Recommandation, indépendamment de la traque.** Vu la rareté du défaut, le
-gain n'est pas dans la ligne exacte mais dans le fait qu'**une exception ne
-devrait jamais s'afficher telle quelle**. Poser un `ErrorWidget.builder`
-global qui rende un message neutre en release réglerait le symptôme — hôte
-Supabase et identifiant de compte compris — quelle que soit la ligne
-fautive.
+**✅ Symptôme traité, indépendamment de la traque.** Vu la rareté du défaut,
+le gain n'était pas dans la ligne exacte mais dans le fait qu'**une exception
+ne doit jamais s'afficher telle quelle**. `main.dart` pose désormais un
+`ErrorWidget.builder` global (`construireEcranErreurNeutre`) qui rend
+« Une erreur est survenue » à la place du message brut — donc plus d'hôte
+Supabase ni d'identifiant de compte à l'écran, quelle que soit la ligne
+fautive. Posé en debug aussi, pour que ce chemin soit réellement exercé ; la
+pile continue de sortir en console via `presentError`.
+
+Couvert par `test/core/ecran_erreur_neutre_test.dart` (4 cas) : l'exception
+réellement observée est rejouée et le test échoue si `supabase.co`,
+l'identifiant du compte ou `SocketException` réapparaissent à l'écran. Les
+deux autres cas couvrent les contraintes du widget — zone minuscule, absence
+de `Directionality`/`Theme` au-dessus.
+
+- [ ] **Voir ce rendu sur appareil.** Non vérifié : il faudrait provoquer une
+      levée à la demande, et justement, celle qu'on connaît ne se reproduit
+      pas. Vérifier aussi qu'il reste lisible dans les deux thèmes (les
+      couleurs sont choisies sur `platformBrightness`, pas sur le thème de
+      l'app — un écart est possible si l'usager force un thème contraire à
+      celui du système).
 - [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
       compte** dans un message d'erreur visible par l'usager.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
