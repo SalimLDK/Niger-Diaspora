@@ -393,7 +393,7 @@
             }
         }
 
-        /* ── FEATURES SECTION ── */
+        /* ── SECTIONS ── */
         .section {
             padding: 7rem 3rem;
             max-width: 1280px;
@@ -445,62 +445,6 @@
             margin-bottom: 4rem;
         }
 
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1px;
-            background: rgba(253, 249, 244, 0.06);
-            border: 1px solid rgba(253, 249, 244, 0.06);
-            border-radius: 20px;
-            overflow: hidden;
-        }
-
-        .feat-card {
-            background: var(--dark);
-            padding: 2.5rem 2rem;
-            transition: background 0.4s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .feat-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at 30% 30%, rgba(233, 116, 36, 0.07) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
-        .feat-card:hover {
-            background: rgba(233, 116, 36, 0.04);
-        }
-
-        .feat-card:hover::before {
-            opacity: 1;
-        }
-
-        .feat-icon {
-            font-size: 2rem;
-            margin-bottom: 1.2rem;
-            display: block;
-        }
-
-        .feat-title {
-            font-family: 'Fraunces', serif;
-            font-size: 1.2rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 0.7rem;
-        }
-
-        .feat-desc {
-            font-size: 0.88rem;
-            font-weight: 300;
-            color: rgba(253, 249, 244, 0.5);
-            line-height: 1.7;
-        }
-
         /* ── ABOUT SECTION ── */
         .about-section {
             padding: 7rem 3rem;
@@ -518,76 +462,6 @@
 
         .about-visual {
             position: relative;
-        }
-
-        .about-card {
-            background: rgba(21, 128, 61, 0.08);
-            border: 1px solid rgba(21, 128, 61, 0.2);
-            border-radius: 20px;
-            padding: 3rem;
-            position: relative;
-        }
-
-        .about-card-accent {
-            position: absolute;
-            top: -1px;
-            left: 40px;
-            right: 40px;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--green), transparent);
-        }
-
-        .about-quote {
-            font-family: 'Fraunces', serif;
-            font-size: 1.6rem;
-            font-style: italic;
-            font-weight: 300;
-            line-height: 1.4;
-            color: rgba(253, 249, 244, 0.85);
-            margin-bottom: 1.5rem;
-        }
-
-        .about-author {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-
-        .author-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--orange), var(--green));
-            display: grid;
-            place-items: center;
-            font-size: 1.2rem;
-        }
-
-        .author-info .name {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .author-info .role {
-            font-size: 0.78rem;
-            color: rgba(253, 249, 244, 0.45);
-            font-weight: 300;
-        }
-
-        .floating-tag {
-            position: absolute;
-            bottom: -1.5rem;
-            right: 2rem;
-            background: var(--orange);
-            color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 100px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            box-shadow: 0 4px 20px rgba(233, 116, 36, 0.4);
         }
 
         .about-text .section-title {
@@ -657,53 +531,6 @@
             align-items: center;
             gap: 1.2rem;
             flex-wrap: wrap;
-        }
-
-        .dl-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.8rem;
-            padding: 1rem 1.8rem;
-            border-radius: 14px;
-            text-decoration: none;
-            border: 1px solid rgba(253, 249, 244, 0.15);
-            background: rgba(253, 249, 244, 0.04);
-            transition: all 0.3s;
-            min-width: 200px;
-        }
-
-        .dl-btn:hover {
-            border-color: var(--orange);
-            background: rgba(233, 116, 36, 0.07);
-            transform: translateY(-2px);
-        }
-
-        .dl-btn-icon {
-            font-size: 2rem;
-        }
-
-        .dl-btn-text {
-            text-align: left;
-        }
-
-        .dl-btn-text small {
-            display: block;
-            font-size: 0.7rem;
-            color: rgba(253, 249, 244, 0.45);
-            margin-bottom: 0.15rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .dl-btn-text strong {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-
-        .dl-btn.disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-            pointer-events: none;
         }
 
         .dl-note {
@@ -861,6 +688,264 @@
             transform: translateY(0);
         }
 
+        /* ── TÉLÉPHONE (cadre réutilisé par toutes les sections) ── */
+        .phone {
+            position: relative;
+            width: 100%;
+            max-width: 290px;
+            padding: 9px;
+            border-radius: 34px;
+            background: linear-gradient(160deg, #2e2721, #14110d);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(253, 249, 244, 0.07);
+        }
+
+        .phone img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 26px;
+        }
+
+        /* ── HERO : la colonne de droite montre l'app ── */
+        .hero-grid {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+            gap: 4.5rem;
+            align-items: center;
+        }
+
+        .hero-shot {
+            justify-self: center;
+            animation: fadeUp 1s 0.25s ease both;
+        }
+
+        /* ── USAGES : texte et capture, en alternance ── */
+        .usage {
+            display: grid;
+            grid-template-columns: 1fr minmax(0, 380px);
+            gap: 5rem;
+            align-items: center;
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 5.5rem 3rem;
+        }
+
+        .usage--flip .usage-media {
+            order: -1;
+            justify-self: start;
+        }
+
+        .usage-media {
+            justify-self: end;
+        }
+
+        .usage h2 {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(1.9rem, 3.4vw, 2.7rem);
+            font-weight: 700;
+            line-height: 1.12;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.1rem;
+        }
+
+        .usage p {
+            color: rgba(253, 249, 244, 0.55);
+            font-weight: 300;
+            line-height: 1.75;
+            max-width: 46ch;
+        }
+
+        .usage-points {
+            list-style: none;
+            display: grid;
+            gap: 0.8rem;
+            margin-top: 1.9rem;
+            max-width: 46ch;
+        }
+
+        .usage-points li {
+            display: flex;
+            gap: 0.8rem;
+            font-size: 0.94rem;
+            font-weight: 300;
+            line-height: 1.6;
+            color: rgba(253, 249, 244, 0.68);
+        }
+
+        .usage-points li::before {
+            content: '—';
+            flex: none;
+            color: var(--orange);
+        }
+
+        /* ── LA PIÈCE MAÎTRESSE : le dossier consulaire, en papier ──
+           Seul endroit de la page où le fond s'inverse : l'app y remplace
+           littéralement un formulaire de papier. */
+        .dossier-section {
+            padding: 5.5rem 3rem 6.5rem;
+            background:
+                radial-gradient(ellipse 70% 50% at 30% 0%, rgba(21, 128, 61, 0.14) 0%, transparent 65%),
+                var(--dark);
+            border-top: 1px solid rgba(253, 249, 244, 0.06);
+            border-bottom: 1px solid rgba(253, 249, 244, 0.06);
+        }
+
+        .dossier-inner {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 470px);
+            gap: 4rem;
+            align-items: center;
+            max-width: 1160px;
+            margin: 0 auto;
+        }
+
+        .dossier-stack {
+            position: relative;
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 0 3.5rem 0;
+        }
+
+        .dossier-phone {
+            max-width: 245px;
+        }
+
+        /* La feuille chevauche l'écran : c'est le même formulaire, avant et
+           après. Sous 900 px, les deux se remettent l'un sous l'autre. */
+        .paper {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 300px;
+        }
+
+        .paper {
+            background: var(--sand);
+            color: #2b2119;
+            border-radius: 3px;
+            padding: 2.1rem 1.9rem 1.4rem;
+            transform: rotate(-1.6deg);
+            box-shadow: 0 26px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .paper-head {
+            font-size: 0.68rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: #7a6a58;
+            padding-bottom: 0.9rem;
+            border-bottom: 2px solid #2b2119;
+        }
+
+        .paper-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin: 1.1rem 0 1.4rem;
+            letter-spacing: -0.01em;
+        }
+
+        .paper-list {
+            list-style: none;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .paper-list li {
+            display: grid;
+            grid-template-columns: 18px 1fr;
+            gap: 0.85rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            align-items: start;
+        }
+
+        .paper-list li::before {
+            content: '';
+            width: 15px;
+            height: 15px;
+            margin-top: 3px;
+            border: 1.5px solid #2b2119;
+            border-radius: 2px;
+        }
+
+        .paper-alt {
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #a08f52;
+            margin: 0.2rem 0 0.2rem 33px;
+        }
+
+        .paper-note {
+            font-size: 0.78rem;
+            line-height: 1.5;
+            color: #7a6a58;
+            border-top: 1px solid rgba(43, 33, 25, 0.18);
+            margin-top: 1.5rem;
+            padding-top: 0.9rem;
+        }
+
+        .dossier-lead {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(1.9rem, 3.4vw, 2.7rem);
+            font-weight: 700;
+            line-height: 1.12;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.2rem;
+        }
+
+        .dossier-text p {
+            color: rgba(253, 249, 244, 0.55);
+            font-weight: 300;
+            line-height: 1.75;
+            max-width: 46ch;
+        }
+
+        .dossier-text p + p {
+            margin-top: 1rem;
+        }
+
+        .dossier-text em {
+            color: var(--warm-white);
+            font-style: normal;
+        }
+
+        /* ── ET AUSSI : ce qui n'a pas besoin d'une capture ── */
+        .more-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            max-width: 1160px;
+            margin: 0 auto;
+            border-top: 1px solid rgba(253, 249, 244, 0.08);
+        }
+
+        .more-item {
+            padding: 2.4rem 2rem 0;
+            border-right: 1px solid rgba(253, 249, 244, 0.08);
+        }
+
+        .more-item:last-child {
+            border-right: none;
+        }
+
+        .more-item h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+        }
+
+        .more-item p {
+            font-size: 0.92rem;
+            font-weight: 300;
+            line-height: 1.65;
+            color: rgba(253, 249, 244, 0.5);
+        }
+
         /* ── RESPONSIVE ── */
         /* ── MENU MOBILE ── */
         .nav-burger {
@@ -891,11 +976,9 @@
         nav.open .nav-burger span:nth-child(2) { opacity: 0; }
         nav.open .nav-burger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-        @media (max-width: 900px) {
-            nav {
-                padding: 1rem 1.5rem;
-            }
-
+        /* Le menu compact démarre avant le reste : à 991 px, les liens
+           desktop passaient déjà sur deux lignes. */
+        @media (max-width: 1024px) {
             .nav-burger {
                 display: flex;
             }
@@ -943,6 +1026,12 @@
                 padding: 0.85rem 1.4rem !important;
                 text-align: center;
             }
+        }
+
+        @media (max-width: 900px) {
+            nav {
+                padding: 1rem 1.5rem;
+            }
 
             .hero {
                 padding: 7rem 1.5rem 4rem;
@@ -960,10 +1049,6 @@
             .features-header {
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
-            }
-
-            .features-grid {
-                grid-template-columns: 1fr;
             }
 
             .about-inner {
@@ -989,7 +1074,94 @@
             .footer-links {
                 justify-content: center;
             }
+
+            /* refonte */
+            .hero-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .hero-shot {
+                order: 2;
+            }
+
+            .usage {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+                padding: 4rem 1.5rem;
+            }
+
+            .usage--flip .usage-media,
+            .usage-media {
+                order: 0;
+                justify-self: center;
+            }
+
+            .dossier-section {
+                padding: 4rem 1.5rem;
+            }
+
+            .dossier-inner {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .dossier-stack {
+                flex-direction: column;
+                align-items: center;
+                gap: 2.5rem;
+                padding-bottom: 0;
+            }
+
+            .paper {
+                position: static;
+                width: 100%;
+                max-width: 420px;
+                transform: none;
+            }
+
+            .more-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .more-item {
+                border-right: none;
+                border-bottom: 1px solid rgba(253, 249, 244, 0.08);
+                padding: 2rem 0;
+            }
+
+            .more-item:last-child {
+                border-bottom: none;
+            }
+
+            .about-visual {
+                display: flex;
+                justify-content: center;
+            }
         }
+        /* Un mouvement qu'on n'a pas demandé n'est pas un détail pour tout le
+           monde : sans ce bloc, les révélations au défilement et la bande
+           défilante tournent quand même. */
+        @media (prefers-reduced-motion: reduce) {
+
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
     </style>
 </head>
 
@@ -1007,7 +1179,8 @@
                 <span></span><span></span><span></span>
             </button>
             <ul class="nav-links" id="nav-links">
-                <li><a href="#features">Fonctionnalités</a></li>
+                <li><a href="#ambassades">Ambassades</a></li>
+                <li><a href="#demarches">Démarches</a></li>
                 <li><a href="#about">À propos</a></li>
                 <li><a href="/contact">Contact</a></li>
                 <li style="display:flex;align-items:center;gap:0.4rem;font-size:0.72rem;font-weight:600;">
@@ -1022,46 +1195,53 @@
         <section class="hero">
             <div class="hero-bg"></div>
             <div class="hero-circle"></div>
-            <div class="hero-dots">
-                <!-- 48 dots -->
-                <script>document.write('<span></span>'.repeat ? '<span></span>'.repeat(48) : '')</script>
-            </div>
+            <div class="hero-dots"></div>
 
             <div style="max-width:1280px; width:100%; margin:0 auto;">
-                <div class="hero-content">
-                    <div class="hero-badge">En direct du monde entier</div>
+                <div class="hero-grid">
+                    <div class="hero-content">
+                        <div class="hero-badge">En direct du monde entier</div>
 
-                    <h1>
-                        La diaspora<br>nigérienne
-                        <em>enfin réunie.</em>
-                    </h1>
+                        <h1>
+                            La diaspora<br>nigérienne
+                            <em>enfin réunie.</em>
+                        </h1>
 
-                    <p>De Niamey à Paris, de Londres à Dubaï — retrouvez vos compatriotes, rejoignez votre communauté,
-                        vivez vos racines.</p>
+                        <p>Les représentations du Niger dans le monde, les vingt démarches consulaires
+                            et leurs pièces à fournir, et la communauté autour de vous — dans une seule
+                            application.</p>
 
-                    <div class="hero-actions">
-                        <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger"
-                            target="_blank" rel="noopener" class="btn-primary">
-                            📲 Télécharger sur Android
-                        </a>
-                        <a href="#features" class="btn-secondary">
-                            Découvrir ↓
-                        </a>
+                        <div class="hero-actions">
+                            <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger"
+                                target="_blank" rel="noopener" class="btn-primary">
+                                Télécharger sur Android
+                            </a>
+                            <a href="#ambassades" class="btn-secondary">
+                                Voir l'application ↓
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="hero-shot">
+                        <div class="phone">
+                            <img src="/screens/accueil.webp" width="600" height="1150" fetchpriority="high"
+                                alt="Écran d'accueil de Diaspo Niger : membres à proximité, services, événements à venir.">
+                        </div>
                     </div>
                 </div>
 
                 <div class="hero-stats">
                     <div>
-                        <div class="stat-num">🌍</div>
-                        <div class="stat-label">Présence mondiale</div>
+                        <div class="stat-num">20</div>
+                        <div class="stat-label">Démarches consulaires</div>
                     </div>
                     <div>
-                        <div class="stat-num">6+</div>
-                        <div class="stat-label">Fonctionnalités</div>
+                        <div class="stat-num">30+</div>
+                        <div class="stat-label">Ambassades et consulats</div>
                     </div>
                     <div>
-                        <div class="stat-num">100%</div>
-                        <div class="stat-label">Gratuit & sécurisé</div>
+                        <div class="stat-num">4</div>
+                        <div class="stat-label">Continents couverts</div>
                     </div>
                 </div>
             </div>
@@ -1070,123 +1250,227 @@
         <!-- MARQUEE -->
         <div class="marquee-strip" aria-hidden="true">
             <div class="marquee-inner">
-                <span class="marquee-item">Carte interactive</span>
-                <span class="marquee-item">Groupes & Communautés</span>
-                <span class="marquee-item">Messagerie sécurisée</span>
-                <span class="marquee-item">Événements culturels</span>
+                <span class="marquee-item">Ambassades et consulats</span>
+                <span class="marquee-item">Démarches consulaires</span>
+                <span class="marquee-item">Carte des membres</span>
+                <span class="marquee-item">Groupes et sondages</span>
+                <span class="marquee-item">Messagerie chiffrée</span>
+                <span class="marquee-item">Appels audio et vidéo</span>
                 <span class="marquee-item">Annuaire d'entreprises</span>
-                <!-- <span class="marquee-item">Marketplace</span> -->
-                <span class="marquee-item">Carte interactive</span>
-                <span class="marquee-item">Groupes & Communautés</span>
-                <span class="marquee-item">Messagerie sécurisée</span>
-                <span class="marquee-item">Événements culturels</span>
+                <span class="marquee-item">Ambassades et consulats</span>
+                <span class="marquee-item">Démarches consulaires</span>
+                <span class="marquee-item">Carte des membres</span>
+                <span class="marquee-item">Groupes et sondages</span>
+                <span class="marquee-item">Messagerie chiffrée</span>
+                <span class="marquee-item">Appels audio et vidéo</span>
                 <span class="marquee-item">Annuaire d'entreprises</span>
-                <!-- <span class="marquee-item">Marketplace</span> -->
             </div>
         </div>
 
-        <!-- FEATURES -->
-        <section class="section" id="features">
-            <div class="features-header reveal">
-                <div>
-                    <div class="section-label">Fonctionnalités</div>
-                    <h2 class="section-title">Tout ce dont vous avez besoin</h2>
-                </div>
-                <p class="section-sub">Une plateforme pensée pour les besoins réels de la diaspora — connexion, culture,
-                    et opportunités.</p>
+        <!-- AMBASSADES -->
+        <section class="usage reveal" id="ambassades">
+            <div class="usage-text">
+                <div class="section-label">Représentations</div>
+                <h2>Le poste dont vous dépendez, et comment l'atteindre</h2>
+                <p>L'annuaire des ambassades, consulats et missions permanentes du Niger, de la Côte
+                    d'Ivoire à la Chine.</p>
+                <ul class="usage-points">
+                    <li>Regroupés par continent puis par pays, le plus proche de vous en tête.</li>
+                    <li>Adresse, téléphone, horaires d'ouverture et localisation de chaque poste.</li>
+                    <li>Appeler ou lancer l'itinéraire directement depuis la liste.</li>
+                </ul>
             </div>
-
-            <div class="features-grid reveal">
-                <div class="feat-card">
-                    <span class="feat-icon">🗺️</span>
-                    <h3 class="feat-title">Carte interactive</h3>
-                    <p class="feat-desc">Trouvez des membres de la communauté près de chez vous grâce à notre carte
-                        géolocalisée en temps réel.</p>
+            <div class="usage-media">
+                <div class="phone">
+                    <img src="/screens/ambassades.webp" width="600" height="1232" loading="lazy"
+                        alt="Annuaire des ambassades du Niger, groupées par continent et par pays.">
                 </div>
-                <div class="feat-card">
-                    <span class="feat-icon">👥</span>
-                    <h3 class="feat-title">Groupes & Communautés</h3>
-                    <p class="feat-desc">Rejoignez ou créez des groupes selon vos affinités, votre région d'origine ou
-                        vos centres d'intérêt.</p>
-                </div>
-                <div class="feat-card">
-                    <span class="feat-icon">📅</span>
-                    <h3 class="feat-title">Événements</h3>
-                    <p class="feat-desc">Découvrez les événements culturels, associatifs et festifs organisés par et
-                        pour la diaspora.</p>
-                </div>
-                <div class="feat-card">
-                    <span class="feat-icon">💬</span>
-                    <h3 class="feat-title">Messagerie sécurisée</h3>
-                    <p class="feat-desc">Communiquez librement avec d'autres membres via notre système de messagerie
-                        chiffrée et intuitive.</p>
-                </div>
-                <div class="feat-card">
-                    <span class="feat-icon">🏢</span>
-                    <h3 class="feat-title">Annuaire d'entreprises</h3>
-                    <p class="feat-desc">Trouvez, recommandez et soutenez les entreprises et professionnels de la
-                        diaspora nigérienne.</p>
-                </div>
-
             </div>
         </section>
 
-        <!-- ABOUT -->
+        <!-- DÉMARCHES -->
+        <section class="usage usage--flip reveal" id="demarches">
+            <div class="usage-text">
+                <div class="section-label">Vingt démarches</div>
+                <h2>Ce qu'il faut apporter, avant de vous déplacer</h2>
+                <p>Chaque démarche consulaire est détaillée : les pièces à fournir, les étapes, le lieu
+                    où elle se fait, et ce que la source officielle ne dit pas.</p>
+                <ul class="usage-points">
+                    <li>Immatriculation consulaire</li>
+                    <li>Actes d'état civil — naissance, mariage, décès, transcriptions</li>
+                    <li>Documents de voyage — passeport, laissez-passer, sauf-conduit</li>
+                    <li>Actes notariés et certificats</li>
+                    <li>Nationalité</li>
+                </ul>
+            </div>
+            <div class="usage-media">
+                <div class="phone">
+                    <img src="/screens/demarches.webp" width="600" height="1158" loading="lazy"
+                        alt="Liste des vingt démarches consulaires, classées par rubrique.">
+                </div>
+            </div>
+        </section>
+
+        <!-- LES PIÈCES À RÉUNIR -->
+        <section class="dossier-section">
+            <div class="dossier-inner">
+                <div class="dossier-text reveal">
+                    <div class="section-label">Le dossier</div>
+                    <h2 class="dossier-lead">Les pièces à réunir</h2>
+                    <p>La carte consulaire est le point d'entrée de tout le reste : <em>dix-huit des
+                            vingt démarches la réclament en première pièce</em>. Sans papier d'identité
+                        nigérien, deux témoins déjà immatriculés suffisent — c'est écrit dans le texte
+                        officiel, et l'application le dit aussi.</p>
+                    <p>Quand le montant d'un droit n'est pas publié par la source, l'application l'écrit
+                        plutôt que d'inventer un chiffre.</p>
+                </div>
+                <div class="dossier-stack reveal">
+                    <div class="phone dossier-phone">
+                        <img src="/screens/dossier.webp" width="600" height="1232" loading="lazy"
+                            alt="Écran « Nouvelle demande » : le formulaire est pré-rempli depuis le profil, les pièces à joindre sont listées.">
+                    </div>
+                    <div class="paper">
+                        <div class="paper-head">Immatriculation consulaire</div>
+                        <div class="paper-title">Carte consulaire</div>
+                        <ul class="paper-list">
+                            <li>Copie d'une pièce d'identité nigérienne — certificat de nationalité, acte
+                                de naissance ou ancienne carte consulaire</li>
+                        </ul>
+                        <p class="paper-alt">ou, à défaut</p>
+                        <ul class="paper-list">
+                            <li>Deux témoins de nationalité nigérienne déjà titulaires de la carte
+                                consulaire</li>
+                            <li>Deux photos d'identité récentes</li>
+                        </ul>
+                        <p class="paper-note">Droits de chancellerie : montant non publié par la source.<br>
+                            Ministère des Affaires étrangères, de la Coopération, de l'Intégration
+                            africaine et des Nigériens à l'Extérieur.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CARTE -->
+        <section class="usage reveal" id="carte">
+            <div class="usage-text">
+                <div class="section-label">Position approximative</div>
+                <h2>Qui, près de chez vous, vient du même pays</h2>
+                <p>La carte montre les membres autour de vous. C'est donnant-donnant, et vous décidez
+                    si vous y apparaissez.</p>
+                <ul class="usage-points">
+                    <li>Position approximative, jamais votre adresse exacte.</li>
+                    <li>Désactivable à tout moment depuis votre profil.</li>
+                    <li>Invisible pour les comptes que vous bloquez.</li>
+                    <li>Sans localisation, la carte s'explore par ville.</li>
+                </ul>
+            </div>
+            <div class="usage-media">
+                <div class="phone">
+                    <img src="/screens/carte.webp" width="600" height="1232" loading="lazy"
+                        alt="Carte des membres : le mode privé explique le partage de position avant de l'activer.">
+                </div>
+            </div>
+        </section>
+
+        <!-- GROUPES ET MESSAGERIE -->
+        <section class="usage usage--flip reveal" id="groupes">
+            <div class="usage-text">
+                <div class="section-label">Chiffré de bout en bout</div>
+                <h2>Des groupes par ville, des conversations qui restent entre vous</h2>
+                <p>Rejoignez le groupe de votre ville ou de votre pays d'accueil, ou créez le vôtre.
+                    Les messages sont chiffrés de bout en bout.</p>
+                <ul class="usage-points">
+                    <li>Texte, photos, vidéos, messages vocaux et GIFs.</li>
+                    <li>Appels audio et vidéo, en tête-à-tête comme en groupe.</li>
+                    <li>Sondages et messages épinglés dans les groupes.</li>
+                    <li>Groupes officiels par pays, ouverts à tous les membres.</li>
+                </ul>
+            </div>
+            <div class="usage-media">
+                <div class="phone">
+                    <img src="/screens/groupes.webp" width="600" height="1232" loading="lazy"
+                        alt="Écran Groupes : mes groupes, découverte et filtres par pays d'accueil.">
+                </div>
+            </div>
+        </section>
+
+        <!-- ET AUSSI -->
+        <section class="section" id="features">
+            <div class="features-header reveal">
+                <div>
+                    <div class="section-label">Et aussi</div>
+                    <h2 class="section-title">Le reste de la communauté</h2>
+                </div>
+                <p class="section-sub">Trois espaces alimentés par les membres eux-mêmes.</p>
+            </div>
+
+            <div class="more-grid reveal">
+                <div class="more-item">
+                    <h3>Le fil</h3>
+                    <p>Les publications, photos et actualités de la communauté, avec commentaires et
+                        réactions. Un contenu se partage hors de l'application en un geste.</p>
+                </div>
+                <div class="more-item">
+                    <h3>L'annuaire</h3>
+                    <p>Référencez votre activité, trouvez celle des autres. Recherche par catégorie et
+                        par ville.</p>
+                </div>
+                <div class="more-item">
+                    <h3>Les événements</h3>
+                    <p>Les rendez-vous de la communauté, près de chez vous. Créez et partagez les
+                        vôtres.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- À PROPOS -->
         <section class="about-section" id="about">
             <div class="about-inner">
                 <div class="about-visual reveal">
-                    <div class="about-card">
-                        <div class="about-card-accent"></div>
-                        <div class="about-quote">
-                            "Où que tu sois dans le monde, le Niger reste dans ton cœur."
-                        </div>
-                        <div class="about-author">
-                            <div class="author-avatar">🇳🇪</div>
-                            <div class="author-info">
-                                <div class="name">Diaspo Niger</div>
-                                <div class="role">Plateforme communautaire</div>
-                            </div>
-                        </div>
-                        <div class="floating-tag">🌿 Fait avec fierté</div>
+                    <div class="phone" style="max-width:265px;">
+                        <img src="/screens/profil.webp" width="600" height="1232" loading="lazy"
+                            alt="Écran de profil : progression de complétion, langues parlées, ville et métier.">
                     </div>
                 </div>
 
                 <div class="about-text reveal">
                     <div class="section-label">Notre mission</div>
                     <h2 class="section-title">Nés ailleurs, nigériens pour toujours</h2>
-                    <p>Diaspo Niger est une plateforme mobile conçue pour connecter les Nigériens vivant à travers le
-                        monde. Notre objectif est de créer une communauté solidaire et dynamique où chacun peut
-                        partager, échanger et s'entraider.</p>
-                    <p>Que vous cherchiez à retrouver des compatriotes dans votre ville, à participer à des événements
-                        culturels, ou simplement à rester connecté avec vos racines, Diaspo Niger est l'espace qu'il
-                        vous faut.</p>
+                    <p>Diaspo Niger est une application mobile conçue pour connecter les Nigériens qui
+                        vivent à travers le monde. L'objectif est simple : que personne n'ait à chercher
+                        seul l'ambassade dont il dépend, les papiers d'une démarche, ou d'autres
+                        Nigériens dans sa ville.</p>
+                    <p>Vous restez maître de ce que vous montrez : la position se coupe, le profil se
+                        complète à votre rythme, et les conversations sont chiffrées de bout en bout.</p>
                     <div class="about-pill-list">
-                        <span class="about-pill">✓ Communauté</span>
-                        <span class="about-pill">✓ Solidarité</span>
-                        <span class="about-pill">✓ Culture</span>
-                        <span class="about-pill">✓ Opportunités</span>
-                        <span class="about-pill">✓ Racines</span>
+                        <span class="about-pill">Communauté</span>
+                        <span class="about-pill">Démarches</span>
+                        <span class="about-pill">Culture</span>
+                        <span class="about-pill">Entraide</span>
+                        <span class="about-pill">Racines</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- DOWNLOAD -->
+        <!-- TÉLÉCHARGER -->
         <section class="download-section" id="download">
-            <div class="section-label">Rejoindre la diaspora</div>
-            <h2 class="section-title reveal">Téléchargez l'application dès aujourd'hui</h2>
-            <p class="dl-sub reveal">Disponible sur Android · iOS bientôt disponible</p>
+            <div class="section-label">Rejoindre la communauté</div>
+            <h2 class="section-title reveal">Téléchargez l'application</h2>
+            <p class="dl-sub reveal">Android 7.0 ou version ultérieure · téléchargement gratuit</p>
 
             <div class="dl-buttons reveal">
-                <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger" target="_blank"
-                    rel="noopener">
-                    <img src="/google-play-badge.png" alt="Télécharger sur Google Play" style="height: 80px;">
+                <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger"
+                    target="_blank" rel="noopener">
+                    <img src="/google-play-badge.png" alt="Télécharger dans Google Play" width="478"
+                        height="142" style="height: 80px; width: auto;">
                 </a>
-                <a href="#" style="opacity: 0.5; cursor: not-allowed; pointer-events: none;">
-                    <img src="/app-store-badge.svg" alt="Télécharger sur l'App Store" style="height: 80px;">
-                </a>
+                <span style="opacity: 0.4;">
+                    <img src="/app-store-badge.svg" alt="" width="478" height="142"
+                        style="height: 80px; width: auto;">
+                </span>
             </div>
-            <p class="dl-note">L'application iOS sera disponible prochainement</p>
+            <p class="dl-note">La version iOS est en préparation.</p>
         </section>
 
         <!-- FOOTER -->

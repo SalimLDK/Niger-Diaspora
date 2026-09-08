@@ -14,6 +14,47 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Site web : page d'accueil refondue sur les captures réelles (2026-09-08)
+
+La page d'accueil vendait une version plus ancienne de l'app : cinq cartes à
+emoji (carte, groupes, événements, messagerie, annuaire), **aucune capture**,
+une citation inventée signée par la plateforme elle-même, et trois chiffres
+creux — dont « 100 % Gratuit », l'affirmation que
+`releases/1.2.1+11/GOOGLE_PLAY_v1.2.1.md` signale comme fausse (l'APK embarque
+`google_mobile_ads` et RevenueCat). Les **ambassades et les vingt démarches
+consulaires**, c'est-à-dire ce que la fiche Play met en tête depuis 1.2.1,
+n'étaient mentionnées nulle part.
+
+La page est maintenant bâtie sur les sept captures Play (`releases/1.2.1+11/
+play/screenshots/`, recadrées sur l'écran seul, servies en WebP), et ne
+présente que ce qui est réellement atteignable dans le binaire — transferts,
+marketplace, salons audio et podcasts restent hors de la page, comme dans la
+fiche Play.
+
+Les chiffres sont vérifiables : **20** démarches (`assets/data/
+demarches_consulaires.json`), **30+** représentations (32 lignes dans
+`embassies`), **4** continents. Le passage « dix-huit des vingt démarches
+réclament la carte consulaire en première pièce » vient du champ `resume` de
+la même source.
+
+`index-en.html` est désormais **générée depuis `index.html`** : les deux
+pages avaient des feuilles de style différentes, donc toute retouche était à
+faire deux fois et le rendu divergeait.
+
+- [ ] **Rendu des captures** sur un vrai navigateur de téléphone : le
+      recadrage est détecté cadre par cadre (les sept visuels Play n'ont ni
+      la même taille de téléphone ni la même position), à revoir sur écran.
+- [ ] **La feuille « pièces à réunir »** chevauche l'écran de l'app en
+      version large et se remet dessous sous 900 px : vérifier qu'elle reste
+      lisible entre les deux, notamment en paysage.
+- [ ] **Bande défilante et révélations au défilement** : un bloc
+      `prefers-reduced-motion` a été ajouté (il n'y en avait aucun). À
+      vérifier avec « Réduire les animations » activé dans Android.
+- [ ] **Poids de la page** : sept captures WebP (~240 Ko au total) chargées
+      en `loading="lazy"` sauf celle du hero. À mesurer en 3G.
+
+---
+
 ## ⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)
 
 `public/` (déployé sur `diasponiger.web.app`). Rien ici n'est couvert par
