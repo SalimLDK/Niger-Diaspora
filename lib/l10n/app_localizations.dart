@@ -29215,6 +29215,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Impossible d\'envoyer le message. Vérifiez votre connexion et réessayez.'**
   String get embassyMessageSendError;
+
+  /// No description provided for @embassySearchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom, pays ou ville'**
+  String get embassySearchHint;
 }
 
 class _AppLocalizationsDelegate

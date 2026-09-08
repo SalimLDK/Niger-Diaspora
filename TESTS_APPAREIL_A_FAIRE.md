@@ -106,19 +106,49 @@ Flutter, pas `DesignBackLeading`. Les trois fiches à image de couverture
 (entreprise, ambassade, produit) la reçoivent sans pastille — c'est déjà
 ainsi que leurs actions `partager` / `modifier` sont posées sur l'image.
 
-À vérifier sur appareil (aucun de ces 36 écrans n'a été rouvert depuis) :
+**Vu sur SM A515F le 2026-09-08 — 8 fichiers sur 36.** Méthode : l'arbre
+d'accessibilité expose la flèche comme `content-desc="Retour"`
+(`uiautomator dump`), ce qui est bien plus fiable que de lire des pixels.
+Confirmés : `/friends`, `/support`, `/businesses/mine`, `/admin/support`,
+`/messages/new`, `/profile/reposts`, `/settings/security/backup`,
+`/embassies/employees`.
 
-- [ ] Un échantillon par famille, en entrée normale **et** par lien profond :
-      `/transfers/send`, `/marketplace/cart`, `/support`, `/friends`,
-      `/payment-history`.
-- [ ] Les trois fiches à image de couverture : la flèche est-elle **lisible**
-      sur la photo ? `/businesses/:id`, `/embassies/:id`,
-      `/marketplace/:productId`. C'est le seul endroit où le contraste n'est
-      pas garanti par le thème.
-- [ ] Les écrans à plusieurs `AppBar` : vérifier l'état **vide** et l'état
-      **chargement**, pas seulement l'état nominal — `/marketplace/cart`
-      (panier vide), `/marketplace/my-listings`, `/payment-history`,
-      `/payment-accounts`, `/marketplace/my-orders`.
+**Non vérifiables sur cet appareil — 18 fichiers sur 36.** Les familles
+`/transfers`, `/marketplace`, `/payment-accounts`, `/payment-history`,
+`/podcasts` et `/audio-rooms` sont derrière un feature-flag : le routeur les
+renvoie sur `/home` (étape 9 du `redirect`). Aucun de leurs écrans n'est
+atteignable tant que les drapeaux sont à false.
+
+Reste à voir, par ordre d'intérêt :
+
+- [ ] **La flèche est-elle lisible sur une image de couverture ?** C'est le
+      seul endroit où le contraste n'est pas garanti par le thème :
+      `/businesses/:id` et `/marketplace/:productId` posent une vraie photo
+      (`CachedNetworkImage`). Non testable ici — l'annuaire est vide sur ce
+      compte et la boutique est derrière un drapeau. `/embassies/:id` ne
+      compte pas : son en-tête est un aplat teinté, pas une photo.
+- [ ] **Les états vide et chargement** des écrans à plusieurs `AppBar` :
+      `/marketplace/cart` panier vide, `/marketplace/my-listings`,
+      `/payment-history`, `/payment-accounts`, `/marketplace/my-orders`.
+      Tous derrière un drapeau aujourd'hui.
+- [ ] Les ~10 écrans restants atteignables mais non atteints (voir le piège
+      d'`am start` ci-dessous).
+
+**Deux pièges de méthode rencontrés, à retenir :**
+
+1. **L'autre agent installe son APK sur le même téléphone.** À 01:13:54 le
+   `base.apk` a changé en plein test : mes mesures des dix minutes suivantes
+   ne portaient pas sur mon build, et j'ai failli conclure qu'un écran
+   corrigé n'avait pas de flèche. Encadrer **chaque** mesure d'un contrôle
+   `md5sum` local ↔ appareil, avant *et* après — pas seulement à
+   l'installation.
+2. **Le lien profond à froid retombe sur `/home` de façon intermittente.**
+   Course entre le `redirect` de démarrage (auth, consentement, config) et le
+   rejeu du lien mis de côté. Un `uiautomator dump` qui montre `Bonjour,`
+   (accueil) ou `Diaspo Niger` (splash) est une mesure **ratée**, pas un
+   écran sans flèche : toujours identifier l'écran atteint avant de conclure.
+   Plus fiable : lancer l'app, attendre qu'elle soit posée, puis envoyer les
+   intents à chaud.
 
 - [ ] Rendu en **thème clair** : les quatre écrans n'ont été vus qu'en sombre.
 - [ ] Zone tactile de `DesignBackLeading` : 28x34 dp, sous les 48 dp
@@ -9731,6 +9761,44 @@ où j'ai trouvé le défaut.
    `if (user == null) return []` court-circuitait tout — 32 fiches en cache
    sur l'appareil, écran vide. Or la table est en lecture publique par
    conception : l'annuaire ne dépend plus d'une session.
+
+**Quatre défauts d'affichage de la fiche, trouvés en regardant l'écran**
+(2026-09-08, Pixel, thème sombre) — aucun ne sort de `flutter analyze`, et
+aucun ne lève de `RenderFlex overflowed` :
+
+1. **Onglet actif illisible.** `TabBar(labelColor: Colors.black87)` était figé :
+   noir sur fond noir en thème sombre. Même famille que les 48 jetons clairs
+   corrigés le 2026-08-04. Passé aux jetons `colorScheme`.
+2. **Titre tronqué** — « Ambassade du Niger … ». Deux causes cumulées : les
+   noms officiels du seed sont longs (36 caractères), et `FlexibleSpaceBar`
+   agrandit encore le titre de 1,5× quand l'en-tête est déplié. Deux lignes,
+   facteur ramené à 1,25.
+3. **200 px de bandeau vide.** `expandedHeight: 200` réserve la place d'une
+   image de couverture, or `imageUrl` est nul sur les 32 fiches ; le gabarit
+   (`primaryColor` à 10 %, icône à 50 %) disparaissait sous le dégradé noir.
+   Ramené à 140 px avec des couleurs réellement visibles.
+4. **Icône du gabarit sous la barre d'état**, puis par-dessus le titre :
+   le bandeau s'étend sous le statut, il faut décaler de
+   `MediaQuery.paddingOf(context).top`.
+
+✅ Vérifié après correction sur Pixel (capture `fiche_finale.png`).
+
+**Deux troncatures de plus sur l'écran de LISTE** (2026-09-08, Pixel) —
+distinctes des quatre ci-dessus, qui portaient sur la fiche :
+
+5. **« Ambassades & consul… »** — le titre de l'AppBar. `DesignTitle` est une
+   brique partagée du design kit, donc corrigé au point d'appel par un
+   `FittedBox(fit: scaleDown)` plutôt qu'en touchant au kit. À noter : ça
+   rentrait sur le SM A515F et débordait sur le Pixel — la police système est
+   plus large. Un écran validé sur un seul appareil ne prouve pas grand-chose.
+6. **« Rechercher par nom, pays o… »** — invite du champ de recherche,
+   raccourcie en « Nom, pays ou ville » ; l'icône loupe dit déjà qu'on cherche.
+
+Les deux chaînes étaient en **français figé** dans un écran par ailleurs
+traduit : passées en l10n au passage (`embassiesAndConsulates` existait déjà,
+`embassySearchHint` ajoutée).
+
+✅ Vérifié sur Pixel (capture `liste_corrigee.png`).
 
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
