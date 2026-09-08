@@ -10017,9 +10017,35 @@ uniformément grisé, mais d'une vraie distinction :
 Sans le correctif, les 32 auraient toutes pointé sur (0, 0). Vérifié des deux
 côtés : La Havane grisée, Washington active.
 
-### Pourquoi les 11 restantes ne sont pas géocodables (2026-09-08)
+### Géocodage des 11 restantes : ce que j'ai conclu trop vite (2026-09-08)
 
-Tentative faite, sources épuisées. **Ne pas la refaire sans source nouvelle.**
+> ⚠️ **Ce constat était faux dans sa portée.** Il concluait « aucune source
+> publique ne les contient » et « ne pas refaire sans source nouvelle ». Le
+> même jour, l'autre agent en a géocodé **neuf sur onze** avec la Geocoding API
+> de Google (migration `20260908150000_coordonnees_postes_google.sql`) — il ne
+> reste que Djeddah et Khartoum. **30 des 32 postes ont désormais des
+> coordonnées.**
+>
+> **Ce qui m'a manqué n'est pas une source, c'est une reformulation.** Je
+> cherchais par *adresse postale*, en français ; il a cherché par **nom du
+> poste, dans la langue du pays d'accueil** — Le Caire ne répond qu'à l'arabe,
+> La Havane qu'à l'espagnol. Et j'avais écarté la piste payante en reprenant
+> l'argument du script d'origine (« disproportionné pour 32 lignes ») sans le
+> réexaminer, alors que c'était le seul verrou réel.
+>
+> **La leçon à garder** : « la source ne contient pas la donnée » et « ma
+> requête ne la trouve pas » sont deux constats différents. Avant de conclure
+> à l'absence, faire varier la formulation — langue locale, nom de
+> l'institution plutôt qu'adresse — et rouvrir explicitement les pistes
+> écartées pour des raisons de coût.
+>
+> Trois résultats de Google recoupent l'adresse du ministère, ce qui les
+> confirme mutuellement : Le Caire (101 Al Haram = avenue des Pyramides),
+> Rabat (Av. Al Haour) et Dubaï — où « Abu Hail » explique le « Abau Hain
+> Street » que je n'arrivais pas à situer.
+
+Ce qui suit reste exact, et documente ce que les sources **gratuites**
+contiennent — utile si l'API payante venait à être coupée.
 
 **OpenStreetMap n'a aucun nœud** pour le poste du Niger dans 10 de ces 11
 villes — vérifié en interrogeant Overpass sur `country=NE` puis, plus large,
@@ -10053,6 +10079,27 @@ du centre-ville, dans `tools/geocode_postes_diplomatiques.mjs`, protège.
 Voies qui marcheraient vraiment : demander la position aux postes eux-mêmes
 (la donnée leur appartient), ou la relever une fois puis la contribuer à OSM —
 ce qui profiterait aussi à tout le monde.
+
+**État au 2026-09-08 après le géocodage Google** — deux postes seulement
+restent sans coordonnées, et pour eux la demande par courriel garde tout son
+sens (`docs/ops/DEMANDE_POSITIONS_POSTES.md`, §2 et §5) :
+
+- **Djeddah** : le seul résultat est à 22 km au nord du centre et n'est pas
+  typé `embassy` — trop faible pour être écrit en base.
+- **Khartoum** : Google ne connaît aucun lieu d'ambassade dans la ville.
+
+Et deux questions se sont **ouvertes** avec ce géocodage, à trancher :
+
+- **Copenhague** : OSM place l'ambassade à Rosbækvej/Østerbro, l'annuaire
+  publie « Niels Juels Gade 5 » — **5,1 km d'écart**, rien pour départager.
+  Écrire à `ambassade@niger.dk`.
+- **Abuja** : le point a été déplacé de Diplomatic Drive à Maitama, où
+  l'annuaire et Google se rejoignent. Une confirmation serait prudente —
+  `embniger@yahoo.fr`.
+
+Contribuer les positions confirmées à OpenStreetMap reste souhaitable : le
+script gratuit les retrouverait seul, et l'information servirait au-delà de
+cette application.
 
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
@@ -10151,15 +10198,29 @@ ambassade.
 - [ ] **Copenhague reste ouvert** : nœud OSM (Rosbæksvej, Østerbro) contre
       adresse publiée (Niels Juels Gade 5), 5,1 km, et Google n'y connaît aucun
       lieu typé `embassy` pour départager. Position OSM retenue en attendant.
-- [ ] **Regroupement par zone, corrigé dans la foulée** (`ZoneGeographique`,
+- [x] **Regroupement par zone, corrigé dans la foulée** (`ZoneGeographique`,
       testé à froid) : Alger s'affichait sous **Europe** (constaté sur le
       Pixel : « Europe · 9 » contenait l'Algérie) et Riyad serait tombé en
-      **Afrique**. Vérifier sur appareil, **après réinstallation**, qu'Alger
-      est sous Afrique, Riyad sous Asie, Ankara sous Europe. ⚠️ En anglais, le
-      repli des postes sans coordonnées valait « Others » alors que l'écran
-      n'affiche que les zones de sa liste française : **les 11 postes sans
-      coordonnées disparaissaient de l'annuaire en anglais** (le compteur, lui,
-      les comptait). À revérifier en basculant la langue du téléphone.
+      **Afrique**.
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, APK reconstruit et réinstallé
+      (md5 du binaire local et de `base.apk` identiques) : Alger → **Afrique**,
+      Riyad → **Asie**, Ankara → **Europe**, Khartoum (sans coordonnées) →
+      **Autres**, toujours visible dans la liste. En-tête « Près de vous · 2 »
+      et « Le plus proche · 538 km » sur la mission auprès des Nations unies,
+      cohérents avec un profil situé au Canada.*
+- [ ] ⚠️ **En anglais**, le repli des postes sans coordonnées valait
+      « Others » alors que l'écran n'affiche que les zones de sa liste
+      française : **tout poste sans coordonnées disparaissait de l'annuaire**
+      (le compteur, lui, les comptait). Corrigé par une constante partagée,
+      mais **vérifié en français seulement** — à revoir en basculant la langue
+      du téléphone.
+- [ ] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
+      vu sur Pixel 10 Pro XL le 2026-09-08) : dès que le clavier s'ouvre sur la
+      recherche de l'annuaire en **paysage**, un bandeau
+      « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ. Non
+      corrigé : l'écran est en cours de modification par ailleurs, et le défaut
+      est indépendant des coordonnées. Même famille que le panneau ancré des
+      messages — le clavier prend la place, la colonne ne se recompose pas.
 
 ⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
 sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
