@@ -14,6 +14,54 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Quatre écrans du menu principal sans flèche de retour (2026-09-07)
+
+Notifications, Annuaire des entreprises, Événements et Ambassades sont
+atteints par `push` depuis l'accueil (ou « Tous les services »), mais
+n'affichaient aucun moyen de revenir : seul le bouton système ramenait en
+arrière. Deux causes distinctes, invisibles en lisant l'écran seul :
+
+- `DesignScreenHeader.leading` est facultatif — les cinq onglets racines
+  n'en veulent pas — donc un écran poussé qui recopie l'en-tête d'un onglet
+  hérite de son absence de flèche (Notifications, Entreprises) ;
+- `automaticallyImplyLeading: false` supprime la flèche que Flutter aurait
+  posée seul ; le drapeau, justifié sur un onglet, avait été recopié sur
+  deux écrans poussés (Événements, Ambassades).
+
+La flèche est désormais une brique unique du kit, `DesignBackLeading`
+(`lib/core/theme/design_kit.dart`), et non plus une recopie par écran : les
+Réglages la dessinaient déjà à la main, ils passent dessus. Elle replie sur
+une route quand la pile est vide (`canPop() ? pop() : go('/home')`), le cas
+d'une entrée par notification système — `/notifications` est justement une
+cible de `router.push` depuis `lib/app.dart`.
+
+Vérifié par `test/core/router/fleche_retour_test.dart` (lit le routeur, donc
+sait quelle route est poussée et laquelle est un onglet ; liste d'exceptions
+nommées, elle ne doit que rétrécir).
+
+À vérifier sur appareil :
+
+- [ ] La flèche est **visible** en haut à gauche des quatre écrans, en thème
+      clair **et** sombre — `DesignBackLeading` prend
+      `context.textPrimaryColor`, jamais vu à l'écran.
+- [ ] Elle est **atteignable au doigt** sur les trois écrans à
+      `DesignScreenHeader` : la zone tactile de `DesignBackLeading` fait
+      28x34 dp, sous les 48 dp recommandés. C'est la dimension que les
+      Réglages embarquaient déjà ; elle n'a jamais été jugée sur appareil.
+      Les deux écrans à `AppBar` (Événements, Ambassades) utilisent la flèche
+      de Flutter, donc ses métriques (48 dp) — vérifier au passage que la
+      flèche ne saute pas visiblement de place entre les deux familles
+      d'en-tête.
+- [ ] Elle **ramène bien** à l'accueil et pas ailleurs, depuis les deux
+      chemins d'entrée : accueil → tuile, et accueil → « Tous les services ».
+- [ ] Le repli : ouvrir une notification système alors que l'app est fermée,
+      puis taper la flèche de l'écran Notifications — doit mener à l'accueil,
+      pas à un écran noir.
+- [ ] Les Réglages, dont la flèche a changé d'implémentation, reviennent
+      toujours (entrée depuis Profil **et** depuis la Carte).
+
+---
+
 ## ⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)
 
 L'écran de demande administrative (`administrative_request_screen.dart`)
@@ -9465,7 +9513,7 @@ qui affichait déjà l'heure). Ce que le test ne peut pas voir :
   Restent non vérifiés sur appareil : appel de groupe, et le cas décliné
   (`isDeclined`, libellé orange).
 
-## ⬜ Annuaire des ambassades : Firestore → Supabase, 32 postes chargés (2026-09-07)
+## ✅ Annuaire des ambassades : Firestore → Supabase, 32 postes chargés (2026-09-07)
 
 L'écran « Ambassades » lisait la collection Firestore `embassies`, **vide
 depuis toujours** : la liste n'a jamais rien affiché. L'annuaire passe sur
@@ -9475,34 +9523,73 @@ postes publiés par diplomatie.gouv.ne, relevés et corrigés le 2026-09-07.
 Rien de tout cela n'est vérifié sur appareil — `flutter analyze` ne dit pas si
 la liste s'affiche.
 
-- [ ] La liste affiche bien les 32 postes (28 ambassades, 4 consulats).
+- [x] **✅ SM A515F 2026-09-07** — la liste affiche **30** fiches (et non 32) :
+      le compte de test n'a pas de pays renseigné, donc le filtre de
+      juridiction masque Genève (Suisse/Autriche/Liechtenstein) et New York
+      (Venezuela). Comportement du filtre déjà en place, rendu actif pour la
+      première fois par le seed. **À trancher** : un usager sans pays connu
+      devrait-il voir les missions permanentes ?
       `lib/features/embassies/presentation/screens/embassies_screen.dart`
-- [ ] La recherche par pays / ville / nom filtre correctement.
-- [ ] **Mode avion après un premier chargement** : la liste reste affichée
-      depuis la copie locale (`embassies_local_datasource.dart`, clé
-      `CACHED_EMBASSIES_V2`). C'est le cas d'usage principal — quelqu'un qui
-      cherche son consulat n'a souvent pas de réseau.
+- [x] **✅ SM A515F** — « Havane » → 1 résultat, groupé sous Cuba.
+- [x] **✅ SM A515F 2026-09-07 — mode avion après un premier chargement** :
+      « 30 ambassade(s) trouvée(s) » servies depuis `CACHED_EMBASSIES_V2`
+      (32 fiches, `savedAt` 03:25), et la fiche de détail s'ouvre complète
+      hors ligne (Pretoria : adresse, fax, réserve, « Y aller » grisé).
+      `airplane_mode_on = 1` **et** `Active default network: none` — le VPN ne
+      masquait pas l'état hors ligne.
+      Il a fallu **trois** correctifs pour y arriver, cf. la liste ci-dessus.
 - [ ] **Mode avion sans jamais avoir chargé** : liste vide, pas de plantage.
-- [ ] La fiche de détail montre le fax et les lignes supplémentaires
-      (Le Caire en a trois, Addis-Abeba et Lomé deux).
-      `embassy_detail_screen.dart`
+      (Non testé : le cache était déjà peuplé, et le vider demande de
+      désinstaller — ce qui coûte la session Firebase.)
+
+⚠️ **Reste ouvert, même famille de défaut** : `embassy_message_screen.dart`
+(lignes 60 et 66) lit encore `ref.read(currentUserAsyncProvider).value` et
+`profileAsync.value`. Moins grave que les précédents — l'appel est dans un
+`try` d'action asynchrone, donc l'erreur est attrapée et devient une SnackBar
+plutôt qu'un écran rouge — mais c'est le même piège. Non corrigé ici pour ne
+pas empiéter : l'autre agent balaie ce motif en ce moment même dans
+`administrative_request_screen.dart` (mêmes lignes, même diagnostic, même
+appareil, non encore poussé).
+- [x] **✅ SM A515F** — Berlin affiche « Autres lignes : +49 30 80 58 96 61 »
+      et « Fax : +49 30 80 58 96 62 ».
 - [ ] La réserve `data_notes` s'affiche sur les fiches concernées (Abidjan,
       Ankara, Cotonou, Doha, La Havane, Berlin, Copenhague, Rome, Kano,
       Paris, Pretoria, Rabat, Riyad, Washington, Genève, Pékin, Khartoum,
       Le Caire, New York, Paris/UNESCO) et reste lisible en **thème sombre**
       (`surfaceContainerHighest` / `onSurfaceVariant`).
-- [ ] **Bouton « Itinéraire » grisé partout** : aucune fiche officielle ne
-      porte de coordonnées. Avant ce correctif, `toEntity()` remplaçait une
-      latitude nulle par `0.0` — le bouton était actif sur les 32 postes et
-      ouvrait la carte dans le golfe de Guinée.
-- [ ] La Havane et Doha (aucune adresse publiée) affichent « La Havane,
-      Cuba » sans virgule orpheline en tête.
+      **✅ SM A515F** — carte « Réserve sur cette fiche » vue sur Berlin et
+      La Havane, lisible en sombre.
+- [x] **✅ SM A515F** — « Y aller » grisé sur Berlin et La Havane. Avant ce
+      correctif, `toEntity()` remplaçait une latitude nulle par `0.0`, le
+      bouton était actif sur les 32 postes et ouvrait le golfe de Guinée.
+- [x] **✅ SM A515F** — « La Havane, Cuba », pas de virgule orpheline.
 - [ ] Admin : vérifier / suspendre un poste (`admin_embassy_verification_screen`)
       écrit bien dans Supabase, et l'échec RLS non-admin remonte un message
       au lieu d'un faux succès.
 - [ ] Admin : créer un poste (`admin_create_embassy_screen`) le fait
       apparaître dans la liste — l'écran écrivait dans Firestore, donc dans
       une collection que plus personne ne lit.
+
+**Trois défauts trouvés PAR ce test appareil**, invisibles à `flutter analyze` :
+
+1. **Ville doublée** — « Machnower Str. 24, **Berlin, Berlin**, Allemagne ».
+   Les adresses postales portent la ville, que la fiche rajoutait. Corrigé par
+   `_formatLocation` (n'ajoute un fragment que s'il n'est pas déjà présent).
+   **✅ vérifié** : Pretoria affiche « … Hatfield, Pretoria, Afrique du Sud »,
+   une seule fois. Restent Rome/Roma, Pékin/Beijing et Copenhague/København,
+   que la comparaison ne peut pas reconnaître — traités par la migration
+   `20260907203000`, **pas encore appliquée** (elle attend que l'autre agent
+   pousse `20260907200000`, appliquée en base mais absente du dépôt).
+2. **`AsyncValue.value` relance l'erreur en Riverpod 2** (c'est `valueOrNull`
+   qui rend `null`). Hors ligne, le flux du profil échoue, l'exception
+   traversait tout `embassiesListProvider`, et l'écran affichait la trace
+   brute — **avec l'hôte Supabase et l'UID de l'usager en clair, plein
+   écran**. Le dépôt n'était jamais appelé, donc le cache jamais lu.
+3. **L'annuaire était conditionné à une session.** Hors ligne, la session
+   Supabase ne peut plus se rafraîchir, l'usager est vu comme déconnecté, et
+   `if (user == null) return []` court-circuitait tout — 32 fiches en cache
+   sur l'appareil, écran vide. Or la table est en lecture publique par
+   conception : l'annuaire ne dépend plus d'une session.
 
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,

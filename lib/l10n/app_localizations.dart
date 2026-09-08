@@ -29203,6 +29203,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Source : {source}, relevé le {date}'**
   String embassySourceLine(Object date, Object source);
+
+  /// No description provided for @embassyLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger l\'annuaire. Vérifiez votre connexion et réessayez.'**
+  String get embassyLoadError;
 }
 
 class _AppLocalizationsDelegate

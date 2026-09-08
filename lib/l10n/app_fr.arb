@@ -8111,5 +8111,6 @@
   "embassyFax": "Fax",
   "embassyOtherPhones": "Autres lignes",
   "embassyDataNote": "Réserve sur cette fiche",
-  "embassySourceLine": "Source : {source}, relevé le {date}"
+  "embassySourceLine": "Source : {source}, relevé le {date}",
+  "embassyLoadError": "Impossible de charger l'annuaire. Vérifiez votre connexion et réessayez."
 }

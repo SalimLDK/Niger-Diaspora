@@ -200,7 +200,6 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 20,
-        automaticallyImplyLeading: false,
         title: const DesignTitle('Ambassades & consulats', size: 24),
       ),
       body: embassiesAsync.when(
@@ -294,13 +293,18 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error:
-            (error, stack) => Center(
-              child: ErrorView(
-                message: 'Erreur: ${error.toString()}',
-                onRetry: () => ref.refresh(embassiesListProvider),
-              ),
+        error: (error, stack) {
+          // La trace brute portait l'hote Supabase et l'identifiant de
+          // l'usager, en clair et plein ecran. Elle va dans les logs, pas
+          // devant l'usager.
+          debugPrint('embassiesList error: $error');
+          return Center(
+            child: ErrorView(
+              message: l10n.embassyLoadError,
+              onRetry: () => ref.refresh(embassiesListProvider),
             ),
+          );
+        },
       ),
     );
   }

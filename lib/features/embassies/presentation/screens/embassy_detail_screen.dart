@@ -298,12 +298,7 @@ class EmbassyDetailScreen extends StatelessWidget {
             ),
 
           Text(
-            // Deux postes (La Havane, Doha) ne publient aucune adresse : les
-            // recoller sans filtrer donnait une ligne commencant par une
-            // virgule.
-            [embassy.address, embassy.city, embassy.country]
-                .where((part) => part.trim().isNotEmpty)
-                .join(', '),
+            _formatLocation(embassy),
             style: theme.textTheme.bodyLarge,
           ),
 
@@ -914,4 +909,27 @@ class _DataNoteCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Compose la ligne de localisation d'un poste, sans repeter ni laisser de
+/// trou.
+///
+/// Deux ecueils, tous deux constates a l'ecran :
+/// - La Havane et Doha ne publient **aucune** adresse ; recoller les trois
+///   champs sans filtrer donnait une ligne commencant par une virgule.
+/// - Les adresses postales portent presque toujours la ville (« Machnower
+///   Str. 24, Berlin »), que la ligne ajoutait une seconde fois : « …, Berlin,
+///   Berlin, Allemagne ». On n'ajoute donc un fragment que s'il n'est pas
+///   deja present dans ce qui precede.
+String _formatLocation(EmbassyEntity embassy) {
+  final parts = <String>[];
+  for (final candidate in [embassy.address, embassy.city, embassy.country]) {
+    final value = candidate.trim();
+    if (value.isEmpty) continue;
+    final deja = parts.any(
+      (p) => p.toLowerCase().contains(value.toLowerCase()),
+    );
+    if (!deja) parts.add(value);
+  }
+  return parts.join(', ');
 }

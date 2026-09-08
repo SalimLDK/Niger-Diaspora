@@ -15811,4 +15811,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String embassySourceLine(Object date, Object source) {
     return 'Source: $source, checked on $date';
   }
+
+  @override
+  String get embassyLoadError =>
+      'Could not load the directory. Check your connection and try again.';
 }

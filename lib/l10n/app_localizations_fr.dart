@@ -15960,4 +15960,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String embassySourceLine(Object date, Object source) {
     return 'Source : $source, relevé le $date';
   }
+
+  @override
+  String get embassyLoadError =>
+      'Impossible de charger l\'annuaire. Vérifiez votre connexion et réessayez.';
 }
