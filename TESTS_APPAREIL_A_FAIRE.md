@@ -52,6 +52,49 @@ laisse l'appareil sur le **repli AES** sans plus rien pour le signaler (le
 coordinateur ne génère pas de clés quand une sauvegarde distante existe). La
 sortie reste Réglages › Sécurité, qui n'a pas bougé.
 
+---
+
+## ⬜ Site web repeint sur la palette ① Organic du guide (2026-09-08)
+
+Le « Guide de style » Claude Design assigne explicitement la palette ①
+**Organic** au site web. Le site ne l'a jamais appliquée : il tournait sur un
+fond `#0f0d0a` et un orange `#E97424` qui ne figurent dans **aucune** des cinq
+palettes du guide, en Fraunces + Sora là où Organic dit Caprasimo + Figtree.
+Un visiteur voyait donc une page noire et orange, puis installait une
+application crème et verte.
+
+Les seize pages sont passées sur les valeurs de
+`lib/features/feed/presentation/theme/feed_tokens.dart` (`organic`) : sable
+`#F5EAD8`, surface `#EBDDC5`, encre `#201E1D`, terre cuite `#C67139`, olive
+`#7A8A5E`.
+
+**Une valeur du guide n'est pas reprise telle quelle** : `mutedText #82796A`
+donne 3,4:1 sur le sable, sous le seuil AA de 4,5:1 pour du texte courant. Le
+site utilise `#5C5449`, même famille, un cran plus foncé. C'est la lisibilité
+qui l'impose, pas une préférence.
+
+Le contrôle n'est pas visuel : un audit exécuté dans le navigateur parcourt
+chaque nœud de texte des seize pages, recompose le fond réel (superposition des
+alphas) et calcule le rapport de contraste. Les seize pages sortent à zéro
+défaut. Seul le bouton « Supprimer définitivement » **désactivé** reste à
+2,7:1 — un contrôle inactif est explicitement hors du champ de WCAG, et c'est
+son apparence voulue.
+
+- [ ] **Lisibilité au soleil** : une page claire se comporte à l'inverse d'une
+      page sombre en extérieur. À regarder dehors, pas seulement au bureau.
+- [ ] **Rendu des captures sur fond clair** : les écrans de l'app sont crème,
+      le cadre du téléphone reste sombre pour les détacher. À vérifier sur
+      écran de téléphone, où le contraste perçu diffère.
+- [ ] **Polices Caprasimo et Figtree** : elles ne sont chargées que depuis
+      Google Fonts. Vérifier le rendu de repli si le réseau est lent
+      (Caprasimo n'a qu'une graisse ; un faux gras serait visible).
+- [ ] **`prefers-reduced-motion`** : toujours à vérifier avec « Réduire les
+      animations » activé.
+- [ ] **Barre système du navigateur** : `theme-color` est passé au sable ;
+      à voir sur Chrome Android, thème clair et thème sombre.
+
+---
+
 ## ⬜ Site web : page d'accueil refondue sur les captures réelles (2026-09-08)
 
 La page d'accueil vendait une version plus ancienne de l'app : cinq cartes à
@@ -123,18 +166,52 @@ Fichiers : `lib/features/auth/data/repositories/auth_repository_impl.dart`,
 construit depuis ce worktree (`md5sum` local et `md5sum` du `pm path` sur
 l'appareil identiques : `5dd681b4…` — le piège de l'APK périmé est écarté).
 
-- [ ] **Délai perçu** : Profil → Déconnexion → l'écran de connexion doit
-      apparaître immédiatement (< 0,5 s), pas après plusieurs secondes de
-      blanc. À mesurer aussi en 3G lente / réseau dégradé, où l'ancien chemin
-      était le plus pénible.
-      ⚠️ **Non tranché** le 2026-09-08 : la déconnexion a bien abouti sur
-      l'écran de connexion, mais la seule borne obtenue est « moins de 3 s ».
-      `uiautomator dump` attend que l'interface soit au repos, et le premier
-      sondage a lui-même duré 3,00 s — la méthode mesure sa propre latence.
-      Pour la prochaine passe : boucle serrée de `screencap` (≈ 200 ms, sans
-      attente de repos) horodatée par `/proc/uptime`, ou un `debugPrint` de
-      durée relu dans logcat. Une seule déconnexion est disponible par
-      session ouverte : préparer la méthode **avant** d'appuyer.
+- [x] **Délai perçu — mesuré le 2026-09-08 : l'écran de connexion commence à
+      être peint 0,23 s après le tap, et l'est entièrement à 0,68 s.** Les deux
+      chiffres sont des bornes hautes (l'horodatage est pris *après* la
+      capture). Le reste n'est que la transition de route. Il n'y a plus de
+      blanc.
+      Reste à voir en 3G lente / réseau dégradé, où l'ancien chemin était le
+      plus pénible — et session Supabase périmée (ci-dessous), le seul cas où
+      du réseau subsiste sur le chemin critique.
+
+  <details><summary>Méthode (deux tentatives, la première nulle)</summary>
+
+  **Ce qui n'a pas marché.** `uiautomator dump` attend que l'interface soit au
+  repos : le premier sondage a duré 3,00 s en trouvant déjà l'écran de
+  connexion — la méthode mesurait sa propre latence, borne inutile de « moins
+  de 3 s ». Une rafale de `screencap -p` vers `/sdcard` ne fait guère mieux :
+  ~950 ms par trame (encodage PNG + FUSE).
+
+  **Ce qui marche.** Capture **brute** vers `/data/local/tmp` (pas d'encodage)
+  et lecture de quelques octets sur l'appareil, sans rien rapatrier : ~200 ms
+  par échantillon. En-tête de `screencap` = **16 octets** (largeur, hauteur,
+  format, espace colorimétrique), donc l'offset du pixel (x,y) vaut
+  `16 + (y*largeur + x)*4`, et `dd bs=4 skip=$((4 + y*largeur + x)) count=1 |
+  od -An -tu1` le rend en RGBA. Vérifié contre un PNG de référence : valeurs
+  identiques au pixel près.
+
+  Pixel témoin sur ce Pixel 10 Pro XL : **(300, 1994)**, dans le bouton « Se
+  connecter » — `(50,226,82)` sur l'écran de connexion, `(15,13,10)` dès qu'on
+  est connecté.
+
+  **Deux pièges rencontrés.** ⚠️ Une session ouverte ne donne qu'**une seule**
+  déconnexion : l'instrument doit être prêt et calibré avant d'appuyer.
+  ⚠️ Et un `adb pull /sdcard/` pour récupérer les trames rapatrie toute la
+  mémoire de l'appareil — ne tirer que les fichiers visés.
+
+  </details>
+
+- [ ] **⚠️ Le dialogue « Connecté ailleurs » peut avaler le tap.** Rencontré le
+      2026-09-08 : `SessionService._handleForceLogout()` a ouvert sa boîte
+      par-dessus le dialogue de déconnexion, et le tap de confirmation a
+      atterri dessus — première mesure perdue. À vérifier avant d'appuyer.
+      Au passage, cette voie de déconnexion forcée ne fait que
+      `FirebaseAuth.signOut()` + `clearSessionId()` : **ni purge des caches,
+      ni retrait du jeton FCM**. Le compte suivant sur ce téléphone hérite
+      donc des données du précédent, et l'appareil reste inscrit pour ses
+      notifications — la famille de défauts que le correctif de latence vient
+      justement de traiter sur la voie normale. Non corrigé, hors périmètre.
 - [x] **Jeton FCM réellement retiré** — vérifié le 2026-09-08. Le jeton de
       l'appareil (`shared_prefs/com.google.android.gms.appid.xml`, début
       `fcAFKu1JQ_au…`) ne figure plus dans `users.fcm_tokens` après la
