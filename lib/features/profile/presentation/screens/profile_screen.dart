@@ -766,60 +766,72 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                 ],
       ),
+      // Les quatre colonnes se partagent la largeur disponible (`Expanded`)
+      // au lieu de prendre chacune leur largeur naturelle : sur un écran de
+      // 392 dp à l'échelle de police 1.3 (Pixel 10 Pro XL), « Publications »
+      // et « Événements » débordaient la carte par la droite.
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              context.push('/friends');
-            },
-            child: _AnimatedProfileStat(
-              value: connectionsCount.toString(),
-              label: l10n.connections,
-              icon: Icons.people_outline,
-              color: context.adaptivePrimaryColor,
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                context.push('/friends');
+              },
+              child: _AnimatedProfileStat(
+                value: connectionsCount.toString(),
+                label: l10n.connections,
+                icon: Icons.people_outline,
+                color: context.adaptivePrimaryColor,
+              ),
             ),
           ),
           _buildStatDivider(),
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              context.push('/groups');
-            },
-            child: _AnimatedProfileStat(
-              value: groupsCount.toString(),
-              label: l10n.groupsTitle,
-              icon: Icons.group_work_outlined,
-              color: context.adaptiveSecondaryColor,
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                context.push('/groups');
+              },
+              child: _AnimatedProfileStat(
+                value: groupsCount.toString(),
+                label: l10n.groupsTitle,
+                icon: Icons.group_work_outlined,
+                color: context.adaptiveSecondaryColor,
+              ),
             ),
           ),
           _buildStatDivider(),
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              context.push('/events');
-            },
-            child: _AnimatedProfileStat(
-              value: eventsCount.toString(),
-              label: l10n.eventsTitle,
-              icon: Icons.event_outlined,
-              // AppColors.info est un bleu Material figé, absent de la palette
-              // et insensible au thème. La rangée alterne terracotta et vert.
-              color: context.adaptivePrimaryColor,
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                context.push('/events');
+              },
+              child: _AnimatedProfileStat(
+                value: eventsCount.toString(),
+                label: l10n.eventsTitle,
+                icon: Icons.event_outlined,
+                // AppColors.info est un bleu Material figé, absent de la
+                // palette et insensible au thème. La rangée alterne
+                // terracotta et vert.
+                color: context.adaptivePrimaryColor,
+              ),
             ),
           ),
           _buildStatDivider(),
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              context.push('/profile/my-posts');
-            },
-            child: _AnimatedProfileStat(
-              value: postsCount.toString(),
-              label: l10n.profileStatPosts,
-              icon: Icons.article_outlined,
-              color: context.adaptiveSecondaryColor,
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                context.push('/profile/my-posts');
+              },
+              child: _AnimatedProfileStat(
+                value: postsCount.toString(),
+                label: l10n.profileStatPosts,
+                icon: Icons.article_outlined,
+                color: context.adaptiveSecondaryColor,
+              ),
             ),
           ),
         ],
@@ -1332,31 +1344,43 @@ class _AnimatedProfileStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // La colonne reçoit une largeur imposée (un quart de la carte). Les deux
+    // lignes se réduisent donc au lieu de déborder : le compteur quand il
+    // passe à trois ou quatre chiffres, le libellé quand l'échelle de police
+    // système l'allonge. `scaleDown` ne grossit jamais rien — à l'échelle 1.0
+    // le rendu est inchangé.
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(width: 6),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 6),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: context.textTertiaryColor,
-            fontWeight: FontWeight.w500,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 12,
+              color: context.textTertiaryColor,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ],
