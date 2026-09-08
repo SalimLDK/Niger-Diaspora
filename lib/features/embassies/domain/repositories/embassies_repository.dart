@@ -10,4 +10,8 @@ abstract class EmbassiesRepository {
     bool? isSuspended,
     String? rejectionReason,
   });
+  Future<String> createEmbassy(EmbassyEntity embassy);
+
+  /// Date de la copie locale servie hors ligne, ou `null` s'il n'y en a pas.
+  Future<DateTime?> cachedAt();
 }

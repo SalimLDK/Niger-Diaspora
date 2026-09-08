@@ -15,12 +15,18 @@ _$EmbassyModelImpl _$$EmbassyModelImplFromJson(
   city: json['city'] as String,
   address: json['address'] as String,
   phone: json['phone'] as String?,
+  additionalPhones:
+      (json['additionalPhones'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
+  fax: json['fax'] as String?,
   email: json['email'] as String?,
   website: json['website'] as String?,
   latitude: (json['latitude'] as num?)?.toDouble(),
   longitude: (json['longitude'] as num?)?.toDouble(),
   imageUrl: json['imageUrl'] as String?,
-  type: json['type'] as String? ?? 'embassy',
+  type: json['type'] as String? ?? EmbassyPostType.embassy,
   services:
       (json['services'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
@@ -31,7 +37,7 @@ _$EmbassyModelImpl _$$EmbassyModelImplFromJson(
       const {},
   isVerified: json['isVerified'] as bool? ?? false,
   isSuspended: json['isSuspended'] as bool? ?? false,
-  verifiedAt: const TimestampConverter().fromJson(json['verifiedAt']),
+  verifiedAt: const EmbassyDateConverter().fromJson(json['verifiedAt']),
   rejectionReason: json['rejectionReason'] as String?,
   jurisdictionCountries:
       (json['jurisdictionCountries'] as List<dynamic>?)
@@ -50,12 +56,18 @@ _$EmbassyModelImpl _$$EmbassyModelImplFromJson(
       const [],
   isTemporarilyClosed: json['isTemporarilyClosed'] as bool? ?? false,
   closureMessage: json['closureMessage'] as String?,
-  reopenDate: const TimestampConverter().fromJson(json['reopenDate']),
+  reopenDate: const EmbassyDateConverter().fromJson(json['reopenDate']),
   upcomingServices:
       (json['upcomingServices'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  source: json['source'] as String?,
+  sourceUrl: json['sourceUrl'] as String?,
+  sourceCheckedAt: const EmbassyDateConverter().fromJson(
+    json['sourceCheckedAt'],
+  ),
+  dataNotes: json['dataNotes'] as String?,
 );
 
 Map<String, dynamic> _$$EmbassyModelImplToJson(_$EmbassyModelImpl instance) =>
@@ -66,6 +78,8 @@ Map<String, dynamic> _$$EmbassyModelImplToJson(_$EmbassyModelImpl instance) =>
       'city': instance.city,
       'address': instance.address,
       'phone': instance.phone,
+      'additionalPhones': instance.additionalPhones,
+      'fax': instance.fax,
       'email': instance.email,
       'website': instance.website,
       'latitude': instance.latitude,
@@ -76,13 +90,19 @@ Map<String, dynamic> _$$EmbassyModelImplToJson(_$EmbassyModelImpl instance) =>
       'openingHours': instance.openingHours,
       'isVerified': instance.isVerified,
       'isSuspended': instance.isSuspended,
-      'verifiedAt': const TimestampConverter().toJson(instance.verifiedAt),
+      'verifiedAt': const EmbassyDateConverter().toJson(instance.verifiedAt),
       'rejectionReason': instance.rejectionReason,
       'jurisdictionCountries': instance.jurisdictionCountries,
       'activities': instance.activities,
       'news': instance.news,
       'isTemporarilyClosed': instance.isTemporarilyClosed,
       'closureMessage': instance.closureMessage,
-      'reopenDate': const TimestampConverter().toJson(instance.reopenDate),
+      'reopenDate': const EmbassyDateConverter().toJson(instance.reopenDate),
       'upcomingServices': instance.upcomingServices,
+      'source': instance.source,
+      'sourceUrl': instance.sourceUrl,
+      'sourceCheckedAt': const EmbassyDateConverter().toJson(
+        instance.sourceCheckedAt,
+      ),
+      'dataNotes': instance.dataNotes,
     };

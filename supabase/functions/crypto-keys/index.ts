@@ -98,10 +98,21 @@ Deno.serve(async (req) => {
   // Participation vérifiée EN BASE, jamais sur déclaration du client : sans ça,
   // demander la clé d'une conversation dont on n'est pas membre suffirait à la
   // lire. C'est le seul contrôle qui fait tenir tout le modèle.
+  //
+  // Ce contrôle est délégué à la RLS de `conversations`, dont la policy est
+  // `participant_ids @> ARRAY[firebase_uid()]` : le client est construit avec
+  // le jeton de l'appelant, donc la requête ne voit QUE ses conversations.
+  //
+  // Ne PAS y ajouter un `.contains('participant_ids', [user.id])`. C'était le
+  // cas au premier jet, et c'était faux : `user.id` est l'uuid Supabase, alors
+  // que `participant_ids` contient des UID Firebase hérités. Le filtre ne
+  // correspondait jamais — zéro conversation, donc zéro clé, donc tous les
+  // messages chiffrés avec une clé dérivée s'affichaient « [Message
+  // illisible] ». Aucune erreur nulle part : l'endpoint répondait 200 avec une
+  // liste vide. Constaté sur SM A515F le 2026-09-07.
   let requete = userSupabase
     .from('conversations')
     .select('id')
-    .contains('participant_ids', [user.id])
     .limit(MAX_CONVERSATIONS)
 
   if (filtreConversations.length > 0) {

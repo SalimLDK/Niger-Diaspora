@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'dart:async';
 import 'dart:developer' as dev;
@@ -127,12 +128,18 @@ class AuthNotifier extends _$AuthNotifier {
     // sur la clé globale — dégradé, mais fonctionnel — et la prochaine
     // tentative aura lieu au premier message envoyé.
     unawaited(
+      // `debugPrint` et non `dev.log` : ce dernier passe par le service VM et
+      // n'apparaît PAS dans logcat, ce qui a rendu indiagnosticable sur
+      // appareil le 2026-09-07 la question « les clés ont-elles été
+      // récupérées ? ».
       ref.read(derivedKeyStoreProvider).rafraichir().then((abouti) {
-        if (!abouti) {
-          dev.log('Clés dérivées non récupérées — repli sur la clé globale');
-        }
+        debugPrint(
+          abouti
+              ? 'DerivedKeyStore: clés peuplées après connexion'
+              : 'DerivedKeyStore: échec après connexion — repli clé globale',
+        );
       }).catchError((Object e) {
-        dev.log('Clés dérivées : $e');
+        debugPrint('DerivedKeyStore: erreur après connexion — $e');
       }),
     );
   }

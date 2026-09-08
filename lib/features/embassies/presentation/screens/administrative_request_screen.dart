@@ -3,7 +3,10 @@ import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/administrative_request_model.dart';
+import '../../data/models/demarche_model.dart';
+import '../../data/repositories/demarches_repository_impl.dart';
 import '../../data/datasources/embassy_remote_datasource.dart';
+import '../providers/demarches_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/embassy_entity.dart';
@@ -12,12 +15,18 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class AdministrativeRequestScreen extends ConsumerStatefulWidget {
   final EmbassyEntity embassy;
-  final AdministrativeRequestType? initialType;
+
+  /// Démarche présélectionnée, par son identifiant de catalogue
+  /// (« carte_consulaire », « prorogation_passeport »…).
+  ///
+  /// Remplace l'ancien `initialType` : le type de demande ne suffisait pas à
+  /// désigner une démarche, six d'entre elles partageant `legalDocument`.
+  final String? initialDemarcheId;
 
   const AdministrativeRequestScreen({
     super.key,
     required this.embassy,
-    this.initialType,
+    this.initialDemarcheId,
   });
 
   @override
@@ -25,87 +34,16 @@ class AdministrativeRequestScreen extends ConsumerStatefulWidget {
       _AdministrativeRequestScreenState();
 }
 
-/// Pièces à joindre par type de démarche (§16d). Propositions indicatives —
-/// fichier marqué « non relu » dans le handoff, pas de données officielles
-/// disponibles ; à confirmer/ajuster avec un consulat si besoin.
-const Map<AdministrativeRequestType, List<String>> _requiredDocuments = {
-  AdministrativeRequestType.passportRenewal: [
-    'Ancien passeport',
-    '2 photos d\'identité récentes',
-    'Justificatif de domicile',
-    'Copie de l\'acte de naissance',
-  ],
-  AdministrativeRequestType.passportNewRequest: [
-    'Acte de naissance original',
-    '2 photos d\'identité récentes',
-    'Justificatif de domicile',
-    'Carte consulaire ou pièce d\'identité',
-  ],
-  AdministrativeRequestType.visaApplication: [
-    'Passeport valide',
-    '2 photos d\'identité récentes',
-    'Justificatif d\'hébergement',
-    'Billet aller-retour ou réservation',
-  ],
-  AdministrativeRequestType.birthCertificate: [
-    'Copie du livret de famille ou extrait existant',
-    'Pièce d\'identité du demandeur',
-  ],
-  AdministrativeRequestType.marriageCertificate: [
-    'Copie de l\'acte de mariage existant',
-    'Pièces d\'identité des deux époux',
-  ],
-  AdministrativeRequestType.deathCertificate: [
-    'Copie de l\'acte de décès existant',
-    'Pièce d\'identité du demandeur',
-  ],
-  AdministrativeRequestType.consularId: [
-    '2 photos d\'identité récentes',
-    'Justificatif de domicile',
-    'Passeport ou acte de naissance',
-  ],
-  AdministrativeRequestType.legalDocument: [
-    'Document original à légaliser',
-    'Pièce d\'identité',
-  ],
-  AdministrativeRequestType.laissezPasser: [
-    'Déclaration de perte ou de vol (si applicable)',
-    '2 photos d\'identité récentes',
-    'Toute pièce d\'identité disponible',
-  ],
-  AdministrativeRequestType.powerOfAttorney: [
-    'Pièce d\'identité du mandant',
-    'Pièce d\'identité du mandataire',
-    'Objet précis de la procuration',
-  ],
-  AdministrativeRequestType.inscription: [
-    'Passeport ou pièce d\'identité',
-    'Justificatif de domicile à l\'étranger',
-    '1 photo d\'identité',
-  ],
-  AdministrativeRequestType.other: [
-    'Pièce d\'identité',
-    'Description détaillée de la demande',
-  ],
-};
-
-/// Délai indicatif par type de démarche (§16d). Même réserve que
-/// [_requiredDocuments] : proposition, pas une donnée officielle.
-const Map<AdministrativeRequestType, String> _indicativeDelay = {
-  AdministrativeRequestType.passportRenewal: 'Environ 3 à 4 semaines',
-  AdministrativeRequestType.passportNewRequest: 'Environ 4 à 6 semaines',
-  AdministrativeRequestType.visaApplication: 'Environ 5 à 10 jours ouvrés',
-  AdministrativeRequestType.birthCertificate: 'Environ 1 à 2 semaines',
-  AdministrativeRequestType.marriageCertificate: 'Environ 1 à 2 semaines',
-  AdministrativeRequestType.deathCertificate: 'Environ 1 à 2 semaines',
-  AdministrativeRequestType.consularId: 'Environ 2 à 3 semaines',
-  AdministrativeRequestType.legalDocument: 'Environ 3 à 5 jours ouvrés',
-  AdministrativeRequestType.laissezPasser:
-      'Sous 48 à 72 heures (urgence voyage)',
-  AdministrativeRequestType.powerOfAttorney: 'Environ 3 à 5 jours ouvrés',
-  AdministrativeRequestType.inscription: 'Environ 1 semaine',
-  AdministrativeRequestType.other: 'Délai variable selon la demande',
-};
+// Les pièces à joindre et le coût viennent désormais du catalogue
+// `demarchesCatalogueProvider` (Supabase, puis cache, puis asset embarqué).
+//
+// Deux tables codées en dur vivaient ici : `_requiredDocuments`, des pièces
+// « propositions indicatives », et `_indicativeDelay`, des délais
+// entièrement inventés — « Environ 3 à 4 semaines », « Sous 48 à 72 heures
+// (urgence voyage) » — affichés en gras dans la couleur primaire, donc lus
+// comme officiels. La source du ministère ne publie AUCUN délai : il n'y a
+// pas de table de remplacement, l'écran dit maintenant que le délai n'est
+// pas communiqué.
 
 class _AdministrativeRequestScreenState
     extends ConsumerState<AdministrativeRequestScreen> {
@@ -115,7 +53,13 @@ class _AdministrativeRequestScreenState
   bool _isLoading = false;
   bool _isPreFilled = false;
 
-  late AdministrativeRequestType _selectedType;
+  /// Démarche choisie, par identifiant de catalogue.
+  ///
+  /// Volontairement pas un objet [Demarche] : le catalogue arrive de façon
+  /// asynchrone, et garder une copie de l'objet obligerait à la resynchroniser
+  /// quand le chargement passe du cache au serveur. L'identifiant, lui, reste
+  /// valable quelle que soit la source.
+  String? _selectedDemarcheId;
   final Set<String> _checkedDocuments = {};
 
   // Pre-filled form controllers
@@ -133,8 +77,10 @@ class _AdministrativeRequestScreenState
   @override
   void initState() {
     super.initState();
-    _selectedType =
-        widget.initialType ?? AdministrativeRequestType.passportRenewal;
+    // Pas de démarche par défaut ici : le catalogue n'est pas encore chargé.
+    // `_demarcheChoisie` retombe sur la première du catalogue tant que rien
+    // n'est sélectionné — la carte consulaire, prérequis de 18 des 20 autres.
+    _selectedDemarcheId = widget.initialDemarcheId;
     _preFillFromProfile();
   }
 
@@ -175,68 +121,16 @@ class _AdministrativeRequestScreenState
     }
   }
 
-  String _getTypeLabel(AdministrativeRequestType type) {
-    switch (type) {
-      case AdministrativeRequestType.passportRenewal:
-        return l10n.embassyPassportRenewal;
-      case AdministrativeRequestType.passportNewRequest:
-        return l10n.embassyPassportNewRequest;
-      case AdministrativeRequestType.visaApplication:
-        return l10n.embassyVisaApplication;
-      case AdministrativeRequestType.birthCertificate:
-        return l10n.embassyBirthCertificate;
-      case AdministrativeRequestType.marriageCertificate:
-        return l10n.embassyMarriageCertificate;
-      case AdministrativeRequestType.deathCertificate:
-        return l10n.embassyDeathCertificate;
-      case AdministrativeRequestType.consularId:
-        return l10n.embassyConsularId;
-      case AdministrativeRequestType.legalDocument:
-        return l10n.embassyLegalDocument;
-      case AdministrativeRequestType.laissezPasser:
-        return l10n.embassyLaissezPasser;
-      case AdministrativeRequestType.powerOfAttorney:
-        return l10n.embassyPowerOfAttorney;
-      case AdministrativeRequestType.inscription:
-        return l10n.embassyInscription;
-      case AdministrativeRequestType.other:
-        return l10n.embassyOtherRequest;
-    }
-  }
+  /// Démarche affichée : celle qui est choisie, sinon la première du
+  /// catalogue (la carte consulaire, prérequis de presque tout le reste).
+  Demarche? _demarcheChoisie(DemarchesCatalogue catalogue) =>
+      catalogue.parId(_selectedDemarcheId) ?? catalogue.premiere;
 
-  String _getTypeDescription(AdministrativeRequestType type) {
-    switch (type) {
-      case AdministrativeRequestType.passportRenewal:
-        return 'Renouvellement d\'un passeport existant arrivant à expiration.';
-      case AdministrativeRequestType.passportNewRequest:
-        return 'Première demande de passeport ou remplacement d\'un passeport perdu/volé.';
-      case AdministrativeRequestType.visaApplication:
-        return l10n.embassyVisaApplicationDesc;
-      case AdministrativeRequestType.birthCertificate:
-        return 'Copie ou extrait d\'acte de naissance.';
-      case AdministrativeRequestType.marriageCertificate:
-        return 'Copie ou extrait d\'acte de mariage.';
-      case AdministrativeRequestType.deathCertificate:
-        return 'Copie ou extrait d\'acte de décès.';
-      case AdministrativeRequestType.consularId:
-        return 'Carte d\'immatriculation consulaire pour les ressortissants nigériens.';
-      case AdministrativeRequestType.legalDocument:
-        return l10n.embassyLegalDocumentDesc;
-      case AdministrativeRequestType.laissezPasser:
-        return l10n.embassyLaissezPasserDesc;
-      case AdministrativeRequestType.powerOfAttorney:
-        return l10n.embassyPowerOfAttorneyDesc;
-      case AdministrativeRequestType.inscription:
-        return 'Inscription au registre des Nigériens à l\'étranger.';
-      case AdministrativeRequestType.other:
-        return l10n.embassyOtherRequestDesc;
-    }
-  }
-
-  bool _requiresPassportInfo(AdministrativeRequestType type) {
-    return type == AdministrativeRequestType.passportRenewal ||
-        type == AdministrativeRequestType.visaApplication;
-  }
+  /// Le bloc « informations passeport » ne concerne que la prorogation, seule
+  /// démarche qui parte d'un passeport existant. La première demande, elle,
+  /// n'en a précisément pas.
+  bool _requiresPassportInfo(Demarche? demarche) =>
+      demarche?.typeDemande == AdministrativeRequestType.passportRenewal;
 
   Future<void> _submitRequest() async {
     if (!_formKey.currentState!.validate()) return;
@@ -250,11 +144,23 @@ class _AdministrativeRequestScreenState
       final profileAsync = ref.read(userStreamProvider(user.id));
       final profile = profileAsync.value;
 
+      // Le catalogue est forcément résolu ici : le formulaire n'est rendu
+      // qu'une fois chargé. Le `?.` couvre le cas théorique d'une invalidation
+      // entre le rendu et l'envoi.
+      final catalogue =
+          ref.read(demarchesCatalogueProvider).valueOrNull?.catalogue;
+      final demarche =
+          catalogue == null ? null : _demarcheChoisie(catalogue);
+
       final request = AdministrativeRequestModel(
         id: '',
         userId: user.id,
         embassyId: widget.embassy.id,
-        requestType: _selectedType,
+        // Le type reste la colonne historique, mais il ne suffit plus à
+        // désigner la démarche : `legalDocument` en couvre six. L'identifiant
+        // exact part dans `additionalData`, sans quoi l'agent consulaire ne
+        // saurait pas laquelle des six a été demandée.
+        requestType: demarche?.typeDemande ?? AdministrativeRequestType.other,
         status: AdministrativeRequestStatus.draft,
         fullName: _fullNameController.text.trim(),
         dateOfBirth: _dateOfBirthController.text.trim(),
@@ -275,7 +181,14 @@ class _AdministrativeRequestScreenState
             _notesController.text.trim().isEmpty
                 ? null
                 : _notesController.text.trim(),
-        additionalData: {'checkedDocuments': _checkedDocuments.toList()},
+        additionalData: {
+          'checkedDocuments': _checkedDocuments.toList(),
+          if (demarche != null) ...{
+            'demarcheId': demarche.id,
+            'demarcheTitre': demarche.titre,
+            'demarcheRubrique': demarche.rubrique,
+          },
+        },
         userName: profile?.displayName ?? user.displayName,
         userPhotoUrl: profile?.photoUrl,
         embassyName: widget.embassy.name,
@@ -312,8 +225,18 @@ class _AdministrativeRequestScreenState
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final catalogueAsync = ref.watch(demarchesCatalogueProvider);
 
+    return catalogueAsync.when(
+      loading:
+          () => _echafaudage(const Center(child: CircularProgressIndicator())),
+      error: (erreur, _) => _echafaudage(_erreurCatalogue(erreur)),
+      data: _formulaire,
+    );
+  }
+
+  /// Chrome commun aux trois états du catalogue.
+  Widget _echafaudage(Widget corps) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: context.backgroundColor,
@@ -321,7 +244,49 @@ class _AdministrativeRequestScreenState
         elevation: 0,
         title: DesignTitle(l10n.newRequest, size: 22),
       ),
-      body: Form(
+      body: corps,
+    );
+  }
+
+  /// N'arrive que si les trois sources ont échoué — donc en pratique si
+  /// l'asset embarqué lui-même est illisible, le repli local ne dépendant
+  /// d'aucun réseau. Affiche l'erreur plutôt qu'un formulaire vide.
+  Widget _erreurCatalogue(Object erreur) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AppIcon(AppIcon.warning, size: 40, color: Colors.orange[700]),
+          const SizedBox(height: 12),
+          const Text(
+            'Impossible de charger la liste des démarches.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$erreur',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 16),
+          DesignSecondaryButton(
+            label: 'Réessayer',
+            onPressed: () => ref.invalidate(demarchesCatalogueProvider),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _formulaire(CatalogueCharge charge) {
+    final theme = Theme.of(context);
+    final catalogue = charge.catalogue;
+    final demarche = _demarcheChoisie(catalogue);
+
+    return _echafaudage(
+      Form(
         key: _formKey,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -398,86 +363,16 @@ class _AdministrativeRequestScreenState
                 ),
               const SizedBox(height: 20),
 
-              // Request type selection
+              // Démarche demandée
               _buildSectionTitle(l10n.embassyRequestType),
               const SizedBox(height: 8),
-              DropdownButtonFormField<AdministrativeRequestType>(
-                initialValue: _selectedType,
-                // Sans `isExpanded`, la largeur du champ replié est dictée par
-                // le plus long libellé de la liste (« Nouvelle demande de
-                // passeport »), que l'IndexedStack interne mesure même quand
-                // il ne l'affiche pas.
-                isExpanded: true,
-                decoration: _inputDecoration(''),
-                items:
-                    AdministrativeRequestType.values.map((type) {
-                      return DropdownMenuItem(
-                        value: type,
-                        child: Text(
-                          _getTypeLabel(type),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      );
-                    }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedType = value;
-                      // Les pièces cochées ne s'appliquent qu'au type
-                      // précédent — on repart d'une liste vide.
-                      _checkedDocuments.clear();
-                    });
-                  }
-                },
+              DesignDropdown<String>(
+                value: demarche?.id,
+                hintText: 'Choisir une démarche',
+                items: _itemsDemarches(catalogue),
+                onChanged: _changerDemarche,
               ),
-              const SizedBox(height: 8),
-              Text(
-                _getTypeDescription(_selectedType),
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(Icons.schedule, size: 14, color: theme.colorScheme.primary),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      'Délai indicatif : ${_indicativeDelay[_selectedType]}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Pièces à joindre (§16d) : cochées une à une par le
-              // demandeur pour confirmer qu'il les a bien réunies.
-              _buildSectionTitle('Pièces à joindre'),
-              const SizedBox(height: 8),
-              ...(_requiredDocuments[_selectedType] ?? []).map(
-                (doc) => CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  dense: true,
-                  title: Text(doc, style: const TextStyle(fontSize: 13.5)),
-                  value: _checkedDocuments.contains(doc),
-                  onChanged: (checked) {
-                    setState(() {
-                      if (checked ?? false) {
-                        _checkedDocuments.add(doc);
-                      } else {
-                        _checkedDocuments.remove(doc);
-                      }
-                    });
-                  },
-                ),
-              ),
+              ..._detailsDemarche(demarche, charge),
               const SizedBox(height: 16),
 
               // Personal information
@@ -559,7 +454,7 @@ class _AdministrativeRequestScreenState
               const SizedBox(height: 24),
 
               // Passport info (conditional)
-              if (_requiresPassportInfo(_selectedType)) ...[
+              if (_requiresPassportInfo(demarche)) ...[
                 _buildSectionTitle(l10n.embassyPassportInfo),
                 const SizedBox(height: 16),
 
@@ -664,6 +559,310 @@ class _AdministrativeRequestScreenState
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Préfixe des entrées de dropdown qui servent d'intertitre de rubrique.
+  ///
+  /// Une valeur sentinelle plutôt que `null` : `DropdownButtonFormField`
+  /// exige qu'au plus une entrée porte la valeur sélectionnée, et plusieurs
+  /// entrées à `null` déclencheraient l'assertion dès que rien n'est choisi.
+  static const String _prefixeEntete = '__rubrique__';
+
+  /// Les 20 démarches groupées sous leurs 5 rubriques.
+  ///
+  /// Une liste plate serait illisible, et surtout ne dirait pas qu'une
+  /// transcription d'acte n'est pas une déclaration. Les intertitres sont des
+  /// entrées désactivées : le dropdown du design kit reste utilisé tel quel,
+  /// sans brique visuelle parallèle.
+  List<DropdownMenuItem<String>> _itemsDemarches(DemarchesCatalogue catalogue) {
+    final items = <DropdownMenuItem<String>>[];
+    for (final rubrique in catalogue.rubriquesTriees) {
+      items.add(
+        DropdownMenuItem<String>(
+          value: '$_prefixeEntete${rubrique.id}',
+          enabled: false,
+          child: Text(
+            rubrique.titre.toUpperCase(),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+      );
+      for (final demarche in catalogue.parRubrique(rubrique.id)) {
+        items.add(
+          DropdownMenuItem<String>(
+            value: demarche.id,
+            child: Text(
+              demarche.titre,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
+  void _changerDemarche(String? valeur) {
+    // Un intertitre est déjà `enabled: false`, mais on ne s'y fie pas : le
+    // garde coûte une comparaison et évite de poser une sentinelle en choix.
+    if (valeur == null || valeur.startsWith(_prefixeEntete)) return;
+    setState(() {
+      _selectedDemarcheId = valeur;
+      // Les cases cochées ne valaient que pour la démarche précédente.
+      _checkedDocuments.clear();
+    });
+  }
+
+  /// Tout ce que le catalogue sait de la démarche choisie : résumé, lieu,
+  /// délai, coût, défauts connus de la source, pièces, et provenance.
+  List<Widget> _detailsDemarche(Demarche? demarche, CatalogueCharge charge) {
+    if (demarche == null) return const <Widget>[];
+    final blocs = <Widget>[];
+
+    if (demarche.resume != null) {
+      blocs.addAll([
+        const SizedBox(height: 8),
+        Text(
+          demarche.resume!,
+          style: TextStyle(color: Colors.grey[600], fontSize: 12.5),
+        ),
+      ]);
+    }
+
+    // Le certificat de nationalité ne se traite pas au consulat : le dire
+    // avant que l'usager n'ait rempli tout le formulaire.
+    if (demarche.lieu == 'tribunal_niger') {
+      final juridiction = demarche.juridictionCompetente;
+      blocs.addAll([
+        const SizedBox(height: 12),
+        _encart(
+          couleur: Colors.orange,
+          texte: [
+            "Cette démarche ne se fait pas au consulat : la demande s'adresse "
+                'à une juridiction au Niger.',
+            if (juridiction != null) juridiction.autorite,
+            if (juridiction != null)
+              ...juridiction.regles.map((regle) => '• $regle'),
+          ].join('\n'),
+        ),
+      ]);
+    }
+
+    blocs.addAll([
+      const SizedBox(height: 12),
+      // Aucune démarche de la source ne publie de délai. Le dire est plus
+      // utile qu'un silence, qui se lirait comme un oubli d'affichage.
+      _ligneMeta(
+        icone: Icons.schedule,
+        texte:
+            demarche.delai ??
+            'Délai de traitement non communiqué par la source',
+        accentue: demarche.delai != null,
+      ),
+      const SizedBox(height: 6),
+      _ligneMeta(
+        icone: Icons.payments_outlined,
+        texte: demarche.cout.libelleAffichable,
+        accentue: demarche.cout.estConnu,
+      ),
+    ]);
+
+    for (final avertissement in demarche.avertissements) {
+      blocs.addAll([
+        const SizedBox(height: 10),
+        _encart(couleur: Colors.orange, texte: avertissement),
+      ]);
+    }
+
+    blocs.addAll([
+      const SizedBox(height: 24),
+      _buildSectionTitle('Pièces à joindre'),
+      const SizedBox(height: 2),
+      Text(
+        '${demarche.nombreDePiecesRequises} à réunir',
+        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+      ),
+      const SizedBox(height: 4),
+    ]);
+
+    for (final groupe in demarche.groupesDePieces) {
+      blocs.add(
+        groupe.length == 1
+            ? _casePiece(groupe.first)
+            : _groupeAlternatif(groupe),
+      );
+    }
+
+    for (final conditionnel in demarche.piecesConditionnelles) {
+      blocs.addAll([
+        const SizedBox(height: 12),
+        Text(
+          conditionnel.condition,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
+        if (conditionnel.note != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              conditionnel.note!,
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ),
+        ...conditionnel.pieces.map(_casePiece),
+      ]);
+    }
+
+    blocs.addAll([const SizedBox(height: 16), _encartSource(charge)]);
+    return blocs;
+  }
+
+  Widget _casePiece(DemarchePiece piece) {
+    return CheckboxListTile(
+      contentPadding: EdgeInsets.zero,
+      controlAffinity: ListTileControlAffinity.leading,
+      dense: true,
+      title: Text(
+        piece.libelleAffichable,
+        style: const TextStyle(fontSize: 13.5),
+      ),
+      subtitle:
+          piece.note == null
+              ? null
+              : Text(
+                piece.note!,
+                style: TextStyle(fontSize: 11.5, color: Colors.grey[600]),
+              ),
+      value: _checkedDocuments.contains(piece.libelle),
+      onChanged: (coche) {
+        setState(() {
+          if (coche ?? false) {
+            _checkedDocuments.add(piece.libelle);
+          } else {
+            _checkedDocuments.remove(piece.libelle);
+          }
+        });
+      },
+    );
+  }
+
+  /// Pièces interchangeables : une seule suffit.
+  ///
+  /// Les afficher comme autant de cases obligatoires ferait croire qu'il faut
+  /// les réunir toutes — et masquerait la seule voie ouverte à qui n'a aucun
+  /// papier nigérien : deux témoins déjà immatriculés, à la place d'une pièce
+  /// d'identité, pour obtenir la carte consulaire.
+  Widget _groupeAlternatif(List<DemarchePiece> groupe) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Au choix — une seule de ces pièces suffit',
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          for (var i = 0; i < groupe.length; i++) ...[
+            if (i > 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Text(
+                  'ou',
+                  style: TextStyle(fontSize: 11.5, color: Colors.grey[600]),
+                ),
+              ),
+            _casePiece(groupe[i]),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _ligneMeta({
+    required IconData icone,
+    required String texte,
+    required bool accentue,
+  }) {
+    final couleur =
+        accentue ? Theme.of(context).colorScheme.primary : Colors.grey[600];
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icone, size: 14, color: couleur),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            texte,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: accentue ? FontWeight.w600 : FontWeight.w400,
+              color: couleur,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _encart({required MaterialColor couleur, required String texte}) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: couleur.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppIcon(AppIcon.warning, color: couleur[700], size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text(texte, style: const TextStyle(fontSize: 12))),
+        ],
+      ),
+    );
+  }
+
+  /// Provenance et fraîcheur de la liste affichée.
+  ///
+  /// La source date de 2017 et n'est plus maintenue ; servir ses pièces sans
+  /// le dire leur donnerait une autorité qu'elles n'ont pas. L'origine
+  /// (serveur, cache, copie embarquée) est signalée pour la même raison :
+  /// une liste relue hors ligne peut avoir des mois de retard sur la base.
+  Widget _encartSource(CatalogueCharge charge) {
+    final source = charge.catalogue.source;
+    final origine = switch (charge.origine) {
+      OrigineCatalogue.serveur => '',
+      OrigineCatalogue.cache => ' · liste enregistrée hors ligne',
+      OrigineCatalogue.embarque => " · liste fournie avec l'application",
+    };
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        'Source : ${source.editeur}, consultée le ${source.consulteLe}'
+        '$origine.\nCes informations peuvent avoir changé : confirmez-les '
+        'auprès de votre consulat avant de vous déplacer.',
+        style: TextStyle(fontSize: 11, color: Colors.grey[700], height: 1.35),
       ),
     );
   }

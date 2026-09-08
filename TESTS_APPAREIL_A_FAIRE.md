@@ -62,6 +62,309 @@ nommées, elle ne doit que rétrécir).
 
 ---
 
+## ⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)
+
+L'écran de demande administrative (`administrative_request_screen.dart`)
+portait deux tables codées en dur : `_requiredDocuments`, des pièces
+« propositions indicatives », et `_indicativeDelay`, des délais **entièrement
+inventés** — « Environ 3 à 4 semaines », « Sous 48 à 72 heures (urgence
+voyage) » — affichés en gras dans la couleur primaire, donc lus comme
+officiels. Quelqu'un pouvait réserver un vol sur ce dernier chiffre.
+
+Remplacé par le catalogue des 20 démarches publiées par le ministère
+(diplomatie.gouv.ne, consultée le 2026-09-07), chargé dans cet ordre :
+Supabase (`get_demarches_catalogue()`), cache du dernier chargement réussi,
+puis `assets/data/demarches_consulaires.json` embarqué dans l'APK. La source
+ne publiant AUCUN délai, l'écran affiche désormais « Délai de traitement non
+communiqué par la source » — il n'y a pas de table de remplacement.
+
+`flutter analyze` propre, `test/features/dropdowns_overflow_test.dart` passe
+(10/10, le cas sert maintenant le vrai catalogue embarqué). Rien de ce qui
+suit n'a été vu sur un téléphone.
+
+- [x] **Vu sur SM A515F (2026-09-07).** Les 20 démarches sont bien là sous
+      les 5 intertitres (IMMATRICULATION CONSULAIRE, ACTES D'ÉTAT CIVIL,
+      DOCUMENTS DE VOYAGE, ACTES NOTARIÉS, NATIONALITÉ).
+- [x] **Vu sur SM A515F (2026-09-07), thème sombre + compte orange.** Les
+      intertitres ressortent en orange, nettement au-dessus du fond.
+- [x] **Vu sur SM A515F (2026-09-07).** L'encadré « Au choix — une seule de
+      ces pièces suffit » s'affiche avec le « ou » entre la pièce d'identité
+      et les deux témoins, et le compteur annonce « 2 à réunir » (le groupe
+      d'alternatives compte bien pour une).
+- [x] **Partiellement vu sur SM A515F (2026-09-07).** Bandeaux orange
+      confirmés sur « Carte consulaire » (1) et « Certificat de nationalité »
+      (2). Le titre corrigé « Passeport — première demande ou renouvellement »
+      apparaît bien dans le menu ; son bandeau n'a pas été ouvert.
+- [ ] Ouvrir « Passeport — première demande ou renouvellement » et vérifier
+      son avertissement (la source la titrait « prorogation » à tort).
+- [x] **Vu sur SM A515F (2026-09-07).** Bandeau « ne se fait pas au
+      consulat » avec les trois règles de juridiction, et « Timbre fiscal :
+      1 500 F CFA » accentué — seule démarche à afficher un montant.
+- [x] **Partiellement vu sur SM A515F (2026-09-07).** « Droits de
+      chancellerie — montant non publié » confirmé sur la carte consulaire, et
+      « Délai de traitement non communiqué par la source » partout où c'est
+      passé — le délai inventé a bien disparu.
+- [ ] Vérifier « Aucun frais mentionné par la source » (déclarations de
+      naissance et de mariage) et la mention conditionnelle des deux démarches
+      de décès.
+- [x] **Vu sur SM A515F (2026-09-07).** Les deux blocs s'affichent, et la
+      règle des 2-16 ans (« un laissez-passer distinct par enfant ») apparaît
+      en note sans case à cocher, comme voulu. Le préfixe de quantité
+      fonctionne aussi (« 2 × Photo d'identité récente »).
+- [x] **Origine serveur vue sur SM A515F (2026-09-07).** Le pied affiche la
+      source et « consultée le 2026-09-07 », **sans** mention d'origine hors
+      ligne : la chaîne Supabase répond donc de bout en bout sur l'appareil.
+- [ ] ⛔ **Origine hors ligne : NON VÉRIFIABLE aujourd'hui.** Réseau coupé,
+      l'écran des ambassades tombe en erreur (voir la section « Annuaire »
+      ci-dessous) et plus aucun chemin ne mène à l'écran des démarches. À
+      refaire une fois l'annuaire corrigé.
+- [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
+      liste embarquée, pas un spinner ni une erreur. (Même blocage que
+      ci-dessus.)
+- [ ] Aucun débordement sur les libellés les plus longs à **échelle de police
+      1.1** (le résumé de la carte consulaire fait trois lignes).
+- [ ] Envoyer une demande, puis vérifier côté back-office que
+      `additionalData` porte bien `demarcheId` / `demarcheTitre` : le
+      `requestType` seul ne suffit pas à savoir laquelle des six démarches
+      notariées a été demandée.
+
+**Migration appliquée sur « Diapo Niger » (`zyrfkcjjrhddpfxcgezo`) le
+2026-09-07** : `20260907180000_catalogue_demarches_consulaires.sql`. Vérifié
+en base, en forçant `SET LOCAL ROLE anon` — sans quoi `db query --linked` se
+connecte en `postgres` et contourne la RLS, faux positif garanti :
+
+- 20 démarches, 5 rubriques, 18 exigeant la carte consulaire, 1 seul coût
+  chiffré — les mêmes nombres que l'asset ;
+- `get_demarches_catalogue()` rend les 20 démarches **en `anon`**
+  (`current_user` relu à « anon » pour prouver que le rôle avait bien pris) :
+  l'écran s'affiche donc avant toute connexion ;
+- INSERT, UPDATE et DELETE en `anon` refusés en **42501**, au niveau TABLE,
+  avant même la RLS ;
+- la sortie de la RPC est identique à l'asset, champ par champ : les 38
+  différences relevées sont la base qui remplit `estPrerequisDeToutLeReste`
+  et `piecesConditionnelles` là où le fichier omet la clé, avec exactement
+  les valeurs des `@Default` Dart.
+
+Le pied d'écran doit donc afficher l'origine **serveur** (pas de mention de
+liste hors ligne) dès que l'appareil a du réseau — c'est le point de
+vérification le plus direct que la chaîne complète fonctionne.
+
+---
+
+## ⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)
+
+Trouvés en testant l'écran des démarches sur SM A515F — ils sont dans
+`embassies_supabase_datasource.dart` / `20260907190000_annuaire_postes_diplomatiques.sql`,
+pas dans le catalogue des démarches. **Les deux bloquent le test hors ligne
+des démarches**, l'annuaire étant le seul chemin vers cet écran.
+
+**1. ✅ RÉSOLU — l'annuaire était vide pour TOUS les utilisateurs, en silence.**
+`20260907190000` décrivait la colonne du type de poste sous le nom
+`post_type`, et `EmbassiesSupabaseDataSource` la sélectionnait sous ce nom,
+alors que la table qui tourne l'appelle `type`. Le `select` échouait en 42703,
+l'exception devenait `ServerException`, le dépôt retombait sur un cache vide et
+renvoyait `[]` : « Aucune ambassade disponible », sans une ligne d'erreur nulle
+part. Trouvé sur SM A515F le 2026-09-07 en cherchant un chemin vers l'écran des
+démarches.
+
+Dépanné sur le moment par `20260907200000` (ajout de `post_type` recopiant
+`type`), puis **tranché dans l'autre sens par l'auteur de l'annuaire**
+(`01353ac`) : `type` fait foi, sa migration et son datasource la lisent
+désormais. `20260907210000` retire donc la colonne `post_type` devenue
+orpheline — deux colonnes décrivant la même chose divergeraient dès la
+première fiche modifiée par le back-office.
+
+- [ ] Vérifier sur appareil que l'annuaire s'affiche toujours après ce retrait
+      (l'app ne doit plus citer `post_type` nulle part).
+
+**2. Hors ligne, l'écran affiche une exception brute — avec l'identifiant du
+projet Supabase.** Réseau coupé, « Ambassades » montre :
+
+```
+Erreur: ServerFailure(RealtimeSubscribeException(status: channelError,
+details: WebSocketChannelException: SocketException: Failed host lookup:
+'zyrfkcjjrhddpfxcgezo.supabase.co' (OS Error: No address associated with
+hostname, errno = 7)))
+```
+
+- [ ] **Ne pas exposer la trace ni le hôte Supabase à l'usager** : le ref du
+      projet est un identifiant interne, il n'a rien à faire à l'écran.
+      Message générique côté UI, détail dans les logs.
+- [ ] **Le repli hors ligne ne joue pas sur ce chemin** : la liste avait été
+      chargée et mise en cache cinq minutes plus tôt, et l'écran tombe quand
+      même en erreur — l'échec vient de l'abonnement realtime, pas de la
+      lecture. Un canal realtime injoignable ne devrait pas empêcher
+      d'afficher la copie locale.
+
+**3. Hors ligne, l'annuaire reste vide même après un chargement réussi.**
+Deuxième essai le 2026-09-07, APK reconstruit après la correction `01353ac`,
+téléphone en mode avion : l'écran n'affiche plus l'exception brute (bien) mais
+« Aucune ambassade disponible » — pas la copie locale, alors que les 30 postes
+s'étaient affichés quelques minutes plus tôt sur le même appareil.
+
+⚠️ **Réserve : ce constat n'est pas concluant seul.** L'APK avait été
+réinstallé entre les deux, et je n'ai pas vérifié que la copie locale avait
+survécu à la réinstallation — le cache peut légitimement être vide. Le cas
+propre reste à faire : charger la liste en ligne, **sans réinstaller**, puis
+couper le réseau et rouvrir.
+
+- [ ] Refaire ce cas proprement, et si la liste est bien vide alors qu'elle
+      venait d'être mise en cache, chercher du côté de
+      `EmbassiesRepositoryImpl` : sa branche hors ligne renvoie `[]` dès que
+      `getLastEmbassies()` lève, et un `[]` ne se distingue pas d'une base
+      vide à l'écran. C'est la même mise en scène que le défaut n°1.
+
+---
+
+## ⚠️ Clés dérivées : premier test appareil (2026-09-07, SM A515F)
+
+Testé sur SM A515F avec un build propre (`flutter clean` obligatoire — un APK
+du 30 août traînait dans `build/` et se serait installé en silence).
+
+**Vérifié bon** : démarrage, `SupabaseAuthBridge: session sync OK`, liste des
+conversations et aperçus en clair, messages en clé globale lisibles, aucun
+crash (le process tué en cours de test l'a été par une commande externe, pas
+par une exception).
+
+**DÉFAUT TROUVÉ ET CORRIGÉ** : tous les messages rechiffrés s'affichaient
+`[Message illisible]`. L'Edge Function `crypto-keys` filtrait les conversations
+avec `.contains('participant_ids', [user.id])`, où `user.id` est l'uuid
+Supabase — alors que `participant_ids` contient des **UID Firebase hérités**
+(`vQZE49dTdyRtLwSG6lMIbhAqoFG2`). Le filtre ne correspondait jamais :
+l'endpoint répondait **200 avec une liste vide**, donc aucune clé de
+conversation, donc tout illisible. Aucune erreur nulle part.
+
+Trace décisive, une fois l'instrumentation ajoutée :
+`DerivedKeyStore: 1 clé(s) reçue(s)` — la clé utilisateur seule, zéro
+conversation, alors que le compte en a 4.
+
+Corrigé en retirant le filtre : la RLS de `conversations`
+(`participant_ids @> ARRAY[firebase_uid()]`) faisait déjà le travail,
+correctement. **Ne jamais réintroduire ce filtre applicatif.**
+
+- [ ] **À revérifier après redéploiement de `crypto-keys`** : rouvrir la
+      conversation `debef5f0…`, ses 2 messages rechiffrés doivent s'afficher.
+- [ ] Puis envoyer un message : il doit partir au format `v1:…` en base.
+## ⬜ Teinte des notifications système en vert (2026-09-07)
+
+La petite icône de la barre d'état (`ic_stat_notification`) est une
+**silhouette blanche sur transparent** — c'est Android qui la colore, avec la
+teinte d'accent. La repeindre revient donc à changer cette teinte, pas le PNG.
+
+Elle est posée par **deux chemins** selon l'état de l'app, et les deux ont dû
+être changés : `notification_accent` dans
+`android/app/src/main/res/values/colors.xml` (lu par le SDK Firebase via
+`default_notification_color` du manifeste, chemin utilisé pour tous les types
+sauf `message`) et la nouvelle constante `AppColors.notificationAccent`
+(passée par `flutter_local_notifications` — les messages partent en *data-only*
+depuis `send-push`, donc c'est le client qui construit leur notification).
+
+Au passage, ça **solde l'écart** signalé la veille : les deux chemins valaient
+`#E07B39` et `#FA7D00`, soit deux orangés différents selon l'état de l'app.
+Ils valent maintenant tous deux `#009600`.
+
+Cinq `AndroidNotificationDetails` pointent sur la constante ; le
+`general_channel` n'en avait **aucune** (le système ne teintait donc rien sur
+ce canal), il en a une désormais.
+
+- [x] **Ressource compilée dans l'APK installé (2026-09-07).**
+      `aapt2 dump resources` sur l'APK, dont le `md5sum` a été confronté à
+      `base.apk` sur le SM A515F : `color/notification_accent` et
+      `color/ic_launcher_background` valent tous deux `#ff009600`. Ça prouve
+      la chaîne ressource → paquet installé, pas le rendu à l'écran.
+- [ ] **Notification de message, app tuée.** C'est le chemin
+      `flutter_local_notifications`. Petite icône verte dans la barre d'état
+      et filet vert dans le volet. ⚠️ `am force-stop` empêche la livraison FCM
+      — lancer l'app, attendre, puis `KEYCODE_HOME` (cf. méthode plus bas).
+- [ ] **Notification d'un autre type** (demande d'ami, événement…). C'est le
+      chemin SDK Firebase, donc la ressource XML. Même vert attendu.
+- [ ] **Canal « general_channel ».** Il n'était pas teinté du tout avant :
+      vérifier qu'il l'est maintenant, et que rien n'y a régressé.
+- [ ] **Silhouette intacte.** Le PNG n'a pas été touché ; vérifier qu'aucune
+      notification ne montre un carré ou un disque blanc (le symptôme quand
+      Android retombe sur `@mipmap/ic_launcher`).
+
+Non touché, volontairement : les `ledColor` (couleur de la LED de
+notification, sémantique par type — bleu pour les amis, violet pour les
+groupes…), les deux teintes d'état de l'upload (`#4CAF50` succès /
+`#FF9800` en attente), et l'icône orange `#E97424` en dur du dialogue
+« Activer les notifications » (`notification_service.dart`), qui est un
+élément d'interface in-app et non une notification.
+
+---
+
+## ⬜ Icône du lanceur repeinte en vert (2026-09-07)
+
+Suite de l'entrée ci-dessous : sur un vrai téléphone, l'orange qu'on voit en
+premier au lancement n'est pas l'écran Flutter mais **l'écran de lancement du
+système**, qui affiche l'icône du lanceur (vérifié sur SM A515F : ~15 s sur un
+build debug avant que Flutter ne peigne quoi que ce soit).
+
+Repeint : le dégradé orange `#E97424 → #F59942` devient `#009600 → #00C000`
+dans `assets/import_icons/dn_ultra_minimal{_icon,_hd}.png` + son SVG source et
+`dn_adaptive_background*`, le fond de l'icône adaptive
+(`adaptive_icon_background` dans `pubspec.yaml`, `ic_launcher_background` dans
+`android/app/src/main/res/values/colors.xml`) et les couleurs web
+(`manifest.json`). Les PNG ont été repeints pixel par pixel — le sigle blanc,
+son anticrénelage et les coins transparents sont préservés — puis
+`dart run flutter_launcher_icons` a régénéré Android, iOS et web.
+
+`dn_dark_mode*` (DN orange sur fond sombre) n'a **pas** été touché : aucun
+chemin de l'app ne le lit, il n'est référencé que par le README du dossier.
+
+- [ ] **Icône dans le tiroir d'applications et sur l'écran d'accueil.** Vert
+      `#009600`, sigle blanc lisible, forme adaptive correcte (le lanceur
+      découpe en cercle/squircle selon le thème du téléphone).
+- [x] **Écran de lancement système, vu sur SM A515F (2026-09-07).** Icône
+      verte `#009600`, sigle blanc net, aucun reste d'orange. C'est la preuve
+      que le paquet installé porte bien la nouvelle icône ; le rendu dans le
+      tiroir d'applications n'a pas été retrouvé (l'app n'était pas sur les
+      pages parcourues) et reste donc à cocher ci-dessus.
+- [ ] **Icône de notification.** Elle est indépendante
+      (`ic_stat_notification` + `notification_accent`, toujours orange) : elle
+      ne doit pas avoir changé.
+- [ ] **iOS.** Icônes régénérées mais jamais compilées ni vues (aucun Mac dans
+      la boucle) — cf. l'entrée « iOS : signature et conformité export ».
+
+⚠️ Écart préexistant relevé au passage, **non corrigé** : le commentaire de
+`colors.xml` dit que `notification_accent` doit valoir `AppColors.primary`,
+or il vaut `#E07B39` alors que `AppColors.primary` vaut `#FA7D00` depuis le
+2026-08-25. Deux orangés de notification selon le chemin d'envoi.
+
+---
+
+## ⬜ Écran de démarrage repeint en vert (2026-09-07)
+
+Demande produit : sur l'écran d'attente `/splash` (le premier écran Flutter
+affiché, `initialLocation` du routeur), la pastille « DN » et le cercle de
+progression passent de l'orange primaire au vert `AppColors.secondary`
+(`#009600`) / `secondaryGradient`. Fichier :
+[splash_screen.dart](lib/features/auth/presentation/screens/splash_screen.dart).
+
+La teinte est **fixe** : elle ne suit pas l'accent choisi par le compte
+(orange ou vert). Un compte en thème Orange verra donc un splash vert puis une
+app orange — c'est voulu, pas une dérive à corriger.
+
+- [ ] **Splash au démarrage à froid, thème clair.** Tuer l'app, la relancer :
+      pastille « DN » et cercle de progression verts, sigle blanc lisible sur
+      le vert, ombre portée verte discrète.
+- [ ] **Splash au démarrage à froid, thème sombre.** Même écran sur fond
+      `surfaceVariantDark` (`#2D2820`) : vérifier que le vert `#009600` ne
+      devient pas terne sur le fond foncé (aucune variante nocturne n'est
+      prévue pour cette pastille, contrairement à `primaryGradientDark`).
+- [ ] **Compte en thème Orange.** Confirmer que seul le splash est vert et que
+      le reste de l'app reste orange (pas de contamination).
+- [x] **Sigle et arc du cercle verts, vus sur SM A515F** (thème Système/Orange,
+      nuit, APK debug dont le `md5sum` a été confronté à `base.apk` sur
+      l'appareil — la première installation avait posé un APK du dépôt
+      principal, d'où un premier constat faussement orange).
+- [x] **Filet du cercle, vu sur SM A515F (2026-09-07).** Il retombait sur
+      `circularTrackColor` du thème, donc brun-orangé pour un compte en thème
+      Orange ; épinglé à `secondary` à 20 %, l'anneau est maintenant vert
+      sombre sur toute sa circonférence.
+
+---
+
 ## ⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)
 
 Chantier en cours : remplacer la clé AES globale (constante de l'APK, donc
@@ -9197,6 +9500,102 @@ qui affichait déjà l'heure). Ce que le test ne peut pas voir :
   (pas un hot reload de la même session) pour écarter un état résiduel.
   Restent non vérifiés sur appareil : appel de groupe, et le cas décliné
   (`isDeclined`, libellé orange).
+
+## ✅ Annuaire des ambassades : Firestore → Supabase, 32 postes chargés (2026-09-07)
+
+L'écran « Ambassades » lisait la collection Firestore `embassies`, **vide
+depuis toujours** : la liste n'a jamais rien affiché. L'annuaire passe sur
+Supabase (`20260907180000_annuaire_postes_diplomatiques.sql`) avec les 32
+postes publiés par diplomatie.gouv.ne, relevés et corrigés le 2026-09-07.
+
+Rien de tout cela n'est vérifié sur appareil — `flutter analyze` ne dit pas si
+la liste s'affiche.
+
+- [x] **✅ SM A515F 2026-09-07** — la liste affiche **30** fiches (et non 32) :
+      le compte de test n'a pas de pays renseigné, donc le filtre de
+      juridiction masque Genève (Suisse/Autriche/Liechtenstein) et New York
+      (Venezuela). Comportement du filtre déjà en place, rendu actif pour la
+      première fois par le seed. **À trancher** : un usager sans pays connu
+      devrait-il voir les missions permanentes ?
+      `lib/features/embassies/presentation/screens/embassies_screen.dart`
+- [x] **✅ SM A515F** — « Havane » → 1 résultat, groupé sous Cuba.
+- [x] **✅ SM A515F 2026-09-07 — mode avion après un premier chargement** :
+      « 30 ambassade(s) trouvée(s) » servies depuis `CACHED_EMBASSIES_V2`
+      (32 fiches, `savedAt` 03:25), et la fiche de détail s'ouvre complète
+      hors ligne (Pretoria : adresse, fax, réserve, « Y aller » grisé).
+      `airplane_mode_on = 1` **et** `Active default network: none` — le VPN ne
+      masquait pas l'état hors ligne.
+      Il a fallu **trois** correctifs pour y arriver, cf. la liste ci-dessus.
+- [ ] **Mode avion sans jamais avoir chargé** : liste vide, pas de plantage.
+      (Non testé : le cache était déjà peuplé, et le vider demande de
+      désinstaller — ce qui coûte la session Firebase.)
+
+⚠️ **Reste ouvert, même famille de défaut** : `embassy_message_screen.dart`
+(lignes 60 et 66) lit encore `ref.read(currentUserAsyncProvider).value` et
+`profileAsync.value`. Moins grave que les précédents — l'appel est dans un
+`try` d'action asynchrone, donc l'erreur est attrapée et devient une SnackBar
+plutôt qu'un écran rouge — mais c'est le même piège. Non corrigé ici pour ne
+pas empiéter : l'autre agent balaie ce motif en ce moment même dans
+`administrative_request_screen.dart` (mêmes lignes, même diagnostic, même
+appareil, non encore poussé).
+- [x] **✅ SM A515F** — Berlin affiche « Autres lignes : +49 30 80 58 96 61 »
+      et « Fax : +49 30 80 58 96 62 ».
+- [ ] La réserve `data_notes` s'affiche sur les fiches concernées (Abidjan,
+      Ankara, Cotonou, Doha, La Havane, Berlin, Copenhague, Rome, Kano,
+      Paris, Pretoria, Rabat, Riyad, Washington, Genève, Pékin, Khartoum,
+      Le Caire, New York, Paris/UNESCO) et reste lisible en **thème sombre**
+      (`surfaceContainerHighest` / `onSurfaceVariant`).
+      **✅ SM A515F** — carte « Réserve sur cette fiche » vue sur Berlin et
+      La Havane, lisible en sombre.
+- [x] **✅ SM A515F** — « Y aller » grisé sur Berlin et La Havane. Avant ce
+      correctif, `toEntity()` remplaçait une latitude nulle par `0.0`, le
+      bouton était actif sur les 32 postes et ouvrait le golfe de Guinée.
+- [x] **✅ SM A515F** — « La Havane, Cuba », pas de virgule orpheline.
+- [ ] Admin : vérifier / suspendre un poste (`admin_embassy_verification_screen`)
+      écrit bien dans Supabase, et l'échec RLS non-admin remonte un message
+      au lieu d'un faux succès.
+- [ ] Admin : créer un poste (`admin_create_embassy_screen`) le fait
+      apparaître dans la liste — l'écran écrivait dans Firestore, donc dans
+      une collection que plus personne ne lit.
+
+**Trois défauts trouvés PAR ce test appareil**, invisibles à `flutter analyze` :
+
+1. **Ville doublée** — « Machnower Str. 24, **Berlin, Berlin**, Allemagne ».
+   Les adresses postales portent la ville, que la fiche rajoutait. Corrigé par
+   `_formatLocation` (n'ajoute un fragment que s'il n'est pas déjà présent).
+   **✅ vérifié** : Pretoria affiche « … Hatfield, Pretoria, Afrique du Sud »,
+   une seule fois. Restent Rome/Roma, Pékin/Beijing et Copenhague/København,
+   que la comparaison ne peut pas reconnaître — traités par la migration
+   `20260907203000`, **pas encore appliquée** (elle attend que l'autre agent
+   pousse `20260907200000`, appliquée en base mais absente du dépôt).
+2. **`AsyncValue.value` relance l'erreur en Riverpod 2** (c'est `valueOrNull`
+   qui rend `null`). Hors ligne, le flux du profil échoue, l'exception
+   traversait tout `embassiesListProvider`, et l'écran affichait la trace
+   brute — **avec l'hôte Supabase et l'UID de l'usager en clair, plein
+   écran**. Le dépôt n'était jamais appelé, donc le cache jamais lu.
+3. **L'annuaire était conditionné à une session.** Hors ligne, la session
+   Supabase ne peut plus se rafraîchir, l'usager est vu comme déconnecté, et
+   `if (user == null) return []` court-circuitait tout — 32 fiches en cache
+   sur l'appareil, écran vide. Or la table est en lecture publique par
+   conception : l'annuaire ne dépend plus d'une session.
+
+**Migration appliquée en production le 2026-09-07** (`supabase db push
+--linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
+2 missions permanentes, 1 délégation ; 27 fiches avec fax, 20 avec réserve.
+La liste ne devrait donc plus être vide.
+
+Deux découvertes du push, à connaître avant de toucher à cette table :
+
+- **La table `embassies` existait déjà en production**, créée hors du dossier
+  `supabase/migrations` — aucun fichier du dépôt ne la mentionnait. D'où la
+  forme de la migration (création *puis* `ADD COLUMN IF NOT EXISTS`). La
+  colonne du type de poste s'appelle `type`, pas `post_type`.
+- **Elle n'avait aucune politique RLS et RLS n'y était pas activé**, alors que
+  `anon` dispose des privilèges d'écriture au niveau table : n'importe qui
+  pouvait écrire dans l'annuaire diplomatique officiel. Refermé et vérifié —
+  l'INSERT anonyme renvoie désormais 401/42501.
+
+---
 
 ## Comment tester (rappel de la config utilisée précédemment)
 

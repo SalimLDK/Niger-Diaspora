@@ -15946,4 +15946,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get reportReasonPrefix => 'Motif';
+
+  @override
+  String get embassyFax => 'Fax';
+
+  @override
+  String get embassyOtherPhones => 'Autres lignes';
+
+  @override
+  String get embassyDataNote => 'Réserve sur cette fiche';
+
+  @override
+  String embassySourceLine(Object date, Object source) {
+    return 'Source : $source, relevé le $date';
+  }
+
+  @override
+  String get embassyLoadError =>
+      'Impossible de charger l\'annuaire. Vérifiez votre connexion et réessayez.';
 }

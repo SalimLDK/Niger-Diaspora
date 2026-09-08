@@ -1,0 +1,580 @@
+{
+  "version": 1,
+  "source": {
+    "editeur": "Ministère des Affaires étrangères, de la Coopération, de l'Intégration africaine et des Nigériens à l'Extérieur",
+    "url": "https://diplomatie.gouv.ne/index.php/services-aux-usagers/demarches-administratives",
+    "consulteLe": "2026-09-07",
+    "fraicheurSource": "Page non maintenue : copyright 2017, dernier communiqué du site septembre 2023, seul texte de loi cité de 2007.",
+    "avertissementGlobal": "Extraction fidèle au contenu publié, à l'exception des corrections listées dans `titreSource` et `avertissements`. Aucun délai de traitement n'est indiqué par la source pour aucune démarche. Un seul montant figure dans toute la page (timbre fiscal de 1 500 F CFA). Les frais dits « droits de chancellerie » ne sont jamais chiffrés. Ne pas afficher ces données sans mentionner la source et sa date.",
+    "sectionsNonReprises": [
+      {
+        "titre": "Obtention, perte et déchéance de la nationalité nigérienne",
+        "raison": "Contenu doctrinal sans liste de pièces, non sourcé sur un texte de loi (contrairement à la section rectification), et probablement dépassé : il pose l'acquisition d'une nationalité étrangère comme cause de perte de la nationalité nigérienne, ne cite comme voie d'acquisition que le mariage d'une femme étrangère avec un Nigérien, et laisse le délai de déchéance non chiffré. À vérifier contre le code de la nationalité en vigueur avant toute reprise."
+      },
+      {
+        "titre": "Échange de permis de conduire",
+        "raison": "Renvoi narratif : possible seulement s'il existe une convention entre le Niger et le pays d'accueil, et la démarche se fait auprès du service de transport du pays d'accueil, pas du consulat. Aucune liste de conventions n'est fournie."
+      },
+      {
+        "titre": "Rectification des pièces d'état civil",
+        "raison": "Contenu procédural sans liste de pièces. Compétence : tribunal d'instance pour les actes établis au Niger, tribunal de grande instance hors classe de Niamey pour les actes établis à l'étranger par les consulats (loi n° 2007-30 du 3 décembre 2007). La source y fixe la majorité à 21 ans révolus et écrit « centre de santé » là où le sens exige « centre d'état civil »."
+      }
+    ]
+  },
+
+  "conventions": {
+    "forme": {
+      "copie": "Photocopie simple",
+      "original": "Document original à présenter ou déposer",
+      "original_et_copie": "Original et photocopie exigés tous deux",
+      "photo": "Photo d'identité récente",
+      "temoin": "Personne physique devant se présenter",
+      "formulaire": "Formulaire à remplir au guichet — non téléchargeable sur le site",
+      "timbre_fiscal": "Timbre fiscal à acquérir",
+      "attestation": "Attestation délivrée par un tiers",
+      "liste_etablie_par_demandeur": "Document rédigé par le demandeur lui-même"
+    },
+    "coutStatut": {
+      "inconnu": "Des droits sont exigés mais le montant n'est pas publié",
+      "non_mentionne": "La source n'évoque aucun frais — gratuité ou omission, indéterminable",
+      "variable_par_pays": "Des droits sont exigés sauf dans certains pays, non énumérés",
+      "connu": "Montant publié par la source"
+    },
+    "groupeAlternatif": "Les pièces portant le même `groupeAlternatif` sont interchangeables : une seule du groupe suffit.",
+    "requestType": "Valeur de l'enum Dart `AdministrativeRequestType` (lib/features/embassies/data/models/administrative_request_model.dart). `other` = aucune valeur dédiée n'existe dans l'enum."
+  },
+
+  "rubriques": [
+    { "id": "immatriculation", "titre": "Immatriculation consulaire", "ordre": 1 },
+    { "id": "etat_civil", "titre": "Actes d'état civil", "ordre": 2 },
+    { "id": "voyage", "titre": "Documents de voyage", "ordre": 3 },
+    { "id": "actes_notaries", "titre": "Actes notariés", "ordre": 4 },
+    { "id": "nationalite", "titre": "Nationalité", "ordre": 5 }
+  ],
+
+  "demarches": [
+    {
+      "id": "carte_consulaire",
+      "titre": "Carte consulaire",
+      "rubrique": "immatriculation",
+      "requestType": "consularId",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": false,
+      "estPrerequisDeToutLeReste": true,
+      "resume": "Point d'entrée de tout le système consulaire : 18 des 20 démarches l'exigent en première pièce. À défaut de pièce d'identité nigérienne, deux témoins nigériens déjà immatriculés suffisent.",
+      "pieces": [
+        {
+          "libelle": "Copie d'une pièce d'identité nigérienne (certificat de nationalité, acte de naissance ou ancienne carte consulaire)",
+          "forme": "copie",
+          "quantite": 1,
+          "obligatoire": true,
+          "groupeAlternatif": "preuve_identite"
+        },
+        {
+          "libelle": "Deux témoins de nationalité nigérienne ayant déjà obtenu la carte consulaire",
+          "forme": "temoin",
+          "quantite": 2,
+          "obligatoire": true,
+          "groupeAlternatif": "preuve_identite",
+          "note": "Voie de secours pour qui ne détient aucune pièce d'identité nigérienne."
+        },
+        { "libelle": "Photo d'identité récente", "forme": "photo", "quantite": 2, "obligatoire": true }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droits de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": [
+        "La source écrit « 2 Droits de chancellerie à payer » : le « 2 » est vraisemblablement un report de la ligne des photos qui précède. Le montant n'est pas publié."
+      ]
+    },
+    {
+      "id": "carte_electeur",
+      "titre": "Carte d'électeur",
+      "rubrique": "immatriculation",
+      "requestType": "other",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire du déclarant", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Photo d'identité récente", "forme": "photo", "quantite": 2, "obligatoire": true }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droits de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": []
+    },
+    {
+      "id": "carte_nationale_identite",
+      "titre": "Carte nationale d'identité (CNI)",
+      "rubrique": "etat_civil",
+      "requestType": "other",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire", "forme": "copie", "quantite": 1, "obligatoire": true },
+        {
+          "libelle": "Copie d'une pièce d'identité nigérienne (certificat de nationalité, acte de naissance ou passeport)",
+          "forme": "copie",
+          "quantite": 1,
+          "obligatoire": true
+        }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droits de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": []
+    },
+    {
+      "id": "declaration_naissance",
+      "titre": "Déclaration de naissance",
+      "rubrique": "etat_civil",
+      "requestType": "birthCertificate",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        {
+          "libelle": "Copie des cartes consulaires des deux parents",
+          "forme": "copie",
+          "quantite": 2,
+          "obligatoire": true
+        },
+        {
+          "libelle": "Copie de la pièce d'identité d'un parent nigérien (certificat de nationalité, acte de naissance, passeport ou CNI)",
+          "forme": "copie",
+          "quantite": 1,
+          "obligatoire": true
+        },
+        {
+          "libelle": "Originaux des certificats d'accouchement",
+          "forme": "original",
+          "quantite": null,
+          "obligatoire": true,
+          "note": "La source emploie le pluriel sans préciser combien de certificats sont attendus."
+        }
+      ],
+      "cout": { "statut": "non_mentionne", "libelle": null, "montantXof": null },
+      "delai": null,
+      "avertissements": [
+        "Aucun droit de chancellerie n'est mentionné, contrairement à presque toutes les autres démarches. Gratuité ou omission : indéterminable depuis la source."
+      ]
+    },
+    {
+      "id": "declaration_mariage",
+      "titre": "Déclaration de mariage",
+      "rubrique": "etat_civil",
+      "requestType": "marriageCertificate",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        {
+          "libelle": "Copie de la carte consulaire du ou des conjoint(s) nigérien(s)",
+          "forme": "copie",
+          "quantite": null,
+          "obligatoire": true
+        },
+        { "libelle": "Une pièce d'état civil des conjoints", "forme": "copie", "quantite": 1, "obligatoire": true },
+        {
+          "libelle": "Deux témoins munis de leur pièce d'état civil nigérienne",
+          "forme": "temoin",
+          "quantite": 2,
+          "obligatoire": true
+        }
+      ],
+      "cout": { "statut": "non_mentionne", "libelle": null, "montantXof": null },
+      "delai": null,
+      "avertissements": [
+        "Aucun droit de chancellerie n'est mentionné, contrairement à presque toutes les autres démarches. Gratuité ou omission : indéterminable depuis la source."
+      ]
+    },
+    {
+      "id": "declaration_deces",
+      "titre": "Déclaration de décès",
+      "rubrique": "etat_civil",
+      "requestType": "deathCertificate",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire du déclarant", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Attestation de décès des services de santé", "forme": "attestation", "quantite": 1, "obligatoire": true },
+        { "libelle": "Copie d'une pièce d'état civil nigérienne du défunt", "forme": "copie", "quantite": 1, "obligatoire": true },
+        {
+          "libelle": "Deux témoins munis de leur pièce d'état civil nigérienne (certificat de nationalité, acte de naissance, passeport ou CNI)",
+          "forme": "temoin",
+          "quantite": 2,
+          "obligatoire": true
+        }
+      ],
+      "cout": {
+        "statut": "variable_par_pays",
+        "libelle": "Droits de chancellerie, sans frais dans certains pays",
+        "montantXof": null
+      },
+      "delai": null,
+      "avertissements": [
+        "La source ne dit pas dans quels pays la démarche est gratuite."
+      ]
+    },
+    {
+      "id": "transcription_acte_naissance",
+      "titre": "Transcription d'acte de naissance",
+      "rubrique": "etat_civil",
+      "requestType": "birthCertificate",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire du parent nigérien", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Original de l'acte de naissance de l'enfant mineur", "forme": "original", "quantite": 1, "obligatoire": true },
+        {
+          "libelle": "Copie de l'acte de naissance ou du certificat de nationalité du parent nigérien",
+          "forme": "copie",
+          "quantite": 1,
+          "obligatoire": true
+        }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droit de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": []
+    },
+    {
+      "id": "transcription_acte_mariage",
+      "titre": "Transcription d'acte de mariage",
+      "rubrique": "etat_civil",
+      "requestType": "marriageCertificate",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire du conjoint nigérien", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Acte de mariage des conjoints", "forme": "original_et_copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Copie de la pièce d'état civil du conjoint nigérien", "forme": "copie", "quantite": 1, "obligatoire": true }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droit de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": []
+    },
+    {
+      "id": "transcription_acte_deces",
+      "titre": "Transcription d'acte de décès",
+      "rubrique": "etat_civil",
+      "requestType": "deathCertificate",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire du déclarant", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Acte de décès", "forme": "original_et_copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Copie des pièces d'identité du défunt nigérien", "forme": "copie", "quantite": null, "obligatoire": true }
+      ],
+      "cout": {
+        "statut": "variable_par_pays",
+        "libelle": "Droits de chancellerie, sans droit dans certains pays",
+        "montantXof": null
+      },
+      "delai": null,
+      "avertissements": [
+        "La source ne dit pas dans quels pays la démarche est gratuite."
+      ]
+    },
+    {
+      "id": "laissez_passer",
+      "titre": "Laissez-passer / Sauf-conduit",
+      "rubrique": "voyage",
+      "requestType": "laissezPasser",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Photo d'identité récente", "forme": "photo", "quantite": 2, "obligatoire": true }
+      ],
+      "piecesConditionnelles": [
+        {
+          "condition": "Voyage avec un enfant de moins de 2 ans",
+          "pieces": [
+            { "libelle": "Photo d'identité de l'enfant", "forme": "photo", "quantite": 2, "obligatoire": true },
+            { "libelle": "Copie de l'acte de naissance de l'enfant", "forme": "copie", "quantite": 1, "obligatoire": true }
+          ]
+        },
+        {
+          "condition": "Voyage avec un ou plusieurs enfants de 2 à 16 ans",
+          "pieces": [],
+          "note": "Un laissez-passer distinct doit être demandé pour chaque enfant de cette tranche d'âge."
+        }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droits de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": [
+        "La source écrit « Droits de chancellerie à payer (sans). » — la parenthèse est tronquée et contredit le début de la phrase. Par analogie avec les démarches de décès, il s'agit probablement de « sans frais dans certains pays »."
+      ]
+    },
+    {
+      "id": "passeport_demande",
+      "titre": "Passeport — première demande ou renouvellement",
+      "titreSource": "Passeport (prorogation)",
+      "rubrique": "voyage",
+      "requestType": "passportNewRequest",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Copie de l'acte de naissance", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Copie du certificat de nationalité", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Copie de la carte nationale d'identité", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Photo d'identité récente", "forme": "photo", "quantite": 3, "obligatoire": true }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droits de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": [
+        "TITRE CORRIGÉ. La source intitule cette entrée « Passeport (prorogation) », mais la liste de pièces (acte de naissance, certificat de nationalité, CNI, 3 photos, aucun passeport existant) est celle d'une première demande ou d'un renouvellement — pas d'une prorogation. La vraie prorogation est la démarche `prorogation_passeport`. Un usager lisant la page dans l'ordre rassemble quatre pièces inutiles."
+      ]
+    },
+    {
+      "id": "prorogation_passeport",
+      "titre": "Prorogation de passeport",
+      "rubrique": "voyage",
+      "requestType": "passportRenewal",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Original du passeport", "forme": "original", "quantite": 1, "obligatoire": true },
+        { "libelle": "Copie des trois premières pages du passeport", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Photo d'identité", "forme": "photo", "quantite": 2, "obligatoire": true }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droits de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": [
+        "Le passeport est traité deux fois dans la source, avec des listes incompatibles. Celle-ci est la seule cohérente avec une prorogation."
+      ]
+    },
+    {
+      "id": "certificat_demenagement",
+      "titre": "Certificat de déménagement",
+      "rubrique": "voyage",
+      "requestType": "other",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "resume": "Pièce du retour définitif au pays : elle accompagne le transport des effets personnels.",
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire", "forme": "copie", "quantite": 1, "obligatoire": true },
+        {
+          "libelle": "Liste des matériels et objets à transporter, établie par le demandeur",
+          "forme": "liste_etablie_par_demandeur",
+          "quantite": 1,
+          "obligatoire": true
+        },
+        { "libelle": "Photo d'identité récente", "forme": "photo", "quantite": 2, "obligatoire": true }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droits de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": []
+    },
+    {
+      "id": "autorisation_parentale",
+      "titre": "Autorisation parentale",
+      "rubrique": "actes_notaries",
+      "requestType": "legalDocument",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire du parent demandeur", "forme": "copie", "quantite": 1, "obligatoire": true },
+        {
+          "libelle": "Copie de l'acte de naissance",
+          "forme": "copie",
+          "quantite": 1,
+          "obligatoire": true,
+          "note": "Titulaire de l'acte non déterminable : voir avertissement."
+        },
+        {
+          "libelle": "Photo d'identité récente de chaque enfant",
+          "forme": "photo",
+          "quantite": 2,
+          "obligatoire": true,
+          "note": "Deux photos par enfant concerné."
+        }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droits de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": [
+        "La source écrit « Copie de l'acte de naissance du parent des enfants voyageant » : la formulation ne permet pas de dire s'il s'agit de l'acte du parent ou de celui des enfants. C'est la pièce centrale de la démarche — à faire confirmer par le consulat avant affichage."
+      ]
+    },
+    {
+      "id": "fiche_individuelle_etat_civil",
+      "titre": "Fiche individuelle d'état civil",
+      "rubrique": "actes_notaries",
+      "requestType": "legalDocument",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Une pièce d'état civil nigérienne", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Photo d'identité récente", "forme": "photo", "quantite": 2, "obligatoire": true }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droit de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": []
+    },
+    {
+      "id": "legalisation_document",
+      "titre": "Légalisation de documents nigériens",
+      "rubrique": "actes_notaries",
+      "requestType": "legalDocument",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire", "forme": "copie", "quantite": 1, "obligatoire": true },
+        { "libelle": "Document à légaliser", "forme": "original_et_copie", "quantite": 1, "obligatoire": true }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droit de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": []
+    },
+    {
+      "id": "acte_engagement",
+      "titre": "Acte d'engagement entre Nigériens",
+      "rubrique": "actes_notaries",
+      "requestType": "legalDocument",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie de la carte consulaire de chaque demandeur", "forme": "copie", "quantite": null, "obligatoire": true },
+        { "libelle": "Formulaire à remplir", "forme": "formulaire", "quantite": 1, "obligatoire": true }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droits de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": [
+        "Le formulaire n'est ni téléchargeable ni décrit sur le site : il ne peut être rempli qu'au guichet."
+      ]
+    },
+    {
+      "id": "acte_vente",
+      "titre": "Acte de vente entre Nigériens",
+      "rubrique": "actes_notaries",
+      "requestType": "legalDocument",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        {
+          "libelle": "Copie des cartes consulaires de l'acheteur et du vendeur",
+          "forme": "copie",
+          "quantite": 2,
+          "obligatoire": true
+        },
+        {
+          "libelle": "Formulaire à remplir, mentionnant l'objet de la vente",
+          "forme": "formulaire",
+          "quantite": 1,
+          "obligatoire": true
+        }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droits de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": [
+        "Le formulaire n'est ni téléchargeable ni décrit sur le site : il ne peut être rempli qu'au guichet."
+      ]
+    },
+    {
+      "id": "proces_verbal",
+      "titre": "Procès-verbal entre Nigériens",
+      "rubrique": "actes_notaries",
+      "requestType": "legalDocument",
+      "lieu": "consulat",
+      "exigeCarteConsulaire": true,
+      "pieces": [
+        { "libelle": "Copie des cartes consulaires des intéressés", "forme": "copie", "quantite": null, "obligatoire": true },
+        {
+          "libelle": "Formulaire à remplir, mentionnant l'objet du litige",
+          "forme": "formulaire",
+          "quantite": 1,
+          "obligatoire": true
+        },
+        { "libelle": "Deux témoins de nationalité nigérienne", "forme": "temoin", "quantite": 2, "obligatoire": true }
+      ],
+      "cout": { "statut": "inconnu", "libelle": "Droits de chancellerie", "montantXof": null },
+      "delai": null,
+      "avertissements": [
+        "Le formulaire n'est ni téléchargeable ni décrit sur le site : il ne peut être rempli qu'au guichet."
+      ]
+    },
+    {
+      "id": "certificat_nationalite",
+      "titre": "Certificat de nationalité",
+      "rubrique": "nationalite",
+      "requestType": "other",
+      "lieu": "tribunal_niger",
+      "exigeCarteConsulaire": false,
+      "resume": "Seule démarche de la page qui ne se traite pas au consulat : la demande s'adresse au président du tribunal de grande instance au Niger.",
+      "pieces": [
+        { "libelle": "Tout document susceptible de prouver la nationalité nigérienne", "forme": "copie", "quantite": null, "obligatoire": true },
+        {
+          "libelle": "Copie légalisée de l'acte de naissance du demandeur, de son père ou de sa mère",
+          "forme": "copie",
+          "quantite": 1,
+          "obligatoire": true
+        },
+        {
+          "libelle": "Certificat de résidence ou certificat de scolarité",
+          "forme": "copie",
+          "quantite": 1,
+          "obligatoire": true,
+          "groupeAlternatif": "justificatif_attache"
+        },
+        { "libelle": "Timbre fiscal", "forme": "timbre_fiscal", "quantite": 1, "obligatoire": true }
+      ],
+      "cout": { "statut": "connu", "libelle": "Timbre fiscal", "montantXof": 1500 },
+      "delai": null,
+      "juridictionCompetente": {
+        "autorite": "Président du tribunal de grande instance",
+        "regles": [
+          "Du lieu de résidence si le demandeur réside au Niger",
+          "Du lieu de naissance si le demandeur, né au Niger, n'y réside plus",
+          "Du lieu de la dernière résidence au Niger si le demandeur, né hors du Niger, n'y réside plus"
+        ]
+      },
+      "avertissements": [
+        "Seul montant publié de toute la page. Ce n'est pas un droit de chancellerie mais un timbre fiscal acquitté au Niger.",
+        "La source écrit « Du lieu de résidence si le pétitionnaire, né au Niger, n'y réside plus » pour le deuxième cas, ce qui répète le premier et vide la règle de sens. Le critère y est vraisemblablement le lieu de naissance — à confirmer avant affichage."
+      ]
+    }
+  ],
+
+  "lacunesSource": [
+    {
+      "id": "radiation_consulaire",
+      "titre": "Radiation de l'immatriculation consulaire",
+      "gravite": "haute",
+      "detail": "Le chapô de la page présente cette démarche comme indispensable — signaler le changement de résidence pour faire annuler la carte consulaire et la carte d'électeur, et pouvoir voter au Niger — mais aucune liste de pièces ne lui correspond dans le corps du document."
+    },
+    {
+      "id": "rapatriement_de_corps",
+      "titre": "Rapatriement de corps",
+      "gravite": "haute",
+      "detail": "Absent alors que la déclaration de décès et la transcription d'acte de décès sont traitées. C'est le besoin consulaire le plus lourd d'une diaspora."
+    },
+    {
+      "id": "assistance_urgence",
+      "titre": "Assistance consulaire d'urgence",
+      "gravite": "haute",
+      "detail": "Rien sur la détention, l'hospitalisation, la perte ou le vol de documents à l'étranger, ni sur les sinistres."
+    },
+    {
+      "id": "procuration_de_vote",
+      "titre": "Procuration de vote",
+      "gravite": "moyenne",
+      "detail": "Absente alors que la carte d'électeur est traitée."
+    },
+    {
+      "id": "reconnaissance_divorce_succession",
+      "titre": "Reconnaissance d'enfant, divorce, succession",
+      "gravite": "moyenne",
+      "detail": "Aucune de ces démarches n'est décrite. La succession n'apparaît qu'incidemment dans la section rectification."
+    },
+    {
+      "id": "visa",
+      "titre": "Demande de visa",
+      "gravite": "basse",
+      "detail": "Hors périmètre de cette page, qui ne traite que des ressortissants nigériens à l'étranger. Le site renvoie à sa page « Entrée au Niger ». Note : l'enum `AdministrativeRequestType` prévoit `visaApplication`, sans source correspondante ici."
+    },
+    {
+      "id": "delais_tarifs_formulaires",
+      "titre": "Délais, tarifs et formulaires",
+      "gravite": "haute",
+      "detail": "Aucun délai de traitement pour aucune des 20 démarches. Aucun tarif hors le timbre de 1 500 F CFA. Aucun formulaire téléchargeable alors que trois démarches en exigent un. Aucune modalité de paiement, de prise de rendez-vous ni de démarche en ligne. La page ne comporte par ailleurs aucun lien vers les pages « Les ambassades » et « Les consulats » du même site, alors que sa première phrase enjoint d'aller les chercher."
+    }
+  ]
+}

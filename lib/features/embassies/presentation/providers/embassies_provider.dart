@@ -2,7 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/network_info.dart';
 import '../../data/datasources/embassies_local_datasource.dart';
-import '../../data/datasources/embassy_remote_datasource.dart';
+import '../../data/datasources/embassies_supabase_datasource.dart';
 import '../../data/repositories/embassies_repository_impl.dart';
 import '../../domain/entities/embassy_entity.dart';
 import '../../domain/repositories/embassies_repository.dart';
@@ -17,14 +17,21 @@ EmbassiesLocalDataSource embassiesLocalDataSource(Ref ref) {
   return EmbassiesLocalDataSource();
 }
 
+// Source distante : l'annuaire vient de Supabase depuis la migration
+// `20260907180000_annuaire_postes_diplomatiques`. La collection Firestore
+// `embassies` qu'on lisait avant n'a jamais contenu la moindre fiche.
+@riverpod
+EmbassiesDataSource embassiesDataSource(Ref ref) {
+  return EmbassiesSupabaseDataSource();
+}
+
 // Repository Provider
 @riverpod
 EmbassiesRepository embassiesRepository(Ref ref) {
-  final remoteDataSource = EmbassyRemoteDataSourceImpl();
+  final remoteDataSource = ref.watch(embassiesDataSourceProvider);
   final localDataSource = ref.watch(embassiesLocalDataSourceProvider);
   final networkInfo = ref.watch(networkInfoProvider);
 
-  // EmbassyRepositoryImpl should implement EmbassiesRepository
   return EmbassiesRepositoryImpl(
     remoteDataSource: remoteDataSource,
     localDataSource: localDataSource,
@@ -32,29 +39,50 @@ EmbassiesRepository embassiesRepository(Ref ref) {
   );
 }
 
+/// Date de la copie locale servie hors ligne, pour que l'écran puisse dire
+/// « données du 3 septembre » plutôt que de les présenter comme courantes.
+@riverpod
+Future<DateTime?> embassiesCachedAt(Ref ref) {
+  return ref.watch(embassiesRepositoryProvider).cachedAt();
+}
+
 // Imports moved to top
 
 // Embassies List Provider
 @Riverpod(keepAlive: true)
 Future<List<EmbassyEntity>> embassiesList(Ref ref) async {
-  // 1. Get Current User (for Admin check)
-  final userAsync = ref.watch(currentUserAsyncProvider);
-  final user = userAsync.value;
+  // 1. Utilisateur courant, pour le contournement admin -- et rien d'autre.
+  //
+  // `.valueOrNull`, surtout pas `.value` : en Riverpod 2 ce dernier **relance**
+  // l'erreur au lieu de rendre `null`, et l'exception traversait alors tout ce
+  // provider jusqu'a l'ecran, qui affichait la trace brute.
+  //
+  // Et surtout : l'annuaire ne doit PAS etre conditionne a une session. C'est
+  // une donnee publique -- la table est en lecture ouverte, y compris a `anon`,
+  // precisement pour qu'on trouve son consulat avant d'avoir un compte. Le
+  // `if (user == null) return []` qui etait ici renvoyait une liste vide sans
+  // jamais appeler le depot, donc sans jamais lire le cache local.
+  //
+  // Verifie en mode avion sur SM A515F le 2026-09-07 : la session Supabase ne
+  // peut plus se rafraichir (« Access token is expired and refreshing
+  // failed »), l'utilisateur est vu comme deconnecte, et l'ecran affichait
+  // « Aucune ambassade disponible » avec 32 fiches en cache sur l'appareil.
+  // C'est exactement l'usage principal de cet ecran qui tombait : chercher le
+  // numero de son consulat quand on n'a pas de reseau.
+  final user = ref.watch(currentUserAsyncProvider).valueOrNull;
 
-  if (user == null) return [];
+  // 2. Profil, pour la juridiction. Absent hors ligne ou sans session : le
+  //    filtre plus bas traite deja le cas nul.
+  final profile = user == null
+      ? null
+      : ref.watch(userStreamProvider(user.id)).valueOrNull;
 
-  // 2. Get User Profile (for Location/Jurisdiction check)
-  // We handle the AsyncValue from the stream provider
-  final profileAsync = ref.watch(userStreamProvider(user.id));
-  final profile = profileAsync.value;
-
-  // 3. Fetch all embassies
+  // 3. L'annuaire : Supabase si le reseau repond, copie locale sinon.
   final repository = ref.watch(embassiesRepositoryProvider);
-  // Force reload to ensure we get fresh data especially if local datasource changed
   final allEmbassies = await repository.getEmbassies();
 
-  // 4. Admin Bypass
-  if (user.isAdmin) {
+  // 4. Admin Bypass -- sans session, pas de contournement.
+  if (user?.isAdmin ?? false) {
     return allEmbassies;
   }
 

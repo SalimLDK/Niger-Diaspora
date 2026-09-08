@@ -27,8 +27,28 @@ final embassiesLocalDataSourceProvider =
 // ignore: unused_element
 typedef EmbassiesLocalDataSourceRef =
     AutoDisposeProviderRef<EmbassiesLocalDataSource>;
+String _$embassiesDataSourceHash() =>
+    r'9dee78cccf89a7e7c4988a84713b7eb47406fcc2';
+
+/// See also [embassiesDataSource].
+@ProviderFor(embassiesDataSource)
+final embassiesDataSourceProvider =
+    AutoDisposeProvider<EmbassiesDataSource>.internal(
+      embassiesDataSource,
+      name: r'embassiesDataSourceProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$embassiesDataSourceHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef EmbassiesDataSourceRef = AutoDisposeProviderRef<EmbassiesDataSource>;
 String _$embassiesRepositoryHash() =>
-    r'bf405587754a28dd48bf3e876555664c2b3f9f0b';
+    r'293acd98a49a19253b81026f427515e228877816';
 
 /// See also [embassiesRepository].
 @ProviderFor(embassiesRepository)
@@ -47,6 +67,27 @@ final embassiesRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef EmbassiesRepositoryRef = AutoDisposeProviderRef<EmbassiesRepository>;
+String _$embassiesCachedAtHash() => r'224c63f6220844b10b8f143afaacdf120aa72dcf';
+
+/// Date de la copie locale servie hors ligne, pour que l'écran puisse dire
+/// « données du 3 septembre » plutôt que de les présenter comme courantes.
+///
+/// Copied from [embassiesCachedAt].
+@ProviderFor(embassiesCachedAt)
+final embassiesCachedAtProvider = AutoDisposeFutureProvider<DateTime?>.internal(
+  embassiesCachedAt,
+  name: r'embassiesCachedAtProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$embassiesCachedAtHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef EmbassiesCachedAtRef = AutoDisposeFutureProviderRef<DateTime?>;
 String _$embassiesListHash() => r'4453f9532e0a2ca93936dfbe48989547f6267831';
 
 /// See also [embassiesList].

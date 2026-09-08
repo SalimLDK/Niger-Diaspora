@@ -211,7 +211,7 @@ flutter_launcher_icons:
   min_sdk_android: 21
 
   # Android Adaptive Icons
-  adaptive_icon_background: "#E97424"
+  adaptive_icon_background: "#009600"
   adaptive_icon_foreground: "assets/import_icons/dn_adaptive_foreground_xxxhdpi.png"
 
   # iOS specific
@@ -221,8 +221,8 @@ flutter_launcher_icons:
   web:
     generate: true
     image_path: "assets/import_icons/dn_ultra_minimal_icon.png"
-    background_color: "#E97424"
-    theme_color: "#E97424"
+    background_color: "#009600"
+    theme_color: "#009600"
 
   # Windows (optionnel)
   windows:
@@ -245,4 +245,9 @@ flutter:
     # déclaration, `GoogleMap.style` reste nul et la carte garde le rendu
     # Google par défaut — clair, même en thème nocturne.
     - assets/map_styles/
+    # Démarches consulaires extraites du site du MAE nigérien. Données
+    # figées et datées : la source n'est plus maintenue depuis 2023 et ne
+    # publie ni délai ni tarif. Voir le bloc `source` du JSON avant de
+    # les afficher à un usager.
+    - assets/data/
 
