@@ -688,12 +688,50 @@ après installation, donc celui d'un usager qui installe l'app dans le train.
       déjà présent : `PolitiqueDeReprise` pose désormais une fenêtre de calme
       qui vaut pour **tous** les appelants.
 
-- [ ] ⛔ **Mais l'écran tourne toujours.** Vérifié juste après : hors ligne
-      avec un cache vide, l'annuaire affiche encore son spinner sans fin.
-      Borner l'authentification n'était donc PAS la cause du symptôme — la
-      requête de l'annuaire elle-même ne rend jamais la main. À traiter là où
-      elle part (`embassies_supabase_datasource` / `embassies_repository_impl`),
-      probablement par un `timeout` qui laisse retomber sur la copie locale.
+- [x] **Spinner sans fin corrigé — vu sur SM A515F (2026-09-08).**
+      `EmbassiesRepositoryImpl.getEmbassies` borne la lecture distante à 10 s
+      et retombe sur la copie locale. Mode avion vérifié avant, pendant et
+      après : l'annuaire se résout en ~16 s et affiche ses 30 postes, au lieu
+      de tourner au-delà de 85 s.
+
+      ⚠️ Réserve : ce parcours-là a pu emprunter la branche hors-ligne
+      directe (`isConnected` à `false`) plutôt que le délai. C'est
+      `annuaire_repli_hors_ligne_test.dart` qui prouve le délai lui-même —
+      ses cas mettent exactement 10 s, avec un distant qui ne rend jamais la
+      main.
+
+**Cas du « réseau menteur » reproduit le 2026-09-08 — et le délai NE SUFFIT
+PAS.** C'est le résultat important de la journée sur ce point.
+
+*Comment le fabriquer* (utile, la condition est difficile à obtenir autrement) :
+DNS privé en mode strict vers un hôte inexistant. Le WiFi reste `CONNECTED`,
+donc `connectivity_plus` voit son transport et `isConnected` rend `true`, mais
+toute résolution meurt.
+
+```bash
+adb shell settings put global private_dns_mode hostname
+adb shell settings put global private_dns_specifier dns-inexistant.invalid
+# vérification : `ping <hôte>` doit répondre « unknown host »
+# restauration OBLIGATOIRE :
+adb shell settings put global private_dns_mode opportunistic
+adb shell settings delete global private_dns_specifier
+```
+
+*Ce qu'on observe* : l'annuaire tourne encore à 6 s, à 16 s, **et à 60 s** —
+alors que le délai du dépôt est de 10 s.
+
+*Hypothèse de tête, à confirmer* : `embassiesList` observe
+`currentUserAsyncProvider` **et** `userStreamProvider`. Chaque tentative du
+pont d'authentification fait réémettre ces flux, donc reconstruit le provider
+et **redémarre le compte à rebours** avant qu'il n'arrive à terme. Le délai
+borne bien *une* tentative — c'est ce que prouve
+`annuaire_repli_hors_ligne_test.dart` — mais il ne peut rien contre un
+provider qu'on relance sans cesse.
+
+- [ ] Vérifier cette hypothèse (journaliser les reconstructions de
+      `embassiesList`), puis traiter la cause : ne pas faire dépendre la
+      liste de flux d'authentification qui s'agitent pendant une panne, ou
+      mémoriser le premier résultat plutôt que tout rejouer.
 
 - [ ] La reprise au retour du réseau (`reprendreApresRetourReseau`) n'est
       **pas vérifiée sur appareil**. Un premier essai a montré qu'elle ne
@@ -10118,9 +10156,29 @@ carte de liste, qui disparaît complètement. Verrouillé par
 Bilan : 29 fiches navigables, 3 non — Djeddah et Khartoum faute de
 coordonnées, Copenhague faute de confiance.
 
-⚠️ **Reste ouvert** : la carte (`map_screen.dart`) place toujours une épingle
-pour Copenhague, sans marque d'incertitude. Le bouton et la carte se
-contredisent donc encore, à un endroit de moins qu'avant.
+**Épingle distincte sur la carte** (2026-09-08) — la carte plaçait toujours une
+épingle ordinaire pour Copenhague. Elle y reste (la retirer ferait disparaître
+l'ambassade) mais se signale : **bordure discontinue et ambre** au lieu du
+cercle bleu plein, convention cartographique du tracé approximatif.
+
+⚠ Piège évité : la clé de cache des épingles était `embassy_circular_$isSelected`,
+**partagée par toutes les ambassades**. Sans y ajouter le drapeau, la première
+épingle dessinée aurait été resservie aux 29 autres.
+
+- [ ] **NON VÉRIFIÉ SUR APPAREIL.** Trois obstacles cumulés :
+  1. sur le **Pixel**, la carte est derrière l'écran « Mode privé activé » —
+     l'ouvrir demande d'activer le partage de position sur le compte réel de
+     Salim, ce qui est un réglage de confidentialité que je ne touche pas ;
+  2. sur le **SM A515F**, l'autre agent pilotait l'appareil au même moment
+     (écran « Modifier l'événement » apparu sous mes taps) — usage concurrent,
+     mesure abandonnée ;
+  3. et même avec l'accès, **Google Maps rend dans un `SurfaceView`**, que
+     `adb shell screencap` capture en noir. Une capture d'écran ne prouverait
+     donc probablement rien.
+
+  La bonne façon de le vérifier serait un test de rendu sur la fonction qui
+  peint l'épingle — mais elle est privée dans l'État de `map_screen.dart` et
+  l'extraire dépasse ce qui a été demandé.
 
 **Trois défauts trouvés PAR ce test appareil**, invisibles à `flutter analyze` :
 
@@ -10395,13 +10453,48 @@ ambassade.
       (le compteur, lui, les comptait). Corrigé par une constante partagée,
       mais **vérifié en français seulement** — à revoir en basculant la langue
       du téléphone.
-- [ ] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
+- [x] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
       vu sur Pixel 10 Pro XL le 2026-09-08) : dès que le clavier s'ouvre sur la
       recherche de l'annuaire en **paysage**, un bandeau
-      « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ. Non
-      corrigé : l'écran est en cours de modification par ailleurs, et le défaut
-      est indépendant des coordonnées. Même famille que le panneau ancré des
-      messages — le clavier prend la place, la colonne ne se recompose pas.
+      « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ.
+      *Corrigé le 2026-09-08 — et ce n'était **pas** la famille du panneau
+      ancré des messages.* Aucun inset périmé, aucune animation, rien à relire
+      dans `View.of(context)` : la `Column` posait le champ, la carte « le plus
+      proche » et la ligne de comptage en hauteur fixe au-dessus d'un
+      `Expanded`. Le clavier en paysage ne laisse que **42 dp** de `body`
+      (392 dp d'écran à la densité forcée 440, moins la barre d'état,
+      l'`AppBar` et 266 dp de Gboard) là où le seul champ en fait 60 à
+      l'échelle de police 1.3 du testeur : l'`Expanded` tombait à 0 et le
+      contenu fixe débordait du reste. Les deux chiffres constatés se
+      recoupent — 69 px la carte masquée (recherche en cours), **188 px** carte
+      affichée, reproduit ici. L'en-tête est devenu défilant
+      (`CustomScrollView`), ce qui supprime la contrainte au lieu de l'ajuster :
+      aucune hauteur seuil ne tiendrait, elle dépend de l'échelle de police et
+      du clavier. Banc : `test/features/embassies/annuaire_clavier_paysage_test.dart`,
+      aux métriques relevées à l'adb (rouge à 54 px / 67 px avant correctif).
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, APK debug reconstruit depuis
+      le bout de la branche après `flutter clean` et réinstallé (md5 local et
+      `base.apk` identiques — vérification obligatoire : entre deux passes, un
+      autre build s'était installé sur l'appareil et le md5 ne correspondait
+      plus).*
+      **Paysage** : trois ouvertures du clavier, chacune instrumentée
+      (`cur=2404x1080` relu à chaque fois, `mInputShown` passant de `false` à
+      `true`), aucun bandeau ; carte « le plus proche » affichée (cas 188 px)
+      comme masquée par une requête (cas 69 px) ; l'en-tête défile sous le doigt
+      et la ligne de comptage remonte, clavier ouvert. **Portrait** : inchangé —
+      champ, carte, comptage et liste tiennent tous au-dessus du clavier, les
+      résultats filtrés restent lisibles pendant la frappe.
+      **Trois pièges de méthode, tous rencontrés ici** : `input keyevent 111`
+      (ÉCHAP) **ne ferme pas** le clavier — `mInputShown` reste à `true`, donc
+      re-taper le champ ne prouve aucun second cycle ; `keyevent 4` le ferme
+      mais **fait ensuite quitter l'application**, et les captures suivantes ne
+      sont plus celles de l'app ; et quitter l'app **libère le verrou
+      d'orientation**, si bien que le tap paysage tombe hors écran en portrait.
+      La seule boucle fiable est de **relancer l'écran par lien profond** à
+      chaque cycle, en relisant l'orientation *et* l'état du clavier avant de
+      conclure. Sans cette mesure, trois captures byte-identiques se lisent
+      comme « stable » alors qu'elles peuvent n'être qu'un seul et même état
+      jamais rejoué.
 
 ⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
 sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
