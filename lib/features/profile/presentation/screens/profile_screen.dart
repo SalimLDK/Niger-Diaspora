@@ -890,13 +890,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   final navigator = Navigator.of(context);
                   final router = GoRouter.of(context);
                   navigator.pop();
-                  final currentUser =
-                      ref.read(currentUserAsyncProvider).valueOrNull;
-                  if (currentUser != null) {
-                    await NotificationService().removeTokenForUser(
-                      currentUser.id,
-                    );
-                  }
+                  // Le retrait du jeton FCM se faisait ici ET dans
+                  // `signOut()` : deux fois les memes trois requetes, en
+                  // serie, avant que l'ecran ne bouge. Il n'appartient qu'a
+                  // `signOut()`, qui le lance en tache de fond.
                   await ref.read(authNotifierProvider.notifier).signOut();
                   router.go('/auth/login');
                 },

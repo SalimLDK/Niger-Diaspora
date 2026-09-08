@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
@@ -90,22 +92,79 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  /// Rend la main des que la personne est reellement deconnectee, c'est-a-dire
+  /// des que le jeton Firebase a quitte le stockage de l'appareil.
+  ///
+  /// Tout ce qui reste — retrait du jeton FCM en base, revocation de la session
+  /// Supabase, oubli du compte Google — est du menage : necessaire, mais rien
+  /// n'oblige a le regarder se faire. Il etait attendu ici, en serie, sans
+  /// aucun retour visuel : appuyer sur « Deconnexion » laissait l'ecran fige
+  /// plusieurs secondes, le temps de sept allers-retours reseau.
   @override
   Future<Either<Failure, void>> signOut() async {
-    try {
-      final userModel = await remoteDataSource.getCurrentUser();
-      if (userModel != null) {
-        await NotificationService().removeTokenForUser(userModel.id);
-      }
+    // Lu localement. `getCurrentUser()` repondait a la meme question au prix de
+    // trois allers-retours Supabase (echange du jeton Firebase, upsert du
+    // compte, lecture du profil) — pour un uid deja en memoire.
+    final userId = remoteDataSource.currentUserId;
 
+    // Le retrait du jeton FCM ecrit dans `users` : il lui faut une session
+    // Supabase valide, et la re-minter exige le jeton Firebase que la ligne
+    // suivante efface. Elle l'est presque toujours (le pont la renouvelle 5 min
+    // avant expiration) et alors on n'attend rien. Sinon on la retablit ici,
+    // borne, plutot que de laisser le jeton en base et l'appareil sonner pour
+    // le compte precedent.
+    //
+    // `hasValidSession` est dans le `try` : il traverse `Supabase.instance`,
+    // qui leve tant que le SDK n'est pas initialise. Se deconnecter ne doit
+    // echouer pour aucune raison exterieure au jeton Firebase.
+    if (userId != null) {
+      try {
+        if (!SupabaseAuthBridge.instance.hasValidSession) {
+          await SupabaseAuthBridge.instance.ensureAuthenticated().timeout(
+            const Duration(seconds: 3),
+          );
+        }
+      } catch (e) {
+        dev.log(
+          'Session Supabase non retablie avant deconnexion',
+          name: 'auth_repository_impl',
+          error: e,
+        );
+      }
+    }
+
+    try {
       await remoteDataSource.signOut();
-      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
       return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
+
+    unawaited(_menageApresDeconnexion(userId));
+    return const Right(null);
+  }
+
+  /// Menage distant, best-effort, hors du chemin critique.
+  ///
+  /// L'ordre compte : la revocation coupe la session Supabase dont le retrait
+  /// du jeton FCM a besoin, elle ne vient donc qu'apres lui.
+  Future<void> _menageApresDeconnexion(String? userId) async {
+    if (userId != null) {
+      try {
+        await NotificationService().removeTokenForUser(userId).timeout(
+          const Duration(seconds: 20),
+        );
+      } catch (e) {
+        dev.log(
+          'Retrait du jeton FCM apres deconnexion',
+          name: 'auth_repository_impl',
+          error: e,
+        );
+      }
+    }
+    await remoteDataSource.revokeRemoteSessions();
   }
 
   @override

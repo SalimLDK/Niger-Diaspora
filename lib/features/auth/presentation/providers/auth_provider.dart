@@ -320,6 +320,13 @@ class AuthNotifier extends _$AuthNotifier {
     });
   }
 
+  /// Ce qui est attendu ici est purement local : la purge des données du compte
+  /// sortant, puis l'effacement du jeton Firebase. Quelques centaines de
+  /// millisecondes de disque, pas un aller-retour réseau — le reste (jeton FCM,
+  /// révocation Supabase, compte Google) part en tâche de fond dans le
+  /// repository. La purge, elle, reste attendue : elle décide de ce dont le
+  /// compte suivant hérite sur ce téléphone, et l'attendre évite qu'elle se
+  /// termine par-dessus une reconnexion immédiate.
   Future<void> signOut() async {
     SessionService.instance.dispose();
 
