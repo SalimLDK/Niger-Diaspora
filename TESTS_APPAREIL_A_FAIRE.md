@@ -40,14 +40,35 @@ Fichiers : `lib/features/auth/data/repositories/auth_repository_impl.dart`,
 `lib/features/auth/data/datasources/auth_remote_datasource.dart`,
 `lib/features/profile/presentation/screens/profile_screen.dart`.
 
+**Passe appareil du 2026-09-08, Pixel 10 Pro XL / Android 17**, APK debug
+construit depuis ce worktree (`md5sum` local et `md5sum` du `pm path` sur
+l'appareil identiques : `5dd681b4…` — le piège de l'APK périmé est écarté).
+
 - [ ] **Délai perçu** : Profil → Déconnexion → l'écran de connexion doit
       apparaître immédiatement (< 0,5 s), pas après plusieurs secondes de
       blanc. À mesurer aussi en 3G lente / réseau dégradé, où l'ancien chemin
       était le plus pénible.
-- [ ] **Jeton FCM réellement retiré** : se déconnecter, attendre ~10 s, puis
-      vérifier en base que `users.fcm_tokens` ne contient plus le jeton de cet
-      appareil. C'est la partie déplacée en tâche de fond — si elle échoue,
-      le téléphone continue de sonner pour l'ancien compte.
+      ⚠️ **Non tranché** le 2026-09-08 : la déconnexion a bien abouti sur
+      l'écran de connexion, mais la seule borne obtenue est « moins de 3 s ».
+      `uiautomator dump` attend que l'interface soit au repos, et le premier
+      sondage a lui-même duré 3,00 s — la méthode mesure sa propre latence.
+      Pour la prochaine passe : boucle serrée de `screencap` (≈ 200 ms, sans
+      attente de repos) horodatée par `/proc/uptime`, ou un `debugPrint` de
+      durée relu dans logcat. Une seule déconnexion est disponible par
+      session ouverte : préparer la méthode **avant** d'appuyer.
+- [x] **Jeton FCM réellement retiré** — vérifié le 2026-09-08. Le jeton de
+      l'appareil (`shared_prefs/com.google.android.gms.appid.xml`, début
+      `fcAFKu1JQ_au…`) ne figure plus dans `users.fcm_tokens` après la
+      déconnexion ; le seul jeton restant sur la ligne du compte commence par
+      `e0SXOkYhSfWg…`, c'est un autre appareil. C'était la partie la plus
+      risquée du changement — elle est passée en tâche de fond, elle aboutit.
+- [x] **Purge locale effective** — vérifié le 2026-09-08. Les sept boîtes Hive
+      de cache sont retombées à 0 octet (`conversations_cache.hive` faisait
+      2872 octets avant), et `currentUserId` / `currentUserDisplayName` ont
+      disparu de `FlutterSharedPreferences.xml`. Mesuré au passage : ces
+      boîtes ne dépassaient pas 267 Ko et l'index des pièces jointes comptait
+      12 clés — la purge locale, restée bloquante, coûte des millisecondes,
+      elle n'est pas un candidat au délai perçu.
 - [ ] **Session Supabase périmée** : laisser l'app en arrière-plan plus d'une
       heure (le timer de renouvellement du pont ne tourne pas en veille), la
       rouvrir, se déconnecter aussitôt. C'est le seul cas où `signOut()`
