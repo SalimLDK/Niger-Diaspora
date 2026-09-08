@@ -304,12 +304,24 @@ l'identifiant du compte ou `SocketException` réapparaissent à l'écran. Les
 deux autres cas couvrent les contraintes du widget — zone minuscule, absence
 de `Directionality`/`Theme` au-dessus.
 
-- [ ] **Voir ce rendu sur appareil.** Non vérifié : il faudrait provoquer une
-      levée à la demande, et justement, celle qu'on connaît ne se reproduit
-      pas. Vérifier aussi qu'il reste lisible dans les deux thèmes (les
-      couleurs sont choisies sur `platformBrightness`, pas sur le thème de
-      l'app — un écart est possible si l'usager force un thème contraire à
-      celui du système).
+**Les deux thèmes sont vérifiés** (2026-09-08), par deux moyens qui se
+complètent : des assertions déterministes sur les couleurs et le contraste
+(`computeLuminance`), et un rendu rasterisé inspecté pour la mise en page.
+Clair : fond `#F7F7F7`, titre `#1A1A1A`. Sombre : fond `#121212`, titre
+`#F5F5F5`. Contenu centré, icône présente, seconde ligne plus pâle dans les
+deux cas.
+
+⚠️ Ce rendu suit la luminosité du **système**, pas le thème de l'app — un
+`ErrorWidget` peut être posé au-dessus de `MaterialApp`, donc sans `Theme` à
+interroger. Conséquence assumée : qui force dans l'app un thème contraire à
+celui du système verra cet écran-là dans l'autre sens. C'est pourquoi les
+tests exigent que **chacun des deux rendus soit lisible seul**.
+
+- [ ] Reste à voir sur un vrai téléphone, pour les glyphes : `flutter test`
+      dessine le texte avec sa police de test (chaque caractère devient un
+      pavé plein), donc l'image prouve les couleurs et la mise en page, pas
+      le texte. Suppose de provoquer une levée à la demande — et celle qu'on
+      connaît ne se reproduit pas.
 - [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
       compte** dans un message d'erreur visible par l'usager.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la

@@ -79,6 +79,62 @@ void main() {
     expect(find.byType(Directionality), findsWidgets);
   });
 
+  /// Le rendu suit la luminosité du SYSTÈME, pas le thème de l'app.
+  ///
+  /// C'est un choix contraint : un `ErrorWidget` peut être posé au-dessus de
+  /// `MaterialApp`, donc sans `Theme` à interroger. La conséquence, assumée,
+  /// est qu'un usager qui force un thème contraire à celui du système verra
+  /// cet écran-là dans l'autre sens. Les deux rendus doivent donc rester
+  /// lisibles à eux seuls — c'est ce que ces deux cas vérifient.
+  Color fondRendu(WidgetTester tester) {
+    final boites = tester.widgetList<ColoredBox>(find.byType(ColoredBox));
+    return boites.first.color;
+  }
+
+  Color couleurDuTitre(WidgetTester tester) {
+    final titre = tester.widget<Text>(find.text('Une erreur est survenue'));
+    return titre.style!.color!;
+  }
+
+  testWidgets('thème clair : fond clair, texte sombre', (tester) async {
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    await tester.pumpWidget(
+      construireEcranErreurNeutre(
+        FlutterErrorDetails(exception: exceptionObservee),
+      ),
+    );
+
+    expect(fondRendu(tester), const Color(0xFFF7F7F7));
+    expect(couleurDuTitre(tester), const Color(0xFF1A1A1A));
+    // Contraste : le titre doit être nettement plus sombre que son fond.
+    expect(
+      couleurDuTitre(tester).computeLuminance(),
+      lessThan(fondRendu(tester).computeLuminance() - 0.5),
+      reason: 'titre illisible sur son fond en thème clair',
+    );
+  });
+
+  testWidgets('thème sombre : fond sombre, texte clair', (tester) async {
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+    await tester.pumpWidget(
+      construireEcranErreurNeutre(
+        FlutterErrorDetails(exception: exceptionObservee),
+      ),
+    );
+
+    expect(fondRendu(tester), const Color(0xFF121212));
+    expect(couleurDuTitre(tester), const Color(0xFFF5F5F5));
+    expect(
+      couleurDuTitre(tester).computeLuminance(),
+      greaterThan(fondRendu(tester).computeLuminance() + 0.5),
+      reason: 'titre illisible sur son fond en thème sombre',
+    );
+  });
+
   test('le constructeur global est bien celui-ci une fois main() passé', () {
     // Garde-fou de câblage : la fonction ne sert à rien si personne ne
     // l'affecte. On ne peut pas exécuter `main()` ici (Firebase), donc on
