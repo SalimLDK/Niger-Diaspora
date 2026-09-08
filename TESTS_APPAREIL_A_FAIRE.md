@@ -43,12 +43,17 @@ groupes officiels compris, et couverte par 11 tests widget.
       et sa sortie nommée, en thème sombre.
 - [x] `/groups/:groupId/edit` en **mode avion** : même écran, après ~3 min
       (le temps que `getGroupById` renonce).
-- [ ] Un lien vers l'édition d'un événement/groupe **dont on n'est pas
-      organisateur/administrateur** : doit afficher « Modification réservée
-      à … ». Couvert en test widget, jamais sur appareil — il faudrait un
-      identifiant réel appartenant à quelqu'un d'autre.
-- [ ] Le parcours normal (bouton « modifier » depuis la fiche) : à rejouer,
-      pour confirmer que la garde ne gêne pas l'ayant droit.
+- [x] Lien vers l'**édition d'un événement dont on n'est pas
+      organisateur** : « Modification réservée à l'organisateur » + « Voir
+      l'événement ». Vu sur **Pixel 10 Pro XL** (compte « Salim »), sur
+      l'événement `LmCs74hv84NSbKM7TDrx` organisé par le compte du A51.
+- [x] L'ayant droit n'est pas gêné : sur le A51 (compte organisateur), le
+      même lien ouvre « Modifier l'événement » pré-rempli — **« Gérer les
+      affiches (0/5) »** compris, c'est-à-dire la ligne exacte qui levait le
+      `LateInitializationError`. Le correctif `_currentPosterUrls` est donc
+      vérifié sur un vrai événement.
+- [ ] L'équivalent pour un **groupe** dont on n'est pas administrateur :
+      toujours pas vu (il faudrait un groupe partagé entre les deux comptes).
 
 ⚠️ **Trouvé au passage, corrigé** : `EditEventScreen._currentPosterUrls` est
 `late` et n'était **jamais assigné**, alors qu'il est lu dès le premier
@@ -73,12 +78,33 @@ Deux précautions pour que la garde ne retire rien à personne :
   n'envoie plus au formulaire que l'organisateur ; les autres vont à la fiche.
   Sans ça, la pastille « Photos » aurait mené tout le monde contre un mur.
 
-- [ ] Vérifier sur appareil qu'un non-organisateur voit bien « Récap réservé
-      à l'organisateur », et que « Voir l'événement » l'amène aux photos.
-      **Impossible cette session : la base ne contient aucun événement**
-      (« Aucun événement à venir », onglet Passés vide). Couvert par 4 tests
-      widget, vérifiés par mutation.
-- [ ] Vérifier que l'organisateur, lui, atteint toujours le formulaire.
+- [x] Un non-organisateur voit bien « Récap réservé à l'organisateur » —
+      **Pixel 10 Pro XL**, compte « Salim », le 2026-09-08.
+- [x] « Voir l'événement » l'amène à la fiche de l'événement. Celle-ci
+      n'affiche **aucun bouton « modifier »** pour lui : c'est la logique
+      préexistante de l'écran (`isOrganizer`) qui confirme, indépendamment de
+      ma garde, que ce compte n'est bien pas l'organisateur.
+- [x] L'organisateur, lui, atteint toujours le formulaire : sur le A51,
+      « Créer un récapitulatif » s'ouvre normalement.
+
+**Méthode : aucun événement de test n'a été créé.** Le premier réflexe était
+d'en écrire un en base de production ; c'était inutile. Les deux téléphones
+portent **deux comptes différents** (« Sim » sur le A515F, « Salim » sur le
+Pixel), donc n'importe quel événement existant est « le mien » d'un côté et
+« celui d'autrui » de l'autre. À retenir pour toute garde d'autorisation à
+vérifier.
+
+⚠️ **Piège de mesure, retombé dessus** : le A51 s'est retrouvé avec un APK
+qui n'était pas le mien (`3edc4fa6` au lieu de `a5326f74`) entre deux essais —
+un autre build l'a écrasé en cours de session. L'écran d'erreur neutre que
+j'y voyais n'était pas mon code. Comparer `md5sum` local/appareil **avant**
+chaque conclusion, pas seulement après l'installation.
+
+⚠️ **Trouvé en regardant l'écran d'édition, non corrigé** : le champ
+description a pour étiquette « La description est requise »
+(`l10n.descriptionRequired`, edit_event_screen.dart:410) au lieu de
+« Description ». Le message de validation, lui, a sa propre clé
+(`descriptionRequiredError`). Purement cosmétique, mais visible.
 
 ⚠️ **Trouvé en vérifiant ça, non corrigé** : la carte de l'accueil est le
 **seul** chemin vers le récapitulatif, et elle ne s'y rend que si
