@@ -19,7 +19,12 @@ class TransferScreen extends ConsumerWidget {
     final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
 
     if (currentUser == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      // Sans sortie, cet état bloque l'écran si le profil ne remonte jamais.
+      return const Scaffold(
+        body: DesignExitOnlyBody(
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
     }
 
     final transactionsAsync = ref.watch(

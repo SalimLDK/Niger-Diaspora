@@ -134,6 +134,31 @@ Reste à voir, par ordre d'intérêt :
 - [ ] Les ~10 écrans restants atteignables mais non atteints (voir le piège
       d'`am start` ci-dessous).
 
+**Troisième forme du défaut, trouvée à l'écran le 2026-09-08 — corrigée.**
+`/businesses/<id>` sur une entreprise absente affichait « Entreprise non
+trouvée » **et rien pour revenir**. La fiche pose sa `SliverAppBar` *à
+l'intérieur* de la branche « données » : son `Scaffold` n'a pas d'`appBar`,
+donc les états chargement / erreur / « non trouvé » n'ont aucune sortie. Le
+fichier contenait pourtant un `BackButton` — d'où l'aveuglement d'un garde
+qui raisonne au fichier. Trois écrans avaient cette forme :
+`business_detail_screen`, `product_detail_screen`, et le `Scaffold` de
+chargement de `transfer_screen`. Tous passés sur une brique unique du kit,
+`DesignExitOnlyBody`.
+
+- [x] **Vérifié sur SM A515F** : « Entreprise non trouvée » expose maintenant
+      un contrôle « Retour ».
+
+**⛔ Défaut sans rapport, trouvé au passage et NON corrigé : `/embassies/<id>`
+plante.** Le builder de la route lit `state.extra as EmbassyEntity?` puis
+termine par `EmbassyDetailScreen(embassy: embassy!)` — un `!` sur la valeur
+qu'il vient de tester nulle. `state.extra` étant toujours nul par lien
+profond et par notification, **toute** entrée directe sur une fiche
+ambassade donne l'écran rouge « Null check operator used on a null value »
+(reproduit à l'identique sur appareil). Les commentaires du code admettent
+que le repli n'est pas implémenté. Même famille que
+`project_state_extra_not_authoritative`. Hors sujet de ce lot, laissé tel
+quel : il faut charger l'ambassade par son id.
+
 **Deux pièges de méthode rencontrés, à retenir :**
 
 1. **L'autre agent installe son APK sur le même téléphone.** À 01:13:54 le
