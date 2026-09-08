@@ -14,6 +14,60 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⚠️ Déconnexion — latence supprimée, à vérifier sur appareil
+
+Appuyer sur **Déconnexion** laissait l'écran figé plusieurs secondes, sans
+aucun retour visuel. Le chemin enchaînait **sept allers-retours réseau en
+série** avant que le routeur ne sorte, dont une moitié inutile :
+
+- `AuthRepositoryImpl.signOut()` appelait `getCurrentUser()` — trois requêtes
+  Supabase (échange du jeton Firebase, upsert du compte, lecture du profil) —
+  uniquement pour obtenir un uid que `FirebaseAuth.currentUser` a en mémoire ;
+- `removeTokenForUser()` était appelé **deux fois**, par l'écran de profil et
+  par le repository : deux fois `ensureAuthenticated` + SELECT + UPDATE ;
+- le datasource attendait l'init de Google Sign-In (Play Services, ~1 s même
+  pour un compte e-mail qui n'y touchera jamais) puis la révocation gotrue,
+  avant de faire le seul geste qui déconnecte vraiment — effacer le jeton
+  Firebase local, quelques millisecondes.
+
+Désormais `signOut()` rend la main dès que le jeton Firebase est effacé ; le
+ménage distant (jeton FCM, révocation Supabase, compte Google) part en tâche
+de fond, dans cet ordre car la révocation coupe la session dont le retrait du
+jeton a besoin. La purge locale (Hive, préférences, pièces jointes en clair)
+reste attendue : elle décide de ce dont le compte suivant hérite.
+
+Fichiers : `lib/features/auth/data/repositories/auth_repository_impl.dart`,
+`lib/features/auth/data/datasources/auth_remote_datasource.dart`,
+`lib/features/profile/presentation/screens/profile_screen.dart`.
+
+- [ ] **Délai perçu** : Profil → Déconnexion → l'écran de connexion doit
+      apparaître immédiatement (< 0,5 s), pas après plusieurs secondes de
+      blanc. À mesurer aussi en 3G lente / réseau dégradé, où l'ancien chemin
+      était le plus pénible.
+- [ ] **Jeton FCM réellement retiré** : se déconnecter, attendre ~10 s, puis
+      vérifier en base que `users.fcm_tokens` ne contient plus le jeton de cet
+      appareil. C'est la partie déplacée en tâche de fond — si elle échoue,
+      le téléphone continue de sonner pour l'ancien compte.
+- [ ] **Session Supabase périmée** : laisser l'app en arrière-plan plus d'une
+      heure (le timer de renouvellement du pont ne tourne pas en veille), la
+      rouvrir, se déconnecter aussitôt. C'est le seul cas où `signOut()`
+      attend encore quelque chose de réseau : une re-mint bornée à 3 s, sans
+      laquelle le jeton FCM resterait en base. Mesurer le délai perçu, et
+      revérifier que `fcm_tokens` est bien nettoyé.
+- [ ] **Reconnexion immédiate** : se déconnecter puis se reconnecter aussitôt
+      sur **un autre compte**, et vérifier qu'aucune donnée du compte
+      précédent ne subsiste (brouillons, hashtags suivis, pièces jointes
+      téléchargées) — la purge locale est attendue, mais le ménage distant
+      tourne encore pendant la saisie des identifiants.
+- [ ] **Compte Google** : se déconnecter d'un compte connecté via Google, puis
+      relancer une connexion Google — le sélecteur de compte doit réapparaître
+      (c'est `_googleSignIn.signOut()`, désormais en tâche de fond).
+- [ ] **Déconnexion hors ligne** : mode avion, Déconnexion — doit sortir
+      immédiatement sur l'écran de connexion (le réseau n'est plus sur le
+      chemin critique) sans message d'erreur.
+
+---
+
 ## ✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)
 
 Signalé par Salim sur le Pixel 10 Pro XL, jamais vu sur le SM A515F — et pour
