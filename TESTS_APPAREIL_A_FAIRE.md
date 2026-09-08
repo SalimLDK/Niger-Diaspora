@@ -433,8 +433,21 @@ hostname, errno = 7)))
         `ErrorWidget.builder` n'y peut rien : ce n'est pas une levée, c'est
         un `AsyncValue.error` rendu volontairement.
 
-- [ ] Reprendre l'état d'erreur des écrans (`embassies_screen.dart` et ses
-      pareils) : message générique à l'écran, détail dans les logs.
+- [x] **Fait le 2026-09-08 — et c'était bien plus large que l'annuaire.**
+      Le défaut touchait **42 sites dans 30 fichiers** : transferts,
+      marketplace, profil, admin, amis, paiements… tous de la forme
+      `Text('Erreur: $e')`. Tous passent par `messageErreurUsager`
+      (`lib/core/errors/message_erreur.dart`), qui classe la panne en trois
+      familles — réseau, droits, le reste — pour que le conseil donné soit
+      juste, sans jamais rendre le texte de l'exception.
+
+      Deux tests le tiennent : `message_erreur_test.dart` rejoue les
+      exceptions réellement observées et échoue si l'hôte, l'identifiant du
+      compte ou le nom de l'exception ressortent ; `aucune_erreur_brute_test.dart`
+      relit tout `lib/` et échoue si quelqu'un réintroduit le motif.
+
+- [ ] Voir un de ces états sur appareil, réseau coupé — par exemple
+      l'annuaire, qui reste le plus simple à provoquer.
 - [x] **Corrigé et vu sur SM A515F (2026-09-08).** Le repli joue :
       réseau coupé, l'annuaire sert ses 30 postes depuis la copie locale
       (vérifié à 11h52, 12h25 et 02h00, sans réinstaller entre-temps). Ce

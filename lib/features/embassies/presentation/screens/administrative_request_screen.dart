@@ -12,6 +12,7 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/embassy_entity.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class AdministrativeRequestScreen extends ConsumerStatefulWidget {
   final EmbassyEntity embassy;
@@ -220,7 +221,7 @@ class _AdministrativeRequestScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: ${e.toString()}'),
+            content: Text(messageErreurUsager(e)),
             backgroundColor: Colors.red,
           ),
         );
