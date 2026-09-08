@@ -9679,6 +9679,27 @@ où j'ai trouvé le défaut.
    sur l'appareil, écran vide. Or la table est en lecture publique par
    conception : l'annuaire ne dépend plus d'une session.
 
+**Quatre défauts d'affichage de la fiche, trouvés en regardant l'écran**
+(2026-09-08, Pixel, thème sombre) — aucun ne sort de `flutter analyze`, et
+aucun ne lève de `RenderFlex overflowed` :
+
+1. **Onglet actif illisible.** `TabBar(labelColor: Colors.black87)` était figé :
+   noir sur fond noir en thème sombre. Même famille que les 48 jetons clairs
+   corrigés le 2026-08-04. Passé aux jetons `colorScheme`.
+2. **Titre tronqué** — « Ambassade du Niger … ». Deux causes cumulées : les
+   noms officiels du seed sont longs (36 caractères), et `FlexibleSpaceBar`
+   agrandit encore le titre de 1,5× quand l'en-tête est déplié. Deux lignes,
+   facteur ramené à 1,25.
+3. **200 px de bandeau vide.** `expandedHeight: 200` réserve la place d'une
+   image de couverture, or `imageUrl` est nul sur les 32 fiches ; le gabarit
+   (`primaryColor` à 10 %, icône à 50 %) disparaissait sous le dégradé noir.
+   Ramené à 140 px avec des couleurs réellement visibles.
+4. **Icône du gabarit sous la barre d'état**, puis par-dessus le titre :
+   le bandeau s'étend sous le statut, il faut décaler de
+   `MediaQuery.paddingOf(context).top`.
+
+✅ Vérifié après correction sur Pixel (capture `fiche_finale.png`).
+
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
 2 missions permanentes, 1 délégation ; 27 fiches avec fax, 20 avec réserve.
