@@ -8114,5 +8114,9 @@
   "embassySourceLine": "Source : {source}, relevé le {date}",
   "embassyLoadError": "Impossible de charger l'annuaire. Vérifiez votre connexion et réessayez.",
   "embassyMessageSendError": "Impossible d'envoyer le message. Vérifiez votre connexion et réessayez.",
+  "embassyNotFoundTitle": "Fiche introuvable",
+  "embassyNotFoundMessage": "Ce poste diplomatique n'est plus dans l'annuaire, ou le lien est incorrect.",
+  "embassyLoadFailedTitle": "Chargement impossible",
+  "backToEmbassies": "Retour à l'annuaire",
   "embassySearchHint": "Nom, pays ou ville"
 }

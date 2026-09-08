@@ -29216,6 +29216,30 @@ abstract class AppLocalizations {
   /// **'Impossible d\'envoyer le message. Vérifiez votre connexion et réessayez.'**
   String get embassyMessageSendError;
 
+  /// No description provided for @embassyNotFoundTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiche introuvable'**
+  String get embassyNotFoundTitle;
+
+  /// No description provided for @embassyNotFoundMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce poste diplomatique n\'est plus dans l\'annuaire, ou le lien est incorrect.'**
+  String get embassyNotFoundMessage;
+
+  /// No description provided for @embassyLoadFailedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible'**
+  String get embassyLoadFailedTitle;
+
+  /// No description provided for @backToEmbassies.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à l\'annuaire'**
+  String get backToEmbassies;
+
   /// No description provided for @embassySearchHint.
   ///
   /// In fr, this message translates to:

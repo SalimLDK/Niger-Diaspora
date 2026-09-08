@@ -14,6 +14,57 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)
+
+`/embassies/:id` ne lisait que `state.extra` et terminait par
+`EmbassyDetailScreen(embassy: embassy!)` — un `!` sur la valeur qu'elle venait
+de tester nulle. `state.extra` étant nul par construction hors navigation
+interne, l'écran rouge « Null check operator used on a null value » était
+systématique. **Et pas seulement par lien profond** : le bouton de la fiche
+d'ambassade sur la carte (`map_screen.dart:1521`) pousse la route sans objet,
+donc il plantait depuis l'app elle-même.
+
+La route résout maintenant l'identifiant (`EmbassyDetailRoute` +
+`embassyByIdProvider`), avec un état de chargement et deux états nommés, tous
+munis d'une sortie (`DesignExitOnlyBody` + bouton « Retour à l'annuaire »).
+
+- [x] Lien profond vers une fiche réelle, démarrage à froid, **en ligne** :
+      `diasponiger:///embassies/aa643d7b-373a-47a5-bc94-c33545a43cad` ouvre
+      « Ambassade du Niger en Italie ». Aucune exception dans logcat.
+- [x] Le même lien **en mode avion** : la fiche s'ouvre depuis la copie
+      locale. C'est l'usage principal de cet écran (chercher le numéro de son
+      consulat sans réseau).
+- [x] Identifiant inconnu, mode avion : on aboutit à « Chargement
+      impossible » avec « Réessayer » **et** « Retour à l'annuaire », en
+      thème sombre. Pas « Fiche introuvable » — c'est voulu : hors ligne on
+      ignore si la fiche existe, l'affirmer serait faux.
+- [ ] Identifiant inconnu **en ligne** : doit afficher « Fiche introuvable »
+      (et non « Chargement impossible »). Jamais vu sur appareil — le
+      téléphone était en mode avion pendant toute la session.
+- [ ] Bouton « détails » de la fiche d'ambassade **sur la carte** : c'est le
+      second chemin qui plantait, corrigé par ricochet mais jamais rejoué à
+      la main sur appareil.
+- [ ] Fiche hors de la juridiction de l'usager ouverte par lien partagé :
+      elle doit s'afficher (le filtre de juridiction ne vaut que pour la
+      liste). Couvert en test widget, pas sur appareil.
+
+⚠️ **Découvert au passage, non corrigé** : `getEmbassies()` n'a aucun délai de
+garde. Derrière un VPN persistant en mode avion, `networkInfo` se croit
+connecté et la requête Supabase reste suspendue **~2 minutes** avant de servir
+la copie locale. Ça retarde d'autant tout ce qui attend l'annuaire — la fiche
+comme la liste. Le provider `embassyById` borne son propre appel à 8 s, mais
+il ne peut rien contre celui qui le précède. Vérifier si l'écran de liste
+mérite le même traitement.
+
+⚠️ **Même famille, non corrigé** : trois autres routes castent `state.extra`
+vers un type **non nullable**, donc plantent identiquement par lien profond ou
+notification — `/events/:eventId/edit` et `/events/:eventId/recap`
+(`state.extra as EventEntity`), `/groups/:groupId/edit`
+(`state.extra as GroupEntity`). Elles n'ont pas été touchées : chacune demande
+son propre état de chargement et d'introuvable.
+
+---
+
 ## ✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)
 
 Notifications, Annuaire des entreprises, Événements et Ambassades sont
