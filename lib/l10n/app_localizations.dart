@@ -29240,6 +29240,18 @@ abstract class AppLocalizations {
   /// **'Impossible d\'afficher cet événement. Il a peut-être été supprimé, ou votre connexion est instable.'**
   String get eventLoadFailedMessage;
 
+  /// No description provided for @eventRecapNotAllowedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Récap réservé à l\'organisateur'**
+  String get eventRecapNotAllowedTitle;
+
+  /// No description provided for @eventRecapNotAllowedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seule la personne qui a créé cet événement peut publier son récapitulatif. Les photos, elles, restent visibles sur la fiche de l\'événement.'**
+  String get eventRecapNotAllowedMessage;
+
   /// No description provided for @eventEditNotAllowedTitle.
   ///
   /// In fr, this message translates to:

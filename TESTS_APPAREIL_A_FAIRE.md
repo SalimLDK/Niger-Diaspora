@@ -43,12 +43,17 @@ groupes officiels compris, et couverte par 11 tests widget.
       et sa sortie nommée, en thème sombre.
 - [x] `/groups/:groupId/edit` en **mode avion** : même écran, après ~3 min
       (le temps que `getGroupById` renonce).
-- [ ] Un lien vers l'édition d'un événement/groupe **dont on n'est pas
-      organisateur/administrateur** : doit afficher « Modification réservée
-      à … ». Couvert en test widget, jamais sur appareil — il faudrait un
-      identifiant réel appartenant à quelqu'un d'autre.
-- [ ] Le parcours normal (bouton « modifier » depuis la fiche) : à rejouer,
-      pour confirmer que la garde ne gêne pas l'ayant droit.
+- [x] Lien vers l'**édition d'un événement dont on n'est pas
+      organisateur** : « Modification réservée à l'organisateur » + « Voir
+      l'événement ». Vu sur **Pixel 10 Pro XL** (compte « Salim »), sur
+      l'événement `LmCs74hv84NSbKM7TDrx` organisé par le compte du A51.
+- [x] L'ayant droit n'est pas gêné : sur le A51 (compte organisateur), le
+      même lien ouvre « Modifier l'événement » pré-rempli — **« Gérer les
+      affiches (0/5) »** compris, c'est-à-dire la ligne exacte qui levait le
+      `LateInitializationError`. Le correctif `_currentPosterUrls` est donc
+      vérifié sur un vrai événement.
+- [ ] L'équivalent pour un **groupe** dont on n'est pas administrateur :
+      toujours pas vu (il faudrait un groupe partagé entre les deux comptes).
 
 ⚠️ **Trouvé au passage, corrigé** : `EditEventScreen._currentPosterUrls` est
 `late` et n'était **jamais assigné**, alors qu'il est lu dès le premier
@@ -58,13 +63,55 @@ groupes officiels compris, et couverte par 11 tests widget.
 Aucun test ne montait cet écran ; il est apparu à la première tentative.
 À rejouer sur appareil sur un vrai événement.
 
-⚠️ **Non corrigé, à trancher** : `EventRecapScreen` est un **formulaire**
-(description + photos) sans aucune garde d'organisateur, et l'accueil l'ouvre
-pour tout le monde dès qu'un événement passé a des photos
-(`home_screen_widgets.dart`). Je n'ai pas ajouté de garde : ça changerait un
-comportement existant, au-delà du défaut traité. Mais soit c'est voulu (un
-récapitulatif collaboratif), soit n'importe qui peut réécrire le récap de
-l'événement d'autrui.
+✅ **Tranché le 2026-09-08 : le récap est réservé à l'organisateur.**
+`EventRecapScreen` est un **formulaire** (« Créer / Modifier le récap »,
+description, dix photos, bouton d'enregistrement) sans mode lecture, et
+l'accueil l'ouvrait pour tout le monde dès qu'un événement passé avait des
+photos — n'importe qui pouvait donc réécrire le récapitulatif de l'événement
+d'autrui. `EventRecapRoute` porte désormais la même garde que l'édition.
+
+Deux précautions pour que la garde ne retire rien à personne :
+- la sortie mène à `/events/:eventId`, **pas** à la liste : la fiche affiche
+  déjà le récapitulatif (description + grille de photos), donc un
+  non-organisateur voit toujours ce qu'il voyait ;
+- la carte « rien de prévu » de l'accueil (`home_screen_widgets.dart`)
+  n'envoie plus au formulaire que l'organisateur ; les autres vont à la fiche.
+  Sans ça, la pastille « Photos » aurait mené tout le monde contre un mur.
+
+- [x] Un non-organisateur voit bien « Récap réservé à l'organisateur » —
+      **Pixel 10 Pro XL**, compte « Salim », le 2026-09-08.
+- [x] « Voir l'événement » l'amène à la fiche de l'événement. Celle-ci
+      n'affiche **aucun bouton « modifier »** pour lui : c'est la logique
+      préexistante de l'écran (`isOrganizer`) qui confirme, indépendamment de
+      ma garde, que ce compte n'est bien pas l'organisateur.
+- [x] L'organisateur, lui, atteint toujours le formulaire : sur le A51,
+      « Créer un récapitulatif » s'ouvre normalement.
+
+**Méthode : aucun événement de test n'a été créé.** Le premier réflexe était
+d'en écrire un en base de production ; c'était inutile. Les deux téléphones
+portent **deux comptes différents** (« Sim » sur le A515F, « Salim » sur le
+Pixel), donc n'importe quel événement existant est « le mien » d'un côté et
+« celui d'autrui » de l'autre. À retenir pour toute garde d'autorisation à
+vérifier.
+
+⚠️ **Piège de mesure, retombé dessus** : le A51 s'est retrouvé avec un APK
+qui n'était pas le mien (`3edc4fa6` au lieu de `a5326f74`) entre deux essais —
+un autre build l'a écrasé en cours de session. L'écran d'erreur neutre que
+j'y voyais n'était pas mon code. Comparer `md5sum` local/appareil **avant**
+chaque conclusion, pas seulement après l'installation.
+
+⚠️ **Trouvé en regardant l'écran d'édition, non corrigé** : le champ
+description a pour étiquette « La description est requise »
+(`l10n.descriptionRequired`, edit_event_screen.dart:410) au lieu de
+« Description ». Le message de validation, lui, a sa propre clé
+(`descriptionRequiredError`). Purement cosmétique, mais visible.
+
+⚠️ **Trouvé en vérifiant ça, non corrigé** : la carte de l'accueil est le
+**seul** chemin vers le récapitulatif, et elle ne s'y rend que si
+`recapPhotoUrls.isNotEmpty`. Un organisateur dont l'événement passé n'a pas
+encore de photos n'a donc **aucun moyen d'en créer un** — l'écran porte
+pourtant un mode « Créer » (`eventCreateRecap`, `eventRecapCreateButton`).
+Il manque une entrée depuis la fiche de l'événement. Antérieur à la garde.
 
 ⚠️ **Piège de méthode, revu deux fois aujourd'hui** : après avoir supprimé des
 clés ARB, l'APK incrémental gardait l'ancien code compilé — la route affichait
@@ -598,9 +645,28 @@ SupabaseAuthBridge: [firebase_auth/network-request-failed] …
 — et l'annuaire attend derrière. C'est le cas du premier lancement hors ligne
 après installation, donc celui d'un usager qui installe l'app dans le train.
 
-- [ ] Borner les tentatives de `SupabaseAuthBridge` (nombre ou délai) et
-      laisser l'écran retomber sur son état d'erreur ou son état vide plutôt
-      que de tourner sans fin.
+- [x] **Boucle bornée — vu sur SM A515F (2026-09-08).** Le journal montre
+      exactement six tentatives, en repli croissant (13 s, 13 s, 23 s… au lieu
+      de ~5 s constant), puis « abandon après 6 tentatives — la session reste
+      anon jusqu'au retour du réseau ». La cause était que
+      `auth_remote_datasource` rappelle `syncWithFirebase` à chaque émission
+      de `authStateChanges()`, ce qui court-circuitait le repli exponentiel
+      déjà présent : `PolitiqueDeReprise` pose désormais une fenêtre de calme
+      qui vaut pour **tous** les appelants.
+
+- [ ] ⛔ **Mais l'écran tourne toujours.** Vérifié juste après : hors ligne
+      avec un cache vide, l'annuaire affiche encore son spinner sans fin.
+      Borner l'authentification n'était donc PAS la cause du symptôme — la
+      requête de l'annuaire elle-même ne rend jamais la main. À traiter là où
+      elle part (`embassies_supabase_datasource` / `embassies_repository_impl`),
+      probablement par un `timeout` qui laisse retomber sur la copie locale.
+
+- [ ] La reprise au retour du réseau (`reprendreApresRetourReseau`) n'est
+      **pas vérifiée sur appareil**. Un premier essai a montré qu'elle ne
+      partait jamais — `_etaitConnecte` valait `true` alors qu'on s'abonne
+      *pendant* la coupure, donc le `true` du retour ne ressemblait pas à une
+      transition. Corrigé, mais le second essai n'a pas abouti : le processus
+      a été relancé avant la fin des six tentatives.
 - [x] **Corrigé et vu sur SM A515F (2026-09-08).** Le repli joue :
       réseau coupé, l'annuaire sert ses 30 postes depuis la copie locale
       (vérifié à 11h52, 12h25 et 02h00, sans réinstaller entre-temps). Ce
@@ -10004,6 +10070,23 @@ où j'ai trouvé le défaut.
 - [ ] Admin : créer un poste (`admin_create_embassy_screen`) le fait
       apparaître dans la liste — l'écran écrivait dans Firestore, donc dans
       une collection que plus personne ne lit.
+
+**Position douteuse : « Y aller » grisé** (2026-09-08, ✅ vérifié sur Pixel).
+Copenhague portait des coordonnées ET une réserve disant qu'elles sont à 5 km
+d'une autre source — le bouton restait pourtant actif et orange, comme sur une
+fiche sûre. `latitude != null` ne suffisait plus à décider : « on a une
+position » et « on lui fait confiance » sont deux choses différentes. Colonne
+`position_uncertain` (migration `20260908183500`), getter `canNavigate`, et les
+**deux** boutons d'itinéraire s'y réfèrent — celui de la fiche et celui de la
+carte de liste, qui disparaît complètement. Verrouillé par
+`test/features/embassies/position_douteuse_test.dart`.
+
+Bilan : 29 fiches navigables, 3 non — Djeddah et Khartoum faute de
+coordonnées, Copenhague faute de confiance.
+
+⚠️ **Reste ouvert** : la carte (`map_screen.dart`) place toujours une épingle
+pour Copenhague, sans marque d'incertitude. Le bouton et la carte se
+contredisent donc encore, à un endroit de moins qu'avant.
 
 **Trois défauts trouvés PAR ce test appareil**, invisibles à `flutter analyze` :
 

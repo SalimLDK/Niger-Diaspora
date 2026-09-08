@@ -15983,6 +15983,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'afficher cet événement. Il a peut-être été supprimé, ou votre connexion est instable.';
 
   @override
+  String get eventRecapNotAllowedTitle => 'Récap réservé à l\'organisateur';
+
+  @override
+  String get eventRecapNotAllowedMessage =>
+      'Seule la personne qui a créé cet événement peut publier son récapitulatif. Les photos, elles, restent visibles sur la fiche de l\'événement.';
+
+  @override
   String get eventEditNotAllowedTitle =>
       'Modification réservée à l\'organisateur';
 

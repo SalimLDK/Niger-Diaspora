@@ -71,6 +71,7 @@ class EmbassyModel with _$EmbassyModel {
     String? sourceUrl,
     @EmbassyDateConverter() DateTime? sourceCheckedAt,
     String? dataNotes,
+    @Default(false) bool isPositionUncertain,
   }) = _EmbassyModel;
 
   factory EmbassyModel.fromJson(Map<String, dynamic> json) =>
@@ -114,6 +115,7 @@ class EmbassyModel with _$EmbassyModel {
       sourceUrl: entity.sourceUrl,
       sourceCheckedAt: entity.sourceCheckedAt,
       dataNotes: entity.dataNotes,
+      isPositionUncertain: entity.isPositionUncertain,
     );
   }
 
@@ -154,6 +156,7 @@ class EmbassyModel with _$EmbassyModel {
       sourceUrl: sourceUrl,
       sourceCheckedAt: sourceCheckedAt,
       dataNotes: dataNotes,
+      isPositionUncertain: isPositionUncertain,
     );
   }
 }
