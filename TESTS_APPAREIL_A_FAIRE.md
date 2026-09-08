@@ -134,6 +134,31 @@ Reste à voir, par ordre d'intérêt :
 - [ ] Les ~10 écrans restants atteignables mais non atteints (voir le piège
       d'`am start` ci-dessous).
 
+**Troisième forme du défaut, trouvée à l'écran le 2026-09-08 — corrigée.**
+`/businesses/<id>` sur une entreprise absente affichait « Entreprise non
+trouvée » **et rien pour revenir**. La fiche pose sa `SliverAppBar` *à
+l'intérieur* de la branche « données » : son `Scaffold` n'a pas d'`appBar`,
+donc les états chargement / erreur / « non trouvé » n'ont aucune sortie. Le
+fichier contenait pourtant un `BackButton` — d'où l'aveuglement d'un garde
+qui raisonne au fichier. Trois écrans avaient cette forme :
+`business_detail_screen`, `product_detail_screen`, et le `Scaffold` de
+chargement de `transfer_screen`. Tous passés sur une brique unique du kit,
+`DesignExitOnlyBody`.
+
+- [x] **Vérifié sur SM A515F** : « Entreprise non trouvée » expose maintenant
+      un contrôle « Retour ».
+
+**⛔ Défaut sans rapport, trouvé au passage et NON corrigé : `/embassies/<id>`
+plante.** Le builder de la route lit `state.extra as EmbassyEntity?` puis
+termine par `EmbassyDetailScreen(embassy: embassy!)` — un `!` sur la valeur
+qu'il vient de tester nulle. `state.extra` étant toujours nul par lien
+profond et par notification, **toute** entrée directe sur une fiche
+ambassade donne l'écran rouge « Null check operator used on a null value »
+(reproduit à l'identique sur appareil). Les commentaires du code admettent
+que le repli n'est pas implémenté. Même famille que
+`project_state_extra_not_authoritative`. Hors sujet de ce lot, laissé tel
+quel : il faut charger l'ambassade par son id.
+
 **Deux pièges de méthode rencontrés, à retenir :**
 
 1. **L'autre agent installe son APK sur le même téléphone.** À 01:13:54 le
@@ -9873,6 +9898,43 @@ uniformément grisé, mais d'une vraie distinction :
 Sans le correctif, les 32 auraient toutes pointé sur (0, 0). Vérifié des deux
 côtés : La Havane grisée, Washington active.
 
+### Pourquoi les 11 restantes ne sont pas géocodables (2026-09-08)
+
+Tentative faite, sources épuisées. **Ne pas la refaire sans source nouvelle.**
+
+**OpenStreetMap n'a aucun nœud** pour le poste du Niger dans 10 de ces 11
+villes — vérifié en interrogeant Overpass sur `country=NE` puis, plus large,
+par nom : 36 nœuds dans le monde, aucun à moins de 80 km de Djeddah, Doha,
+Dubaï, Khartoum, Koweït, La Havane, Le Caire, New Delhi, Pékin ni Rabat. La
+seule exception est **Addis-Abeba**, et c'est la *résidence de l'ambassadeur*,
+que le script écarte à raison : envoyer un usager au domicile privé plutôt
+qu'à la chancellerie est pire que de ne rien afficher.
+
+**Le géocodage d'adresse échoue aussi**, y compris en reformulant en anglais
+et en arabe. Ce que Nominatim renvoie n'est jamais le poste :
+
+| Ville | Meilleur résultat obtenu | Verdict |
+|---|---|---|
+| Le Caire | « Cairo Pyramids Hotel », puis une maison au 101 rue des Pyramides | un hôtel ; le n° 101 est plausible mais invérifiable |
+| Rabat | un **arrêt de bus** à Hay Riad | non |
+| Dubaï | une salle à Bur Dubaï | mauvais quartier (l'adresse dit Deira) |
+| Addis-Abeba, Koweït | centroïdes de district | non |
+| New Delhi, Pékin | rien | — |
+
+Et quatre postes n'ont **rien à géocoder** : Doha et La Havane ne publient
+aucune adresse, Djeddah et Khartoum n'ont qu'une boîte postale — qui ne
+désigne aucun bâtiment.
+
+**Écrire un de ces points serait un défaut, pas un progrès** : « Y aller »
+deviendrait actif et ouvrirait la carte au mauvais endroit, la carte « Le plus
+proche » calculerait une distance depuis un point faux, et rien à l'écran ne
+distinguerait cette coordonnée d'une vraie. C'est exactement ce que le refus
+du centre-ville, dans `tools/geocode_postes_diplomatiques.mjs`, protège.
+
+Voies qui marcheraient vraiment : demander la position aux postes eux-mêmes
+(la donnée leur appartient), ou la relever une fois puis la contribuer à OSM —
+ce qui profiterait aussi à tout le monde.
+
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
 2 missions permanentes, 1 délégation ; 27 fiches avec fax, 20 avec réserve.
@@ -9928,19 +9990,33 @@ officielle (Paris/UNESCO et Kano). Le script est rejouable :
       de filtres les fait bien disparaître/réapparaître.
 - [ ] **Le tap sur un pin** ouvre la fiche flottante (nom, adresse, tél, mail,
       services) et « Voir la fiche complète » mène au détail.
-- [ ] **Le bouton « voir sur la carte » du détail** est désormais visible sur
-      les 21 postes placés — et toujours masqué sur les 11 autres.
+- [x] **Le bouton « Y aller » du détail** (et « Itinéraire » sur la carte de
+      liste) est actif sur les 21 postes placés, absent sur les 11 autres.
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, sans réinstaller l'app :
+      les coordonnées viennent de la base, l'APK en place suffit. Alger →
+      « Appeler / Itinéraire / Détails » et « Y aller » actif sur la fiche ;
+      Le Caire → « Appeler / Détails » seulement.*
 - [ ] **Écart à confirmer auprès du poste** : Copenhague (OSM place
       l'ambassade Rosbaeksvej/Østerbro, l'annuaire publie « Niels Juels Gade
       5 » — 5,1 km) et Dakar (OSM « Voie de Dégagement Nord, Point E » contre
       « 8 avenue Léopold Sédar Senghor » — 5,2 km). Position OSM retenue : le
       nœud porte le nom du poste. À trancher par un appel ou une photo.
-- [ ] **11 postes restent sans pin** (Addis-Abeba, Le Caire, Rabat, La Havane,
-      Doha, Koweït, New Delhi, Djeddah, Dubaï, Khartoum, Pékin) : vérifier
-      qu'ils restent bien **visibles dans la liste** avec leur adresse, et
-      qu'ils ne se retrouvent pas au point (0, 0) dans le golfe de Guinée.
+- [x] **11 postes restent sans pin** (Addis-Abeba, Le Caire, Rabat, La Havane,
+      Doha, Koweït, New Delhi, Djeddah, Dubaï, Khartoum, Pékin) : ils restent
+      **visibles dans la liste**, regroupés sous « Autres », avec leur adresse
+      — vu sur le Pixel le 2026-09-08. Aucun ne tombe au point (0, 0) : le
+      modèle ne convertit plus `null` en `0.0`.
       Addis-Abeba est volontairement laissé de côté : OSM n'y cartographie que
       la **résidence** de l'ambassadeur, pas la chancellerie.
+- [ ] **Regroupement par zone, corrigé dans la foulée** (`ZoneGeographique`,
+      testé à froid) : Alger s'affichait sous **Europe** (constaté sur le
+      Pixel : « Europe · 9 » contenait l'Algérie) et Riyad serait tombé en
+      **Afrique**. Vérifier sur appareil, **après réinstallation**, qu'Alger
+      est sous Afrique, Riyad sous Asie, Ankara sous Europe. ⚠️ En anglais, le
+      repli des postes sans coordonnées valait « Others » alors que l'écran
+      n'affiche que les zones de sa liste française : **les 11 postes sans
+      coordonnées disparaissaient de l'annuaire en anglais** (le compteur, lui,
+      les comptait). À revérifier en basculant la langue du téléphone.
 
 ⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
 sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
