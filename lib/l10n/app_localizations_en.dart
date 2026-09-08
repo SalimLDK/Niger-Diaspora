@@ -15821,6 +15821,46 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not send the message. Check your connection and try again.';
 
   @override
+  String get backToEvents => 'Back to events';
+
+  @override
+  String get backToGroups => 'Back to groups';
+
+  @override
+  String get eventLoadFailedTitle => 'Could not load';
+
+  @override
+  String get eventLoadFailedMessage =>
+      'Could not show this event. It may have been deleted, or your connection is unstable.';
+
+  @override
+  String get eventEditNotAllowedTitle => 'Only the organiser can edit';
+
+  @override
+  String get eventEditNotAllowedMessage =>
+      'Only the person who created this event can change it.';
+
+  @override
+  String get backToEvent => 'View the event';
+
+  @override
+  String get groupLoadFailedTitle => 'Could not load';
+
+  @override
+  String get groupLoadFailedMessage =>
+      'Could not show this group. It may have been deleted, or your connection is unstable.';
+
+  @override
+  String get groupEditNotAllowedTitle => 'Only admins can edit';
+
+  @override
+  String get groupEditNotAllowedMessage =>
+      'Only this group\'s creator and administrators can change it.';
+
+  @override
+  String get backToGroup => 'View the group';
+
+  @override
   String get embassyNotFoundTitle => 'Record not found';
 
   @override

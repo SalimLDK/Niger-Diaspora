@@ -29216,6 +29216,78 @@ abstract class AppLocalizations {
   /// **'Impossible d\'envoyer le message. Vérifiez votre connexion et réessayez.'**
   String get embassyMessageSendError;
 
+  /// No description provided for @backToEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour aux événements'**
+  String get backToEvents;
+
+  /// No description provided for @backToGroups.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour aux groupes'**
+  String get backToGroups;
+
+  /// No description provided for @eventLoadFailedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible'**
+  String get eventLoadFailedTitle;
+
+  /// No description provided for @eventLoadFailedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'afficher cet événement. Il a peut-être été supprimé, ou votre connexion est instable.'**
+  String get eventLoadFailedMessage;
+
+  /// No description provided for @eventEditNotAllowedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modification réservée à l\'organisateur'**
+  String get eventEditNotAllowedTitle;
+
+  /// No description provided for @eventEditNotAllowedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seule la personne qui a créé cet événement peut le modifier.'**
+  String get eventEditNotAllowedMessage;
+
+  /// No description provided for @backToEvent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir l\'événement'**
+  String get backToEvent;
+
+  /// No description provided for @groupLoadFailedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible'**
+  String get groupLoadFailedTitle;
+
+  /// No description provided for @groupLoadFailedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'afficher ce groupe. Il a peut-être été supprimé, ou votre connexion est instable.'**
+  String get groupLoadFailedMessage;
+
+  /// No description provided for @groupEditNotAllowedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modification réservée aux administrateurs'**
+  String get groupEditNotAllowedTitle;
+
+  /// No description provided for @groupEditNotAllowedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seuls le créateur et les administrateurs de ce groupe peuvent le modifier.'**
+  String get groupEditNotAllowedMessage;
+
+  /// No description provided for @backToGroup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir le groupe'**
+  String get backToGroup;
+
   /// No description provided for @embassyNotFoundTitle.
   ///
   /// In fr, this message translates to:
