@@ -114,16 +114,15 @@ class AuthRepositoryImpl implements AuthRepository {
     // borne, plutot que de laisser le jeton en base et l'appareil sonner pour
     // le compte precedent.
     //
-    // `hasValidSession` est dans le `try` : il traverse `Supabase.instance`,
-    // qui leve tant que le SDK n'est pas initialise. Se deconnecter ne doit
-    // echouer pour aucune raison exterieure au jeton Firebase.
+    // `ensureReadableSession` et non `ensureAuthenticated` : sa docstring vise
+    // les lectures, mais c'est sa semantique qu'il faut ici — borner, ne
+    // jamais lever, degrader plutot que geler. Se deconnecter ne doit echouer
+    // pour aucune raison exterieure au jeton Firebase. Le `try` couvre le
+    // reste : la methode traverse `Supabase.instance`, qui leve tant que le
+    // SDK n'est pas initialise.
     if (userId != null) {
       try {
-        if (!SupabaseAuthBridge.instance.hasValidSession) {
-          await SupabaseAuthBridge.instance.ensureAuthenticated().timeout(
-            const Duration(seconds: 3),
-          );
-        }
+        await SupabaseAuthBridge.instance.ensureReadableSession();
       } catch (e) {
         dev.log(
           'Session Supabase non retablie avant deconnexion',
