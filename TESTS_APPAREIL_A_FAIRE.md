@@ -10278,7 +10278,7 @@ ambassade.
       (le compteur, lui, les comptait). Corrigé par une constante partagée,
       mais **vérifié en français seulement** — à revoir en basculant la langue
       du téléphone.
-- [ ] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
+- [x] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
       vu sur Pixel 10 Pro XL le 2026-09-08) : dès que le clavier s'ouvre sur la
       recherche de l'annuaire en **paysage**, un bandeau
       « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ.
@@ -10297,6 +10297,16 @@ ambassade.
       aucune hauteur seuil ne tiendrait, elle dépend de l'échelle de police et
       du clavier. Banc : `test/features/embassies/annuaire_clavier_paysage_test.dart`,
       aux métriques relevées à l'adb (rouge à 54 px / 67 px avant correctif).
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, APK debug reconstruit après
+      `flutter clean` et réinstallé (md5 local et `base.apk` identiques).*
+      **Paysage** : trois ouvertures/fermetures successives du clavier, aucun
+      bandeau — carte « le plus proche » affichée (cas 188 px) comme masquée par
+      une requête (cas 69 px) ; l'en-tête défile sous le doigt et la ligne de
+      comptage remonte, clavier ouvert. **Portrait** : inchangé — champ, carte,
+      comptage et liste tiennent tous au-dessus du clavier, les résultats
+      filtrés restent lisibles pendant la frappe. Trois cycles plutôt qu'une
+      capture : une seule ne distingue pas « ça marche » de « ça a marché cette
+      fois-ci ».
 
 ⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
 sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
