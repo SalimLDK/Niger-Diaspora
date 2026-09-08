@@ -14,7 +14,7 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
-## ⬜ Ambassades : les deux mentions « officiel / vérifié » mises en sommeil (2026-09-08)
+## ⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)
 
 `lib/features/embassies/presentation/screens/embassy_detail_screen.dart` :
 la pastille bleue `Icons.verified` collée au nom du poste (en-tête déroulant)
@@ -42,6 +42,50 @@ l10n passées en revue).
       pour elle).
 - [ ] Thème sombre : le bandeau bleu était le seul bloc à couleur fixe de
       cette zone — confirmer qu'il ne laisse pas de vide ni de double marge.
+
+### Deuxième passe : les horaires, et le bandeau vert « Ouvert »
+
+Même écran, même raison — les horaires ne sont pas sûrs non plus. Sont
+commentés :
+
+- `_todayHours()` et la ligne « **Aujourd'hui · \<horaires\>** » du bandeau
+  d'état ;
+- le tableau « **Horaires d'ouverture** » de l'onglet *Infos* (jour → plage) ;
+- le **bandeau vert « Ouvert »** : `_buildStatusBanner` rend maintenant
+  `SizedBox.shrink()` quand `isTemporarilyClosed` est faux.
+
+Le vert méritait de tomber avec les horaires : il ne mesurait rien. Il ne
+lisait pas les horaires, il s'affichait dès que le drapeau de fermeture était
+faux — et une requête sur la base le confirme :
+
+```
+select count(*) total,
+       count(*) filter (where opening_hours::text not in ('{}','null')) avec_horaires,
+       count(*) filter (where is_verified) verifiees,
+       count(*) filter (where is_temporarily_closed) fermees
+from embassies;
+-- total 32 | avec_horaires 0 | verifiees 32 | fermees 0
+```
+
+Donc, avant ce commit : **les 32 fiches** affichaient « Compte Officiel
+Vérifié » + la pastille bleue + un bandeau vert « Ouvert », et **aucune** ne
+portait d'horaires. Les blocs horaires ne rendaient déjà rien ; les commenter
+ne change rien à l'écran d'aujourd'hui, mais évite que la première donnée
+saisie parte à l'écran sans relecture.
+
+Ce qui **reste** affiché : le rouge « Temporairement fermé » (+ message +
+date de réouverture), qu'un administrateur pose explicitement — c'est une
+mise en garde, elle échoue du bon côté. Le badge « Fermé » de l'item de liste
+suit le même drapeau, inchangé.
+
+- [ ] Ouvrir une fiche : l'onglet *Infos* commence directement par l'adresse,
+      sans bandeau vert ni double marge en haut.
+- [ ] Faire défiler l'onglet *Infos* jusqu'aux services : plus de section
+      « Horaires d'ouverture », et pas de trou entre les services et
+      « Juridiction ».
+- [ ] Si une fiche peut être passée en `is_temporarily_closed` côté admin :
+      vérifier que le bandeau rouge s'affiche toujours, avec sa date de
+      réouverture.
 
 ## ⬜ Publication Play Store 1.2.1+11 — build release à valider (2026-09-08)
 
