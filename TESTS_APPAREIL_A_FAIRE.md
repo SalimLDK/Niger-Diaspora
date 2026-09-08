@@ -114,11 +114,34 @@ suit n'a été vu sur un téléphone.
 - [x] **Origine serveur vue sur SM A515F (2026-09-07).** Le pied affiche la
       source et « consultée le 2026-09-07 », **sans** mention d'origine hors
       ligne : la chaîne Supabase répond donc de bout en bout sur l'appareil.
-- [ ] ⛔ **Origine hors ligne : toujours pas vérifiée.** L'écran des
-      démarches ne tombe plus lui-même (ses 4 `.value` sont corrigés), mais
-      l'annuaire reste son unique chemin d'accès et lui tombe encore hors
-      ligne pour la même raison — voir la section « Annuaire » ci-dessous. À
-      refaire dès que ses lignes 56 et 63 seront traitées.
+- [x] **L'écran entier s'affiche hors ligne, vu sur SM A515F (2026-09-08).**
+      Protocole propre : chargement en ligne, **sans réinstaller**, puis mode
+      avion. Le catalogue vient du cache, toutes les pièces s'affichent, et le
+      bandeau « Formulaire pré-rempli » disparaît de lui-même puisque le
+      profil n'est pas joignable — la dégradation voulue.
+- [ ] ⛔ **Le suffixe d'origine du pied de source reste non vu.** Il devrait
+      afficher « · liste enregistrée hors ligne » (cache) ou « · liste fournie
+      avec l'application » (asset). C'est le seul élément d'affichage de cet
+      écran jamais observé.
+
+      Cinq tentatives, deux obstacles qui alternent : soit l'app reste bloquée
+      au splash sur un démarrage à froid sans réseau, soit un **écran rouge
+      Flutter** surgit sur le chemin fiche → « Demande », toujours sur la même
+      requête :
+
+      ```
+      ServerFailure(ClientException with SocketException: Failed host lookup:
+      'zyrfkcjjrhddpfxcgezo.supabase.co', uri=.../rest/v1/users?select=%2A&id=eq.<uid>)
+      ```
+
+      ⚠️ **La source de cette levée n'est PAS identifiée.** Ce n'est ni
+      `administrative_request_screen.dart` (ses 4 `.value` sont corrigés), ni
+      `embassies_provider.dart` (corrigé en `fd0735e`), ni
+      `embassy_detail_screen.dart` (aucun `.value` sur un AsyncValue). Elle
+      vient d'ailleurs sur le chemin de `userStreamProvider`. À chercher avant
+      de conclure quoi que ce soit sur le repli — et c'est un défaut à part
+      entière : **l'hôte Supabase et l'identifiant du compte s'affichent à
+      l'usager**.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
       liste embarquée, pas un spinner ni une erreur. (Même blocage que
       ci-dessus.)
