@@ -9753,6 +9753,23 @@ aucun ne lève de `RenderFlex overflowed` :
 
 ✅ Vérifié après correction sur Pixel (capture `fiche_finale.png`).
 
+**Deux troncatures de plus sur l'écran de LISTE** (2026-09-08, Pixel) —
+distinctes des quatre ci-dessus, qui portaient sur la fiche :
+
+5. **« Ambassades & consul… »** — le titre de l'AppBar. `DesignTitle` est une
+   brique partagée du design kit, donc corrigé au point d'appel par un
+   `FittedBox(fit: scaleDown)` plutôt qu'en touchant au kit. À noter : ça
+   rentrait sur le SM A515F et débordait sur le Pixel — la police système est
+   plus large. Un écran validé sur un seul appareil ne prouve pas grand-chose.
+6. **« Rechercher par nom, pays o… »** — invite du champ de recherche,
+   raccourcie en « Nom, pays ou ville » ; l'icône loupe dit déjà qu'on cherche.
+
+Les deux chaînes étaient en **français figé** dans un écran par ailleurs
+traduit : passées en l10n au passage (`embassiesAndConsulates` existait déjà,
+`embassySearchHint` ajoutée).
+
+✅ Vérifié sur Pixel (capture `liste_corrigee.png`).
+
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
 2 missions permanentes, 1 délégation ; 27 fiches avec fax, 20 avec réserve.
