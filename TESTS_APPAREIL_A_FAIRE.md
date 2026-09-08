@@ -10389,16 +10389,29 @@ ambassade.
       aucune hauteur seuil ne tiendrait, elle dépend de l'échelle de police et
       du clavier. Banc : `test/features/embassies/annuaire_clavier_paysage_test.dart`,
       aux métriques relevées à l'adb (rouge à 54 px / 67 px avant correctif).
-      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, APK debug reconstruit après
-      `flutter clean` et réinstallé (md5 local et `base.apk` identiques).*
-      **Paysage** : trois ouvertures/fermetures successives du clavier, aucun
-      bandeau — carte « le plus proche » affichée (cas 188 px) comme masquée par
-      une requête (cas 69 px) ; l'en-tête défile sous le doigt et la ligne de
-      comptage remonte, clavier ouvert. **Portrait** : inchangé — champ, carte,
-      comptage et liste tiennent tous au-dessus du clavier, les résultats
-      filtrés restent lisibles pendant la frappe. Trois cycles plutôt qu'une
-      capture : une seule ne distingue pas « ça marche » de « ça a marché cette
-      fois-ci ».
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, APK debug reconstruit depuis
+      le bout de la branche après `flutter clean` et réinstallé (md5 local et
+      `base.apk` identiques — vérification obligatoire : entre deux passes, un
+      autre build s'était installé sur l'appareil et le md5 ne correspondait
+      plus).*
+      **Paysage** : trois ouvertures du clavier, chacune instrumentée
+      (`cur=2404x1080` relu à chaque fois, `mInputShown` passant de `false` à
+      `true`), aucun bandeau ; carte « le plus proche » affichée (cas 188 px)
+      comme masquée par une requête (cas 69 px) ; l'en-tête défile sous le doigt
+      et la ligne de comptage remonte, clavier ouvert. **Portrait** : inchangé —
+      champ, carte, comptage et liste tiennent tous au-dessus du clavier, les
+      résultats filtrés restent lisibles pendant la frappe.
+      **Trois pièges de méthode, tous rencontrés ici** : `input keyevent 111`
+      (ÉCHAP) **ne ferme pas** le clavier — `mInputShown` reste à `true`, donc
+      re-taper le champ ne prouve aucun second cycle ; `keyevent 4` le ferme
+      mais **fait ensuite quitter l'application**, et les captures suivantes ne
+      sont plus celles de l'app ; et quitter l'app **libère le verrou
+      d'orientation**, si bien que le tap paysage tombe hors écran en portrait.
+      La seule boucle fiable est de **relancer l'écran par lien profond** à
+      chaque cycle, en relisant l'orientation *et* l'état du clavier avant de
+      conclure. Sans cette mesure, trois captures byte-identiques se lisent
+      comme « stable » alors qu'elles peuvent n'être qu'un seul et même état
+      jamais rejoué.
 
 ⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
 sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
