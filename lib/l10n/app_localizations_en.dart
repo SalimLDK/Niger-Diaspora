@@ -15815,4 +15815,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get embassyLoadError =>
       'Could not load the directory. Check your connection and try again.';
+
+  @override
+  String get embassyMessageSendError =>
+      'Could not send the message. Check your connection and try again.';
 }
