@@ -347,8 +347,10 @@ tests exigent que **chacun des deux rendus soit lisible seul**.
       pavé plein), donc l'image prouve les couleurs et la mise en page, pas
       le texte. Suppose de provoquer une levée à la demande — et celle qu'on
       connaît ne se reproduit pas.
-- [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
-      compte** dans un message d'erreur visible par l'usager.
+- [x] **Fait pour l'écran rouge de Flutter (2026-09-08)** :
+      `ErrorWidget.builder` rend « Une erreur est survenue » à la place du
+      message brut. ⚠️ Ne couvre PAS les états d'erreur que les écrans
+      rendent eux-mêmes — voir la section « Annuaire » ci-dessous.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
       liste embarquée, pas un spinner ni une erreur. (Même blocage que
       ci-dessus.)
@@ -405,8 +407,9 @@ désormais. `20260907210000` retire donc la colonne `post_type` devenue
 orpheline — deux colonnes décrivant la même chose divergeraient dès la
 première fiche modifiée par le back-office.
 
-- [ ] Vérifier sur appareil que l'annuaire s'affiche toujours après ce retrait
-      (l'app ne doit plus citer `post_type` nulle part).
+- [x] **Vu sur SM A515F (2026-09-08).** L'annuaire affiche ses 30 postes
+      après le retrait de `post_type`, en ligne comme hors ligne, sur cinq
+      passages étalés entre 11h49 et 02h00.
 
 **2. Hors ligne, l'écran affiche une exception brute — avec l'identifiant du
 projet Supabase.** Réseau coupé, « Ambassades » montre :
@@ -418,14 +421,25 @@ details: WebSocketChannelException: SocketException: Failed host lookup:
 hostname, errno = 7)))
 ```
 
-- [ ] **Ne pas exposer la trace ni le hôte Supabase à l'usager** : le ref du
-      projet est un identifiant interne, il n'a rien à faire à l'écran.
-      Message générique côté UI, détail dans les logs.
-- [ ] **Le repli hors ligne ne joue pas sur ce chemin** : la liste avait été
-      chargée et mise en cache cinq minutes plus tôt, et l'écran tombe quand
-      même en erreur — l'échec vient de l'abonnement realtime, pas de la
-      lecture. Un canal realtime injoignable ne devrait pas empêcher
-      d'afficher la copie locale.
+- [~] **À moitié seulement — attention à ne pas croire ce point réglé.**
+      Il y a DEUX écrans d'erreur distincts, et un seul est traité :
+
+      - l'**écran rouge de Flutter** (une exception pendant un `build`) est
+        couvert depuis le 2026-09-08 par `ErrorWidget.builder`
+        (`construireEcranErreurNeutre` dans `main.dart`) ;
+      - l'**état d'erreur propre à l'écran** — celui de la capture ci-dessus,
+        avec son bouton « Réessayer » — ne l'est PAS. Il affiche
+        `error.toString()`, donc l'hôte et l'identifiant, et
+        `ErrorWidget.builder` n'y peut rien : ce n'est pas une levée, c'est
+        un `AsyncValue.error` rendu volontairement.
+
+- [ ] Reprendre l'état d'erreur des écrans (`embassies_screen.dart` et ses
+      pareils) : message générique à l'écran, détail dans les logs.
+- [x] **Corrigé et vu sur SM A515F (2026-09-08).** Le repli joue :
+      réseau coupé, l'annuaire sert ses 30 postes depuis la copie locale
+      (vérifié à 11h52, 12h25 et 02h00, sans réinstaller entre-temps). Ce
+      point était par ailleurs faussé par un piège de méthode — voir le n°3
+      ci-dessous, `adb install -r` vide le cache.
 
 **3. La vraie cause du n°2 : `.value` sur un `AsyncValue` en erreur.**
 Le cas propre a été refait le 2026-09-08 (chargement en ligne, **sans
@@ -448,13 +462,16 @@ Le même défaut existait dans `administrative_request_screen.dart` (4
 occurrences, dont deux dans `initState`, donc levée avant tout rendu) : **il y
 est corrigé**, `.value` → `.valueOrNull`.
 
-- [ ] Corriger les lignes 56 et 63 de `embassies_provider.dart`. ⚠️ J'ai
-      essayé et **je suis revenu en arrière** : passer à `valueOrNull` laisse
-      le code atteindre `repository.getEmbassies()`, qui attend l'expiration
-      du délai réseau — l'écran reste alors en **attente indéfinie** (plus de
-      70 s constatées), sans message ni bouton « Réessayer ». Ce n'est pas
-      mieux qu'une erreur. La correction doit traiter les deux bouts : ne plus
-      relever, **et** ne pas partir sur le réseau quand il n'y en a pas.
+- [x] **Corrigé par l'auteur de l'annuaire (`fd0735e`), vu sur SM A515F
+      (2026-09-08).** Sa correction traite les deux bouts : `valueOrNull` aux
+      lignes 56 et 63, **et** un garde qui évite d'observer le profil quand
+      il n'y a pas d'utilisateur.
+
+      Mon propre essai, lui, avait été **annulé** : `valueOrNull` seul
+      laissait le code atteindre `repository.getEmbassies()` et attendre
+      l'expiration du délai réseau — écran en attente indéfinie, plus de 70 s
+      mesurées, sans message ni « Réessayer ». Ce n'était pas mieux qu'une
+      erreur. À garder en tête si quelqu'un refait le raccourci.
 
 ---
 
