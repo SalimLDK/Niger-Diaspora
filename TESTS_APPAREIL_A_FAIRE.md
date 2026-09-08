@@ -85,18 +85,52 @@ Fichiers : `lib/features/auth/data/repositories/auth_repository_impl.dart`,
 construit depuis ce worktree (`md5sum` local et `md5sum` du `pm path` sur
 l'appareil identiques : `5dd681b4…` — le piège de l'APK périmé est écarté).
 
-- [ ] **Délai perçu** : Profil → Déconnexion → l'écran de connexion doit
-      apparaître immédiatement (< 0,5 s), pas après plusieurs secondes de
-      blanc. À mesurer aussi en 3G lente / réseau dégradé, où l'ancien chemin
-      était le plus pénible.
-      ⚠️ **Non tranché** le 2026-09-08 : la déconnexion a bien abouti sur
-      l'écran de connexion, mais la seule borne obtenue est « moins de 3 s ».
-      `uiautomator dump` attend que l'interface soit au repos, et le premier
-      sondage a lui-même duré 3,00 s — la méthode mesure sa propre latence.
-      Pour la prochaine passe : boucle serrée de `screencap` (≈ 200 ms, sans
-      attente de repos) horodatée par `/proc/uptime`, ou un `debugPrint` de
-      durée relu dans logcat. Une seule déconnexion est disponible par
-      session ouverte : préparer la méthode **avant** d'appuyer.
+- [x] **Délai perçu — mesuré le 2026-09-08 : l'écran de connexion commence à
+      être peint 0,23 s après le tap, et l'est entièrement à 0,68 s.** Les deux
+      chiffres sont des bornes hautes (l'horodatage est pris *après* la
+      capture). Le reste n'est que la transition de route. Il n'y a plus de
+      blanc.
+      Reste à voir en 3G lente / réseau dégradé, où l'ancien chemin était le
+      plus pénible — et session Supabase périmée (ci-dessous), le seul cas où
+      du réseau subsiste sur le chemin critique.
+
+  <details><summary>Méthode (deux tentatives, la première nulle)</summary>
+
+  **Ce qui n'a pas marché.** `uiautomator dump` attend que l'interface soit au
+  repos : le premier sondage a duré 3,00 s en trouvant déjà l'écran de
+  connexion — la méthode mesurait sa propre latence, borne inutile de « moins
+  de 3 s ». Une rafale de `screencap -p` vers `/sdcard` ne fait guère mieux :
+  ~950 ms par trame (encodage PNG + FUSE).
+
+  **Ce qui marche.** Capture **brute** vers `/data/local/tmp` (pas d'encodage)
+  et lecture de quelques octets sur l'appareil, sans rien rapatrier : ~200 ms
+  par échantillon. En-tête de `screencap` = **16 octets** (largeur, hauteur,
+  format, espace colorimétrique), donc l'offset du pixel (x,y) vaut
+  `16 + (y*largeur + x)*4`, et `dd bs=4 skip=$((4 + y*largeur + x)) count=1 |
+  od -An -tu1` le rend en RGBA. Vérifié contre un PNG de référence : valeurs
+  identiques au pixel près.
+
+  Pixel témoin sur ce Pixel 10 Pro XL : **(300, 1994)**, dans le bouton « Se
+  connecter » — `(50,226,82)` sur l'écran de connexion, `(15,13,10)` dès qu'on
+  est connecté.
+
+  **Deux pièges rencontrés.** ⚠️ Une session ouverte ne donne qu'**une seule**
+  déconnexion : l'instrument doit être prêt et calibré avant d'appuyer.
+  ⚠️ Et un `adb pull /sdcard/` pour récupérer les trames rapatrie toute la
+  mémoire de l'appareil — ne tirer que les fichiers visés.
+
+  </details>
+
+- [ ] **⚠️ Le dialogue « Connecté ailleurs » peut avaler le tap.** Rencontré le
+      2026-09-08 : `SessionService._handleForceLogout()` a ouvert sa boîte
+      par-dessus le dialogue de déconnexion, et le tap de confirmation a
+      atterri dessus — première mesure perdue. À vérifier avant d'appuyer.
+      Au passage, cette voie de déconnexion forcée ne fait que
+      `FirebaseAuth.signOut()` + `clearSessionId()` : **ni purge des caches,
+      ni retrait du jeton FCM**. Le compte suivant sur ce téléphone hérite
+      donc des données du précédent, et l'appareil reste inscrit pour ses
+      notifications — la famille de défauts que le correctif de latence vient
+      justement de traiter sur la voie normale. Non corrigé, hors périmètre.
 - [x] **Jeton FCM réellement retiré** — vérifié le 2026-09-08. Le jeton de
       l'appareil (`shared_prefs/com.google.android.gms.appid.xml`, début
       `fcAFKu1JQ_au…`) ne figure plus dans `users.fcm_tokens` après la
