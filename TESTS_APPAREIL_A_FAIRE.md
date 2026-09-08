@@ -34,35 +34,45 @@ communiqué par la source » — il n'y a pas de table de remplacement.
 (10/10, le cas sert maintenant le vrai catalogue embarqué). Rien de ce qui
 suit n'a été vu sur un téléphone.
 
-- [ ] Le menu déroulant liste bien **20 démarches sous 5 intertitres de
-      rubrique** (IMMATRICULATION, ACTES D'ÉTAT CIVIL, DOCUMENTS DE VOYAGE,
-      ACTES NOTARIÉS, NATIONALITÉ), et un intertitre n'est pas sélectionnable.
-- [ ] Les intertitres restent lisibles en **thème sombre** : ils sont peints
-      en `colorScheme.primary`, pas en gris fixe.
-- [ ] « Carte consulaire » (choix par défaut) montre l'encadré **« Au choix —
-      une seule de ces pièces suffit »** avec le « ou » entre la pièce
-      d'identité et les deux témoins. C'est la seule voie ouverte à qui n'a
-      aucun papier nigérien : si l'encadré ne se voit pas, l'information est
-      perdue.
-- [ ] Les 13 démarches à `avertissements` affichent leur bandeau orange.
-      Vérifier en particulier **« Passeport — première demande ou
-      renouvellement »**, dont l'avertissement explique que la source la
-      titrait « prorogation » à tort.
-- [ ] **« Certificat de nationalité »** affiche le bandeau « ne se fait pas au
-      consulat » avec les trois règles de juridiction, et son coût réel
-      (1 500 F CFA) — seule démarche à afficher un montant.
-- [ ] Les trois autres libellés de coût s'affichent correctement :
-      « — montant non publié » (15 démarches), « Aucun frais mentionné par la
-      source » (déclarations de naissance et de mariage), et la mention
-      conditionnelle des deux démarches de décès.
-- [ ] **« Laissez-passer »** affiche ses deux blocs de pièces
-      conditionnelles (enfant de moins de 2 ans, enfants de 2 à 16 ans).
-- [ ] Le pied d'écran indique la source et sa date, **et l'origine** de la
-      liste. Couper le réseau et rouvrir : doit afficher « · liste
-      enregistrée hors ligne » (cache) ou « · liste fournie avec
-      l'application » (asset embarqué) — c'est tout l'intérêt du repli.
+- [x] **Vu sur SM A515F (2026-09-07).** Les 20 démarches sont bien là sous
+      les 5 intertitres (IMMATRICULATION CONSULAIRE, ACTES D'ÉTAT CIVIL,
+      DOCUMENTS DE VOYAGE, ACTES NOTARIÉS, NATIONALITÉ).
+- [x] **Vu sur SM A515F (2026-09-07), thème sombre + compte orange.** Les
+      intertitres ressortent en orange, nettement au-dessus du fond.
+- [x] **Vu sur SM A515F (2026-09-07).** L'encadré « Au choix — une seule de
+      ces pièces suffit » s'affiche avec le « ou » entre la pièce d'identité
+      et les deux témoins, et le compteur annonce « 2 à réunir » (le groupe
+      d'alternatives compte bien pour une).
+- [x] **Partiellement vu sur SM A515F (2026-09-07).** Bandeaux orange
+      confirmés sur « Carte consulaire » (1) et « Certificat de nationalité »
+      (2). Le titre corrigé « Passeport — première demande ou renouvellement »
+      apparaît bien dans le menu ; son bandeau n'a pas été ouvert.
+- [ ] Ouvrir « Passeport — première demande ou renouvellement » et vérifier
+      son avertissement (la source la titrait « prorogation » à tort).
+- [x] **Vu sur SM A515F (2026-09-07).** Bandeau « ne se fait pas au
+      consulat » avec les trois règles de juridiction, et « Timbre fiscal :
+      1 500 F CFA » accentué — seule démarche à afficher un montant.
+- [x] **Partiellement vu sur SM A515F (2026-09-07).** « Droits de
+      chancellerie — montant non publié » confirmé sur la carte consulaire, et
+      « Délai de traitement non communiqué par la source » partout où c'est
+      passé — le délai inventé a bien disparu.
+- [ ] Vérifier « Aucun frais mentionné par la source » (déclarations de
+      naissance et de mariage) et la mention conditionnelle des deux démarches
+      de décès.
+- [x] **Vu sur SM A515F (2026-09-07).** Les deux blocs s'affichent, et la
+      règle des 2-16 ans (« un laissez-passer distinct par enfant ») apparaît
+      en note sans case à cocher, comme voulu. Le préfixe de quantité
+      fonctionne aussi (« 2 × Photo d'identité récente »).
+- [x] **Origine serveur vue sur SM A515F (2026-09-07).** Le pied affiche la
+      source et « consultée le 2026-09-07 », **sans** mention d'origine hors
+      ligne : la chaîne Supabase répond donc de bout en bout sur l'appareil.
+- [ ] ⛔ **Origine hors ligne : NON VÉRIFIABLE aujourd'hui.** Réseau coupé,
+      l'écran des ambassades tombe en erreur (voir la section « Annuaire »
+      ci-dessous) et plus aucun chemin ne mène à l'écran des démarches. À
+      refaire une fois l'annuaire corrigé.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
-      liste embarquée, pas un spinner ni une erreur.
+      liste embarquée, pas un spinner ni une erreur. (Même blocage que
+      ci-dessus.)
 - [ ] Aucun débordement sur les libellés les plus longs à **échelle de police
       1.1** (le résumé de la carte consulaire fait trois lignes).
 - [ ] Envoyer une demande, puis vérifier côté back-office que
@@ -90,6 +100,71 @@ connecte en `postgres` et contourne la RLS, faux positif garanti :
 Le pied d'écran doit donc afficher l'origine **serveur** (pas de mention de
 liste hors ligne) dès que l'appareil a du réseau — c'est le point de
 vérification le plus direct que la chaîne complète fonctionne.
+
+---
+
+## ⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)
+
+Trouvés en testant l'écran des démarches sur SM A515F — ils sont dans
+`embassies_supabase_datasource.dart` / `20260907190000_annuaire_postes_diplomatiques.sql`,
+pas dans le catalogue des démarches. **Les deux bloquent le test hors ligne
+des démarches**, l'annuaire étant le seul chemin vers cet écran.
+
+**1. ✅ RÉSOLU — l'annuaire était vide pour TOUS les utilisateurs, en silence.**
+`20260907190000` décrivait la colonne du type de poste sous le nom
+`post_type`, et `EmbassiesSupabaseDataSource` la sélectionnait sous ce nom,
+alors que la table qui tourne l'appelle `type`. Le `select` échouait en 42703,
+l'exception devenait `ServerException`, le dépôt retombait sur un cache vide et
+renvoyait `[]` : « Aucune ambassade disponible », sans une ligne d'erreur nulle
+part. Trouvé sur SM A515F le 2026-09-07 en cherchant un chemin vers l'écran des
+démarches.
+
+Dépanné sur le moment par `20260907200000` (ajout de `post_type` recopiant
+`type`), puis **tranché dans l'autre sens par l'auteur de l'annuaire**
+(`01353ac`) : `type` fait foi, sa migration et son datasource la lisent
+désormais. `20260907210000` retire donc la colonne `post_type` devenue
+orpheline — deux colonnes décrivant la même chose divergeraient dès la
+première fiche modifiée par le back-office.
+
+- [ ] Vérifier sur appareil que l'annuaire s'affiche toujours après ce retrait
+      (l'app ne doit plus citer `post_type` nulle part).
+
+**2. Hors ligne, l'écran affiche une exception brute — avec l'identifiant du
+projet Supabase.** Réseau coupé, « Ambassades » montre :
+
+```
+Erreur: ServerFailure(RealtimeSubscribeException(status: channelError,
+details: WebSocketChannelException: SocketException: Failed host lookup:
+'zyrfkcjjrhddpfxcgezo.supabase.co' (OS Error: No address associated with
+hostname, errno = 7)))
+```
+
+- [ ] **Ne pas exposer la trace ni le hôte Supabase à l'usager** : le ref du
+      projet est un identifiant interne, il n'a rien à faire à l'écran.
+      Message générique côté UI, détail dans les logs.
+- [ ] **Le repli hors ligne ne joue pas sur ce chemin** : la liste avait été
+      chargée et mise en cache cinq minutes plus tôt, et l'écran tombe quand
+      même en erreur — l'échec vient de l'abonnement realtime, pas de la
+      lecture. Un canal realtime injoignable ne devrait pas empêcher
+      d'afficher la copie locale.
+
+**3. Hors ligne, l'annuaire reste vide même après un chargement réussi.**
+Deuxième essai le 2026-09-07, APK reconstruit après la correction `01353ac`,
+téléphone en mode avion : l'écran n'affiche plus l'exception brute (bien) mais
+« Aucune ambassade disponible » — pas la copie locale, alors que les 30 postes
+s'étaient affichés quelques minutes plus tôt sur le même appareil.
+
+⚠️ **Réserve : ce constat n'est pas concluant seul.** L'APK avait été
+réinstallé entre les deux, et je n'ai pas vérifié que la copie locale avait
+survécu à la réinstallation — le cache peut légitimement être vide. Le cas
+propre reste à faire : charger la liste en ligne, **sans réinstaller**, puis
+couper le réseau et rouvrir.
+
+- [ ] Refaire ce cas proprement, et si la liste est bien vide alors qu'elle
+      venait d'être mise en cache, chercher du côté de
+      `EmbassiesRepositoryImpl` : sa branche hors ligne renvoie `[]` dès que
+      `getLastEmbassies()` lève, et un `[]` ne se distingue pas d'une base
+      vide à l'écran. C'est la même mise en scène que le défaut n°1.
 
 ---
 
