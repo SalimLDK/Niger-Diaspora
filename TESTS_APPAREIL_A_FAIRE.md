@@ -380,14 +380,28 @@ l'identifiant du compte ou `SocketException` réapparaissent à l'écran. Les
 deux autres cas couvrent les contraintes du widget — zone minuscule, absence
 de `Directionality`/`Theme` au-dessus.
 
-- [ ] **Voir ce rendu sur appareil.** Non vérifié : il faudrait provoquer une
-      levée à la demande, et justement, celle qu'on connaît ne se reproduit
-      pas. Vérifier aussi qu'il reste lisible dans les deux thèmes (les
-      couleurs sont choisies sur `platformBrightness`, pas sur le thème de
-      l'app — un écart est possible si l'usager force un thème contraire à
-      celui du système).
-- [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
-      compte** dans un message d'erreur visible par l'usager.
+**Les deux thèmes sont vérifiés** (2026-09-08), par deux moyens qui se
+complètent : des assertions déterministes sur les couleurs et le contraste
+(`computeLuminance`), et un rendu rasterisé inspecté pour la mise en page.
+Clair : fond `#F7F7F7`, titre `#1A1A1A`. Sombre : fond `#121212`, titre
+`#F5F5F5`. Contenu centré, icône présente, seconde ligne plus pâle dans les
+deux cas.
+
+⚠️ Ce rendu suit la luminosité du **système**, pas le thème de l'app — un
+`ErrorWidget` peut être posé au-dessus de `MaterialApp`, donc sans `Theme` à
+interroger. Conséquence assumée : qui force dans l'app un thème contraire à
+celui du système verra cet écran-là dans l'autre sens. C'est pourquoi les
+tests exigent que **chacun des deux rendus soit lisible seul**.
+
+- [ ] Reste à voir sur un vrai téléphone, pour les glyphes : `flutter test`
+      dessine le texte avec sa police de test (chaque caractère devient un
+      pavé plein), donc l'image prouve les couleurs et la mise en page, pas
+      le texte. Suppose de provoquer une levée à la demande — et celle qu'on
+      connaît ne se reproduit pas.
+- [x] **Fait pour l'écran rouge de Flutter (2026-09-08)** :
+      `ErrorWidget.builder` rend « Une erreur est survenue » à la place du
+      message brut. ⚠️ Ne couvre PAS les états d'erreur que les écrans
+      rendent eux-mêmes — voir la section « Annuaire » ci-dessous.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
       liste embarquée, pas un spinner ni une erreur. (Même blocage que
       ci-dessus.)
@@ -444,8 +458,9 @@ désormais. `20260907210000` retire donc la colonne `post_type` devenue
 orpheline — deux colonnes décrivant la même chose divergeraient dès la
 première fiche modifiée par le back-office.
 
-- [ ] Vérifier sur appareil que l'annuaire s'affiche toujours après ce retrait
-      (l'app ne doit plus citer `post_type` nulle part).
+- [x] **Vu sur SM A515F (2026-09-08).** L'annuaire affiche ses 30 postes
+      après le retrait de `post_type`, en ligne comme hors ligne, sur cinq
+      passages étalés entre 11h49 et 02h00.
 
 **2. Hors ligne, l'écran affiche une exception brute — avec l'identifiant du
 projet Supabase.** Réseau coupé, « Ambassades » montre :
@@ -457,14 +472,25 @@ details: WebSocketChannelException: SocketException: Failed host lookup:
 hostname, errno = 7)))
 ```
 
-- [ ] **Ne pas exposer la trace ni le hôte Supabase à l'usager** : le ref du
-      projet est un identifiant interne, il n'a rien à faire à l'écran.
-      Message générique côté UI, détail dans les logs.
-- [ ] **Le repli hors ligne ne joue pas sur ce chemin** : la liste avait été
-      chargée et mise en cache cinq minutes plus tôt, et l'écran tombe quand
-      même en erreur — l'échec vient de l'abonnement realtime, pas de la
-      lecture. Un canal realtime injoignable ne devrait pas empêcher
-      d'afficher la copie locale.
+- [~] **À moitié seulement — attention à ne pas croire ce point réglé.**
+      Il y a DEUX écrans d'erreur distincts, et un seul est traité :
+
+      - l'**écran rouge de Flutter** (une exception pendant un `build`) est
+        couvert depuis le 2026-09-08 par `ErrorWidget.builder`
+        (`construireEcranErreurNeutre` dans `main.dart`) ;
+      - l'**état d'erreur propre à l'écran** — celui de la capture ci-dessus,
+        avec son bouton « Réessayer » — ne l'est PAS. Il affiche
+        `error.toString()`, donc l'hôte et l'identifiant, et
+        `ErrorWidget.builder` n'y peut rien : ce n'est pas une levée, c'est
+        un `AsyncValue.error` rendu volontairement.
+
+- [ ] Reprendre l'état d'erreur des écrans (`embassies_screen.dart` et ses
+      pareils) : message générique à l'écran, détail dans les logs.
+- [x] **Corrigé et vu sur SM A515F (2026-09-08).** Le repli joue :
+      réseau coupé, l'annuaire sert ses 30 postes depuis la copie locale
+      (vérifié à 11h52, 12h25 et 02h00, sans réinstaller entre-temps). Ce
+      point était par ailleurs faussé par un piège de méthode — voir le n°3
+      ci-dessous, `adb install -r` vide le cache.
 
 **3. La vraie cause du n°2 : `.value` sur un `AsyncValue` en erreur.**
 Le cas propre a été refait le 2026-09-08 (chargement en ligne, **sans
@@ -487,13 +513,16 @@ Le même défaut existait dans `administrative_request_screen.dart` (4
 occurrences, dont deux dans `initState`, donc levée avant tout rendu) : **il y
 est corrigé**, `.value` → `.valueOrNull`.
 
-- [ ] Corriger les lignes 56 et 63 de `embassies_provider.dart`. ⚠️ J'ai
-      essayé et **je suis revenu en arrière** : passer à `valueOrNull` laisse
-      le code atteindre `repository.getEmbassies()`, qui attend l'expiration
-      du délai réseau — l'écran reste alors en **attente indéfinie** (plus de
-      70 s constatées), sans message ni bouton « Réessayer ». Ce n'est pas
-      mieux qu'une erreur. La correction doit traiter les deux bouts : ne plus
-      relever, **et** ne pas partir sur le réseau quand il n'y en a pas.
+- [x] **Corrigé par l'auteur de l'annuaire (`fd0735e`), vu sur SM A515F
+      (2026-09-08).** Sa correction traite les deux bouts : `valueOrNull` aux
+      lignes 56 et 63, **et** un garde qui évite d'observer le profil quand
+      il n'y a pas d'utilisateur.
+
+      Mon propre essai, lui, avait été **annulé** : `valueOrNull` seul
+      laissait le code atteindre `repository.getEmbassies()` et attendre
+      l'expiration du délai réseau — écran en attente indéfinie, plus de 70 s
+      mesurées, sans message ni « Réessayer ». Ce n'était pas mieux qu'une
+      erreur. À garder en tête si quelqu'un refait le raccourci.
 
 ---
 
@@ -10010,7 +10039,7 @@ contre **30 sur le SM A515F** (Genève et New York masqués faute de pays connu)
 
 ---
 
-## Postes diplomatiques sur la carte : 21 pins posés, 11 fiches sans position (2026-09-08)
+## Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)
 
 Les 32 fiches importées le 2026-09-07 sont arrivées **sans latitude ni
 longitude** : `diplomatie.gouv.ne` ne publie que des adresses postales, dont
@@ -10018,10 +10047,20 @@ huit sont de simples boîtes postales. Depuis l'import, aucun poste n'a jamais
 eu de pin — `map_screen.dart` saute toute fiche sans coordonnées, et le bouton
 « voir sur la carte » du détail est masqué par `hasCoordinates`.
 
-Migration `20260908120000_coordonnees_postes_diplomatiques.sql` : 19 positions
-relevées dans OpenStreetMap (au bâtiment), 2 par géocodage de l'adresse
-officielle (Paris/UNESCO et Kano). Le script est rejouable :
+Deux migrations, dans cet ordre. `20260908120000_coordonnees_postes_diplomatiques.sql`
+place 21 postes avec les seules sources ouvertes : 19 relevés dans
+OpenStreetMap (au bâtiment), 2 par géocodage de l'adresse officielle
+(Paris/UNESCO et Kano). `20260908150000_coordonnees_postes_google.sql` en
+ajoute 9 via la Geocoding API de Google — activée pour l'occasion — et
+**corrige Abuja**, dont le pin était à 5,7 km. Le script est rejouable :
 `tools/geocode_postes_diplomatiques.mjs`.
+
+Ce qui a débloqué les 9 : chercher le poste **par son nom, dans la langue du
+pays d'accueil**. Le Caire ne répond qu'à l'arabe, La Havane qu'à l'espagnol,
+l'anglais couvre le reste — le français presque rien. Et le nom vaut mieux que
+l'adresse : à Addis-Abeba, « Kirkos Sub-city, Kebele 02/03 » rend un point
+quelconque du quartier, à 5,7 km du lieu que Google connaît comme une
+ambassade.
 
 - [ ] **Les pins bleus d'ambassade apparaissent** sur la carte principale, à
       côté des membres — vérifier au moins un poste (Paris, Cotonou, Abuja
@@ -10030,23 +10069,37 @@ officielle (Paris/UNESCO et Kano). Le script est rejouable :
 - [ ] **Le tap sur un pin** ouvre la fiche flottante (nom, adresse, tél, mail,
       services) et « Voir la fiche complète » mène au détail.
 - [x] **Le bouton « Y aller » du détail** (et « Itinéraire » sur la carte de
-      liste) est actif sur les 21 postes placés, absent sur les 11 autres.
+      liste) est actif sur les postes placés, absent sur les autres.
       *Vérifié sur Pixel 10 Pro XL le 2026-09-08, sans réinstaller l'app :
       les coordonnées viennent de la base, l'APK en place suffit. Alger →
       « Appeler / Itinéraire / Détails » et « Y aller » actif sur la fiche ;
-      Le Caire → « Appeler / Détails » seulement.*
+      Le Caire → « Appeler / Détails » seulement. Revérifié après la seconde
+      migration : Le Caire affiche désormais « Itinéraire » et remonte de la
+      zone « Autres » à « Afrique ».*
 - [ ] **Écart à confirmer auprès du poste** : Copenhague (OSM place
       l'ambassade Rosbaeksvej/Østerbro, l'annuaire publie « Niels Juels Gade
       5 » — 5,1 km) et Dakar (OSM « Voie de Dégagement Nord, Point E » contre
       « 8 avenue Léopold Sédar Senghor » — 5,2 km). Position OSM retenue : le
       nœud porte le nom du poste. À trancher par un appel ou une photo.
-- [x] **11 postes restent sans pin** (Addis-Abeba, Le Caire, Rabat, La Havane,
-      Doha, Koweït, New Delhi, Djeddah, Dubaï, Khartoum, Pékin) : ils restent
-      **visibles dans la liste**, regroupés sous « Autres », avec leur adresse
-      — vu sur le Pixel le 2026-09-08. Aucun ne tombe au point (0, 0) : le
-      modèle ne convertit plus `null` en `0.0`.
-      Addis-Abeba est volontairement laissé de côté : OSM n'y cartographie que
-      la **résidence** de l'ambassadeur, pas la chancellerie.
+- [x] **Un poste sans pin reste visible dans la liste**, sous « Autres », avec
+      son adresse — vu sur le Pixel le 2026-09-08, avant la seconde migration.
+      Aucun ne tombe au point (0, 0) : le modèle ne convertit plus `null` en
+      `0.0`.
+- [ ] **2 postes restent sans pin, et c'est délibéré.** Khartoum : aucune
+      source ne le connaît. Djeddah : le seul résultat (Al Kausar, 22 km au
+      nord du centre) n'est pas typé `embassy` par Google, contrairement aux
+      neuf autres — une position fausse enverrait l'usager à 22 km. À
+      confirmer auprès des deux postes.
+- [ ] **Abuja a bougé de 5,7 km** : le nœud OSM (« 305 Diplomatic Drive »,
+      quartier des affaires) est contredit par l'annuaire officiel
+      (« Maitama District ») **et** par le lieu typé `embassy` de Google, tous
+      deux à Maitama. Vérifier que le pin d'Abuja est bien à Maitama.
+- [x] **Dakar et Pretoria : divergence tranchée en faveur d'OSM.** Leur adresse
+      publiée tombait à 5,2 km et 2,4 km du nœud ; Google y place une ambassade
+      à 7 m et 14 m du nœud. C'est l'annuaire officiel qui est en retard.
+- [ ] **Copenhague reste ouvert** : nœud OSM (Rosbæksvej, Østerbro) contre
+      adresse publiée (Niels Juels Gade 5), 5,1 km, et Google n'y connaît aucun
+      lieu typé `embassy` pour départager. Position OSM retenue en attendant.
 - [ ] **Regroupement par zone, corrigé dans la foulée** (`ZoneGeographique`,
       testé à froid) : Alger s'affichait sous **Europe** (constaté sur le
       Pixel : « Europe · 9 » contenait l'Algérie) et Riyad serait tombé en
