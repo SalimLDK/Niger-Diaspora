@@ -209,7 +209,16 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/home'),
         ),
-        title: const DesignTitle('Ambassades & consulats', size: 24),
+        // `FittedBox` plutot que de toucher a `DesignTitle`, qui est une
+        // brique partagee du design kit : le titre se reduit juste ce qu'il
+        // faut au lieu d'etre coupe en « Ambassades & consul… ». La police
+        // systeme du Pixel est plus large que celle du SM A515F, ou il
+        // rentrait tout juste.
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: DesignTitle(l10n.embassiesAndConsulates, size: 24),
+        ),
       ),
       body: embassiesAsync.when(
         skipLoadingOnRefresh: true,
@@ -231,7 +240,10 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
                 child: DesignSearchField(
                   controller: _searchController,
-                  hintText: 'Rechercher par nom, pays ou ville',
+                  // Raccourci : « Rechercher par nom, pays ou ville » etait
+                  // coupe a « … pays o… ». L'icone loupe dit deja qu'on
+                  // cherche, le mot etait redondant.
+                  hintText: l10n.embassySearchHint,
                   onClear: () {
                     _searchController.clear();
                     setState(() => _searchQuery = '');

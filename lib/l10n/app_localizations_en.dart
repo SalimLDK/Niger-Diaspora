@@ -15819,4 +15819,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get embassyMessageSendError =>
       'Could not send the message. Check your connection and try again.';
+
+  @override
+  String get embassySearchHint => 'Name, country or city';
 }

@@ -15968,4 +15968,7 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get embassyMessageSendError =>
       'Impossible d\'envoyer le message. Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get embassySearchHint => 'Nom, pays ou ville';
 }

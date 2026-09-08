@@ -87,7 +87,16 @@ void main() async {
   await DerivedKeyStore.instance.reprendreDepuisLeCache();
 
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
+  //
+  // En debug, on presente AUSSI l'erreur en console. Sans ce
+  // `presentError`, l'affectation ci-dessous remplace le gestionnaire par
+  // defaut de Flutter et AUCUNE pile d'exception ne sort jamais -- ni dans
+  // `flutter run`, ni dans logcat. Un ecran rouge s'affiche alors sans
+  // qu'on puisse savoir d'ou il vient.
+  FlutterError.onError = (details) {
+    if (kDebugMode) FlutterError.presentError(details);
+    FirebaseCrashlytics.instance.recordFlutterError(details);
+  };
 
   // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
   PlatformDispatcher.instance.onError = (error, stack) {

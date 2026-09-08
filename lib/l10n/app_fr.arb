@@ -8113,5 +8113,6 @@
   "embassyDataNote": "Réserve sur cette fiche",
   "embassySourceLine": "Source : {source}, relevé le {date}",
   "embassyLoadError": "Impossible de charger l'annuaire. Vérifiez votre connexion et réessayez.",
-  "embassyMessageSendError": "Impossible d'envoyer le message. Vérifiez votre connexion et réessayez."
+  "embassyMessageSendError": "Impossible d'envoyer le message. Vérifiez votre connexion et réessayez.",
+  "embassySearchHint": "Nom, pays ou ville"
 }
