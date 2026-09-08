@@ -484,8 +484,21 @@ hostname, errno = 7)))
         `ErrorWidget.builder` n'y peut rien : ce n'est pas une levée, c'est
         un `AsyncValue.error` rendu volontairement.
 
-- [ ] Reprendre l'état d'erreur des écrans (`embassies_screen.dart` et ses
-      pareils) : message générique à l'écran, détail dans les logs.
+- [x] **Fait le 2026-09-08 — et c'était bien plus large que l'annuaire.**
+      Le défaut touchait **42 sites dans 30 fichiers** : transferts,
+      marketplace, profil, admin, amis, paiements… tous de la forme
+      `Text('Erreur: $e')`. Tous passent par `messageErreurUsager`
+      (`lib/core/errors/message_erreur.dart`), qui classe la panne en trois
+      familles — réseau, droits, le reste — pour que le conseil donné soit
+      juste, sans jamais rendre le texte de l'exception.
+
+      Deux tests le tiennent : `message_erreur_test.dart` rejoue les
+      exceptions réellement observées et échoue si l'hôte, l'identifiant du
+      compte ou le nom de l'exception ressortent ; `aucune_erreur_brute_test.dart`
+      relit tout `lib/` et échoue si quelqu'un réintroduit le motif.
+
+- [ ] Voir un de ces états sur appareil, réseau coupé — par exemple
+      l'annuaire, qui reste le plus simple à provoquer.
 - [x] **Corrigé et vu sur SM A515F (2026-09-08).** Le repli joue :
       réseau coupé, l'annuaire sert ses 30 postes depuis la copie locale
       (vérifié à 11h52, 12h25 et 02h00, sans réinstaller entre-temps). Ce
@@ -9966,9 +9979,35 @@ uniformément grisé, mais d'une vraie distinction :
 Sans le correctif, les 32 auraient toutes pointé sur (0, 0). Vérifié des deux
 côtés : La Havane grisée, Washington active.
 
-### Pourquoi les 11 restantes ne sont pas géocodables (2026-09-08)
+### Géocodage des 11 restantes : ce que j'ai conclu trop vite (2026-09-08)
 
-Tentative faite, sources épuisées. **Ne pas la refaire sans source nouvelle.**
+> ⚠️ **Ce constat était faux dans sa portée.** Il concluait « aucune source
+> publique ne les contient » et « ne pas refaire sans source nouvelle ». Le
+> même jour, l'autre agent en a géocodé **neuf sur onze** avec la Geocoding API
+> de Google (migration `20260908150000_coordonnees_postes_google.sql`) — il ne
+> reste que Djeddah et Khartoum. **30 des 32 postes ont désormais des
+> coordonnées.**
+>
+> **Ce qui m'a manqué n'est pas une source, c'est une reformulation.** Je
+> cherchais par *adresse postale*, en français ; il a cherché par **nom du
+> poste, dans la langue du pays d'accueil** — Le Caire ne répond qu'à l'arabe,
+> La Havane qu'à l'espagnol. Et j'avais écarté la piste payante en reprenant
+> l'argument du script d'origine (« disproportionné pour 32 lignes ») sans le
+> réexaminer, alors que c'était le seul verrou réel.
+>
+> **La leçon à garder** : « la source ne contient pas la donnée » et « ma
+> requête ne la trouve pas » sont deux constats différents. Avant de conclure
+> à l'absence, faire varier la formulation — langue locale, nom de
+> l'institution plutôt qu'adresse — et rouvrir explicitement les pistes
+> écartées pour des raisons de coût.
+>
+> Trois résultats de Google recoupent l'adresse du ministère, ce qui les
+> confirme mutuellement : Le Caire (101 Al Haram = avenue des Pyramides),
+> Rabat (Av. Al Haour) et Dubaï — où « Abu Hail » explique le « Abau Hain
+> Street » que je n'arrivais pas à situer.
+
+Ce qui suit reste exact, et documente ce que les sources **gratuites**
+contiennent — utile si l'API payante venait à être coupée.
 
 **OpenStreetMap n'a aucun nœud** pour le poste du Niger dans 10 de ces 11
 villes — vérifié en interrogeant Overpass sur `country=NE` puis, plus large,
@@ -10002,6 +10041,27 @@ du centre-ville, dans `tools/geocode_postes_diplomatiques.mjs`, protège.
 Voies qui marcheraient vraiment : demander la position aux postes eux-mêmes
 (la donnée leur appartient), ou la relever une fois puis la contribuer à OSM —
 ce qui profiterait aussi à tout le monde.
+
+**État au 2026-09-08 après le géocodage Google** — deux postes seulement
+restent sans coordonnées, et pour eux la demande par courriel garde tout son
+sens (`docs/ops/DEMANDE_POSITIONS_POSTES.md`, §2 et §5) :
+
+- **Djeddah** : le seul résultat est à 22 km au nord du centre et n'est pas
+  typé `embassy` — trop faible pour être écrit en base.
+- **Khartoum** : Google ne connaît aucun lieu d'ambassade dans la ville.
+
+Et deux questions se sont **ouvertes** avec ce géocodage, à trancher :
+
+- **Copenhague** : OSM place l'ambassade à Rosbækvej/Østerbro, l'annuaire
+  publie « Niels Juels Gade 5 » — **5,1 km d'écart**, rien pour départager.
+  Écrire à `ambassade@niger.dk`.
+- **Abuja** : le point a été déplacé de Diplomatic Drive à Maitama, où
+  l'annuaire et Google se rejoignent. Une confirmation serait prudente —
+  `embniger@yahoo.fr`.
+
+Contribuer les positions confirmées à OpenStreetMap reste souhaitable : le
+script gratuit les retrouverait seul, et l'information servirait au-delà de
+cette application.
 
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,

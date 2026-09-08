@@ -8,6 +8,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../providers/transfer_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class TransferScreen extends ConsumerWidget {
   const TransferScreen({super.key});
@@ -187,7 +188,7 @@ class TransferScreen extends ConsumerWidget {
                           color: theme.colorScheme.error,
                         ),
                         const SizedBox(height: 16),
-                        Text('Erreur: $error'),
+                        Text(messageErreurUsager(error)),
                       ],
                     ),
                   ),

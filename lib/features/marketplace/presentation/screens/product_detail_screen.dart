@@ -12,6 +12,7 @@ import '../../../reports/presentation/widgets/report_content_modal.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final String productId;
@@ -322,7 +323,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       color: theme.colorScheme.error,
                     ),
                     const SizedBox(height: 16),
-                    Text('Erreur: $error'),
+                    Text(messageErreurUsager(error)),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed:

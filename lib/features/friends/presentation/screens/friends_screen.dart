@@ -8,6 +8,7 @@ import '../../../../shared/widgets/loading_indicator.dart';
 import '../providers/friend_provider.dart';
 import '../widgets/friend_list_item.dart';
 import '../widgets/friend_request_item.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});
@@ -120,7 +121,7 @@ class _FriendsListTab extends ConsumerWidget {
         );
       },
       loading: () => const LoadingIndicator(),
-      error: (error, _) => Center(child: Text('${l10n.error}: $error')),
+      error: (error, _) => Center(child: Text(messageErreurUsager(error))),
     );
   }
 }
@@ -179,7 +180,7 @@ class _ReceivedRequestsTab extends ConsumerWidget {
         );
       },
       loading: () => const LoadingIndicator(),
-      error: (error, _) => Center(child: Text('${l10n.error}: $error')),
+      error: (error, _) => Center(child: Text(messageErreurUsager(error))),
     );
   }
 }
@@ -238,7 +239,7 @@ class _SentRequestsTab extends ConsumerWidget {
         );
       },
       loading: () => const LoadingIndicator(),
-      error: (error, _) => Center(child: Text('${l10n.error}: $error')),
+      error: (error, _) => Center(child: Text(messageErreurUsager(error))),
     );
   }
 }
