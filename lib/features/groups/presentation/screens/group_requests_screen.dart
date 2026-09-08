@@ -5,6 +5,7 @@ import '../../../../core/utils/date_formatter.dart';
 import '../../domain/entities/group_request_entity.dart';
 import '../providers/group_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class GroupRequestsScreen extends ConsumerWidget {
   final String groupId;
@@ -60,7 +61,7 @@ class GroupRequestsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Erreur: $error')),
+        error: (error, stack) => Center(child: Text(messageErreurUsager(error))),
       ),
     );
   }

@@ -10,6 +10,7 @@ import '../../domain/entities/payment_account_entity.dart';
 import '../providers/payment_account_provider.dart';
 import '../widgets/payment_account_card.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class PaymentAccountsScreen extends ConsumerWidget {
   const PaymentAccountsScreen({super.key});
@@ -58,7 +59,7 @@ class PaymentAccountsScreen extends ConsumerWidget {
             children: [
               AppIcon(AppIcon.error, size: 48, color: context.errorColor),
               const SizedBox(height: 16),
-              Text('${l10n.error}: $error'),
+              Text(messageErreurUsager(error)),
             ],
           ),
         ),

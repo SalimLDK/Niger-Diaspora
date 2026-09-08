@@ -9,6 +9,7 @@ import 'dart:io';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class EditEventScreen extends ConsumerStatefulWidget {
   final EventEntity event;
@@ -230,7 +231,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la s\u00e9lection: $e'),
+            content: Text(messageErreurContextuel('Sélection impossible', e)),
             backgroundColor: Colors.red,
           ),
         );

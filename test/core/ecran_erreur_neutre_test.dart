@@ -135,6 +135,42 @@ void main() {
     );
   });
 
+  testWidgets('le texte est peint proprement, pas avec le style de secours', (
+    tester,
+  ) async {
+    // Défaut vu sur SM A515F le 2026-09-08 : les couleurs étaient bonnes mais
+    // le texte s'affichait en chasse fixe, doublement souligné de jaune. Un
+    // `ErrorWidget` n'a aucun `Material` au-dessus de lui, donc rien ne
+    // fournit de `DefaultTextStyle` : sans le poser soi-même, Flutter tombe
+    // sur son style de secours. Les tests précédents ne pouvaient pas le
+    // voir — ils ne regardaient que les couleurs.
+    await tester.pumpWidget(
+      construireEcranErreurNeutre(
+        FlutterErrorDetails(exception: exceptionObservee),
+      ),
+    );
+
+    expect(
+      find.byType(DefaultTextStyle),
+      findsWidgets,
+      reason: 'sans DefaultTextStyle, Flutter peint son style de secours',
+    );
+
+    for (final texte in tester.widgetList<Text>(find.byType(Text))) {
+      final effectif = texte.style;
+      expect(
+        effectif?.decoration ?? TextDecoration.none,
+        TextDecoration.none,
+        reason: 'aucun soulignement ne doit rester sur « ${texte.data} »',
+      );
+    }
+
+    final style = tester
+        .widget<DefaultTextStyle>(find.byType(DefaultTextStyle).first)
+        .style;
+    expect(style.decoration, TextDecoration.none);
+  });
+
   test('le constructeur global est bien celui-ci une fois main() passé', () {
     // Garde-fou de câblage : la fonction ne sert à rien si personne ne
     // l'affecte. On ne peut pas exécuter `main()` ici (Firebase), donc on
