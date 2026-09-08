@@ -7,10 +7,13 @@
 
 Les deux binaires ne sont **pas versionnés** (207 Mo et 167 Mo) :
 
-| Fichier | Taille | Usage |
-|---|---|---|
-| `build/app/outputs/bundle/release/app-release.aab` | 207,5 Mo | **à téléverser sur Play** |
-| `build/app/outputs/flutter-apk/app-release.apk` | 167,3 Mo | distribution directe / test |
+| Fichier | Taille | md5 | Usage |
+|---|---|---|---|
+| `build/app/outputs/bundle/release/app-release.aab` | 208,1 Mo | `ad8684c7a3489945fd28d0d28292598b` | **à téléverser sur Play** |
+| `build/app/outputs/flutter-apk/app-release.apk` | 168,7 Mo | — | distribution directe / test |
+
+Construits après intégration de `1985efc` (alignement 16 Ko) : un binaire
+antérieur à ce commit ne porte pas l'alignement que Play contrôle.
 
 ## Vérifié, pas supposé
 
@@ -55,6 +58,19 @@ téléversement** avec `DD:A6:5C:3E…` ci-dessus. Si elle diffère, c'est
 alias `upload` / `storeFile=../upload-keystore.jks`, ce qui ne correspond pas
 au `key.properties` réel. À corriger une fois la bonne clé identifiée — la
 documentation ne doit pas désigner une clé qui ne signe rien.
+
+
+## Alignement 16 Ko — contrôlé
+
+`tools/verifie_alignement_16k.py` (livré par `1985efc`) sur l'AAB produit :
+
+```
+16 bibliotheque(s) 64 bits examinee(s), 0 non conforme(s)
+```
+
+Toutes à 16 ou 64 Ko, sur `arm64-v8a` et `x86_64`. À rejouer après toute mise
+à jour de plugin embarquant des `.so` préconstruites : c'est là que
+l'alignement se perd, sans avertissement au build.
 
 ## Deux pièges rencontrés en produisant ce build
 
