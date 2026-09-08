@@ -39,11 +39,14 @@ void main() {
   const organisateur = UserEntity(id: 'organisateur');
   const quelquunDautre = UserEntity(id: 'intrus');
 
+  /// `sessionEnVol` : `currentUserProvider` n'a ni valeur ni erreur, comme au
+  /// demarrage a froid. `moi` est alors ignore.
   Widget boot({
     required UserEntity? moi,
     required EventEntity? resolu,
     EventEntity? extra,
     bool recap = false,
+    bool sessionEnVol = false,
   }) {
     final router = GoRouter(
       initialLocation: '/events/${event.id}/${recap ? 'recap' : 'edit'}',
@@ -77,7 +80,12 @@ void main() {
 
     return ProviderScope(
       overrides: [
-        currentUserProvider.overrideWith((ref) => Stream.value(moi)),
+        currentUserProvider.overrideWith(
+          (ref) =>
+              sessionEnVol
+                  ? const Stream<UserEntity?>.empty()
+                  : Stream.value(moi),
+        ),
         eventByIdProvider(event.id).overrideWith((ref) async => resolu),
       ],
       child: MaterialApp.router(
@@ -211,4 +219,44 @@ void main() {
     expect(find.byType(EventRecapScreen), findsNothing);
     expect(find.text("Récap réservé à l'organisateur"), findsOneWidget);
   });
+
+  for (final recap in [false, true]) {
+    final quoi = recap ? 'Récap' : 'Édition';
+    testWidgets(
+      "$quoi : session pas encore chargée n'est pas un refus",
+      (tester) async {
+        // Le defaut vu sur SM A515F le 2026-09-08 : la garde tranchait avant
+        // que `currentUserProvider` n'ait emis, et opposait « reserve a
+        // l'organisateur » **a l'organisateur**. Intermittent — le meme lien
+        // ouvrait le formulaire une minute plus tot — et sans rien a
+        // reessayer une fois le refus affiche.
+        //
+        // `moi` est l'organisateur : si la session etait attendue comme il
+        // faut, on verrait le formulaire ; ce qu'on exige ici, au minimum,
+        // c'est de ne pas voir d'accusation.
+        await tester.pumpWidget(
+          boot(
+            moi: organisateur,
+            resolu: event,
+            recap: recap,
+            sessionEnVol: true,
+          ),
+        );
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+        expect(
+          find.textContaining('réservé'),
+          findsNothing,
+          reason: "on ignore encore qui regarde : on ne peut pas refuser",
+        );
+        expect(
+          find.textContaining('réservée'),
+          findsNothing,
+          reason: "on ignore encore qui regarde : on ne peut pas refuser",
+        );
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      },
+    );
+  }
 }

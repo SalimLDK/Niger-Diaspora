@@ -406,8 +406,11 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
 
             const SizedBox(height: 20),
 
-            // Description
-            _buildLabel(l10n.descriptionRequired),
+            // `descriptionRequired` est un message d'erreur (« La description
+            // est requise »), pas un libellé de champ : il s'affichait tel
+            // quel au-dessus du champ. Même correctif que l'écran de création
+            // (create_event_screen.dart), qui porte déjà la note.
+            _buildLabel(l10n.description),
             const SizedBox(height: 8),
             TextFormField(
               controller: _descriptionController,

@@ -41,10 +41,13 @@ void main() {
     isOfficial: true,
   );
 
+  /// `sessionEnVol` : `currentUserProvider` n'a ni valeur ni erreur, comme au
+  /// demarrage a froid. `moi` est alors ignore.
   Widget boot({
     required UserEntity? moi,
     required GroupEntity? resolu,
     GroupEntity? extra,
+    bool sessionEnVol = false,
   }) {
     final router = GoRouter(
       initialLocation: '/groups/grp-1/edit',
@@ -70,7 +73,12 @@ void main() {
 
     return ProviderScope(
       overrides: [
-        currentUserProvider.overrideWith((ref) => Stream.value(moi)),
+        currentUserProvider.overrideWith(
+          (ref) =>
+              sessionEnVol
+                  ? const Stream<UserEntity?>.empty()
+                  : Stream.value(moi),
+        ),
         groupByIdProvider('grp-1').overrideWith((ref) async => resolu),
       ],
       child: MaterialApp.router(
@@ -169,5 +177,27 @@ void main() {
     await tester.tap(sortie);
     await tester.pumpAndSettle();
     expect(find.text('liste'), findsOneWidget);
+  });
+
+  testWidgets("Session pas encore chargée n'est pas un refus", (tester) async {
+    // Meme defaut que la route jumelle des evenements : la garde tranchait
+    // avant que `currentUserProvider` n'ait emis, et opposait « reserve aux
+    // administrateurs » a un administrateur.
+    await tester.pumpWidget(
+      boot(
+        moi: const UserEntity(id: 'createur'),
+        resolu: groupe,
+        sessionEnVol: true,
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(
+      find.textContaining('réservée'),
+      findsNothing,
+      reason: "on ignore encore qui regarde : on ne peut pas refuser",
+    );
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 }

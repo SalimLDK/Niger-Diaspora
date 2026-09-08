@@ -64,17 +64,14 @@ class EventEditRoute extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    // L'identité est lue ici, pas dans la branche `data` : la garde doit
-    // valoir aussi pour l'entité arrivée par `extra`, sinon un appelant
-    // interne mal gardé la contournerait.
-    final me = ref.watch(currentUserProvider).valueOrNull?.id;
-
     return _EventResolver(
       eventId: eventId,
       initialEvent: initialEvent,
+      // La garde s'applique à l'entité d'où qu'elle vienne, `extra` compris :
+      // sinon un appelant interne mal gardé la contournerait.
       builder:
-          (event) =>
-              (me == null || event.organizerId != me)
+          (event, moi) =>
+              (moi == null || event.organizerId != moi)
                   ? _reserveALOrganisateur(
                     context,
                     l10n,
@@ -110,14 +107,12 @@ class EventRecapRoute extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final me = ref.watch(currentUserProvider).valueOrNull?.id;
-
     return _EventResolver(
       eventId: eventId,
       initialEvent: initialEvent,
       builder:
-          (event) =>
-              (me == null || event.organizerId != me)
+          (event, moi) =>
+              (moi == null || event.organizerId != moi)
                   ? _reserveALOrganisateur(
                     context,
                     l10n,
@@ -130,11 +125,19 @@ class EventRecapRoute extends ConsumerWidget {
   }
 }
 
-/// Résolution de l'événement, et les trois états sans contenu qui vont avec.
+/// Résolution de l'événement **et** de l'identité du lecteur, avec les états
+/// sans contenu qui vont avec.
+///
+/// Les deux sont résolus ici, ensemble, pour une raison précise : tant qu'on
+/// ignore qui regarde, on ne peut rien décider. Voir [`build`].
 class _EventResolver extends ConsumerWidget {
   final String eventId;
   final EventEntity? initialEvent;
-  final Widget Function(EventEntity) builder;
+
+  /// Reçoit l'événement et l'identifiant du lecteur, déjà résolus. `moi` vaut
+  /// `null` seulement pour une session réellement absente — jamais pour une
+  /// session en cours de chargement.
+  final Widget Function(EventEntity event, String? moi) builder;
 
   const _EventResolver({
     required this.eventId,
@@ -144,10 +147,29 @@ class _EventResolver extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final initial = initialEvent;
-    if (initial != null) return builder(initial);
-
     final l10n = AppLocalizations.of(context)!;
+
+    // ⚠️ « Pas encore chargé » n'est pas « pas autorisé ».
+    //
+    // `.valueOrNull` rend `null` dans les deux cas, et les confondre fait
+    // afficher « réservé à l'organisateur » **à l'organisateur** : la garde
+    // tranche avant que la session n'ait émis. Vu sur SM A515F le 2026-09-08,
+    // sur un lien qui ouvrait le formulaire une minute plus tôt — donc
+    // intermittent, et sans rien à réessayer une fois le refus affiché.
+    //
+    // On teste l'absence de valeur ET d'erreur plutôt que `isLoading` : ce
+    // dernier est aussi vrai pendant un rafraîchissement, ce qui ferait
+    // clignoter un écran déjà rendu. Une session en erreur, elle, tranche —
+    // on la traite comme absente.
+    final utilisateur = ref.watch(currentUserProvider);
+    if (!utilisateur.hasValue && !utilisateur.hasError) {
+      return _chargement();
+    }
+    final moi = utilisateur.valueOrNull?.id;
+
+    final initial = initialEvent;
+    if (initial != null) return builder(initial, moi);
+
     return ref
         .watch(eventByIdProvider(eventId))
         .when(
@@ -158,19 +180,22 @@ class _EventResolver extends ConsumerWidget {
           // reviendrait à lire le message d'erreur — et à affirmer
           // « supprimé » quand on n'en sait rien.
           data: (event) {
-            if (event != null) return builder(event);
+            if (event != null) return builder(event, moi);
             return _unavailable(context, l10n, ref);
           },
-          loading:
-              () => const Scaffold(
-                body: DesignExitOnlyBody(
-                  fallbackRoute: '/events',
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              ),
+          loading: _chargement,
           error: (_, __) => _unavailable(context, l10n, ref),
         );
   }
+
+  /// Attente — de l'événement ou de l'identité. Avec sa sortie : par lien
+  /// profond il n'y a rien à dépiler derrière.
+  Widget _chargement() => const Scaffold(
+    body: DesignExitOnlyBody(
+      fallbackRoute: '/events',
+      child: Center(child: CircularProgressIndicator()),
+    ),
+  );
 
   Widget _unavailable(
     BuildContext context,

@@ -5,6 +5,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/design_kit.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
@@ -33,8 +34,21 @@ class GroupEditRoute extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+
+    // ⚠️ « Pas encore chargé » n'est pas « pas autorisé ». `.valueOrNull` rend
+    // `null` dans les deux cas ; les confondre fait afficher « réservé aux
+    // administrateurs » à un administrateur, de façon intermittente. Constaté
+    // sur la route jumelle des événements, SM A515F le 2026-09-08.
+    //
+    // Absence de valeur ET d'erreur plutôt que `isLoading` : ce dernier vaut
+    // aussi pendant un rafraîchissement et ferait clignoter l'écran. Une
+    // session en erreur tranche — traitée comme absente.
+    final utilisateur = ref.watch(currentUserProvider);
+    if (!utilisateur.hasValue && !utilisateur.hasError) return _chargement();
+    final moi = utilisateur.valueOrNull;
+
     final initial = initialGroup;
-    if (initial != null) return _guard(context, ref, l10n, initial);
+    if (initial != null) return _guard(context, l10n, moi, initial);
 
     return ref
         .watch(groupByIdProvider(groupId))
@@ -45,30 +59,31 @@ class GroupEditRoute extends ConsumerWidget {
           // ici reviendrait à lire le message d'erreur — et à affirmer
           // « supprimé » quand on n'en sait rien.
           data: (group) {
-            if (group != null) return _guard(context, ref, l10n, group);
+            if (group != null) return _guard(context, l10n, moi, group);
             return _unavailable(context, l10n, ref);
           },
-          loading:
-              () => const Scaffold(
-                body: DesignExitOnlyBody(
-                  fallbackRoute: '/groups',
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              ),
+          loading: _chargement,
           error: (_, __) => _unavailable(context, l10n, ref),
         );
   }
+
+  /// Attente — du groupe ou de l'identité —, avec sa sortie.
+  Widget _chargement() => const Scaffold(
+    body: DesignExitOnlyBody(
+      fallbackRoute: '/groups',
+      child: Center(child: CircularProgressIndicator()),
+    ),
+  );
 
   /// Le même test que la fiche de groupe, y compris le repli superAdmin sur
   /// les groupes officiels (cf. `group_detail_screen.dart`) : sans lui, un
   /// superAdmin se verrait refuser une édition que RLS accepterait.
   Widget _guard(
     BuildContext context,
-    WidgetRef ref,
     AppLocalizations l10n,
+    UserEntity? me,
     GroupEntity group,
   ) {
-    final me = ref.watch(currentUserProvider).valueOrNull;
     final autorise =
         me != null &&
         (group.creatorId == me.id ||

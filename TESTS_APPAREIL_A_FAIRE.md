@@ -14,6 +14,40 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⚠️→✅ La garde d'organisateur refusait l'organisateur (2026-09-08)
+
+Trouvé **en vérifiant autre chose** : le A51, compte organisateur, affichait
+« Modification réservée à l'organisateur » sur un lien qui avait ouvert le
+formulaire une minute plus tôt.
+
+La cause est dans la garde que je venais d'écrire :
+`ref.watch(currentUserProvider).valueOrNull` rend `null` aussi bien pour
+« déconnecté » que pour « pas encore chargé », et je traitais les deux comme
+un refus. Au démarrage à froid — précisément le cas du lien profond — la
+session n'a pas encore émis : **la garde tranchait avant de savoir qui
+regarde**. Défaut intermittent, et l'écran de refus n'offre rien à réessayer.
+
+Corrigé dans les trois routes gardées : on attend que la session soit
+*résolue* (valeur **ou** erreur) avant de décider ; en attendant, l'état de
+chargement, qui a sa sortie. Le test porte sur l'absence de valeur et
+d'erreur plutôt que sur `isLoading`, ce dernier étant aussi vrai pendant un
+rafraîchissement — il ferait clignoter un écran déjà rendu.
+
+- [x] A51 (organisateur), **démarrage à froid** : « Modifier l'événement »
+      s'ouvre. C'est la condition exacte qui produisait le faux refus.
+- [x] Pixel (non-organisateur) : « Modification réservée à l'organisateur »
+      s'affiche toujours — la correction n'a pas ouvert la porte.
+- [x] L'étiquette du champ description dit « Description » et non plus
+      « La description est requise ».
+
+À retenir : **`.valueOrNull` sur une session ne peut pas décider d'une
+autorisation.** Le motif se lit bien, passe l'analyse, passe les tests qui
+donnent une session immédiate, et ne se voit qu'au démarrage à froid sur
+appareil. Les autres écrans s'en tirent parce qu'ils dégradent en douceur
+(un bouton masqué) au lieu d'accuser.
+
+---
+
 ## ✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)
 
 Même famille que la fiche d'ambassade ci-dessous, mais en plus brutal : là où
