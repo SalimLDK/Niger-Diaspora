@@ -156,10 +156,11 @@ suit n'a été vu sur un téléphone.
 - [x] **Origine serveur vue sur SM A515F (2026-09-07).** Le pied affiche la
       source et « consultée le 2026-09-07 », **sans** mention d'origine hors
       ligne : la chaîne Supabase répond donc de bout en bout sur l'appareil.
-- [ ] ⛔ **Origine hors ligne : NON VÉRIFIABLE aujourd'hui.** Réseau coupé,
-      l'écran des ambassades tombe en erreur (voir la section « Annuaire »
-      ci-dessous) et plus aucun chemin ne mène à l'écran des démarches. À
-      refaire une fois l'annuaire corrigé.
+- [ ] ⛔ **Origine hors ligne : toujours pas vérifiée.** L'écran des
+      démarches ne tombe plus lui-même (ses 4 `.value` sont corrigés), mais
+      l'annuaire reste son unique chemin d'accès et lui tombe encore hors
+      ligne pour la même raison — voir la section « Annuaire » ci-dessous. À
+      refaire dès que ses lignes 56 et 63 seront traitées.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
       liste embarquée, pas un spinner ni une erreur. (Même blocage que
       ci-dessus.)
@@ -238,23 +239,34 @@ hostname, errno = 7)))
       lecture. Un canal realtime injoignable ne devrait pas empêcher
       d'afficher la copie locale.
 
-**3. Hors ligne, l'annuaire reste vide même après un chargement réussi.**
-Deuxième essai le 2026-09-07, APK reconstruit après la correction `01353ac`,
-téléphone en mode avion : l'écran n'affiche plus l'exception brute (bien) mais
-« Aucune ambassade disponible » — pas la copie locale, alors que les 30 postes
-s'étaient affichés quelques minutes plus tôt sur le même appareil.
+**3. La vraie cause du n°2 : `.value` sur un `AsyncValue` en erreur.**
+Le cas propre a été refait le 2026-09-08 (chargement en ligne, **sans
+réinstaller**, puis mode avion). Deux constats.
 
-⚠️ **Réserve : ce constat n'est pas concluant seul.** L'APK avait été
-réinstallé entre les deux, et je n'ai pas vérifié que la copie locale avait
-survécu à la réinstallation — le cache peut légitimement être vide. Le cas
-propre reste à faire : charger la liste en ligne, **sans réinstaller**, puis
-couper le réseau et rouvrir.
+D'abord, un piège de méthode : **`adb install -r` vide la copie locale**.
+Mon premier essai « hors ligne » avait été fait juste après une
+réinstallation, donc sur un cache vide — d'où le « Aucune ambassade
+disponible » que j'avais pris pour un défaut. Ce n'en était pas un. Sans
+réinstaller, l'annuaire sert bien ses 30 postes hors ligne.
 
-- [ ] Refaire ce cas proprement, et si la liste est bien vide alors qu'elle
-      venait d'être mise en cache, chercher du côté de
-      `EmbassiesRepositoryImpl` : sa branche hors ligne renvoie `[]` dès que
-      `getLastEmbassies()` lève, et un `[]` ne se distingue pas d'une base
-      vide à l'écran. C'est la même mise en scène que le défaut n°1.
+Ensuite le vrai défaut. `embassies_provider.dart` lignes 56 et 63 font
+`userAsync.value` et `profileAsync.value` sur des providers **observés**. En
+Riverpod 2, `AsyncValue.value` **relève** l'erreur au lieu de rendre `null`
+quand l'état est `AsyncError`. Hors ligne, la lecture Supabase `users` échoue,
+la levée remonte, et tout l'annuaire tombe — en affichant l'hôte Supabase et
+l'identifiant du compte, alors que la copie locale attendait juste en dessous.
+
+Le même défaut existait dans `administrative_request_screen.dart` (4
+occurrences, dont deux dans `initState`, donc levée avant tout rendu) : **il y
+est corrigé**, `.value` → `.valueOrNull`.
+
+- [ ] Corriger les lignes 56 et 63 de `embassies_provider.dart`. ⚠️ J'ai
+      essayé et **je suis revenu en arrière** : passer à `valueOrNull` laisse
+      le code atteindre `repository.getEmbassies()`, qui attend l'expiration
+      du délai réseau — l'écran reste alors en **attente indéfinie** (plus de
+      70 s constatées), sans message ni bouton « Réessayer ». Ce n'est pas
+      mieux qu'une erreur. La correction doit traiter les deux bouts : ne plus
+      relever, **et** ne pas partir sur le réseau quand il n'y en a pas.
 
 ---
 
@@ -9572,14 +9584,24 @@ la liste s'affiche.
       (Non testé : le cache était déjà peuplé, et le vider demande de
       désinstaller — ce qui coûte la session Firebase.)
 
-⚠️ **Reste ouvert, même famille de défaut** : `embassy_message_screen.dart`
-(lignes 60 et 66) lit encore `ref.read(currentUserAsyncProvider).value` et
-`profileAsync.value`. Moins grave que les précédents — l'appel est dans un
-`try` d'action asynchrone, donc l'erreur est attrapée et devient une SnackBar
-plutôt qu'un écran rouge — mais c'est le même piège. Non corrigé ici pour ne
-pas empiéter : l'autre agent balaie ce motif en ce moment même dans
-`administrative_request_screen.dart` (mêmes lignes, même diagnostic, même
-appareil, non encore poussé).
+**`embassy_message_screen.dart` corrigé** (2026-09-08) — `.value` →
+`.valueOrNull` sur les lignes 60 et 66, plus deux choses trouvées en ouvrant
+le fichier : la chaîne « Message envoyé avec succès! » était en dur alors que
+la clé `embassyMessageSent` existait déjà avec exactement ce texte, et
+`'Erreur: ${e.toString()}'` aurait affiché l'hôte Supabase dans une SnackBar
+(3ᵉ occurrence du motif ce jour).
+
+- [ ] **Non vérifié sur appareil** : le chemin d'erreur hors ligne de cet
+      écran, qui est justement là où le correctif change quelque chose de
+      visible (message générique au lieu de la trace brute). La tentative du
+      2026-09-08 a été **jetée** : le mode avion a été coupé pendant la
+      mesure, donc impossible de dire si la liste venait du cache ou du
+      réseau. À refaire d'un bloc, sans changement d'état réseau au milieu.
+
+⚠️ **Reste ouvert, même famille** : `administrative_request_screen.dart`
+(lignes 103, 107, 141, 145). Non corrigé ici volontairement — l'autre agent
+l'avait en cours sur exactement ces lignes, avec le même diagnostic, au moment
+où j'ai trouvé le défaut.
 - [x] **✅ SM A515F** — Berlin affiche « Autres lignes : +49 30 80 58 96 61 »
       et « Fax : +49 30 80 58 96 62 ».
 - [ ] La réserve `data_notes` s'affiche sur les fiches concernées (Abidjan,

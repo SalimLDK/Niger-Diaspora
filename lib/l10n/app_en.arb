@@ -6967,5 +6967,6 @@
   "embassyOtherPhones": "Other lines",
   "embassyDataNote": "Note on this record",
   "embassySourceLine": "Source: {source}, checked on {date}",
-  "embassyLoadError": "Could not load the directory. Check your connection and try again."
+  "embassyLoadError": "Could not load the directory. Check your connection and try again.",
+  "embassyMessageSendError": "Could not send the message. Check your connection and try again."
 }
