@@ -55,6 +55,114 @@ faire deux fois et le rendu divergeait.
 
 ---
 
+## ⚠️ Déconnexion — latence supprimée, à vérifier sur appareil
+
+Appuyer sur **Déconnexion** laissait l'écran figé plusieurs secondes, sans
+aucun retour visuel. Le chemin enchaînait **sept allers-retours réseau en
+série** avant que le routeur ne sorte, dont une moitié inutile :
+
+- `AuthRepositoryImpl.signOut()` appelait `getCurrentUser()` — trois requêtes
+  Supabase (échange du jeton Firebase, upsert du compte, lecture du profil) —
+  uniquement pour obtenir un uid que `FirebaseAuth.currentUser` a en mémoire ;
+- `removeTokenForUser()` était appelé **deux fois**, par l'écran de profil et
+  par le repository : deux fois `ensureAuthenticated` + SELECT + UPDATE ;
+- le datasource attendait l'init de Google Sign-In (Play Services, ~1 s même
+  pour un compte e-mail qui n'y touchera jamais) puis la révocation gotrue,
+  avant de faire le seul geste qui déconnecte vraiment — effacer le jeton
+  Firebase local, quelques millisecondes.
+
+Désormais `signOut()` rend la main dès que le jeton Firebase est effacé ; le
+ménage distant (jeton FCM, révocation Supabase, compte Google) part en tâche
+de fond, dans cet ordre car la révocation coupe la session dont le retrait du
+jeton a besoin. La purge locale (Hive, préférences, pièces jointes en clair)
+reste attendue : elle décide de ce dont le compte suivant hérite.
+
+Fichiers : `lib/features/auth/data/repositories/auth_repository_impl.dart`,
+`lib/features/auth/data/datasources/auth_remote_datasource.dart`,
+`lib/features/profile/presentation/screens/profile_screen.dart`.
+
+- [ ] **Délai perçu** : Profil → Déconnexion → l'écran de connexion doit
+      apparaître immédiatement (< 0,5 s), pas après plusieurs secondes de
+      blanc. À mesurer aussi en 3G lente / réseau dégradé, où l'ancien chemin
+      était le plus pénible.
+- [ ] **Jeton FCM réellement retiré** : se déconnecter, attendre ~10 s, puis
+      vérifier en base que `users.fcm_tokens` ne contient plus le jeton de cet
+      appareil. C'est la partie déplacée en tâche de fond — si elle échoue,
+      le téléphone continue de sonner pour l'ancien compte.
+- [ ] **Session Supabase périmée** : laisser l'app en arrière-plan plus d'une
+      heure (le timer de renouvellement du pont ne tourne pas en veille), la
+      rouvrir, se déconnecter aussitôt. C'est le seul cas où `signOut()`
+      attend encore quelque chose de réseau : une re-mint bornée à 3 s, sans
+      laquelle le jeton FCM resterait en base. Mesurer le délai perçu, et
+      revérifier que `fcm_tokens` est bien nettoyé.
+- [ ] **Reconnexion immédiate** : se déconnecter puis se reconnecter aussitôt
+      sur **un autre compte**, et vérifier qu'aucune donnée du compte
+      précédent ne subsiste (brouillons, hashtags suivis, pièces jointes
+      téléchargées) — la purge locale est attendue, mais le ménage distant
+      tourne encore pendant la saisie des identifiants.
+- [ ] **Compte Google** : se déconnecter d'un compte connecté via Google, puis
+      relancer une connexion Google — le sélecteur de compte doit réapparaître
+      (c'est `_googleSignIn.signOut()`, désormais en tâche de fond).
+- [ ] **Déconnexion hors ligne** : mode avion, Déconnexion — doit sortir
+      immédiatement sur l'écran de connexion (le réseau n'est plus sur le
+      chemin critique) sans message d'erreur.
+
+---
+
+## ✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)
+
+Signalé par Salim sur le Pixel 10 Pro XL, jamais vu sur le SM A515F — et pour
+cause : le défaut ne dépend pas du modèle mais de **deux réglages** que ce
+téléphone-là cumule, `wm density` surchargée à **440** (392 dp de large au lieu
+de 411) et `settings get system font_scale` à **1.3**.
+
+La rangée « Connexions / Groupes / Événements / Publications » posait ses
+quatre colonnes à leur largeur naturelle dans une `Row` (`spaceEvenly`, aucun
+`Expanded`). Les libellés tiennent tout juste dans les ~320 dp utiles de la
+carte à l'échelle 1.0 ; à 1.3 ils débordent. Deux correctifs :
+
+- les quatre colonnes se partagent la largeur (`Expanded`), et à l'intérieur le
+  compteur et le libellé passent en `FittedBox(scaleDown)` — ils rétrécissent
+  au lieu de déborder, sans jamais grossir (rendu inchangé à l'échelle 1.0) ;
+- `DesignSectionLabel` (kit, donc **toute l'app**) rendait son libellé sans
+  contrainte : `Flexible` sans `maxLines`, il se replie sur deux lignes au lieu
+  de déborder. Trouvé au banc à l'échelle 2.0, pas signalé par Salim.
+
+Verrouillé par `test/features/profile/profile_screen_overflow_test.dart`
+(échelles 1.0 / 1.3 / 2.0, géométrie du Pixel). **Les deux correctifs sont
+vérifiés par mutation** : sans le premier le banc échoue aux trois échelles,
+sans le seul second il échoue à 2.0.
+
+⚠️ **La police de banc rend chaque glyphe carré (1 em)** : les 300 px reproduits
+ne sont pas les pixels vus à l'écran. Le banc prouve que la mise en page ne
+dépend plus de la longueur des libellés, pas l'ampleur du défaut.
+
+**Le banc ne voyait pas tout.** Une fois le débordement supprimé, la première
+capture appareil a montré un second défaut qu'aucune assertion n'attrape :
+les libellés remplissaient leur colonne **au pixel près**, donc « Connexions »
+chevauchait le filet et « Événements » / « Publications » se touchaient. Une
+gouttière de 6 dp par colonne (12 dp autour de chaque filet) règle ça — les
+libellés rétrécissent d'autant, ils restent entiers.
+
+**✅ Vérifié sur Pixel 10 Pro XL le 2026-09-08** (id `58221FDCQ0085Z`, thème
+sombre, densité 440 + `font_scale` 1.3, APK debug du worktree — `md5sum` local
+et `md5sum` sur l'appareil identiques, `9793305acf2ea0dc2478ec436b3a7bba`) :
+
+- [x] Profil : plus de bandeau jaune et noir à droite de la carte de
+      statistiques, et `logcat | grep overflowed` reste vide sur tout le
+      défilement de l'écran.
+- [x] Les quatre libellés restent lisibles en entier (pas de troncature) et les
+      quatre compteurs restent alignés.
+- [x] Les libellés ne se touchent plus et ne chevauchent plus les filets.
+- [x] Libellés de section (`DesignSectionLabel`) : « ACTIONS DU COMPTE » tient
+      sur une ligne, sans débordement.
+- [ ] Un compteur à **trois chiffres** ne déforme pas sa colonne — pas
+      vérifiable sur ce compte (4 / 2 / 0 / 1). Couvert au banc seulement.
+- [ ] Rendu en thème **clair** : jamais regardé.
+
+
+---
+
 ## ⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)
 
 `public/` (déployé sur `diasponiger.web.app`). Rien ici n'est couvert par
@@ -220,19 +328,26 @@ suit le même drapeau, inchangé.
       vérifier que le bandeau rouge s'affiche toujours, avec sa date de
       réouverture.
 
-#### ⚠️ La capture Play `02_fiche.png` est périmée par ce commit
+#### ✅ La capture Play de la fiche : soldé en la retirant
 
-`releases/1.2.1+11/play/screenshots/02_fiche.png` (« Adresse, contact et
-itinéraire de chaque poste ») montre le bandeau vert **« Ouvert »** en tête de
-l'onglet *Infos* — il n'existe plus. Publier la fiche Store telle quelle
-montrerait un écran que l'app ne rend pas, et rappellerait justement
-l'affirmation qu'on vient de retirer.
+La capture livrée alors (« Adresse, contact et itinéraire de chaque poste »)
+montrait le bandeau vert « Ouvert » en tête de l'onglet *Infos*, qui n'existe
+plus. Elle a d'abord été reprise sur un build incluant ce commit, puis
+**retirée de la série** : sans horaires ni bandeau, l'écran ne montre plus
+qu'une adresse, un fax et quatre boutons, et son élément le plus visible est un
+encart signalant un numéro de fax erroné — utile dans l'app, mauvais argument
+sur une fiche boutique.
 
-- [ ] Reprendre `02_fiche.png` après un build incluant ce commit (le cadre
-      commence maintenant directement par l'adresse).
+⚠️ **La liste, elle, affiche toujours « ● Ouvert »** sur sa carte « Le plus
+proche » (`embassies_screen.dart`, `_NearestEmbassyCard`), en vert, calculé sur
+le seul `isTemporarilyClosed` — sans lire le moindre horaire, exactement ce que
+ce commit vient de retirer de la fiche de détail. La capture 2 de la série Play
+le montre donc. Deux écrans, deux traitements du même drapeau.
 
-Les quatre autres captures ne sont pas concernées : `01_ambassades.png` est la
-liste, dont l'item n'affiche que le badge « Fermé » (drapeau inchangé).
+- [ ] Trancher : soit la carte « Le plus proche » perd son état « Ouvert »
+      comme la fiche, soit les deux le retrouvent quand des horaires existeront
+      en base. En l'état, la fiche boutique affiche une mention qui ne repose
+      sur rien.
 
 ## ⬜ Publication Play Store 1.2.1+11 — build release à valider (2026-09-08)
 
@@ -294,16 +409,24 @@ la position avec la seule permission de premier plan.
 
 Les captures livrées sont composées en 1080×1920 : les deux appareils sont en
 1080×2400 (2,22:1) et Google refuse un côté long supérieur au double du côté
-court. Les copies d'écran intégrées viennent du build release.
+court. Les copies d'écran intégrées viennent d'un build **debug** de l'arbre
+fusionné — pas du release, voir l'encadré ci-dessus : le rendu est identique,
+la source étant la même, mais ce n'est pas le binaire téléversé.
 
 - ⬜ Relire les captures livrées : aucune donnée personnelle réelle visible
       (nom, numéro, adresse, photo d'un tiers) avant publication.
-      À ce stade, `05_accueil.png` montre le prénom « Sim » et « Montréal,
-      Canada » — données du compte de test, à valider ou à masquer.
+      À ce stade, `01_accueil.png` montre le prénom « Salim » et une distance
+      « 1,2 km », et `07_profil.png` le pseudo « @sim » avec « Montréal » —
+      données des comptes de test, à valider ou à masquer.
 - [x] **Sept captures prises sur SM A515F le 2026-09-08** : accueil (défilé),
       annuaire des postes, liste des démarches, formulaire de demande, carte
       (mode privé), groupes « Découvrir », profil. Build de l'arbre fusionné,
       md5 local et appareil comparés avant chaque prise.
+- ⚠️ **L'appareil a été basculé en thème Clair + accent Vert (Défaut)** pour
+      ces prises, et **y est resté**. Les captures de la fiche Play en ligne
+      sont en clair et en vert, et le vert est le défaut de l'app face à
+      « Orange (Classique) ». Toute vérification ultérieure qui suppose
+      « sombre + orange » doit d'abord rebasculer le réglage.
 - La fiche d'un poste a été **capturée puis retirée** : après la mise en
       sommeil des horaires et du bandeau « Ouvert », elle ne montre plus
       qu'une adresse, un fax et quatre boutons, et son encart le plus visible
@@ -801,6 +924,21 @@ suit n'a été vu sur un téléphone.
       avion. Le catalogue vient du cache, toutes les pièces s'affichent, et le
       bandeau « Formulaire pré-rempli » disparaît de lui-même puisque le
       profil n'est pas joignable — la dégradation voulue.
+- [ ] **En ligne, le pré-remplissage n'a jamais été vu se remplir.** Ouvrir
+      « Demande » avec du réseau et vérifier que le nom, le téléphone et
+      l'e-mail arrivent du profil, et que le bandeau vert « Formulaire
+      pré-rempli » s'affiche — par les **deux** chemins, qui n'ouvrent pas les
+      mêmes providers : annuaire → fiche → « Demande », puis à froid par lien
+      profond `diasponiger://embassies/<id>` → « Demande ».
+
+      C'est ce qui valide la tolérance posée sur cet écran dans
+      `test/core/providers/autodispose_read_guard_test.dart`. La lecture
+      synchrone de `currentUserAsyncProvider` y est acceptée sur un seul
+      argument : `embassiesListProvider` est `keepAlive` et regarde les deux
+      providers que lit `_preFillFromProfile`, et les deux chemins vers le
+      formulaire passent par lui. Si le bandeau manque **par lien profond
+      seulement**, l'argument est faux et la méthode doit passer en `async`
+      (`unawaited(...)` + `await ref.read(...future)` sous `try`).
 - [ ] ⛔ **Le suffixe d'origine du pied de source reste non vu.** Il devrait
       afficher « · liste enregistrée hors ligne » (cache) ou « · liste fournie
       avec l'application » (asset). C'est le seul élément d'affichage de cet

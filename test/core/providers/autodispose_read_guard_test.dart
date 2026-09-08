@@ -86,6 +86,17 @@ void main() {
       // appelé depuis `initState`. Ne rien pré-remplir est le bon repli : le
       // demandeur saisit ses champs à la main. Le `.value` d'origine, lui,
       // RELEVAIT hors ligne et tuait l'écran entier (SM A515F, 2026-09-08).
+      //
+      // Et la lecture n'y est pas affamée, contrairement au motif visé plus
+      // haut : `embassiesListProvider` est `keepAlive` et regarde LES DEUX
+      // providers lus ici (`currentUserAsyncProvider` et
+      // `userStreamProvider(user.id)`). Or les deux seuls chemins vers ce
+      // formulaire passent par lui — l'annuaire le regarde, et le lien
+      // profond `/embassies/:id` l'attend via `embassyByIdProvider` — donc
+      // les abonnements sont ouverts depuis plusieurs écrans quand
+      // `initState` s'exécute, pas depuis l'instant du tap. Passer la
+      // méthode en `async` n'ajouterait qu'un `await` capable de relever
+      // hors ligne, ce que 343e877 venait justement de retirer de cet écran.
       'lib/features/embassies/presentation/screens/administrative_request_screen.dart',
     };
 

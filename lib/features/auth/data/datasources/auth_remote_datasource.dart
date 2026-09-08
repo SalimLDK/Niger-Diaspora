@@ -29,6 +29,17 @@ abstract class AuthRemoteDataSource {
 
   Future<void> signOut();
 
+  /// Revoque ce qui ne l'est pas par [signOut] : session Supabase et compte
+  /// Google memorise. Reseau et Play Services, donc hors du chemin critique.
+  Future<void> revokeRemoteSessions();
+
+  /// Identifiant du compte connecte, lu dans la session Firebase locale.
+  ///
+  /// `getCurrentUser()` repond a la meme question au prix de trois
+  /// allers-retours Supabase : hors de question sur un chemin qui doit rendre
+  /// la main tout de suite.
+  String? get currentUserId;
+
   Future<void> deleteAccount();
 
   Future<void> reauthenticateWithPassword(String password);
@@ -243,13 +254,40 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
+  String? get currentUserId => _firebaseAuth.currentUser?.uid;
+
+  @override
   Future<void> signOut() async {
     try {
-      await _ensureGoogleSignInInitialized();
-      await SupabaseAuthBridge.instance.signOut();
-      await Future.wait([_firebaseAuth.signOut(), _googleSignIn.signOut()]);
+      // Seul geste qui deconnecte reellement : effacer le jeton Firebase du
+      // stockage de l'appareil. Local, quelques millisecondes.
+      //
+      // Les trois autres etapes d'autrefois etaient attendues ici : init Google
+      // Sign-In (Play Services, ~1 s meme pour quelqu'un connecte par e-mail
+      // qui n'y touchera jamais), revocation gotrue (reseau) et oubli du compte
+      // Google. Aucune ne change le fait d'etre deconnecte ; toutes retardaient
+      // l'ecran. Elles vivent dans [revokeRemoteSessions], appele en tache de
+      // fond par le repository.
+      await _firebaseAuth.signOut();
     } catch (e) {
       throw ServerException('Echec de la deconnexion');
+    }
+  }
+
+  @override
+  Future<void> revokeRemoteSessions() async {
+    // Best-effort, et chaque etape echoue seule : un echec de gotrue ne doit
+    // pas empecher d'oublier le compte Google, et reciproquement.
+    try {
+      await SupabaseAuthBridge.instance.signOut();
+    } catch (e) {
+      dev.log('Revocation de la session Supabase: $e', name: _tag);
+    }
+    try {
+      await _ensureGoogleSignInInitialized();
+      await _googleSignIn.signOut();
+    } catch (e) {
+      dev.log('Oubli du compte Google: $e', name: _tag);
     }
   }
 

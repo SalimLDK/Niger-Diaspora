@@ -5,7 +5,7 @@
 
 ## Artefacts
 
-Les deux binaires ne sont **pas versionnés** (207 Mo et 167 Mo) :
+Les deux binaires ne sont **pas versionnés** (208 Mo et 169 Mo) :
 
 | Fichier | Taille | md5 | Usage |
 |---|---|---|---|
@@ -74,7 +74,7 @@ l'alignement se perd, sans avertissement au build.
 
 ## Deux pièges rencontrés en produisant ce build
 
-**1. `BUNDLE-METADATA` gonfle l'AAB sans compter pour Play.** Les 207 Mo
+**1. `BUNDLE-METADATA` gonfle l'AAB sans compter pour Play.** Les 208 Mo
 alarment à tort : 112 Mo de symboles natifs (`debugSymbolLevel = FULL`) et
 11 Mo de mapping R8 vivent dans `BUNDLE-METADATA/`, que Google n'empaquette
 pas dans les APK livrés. Le contenu réel fait ~84 Mo répartis sur trois ABI,

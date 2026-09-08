@@ -114,7 +114,7 @@ ANNUAIRE
 Application en français, utilisable sur Android 7.0 et versions ultérieures.
 
 Support : support@diasponiger.com
-Confidentialité : https://www.diasponiger.com/privacy
+Confidentialité : https://diasponiger.com/privacy-policy
 ```
 
 ## 4. Nouveautés (500 caractères max)
@@ -138,9 +138,10 @@ Confidentialité : https://www.diasponiger.com/privacy
 | Type | Application |
 | Public cible | **Adolescents** — c'est la classification déjà en vigueur sur la fiche en ligne ; à conserver sauf raison de la changer |
 | Tarif | Gratuit, avec achats intégrés |
-| Site web | https://www.diasponiger.com |
+| Site web | https://diasponiger.com |
 | Contact | support@diasponiger.com |
-| Confidentialité | https://www.diasponiger.com/privacy |
+| Confidentialité | https://diasponiger.com/privacy-policy |
+| Suppression de compte | https://diasponiger.com/delete-account |
 
 ---
 
@@ -253,14 +254,19 @@ L'ancien `feature_graphic.png` de la racine faisait **1024×1024** : il aurait
    que vous bloquez », avec un bouton ACTIVER explicite. C'est exactement
    l'information préalable que Google exige, et elle filme bien : c'est le
    plan d'ouverture de la vidéo de démonstration. Capture livrée en
-   `play/screenshots/03_carte.png`.
+   `play/screenshots/05_carte.png`.
 2. **Achats intégrés** à déclarer (RevenueCat présent).
 3. **Sécurité des données** : position, contacts, photos, messages,
    identifiants — chaque poste à renseigner et à faire correspondre au code.
 4. **Classification du contenu** : contenu généré par les utilisateurs +
    messagerie ⇒ questionnaire à remplir en conséquence, pas « Tout public ».
-5. **Politique de confidentialité** : l'URL doit être vivante au moment de
-   l'examen.
+5. **Politique de confidentialité** : vérifiée le 2026-09-08,
+   `https://diasponiger.com/privacy-policy` répond **200**. Attention, la
+   variante `www.diasponiger.com/privacy` — qui figurait dans une première
+   version de cette fiche — **ne résout pas** (erreur de connexion). Les CGU
+   (`/terms-of-service`) et la page de **suppression de compte**
+   (`/delete-account`, exigée par Play dès qu'il y a des comptes) répondent
+   200 elles aussi.
 
 ---
 

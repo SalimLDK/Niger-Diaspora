@@ -1524,14 +1524,20 @@ class DesignSectionLabel extends StatelessWidget {
       padding: padding ?? const EdgeInsets.fromLTRB(0, 18, 0, 10),
       child: Row(
         children: [
-          Text(
-            text.toUpperCase(),
-            style: GoogleFonts.robotoMono(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.1,
-              color: (color ?? context.adaptivePrimaryColor).withValues(
-                alpha: 0.85,
+          // `Flexible` : à forte échelle de police, un libellé de section un
+          // peu long (« PARAMÈTRES DE CONFIDENTIALITÉ ») débordait la rangée
+          // par la droite. Sans `maxLines`, il se replie sur deux lignes au
+          // lieu d'être tronqué — rien n'est perdu.
+          Flexible(
+            child: Text(
+              text.toUpperCase(),
+              style: GoogleFonts.robotoMono(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 1.1,
+                color: (color ?? context.adaptivePrimaryColor).withValues(
+                  alpha: 0.85,
+                ),
               ),
             ),
           ),
