@@ -20,6 +20,7 @@ import '../../../feed/presentation/screens/saved_posts_screen.dart'
 import '../providers/profile_provider.dart';
 import '../widgets/share_profile_modal.dart';
 import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -1102,7 +1103,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${l10n.error}: $e'),
+          content: Text(messageErreurUsager(e)),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(

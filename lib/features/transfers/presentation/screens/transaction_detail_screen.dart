@@ -13,6 +13,7 @@ import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/transfer_failure_kind.dart';
 import '../providers/transfer_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class TransactionDetailScreen extends ConsumerWidget {
   final String transactionId;
@@ -53,7 +54,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                 children: [
                   Icon(Icons.error_outline, size: 48, color: context.errorColor),
                   const SizedBox(height: 16),
-                  Text('Erreur: $error'),
+                  Text(messageErreurUsager(error)),
                 ],
               ),
             ),

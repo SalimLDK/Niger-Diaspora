@@ -9,6 +9,7 @@ import '../../domain/entities/review_entity.dart';
 import '../providers/review_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'star_rating_input.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class ReviewFormModal extends ConsumerStatefulWidget {
   final String businessId;
@@ -188,7 +189,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
       if (mounted) {
         setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text(messageErreurUsager(e))),
         );
       }
     }

@@ -9,6 +9,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/payment_history_item.dart';
 import '../providers/payment_history_provider.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class PaymentHistoryScreen extends ConsumerWidget {
   const PaymentHistoryScreen({super.key});
@@ -151,7 +152,7 @@ class PaymentHistoryScreen extends ConsumerWidget {
               },
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, _) => Center(
-                child: Text('${l10n.error}: $error'),
+                child: Text(messageErreurUsager(error)),
               ),
             ),
           ),

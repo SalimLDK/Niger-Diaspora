@@ -70,7 +70,11 @@ class EmbassyDetailScreen extends StatelessWidget {
                     onPressed:
                         () => context.canPop() ? context.pop() : context.go('/embassies'),
                   ),
-                  expandedHeight: 200.0,
+                  // 140 et non 200 : ce bandeau est prevu pour une image de
+                  // couverture, or aucune fiche officielle n'en a (`imageUrl`
+                  // est nul sur les 32). Il ne reste que le gabarit, autant
+                  // qu'il ne mange pas un quart de l'ecran.
+                  expandedHeight: 140.0,
                   floating: false,
                   pinned: true,
                   backgroundColor: Theme.of(context).primaryColor,
@@ -80,16 +84,31 @@ class EmbassyDetailScreen extends StatelessWidget {
                       children: [
                         // Placeholder for cover image (could be map or flag)
                         Container(
-                          color: Theme.of(
-                            context,
-                          ).primaryColor.withValues(alpha: 0.1),
-                          child: Center(
-                            child: Icon(
-                              Icons.account_balance,
-                              size: 80,
-                              color: Theme.of(
-                                context,
-                              ).primaryColor.withValues(alpha: 0.5),
+                          // `primaryColor` a 10 % sur un fond sombre ne se
+                          // voit pas, et l'icone a 50 % passait sous le
+                          // degrade : le bandeau etait uniformement noir.
+                          color:
+                              Theme.of(context).colorScheme.surfaceContainerHighest,
+                          // En haut a droite, pas au centre : le titre tient
+                          // sur deux lignes et remontait par-dessus l'icone.
+                          // La fleche de retour occupe deja le coin gauche.
+                          child: Align(
+                            alignment: Alignment.topRight,
+                            child: Padding(
+                              // Le bandeau passe SOUS la barre d'etat : sans
+                              // ce decalage l'icone se superposait a l'heure
+                              // et a la batterie.
+                              padding: EdgeInsets.only(
+                                top: MediaQuery.paddingOf(context).top + 8,
+                                right: 16,
+                              ),
+                              child: Icon(
+                                Icons.account_balance,
+                                size: 40,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.55),
+                              ),
                             ),
                           ),
                         ),
@@ -102,13 +121,18 @@ class EmbassyDetailScreen extends StatelessWidget {
                                 Colors.transparent,
                                 Colors.black.withValues(alpha: 0.6),
                               ],
-                              stops: const [0.6, 1.0],
+                              // 0.35 et non 0.6 : le titre tient desormais
+                              // sur deux lignes et depassait la zone assombrie.
+                              stops: const [0.35, 1.0],
                             ),
                           ),
                         ),
                       ],
                     ),
                     title: Row(
+                      // Aligne sur la derniere ligne du titre : centre, le
+                      // badge flottait entre les deux lignes.
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
                           child: Text(
@@ -118,34 +142,53 @@ class EmbassyDetailScreen extends StatelessWidget {
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
-                            maxLines: 1,
+                            // Deux lignes : les noms officiels sont longs
+                            // (« Ambassade du Niger en Afrique du Sud »), et
+                            // `FlexibleSpaceBar` agrandit encore le titre
+                            // quand l'en-tete est deplie -- on lisait
+                            // « Ambassade du Niger … ».
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (embassy.isVerified) ...[
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.verified,
-                            color: Colors.blue,
-                            size: 20,
-                          ),
-                        ],
+                        // Pastille « verifie » mise en sommeil en attendant
+                        // confirmation. `isVerified` n'est qu'un drapeau de
+                        // moderation interne (ecran admin) : il n'atteste
+                        // d'aucune reconnaissance par le poste diplomatique,
+                        // alors que la pastille bleue collee au nom se lit
+                        // comme « fiche tenue par l'ambassade ». A retablir
+                        // une fois la confirmation obtenue aupres des postes.
+                        // if (embassy.isVerified) ...[
+                        //   const SizedBox(width: 4),
+                        //   const Icon(
+                        //     Icons.verified,
+                        //     color: Colors.blue,
+                        //     size: 20,
+                        //   ),
+                        // ],
                       ],
                     ),
                     titlePadding: const EdgeInsets.only(
                       left: 16,
-                      bottom: 16,
+                      bottom: 12,
                       right: 16,
                     ),
+                    // 1.5 par defaut : c'est ce facteur qui faisait deborder
+                    // le titre a l'ouverture de la fiche.
+                    expandedTitleScale: 1.25,
                   ),
                 ),
                 SliverPersistentHeader(
                   delegate: _SliverAppBarDelegate(
                     TabBar(
-                      labelColor: Colors.black87,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor:
-                          Colors.orange, // Keep original theme color
+                      // `Colors.black87` etait fige : en theme sombre le
+                      // libelle de l'onglet actif se retrouvait noir sur un
+                      // fond noir, donc illisible. Meme famille de defaut que
+                      // les 48 jetons clairs corriges le 2026-08-04.
+                      labelColor: Theme.of(context).colorScheme.onSurface,
+                      unselectedLabelColor:
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                      indicatorColor: Theme.of(context).colorScheme.primary,
                       tabs: [
                         Tab(text: l10n.embassyInfoTab),
                         Tab(text: l10n.embassyActivitiesTab),
@@ -170,30 +213,38 @@ class EmbassyDetailScreen extends StatelessWidget {
     ); // Close PopScope
   }
 
-  /// Horaires du jour, au mieux : on tente de faire correspondre le jour
-  /// courant (français ou anglais) aux clés de [EmbassyEntity.openingHours],
-  /// dont le format vient du back. `null` si aucune clé ne correspond.
-  String? _todayHours() {
-    if (embassy.openingHours.isEmpty) return null;
-    final now = DateTime.now();
-    final frDay = DateFormat('EEEE', 'fr_FR').format(now).toLowerCase();
-    final enDay = DateFormat('EEEE', 'en_US').format(now).toLowerCase();
-    for (final e in embassy.openingHours.entries) {
-      final k = e.key.toLowerCase().trim();
-      if (k == frDay || k == enDay) return e.value;
-    }
-    return null;
-  }
+  // Horaires du jour : commentes avec leurs deux affichages, en attendant
+  // confirmation des horaires aupres des postes. Cette methode alimentait la
+  // ligne « Aujourd'hui · <horaires> » du bandeau d'etat.
+  //
+  // /// Horaires du jour, au mieux : on tente de faire correspondre le jour
+  // /// courant (français ou anglais) aux clés de [EmbassyEntity.openingHours],
+  // /// dont le format vient du back. `null` si aucune clé ne correspond.
+  // String? _todayHours() {
+  //   if (embassy.openingHours.isEmpty) return null;
+  //   final now = DateTime.now();
+  //   final frDay = DateFormat('EEEE', 'fr_FR').format(now).toLowerCase();
+  //   final enDay = DateFormat('EEEE', 'en_US').format(now).toLowerCase();
+  //   for (final e in embassy.openingHours.entries) {
+  //     final k = e.key.toLowerCase().trim();
+  //     if (k == frDay || k == enDay) return e.value;
+  //   }
+  //   return null;
+  // }
 
-  /// Bandeau d'état de l'ambassade (13b). Rouge fiable via le drapeau
-  /// [isTemporarilyClosed] ; vert sinon, avec les horaires du jour si connus
-  /// (pas de calcul « ouvert maintenant » : le format des horaires n'est pas
-  /// garanti côté back).
+  /// Bandeau d'état de l'ambassade (13b). Ne rend plus que l'exception : le
+  /// rouge « Temporairement fermé », qu'un administrateur pose explicitement.
+  ///
+  /// Le vert « Ouvert » est en sommeil en attendant confirmation des horaires.
+  /// Il ne mesurait rien : il s'affichait des que [isTemporarilyClosed] etait
+  /// faux, donc sur les 32 fiches de l'annuaire, dont aucune ne porte
+  /// d'horaires. A retablir avec les horaires, pas avant.
   Widget _buildStatusBanner(BuildContext context, ThemeData theme) {
     final l10n = AppLocalizations.of(context)!;
     final closed = embassy.isTemporarilyClosed;
+    if (!closed) return const SizedBox.shrink();
     final fg = closed ? const Color(0xFFC23E2D) : const Color(0xFF009600);
-    final todayHours = _todayHours();
+    // final todayHours = _todayHours();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -247,16 +298,19 @@ class EmbassyDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ],
-                ] else if (todayHours != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    '${l10n.todayTitle} · $todayHours',
-                    style: TextStyle(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: 13,
-                    ),
-                  ),
                 ],
+                // « Aujourd'hui · <horaires> », en sommeil avec le reste des
+                // horaires :
+                // ] else if (todayHours != null) ...[
+                //   const SizedBox(height: 4),
+                //   Text(
+                //     '${l10n.todayTitle} · $todayHours',
+                //     style: TextStyle(
+                //       color: theme.colorScheme.onSurfaceVariant,
+                //       fontSize: 13,
+                //     ),
+                //   ),
+                // ],
               ],
             ),
           ),
@@ -274,35 +328,43 @@ class EmbassyDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Bandeau d'état (13b) : vert « Ouvert » (+ horaires du jour) / rouge
-          // « Temporairement fermé » (+ date de réouverture).
+          // Bandeau d'état (13b) : rouge « Temporairement fermé » (+ message
+          // et date de réouverture). Le vert « Ouvert » et les horaires du
+          // jour sont en sommeil en attendant confirmation — rien ne s'affiche
+          // donc ici tant que le poste n'est pas signalé fermé.
           _buildStatusBanner(context, theme),
 
-          // Basic Info with Official Badge confirmation text
-          if (embassy.isVerified)
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.verified, color: Colors.blue, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.embassyOfficialVerified,
-                    style: TextStyle(
-                      color: Colors.blue[800],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          // Bandeau « Compte Officiel Verifie » mis en sommeil en attendant
+          // confirmation, meme raison que la pastille de l'en-tete : la fiche
+          // vient de l'annuaire public, pas du poste, et aucun poste n'a
+          // encore confirme tenir son compte ici. C'est l'affirmation la plus
+          // forte de l'ecran -- elle precede les coordonnees, dont la fiche
+          // dit elle-meme plus bas qu'elles sont parfois fautives.
+          // A retablir une fois la confirmation obtenue.
+          // if (embassy.isVerified)
+          //   Container(
+          //     margin: const EdgeInsets.only(bottom: 16),
+          //     padding: const EdgeInsets.all(8),
+          //     decoration: BoxDecoration(
+          //       color: Colors.blue.withValues(alpha: 0.1),
+          //       borderRadius: BorderRadius.circular(8),
+          //       border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+          //     ),
+          //     child: Row(
+          //       children: [
+          //         const Icon(Icons.verified, color: Colors.blue, size: 20),
+          //         const SizedBox(width: 8),
+          //         Text(
+          //           l10n.embassyOfficialVerified,
+          //           style: TextStyle(
+          //             color: Colors.blue[800],
+          //             fontWeight: FontWeight.bold,
+          //             fontSize: 12,
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
 
           Text(
             _formatLocation(embassy),
@@ -396,7 +458,12 @@ class EmbassyDetailScreen extends StatelessWidget {
                   icon: Icons.directions,
                   label: l10n.embassyDirections,
                   color: theme.colorScheme.primary,
-                  enabled: embassy.latitude != null && embassy.longitude != null,
+                  // `canNavigate`, pas `latitude != null` : une position
+                  // connue mais douteuse (Copenhague, 5 km d'écart entre deux
+                  // sources) laissait le bouton actif et orange, exactement
+                  // comme sur une fiche sûre, pendant que la réserve juste
+                  // au-dessus prévenait du contraire.
+                  enabled: embassy.canNavigate,
                   onTap:
                       () => _openMap(
                         embassy.latitude ?? 0,
@@ -524,48 +591,52 @@ class EmbassyDetailScreen extends StatelessWidget {
             const SizedBox(height: 24),
           ],
 
-          // Opening Hours
-          if (embassy.openingHours.isNotEmpty) ...[
-            Text(
-              'Horaires d\'ouverture',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              elevation: 0,
-              color: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.3,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children:
-                      embassy.openingHours.entries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                entry.key.toUpperCase(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(entry.value),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                ),
-              ),
-            ),
-          ],
+          // Tableau « Horaires d'ouverture » en sommeil en attendant
+          // confirmation aupres des postes. Les horaires n'ont jamais ete
+          // verifies, et `opening_hours` est vide sur les 32 fiches : le bloc
+          // ne rendait rien aujourd'hui, mais la premiere donnee saisie serait
+          // partie a l'ecran sans relecture. A retablir une fois confirmes.
+          // if (embassy.openingHours.isNotEmpty) ...[
+          //   Text(
+          //     'Horaires d\'ouverture',
+          //     style: theme.textTheme.titleMedium?.copyWith(
+          //       fontWeight: FontWeight.bold,
+          //     ),
+          //   ),
+          //   const SizedBox(height: 8),
+          //   Card(
+          //     elevation: 0,
+          //     color: theme.colorScheme.surfaceContainerHighest.withValues(
+          //       alpha: 0.3,
+          //     ),
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(12),
+          //     ),
+          //     child: Padding(
+          //       padding: const EdgeInsets.all(12.0),
+          //       child: Column(
+          //         children:
+          //             embassy.openingHours.entries.map((entry) {
+          //               return Padding(
+          //                 padding: const EdgeInsets.symmetric(vertical: 4),
+          //                 child: Row(
+          //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //                   children: [
+          //                     Text(
+          //                       entry.key.toUpperCase(),
+          //                       style: const TextStyle(
+          //                         fontWeight: FontWeight.w600,
+          //                       ),
+          //                     ),
+          //                     Text(entry.value),
+          //                   ],
+          //                 ),
+          //               );
+          //             }).toList(),
+          //       ),
+          //     ),
+          //   ),
+          // ],
 
           // Jurisdiction Info
           if (embassy.jurisdictionCountries.isNotEmpty) ...[

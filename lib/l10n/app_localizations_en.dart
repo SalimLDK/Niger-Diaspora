@@ -15819,4 +15819,68 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get embassyMessageSendError =>
       'Could not send the message. Check your connection and try again.';
+
+  @override
+  String get backToEvents => 'Back to events';
+
+  @override
+  String get backToGroups => 'Back to groups';
+
+  @override
+  String get eventLoadFailedTitle => 'Could not load';
+
+  @override
+  String get eventLoadFailedMessage =>
+      'Could not show this event. It may have been deleted, or your connection is unstable.';
+
+  @override
+  String get eventRecapNotAllowedTitle =>
+      'Only the organiser can write the recap';
+
+  @override
+  String get eventRecapNotAllowedMessage =>
+      'Only the person who created this event can publish its recap. The photos stay visible on the event page.';
+
+  @override
+  String get eventEditNotAllowedTitle => 'Only the organiser can edit';
+
+  @override
+  String get eventEditNotAllowedMessage =>
+      'Only the person who created this event can change it.';
+
+  @override
+  String get backToEvent => 'View the event';
+
+  @override
+  String get groupLoadFailedTitle => 'Could not load';
+
+  @override
+  String get groupLoadFailedMessage =>
+      'Could not show this group. It may have been deleted, or your connection is unstable.';
+
+  @override
+  String get groupEditNotAllowedTitle => 'Only admins can edit';
+
+  @override
+  String get groupEditNotAllowedMessage =>
+      'Only this group\'s creator and administrators can change it.';
+
+  @override
+  String get backToGroup => 'View the group';
+
+  @override
+  String get embassyNotFoundTitle => 'Record not found';
+
+  @override
+  String get embassyNotFoundMessage =>
+      'This diplomatic mission is no longer in the directory, or the link is incorrect.';
+
+  @override
+  String get embassyLoadFailedTitle => 'Could not load';
+
+  @override
+  String get backToEmbassies => 'Back to the directory';
+
+  @override
+  String get embassySearchHint => 'Name, country or city';
 }

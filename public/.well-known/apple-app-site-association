@@ -3,17 +3,20 @@
     "apps": [],
     "details": [
       {
-        "appID": "VOTRE_TEAM_ID.com.diasponiger.diaspo_niger",
+        "appID": "3WM7VK48T3.com.diasponiger.diaspoNiger",
         "paths": [
-          "/groups/*",
+          "/feed/*",
           "/profile/*",
-          "/p/u/*",
+          "/p/*",
+          "/groups/*",
+          "/g/*",
           "/events/*",
           "/businesses/*",
           "/marketplace/*",
           "/audio-rooms/*",
           "/podcasts/*",
           "/calls/*",
+          "/embassies/*",
           "/invite"
         ]
       }
@@ -21,7 +24,7 @@
   },
   "webcredentials": {
     "apps": [
-      "VOTRE_TEAM_ID.com.diasponiger.diaspo_niger"
+      "3WM7VK48T3.com.diasponiger.diaspoNiger"
     ]
   }
 }

@@ -11,6 +11,7 @@ import '../../domain/entities/order_entity.dart';
 import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 import '../widgets/product_card.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class MarketplaceScreen extends ConsumerStatefulWidget {
   const MarketplaceScreen({super.key});
@@ -364,7 +365,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                                   color: theme.colorScheme.error,
                                 ),
                                 const SizedBox(height: 16),
-                                Text('Erreur: $error'),
+                                Text(messageErreurUsager(error)),
                                 const SizedBox(height: 16),
                                 ElevatedButton(
                                   onPressed:
@@ -565,7 +566,7 @@ class _SearchResults extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Erreur: $error')),
+      error: (error, _) => Center(child: Text(messageErreurUsager(error))),
     );
   }
 }

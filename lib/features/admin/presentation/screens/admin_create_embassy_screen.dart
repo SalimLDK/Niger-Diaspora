@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../embassies/data/models/embassy_model.dart';
 import '../../../embassies/presentation/providers/embassies_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class AdminCreateEmbassyScreen extends ConsumerStatefulWidget {
   const AdminCreateEmbassyScreen({super.key});
@@ -155,7 +156,7 @@ class _AdminCreateEmbassyScreenState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: AdminColors.statusRed),
+          SnackBar(content: Text(messageErreurUsager(e)), backgroundColor: AdminColors.statusRed),
         );
       }
     } finally {
