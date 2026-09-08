@@ -9768,6 +9768,49 @@ contre **30 sur le SM A515F** (Genève et New York masqués faute de pays connu)
 
 ---
 
+## Postes diplomatiques sur la carte : 21 pins posés, 11 fiches sans position (2026-09-08)
+
+Les 32 fiches importées le 2026-09-07 sont arrivées **sans latitude ni
+longitude** : `diplomatie.gouv.ne` ne publie que des adresses postales, dont
+huit sont de simples boîtes postales. Depuis l'import, aucun poste n'a jamais
+eu de pin — `map_screen.dart` saute toute fiche sans coordonnées, et le bouton
+« voir sur la carte » du détail est masqué par `hasCoordinates`.
+
+Migration `20260908120000_coordonnees_postes_diplomatiques.sql` : 19 positions
+relevées dans OpenStreetMap (au bâtiment), 2 par géocodage de l'adresse
+officielle (Paris/UNESCO et Kano). Le script est rejouable :
+`tools/geocode_postes_diplomatiques.mjs`.
+
+- [ ] **Les pins bleus d'ambassade apparaissent** sur la carte principale, à
+      côté des membres — vérifier au moins un poste (Paris, Cotonou, Abuja
+      selon la position du testeur), et que la bascule « Ambassades » du menu
+      de filtres les fait bien disparaître/réapparaître.
+- [ ] **Le tap sur un pin** ouvre la fiche flottante (nom, adresse, tél, mail,
+      services) et « Voir la fiche complète » mène au détail.
+- [ ] **Le bouton « voir sur la carte » du détail** est désormais visible sur
+      les 21 postes placés — et toujours masqué sur les 11 autres.
+- [ ] **Écart à confirmer auprès du poste** : Copenhague (OSM place
+      l'ambassade Rosbaeksvej/Østerbro, l'annuaire publie « Niels Juels Gade
+      5 » — 5,1 km) et Dakar (OSM « Voie de Dégagement Nord, Point E » contre
+      « 8 avenue Léopold Sédar Senghor » — 5,2 km). Position OSM retenue : le
+      nœud porte le nom du poste. À trancher par un appel ou une photo.
+- [ ] **11 postes restent sans pin** (Addis-Abeba, Le Caire, Rabat, La Havane,
+      Doha, Koweït, New Delhi, Djeddah, Dubaï, Khartoum, Pékin) : vérifier
+      qu'ils restent bien **visibles dans la liste** avec leur adresse, et
+      qu'ils ne se retrouvent pas au point (0, 0) dans le golfe de Guinée.
+      Addis-Abeba est volontairement laissé de côté : OSM n'y cartographie que
+      la **résidence** de l'ambassadeur, pas la chancellerie.
+
+⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
+sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
+et `Places API (New)` répondent toutes `REQUEST_DENIED` /
+`SERVICE_DISABLED` — donc `PlaceSearchService` (barre de recherche de la carte,
+sélecteur de position des entreprises et du partage de lieu) tombe **toujours**
+sur son repli `geocoding` côté appareil, sans que rien ne le signale. À vérifier
+sur appareil : la recherche de lieu renvoie-t-elle des résultats utilisables ?
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
