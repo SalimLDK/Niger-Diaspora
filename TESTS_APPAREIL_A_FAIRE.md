@@ -10084,9 +10084,29 @@ carte de liste, qui disparaît complètement. Verrouillé par
 Bilan : 29 fiches navigables, 3 non — Djeddah et Khartoum faute de
 coordonnées, Copenhague faute de confiance.
 
-⚠️ **Reste ouvert** : la carte (`map_screen.dart`) place toujours une épingle
-pour Copenhague, sans marque d'incertitude. Le bouton et la carte se
-contredisent donc encore, à un endroit de moins qu'avant.
+**Épingle distincte sur la carte** (2026-09-08) — la carte plaçait toujours une
+épingle ordinaire pour Copenhague. Elle y reste (la retirer ferait disparaître
+l'ambassade) mais se signale : **bordure discontinue et ambre** au lieu du
+cercle bleu plein, convention cartographique du tracé approximatif.
+
+⚠ Piège évité : la clé de cache des épingles était `embassy_circular_$isSelected`,
+**partagée par toutes les ambassades**. Sans y ajouter le drapeau, la première
+épingle dessinée aurait été resservie aux 29 autres.
+
+- [ ] **NON VÉRIFIÉ SUR APPAREIL.** Trois obstacles cumulés :
+  1. sur le **Pixel**, la carte est derrière l'écran « Mode privé activé » —
+     l'ouvrir demande d'activer le partage de position sur le compte réel de
+     Salim, ce qui est un réglage de confidentialité que je ne touche pas ;
+  2. sur le **SM A515F**, l'autre agent pilotait l'appareil au même moment
+     (écran « Modifier l'événement » apparu sous mes taps) — usage concurrent,
+     mesure abandonnée ;
+  3. et même avec l'accès, **Google Maps rend dans un `SurfaceView`**, que
+     `adb shell screencap` capture en noir. Une capture d'écran ne prouverait
+     donc probablement rien.
+
+  La bonne façon de le vérifier serait un test de rendu sur la fonction qui
+  peint l'épingle — mais elle est privée dans l'État de `map_screen.dart` et
+  l'extraire dépasse ce qui a été demandé.
 
 **Trois défauts trouvés PAR ce test appareil**, invisibles à `flutter analyze` :
 
