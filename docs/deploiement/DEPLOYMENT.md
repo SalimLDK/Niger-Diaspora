@@ -202,10 +202,17 @@ Le contenu de la fiche boutique (titre, descriptions, notes de version) est vers
 
 | Asset | Taille | Notes |
 |---|---|---|
-| Icône | 512 × 512 px PNG | |
-| Bannière de fonctionnalité | 1024 × 500 px | Pas de transparence |
-| Screenshots téléphone | 1080 × 1920 (ou 1080 × 2340) | Min 2, max 8 — sources dans `releases/<version>/play/screenshots/` (le dossier `playstore_assets/` n'existe pas) |
+| Icône | 512 × 512 px | PNG 32 bits **avec** alpha, ≤ 1024 Ko |
+| Bannière de fonctionnalité | 1024 × 500 px | JPEG ou PNG 24 bits, **sans** alpha |
+| Screenshots téléphone | **1080 × 1920** | Min 2, max 8 — sources dans `releases/<version>/play/screenshots/` |
 | Bannière TV (optionnel) | 1280 × 720 px | |
+
+⚠️ **Ne pas téléverser une copie d'écran brute.** Google impose que le côté le
+plus long n'excède pas **deux fois** le plus court. Les téléphones de test sont
+en 1080 × 2400, soit 2,22:1 — refusé. La valeur « 1080 × 2340 » que cette page
+proposait auparavant était hors spécification elle aussi (2,167:1). Les visuels
+livrés sont donc **composés** en 1080 × 1920 (9:16, le format que Google
+recommande), la copie d'écran réelle intégrée dans une maquette d'appareil.
 
 Écrans à capturer : accueil, annuaire des postes diplomatiques, démarches consulaires, carte de la diaspora, groupes, profil.
 
