@@ -151,14 +151,21 @@ class EmbassyDetailScreen extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (embassy.isVerified) ...[
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.verified,
-                            color: Colors.blue,
-                            size: 20,
-                          ),
-                        ],
+                        // Pastille « verifie » mise en sommeil en attendant
+                        // confirmation. `isVerified` n'est qu'un drapeau de
+                        // moderation interne (ecran admin) : il n'atteste
+                        // d'aucune reconnaissance par le poste diplomatique,
+                        // alors que la pastille bleue collee au nom se lit
+                        // comme « fiche tenue par l'ambassade ». A retablir
+                        // une fois la confirmation obtenue aupres des postes.
+                        // if (embassy.isVerified) ...[
+                        //   const SizedBox(width: 4),
+                        //   const Icon(
+                        //     Icons.verified,
+                        //     color: Colors.blue,
+                        //     size: 20,
+                        //   ),
+                        // ],
                       ],
                     ),
                     titlePadding: const EdgeInsets.only(
@@ -314,31 +321,37 @@ class EmbassyDetailScreen extends StatelessWidget {
           // « Temporairement fermé » (+ date de réouverture).
           _buildStatusBanner(context, theme),
 
-          // Basic Info with Official Badge confirmation text
-          if (embassy.isVerified)
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.verified, color: Colors.blue, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.embassyOfficialVerified,
-                    style: TextStyle(
-                      color: Colors.blue[800],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          // Bandeau « Compte Officiel Verifie » mis en sommeil en attendant
+          // confirmation, meme raison que la pastille de l'en-tete : la fiche
+          // vient de l'annuaire public, pas du poste, et aucun poste n'a
+          // encore confirme tenir son compte ici. C'est l'affirmation la plus
+          // forte de l'ecran -- elle precede les coordonnees, dont la fiche
+          // dit elle-meme plus bas qu'elles sont parfois fautives.
+          // A retablir une fois la confirmation obtenue.
+          // if (embassy.isVerified)
+          //   Container(
+          //     margin: const EdgeInsets.only(bottom: 16),
+          //     padding: const EdgeInsets.all(8),
+          //     decoration: BoxDecoration(
+          //       color: Colors.blue.withValues(alpha: 0.1),
+          //       borderRadius: BorderRadius.circular(8),
+          //       border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+          //     ),
+          //     child: Row(
+          //       children: [
+          //         const Icon(Icons.verified, color: Colors.blue, size: 20),
+          //         const SizedBox(width: 8),
+          //         Text(
+          //           l10n.embassyOfficialVerified,
+          //           style: TextStyle(
+          //             color: Colors.blue[800],
+          //             fontWeight: FontWeight.bold,
+          //             fontSize: 12,
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
 
           Text(
             _formatLocation(embassy),

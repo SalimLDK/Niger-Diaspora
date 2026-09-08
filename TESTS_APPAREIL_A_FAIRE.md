@@ -14,6 +14,35 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Ambassades : les deux mentions « officiel / vérifié » mises en sommeil (2026-09-08)
+
+`lib/features/embassies/presentation/screens/embassy_detail_screen.dart` :
+la pastille bleue `Icons.verified` collée au nom du poste (en-tête déroulant)
+et le bandeau « **Compte Officiel Vérifié** » en tête de l'onglet *Infos* sont
+**commentés**, en attendant confirmation auprès des postes. Les deux ne
+tenaient qu'à `embassy.isVerified`, un drapeau de **modération interne**
+(écran admin de vérification) : il ne dit pas que l'ambassade reconnaît la
+fiche, alors que les deux affichages le laissaient croire — juste au-dessus
+des coordonnées dont la fiche prévient elle-même, plus bas, qu'elles sont
+parfois fautives.
+
+Le code est conservé en commentaire, prêt à être rétabli. Rien d'autre n'a
+bougé : le filtre `!e.isVerified || e.isSuspended` de
+`embassies_provider.dart` continue de masquer les fiches non validées, et
+l'écran admin de vérification est intact. Audit fait : `embassyOfficialVerified`
+était la **seule** chaîne côté ambassades à affirmer une officialité (80 clés
+l10n passées en revue).
+
+`flutter analyze lib/features/embassies` : **No issues found**.
+
+- [ ] Ouvrir une fiche d'ambassade : plus aucune pastille bleue à côté du nom
+      dans l'en-tête, et plus de bandeau bleu au-dessus de l'adresse.
+- [ ] Vérifier que le titre sur deux lignes reste bien posé sans la pastille
+      (l'alignement `CrossAxisAlignment.end` de la `Row` avait été choisi
+      pour elle).
+- [ ] Thème sombre : le bandeau bleu était le seul bloc à couleur fixe de
+      cette zone — confirmer qu'il ne laisse pas de vide ni de double marge.
+
 ## ⬜ Publication Play Store 1.2.1+11 — build release à valider (2026-09-08)
 
 Première préparation complète d'un téléversement : `pubspec.yaml` passe à
