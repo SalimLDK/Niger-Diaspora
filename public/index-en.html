@@ -4,9 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Diaspo Niger - The app that connects the Nigerien diaspora around the world.">
+    <meta name="description" content="Diaspo Niger brings the Nigerien diaspora together: a map of members near you, groups, cultural events, encrypted messaging and a business directory. Free Android app.">
     <title>Diaspo Niger — The diaspora, reunited</title>
+    <link rel="canonical" href="https://diasponiger.web.app/index-en">
+    <link rel="alternate" hreflang="en" href="https://diasponiger.web.app/index-en">
+    <link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/">
+    <link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <meta name="theme-color" content="#0f0d0a">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Diaspo Niger">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:url" content="https://diasponiger.web.app/index-en">
+    <meta property="og:title" content="Diaspo Niger — The diaspora, reunited">
+    <meta property="og:description" content="Diaspo Niger brings the Nigerien diaspora together: a map of members near you, groups, cultural events, encrypted messaging and a business directory. Free Android app.">
+    <meta property="og:image" content="https://diasponiger.web.app/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Diaspo Niger — la diaspora nigérienne enfin réunie">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Diaspo Niger — The diaspora, reunited">
+    <meta name="twitter:description" content="Diaspo Niger brings the Nigerien diaspora together: a map of members near you, groups, cultural events, encrypted messaging and a business directory. Free Android app.">
+    <meta name="twitter:image" content="https://diasponiger.web.app/og-image.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
         href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,300&family=Sora:wght@300;400;600&display=swap"
@@ -407,9 +429,84 @@
         .reveal.visible { opacity: 1; transform: translateY(0); }
 
         /* RESPONSIVE */
+        /* ── MENU MOBILE ── */
+        .nav-burger {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            border: 1px solid rgba(233, 116, 36, 0.28);
+            border-radius: 12px;
+            background: rgba(233, 116, 36, 0.10);
+            cursor: pointer;
+        }
+
+        .nav-burger span {
+            display: block;
+            width: 18px;
+            height: 2px;
+            border-radius: 2px;
+            background: var(--orange);
+            transition: transform 0.3s ease, opacity 0.2s ease;
+        }
+
+        nav.open .nav-burger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        nav.open .nav-burger span:nth-child(2) { opacity: 0; }
+        nav.open .nav-burger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
         @media (max-width: 900px) {
             nav { padding: 1rem 1.5rem; }
-            .nav-links { display: none; }
+            .nav-burger {
+                display: flex;
+            }
+
+            /* le menu devient un panneau déroulant sous la barre */
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                padding: 0.4rem 1.5rem 1.4rem;
+                background: #14110d;
+                border-bottom: 1px solid rgba(233, 116, 36, 0.14);
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-8px);
+                transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+            }
+
+            nav.open .nav-links {
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+            }
+
+            .nav-links li {
+                border-top: 1px solid rgba(253, 249, 244, 0.06);
+            }
+
+            .nav-links li:first-child {
+                border-top: none;
+            }
+
+            .nav-links a {
+                display: block;
+                padding: 0.95rem 0;
+                font-size: 0.95rem;
+            }
+
+            .nav-links .nav-cta {
+                margin-top: 0.9rem;
+                padding: 0.85rem 1.4rem !important;
+                text-align: center;
+            }
             .hero { padding: 7rem 1.5rem 4rem; }
             .hero-circle { display: none; }
             .hero-stats { gap: 2rem; flex-wrap: wrap; }
@@ -430,10 +527,14 @@
         <!-- NAV -->
         <nav>
             <div class="logo">
-                <img src="/logo.png" alt="Logo" onerror="this.style.display='none'">
+                <img src="/logo-96.png" alt="" width="36" height="36" onerror="this.style.display='none'">
                 Diaspo <span>Niger</span>
             </div>
-            <ul class="nav-links">
+            <button class="nav-burger" type="button" aria-label="Open menu" aria-expanded="false"
+                aria-controls="nav-links">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="nav-links">
                 <li><a href="#features">Features</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="/contact-en">Contact</a></li>
@@ -602,11 +703,14 @@
         <footer>
             <div class="footer-logo">Diaspo <span>Niger</span></div>
             <div class="footer-links">
-                <a href="#features">Features</a>
-                <a href="#about">About</a>
+                <a href="/privacy-policy-en">Privacy</a>
+                <a href="/terms-of-service-en">Terms</a>
+                <a href="/code-of-conduct-en">Code of conduct</a>
+                <a href="/child-safety-standards-en">Child safety</a>
+                <a href="/delete-account-en">Delete my account</a>
                 <a href="/contact-en">Contact</a>
             </div>
-            <div class="footer-copy">© 2025 Diaspo Niger. All rights reserved.</div>
+            <div class="footer-copy">© 2026 Diaspo Niger. All rights reserved.</div>
         </footer>
 
     </div>
@@ -615,7 +719,7 @@
     <div id="deep-link-overlay"
         style="display:none; position:fixed; inset:0; z-index:5000; place-items:center; background:rgba(15,13,10,0.95); backdrop-filter:blur(20px);">
         <div class="dl-overlay-card">
-            <img src="/logo.png" alt="Diaspo Niger" class="dl-overlay-logo" onerror="this.style.display='none'">
+            <img src="/logo-96.png" alt="" class="dl-overlay-logo" width="72" height="72" onerror="this.style.display='none'">
             <h2>Open in Diaspo Niger</h2>
             <p>To view this content, open the Diaspo Niger app on your device.</p>
             <a id="deep-link-btn" href="#" class="dl-overlay-btn">Open the app</a>
@@ -629,6 +733,26 @@
     </div>
 
     <script>
+        // Menu mobile
+        (function () {
+            const nav = document.querySelector('nav');
+            const burger = nav && nav.querySelector('.nav-burger');
+            if (!burger) return;
+            const setOpen = (open) => {
+                nav.classList.toggle('open', open);
+                burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+            };
+            burger.addEventListener('click', () => setOpen(!nav.classList.contains('open')));
+            nav.querySelectorAll('.nav-links a').forEach(a =>
+                a.addEventListener('click', () => setOpen(false)));
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') setOpen(false);
+            });
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 900) setOpen(false);
+            });
+        })();
+
         const revealEls = document.querySelectorAll('.reveal');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((e, i) => {
@@ -645,24 +769,41 @@
                 window.scrollY > 60 ? 'rgba(15, 13, 10, 0.9)' : 'rgba(15, 13, 10, 0.7)';
         });
 
-        function closeDeepLinkOverlay() {
-            document.getElementById('deep-link-overlay').style.display = 'none';
-        }
-
         document.addEventListener('DOMContentLoaded', function () {
             const dots = document.querySelector('.hero-dots');
             if (dots) dots.innerHTML = Array(48).fill('<span></span>').join('');
+        });
+
+        // Opening in the app (shared links)
+        // Links shared from the app point here: /feed/…, /groups/…, /events/…
+        // On mobile, App Links opens the app without hitting this page; this panel
+        // is the fallback when the browser stays on the site (no app, desktop).
+        function closeDeepLinkOverlay() {
+            const o = document.getElementById('deep-link-overlay');
+            if (o) o.style.display = 'none';
+        }
+
+        (function () {
+            const APP_ROUTES = ['feed', 'profile', 'p', 'groups', 'g', 'events',
+                'businesses', 'marketplace', 'audio-rooms', 'podcasts', 'calls',
+                'embassies', 'invite'];
 
             const path = window.location.pathname;
-            if (path.startsWith('/profile/') || path.startsWith('/p/')) {
-                const overlay = document.getElementById('deep-link-overlay');
-                const btn = document.getElementById('deep-link-btn');
-                if (overlay) overlay.style.display = 'grid';
-                const schemeUrl = 'diasponiger://diasponiger.com' + path;
-                if (btn) btn.href = schemeUrl;
-                setTimeout(() => { window.location.href = schemeUrl; }, 1000);
+            const seg = path.split('/').filter(Boolean);
+            if (!seg.length || APP_ROUTES.indexOf(seg[0]) === -1) return;
+            if (seg[0] !== 'invite' && seg.length < 2) return;
+
+            const overlay = document.getElementById('deep-link-overlay');
+            if (!overlay) return;
+            const schemeUrl = 'diasponiger://diasponiger.com' + path + window.location.search;
+            const btn = document.getElementById('deep-link-btn');
+            if (btn) btn.href = schemeUrl;
+            overlay.style.display = 'grid';
+
+            if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                setTimeout(function () { window.location.href = schemeUrl; }, 800);
             }
-        });
+        })();
     </script>
 </body>
 
