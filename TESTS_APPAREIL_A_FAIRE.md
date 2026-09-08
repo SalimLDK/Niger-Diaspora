@@ -110,22 +110,24 @@ Trouvés en testant l'écran des démarches sur SM A515F — ils sont dans
 pas dans le catalogue des démarches. **Les deux bloquent le test hors ligne
 des démarches**, l'annuaire étant le seul chemin vers cet écran.
 
-**1. L'annuaire était vide pour TOUS les utilisateurs, en silence.**
-La version de `20260907190000` qui a réellement tourné créait la colonne
-`type` ; le fichier a ensuite été édité pour la renommer `post_type`, mais la
-ligne était déjà inscrite dans `schema_migrations` — `db push` ne rejoue pas
-une version enregistrée, donc le renommage n'a jamais atteint la base. Le
-`select` sur `post_type` échouait en 42703, l'exception devenait
-`ServerException`, le dépôt retombait sur un cache vide et renvoyait `[]` :
-« Aucune ambassade disponible », sans une ligne d'erreur nulle part.
-Dépanné par `20260907200000_embassies_post_type_rattrapage.sql` (colonne
-ajoutée, remplie depuis `type`, **sans** le CHECK — voir le fichier).
+**1. ✅ RÉSOLU — l'annuaire était vide pour TOUS les utilisateurs, en silence.**
+`20260907190000` décrivait la colonne du type de poste sous le nom
+`post_type`, et `EmbassiesSupabaseDataSource` la sélectionnait sous ce nom,
+alors que la table qui tourne l'appelle `type`. Le `select` échouait en 42703,
+l'exception devenait `ServerException`, le dépôt retombait sur un cache vide et
+renvoyait `[]` : « Aucune ambassade disponible », sans une ligne d'erreur nulle
+part. Trouvé sur SM A515F le 2026-09-07 en cherchant un chemin vers l'écran des
+démarches.
 
-- [ ] Réconcilier les deux colonnes : remapper `mission` (2 lignes) et
-      `delegation` (1 ligne) vers les valeurs du CHECK prévu
-      (`embassy`/`consulate`/`permanent_mission`), poser CHECK et NOT NULL,
-      puis supprimer `type`. Tant que les deux coexistent, une fiche modifiée
-      par le back-office peut les désynchroniser.
+Dépanné sur le moment par `20260907200000` (ajout de `post_type` recopiant
+`type`), puis **tranché dans l'autre sens par l'auteur de l'annuaire**
+(`01353ac`) : `type` fait foi, sa migration et son datasource la lisent
+désormais. `20260907210000` retire donc la colonne `post_type` devenue
+orpheline — deux colonnes décrivant la même chose divergeraient dès la
+première fiche modifiée par le back-office.
+
+- [ ] Vérifier sur appareil que l'annuaire s'affiche toujours après ce retrait
+      (l'app ne doit plus citer `post_type` nulle part).
 
 **2. Hors ligne, l'écran affiche une exception brute — avec l'identifiant du
 projet Supabase.** Réseau coupé, « Ambassades » montre :
