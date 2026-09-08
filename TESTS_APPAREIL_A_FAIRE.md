@@ -14,6 +14,70 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)
+
+L'écran de demande administrative (`administrative_request_screen.dart`)
+portait deux tables codées en dur : `_requiredDocuments`, des pièces
+« propositions indicatives », et `_indicativeDelay`, des délais **entièrement
+inventés** — « Environ 3 à 4 semaines », « Sous 48 à 72 heures (urgence
+voyage) » — affichés en gras dans la couleur primaire, donc lus comme
+officiels. Quelqu'un pouvait réserver un vol sur ce dernier chiffre.
+
+Remplacé par le catalogue des 20 démarches publiées par le ministère
+(diplomatie.gouv.ne, consultée le 2026-09-07), chargé dans cet ordre :
+Supabase (`get_demarches_catalogue()`), cache du dernier chargement réussi,
+puis `assets/data/demarches_consulaires.json` embarqué dans l'APK. La source
+ne publiant AUCUN délai, l'écran affiche désormais « Délai de traitement non
+communiqué par la source » — il n'y a pas de table de remplacement.
+
+`flutter analyze` propre, `test/features/dropdowns_overflow_test.dart` passe
+(10/10, le cas sert maintenant le vrai catalogue embarqué). Rien de ce qui
+suit n'a été vu sur un téléphone.
+
+- [ ] Le menu déroulant liste bien **20 démarches sous 5 intertitres de
+      rubrique** (IMMATRICULATION, ACTES D'ÉTAT CIVIL, DOCUMENTS DE VOYAGE,
+      ACTES NOTARIÉS, NATIONALITÉ), et un intertitre n'est pas sélectionnable.
+- [ ] Les intertitres restent lisibles en **thème sombre** : ils sont peints
+      en `colorScheme.primary`, pas en gris fixe.
+- [ ] « Carte consulaire » (choix par défaut) montre l'encadré **« Au choix —
+      une seule de ces pièces suffit »** avec le « ou » entre la pièce
+      d'identité et les deux témoins. C'est la seule voie ouverte à qui n'a
+      aucun papier nigérien : si l'encadré ne se voit pas, l'information est
+      perdue.
+- [ ] Les 13 démarches à `avertissements` affichent leur bandeau orange.
+      Vérifier en particulier **« Passeport — première demande ou
+      renouvellement »**, dont l'avertissement explique que la source la
+      titrait « prorogation » à tort.
+- [ ] **« Certificat de nationalité »** affiche le bandeau « ne se fait pas au
+      consulat » avec les trois règles de juridiction, et son coût réel
+      (1 500 F CFA) — seule démarche à afficher un montant.
+- [ ] Les trois autres libellés de coût s'affichent correctement :
+      « — montant non publié » (15 démarches), « Aucun frais mentionné par la
+      source » (déclarations de naissance et de mariage), et la mention
+      conditionnelle des deux démarches de décès.
+- [ ] **« Laissez-passer »** affiche ses deux blocs de pièces
+      conditionnelles (enfant de moins de 2 ans, enfants de 2 à 16 ans).
+- [ ] Le pied d'écran indique la source et sa date, **et l'origine** de la
+      liste. Couper le réseau et rouvrir : doit afficher « · liste
+      enregistrée hors ligne » (cache) ou « · liste fournie avec
+      l'application » (asset embarqué) — c'est tout l'intérêt du repli.
+- [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
+      liste embarquée, pas un spinner ni une erreur.
+- [ ] Aucun débordement sur les libellés les plus longs à **échelle de police
+      1.1** (le résumé de la carte consulaire fait trois lignes).
+- [ ] Envoyer une demande, puis vérifier côté back-office que
+      `additionalData` porte bien `demarcheId` / `demarcheTitre` : le
+      `requestType` seul ne suffit pas à savoir laquelle des six démarches
+      notariées a été demandée.
+
+**Migration Supabase non poussée** :
+`supabase/migrations/20260907180000_catalogue_demarches_consulaires.sql`.
+Tant qu'elle ne l'est pas, la RPC renvoie NULL et l'app sert la copie
+embarquée — le comportement est correct mais le pied d'écran l'annoncera
+comme « fournie avec l'application ».
+
+---
+
 ## ⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)
 
 Chantier en cours : remplacer la clé AES globale (constante de l'APK, donc

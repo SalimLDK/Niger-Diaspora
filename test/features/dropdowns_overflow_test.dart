@@ -8,6 +8,9 @@ import 'package:diaspo_niger/features/auth/presentation/providers/auth_provider.
 import 'package:diaspo_niger/features/businesses/presentation/screens/create_business_screen.dart';
 import 'package:diaspo_niger/features/embassies/domain/entities/embassy_entity.dart';
 import 'package:diaspo_niger/features/embassies/presentation/screens/administrative_request_screen.dart';
+import 'package:diaspo_niger/features/embassies/data/datasources/demarches_local_datasource.dart';
+import 'package:diaspo_niger/features/embassies/data/repositories/demarches_repository_impl.dart';
+import 'package:diaspo_niger/features/embassies/presentation/providers/demarches_provider.dart';
 import 'package:diaspo_niger/features/marketplace/presentation/screens/create_product_screen.dart';
 import 'package:diaspo_niger/features/podcasts/presentation/screens/create_podcast_screen.dart';
 import 'package:diaspo_niger/features/transfers/presentation/screens/add_recipient_screen.dart';
@@ -35,6 +38,20 @@ const _fixture = EmbassyEntity(
 );
 
 void main() {
+  // Le formulaire de demande administrative ne se rend qu'une fois son
+  // catalogue de démarches chargé. On lui sert la copie embarquée dans l'APK
+  // -- la vraie, pas un jeu réduit : c'est un test de débordement, il perdrait
+  // son objet sur des libellés plus courts que ceux qui s'affichent en vrai.
+  late final CatalogueCharge catalogueEmbarque;
+
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    catalogueEmbarque = CatalogueCharge(
+      await DemarchesLocalDataSource().getBundledCatalogue(),
+      OrigineCatalogue.embarque,
+    );
+  });
+
   final ecrans = <String, Widget Function()>{
     'Ajouter un bénéficiaire (transferts)': () => const AddRecipientScreen(),
     'Demande administrative (ambassades)': () =>
@@ -76,6 +93,12 @@ void main() {
               // sur `[core/no-app]` avant même la mise en page. Un utilisateur
               // nul suffit — le pré-remplissage sort tout de suite.
               currentUserAsyncProvider.overrideWith((ref) => Stream.value(null)),
+              // Valeur (et non Future) : le provider est alors résolu dès le
+              // premier `pump`, sans quoi l'écran resterait sur son
+              // indicateur de chargement et le menu ne serait jamais disposé.
+              demarchesCatalogueProvider.overrideWith(
+                (ref) => catalogueEmbarque,
+              ),
             ],
             child: MaterialApp(
               theme: AppTheme.darkTheme,
