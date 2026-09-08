@@ -38,6 +38,7 @@ import '../../../polls/presentation/widgets/create_poll_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
+import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../settings/data/models/chat_background_model.dart';
@@ -2855,11 +2856,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   /// Sous-barre sous l'en-tête : tuiles « Médias » (galerie partagée) et
   /// « ÉCO » (mode données réduites, lié à `PreferencesService.dataSaverMode`).
-  /// Placeholder pose par `message_supabase_datasource.dart` quand le
-  /// dechiffrement echoue. Duplique ici faute de constante partagee —
-  /// `message_provider.dart` fait deja le meme test.
-  static const String _kUndecryptable = '🔐 Message chiffré';
-
   /// Bandeau d'invitation a restaurer les cles (§3b).
   ///
   /// Sans lui, un fil dont les cles ont ete perdues n'affiche qu'une suite de
@@ -2870,7 +2866,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     List<MessageEntity> messages, {
     required bool rappelMuet,
   }) {
-    if (!messages.any((m) => m.content == _kUndecryptable)) {
+    // La liste des placeholders vit dans `undecryptable_placeholders.dart`.
+    // La copie locale n'en connaissait qu'un des deux, et les groupes posent
+    // l'autre (« session requise ») : sur un fil de groupe entièrement
+    // illisible, ce bandeau ne s'affichait jamais. Vu sur SM A515F le
+    // 2026-09-08. `isUndecryptableContent` ne convient pas ici : il tient
+    // aussi le contenu vide pour illisible, ce qu'est tout média sans légende.
+    if (!messages.any((m) => kUndecryptablePlaceholders.contains(m.content))) {
       return const SizedBox.shrink();
     }
 
