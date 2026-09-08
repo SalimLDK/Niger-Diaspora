@@ -8107,5 +8107,9 @@
   "transferMobileOperatorRequired": "Opérateur mobile *",
   "messageEcoBadge": "ÉCO",
   "reportStatusUnderReview": "En cours d'examen",
-  "reportReasonPrefix": "Motif"
+  "reportReasonPrefix": "Motif",
+  "embassyFax": "Fax",
+  "embassyOtherPhones": "Autres lignes",
+  "embassyDataNote": "Réserve sur cette fiche",
+  "embassySourceLine": "Source : {source}, relevé le {date}"
 }

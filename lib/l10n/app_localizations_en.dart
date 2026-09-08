@@ -15797,4 +15797,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportReasonPrefix => 'Reason';
+
+  @override
+  String get embassyFax => 'Fax';
+
+  @override
+  String get embassyOtherPhones => 'Other lines';
+
+  @override
+  String get embassyDataNote => 'Note on this record';
+
+  @override
+  String embassySourceLine(Object date, Object source) {
+    return 'Source: $source, checked on $date';
+  }
 }

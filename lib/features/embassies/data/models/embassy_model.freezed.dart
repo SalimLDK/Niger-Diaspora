@@ -27,6 +27,8 @@ mixin _$EmbassyModel {
   String get city => throw _privateConstructorUsedError;
   String get address => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
+  List<String> get additionalPhones => throw _privateConstructorUsedError;
+  String? get fax => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
   String? get website => throw _privateConstructorUsedError;
   double? get latitude => throw _privateConstructorUsedError;
@@ -37,7 +39,7 @@ mixin _$EmbassyModel {
   Map<String, String> get openingHours => throw _privateConstructorUsedError;
   bool get isVerified => throw _privateConstructorUsedError;
   bool get isSuspended => throw _privateConstructorUsedError;
-  @TimestampConverter()
+  @EmbassyDateConverter()
   DateTime? get verifiedAt => throw _privateConstructorUsedError;
   String? get rejectionReason => throw _privateConstructorUsedError;
   List<String> get jurisdictionCountries => throw _privateConstructorUsedError;
@@ -47,9 +49,15 @@ mixin _$EmbassyModel {
       throw _privateConstructorUsedError; // Availability fields
   bool get isTemporarilyClosed => throw _privateConstructorUsedError;
   String? get closureMessage => throw _privateConstructorUsedError;
-  @TimestampConverter()
+  @EmbassyDateConverter()
   DateTime? get reopenDate => throw _privateConstructorUsedError;
-  List<String> get upcomingServices => throw _privateConstructorUsedError;
+  List<String> get upcomingServices =>
+      throw _privateConstructorUsedError; // Traçabilité de la fiche
+  String? get source => throw _privateConstructorUsedError;
+  String? get sourceUrl => throw _privateConstructorUsedError;
+  @EmbassyDateConverter()
+  DateTime? get sourceCheckedAt => throw _privateConstructorUsedError;
+  String? get dataNotes => throw _privateConstructorUsedError;
 
   /// Serializes this EmbassyModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -75,6 +83,8 @@ abstract class $EmbassyModelCopyWith<$Res> {
     String city,
     String address,
     String? phone,
+    List<String> additionalPhones,
+    String? fax,
     String? email,
     String? website,
     double? latitude,
@@ -85,15 +95,19 @@ abstract class $EmbassyModelCopyWith<$Res> {
     Map<String, String> openingHours,
     bool isVerified,
     bool isSuspended,
-    @TimestampConverter() DateTime? verifiedAt,
+    @EmbassyDateConverter() DateTime? verifiedAt,
     String? rejectionReason,
     List<String> jurisdictionCountries,
     List<EmbassyActivityModel> activities,
     List<EmbassyNewsModel> news,
     bool isTemporarilyClosed,
     String? closureMessage,
-    @TimestampConverter() DateTime? reopenDate,
+    @EmbassyDateConverter() DateTime? reopenDate,
     List<String> upcomingServices,
+    String? source,
+    String? sourceUrl,
+    @EmbassyDateConverter() DateTime? sourceCheckedAt,
+    String? dataNotes,
   });
 }
 
@@ -118,6 +132,8 @@ class _$EmbassyModelCopyWithImpl<$Res, $Val extends EmbassyModel>
     Object? city = null,
     Object? address = null,
     Object? phone = freezed,
+    Object? additionalPhones = null,
+    Object? fax = freezed,
     Object? email = freezed,
     Object? website = freezed,
     Object? latitude = freezed,
@@ -137,6 +153,10 @@ class _$EmbassyModelCopyWithImpl<$Res, $Val extends EmbassyModel>
     Object? closureMessage = freezed,
     Object? reopenDate = freezed,
     Object? upcomingServices = null,
+    Object? source = freezed,
+    Object? sourceUrl = freezed,
+    Object? sourceCheckedAt = freezed,
+    Object? dataNotes = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -169,6 +189,16 @@ class _$EmbassyModelCopyWithImpl<$Res, $Val extends EmbassyModel>
                 freezed == phone
                     ? _value.phone
                     : phone // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            additionalPhones:
+                null == additionalPhones
+                    ? _value.additionalPhones
+                    : additionalPhones // ignore: cast_nullable_to_non_nullable
+                        as List<String>,
+            fax:
+                freezed == fax
+                    ? _value.fax
+                    : fax // ignore: cast_nullable_to_non_nullable
                         as String?,
             email:
                 freezed == email
@@ -265,6 +295,26 @@ class _$EmbassyModelCopyWithImpl<$Res, $Val extends EmbassyModel>
                     ? _value.upcomingServices
                     : upcomingServices // ignore: cast_nullable_to_non_nullable
                         as List<String>,
+            source:
+                freezed == source
+                    ? _value.source
+                    : source // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            sourceUrl:
+                freezed == sourceUrl
+                    ? _value.sourceUrl
+                    : sourceUrl // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            sourceCheckedAt:
+                freezed == sourceCheckedAt
+                    ? _value.sourceCheckedAt
+                    : sourceCheckedAt // ignore: cast_nullable_to_non_nullable
+                        as DateTime?,
+            dataNotes:
+                freezed == dataNotes
+                    ? _value.dataNotes
+                    : dataNotes // ignore: cast_nullable_to_non_nullable
+                        as String?,
           )
           as $Val,
     );
@@ -287,6 +337,8 @@ abstract class _$$EmbassyModelImplCopyWith<$Res>
     String city,
     String address,
     String? phone,
+    List<String> additionalPhones,
+    String? fax,
     String? email,
     String? website,
     double? latitude,
@@ -297,15 +349,19 @@ abstract class _$$EmbassyModelImplCopyWith<$Res>
     Map<String, String> openingHours,
     bool isVerified,
     bool isSuspended,
-    @TimestampConverter() DateTime? verifiedAt,
+    @EmbassyDateConverter() DateTime? verifiedAt,
     String? rejectionReason,
     List<String> jurisdictionCountries,
     List<EmbassyActivityModel> activities,
     List<EmbassyNewsModel> news,
     bool isTemporarilyClosed,
     String? closureMessage,
-    @TimestampConverter() DateTime? reopenDate,
+    @EmbassyDateConverter() DateTime? reopenDate,
     List<String> upcomingServices,
+    String? source,
+    String? sourceUrl,
+    @EmbassyDateConverter() DateTime? sourceCheckedAt,
+    String? dataNotes,
   });
 }
 
@@ -329,6 +385,8 @@ class __$$EmbassyModelImplCopyWithImpl<$Res>
     Object? city = null,
     Object? address = null,
     Object? phone = freezed,
+    Object? additionalPhones = null,
+    Object? fax = freezed,
     Object? email = freezed,
     Object? website = freezed,
     Object? latitude = freezed,
@@ -348,6 +406,10 @@ class __$$EmbassyModelImplCopyWithImpl<$Res>
     Object? closureMessage = freezed,
     Object? reopenDate = freezed,
     Object? upcomingServices = null,
+    Object? source = freezed,
+    Object? sourceUrl = freezed,
+    Object? sourceCheckedAt = freezed,
+    Object? dataNotes = freezed,
   }) {
     return _then(
       _$EmbassyModelImpl(
@@ -380,6 +442,16 @@ class __$$EmbassyModelImplCopyWithImpl<$Res>
             freezed == phone
                 ? _value.phone
                 : phone // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        additionalPhones:
+            null == additionalPhones
+                ? _value._additionalPhones
+                : additionalPhones // ignore: cast_nullable_to_non_nullable
+                    as List<String>,
+        fax:
+            freezed == fax
+                ? _value.fax
+                : fax // ignore: cast_nullable_to_non_nullable
                     as String?,
         email:
             freezed == email
@@ -476,6 +548,26 @@ class __$$EmbassyModelImplCopyWithImpl<$Res>
                 ? _value._upcomingServices
                 : upcomingServices // ignore: cast_nullable_to_non_nullable
                     as List<String>,
+        source:
+            freezed == source
+                ? _value.source
+                : source // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        sourceUrl:
+            freezed == sourceUrl
+                ? _value.sourceUrl
+                : sourceUrl // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        sourceCheckedAt:
+            freezed == sourceCheckedAt
+                ? _value.sourceCheckedAt
+                : sourceCheckedAt // ignore: cast_nullable_to_non_nullable
+                    as DateTime?,
+        dataNotes:
+            freezed == dataNotes
+                ? _value.dataNotes
+                : dataNotes // ignore: cast_nullable_to_non_nullable
+                    as String?,
       ),
     );
   }
@@ -491,26 +583,33 @@ class _$EmbassyModelImpl extends _EmbassyModel {
     required this.city,
     required this.address,
     this.phone,
+    final List<String> additionalPhones = const [],
+    this.fax,
     this.email,
     this.website,
     this.latitude,
     this.longitude,
     this.imageUrl,
-    this.type = 'embassy',
+    this.type = EmbassyPostType.embassy,
     final List<String> services = const [],
     final Map<String, String> openingHours = const {},
     this.isVerified = false,
     this.isSuspended = false,
-    @TimestampConverter() this.verifiedAt,
+    @EmbassyDateConverter() this.verifiedAt,
     this.rejectionReason,
     final List<String> jurisdictionCountries = const [],
     final List<EmbassyActivityModel> activities = const [],
     final List<EmbassyNewsModel> news = const [],
     this.isTemporarilyClosed = false,
     this.closureMessage,
-    @TimestampConverter() this.reopenDate,
+    @EmbassyDateConverter() this.reopenDate,
     final List<String> upcomingServices = const [],
-  }) : _services = services,
+    this.source,
+    this.sourceUrl,
+    @EmbassyDateConverter() this.sourceCheckedAt,
+    this.dataNotes,
+  }) : _additionalPhones = additionalPhones,
+       _services = services,
        _openingHours = openingHours,
        _jurisdictionCountries = jurisdictionCountries,
        _activities = activities,
@@ -533,6 +632,18 @@ class _$EmbassyModelImpl extends _EmbassyModel {
   final String address;
   @override
   final String? phone;
+  final List<String> _additionalPhones;
+  @override
+  @JsonKey()
+  List<String> get additionalPhones {
+    if (_additionalPhones is EqualUnmodifiableListView)
+      return _additionalPhones;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_additionalPhones);
+  }
+
+  @override
+  final String? fax;
   @override
   final String? email;
   @override
@@ -571,7 +682,7 @@ class _$EmbassyModelImpl extends _EmbassyModel {
   @JsonKey()
   final bool isSuspended;
   @override
-  @TimestampConverter()
+  @EmbassyDateConverter()
   final DateTime? verifiedAt;
   @override
   final String? rejectionReason;
@@ -610,7 +721,7 @@ class _$EmbassyModelImpl extends _EmbassyModel {
   @override
   final String? closureMessage;
   @override
-  @TimestampConverter()
+  @EmbassyDateConverter()
   final DateTime? reopenDate;
   final List<String> _upcomingServices;
   @override
@@ -622,9 +733,20 @@ class _$EmbassyModelImpl extends _EmbassyModel {
     return EqualUnmodifiableListView(_upcomingServices);
   }
 
+  // Traçabilité de la fiche
+  @override
+  final String? source;
+  @override
+  final String? sourceUrl;
+  @override
+  @EmbassyDateConverter()
+  final DateTime? sourceCheckedAt;
+  @override
+  final String? dataNotes;
+
   @override
   String toString() {
-    return 'EmbassyModel(id: $id, name: $name, country: $country, city: $city, address: $address, phone: $phone, email: $email, website: $website, latitude: $latitude, longitude: $longitude, imageUrl: $imageUrl, type: $type, services: $services, openingHours: $openingHours, isVerified: $isVerified, isSuspended: $isSuspended, verifiedAt: $verifiedAt, rejectionReason: $rejectionReason, jurisdictionCountries: $jurisdictionCountries, activities: $activities, news: $news, isTemporarilyClosed: $isTemporarilyClosed, closureMessage: $closureMessage, reopenDate: $reopenDate, upcomingServices: $upcomingServices)';
+    return 'EmbassyModel(id: $id, name: $name, country: $country, city: $city, address: $address, phone: $phone, additionalPhones: $additionalPhones, fax: $fax, email: $email, website: $website, latitude: $latitude, longitude: $longitude, imageUrl: $imageUrl, type: $type, services: $services, openingHours: $openingHours, isVerified: $isVerified, isSuspended: $isSuspended, verifiedAt: $verifiedAt, rejectionReason: $rejectionReason, jurisdictionCountries: $jurisdictionCountries, activities: $activities, news: $news, isTemporarilyClosed: $isTemporarilyClosed, closureMessage: $closureMessage, reopenDate: $reopenDate, upcomingServices: $upcomingServices, source: $source, sourceUrl: $sourceUrl, sourceCheckedAt: $sourceCheckedAt, dataNotes: $dataNotes)';
   }
 
   @override
@@ -638,6 +760,11 @@ class _$EmbassyModelImpl extends _EmbassyModel {
             (identical(other.city, city) || other.city == city) &&
             (identical(other.address, address) || other.address == address) &&
             (identical(other.phone, phone) || other.phone == phone) &&
+            const DeepCollectionEquality().equals(
+              other._additionalPhones,
+              _additionalPhones,
+            ) &&
+            (identical(other.fax, fax) || other.fax == fax) &&
             (identical(other.email, email) || other.email == email) &&
             (identical(other.website, website) || other.website == website) &&
             (identical(other.latitude, latitude) ||
@@ -678,7 +805,14 @@ class _$EmbassyModelImpl extends _EmbassyModel {
             const DeepCollectionEquality().equals(
               other._upcomingServices,
               _upcomingServices,
-            ));
+            ) &&
+            (identical(other.source, source) || other.source == source) &&
+            (identical(other.sourceUrl, sourceUrl) ||
+                other.sourceUrl == sourceUrl) &&
+            (identical(other.sourceCheckedAt, sourceCheckedAt) ||
+                other.sourceCheckedAt == sourceCheckedAt) &&
+            (identical(other.dataNotes, dataNotes) ||
+                other.dataNotes == dataNotes));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -691,6 +825,8 @@ class _$EmbassyModelImpl extends _EmbassyModel {
     city,
     address,
     phone,
+    const DeepCollectionEquality().hash(_additionalPhones),
+    fax,
     email,
     website,
     latitude,
@@ -710,6 +846,10 @@ class _$EmbassyModelImpl extends _EmbassyModel {
     closureMessage,
     reopenDate,
     const DeepCollectionEquality().hash(_upcomingServices),
+    source,
+    sourceUrl,
+    sourceCheckedAt,
+    dataNotes,
   ]);
 
   /// Create a copy of EmbassyModel
@@ -734,6 +874,8 @@ abstract class _EmbassyModel extends EmbassyModel {
     required final String city,
     required final String address,
     final String? phone,
+    final List<String> additionalPhones,
+    final String? fax,
     final String? email,
     final String? website,
     final double? latitude,
@@ -744,15 +886,19 @@ abstract class _EmbassyModel extends EmbassyModel {
     final Map<String, String> openingHours,
     final bool isVerified,
     final bool isSuspended,
-    @TimestampConverter() final DateTime? verifiedAt,
+    @EmbassyDateConverter() final DateTime? verifiedAt,
     final String? rejectionReason,
     final List<String> jurisdictionCountries,
     final List<EmbassyActivityModel> activities,
     final List<EmbassyNewsModel> news,
     final bool isTemporarilyClosed,
     final String? closureMessage,
-    @TimestampConverter() final DateTime? reopenDate,
+    @EmbassyDateConverter() final DateTime? reopenDate,
     final List<String> upcomingServices,
+    final String? source,
+    final String? sourceUrl,
+    @EmbassyDateConverter() final DateTime? sourceCheckedAt,
+    final String? dataNotes,
   }) = _$EmbassyModelImpl;
   const _EmbassyModel._() : super._();
 
@@ -771,6 +917,10 @@ abstract class _EmbassyModel extends EmbassyModel {
   String get address;
   @override
   String? get phone;
+  @override
+  List<String> get additionalPhones;
+  @override
+  String? get fax;
   @override
   String? get email;
   @override
@@ -792,7 +942,7 @@ abstract class _EmbassyModel extends EmbassyModel {
   @override
   bool get isSuspended;
   @override
-  @TimestampConverter()
+  @EmbassyDateConverter()
   DateTime? get verifiedAt;
   @override
   String? get rejectionReason;
@@ -807,10 +957,19 @@ abstract class _EmbassyModel extends EmbassyModel {
   @override
   String? get closureMessage;
   @override
-  @TimestampConverter()
+  @EmbassyDateConverter()
   DateTime? get reopenDate;
   @override
-  List<String> get upcomingServices;
+  List<String> get upcomingServices; // Traçabilité de la fiche
+  @override
+  String? get source;
+  @override
+  String? get sourceUrl;
+  @override
+  @EmbassyDateConverter()
+  DateTime? get sourceCheckedAt;
+  @override
+  String? get dataNotes;
 
   /// Create a copy of EmbassyModel
   /// with the given fields replaced by the non-null parameter values.

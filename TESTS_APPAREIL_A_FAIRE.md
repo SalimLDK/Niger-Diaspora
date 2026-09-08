@@ -9150,6 +9150,50 @@ qui affichait déjà l'heure). Ce que le test ne peut pas voir :
   Restent non vérifiés sur appareil : appel de groupe, et le cas décliné
   (`isDeclined`, libellé orange).
 
+## ⬜ Annuaire des ambassades : Firestore → Supabase, 32 postes chargés (2026-09-07)
+
+L'écran « Ambassades » lisait la collection Firestore `embassies`, **vide
+depuis toujours** : la liste n'a jamais rien affiché. L'annuaire passe sur
+Supabase (`20260907180000_annuaire_postes_diplomatiques.sql`) avec les 32
+postes publiés par diplomatie.gouv.ne, relevés et corrigés le 2026-09-07.
+
+Rien de tout cela n'est vérifié sur appareil — `flutter analyze` ne dit pas si
+la liste s'affiche.
+
+- [ ] La liste affiche bien les 32 postes (28 ambassades, 4 consulats).
+      `lib/features/embassies/presentation/screens/embassies_screen.dart`
+- [ ] La recherche par pays / ville / nom filtre correctement.
+- [ ] **Mode avion après un premier chargement** : la liste reste affichée
+      depuis la copie locale (`embassies_local_datasource.dart`, clé
+      `CACHED_EMBASSIES_V2`). C'est le cas d'usage principal — quelqu'un qui
+      cherche son consulat n'a souvent pas de réseau.
+- [ ] **Mode avion sans jamais avoir chargé** : liste vide, pas de plantage.
+- [ ] La fiche de détail montre le fax et les lignes supplémentaires
+      (Le Caire en a trois, Addis-Abeba et Lomé deux).
+      `embassy_detail_screen.dart`
+- [ ] La réserve `data_notes` s'affiche sur les fiches concernées (Abidjan,
+      Ankara, Cotonou, Doha, La Havane, Berlin, Copenhague, Rome, Kano,
+      Paris, Pretoria, Rabat, Riyad, Washington, Genève, Pékin, Khartoum,
+      Le Caire, New York, Paris/UNESCO) et reste lisible en **thème sombre**
+      (`surfaceContainerHighest` / `onSurfaceVariant`).
+- [ ] **Bouton « Itinéraire » grisé partout** : aucune fiche officielle ne
+      porte de coordonnées. Avant ce correctif, `toEntity()` remplaçait une
+      latitude nulle par `0.0` — le bouton était actif sur les 32 postes et
+      ouvrait la carte dans le golfe de Guinée.
+- [ ] La Havane et Doha (aucune adresse publiée) affichent « La Havane,
+      Cuba » sans virgule orpheline en tête.
+- [ ] Admin : vérifier / suspendre un poste (`admin_embassy_verification_screen`)
+      écrit bien dans Supabase, et l'échec RLS non-admin remonte un message
+      au lieu d'un faux succès.
+- [ ] Admin : créer un poste (`admin_create_embassy_screen`) le fait
+      apparaître dans la liste — l'écran écrivait dans Firestore, donc dans
+      une collection que plus personne ne lit.
+
+À faire côté base avant tout test : `supabase db push` (la migration n'a pas
+été appliquée depuis cette session).
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

@@ -298,9 +298,47 @@ class EmbassyDetailScreen extends StatelessWidget {
             ),
 
           Text(
-            '${embassy.address}, ${embassy.city}, ${embassy.country}',
+            // Deux postes (La Havane, Doha) ne publient aucune adresse : les
+            // recoller sans filtrer donnait une ligne commencant par une
+            // virgule.
+            [embassy.address, embassy.city, embassy.country]
+                .where((part) => part.trim().isNotEmpty)
+                .join(', '),
             style: theme.textTheme.bodyLarge,
           ),
+
+          // Lignes secondaires : la plupart des postes publient un fax, et
+          // plusieurs annoncent deux ou trois numeros. Rien n'en affichait
+          // aucun jusqu'ici.
+          if (embassy.additionalPhones.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                '${l10n.embassyOtherPhones} : ${embassy.additionalPhones.join(' · ')}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          if (embassy.fax != null && embassy.fax!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '${l10n.embassyFax} : ${embassy.fax}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+
+          // Reserve connue sur la fiche. L'annuaire officiel est fautif par
+          // endroits -- numeros amputes d'un chiffre, codes postaux invalides,
+          // adresses e-mail non delivrables. La taire reviendrait a presenter
+          // une coordonnee douteuse comme une certitude.
+          if (embassy.hasDataNotes) ...[
+            const SizedBox(height: 12),
+            _DataNoteCard(label: l10n.embassyDataNote, note: embassy.dataNotes!),
+          ],
           const SizedBox(height: 24),
 
           // 4 actions principales (§13b) : Demande en plein #1976D2,
@@ -826,5 +864,54 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
     return false;
+  }
+}
+
+/// Reserve connue sur une fiche de l'annuaire, affichee telle qu'elle est
+/// consignee en base (colonne `data_notes`).
+class _DataNoteCard extends StatelessWidget {
+  const _DataNoteCard({required this.label, required this.note});
+
+  final String label;
+  final String note;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 18,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(note, style: theme.textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
