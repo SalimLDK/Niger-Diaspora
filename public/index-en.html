@@ -14,7 +14,7 @@
     <link rel="icon" type="image/png" href="/icon-192.png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
-    <meta name="theme-color" content="#0f0d0a">
+    <meta name="theme-color" content="#F5EAD8">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Diaspo Niger">
     <meta property="og:locale" content="en_US">
@@ -31,18 +31,37 @@
     <meta name="twitter:image" content="https://diasponiger.web.app/og-image.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
-        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,300&family=Sora:wght@300;400;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
         rel="stylesheet">
 
     <style>
         :root {
-            --orange: #E97424;
-            --green: #15803d;
-            --dark: #0f0d0a;
-            --sand: #f5efe6;
-            --warm-white: #fdf9f4;
-            --muted: #8a7e72;
-            --card-bg: rgba(255, 255, 255, 0.04);
+            /* Palette ① Organic du guide de style — la seule que le guide
+               assigne au site web. Source : feed_tokens.dart, `organic`. */
+            --sand: #F5EAD8;
+            --surface: #EBDDC5;
+            --paper: #F9F4ED;
+            --ink: #201E1D;
+            /* Le guide donne mutedText #82796A : 3,4:1 sur le sable, sous le
+               seuil AA des 4,5:1 pour du texte courant. Assombri d'un cran,
+               meme famille — la seule valeur du guide que le site n'applique
+               pas telle quelle, et c'est la lisibilite qui l'impose. */
+            --muted: #5C5449;
+            --accent: #C67139;
+            --action: #8C491A;
+            --olive: #7A8A5E;
+            --olive-text: #566540;
+            --deep: #643312;
+            --divider: rgba(32, 30, 29, 0.16);
+            --hairline: rgba(32, 30, 29, 0.10);
+            /* anciens noms, conserves le temps que tout le site s'y refere */
+            --orange: var(--accent);
+            --green: var(--olive);
+            --dark: var(--sand);
+            --dark2: var(--paper);
+            --warm-white: var(--ink);
+            --border: var(--hairline);
+            --card-bg: rgba(32, 30, 29, 0.035);
         }
 
         *,
@@ -58,7 +77,7 @@
         }
 
         body {
-            font-family: 'Sora', sans-serif;
+            font-family: 'Figtree', sans-serif;
             background: var(--dark);
             color: var(--warm-white);
             overflow-x: hidden;
@@ -86,16 +105,16 @@
             align-items: center;
             justify-content: space-between;
             padding: 1.2rem 3rem;
-            background: rgba(15, 13, 10, 0.7);
+            background: rgba(245, 234, 216, 0.7);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(233, 116, 36, 0.12);
+            border-bottom: 1px solid rgba(198, 113, 57, 0.12);
             transition: all 0.4s ease;
         }
 
         .logo {
-            font-family: 'Fraunces', serif;
+            font-family: 'Caprasimo', serif;
             font-size: 1.4rem;
-            font-weight: 700;
+            font-weight: 400;
             display: flex;
             align-items: center;
             gap: 0.7rem;
@@ -103,14 +122,14 @@
         }
 
         .logo span {
-            color: var(--orange);
+            color: var(--action);
         }
 
         .logo img {
             width: 36px;
             height: 36px;
             border-radius: 10px;
-            border: 1px solid rgba(233, 116, 36, 0.3);
+            border: 1px solid rgba(198, 113, 57, 0.3);
         }
 
         .nav-links {
@@ -120,7 +139,7 @@
         }
 
         .nav-links a {
-            color: rgba(253, 249, 244, 0.7);
+            color: rgba(32, 30, 29, 0.82);
             text-decoration: none;
             font-size: 0.85rem;
             font-weight: 300;
@@ -130,12 +149,12 @@
         }
 
         .nav-links a:hover {
-            color: var(--orange);
+            color: var(--action);
         }
 
         .nav-cta {
-            background: var(--orange);
-            color: white !important;
+            background: var(--action);
+            color: var(--sand) !important;
             padding: 0.55rem 1.4rem !important;
             border-radius: 100px;
             font-weight: 600 !important;
@@ -165,8 +184,8 @@
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(ellipse 80% 60% at 70% 50%, rgba(233, 116, 36, 0.18) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 80% at 20% 80%, rgba(21, 128, 61, 0.15) 0%, transparent 60%),
+                radial-gradient(ellipse 80% 60% at 70% 50%, rgba(198, 113, 57, 0.18) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 20% 80%, rgba(122, 138, 94, 0.15) 0%, transparent 60%),
                 var(--dark);
         }
 
@@ -179,7 +198,7 @@
             width: 55vw;
             height: 55vw;
             border-radius: 50%;
-            border: 1px solid rgba(233, 116, 36, 0.12);
+            border: 1px solid rgba(198, 113, 57, 0.12);
             pointer-events: none;
         }
 
@@ -188,7 +207,7 @@
             position: absolute;
             inset: 8%;
             border-radius: 50%;
-            border: 1px solid rgba(21, 128, 61, 0.1);
+            border: 1px solid rgba(122, 138, 94, 0.1);
         }
 
         .hero-circle::after {
@@ -196,7 +215,7 @@
             position: absolute;
             inset: 16%;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(233, 116, 36, 0.08) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(198, 113, 57, 0.08) 0%, transparent 70%);
         }
 
         /* Dotted pattern */
@@ -229,9 +248,9 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            background: rgba(233, 116, 36, 0.12);
-            border: 1px solid rgba(233, 116, 36, 0.25);
-            color: var(--orange);
+            background: rgba(198, 113, 57, 0.12);
+            border: 1px solid rgba(198, 113, 57, 0.25);
+            color: var(--action);
             font-size: 0.75rem;
             letter-spacing: 0.1em;
             text-transform: uppercase;
@@ -260,9 +279,9 @@
         }
 
         .hero h1 {
-            font-family: 'Fraunces', serif;
+            font-family: 'Caprasimo', serif;
             font-size: clamp(3rem, 6vw, 5.5rem);
-            font-weight: 900;
+            font-weight: 400;
             line-height: 1.02;
             letter-spacing: -0.03em;
             margin-bottom: 1.5rem;
@@ -270,14 +289,14 @@
 
         .hero h1 em {
             font-style: italic;
-            color: var(--orange);
+            color: var(--accent);
             display: block;
         }
 
         .hero p {
             font-size: 1.1rem;
             font-weight: 300;
-            color: rgba(253, 249, 244, 0.65);
+            color: rgba(32, 30, 29, 0.82);
             max-width: 480px;
             line-height: 1.75;
             margin-bottom: 2.5rem;
@@ -294,24 +313,24 @@
             display: inline-flex;
             align-items: center;
             gap: 0.6rem;
-            background: var(--orange);
-            color: white;
+            background: var(--action);
+            color: var(--sand);
             text-decoration: none;
             padding: 1rem 2rem;
             border-radius: 100px;
             font-size: 0.95rem;
             font-weight: 600;
             transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: 0 0 0 0 rgba(233, 116, 36, 0);
+            box-shadow: 0 0 0 0 rgba(198, 113, 57, 0);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(233, 116, 36, 0.4);
+            box-shadow: 0 8px 30px rgba(198, 113, 57, 0.4);
         }
 
         .btn-secondary {
-            color: rgba(253, 249, 244, 0.6);
+            color: rgba(32, 30, 29, 0.82);
             text-decoration: none;
             font-size: 0.9rem;
             font-weight: 300;
@@ -332,21 +351,21 @@
             gap: 3rem;
             margin-top: 5rem;
             padding-top: 3rem;
-            border-top: 1px solid rgba(253, 249, 244, 0.07);
+            border-top: 1px solid rgba(32, 30, 29, 0.13);
             animation: fadeUp 1s 0.3s ease both;
         }
 
         .stat-num {
-            font-family: 'Fraunces', serif;
+            font-family: 'Caprasimo', serif;
             font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--orange);
+            font-weight: 400;
+            color: var(--accent);
         }
 
         .stat-label {
             font-size: 0.8rem;
             font-weight: 300;
-            color: rgba(253, 249, 244, 0.45);
+            color: rgba(32, 30, 29, 0.68);
             text-transform: uppercase;
             letter-spacing: 0.06em;
             margin-top: 0.2rem;
@@ -354,7 +373,7 @@
 
         /* ── MARQUEE STRIP ── */
         .marquee-strip {
-            background: var(--orange);
+            background: var(--action);
             padding: 0.9rem 0;
             overflow: hidden;
             white-space: nowrap;
@@ -404,7 +423,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.6rem;
-            color: var(--orange);
+            color: var(--action);
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.12em;
@@ -421,16 +440,16 @@
         }
 
         .section-title {
-            font-family: 'Fraunces', serif;
+            font-family: 'Caprasimo', serif;
             font-size: clamp(2rem, 4vw, 3.5rem);
-            font-weight: 700;
+            font-weight: 400;
             letter-spacing: -0.03em;
             line-height: 1.1;
             margin-bottom: 1rem;
         }
 
         .section-sub {
-            color: rgba(253, 249, 244, 0.5);
+            color: rgba(32, 30, 29, 0.68);
             font-size: 1rem;
             font-weight: 300;
             max-width: 420px;
@@ -448,7 +467,7 @@
         /* ── ABOUT SECTION ── */
         .about-section {
             padding: 7rem 3rem;
-            background: linear-gradient(180deg, var(--dark) 0%, #0d1a10 100%);
+            background: linear-gradient(180deg, var(--dark) 0%, #EDF1E4 100%);
         }
 
         .about-inner {
@@ -469,7 +488,7 @@
         }
 
         .about-text p {
-            color: rgba(253, 249, 244, 0.55);
+            color: rgba(32, 30, 29, 0.68);
             font-weight: 300;
             line-height: 1.85;
             font-size: 1rem;
@@ -484,9 +503,9 @@
         }
 
         .about-pill {
-            background: rgba(21, 128, 61, 0.12);
-            border: 1px solid rgba(21, 128, 61, 0.25);
-            color: #4ade80;
+            background: rgba(122, 138, 94, 0.12);
+            border: 1px solid rgba(122, 138, 94, 0.25);
+            color: #41693C;
             padding: 0.4rem 0.9rem;
             border-radius: 100px;
             font-size: 0.78rem;
@@ -506,7 +525,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(233, 116, 36, 0.12) 0%, transparent 70%);
+            background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(198, 113, 57, 0.12) 0%, transparent 70%);
         }
 
         .download-section .section-label {
@@ -519,7 +538,7 @@
         }
 
         .dl-sub {
-            color: rgba(253, 249, 244, 0.45);
+            color: rgba(32, 30, 29, 0.68);
             font-weight: 300;
             margin-bottom: 3rem;
             font-size: 1rem;
@@ -536,13 +555,13 @@
         .dl-note {
             margin-top: 1.5rem;
             font-size: 0.8rem;
-            color: rgba(253, 249, 244, 0.3);
+            color: rgba(32, 30, 29, 0.68);
             font-style: italic;
         }
 
         /* ── FOOTER ── */
         footer {
-            border-top: 1px solid rgba(253, 249, 244, 0.07);
+            border-top: 1px solid rgba(32, 30, 29, 0.13);
             padding: 3rem;
             display: flex;
             align-items: center;
@@ -554,13 +573,13 @@
         }
 
         .footer-logo {
-            font-family: 'Fraunces', serif;
+            font-family: 'Caprasimo', serif;
             font-size: 1.1rem;
-            font-weight: 700;
+            font-weight: 400;
         }
 
         .footer-logo span {
-            color: var(--orange);
+            color: var(--action);
         }
 
         .footer-links {
@@ -569,7 +588,7 @@
         }
 
         .footer-links a {
-            color: rgba(253, 249, 244, 0.4);
+            color: rgba(32, 30, 29, 0.68);
             text-decoration: none;
             font-size: 0.85rem;
             font-weight: 300;
@@ -577,11 +596,11 @@
         }
 
         .footer-links a:hover {
-            color: var(--orange);
+            color: var(--action);
         }
 
         .footer-copy {
-            color: rgba(253, 249, 244, 0.2);
+            color: rgba(32, 30, 29, 0.68);
             font-size: 0.78rem;
             font-weight: 300;
         }
@@ -591,15 +610,15 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(15, 13, 10, 0.95);
+            background: rgba(245, 234, 216, 0.95);
             backdrop-filter: blur(20px);
             z-index: 5000;
             place-items: center;
         }
 
         .dl-overlay-card {
-            background: #1a1612;
-            border: 1px solid rgba(233, 116, 36, 0.2);
+            background: #F9F4ED;
+            border: 1px solid rgba(198, 113, 57, 0.2);
             border-radius: 24px;
             padding: 3rem 2.5rem;
             text-align: center;
@@ -613,18 +632,18 @@
             border-radius: 18px;
             margin: 0 auto 1.5rem;
             display: block;
-            border: 1px solid rgba(233, 116, 36, 0.3);
+            border: 1px solid rgba(198, 113, 57, 0.3);
         }
 
         .dl-overlay-card h2 {
-            font-family: 'Fraunces', serif;
+            font-family: 'Caprasimo', serif;
             font-size: 1.5rem;
-            font-weight: 700;
+            font-weight: 400;
             margin-bottom: 0.75rem;
         }
 
         .dl-overlay-card p {
-            color: rgba(253, 249, 244, 0.5);
+            color: rgba(32, 30, 29, 0.68);
             font-weight: 300;
             font-size: 0.95rem;
             line-height: 1.6;
@@ -634,8 +653,8 @@
         .dl-overlay-btn {
             display: block;
             width: 100%;
-            background: var(--orange);
-            color: white;
+            background: var(--action);
+            color: var(--sand);
             padding: 1rem;
             border-radius: 12px;
             text-decoration: none;
@@ -651,17 +670,17 @@
         .dl-overlay-skip {
             background: none;
             border: none;
-            color: rgba(253, 249, 244, 0.3);
+            color: rgba(32, 30, 29, 0.68);
             font-size: 0.85rem;
             cursor: pointer;
             margin-top: 1rem;
             text-decoration: underline;
-            font-family: 'Sora', sans-serif;
+            font-family: 'Figtree', sans-serif;
             transition: color 0.3s;
         }
 
         .dl-overlay-skip:hover {
-            color: rgba(253, 249, 244, 0.6);
+            color: rgba(32, 30, 29, 0.82);
         }
 
         /* ── ANIMATIONS ── */
@@ -695,8 +714,8 @@
             max-width: 290px;
             padding: 9px;
             border-radius: 34px;
-            background: linear-gradient(160deg, #2e2721, #14110d);
-            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(253, 249, 244, 0.07);
+            background: linear-gradient(160deg, #4A3E33, #241D17);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(32, 30, 29, 0.13);
         }
 
         .phone img {
@@ -742,16 +761,16 @@
         }
 
         .usage h2 {
-            font-family: 'Fraunces', serif;
+            font-family: 'Caprasimo', serif;
             font-size: clamp(1.9rem, 3.4vw, 2.7rem);
-            font-weight: 700;
+            font-weight: 400;
             line-height: 1.12;
             letter-spacing: -0.02em;
             margin-bottom: 1.1rem;
         }
 
         .usage p {
-            color: rgba(253, 249, 244, 0.55);
+            color: rgba(32, 30, 29, 0.68);
             font-weight: 300;
             line-height: 1.75;
             max-width: 46ch;
@@ -771,13 +790,13 @@
             font-size: 0.94rem;
             font-weight: 300;
             line-height: 1.6;
-            color: rgba(253, 249, 244, 0.68);
+            color: rgba(32, 30, 29, 0.82);
         }
 
         .usage-points li::before {
             content: '—';
             flex: none;
-            color: var(--orange);
+            color: var(--accent);
         }
 
         /* ── LA PIÈCE MAÎTRESSE : le dossier consulaire, en papier ──
@@ -786,10 +805,9 @@
         .dossier-section {
             padding: 5.5rem 3rem 6.5rem;
             background:
-                radial-gradient(ellipse 70% 50% at 30% 0%, rgba(21, 128, 61, 0.14) 0%, transparent 65%),
-                var(--dark);
-            border-top: 1px solid rgba(253, 249, 244, 0.06);
-            border-bottom: 1px solid rgba(253, 249, 244, 0.06);
+                radial-gradient(ellipse 70% 50% at 30% 0%, rgba(122, 138, 94, 0.22) 0%, transparent 65%),
+                var(--ink);
+            color: var(--sand);
         }
 
         .dossier-inner {
@@ -822,8 +840,8 @@
         }
 
         .paper {
-            background: var(--sand);
-            color: #2b2119;
+            background: #FFFCF6;
+            color: #201E1D;
             border-radius: 3px;
             padding: 2.1rem 1.9rem 1.4rem;
             transform: rotate(-1.6deg);
@@ -834,15 +852,15 @@
             font-size: 0.68rem;
             letter-spacing: 0.16em;
             text-transform: uppercase;
-            color: #7a6a58;
+            color: #6E6559;
             padding-bottom: 0.9rem;
-            border-bottom: 2px solid #2b2119;
+            border-bottom: 2px solid #201E1D;
         }
 
         .paper-title {
-            font-family: 'Fraunces', serif;
+            font-family: 'Caprasimo', serif;
             font-size: 1.45rem;
-            font-weight: 700;
+            font-weight: 400;
             margin: 1.1rem 0 1.4rem;
             letter-spacing: -0.01em;
         }
@@ -867,7 +885,7 @@
             width: 15px;
             height: 15px;
             margin-top: 3px;
-            border: 1.5px solid #2b2119;
+            border: 1.5px solid #201E1D;
             border-radius: 2px;
         }
 
@@ -875,30 +893,34 @@
             font-size: 0.72rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            color: #a08f52;
+            color: #8C491A;
             margin: 0.2rem 0 0.2rem 33px;
         }
 
         .paper-note {
             font-size: 0.78rem;
             line-height: 1.5;
-            color: #7a6a58;
-            border-top: 1px solid rgba(43, 33, 25, 0.18);
+            color: #6E6559;
+            border-top: 1px solid rgba(32, 30, 29, 0.18);
             margin-top: 1.5rem;
             padding-top: 0.9rem;
         }
 
+        .dossier-section .section-label {
+            color: var(--accent);
+        }
+
         .dossier-lead {
-            font-family: 'Fraunces', serif;
+            font-family: 'Caprasimo', serif;
             font-size: clamp(1.9rem, 3.4vw, 2.7rem);
-            font-weight: 700;
+            font-weight: 400;
             line-height: 1.12;
             letter-spacing: -0.02em;
             margin-bottom: 1.2rem;
         }
 
         .dossier-text p {
-            color: rgba(253, 249, 244, 0.55);
+            color: rgba(245, 234, 216, 0.66);
             font-weight: 300;
             line-height: 1.75;
             max-width: 46ch;
@@ -909,7 +931,7 @@
         }
 
         .dossier-text em {
-            color: var(--warm-white);
+            color: var(--sand);
             font-style: normal;
         }
 
@@ -920,12 +942,12 @@
             gap: 0;
             max-width: 1160px;
             margin: 0 auto;
-            border-top: 1px solid rgba(253, 249, 244, 0.08);
+            border-top: 1px solid rgba(32, 30, 29, 0.13);
         }
 
         .more-item {
             padding: 2.4rem 2rem 0;
-            border-right: 1px solid rgba(253, 249, 244, 0.08);
+            border-right: 1px solid rgba(32, 30, 29, 0.13);
         }
 
         .more-item:last-child {
@@ -933,9 +955,9 @@
         }
 
         .more-item h3 {
-            font-family: 'Fraunces', serif;
+            font-family: 'Caprasimo', serif;
             font-size: 1.25rem;
-            font-weight: 700;
+            font-weight: 400;
             margin-bottom: 0.6rem;
         }
 
@@ -943,7 +965,7 @@
             font-size: 0.92rem;
             font-weight: 300;
             line-height: 1.65;
-            color: rgba(253, 249, 244, 0.5);
+            color: rgba(32, 30, 29, 0.68);
         }
 
         /* ── RESPONSIVE ── */
@@ -957,9 +979,9 @@
             width: 42px;
             height: 42px;
             padding: 0;
-            border: 1px solid rgba(233, 116, 36, 0.28);
+            border: 1px solid rgba(198, 113, 57, 0.28);
             border-radius: 12px;
-            background: rgba(233, 116, 36, 0.10);
+            background: rgba(198, 113, 57, 0.1);
             cursor: pointer;
         }
 
@@ -991,8 +1013,8 @@
                 align-items: stretch;
                 gap: 0;
                 padding: 0.4rem 1.5rem 1.4rem;
-                background: #14110d;
-                border-bottom: 1px solid rgba(233, 116, 36, 0.14);
+                background: #EBDDC5;
+                border-bottom: 1px solid rgba(198, 113, 57, 0.14);
                 opacity: 0;
                 visibility: hidden;
                 transform: translateY(-8px);
@@ -1006,7 +1028,7 @@
             }
 
             .nav-links li {
-                border-top: 1px solid rgba(253, 249, 244, 0.06);
+                border-top: 1px solid rgba(32, 30, 29, 0.13);
             }
 
             .nav-links li:first-child {
@@ -1124,7 +1146,7 @@
 
             .more-item {
                 border-right: none;
-                border-bottom: 1px solid rgba(253, 249, 244, 0.08);
+                border-bottom: 1px solid rgba(32, 30, 29, 0.13);
                 padding: 2rem 0;
             }
 
@@ -1182,8 +1204,8 @@
                 <li><a href="#about">About</a></li>
                 <li><a href="/contact-en">Contact</a></li>
                 <li style="display:flex;align-items:center;gap:0.4rem;font-size:0.72rem;font-weight:600;">
-                    <a href="/" style="padding:0.2rem 0.55rem;border-radius:100px;background:rgba(253,249,244,0.06);border:1px solid rgba(253,249,244,0.08);color:rgba(253,249,244,0.45);text-decoration:none;letter-spacing:0;text-transform:none;">🇫🇷 FR</a>
-                    <span style="padding:0.2rem 0.55rem;border-radius:100px;background:rgba(233,116,36,0.15);border:1px solid rgba(233,116,36,0.3);color:var(--orange);">🇬🇧 EN</span>
+                    <a href="/" style="padding:0.2rem 0.55rem;border-radius:100px;background:rgba(32, 30, 29, 0.13);border:1px solid rgba(32, 30, 29, 0.13);color:rgba(32, 30, 29, 0.68);text-decoration:none;letter-spacing:0;text-transform:none;">🇫🇷 FR</a>
+                    <span style="padding:0.2rem 0.55rem;border-radius:100px;background:rgba(198, 113, 57, 0.15);border:1px solid rgba(198, 113, 57, 0.3);color:var(--action);">🇬🇧 EN</span>
                 </li>
                 <li><a href="#download" class="nav-cta">Download</a></li>
             </ul>
@@ -1486,13 +1508,13 @@
 
     <!-- DEEP LINK OVERLAY -->
     <div id="deep-link-overlay"
-        style="display:none; position:fixed; inset:0; z-index:5000; place-items:center; background:rgba(15,13,10,0.95); backdrop-filter:blur(20px);">
+        style="display:none; position:fixed; inset:0; z-index:5000; place-items:center; background:rgba(245, 234, 216, 0.95); backdrop-filter:blur(20px);">
         <div class="dl-overlay-card">
             <img src="/logo-96.png" alt="" class="dl-overlay-logo" width="72" height="72" onerror="this.style.display='none'">
             <h2>Open in Diaspo Niger</h2>
             <p>To see this content, open the Diaspo Niger app on your device.</p>
             <a id="deep-link-btn" href="#" class="dl-overlay-btn">Open the app</a>
-            <p style="font-size:0.82rem; color:rgba(253,249,244,0.3); margin-bottom:0.8rem;">Don't have the app?</p>
+            <p style="font-size:0.82rem; color:rgba(32, 30, 29, 0.68); margin-bottom:0.8rem;">Don't have the app?</p>
             <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger" target="_blank"
                 rel="noopener">
                 <img src="/google-play-badge.png" alt="Google Play" style="height: 40px;">
@@ -1539,8 +1561,8 @@
         window.addEventListener('scroll', () => {
             document.querySelector('nav').style.background =
                 window.scrollY > 60
-                    ? 'rgba(15, 13, 10, 0.9)'
-                    : 'rgba(15, 13, 10, 0.7)';
+                    ? 'rgba(245, 234, 216, 0.9)'
+                    : 'rgba(245, 234, 216, 0.7)';
         });
 
         document.addEventListener('DOMContentLoaded', function () {

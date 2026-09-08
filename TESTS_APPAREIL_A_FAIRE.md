@@ -14,6 +14,47 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Site web repeint sur la palette ① Organic du guide (2026-09-08)
+
+Le « Guide de style » Claude Design assigne explicitement la palette ①
+**Organic** au site web. Le site ne l'a jamais appliquée : il tournait sur un
+fond `#0f0d0a` et un orange `#E97424` qui ne figurent dans **aucune** des cinq
+palettes du guide, en Fraunces + Sora là où Organic dit Caprasimo + Figtree.
+Un visiteur voyait donc une page noire et orange, puis installait une
+application crème et verte.
+
+Les seize pages sont passées sur les valeurs de
+`lib/features/feed/presentation/theme/feed_tokens.dart` (`organic`) : sable
+`#F5EAD8`, surface `#EBDDC5`, encre `#201E1D`, terre cuite `#C67139`, olive
+`#7A8A5E`.
+
+**Une valeur du guide n'est pas reprise telle quelle** : `mutedText #82796A`
+donne 3,4:1 sur le sable, sous le seuil AA de 4,5:1 pour du texte courant. Le
+site utilise `#5C5449`, même famille, un cran plus foncé. C'est la lisibilité
+qui l'impose, pas une préférence.
+
+Le contrôle n'est pas visuel : un audit exécuté dans le navigateur parcourt
+chaque nœud de texte des seize pages, recompose le fond réel (superposition des
+alphas) et calcule le rapport de contraste. Les seize pages sortent à zéro
+défaut. Seul le bouton « Supprimer définitivement » **désactivé** reste à
+2,7:1 — un contrôle inactif est explicitement hors du champ de WCAG, et c'est
+son apparence voulue.
+
+- [ ] **Lisibilité au soleil** : une page claire se comporte à l'inverse d'une
+      page sombre en extérieur. À regarder dehors, pas seulement au bureau.
+- [ ] **Rendu des captures sur fond clair** : les écrans de l'app sont crème,
+      le cadre du téléphone reste sombre pour les détacher. À vérifier sur
+      écran de téléphone, où le contraste perçu diffère.
+- [ ] **Polices Caprasimo et Figtree** : elles ne sont chargées que depuis
+      Google Fonts. Vérifier le rendu de repli si le réseau est lent
+      (Caprasimo n'a qu'une graisse ; un faux gras serait visible).
+- [ ] **`prefers-reduced-motion`** : toujours à vérifier avec « Réduire les
+      animations » activé.
+- [ ] **Barre système du navigateur** : `theme-color` est passé au sable ;
+      à voir sur Chrome Android, thème clair et thème sombre.
+
+---
+
 ## ⬜ Site web : page d'accueil refondue sur les captures réelles (2026-09-08)
 
 La page d'accueil vendait une version plus ancienne de l'app : cinq cartes à
