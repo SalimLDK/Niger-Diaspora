@@ -289,12 +289,27 @@ réussi à automatiser ce parcours-là de façon vérifiable.
       Ni les coordonnées ni l'attente (jusqu'à 75 s) n'y changent rien —
       la cause reste à trouver, et c'est ce qui a bloqué l'automatisation.
 
-**Recommandation, indépendamment de la traque.** Vu la rareté du défaut, le
-gain n'est pas dans la ligne exacte mais dans le fait qu'**une exception ne
-devrait jamais s'afficher telle quelle**. Poser un `ErrorWidget.builder`
-global qui rende un message neutre en release réglerait le symptôme — hôte
-Supabase et identifiant de compte compris — quelle que soit la ligne
-fautive.
+**✅ Symptôme traité, indépendamment de la traque.** Vu la rareté du défaut,
+le gain n'était pas dans la ligne exacte mais dans le fait qu'**une exception
+ne doit jamais s'afficher telle quelle**. `main.dart` pose désormais un
+`ErrorWidget.builder` global (`construireEcranErreurNeutre`) qui rend
+« Une erreur est survenue » à la place du message brut — donc plus d'hôte
+Supabase ni d'identifiant de compte à l'écran, quelle que soit la ligne
+fautive. Posé en debug aussi, pour que ce chemin soit réellement exercé ; la
+pile continue de sortir en console via `presentError`.
+
+Couvert par `test/core/ecran_erreur_neutre_test.dart` (4 cas) : l'exception
+réellement observée est rejouée et le test échoue si `supabase.co`,
+l'identifiant du compte ou `SocketException` réapparaissent à l'écran. Les
+deux autres cas couvrent les contraintes du widget — zone minuscule, absence
+de `Directionality`/`Theme` au-dessus.
+
+- [ ] **Voir ce rendu sur appareil.** Non vérifié : il faudrait provoquer une
+      levée à la demande, et justement, celle qu'on connaît ne se reproduit
+      pas. Vérifier aussi qu'il reste lisible dans les deux thèmes (les
+      couleurs sont choisies sur `platformBrightness`, pas sur le thème de
+      l'app — un écart est possible si l'usager force un thème contraire à
+      celui du système).
 - [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
       compte** dans un message d'erreur visible par l'usager.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
@@ -9938,19 +9953,33 @@ officielle (Paris/UNESCO et Kano). Le script est rejouable :
       de filtres les fait bien disparaître/réapparaître.
 - [ ] **Le tap sur un pin** ouvre la fiche flottante (nom, adresse, tél, mail,
       services) et « Voir la fiche complète » mène au détail.
-- [ ] **Le bouton « voir sur la carte » du détail** est désormais visible sur
-      les 21 postes placés — et toujours masqué sur les 11 autres.
+- [x] **Le bouton « Y aller » du détail** (et « Itinéraire » sur la carte de
+      liste) est actif sur les 21 postes placés, absent sur les 11 autres.
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, sans réinstaller l'app :
+      les coordonnées viennent de la base, l'APK en place suffit. Alger →
+      « Appeler / Itinéraire / Détails » et « Y aller » actif sur la fiche ;
+      Le Caire → « Appeler / Détails » seulement.*
 - [ ] **Écart à confirmer auprès du poste** : Copenhague (OSM place
       l'ambassade Rosbaeksvej/Østerbro, l'annuaire publie « Niels Juels Gade
       5 » — 5,1 km) et Dakar (OSM « Voie de Dégagement Nord, Point E » contre
       « 8 avenue Léopold Sédar Senghor » — 5,2 km). Position OSM retenue : le
       nœud porte le nom du poste. À trancher par un appel ou une photo.
-- [ ] **11 postes restent sans pin** (Addis-Abeba, Le Caire, Rabat, La Havane,
-      Doha, Koweït, New Delhi, Djeddah, Dubaï, Khartoum, Pékin) : vérifier
-      qu'ils restent bien **visibles dans la liste** avec leur adresse, et
-      qu'ils ne se retrouvent pas au point (0, 0) dans le golfe de Guinée.
+- [x] **11 postes restent sans pin** (Addis-Abeba, Le Caire, Rabat, La Havane,
+      Doha, Koweït, New Delhi, Djeddah, Dubaï, Khartoum, Pékin) : ils restent
+      **visibles dans la liste**, regroupés sous « Autres », avec leur adresse
+      — vu sur le Pixel le 2026-09-08. Aucun ne tombe au point (0, 0) : le
+      modèle ne convertit plus `null` en `0.0`.
       Addis-Abeba est volontairement laissé de côté : OSM n'y cartographie que
       la **résidence** de l'ambassadeur, pas la chancellerie.
+- [ ] **Regroupement par zone, corrigé dans la foulée** (`ZoneGeographique`,
+      testé à froid) : Alger s'affichait sous **Europe** (constaté sur le
+      Pixel : « Europe · 9 » contenait l'Algérie) et Riyad serait tombé en
+      **Afrique**. Vérifier sur appareil, **après réinstallation**, qu'Alger
+      est sous Afrique, Riyad sous Asie, Ankara sous Europe. ⚠️ En anglais, le
+      repli des postes sans coordonnées valait « Others » alors que l'écran
+      n'affiche que les zones de sa liste française : **les 11 postes sans
+      coordonnées disparaissaient de l'annuaire en anglais** (le compteur, lui,
+      les comptait). À revérifier en basculant la langue du téléphone.
 
 ⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
 sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`

@@ -82,6 +82,11 @@ void main() {
       'lib/features/audio_rooms/presentation/providers/audio_room_provider.dart',
       // _startHeartbeat — void non async
       'lib/features/calls/presentation/providers/call_provider.dart',
+      // _preFillFromProfile — pré-remplissage du formulaire, void non async
+      // appelé depuis `initState`. Ne rien pré-remplir est le bon repli : le
+      // demandeur saisit ses champs à la main. Le `.value` d'origine, lui,
+      // RELEVAIT hors ligne et tuait l'écran entier (SM A515F, 2026-09-08).
+      'lib/features/embassies/presentation/screens/administrative_request_screen.dart',
     };
 
     final motif = RegExp(r'_?ref\.read\(currentUserAsyncProvider\)\.valueOrNull');
