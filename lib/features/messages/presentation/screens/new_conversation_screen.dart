@@ -16,6 +16,7 @@ import '../../domain/entities/conversation_entity.dart';
 import '../providers/message_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class NewConversationScreen extends ConsumerStatefulWidget {
   const NewConversationScreen({super.key});
@@ -247,7 +248,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: ${e.toString()}'),
+            content: Text(messageErreurUsager(e)),
             backgroundColor: context.errorColor,
           ),
         );

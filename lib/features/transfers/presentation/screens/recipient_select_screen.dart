@@ -8,6 +8,7 @@ import '../../domain/entities/recipient_entity.dart';
 import '../providers/transfer_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class RecipientSelectScreen extends ConsumerStatefulWidget {
   const RecipientSelectScreen({super.key});
@@ -125,7 +126,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
               children: [
                 Icon(Icons.error_outline, size: 48, color: AppColors.error),
                 const SizedBox(height: 16),
-                Text('Erreur: $error'),
+                Text(messageErreurUsager(error)),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed:

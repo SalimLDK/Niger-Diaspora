@@ -12,6 +12,7 @@ import '../../domain/entities/heritage_recording_entity.dart';
 import '../providers/heritage_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 /// Screen for browsing the cultural heritage library
 class HeritageLibraryScreen extends ConsumerStatefulWidget {
@@ -978,8 +979,7 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
         children: [
           AppIcon(AppIcon.error, size: 48, color: context.errorColor),
           const SizedBox(height: 12),
-          Text(
-            '${l10n.error}: $error',
+          Text(messageErreurUsager(error),
             style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
             textAlign: TextAlign.center,
           ),

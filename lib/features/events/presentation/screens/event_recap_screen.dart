@@ -8,6 +8,7 @@ import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class EventRecapScreen extends ConsumerStatefulWidget {
   final EventEntity event;
@@ -77,7 +78,7 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la sélection: $e'),
+            content: Text(messageErreurContextuel('Sélection impossible', e)),
             backgroundColor: Colors.red,
           ),
         );
@@ -167,7 +168,7 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(messageErreurUsager(e)), backgroundColor: Colors.red),
         );
       }
     }

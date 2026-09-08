@@ -13,6 +13,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../providers/transfer_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class SendMoneyScreen extends ConsumerStatefulWidget {
   const SendMoneyScreen({super.key});
@@ -422,7 +423,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Text('Erreur: $e'),
+          error: (e, _) => Text(messageErreurUsager(e)),
         ),
       ],
     );
@@ -1150,7 +1151,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(messageErreurUsager(e)), backgroundColor: Colors.red),
         );
       }
     } finally {

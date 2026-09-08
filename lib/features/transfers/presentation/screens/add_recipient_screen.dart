@@ -6,6 +6,7 @@ import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/recipient_entity.dart';
 import '../providers/transfer_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class AddRecipientScreen extends ConsumerStatefulWidget {
   final RecipientEntity? existingRecipient;
@@ -633,7 +634,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text(messageErreurUsager(e)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -703,7 +704,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Erreur: $e'),
+              content: Text(messageErreurUsager(e)),
               backgroundColor: AppColors.error,
             ),
           );

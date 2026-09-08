@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../embassies/domain/entities/embassy_entity.dart';
 import '../../../embassies/presentation/providers/embassies_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class AdminEmbassyVerificationScreen extends ConsumerStatefulWidget {
   const AdminEmbassyVerificationScreen({super.key});
@@ -403,7 +404,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
               children: [
                 const AppIcon(AppIcon.error, color: Colors.white),
                 const SizedBox(width: 12),
-                Expanded(child: Text('Erreur: $e')),
+                Expanded(child: Text(messageErreurUsager(e))),
               ],
             ),
             backgroundColor: AdminColors.statusRed,
@@ -472,7 +473,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Erreur: $e'),
+                          content: Text(messageErreurUsager(e)),
                           backgroundColor: AdminColors.statusRed,
                           behavior: SnackBarBehavior.floating,
                         ),
@@ -525,7 +526,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text(messageErreurUsager(e)),
             backgroundColor: AdminColors.statusRed,
             behavior: SnackBarBehavior.floating,
           ),
@@ -563,7 +564,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text(messageErreurUsager(e)),
             backgroundColor: AdminColors.statusRed,
             behavior: SnackBarBehavior.floating,
           ),
