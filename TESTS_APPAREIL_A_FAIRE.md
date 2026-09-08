@@ -148,6 +148,24 @@ hostname, errno = 7)))
       lecture. Un canal realtime injoignable ne devrait pas empêcher
       d'afficher la copie locale.
 
+**3. Hors ligne, l'annuaire reste vide même après un chargement réussi.**
+Deuxième essai le 2026-09-07, APK reconstruit après la correction `01353ac`,
+téléphone en mode avion : l'écran n'affiche plus l'exception brute (bien) mais
+« Aucune ambassade disponible » — pas la copie locale, alors que les 30 postes
+s'étaient affichés quelques minutes plus tôt sur le même appareil.
+
+⚠️ **Réserve : ce constat n'est pas concluant seul.** L'APK avait été
+réinstallé entre les deux, et je n'ai pas vérifié que la copie locale avait
+survécu à la réinstallation — le cache peut légitimement être vide. Le cas
+propre reste à faire : charger la liste en ligne, **sans réinstaller**, puis
+couper le réseau et rouvrir.
+
+- [ ] Refaire ce cas proprement, et si la liste est bien vide alors qu'elle
+      venait d'être mise en cache, chercher du côté de
+      `EmbassiesRepositoryImpl` : sa branche hors ligne renvoie `[]` dès que
+      `getLastEmbassies()` lève, et un `[]` ne se distingue pas d'une base
+      vide à l'écran. C'est la même mise en scène que le défaut n°1.
+
 ---
 
 ## ⚠️ Clés dérivées : premier test appareil (2026-09-07, SM A515F)
