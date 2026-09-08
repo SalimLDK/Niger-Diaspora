@@ -6969,5 +6969,9 @@
   "embassySourceLine": "Source: {source}, checked on {date}",
   "embassyLoadError": "Could not load the directory. Check your connection and try again.",
   "embassyMessageSendError": "Could not send the message. Check your connection and try again.",
+  "embassyNotFoundTitle": "Record not found",
+  "embassyNotFoundMessage": "This diplomatic mission is no longer in the directory, or the link is incorrect.",
+  "embassyLoadFailedTitle": "Could not load",
+  "backToEmbassies": "Back to the directory",
   "embassySearchHint": "Name, country or city"
 }

@@ -15970,5 +15970,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'envoyer le message. Vérifiez votre connexion et réessayez.';
 
   @override
+  String get embassyNotFoundTitle => 'Fiche introuvable';
+
+  @override
+  String get embassyNotFoundMessage =>
+      'Ce poste diplomatique n\'est plus dans l\'annuaire, ou le lien est incorrect.';
+
+  @override
+  String get embassyLoadFailedTitle => 'Chargement impossible';
+
+  @override
+  String get backToEmbassies => 'Retour à l\'annuaire';
+
+  @override
   String get embassySearchHint => 'Nom, pays ou ville';
 }

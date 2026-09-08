@@ -93,7 +93,7 @@ import '../../features/transfers/domain/entities/recipient_entity.dart';
 import '../../features/notifications/presentation/screens/notification_detail_screen.dart';
 // Embassies
 import '../../features/embassies/presentation/screens/embassies_screen.dart';
-import '../../features/embassies/presentation/screens/embassy_detail_screen.dart';
+import '../../features/embassies/presentation/screens/embassy_detail_route.dart';
 import '../../features/embassies/domain/entities/embassy_entity.dart';
 import '../../features/admin/presentation/screens/admin_embassy_verification_screen.dart';
 import '../../features/admin/presentation/screens/admin_create_embassy_screen.dart';
@@ -644,20 +644,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/embassies/:id',
         builder: (context, state) {
-          // final id = state.pathParameters['id']!; // Id unused currently, relying on object passed via extra
-          final embassy = state.extra as EmbassyEntity?;
-          if (embassy != null) {
-            return EmbassyDetailScreen(
-              embassy: embassy,
-            ); // Optimization: Pass object if available
-          }
-          // Fallback: Fetch by ID if deep linked (Not implemented yet in screen, assumes extra passed for now)
-          // Ideally screen handles ID, but for now we expect extra navigation.
-          // To be safe, we might need a wrapper or refetch.
-          // For now let's assume navigation always provides extra or we handle null in screen if we modified it.
-          // But EmbassyDetailScreen requires 'embassy'.
-          // Let's rely on internal navigation for now.
-          return EmbassyDetailScreen(embassy: embassy!);
+          // L'identifiant est la seule chose dont on soit sûr : `state.extra`
+          // est nul par lien profond et par notification, et l'est aussi
+          // depuis la carte, dont la fiche pousse la route sans objet
+          // (map_screen.dart). C'est lui qui fait autorité ; l'entité n'est
+          // qu'un raccourci d'affichage quand la liste l'a déjà en main.
+          final id = state.pathParameters['id']!;
+          final extra = state.extra;
+          return EmbassyDetailRoute(
+            embassyId: id,
+            initialEmbassy: extra is EmbassyEntity ? extra : null,
+          );
         },
       ),
       // Business Directory routes
