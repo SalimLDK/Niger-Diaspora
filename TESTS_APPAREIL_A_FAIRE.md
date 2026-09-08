@@ -14,6 +14,47 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Site web : page d'accueil refondue sur les captures réelles (2026-09-08)
+
+La page d'accueil vendait une version plus ancienne de l'app : cinq cartes à
+emoji (carte, groupes, événements, messagerie, annuaire), **aucune capture**,
+une citation inventée signée par la plateforme elle-même, et trois chiffres
+creux — dont « 100 % Gratuit », l'affirmation que
+`releases/1.2.1+11/GOOGLE_PLAY_v1.2.1.md` signale comme fausse (l'APK embarque
+`google_mobile_ads` et RevenueCat). Les **ambassades et les vingt démarches
+consulaires**, c'est-à-dire ce que la fiche Play met en tête depuis 1.2.1,
+n'étaient mentionnées nulle part.
+
+La page est maintenant bâtie sur les sept captures Play (`releases/1.2.1+11/
+play/screenshots/`, recadrées sur l'écran seul, servies en WebP), et ne
+présente que ce qui est réellement atteignable dans le binaire — transferts,
+marketplace, salons audio et podcasts restent hors de la page, comme dans la
+fiche Play.
+
+Les chiffres sont vérifiables : **20** démarches (`assets/data/
+demarches_consulaires.json`), **30+** représentations (32 lignes dans
+`embassies`), **4** continents. Le passage « dix-huit des vingt démarches
+réclament la carte consulaire en première pièce » vient du champ `resume` de
+la même source.
+
+`index-en.html` est désormais **générée depuis `index.html`** : les deux
+pages avaient des feuilles de style différentes, donc toute retouche était à
+faire deux fois et le rendu divergeait.
+
+- [ ] **Rendu des captures** sur un vrai navigateur de téléphone : le
+      recadrage est détecté cadre par cadre (les sept visuels Play n'ont ni
+      la même taille de téléphone ni la même position), à revoir sur écran.
+- [ ] **La feuille « pièces à réunir »** chevauche l'écran de l'app en
+      version large et se remet dessous sous 900 px : vérifier qu'elle reste
+      lisible entre les deux, notamment en paysage.
+- [ ] **Bande défilante et révélations au défilement** : un bloc
+      `prefers-reduced-motion` a été ajouté (il n'y en avait aucun). À
+      vérifier avec « Réduire les animations » activé dans Android.
+- [ ] **Poids de la page** : sept captures WebP (~240 Ko au total) chargées
+      en `loading="lazy"` sauf celle du hero. À mesurer en 3G.
+
+---
+
 ## ⚠️ Déconnexion — latence supprimée, à vérifier sur appareil
 
 Appuyer sur **Déconnexion** laissait l'écran figé plusieurs secondes, sans
@@ -89,7 +130,7 @@ l'appareil identiques : `5dd681b4…` — le piège de l'APK périmé est écart
 
 ---
 
-## ⬜ Profil : la carte de statistiques débordait par la droite (Pixel 10 Pro XL, 2026-09-08)
+## ✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)
 
 Signalé par Salim sur le Pixel 10 Pro XL, jamais vu sur le SM A515F — et pour
 cause : le défaut ne dépend pas du modèle mais de **deux réglages** que ce
@@ -117,16 +158,29 @@ sans le seul second il échoue à 2.0.
 ne sont pas les pixels vus à l'écran. Le banc prouve que la mise en page ne
 dépend plus de la longueur des libellés, pas l'ampleur du défaut.
 
-À vérifier sur le Pixel (id `58221FDCQ0085Z`), qui était **déconnecté** au
-moment du correctif — l'écran Profil exige une session :
+**Le banc ne voyait pas tout.** Une fois le débordement supprimé, la première
+capture appareil a montré un second défaut qu'aucune assertion n'attrape :
+les libellés remplissaient leur colonne **au pixel près**, donc « Connexions »
+chevauchait le filet et « Événements » / « Publications » se touchaient. Une
+gouttière de 6 dp par colonne (12 dp autour de chaque filet) règle ça — les
+libellés rétrécissent d'autant, ils restent entiers.
 
-- [ ] Profil, échelle de police 1.3 : plus de bandeau jaune et noir à droite de
-      la carte de statistiques.
-- [ ] Les quatre libellés restent lisibles en entier (pas de troncature) et les
+**✅ Vérifié sur Pixel 10 Pro XL le 2026-09-08** (id `58221FDCQ0085Z`, thème
+sombre, densité 440 + `font_scale` 1.3, APK debug du worktree — `md5sum` local
+et `md5sum` sur l'appareil identiques, `9793305acf2ea0dc2478ec436b3a7bba`) :
+
+- [x] Profil : plus de bandeau jaune et noir à droite de la carte de
+      statistiques, et `logcat | grep overflowed` reste vide sur tout le
+      défilement de l'écran.
+- [x] Les quatre libellés restent lisibles en entier (pas de troncature) et les
       quatre compteurs restent alignés.
-- [ ] Un compteur à trois chiffres (Publications) ne déforme pas sa colonne.
-- [ ] Réglages / Profil : les libellés de section (`DesignSectionLabel`) tiennent
-      sur une ou deux lignes, sans débordement.
+- [x] Les libellés ne se touchent plus et ne chevauchent plus les filets.
+- [x] Libellés de section (`DesignSectionLabel`) : « ACTIONS DU COMPTE » tient
+      sur une ligne, sans débordement.
+- [ ] Un compteur à **trois chiffres** ne déforme pas sa colonne — pas
+      vérifiable sur ce compte (4 / 2 / 0 / 1). Couvert au banc seulement.
+- [ ] Rendu en thème **clair** : jamais regardé.
+
 
 ---
 
@@ -891,6 +945,21 @@ suit n'a été vu sur un téléphone.
       avion. Le catalogue vient du cache, toutes les pièces s'affichent, et le
       bandeau « Formulaire pré-rempli » disparaît de lui-même puisque le
       profil n'est pas joignable — la dégradation voulue.
+- [ ] **En ligne, le pré-remplissage n'a jamais été vu se remplir.** Ouvrir
+      « Demande » avec du réseau et vérifier que le nom, le téléphone et
+      l'e-mail arrivent du profil, et que le bandeau vert « Formulaire
+      pré-rempli » s'affiche — par les **deux** chemins, qui n'ouvrent pas les
+      mêmes providers : annuaire → fiche → « Demande », puis à froid par lien
+      profond `diasponiger://embassies/<id>` → « Demande ».
+
+      C'est ce qui valide la tolérance posée sur cet écran dans
+      `test/core/providers/autodispose_read_guard_test.dart`. La lecture
+      synchrone de `currentUserAsyncProvider` y est acceptée sur un seul
+      argument : `embassiesListProvider` est `keepAlive` et regarde les deux
+      providers que lit `_preFillFromProfile`, et les deux chemins vers le
+      formulaire passent par lui. Si le bandeau manque **par lien profond
+      seulement**, l'argument est faux et la méthode doit passer en `async`
+      (`unawaited(...)` + `await ref.read(...future)` sous `try`).
 - [ ] ⛔ **Le suffixe d'origine du pied de source reste non vu.** Il devrait
       afficher « · liste enregistrée hors ligne » (cache) ou « · liste fournie
       avec l'application » (asset). C'est le seul élément d'affichage de cet

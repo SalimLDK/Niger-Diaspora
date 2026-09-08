@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Diaspo Niger brings the Nigerien diaspora together: a map of members near you, groups, cultural events, encrypted messaging and a business directory. Free Android app.">
+    <meta name="description" content="Diaspo Niger brings the Nigerien diaspora together: Niger's embassies and consulates, the twenty consular procedures and the documents they require, a map of members near you, groups and encrypted messaging.">
     <title>Diaspo Niger — The diaspora, reunited</title>
     <link rel="canonical" href="https://diasponiger.web.app/index-en">
     <link rel="alternate" hreflang="en" href="https://diasponiger.web.app/index-en">
@@ -20,14 +20,14 @@
     <meta property="og:locale" content="en_US">
     <meta property="og:url" content="https://diasponiger.web.app/index-en">
     <meta property="og:title" content="Diaspo Niger — The diaspora, reunited">
-    <meta property="og:description" content="Diaspo Niger brings the Nigerien diaspora together: a map of members near you, groups, cultural events, encrypted messaging and a business directory. Free Android app.">
+    <meta property="og:description" content="Diaspo Niger brings the Nigerien diaspora together: Niger's embassies and consulates, the twenty consular procedures and the documents they require, a map of members near you, groups and encrypted messaging.">
     <meta property="og:image" content="https://diasponiger.web.app/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Diaspo Niger — la diaspora nigérienne enfin réunie">
+    <meta property="og:image:alt" content="Diaspo Niger — the Nigerien diaspora, reunited">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Diaspo Niger — The diaspora, reunited">
-    <meta name="twitter:description" content="Diaspo Niger brings the Nigerien diaspora together: a map of members near you, groups, cultural events, encrypted messaging and a business directory. Free Android app.">
+    <meta name="twitter:description" content="Diaspo Niger brings the Nigerien diaspora together: Niger's embassies and consulates, the twenty consular procedures and the documents they require, a map of members near you, groups and encrypted messaging.">
     <meta name="twitter:image" content="https://diasponiger.web.app/og-image.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -45,8 +45,17 @@
             --card-bg: rgba(255, 255, 255, 0.04);
         }
 
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
 
         body {
             font-family: 'Sora', sans-serif;
@@ -55,6 +64,7 @@
             overflow-x: hidden;
         }
 
+        /* ── NOISE TEXTURE OVERLAY ── */
         body::before {
             content: '';
             position: fixed;
@@ -65,9 +75,12 @@
             opacity: 0.4;
         }
 
+        /* ── NAV ── */
         nav {
             position: fixed;
-            top: 0; left: 0; right: 0;
+            top: 0;
+            left: 0;
+            right: 0;
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -89,7 +102,9 @@
             letter-spacing: -0.02em;
         }
 
-        .logo span { color: var(--orange); }
+        .logo span {
+            color: var(--orange);
+        }
 
         .logo img {
             width: 36px;
@@ -102,7 +117,6 @@
             list-style: none;
             display: flex;
             gap: 2.5rem;
-            align-items: center;
         }
 
         .nav-links a {
@@ -115,7 +129,9 @@
             transition: color 0.3s;
         }
 
-        .nav-links a:hover { color: var(--orange); }
+        .nav-links a:hover {
+            color: var(--orange);
+        }
 
         .nav-cta {
             background: var(--orange);
@@ -129,42 +145,12 @@
             transition: opacity 0.3s, transform 0.3s !important;
         }
 
-        .nav-cta:hover { opacity: 0.88 !important; transform: translateY(-1px) !important; }
-
-        .lang-switch-nav {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
+        .nav-cta:hover {
+            opacity: 0.88 !important;
+            transform: translateY(-1px) !important;
         }
 
-        .lang-switch-nav a {
-            padding: 0.2rem 0.55rem;
-            border-radius: 100px;
-            text-decoration: none;
-            background: rgba(253, 249, 244, 0.06);
-            border: 1px solid rgba(253, 249, 244, 0.08);
-            color: rgba(253, 249, 244, 0.45) !important;
-            text-transform: none !important;
-            letter-spacing: 0 !important;
-            font-size: 0.72rem !important;
-            transition: color 0.2s, background 0.2s !important;
-        }
-
-        .lang-switch-nav a:hover { color: var(--warm-white) !important; }
-
-        .lang-switch-nav span {
-            padding: 0.2rem 0.55rem;
-            border-radius: 100px;
-            background: rgba(233, 116, 36, 0.15);
-            border: 1px solid rgba(233, 116, 36, 0.3);
-            color: var(--orange);
-            font-size: 0.72rem;
-        }
-
-        /* HERO */
+        /* ── HERO ── */
         .hero {
             min-height: 100vh;
             display: grid;
@@ -174,6 +160,7 @@
             padding: 8rem 3rem 5rem;
         }
 
+        /* Geometric African-inspired background */
         .hero-bg {
             position: absolute;
             inset: 0;
@@ -183,6 +170,7 @@
                 var(--dark);
         }
 
+        /* Decorative circle */
         .hero-circle {
             position: absolute;
             right: -10vw;
@@ -211,6 +199,7 @@
             background: radial-gradient(circle, rgba(233, 116, 36, 0.08) 0%, transparent 70%);
         }
 
+        /* Dotted pattern */
         .hero-dots {
             position: absolute;
             left: 3rem;
@@ -258,7 +247,17 @@
             animation: pulse 2s infinite;
         }
 
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
 
         .hero h1 {
             font-family: 'Fraunces', serif;
@@ -269,7 +268,11 @@
             margin-bottom: 1.5rem;
         }
 
-        .hero h1 em { font-style: italic; color: var(--orange); display: block; }
+        .hero h1 em {
+            font-style: italic;
+            color: var(--orange);
+            display: block;
+        }
 
         .hero p {
             font-size: 1.1rem;
@@ -280,7 +283,12 @@
             margin-bottom: 2.5rem;
         }
 
-        .hero-actions { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
 
         .btn-primary {
             display: inline-flex;
@@ -297,7 +305,10 @@
             box-shadow: 0 0 0 0 rgba(233, 116, 36, 0);
         }
 
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(233, 116, 36, 0.4); }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(233, 116, 36, 0.4);
+        }
 
         .btn-secondary {
             color: rgba(253, 249, 244, 0.6);
@@ -310,7 +321,9 @@
             transition: color 0.3s;
         }
 
-        .btn-secondary:hover { color: var(--warm-white); }
+        .btn-secondary:hover {
+            color: var(--warm-white);
+        }
 
         .hero-stats {
             position: relative;
@@ -323,18 +336,69 @@
             animation: fadeUp 1s 0.3s ease both;
         }
 
-        .stat-num { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 700; color: var(--orange); }
-        .stat-label { font-size: 0.8rem; font-weight: 300; color: rgba(253, 249, 244, 0.45); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.2rem; }
+        .stat-num {
+            font-family: 'Fraunces', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--orange);
+        }
 
-        /* MARQUEE */
-        .marquee-strip { background: var(--orange); padding: 0.9rem 0; overflow: hidden; white-space: nowrap; }
-        .marquee-inner { display: inline-flex; gap: 0; animation: marquee 20s linear infinite; }
-        .marquee-item { display: inline-flex; align-items: center; gap: 1.5rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: white; padding: 0 2rem; }
-        .marquee-item::after { content: '✦'; opacity: 0.6; }
-        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .stat-label {
+            font-size: 0.8rem;
+            font-weight: 300;
+            color: rgba(253, 249, 244, 0.45);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 0.2rem;
+        }
 
-        /* FEATURES */
-        .section { padding: 7rem 3rem; max-width: 1280px; margin: 0 auto; }
+        /* ── MARQUEE STRIP ── */
+        .marquee-strip {
+            background: var(--orange);
+            padding: 0.9rem 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .marquee-inner {
+            display: inline-flex;
+            gap: 0;
+            animation: marquee 20s linear infinite;
+        }
+
+        .marquee-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: white;
+            padding: 0 2rem;
+        }
+
+        .marquee-item::after {
+            content: '✦';
+            opacity: 0.6;
+        }
+
+        @keyframes marquee {
+            from {
+                transform: translateX(0);
+            }
+
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* ── SECTIONS ── */
+        .section {
+            padding: 7rem 3rem;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
 
         .section-label {
             display: inline-flex;
@@ -348,87 +412,541 @@
             margin-bottom: 1.2rem;
         }
 
-        .section-label::before { content: ''; width: 24px; height: 1px; background: var(--orange); display: block; }
+        .section-label::before {
+            content: '';
+            width: 24px;
+            height: 1px;
+            background: var(--orange);
+            display: block;
+        }
 
-        .section-title { font-family: 'Fraunces', serif; font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1rem; }
-        .section-sub { color: rgba(253, 249, 244, 0.5); font-size: 1rem; font-weight: 300; max-width: 420px; line-height: 1.7; }
+        .section-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+        }
 
-        .features-header { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: end; margin-bottom: 4rem; }
+        .section-sub {
+            color: rgba(253, 249, 244, 0.5);
+            font-size: 1rem;
+            font-weight: 300;
+            max-width: 420px;
+            line-height: 1.7;
+        }
 
-        .features-grid {
+        .features-header {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1px;
-            background: rgba(253, 249, 244, 0.06);
-            border: 1px solid rgba(253, 249, 244, 0.06);
-            border-radius: 20px;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: end;
+            margin-bottom: 4rem;
+        }
+
+        /* ── ABOUT SECTION ── */
+        .about-section {
+            padding: 7rem 3rem;
+            background: linear-gradient(180deg, var(--dark) 0%, #0d1a10 100%);
+        }
+
+        .about-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6rem;
+            align-items: center;
+        }
+
+        .about-visual {
+            position: relative;
+        }
+
+        .about-text .section-title {
+            margin-bottom: 1.5rem;
+        }
+
+        .about-text p {
+            color: rgba(253, 249, 244, 0.55);
+            font-weight: 300;
+            line-height: 1.85;
+            font-size: 1rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .about-pill-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 2rem;
+        }
+
+        .about-pill {
+            background: rgba(21, 128, 61, 0.12);
+            border: 1px solid rgba(21, 128, 61, 0.25);
+            color: #4ade80;
+            padding: 0.4rem 0.9rem;
+            border-radius: 100px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+
+        /* ── DOWNLOAD SECTION ── */
+        .download-section {
+            padding: 7rem 3rem;
+            text-align: center;
+            position: relative;
             overflow: hidden;
         }
 
-        .feat-card { background: var(--dark); padding: 2.5rem 2rem; transition: background 0.4s; position: relative; overflow: hidden; }
-        .feat-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 30%, rgba(233, 116, 36, 0.07) 0%, transparent 70%); opacity: 0; transition: opacity 0.4s; }
-        .feat-card:hover { background: rgba(233, 116, 36, 0.04); }
-        .feat-card:hover::before { opacity: 1; }
-        .feat-icon { font-size: 2rem; margin-bottom: 1.2rem; display: block; }
-        .feat-title { font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.7rem; }
-        .feat-desc { font-size: 0.88rem; font-weight: 300; color: rgba(253, 249, 244, 0.5); line-height: 1.7; }
+        .download-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(233, 116, 36, 0.12) 0%, transparent 70%);
+        }
 
-        /* ABOUT */
-        .about-section { padding: 7rem 3rem; background: linear-gradient(180deg, var(--dark) 0%, #0d1a10 100%); }
-        .about-inner { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center; }
-        .about-visual { position: relative; }
+        .download-section .section-label {
+            justify-content: center;
+        }
 
-        .about-card { background: rgba(21, 128, 61, 0.08); border: 1px solid rgba(21, 128, 61, 0.2); border-radius: 20px; padding: 3rem; position: relative; }
-        .about-card-accent { position: absolute; top: -1px; left: 40px; right: 40px; height: 2px; background: linear-gradient(90deg, transparent, var(--green), transparent); }
-        .about-quote { font-family: 'Fraunces', serif; font-size: 1.6rem; font-style: italic; font-weight: 300; line-height: 1.4; color: rgba(253, 249, 244, 0.85); margin-bottom: 1.5rem; }
+        .download-section .section-title {
+            max-width: 600px;
+            margin: 0 auto 1rem;
+        }
 
-        .about-author { display: flex; align-items: center; gap: 0.8rem; }
-        .author-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--orange), var(--green)); display: grid; place-items: center; font-size: 1.2rem; }
-        .author-info .name { font-weight: 600; font-size: 0.9rem; }
-        .author-info .role { font-size: 0.78rem; color: rgba(253, 249, 244, 0.45); font-weight: 300; }
+        .dl-sub {
+            color: rgba(253, 249, 244, 0.45);
+            font-weight: 300;
+            margin-bottom: 3rem;
+            font-size: 1rem;
+        }
 
-        .floating-tag { position: absolute; bottom: -1.5rem; right: 2rem; background: var(--orange); color: white; padding: 0.6rem 1.2rem; border-radius: 100px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 20px rgba(233, 116, 36, 0.4); }
+        .dl-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
 
-        .about-text .section-title { margin-bottom: 1.5rem; }
-        .about-text p { color: rgba(253, 249, 244, 0.55); font-weight: 300; line-height: 1.85; font-size: 1rem; margin-bottom: 1.2rem; }
+        .dl-note {
+            margin-top: 1.5rem;
+            font-size: 0.8rem;
+            color: rgba(253, 249, 244, 0.3);
+            font-style: italic;
+        }
 
-        .about-pill-list { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 2rem; }
-        .about-pill { background: rgba(21, 128, 61, 0.12); border: 1px solid rgba(21, 128, 61, 0.25); color: #4ade80; padding: 0.4rem 0.9rem; border-radius: 100px; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.03em; }
+        /* ── FOOTER ── */
+        footer {
+            border-top: 1px solid rgba(253, 249, 244, 0.07);
+            padding: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1280px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
 
-        /* DOWNLOAD */
-        .download-section { padding: 7rem 3rem; text-align: center; position: relative; overflow: hidden; }
-        .download-section::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(233, 116, 36, 0.12) 0%, transparent 70%); }
-        .download-section .section-label { justify-content: center; }
-        .download-section .section-title { max-width: 600px; margin: 0 auto 1rem; }
-        .dl-sub { color: rgba(253, 249, 244, 0.45); font-weight: 300; margin-bottom: 3rem; font-size: 1rem; }
-        .dl-buttons { display: flex; justify-content: center; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
-        .dl-note { margin-top: 1.5rem; font-size: 0.8rem; color: rgba(253, 249, 244, 0.3); font-style: italic; }
+        .footer-logo {
+            font-family: 'Fraunces', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
 
-        /* FOOTER */
-        footer { border-top: 1px solid rgba(253, 249, 244, 0.07); padding: 3rem; display: flex; align-items: center; justify-content: space-between; max-width: 1280px; margin: 0 auto; flex-wrap: wrap; gap: 1rem; }
-        .footer-logo { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 700; }
-        .footer-logo span { color: var(--orange); }
-        .footer-links { display: flex; gap: 2rem; }
-        .footer-links a { color: rgba(253, 249, 244, 0.4); text-decoration: none; font-size: 0.85rem; font-weight: 300; transition: color 0.3s; }
-        .footer-links a:hover { color: var(--orange); }
-        .footer-copy { color: rgba(253, 249, 244, 0.2); font-size: 0.78rem; font-weight: 300; }
+        .footer-logo span {
+            color: var(--orange);
+        }
 
-        /* OVERLAY */
-        .dl-overlay-card { background: #1a1612; border: 1px solid rgba(233, 116, 36, 0.2); border-radius: 24px; padding: 3rem 2.5rem; text-align: center; max-width: 420px; width: 90%; }
-        .dl-overlay-logo { width: 72px; height: 72px; border-radius: 18px; margin: 0 auto 1.5rem; display: block; border: 1px solid rgba(233, 116, 36, 0.3); }
-        .dl-overlay-card h2 { font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.75rem; }
-        .dl-overlay-card p { color: rgba(253, 249, 244, 0.5); font-weight: 300; font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem; }
-        .dl-overlay-btn { display: block; width: 100%; background: var(--orange); color: white; padding: 1rem; border-radius: 12px; text-decoration: none; font-weight: 600; margin-bottom: 1rem; transition: opacity 0.3s; }
-        .dl-overlay-btn:hover { opacity: 0.85; }
-        .dl-overlay-skip { background: none; border: none; color: rgba(253, 249, 244, 0.3); font-size: 0.85rem; cursor: pointer; margin-top: 1rem; text-decoration: underline; font-family: 'Sora', sans-serif; transition: color 0.3s; }
-        .dl-overlay-skip:hover { color: rgba(253, 249, 244, 0.6); }
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
 
-        /* ANIMATIONS */
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
-        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .footer-links a {
+            color: rgba(253, 249, 244, 0.4);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 300;
+            transition: color 0.3s;
+        }
 
-        /* RESPONSIVE */
+        .footer-links a:hover {
+            color: var(--orange);
+        }
+
+        .footer-copy {
+            color: rgba(253, 249, 244, 0.2);
+            font-size: 0.78rem;
+            font-weight: 300;
+        }
+
+        /* ── DEEP LINK OVERLAY ── */
+        #deep-link-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 13, 10, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 5000;
+            place-items: center;
+        }
+
+        .dl-overlay-card {
+            background: #1a1612;
+            border: 1px solid rgba(233, 116, 36, 0.2);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            max-width: 420px;
+            width: 90%;
+        }
+
+        .dl-overlay-logo {
+            width: 72px;
+            height: 72px;
+            border-radius: 18px;
+            margin: 0 auto 1.5rem;
+            display: block;
+            border: 1px solid rgba(233, 116, 36, 0.3);
+        }
+
+        .dl-overlay-card h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .dl-overlay-card p {
+            color: rgba(253, 249, 244, 0.5);
+            font-weight: 300;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .dl-overlay-btn {
+            display: block;
+            width: 100%;
+            background: var(--orange);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            transition: opacity 0.3s;
+        }
+
+        .dl-overlay-btn:hover {
+            opacity: 0.85;
+        }
+
+        .dl-overlay-skip {
+            background: none;
+            border: none;
+            color: rgba(253, 249, 244, 0.3);
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            text-decoration: underline;
+            font-family: 'Sora', sans-serif;
+            transition: color 0.3s;
+        }
+
+        .dl-overlay-skip:hover {
+            color: rgba(253, 249, 244, 0.6);
+        }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── TÉLÉPHONE (cadre réutilisé par toutes les sections) ── */
+        .phone {
+            position: relative;
+            width: 100%;
+            max-width: 290px;
+            padding: 9px;
+            border-radius: 34px;
+            background: linear-gradient(160deg, #2e2721, #14110d);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(253, 249, 244, 0.07);
+        }
+
+        .phone img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 26px;
+        }
+
+        /* ── HERO : la colonne de droite montre l'app ── */
+        .hero-grid {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+            gap: 4.5rem;
+            align-items: center;
+        }
+
+        .hero-shot {
+            justify-self: center;
+            animation: fadeUp 1s 0.25s ease both;
+        }
+
+        /* ── USAGES : texte et capture, en alternance ── */
+        .usage {
+            display: grid;
+            grid-template-columns: 1fr minmax(0, 380px);
+            gap: 5rem;
+            align-items: center;
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 5.5rem 3rem;
+        }
+
+        .usage--flip .usage-media {
+            order: -1;
+            justify-self: start;
+        }
+
+        .usage-media {
+            justify-self: end;
+        }
+
+        .usage h2 {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(1.9rem, 3.4vw, 2.7rem);
+            font-weight: 700;
+            line-height: 1.12;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.1rem;
+        }
+
+        .usage p {
+            color: rgba(253, 249, 244, 0.55);
+            font-weight: 300;
+            line-height: 1.75;
+            max-width: 46ch;
+        }
+
+        .usage-points {
+            list-style: none;
+            display: grid;
+            gap: 0.8rem;
+            margin-top: 1.9rem;
+            max-width: 46ch;
+        }
+
+        .usage-points li {
+            display: flex;
+            gap: 0.8rem;
+            font-size: 0.94rem;
+            font-weight: 300;
+            line-height: 1.6;
+            color: rgba(253, 249, 244, 0.68);
+        }
+
+        .usage-points li::before {
+            content: '—';
+            flex: none;
+            color: var(--orange);
+        }
+
+        /* ── LA PIÈCE MAÎTRESSE : le dossier consulaire, en papier ──
+           Seul endroit de la page où le fond s'inverse : l'app y remplace
+           littéralement un formulaire de papier. */
+        .dossier-section {
+            padding: 5.5rem 3rem 6.5rem;
+            background:
+                radial-gradient(ellipse 70% 50% at 30% 0%, rgba(21, 128, 61, 0.14) 0%, transparent 65%),
+                var(--dark);
+            border-top: 1px solid rgba(253, 249, 244, 0.06);
+            border-bottom: 1px solid rgba(253, 249, 244, 0.06);
+        }
+
+        .dossier-inner {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 470px);
+            gap: 4rem;
+            align-items: center;
+            max-width: 1160px;
+            margin: 0 auto;
+        }
+
+        .dossier-stack {
+            position: relative;
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 0 3.5rem 0;
+        }
+
+        .dossier-phone {
+            max-width: 245px;
+        }
+
+        /* La feuille chevauche l'écran : c'est le même formulaire, avant et
+           après. Sous 900 px, les deux se remettent l'un sous l'autre. */
+        .paper {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 300px;
+        }
+
+        .paper {
+            background: var(--sand);
+            color: #2b2119;
+            border-radius: 3px;
+            padding: 2.1rem 1.9rem 1.4rem;
+            transform: rotate(-1.6deg);
+            box-shadow: 0 26px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .paper-head {
+            font-size: 0.68rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: #7a6a58;
+            padding-bottom: 0.9rem;
+            border-bottom: 2px solid #2b2119;
+        }
+
+        .paper-title {
+            font-family: 'Fraunces', serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin: 1.1rem 0 1.4rem;
+            letter-spacing: -0.01em;
+        }
+
+        .paper-list {
+            list-style: none;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .paper-list li {
+            display: grid;
+            grid-template-columns: 18px 1fr;
+            gap: 0.85rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            align-items: start;
+        }
+
+        .paper-list li::before {
+            content: '';
+            width: 15px;
+            height: 15px;
+            margin-top: 3px;
+            border: 1.5px solid #2b2119;
+            border-radius: 2px;
+        }
+
+        .paper-alt {
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #a08f52;
+            margin: 0.2rem 0 0.2rem 33px;
+        }
+
+        .paper-note {
+            font-size: 0.78rem;
+            line-height: 1.5;
+            color: #7a6a58;
+            border-top: 1px solid rgba(43, 33, 25, 0.18);
+            margin-top: 1.5rem;
+            padding-top: 0.9rem;
+        }
+
+        .dossier-lead {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(1.9rem, 3.4vw, 2.7rem);
+            font-weight: 700;
+            line-height: 1.12;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.2rem;
+        }
+
+        .dossier-text p {
+            color: rgba(253, 249, 244, 0.55);
+            font-weight: 300;
+            line-height: 1.75;
+            max-width: 46ch;
+        }
+
+        .dossier-text p + p {
+            margin-top: 1rem;
+        }
+
+        .dossier-text em {
+            color: var(--warm-white);
+            font-style: normal;
+        }
+
+        /* ── ET AUSSI : ce qui n'a pas besoin d'une capture ── */
+        .more-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            max-width: 1160px;
+            margin: 0 auto;
+            border-top: 1px solid rgba(253, 249, 244, 0.08);
+        }
+
+        .more-item {
+            padding: 2.4rem 2rem 0;
+            border-right: 1px solid rgba(253, 249, 244, 0.08);
+        }
+
+        .more-item:last-child {
+            border-right: none;
+        }
+
+        .more-item h3 {
+            font-family: 'Fraunces', serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+        }
+
+        .more-item p {
+            font-size: 0.92rem;
+            font-weight: 300;
+            line-height: 1.65;
+            color: rgba(253, 249, 244, 0.5);
+        }
+
+        /* ── RESPONSIVE ── */
         /* ── MENU MOBILE ── */
         .nav-burger {
             display: none;
@@ -458,8 +976,7 @@
         nav.open .nav-burger span:nth-child(2) { opacity: 0; }
         nav.open .nav-burger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-        @media (max-width: 900px) {
-            nav { padding: 1rem 1.5rem; }
+        @media (max-width: 1024px) {
             .nav-burger {
                 display: flex;
             }
@@ -507,17 +1024,142 @@
                 padding: 0.85rem 1.4rem !important;
                 text-align: center;
             }
-            .hero { padding: 7rem 1.5rem 4rem; }
-            .hero-circle { display: none; }
-            .hero-stats { gap: 2rem; flex-wrap: wrap; }
-            .features-header { grid-template-columns: 1fr; gap: 1.5rem; }
-            .features-grid { grid-template-columns: 1fr; }
-            .about-inner { grid-template-columns: 1fr; gap: 3rem; }
-            .section { padding: 5rem 1.5rem; }
-            .download-section { padding: 5rem 1.5rem; }
-            footer { flex-direction: column; gap: 1.5rem; text-align: center; padding: 2rem 1.5rem; }
-            .footer-links { justify-content: center; }
         }
+
+        @media (max-width: 900px) {
+            nav {
+                padding: 1rem 1.5rem;
+            }
+
+            .hero {
+                padding: 7rem 1.5rem 4rem;
+            }
+
+            .hero-circle {
+                display: none;
+            }
+
+            .hero-stats {
+                gap: 2rem;
+                flex-wrap: wrap;
+            }
+
+            .features-header {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .about-inner {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .section {
+                padding: 5rem 1.5rem;
+            }
+
+            .download-section {
+                padding: 5rem 1.5rem;
+            }
+
+            footer {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+                padding: 2rem 1.5rem;
+            }
+
+            .footer-links {
+                justify-content: center;
+            }
+
+            /* refonte */
+            .hero-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .hero-shot {
+                order: 2;
+            }
+
+            .usage {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+                padding: 4rem 1.5rem;
+            }
+
+            .usage--flip .usage-media,
+            .usage-media {
+                order: 0;
+                justify-self: center;
+            }
+
+            .dossier-section {
+                padding: 4rem 1.5rem;
+            }
+
+            .dossier-inner {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .dossier-stack {
+                flex-direction: column;
+                align-items: center;
+                gap: 2.5rem;
+                padding-bottom: 0;
+            }
+
+            .paper {
+                position: static;
+                width: 100%;
+                max-width: 420px;
+                transform: none;
+            }
+
+            .more-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .more-item {
+                border-right: none;
+                border-bottom: 1px solid rgba(253, 249, 244, 0.08);
+                padding: 2rem 0;
+            }
+
+            .more-item:last-child {
+                border-bottom: none;
+            }
+
+            .about-visual {
+                display: flex;
+                justify-content: center;
+            }
+        }
+        /* Un mouvement qu'on n'a pas demandé n'est pas un détail pour tout le
+           monde : sans ce bloc, les révélations au défilement et la bande
+           défilante tournent quand même. */
+        @media (prefers-reduced-motion: reduce) {
+
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
     </style>
 </head>
 
@@ -535,12 +1177,13 @@
                 <span></span><span></span><span></span>
             </button>
             <ul class="nav-links" id="nav-links">
-                <li><a href="#features">Features</a></li>
+                <li><a href="#embassies">Embassies</a></li>
+                <li><a href="#procedures">Procedures</a></li>
                 <li><a href="#about">About</a></li>
                 <li><a href="/contact-en">Contact</a></li>
-                <li class="lang-switch-nav">
-                    <a href="/">🇫🇷 FR</a>
-                    <span>🇬🇧 EN</span>
+                <li style="display:flex;align-items:center;gap:0.4rem;font-size:0.72rem;font-weight:600;">
+                    <a href="/" style="padding:0.2rem 0.55rem;border-radius:100px;background:rgba(253,249,244,0.06);border:1px solid rgba(253,249,244,0.08);color:rgba(253,249,244,0.45);text-decoration:none;letter-spacing:0;text-transform:none;">🇫🇷 FR</a>
+                    <span style="padding:0.2rem 0.55rem;border-radius:100px;background:rgba(233,116,36,0.15);border:1px solid rgba(233,116,36,0.3);color:var(--orange);">🇬🇧 EN</span>
                 </li>
                 <li><a href="#download" class="nav-cta">Download</a></li>
             </ul>
@@ -553,39 +1196,50 @@
             <div class="hero-dots"></div>
 
             <div style="max-width:1280px; width:100%; margin:0 auto;">
-                <div class="hero-content">
-                    <div class="hero-badge">Live from around the world</div>
+                <div class="hero-grid">
+                    <div class="hero-content">
+                        <div class="hero-badge">Live from around the world</div>
 
-                    <h1>
-                        The Nigerien<br>diaspora
-                        <em>finally reunited.</em>
-                    </h1>
+                        <h1>
+                            The Nigerien<br>diaspora
+                            <em>reunited at last.</em>
+                        </h1>
 
-                    <p>From Niamey to Paris, from London to Dubai — reconnect with your compatriots, join your community, live your roots.</p>
+                        <p>Niger's diplomatic posts around the world, the twenty consular procedures
+                            and the documents each one asks for, and the community around you — in a
+                            single app.</p>
 
-                    <div class="hero-actions">
-                        <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger"
-                            target="_blank" rel="noopener" class="btn-primary">
-                            📲 Download on Android
-                        </a>
-                        <a href="#features" class="btn-secondary">
-                            Discover ↓
-                        </a>
+                        <div class="hero-actions">
+                            <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger"
+                                target="_blank" rel="noopener" class="btn-primary">
+                                Get it on Android
+                            </a>
+                            <a href="#embassies" class="btn-secondary">
+                                See the app ↓
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="hero-shot">
+                        <div class="phone">
+                            <img src="/screens/accueil.webp" width="600" height="1150" fetchpriority="high"
+                                alt="Diaspo Niger home screen: members nearby, services, upcoming events.">
+                        </div>
                     </div>
                 </div>
 
                 <div class="hero-stats">
                     <div>
-                        <div class="stat-num">🌍</div>
-                        <div class="stat-label">Global presence</div>
+                        <div class="stat-num">20</div>
+                        <div class="stat-label">Consular procedures</div>
                     </div>
                     <div>
-                        <div class="stat-num">6+</div>
-                        <div class="stat-label">Features</div>
+                        <div class="stat-num">30+</div>
+                        <div class="stat-label">Embassies and consulates</div>
                     </div>
                     <div>
-                        <div class="stat-num">100%</div>
-                        <div class="stat-label">Free & secure</div>
+                        <div class="stat-num">4</div>
+                        <div class="stat-label">Continents covered</div>
                     </div>
                 </div>
             </div>
@@ -594,54 +1248,172 @@
         <!-- MARQUEE -->
         <div class="marquee-strip" aria-hidden="true">
             <div class="marquee-inner">
-                <span class="marquee-item">Interactive Map</span>
-                <span class="marquee-item">Groups & Communities</span>
-                <span class="marquee-item">Secure Messaging</span>
-                <span class="marquee-item">Cultural Events</span>
-                <span class="marquee-item">Business Directory</span>
-                <span class="marquee-item">Interactive Map</span>
-                <span class="marquee-item">Groups & Communities</span>
-                <span class="marquee-item">Secure Messaging</span>
-                <span class="marquee-item">Cultural Events</span>
-                <span class="marquee-item">Business Directory</span>
+                <span class="marquee-item">Embassies and consulates</span>
+                <span class="marquee-item">Consular procedures</span>
+                <span class="marquee-item">Members map</span>
+                <span class="marquee-item">Groups and polls</span>
+                <span class="marquee-item">Encrypted messaging</span>
+                <span class="marquee-item">Audio and video calls</span>
+                <span class="marquee-item">Business directory</span>
+                <span class="marquee-item">Embassies and consulates</span>
+                <span class="marquee-item">Consular procedures</span>
+                <span class="marquee-item">Members map</span>
+                <span class="marquee-item">Groups and polls</span>
+                <span class="marquee-item">Encrypted messaging</span>
+                <span class="marquee-item">Audio and video calls</span>
+                <span class="marquee-item">Business directory</span>
             </div>
         </div>
 
-        <!-- FEATURES -->
+        <!-- EMBASSIES -->
+        <section class="usage reveal" id="embassies">
+            <div class="usage-text">
+                <div class="section-label">Diplomatic posts</div>
+                <h2>The post you depend on, and how to reach it</h2>
+                <p>The directory of Niger's embassies, consulates and permanent missions, from Côte
+                    d'Ivoire to China.</p>
+                <ul class="usage-points">
+                    <li>Grouped by continent then by country, closest to you first.</li>
+                    <li>Address, phone number, opening hours and location of every post.</li>
+                    <li>Call or open directions straight from the list.</li>
+                </ul>
+            </div>
+            <div class="usage-media">
+                <div class="phone">
+                    <img src="/screens/ambassades.webp" width="600" height="1232" loading="lazy"
+                        alt="Directory of Niger's embassies, grouped by continent and country.">
+                </div>
+            </div>
+        </section>
+
+        <!-- PROCEDURES -->
+        <section class="usage usage--flip reveal" id="procedures">
+            <div class="usage-text">
+                <div class="section-label">Twenty procedures</div>
+                <h2>What to bring, before you make the trip</h2>
+                <p>Every consular procedure is spelled out: the documents to bring, the steps, where it
+                    is done, and what the official source leaves unsaid.</p>
+                <ul class="usage-points">
+                    <li>Consular registration</li>
+                    <li>Civil status records — birth, marriage, death, transcriptions</li>
+                    <li>Travel documents — passport, laissez-passer, safe conduct</li>
+                    <li>Notarised deeds and certificates</li>
+                    <li>Nationality</li>
+                </ul>
+            </div>
+            <div class="usage-media">
+                <div class="phone">
+                    <img src="/screens/demarches.webp" width="600" height="1158" loading="lazy"
+                        alt="List of the twenty consular procedures, sorted by category.">
+                </div>
+            </div>
+        </section>
+
+        <!-- THE FILE -->
+        <section class="dossier-section">
+            <div class="dossier-inner">
+                <div class="dossier-text reveal">
+                    <div class="section-label">The file</div>
+                    <h2 class="dossier-lead">The documents to gather</h2>
+                    <p>The consular card is the way into everything else: <em>eighteen of the twenty
+                            procedures ask for it first</em>. Without a Nigerien identity document, two
+                        witnesses who are already registered will do — it is written in the official
+                        text, and the app says so too.</p>
+                    <p>When the source does not publish a fee, the app says so rather than inventing a
+                        number.</p>
+                </div>
+                <div class="dossier-stack reveal">
+                    <div class="phone dossier-phone">
+                        <img src="/screens/dossier.webp" width="600" height="1232" loading="lazy"
+                            alt="New request screen: the form is pre-filled from your profile and the required documents are listed.">
+                    </div>
+                    <div class="paper">
+                        <div class="paper-head">Consular registration</div>
+                        <div class="paper-title">Consular card</div>
+                        <ul class="paper-list">
+                            <li>Copy of a Nigerien identity document — certificate of nationality, birth
+                                certificate or previous consular card</li>
+                        </ul>
+                        <p class="paper-alt">or, failing that</p>
+                        <ul class="paper-list">
+                            <li>Two Nigerien witnesses who already hold the consular card</li>
+                            <li>Two recent passport photographs</li>
+                        </ul>
+                        <p class="paper-note">Chancellery fees: amount not published by the source.<br>
+                            Ministry of Foreign Affairs, Cooperation, African Integration and Nigeriens
+                            Abroad.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAP -->
+        <section class="usage reveal" id="map">
+            <div class="usage-text">
+                <div class="section-label">Approximate location</div>
+                <h2>Who, near you, comes from the same country</h2>
+                <p>The map shows members around you. It works both ways, and you decide whether you
+                    appear on it.</p>
+                <ul class="usage-points">
+                    <li>Approximate position, never your exact address.</li>
+                    <li>Switch it off at any time from your profile.</li>
+                    <li>Invisible to accounts you have blocked.</li>
+                    <li>Without location, the map is browsed city by city.</li>
+                </ul>
+            </div>
+            <div class="usage-media">
+                <div class="phone">
+                    <img src="/screens/carte.webp" width="600" height="1232" loading="lazy"
+                        alt="Members map: private mode explains location sharing before you turn it on.">
+                </div>
+            </div>
+        </section>
+
+        <!-- GROUPS AND MESSAGING -->
+        <section class="usage usage--flip reveal" id="groups">
+            <div class="usage-text">
+                <div class="section-label">End-to-end encrypted</div>
+                <h2>Groups by city, conversations that stay between you</h2>
+                <p>Join the group for your city or your host country, or start your own. Messages are
+                    end-to-end encrypted.</p>
+                <ul class="usage-points">
+                    <li>Text, photos, videos, voice messages and GIFs.</li>
+                    <li>Audio and video calls, one to one or in a group.</li>
+                    <li>Polls and pinned messages inside groups.</li>
+                    <li>Official groups per country, open to every member.</li>
+                </ul>
+            </div>
+            <div class="usage-media">
+                <div class="phone">
+                    <img src="/screens/groupes.webp" width="600" height="1232" loading="lazy"
+                        alt="Groups screen: my groups, discovery and filters by host country.">
+                </div>
+            </div>
+        </section>
+
+        <!-- AND ALSO -->
         <section class="section" id="features">
             <div class="features-header reveal">
                 <div>
-                    <div class="section-label">Features</div>
-                    <h2 class="section-title">Everything you need</h2>
+                    <div class="section-label">And also</div>
+                    <h2 class="section-title">The rest of the community</h2>
                 </div>
-                <p class="section-sub">A platform built for the real needs of the diaspora — connection, culture, and opportunities.</p>
+                <p class="section-sub">Three spaces kept alive by the members themselves.</p>
             </div>
 
-            <div class="features-grid reveal">
-                <div class="feat-card">
-                    <span class="feat-icon">🗺️</span>
-                    <h3 class="feat-title">Interactive Map</h3>
-                    <p class="feat-desc">Find community members near you with our real-time geolocated map.</p>
+            <div class="more-grid reveal">
+                <div class="more-item">
+                    <h3>The feed</h3>
+                    <p>Posts, photos and news from the community, with comments and reactions. Any post
+                        can be shared outside the app in one tap.</p>
                 </div>
-                <div class="feat-card">
-                    <span class="feat-icon">👥</span>
-                    <h3 class="feat-title">Groups & Communities</h3>
-                    <p class="feat-desc">Join or create groups based on your interests, home region, or affinities.</p>
+                <div class="more-item">
+                    <h3>The directory</h3>
+                    <p>List your business, find other people's. Search by category and by city.</p>
                 </div>
-                <div class="feat-card">
-                    <span class="feat-icon">📅</span>
-                    <h3 class="feat-title">Events</h3>
-                    <p class="feat-desc">Discover cultural, community, and social events organized by and for the diaspora.</p>
-                </div>
-                <div class="feat-card">
-                    <span class="feat-icon">💬</span>
-                    <h3 class="feat-title">Secure Messaging</h3>
-                    <p class="feat-desc">Communicate freely with other members via our encrypted and intuitive messaging system.</p>
-                </div>
-                <div class="feat-card">
-                    <span class="feat-icon">🏢</span>
-                    <h3 class="feat-title">Business Directory</h3>
-                    <p class="feat-desc">Find, recommend, and support businesses and professionals of the Nigerien diaspora.</p>
+                <div class="more-item">
+                    <h3>Events</h3>
+                    <p>Community gatherings near you. Create and share your own.</p>
                 </div>
             </div>
         </section>
@@ -650,33 +1422,27 @@
         <section class="about-section" id="about">
             <div class="about-inner">
                 <div class="about-visual reveal">
-                    <div class="about-card">
-                        <div class="about-card-accent"></div>
-                        <div class="about-quote">
-                            "Wherever you are in the world, Niger stays in your heart."
-                        </div>
-                        <div class="about-author">
-                            <div class="author-avatar">🇳🇪</div>
-                            <div class="author-info">
-                                <div class="name">Diaspo Niger</div>
-                                <div class="role">Community platform</div>
-                            </div>
-                        </div>
-                        <div class="floating-tag">🌿 Made with pride</div>
+                    <div class="phone" style="max-width:265px;">
+                        <img src="/screens/profil.webp" width="600" height="1232" loading="lazy"
+                            alt="Profile screen: completion progress, languages spoken, city and occupation.">
                     </div>
                 </div>
 
                 <div class="about-text reveal">
                     <div class="section-label">Our mission</div>
-                    <h2 class="section-title">Born elsewhere, Nigerien forever</h2>
-                    <p>Diaspo Niger is a mobile platform designed to connect Nigeriens living around the world. Our goal is to build a supportive and dynamic community where everyone can share, exchange, and help one another.</p>
-                    <p>Whether you're looking to reconnect with compatriots in your city, attend cultural events, or simply stay connected with your roots, Diaspo Niger is the space for you.</p>
+                    <h2 class="section-title">Born elsewhere, Nigerien for life</h2>
+                    <p>Diaspo Niger is a mobile app built to connect Nigeriens living around the world.
+                        The goal is simple: nobody should have to work out alone which embassy they
+                        depend on, what papers a procedure needs, or where other Nigeriens in their city
+                        are.</p>
+                    <p>You stay in charge of what you show: location can be switched off, the profile
+                        fills in at your own pace, and conversations are end-to-end encrypted.</p>
                     <div class="about-pill-list">
-                        <span class="about-pill">✓ Community</span>
-                        <span class="about-pill">✓ Solidarity</span>
-                        <span class="about-pill">✓ Culture</span>
-                        <span class="about-pill">✓ Opportunities</span>
-                        <span class="about-pill">✓ Roots</span>
+                        <span class="about-pill">Community</span>
+                        <span class="about-pill">Procedures</span>
+                        <span class="about-pill">Culture</span>
+                        <span class="about-pill">Solidarity</span>
+                        <span class="about-pill">Roots</span>
                     </div>
                 </div>
             </div>
@@ -684,19 +1450,22 @@
 
         <!-- DOWNLOAD -->
         <section class="download-section" id="download">
-            <div class="section-label">Join the diaspora</div>
-            <h2 class="section-title reveal">Download the app today</h2>
-            <p class="dl-sub reveal">Available on Android · iOS coming soon</p>
+            <div class="section-label">Join the community</div>
+            <h2 class="section-title reveal">Download the app</h2>
+            <p class="dl-sub reveal">Android 7.0 or later · free to download</p>
 
             <div class="dl-buttons reveal">
-                <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger" target="_blank" rel="noopener">
-                    <img src="/google-play-badge.png" alt="Get it on Google Play" style="height: 80px;">
+                <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger"
+                    target="_blank" rel="noopener">
+                    <img src="/google-play-badge.png" alt="Get it on Google Play" width="478"
+                        height="142" style="height: 80px; width: auto;">
                 </a>
-                <a href="#" style="opacity: 0.5; cursor: not-allowed; pointer-events: none;">
-                    <img src="/app-store-badge.svg" alt="Download on the App Store" style="height: 80px;">
-                </a>
+                <span style="opacity: 0.4;">
+                    <img src="/app-store-badge.svg" alt="" width="478" height="142"
+                        style="height: 80px; width: auto;">
+                </span>
             </div>
-            <p class="dl-note">The iOS app will be available soon</p>
+            <p class="dl-note">The iOS version is in preparation.</p>
         </section>
 
         <!-- FOOTER -->
@@ -721,10 +1490,11 @@
         <div class="dl-overlay-card">
             <img src="/logo-96.png" alt="" class="dl-overlay-logo" width="72" height="72" onerror="this.style.display='none'">
             <h2>Open in Diaspo Niger</h2>
-            <p>To view this content, open the Diaspo Niger app on your device.</p>
+            <p>To see this content, open the Diaspo Niger app on your device.</p>
             <a id="deep-link-btn" href="#" class="dl-overlay-btn">Open the app</a>
             <p style="font-size:0.82rem; color:rgba(253,249,244,0.3); margin-bottom:0.8rem;">Don't have the app?</p>
-            <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger" target="_blank" rel="noopener">
+            <a href="https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger" target="_blank"
+                rel="noopener">
                 <img src="/google-play-badge.png" alt="Google Play" style="height: 40px;">
             </a>
             <br>
@@ -733,7 +1503,7 @@
     </div>
 
     <script>
-        // Menu mobile
+        // Mobile menu
         (function () {
             const nav = document.querySelector('nav');
             const burger = nav && nav.querySelector('.nav-burger');
@@ -753,6 +1523,7 @@
             });
         })();
 
+        // Scroll reveal
         const revealEls = document.querySelectorAll('.reveal');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((e, i) => {
@@ -764,14 +1535,20 @@
         }, { threshold: 0.1 });
         revealEls.forEach(el => observer.observe(el));
 
+        // Nav scroll effect
         window.addEventListener('scroll', () => {
             document.querySelector('nav').style.background =
-                window.scrollY > 60 ? 'rgba(15, 13, 10, 0.9)' : 'rgba(15, 13, 10, 0.7)';
+                window.scrollY > 60
+                    ? 'rgba(15, 13, 10, 0.9)'
+                    : 'rgba(15, 13, 10, 0.7)';
         });
 
         document.addEventListener('DOMContentLoaded', function () {
+            // Generate hero dots
             const dots = document.querySelector('.hero-dots');
-            if (dots) dots.innerHTML = Array(48).fill('<span></span>').join('');
+            if (dots) {
+                dots.innerHTML = Array(48).fill('<span></span>').join('');
+            }
         });
 
         // Opening in the app (shared links)
