@@ -14,6 +14,59 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Publication Play Store 1.2.1+11 — build release à valider (2026-09-08)
+
+Première préparation complète d'un téléversement : `pubspec.yaml` passe à
+`1.2.1+11` et `targetSdk` est épinglé à 36 dans `android/app/build.gradle.kts`
+(il suivait `flutter.targetSdkVersion`, donc le SDK Flutter installé). AAB
+signé produit et vérifié : empreinte SHA256 identique à celle du keystore.
+
+Tout ce qui suit demande le **build release**, pas un debug — R8 et
+`shrinkResources` sont actifs uniquement en release, et c'est là que se voient
+les règles ProGuard manquantes (écran blanc, réflexion cassée, plugin muet).
+
+- ⬜ Démarrage à froid du **build release** sur SM A515F (Android 13) : pas
+      d'écran blanc, pas de crash, connexion et messagerie fonctionnelles.
+- ⬜ Idem sur Pixel 10 Pro XL (**Android 17, API 37**) — c'est le seul appareil
+      qui exerce réellement `targetSdk = 36`.
+- ⬜ Permissions runtime en release : caméra, micro, localisation,
+      notifications. R8 casse volontiers les plugins de permission.
+
+### ⚠️ `ACCESS_BACKGROUND_LOCATION` — à trancher avant de soumettre
+
+Le manifeste déclare `ACCESS_BACKGROUND_LOCATION`, ce qui déclenche côté Play
+un formulaire obligatoire **avec vidéo de démonstration**, et c'est la première
+cause de refus sur ce type de fiche.
+
+Or `LocationService.requestBackgroundLocationPermission()` et
+`hasBackgroundLocationPermission()` sont **définies et appelées nulle part**
+(`grep` sur tout `lib/`). Le partage continu passe par
+`BackgroundLocationService`, un service de premier plan
+(`foregroundServiceType="location"`) — or un service de premier plan obtient
+la position avec la seule permission de premier plan.
+
+- ⬜ Activer le partage de position depuis le Profil, mettre l'app en
+      arrière-plan, et vérifier que la position **continue** de remonter alors
+      que le réglage système est sur « Autoriser uniquement quand l'app est
+      utilisée » (donc sans la permission d'arrière-plan).
+- Si ça remonte : la permission est inutile, la retirer du manifeste supprime
+  tout le dossier de déclaration Play.
+- Si ça ne remonte pas : la permission est nécessaire, et il faut alors ajouter
+  l'**information préalable** exigée par Google (écran explicite avant la
+  demande système), qui n'existe pas aujourd'hui puisque la demande elle-même
+  n'est jamais faite.
+
+### Captures de la fiche boutique
+
+Les captures livrées sont composées en 1080×1920 : les deux appareils sont en
+1080×2400 (2,22:1) et Google refuse un côté long supérieur au double du côté
+court. Les copies d'écran intégrées viennent du build release.
+
+- ⬜ Relire les captures livrées : aucune donnée personnelle réelle visible
+      (nom, numéro, adresse, photo d'un tiers) avant publication.
+
+---
+
 ## ✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)
 
 Notifications, Annuaire des entreprises, Événements et Ambassades sont
