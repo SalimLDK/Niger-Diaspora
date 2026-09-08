@@ -42,6 +42,9 @@ class Handler(SimpleHTTPRequestHandler):
         return super().translate_path(path)
 
     def end_headers(self) -> None:
+        # Sans cela le navigateur resert la version precedente et le test porte
+        # sur un fichier qui n'existe plus sur le disque.
+        self.send_header("Cache-Control", "no-store")
         for source, headers in HEADERS.items():
             if self.path.split("?", 1)[0] == source:
                 for key, value in headers.items():

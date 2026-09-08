@@ -37,6 +37,7 @@ import '../../../polls/domain/entities/poll_entity.dart';
 import '../../../polls/presentation/widgets/create_poll_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../settings/data/models/chat_background_model.dart';
@@ -1114,6 +1115,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final blockedUsersAsync = ref.watch(blockedUsersProvider);
     final blockedUsers = blockedUsersAsync.valueOrNull ?? [];
 
+    // Veille des rappels de clés. Relevée ici, dans `build` : le bandeau qui
+    // s'en sert est posé depuis un `LayoutBuilder`, donc pendant la mise en
+    // page, où `ref.watch` n'a plus cours.
+    final rappelClesMuet = ref.watch(e2eeRestoreNudgeMutedProvider);
+
     final l10n = AppLocalizations.of(context)!;
 
     // La conversation est réputée absente **seulement** si le flux a livré une
@@ -1477,7 +1483,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                 // Ce rappel est informatif : il revient des que le clavier se
                 // replie ou que l'ecran repasse en portrait.
                 if (placeRappelCles)
-                  _buildE2eeRestoreBanner(context, paginationState.messages),
+                  _buildE2eeRestoreBanner(
+                    context,
+                    paginationState.messages,
+                    rappelMuet: rappelClesMuet,
+                  ),
                 // Messages
                 Expanded(
                   child: _buildMessageList(
@@ -2857,9 +2867,17 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// chaines existaient dans l'ARB mais n'etaient branchees nulle part.
   Widget _buildE2eeRestoreBanner(
     BuildContext context,
-    List<MessageEntity> messages,
-  ) {
+    List<MessageEntity> messages, {
+    required bool rappelMuet,
+  }) {
     if (!messages.any((m) => m.content == _kUndecryptable)) {
+      return const SizedBox.shrink();
+    }
+
+    // Le rappel a été écarté depuis le bandeau global : ne pas le répéter ici.
+    // Sans ça, ce bandeau-ci n'avait aucune mise en veille et revenait à chaque
+    // ouverture d'un fil contenant un message indéchiffrable.
+    if (rappelMuet) {
       return const SizedBox.shrink();
     }
 

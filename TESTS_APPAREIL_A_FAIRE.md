@@ -14,6 +14,87 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Rappel des clés : « Ne plus me le rappeler » et le bandeau de conversation (2026-09-08)
+
+Deux bandeaux répétaient le même message et un seul savait se taire. Celui de
+`MainShell` se mettait en veille 7 jours sur « Pas maintenant » ; celui posé en
+tête de conversation (`_buildE2eeRestoreBanner`, conversation_screen.dart)
+n'avait **aucune** veille — il revenait à chaque ouverture d'un fil contenant un
+message indéchiffrable, même juste après avoir écarté l'autre.
+
+Désormais : un troisième bouton « Ne plus me le rappeler » (`dismissForever`)
+écrit `-1` à la place de l'horodatage — une veille que le temps n'éteint plus —
+et les deux bandeaux lisent le même `e2eeRestoreNudgeMutedProvider`.
+
+Couvert par `test/core/services/e2ee/e2ee_backup_coordinator_test.dart`
+(5 cas, veille / expiration à 7 jours / effacement / cloisonnement des deux
+rappels). Reste à voir sur appareil :
+
+- [ ] **Le bandeau global à trois boutons ne déborde pas.** « Ne plus me le
+      rappeler » + « Pas maintenant » + « Restaurer » en français, sur les
+      réglages qui ont déjà fait tomber d'autres rangées (densité 440, échelle
+      de police 1,3). `MaterialBanner` empile via `OverflowBar` — à confirmer de
+      visu, en portrait **et** en paysage.
+- [ ] **Le rappel se tait pour de bon.** Taper « Ne plus me le rappeler », puis
+      `am force-stop` + relance à froid (protocole du 2026-08-25) : le bandeau
+      ne doit pas revenir. Vérifier la clé côté prefs —
+      `run-as com.diasponiger.diasponiger cat shared_prefs/FlutterSharedPreferences.xml`
+      doit montrer `e2ee_prompt_snoozed_needsRestore_<uid>` à `-1`.
+- [ ] **Le bandeau de conversation obéit.** Ouvrir ensuite un fil contenant un
+      « 🔐 Message chiffré » : plus de bandeau jaune en tête de fil non plus.
+      C'est le vrai point neuf — l'ancien code le réaffichait quoi qu'il arrive.
+- [ ] **Une vraie sauvegarde rend la parole.** Réglages › Sécurité › Sauvegarde
+      des clés, créer (ou restaurer) une sauvegarde : `clearSnooze` doit effacer
+      la clé de veille, et un cas neuf doit pouvoir se re-proposer plus tard.
+
+⚠️ Ce qu'il faut avoir en tête en testant : taire le rappel de restauration
+laisse l'appareil sur le **repli AES** sans plus rien pour le signaler (le
+coordinateur ne génère pas de clés quand une sauvegarde distante existe). La
+sortie reste Réglages › Sécurité, qui n'a pas bougé.
+
+---
+
+## ⬜ Site web repeint sur la palette ① Organic du guide (2026-09-08)
+
+Le « Guide de style » Claude Design assigne explicitement la palette ①
+**Organic** au site web. Le site ne l'a jamais appliquée : il tournait sur un
+fond `#0f0d0a` et un orange `#E97424` qui ne figurent dans **aucune** des cinq
+palettes du guide, en Fraunces + Sora là où Organic dit Caprasimo + Figtree.
+Un visiteur voyait donc une page noire et orange, puis installait une
+application crème et verte.
+
+Les seize pages sont passées sur les valeurs de
+`lib/features/feed/presentation/theme/feed_tokens.dart` (`organic`) : sable
+`#F5EAD8`, surface `#EBDDC5`, encre `#201E1D`, terre cuite `#C67139`, olive
+`#7A8A5E`.
+
+**Une valeur du guide n'est pas reprise telle quelle** : `mutedText #82796A`
+donne 3,4:1 sur le sable, sous le seuil AA de 4,5:1 pour du texte courant. Le
+site utilise `#5C5449`, même famille, un cran plus foncé. C'est la lisibilité
+qui l'impose, pas une préférence.
+
+Le contrôle n'est pas visuel : un audit exécuté dans le navigateur parcourt
+chaque nœud de texte des seize pages, recompose le fond réel (superposition des
+alphas) et calcule le rapport de contraste. Les seize pages sortent à zéro
+défaut. Seul le bouton « Supprimer définitivement » **désactivé** reste à
+2,7:1 — un contrôle inactif est explicitement hors du champ de WCAG, et c'est
+son apparence voulue.
+
+- [ ] **Lisibilité au soleil** : une page claire se comporte à l'inverse d'une
+      page sombre en extérieur. À regarder dehors, pas seulement au bureau.
+- [ ] **Rendu des captures sur fond clair** : les écrans de l'app sont crème,
+      le cadre du téléphone reste sombre pour les détacher. À vérifier sur
+      écran de téléphone, où le contraste perçu diffère.
+- [ ] **Polices Caprasimo et Figtree** : elles ne sont chargées que depuis
+      Google Fonts. Vérifier le rendu de repli si le réseau est lent
+      (Caprasimo n'a qu'une graisse ; un faux gras serait visible).
+- [ ] **`prefers-reduced-motion`** : toujours à vérifier avec « Réduire les
+      animations » activé.
+- [ ] **Barre système du navigateur** : `theme-color` est passé au sable ;
+      à voir sur Chrome Android, thème clair et thème sombre.
+
+---
+
 ## ⬜ Site web : page d'accueil refondue sur les captures réelles (2026-09-08)
 
 La page d'accueil vendait une version plus ancienne de l'app : cinq cartes à
