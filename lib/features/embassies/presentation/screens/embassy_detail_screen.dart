@@ -213,30 +213,38 @@ class EmbassyDetailScreen extends StatelessWidget {
     ); // Close PopScope
   }
 
-  /// Horaires du jour, au mieux : on tente de faire correspondre le jour
-  /// courant (français ou anglais) aux clés de [EmbassyEntity.openingHours],
-  /// dont le format vient du back. `null` si aucune clé ne correspond.
-  String? _todayHours() {
-    if (embassy.openingHours.isEmpty) return null;
-    final now = DateTime.now();
-    final frDay = DateFormat('EEEE', 'fr_FR').format(now).toLowerCase();
-    final enDay = DateFormat('EEEE', 'en_US').format(now).toLowerCase();
-    for (final e in embassy.openingHours.entries) {
-      final k = e.key.toLowerCase().trim();
-      if (k == frDay || k == enDay) return e.value;
-    }
-    return null;
-  }
+  // Horaires du jour : commentes avec leurs deux affichages, en attendant
+  // confirmation des horaires aupres des postes. Cette methode alimentait la
+  // ligne « Aujourd'hui · <horaires> » du bandeau d'etat.
+  //
+  // /// Horaires du jour, au mieux : on tente de faire correspondre le jour
+  // /// courant (français ou anglais) aux clés de [EmbassyEntity.openingHours],
+  // /// dont le format vient du back. `null` si aucune clé ne correspond.
+  // String? _todayHours() {
+  //   if (embassy.openingHours.isEmpty) return null;
+  //   final now = DateTime.now();
+  //   final frDay = DateFormat('EEEE', 'fr_FR').format(now).toLowerCase();
+  //   final enDay = DateFormat('EEEE', 'en_US').format(now).toLowerCase();
+  //   for (final e in embassy.openingHours.entries) {
+  //     final k = e.key.toLowerCase().trim();
+  //     if (k == frDay || k == enDay) return e.value;
+  //   }
+  //   return null;
+  // }
 
-  /// Bandeau d'état de l'ambassade (13b). Rouge fiable via le drapeau
-  /// [isTemporarilyClosed] ; vert sinon, avec les horaires du jour si connus
-  /// (pas de calcul « ouvert maintenant » : le format des horaires n'est pas
-  /// garanti côté back).
+  /// Bandeau d'état de l'ambassade (13b). Ne rend plus que l'exception : le
+  /// rouge « Temporairement fermé », qu'un administrateur pose explicitement.
+  ///
+  /// Le vert « Ouvert » est en sommeil en attendant confirmation des horaires.
+  /// Il ne mesurait rien : il s'affichait des que [isTemporarilyClosed] etait
+  /// faux, donc sur les 32 fiches de l'annuaire, dont aucune ne porte
+  /// d'horaires. A retablir avec les horaires, pas avant.
   Widget _buildStatusBanner(BuildContext context, ThemeData theme) {
     final l10n = AppLocalizations.of(context)!;
     final closed = embassy.isTemporarilyClosed;
+    if (!closed) return const SizedBox.shrink();
     final fg = closed ? const Color(0xFFC23E2D) : const Color(0xFF009600);
-    final todayHours = _todayHours();
+    // final todayHours = _todayHours();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -290,16 +298,19 @@ class EmbassyDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ],
-                ] else if (todayHours != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    '${l10n.todayTitle} · $todayHours',
-                    style: TextStyle(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: 13,
-                    ),
-                  ),
                 ],
+                // « Aujourd'hui · <horaires> », en sommeil avec le reste des
+                // horaires :
+                // ] else if (todayHours != null) ...[
+                //   const SizedBox(height: 4),
+                //   Text(
+                //     '${l10n.todayTitle} · $todayHours',
+                //     style: TextStyle(
+                //       color: theme.colorScheme.onSurfaceVariant,
+                //       fontSize: 13,
+                //     ),
+                //   ),
+                // ],
               ],
             ),
           ),
@@ -317,8 +328,10 @@ class EmbassyDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Bandeau d'état (13b) : vert « Ouvert » (+ horaires du jour) / rouge
-          // « Temporairement fermé » (+ date de réouverture).
+          // Bandeau d'état (13b) : rouge « Temporairement fermé » (+ message
+          // et date de réouverture). Le vert « Ouvert » et les horaires du
+          // jour sont en sommeil en attendant confirmation — rien ne s'affiche
+          // donc ici tant que le poste n'est pas signalé fermé.
           _buildStatusBanner(context, theme),
 
           // Bandeau « Compte Officiel Verifie » mis en sommeil en attendant
@@ -578,48 +591,52 @@ class EmbassyDetailScreen extends StatelessWidget {
             const SizedBox(height: 24),
           ],
 
-          // Opening Hours
-          if (embassy.openingHours.isNotEmpty) ...[
-            Text(
-              'Horaires d\'ouverture',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              elevation: 0,
-              color: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.3,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  children:
-                      embassy.openingHours.entries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                entry.key.toUpperCase(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(entry.value),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                ),
-              ),
-            ),
-          ],
+          // Tableau « Horaires d'ouverture » en sommeil en attendant
+          // confirmation aupres des postes. Les horaires n'ont jamais ete
+          // verifies, et `opening_hours` est vide sur les 32 fiches : le bloc
+          // ne rendait rien aujourd'hui, mais la premiere donnee saisie serait
+          // partie a l'ecran sans relecture. A retablir une fois confirmes.
+          // if (embassy.openingHours.isNotEmpty) ...[
+          //   Text(
+          //     'Horaires d\'ouverture',
+          //     style: theme.textTheme.titleMedium?.copyWith(
+          //       fontWeight: FontWeight.bold,
+          //     ),
+          //   ),
+          //   const SizedBox(height: 8),
+          //   Card(
+          //     elevation: 0,
+          //     color: theme.colorScheme.surfaceContainerHighest.withValues(
+          //       alpha: 0.3,
+          //     ),
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(12),
+          //     ),
+          //     child: Padding(
+          //       padding: const EdgeInsets.all(12.0),
+          //       child: Column(
+          //         children:
+          //             embassy.openingHours.entries.map((entry) {
+          //               return Padding(
+          //                 padding: const EdgeInsets.symmetric(vertical: 4),
+          //                 child: Row(
+          //                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //                   children: [
+          //                     Text(
+          //                       entry.key.toUpperCase(),
+          //                       style: const TextStyle(
+          //                         fontWeight: FontWeight.w600,
+          //                       ),
+          //                     ),
+          //                     Text(entry.value),
+          //                   ],
+          //                 ),
+          //               );
+          //             }).toList(),
+          //       ),
+          //     ),
+          //   ),
+          // ],
 
           // Jurisdiction Info
           if (embassy.jurisdictionCountries.isNotEmpty) ...[
