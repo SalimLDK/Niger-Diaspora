@@ -85,9 +85,38 @@ class AuthNotifier extends _$AuthNotifier {
 
   bool _disposed = false;
 
+  /// La fermeture confiée à [SessionService], gardée pour ne retirer que la
+  /// nôtre : si un nouveau notifier a déjà posé la sienne, l'effacer
+  /// aveuglément à la destruction laisserait la déconnexion forcée sans
+  /// nettoyage.
+  Future<bool> Function()? _hookDeconnexionForcee;
+
   @override
   AuthState build() {
-    ref.onDispose(() => _disposed = true);
+    // La déconnexion forcée « Connecté ailleurs » ne signait que la sortie de
+    // Firebase : ni purge des caches, ni retrait du jeton FCM, et `AuthState`
+    // restait sur `authenticated`. Elle emprunte désormais le même chemin que
+    // le bouton « Déconnexion ».
+    Future<bool> surDeconnexionForcee() async {
+      if (_disposed) return false;
+      await signOut();
+      return true;
+    }
+
+    // Passer par le champ pour les deux affectations : `identical` à la
+    // destruction compare bien le même objet.
+    _hookDeconnexionForcee = surDeconnexionForcee;
+    SessionService.instance.onForceLogout = _hookDeconnexionForcee;
+
+    ref.onDispose(() {
+      _disposed = true;
+      if (identical(
+        SessionService.instance.onForceLogout,
+        _hookDeconnexionForcee,
+      )) {
+        SessionService.instance.onForceLogout = null;
+      }
+    });
     _initAuthState();
     return const AuthState.initial();
   }

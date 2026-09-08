@@ -125,12 +125,45 @@ l'appareil identiques : `5dd681b4…` — le piège de l'APK périmé est écart
       2026-09-08 : `SessionService._handleForceLogout()` a ouvert sa boîte
       par-dessus le dialogue de déconnexion, et le tap de confirmation a
       atterri dessus — première mesure perdue. À vérifier avant d'appuyer.
-      Au passage, cette voie de déconnexion forcée ne fait que
-      `FirebaseAuth.signOut()` + `clearSessionId()` : **ni purge des caches,
-      ni retrait du jeton FCM**. Le compte suivant sur ce téléphone hérite
-      donc des données du précédent, et l'appareil reste inscrit pour ses
-      notifications — la famille de défauts que le correctif de latence vient
-      justement de traiter sur la voie normale. Non corrigé, hors périmètre.
+
+## ⬜ Déconnexion forcée « Connecté ailleurs » — trois trous refermés
+
+Trouvée en mesurant la latence ci-dessus. Cette voie ne faisait que
+`FirebaseAuth.signOut()` + `clearSessionId()`, d'où trois défauts :
+
+- **ni purge des caches, ni des préférences personnelles, ni des pièces
+  jointes en clair** — le compte suivant sur ce téléphone en héritait ;
+- **ni retrait du jeton FCM** — l'appareil restait inscrit aux notifications
+  du compte sorti ;
+- **`AuthState` restait sur `authenticated`** alors que Firebase était sorti :
+  le garde du routeur (« si non authentifié → /auth/login ») ne voyait rien,
+  seule la navigation explicite du bouton OK masquait l'incohérence.
+
+C'est la famille de défauts que le correctif de latence venait de traiter sur
+la voie normale — la duplication garantissait la divergence. Elle délègue
+désormais à la déconnexion complète d'`AuthNotifier`, via une fermeture posée
+par le notifier (`SessionService.onForceLogout`), avec repli sur l'ancien
+comportement si elle manque ou échoue : une sortie incomplète vaut mieux que
+pas de sortie. Le dialogue passe aussi par l10n — les clés
+`connectedElsewhere` / `connectedElsewhereMessage` existaient depuis toujours,
+inutilisées, et le texte était en dur en français.
+
+Verrouillé par `test/features/auth/deconnexion_forcee_test.dart` (câblage et
+délégation, repli compris ; vérifié rouge en retirant le branchement).
+
+- [ ] **Provoquer la déconnexion forcée** : se connecter au même compte sur un
+      second appareil, et sur le premier vérifier que le dialogue apparaît,
+      que OK mène bien à l'écran de connexion, et que le texte est traduit
+      (basculer la langue de l'appareil pour voir la version anglaise).
+- [ ] **Nettoyage après déconnexion forcée** : sur l'appareil éjecté, vérifier
+      que les boîtes Hive de `app_flutter/` sont à 0 octet, que
+      `currentUserId` a disparu de `FlutterSharedPreferences.xml`, et que le
+      jeton FCM de cet appareil ne figure plus dans `users.fcm_tokens`. Rien
+      de tout cela n'avait lieu avant.
+- [ ] **Cohérence du routeur** : après l'éjection, ne pas toucher OK et tenter
+      d'atteindre un écran protégé par lien profond — le garde doit renvoyer
+      sur `/auth/login`, ce qu'il ne faisait pas quand `AuthState` restait
+      `authenticated`.
 - [x] **Jeton FCM réellement retiré** — vérifié le 2026-09-08. Le jeton de
       l'appareil (`shared_prefs/com.google.android.gms.appid.xml`, début
       `fcAFKu1JQ_au…`) ne figure plus dans `users.fcm_tokens` après la
