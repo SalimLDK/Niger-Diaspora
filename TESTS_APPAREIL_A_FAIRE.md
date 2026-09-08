@@ -14,6 +14,80 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)
+
+Google Play refuse au dépôt tout AAB qui cible l'API 35+ et embarque un `.so`
+64 bits aligné sur 4 Ko. Sur l'AAB du 2026-09-08, 6 des 8 bibliothèques
+arm64-v8a étaient conformes ; deux ne l'étaient pas, et **rien en local ne le
+disait** — la compilation passe, l'installation passe, `flutter analyze` ne
+regarde pas les `.so`. Le refus n'arrive qu'en Play Console.
+
+Les deux venaient de dépendances transitives de plugins, remplacées dans
+`android/build.gradle.kts` :
+
+- `libbarhopper_v3.so` — `com.google.mlkit:barcode-scanning:17.2.0`, épinglé
+  par `mobile_scanner 5.2.3`. Forcé en **17.3.0**, alignée 16 Ko, même API,
+  minSdk 21 contre 24 pour l'app.
+- `libnoise.so` — `com.github.paramsen:noise:2.0.0` (JitPack, abandonné),
+  tiré par `livekit_client 2.4.1`. Substitué par **`io.livekit:noise:2.0.0`**
+  sur Maven Central : LiveKit a republié le *même* artefact recompilé en
+  16 Ko — mêmes classes, même package `com.paramsen.noise`. C'est ce que
+  `livekit_client` utilise lui-même depuis sa 2.5.0.
+
+Vérification reproductible : `python tools/verifie_alignement_16k.py
+build/app/outputs/bundle/release/app-release.aab`.
+
+**Aucune ligne de Dart n'a changé** — seule la résolution Gradle. Le risque
+n'est donc pas dans l'UI mais dans le code natif chargé à l'exécution, que
+`flutter analyze` et `flutter test` ne touchent pas :
+
+- [ ] **Scanner QR** (`/qr-scanner`, atteint depuis l'accueil « Trouver des
+      amis », la modale de partage de profil et celle de partage de groupe) :
+      la caméra démarre, un QR de profil est décodé et ouvre la bonne fiche.
+      C'est le seul consommateur de `libbarhopper_v3.so` — s'il se charge, la
+      montée MLKit est bonne ; s'il échoue, ce sera un écran caméra noir ou
+      un code jamais reconnu, pas une erreur Dart.
+- [ ] **Appel audio de groupe** puis **appel vidéo** (LiveKit) : connexion,
+      son dans les deux sens, caméra. `libnoise.so` n'est chargé que par le
+      visualiseur audio natif de LiveKit (`createVisualizer`), que l'app
+      n'appelle **nulle part** — le remplacement ne devrait donc rien changer,
+      mais c'est une substitution de module au niveau Gradle : elle mérite un
+      appel réel avant publication.
+- [ ] **Salon audio** et **podcast en direct** : même moteur LiveKit, autres
+      écrans d'entrée.
+
+C'est la suite directe du point « Alignement 16 Ko » de l'entrée targetSdk 36
+plus bas, qui chiffrait l'écart (6 conformes sur 8) et renvoyait à une session
+dédiée.
+## ⬜ Ambassades : les deux mentions « officiel / vérifié » mises en sommeil (2026-09-08)
+
+`lib/features/embassies/presentation/screens/embassy_detail_screen.dart` :
+la pastille bleue `Icons.verified` collée au nom du poste (en-tête déroulant)
+et le bandeau « **Compte Officiel Vérifié** » en tête de l'onglet *Infos* sont
+**commentés**, en attendant confirmation auprès des postes. Les deux ne
+tenaient qu'à `embassy.isVerified`, un drapeau de **modération interne**
+(écran admin de vérification) : il ne dit pas que l'ambassade reconnaît la
+fiche, alors que les deux affichages le laissaient croire — juste au-dessus
+des coordonnées dont la fiche prévient elle-même, plus bas, qu'elles sont
+parfois fautives.
+
+Le code est conservé en commentaire, prêt à être rétabli. Rien d'autre n'a
+bougé : le filtre `!e.isVerified || e.isSuspended` de
+`embassies_provider.dart` continue de masquer les fiches non validées, et
+l'écran admin de vérification est intact. Audit fait : `embassyOfficialVerified`
+était la **seule** chaîne côté ambassades à affirmer une officialité (80 clés
+l10n passées en revue).
+
+`flutter analyze lib/features/embassies` : **No issues found**.
+
+- [ ] Ouvrir une fiche d'ambassade : plus aucune pastille bleue à côté du nom
+      dans l'en-tête, et plus de bandeau bleu au-dessus de l'adresse.
+- [ ] Vérifier que le titre sur deux lignes reste bien posé sans la pastille
+      (l'alignement `CrossAxisAlignment.end` de la `Row` avait été choisi
+      pour elle).
+- [ ] Thème sombre : le bandeau bleu était le seul bloc à couleur fixe de
+      cette zone — confirmer qu'il ne laisse pas de vide ni de double marge.
+
 ## ⬜ Publication Play Store 1.2.1+11 — build release à valider (2026-09-08)
 
 Première préparation complète d'un téléversement : `pubspec.yaml` passe à
@@ -97,14 +171,26 @@ Ce que ce passage change au comportement Android — à regarder sur appareil,
       système devient le défaut. Revérifier les sorties d'écran par geste de
       retour, notamment les routes de lien profond (cf. la règle
       « couvrir les TROIS sorties »).
-- [ ] **Alignement 16 Ko des bibliothèques natives.** Indépendant du
-      targetSdk mais contrôlé au même endroit par Play : toute `.so` embarquée
-      (flutter_webrtc, Maps, Firebase…) doit être alignée sur 16 Ko. NDK 27
-      le fait par défaut pour ce qui est compilé ici, mais pas pour les `.so`
-      préconstruites d'un plugin. Se voit à l'upload de l'AAB, ou en amont
-      sur le bundle produit.
+- [x] **Alignement 16 Ko des bibliothèques natives.** Indépendant du
+      targetSdk mais contrôlé au même endroit par Play. Mesuré sur l'AAB du
+      jour : 6 des 8 `.so` arm64 sont conformes (dont `libflutter.so`,
+      `libapp.so`, `libjingle_peerconnection_so.so`), **2 ne le sont pas**
+      (`p_align` = 4096) — `libbarhopper_v3.so`
+      (`com.google.mlkit:barcode-scanning:17.2.0`, tiré par `mobile_scanner`)
+      et `libnoise.so` (`com.github.paramsen:noise:2.0.0`, transitive de
+      `livekit_client`). NDK 27 aligne ce qui est compilé ici, pas les `.so`
+      préconstruites d'un plugin. **Réglé le 2026-09-08** : les 8 `.so`
+      arm64-v8a et les 8 x86_64 de l'AAB reconstruit sont à >= 16 Ko — voir
+      la section « Deux bibliothèques natives réalignées sur 16 Ko » en tête
+      de ce fichier, qui porte les deux vérifications appareil restantes
+      (scanner QR, appel LiveKit).
 
-**Version portée à `1.2.1+11`** (la 1.2.0+10 est celle en production).
+**Version portée à `1.2.1+11`.** ⚠️ Correction : j'avais écrit ici que la
+1.2.0+10 était « en production ». C'est faux — la fiche publique renvoie 404
+dans les cinq pays testés. Le bundle 1.2.0+10 a seulement été **téléversé**
+(piste de test ou brouillon), ce qui suffit à déclencher l'avertissement de
+la console. Le versionCode 10 est donc pris, mais aucune fiche publique
+n'existe encore à mettre à jour.
 
 ---
 ## ⚠️→✅ La garde d'organisateur refusait l'organisateur (2026-09-08)
