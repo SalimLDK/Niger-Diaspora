@@ -4,8 +4,22 @@
     {
       "name": "flutter-web",
       "runtimeExecutable": "flutter",
-      "runtimeArgs": ["run", "-d", "chrome", "--web-port=8765"],
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "chrome",
+        "--web-port=8765"
+      ],
       "port": 8765
+    },
+    {
+      "name": "site-web",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "tools/serve_site.py",
+        "8787"
+      ],
+      "port": 8787
     }
   ]
 }

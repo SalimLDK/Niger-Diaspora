@@ -14,6 +14,52 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)
+
+`public/` (déployé sur `diasponiger.web.app`). Rien ici n'est couvert par
+`flutter analyze` : c'est du HTML statique, vérifié en local sur un viewport
+émulé et par un banc Node qui rejoue le vrai bloc JavaScript extrait des
+pages livrées (18 chemins). Il reste ce qu'un navigateur de téléphone seul
+peut dire.
+
+- [ ] **Menu mobile** — sous 900 px, `.nav-links` était en `display: none`
+      **sans remplacement** : la barre de nav ne montrait plus que le logo,
+      ni bouton « Télécharger », ni bascule FR/EN. Un bouton hamburger ouvre
+      désormais un panneau déroulant. À voir sur le navigateur du téléphone :
+      le panneau est opaque (`#14110d`), les six lignes tiennent sans
+      débordement, et un tap sur un lien le referme.
+- [ ] **Lien partagé qui ouvre l'app** — l'app partage `/feed/<id>` mais le
+      panneau « Ouvrir dans Diaspo Niger » ne se déclenchait que sur
+      `/profile/` et `/p/` : un post partagé tombait sur la page d'accueil,
+      sans aucun moyen d'atteindre le contenu. Les 13 routes de l'app sont
+      maintenant reconnues. Test réel : partager un post depuis l'app, ouvrir
+      le lien depuis WhatsApp sur un téléphone **sans** l'app (ou app
+      désinstallée) → le panneau doit s'afficher ; avec l'app installée,
+      App Links doit l'ouvrir sans même passer par le site.
+- [ ] **Aperçu de partage** — aucune balise Open Graph n'existait : coller un
+      lien du site dans WhatsApp/Facebook ne montrait rien. `og:image` pointe
+      sur `og-image.png` (1200×630, généré). À vérifier en collant le lien
+      dans une conversation WhatsApp (le cache de l'aperçu peut retenir
+      l'ancienne version pendant plusieurs heures).
+- [ ] **Universal links iOS** — `apple-app-site-association` contenait encore
+      `VOTRE_TEAM_ID` et un bundle inexistant (`com.diasponiger.diaspo_niger`
+      au lieu de `com.diasponiger.diaspoNiger`), et Firebase le servait en
+      `text/html` faute d'extension — Apple exige `application/json`. Les
+      trois sont corrigés, mais **rien ne peut être vérifié tant que l'app
+      iOS n'est pas installée sur un appareil** (voir la session iOS).
+
+**Après déploiement** (`firebase deploy --only hosting`), à contrôler en
+ligne — ces trois-là ne se voient pas en local :
+
+- [ ] `curl -sI https://diasponiger.web.app/.well-known/apple-app-site-association | grep -i content-type`
+      doit rendre `application/json`.
+- [ ] `https://diasponiger.web.app/robots.txt` et `/sitemap.xml` doivent
+      rendre leur propre contenu, pas la page d'accueil (la réécriture `**`
+      les avalait : ils n'existaient pas).
+- [ ] Le favicon apparaît dans l'onglet (la page d'accueil n'en avait aucun).
+
+---
+
 ## ⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)
 
 Google Play refuse au dépôt tout AAB qui cible l'API 35+ et embarque un `.so`
