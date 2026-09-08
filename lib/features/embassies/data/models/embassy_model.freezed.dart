@@ -58,6 +58,7 @@ mixin _$EmbassyModel {
   @EmbassyDateConverter()
   DateTime? get sourceCheckedAt => throw _privateConstructorUsedError;
   String? get dataNotes => throw _privateConstructorUsedError;
+  bool get isPositionUncertain => throw _privateConstructorUsedError;
 
   /// Serializes this EmbassyModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -108,6 +109,7 @@ abstract class $EmbassyModelCopyWith<$Res> {
     String? sourceUrl,
     @EmbassyDateConverter() DateTime? sourceCheckedAt,
     String? dataNotes,
+    bool isPositionUncertain,
   });
 }
 
@@ -157,6 +159,7 @@ class _$EmbassyModelCopyWithImpl<$Res, $Val extends EmbassyModel>
     Object? sourceUrl = freezed,
     Object? sourceCheckedAt = freezed,
     Object? dataNotes = freezed,
+    Object? isPositionUncertain = null,
   }) {
     return _then(
       _value.copyWith(
@@ -315,6 +318,11 @@ class _$EmbassyModelCopyWithImpl<$Res, $Val extends EmbassyModel>
                     ? _value.dataNotes
                     : dataNotes // ignore: cast_nullable_to_non_nullable
                         as String?,
+            isPositionUncertain:
+                null == isPositionUncertain
+                    ? _value.isPositionUncertain
+                    : isPositionUncertain // ignore: cast_nullable_to_non_nullable
+                        as bool,
           )
           as $Val,
     );
@@ -362,6 +370,7 @@ abstract class _$$EmbassyModelImplCopyWith<$Res>
     String? sourceUrl,
     @EmbassyDateConverter() DateTime? sourceCheckedAt,
     String? dataNotes,
+    bool isPositionUncertain,
   });
 }
 
@@ -410,6 +419,7 @@ class __$$EmbassyModelImplCopyWithImpl<$Res>
     Object? sourceUrl = freezed,
     Object? sourceCheckedAt = freezed,
     Object? dataNotes = freezed,
+    Object? isPositionUncertain = null,
   }) {
     return _then(
       _$EmbassyModelImpl(
@@ -568,6 +578,11 @@ class __$$EmbassyModelImplCopyWithImpl<$Res>
                 ? _value.dataNotes
                 : dataNotes // ignore: cast_nullable_to_non_nullable
                     as String?,
+        isPositionUncertain:
+            null == isPositionUncertain
+                ? _value.isPositionUncertain
+                : isPositionUncertain // ignore: cast_nullable_to_non_nullable
+                    as bool,
       ),
     );
   }
@@ -608,6 +623,7 @@ class _$EmbassyModelImpl extends _EmbassyModel {
     this.sourceUrl,
     @EmbassyDateConverter() this.sourceCheckedAt,
     this.dataNotes,
+    this.isPositionUncertain = false,
   }) : _additionalPhones = additionalPhones,
        _services = services,
        _openingHours = openingHours,
@@ -743,10 +759,13 @@ class _$EmbassyModelImpl extends _EmbassyModel {
   final DateTime? sourceCheckedAt;
   @override
   final String? dataNotes;
+  @override
+  @JsonKey()
+  final bool isPositionUncertain;
 
   @override
   String toString() {
-    return 'EmbassyModel(id: $id, name: $name, country: $country, city: $city, address: $address, phone: $phone, additionalPhones: $additionalPhones, fax: $fax, email: $email, website: $website, latitude: $latitude, longitude: $longitude, imageUrl: $imageUrl, type: $type, services: $services, openingHours: $openingHours, isVerified: $isVerified, isSuspended: $isSuspended, verifiedAt: $verifiedAt, rejectionReason: $rejectionReason, jurisdictionCountries: $jurisdictionCountries, activities: $activities, news: $news, isTemporarilyClosed: $isTemporarilyClosed, closureMessage: $closureMessage, reopenDate: $reopenDate, upcomingServices: $upcomingServices, source: $source, sourceUrl: $sourceUrl, sourceCheckedAt: $sourceCheckedAt, dataNotes: $dataNotes)';
+    return 'EmbassyModel(id: $id, name: $name, country: $country, city: $city, address: $address, phone: $phone, additionalPhones: $additionalPhones, fax: $fax, email: $email, website: $website, latitude: $latitude, longitude: $longitude, imageUrl: $imageUrl, type: $type, services: $services, openingHours: $openingHours, isVerified: $isVerified, isSuspended: $isSuspended, verifiedAt: $verifiedAt, rejectionReason: $rejectionReason, jurisdictionCountries: $jurisdictionCountries, activities: $activities, news: $news, isTemporarilyClosed: $isTemporarilyClosed, closureMessage: $closureMessage, reopenDate: $reopenDate, upcomingServices: $upcomingServices, source: $source, sourceUrl: $sourceUrl, sourceCheckedAt: $sourceCheckedAt, dataNotes: $dataNotes, isPositionUncertain: $isPositionUncertain)';
   }
 
   @override
@@ -812,7 +831,9 @@ class _$EmbassyModelImpl extends _EmbassyModel {
             (identical(other.sourceCheckedAt, sourceCheckedAt) ||
                 other.sourceCheckedAt == sourceCheckedAt) &&
             (identical(other.dataNotes, dataNotes) ||
-                other.dataNotes == dataNotes));
+                other.dataNotes == dataNotes) &&
+            (identical(other.isPositionUncertain, isPositionUncertain) ||
+                other.isPositionUncertain == isPositionUncertain));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -850,6 +871,7 @@ class _$EmbassyModelImpl extends _EmbassyModel {
     sourceUrl,
     sourceCheckedAt,
     dataNotes,
+    isPositionUncertain,
   ]);
 
   /// Create a copy of EmbassyModel
@@ -899,6 +921,7 @@ abstract class _EmbassyModel extends EmbassyModel {
     final String? sourceUrl,
     @EmbassyDateConverter() final DateTime? sourceCheckedAt,
     final String? dataNotes,
+    final bool isPositionUncertain,
   }) = _$EmbassyModelImpl;
   const _EmbassyModel._() : super._();
 
@@ -970,6 +993,8 @@ abstract class _EmbassyModel extends EmbassyModel {
   DateTime? get sourceCheckedAt;
   @override
   String? get dataNotes;
+  @override
+  bool get isPositionUncertain;
 
   /// Create a copy of EmbassyModel
   /// with the given fields replaced by the non-null parameter values.

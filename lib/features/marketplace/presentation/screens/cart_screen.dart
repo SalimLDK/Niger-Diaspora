@@ -11,6 +11,7 @@ import '../../../../core/services/security_gate_service.dart';
 import '../../../../shared/widgets/price_text.dart';
 import '../providers/marketplace_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
@@ -300,7 +301,7 @@ class _CheckoutButtonState extends ConsumerState<_CheckoutButton> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur: ${e.toString()}'),
+          content: Text(messageErreurUsager(e)),
           backgroundColor: Colors.red,
         ),
       );
