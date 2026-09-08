@@ -71,6 +71,15 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 20,
+        // `BackButton` explicite, et non la flèche implicite de l'AppBar :
+        // celle-ci disparait quand `Navigator.canPop()` est faux, donc
+        // l'écran atteint par lien profond (`diasponiger:///events`, vérifié
+        // sur SM A515F) n'offrait plus aucune sortie. Le `BackButton` garde
+        // les métriques Material — 48 dp de cible, 16 dp de marge.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/home'),
+        ),
         title: DesignTitle(l10n.eventsTitle, size: 24),
         actions: [
           DesignSquareAction(
