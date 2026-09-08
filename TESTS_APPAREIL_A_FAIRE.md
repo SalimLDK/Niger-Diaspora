@@ -213,10 +213,14 @@ court. Les copies d'écran intégrées viennent du build release.
       (nom, numéro, adresse, photo d'un tiers) avant publication.
       À ce stade, `05_accueil.png` montre le prénom « Sim » et « Montréal,
       Canada » — données du compte de test, à valider ou à masquer.
-- [x] **Huit captures prises sur SM A515F le 2026-09-08** : accueil (défilé),
-      annuaire des postes, liste des démarches, formulaire de demande, fiche
-      d'un poste, carte (mode privé), groupes « Découvrir », profil. Build de
-      l'arbre fusionné, md5 local et appareil comparés avant chaque prise.
+- [x] **Sept captures prises sur SM A515F le 2026-09-08** : accueil (défilé),
+      annuaire des postes, liste des démarches, formulaire de demande, carte
+      (mode privé), groupes « Découvrir », profil. Build de l'arbre fusionné,
+      md5 local et appareil comparés avant chaque prise.
+- La fiche d'un poste a été **capturée puis retirée** : après la mise en
+      sommeil des horaires et du bandeau « Ouvert », elle ne montre plus
+      qu'une adresse, un fax et quatre boutons, et son encart le plus visible
+      signale un numéro de fax erroné.
 - Trois choix de cadrage, chacun pour une raison vue à l'écran :
   l'accueil est **défilé** parce qu'en haut de page il ouvre sur
   « Complétez votre profil 3/5 » et « 0 membres · 0 groupes » ; la liste des

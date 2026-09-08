@@ -5,6 +5,41 @@
 
 ---
 
+## 0bis. La fiche en ligne — relevée le 2026-09-08
+
+`play.google.com/store/apps/details?id=com.diasponiger.diasponiger`, ouverte
+dans le navigateur connecté : **la fiche existe et est publiée**.
+
+| Élément | Valeur en ligne |
+|---|---|
+| Éditeur | Mirai Tech. |
+| Téléchargements | 10+ |
+| Dernière mise à jour | 17 février 2026 |
+| Notes de version | v1.1.1 |
+| Classification | Adolescents |
+| Icône | **orange**, sigle DN blanc |
+
+C'est donc une **mise à jour**, pas une première publication — les notes de
+version ci-dessous ont été corrigées en conséquence.
+
+⚠️ Un `curl` anonyme sur cette URL rend **404** dans les cinq pays testés. Ce
+n'est pas une preuve d'absence : une petite fiche peut être restreinte par pays
+ou filtrée comme requête robot. Seul le navigateur connecté tranche.
+
+**Trois écarts entre la fiche en ligne et le binaire d'aujourd'hui :**
+
+1. **L'icône du store est orange**, alors que l'icône du lanceur est passée au
+   vert (`972835a`). Un utilisateur verrait une icône orange sur Play et une
+   icône verte sur son écran d'accueil. À aligner — dans un sens ou dans
+   l'autre, mais à aligner.
+2. La description courte en ligne annonce « événements, **marché et
+   transferts** » : les deux sont inaccessibles (§0).
+3. La description longue affirme « **Gratuit et sans publicité** », alors que
+   l'APK embarque `google_mobile_ads` **et** RevenueCat. Deux affirmations
+   fausses, dont une — la publicité — touche à la déclaration obligatoire.
+
+---
+
 ## 0. Ce qui a changé par rapport à la fiche précédente — à lire avant tout
 
 La fiche v1.2.0 consacrait deux sections en tête de description aux
@@ -85,8 +120,6 @@ Confidentialité : https://www.diasponiger.com/privacy
 ## 4. Nouveautés (500 caractères max)
 
 ```
-Première version publiée sur le Play Store.
-
 • Annuaire des représentations diplomatiques et consulaires
 • 20 démarches consulaires détaillées
 • Messagerie chiffrée : vidéos, sondages, messages épinglés
@@ -103,7 +136,7 @@ Première version publiée sur le Play Store.
 |---|---|
 | Catégorie | Social |
 | Type | Application |
-| Public cible | 18 ans et plus (contenu généré par les utilisateurs) |
+| Public cible | **Adolescents** — c'est la classification déjà en vigueur sur la fiche en ligne ; à conserver sauf raison de la changer |
 | Tarif | Gratuit, avec achats intégrés |
 | Site web | https://www.diasponiger.com |
 | Contact | support@diasponiger.com |
@@ -117,7 +150,7 @@ Première version publiée sur le Play Store.
 |---|---|---|---|
 | Icône | 512×512, PNG 32 bits **avec** alpha, ≤1024 Ko | `assets/import_icons/dn_ultra_minimal_icon.png` | conforme (512×512 RGBA, 24 Ko) |
 | Feature graphic | 1024×500, JPEG ou PNG 24 bits **sans** alpha | `releases/1.2.1+11/play/feature_graphic.png` | régénéré |
-| Captures téléphone | côté long ≤ 2× côté court, sans alpha, 2 minimum | `releases/1.2.1+11/play/screenshots/` | **8**, 1080×1920 |
+| Captures téléphone | côté long ≤ 2× côté court, sans alpha, 2 minimum | `releases/1.2.1+11/play/screenshots/` | **7**, 1080×1920 |
 
 **Pourquoi les captures ne sont pas des copies d'écran brutes :** les deux
 appareils de test sont en 1080×2400, soit un rapport 2,22:1. Google impose que
@@ -125,23 +158,37 @@ le côté le plus long n'excède pas deux fois le plus court — une capture bru
 est donc refusée. Les visuels livrés sont en 1080×1920 (9:16), le format
 explicitement recommandé par Google, avec la copie d'écran réelle intégrée.
 
-Les huit visuels, dans l'ordre de la fiche :
+Les sept visuels reprennent **le style de la fiche déjà en ligne**, relevé sur
+ses six captures : fond en dégradé doux avec une teinte par visuel, titre gras
+sans-serif et sous-titre centrés, texte vert sur fond clair et blanc sur fond
+saturé, maquette de téléphone à cadre noir, formes floues en arrière-plan.
 
-| # | Fichier | Légende |
-|---|---|---|
-| 1 | `01_accueil.png` | Tout ce qui vous relie, au même endroit |
-| 2 | `02_ambassades.png` | Les représentations du Niger dans le monde |
-| 3 | `03_demarches.png` | Vingt démarches consulaires détaillées |
-| 4 | `04_dossier.png` | Les pièces à réunir, avant de vous déplacer |
-| 5 | `05_fiche.png` | Adresse, contact et itinéraire de chaque poste |
-| 6 | `06_carte.png` | Votre position, sous votre contrôle |
-| 7 | `07_groupes.png` | Des groupes par ville et par pays |
-| 8 | `08_profil.png` | Votre profil, votre visibilité |
+| # | Fichier | Titre | Fond |
+|---|---|---|---|
+| 1 | `01_accueil.png` | Votre diaspora, au même endroit | crème |
+| 2 | `02_ambassades.png` | Ambassades et consulats | vert |
+| 3 | `03_demarches.png` | Vingt démarches consulaires | sarcelle |
+| 4 | `04_dossier.png` | Les pièces à réunir | menthe |
+| 5 | `05_carte.png` | La carte des membres | orange→ambre |
+| 6 | `06_groupes.png` | Rejoignez des groupes | vert |
+| 7 | `07_profil.png` | Gérez votre profil | menthe |
 
-L'ordre place en tête ce qui distingue l'app : l'accueil, puis tout le volet
-consulaire, dont le contenu est réel et dense. Le fil et l'annuaire restent
-absents — le premier ne porte que des publications de test, le second est
-vide.
+**L'app y est en thème clair, accent vert.** Les captures de référence le sont,
+et le vert est le défaut de l'app (« Vert (Défaut) » contre « Orange
+(Classique) » dans Réglages → Thème). Le compte de test était en sombre et en
+orange : les deux ont été basculés avant la prise.
+
+**Trois écrans écartés, et pourquoi.** Le fil ne porte que des publications de
+test (« a ignorer »). L'annuaire des entreprises est vide. La fiche d'un poste
+a été retirée après la mise en sommeil des horaires et du bandeau « Ouvert » :
+il n'y reste qu'une adresse, un fax et quatre boutons, et l'élément le plus
+visible y est un encart signalant un numéro erroné. Aucun contenu n'a été
+fabriqué pour combler ces trous.
+
+⚠️ Le visuel 2 affiche « ● Ouvert » sur la carte « Le plus proche ». Cet état
+ne lit **aucun horaire** : il vaut « vert » dès que `isTemporarilyClosed` est
+faux (`embassies_screen.dart`, `_NearestEmbassyCard`). C'est ce que l'amont
+vient de retirer de la fiche de détail, mais la liste est restée inchangée.
 
 L'ancien `feature_graphic.png` de la racine faisait **1024×1024** : il aurait
 été refusé tel quel.
