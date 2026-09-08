@@ -2,18 +2,21 @@ import 'package:equatable/equatable.dart';
 import 'embassy_activity.dart';
 import 'embassy_news.dart';
 
-/// Les trois natures de poste que publie le ministère.
+/// Les natures de poste, telles que l'écran d'administration les nomme déjà
+/// (`embassyTypeMission` / `embassyTypeDelegation` côté traductions).
 ///
-/// La distinction n'est pas cosmétique : une représentation permanente
-/// (Genève, New York, Paris/UNESCO) représente le Niger auprès d'une
-/// organisation, pas auprès d'un État. Elle ne délivre pas d'acte consulaire,
-/// et l'annoncer comme une ambassade envoie l'usager au mauvais guichet.
+/// La distinction n'est pas cosmétique : une mission permanente (Genève,
+/// New York) ou une délégation permanente (Paris/UNESCO) représente le Niger
+/// auprès d'une organisation, pas auprès d'un État. Elle ne délivre pas d'acte
+/// consulaire, et l'annoncer comme une ambassade envoie l'usager au mauvais
+/// guichet.
 abstract final class EmbassyPostType {
   static const String embassy = 'embassy';
   static const String consulate = 'consulate';
-  static const String permanentMission = 'permanent_mission';
+  static const String mission = 'mission';
+  static const String delegation = 'delegation';
 
-  static const Set<String> values = {embassy, consulate, permanentMission};
+  static const Set<String> values = {embassy, consulate, mission, delegation};
 
   static bool isValid(String value) => values.contains(value);
 }

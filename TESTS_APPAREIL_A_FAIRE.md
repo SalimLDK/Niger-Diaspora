@@ -9472,8 +9472,21 @@ la liste s'affiche.
       apparaître dans la liste — l'écran écrivait dans Firestore, donc dans
       une collection que plus personne ne lit.
 
-À faire côté base avant tout test : `supabase db push` (la migration n'a pas
-été appliquée depuis cette session).
+**Migration appliquée en production le 2026-09-07** (`supabase db push
+--linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
+2 missions permanentes, 1 délégation ; 27 fiches avec fax, 20 avec réserve.
+La liste ne devrait donc plus être vide.
+
+Deux découvertes du push, à connaître avant de toucher à cette table :
+
+- **La table `embassies` existait déjà en production**, créée hors du dossier
+  `supabase/migrations` — aucun fichier du dépôt ne la mentionnait. D'où la
+  forme de la migration (création *puis* `ADD COLUMN IF NOT EXISTS`). La
+  colonne du type de poste s'appelle `type`, pas `post_type`.
+- **Elle n'avait aucune politique RLS et RLS n'y était pas activé**, alors que
+  `anon` dispose des privilèges d'écriture au niveau table : n'importe qui
+  pouvait écrire dans l'annuaire diplomatique officiel. Refermé et vérifié —
+  l'INSERT anonyme renvoie désormais 401/42501.
 
 ---
 
