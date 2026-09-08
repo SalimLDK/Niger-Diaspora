@@ -287,10 +287,54 @@ suit n'a été vu sur un téléphone.
       provider de profil et la lecture qui n'en tolère pas l'erreur, pas un
       chemin de code fixe.
 
-- [ ] Reproduire l'écran rouge **avec l'instrumentation active** pour obtenir
-      la ligne exacte. C'est maintenant possible : la pile s'imprime. Il faut
-      surtout gagner la course — relancer plusieurs fois hors ligne, l'app
-      restant par ailleurs souvent bloquée au splash dans ces conditions.
+**Quatre campagnes de reproduction, ~34 lancements à froid hors ligne, avec
+l'instrumentation active : la course ne s'est JAMAIS reproduite.**
+
+Une seule campagne est méthodologiquement valable, et c'est important de le
+dire : les trois autres n'ont rien prouvé.
+
+| # | Méthode | Verdict |
+|---|---|---|
+| 1 | Taps à l'aveugle (8 essais) | ❌ **invalide** — GoRouter ne montre aucun `/embassies/`, les taps n'ont jamais atteint l'écran |
+| 2 | Lien profond direct vers la fiche, 10 essais | ✅ **valable** — route poussée vérifiée à chaque tour, **0 exception** |
+| 3 | Lien profond vers la liste + tap « Détails » (10) | ❌ le tap n'ouvre jamais la fiche (`pushing /embassies/` = 0) |
+| 4 | Idem, attentes portées à 75 s (6) | ❌ même échec, ce n'était donc pas un problème de timing |
+
+**Ce qui est acquis** : sur la fiche atteinte directement, 10 démarrages à
+froid hors ligne d'affilée, aucune exception. **Ce qui ne l'est pas** : les
+deux occurrences réelles venaient du parcours par la liste, et je n'ai pas
+réussi à automatiser ce parcours-là de façon vérifiable.
+
+- [ ] Reprendre la reproduction **par le parcours réel**, à la main plutôt
+      qu'en script : liste → fiche → « Demande », hors ligne, à froid,
+      plusieurs fois. La pile s'imprime maintenant, donc une seule occurrence
+      suffira à trancher.
+      ⚠️ Obstacle non résolu : `input tap` sur « Détails » n'ouvre pas la
+      fiche quand la liste vient d'un lien profond (`diasponiger://embassies`).
+      Ni les coordonnées ni l'attente (jusqu'à 75 s) n'y changent rien —
+      la cause reste à trouver, et c'est ce qui a bloqué l'automatisation.
+
+**✅ Symptôme traité, indépendamment de la traque.** Vu la rareté du défaut,
+le gain n'était pas dans la ligne exacte mais dans le fait qu'**une exception
+ne doit jamais s'afficher telle quelle**. `main.dart` pose désormais un
+`ErrorWidget.builder` global (`construireEcranErreurNeutre`) qui rend
+« Une erreur est survenue » à la place du message brut — donc plus d'hôte
+Supabase ni d'identifiant de compte à l'écran, quelle que soit la ligne
+fautive. Posé en debug aussi, pour que ce chemin soit réellement exercé ; la
+pile continue de sortir en console via `presentError`.
+
+Couvert par `test/core/ecran_erreur_neutre_test.dart` (4 cas) : l'exception
+réellement observée est rejouée et le test échoue si `supabase.co`,
+l'identifiant du compte ou `SocketException` réapparaissent à l'écran. Les
+deux autres cas couvrent les contraintes du widget — zone minuscule, absence
+de `Directionality`/`Theme` au-dessus.
+
+- [ ] **Voir ce rendu sur appareil.** Non vérifié : il faudrait provoquer une
+      levée à la demande, et justement, celle qu'on connaît ne se reproduit
+      pas. Vérifier aussi qu'il reste lisible dans les deux thèmes (les
+      couleurs sont choisies sur `platformBrightness`, pas sur le thème de
+      l'app — un écart est possible si l'usager force un thème contraire à
+      celui du système).
 - [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
       compte** dans un message d'erreur visible par l'usager.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
@@ -9823,7 +9867,61 @@ Les deux chaînes étaient en **français figé** dans un écran par ailleurs
 traduit : passées en l10n au passage (`embassiesAndConsulates` existait déjà,
 `embassySearchHint` ajoutée).
 
-✅ Vérifié sur Pixel (capture `liste_corrigee.png`).
+✅ Vérifié sur Pixel (capture `liste_corrigee.png`) **et sur SM A515F**
+(`a515f_liste.png`, `a515f_havane.png`) — les six correctifs d'affichage
+tiennent sur les deux appareils, polices système différentes comprises.
+
+**Découvert en repassant sur le SM A515F** : l'autre agent a **géocodé 21 des
+32 fiches** le 2026-09-08 à 09:51. Conséquence directe sur le correctif n° 4
+du lot précédent (`latitude ?? 0.0`) — il ne s'agit plus d'un bouton
+uniformément grisé, mais d'une vraie distinction :
+
+- les **21 fiches géocodées** affichent « Itinéraire » actif, et la carte
+  « Le plus proche · 792 km — Ambassade du Niger aux États-Unis » apparaît en
+  tête de liste (compte situé à Montréal) ;
+- les **11 sans coordonnées** (Addis-Abeba, Djeddah, Doha, Dubaï, Khartoum,
+  Koweït, La Havane, Le Caire, New Delhi, Pékin, Rabat) gardent « Y aller »
+  grisé.
+
+Sans le correctif, les 32 auraient toutes pointé sur (0, 0). Vérifié des deux
+côtés : La Havane grisée, Washington active.
+
+### Pourquoi les 11 restantes ne sont pas géocodables (2026-09-08)
+
+Tentative faite, sources épuisées. **Ne pas la refaire sans source nouvelle.**
+
+**OpenStreetMap n'a aucun nœud** pour le poste du Niger dans 10 de ces 11
+villes — vérifié en interrogeant Overpass sur `country=NE` puis, plus large,
+par nom : 36 nœuds dans le monde, aucun à moins de 80 km de Djeddah, Doha,
+Dubaï, Khartoum, Koweït, La Havane, Le Caire, New Delhi, Pékin ni Rabat. La
+seule exception est **Addis-Abeba**, et c'est la *résidence de l'ambassadeur*,
+que le script écarte à raison : envoyer un usager au domicile privé plutôt
+qu'à la chancellerie est pire que de ne rien afficher.
+
+**Le géocodage d'adresse échoue aussi**, y compris en reformulant en anglais
+et en arabe. Ce que Nominatim renvoie n'est jamais le poste :
+
+| Ville | Meilleur résultat obtenu | Verdict |
+|---|---|---|
+| Le Caire | « Cairo Pyramids Hotel », puis une maison au 101 rue des Pyramides | un hôtel ; le n° 101 est plausible mais invérifiable |
+| Rabat | un **arrêt de bus** à Hay Riad | non |
+| Dubaï | une salle à Bur Dubaï | mauvais quartier (l'adresse dit Deira) |
+| Addis-Abeba, Koweït | centroïdes de district | non |
+| New Delhi, Pékin | rien | — |
+
+Et quatre postes n'ont **rien à géocoder** : Doha et La Havane ne publient
+aucune adresse, Djeddah et Khartoum n'ont qu'une boîte postale — qui ne
+désigne aucun bâtiment.
+
+**Écrire un de ces points serait un défaut, pas un progrès** : « Y aller »
+deviendrait actif et ouvrirait la carte au mauvais endroit, la carte « Le plus
+proche » calculerait une distance depuis un point faux, et rien à l'écran ne
+distinguerait cette coordonnée d'une vraie. C'est exactement ce que le refus
+du centre-ville, dans `tools/geocode_postes_diplomatiques.mjs`, protège.
+
+Voies qui marcheraient vraiment : demander la position aux postes eux-mêmes
+(la donnée leur appartient), ou la relever une fois puis la contribuer à OSM —
+ce qui profiterait aussi à tout le monde.
 
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
@@ -9858,6 +9956,63 @@ contre **30 sur le SM A515F** (Genève et New York masqués faute de pays connu)
   un reliquat. Vérifier avec `pm list packages --user 0`, pas avec `pm path`.
 - Le compte y étant réel (pas un compte de test), toute action sortante doit
   être faite hors ligne ou pas du tout.
+
+---
+
+## Postes diplomatiques sur la carte : 21 pins posés, 11 fiches sans position (2026-09-08)
+
+Les 32 fiches importées le 2026-09-07 sont arrivées **sans latitude ni
+longitude** : `diplomatie.gouv.ne` ne publie que des adresses postales, dont
+huit sont de simples boîtes postales. Depuis l'import, aucun poste n'a jamais
+eu de pin — `map_screen.dart` saute toute fiche sans coordonnées, et le bouton
+« voir sur la carte » du détail est masqué par `hasCoordinates`.
+
+Migration `20260908120000_coordonnees_postes_diplomatiques.sql` : 19 positions
+relevées dans OpenStreetMap (au bâtiment), 2 par géocodage de l'adresse
+officielle (Paris/UNESCO et Kano). Le script est rejouable :
+`tools/geocode_postes_diplomatiques.mjs`.
+
+- [ ] **Les pins bleus d'ambassade apparaissent** sur la carte principale, à
+      côté des membres — vérifier au moins un poste (Paris, Cotonou, Abuja
+      selon la position du testeur), et que la bascule « Ambassades » du menu
+      de filtres les fait bien disparaître/réapparaître.
+- [ ] **Le tap sur un pin** ouvre la fiche flottante (nom, adresse, tél, mail,
+      services) et « Voir la fiche complète » mène au détail.
+- [x] **Le bouton « Y aller » du détail** (et « Itinéraire » sur la carte de
+      liste) est actif sur les 21 postes placés, absent sur les 11 autres.
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, sans réinstaller l'app :
+      les coordonnées viennent de la base, l'APK en place suffit. Alger →
+      « Appeler / Itinéraire / Détails » et « Y aller » actif sur la fiche ;
+      Le Caire → « Appeler / Détails » seulement.*
+- [ ] **Écart à confirmer auprès du poste** : Copenhague (OSM place
+      l'ambassade Rosbaeksvej/Østerbro, l'annuaire publie « Niels Juels Gade
+      5 » — 5,1 km) et Dakar (OSM « Voie de Dégagement Nord, Point E » contre
+      « 8 avenue Léopold Sédar Senghor » — 5,2 km). Position OSM retenue : le
+      nœud porte le nom du poste. À trancher par un appel ou une photo.
+- [x] **11 postes restent sans pin** (Addis-Abeba, Le Caire, Rabat, La Havane,
+      Doha, Koweït, New Delhi, Djeddah, Dubaï, Khartoum, Pékin) : ils restent
+      **visibles dans la liste**, regroupés sous « Autres », avec leur adresse
+      — vu sur le Pixel le 2026-09-08. Aucun ne tombe au point (0, 0) : le
+      modèle ne convertit plus `null` en `0.0`.
+      Addis-Abeba est volontairement laissé de côté : OSM n'y cartographie que
+      la **résidence** de l'ambassadeur, pas la chancellerie.
+- [ ] **Regroupement par zone, corrigé dans la foulée** (`ZoneGeographique`,
+      testé à froid) : Alger s'affichait sous **Europe** (constaté sur le
+      Pixel : « Europe · 9 » contenait l'Algérie) et Riyad serait tombé en
+      **Afrique**. Vérifier sur appareil, **après réinstallation**, qu'Alger
+      est sous Afrique, Riyad sous Asie, Ankara sous Europe. ⚠️ En anglais, le
+      repli des postes sans coordonnées valait « Others » alors que l'écran
+      n'affiche que les zones de sa liste française : **les 11 postes sans
+      coordonnées disparaissaient de l'annuaire en anglais** (le compteur, lui,
+      les comptait). À revérifier en basculant la langue du téléphone.
+
+⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
+sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
+et `Places API (New)` répondent toutes `REQUEST_DENIED` /
+`SERVICE_DISABLED` — donc `PlaceSearchService` (barre de recherche de la carte,
+sélecteur de position des entreprises et du partage de lieu) tombe **toujours**
+sur son repli `geocoding` côté appareil, sans que rien ne le signale. À vérifier
+sur appareil : la recherche de lieu renvoie-t-elle des résultats utilisables ?
 
 ---
 

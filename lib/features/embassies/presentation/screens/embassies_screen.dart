@@ -11,34 +11,21 @@ import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/utils/geo_utils.dart';
 import '../../domain/entities/embassy_entity.dart';
+import '../../domain/zone_geographique.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Rayon (km) sous lequel une ambassade rejoint la zone « Près de vous »
 /// plutôt que sa zone continentale.
 const double _nearYouRadiusKm = 1500.0;
 
-/// Zone géographique à partir des coordonnées (§17a) — délibérément PAS basé
-/// sur `embassy.country` (texte libre saisi par un admin, sans liste
-/// contrôlée : cf `admin_create_embassy_screen.dart`, `_countryController`
-/// est un simple champ texte). Le mapping nom→continent avait été tenté et
-/// abandonné pour cette raison (risque de tout classer en « Autres » au
-/// moindre écart d'orthographe). Les coordonnées, elles, sont numériques et
-/// fiables ; en cas de zone limitrophe imprécise, l'ambassade atterrit dans
-/// une zone adjacente cohérente plutôt que de faire s'effondrer tout le
-/// regroupement.
-String _continentForCoordinates(double lat, double lng) {
-  if (lat >= 5 && lat <= 84 && lng >= -170 && lng <= -50) {
-    return 'Amérique du Nord';
-  }
-  if (lat >= -56 && lat < 13 && lng >= -82 && lng <= -34) {
-    return 'Amérique du Sud';
-  }
-  if (lat >= 34 && lat <= 72 && lng >= -25 && lng < 45) return 'Europe';
-  if (lat >= -35 && lat < 38 && lng >= -18 && lng <= 52) return 'Afrique';
-  if (lat <= 10 && lng >= 95) return 'Océanie';
-  if (lng >= 45) return 'Asie';
-  return 'Autres';
-}
+/// Le classement par zone part des coordonnées (§17a) — délibérément PAS de
+/// `embassy.country` (texte libre saisi par un admin, sans liste contrôlée :
+/// cf `admin_create_embassy_screen.dart`, `_countryController` est un simple
+/// champ texte). Le mapping nom→continent avait été tenté et abandonné pour
+/// cette raison (risque de tout classer en « Autres » au moindre écart
+/// d'orthographe). La règle elle-même vit dans `ZoneGeographique`, où elle
+/// est testable à froid.
+
 
 /// Drapeau du pays, par correspondance normalisée (accents/casse/ponctuation
 /// ignorés) sur `ProfileOptions.countries` — `embassy.country` étant du
@@ -95,19 +82,12 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
     super.dispose();
   }
 
-  static const List<String> _zoneOrder = [
-    'Près de vous',
-    'Europe',
-    'Afrique',
-    'Amérique du Nord',
-    'Amérique du Sud',
-    'Asie',
-    'Océanie',
-    'Autres',
-  ];
+  static const List<String> _zoneOrder = ZoneGeographique.ordre;
 
   String _zoneFor(EmbassyEntity embassy, double? myLat, double? myLng) {
-    if (embassy.latitude == null || embassy.longitude == null) return l10n.otherConversations;
+    if (embassy.latitude == null || embassy.longitude == null) {
+      return ZoneGeographique.autres;
+    }
     if (myLat != null && myLng != null) {
       final distance = GeoUtils.calculateDistance(
         myLat,
@@ -115,9 +95,12 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
         embassy.latitude!,
         embassy.longitude!,
       );
-      if (distance <= _nearYouRadiusKm) return 'Près de vous';
+      if (distance <= _nearYouRadiusKm) return ZoneGeographique.presDeVous;
     }
-    return _continentForCoordinates(embassy.latitude!, embassy.longitude!);
+    return ZoneGeographique.pourCoordonnees(
+      embassy.latitude!,
+      embassy.longitude!,
+    );
   }
 
   /// Regroupement par zone (§17a) puis par pays au sein de chaque zone —

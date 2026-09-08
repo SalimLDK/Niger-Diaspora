@@ -27,6 +27,76 @@ import 'core/services/encryption_service.dart';
 
 import 'package:timezone/data/latest_all.dart' as tz;
 
+/// Ce que voit l'usager quand un widget lève.
+///
+/// Par défaut Flutter peint son écran rouge en affichant le message brut de
+/// l'exception. Hors ligne, ça donnait ceci à l'écran, en clair :
+///
+///     ServerFailure(ClientException with SocketException: Failed host
+///     lookup: 'zyrfkcjjrhddpfxcgezo.supabase.co',
+///     uri=.../rest/v1/users?select=%2A&id=eq.<UID>)
+///
+/// Soit l'identifiant du projet Supabase **et** celui du compte, livrés à qui
+/// regarde l'écran. D'où ce rendu neutre — posé en debug aussi, pour que ce
+/// chemin soit réellement exercé : la pile, elle, continue de sortir en
+/// console via le `presentError` de `FlutterError.onError`, on ne perd rien.
+///
+/// Trois contraintes dictent la forme de ce widget. Il peut être rendu
+/// **n'importe où** dans l'arbre, y compris sans `Directionality` ni `Theme`
+/// au-dessus, et sous des contraintes minuscules — d'où le `Directionality`
+/// explicite, les couleurs en dur choisies sur `platformBrightness` plutôt
+/// que sur le thème, et le `FittedBox` qui évite un débordement quand le
+/// widget ne remplace qu'une petite zone.
+Widget construireEcranErreurNeutre(FlutterErrorDetails details) {
+  final sombre =
+      PlatformDispatcher.instance.platformBrightness == Brightness.dark;
+  final fond = sombre ? const Color(0xFF121212) : const Color(0xFFF7F7F7);
+  final texte = sombre ? const Color(0xFFF5F5F5) : const Color(0xFF1A1A1A);
+  final secondaire =
+      sombre ? const Color(0xFFBDBDBD) : const Color(0xFF616161);
+
+  return Directionality(
+    textDirection: TextDirection.ltr,
+    child: ColoredBox(
+      color: fond,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline_rounded, size: 36, color: secondaire),
+                const SizedBox(height: 10),
+                Text(
+                  'Une erreur est survenue',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: texte,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Revenez en arrière puis réessayez.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.35,
+                    color: secondaire,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
@@ -97,6 +167,10 @@ void main() async {
     if (kDebugMode) FlutterError.presentError(details);
     FirebaseCrashlytics.instance.recordFlutterError(details);
   };
+
+  // Un widget qui lève ne doit jamais montrer son exception (voir la
+  // docstring de la fonction).
+  ErrorWidget.builder = construireEcranErreurNeutre;
 
   // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
   PlatformDispatcher.instance.onError = (error, stack) {
