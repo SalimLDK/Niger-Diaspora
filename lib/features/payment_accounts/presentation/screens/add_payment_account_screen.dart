@@ -8,6 +8,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/payment_account_entity.dart';
 import '../providers/payment_account_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class AddPaymentAccountScreen extends ConsumerStatefulWidget {
   const AddPaymentAccountScreen({super.key});
@@ -117,7 +118,7 @@ class _AddPaymentAccountScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${l10n.error}: $e'),
+            content: Text(messageErreurUsager(e)),
             backgroundColor: context.errorColor,
           ),
         );

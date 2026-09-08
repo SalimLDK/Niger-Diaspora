@@ -1300,7 +1300,7 @@ class _EventsOnlineOnlyCard extends StatelessWidget {
 
 /// État « plus rien à venir, mais un passé » (maquette 1c/CAS 3) : rappelle le
 /// dernier événement et propose de s'abonner au prochain.
-class _EventsPastCard extends StatelessWidget {
+class _EventsPastCard extends ConsumerWidget {
   final EventEntity event;
   final String subtitle;
 
@@ -1310,10 +1310,17 @@ class _EventsPastCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final n = event.attendeeIds.length;
     final hasPhotos = event.recapPhotoUrls.isNotEmpty;
+    // Le récapitulatif est un formulaire, pas une galerie : n'y envoyer que
+    // l'organisateur. Les autres vont à la fiche, qui **affiche** ce même
+    // récapitulatif — ils ne perdent donc pas les photos que la pastille
+    // ci-dessous leur promet, ils perdent le droit de les réécrire.
+    final estOrganisateur =
+        event.organizerId ==
+        ref.watch(currentUserProvider).valueOrNull?.id;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -1371,7 +1378,9 @@ class _EventsPastCard extends StatelessWidget {
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () => context.push(
-              hasPhotos ? '/events/${event.id}/recap' : '/events/${event.id}',
+              hasPhotos && estOrganisateur
+                  ? '/events/${event.id}/recap'
+                  : '/events/${event.id}',
               extra: event,
             ),
             child: HomeEventCard(

@@ -70,7 +70,11 @@ class EmbassyDetailScreen extends StatelessWidget {
                     onPressed:
                         () => context.canPop() ? context.pop() : context.go('/embassies'),
                   ),
-                  expandedHeight: 200.0,
+                  // 140 et non 200 : ce bandeau est prevu pour une image de
+                  // couverture, or aucune fiche officielle n'en a (`imageUrl`
+                  // est nul sur les 32). Il ne reste que le gabarit, autant
+                  // qu'il ne mange pas un quart de l'ecran.
+                  expandedHeight: 140.0,
                   floating: false,
                   pinned: true,
                   backgroundColor: Theme.of(context).primaryColor,
@@ -80,16 +84,31 @@ class EmbassyDetailScreen extends StatelessWidget {
                       children: [
                         // Placeholder for cover image (could be map or flag)
                         Container(
-                          color: Theme.of(
-                            context,
-                          ).primaryColor.withValues(alpha: 0.1),
-                          child: Center(
-                            child: Icon(
-                              Icons.account_balance,
-                              size: 80,
-                              color: Theme.of(
-                                context,
-                              ).primaryColor.withValues(alpha: 0.5),
+                          // `primaryColor` a 10 % sur un fond sombre ne se
+                          // voit pas, et l'icone a 50 % passait sous le
+                          // degrade : le bandeau etait uniformement noir.
+                          color:
+                              Theme.of(context).colorScheme.surfaceContainerHighest,
+                          // En haut a droite, pas au centre : le titre tient
+                          // sur deux lignes et remontait par-dessus l'icone.
+                          // La fleche de retour occupe deja le coin gauche.
+                          child: Align(
+                            alignment: Alignment.topRight,
+                            child: Padding(
+                              // Le bandeau passe SOUS la barre d'etat : sans
+                              // ce decalage l'icone se superposait a l'heure
+                              // et a la batterie.
+                              padding: EdgeInsets.only(
+                                top: MediaQuery.paddingOf(context).top + 8,
+                                right: 16,
+                              ),
+                              child: Icon(
+                                Icons.account_balance,
+                                size: 40,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.55),
+                              ),
                             ),
                           ),
                         ),
@@ -102,13 +121,18 @@ class EmbassyDetailScreen extends StatelessWidget {
                                 Colors.transparent,
                                 Colors.black.withValues(alpha: 0.6),
                               ],
-                              stops: const [0.6, 1.0],
+                              // 0.35 et non 0.6 : le titre tient desormais
+                              // sur deux lignes et depassait la zone assombrie.
+                              stops: const [0.35, 1.0],
                             ),
                           ),
                         ),
                       ],
                     ),
                     title: Row(
+                      // Aligne sur la derniere ligne du titre : centre, le
+                      // badge flottait entre les deux lignes.
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
                           child: Text(
@@ -118,7 +142,12 @@ class EmbassyDetailScreen extends StatelessWidget {
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
-                            maxLines: 1,
+                            // Deux lignes : les noms officiels sont longs
+                            // (« Ambassade du Niger en Afrique du Sud »), et
+                            // `FlexibleSpaceBar` agrandit encore le titre
+                            // quand l'en-tete est deplie -- on lisait
+                            // « Ambassade du Niger … ».
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -134,18 +163,25 @@ class EmbassyDetailScreen extends StatelessWidget {
                     ),
                     titlePadding: const EdgeInsets.only(
                       left: 16,
-                      bottom: 16,
+                      bottom: 12,
                       right: 16,
                     ),
+                    // 1.5 par defaut : c'est ce facteur qui faisait deborder
+                    // le titre a l'ouverture de la fiche.
+                    expandedTitleScale: 1.25,
                   ),
                 ),
                 SliverPersistentHeader(
                   delegate: _SliverAppBarDelegate(
                     TabBar(
-                      labelColor: Colors.black87,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor:
-                          Colors.orange, // Keep original theme color
+                      // `Colors.black87` etait fige : en theme sombre le
+                      // libelle de l'onglet actif se retrouvait noir sur un
+                      // fond noir, donc illisible. Meme famille de defaut que
+                      // les 48 jetons clairs corriges le 2026-08-04.
+                      labelColor: Theme.of(context).colorScheme.onSurface,
+                      unselectedLabelColor:
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                      indicatorColor: Theme.of(context).colorScheme.primary,
                       tabs: [
                         Tab(text: l10n.embassyInfoTab),
                         Tab(text: l10n.embassyActivitiesTab),
@@ -396,7 +432,12 @@ class EmbassyDetailScreen extends StatelessWidget {
                   icon: Icons.directions,
                   label: l10n.embassyDirections,
                   color: theme.colorScheme.primary,
-                  enabled: embassy.latitude != null && embassy.longitude != null,
+                  // `canNavigate`, pas `latitude != null` : une position
+                  // connue mais douteuse (Copenhague, 5 km d'écart entre deux
+                  // sources) laissait le bouton actif et orange, exactement
+                  // comme sur une fiche sûre, pendant que la réserve juste
+                  // au-dessus prévenait du contraire.
+                  enabled: embassy.canNavigate,
                   onTap:
                       () => _openMap(
                         embassy.latitude ?? 0,

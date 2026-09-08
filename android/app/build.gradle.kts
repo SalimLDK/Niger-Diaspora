@@ -36,7 +36,15 @@ android {
     defaultConfig {
         applicationId = "com.diasponiger.diasponiger"
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        // Épinglé, pas `flutter.targetSdkVersion` : cette valeur est une
+        // exigence Play Store datée (API 36 obligatoire pour toute mise à jour
+        // à partir du 31/10/2026), pas un détail de build. Elle suivait le
+        // défaut du SDK Flutter installé — la 1.2.0 est partie en production
+        // avec targetSdk 35 parce que le poste tournait encore sur Flutter
+        // 3.29. Un simple `flutter downgrade` suffisait à refaire un binaire
+        // refusé, sans un mot dans les logs. Ne baisser que si Google le
+        // permet, jamais pour dépanner un build.
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true

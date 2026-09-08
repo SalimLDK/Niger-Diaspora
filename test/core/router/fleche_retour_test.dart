@@ -151,6 +151,52 @@ void main() {
     );
   });
 
+  test('les écrans dont la barre vit dans le contenu couvrent leurs états', () {
+    // Troisième forme du défaut, trouvée sur appareil le 2026-09-08 et
+    // invisible aux deux tests précédents : la fiche entreprise pose sa
+    // `SliverAppBar` **à l'intérieur** de la branche « données ». Son
+    // `Scaffold` n'a pas d'`appBar`, donc les états chargement / erreur /
+    // « non trouvé » n'ont aucune sortie. `/businesses/<id>` sur une
+    // entreprise absente affichait « Entreprise non trouvée » et rien pour
+    // revenir — alors que le fichier contenait bien un `BackButton`, d'où
+    // l'aveuglement d'un test qui raisonne au fichier.
+    //
+    // Liste nommée plutôt que détection structurelle : la version
+    // structurelle écrite d'abord ne se déclenchait pas (elle laissait
+    // passer le cas qu'elle visait), et un garde qui ne tombe jamais vaut
+    // moins que rien. Limite assumée : **un nouvel écran de cette forme ne
+    // sera pas attrapé** — s'il en apparaît un, l'ajouter ici.
+    const aCouvrir = <String, String>{
+      'lib/features/businesses/presentation/screens/business_detail_screen.dart':
+          'SliverAppBar dans la branche données',
+      'lib/features/marketplace/presentation/screens/product_detail_screen.dart':
+          'SliverAppBar dans la branche données',
+      'lib/features/transfers/presentation/screens/transfer_screen.dart':
+          'Scaffold de chargement sans barre quand le profil manque',
+    };
+
+    final coupables = <String>[];
+    aCouvrir.forEach((chemin, raison) {
+      final fichier = File(chemin);
+      if (!fichier.existsSync()) {
+        coupables.add('$chemin (fichier disparu)');
+        return;
+      }
+      if (!fichier.readAsStringSync().contains('DesignExitOnlyBody')) {
+        coupables.add('$chemin — $raison');
+      }
+    });
+
+    expect(
+      coupables,
+      isEmpty,
+      reason:
+          'Ces écrans posent leur barre dans la branche « données » : leurs '
+          'états chargement / erreur / « non trouvé » se retrouvent sans '
+          'aucune sortie. Enveloppez ces états dans `DesignExitOnlyBody`.',
+    );
+  });
+
   test('aucun écran poussé ne supprime la flèche que Flutter poserait', () {
     final fichiers = declarations();
     final coupables = <String>[];

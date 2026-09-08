@@ -29,6 +29,7 @@ import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../reports/domain/entities/report_entity.dart';
 import '../../../reports/presentation/widgets/report_content_modal.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class ProfileViewScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -381,7 +382,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                 },
               ),
             ),
-            body: Center(child: Text('Erreur: $err')),
+            body: Center(child: Text(messageErreurUsager(err))),
           ),
       data: (profile) {
         if (profile == null) {
@@ -1190,7 +1191,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Erreur: $e'),
+                                      content: Text(messageErreurUsager(e)),
                                       backgroundColor: AppColors.error,
                                     ),
                                   );
@@ -1289,7 +1290,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                           context,
                                         ).showSnackBar(
                                           SnackBar(
-                                            content: Text('Erreur: $e'),
+                                            content: Text(messageErreurUsager(e)),
                                             backgroundColor: AppColors.error,
                                           ),
                                         );

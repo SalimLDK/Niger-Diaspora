@@ -37,7 +37,7 @@ const String _embassyColumns = '''
   services, upcoming_services, opening_hours, jurisdiction_countries,
   is_verified, is_suspended, verified_at, rejection_reason,
   is_temporarily_closed, closure_message, reopen_date,
-  source, source_url, source_checked_at, data_notes
+  source, source_url, source_checked_at, data_notes, position_uncertain
 ''';
 
 List<String> _stringList(Object? value) {
@@ -91,6 +91,7 @@ Map<String, dynamic> _mapEmbassy(Map<String, dynamic> row) {
     'sourceUrl': row['source_url'],
     'sourceCheckedAt': row['source_checked_at'],
     'dataNotes': row['data_notes'],
+    'isPositionUncertain': row['position_uncertain'] ?? false,
     // Activités et actualités ne sont pas portées sur Supabase : elles restent
     // vides ici plutôt que d'être inventées.
     'activities': const <Map<String, dynamic>>[],
@@ -125,6 +126,7 @@ Map<String, dynamic> _toRow(EmbassyModel e) {
     'source': e.source,
     'source_url': e.sourceUrl,
     'data_notes': e.dataNotes,
+    'position_uncertain': e.isPositionUncertain,
   };
 }
 
