@@ -10100,15 +10100,29 @@ ambassade.
 - [ ] **Copenhague reste ouvert** : nœud OSM (Rosbæksvej, Østerbro) contre
       adresse publiée (Niels Juels Gade 5), 5,1 km, et Google n'y connaît aucun
       lieu typé `embassy` pour départager. Position OSM retenue en attendant.
-- [ ] **Regroupement par zone, corrigé dans la foulée** (`ZoneGeographique`,
+- [x] **Regroupement par zone, corrigé dans la foulée** (`ZoneGeographique`,
       testé à froid) : Alger s'affichait sous **Europe** (constaté sur le
       Pixel : « Europe · 9 » contenait l'Algérie) et Riyad serait tombé en
-      **Afrique**. Vérifier sur appareil, **après réinstallation**, qu'Alger
-      est sous Afrique, Riyad sous Asie, Ankara sous Europe. ⚠️ En anglais, le
-      repli des postes sans coordonnées valait « Others » alors que l'écran
-      n'affiche que les zones de sa liste française : **les 11 postes sans
-      coordonnées disparaissaient de l'annuaire en anglais** (le compteur, lui,
-      les comptait). À revérifier en basculant la langue du téléphone.
+      **Afrique**.
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, APK reconstruit et réinstallé
+      (md5 du binaire local et de `base.apk` identiques) : Alger → **Afrique**,
+      Riyad → **Asie**, Ankara → **Europe**, Khartoum (sans coordonnées) →
+      **Autres**, toujours visible dans la liste. En-tête « Près de vous · 2 »
+      et « Le plus proche · 538 km » sur la mission auprès des Nations unies,
+      cohérents avec un profil situé au Canada.*
+- [ ] ⚠️ **En anglais**, le repli des postes sans coordonnées valait
+      « Others » alors que l'écran n'affiche que les zones de sa liste
+      française : **tout poste sans coordonnées disparaissait de l'annuaire**
+      (le compteur, lui, les comptait). Corrigé par une constante partagée,
+      mais **vérifié en français seulement** — à revoir en basculant la langue
+      du téléphone.
+- [ ] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
+      vu sur Pixel 10 Pro XL le 2026-09-08) : dès que le clavier s'ouvre sur la
+      recherche de l'annuaire en **paysage**, un bandeau
+      « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ. Non
+      corrigé : l'écran est en cours de modification par ailleurs, et le défaut
+      est indépendant des coordonnées. Même famille que le panneau ancré des
+      messages — le clavier prend la place, la colonne ne se recompose pas.
 
 ⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
 sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
