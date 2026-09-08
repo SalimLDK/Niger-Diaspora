@@ -149,7 +149,7 @@ Confidentialité : https://www.diasponiger.com/privacy
 | Élément | Exigence Google | Fichier | État |
 |---|---|---|---|
 | Icône | 512×512, PNG 32 bits **avec** alpha, ≤1024 Ko | `assets/import_icons/dn_ultra_minimal_icon.png` | conforme (512×512 RGBA, 24 Ko) |
-| Feature graphic | 1024×500, JPEG ou PNG 24 bits **sans** alpha | `releases/1.2.1+11/play/feature_graphic.png` | régénéré |
+| Feature graphic | 1024×500, JPEG ou PNG 24 bits **sans** alpha | `releases/1.2.1+11/play/feature_graphic.png` | régénéré, **même système que les captures** |
 | Captures téléphone | côté long ≤ 2× côté court, sans alpha, 2 minimum | `releases/1.2.1+11/play/screenshots/` | **7**, 1080×1920 |
 
 **Pourquoi les captures ne sont pas des copies d'écran brutes :** les deux
