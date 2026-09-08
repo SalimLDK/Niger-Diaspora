@@ -11,6 +11,7 @@ import '../../../../core/services/stripe_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/order_entity.dart';
 import '../providers/marketplace_provider.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class MyOrdersScreen extends ConsumerStatefulWidget {
   const MyOrdersScreen({super.key});
@@ -269,7 +270,7 @@ class _OrdersList extends ConsumerWidget {
           children: [
             Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
             const SizedBox(height: 16),
-            Text('Erreur: $error'),
+            Text(messageErreurUsager(error)),
           ],
         ),
       ),
@@ -595,7 +596,7 @@ class _OrderActionsState extends ConsumerState<_OrderActions> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur de paiement: $e'),
+            content: Text(messageErreurContextuel('Paiement impossible', e)),
             backgroundColor: context.errorColor,
           ),
         );

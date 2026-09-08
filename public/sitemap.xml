@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://diasponiger.web.app/</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/index-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/index-en</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/index-en"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/privacy-policy</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/privacy-policy"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/privacy-policy-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/privacy-policy-en</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/privacy-policy-en"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/privacy-policy"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/terms-of-service</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/terms-of-service"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/terms-of-service-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/terms-of-service-en</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/terms-of-service-en"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/terms-of-service"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/code-of-conduct</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/code-of-conduct"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/code-of-conduct-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/code-of-conduct-en</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/code-of-conduct-en"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/code-of-conduct"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/child-safety-standards</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/child-safety-standards"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/child-safety-standards-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/child-safety-standards-en</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/child-safety-standards-en"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/child-safety-standards"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/contact</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/contact"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/contact-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/contact-en</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/contact-en"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/contact"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/delete-account</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/delete-account"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/delete-account-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/delete-account-en</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/delete-account-en"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/delete-account"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/forgot-password</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/forgot-password"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/forgot-password-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/forgot-password-en</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/forgot-password-en"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/forgot-password"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.3</priority>
+    </url>
+</urlset>

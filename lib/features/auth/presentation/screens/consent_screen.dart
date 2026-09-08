@@ -5,6 +5,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../onboarding/presentation/providers/onboarding_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class ConsentScreen extends ConsumerStatefulWidget {
   const ConsentScreen({super.key});
@@ -38,7 +39,7 @@ class _ConsentScreenState extends ConsumerState<ConsentScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text(messageErreurUsager(e)),
             backgroundColor: AppColors.error,
           ),
         );

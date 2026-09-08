@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Les liens partagés par l'application (/feed/…, /groups/…, /profile/…) sont
+# réécrits vers la page d'accueil : les indexer créerait autant de doublons.
+Disallow: /feed/
+Disallow: /profile/
+Disallow: /p/
+Disallow: /groups/
+Disallow: /g/
+Disallow: /events/
+Disallow: /businesses/
+Disallow: /marketplace/
+Disallow: /audio-rooms/
+Disallow: /podcasts/
+Disallow: /calls/
+Disallow: /embassies/
+Disallow: /invite
+
+Sitemap: https://diasponiger.web.app/sitemap.xml

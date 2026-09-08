@@ -177,7 +177,7 @@ class EmbassyListItem extends StatelessWidget {
               ),
 
               // Quick Actions
-              if (embassy.phone != null || embassy.latitude != null)
+              if (embassy.phone != null || embassy.canNavigate)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: Row(
@@ -193,8 +193,10 @@ class EmbassyListItem extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                       ],
-                      if (embassy.latitude != null &&
-                          embassy.longitude != null) ...[
+                      // `canNavigate` : une position douteuse ne propose
+                      // pas d'itinéraire — mieux vaut pas de bouton qu'un
+                      // bouton qui envoie au mauvais endroit.
+                      if (embassy.canNavigate) ...[
                         Expanded(
                           child: _QuickActionButton(
                             icon: Icons.directions_outlined,

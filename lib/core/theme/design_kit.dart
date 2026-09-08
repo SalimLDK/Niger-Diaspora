@@ -978,6 +978,148 @@ class DesignBackLeading extends StatelessWidget {
   }
 }
 
+/// Corps d'un état **sans contenu** (chargement, erreur, « non trouvé ») sur
+/// un écran dont la barre vit dans la branche « données ».
+///
+/// Ces écrans-là — fiche entreprise, fiche produit — posent leur
+/// `SliverAppBar` à l'intérieur du contenu : leur `Scaffold` n'a pas
+/// d'`appBar`, donc les autres états n'ont **aucune** sortie. Vu sur
+/// SM A515F le 2026-09-08 : `/businesses/<id>` sur une entreprise absente
+/// affiche « Entreprise non trouvée » et rien pour revenir.
+class DesignExitOnlyBody extends StatelessWidget {
+  final Widget child;
+
+  /// Route utilisée quand il n'y a rien à dépiler.
+  final String fallbackRoute;
+
+  const DesignExitOnlyBody({
+    super.key,
+    required this.child,
+    this.fallbackRoute = '/home',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: BackButton(
+              onPressed:
+                  () =>
+                      context.canPop()
+                          ? context.pop()
+                          : context.go(fallbackRoute),
+            ),
+          ),
+          Expanded(child: child),
+        ],
+      ),
+    );
+  }
+}
+
+/// Écran qui n'a rien à montrer : une pastille, un titre, une explication, et
+/// toujours une porte de sortie.
+///
+/// Sert les trois raisons pour lesquelles un écran atteint par identifiant
+/// seul peut n'avoir aucun contenu — la fiche n'existe pas, le chargement a
+/// échoué, ou elle ne vous est pas destinée — et ces trois-là se distinguent
+/// par leur texte, pas par leur mise en page.
+///
+/// La sortie est double, et c'est voulu : la flèche de [DesignExitOnlyBody]
+/// pour le geste habituel, un bouton nommé parce qu'arrivé par lien profond
+/// il n'y a rien à dépiler et que la flèche seule ne dit pas où elle mène.
+/// [onRetry] n'a de sens que si réessayer peut changer le résultat : une
+/// fiche absente ou interdite ne se recharge pas.
+class DesignUnavailableBody extends StatelessWidget {
+  /// Posée dans une pastille ronde. Un `AppIcon` en pratique, mais le kit
+  /// n'en dépend pas.
+  final Widget icon;
+
+  final String title;
+  final String message;
+
+  /// Libellé du bouton de sortie (« Retour à l'annuaire »).
+  final String exitLabel;
+
+  /// Route empruntée quand il n'y a rien à dépiler.
+  final String fallbackRoute;
+
+  /// Libellé de « Réessayer ». Sans [onRetry], aucun bouton n'apparaît.
+  final String? retryLabel;
+  final VoidCallback? onRetry;
+
+  const DesignUnavailableBody({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.exitLabel,
+    required this.fallbackRoute,
+    this.retryLabel,
+    this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final retry = onRetry;
+    final theme = Theme.of(context);
+    return DesignExitOnlyBody(
+      fallbackRoute: fallbackRoute,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: context.surfaceColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(child: icon),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  color: context.textPrimaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: context.textSecondaryColor,
+                ),
+              ),
+              const SizedBox(height: 24),
+              if (retry != null && retryLabel != null) ...[
+                FilledButton(onPressed: retry, child: Text(retryLabel!)),
+                TextButton(
+                  onPressed: () => context.go(fallbackRoute),
+                  child: Text(exitLabel),
+                ),
+              ] else
+                FilledButton(
+                  onPressed: () => context.go(fallbackRoute),
+                  child: Text(exitLabel),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Grand en-tête d'onglet : titre serif, ligne de contexte chiffrée, actions
 /// carrées à droite. Les maquettes 8a→12d ont abandonné le bandeau dégradé
 /// au profit d'un en-tête plat sur le fond crème.
