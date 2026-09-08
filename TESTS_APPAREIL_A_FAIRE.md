@@ -133,6 +133,20 @@ suit le même drapeau, inchangé.
       vérifier que le bandeau rouge s'affiche toujours, avec sa date de
       réouverture.
 
+#### ⚠️ La capture Play `02_fiche.png` est périmée par ce commit
+
+`releases/1.2.1+11/play/screenshots/02_fiche.png` (« Adresse, contact et
+itinéraire de chaque poste ») montre le bandeau vert **« Ouvert »** en tête de
+l'onglet *Infos* — il n'existe plus. Publier la fiche Store telle quelle
+montrerait un écran que l'app ne rend pas, et rappellerait justement
+l'affirmation qu'on vient de retirer.
+
+- [ ] Reprendre `02_fiche.png` après un build incluant ce commit (le cadre
+      commence maintenant directement par l'adresse).
+
+Les quatre autres captures ne sont pas concernées : `01_ambassades.png` est la
+liste, dont l'item n'affiche que le badge « Fermé » (drapeau inchangé).
+
 ## ⬜ Publication Play Store 1.2.1+11 — build release à valider (2026-09-08)
 
 Première préparation complète d'un téléversement : `pubspec.yaml` passe à
