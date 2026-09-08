@@ -122,14 +122,69 @@ Fichiers : `lib/features/auth/data/repositories/auth_repository_impl.dart`,
 `lib/features/auth/data/datasources/auth_remote_datasource.dart`,
 `lib/features/profile/presentation/screens/profile_screen.dart`.
 
-- [ ] **Délai perçu** : Profil → Déconnexion → l'écran de connexion doit
-      apparaître immédiatement (< 0,5 s), pas après plusieurs secondes de
-      blanc. À mesurer aussi en 3G lente / réseau dégradé, où l'ancien chemin
-      était le plus pénible.
-- [ ] **Jeton FCM réellement retiré** : se déconnecter, attendre ~10 s, puis
-      vérifier en base que `users.fcm_tokens` ne contient plus le jeton de cet
-      appareil. C'est la partie déplacée en tâche de fond — si elle échoue,
-      le téléphone continue de sonner pour l'ancien compte.
+**Passe appareil du 2026-09-08, Pixel 10 Pro XL / Android 17**, APK debug
+construit depuis ce worktree (`md5sum` local et `md5sum` du `pm path` sur
+l'appareil identiques : `5dd681b4…` — le piège de l'APK périmé est écarté).
+
+- [x] **Délai perçu — mesuré le 2026-09-08 : l'écran de connexion commence à
+      être peint 0,23 s après le tap, et l'est entièrement à 0,68 s.** Les deux
+      chiffres sont des bornes hautes (l'horodatage est pris *après* la
+      capture). Le reste n'est que la transition de route. Il n'y a plus de
+      blanc.
+      Reste à voir en 3G lente / réseau dégradé, où l'ancien chemin était le
+      plus pénible — et session Supabase périmée (ci-dessous), le seul cas où
+      du réseau subsiste sur le chemin critique.
+
+  <details><summary>Méthode (deux tentatives, la première nulle)</summary>
+
+  **Ce qui n'a pas marché.** `uiautomator dump` attend que l'interface soit au
+  repos : le premier sondage a duré 3,00 s en trouvant déjà l'écran de
+  connexion — la méthode mesurait sa propre latence, borne inutile de « moins
+  de 3 s ». Une rafale de `screencap -p` vers `/sdcard` ne fait guère mieux :
+  ~950 ms par trame (encodage PNG + FUSE).
+
+  **Ce qui marche.** Capture **brute** vers `/data/local/tmp` (pas d'encodage)
+  et lecture de quelques octets sur l'appareil, sans rien rapatrier : ~200 ms
+  par échantillon. En-tête de `screencap` = **16 octets** (largeur, hauteur,
+  format, espace colorimétrique), donc l'offset du pixel (x,y) vaut
+  `16 + (y*largeur + x)*4`, et `dd bs=4 skip=$((4 + y*largeur + x)) count=1 |
+  od -An -tu1` le rend en RGBA. Vérifié contre un PNG de référence : valeurs
+  identiques au pixel près.
+
+  Pixel témoin sur ce Pixel 10 Pro XL : **(300, 1994)**, dans le bouton « Se
+  connecter » — `(50,226,82)` sur l'écran de connexion, `(15,13,10)` dès qu'on
+  est connecté.
+
+  **Deux pièges rencontrés.** ⚠️ Une session ouverte ne donne qu'**une seule**
+  déconnexion : l'instrument doit être prêt et calibré avant d'appuyer.
+  ⚠️ Et un `adb pull /sdcard/` pour récupérer les trames rapatrie toute la
+  mémoire de l'appareil — ne tirer que les fichiers visés.
+
+  </details>
+
+- [ ] **⚠️ Le dialogue « Connecté ailleurs » peut avaler le tap.** Rencontré le
+      2026-09-08 : `SessionService._handleForceLogout()` a ouvert sa boîte
+      par-dessus le dialogue de déconnexion, et le tap de confirmation a
+      atterri dessus — première mesure perdue. À vérifier avant d'appuyer.
+      Au passage, cette voie de déconnexion forcée ne fait que
+      `FirebaseAuth.signOut()` + `clearSessionId()` : **ni purge des caches,
+      ni retrait du jeton FCM**. Le compte suivant sur ce téléphone hérite
+      donc des données du précédent, et l'appareil reste inscrit pour ses
+      notifications — la famille de défauts que le correctif de latence vient
+      justement de traiter sur la voie normale. Non corrigé, hors périmètre.
+- [x] **Jeton FCM réellement retiré** — vérifié le 2026-09-08. Le jeton de
+      l'appareil (`shared_prefs/com.google.android.gms.appid.xml`, début
+      `fcAFKu1JQ_au…`) ne figure plus dans `users.fcm_tokens` après la
+      déconnexion ; le seul jeton restant sur la ligne du compte commence par
+      `e0SXOkYhSfWg…`, c'est un autre appareil. C'était la partie la plus
+      risquée du changement — elle est passée en tâche de fond, elle aboutit.
+- [x] **Purge locale effective** — vérifié le 2026-09-08. Les sept boîtes Hive
+      de cache sont retombées à 0 octet (`conversations_cache.hive` faisait
+      2872 octets avant), et `currentUserId` / `currentUserDisplayName` ont
+      disparu de `FlutterSharedPreferences.xml`. Mesuré au passage : ces
+      boîtes ne dépassaient pas 267 Ko et l'index des pièces jointes comptait
+      12 clés — la purge locale, restée bloquante, coûte des millisecondes,
+      elle n'est pas un candidat au délai perçu.
 - [ ] **Session Supabase périmée** : laisser l'app en arrière-plan plus d'une
       heure (le timer de renouvellement du pont ne tourne pas en veille), la
       rouvrir, se déconnecter aussitôt. C'est le seul cas où `signOut()`
