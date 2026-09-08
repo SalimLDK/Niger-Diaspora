@@ -68,7 +68,7 @@ Fichiers : `lib/features/auth/data/repositories/auth_repository_impl.dart`,
 
 ---
 
-## ⬜ Profil : la carte de statistiques débordait par la droite (Pixel 10 Pro XL, 2026-09-08)
+## ✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)
 
 Signalé par Salim sur le Pixel 10 Pro XL, jamais vu sur le SM A515F — et pour
 cause : le défaut ne dépend pas du modèle mais de **deux réglages** que ce
@@ -96,16 +96,29 @@ sans le seul second il échoue à 2.0.
 ne sont pas les pixels vus à l'écran. Le banc prouve que la mise en page ne
 dépend plus de la longueur des libellés, pas l'ampleur du défaut.
 
-À vérifier sur le Pixel (id `58221FDCQ0085Z`), qui était **déconnecté** au
-moment du correctif — l'écran Profil exige une session :
+**Le banc ne voyait pas tout.** Une fois le débordement supprimé, la première
+capture appareil a montré un second défaut qu'aucune assertion n'attrape :
+les libellés remplissaient leur colonne **au pixel près**, donc « Connexions »
+chevauchait le filet et « Événements » / « Publications » se touchaient. Une
+gouttière de 6 dp par colonne (12 dp autour de chaque filet) règle ça — les
+libellés rétrécissent d'autant, ils restent entiers.
 
-- [ ] Profil, échelle de police 1.3 : plus de bandeau jaune et noir à droite de
-      la carte de statistiques.
-- [ ] Les quatre libellés restent lisibles en entier (pas de troncature) et les
+**✅ Vérifié sur Pixel 10 Pro XL le 2026-09-08** (id `58221FDCQ0085Z`, thème
+sombre, densité 440 + `font_scale` 1.3, APK debug du worktree — `md5sum` local
+et `md5sum` sur l'appareil identiques, `9793305acf2ea0dc2478ec436b3a7bba`) :
+
+- [x] Profil : plus de bandeau jaune et noir à droite de la carte de
+      statistiques, et `logcat | grep overflowed` reste vide sur tout le
+      défilement de l'écran.
+- [x] Les quatre libellés restent lisibles en entier (pas de troncature) et les
       quatre compteurs restent alignés.
-- [ ] Un compteur à trois chiffres (Publications) ne déforme pas sa colonne.
-- [ ] Réglages / Profil : les libellés de section (`DesignSectionLabel`) tiennent
-      sur une ou deux lignes, sans débordement.
+- [x] Les libellés ne se touchent plus et ne chevauchent plus les filets.
+- [x] Libellés de section (`DesignSectionLabel`) : « ACTIONS DU COMPTE » tient
+      sur une ligne, sans débordement.
+- [ ] Un compteur à **trois chiffres** ne déforme pas sa colonne — pas
+      vérifiable sur ce compte (4 / 2 / 0 / 1). Couvert au banc seulement.
+- [ ] Rendu en thème **clair** : jamais regardé.
+
 
 ---
 
