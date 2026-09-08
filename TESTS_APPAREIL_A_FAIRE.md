@@ -9846,6 +9846,43 @@ uniformément grisé, mais d'une vraie distinction :
 Sans le correctif, les 32 auraient toutes pointé sur (0, 0). Vérifié des deux
 côtés : La Havane grisée, Washington active.
 
+### Pourquoi les 11 restantes ne sont pas géocodables (2026-09-08)
+
+Tentative faite, sources épuisées. **Ne pas la refaire sans source nouvelle.**
+
+**OpenStreetMap n'a aucun nœud** pour le poste du Niger dans 10 de ces 11
+villes — vérifié en interrogeant Overpass sur `country=NE` puis, plus large,
+par nom : 36 nœuds dans le monde, aucun à moins de 80 km de Djeddah, Doha,
+Dubaï, Khartoum, Koweït, La Havane, Le Caire, New Delhi, Pékin ni Rabat. La
+seule exception est **Addis-Abeba**, et c'est la *résidence de l'ambassadeur*,
+que le script écarte à raison : envoyer un usager au domicile privé plutôt
+qu'à la chancellerie est pire que de ne rien afficher.
+
+**Le géocodage d'adresse échoue aussi**, y compris en reformulant en anglais
+et en arabe. Ce que Nominatim renvoie n'est jamais le poste :
+
+| Ville | Meilleur résultat obtenu | Verdict |
+|---|---|---|
+| Le Caire | « Cairo Pyramids Hotel », puis une maison au 101 rue des Pyramides | un hôtel ; le n° 101 est plausible mais invérifiable |
+| Rabat | un **arrêt de bus** à Hay Riad | non |
+| Dubaï | une salle à Bur Dubaï | mauvais quartier (l'adresse dit Deira) |
+| Addis-Abeba, Koweït | centroïdes de district | non |
+| New Delhi, Pékin | rien | — |
+
+Et quatre postes n'ont **rien à géocoder** : Doha et La Havane ne publient
+aucune adresse, Djeddah et Khartoum n'ont qu'une boîte postale — qui ne
+désigne aucun bâtiment.
+
+**Écrire un de ces points serait un défaut, pas un progrès** : « Y aller »
+deviendrait actif et ouvrirait la carte au mauvais endroit, la carte « Le plus
+proche » calculerait une distance depuis un point faux, et rien à l'écran ne
+distinguerait cette coordonnée d'une vraie. C'est exactement ce que le refus
+du centre-ville, dans `tools/geocode_postes_diplomatiques.mjs`, protège.
+
+Voies qui marcheraient vraiment : demander la position aux postes eux-mêmes
+(la donnée leur appartient), ou la relever une fois puis la contribuer à OSM —
+ce qui profiterait aussi à tout le monde.
+
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
 2 missions permanentes, 1 délégation ; 27 fiches avec fax, 20 avec réserve.
