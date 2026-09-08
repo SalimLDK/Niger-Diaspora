@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/errors/error_handler.dart';
@@ -31,6 +32,13 @@ class PodcastStatsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.dn.surface,
       appBar: AppBar(
+        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+        // `canPop()` est faux (lien profond, notification système).
+        // Cf. test/core/router/fleche_retour_test.dart.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/podcasts'),
+        ),
         backgroundColor: context.dn.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,

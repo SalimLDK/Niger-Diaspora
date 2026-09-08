@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/loading_indicator.dart';
@@ -36,6 +37,13 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
+        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+        // `canPop()` est faux (lien profond, notification système).
+        // Cf. test/core/router/fleche_retour_test.dart.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/home'),
+        ),
         title: Text(l10n.friendsTitle),
         bottom: TabBar(
           controller: _tabController,

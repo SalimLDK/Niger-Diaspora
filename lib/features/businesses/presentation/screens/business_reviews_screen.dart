@@ -12,6 +12,7 @@ import '../widgets/review_form_modal.dart';
 import '../widgets/star_rating_input.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
+import 'package:go_router/go_router.dart';
 class BusinessReviewsScreen extends ConsumerWidget {
   final String businessId;
   final BusinessEntity? business;
@@ -182,6 +183,13 @@ class BusinessReviewsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+        // `canPop()` est faux (lien profond, notification système).
+        // Cf. test/core/router/fleche_retour_test.dart.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/businesses'),
+        ),
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
         elevation: 0,

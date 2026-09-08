@@ -40,7 +40,15 @@ class _FriendRecipientSelectScreenState
     final friendsAsync = ref.watch(friendsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.transferAddRecipient)),
+      appBar: AppBar(
+        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+        // `canPop()` est faux (lien profond, notification système).
+        // Cf. test/core/router/fleche_retour_test.dart.
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/transfers'),
+        ),
+        title: Text(l10n.transferAddRecipient)),
       body: Column(
         children: [
           _buildSearchBar(),

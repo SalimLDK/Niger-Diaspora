@@ -43,13 +43,25 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen>
 
     if (currentUser == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.marketplaceMyOrders)),
+        appBar: AppBar(
+          // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+          // `canPop()` est faux (lien profond, notification système).
+          // Cf. test/core/router/fleche_retour_test.dart.
+          leading: BackButton(
+            onPressed:
+                () => context.canPop() ? context.pop() : context.go('/marketplace'),
+          ),
+          title: Text(l10n.marketplaceMyOrders)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/marketplace'),
+        ),
         title: Text(l10n.marketplaceMyOrders),
         bottom: TabBar(
           controller: _tabController,
