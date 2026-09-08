@@ -14,6 +14,54 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)
+
+Google Play refuse au dépôt tout AAB qui cible l'API 35+ et embarque un `.so`
+64 bits aligné sur 4 Ko. Sur l'AAB du 2026-09-08, 6 des 8 bibliothèques
+arm64-v8a étaient conformes ; deux ne l'étaient pas, et **rien en local ne le
+disait** — la compilation passe, l'installation passe, `flutter analyze` ne
+regarde pas les `.so`. Le refus n'arrive qu'en Play Console.
+
+Les deux venaient de dépendances transitives de plugins, remplacées dans
+`android/build.gradle.kts` :
+
+- `libbarhopper_v3.so` — `com.google.mlkit:barcode-scanning:17.2.0`, épinglé
+  par `mobile_scanner 5.2.3`. Forcé en **17.3.0**, alignée 16 Ko, même API,
+  minSdk 21 contre 24 pour l'app.
+- `libnoise.so` — `com.github.paramsen:noise:2.0.0` (JitPack, abandonné),
+  tiré par `livekit_client 2.4.1`. Substitué par **`io.livekit:noise:2.0.0`**
+  sur Maven Central : LiveKit a republié le *même* artefact recompilé en
+  16 Ko — mêmes classes, même package `com.paramsen.noise`. C'est ce que
+  `livekit_client` utilise lui-même depuis sa 2.5.0.
+
+Vérification reproductible : `python tools/verifie_alignement_16k.py
+build/app/outputs/bundle/release/app-release.aab`.
+
+**Aucune ligne de Dart n'a changé** — seule la résolution Gradle. Le risque
+n'est donc pas dans l'UI mais dans le code natif chargé à l'exécution, que
+`flutter analyze` et `flutter test` ne touchent pas :
+
+- [ ] **Scanner QR** (`/qr-scanner`, atteint depuis l'accueil « Trouver des
+      amis », la modale de partage de profil et celle de partage de groupe) :
+      la caméra démarre, un QR de profil est décodé et ouvre la bonne fiche.
+      C'est le seul consommateur de `libbarhopper_v3.so` — s'il se charge, la
+      montée MLKit est bonne ; s'il échoue, ce sera un écran caméra noir ou
+      un code jamais reconnu, pas une erreur Dart.
+- [ ] **Appel audio de groupe** puis **appel vidéo** (LiveKit) : connexion,
+      son dans les deux sens, caméra. `libnoise.so` n'est chargé que par le
+      visualiseur audio natif de LiveKit (`createVisualizer`), que l'app
+      n'appelle **nulle part** — le remplacement ne devrait donc rien changer,
+      mais c'est une substitution de module au niveau Gradle : elle mérite un
+      appel réel avant publication.
+- [ ] **Salon audio** et **podcast en direct** : même moteur LiveKit, autres
+      écrans d'entrée.
+
+C'est la suite directe du point « Alignement 16 Ko » de l'entrée targetSdk 36
+plus bas, qui chiffrait l'écart (6 conformes sur 8) et renvoyait à une session
+dédiée.
+
+---
+
 ## ✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)
 
 Notifications, Annuaire des entreprises, Événements et Ambassades sont
