@@ -43,12 +43,17 @@ groupes officiels compris, et couverte par 11 tests widget.
       et sa sortie nommée, en thème sombre.
 - [x] `/groups/:groupId/edit` en **mode avion** : même écran, après ~3 min
       (le temps que `getGroupById` renonce).
-- [ ] Un lien vers l'édition d'un événement/groupe **dont on n'est pas
-      organisateur/administrateur** : doit afficher « Modification réservée
-      à … ». Couvert en test widget, jamais sur appareil — il faudrait un
-      identifiant réel appartenant à quelqu'un d'autre.
-- [ ] Le parcours normal (bouton « modifier » depuis la fiche) : à rejouer,
-      pour confirmer que la garde ne gêne pas l'ayant droit.
+- [x] Lien vers l'**édition d'un événement dont on n'est pas
+      organisateur** : « Modification réservée à l'organisateur » + « Voir
+      l'événement ». Vu sur **Pixel 10 Pro XL** (compte « Salim »), sur
+      l'événement `LmCs74hv84NSbKM7TDrx` organisé par le compte du A51.
+- [x] L'ayant droit n'est pas gêné : sur le A51 (compte organisateur), le
+      même lien ouvre « Modifier l'événement » pré-rempli — **« Gérer les
+      affiches (0/5) »** compris, c'est-à-dire la ligne exacte qui levait le
+      `LateInitializationError`. Le correctif `_currentPosterUrls` est donc
+      vérifié sur un vrai événement.
+- [ ] L'équivalent pour un **groupe** dont on n'est pas administrateur :
+      toujours pas vu (il faudrait un groupe partagé entre les deux comptes).
 
 ⚠️ **Trouvé au passage, corrigé** : `EditEventScreen._currentPosterUrls` est
 `late` et n'était **jamais assigné**, alors qu'il est lu dès le premier
@@ -73,12 +78,33 @@ Deux précautions pour que la garde ne retire rien à personne :
   n'envoie plus au formulaire que l'organisateur ; les autres vont à la fiche.
   Sans ça, la pastille « Photos » aurait mené tout le monde contre un mur.
 
-- [ ] Vérifier sur appareil qu'un non-organisateur voit bien « Récap réservé
-      à l'organisateur », et que « Voir l'événement » l'amène aux photos.
-      **Impossible cette session : la base ne contient aucun événement**
-      (« Aucun événement à venir », onglet Passés vide). Couvert par 4 tests
-      widget, vérifiés par mutation.
-- [ ] Vérifier que l'organisateur, lui, atteint toujours le formulaire.
+- [x] Un non-organisateur voit bien « Récap réservé à l'organisateur » —
+      **Pixel 10 Pro XL**, compte « Salim », le 2026-09-08.
+- [x] « Voir l'événement » l'amène à la fiche de l'événement. Celle-ci
+      n'affiche **aucun bouton « modifier »** pour lui : c'est la logique
+      préexistante de l'écran (`isOrganizer`) qui confirme, indépendamment de
+      ma garde, que ce compte n'est bien pas l'organisateur.
+- [x] L'organisateur, lui, atteint toujours le formulaire : sur le A51,
+      « Créer un récapitulatif » s'ouvre normalement.
+
+**Méthode : aucun événement de test n'a été créé.** Le premier réflexe était
+d'en écrire un en base de production ; c'était inutile. Les deux téléphones
+portent **deux comptes différents** (« Sim » sur le A515F, « Salim » sur le
+Pixel), donc n'importe quel événement existant est « le mien » d'un côté et
+« celui d'autrui » de l'autre. À retenir pour toute garde d'autorisation à
+vérifier.
+
+⚠️ **Piège de mesure, retombé dessus** : le A51 s'est retrouvé avec un APK
+qui n'était pas le mien (`3edc4fa6` au lieu de `a5326f74`) entre deux essais —
+un autre build l'a écrasé en cours de session. L'écran d'erreur neutre que
+j'y voyais n'était pas mon code. Comparer `md5sum` local/appareil **avant**
+chaque conclusion, pas seulement après l'installation.
+
+⚠️ **Trouvé en regardant l'écran d'édition, non corrigé** : le champ
+description a pour étiquette « La description est requise »
+(`l10n.descriptionRequired`, edit_event_screen.dart:410) au lieu de
+« Description ». Le message de validation, lui, a sa propre clé
+(`descriptionRequiredError`). Purement cosmétique, mais visible.
 
 ⚠️ **Trouvé en vérifiant ça, non corrigé** : la carte de l'accueil est le
 **seul** chemin vers le récapitulatif, et elle ne s'y rend que si
@@ -10054,6 +10080,23 @@ où j'ai trouvé le défaut.
       apparaître dans la liste — l'écran écrivait dans Firestore, donc dans
       une collection que plus personne ne lit.
 
+**Position douteuse : « Y aller » grisé** (2026-09-08, ✅ vérifié sur Pixel).
+Copenhague portait des coordonnées ET une réserve disant qu'elles sont à 5 km
+d'une autre source — le bouton restait pourtant actif et orange, comme sur une
+fiche sûre. `latitude != null` ne suffisait plus à décider : « on a une
+position » et « on lui fait confiance » sont deux choses différentes. Colonne
+`position_uncertain` (migration `20260908183500`), getter `canNavigate`, et les
+**deux** boutons d'itinéraire s'y réfèrent — celui de la fiche et celui de la
+carte de liste, qui disparaît complètement. Verrouillé par
+`test/features/embassies/position_douteuse_test.dart`.
+
+Bilan : 29 fiches navigables, 3 non — Djeddah et Khartoum faute de
+coordonnées, Copenhague faute de confiance.
+
+⚠️ **Reste ouvert** : la carte (`map_screen.dart`) place toujours une épingle
+pour Copenhague, sans marque d'incertitude. Le bouton et la carte se
+contredisent donc encore, à un endroit de moins qu'avant.
+
 **Trois défauts trouvés PAR ce test appareil**, invisibles à `flutter analyze` :
 
 1. **Ville doublée** — « Machnower Str. 24, **Berlin, Berlin**, Allemagne ».
@@ -10327,13 +10370,35 @@ ambassade.
       (le compteur, lui, les comptait). Corrigé par une constante partagée,
       mais **vérifié en français seulement** — à revoir en basculant la langue
       du téléphone.
-- [ ] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
+- [x] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
       vu sur Pixel 10 Pro XL le 2026-09-08) : dès que le clavier s'ouvre sur la
       recherche de l'annuaire en **paysage**, un bandeau
-      « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ. Non
-      corrigé : l'écran est en cours de modification par ailleurs, et le défaut
-      est indépendant des coordonnées. Même famille que le panneau ancré des
-      messages — le clavier prend la place, la colonne ne se recompose pas.
+      « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ.
+      *Corrigé le 2026-09-08 — et ce n'était **pas** la famille du panneau
+      ancré des messages.* Aucun inset périmé, aucune animation, rien à relire
+      dans `View.of(context)` : la `Column` posait le champ, la carte « le plus
+      proche » et la ligne de comptage en hauteur fixe au-dessus d'un
+      `Expanded`. Le clavier en paysage ne laisse que **42 dp** de `body`
+      (392 dp d'écran à la densité forcée 440, moins la barre d'état,
+      l'`AppBar` et 266 dp de Gboard) là où le seul champ en fait 60 à
+      l'échelle de police 1.3 du testeur : l'`Expanded` tombait à 0 et le
+      contenu fixe débordait du reste. Les deux chiffres constatés se
+      recoupent — 69 px la carte masquée (recherche en cours), **188 px** carte
+      affichée, reproduit ici. L'en-tête est devenu défilant
+      (`CustomScrollView`), ce qui supprime la contrainte au lieu de l'ajuster :
+      aucune hauteur seuil ne tiendrait, elle dépend de l'échelle de police et
+      du clavier. Banc : `test/features/embassies/annuaire_clavier_paysage_test.dart`,
+      aux métriques relevées à l'adb (rouge à 54 px / 67 px avant correctif).
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, APK debug reconstruit après
+      `flutter clean` et réinstallé (md5 local et `base.apk` identiques).*
+      **Paysage** : trois ouvertures/fermetures successives du clavier, aucun
+      bandeau — carte « le plus proche » affichée (cas 188 px) comme masquée par
+      une requête (cas 69 px) ; l'en-tête défile sous le doigt et la ligne de
+      comptage remonte, clavier ouvert. **Portrait** : inchangé — champ, carte,
+      comptage et liste tiennent tous au-dessus du clavier, les résultats
+      filtrés restent lisibles pendant la frappe. Trois cycles plutôt qu'une
+      capture : une seule ne distingue pas « ça marche » de « ça a marché cette
+      fois-ci ».
 
 ⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
 sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`

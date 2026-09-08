@@ -432,7 +432,12 @@ class EmbassyDetailScreen extends StatelessWidget {
                   icon: Icons.directions,
                   label: l10n.embassyDirections,
                   color: theme.colorScheme.primary,
-                  enabled: embassy.latitude != null && embassy.longitude != null,
+                  // `canNavigate`, pas `latitude != null` : une position
+                  // connue mais douteuse (Copenhague, 5 km d'écart entre deux
+                  // sources) laissait le bouton actif et orange, exactement
+                  // comme sur une fiche sûre, pendant que la réserve juste
+                  // au-dessus prévenait du contraire.
+                  enabled: embassy.canNavigate,
                   onTap:
                       () => _openMap(
                         embassy.latitude ?? 0,
