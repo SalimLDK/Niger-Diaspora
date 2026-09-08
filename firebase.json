@@ -53,6 +53,26 @@
             ],
             "rewrites": [
                 {
+                    "source": "/fonctionnalites",
+                    "destination": "/fonctionnalites.html"
+                },
+                {
+                    "source": "/a-propos",
+                    "destination": "/a-propos.html"
+                },
+                {
+                    "source": "/telecharger",
+                    "destination": "/telecharger.html"
+                },
+                {
+                    "source": "/confidentialite",
+                    "destination": "/privacy-policy.html"
+                },
+                {
+                    "source": "/conditions",
+                    "destination": "/terms-of-service.html"
+                },
+                {
                     "source": "/child-safety-standards",
                     "destination": "/child-safety-standards.html"
                 },
@@ -172,6 +192,26 @@
                 "**/node_modules/**"
             ],
             "rewrites": [
+                {
+                    "source": "/fonctionnalites",
+                    "destination": "/fonctionnalites.html"
+                },
+                {
+                    "source": "/a-propos",
+                    "destination": "/a-propos.html"
+                },
+                {
+                    "source": "/telecharger",
+                    "destination": "/telecharger.html"
+                },
+                {
+                    "source": "/confidentialite",
+                    "destination": "/privacy-policy.html"
+                },
+                {
+                    "source": "/conditions",
+                    "destination": "/terms-of-service.html"
+                },
                 {
                     "source": "/child-safety-standards",
                     "destination": "/child-safety-standards.html"

@@ -20,6 +20,51 @@
         <priority>1.0</priority>
     </url>
     <url>
+        <loc>https://diasponiger.web.app/fonctionnalites</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/fonctionnalites"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/index-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/telecharger</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/telecharger"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/index-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/a-propos</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/a-propos"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/index-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/contact</loc>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/contact"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/contact-en"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://diasponiger.web.app/contact-en</loc>
+        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/contact-en"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/contact"/>
+        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
+        <lastmod>2026-09-08</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
         <loc>https://diasponiger.web.app/privacy-policy</loc>
         <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/privacy-policy"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/privacy-policy-en"/>
@@ -90,24 +135,6 @@
         <lastmod>2026-09-08</lastmod>
         <changefreq>yearly</changefreq>
         <priority>0.5</priority>
-    </url>
-    <url>
-        <loc>https://diasponiger.web.app/contact</loc>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/contact"/>
-        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/contact-en"/>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
-        <lastmod>2026-09-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
-    </url>
-    <url>
-        <loc>https://diasponiger.web.app/contact-en</loc>
-        <xhtml:link rel="alternate" hreflang="en" href="https://diasponiger.web.app/contact-en"/>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://diasponiger.web.app/contact"/>
-        <xhtml:link rel="alternate" hreflang="x-default" href="https://diasponiger.web.app/"/>
-        <lastmod>2026-09-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
     </url>
     <url>
         <loc>https://diasponiger.web.app/delete-account</loc>

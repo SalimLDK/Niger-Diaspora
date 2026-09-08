@@ -1,13 +1,13 @@
 {
     "name": "Diaspo Niger",
     "short_name": "Diaspo Niger",
-    "description": "La diaspora nigérienne enfin réunie : ambassades et consulats, vingt démarches consulaires, carte des membres, groupes et messagerie chiffrée.",
+    "description": "La communauté nigérienne, partout dans le monde : carte des membres, groupes, événements, messagerie chiffrée, ambassades et démarches consulaires.",
     "lang": "fr",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",
-    "background_color": "#F5EAD8",
-    "theme_color": "#F5EAD8",
+    "background_color": "#F8F5EF",
+    "theme_color": "#F8F5EF",
     "icons": [
         {
             "src": "/icon-192.png",
