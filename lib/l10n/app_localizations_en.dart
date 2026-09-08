@@ -15821,5 +15821,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not send the message. Check your connection and try again.';
 
   @override
+  String get embassyNotFoundTitle => 'Record not found';
+
+  @override
+  String get embassyNotFoundMessage =>
+      'This diplomatic mission is no longer in the directory, or the link is incorrect.';
+
+  @override
+  String get embassyLoadFailedTitle => 'Could not load';
+
+  @override
+  String get backToEmbassies => 'Back to the directory';
+
+  @override
   String get embassySearchHint => 'Name, country or city';
 }

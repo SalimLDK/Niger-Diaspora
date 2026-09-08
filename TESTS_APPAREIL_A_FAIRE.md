@@ -14,6 +14,57 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)
+
+`/embassies/:id` ne lisait que `state.extra` et terminait par
+`EmbassyDetailScreen(embassy: embassy!)` — un `!` sur la valeur qu'elle venait
+de tester nulle. `state.extra` étant nul par construction hors navigation
+interne, l'écran rouge « Null check operator used on a null value » était
+systématique. **Et pas seulement par lien profond** : le bouton de la fiche
+d'ambassade sur la carte (`map_screen.dart:1521`) pousse la route sans objet,
+donc il plantait depuis l'app elle-même.
+
+La route résout maintenant l'identifiant (`EmbassyDetailRoute` +
+`embassyByIdProvider`), avec un état de chargement et deux états nommés, tous
+munis d'une sortie (`DesignExitOnlyBody` + bouton « Retour à l'annuaire »).
+
+- [x] Lien profond vers une fiche réelle, démarrage à froid, **en ligne** :
+      `diasponiger:///embassies/aa643d7b-373a-47a5-bc94-c33545a43cad` ouvre
+      « Ambassade du Niger en Italie ». Aucune exception dans logcat.
+- [x] Le même lien **en mode avion** : la fiche s'ouvre depuis la copie
+      locale. C'est l'usage principal de cet écran (chercher le numéro de son
+      consulat sans réseau).
+- [x] Identifiant inconnu, mode avion : on aboutit à « Chargement
+      impossible » avec « Réessayer » **et** « Retour à l'annuaire », en
+      thème sombre. Pas « Fiche introuvable » — c'est voulu : hors ligne on
+      ignore si la fiche existe, l'affirmer serait faux.
+- [ ] Identifiant inconnu **en ligne** : doit afficher « Fiche introuvable »
+      (et non « Chargement impossible »). Jamais vu sur appareil — le
+      téléphone était en mode avion pendant toute la session.
+- [ ] Bouton « détails » de la fiche d'ambassade **sur la carte** : c'est le
+      second chemin qui plantait, corrigé par ricochet mais jamais rejoué à
+      la main sur appareil.
+- [ ] Fiche hors de la juridiction de l'usager ouverte par lien partagé :
+      elle doit s'afficher (le filtre de juridiction ne vaut que pour la
+      liste). Couvert en test widget, pas sur appareil.
+
+⚠️ **Découvert au passage, non corrigé** : `getEmbassies()` n'a aucun délai de
+garde. Derrière un VPN persistant en mode avion, `networkInfo` se croit
+connecté et la requête Supabase reste suspendue **~2 minutes** avant de servir
+la copie locale. Ça retarde d'autant tout ce qui attend l'annuaire — la fiche
+comme la liste. Le provider `embassyById` borne son propre appel à 8 s, mais
+il ne peut rien contre celui qui le précède. Vérifier si l'écran de liste
+mérite le même traitement.
+
+⚠️ **Même famille, non corrigé** : trois autres routes castent `state.extra`
+vers un type **non nullable**, donc plantent identiquement par lien profond ou
+notification — `/events/:eventId/edit` et `/events/:eventId/recap`
+(`state.extra as EventEntity`), `/groups/:groupId/edit`
+(`state.extra as GroupEntity`). Elles n'ont pas été touchées : chacune demande
+son propre état de chargement et d'introuvable.
+
+---
+
 ## ✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)
 
 Notifications, Annuaire des entreprises, Événements et Ambassades sont
@@ -9988,7 +10039,7 @@ contre **30 sur le SM A515F** (Genève et New York masqués faute de pays connu)
 
 ---
 
-## Postes diplomatiques sur la carte : 21 pins posés, 11 fiches sans position (2026-09-08)
+## Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)
 
 Les 32 fiches importées le 2026-09-07 sont arrivées **sans latitude ni
 longitude** : `diplomatie.gouv.ne` ne publie que des adresses postales, dont
@@ -9996,10 +10047,20 @@ huit sont de simples boîtes postales. Depuis l'import, aucun poste n'a jamais
 eu de pin — `map_screen.dart` saute toute fiche sans coordonnées, et le bouton
 « voir sur la carte » du détail est masqué par `hasCoordinates`.
 
-Migration `20260908120000_coordonnees_postes_diplomatiques.sql` : 19 positions
-relevées dans OpenStreetMap (au bâtiment), 2 par géocodage de l'adresse
-officielle (Paris/UNESCO et Kano). Le script est rejouable :
+Deux migrations, dans cet ordre. `20260908120000_coordonnees_postes_diplomatiques.sql`
+place 21 postes avec les seules sources ouvertes : 19 relevés dans
+OpenStreetMap (au bâtiment), 2 par géocodage de l'adresse officielle
+(Paris/UNESCO et Kano). `20260908150000_coordonnees_postes_google.sql` en
+ajoute 9 via la Geocoding API de Google — activée pour l'occasion — et
+**corrige Abuja**, dont le pin était à 5,7 km. Le script est rejouable :
 `tools/geocode_postes_diplomatiques.mjs`.
+
+Ce qui a débloqué les 9 : chercher le poste **par son nom, dans la langue du
+pays d'accueil**. Le Caire ne répond qu'à l'arabe, La Havane qu'à l'espagnol,
+l'anglais couvre le reste — le français presque rien. Et le nom vaut mieux que
+l'adresse : à Addis-Abeba, « Kirkos Sub-city, Kebele 02/03 » rend un point
+quelconque du quartier, à 5,7 km du lieu que Google connaît comme une
+ambassade.
 
 - [ ] **Les pins bleus d'ambassade apparaissent** sur la carte principale, à
       côté des membres — vérifier au moins un poste (Paris, Cotonou, Abuja
@@ -10008,23 +10069,37 @@ officielle (Paris/UNESCO et Kano). Le script est rejouable :
 - [ ] **Le tap sur un pin** ouvre la fiche flottante (nom, adresse, tél, mail,
       services) et « Voir la fiche complète » mène au détail.
 - [x] **Le bouton « Y aller » du détail** (et « Itinéraire » sur la carte de
-      liste) est actif sur les 21 postes placés, absent sur les 11 autres.
+      liste) est actif sur les postes placés, absent sur les autres.
       *Vérifié sur Pixel 10 Pro XL le 2026-09-08, sans réinstaller l'app :
       les coordonnées viennent de la base, l'APK en place suffit. Alger →
       « Appeler / Itinéraire / Détails » et « Y aller » actif sur la fiche ;
-      Le Caire → « Appeler / Détails » seulement.*
+      Le Caire → « Appeler / Détails » seulement. Revérifié après la seconde
+      migration : Le Caire affiche désormais « Itinéraire » et remonte de la
+      zone « Autres » à « Afrique ».*
 - [ ] **Écart à confirmer auprès du poste** : Copenhague (OSM place
       l'ambassade Rosbaeksvej/Østerbro, l'annuaire publie « Niels Juels Gade
       5 » — 5,1 km) et Dakar (OSM « Voie de Dégagement Nord, Point E » contre
       « 8 avenue Léopold Sédar Senghor » — 5,2 km). Position OSM retenue : le
       nœud porte le nom du poste. À trancher par un appel ou une photo.
-- [x] **11 postes restent sans pin** (Addis-Abeba, Le Caire, Rabat, La Havane,
-      Doha, Koweït, New Delhi, Djeddah, Dubaï, Khartoum, Pékin) : ils restent
-      **visibles dans la liste**, regroupés sous « Autres », avec leur adresse
-      — vu sur le Pixel le 2026-09-08. Aucun ne tombe au point (0, 0) : le
-      modèle ne convertit plus `null` en `0.0`.
-      Addis-Abeba est volontairement laissé de côté : OSM n'y cartographie que
-      la **résidence** de l'ambassadeur, pas la chancellerie.
+- [x] **Un poste sans pin reste visible dans la liste**, sous « Autres », avec
+      son adresse — vu sur le Pixel le 2026-09-08, avant la seconde migration.
+      Aucun ne tombe au point (0, 0) : le modèle ne convertit plus `null` en
+      `0.0`.
+- [ ] **2 postes restent sans pin, et c'est délibéré.** Khartoum : aucune
+      source ne le connaît. Djeddah : le seul résultat (Al Kausar, 22 km au
+      nord du centre) n'est pas typé `embassy` par Google, contrairement aux
+      neuf autres — une position fausse enverrait l'usager à 22 km. À
+      confirmer auprès des deux postes.
+- [ ] **Abuja a bougé de 5,7 km** : le nœud OSM (« 305 Diplomatic Drive »,
+      quartier des affaires) est contredit par l'annuaire officiel
+      (« Maitama District ») **et** par le lieu typé `embassy` de Google, tous
+      deux à Maitama. Vérifier que le pin d'Abuja est bien à Maitama.
+- [x] **Dakar et Pretoria : divergence tranchée en faveur d'OSM.** Leur adresse
+      publiée tombait à 5,2 km et 2,4 km du nœud ; Google y place une ambassade
+      à 7 m et 14 m du nœud. C'est l'annuaire officiel qui est en retard.
+- [ ] **Copenhague reste ouvert** : nœud OSM (Rosbæksvej, Østerbro) contre
+      adresse publiée (Niels Juels Gade 5), 5,1 km, et Google n'y connaît aucun
+      lieu typé `embassy` pour départager. Position OSM retenue en attendant.
 - [ ] **Regroupement par zone, corrigé dans la foulée** (`ZoneGeographique`,
       testé à froid) : Alger s'affichait sous **Europe** (constaté sur le
       Pixel : « Europe · 9 » contenait l'Algérie) et Riyad serait tombé en

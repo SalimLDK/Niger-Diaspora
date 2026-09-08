@@ -1,5 +1,32 @@
 # Demande de position aux postes diplomatiques
 
+> **Mise à jour du 2026-09-08 — n'envoyez plus que deux de ces onze messages.**
+>
+> La Geocoding API de Google a été activée sur le projet dans la journée, et
+> **neuf des onze postes y sont trouvables** — à condition de les chercher par
+> leur nom dans la langue du pays d'accueil (Le Caire ne répond qu'à l'arabe,
+> La Havane qu'à l'espagnol). Leurs coordonnées sont en base depuis la
+> migration `20260908150000_coordonnees_postes_google.sql`, et trois d'entre
+> elles recoupent l'adresse publiée par le ministère : Le Caire (101 Al Haram
+> = avenue des Pyramides), Rabat (Av. Al Haour) et Dubaï (Abu Hail = « Abau
+> Hain Street »).
+>
+> **Restent à écrire : Djeddah (§2) et Khartoum (§5).** Google ne connaît
+> aucun lieu d'ambassade à Khartoum, et le seul résultat de Djeddah, à 22 km
+> au nord du centre, n'est pas typé `embassy` — trop faible pour être écrit.
+>
+> **Deux questions se sont ouvertes en revanche, qui ne sont pas dans cette
+> liste** et mériteraient un message du même genre :
+> - **Copenhague** : OpenStreetMap place l'ambassade Rosbækvej/Østerbro,
+>   l'annuaire publie « Niels Juels Gade 5 » — 5,1 km d'écart, rien pour
+>   départager.
+> - **Abuja** : le pin a été déplacé de Diplomatic Drive à Maitama, où
+>   l'annuaire et Google se rejoignent. Une confirmation ne ferait pas de mal.
+>
+> Les messages ci-dessous restent valables tels quels pour ces cas : seule la
+> liste des destinataires change.
+
+
 Onze postes de l'annuaire n'ont pas de coordonnées géographiques, et **aucune
 source publique ne les contient** : OpenStreetMap n'a aucun nœud pour dix
 d'entre eux, et le géocodage de leur adresse postale rend un hôtel, un arrêt
