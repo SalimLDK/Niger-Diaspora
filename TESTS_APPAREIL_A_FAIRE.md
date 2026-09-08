@@ -70,11 +70,26 @@ suit n'a été vu sur un téléphone.
       `requestType` seul ne suffit pas à savoir laquelle des six démarches
       notariées a été demandée.
 
-**Migration Supabase non poussée** :
-`supabase/migrations/20260907180000_catalogue_demarches_consulaires.sql`.
-Tant qu'elle ne l'est pas, la RPC renvoie NULL et l'app sert la copie
-embarquée — le comportement est correct mais le pied d'écran l'annoncera
-comme « fournie avec l'application ».
+**Migration appliquée sur « Diapo Niger » (`zyrfkcjjrhddpfxcgezo`) le
+2026-09-07** : `20260907180000_catalogue_demarches_consulaires.sql`. Vérifié
+en base, en forçant `SET LOCAL ROLE anon` — sans quoi `db query --linked` se
+connecte en `postgres` et contourne la RLS, faux positif garanti :
+
+- 20 démarches, 5 rubriques, 18 exigeant la carte consulaire, 1 seul coût
+  chiffré — les mêmes nombres que l'asset ;
+- `get_demarches_catalogue()` rend les 20 démarches **en `anon`**
+  (`current_user` relu à « anon » pour prouver que le rôle avait bien pris) :
+  l'écran s'affiche donc avant toute connexion ;
+- INSERT, UPDATE et DELETE en `anon` refusés en **42501**, au niveau TABLE,
+  avant même la RLS ;
+- la sortie de la RPC est identique à l'asset, champ par champ : les 38
+  différences relevées sont la base qui remplit `estPrerequisDeToutLeReste`
+  et `piecesConditionnelles` là où le fichier omet la clé, avec exactement
+  les valeurs des `@Default` Dart.
+
+Le pied d'écran doit donc afficher l'origine **serveur** (pas de mention de
+liste hors ligne) dès que l'appareil a du réseau — c'est le point de
+vérification le plus direct que la chaîne complète fonctionne.
 
 ---
 
