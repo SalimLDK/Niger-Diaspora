@@ -654,12 +654,21 @@ après installation, donc celui d'un usager qui installe l'app dans le train.
       déjà présent : `PolitiqueDeReprise` pose désormais une fenêtre de calme
       qui vaut pour **tous** les appelants.
 
-- [ ] ⛔ **Mais l'écran tourne toujours.** Vérifié juste après : hors ligne
-      avec un cache vide, l'annuaire affiche encore son spinner sans fin.
-      Borner l'authentification n'était donc PAS la cause du symptôme — la
-      requête de l'annuaire elle-même ne rend jamais la main. À traiter là où
-      elle part (`embassies_supabase_datasource` / `embassies_repository_impl`),
-      probablement par un `timeout` qui laisse retomber sur la copie locale.
+- [x] **Spinner sans fin corrigé — vu sur SM A515F (2026-09-08).**
+      `EmbassiesRepositoryImpl.getEmbassies` borne la lecture distante à 10 s
+      et retombe sur la copie locale. Mode avion vérifié avant, pendant et
+      après : l'annuaire se résout en ~16 s et affiche ses 30 postes, au lieu
+      de tourner au-delà de 85 s.
+
+      ⚠️ Réserve : ce parcours-là a pu emprunter la branche hors-ligne
+      directe (`isConnected` à `false`) plutôt que le délai. C'est
+      `annuaire_repli_hors_ligne_test.dart` qui prouve le délai lui-même —
+      ses cas mettent exactement 10 s, avec un distant qui ne rend jamais la
+      main.
+
+- [ ] Reproduire le cas où `isConnected` **ment** (VPN persistant actif, qui
+      le fait rendre `true` hors ligne) pour voir le délai jouer sur
+      l'appareil. C'est la configuration qui avait produit le spinner.
 
 - [ ] La reprise au retour du réseau (`reprendreApresRetourReseau`) n'est
       **pas vérifiée sur appareil**. Un premier essai a montré qu'elle ne
@@ -10381,13 +10390,35 @@ ambassade.
       (le compteur, lui, les comptait). Corrigé par une constante partagée,
       mais **vérifié en français seulement** — à revoir en basculant la langue
       du téléphone.
-- [ ] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
+- [x] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
       vu sur Pixel 10 Pro XL le 2026-09-08) : dès que le clavier s'ouvre sur la
       recherche de l'annuaire en **paysage**, un bandeau
-      « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ. Non
-      corrigé : l'écran est en cours de modification par ailleurs, et le défaut
-      est indépendant des coordonnées. Même famille que le panneau ancré des
-      messages — le clavier prend la place, la colonne ne se recompose pas.
+      « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ.
+      *Corrigé le 2026-09-08 — et ce n'était **pas** la famille du panneau
+      ancré des messages.* Aucun inset périmé, aucune animation, rien à relire
+      dans `View.of(context)` : la `Column` posait le champ, la carte « le plus
+      proche » et la ligne de comptage en hauteur fixe au-dessus d'un
+      `Expanded`. Le clavier en paysage ne laisse que **42 dp** de `body`
+      (392 dp d'écran à la densité forcée 440, moins la barre d'état,
+      l'`AppBar` et 266 dp de Gboard) là où le seul champ en fait 60 à
+      l'échelle de police 1.3 du testeur : l'`Expanded` tombait à 0 et le
+      contenu fixe débordait du reste. Les deux chiffres constatés se
+      recoupent — 69 px la carte masquée (recherche en cours), **188 px** carte
+      affichée, reproduit ici. L'en-tête est devenu défilant
+      (`CustomScrollView`), ce qui supprime la contrainte au lieu de l'ajuster :
+      aucune hauteur seuil ne tiendrait, elle dépend de l'échelle de police et
+      du clavier. Banc : `test/features/embassies/annuaire_clavier_paysage_test.dart`,
+      aux métriques relevées à l'adb (rouge à 54 px / 67 px avant correctif).
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, APK debug reconstruit après
+      `flutter clean` et réinstallé (md5 local et `base.apk` identiques).*
+      **Paysage** : trois ouvertures/fermetures successives du clavier, aucun
+      bandeau — carte « le plus proche » affichée (cas 188 px) comme masquée par
+      une requête (cas 69 px) ; l'en-tête défile sous le doigt et la ligne de
+      comptage remonte, clavier ouvert. **Portrait** : inchangé — champ, carte,
+      comptage et liste tiennent tous au-dessus du clavier, les résultats
+      filtrés restent lisibles pendant la frappe. Trois cycles plutôt qu'une
+      capture : une seule ne distingue pas « ça marche » de « ça a marché cette
+      fois-ci ».
 
 ⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
 sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`

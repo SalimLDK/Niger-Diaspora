@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../../domain/entities/embassy_entity.dart';
 import '../../domain/repositories/embassies_repository.dart';
 import '../datasources/embassies_local_datasource.dart';
@@ -23,14 +25,35 @@ class EmbassiesRepositoryImpl implements EmbassiesRepository {
     required this.networkInfo,
   });
 
+  /// Au-delà, on sert la copie locale plutôt que de faire attendre.
+  ///
+  /// Sans ce délai, l'écran tournait **indéfiniment** hors ligne : vu sur
+  /// SM A515F le 2026-09-08, spinner encore présent après 85 s, sans message
+  /// ni bouton. Deux raisons se cumulaient :
+  ///
+  /// - `networkInfo.isConnected` rend `true` alors que rien ne passe — un VPN
+  ///   persistant suffit à le tromper, et c'est le cas sur cet appareil ;
+  /// - la requête partait alors pour de bon et n'en revenait jamais, le
+  ///   client Supabase attendant lui-même le rafraîchissement du jeton.
+  ///
+  /// Dix secondes : assez pour une connexion lente — c'est le quotidien d'une
+  /// diaspora — et assez court pour qu'on ne regarde pas un spinner sans fin.
+  static const Duration _delaiMaxLecture = Duration(seconds: 10);
+
   @override
   Future<List<EmbassyEntity>> getEmbassies() async {
     if (await networkInfo.isConnected) {
       try {
-        final remoteEmbassies = await remoteDataSource.getEmbassies();
+        final remoteEmbassies = await remoteDataSource.getEmbassies().timeout(
+          _delaiMaxLecture,
+        );
         await localDataSource.cacheEmbassies(remoteEmbassies);
         return remoteEmbassies.map((e) => e.toEntity()).toList();
       } on ServerException {
+        return _fromCache();
+      } on TimeoutException {
+        // Le réseau se disait joignable et ne l'était pas : exactement le cas
+        // que la copie locale existe pour couvrir.
         return _fromCache();
       }
     }

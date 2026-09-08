@@ -216,84 +216,122 @@ class _EmbassiesScreenState extends ConsumerState<EmbassiesScreen> {
                   ? _findNearest(embassies, myLat, myLng)
                   : null;
 
-          return Column(
-            children: [
-              // Search bar
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-                child: DesignSearchField(
-                  controller: _searchController,
-                  // Raccourci : « Rechercher par nom, pays ou ville » etait
-                  // coupe a « … pays o… ». L'icone loupe dit deja qu'on
-                  // cherche, le mot etait redondant.
-                  hintText: l10n.embassySearchHint,
-                  onClear: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                  onChanged: (value) {
-                    setState(() => _searchQuery = value);
-                  },
-                ),
-              ),
-
-              // Représentation la plus proche (§17a) — masquée en recherche.
-              if (nearest != null)
-                _NearestEmbassyCard(embassy: nearest.$1, distanceKm: nearest.$2),
-
-              // Results count
-              if (filteredEmbassies.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Row(
-                    children: [
-                      Text(
-                        '${filteredEmbassies.length} ambassade(s) trouvée(s)',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+          // Tout est défilant, en-tête compris — et surtout pas une `Column`
+          // « champ + carte + comptage fixes, puis `Expanded` ».
+          //
+          // Cette forme-là débordait dès que le `body` devenait court : le
+          // clavier ouvert en paysage sur Pixel 10 Pro XL ne laisse que 42 dp
+          // (392 dp d'écran, moins la barre d'état, l'`AppBar` et 266 dp de
+          // Gboard), alors que le seul champ de recherche en fait 60 à
+          // l'échelle de police 1.3. L'`Expanded` tombait à 0 et la `Column`
+          // affichait « BOTTOM OVERFLOWED BY 69 PIXELS » sous le champ
+          // (188 lorsque la carte « le plus proche » est visible).
+          //
+          // Ce n'est pas la famille du panneau ancré de `message_input.dart` :
+          // aucun inset périmé, aucune animation, rien à relire dans
+          // `View.of(context)`. Du contenu fixe simplement plus haut que son
+          // `body` — et aucune hauteur seuil ne le règle, puisqu'elle dépend de
+          // l'échelle de police et de la hauteur du clavier. Rendre l'en-tête
+          // défilant supprime la contrainte au lieu de l'ajuster.
+          //
+          // Couvert par `test/features/embassies/annuaire_clavier_paysage_test.dart`.
+          return RefreshIndicator(
+            onRefresh: () async {
+              return ref.refresh(embassiesListProvider.future);
+            },
+            child: CustomScrollView(
+              // Le geste de rafraîchissement doit rester possible même quand le
+              // contenu est plus court que l'écran (liste vide, ou clavier
+              // ouvert qui ne laisse presque rien).
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                // Search bar
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                    child: DesignSearchField(
+                      controller: _searchController,
+                      // Raccourci : « Rechercher par nom, pays ou ville » etait
+                      // coupe a « … pays o… ». L'icone loupe dit deja qu'on
+                      // cherche, le mot etait redondant.
+                      hintText: l10n.embassySearchHint,
+                      onClear: () {
+                        _searchController.clear();
+                        setState(() => _searchQuery = '');
+                      },
+                      onChanged: (value) {
+                        setState(() => _searchQuery = value);
+                      },
+                    ),
                   ),
                 ),
 
-              // Embassy list (regroupée par zone puis par pays, §17a)
-              Expanded(
-                child:
-                    filteredEmbassies.isEmpty
-                        ? _buildEmptyState()
-                        : RefreshIndicator(
-                          onRefresh: () async {
-                            return ref.refresh(embassiesListProvider.future);
-                          },
-                          child: ListView.builder(
-                            itemCount: zones.length,
-                            padding: const EdgeInsets.only(bottom: 16),
-                            itemBuilder: (context, index) {
-                              final zone = zones[index];
-                              final byCountry = groupedByZone[zone]!;
-                              final countries = byCountry.keys.toList()
-                                ..sort();
-                              final zoneCount = byCountry.values
-                                  .fold<int>(0, (sum, l) => sum + l.length);
+                // Représentation la plus proche (§17a) — masquée en recherche.
+                if (nearest != null)
+                  SliverToBoxAdapter(
+                    child: _NearestEmbassyCard(
+                      embassy: nearest.$1,
+                      distanceKm: nearest.$2,
+                    ),
+                  ),
 
-                              return _ZoneSection(
-                                zone: zone,
-                                count: zoneCount,
-                                children: countries
-                                    .map(
-                                      (country) => _CountrySection(
-                                        country: country,
-                                        embassies: byCountry[country]!,
-                                      ),
-                                    )
-                                    .toList(),
-                              );
-                            },
+                // Results count
+                if (filteredEmbassies.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                      child: Row(
+                        children: [
+                          Text(
+                            '${filteredEmbassies.length} ambassade(s) trouvée(s)',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-              ),
-            ],
+                        ],
+                      ),
+                    ),
+                  ),
+
+                // Embassy list (regroupée par zone puis par pays, §17a)
+                if (filteredEmbassies.isEmpty)
+                  // `hasScrollBody: false` : l'état vide garde sa hauteur
+                  // naturelle et se centre sur ce qui reste, au lieu de forcer
+                  // une zone défilante de la taille de l'écran.
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildEmptyState(),
+                  )
+                else
+                  SliverList.builder(
+                    itemCount: zones.length,
+                    itemBuilder: (context, index) {
+                      final zone = zones[index];
+                      final byCountry = groupedByZone[zone]!;
+                      final countries = byCountry.keys.toList()..sort();
+                      final zoneCount = byCountry.values
+                          .fold<int>(0, (sum, l) => sum + l.length);
+
+                      return _ZoneSection(
+                        zone: zone,
+                        count: zoneCount,
+                        children: countries
+                            .map(
+                              (country) => _CountrySection(
+                                country: country,
+                                embassies: byCountry[country]!,
+                              ),
+                            )
+                            .toList(),
+                      );
+                    },
+                  ),
+
+                // Reprend le `padding: EdgeInsets.only(bottom: 16)` que portait
+                // la `ListView`.
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+              ],
+            ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
