@@ -9842,7 +9842,24 @@ Les deux chaînes étaient en **français figé** dans un écran par ailleurs
 traduit : passées en l10n au passage (`embassiesAndConsulates` existait déjà,
 `embassySearchHint` ajoutée).
 
-✅ Vérifié sur Pixel (capture `liste_corrigee.png`).
+✅ Vérifié sur Pixel (capture `liste_corrigee.png`) **et sur SM A515F**
+(`a515f_liste.png`, `a515f_havane.png`) — les six correctifs d'affichage
+tiennent sur les deux appareils, polices système différentes comprises.
+
+**Découvert en repassant sur le SM A515F** : l'autre agent a **géocodé 21 des
+32 fiches** le 2026-09-08 à 09:51. Conséquence directe sur le correctif n° 4
+du lot précédent (`latitude ?? 0.0`) — il ne s'agit plus d'un bouton
+uniformément grisé, mais d'une vraie distinction :
+
+- les **21 fiches géocodées** affichent « Itinéraire » actif, et la carte
+  « Le plus proche · 792 km — Ambassade du Niger aux États-Unis » apparaît en
+  tête de liste (compte situé à Montréal) ;
+- les **11 sans coordonnées** (Addis-Abeba, Djeddah, Doha, Dubaï, Khartoum,
+  Koweït, La Havane, Le Caire, New Delhi, Pékin, Rabat) gardent « Y aller »
+  grisé.
+
+Sans le correctif, les 32 auraient toutes pointé sur (0, 0). Vérifié des deux
+côtés : La Havane grisée, Washington active.
 
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
