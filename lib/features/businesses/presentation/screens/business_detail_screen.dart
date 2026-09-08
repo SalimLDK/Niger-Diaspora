@@ -100,9 +100,14 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
               () =>
                   business != null
                       ? _buildContent(context, business, currentUser?.id)
-                      : const Center(child: CircularProgressIndicator()),
+                      : const DesignExitOnlyBody(
+                        fallbackRoute: '/businesses',
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
           error:
-              (error, _) => Center(
+              (error, _) => DesignExitOnlyBody(
+                fallbackRoute: '/businesses',
+                child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -127,6 +132,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                     ),
                   ],
                 ),
+              ),
               ),
         ),
       ), // Close PopScope child (Scaffold)

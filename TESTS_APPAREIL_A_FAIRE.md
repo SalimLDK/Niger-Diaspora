@@ -134,6 +134,31 @@ Reste à voir, par ordre d'intérêt :
 - [ ] Les ~10 écrans restants atteignables mais non atteints (voir le piège
       d'`am start` ci-dessous).
 
+**Troisième forme du défaut, trouvée à l'écran le 2026-09-08 — corrigée.**
+`/businesses/<id>` sur une entreprise absente affichait « Entreprise non
+trouvée » **et rien pour revenir**. La fiche pose sa `SliverAppBar` *à
+l'intérieur* de la branche « données » : son `Scaffold` n'a pas d'`appBar`,
+donc les états chargement / erreur / « non trouvé » n'ont aucune sortie. Le
+fichier contenait pourtant un `BackButton` — d'où l'aveuglement d'un garde
+qui raisonne au fichier. Trois écrans avaient cette forme :
+`business_detail_screen`, `product_detail_screen`, et le `Scaffold` de
+chargement de `transfer_screen`. Tous passés sur une brique unique du kit,
+`DesignExitOnlyBody`.
+
+- [x] **Vérifié sur SM A515F** : « Entreprise non trouvée » expose maintenant
+      un contrôle « Retour ».
+
+**⛔ Défaut sans rapport, trouvé au passage et NON corrigé : `/embassies/<id>`
+plante.** Le builder de la route lit `state.extra as EmbassyEntity?` puis
+termine par `EmbassyDetailScreen(embassy: embassy!)` — un `!` sur la valeur
+qu'il vient de tester nulle. `state.extra` étant toujours nul par lien
+profond et par notification, **toute** entrée directe sur une fiche
+ambassade donne l'écran rouge « Null check operator used on a null value »
+(reproduit à l'identique sur appareil). Les commentaires du code admettent
+que le repli n'est pas implémenté. Même famille que
+`project_state_extra_not_authoritative`. Hors sujet de ce lot, laissé tel
+quel : il faut charger l'ambassade par son id.
+
 **Deux pièges de méthode rencontrés, à retenir :**
 
 1. **L'autre agent installe son APK sur le même téléphone.** À 01:13:54 le
@@ -304,14 +329,28 @@ l'identifiant du compte ou `SocketException` réapparaissent à l'écran. Les
 deux autres cas couvrent les contraintes du widget — zone minuscule, absence
 de `Directionality`/`Theme` au-dessus.
 
-- [ ] **Voir ce rendu sur appareil.** Non vérifié : il faudrait provoquer une
-      levée à la demande, et justement, celle qu'on connaît ne se reproduit
-      pas. Vérifier aussi qu'il reste lisible dans les deux thèmes (les
-      couleurs sont choisies sur `platformBrightness`, pas sur le thème de
-      l'app — un écart est possible si l'usager force un thème contraire à
-      celui du système).
-- [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
-      compte** dans un message d'erreur visible par l'usager.
+**Les deux thèmes sont vérifiés** (2026-09-08), par deux moyens qui se
+complètent : des assertions déterministes sur les couleurs et le contraste
+(`computeLuminance`), et un rendu rasterisé inspecté pour la mise en page.
+Clair : fond `#F7F7F7`, titre `#1A1A1A`. Sombre : fond `#121212`, titre
+`#F5F5F5`. Contenu centré, icône présente, seconde ligne plus pâle dans les
+deux cas.
+
+⚠️ Ce rendu suit la luminosité du **système**, pas le thème de l'app — un
+`ErrorWidget` peut être posé au-dessus de `MaterialApp`, donc sans `Theme` à
+interroger. Conséquence assumée : qui force dans l'app un thème contraire à
+celui du système verra cet écran-là dans l'autre sens. C'est pourquoi les
+tests exigent que **chacun des deux rendus soit lisible seul**.
+
+- [ ] Reste à voir sur un vrai téléphone, pour les glyphes : `flutter test`
+      dessine le texte avec sa police de test (chaque caractère devient un
+      pavé plein), donc l'image prouve les couleurs et la mise en page, pas
+      le texte. Suppose de provoquer une levée à la demande — et celle qu'on
+      connaît ne se reproduit pas.
+- [x] **Fait pour l'écran rouge de Flutter (2026-09-08)** :
+      `ErrorWidget.builder` rend « Une erreur est survenue » à la place du
+      message brut. ⚠️ Ne couvre PAS les états d'erreur que les écrans
+      rendent eux-mêmes — voir la section « Annuaire » ci-dessous.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
       liste embarquée, pas un spinner ni une erreur. (Même blocage que
       ci-dessus.)
@@ -368,8 +407,9 @@ désormais. `20260907210000` retire donc la colonne `post_type` devenue
 orpheline — deux colonnes décrivant la même chose divergeraient dès la
 première fiche modifiée par le back-office.
 
-- [ ] Vérifier sur appareil que l'annuaire s'affiche toujours après ce retrait
-      (l'app ne doit plus citer `post_type` nulle part).
+- [x] **Vu sur SM A515F (2026-09-08).** L'annuaire affiche ses 30 postes
+      après le retrait de `post_type`, en ligne comme hors ligne, sur cinq
+      passages étalés entre 11h49 et 02h00.
 
 **2. Hors ligne, l'écran affiche une exception brute — avec l'identifiant du
 projet Supabase.** Réseau coupé, « Ambassades » montre :
@@ -381,14 +421,25 @@ details: WebSocketChannelException: SocketException: Failed host lookup:
 hostname, errno = 7)))
 ```
 
-- [ ] **Ne pas exposer la trace ni le hôte Supabase à l'usager** : le ref du
-      projet est un identifiant interne, il n'a rien à faire à l'écran.
-      Message générique côté UI, détail dans les logs.
-- [ ] **Le repli hors ligne ne joue pas sur ce chemin** : la liste avait été
-      chargée et mise en cache cinq minutes plus tôt, et l'écran tombe quand
-      même en erreur — l'échec vient de l'abonnement realtime, pas de la
-      lecture. Un canal realtime injoignable ne devrait pas empêcher
-      d'afficher la copie locale.
+- [~] **À moitié seulement — attention à ne pas croire ce point réglé.**
+      Il y a DEUX écrans d'erreur distincts, et un seul est traité :
+
+      - l'**écran rouge de Flutter** (une exception pendant un `build`) est
+        couvert depuis le 2026-09-08 par `ErrorWidget.builder`
+        (`construireEcranErreurNeutre` dans `main.dart`) ;
+      - l'**état d'erreur propre à l'écran** — celui de la capture ci-dessus,
+        avec son bouton « Réessayer » — ne l'est PAS. Il affiche
+        `error.toString()`, donc l'hôte et l'identifiant, et
+        `ErrorWidget.builder` n'y peut rien : ce n'est pas une levée, c'est
+        un `AsyncValue.error` rendu volontairement.
+
+- [ ] Reprendre l'état d'erreur des écrans (`embassies_screen.dart` et ses
+      pareils) : message générique à l'écran, détail dans les logs.
+- [x] **Corrigé et vu sur SM A515F (2026-09-08).** Le repli joue :
+      réseau coupé, l'annuaire sert ses 30 postes depuis la copie locale
+      (vérifié à 11h52, 12h25 et 02h00, sans réinstaller entre-temps). Ce
+      point était par ailleurs faussé par un piège de méthode — voir le n°3
+      ci-dessous, `adb install -r` vide le cache.
 
 **3. La vraie cause du n°2 : `.value` sur un `AsyncValue` en erreur.**
 Le cas propre a été refait le 2026-09-08 (chargement en ligne, **sans
@@ -411,13 +462,16 @@ Le même défaut existait dans `administrative_request_screen.dart` (4
 occurrences, dont deux dans `initState`, donc levée avant tout rendu) : **il y
 est corrigé**, `.value` → `.valueOrNull`.
 
-- [ ] Corriger les lignes 56 et 63 de `embassies_provider.dart`. ⚠️ J'ai
-      essayé et **je suis revenu en arrière** : passer à `valueOrNull` laisse
-      le code atteindre `repository.getEmbassies()`, qui attend l'expiration
-      du délai réseau — l'écran reste alors en **attente indéfinie** (plus de
-      70 s constatées), sans message ni bouton « Réessayer ». Ce n'est pas
-      mieux qu'une erreur. La correction doit traiter les deux bouts : ne plus
-      relever, **et** ne pas partir sur le réseau quand il n'y en a pas.
+- [x] **Corrigé par l'auteur de l'annuaire (`fd0735e`), vu sur SM A515F
+      (2026-09-08).** Sa correction traite les deux bouts : `valueOrNull` aux
+      lignes 56 et 63, **et** un garde qui évite d'observer le profil quand
+      il n'y a pas d'utilisateur.
+
+      Mon propre essai, lui, avait été **annulé** : `valueOrNull` seul
+      laissait le code atteindre `repository.getEmbassies()` et attendre
+      l'expiration du délai réseau — écran en attente indéfinie, plus de 70 s
+      mesurées, sans message ni « Réessayer ». Ce n'était pas mieux qu'une
+      erreur. À garder en tête si quelqu'un refait le raccourci.
 
 ---
 
@@ -9860,6 +9914,43 @@ uniformément grisé, mais d'une vraie distinction :
 
 Sans le correctif, les 32 auraient toutes pointé sur (0, 0). Vérifié des deux
 côtés : La Havane grisée, Washington active.
+
+### Pourquoi les 11 restantes ne sont pas géocodables (2026-09-08)
+
+Tentative faite, sources épuisées. **Ne pas la refaire sans source nouvelle.**
+
+**OpenStreetMap n'a aucun nœud** pour le poste du Niger dans 10 de ces 11
+villes — vérifié en interrogeant Overpass sur `country=NE` puis, plus large,
+par nom : 36 nœuds dans le monde, aucun à moins de 80 km de Djeddah, Doha,
+Dubaï, Khartoum, Koweït, La Havane, Le Caire, New Delhi, Pékin ni Rabat. La
+seule exception est **Addis-Abeba**, et c'est la *résidence de l'ambassadeur*,
+que le script écarte à raison : envoyer un usager au domicile privé plutôt
+qu'à la chancellerie est pire que de ne rien afficher.
+
+**Le géocodage d'adresse échoue aussi**, y compris en reformulant en anglais
+et en arabe. Ce que Nominatim renvoie n'est jamais le poste :
+
+| Ville | Meilleur résultat obtenu | Verdict |
+|---|---|---|
+| Le Caire | « Cairo Pyramids Hotel », puis une maison au 101 rue des Pyramides | un hôtel ; le n° 101 est plausible mais invérifiable |
+| Rabat | un **arrêt de bus** à Hay Riad | non |
+| Dubaï | une salle à Bur Dubaï | mauvais quartier (l'adresse dit Deira) |
+| Addis-Abeba, Koweït | centroïdes de district | non |
+| New Delhi, Pékin | rien | — |
+
+Et quatre postes n'ont **rien à géocoder** : Doha et La Havane ne publient
+aucune adresse, Djeddah et Khartoum n'ont qu'une boîte postale — qui ne
+désigne aucun bâtiment.
+
+**Écrire un de ces points serait un défaut, pas un progrès** : « Y aller »
+deviendrait actif et ouvrirait la carte au mauvais endroit, la carte « Le plus
+proche » calculerait une distance depuis un point faux, et rien à l'écran ne
+distinguerait cette coordonnée d'une vraie. C'est exactement ce que le refus
+du centre-ville, dans `tools/geocode_postes_diplomatiques.mjs`, protège.
+
+Voies qui marcheraient vraiment : demander la position aux postes eux-mêmes
+(la donnée leur appartient), ou la relever une fois puis la contribuer à OSM —
+ce qui profiterait aussi à tout le monde.
 
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,

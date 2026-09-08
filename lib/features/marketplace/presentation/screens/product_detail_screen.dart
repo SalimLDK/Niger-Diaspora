@@ -304,9 +304,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading:
+              () => const DesignExitOnlyBody(
+                fallbackRoute: '/marketplace',
+                child: Center(child: CircularProgressIndicator()),
+              ),
           error:
-              (error, _) => Center(
+              (error, _) => DesignExitOnlyBody(
+                fallbackRoute: '/marketplace',
+                child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -326,6 +332,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                   ],
                 ),
+              ),
               ),
         ),
         bottomNavigationBar: productAsync.whenOrNull(
