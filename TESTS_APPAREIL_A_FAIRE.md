@@ -666,9 +666,38 @@ après installation, donc celui d'un usager qui installe l'app dans le train.
       ses cas mettent exactement 10 s, avec un distant qui ne rend jamais la
       main.
 
-- [ ] Reproduire le cas où `isConnected` **ment** (VPN persistant actif, qui
-      le fait rendre `true` hors ligne) pour voir le délai jouer sur
-      l'appareil. C'est la configuration qui avait produit le spinner.
+**Cas du « réseau menteur » reproduit le 2026-09-08 — et le délai NE SUFFIT
+PAS.** C'est le résultat important de la journée sur ce point.
+
+*Comment le fabriquer* (utile, la condition est difficile à obtenir autrement) :
+DNS privé en mode strict vers un hôte inexistant. Le WiFi reste `CONNECTED`,
+donc `connectivity_plus` voit son transport et `isConnected` rend `true`, mais
+toute résolution meurt.
+
+```bash
+adb shell settings put global private_dns_mode hostname
+adb shell settings put global private_dns_specifier dns-inexistant.invalid
+# vérification : `ping <hôte>` doit répondre « unknown host »
+# restauration OBLIGATOIRE :
+adb shell settings put global private_dns_mode opportunistic
+adb shell settings delete global private_dns_specifier
+```
+
+*Ce qu'on observe* : l'annuaire tourne encore à 6 s, à 16 s, **et à 60 s** —
+alors que le délai du dépôt est de 10 s.
+
+*Hypothèse de tête, à confirmer* : `embassiesList` observe
+`currentUserAsyncProvider` **et** `userStreamProvider`. Chaque tentative du
+pont d'authentification fait réémettre ces flux, donc reconstruit le provider
+et **redémarre le compte à rebours** avant qu'il n'arrive à terme. Le délai
+borne bien *une* tentative — c'est ce que prouve
+`annuaire_repli_hors_ligne_test.dart` — mais il ne peut rien contre un
+provider qu'on relance sans cesse.
+
+- [ ] Vérifier cette hypothèse (journaliser les reconstructions de
+      `embassiesList`), puis traiter la cause : ne pas faire dépendre la
+      liste de flux d'authentification qui s'agitent pendant une panne, ou
+      mémoriser le premier résultat plutôt que tout rejouer.
 
 - [ ] La reprise au retour du réseau (`reprendreApresRetourReseau`) n'est
       **pas vérifiée sur appareil**. Un premier essai a montré qu'elle ne
@@ -10093,9 +10122,29 @@ carte de liste, qui disparaît complètement. Verrouillé par
 Bilan : 29 fiches navigables, 3 non — Djeddah et Khartoum faute de
 coordonnées, Copenhague faute de confiance.
 
-⚠️ **Reste ouvert** : la carte (`map_screen.dart`) place toujours une épingle
-pour Copenhague, sans marque d'incertitude. Le bouton et la carte se
-contredisent donc encore, à un endroit de moins qu'avant.
+**Épingle distincte sur la carte** (2026-09-08) — la carte plaçait toujours une
+épingle ordinaire pour Copenhague. Elle y reste (la retirer ferait disparaître
+l'ambassade) mais se signale : **bordure discontinue et ambre** au lieu du
+cercle bleu plein, convention cartographique du tracé approximatif.
+
+⚠ Piège évité : la clé de cache des épingles était `embassy_circular_$isSelected`,
+**partagée par toutes les ambassades**. Sans y ajouter le drapeau, la première
+épingle dessinée aurait été resservie aux 29 autres.
+
+- [ ] **NON VÉRIFIÉ SUR APPAREIL.** Trois obstacles cumulés :
+  1. sur le **Pixel**, la carte est derrière l'écran « Mode privé activé » —
+     l'ouvrir demande d'activer le partage de position sur le compte réel de
+     Salim, ce qui est un réglage de confidentialité que je ne touche pas ;
+  2. sur le **SM A515F**, l'autre agent pilotait l'appareil au même moment
+     (écran « Modifier l'événement » apparu sous mes taps) — usage concurrent,
+     mesure abandonnée ;
+  3. et même avec l'accès, **Google Maps rend dans un `SurfaceView`**, que
+     `adb shell screencap` capture en noir. Une capture d'écran ne prouverait
+     donc probablement rien.
+
+  La bonne façon de le vérifier serait un test de rendu sur la fonction qui
+  peint l'épingle — mais elle est privée dans l'État de `map_screen.dart` et
+  l'extraire dépasse ce qui a été demandé.
 
 **Trois défauts trouvés PAR ce test appareil**, invisibles à `flutter analyze` :
 
