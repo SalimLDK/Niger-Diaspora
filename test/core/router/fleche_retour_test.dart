@@ -136,6 +136,47 @@ void main() {
     );
   });
 
+  test('les écrans corrigés gardent une sortie visible pile vide', () {
+    // La flèche *implicite* de l'AppBar (`automaticallyImplyLeading`)
+    // disparaît quand `Navigator.canPop()` est faux — vérifié sur SM A515F
+    // le 2026-09-08 : `diasponiger:///events` en démarrage à froid affichait
+    // Événements sans aucune sortie. Ces cinq écrans ont donc un contrôle
+    // explicite ; ne pas les « simplifier » en retirant le `leading`.
+    const explicites = <String>[
+      '/notifications',
+      '/businesses',
+      '/events',
+      '/embassies',
+      '/settings',
+    ];
+    final controle = RegExp(r'DesignBackLeading|BackButton\(');
+    final fichiers = declarations();
+    final coupables = <String>[];
+
+    final table = routes();
+    for (final chemin in explicites) {
+      final classe = table[chemin];
+      if (classe == null) {
+        coupables.add('$chemin (route disparue du routeur)');
+        continue;
+      }
+      final fichier = fichiers[classe];
+      if (fichier == null) continue;
+      if (!controle.hasMatch(fichier.readAsStringSync())) {
+        coupables.add('$chemin ($classe)');
+      }
+    }
+
+    expect(
+      coupables,
+      isEmpty,
+      reason:
+          'Ces écrans ont perdu leur contrôle de sortie explicite. La flèche '
+          "implicite de l'AppBar ne suffit pas : elle disparaît en entrée "
+          'par lien profond ou par notification.',
+    );
+  });
+
   test('aucun écran poussé ne supprime la flèche que Flutter poserait', () {
     final fichiers = declarations();
     final coupables = <String>[];

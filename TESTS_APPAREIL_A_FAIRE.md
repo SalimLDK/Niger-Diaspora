@@ -14,51 +14,94 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
-## ⬜ Quatre écrans du menu principal sans flèche de retour (2026-09-07)
+## ✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)
 
 Notifications, Annuaire des entreprises, Événements et Ambassades sont
-atteints par `push` depuis l'accueil (ou « Tous les services »), mais
-n'affichaient aucun moyen de revenir : seul le bouton système ramenait en
-arrière. Deux causes distinctes, invisibles en lisant l'écran seul :
+atteints par `push` depuis l'accueil, mais n'affichaient aucun moyen de
+revenir. Deux causes, invisibles en lisant l'écran seul :
 
-- `DesignScreenHeader.leading` est facultatif — les cinq onglets racines
-  n'en veulent pas — donc un écran poussé qui recopie l'en-tête d'un onglet
-  hérite de son absence de flèche (Notifications, Entreprises) ;
+- `DesignScreenHeader.leading` est facultatif — les cinq onglets racines n'en
+  veulent pas — donc un écran poussé qui recopie l'en-tête d'un onglet hérite
+  de son absence de flèche (Notifications, Entreprises) ;
 - `automaticallyImplyLeading: false` supprime la flèche que Flutter aurait
-  posée seul ; le drapeau, justifié sur un onglet, avait été recopié sur
-  deux écrans poussés (Événements, Ambassades).
+  posée seul ; le drapeau, justifié sur un onglet, avait été recopié sur deux
+  écrans poussés (Événements, Ambassades).
 
-La flèche est désormais une brique unique du kit, `DesignBackLeading`
-(`lib/core/theme/design_kit.dart`), et non plus une recopie par écran : les
-Réglages la dessinaient déjà à la main, ils passent dessus. Elle replie sur
-une route quand la pile est vide (`canPop() ? pop() : go('/home')`), le cas
-d'une entrée par notification système — `/notifications` est justement une
-cible de `router.push` depuis `lib/app.dart`.
+La flèche des en-têtes plats est maintenant une brique unique du kit,
+`DesignBackLeading` ; les Réglages la dessinaient à la main, ils sont passés
+dessus. Verrouillé par `test/core/router/fleche_retour_test.dart`.
 
-Vérifié par `test/core/router/fleche_retour_test.dart` (lit le routeur, donc
-sait quelle route est poussée et laquelle est un onglet ; liste d'exceptions
-nommées, elle ne doit que rétrécir).
+**Vérifié sur SM A515F le 2026-09-08**, thème sombre / accent orange, APK
+debug construit depuis le worktree (`md5sum` local et
+`pm path`+`md5sum` sur l'appareil identiques — le piège de l'APK périmé est
+écarté) :
 
-À vérifier sur appareil :
+- [x] **Notifications** : flèche blanche visible en haut à gauche, même
+      valeur de blanc que le titre (245,242,238 mesuré sur la capture).
+      Le tap ramène à l'accueil — atteinte du premier coup malgré la cible
+      de 28x34 dp.
+- [x] **Annuaire des entreprises** : flèche visible, même blanc que le titre.
+- [x] **Ambassades** : flèche visible et fonctionnelle. C'est celle de
+      Material, donc `AppBarTheme.iconTheme` : mesurée à (196,189,179) contre
+      (245,242,238) pour le titre, soit 80 % de la luminance. Pas un défaut
+      introduit ici — c'est la teinte de **toutes** les AppBar de l'app — mais
+      un écart visible entre deux familles d'en-tête à un tap l'une de l'autre.
+- [x] **Conséquence de mise en page à juger** : sur les deux écrans à AppBar,
+      le titre passe de 20 dp à ~66 dp du bord, puisqu'il suit maintenant le
+      `leading`. Il n'est donc plus aligné avec le champ de recherche en
+      dessous (20 dp). Inhérent à toute barre avec flèche ; le signaler au cas
+      où l'alignement primerait.
 
-- [ ] La flèche est **visible** en haut à gauche des quatre écrans, en thème
-      clair **et** sombre — `DesignBackLeading` prend
-      `context.textPrimaryColor`, jamais vu à l'écran.
-- [ ] Elle est **atteignable au doigt** sur les trois écrans à
-      `DesignScreenHeader` : la zone tactile de `DesignBackLeading` fait
-      28x34 dp, sous les 48 dp recommandés. C'est la dimension que les
-      Réglages embarquaient déjà ; elle n'a jamais été jugée sur appareil.
-      Les deux écrans à `AppBar` (Événements, Ambassades) utilisent la flèche
-      de Flutter, donc ses métriques (48 dp) — vérifier au passage que la
-      flèche ne saute pas visiblement de place entre les deux familles
-      d'en-tête.
-- [ ] Elle **ramène bien** à l'accueil et pas ailleurs, depuis les deux
-      chemins d'entrée : accueil → tuile, et accueil → « Tous les services ».
-- [ ] Le repli : ouvrir une notification système alors que l'app est fermée,
-      puis taper la flèche de l'écran Notifications — doit mener à l'accueil,
-      pas à un écran noir.
-- [ ] Les Réglages, dont la flèche a changé d'implémentation, reviennent
-      toujours (entrée depuis Profil **et** depuis la Carte).
+**Défaut trouvé À L'ÉCRAN, que l'analyse ne pouvait pas voir**, et corrigé
+dans la foulée : `diasponiger:///events` en **démarrage à froid** affichait
+Événements **sans aucune flèche**. La flèche implicite de l'AppBar
+(`automaticallyImplyLeading`) n'est posée par Flutter que si
+`Navigator.canPop()` est vrai ; par lien profond la pile ne contient que cet
+écran. Les deux écrans à AppBar portent donc désormais un `BackButton`
+explicite avec repli (`canPop() ? pop() : go('/home')`), qui garde les
+métriques Material (cible de 48 dp).
+
+Revérifié après ce correctif, en démarrage à froid :
+
+- [x] `diasponiger:///events` : flèche présente, et le tap ramène à
+      **l'accueil** (pas d'écran noir) — le repli fonctionne.
+- [x] `diasponiger:///notifications` et `diasponiger:///businesses` :
+      flèche présente (mesurée à x=68-110 sur la capture).
+- [x] `diasponiger:///embassies` : flèche présente, et le tap ramène à
+      l'accueil.
+
+      ⚠️ **Mais elle a demandé un `flutter clean`**, et ça vaut d'être retenu :
+      deux builds incrémentaux de suite ont produit un APK où Événements
+      avait le nouveau `BackButton` et Ambassades non — **deux fichiers
+      modifiés dans le même geste, un seul embarqué**. `flutter analyze`
+      passait, et le `md5sum` de l'APK correspondait entre le poste et
+      l'appareil : la vérification d'APK habituelle **ne détecte pas ce
+      cas**, elle prouve seulement qu'on a installé ce qu'on a construit,
+      pas que ce qu'on a construit contient le code source. Le seul signal
+      était l'écran. En cas de doute sur un correctif qui « ne prend pas » :
+      `flutter clean` avant de conclure quoi que ce soit sur le code.
+
+Piège de test relevé au passage : en debug, ce téléphone met **plus d'une
+minute** à peindre l'écran d'un lien profond à froid, et affiche entre-temps
+un aplat gris-bleu vide. Une capture à 30 s montre le gris et se lit comme un
+écran cassé. Rafale de `screencap` toutes les 15 s, garder la plus grosse.
+
+**Reste ouvert, mesuré, non corrigé — 38 routes.** Le même défaut de lien
+profond touche tout l'écran qui s'en remet à la flèche implicite de l'AppBar :
+`/businesses/:businessId`, `/marketplace/:productId`, `/transfers/send`,
+`/support/:ticketId`, `/payment-history`, `/friends`… (57 routes ont au
+contraire une sortie explicite). Aucune n'est cassée en navigation normale ;
+elles le sont uniquement en entrée directe. Correctif mécanique mais large
+(38 fichiers) : à trancher, pas fait ici.
+
+- [ ] Rendu en **thème clair** : les quatre écrans n'ont été vus qu'en sombre.
+- [ ] Zone tactile de `DesignBackLeading` : 28x34 dp, sous les 48 dp
+      recommandés. C'est la dimension que les Réglages embarquaient déjà.
+      Atteinte du premier coup lors du test, mais avec un tap `adb` au pixel
+      près — pas au pouce.
+- [x] Les Réglages, dont la flèche est passée sur la brique partagée,
+      affichent bien leur flèche (entrée depuis Profil, vue le 2026-09-08).
+      Entrée depuis la Carte non retestée.
 
 ---
 
@@ -114,10 +157,34 @@ suit n'a été vu sur un téléphone.
 - [x] **Origine serveur vue sur SM A515F (2026-09-07).** Le pied affiche la
       source et « consultée le 2026-09-07 », **sans** mention d'origine hors
       ligne : la chaîne Supabase répond donc de bout en bout sur l'appareil.
-- [ ] ⛔ **Origine hors ligne : NON VÉRIFIABLE aujourd'hui.** Réseau coupé,
-      l'écran des ambassades tombe en erreur (voir la section « Annuaire »
-      ci-dessous) et plus aucun chemin ne mène à l'écran des démarches. À
-      refaire une fois l'annuaire corrigé.
+- [x] **L'écran entier s'affiche hors ligne, vu sur SM A515F (2026-09-08).**
+      Protocole propre : chargement en ligne, **sans réinstaller**, puis mode
+      avion. Le catalogue vient du cache, toutes les pièces s'affichent, et le
+      bandeau « Formulaire pré-rempli » disparaît de lui-même puisque le
+      profil n'est pas joignable — la dégradation voulue.
+- [ ] ⛔ **Le suffixe d'origine du pied de source reste non vu.** Il devrait
+      afficher « · liste enregistrée hors ligne » (cache) ou « · liste fournie
+      avec l'application » (asset). C'est le seul élément d'affichage de cet
+      écran jamais observé.
+
+      Cinq tentatives, deux obstacles qui alternent : soit l'app reste bloquée
+      au splash sur un démarrage à froid sans réseau, soit un **écran rouge
+      Flutter** surgit sur le chemin fiche → « Demande », toujours sur la même
+      requête :
+
+      ```
+      ServerFailure(ClientException with SocketException: Failed host lookup:
+      'zyrfkcjjrhddpfxcgezo.supabase.co', uri=.../rest/v1/users?select=%2A&id=eq.<uid>)
+      ```
+
+      ⚠️ **La source de cette levée n'est PAS identifiée.** Ce n'est ni
+      `administrative_request_screen.dart` (ses 4 `.value` sont corrigés), ni
+      `embassies_provider.dart` (corrigé en `fd0735e`), ni
+      `embassy_detail_screen.dart` (aucun `.value` sur un AsyncValue). Elle
+      vient d'ailleurs sur le chemin de `userStreamProvider`. À chercher avant
+      de conclure quoi que ce soit sur le repli — et c'est un défaut à part
+      entière : **l'hôte Supabase et l'identifiant du compte s'affichent à
+      l'usager**.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
       liste embarquée, pas un spinner ni une erreur. (Même blocage que
       ci-dessus.)
@@ -196,23 +263,34 @@ hostname, errno = 7)))
       lecture. Un canal realtime injoignable ne devrait pas empêcher
       d'afficher la copie locale.
 
-**3. Hors ligne, l'annuaire reste vide même après un chargement réussi.**
-Deuxième essai le 2026-09-07, APK reconstruit après la correction `01353ac`,
-téléphone en mode avion : l'écran n'affiche plus l'exception brute (bien) mais
-« Aucune ambassade disponible » — pas la copie locale, alors que les 30 postes
-s'étaient affichés quelques minutes plus tôt sur le même appareil.
+**3. La vraie cause du n°2 : `.value` sur un `AsyncValue` en erreur.**
+Le cas propre a été refait le 2026-09-08 (chargement en ligne, **sans
+réinstaller**, puis mode avion). Deux constats.
 
-⚠️ **Réserve : ce constat n'est pas concluant seul.** L'APK avait été
-réinstallé entre les deux, et je n'ai pas vérifié que la copie locale avait
-survécu à la réinstallation — le cache peut légitimement être vide. Le cas
-propre reste à faire : charger la liste en ligne, **sans réinstaller**, puis
-couper le réseau et rouvrir.
+D'abord, un piège de méthode : **`adb install -r` vide la copie locale**.
+Mon premier essai « hors ligne » avait été fait juste après une
+réinstallation, donc sur un cache vide — d'où le « Aucune ambassade
+disponible » que j'avais pris pour un défaut. Ce n'en était pas un. Sans
+réinstaller, l'annuaire sert bien ses 30 postes hors ligne.
 
-- [ ] Refaire ce cas proprement, et si la liste est bien vide alors qu'elle
-      venait d'être mise en cache, chercher du côté de
-      `EmbassiesRepositoryImpl` : sa branche hors ligne renvoie `[]` dès que
-      `getLastEmbassies()` lève, et un `[]` ne se distingue pas d'une base
-      vide à l'écran. C'est la même mise en scène que le défaut n°1.
+Ensuite le vrai défaut. `embassies_provider.dart` lignes 56 et 63 font
+`userAsync.value` et `profileAsync.value` sur des providers **observés**. En
+Riverpod 2, `AsyncValue.value` **relève** l'erreur au lieu de rendre `null`
+quand l'état est `AsyncError`. Hors ligne, la lecture Supabase `users` échoue,
+la levée remonte, et tout l'annuaire tombe — en affichant l'hôte Supabase et
+l'identifiant du compte, alors que la copie locale attendait juste en dessous.
+
+Le même défaut existait dans `administrative_request_screen.dart` (4
+occurrences, dont deux dans `initState`, donc levée avant tout rendu) : **il y
+est corrigé**, `.value` → `.valueOrNull`.
+
+- [ ] Corriger les lignes 56 et 63 de `embassies_provider.dart`. ⚠️ J'ai
+      essayé et **je suis revenu en arrière** : passer à `valueOrNull` laisse
+      le code atteindre `repository.getEmbassies()`, qui attend l'expiration
+      du délai réseau — l'écran reste alors en **attente indéfinie** (plus de
+      70 s constatées), sans message ni bouton « Réessayer ». Ce n'est pas
+      mieux qu'une erreur. La correction doit traiter les deux bouts : ne plus
+      relever, **et** ne pas partir sur le réseau quand il n'y en a pas.
 
 ---
 
