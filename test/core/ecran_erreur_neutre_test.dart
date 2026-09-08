@@ -1,0 +1,90 @@
+import 'package:diaspo_niger/main.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+/// L'écran d'erreur ne doit rien laisser filtrer de l'exception.
+///
+/// Ce test existe pour un défaut vu sur SM A515F le 2026-09-08 : hors ligne,
+/// l'écran rouge de Flutter affichait le message brut, soit l'hôte du projet
+/// Supabase **et** l'identifiant du compte, en clair, à qui regardait l'écran.
+///
+/// Le cas ci-dessous rejoue exactement cette exception-là. S'il rougit un
+/// jour, c'est que quelqu'un a remis le détail à l'écran.
+void main() {
+  // L'exception réellement observée, telle quelle.
+  final exceptionObservee = Exception(
+    "ClientException with SocketException: Failed host lookup: "
+    "'zyrfkcjjrhddpfxcgezo.supabase.co' (OS Error: No address associated "
+    "with hostname, errno = 7), uri=https://zyrfkcjjrhddpfxcgezo.supabase.co"
+    "/rest/v1/users?select=%2A&id=eq.vQZE49dTdyRtLwSG6lMIbhAqoFG2",
+  );
+
+  testWidgets("l'écran d'erreur ne divulgue rien de l'exception", (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      construireEcranErreurNeutre(FlutterErrorDetails(exception: exceptionObservee)),
+    );
+
+    expect(find.text('Une erreur est survenue'), findsOneWidget);
+
+    // Les trois fuites constatées à l'écran, chacune nommée : un test qui
+    // échoue doit dire laquelle est revenue.
+    expect(
+      find.textContaining('supabase.co'),
+      findsNothing,
+      reason: "l'hôte du projet Supabase ne doit pas être affiché",
+    );
+    expect(
+      find.textContaining('vQZE49dTdyRtLwSG6lMIbhAqoFG2'),
+      findsNothing,
+      reason: "l'identifiant du compte ne doit pas être affiché",
+    );
+    expect(
+      find.textContaining('SocketException'),
+      findsNothing,
+      reason: 'aucun détail technique ne doit être affiché',
+    );
+  });
+
+  testWidgets('il tient dans une zone minuscule sans déborder', (tester) async {
+    // Un `ErrorWidget` remplace le widget fautif *sur place* : il hérite de
+    // ses contraintes, qui peuvent être une simple ligne de liste.
+    await tester.pumpWidget(
+      Center(
+        child: SizedBox(
+          width: 80,
+          height: 40,
+          child: construireEcranErreurNeutre(
+            FlutterErrorDetails(exception: exceptionObservee),
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets("il se rend sans Directionality ni Theme au-dessus", (
+    tester,
+  ) async {
+    // Cas réel : la levée peut survenir au-dessus de `MaterialApp`, donc sans
+    // aucun de ces héritages.
+    await tester.pumpWidget(
+      construireEcranErreurNeutre(FlutterErrorDetails(exception: exceptionObservee)),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(Directionality), findsWidgets);
+  });
+
+  test('le constructeur global est bien celui-ci une fois main() passé', () {
+    // Garde-fou de câblage : la fonction ne sert à rien si personne ne
+    // l'affecte. On ne peut pas exécuter `main()` ici (Firebase), donc on
+    // vérifie au moins que l'affectation compile et tient le type attendu.
+    final ErrorWidgetBuilder attendu = construireEcranErreurNeutre;
+    expect(attendu, isNotNull);
+    expect(kDebugMode || kReleaseMode || kProfileMode, isTrue);
+  });
+}

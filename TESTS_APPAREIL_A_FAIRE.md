@@ -262,10 +262,54 @@ suit n'a été vu sur un téléphone.
       provider de profil et la lecture qui n'en tolère pas l'erreur, pas un
       chemin de code fixe.
 
-- [ ] Reproduire l'écran rouge **avec l'instrumentation active** pour obtenir
-      la ligne exacte. C'est maintenant possible : la pile s'imprime. Il faut
-      surtout gagner la course — relancer plusieurs fois hors ligne, l'app
-      restant par ailleurs souvent bloquée au splash dans ces conditions.
+**Quatre campagnes de reproduction, ~34 lancements à froid hors ligne, avec
+l'instrumentation active : la course ne s'est JAMAIS reproduite.**
+
+Une seule campagne est méthodologiquement valable, et c'est important de le
+dire : les trois autres n'ont rien prouvé.
+
+| # | Méthode | Verdict |
+|---|---|---|
+| 1 | Taps à l'aveugle (8 essais) | ❌ **invalide** — GoRouter ne montre aucun `/embassies/`, les taps n'ont jamais atteint l'écran |
+| 2 | Lien profond direct vers la fiche, 10 essais | ✅ **valable** — route poussée vérifiée à chaque tour, **0 exception** |
+| 3 | Lien profond vers la liste + tap « Détails » (10) | ❌ le tap n'ouvre jamais la fiche (`pushing /embassies/` = 0) |
+| 4 | Idem, attentes portées à 75 s (6) | ❌ même échec, ce n'était donc pas un problème de timing |
+
+**Ce qui est acquis** : sur la fiche atteinte directement, 10 démarrages à
+froid hors ligne d'affilée, aucune exception. **Ce qui ne l'est pas** : les
+deux occurrences réelles venaient du parcours par la liste, et je n'ai pas
+réussi à automatiser ce parcours-là de façon vérifiable.
+
+- [ ] Reprendre la reproduction **par le parcours réel**, à la main plutôt
+      qu'en script : liste → fiche → « Demande », hors ligne, à froid,
+      plusieurs fois. La pile s'imprime maintenant, donc une seule occurrence
+      suffira à trancher.
+      ⚠️ Obstacle non résolu : `input tap` sur « Détails » n'ouvre pas la
+      fiche quand la liste vient d'un lien profond (`diasponiger://embassies`).
+      Ni les coordonnées ni l'attente (jusqu'à 75 s) n'y changent rien —
+      la cause reste à trouver, et c'est ce qui a bloqué l'automatisation.
+
+**✅ Symptôme traité, indépendamment de la traque.** Vu la rareté du défaut,
+le gain n'était pas dans la ligne exacte mais dans le fait qu'**une exception
+ne doit jamais s'afficher telle quelle**. `main.dart` pose désormais un
+`ErrorWidget.builder` global (`construireEcranErreurNeutre`) qui rend
+« Une erreur est survenue » à la place du message brut — donc plus d'hôte
+Supabase ni d'identifiant de compte à l'écran, quelle que soit la ligne
+fautive. Posé en debug aussi, pour que ce chemin soit réellement exercé ; la
+pile continue de sortir en console via `presentError`.
+
+Couvert par `test/core/ecran_erreur_neutre_test.dart` (4 cas) : l'exception
+réellement observée est rejouée et le test échoue si `supabase.co`,
+l'identifiant du compte ou `SocketException` réapparaissent à l'écran. Les
+deux autres cas couvrent les contraintes du widget — zone minuscule, absence
+de `Directionality`/`Theme` au-dessus.
+
+- [ ] **Voir ce rendu sur appareil.** Non vérifié : il faudrait provoquer une
+      levée à la demande, et justement, celle qu'on connaît ne se reproduit
+      pas. Vérifier aussi qu'il reste lisible dans les deux thèmes (les
+      couleurs sont choisies sur `platformBrightness`, pas sur le thème de
+      l'app — un écart est possible si l'usager force un thème contraire à
+      celui du système).
 - [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
       compte** dans un message d'erreur visible par l'usager.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
@@ -9798,7 +9842,24 @@ Les deux chaînes étaient en **français figé** dans un écran par ailleurs
 traduit : passées en l10n au passage (`embassiesAndConsulates` existait déjà,
 `embassySearchHint` ajoutée).
 
-✅ Vérifié sur Pixel (capture `liste_corrigee.png`).
+✅ Vérifié sur Pixel (capture `liste_corrigee.png`) **et sur SM A515F**
+(`a515f_liste.png`, `a515f_havane.png`) — les six correctifs d'affichage
+tiennent sur les deux appareils, polices système différentes comprises.
+
+**Découvert en repassant sur le SM A515F** : l'autre agent a **géocodé 21 des
+32 fiches** le 2026-09-08 à 09:51. Conséquence directe sur le correctif n° 4
+du lot précédent (`latitude ?? 0.0`) — il ne s'agit plus d'un bouton
+uniformément grisé, mais d'une vraie distinction :
+
+- les **21 fiches géocodées** affichent « Itinéraire » actif, et la carte
+  « Le plus proche · 792 km — Ambassade du Niger aux États-Unis » apparaît en
+  tête de liste (compte situé à Montréal) ;
+- les **11 sans coordonnées** (Addis-Abeba, Djeddah, Doha, Dubaï, Khartoum,
+  Koweït, La Havane, Le Caire, New Delhi, Pékin, Rabat) gardent « Y aller »
+  grisé.
+
+Sans le correctif, les 32 auraient toutes pointé sur (0, 0). Vérifié des deux
+côtés : La Havane grisée, Washington active.
 
 **Migration appliquée en production le 2026-09-07** (`supabase db push
 --linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
