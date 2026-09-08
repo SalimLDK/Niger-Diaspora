@@ -68,6 +68,47 @@ Fichiers : `lib/features/auth/data/repositories/auth_repository_impl.dart`,
 
 ---
 
+## ⬜ Profil : la carte de statistiques débordait par la droite (Pixel 10 Pro XL, 2026-09-08)
+
+Signalé par Salim sur le Pixel 10 Pro XL, jamais vu sur le SM A515F — et pour
+cause : le défaut ne dépend pas du modèle mais de **deux réglages** que ce
+téléphone-là cumule, `wm density` surchargée à **440** (392 dp de large au lieu
+de 411) et `settings get system font_scale` à **1.3**.
+
+La rangée « Connexions / Groupes / Événements / Publications » posait ses
+quatre colonnes à leur largeur naturelle dans une `Row` (`spaceEvenly`, aucun
+`Expanded`). Les libellés tiennent tout juste dans les ~320 dp utiles de la
+carte à l'échelle 1.0 ; à 1.3 ils débordent. Deux correctifs :
+
+- les quatre colonnes se partagent la largeur (`Expanded`), et à l'intérieur le
+  compteur et le libellé passent en `FittedBox(scaleDown)` — ils rétrécissent
+  au lieu de déborder, sans jamais grossir (rendu inchangé à l'échelle 1.0) ;
+- `DesignSectionLabel` (kit, donc **toute l'app**) rendait son libellé sans
+  contrainte : `Flexible` sans `maxLines`, il se replie sur deux lignes au lieu
+  de déborder. Trouvé au banc à l'échelle 2.0, pas signalé par Salim.
+
+Verrouillé par `test/features/profile/profile_screen_overflow_test.dart`
+(échelles 1.0 / 1.3 / 2.0, géométrie du Pixel). **Les deux correctifs sont
+vérifiés par mutation** : sans le premier le banc échoue aux trois échelles,
+sans le seul second il échoue à 2.0.
+
+⚠️ **La police de banc rend chaque glyphe carré (1 em)** : les 300 px reproduits
+ne sont pas les pixels vus à l'écran. Le banc prouve que la mise en page ne
+dépend plus de la longueur des libellés, pas l'ampleur du défaut.
+
+À vérifier sur le Pixel (id `58221FDCQ0085Z`), qui était **déconnecté** au
+moment du correctif — l'écran Profil exige une session :
+
+- [ ] Profil, échelle de police 1.3 : plus de bandeau jaune et noir à droite de
+      la carte de statistiques.
+- [ ] Les quatre libellés restent lisibles en entier (pas de troncature) et les
+      quatre compteurs restent alignés.
+- [ ] Un compteur à trois chiffres (Publications) ne déforme pas sa colonne.
+- [ ] Réglages / Profil : les libellés de section (`DesignSectionLabel`) tiennent
+      sur une ou deux lignes, sans débordement.
+
+---
+
 ## ⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)
 
 `public/` (déployé sur `diasponiger.web.app`). Rien ici n'est couvert par
