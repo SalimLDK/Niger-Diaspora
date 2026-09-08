@@ -7,7 +7,8 @@ de bus ou un centroïde de quartier — jamais la chancellerie. Le constat déta
 est dans `TESTS_APPAREIL_A_FAIRE.md`.
 
 Il ne reste qu'une voie : **demander la position aux postes eux-mêmes**. Ce
-fichier contient les onze messages, prêts à envoyer.
+fichier contient les onze messages, **en français et en anglais**, prêts à
+envoyer.
 
 ## Avant d'envoyer — trois réserves
 
@@ -20,11 +21,23 @@ fichier contient les onze messages, prêts à envoyer.
 - Une adresse Yahoo ne prouve pas qu'elle soit relevée. Prévoir que plusieurs
   restent sans réponse, et relancer par téléphone les postes qui en publient un.
 
+## Français et anglais : lequel envoyer
+
+Le français est la langue officielle du Niger et celle de son corps
+diplomatique : **c'est la version à envoyer par défaut**, y compris dans les
+pays non francophones. L'anglais sert de second corps de message, sous le
+français dans le même envoi — utile si la boîte est relevée par un agent
+recruté localement, ce qui est fréquent dans les postes du Golfe, en Inde, en
+Chine, en Éthiopie et au Soudan.
+
+Envoyer les deux dans un seul message plutôt que deux messages séparés : c'est
+une seule sollicitation, et la version qui parle au lecteur est sous ses yeux.
+
 ## Ce qu'on demande, et pourquoi c'est court
 
-Chaque message tient en quelques lignes et pose **une** question principale :
-où se trouve le bâtiment. Une demande courte obtient une réponse ; une demande
-qui liste dix champs à confirmer finit sans réponse du tout.
+Chaque message pose **une** question principale : où se trouve le bâtiment. Une
+demande courte obtient une réponse ; une demande qui liste dix champs à
+confirmer finit sans réponse du tout.
 
 La façon la plus simple pour eux de répondre — et celle que le message
 propose — est un **lien Google Maps** : ouvrir Maps, poser un repère sur le
@@ -37,9 +50,10 @@ que cette ligne.
 
 ## Signature à compléter
 
-Remplacer `[VOTRE NOM]` et `[VOTRE FONCTION]` dans chaque message. Ne pas se
-présenter comme un service officiel : Diaspo Niger est une application
-indépendante, et le dire évite un malentendu qui coûterait la réponse.
+Remplacer `[VOTRE NOM]` / `[YOUR NAME]` et `[VOTRE FONCTION]` /
+`[YOUR ROLE]` dans chaque message. Ne pas se présenter comme un service
+officiel : Diaspo Niger est une application indépendante, et le dire évite un
+malentendu qui coûterait la réponse.
 
 ---
 
@@ -47,6 +61,7 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 
 **À :** ambnigeradiss@yahoo.fr
 **Objet :** Localisation de la chancellerie pour l'application Diaspo Niger
+**Subject:** Locating your Chancery for the Diaspo Niger application
 
 > Excellence, Madame, Monsieur,
 >
@@ -72,6 +87,32 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 >
 > [VOTRE NOM]
 > [VOTRE FONCTION] — Diaspo Niger
+>
+> ---
+>
+> Your Excellency, Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> The address published by the Ministry of Foreign Affairs for your Embassy is
+> *Kirkos Sub-city, Kebele 02/03, House No 0547, P.O. Box 5791*. It identifies a
+> district, but no mapping source allows the Chancery itself to be located from
+> it — so the application cannot show you on a map.
+>
+> **Could you let me know where your offices are?** The simplest way is to open
+> Google Maps, drop a pin on the building, then tap "Share" and send me the
+> link. A precise street address would work just as well.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Please accept, Your Excellency, Dear Sir or Madam, the
+> assurance of my highest consideration.
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
 
 ---
 
@@ -79,6 +120,7 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 
 **À :** Djeddah_consulatgnralniger@yahoo.fr
 **Objet :** Localisation du consulat pour l'application Diaspo Niger
+**Subject:** Locating your Consulate for the Diaspo Niger application
 
 > Madame, Monsieur,
 >
@@ -103,6 +145,31 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 >
 > [VOTRE NOM]
 > [VOTRE FONCTION] — Diaspo Niger
+>
+> ---
+>
+> Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> The only address published for your Consulate is a post office box
+> (*P.O. Box 1709 Jeddah 21441*). A PO box identifies no building: the
+> application cannot show you on a map, and Nigeriens in Jeddah have no way of
+> knowing where to present themselves.
+>
+> **Could you give me the street address and the location of your offices?**
+> The simplest way is to open Google Maps, drop a pin on the building, then tap
+> "Share" and send me the link.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Yours faithfully,
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
 
 ---
 
@@ -110,6 +177,7 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 
 **À :** abdoulbonz@yahoo.fr
 **Objet :** Coordonnées de l'ambassade pour l'application Diaspo Niger
+**Subject:** Contact details for your Embassy — Diaspo Niger application
 
 > Excellence, Madame, Monsieur,
 >
@@ -135,6 +203,33 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 >
 > [VOTRE NOM]
 > [VOTRE FONCTION] — Diaspo Niger
+>
+> ---
+>
+> Your Excellency, Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> Your mission is the least documented entry in the whole directory: the
+> Ministry publishes **no telephone, no fax and no address** — the address field
+> contains only "DOHA QATAR" — and the email address I am writing to appears to
+> be a personal mailbox rather than the mission's own.
+>
+> **Could you send me the Chancery's address, a telephone number, and if
+> possible an institutional email address?** For the location, the simplest way
+> is to open Google Maps, drop a pin on the building, then tap "Share" and send
+> me the link.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Please accept, Your Excellency, Dear Sir or Madam, the
+> assurance of my highest consideration.
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
 
 ---
 
@@ -142,6 +237,7 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 
 **À :** nigerdxb@emirates.net.ae
 **Objet :** Localisation du consulat pour l'application Diaspo Niger
+**Subject:** Locating your Consulate for the Diaspo Niger application
 
 > Madame, Monsieur,
 >
@@ -169,14 +265,28 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 >
 > ---
 >
-> *English — Dear Sir or Madam, I develop* **Diaspo Niger**, *an independent
-> application for Nigeriens living abroad, which lists Niger's embassies and
-> consulates. The published address for your consulate (Abau Hain Street,
-> Hamdane Area, Villa 130, Deira) does not match any street known to mapping
-> services, so we cannot show you on a map. Could you confirm the exact address
-> and share your location — the simplest way is to drop a pin on your building
-> in Google Maps and send me the "Share" link? Your public opening hours would
-> also be welcome. Thank you.*
+> Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> The address published for your Consulate is *Abau Hain Street, Hamdane Area,
+> Villa 130, Deira, P.O. Box 34464*. The street name matches no thoroughfare
+> known to mapping services — it most likely contains a typing error — so the
+> application cannot show you on a map.
+>
+> **Could you confirm the exact address and let me know where your offices
+> are?** The simplest way is to open Google Maps, drop a pin on the building,
+> then tap "Share" and send me the link.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Yours faithfully,
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
 
 ---
 
@@ -184,6 +294,7 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 
 **À :** dipnigkh@yahoo.com
 **Objet :** Localisation du consulat pour l'application Diaspo Niger
+**Subject:** Locating your Consulate for the Diaspo Niger application
 
 > Madame, Monsieur,
 >
@@ -208,6 +319,31 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 >
 > [VOTRE NOM]
 > [VOTRE FONCTION] — Diaspo Niger
+>
+> ---
+>
+> Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> The only address published for your Consulate is a post office box
+> (*P.O. Box 8245 Khartoum*), which identifies no building. I also note that
+> the published telephone and fax are the same number (*+249 18 347 1187*),
+> which may warrant a correction.
+>
+> **Could you give me the street address and the location of your offices?**
+> The simplest way is to open Google Maps, drop a pin on the building, then tap
+> "Share" and send me the link.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Yours faithfully,
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
 
 ---
 
@@ -215,6 +351,7 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 
 **À :** ambanikwt@yahoo.fr
 **Objet :** Localisation de la chancellerie pour l'application Diaspo Niger
+**Subject:** Locating your Chancery for the Diaspo Niger application
 
 > Excellence, Madame, Monsieur,
 >
@@ -239,6 +376,31 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 >
 > [VOTRE NOM]
 > [VOTRE FONCTION] — Diaspo Niger
+>
+> ---
+>
+> Your Excellency, Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> The address published for your Embassy is *P.O. Box 4451 Hawalli 32059*: a
+> post office box and a district name, from which the Chancery's location
+> cannot be deduced. The application therefore cannot show you on a map.
+>
+> **Could you give me the street address and the location of your offices?**
+> The simplest way is to open Google Maps, drop a pin on the building, then tap
+> "Share" and send me the link.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Please accept, Your Excellency, Dear Sir or Madam, the
+> assurance of my highest consideration.
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
 
 ---
 
@@ -246,6 +408,7 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 
 **À :** ambanigercaire@yahoo.fr
 **Objet :** Localisation de la chancellerie pour l'application Diaspo Niger
+**Subject:** Locating your Chancery for the Diaspo Niger application
 
 > Excellence, Madame, Monsieur,
 >
@@ -274,6 +437,34 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 >
 > [VOTRE NOM]
 > [VOTRE FONCTION] — Diaspo Niger
+>
+> ---
+>
+> Your Excellency, Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> The address published for your Embassy is *101 Pyramids Road, Giza*. The road
+> runs for several kilometres and mapping services do not locate the Chancery
+> along it, so the application cannot show you on a map.
+>
+> I also note that the **three published telephone numbers are not the same
+> length**, which suggests at least one contains a typing error.
+>
+> **Could you let me know where your offices are, and confirm your telephone
+> numbers?** For the location, the simplest way is to open Google Maps, drop a
+> pin on the building, then tap "Share" and send me the link.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Please accept, Your Excellency, Dear Sir or Madam, the
+> assurance of my highest consideration.
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
 
 ---
 
@@ -281,6 +472,7 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 
 **À :** ambanigerindia@yahoo.fr
 **Objet :** Localisation de la chancellerie pour l'application Diaspo Niger
+**Subject:** Locating your Chancery for the Diaspo Niger application
 
 > Excellence, Madame, Monsieur,
 >
@@ -307,13 +499,28 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 >
 > ---
 >
-> *English — Dear Sir or Madam, I develop* **Diaspo Niger**, *an independent
-> application for Nigeriens living abroad, which lists Niger's embassies and
-> consulates. The published address (53 Paschimi Marg, Vasant Vihar) cannot be
-> resolved by mapping services, so we cannot show your Embassy on a map. Could
-> you share your location — the simplest way is to drop a pin on your building
-> in Google Maps and send me the "Share" link? Your public opening hours would
-> also be welcome. Thank you.*
+> Your Excellency, Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> The address published for your Embassy is *53 Paschimi Marg, Vasant Vihar*.
+> Mapping services cannot resolve it, so the application cannot show you on a
+> map.
+>
+> **Could you let me know where your offices are?** The simplest way is to open
+> Google Maps, drop a pin on the building, then tap "Share" and send me the
+> link.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Please accept, Your Excellency, Dear Sir or Madam, the
+> assurance of my highest consideration.
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
 
 ---
 
@@ -321,6 +528,7 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 
 **À :** middahmaimouna@yahoo.fr
 **Objet :** Localisation de la chancellerie pour l'application Diaspo Niger
+**Subject:** Locating your Chancery for the Diaspo Niger application
 
 > Excellence, Madame, Monsieur,
 >
@@ -349,6 +557,36 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 >
 > [VOTRE NOM]
 > [VOTRE FONCTION] — Diaspo Niger
+>
+> ---
+>
+> Your Excellency, Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> The address published for your Embassy is *1-21 San Li Tun Diplomatic
+> Compound, Beijing 100600*. Mapping services cannot resolve it, so the
+> application cannot show you on a map.
+>
+> May I also point out that the email address the Ministry publishes for your
+> mission — the one I am writing to — appears to be a **personal mailbox rather
+> than an institutional one**, which would make it unusable after a posting
+> change.
+>
+> **Could you let me know where your offices are?** The simplest way is to open
+> Google Maps, drop a pin on the building, then tap "Share" and send me the
+> link.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Please accept, Your Excellency, Dear Sir or Madam, the
+> assurance of my highest consideration.
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
 
 ---
 
@@ -356,6 +594,7 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 
 **À :** aambassadeniger@yahoo.fr
 **Objet :** Localisation de la chancellerie pour l'application Diaspo Niger
+**Subject:** Locating your Chancery for the Diaspo Niger application
 
 > Excellence, Madame, Monsieur,
 >
@@ -383,6 +622,34 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 >
 > [VOTRE NOM]
 > [VOTRE FONCTION] — Diaspo Niger
+>
+> ---
+>
+> Your Excellency, Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates so that our compatriots can
+> contact you and find their way to your offices.
+>
+> The address published for your Embassy is *Sector 7, A4, Avenue Al Haour, Hay
+> Riad*. Mapping services cannot locate the Chancery from it, so the
+> application cannot show you on a map.
+>
+> I also note that the **published fax number is incomplete**
+> (*+212 537 56 68*, two digits missing).
+>
+> **Could you let me know where your offices are, and send me the full fax
+> number?** For the location, the simplest way is to open Google Maps, drop a
+> pin on the building, then tap "Share" and send me the link.
+>
+> If you have a moment, your **public opening hours** would usefully complete
+> the entry.
+>
+> Thank you in advance. Please accept, Your Excellency, Dear Sir or Madam, the
+> assurance of my highest consideration.
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
 
 ---
 
@@ -395,6 +662,7 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 > identifiée à ce jour.
 
 **Objet :** Coordonnées de l'ambassade du Niger à Cuba — fiche vide sur le site du ministère
+**Subject:** Contact details for the Embassy of Niger in Cuba — entry empty on the Ministry's website
 
 > Madame, Monsieur,
 >
@@ -417,6 +685,28 @@ indépendante, et le dire évite un malentendu qui coûterait la réponse.
 >
 > [VOTRE NOM]
 > [VOTRE FONCTION] — Diaspo Niger
+>
+> ---
+>
+> Dear Sir or Madam,
+>
+> I develop **Diaspo Niger**, an independent application for Nigeriens living
+> abroad. It lists Niger's embassies and consulates from the information your
+> Ministry publishes.
+>
+> May I point out that the entry for the **Embassy of Niger in Cuba**, on the
+> "Les ambassades" page of diplomatie.gouv.ne, contains **no information at
+> all**: telephone, fax, email and postal address all read "--". The mission is
+> therefore listed, yet no Nigerien in Cuba has any means of contacting it.
+>
+> **Could you send me its contact details, or let me know whether the mission
+> is no longer operating?** In the latter case, it would help to know which
+> mission covers Cuba.
+>
+> Thank you in advance. Yours faithfully,
+>
+> [YOUR NAME]
+> [YOUR ROLE] — Diaspo Niger
 
 ---
 
