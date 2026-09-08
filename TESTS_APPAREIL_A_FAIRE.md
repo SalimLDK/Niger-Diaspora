@@ -497,8 +497,46 @@ hostname, errno = 7)))
       compte ou le nom de l'exception ressortent ; `aucune_erreur_brute_test.dart`
       relit tout `lib/` et échoue si quelqu'un réintroduit le motif.
 
-- [ ] Voir un de ces états sur appareil, réseau coupé — par exemple
-      l'annuaire, qui reste le plus simple à provoquer.
+**Essayé sur SM A515F le 2026-09-08, et voici ce qui s'est réellement passé.**
+
+- [x] **L'écran d'erreur neutre a été vu, et il était FAUX.** Cache vidé par
+      la réinstallation + mode avion : `construireEcranErreurNeutre` s'est
+      affiché. Le message était bon — plus d'hôte Supabase ni d'identifiant
+      de compte — mais le texte était peint **en chasse fixe, doublement
+      souligné de jaune**. C'est le style de secours de Flutter : un
+      `ErrorWidget` n'a aucun `Material` au-dessus de lui, donc rien ne
+      fournit de `DefaultTextStyle`, et fixer couleur et taille ne suffit
+      pas. Corrigé (`DefaultTextStyle` posé dans le widget) et épinglé par un
+      cas de test. **Aucun test ne pouvait le voir** : ils ne regardaient que
+      les couleurs, et le rendu rasterisé utilise une police de test.
+
+- [ ] ⛔ **`messageErreurUsager` n'a PAS pu être vu sur appareil.** Ni l'un ni
+      l'autre des deux états atteignables ne le déclenche :
+
+      - cache peuplé + hors ligne → la copie locale est servie, pas d'erreur ;
+      - cache vide + hors ligne → **attente infinie**, voir ci-dessous.
+
+      À reprendre par un écran sans repli local. `Annuaire Business` a été
+      essayé : il dégrade en état vide, pas en erreur.
+
+**🆕 Hors ligne avec un cache vide, l'annuaire tourne indéfiniment.** Spinner
+toujours présent après 85 s, sans message ni bouton. Le journal en donne la
+cause : `SupabaseAuthBridge` réessaie le rafraîchissement du jeton **en
+boucle, toutes les ~5 s, sans jamais abandonner** —
+
+```
+supabase.auth: WARNING: Notifying exception AuthRetryableFetchException(
+  message: ClientException with SocketException: Failed host lookup: …
+  uri=…/auth/v1/token?grant_type=refresh_token)
+SupabaseAuthBridge: [firebase_auth/network-request-failed] …
+```
+
+— et l'annuaire attend derrière. C'est le cas du premier lancement hors ligne
+après installation, donc celui d'un usager qui installe l'app dans le train.
+
+- [ ] Borner les tentatives de `SupabaseAuthBridge` (nombre ou délai) et
+      laisser l'écran retomber sur son état d'erreur ou son état vide plutôt
+      que de tourner sans fin.
 - [x] **Corrigé et vu sur SM A515F (2026-09-08).** Le repli joue :
       réseau coupé, l'annuaire sert ses 30 postes depuis la copie locale
       (vérifié à 11h52, 12h25 et 02h00, sans réinstaller entre-temps). Ce

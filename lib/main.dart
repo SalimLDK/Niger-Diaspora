@@ -61,7 +61,18 @@ Widget construireEcranErreurNeutre(FlutterErrorDetails details) {
 
   return Directionality(
     textDirection: TextDirection.ltr,
-    child: ColoredBox(
+    // Sans `DefaultTextStyle`, Flutter peint le texte avec son style de
+    // secours : chasse fixe et double soulignement jaune. Vu tel quel sur
+    // SM A515F le 2026-09-08 — les couleurs etaient bonnes, le rendu non.
+    // Un `ErrorWidget` n'a par definition aucun `Material` au-dessus de lui,
+    // donc rien ne fournit ce style : il faut le poser ici.
+    child: DefaultTextStyle(
+      style: TextStyle(
+        color: texte,
+        decoration: TextDecoration.none,
+        fontFamily: null,
+      ),
+      child: ColoredBox(
       color: fond,
       child: Center(
         child: Padding(
@@ -96,6 +107,7 @@ Widget construireEcranErreurNeutre(FlutterErrorDetails details) {
             ),
           ),
         ),
+      ),
       ),
     ),
   );
