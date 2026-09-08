@@ -10281,10 +10281,22 @@ ambassade.
 - [ ] ⚠️ **Débordement en paysage, clavier ouvert** (`embassies_screen.dart`,
       vu sur Pixel 10 Pro XL le 2026-09-08) : dès que le clavier s'ouvre sur la
       recherche de l'annuaire en **paysage**, un bandeau
-      « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ. Non
-      corrigé : l'écran est en cours de modification par ailleurs, et le défaut
-      est indépendant des coordonnées. Même famille que le panneau ancré des
-      messages — le clavier prend la place, la colonne ne se recompose pas.
+      « BOTTOM OVERFLOWED BY 69 PIXELS » barre l'écran sous le champ.
+      *Corrigé le 2026-09-08 — et ce n'était **pas** la famille du panneau
+      ancré des messages.* Aucun inset périmé, aucune animation, rien à relire
+      dans `View.of(context)` : la `Column` posait le champ, la carte « le plus
+      proche » et la ligne de comptage en hauteur fixe au-dessus d'un
+      `Expanded`. Le clavier en paysage ne laisse que **42 dp** de `body`
+      (392 dp d'écran à la densité forcée 440, moins la barre d'état,
+      l'`AppBar` et 266 dp de Gboard) là où le seul champ en fait 60 à
+      l'échelle de police 1.3 du testeur : l'`Expanded` tombait à 0 et le
+      contenu fixe débordait du reste. Les deux chiffres constatés se
+      recoupent — 69 px la carte masquée (recherche en cours), **188 px** carte
+      affichée, reproduit ici. L'en-tête est devenu défilant
+      (`CustomScrollView`), ce qui supprime la contrainte au lieu de l'ajuster :
+      aucune hauteur seuil ne tiendrait, elle dépend de l'échelle de police et
+      du clavier. Banc : `test/features/embassies/annuaire_clavier_paysage_test.dart`,
+      aux métriques relevées à l'adb (rouge à 54 px / 67 px avant correctif).
 
 ⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
 sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
