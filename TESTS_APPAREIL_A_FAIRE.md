@@ -99,8 +99,9 @@ elles le sont uniquement en entrée directe. Correctif mécanique mais large
       recommandés. C'est la dimension que les Réglages embarquaient déjà.
       Atteinte du premier coup lors du test, mais avec un tap `adb` au pixel
       près — pas au pouce.
-- [ ] Les Réglages, dont la flèche a changé d'implémentation, reviennent
-      toujours (entrée depuis Profil **et** depuis la Carte).
+- [x] Les Réglages, dont la flèche est passée sur la brique partagée,
+      affichent bien leur flèche (entrée depuis Profil, vue le 2026-09-08).
+      Entrée depuis la Carte non retestée.
 
 ---
 
