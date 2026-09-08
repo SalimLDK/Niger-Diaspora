@@ -177,14 +177,41 @@ suit n'a été vu sur un téléphone.
       'zyrfkcjjrhddpfxcgezo.supabase.co', uri=.../rest/v1/users?select=%2A&id=eq.<uid>)
       ```
 
-      ⚠️ **La source de cette levée n'est PAS identifiée.** Ce n'est ni
-      `administrative_request_screen.dart` (ses 4 `.value` sont corrigés), ni
-      `embassies_provider.dart` (corrigé en `fd0735e`), ni
-      `embassy_detail_screen.dart` (aucun `.value` sur un AsyncValue). Elle
-      vient d'ailleurs sur le chemin de `userStreamProvider`. À chercher avant
-      de conclure quoi que ce soit sur le repli — et c'est un défaut à part
-      entière : **l'hôte Supabase et l'identifiant du compte s'affichent à
-      l'usager**.
+      **Pourquoi elle était introuvable — et c'est le vrai enseignement.**
+      `main.dart` posait `FlutterError.onError =
+      FirebaseCrashlytics.instance.recordFlutterError` **sans condition**.
+      Cette affectation remplace le gestionnaire par défaut de Flutter :
+      aucune pile d'exception ne sortait donc jamais, ni dans `flutter run`
+      ni dans logcat. Un écran rouge s'affichait sans le moindre indice sur
+      son origine. Corrigé : en `kDebugMode`, on appelle aussi
+      `FlutterError.presentError(details)` avant de transmettre à Crashlytics.
+
+      **Ce que l'instrumentation a montré.** Toutes les défaillances hors
+      ligne remontent à `ProfileSupabaseDataSource.getProfile`
+      (`profile_supabase_datasource.dart:117`), atteinte par plusieurs
+      chemins concurrents au démarrage :
+
+      - `LocationPublisherService.start` (`location_publisher_service.dart:115`)
+        → `_initServicesSecondaires` (`main.dart:160` et `:185`) ;
+      - `ProfileSupabaseDataSource.updateLastLogin` (`:353`) ;
+      - la sauvegarde du jeton FCM et `OnlineStatusService`.
+
+      Toutes ces voies-là **sont traitées** : elles journalisent un
+      avertissement et n'affichent rien. Aucune `EXCEPTION CAUGHT BY` n'est
+      apparue pendant la campagne instrumentée.
+
+      ⚠️ **L'écran rouge est donc INTERMITTENT, pas déterministe** : sur la
+      session instrumentée, le même parcours a rendu l'écran des démarches
+      correctement (capture à 01:17). C'est une course entre l'état du
+      provider de profil et la lecture qui n'en tolère pas l'erreur, pas un
+      chemin de code fixe.
+
+- [ ] Reproduire l'écran rouge **avec l'instrumentation active** pour obtenir
+      la ligne exacte. C'est maintenant possible : la pile s'imprime. Il faut
+      surtout gagner la course — relancer plusieurs fois hors ligne, l'app
+      restant par ailleurs souvent bloquée au splash dans ces conditions.
+- [ ] Indépendamment : **ne pas exposer l'hôte Supabase ni l'identifiant du
+      compte** dans un message d'erreur visible par l'usager.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
       liste embarquée, pas un spinner ni une erreur. (Même blocage que
       ci-dessus.)
