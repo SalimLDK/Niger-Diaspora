@@ -9855,19 +9855,33 @@ officielle (Paris/UNESCO et Kano). Le script est rejouable :
       de filtres les fait bien disparaître/réapparaître.
 - [ ] **Le tap sur un pin** ouvre la fiche flottante (nom, adresse, tél, mail,
       services) et « Voir la fiche complète » mène au détail.
-- [ ] **Le bouton « voir sur la carte » du détail** est désormais visible sur
-      les 21 postes placés — et toujours masqué sur les 11 autres.
+- [x] **Le bouton « Y aller » du détail** (et « Itinéraire » sur la carte de
+      liste) est actif sur les 21 postes placés, absent sur les 11 autres.
+      *Vérifié sur Pixel 10 Pro XL le 2026-09-08, sans réinstaller l'app :
+      les coordonnées viennent de la base, l'APK en place suffit. Alger →
+      « Appeler / Itinéraire / Détails » et « Y aller » actif sur la fiche ;
+      Le Caire → « Appeler / Détails » seulement.*
 - [ ] **Écart à confirmer auprès du poste** : Copenhague (OSM place
       l'ambassade Rosbaeksvej/Østerbro, l'annuaire publie « Niels Juels Gade
       5 » — 5,1 km) et Dakar (OSM « Voie de Dégagement Nord, Point E » contre
       « 8 avenue Léopold Sédar Senghor » — 5,2 km). Position OSM retenue : le
       nœud porte le nom du poste. À trancher par un appel ou une photo.
-- [ ] **11 postes restent sans pin** (Addis-Abeba, Le Caire, Rabat, La Havane,
-      Doha, Koweït, New Delhi, Djeddah, Dubaï, Khartoum, Pékin) : vérifier
-      qu'ils restent bien **visibles dans la liste** avec leur adresse, et
-      qu'ils ne se retrouvent pas au point (0, 0) dans le golfe de Guinée.
+- [x] **11 postes restent sans pin** (Addis-Abeba, Le Caire, Rabat, La Havane,
+      Doha, Koweït, New Delhi, Djeddah, Dubaï, Khartoum, Pékin) : ils restent
+      **visibles dans la liste**, regroupés sous « Autres », avec leur adresse
+      — vu sur le Pixel le 2026-09-08. Aucun ne tombe au point (0, 0) : le
+      modèle ne convertit plus `null` en `0.0`.
       Addis-Abeba est volontairement laissé de côté : OSM n'y cartographie que
       la **résidence** de l'ambassadeur, pas la chancellerie.
+- [ ] **Regroupement par zone, corrigé dans la foulée** (`ZoneGeographique`,
+      testé à froid) : Alger s'affichait sous **Europe** (constaté sur le
+      Pixel : « Europe · 9 » contenait l'Algérie) et Riyad serait tombé en
+      **Afrique**. Vérifier sur appareil, **après réinstallation**, qu'Alger
+      est sous Afrique, Riyad sous Asie, Ankara sous Europe. ⚠️ En anglais, le
+      repli des postes sans coordonnées valait « Others » alors que l'écran
+      n'affiche que les zones de sa liste française : **les 11 postes sans
+      coordonnées disparaissaient de l'annuaire en anglais** (le compteur, lui,
+      les comptait). À revérifier en basculant la langue du téléphone.
 
 ⚠️ Découverte au passage, non corrigée : **aucune API Google Maps n'est activée
 sur le projet Cloud** hormis le SDK de la carte. `Geocoding API`, `Places API`
