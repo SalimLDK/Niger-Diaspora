@@ -666,9 +666,38 @@ après installation, donc celui d'un usager qui installe l'app dans le train.
       ses cas mettent exactement 10 s, avec un distant qui ne rend jamais la
       main.
 
-- [ ] Reproduire le cas où `isConnected` **ment** (VPN persistant actif, qui
-      le fait rendre `true` hors ligne) pour voir le délai jouer sur
-      l'appareil. C'est la configuration qui avait produit le spinner.
+**Cas du « réseau menteur » reproduit le 2026-09-08 — et le délai NE SUFFIT
+PAS.** C'est le résultat important de la journée sur ce point.
+
+*Comment le fabriquer* (utile, la condition est difficile à obtenir autrement) :
+DNS privé en mode strict vers un hôte inexistant. Le WiFi reste `CONNECTED`,
+donc `connectivity_plus` voit son transport et `isConnected` rend `true`, mais
+toute résolution meurt.
+
+```bash
+adb shell settings put global private_dns_mode hostname
+adb shell settings put global private_dns_specifier dns-inexistant.invalid
+# vérification : `ping <hôte>` doit répondre « unknown host »
+# restauration OBLIGATOIRE :
+adb shell settings put global private_dns_mode opportunistic
+adb shell settings delete global private_dns_specifier
+```
+
+*Ce qu'on observe* : l'annuaire tourne encore à 6 s, à 16 s, **et à 60 s** —
+alors que le délai du dépôt est de 10 s.
+
+*Hypothèse de tête, à confirmer* : `embassiesList` observe
+`currentUserAsyncProvider` **et** `userStreamProvider`. Chaque tentative du
+pont d'authentification fait réémettre ces flux, donc reconstruit le provider
+et **redémarre le compte à rebours** avant qu'il n'arrive à terme. Le délai
+borne bien *une* tentative — c'est ce que prouve
+`annuaire_repli_hors_ligne_test.dart` — mais il ne peut rien contre un
+provider qu'on relance sans cesse.
+
+- [ ] Vérifier cette hypothèse (journaliser les reconstructions de
+      `embassiesList`), puis traiter la cause : ne pas faire dépendre la
+      liste de flux d'authentification qui s'agitent pendant une panne, ou
+      mémoriser le premier résultat plutôt que tout rejouer.
 
 - [ ] La reprise au retour du réseau (`reprendreApresRetourReseau`) n'est
       **pas vérifiée sur appareil**. Un premier essai a montré qu'elle ne
