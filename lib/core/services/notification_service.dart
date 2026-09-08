@@ -567,7 +567,7 @@ Future<void> _showFallbackMessageNotification({
         // (`@mipmap/ic_launcher`), que la barre d'état réduit à un disque
         // blanc — vérifié à l'écran le 2026-08-06.
         icon: '@drawable/ic_stat_notification',
-        color: AppColors.primary,
+        color: AppColors.notificationAccent,
         actions: kNotificationQuickActionsEnabled
             ? <AndroidNotificationAction>[
                 AndroidNotificationAction(
@@ -1997,7 +1997,7 @@ class NotificationService {
                   ? Priority.low
                   : Priority.defaultPriority,
           icon: '@drawable/ic_stat_notification',
-          color: AppColors.primary,
+          color: AppColors.notificationAccent,
           colorized: true,
           playSound: soundEnabled,
           enableVibration: vibrationEnabled,
@@ -2262,7 +2262,7 @@ class NotificationService {
           importance: importance,
           priority: Priority.high,
           icon: '@drawable/ic_stat_notification',
-          color: AppColors.primary,
+          color: AppColors.notificationAccent,
           colorized: true,
           playSound: soundEnabled,
           enableVibration: vibrationEnabled,
@@ -2885,7 +2885,7 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@drawable/ic_stat_notification',
-          color: AppColors.primary,
+          color: AppColors.notificationAccent,
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,
@@ -2915,6 +2915,7 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@drawable/ic_stat_notification',
+          color: AppColors.notificationAccent,
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,
