@@ -100,11 +100,17 @@ class _AdministrativeRequestScreenState
   }
 
   void _preFillFromProfile() {
-    final user = ref.read(currentUserAsyncProvider).value;
+    // `valueOrNull`, jamais `.value` : sur un AsyncValue en erreur, `.value`
+    // RELEVE l'erreur au lieu de rendre null. Hors ligne,
+    // `userStreamProvider` echoue (lecture Supabase `users`), et comme cet
+    // appel part d'`initState` la levee se produit avant tout rendu -- ecran
+    // rouge, sans que le `when` du catalogue soit meme atteint. Vu sur
+    // SM A515F le 2026-09-07, mode avion.
+    final user = ref.read(currentUserAsyncProvider).valueOrNull;
     if (user == null) return;
 
     final profileAsync = ref.read(userStreamProvider(user.id));
-    final profile = profileAsync.value;
+    final profile = profileAsync.valueOrNull;
 
     if (profile != null) {
       setState(() {
@@ -138,11 +144,14 @@ class _AdministrativeRequestScreenState
     setState(() => _isLoading = true);
 
     try {
-      final user = ref.read(currentUserAsyncProvider).value;
+      // Meme raison qu'en pre-remplissage : `.value` releverait l'erreur du
+      // provider au lieu de rendre null, et l'envoi echouerait sur une panne
+      // de lecture de profil plutot que sur l'ecriture elle-meme.
+      final user = ref.read(currentUserAsyncProvider).valueOrNull;
       if (user == null) throw Exception(l10n.userNotLoggedIn);
 
       final profileAsync = ref.read(userStreamProvider(user.id));
-      final profile = profileAsync.value;
+      final profile = profileAsync.valueOrNull;
 
       // Le catalogue est forcément résolu ici : le formulaire n'est rendu
       // qu'une fois chargé. Le `?.` couvre le cas théorique d'une invalidation

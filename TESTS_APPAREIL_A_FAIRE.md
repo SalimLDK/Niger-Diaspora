@@ -66,10 +66,11 @@ suit n'a été vu sur un téléphone.
 - [x] **Origine serveur vue sur SM A515F (2026-09-07).** Le pied affiche la
       source et « consultée le 2026-09-07 », **sans** mention d'origine hors
       ligne : la chaîne Supabase répond donc de bout en bout sur l'appareil.
-- [ ] ⛔ **Origine hors ligne : NON VÉRIFIABLE aujourd'hui.** Réseau coupé,
-      l'écran des ambassades tombe en erreur (voir la section « Annuaire »
-      ci-dessous) et plus aucun chemin ne mène à l'écran des démarches. À
-      refaire une fois l'annuaire corrigé.
+- [ ] ⛔ **Origine hors ligne : toujours pas vérifiée.** L'écran des
+      démarches ne tombe plus lui-même (ses 4 `.value` sont corrigés), mais
+      l'annuaire reste son unique chemin d'accès et lui tombe encore hors
+      ligne pour la même raison — voir la section « Annuaire » ci-dessous. À
+      refaire dès que ses lignes 56 et 63 seront traitées.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
       liste embarquée, pas un spinner ni une erreur. (Même blocage que
       ci-dessus.)
@@ -148,23 +149,34 @@ hostname, errno = 7)))
       lecture. Un canal realtime injoignable ne devrait pas empêcher
       d'afficher la copie locale.
 
-**3. Hors ligne, l'annuaire reste vide même après un chargement réussi.**
-Deuxième essai le 2026-09-07, APK reconstruit après la correction `01353ac`,
-téléphone en mode avion : l'écran n'affiche plus l'exception brute (bien) mais
-« Aucune ambassade disponible » — pas la copie locale, alors que les 30 postes
-s'étaient affichés quelques minutes plus tôt sur le même appareil.
+**3. La vraie cause du n°2 : `.value` sur un `AsyncValue` en erreur.**
+Le cas propre a été refait le 2026-09-08 (chargement en ligne, **sans
+réinstaller**, puis mode avion). Deux constats.
 
-⚠️ **Réserve : ce constat n'est pas concluant seul.** L'APK avait été
-réinstallé entre les deux, et je n'ai pas vérifié que la copie locale avait
-survécu à la réinstallation — le cache peut légitimement être vide. Le cas
-propre reste à faire : charger la liste en ligne, **sans réinstaller**, puis
-couper le réseau et rouvrir.
+D'abord, un piège de méthode : **`adb install -r` vide la copie locale**.
+Mon premier essai « hors ligne » avait été fait juste après une
+réinstallation, donc sur un cache vide — d'où le « Aucune ambassade
+disponible » que j'avais pris pour un défaut. Ce n'en était pas un. Sans
+réinstaller, l'annuaire sert bien ses 30 postes hors ligne.
 
-- [ ] Refaire ce cas proprement, et si la liste est bien vide alors qu'elle
-      venait d'être mise en cache, chercher du côté de
-      `EmbassiesRepositoryImpl` : sa branche hors ligne renvoie `[]` dès que
-      `getLastEmbassies()` lève, et un `[]` ne se distingue pas d'une base
-      vide à l'écran. C'est la même mise en scène que le défaut n°1.
+Ensuite le vrai défaut. `embassies_provider.dart` lignes 56 et 63 font
+`userAsync.value` et `profileAsync.value` sur des providers **observés**. En
+Riverpod 2, `AsyncValue.value` **relève** l'erreur au lieu de rendre `null`
+quand l'état est `AsyncError`. Hors ligne, la lecture Supabase `users` échoue,
+la levée remonte, et tout l'annuaire tombe — en affichant l'hôte Supabase et
+l'identifiant du compte, alors que la copie locale attendait juste en dessous.
+
+Le même défaut existait dans `administrative_request_screen.dart` (4
+occurrences, dont deux dans `initState`, donc levée avant tout rendu) : **il y
+est corrigé**, `.value` → `.valueOrNull`.
+
+- [ ] Corriger les lignes 56 et 63 de `embassies_provider.dart`. ⚠️ J'ai
+      essayé et **je suis revenu en arrière** : passer à `valueOrNull` laisse
+      le code atteindre `repository.getEmbassies()`, qui attend l'expiration
+      du délai réseau — l'écran reste alors en **attente indéfinie** (plus de
+      70 s constatées), sans message ni bouton « Réessayer ». Ce n'est pas
+      mieux qu'une erreur. La correction doit traiter les deux bouts : ne plus
+      relever, **et** ne pas partir sur le réseau quand il n'y en a pas.
 
 ---
 
