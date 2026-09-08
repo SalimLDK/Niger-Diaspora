@@ -23,7 +23,7 @@ import '../../features/groups/presentation/screens/groups_screen.dart';
 import '../../features/groups/presentation/screens/group_detail_screen.dart';
 import '../../features/groups/presentation/screens/create_group_screen.dart';
 import '../../features/groups/presentation/screens/groups_map_screen.dart';
-import '../../features/groups/presentation/screens/edit_group_screen.dart';
+import '../../features/groups/presentation/screens/group_edit_route.dart';
 import '../../features/groups/domain/entities/group_entity.dart';
 import '../../features/groups/presentation/screens/group_members_screen.dart';
 import '../../features/groups/presentation/screens/group_requests_screen.dart';
@@ -48,8 +48,7 @@ import '../../features/feed/presentation/screens/follows_screen.dart';
 import '../../features/events/presentation/screens/events_screen.dart';
 import '../../features/events/presentation/screens/create_event_screen.dart';
 import '../../features/events/presentation/screens/event_detail_screen.dart';
-import '../../features/events/presentation/screens/edit_event_screen.dart';
-import '../../features/events/presentation/screens/event_recap_screen.dart';
+import '../../features/events/presentation/screens/event_edit_routes.dart';
 import '../../features/events/domain/entities/event_entity.dart';
 import '../../features/polls/presentation/screens/poll_results_screen.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
@@ -458,15 +457,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/events/:eventId/edit',
         builder: (context, state) {
-          final event = state.extra as EventEntity;
-          return EditEventScreen(event: event);
+          // `state.extra as EventEntity` — vers un type NON nullable —
+          // levait un `TypeError` par lien profond et par notification, où
+          // `extra` est nul par construction. L'identifiant, lui, est
+          // toujours là. La garde d'organisateur est dans `EventEditRoute` :
+          // `EditEventScreen` n'en a aucune.
+          final eventId = state.pathParameters['eventId']!;
+          final extra = state.extra;
+          return EventEditRoute(
+            eventId: eventId,
+            initialEvent: extra is EventEntity ? extra : null,
+          );
         },
       ),
       GoRoute(
         path: '/events/:eventId/recap',
         builder: (context, state) {
-          final event = state.extra as EventEntity;
-          return EventRecapScreen(event: event);
+          // Même cast non nullable, même plantage.
+          final eventId = state.pathParameters['eventId']!;
+          final extra = state.extra;
+          return EventRecapRoute(
+            eventId: eventId,
+            initialEvent: extra is EventEntity ? extra : null,
+          );
         },
       ),
       // Groups routes
@@ -504,8 +517,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/groups/:groupId/edit',
         builder: (context, state) {
-          final group = state.extra as GroupEntity;
-          return EditGroupScreen(group: group);
+          // Même cast non nullable que les deux routes d'événement. La garde
+          // créateur/administrateur est dans `GroupEditRoute` :
+          // `EditGroupScreen` n'en a aucune.
+          final groupId = state.pathParameters['groupId']!;
+          final extra = state.extra;
+          return GroupEditRoute(
+            groupId: groupId,
+            initialGroup: extra is GroupEntity ? extra : null,
+          );
         },
       ),
       GoRoute(

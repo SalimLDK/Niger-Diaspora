@@ -14,6 +14,89 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)
+
+Même famille que la fiche d'ambassade ci-dessous, mais en plus brutal : là où
+`/embassies/:id` faisait un `!`, ces trois-là transtypaient `state.extra` vers
+un type **non nullable**, donc `TypeError` avant même le montage de l'écran.
+
+- `/events/:eventId/edit` — `state.extra as EventEntity`
+- `/events/:eventId/recap` — idem
+- `/groups/:groupId/edit` — `state.extra as GroupEntity`
+
+Les routes résolvent maintenant l'identifiant (`EventEditRoute`,
+`EventRecapRoute`, `GroupEditRoute`), et l'état sans contenu passe par une
+brique partagée, `DesignUnavailableBody` (design_kit), que la fiche
+d'ambassade utilise aussi désormais.
+
+⚠️ **La vraie question n'était pas le plantage.** `EditEventScreen` et
+`EditGroupScreen` n'ont **aucune** vérification d'autorisation : elles
+faisaient confiance à leur appelant, dont le bouton est masqué derrière
+`isOrganizer` / `isCreator || isAdmin`. Un lien profond court-circuite cet
+appelant — résoudre l'identifiant sans garde aurait donc ouvert le formulaire
+d'édition de l'événement ou du groupe de n'importe qui. Le plantage, lui,
+fermait la porte. La garde est portée par les routes, repli superAdmin sur les
+groupes officiels compris, et couverte par 11 tests widget.
+
+- [x] Les trois liens profonds, **en ligne** : plus aucune exception dans
+      logcat ; chacun aboutit à « Chargement impossible » avec « Réessayer »
+      et sa sortie nommée, en thème sombre.
+- [x] `/groups/:groupId/edit` en **mode avion** : même écran, après ~3 min
+      (le temps que `getGroupById` renonce).
+- [ ] Un lien vers l'édition d'un événement/groupe **dont on n'est pas
+      organisateur/administrateur** : doit afficher « Modification réservée
+      à … ». Couvert en test widget, jamais sur appareil — il faudrait un
+      identifiant réel appartenant à quelqu'un d'autre.
+- [ ] Le parcours normal (bouton « modifier » depuis la fiche) : à rejouer,
+      pour confirmer que la garde ne gêne pas l'ayant droit.
+
+⚠️ **Trouvé au passage, corrigé** : `EditEventScreen._currentPosterUrls` est
+`late` et n'était **jamais assigné**, alors qu'il est lu dès le premier
+`build` (« Gérer les affiches (n/5) »). L'écran levait donc un
+`LateInitializationError` à **chaque** ouverture, y compris par le bouton
+« modifier » — modifier un événement était impossible pour tout le monde.
+Aucun test ne montait cet écran ; il est apparu à la première tentative.
+À rejouer sur appareil sur un vrai événement.
+
+✅ **Tranché le 2026-09-08 : le récap est réservé à l'organisateur.**
+`EventRecapScreen` est un **formulaire** (« Créer / Modifier le récap »,
+description, dix photos, bouton d'enregistrement) sans mode lecture, et
+l'accueil l'ouvrait pour tout le monde dès qu'un événement passé avait des
+photos — n'importe qui pouvait donc réécrire le récapitulatif de l'événement
+d'autrui. `EventRecapRoute` porte désormais la même garde que l'édition.
+
+Deux précautions pour que la garde ne retire rien à personne :
+- la sortie mène à `/events/:eventId`, **pas** à la liste : la fiche affiche
+  déjà le récapitulatif (description + grille de photos), donc un
+  non-organisateur voit toujours ce qu'il voyait ;
+- la carte « rien de prévu » de l'accueil (`home_screen_widgets.dart`)
+  n'envoie plus au formulaire que l'organisateur ; les autres vont à la fiche.
+  Sans ça, la pastille « Photos » aurait mené tout le monde contre un mur.
+
+- [ ] Vérifier sur appareil qu'un non-organisateur voit bien « Récap réservé
+      à l'organisateur », et que « Voir l'événement » l'amène aux photos.
+      **Impossible cette session : la base ne contient aucun événement**
+      (« Aucun événement à venir », onglet Passés vide). Couvert par 4 tests
+      widget, vérifiés par mutation.
+- [ ] Vérifier que l'organisateur, lui, atteint toujours le formulaire.
+
+⚠️ **Trouvé en vérifiant ça, non corrigé** : la carte de l'accueil est le
+**seul** chemin vers le récapitulatif, et elle ne s'y rend que si
+`recapPhotoUrls.isNotEmpty`. Un organisateur dont l'événement passé n'a pas
+encore de photos n'a donc **aucun moyen d'en créer un** — l'écran porte
+pourtant un mode « Créer » (`eventCreateRecap`, `eventRecapCreateButton`).
+Il manque une entrée depuis la fiche de l'événement. Antérieur à la garde.
+
+⚠️ **Piège de méthode, revu deux fois aujourd'hui** : après avoir supprimé des
+clés ARB, l'APK incrémental gardait l'ancien code compilé — la route affichait
+l'écran d'erreur neutre, sans **aucune** trace dans logcat (`presentError` est
+noyé par le bruit Supabase hors ligne). Deux reproductions à froid et un test
+témoin sur une route non modifiée ont été nécessaires avant de penser au
+`flutter clean`, qui a tout réglé. md5 local == md5 appareil ne prouve rien
+ici : les deux portaient le même APK périmé.
+
+---
+
 ## ✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)
 
 `/embassies/:id` ne lisait que `state.extra` et terminait par
@@ -38,9 +121,11 @@ munis d'une sortie (`DesignExitOnlyBody` + bouton « Retour à l'annuaire »).
       impossible » avec « Réessayer » **et** « Retour à l'annuaire », en
       thème sombre. Pas « Fiche introuvable » — c'est voulu : hors ligne on
       ignore si la fiche existe, l'affirmer serait faux.
-- [ ] Identifiant inconnu **en ligne** : doit afficher « Fiche introuvable »
-      (et non « Chargement impossible »). Jamais vu sur appareil — le
-      téléphone était en mode avion pendant toute la session.
+- [x] Identifiant inconnu **en ligne** : affiche bien « Fiche introuvable »
+      (et non « Chargement impossible »), avec « Retour à l'annuaire » pour
+      seule action — vérifié SM A515F le 2026-09-08, réseau rétabli. Pas de
+      bouton « Réessayer », et c'est voulu : une fiche absente ne se recharge
+      pas.
 - [ ] Bouton « détails » de la fiche d'ambassade **sur la carte** : c'est le
       second chemin qui plantait, corrigé par ricochet mais jamais rejoué à
       la main sur appareil.

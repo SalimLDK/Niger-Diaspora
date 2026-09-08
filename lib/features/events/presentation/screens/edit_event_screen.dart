@@ -80,6 +80,16 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
       );
     }
     _isOnline = widget.event.isOnline;
+
+    // Jamais assigne jusqu'ici, alors que le champ est `late` et lu des le
+    // premier `build` (« Gerer les affiches (n/5) ») : l'ecran levait un
+    // LateInitializationError a **chaque** ouverture, y compris par le bouton
+    // « modifier » de la fiche. Modifier un evenement etait donc impossible
+    // pour tout le monde. Trouve en montant l'ecran en test widget, le
+    // 2026-09-08 -- aucun test ne l'avait jamais monte.
+    //
+    // Copie, pas la liste du modele : `_removePoster` fait `removeAt` dessus.
+    _currentPosterUrls = List<String>.from(widget.event.posterUrls);
   }
 
   @override
