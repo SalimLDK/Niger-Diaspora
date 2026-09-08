@@ -14,6 +14,44 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Rappel des clés : « Ne plus me le rappeler » et le bandeau de conversation (2026-09-08)
+
+Deux bandeaux répétaient le même message et un seul savait se taire. Celui de
+`MainShell` se mettait en veille 7 jours sur « Pas maintenant » ; celui posé en
+tête de conversation (`_buildE2eeRestoreBanner`, conversation_screen.dart)
+n'avait **aucune** veille — il revenait à chaque ouverture d'un fil contenant un
+message indéchiffrable, même juste après avoir écarté l'autre.
+
+Désormais : un troisième bouton « Ne plus me le rappeler » (`dismissForever`)
+écrit `-1` à la place de l'horodatage — une veille que le temps n'éteint plus —
+et les deux bandeaux lisent le même `e2eeRestoreNudgeMutedProvider`.
+
+Couvert par `test/core/services/e2ee/e2ee_backup_coordinator_test.dart`
+(5 cas, veille / expiration à 7 jours / effacement / cloisonnement des deux
+rappels). Reste à voir sur appareil :
+
+- [ ] **Le bandeau global à trois boutons ne déborde pas.** « Ne plus me le
+      rappeler » + « Pas maintenant » + « Restaurer » en français, sur les
+      réglages qui ont déjà fait tomber d'autres rangées (densité 440, échelle
+      de police 1,3). `MaterialBanner` empile via `OverflowBar` — à confirmer de
+      visu, en portrait **et** en paysage.
+- [ ] **Le rappel se tait pour de bon.** Taper « Ne plus me le rappeler », puis
+      `am force-stop` + relance à froid (protocole du 2026-08-25) : le bandeau
+      ne doit pas revenir. Vérifier la clé côté prefs —
+      `run-as com.diasponiger.diasponiger cat shared_prefs/FlutterSharedPreferences.xml`
+      doit montrer `e2ee_prompt_snoozed_needsRestore_<uid>` à `-1`.
+- [ ] **Le bandeau de conversation obéit.** Ouvrir ensuite un fil contenant un
+      « 🔐 Message chiffré » : plus de bandeau jaune en tête de fil non plus.
+      C'est le vrai point neuf — l'ancien code le réaffichait quoi qu'il arrive.
+- [ ] **Une vraie sauvegarde rend la parole.** Réglages › Sécurité › Sauvegarde
+      des clés, créer (ou restaurer) une sauvegarde : `clearSnooze` doit effacer
+      la clé de veille, et un cas neuf doit pouvoir se re-proposer plus tard.
+
+⚠️ Ce qu'il faut avoir en tête en testant : taire le rappel de restauration
+laisse l'appareil sur le **repli AES** sans plus rien pour le signaler (le
+coordinateur ne génère pas de clés quand une sauvegarde distante existe). La
+sortie reste Réglages › Sécurité, qui n'a pas bougé.
+
 ## ⬜ Site web : page d'accueil refondue sur les captures réelles (2026-09-08)
 
 La page d'accueil vendait une version plus ancienne de l'app : cinq cartes à

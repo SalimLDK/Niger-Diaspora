@@ -21158,6 +21158,12 @@ abstract class AppLocalizations {
   /// **'Restaurer'**
   String get e2eeRestoreNudgeAction;
 
+  /// No description provided for @e2eeNudgeMuteAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne plus me le rappeler'**
+  String get e2eeNudgeMuteAction;
+
   /// No description provided for @securityRestoreKeys.
   ///
   /// In fr, this message translates to:

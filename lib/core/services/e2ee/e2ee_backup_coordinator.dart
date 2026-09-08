@@ -31,6 +31,15 @@ final e2eeBackupCoordinatorProvider =
   return E2EEBackupCoordinator(ref);
 });
 
+/// Vrai quand le rappel de restauration des clés est en veille : tout bandeau
+/// qui le répète doit se taire.
+///
+/// L'état du coordinateur ne suffit pas : il ne porte que ce que `MainShell`
+/// doit afficher, et retombe à `none` dans des cas où le bandeau de
+/// conversation, lui, s'affiche quand même (un message indéchiffrable dans un
+/// fil alors que l'appareil a bien ses clés).
+final e2eeRestoreNudgeMutedProvider = StateProvider<bool>((ref) => false);
+
 /// Aiguille le démarrage E2EE à la connexion et décide s'il faut proposer une
 /// sauvegarde ou une restauration des clés — sans jamais écraser une identité
 /// restaurable par des clés neuves.
@@ -58,6 +67,11 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
   /// apparaître « très souvent ».
   static const _snoozeDuration = Duration(days: 7);
 
+  /// Valeur écrite à la place d'un horodatage par [dismissForever]. Une date ne
+  /// sait pas dire « plus jamais » ; un entier que `millisecondsSinceEpoch` ne
+  /// produit jamais le dit, sans seconde clé à maintenir ni à effacer.
+  static const _mutedForever = -1;
+
   static String _snoozeKey(String userId, E2EEBackupPrompt prompt) =>
       'e2ee_prompt_snoozed_${prompt.name}_$userId';
 
@@ -66,6 +80,7 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
       final prefs = await SharedPreferences.getInstance();
       final at = prefs.getInt(_snoozeKey(userId, prompt));
       if (at == null) return false;
+      if (at == _mutedForever) return true;
       final since = DateTime.now().difference(
         DateTime.fromMillisecondsSinceEpoch(at),
       );
@@ -76,24 +91,38 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
     }
   }
 
-  Future<void> _snooze(String userId, E2EEBackupPrompt prompt) async {
+  Future<void> _snooze(String userId, E2EEBackupPrompt prompt) =>
+      _writeSnooze(userId, prompt, DateTime.now().millisecondsSinceEpoch);
+
+  Future<void> _muteForever(String userId, E2EEBackupPrompt prompt) =>
+      _writeSnooze(userId, prompt, _mutedForever);
+
+  Future<void> _writeSnooze(
+    String userId,
+    E2EEBackupPrompt prompt,
+    int value,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(
-        _snoozeKey(userId, prompt),
-        DateTime.now().millisecondsSinceEpoch,
-      );
+      await prefs.setInt(_snoozeKey(userId, prompt), value);
     } catch (e) {
       // Sans persistance, on retombe sur l'ancien comportement : le bandeau
       // reviendra au prochain démarrage. Pas de quoi bloquer la connexion.
-      debugPrint('E2EEBackupCoordinator: _snooze failed: $e');
+      debugPrint('E2EEBackupCoordinator: _writeSnooze failed: $e');
     }
+  }
+
+  /// Répercute la veille du rappel de restauration sur les bandeaux qui ne
+  /// passent pas par l'état du coordinateur — celui de la conversation.
+  void _setRestoreNudgeMuted(bool muted) {
+    _ref.read(e2eeRestoreNudgeMutedProvider.notifier).state = muted;
   }
 
   /// Efface la mise en veille : après une vraie sauvegarde ou restauration, il
   /// n'y a plus rien à proposer, et si la situation se represente, elle est
   /// neuve.
   Future<void> clearSnooze(String userId) async {
+    _setRestoreNudgeMuted(false);
     try {
       final prefs = await SharedPreferences.getInstance();
       for (final prompt in E2EEBackupPrompt.values) {
@@ -116,6 +145,14 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
     _bootstrappedFor = userId;
     _userId = userId;
     try {
+      // Relevé avant tout aiguillage : le bandeau de conversation s'y fie même
+      // dans les branches où le coordinateur n'a rien à proposer.
+      final restoreSnoozed = await _isSnoozed(
+        userId,
+        E2EEBackupPrompt.needsRestore,
+      );
+      _setRestoreNudgeMuted(restoreSnoozed);
+
       final storage = _ref.read(secureKeyStorageProvider);
       await storage.initialize();
 
@@ -139,7 +176,7 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
           // On NE génère PAS : cela créerait une identité neuve, rendrait le
           // backup irrécupérable et casserait les sessions existantes. On
           // propose la restauration ; les clés seront initialisées après.
-          state = await _isSnoozed(userId, E2EEBackupPrompt.needsRestore)
+          state = restoreSnoozed
               ? E2EEBackupPrompt.none
               : E2EEBackupPrompt.needsRestore;
 
@@ -173,12 +210,21 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
   /// La mise en veille est **persistée** : sans ça, `needsRestore` étant vrai
   /// tant que la sauvegarde n'est pas restaurée, le bandeau revenait à chaque
   /// démarrage, sans fin.
-  void acknowledge() {
+  void acknowledge() => _dismiss(_snooze);
+
+  /// « Ne plus me le rappeler » : la veille ne s'éteint plus d'elle-même.
+  ///
+  /// Reste réversible sans passer par le temps — une vraie sauvegarde ou
+  /// restauration appelle [clearSnooze], et l'écran demeure atteignable depuis
+  /// Réglages › Sécurité.
+  void dismissForever() => _dismiss(_muteForever);
+
+  void _dismiss(Future<void> Function(String, E2EEBackupPrompt) persist) {
     final prompt = state;
     final userId = _userId;
     state = E2EEBackupPrompt.none;
-    if (userId != null && prompt != E2EEBackupPrompt.none) {
-      unawaited(_snooze(userId, prompt));
-    }
+    if (userId == null || prompt == E2EEBackupPrompt.none) return;
+    if (prompt == E2EEBackupPrompt.needsRestore) _setRestoreNudgeMuted(true);
+    unawaited(persist(userId, prompt));
   }
 }
