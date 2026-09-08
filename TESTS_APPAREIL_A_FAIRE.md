@@ -133,19 +133,26 @@ suit le même drapeau, inchangé.
       vérifier que le bandeau rouge s'affiche toujours, avec sa date de
       réouverture.
 
-#### ⚠️ La capture Play `02_fiche.png` est périmée par ce commit
+#### ✅ La capture Play de la fiche : soldé en la retirant
 
-`releases/1.2.1+11/play/screenshots/02_fiche.png` (« Adresse, contact et
-itinéraire de chaque poste ») montre le bandeau vert **« Ouvert »** en tête de
-l'onglet *Infos* — il n'existe plus. Publier la fiche Store telle quelle
-montrerait un écran que l'app ne rend pas, et rappellerait justement
-l'affirmation qu'on vient de retirer.
+La capture livrée alors (« Adresse, contact et itinéraire de chaque poste »)
+montrait le bandeau vert « Ouvert » en tête de l'onglet *Infos*, qui n'existe
+plus. Elle a d'abord été reprise sur un build incluant ce commit, puis
+**retirée de la série** : sans horaires ni bandeau, l'écran ne montre plus
+qu'une adresse, un fax et quatre boutons, et son élément le plus visible est un
+encart signalant un numéro de fax erroné — utile dans l'app, mauvais argument
+sur une fiche boutique.
 
-- [ ] Reprendre `02_fiche.png` après un build incluant ce commit (le cadre
-      commence maintenant directement par l'adresse).
+⚠️ **La liste, elle, affiche toujours « ● Ouvert »** sur sa carte « Le plus
+proche » (`embassies_screen.dart`, `_NearestEmbassyCard`), en vert, calculé sur
+le seul `isTemporarilyClosed` — sans lire le moindre horaire, exactement ce que
+ce commit vient de retirer de la fiche de détail. La capture 2 de la série Play
+le montre donc. Deux écrans, deux traitements du même drapeau.
 
-Les quatre autres captures ne sont pas concernées : `01_ambassades.png` est la
-liste, dont l'item n'affiche que le badge « Fermé » (drapeau inchangé).
+- [ ] Trancher : soit la carte « Le plus proche » perd son état « Ouvert »
+      comme la fiche, soit les deux le retrouvent quand des horaires existeront
+      en base. En l'état, la fiche boutique affiche une mention qui ne repose
+      sur rien.
 
 ## ⬜ Publication Play Store 1.2.1+11 — build release à valider (2026-09-08)
 
@@ -207,16 +214,24 @@ la position avec la seule permission de premier plan.
 
 Les captures livrées sont composées en 1080×1920 : les deux appareils sont en
 1080×2400 (2,22:1) et Google refuse un côté long supérieur au double du côté
-court. Les copies d'écran intégrées viennent du build release.
+court. Les copies d'écran intégrées viennent d'un build **debug** de l'arbre
+fusionné — pas du release, voir l'encadré ci-dessus : le rendu est identique,
+la source étant la même, mais ce n'est pas le binaire téléversé.
 
 - ⬜ Relire les captures livrées : aucune donnée personnelle réelle visible
       (nom, numéro, adresse, photo d'un tiers) avant publication.
-      À ce stade, `05_accueil.png` montre le prénom « Sim » et « Montréal,
-      Canada » — données du compte de test, à valider ou à masquer.
+      À ce stade, `01_accueil.png` montre le prénom « Salim » et une distance
+      « 1,2 km », et `07_profil.png` le pseudo « @sim » avec « Montréal » —
+      données des comptes de test, à valider ou à masquer.
 - [x] **Sept captures prises sur SM A515F le 2026-09-08** : accueil (défilé),
       annuaire des postes, liste des démarches, formulaire de demande, carte
       (mode privé), groupes « Découvrir », profil. Build de l'arbre fusionné,
       md5 local et appareil comparés avant chaque prise.
+- ⚠️ **L'appareil a été basculé en thème Clair + accent Vert (Défaut)** pour
+      ces prises, et **y est resté**. Les captures de la fiche Play en ligne
+      sont en clair et en vert, et le vert est le défaut de l'app face à
+      « Orange (Classique) ». Toute vérification ultérieure qui suppose
+      « sombre + orange » doit d'abord rebasculer le réglage.
 - La fiche d'un poste a été **capturée puis retirée** : après la mise en
       sommeil des horaires et du bandeau « Ouvert », elle ne montre plus
       qu'une adresse, un fax et quatre boutons, et son encart le plus visible

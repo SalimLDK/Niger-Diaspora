@@ -37,24 +37,43 @@ Points à vérifier avant tout build :
 
 ## 2. Android : signature et build
 
-### Keystore (première fois seulement)
+### Keystore — celui qui signe réellement
 
 ⚠️ **Ne jamais commiter ce fichier ni perdre le mot de passe — sans lui, plus aucune mise à jour possible sur le Play Store. Faire une sauvegarde en lieu sûr.**
 
-```bash
-keytool -genkey -v -keystore android/upload-keystore.jks \
-        -keyalg RSA -keysize 2048 -validity 10000 \
-        -alias upload
+Le dépôt contient **deux** keystores, et cette page décrivait jusqu'ici celui
+qui ne signe pas :
+
+| Fichier | Alias | Rôle |
+|---|---|---|
+| `android/app/diaspo-niger-release.jks` | `diaspo-niger` | **désigné par `key.properties`, donc c'est lui qui signe** |
+| `android/upload-keystore.jks` | `upload` | présent, mais **son mot de passe n'est pas celui de `key.properties`** ; origine et usage non établis |
+
+Empreinte du certificat qui signe aujourd'hui, relevée sur l'AAB produit
+(`keytool -printcert -jarfile <aab>`), valide jusqu'au 12/05/2053 :
+
 ```
+SHA256: DD:A6:5C:3E:BC:08:BD:67:4F:FA:37:26:40:5C:4C:B7:5B:25:3E:DE:55:85:BB:E2:22:DA:34:20:51:94:CF:5D
+```
+
+**À vérifier avant tout téléversement** : Play Console → *Intégrité de
+l'application* → *Signature de l'application* → comparer l'empreinte de la
+**clé de téléversement** avec celle ci-dessus. Si elle diffère, c'est
+`upload-keystore.jks` qu'attend Google, et son mot de passe est à retrouver :
+Play refuse le bundle sinon (« signed with the wrong key »), proprement mais
+après un aller-retour perdu.
 
 ### `android/key.properties` (ignoré par git)
 
 ```properties
 storePassword=VOTRE_MOT_DE_PASSE_STORE
 keyPassword=VOTRE_MOT_DE_PASSE_KEY
-keyAlias=upload
-storeFile=../upload-keystore.jks
+keyAlias=diaspo-niger
+storeFile=diaspo-niger-release.jks
 ```
+
+`storeFile` est résolu **relativement à `android/app/`** : pas de `../`, le
+fichier vit dans `android/app/`.
 
 `android/app/build.gradle.kts` lit ce fichier (`signingConfigs.release`) et active `isMinifyEnabled` + `isShrinkResources` en release — déjà en place, rien à modifier.
 
@@ -175,7 +194,9 @@ Types de notifications et canaux Android : voir [PUSH_NOTIFICATIONS_REFERENCE.md
 
 **Console :** https://play.google.com/console
 
-Le contenu de la fiche boutique (titre, descriptions, notes de version) est versionné par release — voir **[releases/1.2.0+14/GOOGLE_PLAY_v1.2.0.md](../../releases/1.2.0+14/GOOGLE_PLAY_v1.2.0.md)** pour la dernière version publiée.
+Le contenu de la fiche boutique (titre, descriptions, notes de version) est versionné par release — voir **[releases/1.2.1+11/GOOGLE_PLAY_v1.2.1.md](../../releases/1.2.1+11/GOOGLE_PLAY_v1.2.1.md)**, qui fait foi.
+
+⚠️ Ne pas repartir de `releases/1.2.0+14/GOOGLE_PLAY_v1.2.0.md` : sa description met en avant les transferts d'argent et la marketplace, **inaccessibles dans le binaire** depuis le 2026-08-23, et annonce « 100 % gratuit » alors que l'app embarque publicité et achats intégrés.
 
 ### Assets graphiques requis
 
@@ -183,18 +204,21 @@ Le contenu de la fiche boutique (titre, descriptions, notes de version) est vers
 |---|---|---|
 | Icône | 512 × 512 px PNG | |
 | Bannière de fonctionnalité | 1024 × 500 px | Pas de transparence |
-| Screenshots téléphone | 1080 × 1920 (ou 1080 × 2340) | Min 2, max 8 — sources dans `playstore_assets/` |
+| Screenshots téléphone | 1080 × 1920 (ou 1080 × 2340) | Min 2, max 8 — sources dans `releases/<version>/play/screenshots/` (le dossier `playstore_assets/` n'existe pas) |
 | Bannière TV (optionnel) | 1280 × 720 px | |
 
-Écrans à capturer : connexion, carte de la diaspora, conversation, groupes, transfert d'argent, marketplace, événements, profil.
+Écrans à capturer : accueil, annuaire des postes diplomatiques, démarches consulaires, carte de la diaspora, groupes, profil.
+
+Ne **pas** capturer transfert d'argent ni marketplace : leurs tuiles sont commentées dans `home_screen_widgets.dart` et les écrans ne sont plus atteignables que par lien profond.
 
 ### Classification et conformité
 
-- **Public cible :** 13+ · **Catégorie :** Social · **Tarification :** Gratuit, sans publicité
+- **Public cible :** Adolescents (classification en vigueur sur la fiche en ligne) · **Catégorie :** Social · **Tarification :** Gratuit, **avec publicité et achats intégrés** — l'APK embarque `google_mobile_ads` et `purchases_flutter` (RevenueCat), les deux sont à déclarer
 - Questionnaire : interaction utilisateurs **Oui** (chat), partage d'infos personnelles **Oui**, violence/contenu sexuel/langage grossier **Non**
-- **Politique de confidentialité** (obligatoire) : `https://diaspo-niger.web.app/privacy-policy.html` — source : [docs/legal/POLITIQUE_CONFIDENTIALITE.md](../legal/POLITIQUE_CONFIDENTIALITE.md)
-- **CGU** : `https://diaspo-niger.web.app/terms-of-service.html` — source : [docs/legal/CONDITIONS_GENERALES_UTILISATION.md](../legal/CONDITIONS_GENERALES_UTILISATION.md)
-- **Sécurité des données** : collecte (profil, localisation approximative, messages/médias, transactions), chiffrement en transit et au repos, pas de partage publicitaire avec des tiers
+- **Politique de confidentialité** (obligatoire) : `https://diasponiger.com/privacy-policy` — vérifiée 200 le 2026-09-08 ; `diaspo-niger.web.app` répond aussi, mais le domaine propre fait foi — source : [docs/legal/POLITIQUE_CONFIDENTIALITE.md](../legal/POLITIQUE_CONFIDENTIALITE.md)
+- **Suppression de compte** (exigée dès qu'il y a des comptes) : `https://diasponiger.com/delete-account`
+- **CGU** : `https://diasponiger.com/terms-of-service` — source : [docs/legal/CONDITIONS_GENERALES_UTILISATION.md](../legal/CONDITIONS_GENERALES_UTILISATION.md)
+- **Sécurité des données** : collecte (profil, localisation approximative, messages/médias, transactions), chiffrement en transit et au repos — ⚠️ ne plus déclarer « pas de partage publicitaire » : `google_mobile_ads` est embarqué
 
 ### Release
 
