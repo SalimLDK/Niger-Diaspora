@@ -11880,11 +11880,27 @@ retirer.
   d'appel comme avant. Le jeton VoIP est toujours propagé à
   `onVoipTokenUpdated` — seul son affichage a changé — mais c'est le chemin
   iOS/CallKit, donc à revalider le jour où un appareil iOS est disponible.
-- [ ] **Partage de position** : envoyer une position en 1:1, la bulle carte
-  s'affiche et le message passe à « Envoyé ».
-- [ ] **Logcat d'une release** : sur un APK release,
-  `adb logcat | grep -iE "VoIP token|sendLocation"` ne doit plus jamais montrer
-  de valeur de jeton ni de coordonnées.
+- [x] **Partage de position** — vérifié sur SM A515F le 2026-09-09, APK release
+  `6dc726f453c70d23b0f94b100ac7e287` (md5 local = md5 `pm path`, et
+  `flags=[ HAS_CODE ... ]` sans `DEBUGGABLE`). Conversation 1:1 « Salim L. »,
+  pièce jointe → Position → « Envoyer cette position ». La bulle carte
+  s'affiche avec « 3010 Boul Lévesque E, Laval, Canada » et passe à
+  « À l'instant · Reçu ». Aucune régression fonctionnelle.
+- [x] **Logcat d'une release** — vérifié le 2026-09-09, logcat vidé juste avant
+  l'envoi. Les deux lignes sortent **au nouveau format** :
+
+      📍 sendLocation: Adding optimistic message tempId=temp_location_1788994896202
+      ✅ sendLocation: Success - real message id=9d35cb49-f82c-4ea0-9cc1-640c9a312a28
+
+  Ni `lat=` ni `lng=`. Sur les 12 498 lignes capturées, aucune coordonnée dans
+  une ligne de tag `flutter`. (Piège de mesure : un `grep '45\.[0-9]{3}'` naïf
+  remonte les **secondes des horodatages** du pilote NFC — filtrer sur
+  ` flutter ` avant de conclure.)
+
+  Ce test tranche **deux** questions d'un coup. Que les lignes sortent du tout
+  prouve que `debugPrint` écrit bien en release ; qu'elles sortent au nouveau
+  format prouve que l'APK n'est pas périmé. L'ancien format aurait signifié un
+  build stale, pas un correctif raté.
 - [ ] **Carte en release** : ouvrir la carte hors ligne (c'est là que les
   `LoggerService.w` de `map_screen.dart` se déclenchent) et vérifier que
   l'écran se comporte comme avant — le silence des logs ne doit rien changer
