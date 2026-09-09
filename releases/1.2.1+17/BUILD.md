@@ -1,4 +1,4 @@
-# Build 1.2.1+16 — ce qui a été produit et vérifié
+# Build 1.2.1+17 — ce qui a été produit et vérifié
 
 *2026-09-08. Branche `claude/publication-play`, arbre fusionné avec
 `origin/wip-jules-2025-12-29T23-58-34-776Z` (`c5e6342`).*
@@ -9,7 +9,7 @@ Le bundle n'est **pas versionné** (210 Mo) :
 
 | Fichier | Taille | md5 |
 |---|---|---|
-| `build/app/outputs/bundle/release/app-release.aab` | 210,5 Mo | `6ad68fdc83597845e7852e1bd6e50da4` |
+| `build/app/outputs/bundle/release/app-release.aab` | 210,5 Mo | `979d3005b6dab0d93ab8acbd3abc5903` |
 
 Construit après intégration de deux commits sans lesquels il ne faut **pas**
 téléverser :
@@ -27,7 +27,7 @@ lu par étiquettes) — donc sur l'artefact téléversé, pas sur un APK voisin 
 ```
 package           com.diasponiger.diasponiger
 versionName       1.2.1
-versionCode       16
+versionCode       17
 minSdkVersion     24
 targetSdkVersion  36
 compileSdkVersion 36
@@ -153,6 +153,58 @@ de premier plan » et « Autorisations liées aux photos et vidéos ».
   Le bundle passe de 4 ABI à 3. Ces appareils ne recevront plus de mise à jour
   et l'app n'y sera plus installable — à vérifier si c'est voulu.
 - Forte augmentation de la taille téléchargée, attendue depuis la 1.1.1.
+
+
+## ❌ Les envois 20 et 21 ont été REFUSÉS — et le motif a mis du temps à sortir
+
+| Envoi | Enregistré | État |
+|---|---|---|
+| 20 | 9 sept. 04:36 | Refusé |
+| 21 | 9 sept. 10:23 | Refusé le 9 sept. 12:26 |
+
+⚠️ **La console ne disait rien.** Le centre de conformité était vide, et le lien
+« Voir l'état de conformité aux règles » du détail d'envoi n'y menait à rien. Pire :
+la page « Vue d'ensemble de la publication » a affiché « Modifications en cours
+d'examen » pendant que l'envoi était déjà refusé. **Seul le journal des envois
+(`publishing/submission-activity`) dit la vérité** — c'est la page à consulter,
+pas la vue d'ensemble.
+
+Le motif est arrivé **par e-mail** au contact développeur :
+
+> **Issue found: Missing Prominent Disclosure**
+> Your app accesses the BACKGROUND_LOCATION permission without a prominent
+> disclosure. In-app experience: IN_APP_EXPERIENCE-4703.png
+
+La capture jointe par Google était **l'écran de connexion**.
+
+## ⚠️ `ACCESS_BACKGROUND_LOCATION` — retirée (2026-09-09)
+
+La permission était **déclarée sans jamais être demandée** :
+`LocationService.requestBackgroundLocationPermission()` et
+`hasBackgroundLocationPermission()` existent dans
+`lib/core/services/location_service.dart` et ne sont appelées nulle part.
+
+Elle ne servait donc à rien tout en déclenchant l'exigence d'information
+préalable. Le partage continu passe par `BackgroundLocationService`, un service
+de premier plan (`foregroundServiceType="location"`), qui obtient la position
+avec la seule `ACCESS_FINE_LOCATION`.
+
+**Troisième autorisation retirée pour la même raison** après
+`USE_FULL_SCREEN_INTENT` et `FOREGROUND_SERVICE_MEDIA_PLAYBACK`. Règle à retenir :
+une permission que l'examinateur ne peut relier à aucune fonctionnalité visible
+ne passe pas.
+
+⚠️ Pour la rétablir un jour, il faudra **en même temps** ajouter l'écran
+d'information préalable exigé par Google, affiché AVANT la demande système.
+
+## ❓ Point non tranché : l'accès de l'examinateur
+
+Google a joint **l'écran de connexion** comme preuve. Soit l'absence de
+disclosure a été constatée au démarrage, soit **l'examinateur n'a pas pu entrer
+faute d'identifiants de test**. À vérifier dans *Contenu de l'application →
+Accès à l'application* : si la fiche déclare que tout est accessible sans
+identifiants, c'est faux — l'app exige un compte — et il faut y déclarer un
+compte de démonstration.
 
 ## ✅ La clé de signature est la bonne — vérifié
 

@@ -59,7 +59,33 @@
     <!-- Background Location Service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- ACCESS_BACKGROUND_LOCATION retirée le 2026-09-09, sur refus de Google.
+         Motif reçu par mail : « Missing Prominent Disclosure — Your app accesses
+         the BACKGROUND_LOCATION permission without a prominent disclosure. »
+         Deux envois (20 et 21) refusés dessus le même jour.
+
+         La permission était **déclarée sans jamais être demandée** :
+         `LocationService.requestBackgroundLocationPermission()` et
+         `hasBackgroundLocationPermission()` existent dans
+         `lib/core/services/location_service.dart` mais ne sont appelées nulle
+         part (grep sur tout `lib/`). Elle ne servait donc à rien tout en
+         déclenchant l'exigence d'information préalable.
+
+         Le partage de position continu ne s'appuie pas dessus : il passe par
+         `BackgroundLocationService`, un service de premier plan
+         (`foregroundServiceType="location"` ci-dessous), qui obtient la position
+         avec la seule ACCESS_FINE_LOCATION tant qu'il tourne.
+
+         ⚠️ Si un jour on veut vraiment la position hors service de premier plan,
+         il faudra RÉTABLIR cette permission **et** ajouter l'écran d'information
+         préalable exigé par Google, affiché AVANT la demande système. Les deux
+         vont ensemble, jamais l'une sans l'autre.
+
+         Troisième autorisation retirée pour la même raison, après
+         USE_FULL_SCREEN_INTENT et FOREGROUND_SERVICE_MEDIA_PLAYBACK : une
+         permission que l'examinateur ne peut pas relier à une fonctionnalité
+         visible ne passe pas. -->
 
     <!-- Notifications for Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
