@@ -37,15 +37,30 @@ une session, et la ligne `users` existe avec `display_name = "Compte Test"`.
       deviennent enfin observables.
 
 ⚠️ Constaté pendant la création : **le tout premier appel à
-`auth-firebase-exchange` pour un compte neuf répond 401 « Email link is
-invalid or has expired »** — la tentative suivante réussit (reproduit deux
-fois d'affilée : échec, puis succès). Dans l'app, `_scheduleRetry()` repasse
-5 s plus tard : le premier lancement d'un compte neuf a donc ~5 s de session
-anonyme avant que les données n'arrivent. Ça touche **tout compte neuf**, pas
-seulement celui-ci. Piste : `updateUserById` (étape 3 de la fonction)
-invalide le jeton du magic link généré à l'étape 2 tant que l'utilisateur
-n'est pas confirmé ; la reprise interne de l'étape 6 ne couvre que le cas
-« claim `firebase_uid` manquant », pas un `verifyOtp` en échec. Non corrigé.
+`auth-firebase-exchange` pour un compte neuf répondait 401 « Email link is
+invalid or has expired »** — la tentative suivante réussissait. Dans l'app,
+`_scheduleRetry()` repasse 5 s plus tard : le premier lancement d'un compte
+neuf avait donc ~5 s de session anonyme avant que les données n'arrivent, et
+ça touchait **tout compte neuf**, pas seulement celui-ci.
+
+**Corrigé le 2026-09-09**, la cause n'était pas celle qu'on croyait : ce n'est
+pas `updateUserById` qui invalidait le lien. `generateLink({type:'magiclink'})`
+ne rend un lien `magiclink` que si l'utilisateur **existe déjà** ; sur un
+compte neuf, gotrue le crée et rend un lien **`signup`**, dont le jeton part
+dans `confirmation_token` — là où `verifyOtp({type:'magiclink'})` fouille
+`recovery_token`. La fonction lit désormais le type dans la réponse
+(`typeEmis()`) au lieu de l'écrire en dur.
+
+Vérifié hors appareil par `tools/sonde_echange_auth.mjs`, qui rejoue la
+séquence contre le gotrue de production : témoin (type figé) en échec,
+correctif en session valide avec le claim `firebase_uid` dès la première
+tentative. ⚠️ **Pas encore déployé** — `supabase functions deploy
+auth-firebase-exchange`. Tant que ce n'est pas fait, le défaut est toujours en
+production.
+
+- [ ] Après déploiement : créer un compte neuf sur l'appareil et vérifier que
+      l'accueil se remplit **sans** le trou de 5 s (logcat : plus de
+      `SupabaseAuthBridge: exchange failed (401)` au premier lancement).
 
 ---
 
