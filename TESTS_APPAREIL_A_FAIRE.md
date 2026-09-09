@@ -14,6 +14,60 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ✅ « Mon QR Code » depuis le scanner (2026-09-08)
+
+Le scanner (`/qr-scanner`) était un **aller simple** : on y entre depuis
+l'accueil (deux entrées), depuis le partage de groupe et depuis le dialogue
+« Partager mon profil », et une fois dedans plus rien ne ramenait à son propre
+QR. Deux personnes côte à côte devaient donc toutes deux ressortir du scanner
+pour que l'une montre son code.
+
+Un troisième bouton « Mon QR Code » ouvre maintenant `ShareProfileDialog`
+par-dessus le scanner, caméra arrêtée le temps du dialogue.
+
+**Vérifié sur SM A515F le 2026-09-08** (APK debug, `md5` local et appareil
+comparés avant toute conclusion : `6292fdf3…`) :
+
+- [x] Le bouton ouvre le QR de **son propre** profil — « Sim A »,
+      « Etudiant · Montréal », lien
+      `https://diasponiger.com/p/u/vQZE49dTdyRtLwSG6lMIbhAqoFG2`, qui est bien
+      la forme que `_processQrCode` sait relire (`/p/u/<id>`).
+- [x] La caméra s'arrête et repart, **confirmé par le système** et non à l'œil
+      (`adb shell dumpsys media.camera`) : scanner ouvert → « Device 0 is open,
+      Client package: com.diasponiger.diasponiger » ; dialogue ouvert →
+      « Device 0 is closed, no client instance » ; dialogue fermé → de nouveau
+      « is open ».
+- [x] Le dialogue ouvert depuis le scanner n'affiche **pas** « Scanner un QR
+      code » (les seuls contrôles listés sont Copier / Partager via /
+      WhatsApp / Facebook / X / Plus).
+- [x] Retour système pendant le dialogue : ferme le dialogue et **reste sur le
+      scanner**, caméra relancée. ⚠ Un premier passage a semblé sauter jusqu'à
+      l'accueil ; rejoué d'un seul bloc avec relevé d'état à chaque étape, le
+      comportement est correct — c'était une interférence (l'appareil était
+      manipulé en parallèle). À deux téléphones branchés, ne jamais conclure
+      d'une capture isolée.
+- [x] Fermeture par le « X » du dialogue : même résultat, caméra rouverte.
+- [x] Barre du bas à **trois** boutons, portrait : tuiles de largeur égale
+      (315 / 314 / 314 px sur 1080), libellés entiers, aucune troncature.
+- [x] **Paysage** : les trois libellés restent entiers et la dernière tuile
+      s'arrête avant la barre de navigation latérale (SafeArea correct).
+
+Reste non vérifié à l'œil :
+
+- [ ] Échelle de police 1,3 **sur l'appareil** (couverte par le banc, pas vue).
+- [ ] Le libellé se replie-t-il proprement sur deux lignes à cette échelle,
+      ou la gouttière devient-elle trop serrée ? Un banc mesure une géométrie,
+      pas une lisibilité.
+
+Le débordement est verrouillé par
+`test/features/profile/qr_scanner_control_bar_overflow_test.dart` (360 dp,
+échelles 1,0 / 1,1 / 1,3). Contrôle négatif fait : l'ancienne forme
+(icône à côté du label, boutons non flexibles) débordait de 256 px au banc —
+le test attrape bien le défaut.
+
+Le thème sombre est sans objet ici : la barre est en surimpression sur la
+caméra, ses couleurs sont fixes (noir translucide, texte blanc) dans les deux
+thèmes.
 ## ⬜ Transfert des clés par QR, sans passphrase (2026-09-08)
 
 Reprise des clés d'un téléphone à l'autre sans rien à retenir : le nouveau

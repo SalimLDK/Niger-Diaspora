@@ -17,11 +17,17 @@ class ShareProfileDialog extends ConsumerStatefulWidget {
   final String? userPhotoUrl;
   final String? userId;
 
+  /// Masque le bouton « Scanner un QR code » quand l'appelant EST le scanner :
+  /// sans cela, le tap empilerait un second [QrScannerScreen], donc une
+  /// seconde caméra, au-dessus de celui déjà ouvert.
+  final bool showScanButton;
+
   const ShareProfileDialog({
     super.key,
     this.userName,
     this.userPhotoUrl,
     this.userId,
+    this.showScanButton = true,
   });
 
   static Future<void> show(
@@ -29,6 +35,7 @@ class ShareProfileDialog extends ConsumerStatefulWidget {
     String? userName,
     String? userPhotoUrl,
     String? userId,
+    bool showScanButton = true,
   }) {
     return showDialog(
       context: context,
@@ -38,6 +45,7 @@ class ShareProfileDialog extends ConsumerStatefulWidget {
             userName: userName,
             userPhotoUrl: userPhotoUrl,
             userId: userId,
+            showScanButton: showScanButton,
           ),
     );
   }
@@ -179,7 +187,8 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
                           const SizedBox(height: 16),
 
                           // Scan QR code button
-                          _buildScanButton(isDark),
+                          if (widget.showScanButton)
+                            _buildScanButton(isDark),
                         ],
                       ],
                     ),
@@ -811,6 +820,7 @@ class ShareProfileModal extends ShareProfileDialog {
     super.userName,
     super.userPhotoUrl,
     super.userId,
+    super.showScanButton,
   });
 
   static Future<void> show(
@@ -818,12 +828,14 @@ class ShareProfileModal extends ShareProfileDialog {
     String? userName,
     String? userPhotoUrl,
     String? userId,
+    bool showScanButton = true,
   }) {
     return ShareProfileDialog.show(
       context,
       userName: userName,
       userPhotoUrl: userPhotoUrl,
       userId: userId,
+      showScanButton: showScanButton,
     );
   }
 }
