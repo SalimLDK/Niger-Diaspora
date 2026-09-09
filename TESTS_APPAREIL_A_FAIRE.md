@@ -91,12 +91,15 @@ ailleurs, donc le faire sur un dépôt propre et relire par `git diff`.
       `exchange failed`, aucun 401. Accueil rempli avec des données qui
       exigent une session authentifiée — badge de 2 notifications, « Membres
       à proximité · 1 », ville et progression de profil.
-- [ ] Compte **neuf** créé depuis l'app, pour voir l'accueil se remplir sans
-      le trou de 5 s. Bloqué autrement que par le code : il faut se
-      déconnecter du compte personnel sur ce téléphone, et **s'y reconnecter
-      demande son mot de passe**. À faire sur le second téléphone, ou en
-      acceptant la déconnexion. Le chemin serveur, lui, est prouvé : trois
-      comptes Firebase neufs, premier appel en 200 à chaque fois.
+- [x] **Compte neuf connecté depuis l'app — ✅ SM A515F, 2026-09-09.** Compte
+      Firebase créé pour l'occasion, connexion par l'écran de l'app (pas par
+      l'API), logcat vidé juste avant. Résultat : **une seule** ligne du pont,
+      `SupabaseAuthBridge: session sync OK`, à la seconde de la connexion.
+      Aucune occurrence de `exchange failed`, aucune ligne Flutter portant un
+      401. C'est exactement l'endroit où le défaut se voyait : avant le
+      correctif, le premier échange échouait et seule la reprise 5 s plus tard
+      sauvait la mise. L'app enchaîne ensuite sur le consentement, donc le
+      parcours d'inscription reprend normalement.
 
 ---
 
