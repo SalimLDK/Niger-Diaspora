@@ -14,19 +14,30 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
-## ⛔ Transfert des clés par QR, sans passphrase (2026-09-08) — migration non appliquée
+## ⬜ Transfert des clés par QR, sans passphrase (2026-09-08)
 
 Reprise des clés d'un téléphone à l'autre sans rien à retenir : le nouveau
 affiche un QR, l'ancien le scanne, et l'export complet du stockage sécurisé
 voyage chiffré en AES-256-GCM par une clé qui ne quitte jamais le canal
 optique. Le serveur ne relaie qu'un blob.
 
-**Bloquant avant tout test** : `supabase/migrations/20260908200000_e2ee_key_transfers.sql`
-n'est **pas appliquée**. Tant que `supabase db push` n'a pas tourné, la table
-`e2ee_key_transfers` n'existe pas et le transfert échoue en PGRST205 — un
-`db push` touche la production, il n'a pas été lancé sans arbitrage.
+La migration `20260908200000_e2ee_key_transfers.sql` **est appliquée** en
+production (Salim l'a poussée le 2026-09-08 ; `db push --dry-run` répond
+« Remote database is up to date »). La table existe donc, RLS et trigger de
+purge compris.
 
-Il faut **deux téléphones** connectés au **même compte** :
+Déjà vu sur SM A515F le 2026-09-08 (build debug
+`c47898e6d9e78aedf333b93f751a76a9`), seul, sans second téléphone :
+
+- la section « Changer de téléphone » s'affiche dans Réglages › Sécurité ›
+  Sauvegarde des clés, au-dessus de la sauvegarde existante ;
+- l'écran de récupération affiche le QR et « En attente de l'ancien
+  téléphone… » ;
+- l'écran de transfert ouvre bien la caméra (permission déjà accordée par le
+  scanner de profil, donc aucune demande) et la **relâche** en sortant —
+  vérifié par `dumpsys media.camera`.
+
+Le reste demande **deux téléphones** connectés au **même compte** :
 
 - [ ] **Le QR se scanne.** Réglages › Sécurité › Sauvegarde des clés ›
       « Récupérer depuis mon ancien téléphone » sur le neuf, « Transférer vers
