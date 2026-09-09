@@ -11533,6 +11533,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get keyTransferRetry => 'Recommencer';
 
   @override
+  String get keyTransferQrRenews =>
+      'Le code se renouvelle toutes les 90 secondes.';
+
+  @override
+  String get keyTransferUndoTitle => 'Transfert récent';
+
+  @override
+  String get keyTransferUndoBody =>
+      'Vos clés ont été transférées depuis cet appareil. Une copie de secours y reste sept jours, au cas où le nouveau téléphone serait perdu.';
+
+  @override
+  String get keyTransferUndoAction => 'Annuler le transfert';
+
+  @override
+  String get keyTransferUndoDiscard => 'Supprimer la copie';
+
+  @override
+  String get keyTransferUndoConfirmTitle => 'Annuler le transfert ?';
+
+  @override
+  String get keyTransferUndoConfirmBody =>
+      'À ne faire que si le nouveau téléphone n\'a pas servi. Sinon les deux appareils se disputeront les mêmes clés et vos messages deviendront illisibles des deux côtés.';
+
+  @override
+  String get keyTransferUndoDone => 'Clés remises sur cet appareil.';
+
+  @override
+  String get keyTransferUndoDiscardConfirm =>
+      'Supprimer la copie de secours ? Cette action est définitive.';
+
+  @override
   String get securityRestoreKeys => 'Restaurer les clés';
 
   @override

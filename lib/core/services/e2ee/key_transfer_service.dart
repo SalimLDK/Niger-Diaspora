@@ -107,11 +107,27 @@ class KeyTransferService {
 
   static const String _table = 'e2ee_key_transfers';
 
-  /// Fenêtre pendant laquelle le QR reste valable côté client. La ligne, elle,
-  /// est purgée au bout de 15 minutes par un trigger.
-  static const Duration defaultTimeout = Duration(minutes: 3);
+  /// Durée de vie d'un QR affiché. Au-delà, l'écran en tire un neuf : un code
+  /// laissé sur une table ne reste pas indéfiniment valable.
+  static const Duration rotateEvery = Duration(seconds: 90);
+
+  /// Durée totale d'une session de réception, avant abandon.
+  static const Duration defaultTimeout = Duration(minutes: 10);
+
+  /// Attente de l'accusé de réception, côté ancien téléphone.
+  static const Duration ackTimeout = Duration(minutes: 3);
 
   static const Duration _pollInterval = Duration(seconds: 2);
+
+  /// Rendez-vous encore acceptés parmi ceux déjà émis : le courant et le
+  /// précédent.
+  ///
+  /// Garder le précédent ferme la course où l'ancien téléphone scanne le code à
+  /// l'instant exact où il tourne — sinon la charge atterrirait sur un
+  /// rendez-vous que plus personne ne regarde, et l'ancien attendrait un accusé
+  /// qui ne viendrait jamais.
+  static List<KeyTransferInvite> keepValid(List<KeyTransferInvite> issued) =>
+      issued.length <= 2 ? issued : issued.sublist(issued.length - 2);
 
   /// Nouveau téléphone : prépare le rendez-vous à afficher.
   KeyTransferInvite createInvite(String userId) {
@@ -150,28 +166,47 @@ class KeyTransferService {
     debugPrint('KeyTransferService: payload deposited for ${invite.id}');
   }
 
-  /// Nouveau téléphone : attend la charge, l'importe, puis accuse réception.
+  /// Nouveau téléphone : attend la charge sur l'un des rendez-vous encore
+  /// valides, l'importe, puis accuse réception.
+  ///
+  /// [invites] est relu à chaque tour : l'écran y ajoute un rendez-vous neuf
+  /// toutes les [rotateEvery], et [keepValid] décide lesquels restent
+  /// acceptables.
   ///
   /// L'accusé (`consumed_at`) est ce qui autorise l'ancien téléphone à oublier
   /// ses clés : sans lui, un échec d'import laisserait le compte sans aucune
   /// copie de l'identité.
-  Future<bool> awaitAndImport({
-    required KeyTransferInvite invite,
+  Future<bool> awaitAndImportAny({
+    required List<KeyTransferInvite> Function() invites,
     Duration timeout = defaultTimeout,
   }) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
       throw const KeyTransferNotAuthenticated();
     }
 
+    KeyTransferInvite? servi;
     final row = await _poll(
       timeout: timeout,
-      read: () async => await _supabase
-          .from(_table)
-          .select('payload, nonce, mac')
-          .eq('id', invite.id)
-          .maybeSingle(),
+      read: () async {
+        final valides = keepValid(invites());
+        if (valides.isEmpty) return null;
+        final rows = await _supabase
+            .from(_table)
+            .select('id, payload, nonce, mac')
+            .inFilter('id', valides.map((i) => i.id).toList());
+        for (final ligne in rows) {
+          for (final invite in valides) {
+            if (ligne['id'] == invite.id) {
+              servi = invite;
+              return Map<String, dynamic>.from(ligne);
+            }
+          }
+        }
+        return null;
+      },
     );
-    if (row == null) return false;
+    final invite = servi;
+    if (row == null || invite == null) return false;
 
     final List<int> clear;
     try {
@@ -204,7 +239,7 @@ class KeyTransferService {
   /// Ancien téléphone : attend l'accusé de réception du nouveau.
   Future<bool> awaitConsumed({
     required KeyTransferInvite invite,
-    Duration timeout = defaultTimeout,
+    Duration timeout = ackTimeout,
   }) async {
     final row = await _poll(
       timeout: timeout,
@@ -224,11 +259,19 @@ class KeyTransferService {
   ///
   /// Voir l'en-tête : deux appareils sur un même ratchet se cassent mutuellement
   /// le déchiffrement. Le blob de rendez-vous part avec.
+  ///
+  /// Une copie de l'export est mise de côté **avant** l'effacement, pour sept
+  /// jours : si le nouveau téléphone tombe juste après avoir accusé réception,
+  /// c'est la seule copie de l'identité qui reste au monde.
   Future<void> forgetLocalKeys({
     required KeyTransferInvite invite,
     required String userId,
   }) async {
     await _storage.initialize();
+    await _storage.storeTransferUndo(
+      userId,
+      await _storage.exportAllKeys(userId),
+    );
     await _storage.clearAllData(userId);
     try {
       await _supabase.from(_table).delete().eq('id', invite.id);
@@ -236,6 +279,35 @@ class KeyTransferService {
       // Le trigger de purge finira le travail ; rien à signaler à l'utilisateur.
       debugPrint('KeyTransferService: rendezvous cleanup failed: $e');
     }
+  }
+
+  /// La copie de secours en attente, ou `null` (absente ou périmée).
+  Future<({DateTime at, Map<String, dynamic> keys})?> pendingUndo(
+    String userId,
+  ) async {
+    await _storage.initialize();
+    return _storage.readTransferUndo(userId);
+  }
+
+  /// Remet les clés mises de côté sur cet appareil.
+  ///
+  /// À n'employer que si le nouveau téléphone n'a pas servi : sinon les deux
+  /// appareils repartent sur le même ratchet, ce que le transfert cherchait
+  /// justement à éviter.
+  Future<bool> undoTransfer(String userId) async {
+    await _storage.initialize();
+    final undo = await _storage.readTransferUndo(userId);
+    if (undo == null) return false;
+    await _storage.importAllKeys(userId, undo.keys);
+    await _storage.clearTransferUndo(userId);
+    return true;
+  }
+
+  /// Renonce à la marche arrière : la copie de secours est effacée maintenant
+  /// au lieu d'attendre l'expiration.
+  Future<void> discardUndo(String userId) async {
+    await _storage.initialize();
+    await _storage.clearTransferUndo(userId);
   }
 
   /// Répète [read] jusqu'à une valeur non nulle ou l'expiration de [timeout].

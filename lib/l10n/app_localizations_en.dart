@@ -11412,6 +11412,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyTransferRetry => 'Start again';
 
   @override
+  String get keyTransferQrRenews => 'The code renews every 90 seconds.';
+
+  @override
+  String get keyTransferUndoTitle => 'Recent transfer';
+
+  @override
+  String get keyTransferUndoBody =>
+      'Your keys were sent from this device. A backup copy stays here for seven days, in case the new phone is lost.';
+
+  @override
+  String get keyTransferUndoAction => 'Undo the transfer';
+
+  @override
+  String get keyTransferUndoDiscard => 'Delete the copy';
+
+  @override
+  String get keyTransferUndoConfirmTitle => 'Undo the transfer?';
+
+  @override
+  String get keyTransferUndoConfirmBody =>
+      'Only do this if the new phone has not been used. Otherwise both devices fight over the same keys and your messages become unreadable on both.';
+
+  @override
+  String get keyTransferUndoDone => 'Keys restored on this device.';
+
+  @override
+  String get keyTransferUndoDiscardConfirm =>
+      'Delete the backup copy? This cannot be undone.';
+
+  @override
   String get securityRestoreKeys => 'Restore keys';
 
   @override

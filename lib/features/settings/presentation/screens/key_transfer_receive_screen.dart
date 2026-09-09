@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +18,11 @@ import '../../../../l10n/app_localizations.dart';
 /// Le QR porte l'identifiant du rendez-vous, le compte visé et une clé
 /// AES-256 tirée au sort ici. Elle ne part jamais sur le réseau : c'est ce qui
 /// permet au serveur de relayer la charge sans pouvoir la lire.
+///
+/// **Le code se renouvelle** toutes les [KeyTransferService.rotateEvery] : un QR
+/// affiché puis oublié sur une table ne reste pas valable indéfiniment. Le
+/// précédent reste accepté un tour de plus, sinon un scan tombant pile au
+/// moment du renouvellement se perdrait (cf. `keepValid`).
 class KeyTransferReceiveScreen extends ConsumerStatefulWidget {
   const KeyTransferReceiveScreen({super.key});
 
@@ -28,13 +35,20 @@ enum _ReceiveState { waiting, done, timedOut, corrupted, noSession }
 
 class _KeyTransferReceiveScreenState
     extends ConsumerState<KeyTransferReceiveScreen> {
-  KeyTransferInvite? _invite;
+  final List<KeyTransferInvite> _invites = [];
+  Timer? _rotation;
   _ReceiveState _state = _ReceiveState.waiting;
 
   @override
   void initState() {
     super.initState();
     _start();
+  }
+
+  @override
+  void dispose() {
+    _rotation?.cancel();
+    super.dispose();
   }
 
   Future<void> _start() async {
@@ -45,14 +59,24 @@ class _KeyTransferReceiveScreenState
     }
 
     final service = ref.read(keyTransferServiceProvider);
-    final invite = service.createInvite(userId);
     setState(() {
-      _invite = invite;
+      _invites
+        ..clear()
+        ..add(service.createInvite(userId));
       _state = _ReceiveState.waiting;
     });
 
+    _rotation?.cancel();
+    _rotation = Timer.periodic(KeyTransferService.rotateEvery, (_) {
+      if (!mounted) return;
+      setState(() => _invites.add(service.createInvite(userId)));
+    });
+
     try {
-      final received = await service.awaitAndImport(invite: invite);
+      final received = await service.awaitAndImportAny(
+        invites: () => List.unmodifiable(_invites),
+      );
+      _rotation?.cancel();
       if (!mounted) return;
       if (!received) {
         setState(() => _state = _ReceiveState.timedOut);
@@ -67,8 +91,10 @@ class _KeyTransferReceiveScreenState
       if (!mounted) return;
       setState(() => _state = _ReceiveState.done);
     } on KeyTransferCorrupted {
+      _rotation?.cancel();
       if (mounted) setState(() => _state = _ReceiveState.corrupted);
     } on KeyTransferNotAuthenticated {
+      _rotation?.cancel();
       if (mounted) setState(() => _state = _ReceiveState.noSession);
     }
   }
@@ -76,7 +102,6 @@ class _KeyTransferReceiveScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final invite = _invite;
 
     return Scaffold(
       appBar: AppBar(
@@ -98,7 +123,7 @@ class _KeyTransferReceiveScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_state == _ReceiveState.waiting && invite != null) ...[
+            if (_state == _ReceiveState.waiting && _invites.isNotEmpty) ...[
               DesignBody(l10n.keyTransferReceiveHint),
               const SizedBox(height: 24),
               Center(
@@ -109,13 +134,23 @@ class _KeyTransferReceiveScreenState
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: QrImageView(
-                    data: invite.encode(),
+                    // Clé sur l'identifiant : au renouvellement, Flutter
+                    // reconstruit vraiment le code au lieu de réutiliser
+                    // l'ancien élément peint.
+                    key: ValueKey(_invites.last.id),
+                    data: _invites.last.encode(),
                     size: 240,
                     backgroundColor: Colors.white,
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              Text(
+                l10n.keyTransferQrRenews,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12.5, color: context.textSecondaryColor),
+              ),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

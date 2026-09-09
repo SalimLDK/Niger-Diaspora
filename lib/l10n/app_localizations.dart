@@ -21302,6 +21302,60 @@ abstract class AppLocalizations {
   /// **'Recommencer'**
   String get keyTransferRetry;
 
+  /// No description provided for @keyTransferQrRenews.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le code se renouvelle toutes les 90 secondes.'**
+  String get keyTransferQrRenews;
+
+  /// No description provided for @keyTransferUndoTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transfert récent'**
+  String get keyTransferUndoTitle;
+
+  /// No description provided for @keyTransferUndoBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos clés ont été transférées depuis cet appareil. Une copie de secours y reste sept jours, au cas où le nouveau téléphone serait perdu.'**
+  String get keyTransferUndoBody;
+
+  /// No description provided for @keyTransferUndoAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler le transfert'**
+  String get keyTransferUndoAction;
+
+  /// No description provided for @keyTransferUndoDiscard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la copie'**
+  String get keyTransferUndoDiscard;
+
+  /// No description provided for @keyTransferUndoConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler le transfert ?'**
+  String get keyTransferUndoConfirmTitle;
+
+  /// No description provided for @keyTransferUndoConfirmBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'À ne faire que si le nouveau téléphone n\'a pas servi. Sinon les deux appareils se disputeront les mêmes clés et vos messages deviendront illisibles des deux côtés.'**
+  String get keyTransferUndoConfirmBody;
+
+  /// No description provided for @keyTransferUndoDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clés remises sur cet appareil.'**
+  String get keyTransferUndoDone;
+
+  /// No description provided for @keyTransferUndoDiscardConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la copie de secours ? Cette action est définitive.'**
+  String get keyTransferUndoDiscardConfirm;
+
   /// No description provided for @securityRestoreKeys.
   ///
   /// In fr, this message translates to:

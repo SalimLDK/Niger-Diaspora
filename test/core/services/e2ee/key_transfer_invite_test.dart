@@ -52,6 +52,40 @@ void main() {
     );
   });
 
+  group('renouvellement du code', () {
+    KeyTransferInvite invite(String id) =>
+        KeyTransferInvite(id: id, userId: uid, key: key);
+
+    test('le code précédent reste accepté un tour de plus', () {
+      // Sans cette tolérance, un scan tombant pile à l'instant du
+      // renouvellement déposerait la charge sur un rendez-vous que plus
+      // personne ne regarde : l'ancien téléphone attendrait un accusé qui ne
+      // viendrait jamais, et garderait ses clés pour rien.
+      final valides = KeyTransferService.keepValid(
+        [invite('a'), invite('b'), invite('c')],
+      );
+
+      expect(valides.map((i) => i.id), ['b', 'c']);
+    });
+
+    test('les codes plus anciens ne sont plus acceptés', () {
+      final valides = KeyTransferService.keepValid(
+        [invite('a'), invite('b'), invite('c'), invite('d')],
+      );
+
+      expect(
+        valides.map((i) => i.id),
+        ['c', 'd'],
+        reason: 'un QR oublié sur une table ne vaut pas éternellement',
+      );
+    });
+
+    test('les premiers tours passent tels quels', () {
+      expect(KeyTransferService.keepValid([]), isEmpty);
+      expect(KeyTransferService.keepValid([invite('a')]).single.id, 'a');
+    });
+  });
+
   test('le compte visé voyage dans le QR', () {
     // Sans lui, l ancien téléphone livrerait ses clés au QR de n importe qui :
     // c est la seule chose qui lui permet de refuser un autre compte.
