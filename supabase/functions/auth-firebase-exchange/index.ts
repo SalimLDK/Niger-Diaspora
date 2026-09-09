@@ -1,4 +1,13 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// Version figée, et pas `@2` : esm.sh résout `@2` au dernier 2.x **du jour du
+// déploiement**. Deux déploiements du même fichier, à deux dates, n'embarquent
+// donc pas la même bibliothèque — et cette fonction garde toutes les
+// connexions de l'app. 2.116.0 est ce que `@2` rendait le 2026-09-09 : c'est
+// la version contre laquelle le code ci-dessous a été relu (`hashed_token` et
+// `verification_type` présents dans `GenerateLinkProperties`) et mesuré.
+//
+// Les 16 autres Edge Functions sont restées en `@2` (et `stripe@14`) : les
+// épingler obligerait à toutes les redéployer, ce qui est un autre chantier.
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.116.0'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = (Deno.env.get('SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!
