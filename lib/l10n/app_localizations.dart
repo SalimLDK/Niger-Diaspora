@@ -21164,6 +21164,198 @@ abstract class AppLocalizations {
   /// **'Ne plus me le rappeler'**
   String get e2eeNudgeMuteAction;
 
+  /// No description provided for @keyTransferSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer de téléphone'**
+  String get keyTransferSectionTitle;
+
+  /// No description provided for @keyTransferSectionBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transférez vos clés d\'un téléphone à l\'autre en scannant un code. Aucune passphrase.'**
+  String get keyTransferSectionBody;
+
+  /// No description provided for @keyTransferReceiveAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Récupérer depuis mon ancien téléphone'**
+  String get keyTransferReceiveAction;
+
+  /// No description provided for @keyTransferSendAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transférer vers un nouveau téléphone'**
+  String get keyTransferSendAction;
+
+  /// No description provided for @keyTransferReceiveTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Récupérer mes clés'**
+  String get keyTransferReceiveTitle;
+
+  /// No description provided for @keyTransferReceiveHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sur l\'ancien téléphone : Réglages › Sécurité › Sauvegarde des clés › Transférer vers un nouveau téléphone, puis scannez ce code.'**
+  String get keyTransferReceiveHint;
+
+  /// No description provided for @keyTransferWaiting.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de l\'ancien téléphone…'**
+  String get keyTransferWaiting;
+
+  /// No description provided for @keyTransferImported.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clés récupérées. Vos messages chiffrés redeviennent lisibles.'**
+  String get keyTransferImported;
+
+  /// No description provided for @keyTransferTimeout.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun transfert reçu. Le code a expiré : recommencez.'**
+  String get keyTransferTimeout;
+
+  /// No description provided for @keyTransferCorrupted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transfert illisible. Recommencez avec un nouveau code.'**
+  String get keyTransferCorrupted;
+
+  /// No description provided for @keyTransferSendTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transférer mes clés'**
+  String get keyTransferSendTitle;
+
+  /// No description provided for @keyTransferScanHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scannez le code affiché sur le nouveau téléphone.'**
+  String get keyTransferScanHint;
+
+  /// No description provided for @keyTransferConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transférer vos clés ?'**
+  String get keyTransferConfirmTitle;
+
+  /// No description provided for @keyTransferConfirmBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le nouveau téléphone prendra la place de celui-ci. Cet appareil oubliera ses clés et ne pourra plus lire les messages chiffrés déjà reçus.'**
+  String get keyTransferConfirmBody;
+
+  /// No description provided for @keyTransferConfirmAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transférer'**
+  String get keyTransferConfirmAction;
+
+  /// No description provided for @keyTransferSending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi des clés…'**
+  String get keyTransferSending;
+
+  /// No description provided for @keyTransferWaitingAck.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de la confirmation du nouveau téléphone…'**
+  String get keyTransferWaitingAck;
+
+  /// No description provided for @keyTransferDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transfert terminé. Cet appareil n\'a plus les clés.'**
+  String get keyTransferDone;
+
+  /// No description provided for @keyTransferWrongAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce code appartient à un autre compte.'**
+  String get keyTransferWrongAccount;
+
+  /// No description provided for @keyTransferNoKeys.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil n\'a aucune clé à transférer.'**
+  String get keyTransferNoKeys;
+
+  /// No description provided for @keyTransferNotAuthenticated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Session indisponible. Réessayez dans un instant.'**
+  String get keyTransferNotAuthenticated;
+
+  /// No description provided for @keyTransferNoAck.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le nouveau téléphone n\'a pas confirmé. Vos clés restent sur cet appareil.'**
+  String get keyTransferNoAck;
+
+  /// No description provided for @keyTransferRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recommencer'**
+  String get keyTransferRetry;
+
+  /// No description provided for @keyTransferQrRenews.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le code se renouvelle toutes les 90 secondes.'**
+  String get keyTransferQrRenews;
+
+  /// No description provided for @keyTransferUndoTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transfert récent'**
+  String get keyTransferUndoTitle;
+
+  /// No description provided for @keyTransferUndoBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos clés ont été transférées depuis cet appareil. Une copie de secours y reste sept jours, au cas où le nouveau téléphone serait perdu.'**
+  String get keyTransferUndoBody;
+
+  /// No description provided for @keyTransferUndoAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler le transfert'**
+  String get keyTransferUndoAction;
+
+  /// No description provided for @keyTransferUndoDiscard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la copie'**
+  String get keyTransferUndoDiscard;
+
+  /// No description provided for @keyTransferUndoConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler le transfert ?'**
+  String get keyTransferUndoConfirmTitle;
+
+  /// No description provided for @keyTransferUndoConfirmBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'À ne faire que si le nouveau téléphone n\'a pas servi. Sinon les deux appareils se disputeront les mêmes clés et vos messages deviendront illisibles des deux côtés.'**
+  String get keyTransferUndoConfirmBody;
+
+  /// No description provided for @keyTransferUndoDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clés remises sur cet appareil.'**
+  String get keyTransferUndoDone;
+
+  /// No description provided for @keyTransferUndoDiscardConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la copie de secours ? Cette action est définitive.'**
+  String get keyTransferUndoDiscardConfirm;
+
   /// No description provided for @securityRestoreKeys.
   ///
   /// In fr, this message translates to:

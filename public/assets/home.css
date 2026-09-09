@@ -370,6 +370,7 @@
 }
 
 .tab-t {
+    display: block;
     font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 1.05rem;
     font-weight: 700;
@@ -379,6 +380,7 @@
 }
 
 .tab-d {
+    display: block;
     font-size: 0.9rem;
     line-height: 1.55;
     max-height: 0;

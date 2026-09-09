@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
 import '../../../../core/services/e2ee/key_backup_service.dart';
+import '../../../../core/services/e2ee/key_transfer_service.dart';
+import '../../../../core/services/e2ee/messaging_e2ee_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
@@ -33,6 +35,10 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
   bool _hasBackup = false;
   bool _showPassphrase = false;
   BackupMetadata? _backupMetadata;
+
+  /// Copie de secours laissée par un transfert vers un autre téléphone.
+  /// Tant qu'elle est là, la marche arrière est possible.
+  ({DateTime at, Map<String, dynamic> keys})? _transferUndo;
   String? _generatedPassphrase;
   PassphraseStrength _passphraseStrength = PassphraseStrength.weak;
 
@@ -40,6 +46,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
   void initState() {
     super.initState();
     _checkExistingBackup();
+    _loadTransferUndo();
   }
 
   @override
@@ -48,6 +55,78 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
     _confirmPassphraseController.dispose();
     _restorePassphraseController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadTransferUndo() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+    final undo = await ref.read(keyTransferServiceProvider).pendingUndo(userId);
+    if (mounted) setState(() => _transferUndo = undo);
+  }
+
+  Future<void> _undoTransfer() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    final confirme = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.keyTransferUndoConfirmTitle),
+        content: Text(l10n.keyTransferUndoConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.keyTransferUndoAction),
+          ),
+        ],
+      ),
+    );
+    if (confirme != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final remis = await ref
+          .read(keyTransferServiceProvider)
+          .undoTransfer(userId);
+      if (remis) {
+        // Les clés sont revenues : relancer Signal et republier cet appareil.
+        await ref.read(messagingE2EEServiceProvider).initialize(userId);
+        _showSuccessSnackBar(l10n.keyTransferUndoDone);
+      }
+      await _loadTransferUndo();
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _discardTransferUndo() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    final confirme = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(l10n.keyTransferUndoDiscardConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.keyTransferUndoDiscard),
+          ),
+        ],
+      ),
+    );
+    if (confirme != true) return;
+
+    await ref.read(keyTransferServiceProvider).discardUndo(userId);
+    await _loadTransferUndo();
   }
 
   Future<void> _checkExistingBackup() async {
@@ -303,6 +382,94 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                           ],
                         ),
                       ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Marche arrière d'un transfert : la copie de secours
+                    // posée avant l'effacement est la seule qui reste au monde
+                    // si le nouveau téléphone tombe juste après.
+                    if (_transferUndo != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: context.warningBackgroundColor,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.history,
+                                  color: context.warningColor,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    l10n.keyTransferUndoTitle,
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(l10n.keyTransferUndoBody),
+                            const SizedBox(height: 4),
+                            Text(
+                              _formatDate(_transferUndo!.at),
+                              style: theme.textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                TextButton(
+                                  onPressed: _undoTransfer,
+                                  child: Text(l10n.keyTransferUndoAction),
+                                ),
+                                TextButton(
+                                  onPressed: _discardTransferUndo,
+                                  child: Text(l10n.keyTransferUndoDiscard),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+
+                    // Changer de téléphone : reprise sans passphrase.
+                    //
+                    // Une passphrase perdue laisse un appareil neuf en « à
+                    // restaurer » à vie — le coordinateur refuse alors de
+                    // générer une identité neuve. Ce chemin-ci n'en demande
+                    // aucune : les clés passent d'un téléphone à l'autre par un
+                    // QR, chiffrées par une clé qui ne transite jamais.
+                    DesignSectionLabel(l10n.keyTransferSectionTitle),
+                    DesignBody(l10n.keyTransferSectionBody),
+                    const SizedBox(height: 8),
+                    DesignSettingsCard(
+                      children: [
+                        DesignSettingsTile(
+                          icon: const Icon(Icons.qr_code_2_outlined),
+                          title: l10n.keyTransferReceiveAction,
+                          onTap: () => context.push(
+                            '/settings/security/transfer/receive',
+                          ),
+                        ),
+                        DesignSettingsTile(
+                          icon: const Icon(Icons.photo_camera_outlined),
+                          title: l10n.keyTransferSendAction,
+                          onTap: () => context.push(
+                            '/settings/security/transfer/send',
+                          ),
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 24),

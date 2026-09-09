@@ -328,6 +328,11 @@ svg {
     max-width: 54ch;
 }
 
+.head h2 + .lead,
+.head h1 + .lead {
+    margin-top: 1.1rem;
+}
+
 .head {
     max-width: 44rem;
     margin-bottom: clamp(2.5rem, 5vw, 4rem);

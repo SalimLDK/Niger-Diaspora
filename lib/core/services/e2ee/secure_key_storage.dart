@@ -51,6 +51,11 @@ class SecureKeyStorage {
   static const String _prefixDeviceId = 'e2ee_device_id_';
   static const String _prefixSession = 'e2ee_session_';
 
+  /// Copie de secours posée juste avant un effacement volontaire des clés
+  /// (transfert vers un autre téléphone). Préfixe distinct de tous les autres :
+  /// [clearAllData] ne le balaie pas, c'est tout l'intérêt.
+  static const String _prefixTransferUndo = 'e2ee_transfer_undo_';
+
   /// Initialise le stockage
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -612,6 +617,56 @@ class SecureKeyStorage {
 
     debugPrint('SecureKeyStorage: Imported keys for $userId');
   }
+
+  /// Met de côté l'export complet avant un effacement volontaire.
+  ///
+  /// Le transfert vers un nouveau téléphone efface les clés d'ici — c'est
+  /// voulu, deux appareils sur un même ratchet se cassent mutuellement le
+  /// déchiffrement. Mais si le nouveau téléphone est perdu juste après, plus
+  /// aucune copie de l'identité n'existe. Cette copie, gardée quelques jours,
+  /// est la seule marche arrière.
+  Future<void> storeTransferUndo(String userId, Map<String, dynamic> keys) async {
+    _ensureInitialized();
+    await _secureStorage.write(
+      key: '$_prefixTransferUndo$userId',
+      value: jsonEncode({
+        'at': DateTime.now().toUtc().toIso8601String(),
+        'keys': keys,
+      }),
+    );
+  }
+
+  /// Rend la copie de secours et sa date, ou `null` si elle n'existe pas ou a
+  /// dépassé [transferUndoWindow] — auquel cas elle est effacée au passage.
+  Future<({DateTime at, Map<String, dynamic> keys})?> readTransferUndo(
+    String userId,
+  ) async {
+    _ensureInitialized();
+    final raw = await _secureStorage.read(key: '$_prefixTransferUndo$userId');
+    if (raw == null) return null;
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final at = DateTime.parse(decoded['at'] as String);
+      if (DateTime.now().toUtc().difference(at) > transferUndoWindow) {
+        await clearTransferUndo(userId);
+        return null;
+      }
+      return (at: at.toLocal(), keys: decoded['keys'] as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('SecureKeyStorage: transfer undo unreadable: $e');
+      await clearTransferUndo(userId);
+      return null;
+    }
+  }
+
+  Future<void> clearTransferUndo(String userId) async {
+    _ensureInitialized();
+    await _secureStorage.delete(key: '$_prefixTransferUndo$userId');
+  }
+
+  /// Au-delà, la copie de secours s'efface d'elle-même : la garder pour
+  /// toujours reviendrait à ne jamais vraiment effacer les clés de cet appareil.
+  static const Duration transferUndoWindow = Duration(days: 7);
 
   /// Supprime toutes les données E2EE d'un utilisateur
   Future<void> clearAllData(String userId) async {

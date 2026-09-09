@@ -68,6 +68,64 @@ le test attrape bien le défaut.
 Le thème sombre est sans objet ici : la barre est en surimpression sur la
 caméra, ses couleurs sont fixes (noir translucide, texte blanc) dans les deux
 thèmes.
+## ⬜ Transfert des clés par QR, sans passphrase (2026-09-08)
+
+Reprise des clés d'un téléphone à l'autre sans rien à retenir : le nouveau
+affiche un QR, l'ancien le scanne, et l'export complet du stockage sécurisé
+voyage chiffré en AES-256-GCM par une clé qui ne quitte jamais le canal
+optique. Le serveur ne relaie qu'un blob.
+
+La migration `20260908200000_e2ee_key_transfers.sql` **est appliquée** en
+production (Salim l'a poussée le 2026-09-08 ; `db push --dry-run` répond
+« Remote database is up to date »). La table existe donc, RLS et trigger de
+purge compris.
+
+Déjà vu sur SM A515F le 2026-09-08 (build debug
+`c47898e6d9e78aedf333b93f751a76a9`), seul, sans second téléphone :
+
+- la section « Changer de téléphone » s'affiche dans Réglages › Sécurité ›
+  Sauvegarde des clés, au-dessus de la sauvegarde existante ;
+- l'écran de récupération affiche le QR et « En attente de l'ancien
+  téléphone… » ;
+- l'écran de transfert ouvre bien la caméra (permission déjà accordée par le
+  scanner de profil, donc aucune demande) et la **relâche** en sortant —
+  vérifié par `dumpsys media.camera`.
+
+Deux garde-fous ajoutés depuis, à vérifier eux aussi :
+
+- le **QR se renouvelle toutes les 90 secondes** (le précédent reste accepté un
+  tour de plus, sinon un scan tombant pile au renouvellement se perdrait) ;
+- l'ancien téléphone **garde une copie de secours sept jours** avant
+  d'effacer : si le nouveau tombe juste après l'accusé de réception, « Annuler
+  le transfert » la remet en place depuis l'écran de sauvegarde.
+
+Le reste demande **deux téléphones** connectés au **même compte** :
+
+- [ ] **Le QR se scanne.** Réglages › Sécurité › Sauvegarde des clés ›
+      « Récupérer depuis mon ancien téléphone » sur le neuf, « Transférer vers
+      un nouveau téléphone » sur l'ancien. Vérifier au passage la demande de
+      permission caméra (jamais testée sur ce chemin).
+- [ ] **Le QR d'un autre compte est refusé** — message « Ce code appartient à
+      un autre compte », et rien n'est envoyé.
+- [ ] **L'ancien n'oublie ses clés qu'après l'accusé.** Couper le réseau du
+      neuf juste après le scan : l'ancien doit finir sur « Le nouveau téléphone
+      n'a pas confirmé » et **garder** ses clés (le vérifier en rouvrant une
+      conversation chiffrée).
+- [ ] **Le neuf lit enfin l'historique.** Après import, les bulles « clé de
+      groupe introuvable » d'un fil de groupe doivent redevenir lisibles, et le
+      bandeau de restauration disparaître.
+- [ ] **Le code tourne.** Laisser l'écran de récupération ouvert deux minutes :
+      le QR doit changer, et un scan du **code précédent** doit encore aboutir.
+- [ ] **La marche arrière.** Après un transfert réussi, l'écran de sauvegarde de
+      l'ancien téléphone doit montrer « Transfert récent » ; « Annuler le
+      transfert » remet les clés (une conversation chiffrée redevient lisible),
+      « Supprimer la copie » l'efface pour de bon.
+- [ ] **La ligne de rendez-vous ne survit pas.** Après un transfert réussi,
+      `select * from e2ee_key_transfers` doit être vide pour ce compte.
+
+⚠️ **Ce que ce chemin ne fait pas** : il remplace un téléphone, il n'en ajoute
+pas un. L'ancien oublie ses clés à la fin, exprès — deux appareils sur un même
+ratchet se cassent mutuellement le déchiffrement.
 
 ---
 
