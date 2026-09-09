@@ -12102,6 +12102,48 @@ un APK de profilage ne se distribue pas.
 
 ---
 
+## ⬜ Second verrou : `print` brut et paquets tiers (2026-09-09)
+
+La neutralisation de l'entrée précédente ne visait que `debugPrint`. Elle
+laissait passer deux choses :
+
+- un **`print()` brut** ajouté par mégarde — `avoid_print` est bien actif
+  (hérité de `flutter_lints`), mais au niveau *info* : ça n'échoue nulle part ;
+- les **paquets tiers**, dont le code ne nous appartient pas et qui peuvent
+  imprimer ce qu'ils veulent.
+
+[logs_release.dart](lib/core/utils/logs_release.dart) — `main()` lance
+désormais le démarrage dans une zone qui avale `print` :
+
+```dart
+void main() => demarrerSansLogsEnRelease(_demarrer);
+```
+
+`debugPrint` passant par `print`, la zone couvrirait déjà à elle seule la
+réassignation de `debugPrint`. Les deux sont gardés : la réassignation évite le
+travail (découpage, throttling), la zone garantit le résultat.
+
+Piège évité au passage : `ensureInitialized()` et `runApp` doivent vivre dans
+la **même** zone, sinon Flutter refuse de démarrer. Les deux sont à l'intérieur
+de `_demarrer`, donc de la même zone dans les deux branches.
+
+Couvert par [logs_release_test.dart](test/core/utils/logs_release_test.dart),
+4 tests : `print` avalé, `debugPrint` avalé, **un témoin** qui vérifie que le
+mécanisme de capture voit bien une sortie non protégée (sans lui, les deux
+premiers passeraient avec une capture cassée), et un balayage de source qui
+échoue si un `print(` brut réapparaît dans `lib/`.
+
+- [ ] **Logcat toujours muet après ce changement** : refaire la mesure de
+  l'entrée précédente sur un APK release reconstruit — démarrage à froid puis
+  usage réel, `grep " flutter "` doit rester à zéro hors les 2 lignes du moteur
+  natif au démarrage.
+- [ ] **Le démarrage n'a pas régressé** : c'est le point sensible. `main()` a
+  été restructuré (corps déplacé dans `_demarrer`, exécuté dans une zone).
+  Vérifier que l'app démarre, que la session est restaurée et que la messagerie
+  charge — une erreur de zone se verrait immédiatement au lancement.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

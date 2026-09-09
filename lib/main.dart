@@ -12,6 +12,7 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
 import 'app.dart';
+import 'core/utils/logs_release.dart';
 import 'core/constants/app_config.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/cache_service.dart';
@@ -113,23 +114,11 @@ Widget construireEcranErreurNeutre(FlutterErrorDetails details) {
   );
 }
 
-void main() async {
-  // `debugPrint` écrit AUSSI en release (cf. foundation/print.dart : « logs to
-  // console even in release mode »), où la sortie part dans logcat — lisible
-  // par quiconque branche l'appareil. C'est une variable du SDK, pas une
-  // fonction : la réassigner ici neutralise d'un coup les ~920 appels de
-  // `lib/`, sans avoir à les toucher un par un.
-  //
-  // Ne couvre pas le mode profile (kReleaseMode y est faux), volontairement :
-  // un APK de profilage ne se distribue pas, et ses logs servent au diagnostic.
-  //
-  // ⚠️ Les chaînes restent dans le binaire et leurs arguments sont toujours
-  // évalués — seule la SORTIE disparaît. Un log qui ne doit pas exister du tout
-  // (valeur de jeton, coordonnées) se supprime à la source, pas ici.
-  if (kReleaseMode) {
-    debugPrint = (String? message, {int? wrapWidth}) {};
-  }
+/// Point d'entrée. Le démarrage réel est dans [_demarrer] pour qu'il tourne
+/// entier dans la zone muette de release — voir `logs_release.dart`.
+void main() => demarrerSansLogsEnRelease(_demarrer);
 
+Future<void> _demarrer() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
 
