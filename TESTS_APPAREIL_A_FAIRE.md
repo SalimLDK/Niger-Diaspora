@@ -11989,6 +11989,52 @@ déjà celle du `!kDebugMode`.
 
 ---
 
+## ⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)
+
+Suite directe de l'entrée ci-dessus. Après les trois fuites nommées, il restait
+**922 appels actifs dans 115 fichiers**, dont 12 gardés — tous bavards dans
+logcat sur un APK de production (734 sous `core/services`, dont 140 pour le
+seul `webrtc_service.dart`).
+
+[main.dart](lib/main.dart) — une ligne, en tête de `main()` :
+
+```dart
+if (kReleaseMode) {
+  debugPrint = (String? message, {int? wrapWidth}) {};
+}
+```
+
+`debugPrint` est une **variable** du SDK (`DebugPrintCallback debugPrint =
+debugPrintThrottled;`), pas une fonction : la réassigner neutralise les 922
+appels d'un coup, sans en toucher un seul.
+
+Pourquoi pas les 922 réécritures : sur une branche partagée où l'autre agent
+travaille en parallèle, un diff de 922 lignes sur 115 fichiers lui coûte des
+conflits pour un résultat identique. Même raisonnement que l'interdiction de
+`dart format` dans le CLAUDE.md.
+
+⚠️ **Ce que ça ne fait pas.** Les chaînes restent dans le binaire de l'APK et
+leurs arguments sont toujours évalués — seule la **sortie** disparaît. Un log
+qui ne doit pas exister du tout (valeur de jeton, coordonnées) se supprime à la
+source ; c'est pour ça que les trois fuites ont été traitées séparément avant.
+Le mode **profile** n'est pas couvert (`kReleaseMode` y est faux), volontairement :
+un APK de profilage ne se distribue pas.
+
+- [ ] **Logcat muet en release** : sur un APK release, vider logcat, démarrer
+  l'app à froid, puis
+  `adb logcat -d | grep " flutter "` ne doit plus rien montrer venant de l'app.
+  Repère : avant ce correctif, ce démarrage sortait `Encryption service
+  initialized`, `SupabaseAuthBridge: session sync OK`, `SecureKeyStorage:
+  Initialized`, `DerivedKeyStore`… Les lignes `[IMPORTANT:flutter/shell/...]`
+  du moteur natif, elles, ne passent pas par `debugPrint` et **resteront**.
+- [ ] **Rien n'a changé en debug** : `flutter run` et vérifier que les logs
+  habituels sortent toujours (la neutralisation est derrière `kReleaseMode`).
+- [ ] **Non-régression fonctionnelle large** : parcourir appels, messagerie,
+  carte sur la release — la ligne s'exécute avant tout le reste de `main()`,
+  donc un effet de bord se verrait au démarrage.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
