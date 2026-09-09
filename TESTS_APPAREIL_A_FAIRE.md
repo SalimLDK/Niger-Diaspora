@@ -14,6 +14,41 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ « Mon QR Code » depuis le scanner (2026-09-08)
+
+Le scanner (`/qr-scanner`) était un **aller simple** : on y entre depuis
+l'accueil (deux entrées), depuis le partage de groupe et depuis le dialogue
+« Partager mon profil », et une fois dedans plus rien ne ramenait à son propre
+QR. Deux personnes côte à côte devaient donc toutes deux ressortir du scanner
+pour que l'une montre son code.
+
+Un troisième bouton « Mon QR Code » ouvre maintenant `ShareProfileDialog`
+par-dessus le scanner, caméra arrêtée le temps du dialogue.
+
+À vérifier sur appareil :
+
+- [ ] Le bouton ouvre bien le QR de **son propre** profil (nom, photo, lien).
+- [ ] La caméra s'arrête à l'ouverture (l'aperçu se fige/noircit) et **repart**
+      à la fermeture du dialogue — puis scanne encore un vrai code.
+- [ ] Le dialogue ouvert depuis le scanner n'affiche **pas** le bouton
+      « Scanner un QR code » : il empilerait une seconde caméra.
+- [ ] Retour système (geste/bouton) pendant le dialogue : ferme le dialogue,
+      pas l'écran, et la caméra repart.
+- [ ] La barre du bas à **trois** boutons : lisible, non tronquée, sans
+      débordement — en particulier à **densité 440 et police 1,3**, et en
+      **paysage** (le rail latéral change la largeur utile).
+- [ ] Thème sombre : la barre est en surimpression sur la caméra, à revoir
+      dans les deux thèmes.
+
+Le débordement est verrouillé par
+`test/features/profile/qr_scanner_control_bar_overflow_test.dart` (360 dp,
+échelles 1,0 / 1,1 / 1,3). Contrôle négatif fait : l'ancienne forme
+(icône à côté du label, boutons non flexibles) débordait de 256 px au banc —
+le test attrape bien le défaut. Mais un banc mesure une géométrie, pas une
+lisibilité : la gouttière réelle reste à voir à l'œil.
+
+---
+
 ## ⬜ Site web entièrement refait sur cahier des charges (2026-09-08)
 
 Le site n'est plus la même page avec un autre thème : c'est une landing où

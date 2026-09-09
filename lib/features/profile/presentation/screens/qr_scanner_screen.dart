@@ -4,7 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../providers/profile_provider.dart';
 import '../providers/profile_share_provider.dart';
+import '../widgets/qr_scanner_control_bar.dart';
+import '../widgets/share_profile_modal.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class QrScannerScreen extends ConsumerStatefulWidget {
@@ -22,6 +26,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
 
   bool _isProcessing = false;
   bool _flashOn = false;
+  bool _myQrOpen = false;
   late AnimationController _animationController;
   late Animation<double> _animation;
 
@@ -214,6 +219,70 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     );
   }
 
+  /// Affiche le QR de l'utilisateur courant sans quitter le scanner.
+  ///
+  /// La caméra est arrêtée le temps du dialogue : on montre son écran à
+  /// quelqu'un, il n'y a aucune raison de continuer à filmer — et cela évite
+  /// que la détection se déclenche derrière le dialogue.
+  Future<void> _showMyQrCode() async {
+    if (_myQrOpen || _isProcessing) return;
+
+    setState(() => _myQrOpen = true);
+    HapticFeedback.lightImpact();
+
+    try {
+      if (_controller.value.isRunning) {
+        await _controller.stop();
+      }
+    } catch (_) {
+      // Caméra déjà arrêtée : rien à faire.
+    }
+
+    try {
+      // `.future` et non `.valueOrNull` : le provider est autoDispose, la
+      // première lecture rendrait null et le dialogue s'ouvrirait sur
+      // « Utilisateur non connecté ».
+      //
+      // Le délai borne cette attente : la caméra est déjà arrêtée, un stream
+      // qui n'émet pas laisserait l'écran noir et le bouton sans effet. Le
+      // `catch` ci-dessous le signale, le `finally` relance la caméra.
+      final currentUser = await ref
+          .read(currentUserAsyncProvider.future)
+          .timeout(const Duration(seconds: 5));
+      if (!mounted) return;
+
+      if (currentUser == null) {
+        _showError(l10n.errorOccurred);
+        return;
+      }
+
+      final profile =
+          ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
+
+      await ShareProfileDialog.show(
+        context,
+        userName: profile?.displayName ?? currentUser.displayName,
+        userPhotoUrl: profile?.photoUrl ?? currentUser.photoUrl,
+        userId: profile?.id ?? currentUser.id,
+        showScanButton: false,
+      );
+    } catch (e) {
+      if (mounted) _showError(l10n.connectionError);
+    } finally {
+      if (mounted) {
+        setState(() => _myQrOpen = false);
+        // Relance la caméra pour reprendre le scan là où on l'avait laissé.
+        if (!_canPop && !_controller.value.isRunning) {
+          try {
+            await _controller.start();
+          } catch (_) {
+            // L'errorBuilder de MobileScanner rendra l'échec visible.
+          }
+        }
+      }
+    }
+  }
+
   void _toggleFlash() {
     setState(() => _flashOn = !_flashOn);
     _controller.toggleTorch();
@@ -287,11 +356,16 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
                 if (!state.isInitialized || !state.isRunning) {
                   return Container(
                     color: Colors.black,
-                    child: const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primary,
-                      ),
-                    ),
+                    // Caméra arrêtée volontairement pour afficher « Mon QR
+                    // Code » : un spinner ferait croire à une attente.
+                    child:
+                        _myQrOpen
+                            ? null
+                            : const Center(
+                              child: CircularProgressIndicator(
+                                color: AppColors.primary,
+                              ),
+                            ),
                   );
                 }
                 return const SizedBox.shrink();
@@ -501,76 +575,11 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
       bottom: 0,
       left: 0,
       right: 0,
-      child: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Flash toggle
-              _buildControlButton(
-                icon: _flashOn ? Icons.flash_on : Icons.flash_off,
-                label: _flashOn ? l10n.flashActive : l10n.flash,
-                onTap: _toggleFlash,
-                isActive: _flashOn,
-              ),
-
-              // Switch camera
-              _buildControlButton(
-                icon: Icons.cameraswitch_rounded,
-                label: l10n.changeCard,
-                onTap: _switchCamera,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildControlButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    bool isActive = false,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            color:
-                isActive
-                    ? AppColors.primary.withValues(alpha: 0.9)
-                    : Colors.black.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color:
-                  isActive
-                      ? AppColors.primary
-                      : AppColors.white.withValues(alpha: 0.3),
-              width: 2,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: AppColors.white, size: 24),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
+      child: QrScannerControlBar(
+        flashOn: _flashOn,
+        onToggleFlash: _toggleFlash,
+        onSwitchCamera: _switchCamera,
+        onShowMyQrCode: _showMyQrCode,
       ),
     );
   }
