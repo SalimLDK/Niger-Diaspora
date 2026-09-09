@@ -54,9 +54,14 @@ dans `confirmation_token` — là où `verifyOtp({type:'magiclink'})` fouille
 Vérifié hors appareil par `tools/sonde_echange_auth.mjs`, qui rejoue la
 séquence contre le gotrue de production : témoin (type figé) en échec,
 correctif en session valide avec le claim `firebase_uid` dès la première
-tentative. ⚠️ **Pas encore déployé** — `supabase functions deploy
-auth-firebase-exchange`. Tant que ce n'est pas fait, le défaut est toujours en
-production.
+tentative.
+
+✅ **Déployé le 2026-09-09** et vérifié contre la fonction réelle, sur un
+compte Firebase créé pour l'occasion : le **premier** échange rend une session
+(c'est exactement l'appel qui répondait 401), le JWT porte le claim
+`firebase_uid`, et la ligne `users` se lit avec le jeton du compte. La
+fonction est aussi épinglée à `supabase-js@2.116.0` depuis ce déploiement —
+elle n'importe plus `@2`, qui rebundlait au dernier 2.x du jour.
 
 - [ ] Après déploiement : créer un compte neuf sur l'appareil et vérifier que
       l'accueil se remplit **sans** le trou de 5 s (logcat : plus de
