@@ -11415,6 +11415,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyTransferRetry => 'Start again';
 
   @override
+  String get keyStateHere => 'This device holds your encryption keys.';
+
+  @override
+  String get keyStateAbsent =>
+      'This device does not hold your encryption keys.';
+
+  @override
+  String get keyStateAbsentWhy =>
+      'So it cannot send them. Start the transfer from the phone that holds them, or restore them here with your passphrase.';
+
+  @override
+  String get keyStateAbsentHint =>
+      'A phone can read your messages without holding these keys: most of them use a fallback whose key comes from the server. Only fully end-to-end encrypted messages depend on them.';
+
+  @override
+  String get keyTransferSendHint =>
+      'On the new phone: \"Get them from my old phone\", then scan this code. Keep it on screen until it is scanned.';
+
+  @override
+  String get keyTransferScanFirst =>
+      'First scan the code shown on the old phone, then sign in: your keys will be picked up automatically.';
+
+  @override
+  String get keyTransferScannedSignIn =>
+      'Code recognised. Sign in now to finish.';
+
+  @override
+  String get keyTransferSignInAction => 'Sign in';
+
+  @override
+  String get keyTransferDepositing => 'Preparing the code…';
+
+  @override
+  String get keyTransferExpired =>
+      'This code has expired. Show a new one on the old phone.';
+
+  @override
+  String get keyTransferForgetAction => 'Erase the keys on this device';
+
+  @override
+  String get keyTransferForgetConfirm =>
+      'Erase the keys on this device? Do it once the new phone is in use, for instance before giving this one away. A backup copy stays for seven days.';
+
+  @override
+  String get keyTransferForgetDone => 'Keys erased from this device.';
+
+  @override
   String get keyTransferQrRenews => 'The code renews every 90 seconds.';
 
   @override

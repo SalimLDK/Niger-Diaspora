@@ -174,6 +174,11 @@ class _Doublure {
 class _StockageFake extends _Doublure implements SecureKeyStorage {
   @override
   Future<void> initialize() async {}
+
+  /// Aucun transfert scanné en attente : le coordinateur doit alors suivre son
+  /// aiguillage habituel.
+  @override
+  Future<String?> readPendingTransfer() async => null;
 }
 
 class _GestionnaireFake extends _Doublure implements KeyManagerService {

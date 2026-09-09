@@ -1,19 +1,23 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../core/services/e2ee/key_transfer_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/design_kit.dart';
+import '../../../../core/utils/screen_brightness_helper.dart';
+import '../../../../core/utils/wakelock_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 
-/// Ancien téléphone : lit le QR du nouveau et lui envoie les clés.
+/// Ancien téléphone : dépose ses clés chiffrées et affiche le rendez-vous.
 ///
-/// L'appareil n'oublie ses propres clés qu'après l'accusé de réception du
-/// nouveau : sans cette confirmation, un import raté laisserait le compte sans
-/// aucune copie de l'identité.
+/// C'est lui qui montre le QR, pas le téléphone neuf — voir l'en-tête de
+/// [KeyTransferService] : l'app n'autorise qu'une session par compte, donc se
+/// connecter sur le neuf éjecte celui-ci. Le dépôt doit avoir eu lieu avant.
 class KeyTransferSendScreen extends ConsumerStatefulWidget {
   const KeyTransferSendScreen({super.key});
 
@@ -22,56 +26,87 @@ class KeyTransferSendScreen extends ConsumerStatefulWidget {
       _KeyTransferSendScreenState();
 }
 
-enum _SendStep { scanning, sending, waitingAck, done, failed }
+enum _SendState { preparing, showing, noKeys, noSession, forgotten }
 
 class _KeyTransferSendScreenState
     extends ConsumerState<KeyTransferSendScreen> {
-  final MobileScannerController _controller = MobileScannerController(
-    detectionSpeed: DetectionSpeed.noDuplicates,
-    returnImage: false,
-  );
+  final List<KeyTransferInvite> _deposits = [];
+  Timer? _rotation;
+  _SendState _state = _SendState.preparing;
 
-  _SendStep _step = _SendStep.scanning;
-  String? _error;
+  @override
+  void initState() {
+    super.initState();
+    // Un QR se scanne d'autant mieux que l'écran est lumineux, et l'écran qui
+    // s'éteint au bout de trente secondes oblige à tout recommencer.
+    unawaited(ScreenBrightnessHelper.max());
+    unawaited(WakelockHelper.enable());
+    _start();
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _rotation?.cancel();
+    unawaited(ScreenBrightnessHelper.restore());
+    unawaited(WakelockHelper.disable());
+    // On ne supprime PAS les dépôts en quittant l'écran.
+    //
+    // Le téléphone neuf scanne pendant que ce code est affiché, mais il ne va
+    // chercher la charge qu'APRÈS s'être connecté — connexion qui, elle,
+    // déconnecte cet appareil-ci et détruit cet écran. Nettoyer ici
+    // supprimerait la ligne juste avant qu'elle serve. C'est `claim` qui
+    // l'efface une fois importée, et le trigger de purge au bout d'un quart
+    // d'heure sinon.
     super.dispose();
   }
 
-  Future<void> _onDetect(BarcodeCapture capture) async {
-    if (_step != _SendStep.scanning) return;
-
-    KeyTransferInvite? invite;
-    for (final barcode in capture.barcodes) {
-      final value = barcode.rawValue;
-      if (value == null) continue;
-      invite = KeyTransferInvite.tryParse(value);
-      if (invite != null) break;
-    }
-    // Un QR de partage de profil, ou celui du voisin : on continue à scanner
-    // plutôt que d'afficher une erreur à chaque code qui passe.
-    if (invite == null) return;
-
-    await _controller.stop();
-    if (!mounted) return;
-    await _transfer(invite);
-  }
-
-  Future<void> _transfer(KeyTransferInvite invite) async {
-    final l10n = AppLocalizations.of(context)!;
+  Future<void> _start() async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
-      _fail(l10n.keyTransferNotAuthenticated);
+      setState(() => _state = _SendState.noSession);
       return;
     }
 
-    final confirmed = await showDialog<bool>(
+    if (!await _depose(userId)) return;
+
+    _rotation?.cancel();
+    _rotation = Timer.periodic(KeyTransferService.rotateEvery, (_) async {
+      if (!mounted) return;
+      await _depose(userId);
+    });
+  }
+
+  /// Dépose une charge neuve et n'offre plus que les deux dernières.
+  Future<bool> _depose(String userId) async {
+    final service = ref.read(keyTransferServiceProvider);
+    try {
+      final invite = await service.deposit(userId);
+      if (!mounted) return false;
+      setState(() {
+        _deposits.add(invite);
+        _state = _SendState.showing;
+      });
+      final gardes = KeyTransferService.keepValid(_deposits);
+      await service.pruneDeposits(userId: userId, keep: gardes);
+      return true;
+    } on KeyTransferNoKeys {
+      if (mounted) setState(() => _state = _SendState.noKeys);
+      return false;
+    } on KeyTransferNotAuthenticated {
+      if (mounted) setState(() => _state = _SendState.noSession);
+      return false;
+    }
+  }
+
+  Future<void> _forgetKeys() async {
+    final l10n = AppLocalizations.of(context)!;
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+
+    final confirme = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.keyTransferConfirmTitle),
-        content: Text(l10n.keyTransferConfirmBody),
+        content: Text(l10n.keyTransferForgetConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -79,62 +114,16 @@ class _KeyTransferSendScreenState
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.keyTransferConfirmAction),
+            child: Text(l10n.keyTransferForgetAction),
           ),
         ],
       ),
     );
-    if (confirmed != true) {
-      await _controller.start();
-      if (mounted) setState(() => _step = _SendStep.scanning);
-      return;
-    }
+    if (confirme != true) return;
 
-    setState(() => _step = _SendStep.sending);
-    final service = ref.read(keyTransferServiceProvider);
-    try {
-      await service.sendKeys(invite: invite, userId: userId);
-    } on KeyTransferAccountMismatch {
-      _fail(l10n.keyTransferWrongAccount);
-      return;
-    } on KeyTransferNoKeys {
-      _fail(l10n.keyTransferNoKeys);
-      return;
-    } on KeyTransferNotAuthenticated {
-      _fail(l10n.keyTransferNotAuthenticated);
-      return;
-    }
-
-    if (!mounted) return;
-    setState(() => _step = _SendStep.waitingAck);
-
-    final acked = await service.awaitConsumed(invite: invite);
-    if (!mounted) return;
-    if (!acked) {
-      // Les clés restent ici : c'est le cas le moins mauvais, l'appareil neuf
-      // pourra retenter avec un code neuf.
-      _fail(l10n.keyTransferNoAck);
-      return;
-    }
-
-    await service.forgetLocalKeys(invite: invite, userId: userId);
-    if (mounted) setState(() => _step = _SendStep.done);
-  }
-
-  void _fail(String message) {
-    if (!mounted) return;
-    setState(() {
-      _step = _SendStep.failed;
-      _error = message;
-    });
-  }
-
-  Future<void> _restart() async {
-    setState(() {
-      _step = _SendStep.scanning;
-      _error = null;
-    });
-    await _controller.start();
+    _rotation?.cancel();
+    await ref.read(keyTransferServiceProvider).forgetLocalKeys(userId);
+    if (mounted) setState(() => _state = _SendState.forgotten);
   }
 
   @override
@@ -154,107 +143,114 @@ class _KeyTransferSendScreenState
         titleSpacing: 0,
         title: DesignTitle(l10n.keyTransferSendTitle, size: 22),
       ),
-      body: switch (_step) {
-        _SendStep.scanning => Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: DesignBody(l10n.keyTransferScanHint),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: switch (_state) {
+          _SendState.preparing => Padding(
+            padding: const EdgeInsets.only(top: 80),
+            child: Column(
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 20),
+                Text(l10n.keyTransferDepositing),
+              ],
             ),
-            Expanded(
-              child: MobileScanner(
-                controller: _controller,
-                onDetect: _onDetect,
+          ),
+          _SendState.showing => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DesignBody(l10n.keyTransferSendHint),
+              const SizedBox(height: 24),
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: QrImageView(
+                    // Clé sur l'identifiant : au renouvellement, Flutter
+                    // reconstruit vraiment le code au lieu de réutiliser
+                    // l'ancien élément peint.
+                    key: ValueKey(_deposits.last.id),
+                    data: _deposits.last.encode(),
+                    size: 240,
+                    backgroundColor: Colors.white,
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-        _SendStep.sending => _Progress(message: l10n.keyTransferSending),
-        _SendStep.waitingAck => _Progress(message: l10n.keyTransferWaitingAck),
-        _SendStep.done => _Final(
-          message: l10n.keyTransferDone,
-          good: true,
-          actionLabel: l10n.close,
-          onAction: () => context.canPop()
-              ? context.pop()
-              : context.go('/settings/security/backup'),
-        ),
-        _SendStep.failed => _Final(
-          message: _error ?? l10n.keyTransferNoAck,
-          good: false,
-          actionLabel: l10n.keyTransferRetry,
-          onAction: _restart,
-        ),
-      },
-    );
-  }
-}
-
-class _Progress extends StatelessWidget {
-  const _Progress({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 20),
-            Text(message, textAlign: TextAlign.center),
-          ],
-        ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.keyTransferQrRenews,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: context.textSecondaryColor,
+                ),
+              ),
+              const SizedBox(height: 32),
+              TextButton(
+                onPressed: _forgetKeys,
+                child: Text(l10n.keyTransferForgetAction),
+              ),
+            ],
+          ),
+          _SendState.noKeys => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Message(
+                text: '${l10n.keyTransferNoKeys}\n\n'
+                    '${l10n.keyStateAbsentWhy}\n\n'
+                    '${l10n.keyStateAbsentHint}',
+                good: false,
+              ),
+              const SizedBox(height: 24),
+              DesignPrimaryButton(
+                label: l10n.securityBackupTitle,
+                onPressed: () => context.canPop()
+                    ? context.pop()
+                    : context.go('/settings/security/backup'),
+              ),
+            ],
+          ),
+          _SendState.noSession => _Message(
+            text: l10n.keyTransferNotAuthenticated,
+            good: false,
+          ),
+          _SendState.forgotten => _Message(
+            text: l10n.keyTransferForgetDone,
+            good: true,
+          ),
+        },
       ),
     );
   }
 }
 
-class _Final extends StatelessWidget {
-  const _Final({
-    required this.message,
-    required this.good,
-    required this.actionLabel,
-    required this.onAction,
-  });
+class _Message extends StatelessWidget {
+  const _Message({required this.text, required this.good});
 
-  final String message;
+  final String text;
   final bool good;
-  final String actionLabel;
-  final VoidCallback onAction;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: good
+            ? context.successBackgroundColor
+            : context.warningBackgroundColor,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: good
-                  ? context.successBackgroundColor
-                  : context.warningBackgroundColor,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  good ? Icons.check_circle_outline : Icons.error_outline,
-                  color: good ? context.successColor : context.warningColor,
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: Text(message)),
-              ],
-            ),
+          Icon(
+            good ? Icons.check_circle_outline : Icons.error_outline,
+            color: good ? context.successColor : context.warningColor,
           ),
-          const SizedBox(height: 24),
-          DesignPrimaryButton(label: actionLabel, onPressed: onAction),
+          const SizedBox(width: 12),
+          Expanded(child: Text(text)),
         ],
       ),
     );

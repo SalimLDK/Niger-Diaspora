@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
 import '../../../../core/services/e2ee/key_backup_service.dart';
 import '../../../../core/services/e2ee/key_transfer_service.dart';
+import '../../../../core/services/e2ee/secure_key_storage.dart';
 import '../../../../core/services/e2ee/messaging_e2ee_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -39,6 +40,15 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
   /// Copie de secours laissée par un transfert vers un autre téléphone.
   /// Tant qu'elle est là, la marche arrière est possible.
   ({DateTime at, Map<String, dynamic> keys})? _transferUndo;
+
+  /// Cet appareil détient-il l'identité Signal du compte connecté ?
+  ///
+  /// Rien ne le disait nulle part, et « un téléphone qui lit ses messages » ne
+  /// répond pas à la question : le repli AES déchiffre avec une clé servie par
+  /// le serveur, sans identité locale. D'où des transferts tentés depuis le
+  /// mauvais appareil, qui tombaient sur « aucune clé à transférer » sans que
+  /// rien n'explique pourquoi.
+  bool? _hasLocalKeys;
   String? _generatedPassphrase;
   PassphraseStrength _passphraseStrength = PassphraseStrength.weak;
 
@@ -47,6 +57,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
     super.initState();
     _checkExistingBackup();
     _loadTransferUndo();
+    _loadLocalKeyState();
   }
 
   @override
@@ -55,6 +66,15 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
     _confirmPassphraseController.dispose();
     _restorePassphraseController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadLocalKeyState() async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) return;
+    final storage = ref.read(secureKeyStorageProvider);
+    await storage.initialize();
+    final present = await storage.hasE2EEKeys(userId);
+    if (mounted) setState(() => _hasLocalKeys = present);
   }
 
   Future<void> _loadTransferUndo() async {
@@ -453,17 +473,73 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                     DesignSectionLabel(l10n.keyTransferSectionTitle),
                     DesignBody(l10n.keyTransferSectionBody),
                     const SizedBox(height: 8),
+                    if (_hasLocalKeys != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: _hasLocalKeys!
+                              ? context.successBackgroundColor
+                              : context.warningBackgroundColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              _hasLocalKeys!
+                                  ? Icons.vpn_key_outlined
+                                  : Icons.key_off_outlined,
+                              size: 20,
+                              color: _hasLocalKeys!
+                                  ? context.successColor
+                                  : context.warningColor,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _hasLocalKeys!
+                                        ? l10n.keyStateHere
+                                        : l10n.keyStateAbsent,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  if (!_hasLocalKeys!) ...[
+                                    const SizedBox(height: 4),
+                                    Text(l10n.keyStateAbsentWhy),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      l10n.keyStateAbsentHint,
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        color: context.textSecondaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     DesignSettingsCard(
                       children: [
                         DesignSettingsTile(
-                          icon: const Icon(Icons.qr_code_2_outlined),
+                          // Le neuf scanne, l'ancien affiche : les icônes
+                          // suivent les rôles, pas l'intuition inverse.
+                          icon: const Icon(Icons.photo_camera_outlined),
                           title: l10n.keyTransferReceiveAction,
                           onTap: () => context.push(
                             '/settings/security/transfer/receive',
                           ),
                         ),
                         DesignSettingsTile(
-                          icon: const Icon(Icons.photo_camera_outlined),
+                          icon: const Icon(Icons.qr_code_2_outlined),
                           title: l10n.keyTransferSendAction,
                           onTap: () => context.push(
                             '/settings/security/transfer/send',

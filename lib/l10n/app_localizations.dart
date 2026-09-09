@@ -21308,6 +21308,84 @@ abstract class AppLocalizations {
   /// **'Recommencer'**
   String get keyTransferRetry;
 
+  /// No description provided for @keyStateHere.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil détient vos clés de chiffrement.'**
+  String get keyStateHere;
+
+  /// No description provided for @keyStateAbsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil n\'a pas vos clés de chiffrement.'**
+  String get keyStateAbsent;
+
+  /// No description provided for @keyStateAbsentWhy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il ne peut donc pas les transférer. Faites le transfert depuis le téléphone qui les détient, ou restaurez-les ici avec votre passphrase.'**
+  String get keyStateAbsentWhy;
+
+  /// No description provided for @keyStateAbsentHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un téléphone peut lire vos messages sans détenir ces clés : la plupart passent par un repli dont la clé vient du serveur. Seuls les messages en chiffrement bout-en-bout complet en dépendent.'**
+  String get keyStateAbsentHint;
+
+  /// No description provided for @keyTransferSendHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sur le nouveau téléphone : « Récupérer depuis mon ancien téléphone », puis scannez ce code. Gardez-le affiché jusqu\'au scan.'**
+  String get keyTransferSendHint;
+
+  /// No description provided for @keyTransferScanFirst.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scannez d\'abord le code affiché sur l\'ancien téléphone, puis connectez-vous : vos clés seront reprises automatiquement.'**
+  String get keyTransferScanFirst;
+
+  /// No description provided for @keyTransferScannedSignIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code reconnu. Connectez-vous maintenant pour terminer la reprise.'**
+  String get keyTransferScannedSignIn;
+
+  /// No description provided for @keyTransferSignInAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se connecter'**
+  String get keyTransferSignInAction;
+
+  /// No description provided for @keyTransferDepositing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Préparation du code…'**
+  String get keyTransferDepositing;
+
+  /// No description provided for @keyTransferExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce code a expiré. Affichez-en un nouveau sur l\'ancien téléphone.'**
+  String get keyTransferExpired;
+
+  /// No description provided for @keyTransferForgetAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer les clés de cet appareil'**
+  String get keyTransferForgetAction;
+
+  /// No description provided for @keyTransferForgetConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer les clés de cet appareil ? À faire une fois le nouveau téléphone en service, par exemple avant de donner celui-ci. Une copie de secours reste sept jours.'**
+  String get keyTransferForgetConfirm;
+
+  /// No description provided for @keyTransferForgetDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clés effacées de cet appareil.'**
+  String get keyTransferForgetDone;
+
   /// No description provided for @keyTransferQrRenews.
   ///
   /// In fr, this message translates to:

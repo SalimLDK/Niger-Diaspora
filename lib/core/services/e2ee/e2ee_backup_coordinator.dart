@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'key_backup_service.dart';
 import 'key_manager_service.dart';
+import 'key_transfer_service.dart';
 import 'messaging_e2ee_service.dart';
 import 'secure_key_storage.dart';
 
@@ -112,6 +113,31 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
     }
   }
 
+  /// Reprend le rendez-vous de transfert scanné avant la connexion.
+  ///
+  /// Best-effort : un échec (rendez-vous expiré, réseau) laisse simplement
+  /// l'aiguillage habituel décider — mieux vaut proposer une restauration que
+  /// bloquer la connexion.
+  Future<bool> _claimPendingTransfer(String userId) async {
+    final transfert = _ref.read(keyTransferServiceProvider);
+    try {
+      final invite = await transfert.pendingInvite();
+      if (invite == null) return false;
+      if (invite.userId != userId) {
+        // Le QR visait un autre compte : il n'a plus rien à faire ici.
+        await transfert.forgetPending();
+        return false;
+      }
+      await transfert.claim(invite: invite, userId: userId);
+      await transfert.forgetPending();
+      debugPrint('E2EEBackupCoordinator: keys claimed from transfer');
+      return true;
+    } catch (e) {
+      debugPrint('E2EEBackupCoordinator: pending transfer failed: $e');
+      return false;
+    }
+  }
+
   /// Répercute la veille du rappel de restauration sur les bandeaux qui ne
   /// passent pas par l'état du coordinateur — celui de la conversation.
   void _setRestoreNudgeMuted(bool muted) {
@@ -155,6 +181,15 @@ class E2EEBackupCoordinator extends StateNotifier<E2EEBackupPrompt> {
 
       final storage = _ref.read(secureKeyStorageProvider);
       await storage.initialize();
+
+      // Un transfert scanné avant la connexion attend ici : il prime sur tout
+      // le reste, puisqu'il apporte l'identité que les autres branches
+      // essaieraient de restaurer ou de recréer.
+      if (await _claimPendingTransfer(userId)) {
+        await _ref.read(messagingE2EEServiceProvider).initialize(userId);
+        state = E2EEBackupPrompt.none;
+        return;
+      }
 
       final keyManager = _ref.read(keyManagerServiceProvider);
       final hasKeys = await keyManager.hasKeys(userId);

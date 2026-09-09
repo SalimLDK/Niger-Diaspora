@@ -24,7 +24,7 @@ plugins {
     // JDK 17 auto-provisionné n'est plus dans le cache Gradle.
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
-    id("com.android.application") version "8.7.0" apply false
+    id("com.android.application") version "8.10.1" apply false
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
     // START: FlutterFire Configuration
     id("com.google.gms.google-services") version "4.3.15" apply false
