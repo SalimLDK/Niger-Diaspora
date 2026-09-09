@@ -36,34 +36,40 @@ une session, et la ligne `users` existe avec `display_name = "Compte Test"`.
       (sondages, Découvrir, filtres Photos/Vidéos, panneau des villes)
       deviennent enfin observables.
 
-✅ **Corrigé le 2026-09-09 — pas encore déployé.** Le tout premier appel à
+⚠️ Constaté pendant la création : **le tout premier appel à
 `auth-firebase-exchange` pour un compte neuf répondait 401 « Email link is
-invalid or has expired », la tentative suivante réussissant. Dans l'app,
-`_scheduleRetry()` repasse 5 s plus tard : **tout compte neuf** démarrait donc
-sur ~5 s de session anonyme avant que ses données n'arrivent.
+invalid or has expired »** — la tentative suivante réussissait. Dans l'app,
+`_scheduleRetry()` repasse 5 s plus tard : le premier lancement d'un compte
+neuf avait donc ~5 s de session anonyme avant que les données n'arrivent, et
+ça touchait **tout compte neuf**, pas seulement celui-ci.
 
-La piste `updateUserById` était fausse — la séquence échoue tout autant **sans
-lui** (mesuré ; cette étape ne touche que `updated_at`). La cause est le
-**type** passé à `verifyOtp`. `generateLink({type:'magiclink'})` sur un email
-inconnu *crée* le compte, et le lien qu'il rend alors est de type **`signup`** :
-GoTrue range ce jeton dans `confirmation_token`, quand
-`verifyOtp({type:'magiclink'})` le cherche dans `recovery_token`. Le message
-parle d'expiration ; rien n'avait expiré, c'était le mauvais tiroir. Contrôle
-décisif : le **même** jeton, à la même seconde, est refusé en `magiclink` et
-accepté en `signup`. La 2e tentative passait simplement parce que le compte
-existait désormais, ce qui fait rendre à `generateLink` un lien `magiclink`.
+**Corrigé le 2026-09-09**, la cause n'était pas celle qu'on croyait : ce n'est
+pas `updateUserById` qui invalidait le lien. `generateLink({type:'magiclink'})`
+ne rend un lien `magiclink` que si l'utilisateur **existe déjà** ; sur un
+compte neuf, gotrue le crée et rend un lien **`signup`**, dont le jeton part
+dans `confirmation_token` — là où `verifyOtp({type:'magiclink'})` fouille
+`recovery_token`. La fonction lit désormais le type dans la réponse
+(`typeEmis()`) au lieu de l'écrire en dur.
 
-`supabase/functions/auth-firebase-exchange/index.ts` passe maintenant à
-`verifyOtp` le type que GoTrue a réellement émis
-(`properties.verification_type`), et retente **une** fois avec un lien frais si
-l'échange est refusé — le jeton est à usage unique, deux échanges concurrents
-se sabotent l'un l'autre. Mesuré bout-en-bout sur des comptes Firebase neufs :
-la fonction telle que déployée rend 401 puis 200, la séquence corrigée rend une
-session **au premier coup**, claim `firebase_uid` compris.
+Vérifié hors appareil par `tools/sonde_echange_auth.mjs`, qui rejoue la
+séquence contre le gotrue de production : témoin (type figé) en échec,
+correctif en session valide avec le claim `firebase_uid` dès la première
+tentative. Confirmé bout-en-bout sur des comptes **Firebase** neufs
+(`signInWithPassword` → Edge Function) : la version en production rend 401 puis
+200, la corrigée rend une session au premier coup.
 
-- [ ] **Après déploiement** : première connexion d'un compte neuf sur SM A515F
-      — les données doivent arriver tout de suite, sans les ~5 s d'écrans vides
-      (`supabase/functions/auth-firebase-exchange/index.ts`).
+Le même message d'erreur a une **seconde** cause, mesurée au passage : deux
+`generateLink` de suite sur un compte existant écrivent dans la même colonne et
+le second invalide le jeton du premier, donc deux échanges concurrents (deux
+appareils, deux isolats Edge) se sabotent l'un l'autre — `_inFlightSync` ne
+dédoublonne qu'au sein d'un processus. L'étape 5 retente donc **une** fois avec
+un lien frais ; la 3e mesure du banc couvre ce cas. ⚠️ **Pas encore déployé** — `supabase functions deploy
+auth-firebase-exchange`. Tant que ce n'est pas fait, le défaut est toujours en
+production.
+
+- [ ] Après déploiement : créer un compte neuf sur l'appareil et vérifier que
+      l'accueil se remplit **sans** le trou de 5 s (logcat : plus de
+      `SupabaseAuthBridge: exchange failed (401)` au premier lancement).
 
 ---
 
