@@ -11851,6 +11851,20 @@ personnelle, dans les logs. **Deux fois** : à la pose du message optimiste
 oublier lors du repérage — un `grep | head -25` avait mangé la ligne, et
 corriger une seule des deux n'aurait rien fermé du tout.
 
+[message_remote_datasource.dart:2180](lib/features/messages/data/datasources/message_remote_datasource.dart:2180)
+Même `lat=` / `lng=`, troisième occurrence, trouvée encore après — celle-ci
+écrivait `${data['latitude']}`, une forme que deux balayages successifs
+avaient manquée parce qu'ils cherchaient un identifiant (`$latitude`), pas un
+accès map. **Chemin non actif** : la messagerie passe par
+`MessageSupabaseDataSource`, et `MessageRemoteDataSourceImpl` n'est instancié
+que par la recherche, qui n'envoie jamais de position. Corrigé quand même —
+la ligne se réveillerait au premier recâblage.
+
+⚠️ **La leçon d'outillage** : ne jamais conclure un audit de logs sur un motif
+qui suppose la forme de l'interpolation. Le balayage qui a fini par tout
+trouver cherche dans le **texte** du message (`lat=`, `token`, `phone`…),
+indépendamment de la façon dont la valeur est injectée.
+
 [logger_service.dart](lib/core/services/logger_service.dart)
 Le garde `kDebugMode` ne couvrait que le niveau `debug` : `i`, `w` et `e`
 parlaient en release. Il couvre maintenant `_log` en entier, tous niveaux.

@@ -2177,7 +2177,8 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
       // Decrypt fields for the returned message
       _decryptMessageFields(data);
 
-      debugPrint('📍 sendLocationMessage: Created message id=${data['id']}, lat=${data['latitude']}, lng=${data['longitude']}');
+      // Pas de coordonnées ici : `debugPrint` écrit aussi en release (logcat).
+      debugPrint('📍 sendLocationMessage: Created message id=${data['id']}');
 
       return MessageModel.fromJson(data);
     } catch (e) {
