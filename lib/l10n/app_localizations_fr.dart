@@ -11533,6 +11533,38 @@ class AppLocalizationsFr extends AppLocalizations {
   String get keyTransferRetry => 'Recommencer';
 
   @override
+  String get keyTransferSendHint =>
+      'Sur le nouveau téléphone : « Récupérer depuis mon ancien téléphone », puis scannez ce code. Gardez-le affiché jusqu\'au scan.';
+
+  @override
+  String get keyTransferScanFirst =>
+      'Scannez d\'abord le code affiché sur l\'ancien téléphone, puis connectez-vous : vos clés seront reprises automatiquement.';
+
+  @override
+  String get keyTransferScannedSignIn =>
+      'Code reconnu. Connectez-vous maintenant pour terminer la reprise.';
+
+  @override
+  String get keyTransferSignInAction => 'Se connecter';
+
+  @override
+  String get keyTransferDepositing => 'Préparation du code…';
+
+  @override
+  String get keyTransferExpired =>
+      'Ce code a expiré. Affichez-en un nouveau sur l\'ancien téléphone.';
+
+  @override
+  String get keyTransferForgetAction => 'Effacer les clés de cet appareil';
+
+  @override
+  String get keyTransferForgetConfirm =>
+      'Effacer les clés de cet appareil ? À faire une fois le nouveau téléphone en service, par exemple avant de donner celui-ci. Une copie de secours reste sept jours.';
+
+  @override
+  String get keyTransferForgetDone => 'Clés effacées de cet appareil.';
+
+  @override
   String get keyTransferQrRenews =>
       'Le code se renouvelle toutes les 90 secondes.';
 

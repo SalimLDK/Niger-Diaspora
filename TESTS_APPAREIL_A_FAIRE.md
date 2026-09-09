@@ -70,10 +70,27 @@ caméra, ses couleurs sont fixes (noir translucide, texte blanc) dans les deux
 thèmes.
 ## ⬜ Transfert des clés par QR, sans passphrase (2026-09-08)
 
-Reprise des clés d'un téléphone à l'autre sans rien à retenir : le nouveau
-affiche un QR, l'ancien le scanne, et l'export complet du stockage sécurisé
+Reprise des clés d'un téléphone à l'autre sans rien à retenir : l'**ancien**
+affiche un QR, le **neuf** le scanne, et l'export complet du stockage sécurisé
 voyage chiffré en AES-256-GCM par une clé qui ne quitte jamais le canal
 optique. Le serveur ne relaie qu'un blob.
+
+⚠️ **Le sens a été inversé le 2026-09-08**, après essai sur les deux téléphones.
+L'app n'autorise qu'**une session par compte** (`SessionService` écrit un
+`session_id` neuf à chaque connexion, les autres appareils se déconnectent
+seuls) : se connecter sur le téléphone neuf éjecte l'ancien à l'instant même.
+La première version — le neuf affiche, l'ancien scanne et dépose — ne pouvait
+donc **jamais** fonctionner : au moment du dépôt, l'ancien était déjà dehors.
+Le dépôt vient maintenant en premier, tant que l'ancien a sa session ; le neuf
+scanne **avant de se connecter**, retient le rendez-vous dans le stockage
+sécurisé, et `E2EEBackupCoordinator` le reprend juste après la connexion. La
+route du scanner est ouverte sans session (garde du routeur), et un lien
+« Récupérer depuis mon ancien téléphone » figure sur l'écran de connexion.
+
+Corollaire : plus d'accusé de réception ni d'effacement automatique — l'ancien
+sera hors ligne au moment de l'import. L'effacement devient un geste explicite
+(« Effacer les clés de cet appareil »), utile avant de donner le téléphone, et
+la copie de secours de sept jours le couvre toujours.
 
 La migration `20260908200000_e2ee_key_transfers.sql` **est appliquée** en
 production (Salim l'a poussée le 2026-09-08 ; `db push --dry-run` répond
@@ -109,31 +126,37 @@ Deux garde-fous ajoutés depuis, à vérifier eux aussi :
 
 Le reste demande **deux téléphones** connectés au **même compte** :
 
-- [ ] **Le QR se scanne.** Réglages › Sécurité › Sauvegarde des clés ›
-      « Récupérer depuis mon ancien téléphone » sur le neuf, « Transférer vers
-      un nouveau téléphone » sur l'ancien. Vérifier au passage la demande de
-      permission caméra (jamais testée sur ce chemin).
-- [ ] **Le QR d'un autre compte est refusé** — message « Ce code appartient à
-      un autre compte », et rien n'est envoyé.
-- [ ] **L'ancien n'oublie ses clés qu'après l'accusé.** Couper le réseau du
-      neuf juste après le scan : l'ancien doit finir sur « Le nouveau téléphone
-      n'a pas confirmé » et **garder** ses clés (le vérifier en rouvrant une
-      conversation chiffrée).
+- [ ] **Le parcours complet, dans le bon ordre.** Sur l'**ancien** (connecté) :
+      Réglages › Sécurité › Sauvegarde des clés › « Transférer vers un nouveau
+      téléphone » — le code s'affiche. Sur le **neuf**, sans se connecter :
+      « Récupérer depuis mon ancien téléphone » depuis l'écran de connexion,
+      scanner le code, puis se connecter. Les clés doivent arriver toutes
+      seules.
+- [ ] **La permission caméra** sur le téléphone neuf, jamais accordée : elle
+      doit être demandée au moment du scan, y compris hors session.
+- [ ] **Le QR d'un autre compte est refusé** — « Ce code appartient à un autre
+      compte » si l'appareil est déjà connecté ailleurs ; sinon le rendez-vous
+      est oublié à la connexion sans rien casser.
+- [ ] **Un code expiré** (attendre le quart d'heure de la purge, ou laisser
+      l'écran de l'ancien tourner assez longtemps pour que le code affiché ait
+      été remplacé deux fois) doit donner « Ce code a expiré », pas un
+      plantage.
 - [ ] **Le neuf lit enfin l'historique.** Après import, les bulles « clé de
       groupe introuvable » d'un fil de groupe doivent redevenir lisibles, et le
       bandeau de restauration disparaître.
 - [ ] **Le code tourne.** Laisser l'écran de récupération ouvert deux minutes :
       le QR doit changer, et un scan du **code précédent** doit encore aboutir.
-- [ ] **La marche arrière.** Après un transfert réussi, l'écran de sauvegarde de
-      l'ancien téléphone doit montrer « Transfert récent » ; « Annuler le
-      transfert » remet les clés (une conversation chiffrée redevient lisible),
-      « Supprimer la copie » l'efface pour de bon.
+- [ ] **L'effacement explicite et sa marche arrière.** Sur l'ancien, après le
+      transfert : « Effacer les clés de cet appareil » ; l'écran de sauvegarde
+      doit alors montrer « Transfert récent », « Annuler le transfert » remettre
+      les clés, et « Supprimer la copie » l'effacer pour de bon.
 - [ ] **La ligne de rendez-vous ne survit pas.** Après un transfert réussi,
       `select * from e2ee_key_transfers` doit être vide pour ce compte.
 
 ⚠️ **Ce que ce chemin ne fait pas** : il remplace un téléphone, il n'en ajoute
-pas un. L'ancien oublie ses clés à la fin, exprès — deux appareils sur un même
-ratchet se cassent mutuellement le déchiffrement.
+pas un — et de toute façon la règle d'une seule session par compte l'interdit
+déjà. Deux appareils portant la même identité ne peuvent donc pas se disputer
+le ratchet en même temps ; c'est ce qui rend l'effacement facultatif.
 
 ---
 

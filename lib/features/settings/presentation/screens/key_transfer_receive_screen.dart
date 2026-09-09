@@ -4,27 +4,24 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
 import '../../../../core/services/e2ee/key_transfer_service.dart';
 import '../../../../core/services/e2ee/messaging_e2ee_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/design_kit.dart';
-import '../../../../core/utils/screen_brightness_helper.dart';
-import '../../../../core/utils/wakelock_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 
-/// Nouveau téléphone : affiche le rendez-vous et attend les clés de l'ancien.
+/// Téléphone neuf : scanne le code affiché par l'ancien.
 ///
-/// Le QR porte l'identifiant du rendez-vous, le compte visé et une clé
-/// AES-256 tirée au sort ici. Elle ne part jamais sur le réseau : c'est ce qui
-/// permet au serveur de relayer la charge sans pouvoir la lire.
+/// **Cet écran doit fonctionner sans session.** L'app n'autorise qu'une session
+/// par compte : se connecter ici éjecte l'ancien téléphone, qui ne pourrait
+/// alors plus rien déposer. On scanne donc d'abord, on retient le rendez-vous,
+/// et `E2EEBackupCoordinator` le reprend juste après la connexion.
 ///
-/// **Le code se renouvelle** toutes les [KeyTransferService.rotateEvery] : un QR
-/// affiché puis oublié sur une table ne reste pas valable indéfiniment. Le
-/// précédent reste accepté un tour de plus, sinon un scan tombant pile au
-/// moment du renouvellement se perdrait (cf. `keepValid`).
+/// Quand la session est déjà là (l'ancien téléphone a été déconnecté
+/// autrement), la reprise se fait tout de suite, sans repasser par la connexion.
 class KeyTransferReceiveScreen extends ConsumerStatefulWidget {
   const KeyTransferReceiveScreen({super.key});
 
@@ -33,78 +30,84 @@ class KeyTransferReceiveScreen extends ConsumerStatefulWidget {
       _KeyTransferReceiveScreenState();
 }
 
-enum _ReceiveState { waiting, done, timedOut, corrupted, noSession }
+enum _ReceiveState { scanning, claiming, done, signInNeeded, wrongAccount, expired, corrupted }
 
 class _KeyTransferReceiveScreenState
     extends ConsumerState<KeyTransferReceiveScreen> {
-  final List<KeyTransferInvite> _invites = [];
-  Timer? _rotation;
-  _ReceiveState _state = _ReceiveState.waiting;
+  final MobileScannerController _controller = MobileScannerController(
+    detectionSpeed: DetectionSpeed.noDuplicates,
+    returnImage: false,
+  );
 
-  @override
-  void initState() {
-    super.initState();
-    // Un QR se scanne d'autant mieux que l'écran est lumineux, et l'écran qui
-    // s'éteint au bout de trente secondes oblige à tout recommencer.
-    unawaited(ScreenBrightnessHelper.max());
-    unawaited(WakelockHelper.enable());
-    _start();
-  }
+  _ReceiveState _state = _ReceiveState.scanning;
 
   @override
   void dispose() {
-    _rotation?.cancel();
-    unawaited(ScreenBrightnessHelper.restore());
-    unawaited(WakelockHelper.disable());
+    _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _start() async {
+  Future<void> _onDetect(BarcodeCapture capture) async {
+    if (_state != _ReceiveState.scanning) return;
+
+    KeyTransferInvite? invite;
+    for (final barcode in capture.barcodes) {
+      final value = barcode.rawValue;
+      if (value == null) continue;
+      invite = KeyTransferInvite.tryParse(value);
+      if (invite != null) break;
+    }
+    // Un QR de partage de profil, ou celui du voisin : on continue à scanner
+    // plutôt que d'afficher une erreur à chaque code qui passe.
+    if (invite == null) return;
+
+    await _controller.stop();
+    if (!mounted) return;
+    await _handle(invite);
+  }
+
+  Future<void> _handle(KeyTransferInvite invite) async {
+    final service = ref.read(keyTransferServiceProvider);
     final userId = FirebaseAuth.instance.currentUser?.uid;
+
     if (userId == null) {
-      setState(() => _state = _ReceiveState.noSession);
+      // Pas encore connecté : on retient le rendez-vous, la reprise se fera au
+      // démarrage E2EE juste après la connexion.
+      await service.rememberPending(invite);
+      if (mounted) setState(() => _state = _ReceiveState.signInNeeded);
       return;
     }
 
-    final service = ref.read(keyTransferServiceProvider);
-    setState(() {
-      _invites
-        ..clear()
-        ..add(service.createInvite(userId));
-      _state = _ReceiveState.waiting;
-    });
+    if (userId != invite.userId) {
+      if (mounted) setState(() => _state = _ReceiveState.wrongAccount);
+      return;
+    }
 
-    _rotation?.cancel();
-    _rotation = Timer.periodic(KeyTransferService.rotateEvery, (_) {
-      if (!mounted) return;
-      setState(() => _invites.add(service.createInvite(userId)));
-    });
-
+    setState(() => _state = _ReceiveState.claiming);
     try {
-      final received = await service.awaitAndImportAny(
-        invites: () => List.unmodifiable(_invites),
-      );
-      _rotation?.cancel();
-      if (!mounted) return;
-      if (!received) {
-        setState(() => _state = _ReceiveState.timedOut);
-        return;
-      }
-      // Les clés sont en place : démarrer Signal et republier cet appareil,
-      // puis rendre la parole aux bandeaux de rappel (la situation a changé).
+      await service.claim(invite: invite, userId: userId);
       await ref.read(messagingE2EEServiceProvider).initialize(userId);
       await ref
           .read(e2eeBackupCoordinatorProvider.notifier)
           .clearSnooze(userId);
-      if (!mounted) return;
-      setState(() => _state = _ReceiveState.done);
+      if (mounted) setState(() => _state = _ReceiveState.done);
+    } on KeyTransferExpired {
+      if (mounted) setState(() => _state = _ReceiveState.expired);
     } on KeyTransferCorrupted {
-      _rotation?.cancel();
       if (mounted) setState(() => _state = _ReceiveState.corrupted);
+    } on KeyTransferAccountMismatch {
+      if (mounted) setState(() => _state = _ReceiveState.wrongAccount);
     } on KeyTransferNotAuthenticated {
-      _rotation?.cancel();
-      if (mounted) setState(() => _state = _ReceiveState.noSession);
+      // La session n'était pas prête : on retombe sur le chemin « scanné puis
+      // connecté », qui repassera par le coordinateur.
+      await service.rememberPending(invite);
+      if (mounted) setState(() => _state = _ReceiveState.signInNeeded);
     }
+  }
+
+  Future<void> _restart() async {
+    setState(() => _state = _ReceiveState.scanning);
+    await _controller.start();
   }
 
   @override
@@ -113,12 +116,10 @@ class _KeyTransferReceiveScreenState
 
     return Scaffold(
       appBar: AppBar(
-        // Sortie explicite : la flèche implicite disparaît quand `canPop()` est
-        // faux (écran atteint par lien profond ou notification).
         leading: BackButton(
           onPressed: () => context.canPop()
               ? context.pop()
-              : context.go('/settings/security/backup'),
+              : context.go('/auth/login'),
         ),
         backgroundColor: context.backgroundColor,
         surfaceTintColor: Colors.transparent,
@@ -126,107 +127,113 @@ class _KeyTransferReceiveScreenState
         titleSpacing: 0,
         title: DesignTitle(l10n.keyTransferReceiveTitle, size: 22),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: switch (_state) {
+        _ReceiveState.scanning => Column(
           children: [
-            if (_state == _ReceiveState.waiting && _invites.isNotEmpty) ...[
-              DesignBody(l10n.keyTransferReceiveHint),
-              const SizedBox(height: 24),
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: QrImageView(
-                    // Clé sur l'identifiant : au renouvellement, Flutter
-                    // reconstruit vraiment le code au lieu de réutiliser
-                    // l'ancien élément peint.
-                    key: ValueKey(_invites.last.id),
-                    data: _invites.last.encode(),
-                    size: 240,
-                    backgroundColor: Colors.white,
-                  ),
-                ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: DesignBody(l10n.keyTransferScanFirst),
+            ),
+            Expanded(
+              child: MobileScanner(
+                controller: _controller,
+                onDetect: _onDetect,
               ),
-              const SizedBox(height: 12),
-              Text(
-                l10n.keyTransferQrRenews,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12.5, color: context.textSecondaryColor),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  const SizedBox(width: 12),
-                  Flexible(child: Text(l10n.keyTransferWaiting)),
-                ],
-              ),
-            ],
-            if (_state != _ReceiveState.waiting) ...[
-              _Outcome(state: _state),
-              const SizedBox(height: 24),
-              if (_state == _ReceiveState.done)
-                DesignPrimaryButton(
-                  label: l10n.close,
-                  onPressed: () => context.canPop()
-                      ? context.pop()
-                      : context.go('/settings/security/backup'),
-                )
-              else
-                DesignPrimaryButton(
-                  label: l10n.keyTransferRetry,
-                  onPressed: _start,
-                ),
-            ],
+            ),
           ],
         ),
-      ),
+        _ReceiveState.claiming => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 20),
+                Text(l10n.keyTransferWaiting, textAlign: TextAlign.center),
+              ],
+            ),
+          ),
+        ),
+        _ReceiveState.signInNeeded => _Outcome(
+          message: l10n.keyTransferScannedSignIn,
+          good: true,
+          actionLabel: l10n.keyTransferSignInAction,
+          onAction: () => context.go('/auth/login'),
+        ),
+        _ReceiveState.done => _Outcome(
+          message: l10n.keyTransferImported,
+          good: true,
+          actionLabel: l10n.close,
+          onAction: () => context.canPop()
+              ? context.pop()
+              : context.go('/settings/security/backup'),
+        ),
+        _ReceiveState.wrongAccount => _Outcome(
+          message: l10n.keyTransferWrongAccount,
+          good: false,
+          actionLabel: l10n.keyTransferRetry,
+          onAction: _restart,
+        ),
+        _ReceiveState.expired => _Outcome(
+          message: l10n.keyTransferExpired,
+          good: false,
+          actionLabel: l10n.keyTransferRetry,
+          onAction: _restart,
+        ),
+        _ReceiveState.corrupted => _Outcome(
+          message: l10n.keyTransferCorrupted,
+          good: false,
+          actionLabel: l10n.keyTransferRetry,
+          onAction: _restart,
+        ),
+      },
     );
   }
 }
 
 class _Outcome extends StatelessWidget {
-  const _Outcome({required this.state});
+  const _Outcome({
+    required this.message,
+    required this.good,
+    required this.actionLabel,
+    required this.onAction,
+  });
 
-  final _ReceiveState state;
+  final String message;
+  final bool good;
+  final String actionLabel;
+  final VoidCallback onAction;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final (String message, bool good) = switch (state) {
-      _ReceiveState.done => (l10n.keyTransferImported, true),
-      _ReceiveState.timedOut => (l10n.keyTransferTimeout, false),
-      _ReceiveState.corrupted => (l10n.keyTransferCorrupted, false),
-      _ReceiveState.noSession => (l10n.keyTransferNotAuthenticated, false),
-      _ReceiveState.waiting => (l10n.keyTransferWaiting, true),
-    };
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: good
-            ? context.successBackgroundColor
-            : context.warningBackgroundColor,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(
-            good ? Icons.check_circle_outline : Icons.error_outline,
-            color: good ? context.successColor : context.warningColor,
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: good
+                  ? context.successBackgroundColor
+                  : context.warningBackgroundColor,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  good ? Icons.check_circle_outline : Icons.error_outline,
+                  color: good ? context.successColor : context.warningColor,
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: Text(message)),
+              ],
+            ),
           ),
-          const SizedBox(width: 12),
-          Expanded(child: Text(message)),
+          const SizedBox(height: 24),
+          DesignPrimaryButton(label: actionLabel, onPressed: onAction),
         ],
       ),
     );

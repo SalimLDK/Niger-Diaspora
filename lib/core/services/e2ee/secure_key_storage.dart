@@ -51,6 +51,13 @@ class SecureKeyStorage {
   static const String _prefixDeviceId = 'e2ee_device_id_';
   static const String _prefixSession = 'e2ee_session_';
 
+  /// Rendez-vous de transfert scanné avant la connexion.
+  ///
+  /// Sans identifiant de compte dans la clé : au moment du scan, le téléphone
+  /// neuf ne sait pas encore sur quel compte il va se connecter — c'est
+  /// justement le QR qui le lui apprend.
+  static const String _keyPendingTransfer = 'e2ee_transfer_pending';
+
   /// Copie de secours posée juste avant un effacement volontaire des clés
   /// (transfert vers un autre téléphone). Préfixe distinct de tous les autres :
   /// [clearAllData] ne le balaie pas, c'est tout l'intérêt.
@@ -616,6 +623,24 @@ class SecureKeyStorage {
     }
 
     debugPrint('SecureKeyStorage: Imported keys for $userId');
+  }
+
+  Future<void> storePendingTransfer(String encodedInvite) async {
+    _ensureInitialized();
+    await _secureStorage.write(
+      key: _keyPendingTransfer,
+      value: encodedInvite,
+    );
+  }
+
+  Future<String?> readPendingTransfer() async {
+    _ensureInitialized();
+    return _secureStorage.read(key: _keyPendingTransfer);
+  }
+
+  Future<void> clearPendingTransfer() async {
+    _ensureInitialized();
+    await _secureStorage.delete(key: _keyPendingTransfer);
   }
 
   /// Met de côté l'export complet avant un effacement volontaire.

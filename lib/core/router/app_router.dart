@@ -213,6 +213,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == '/settings/privacy' ||
           state.matchedLocation == '/settings/code-of-conduct';
 
+      // Le scan du QR de transfert a lieu AVANT la connexion, et c'est la
+      // seule façon que ça marche : se connecter sur ce téléphone-ci éjecte
+      // l'ancien (une seule session par compte), qui ne pourrait alors plus
+      // rien déposer. La route reste donc ouverte sans session.
+      final isKeyTransferScanRoute =
+          state.matchedLocation == '/settings/security/transfer/receive';
+
       // 0. Mise de côté de la destination d'un lien profond.
       //
       // Un lien ouvre l'app directement sur son contenu, mais au démarrage à
@@ -231,7 +238,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           isProfileConfigRoute ||
           isOnboardingRoute ||
           isMaintenanceRoute ||
-          isLegalRoute;
+          isLegalRoute ||
+          isKeyTransferScanRoute;
       if (!isTechnicalRoute && (isAuthLoading || !isAuthenticated)) {
         // `uri` et non `matchedLocation` : les paramètres de requête font
         // partie de la destination (ex. /feed?hashtag=niamey).
@@ -245,7 +253,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // 2. If not authenticated, redirect to login (except for legal routes)
       if (!isAuthenticated) {
-        return (isAuthRoute || isLegalRoute) ? null : '/auth/login';
+        return (isAuthRoute || isLegalRoute || isKeyTransferScanRoute)
+            ? null
+            : '/auth/login';
       }
 
       // 3. If authenticated, check onboarding loading status

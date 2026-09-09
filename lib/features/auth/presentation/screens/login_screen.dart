@@ -180,6 +180,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               action: l10n.signUp,
               onTap: () => context.push('/auth/register'),
             ),
+
+            const SizedBox(height: 4),
+
+            // Le scan doit avoir lieu AVANT la connexion : se connecter ici
+            // éjecte l'ancien téléphone, qui ne pourrait alors plus déposer
+            // ses clés.
+            TextButton(
+              onPressed: () =>
+                  context.push('/settings/security/transfer/receive'),
+              child: Text(l10n.keyTransferReceiveAction),
+            ),
           ],
         ),
       ),

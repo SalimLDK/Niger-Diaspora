@@ -456,14 +456,16 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                     DesignSettingsCard(
                       children: [
                         DesignSettingsTile(
-                          icon: const Icon(Icons.qr_code_2_outlined),
+                          // Le neuf scanne, l'ancien affiche : les icônes
+                          // suivent les rôles, pas l'intuition inverse.
+                          icon: const Icon(Icons.photo_camera_outlined),
                           title: l10n.keyTransferReceiveAction,
                           onTap: () => context.push(
                             '/settings/security/transfer/receive',
                           ),
                         ),
                         DesignSettingsTile(
-                          icon: const Icon(Icons.photo_camera_outlined),
+                          icon: const Icon(Icons.qr_code_2_outlined),
                           title: l10n.keyTransferSendAction,
                           onTap: () => context.push(
                             '/settings/security/transfer/send',
