@@ -195,9 +195,23 @@ class _KeyTransferSendScreenState
               ),
             ],
           ),
-          _SendState.noKeys => _Message(
-            text: l10n.keyTransferNoKeys,
-            good: false,
+          _SendState.noKeys => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _Message(
+                text: '${l10n.keyTransferNoKeys}\n\n'
+                    '${l10n.keyStateAbsentWhy}\n\n'
+                    '${l10n.keyStateAbsentHint}',
+                good: false,
+              ),
+              const SizedBox(height: 24),
+              DesignPrimaryButton(
+                label: l10n.securityBackupTitle,
+                onPressed: () => context.canPop()
+                    ? context.pop()
+                    : context.go('/settings/security/backup'),
+              ),
+            ],
           ),
           _SendState.noSession => _Message(
             text: l10n.keyTransferNotAuthenticated,

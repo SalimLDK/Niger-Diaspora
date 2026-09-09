@@ -11536,6 +11536,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get keyTransferRetry => 'Recommencer';
 
   @override
+  String get keyStateHere => 'Cet appareil détient vos clés de chiffrement.';
+
+  @override
+  String get keyStateAbsent => 'Cet appareil n\'a pas vos clés de chiffrement.';
+
+  @override
+  String get keyStateAbsentWhy =>
+      'Il ne peut donc pas les transférer. Faites le transfert depuis le téléphone qui les détient, ou restaurez-les ici avec votre passphrase.';
+
+  @override
+  String get keyStateAbsentHint =>
+      'Un téléphone peut lire vos messages sans détenir ces clés : la plupart passent par un repli dont la clé vient du serveur. Seuls les messages en chiffrement bout-en-bout complet en dépendent.';
+
+  @override
   String get keyTransferSendHint =>
       'Sur le nouveau téléphone : « Récupérer depuis mon ancien téléphone », puis scannez ce code. Gardez-le affiché jusqu\'au scan.';
 

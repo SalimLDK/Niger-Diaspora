@@ -11415,6 +11415,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyTransferRetry => 'Start again';
 
   @override
+  String get keyStateHere => 'This device holds your encryption keys.';
+
+  @override
+  String get keyStateAbsent =>
+      'This device does not hold your encryption keys.';
+
+  @override
+  String get keyStateAbsentWhy =>
+      'So it cannot send them. Start the transfer from the phone that holds them, or restore them here with your passphrase.';
+
+  @override
+  String get keyStateAbsentHint =>
+      'A phone can read your messages without holding these keys: most of them use a fallback whose key comes from the server. Only fully end-to-end encrypted messages depend on them.';
+
+  @override
   String get keyTransferSendHint =>
       'On the new phone: \"Get them from my old phone\", then scan this code. Keep it on screen until it is scanned.';
 

@@ -21308,6 +21308,30 @@ abstract class AppLocalizations {
   /// **'Recommencer'**
   String get keyTransferRetry;
 
+  /// No description provided for @keyStateHere.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil détient vos clés de chiffrement.'**
+  String get keyStateHere;
+
+  /// No description provided for @keyStateAbsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil n\'a pas vos clés de chiffrement.'**
+  String get keyStateAbsent;
+
+  /// No description provided for @keyStateAbsentWhy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il ne peut donc pas les transférer. Faites le transfert depuis le téléphone qui les détient, ou restaurez-les ici avec votre passphrase.'**
+  String get keyStateAbsentWhy;
+
+  /// No description provided for @keyStateAbsentHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un téléphone peut lire vos messages sans détenir ces clés : la plupart passent par un repli dont la clé vient du serveur. Seuls les messages en chiffrement bout-en-bout complet en dépendent.'**
+  String get keyStateAbsentHint;
+
   /// No description provided for @keyTransferSendHint.
   ///
   /// In fr, this message translates to:
