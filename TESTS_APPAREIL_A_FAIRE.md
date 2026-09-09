@@ -51,13 +51,12 @@ comparés avant toute conclusion : `6292fdf3…`) :
       (315 / 314 / 314 px sur 1080), libellés entiers, aucune troncature.
 - [x] **Paysage** : les trois libellés restent entiers et la dernière tuile
       s'arrête avant la barre de navigation latérale (SafeArea correct).
-
-Reste non vérifié à l'œil :
-
-- [ ] Échelle de police 1,3 **sur l'appareil** (couverte par le banc, pas vue).
-- [ ] Le libellé se replie-t-il proprement sur deux lignes à cette échelle,
-      ou la gouttière devient-elle trop serrée ? Un banc mesure une géométrie,
-      pas une lisibilité.
+- [x] **Échelle de police 1,3 à densité 440**, vue à l'écran : « Mon QR Code »
+      se replie sur deux lignes (« Mon QR » / « Code »), entier, non tronqué ;
+      les trois tuiles gardent exactement la même hauteur (1922→2186 px, soit
+      264 contre 180 à l'échelle 1,0 — la preuve que l'app suit bien le réglage
+      système, elle ne clampe nulle part) et la même largeur (315/314/314 sur
+      1080). Gouttières régulières, rien de serré, rien qui déborde.
 
 Le débordement est verrouillé par
 `test/features/profile/qr_scanner_control_bar_overflow_test.dart` (360 dp,
@@ -68,6 +67,20 @@ le test attrape bien le défaut.
 Le thème sombre est sans objet ici : la barre est en surimpression sur la
 caméra, ses couleurs sont fixes (noir translucide, texte blanc) dans les deux
 thèmes.
+
+⚠️ **Piège rencontré pendant cette vérification même.** La mesure à 1,3 a
+d'abord montré **deux** boutons aux largeurs inégales — la forme d'avant le
+correctif. Ce n'était pas une régression : entre l'installation et la mesure,
+**un autre build avait écrasé le mien sur l'appareil** (`md5` passé de
+`6292fdf3…` à `611f1003…`, sur les *deux* téléphones). Relever le `md5` une
+fois en début de session ne suffit donc pas — il faut le relever **avant
+chaque conclusion**, y compris quand rien ne laisse penser que l'APK a bougé.
+
+Deux corollaires vus au passage : reconstruire depuis le worktree **après** le
+merge embarque aussi le travail de l'autre agent, donc réinstaller ne lui
+retire rien ; et `font_scale` / `accelerometer_rotation` peuvent changer en
+cours de session sans qu'on y touche (l'appareil est partagé) — les relire
+juste avant de mesurer, et non les supposer.
 ## ⬜ Transfert des clés par QR, sans passphrase (2026-09-08)
 
 Reprise des clés d'un téléphone à l'autre sans rien à retenir : le nouveau
@@ -89,7 +102,15 @@ Déjà vu sur SM A515F le 2026-09-08 (build debug
   téléphone… » ;
 - l'écran de transfert ouvre bien la caméra (permission déjà accordée par le
   scanner de profil, donc aucune demande) et la **relâche** en sortant —
-  vérifié par `dumpsys media.camera`.
+  vérifié par `dumpsys media.camera` ;
+- le **QR se renouvelle** : deux captures du même écran à 90 s d'intervalle
+  donnent deux codes différents (empreintes de la zone du QR comparées) ;
+- l'écran du QR tient aussi en **police 1,3 / densité 440** : code entier,
+  textes qui passent à la ligne, rien de coupé.
+
+Raccourci utile pour y retourner sans naviguer :
+`adb shell am start -a android.intent.action.VIEW -d "diasponiger:///settings/security/transfer/receive" com.diasponiger.diasponiger`
+(le lien profond marche, testé).
 
 Deux garde-fous ajoutés depuis, à vérifier eux aussi :
 
@@ -204,7 +225,11 @@ locales donc réellement en `needsRestore`, build debug md5
       « Pas maintenant » + « Restaurer », en français, portrait, densité 420 /
       échelle de police 1,0 : aucun débordement, `OverflowBar` empile les trois
       actions. ⚠️ Il occupe alors ~22 % de la hauteur d'écran — voir la note
-      plus bas. Reste à voir à l'échelle de police 1,3 et en paysage.
+      plus bas. **Repassé le 2026-09-08 en échelle de police 1,3 et densité
+      440** (la configuration qui a déjà fait déborder d'autres rangées) : rien
+      ne déborde, le message passe à trois lignes et le bandeau occupe ~27 % de
+      la hauteur en portrait ; **en paysage les trois actions tiennent sur une
+      seule ligne**.
 - [x] **Le rappel se tait pour de bon.** Tap « Ne plus me le rappeler » →
       `e2ee_prompt_snoozed_needsRestore_<uid>` passe à `-1` immédiatement →
       `am force-stop` + relance à froid : le bandeau ne revient pas. Confirmé
