@@ -12020,18 +12020,32 @@ source ; c'est pour ça que les trois fuites ont été traitées séparément av
 Le mode **profile** n'est pas couvert (`kReleaseMode` y est faux), volontairement :
 un APK de profilage ne se distribue pas.
 
-- [ ] **Logcat muet en release** : sur un APK release, vider logcat, démarrer
-  l'app à froid, puis
-  `adb logcat -d | grep " flutter "` ne doit plus rien montrer venant de l'app.
-  Repère : avant ce correctif, ce démarrage sortait `Encryption service
-  initialized`, `SupabaseAuthBridge: session sync OK`, `SecureKeyStorage:
-  Initialized`, `DerivedKeyStore`… Les lignes `[IMPORTANT:flutter/shell/...]`
-  du moteur natif, elles, ne passent pas par `debugPrint` et **resteront**.
+- [x] **Logcat muet en release** — vérifié sur SM A515F le 2026-09-09, APK
+  release `455a4c74b0bfc7a609a68ec6a3fb183d` (md5 local = md5 `pm path`, pas de
+  flag `DEBUGGABLE`). Même démarrage à froid, même protocole que la mesure
+  d'avant :
+
+      AVANT (APK 6dc726f4) : 14 lignes de tag flutter
+      APRÈS (APK 455a4c74) :  2 lignes de tag flutter
+
+  Les 2 restantes sont
+  `[IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc]` —
+  du moteur natif, qui ne passe pas par `debugPrint`. Tout ce qui venait de
+  Dart a disparu : `Encryption service initialized`, `SupabaseAuthBridge:
+  session sync OK`, `SecureKeyStorage: Initialized`, `DerivedKeyStore`,
+  `NativeCallService: Initialized`, `GoogleMapsService initialized`.
+- [x] **Pas de casse au démarrage** — vérifié le 2026-09-09. Aucun
+  `FATAL EXCEPTION` dans les 3 917 lignes capturées, l'app rend l'accueil
+  session restaurée (« Bonjour, Sim », Montréal, badge notifications à 2), et
+  l'onglet Messages charge la liste — dont l'aperçu déchiffré du message de
+  position envoyé juste avant (« Vous: 📍 Position »). Supabase, realtime et
+  déchiffrement E2EE fonctionnent donc toujours.
 - [ ] **Rien n'a changé en debug** : `flutter run` et vérifier que les logs
   habituels sortent toujours (la neutralisation est derrière `kReleaseMode`).
-- [ ] **Non-régression fonctionnelle large** : parcourir appels, messagerie,
-  carte sur la release — la ligne s'exécute avant tout le reste de `main()`,
-  donc un effet de bord se verrait au démarrage.
+  Non vérifié — la session n'a construit que des release.
+- [ ] **Appels et carte sur la release** : non parcourus. Le démarrage et la
+  messagerie sont couverts ci-dessus, mais un appel WebRTC (140 `debugPrint`
+  dans `webrtc_service.dart`) et la carte ne l'ont pas été.
 
 ---
 
