@@ -11665,11 +11665,22 @@ lu **nulle part ailleurs** dans `lib/` — le choix ne changeait l'affichage
 d'aucun prix (marché, transferts, salons ont chacun leur propre devise par
 article). Masquer la ligne ne retire donc aucun comportement.
 
-- [ ] **La ligne a bien disparu** des Réglages sur SM A515F, entre
-      « Langue » et « Fond de discussion », sans trou ni filet en double
-      (`DesignListCard` pose ses propres séparateurs).
-- [ ] Rien d'autre dans les Réglages n'a bougé (les tuiles voisines gardent
-      leur ordre et leur sous-titre).
+- [x] **✅ SM A515F, 2026-09-08 : la ligne a bien disparu.** Section
+      APPLICATION, « Langue › Français » est suivi directement de « Fond
+      d'écran des conversations › Thème par défaut » — pas de trou, pas de
+      filet en double (`DesignListCard` pose ses propres séparateurs).
+- [x] **✅ Rien d'autre n'a bougé** : Notifications push, Notifications,
+      Thème, Langue, Fond d'écran, Suppression du bruit, Aide & FAQ,
+      À propos (1.2.1 (11)), Conditions d'utilisation — ordre et sous-titres
+      intacts. APK debug `6672c96e…`, md5 confirmé identique sur les deux
+      téléphones avant la capture.
+
+⚠️ **Le vrai piège de cette session n'était pas le code.** La tuile est restée
+visible après une livraison *réussie* : le commit était bien sur `origin`,
+mais le **dépôt principal**, d'où part la compilation, était resté 7 commits
+en arrière (`d62512c`). Un worktree pousse vers `origin`, il ne met pas à jour
+la copie de travail principale. Avant de conclure qu'un correctif « ne marche
+pas », vérifier `git log HEAD..origin/<branche>` dans le dépôt principal.
 
 
 ---
