@@ -13,6 +13,12 @@
 // se met à passer, c'est que gotrue a changé de comportement — et que le
 // commentaire de `typeEmis()` dans la fonction est devenu faux.
 //
+// Une TROISIÈME mesure suit, sur le compte du correctif (qui existe alors) :
+// deux `generateLink` coup sur coup, le second invalidant le jeton du premier.
+// C'est la seconde cause du même message — celle qui frappe deux échanges
+// concurrents — et elle vérifie la reprise ajoutée à l'étape 5. Elle ne crée
+// aucun compte de plus.
+//
 // ⚠️ Ce banc a besoin d'utilisateurs NEUFS pour reproduire quoi que ce soit :
 // il en crée donc deux à chaque exécution, dans le projet Supabase de
 // PRODUCTION, et il ne les supprime pas. Leurs adresses sont affichées à la
@@ -89,6 +95,39 @@ async function sequence(email, typeFige) {
   };
 }
 
+/**
+ * Deux liens émis coup sur coup sur un compte EXISTANT : le jeton du premier
+ * survit-il, et la reprise de l'étape 5 rattrape-t-elle son refus ?
+ *
+ * Mesure, pas assertion : si le premier jeton se met à passer, c'est que
+ * gotrue ne fait plus expirer le précédent — la reprise devient alors du
+ * filet inutile, et c'est ce résultat qui le dira.
+ */
+async function echangeConcurrent(email) {
+  const emettre = async () =>
+    (await fetch(url + '/auth/v1/admin/generate_link', {
+      method: 'POST',
+      headers: enTetes,
+      body: JSON.stringify({ type: 'magiclink', email }),
+    })).json();
+
+  const verifier = async (lien) => {
+    const r = await fetch(url + '/auth/v1/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: cle },
+      body: JSON.stringify({ type: lien.verification_type, token_hash: lien.hashed_token }),
+    });
+    const j = await r.json();
+    return { ok: r.ok && Boolean(j.access_token), detail: j.error_code ?? j.msg ?? '' };
+  };
+
+  const notre = await emettre();
+  await emettre(); // l'échange concurrent passe par là et réémet
+  const premier = await verifier(notre);
+  const reprise = premier.ok ? null : await verifier(await emettre());
+  return { premier, reprise };
+}
+
 const suffixe = Date.now();
 const adresses = {
   temoin: `sonde-temoin-${suffixe}@example.com`,
@@ -97,6 +136,7 @@ const adresses = {
 
 const temoin = await sequence(adresses.temoin, 'magiclink');
 const correctif = await sequence(adresses.correctif, null);
+const concurrence = await echangeConcurrent(adresses.correctif);
 
 const rendu = (nom, r) =>
   `${nom.padEnd(10)} lien émis: ${String(r.lienEmis).padEnd(9)} | vérifié comme: ${String(
@@ -106,13 +146,24 @@ const rendu = (nom, r) =>
 console.log('');
 console.log(rendu('TÉMOIN', temoin));
 console.log(rendu('CORRECTIF', correctif));
+console.log(
+  'CONCURRENCE'.padEnd(10) +
+    ' 1er jeton après réémission: ' +
+    (concurrence.premier.ok
+      ? "ACCEPTÉ (gotrue ne l'invalide plus — la reprise ne sert plus)"
+      : 'refusé (' + concurrence.premier.detail + ')') +
+    (concurrence.reprise
+      ? ' | reprise: ' + (concurrence.reprise.ok ? 'SESSION OK' : 'ÉCHEC — ' + concurrence.reprise.detail)
+      : ''),
+);
 console.log('');
 
-const attendu = !temoin.ok && correctif.ok && correctif.claim;
+const repriseOk = concurrence.premier.ok || Boolean(concurrence.reprise?.ok);
+const attendu = !temoin.ok && correctif.ok && correctif.claim && repriseOk;
 console.log(
   attendu
-    ? 'Conforme : le type figé échoue, le type émis passe.'
-    : 'INATTENDU : relire typeEmis() dans supabase/functions/auth-firebase-exchange/index.ts.',
+    ? 'Conforme : le type figé échoue, le type émis passe, la reprise rattrape.'
+    : "INATTENDU : relire l'étape 5 de supabase/functions/auth-firebase-exchange/index.ts.",
 );
 console.log('Utilisateurs laissés en base : ' + adresses.temoin + ', ' + adresses.correctif);
 process.exit(attendu ? 0 : 1);

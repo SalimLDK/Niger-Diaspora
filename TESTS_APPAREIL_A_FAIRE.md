@@ -54,7 +54,16 @@ dans `confirmation_token` — là où `verifyOtp({type:'magiclink'})` fouille
 Vérifié hors appareil par `tools/sonde_echange_auth.mjs`, qui rejoue la
 séquence contre le gotrue de production : témoin (type figé) en échec,
 correctif en session valide avec le claim `firebase_uid` dès la première
-tentative.
+tentative. Confirmé bout-en-bout sur des comptes **Firebase** neufs
+(`signInWithPassword` → Edge Function) : la version en production rendait 401
+puis 200, la corrigée rend une session au premier coup.
+
+Le même message d'erreur a une **seconde** cause, mesurée au passage : deux
+`generateLink` de suite sur un compte existant écrivent dans la même colonne et
+le second invalide le jeton du premier, donc deux échanges concurrents (deux
+appareils, deux isolats Edge) se sabotent l'un l'autre — `_inFlightSync` ne
+dédoublonne qu'au sein d'un processus. L'étape 5 retente donc **une** fois avec
+un lien frais ; la 3e mesure du banc couvre ce cas.
 
 ✅ **Déployé le 2026-09-09** et vérifié contre la fonction réelle, sur un
 compte Firebase créé pour l'occasion : le **premier** échange rend une session
@@ -62,6 +71,12 @@ compte Firebase créé pour l'occasion : le **premier** échange rend une sessio
 `firebase_uid`, et la ligne `users` se lit avec le jeton du compte. La
 fonction est aussi épinglée à `supabase-js@2.116.0` depuis ce déploiement —
 elle n'importe plus `@2`, qui rebundlait au dernier 2.x du jour.
+
+⚠️ Mais **la reprise de l'étape 5 a été écrite après ce déploiement** : elle
+n'est donc pas en production. Le 401 du compte neuf est corrigé en ligne,
+celui de deux échanges concurrents ne l'est pas encore. Un
+`supabase functions deploy auth-firebase-exchange` de plus l'y mettra — la
+production est en retard sur le dépôt tant que ce n'est pas fait.
 
 - [ ] Après déploiement : créer un compte neuf sur l'appareil et vérifier que
       l'accueil se remplit **sans** le trou de 5 s (logcat : plus de

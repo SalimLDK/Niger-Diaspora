@@ -186,11 +186,38 @@ Deno.serve(async (req) => {
     const token = linkData.properties.hashed_token
     if (!token) throw new Error('Failed to extract token from generated link')
 
-    const { data: session, error: sessionError } = await supabase.auth.verifyOtp({
+    let { data: session, error: sessionError } = await supabase.auth.verifyOtp({
       type: typeEmis(linkData.properties.verification_type),
       token_hash: token,
     })
-    if (sessionError) throw sessionError
+
+    // Reprise sur refus, pour la SECONDE cause du même message.
+    //
+    // Mesuré le 2026-09-09 : deux `generateLink` de suite sur un compte
+    // existant rendent deux jetons `magiclink`, et le second **invalide** le
+    // premier — `otp_expired`, mot pour mot le message de [typeEmis]. Deux
+    // échanges qui se croisent (deux appareils, deux isolats Edge) se sabotent
+    // donc l'un l'autre ; le dédoublonnage `_inFlightSync` du pont Dart, lui,
+    // ne couvre que les appels simultanés d'un même processus. Mesuré aussi :
+    // sur un compte neuf, deux `generateLink` simultanés font rendre à l'un des
+    // deux un `verification_type` vide, que [typeEmis] traduit alors en
+    // `magiclink` — soit le mauvais tiroir, et le même refus.
+    //
+    // Un lien frais, un seul essai de plus, puis on rend la main.
+    if (sessionError) {
+      console.warn(`verifyOtp refusé (${sessionError.message}) — nouvel essai avec un lien frais`)
+      const { data: frais, error: fraisErr } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email,
+      })
+      if (fraisErr) throw sessionError
+      const reprise = await supabase.auth.verifyOtp({
+        type: typeEmis(frais.properties.verification_type),
+        token_hash: frais.properties.hashed_token,
+      })
+      if (reprise.error) throw reprise.error
+      session = reprise.data
+    }
 
     // 6. Verify the issued JWT actually carries firebase_uid in app_metadata.
     //    Filet de sécurité : verifyOtp peut courir avec updateUserById et
