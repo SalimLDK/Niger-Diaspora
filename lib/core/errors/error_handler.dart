@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'failures.dart';
 import 'exceptions.dart';
@@ -181,8 +182,12 @@ class ErrorHandler {
     }
     debugPrint('=============');
 
-    // Ici on pourrait envoyer à Crashlytics
-    // FirebaseCrashlytics.instance.recordError(error, stackTrace);
+    FirebaseCrashlytics.instance.recordError(
+      error,
+      stackTrace,
+      reason: context,
+      fatal: false,
+    );
   }
 }
 

@@ -11869,12 +11869,25 @@ indépendamment de la façon dont la valeur est injectée.
 Le garde `kDebugMode` ne couvrait que le niveau `debug` : `i`, `w` et `e`
 parlaient en release. Il couvre maintenant `_log` en entier, tous niveaux.
 
-⚠️ **Conséquence à assumer** : les 9 appels `LoggerService.w/e` existants
-(carte, publication de position, profil) n'écrivent plus rien en production, et
-ils ne sont pas routés vers Crashlytics — `error_handler.dart:185` a son
-`recordError` en commentaire. Si une de ces erreurs doit rester traçable en
-prod, c'est cette ligne-là qu'il faut décommenter, pas le garde qu'il faut
-retirer.
+**Suite (2026-09-09) — les erreurs remontent maintenant à Crashlytics.**
+Le garde laissait les 9 appels `LoggerService.w/e` (carte, publication de
+position, profil) totalement muets en production. `_log` remonte désormais le
+**seul** niveau `error` à `FirebaseCrashlytics.recordError(..., fatal: false)`,
+avec `reason` = le message. Les autres niveaux restent debug-only.
+
+⚠️ **Correction d'un diagnostic que j'avais donné de travers** : j'avais désigné
+`error_handler.dart:185` comme « la bonne porte ». C'est faux — `logError` de
+`ErrorHandler` n'est **appelé nulle part** dans `lib/` (`grep 'logError('` ne
+remonte que sa propre déclaration et l'homonyme d'`AnalyticsService`).
+Décommenter cette ligne seule n'aurait rien changé au runtime. Elle est
+décommentée quand même (le jour où la méthode sert, elle sera correcte), mais
+ce qui rétablit vraiment la traçabilité, c'est le branchement dans
+`LoggerService`.
+
+Deux détails de mise en œuvre : l'appel est encadré d'un `try/catch` — un
+journal ne doit jamais faire tomber l'appelant si Firebase n'est pas encore
+initialisé — et il n'y a pas de `kReleaseMode` explicite, la branche étant
+déjà celle du `!kDebugMode`.
 
 - [ ] **Aucune régression d'appel** : passer un appel 1:1, sonnerie et bulle
   d'appel comme avant. Le jeton VoIP est toujours propagé à
@@ -11905,6 +11918,13 @@ retirer.
   `LoggerService.w` de `map_screen.dart` se déclenchent) et vérifier que
   l'écran se comporte comme avant — le silence des logs ne doit rien changer
   à l'affichage ni aux replis.
+- [ ] **Remontée Crashlytics** : provoquer le `LoggerService.e` de
+  `map_screen.dart:760` (« Error loading nearby members », carte hors ligne)
+  sur un APK **release**, puis vérifier dans la console Firebase Crashlytics
+  qu'un non-fatal apparaît avec ce message en `reason`. Compter quelques
+  minutes de latence, et **relancer l'app une fois** : Crashlytics n'envoie
+  souvent son lot qu'au démarrage suivant. Ne pas chercher à le vérifier en
+  debug — la branche n'y est pas prise.
 
 ---
 
