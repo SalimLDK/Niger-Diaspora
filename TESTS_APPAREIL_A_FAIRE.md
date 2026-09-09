@@ -14,6 +14,67 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Aucun marqueur technique dans une bulle (2026-09-09)
+
+Constaté sur SM A515F (capture du 2026-09-09, 19:02, groupe « Diaspora
+Niger ») : un fil de groupe affichait trois bulles « *Message chiffré — clé de
+groupe introuvable* » avec un bouton « Récupérer la clé de groupe », et une
+quatrième « [Message illisible] ». Demande explicite de Salim : ne plus voir
+ni l'un ni l'autre, et retrouver le texte précédent.
+
+Deux choses corrigées, de nature différente.
+
+**1. `[Message illisible]` échappait à toutes les gardes.** Écrit en dur dans
+quatre fichiers et absent de `kUndecryptablePlaceholders`, il traversait les
+trois protections qui s'appuient sur cette liste : le soin depuis le cache
+(`_healUndecryptableMessages`), la fusion de l'écho temps réel
+(`reconcileEchoContent`) et le bandeau de restauration. Pire, le soin le
+prenait pour du **contenu valide** et le réécrivait par-dessus le texte déjà
+déchiffré — le cache local perdait le clair, définitivement, le serveur ne
+pouvant pas le rendre une seconde fois (ratchet Signal / Sender Key).
+Quatrième trou de la même famille : `syncMessagesIncremental` écrivait en
+cache **sans** passer par le soin.
+
+**2. La bulle n'affiche plus de vocabulaire interne.** Les trois marqueurs
+mènent désormais à `UndecryptableMessageBubble` — « *Message indisponible sur
+cet appareil* », en gris, sans bouton. `E2EESessionRequiredBubble` (et son
+bouton « Récupérer la clé de groupe ») n'est plus branchée nulle part ; le
+remède reste porté **une seule fois** par le bandeau en tête de discussion
+(`_buildE2eeRestoreBanner`), au lieu d'être répété sur chaque bulle.
+
+Fichiers : `lib/core/services/e2ee/undecryptable_placeholders.dart`,
+`lib/core/services/encryption_service.dart`,
+`lib/core/services/e2ee/session_backup_service.dart`,
+`lib/features/messages/data/repositories/message_repository_impl.dart`,
+`lib/features/messages/presentation/widgets/message_bubble.dart`,
+`lib/features/messages/presentation/widgets/undecryptable_message_bubble.dart`.
+
+À vérifier **sur SM A515F** :
+
+- [ ] Le fil de la capture n'affiche plus « Message chiffré — clé de groupe
+      introuvable », ni le bouton « Récupérer la clé de groupe », ni
+      « [Message illisible] » : une ligne grise « Message indisponible sur cet
+      appareil » à la place.
+- [ ] **Le vrai test du correctif** : ouvrir une discussion lisible, la
+      quitter, y revenir, faire un pull-to-refresh, remonter d'une page. Le
+      texte doit rester lisible — c'est le chemin où le soin depuis le cache
+      opère. Avant, un message pouvait basculer en marqueur et ne plus jamais
+      revenir.
+- [ ] Envoyer un message dans un groupe et attendre l'écho temps réel : la
+      bulle garde son texte (c'est `reconcileEchoContent`, désormais au
+      courant du troisième marqueur).
+- [ ] Une photo **sans légende** s'affiche normalement — la garde lit la
+      LISTE, pas `isUndecryptableContent`, qui tient le vide pour illisible et
+      masquerait chaque média sans légende.
+- [ ] Thème sombre : la ligne grise reste lisible (jetons `textTertiaryColor`
+      / `iconTertiaryColor`, pas de teinte figée).
+- [ ] ⚠️ Le cache local **fusionne**, il ne se vide pas : un message déjà
+      empoisonné par `[Message illisible]` avant ce correctif le reste. Pour
+      juger, viser un message encore lisible aujourd'hui, ou vider la
+      discussion.
+
+---
+
 ## ⬜ Compte de test dédié : première connexion (2026-09-09)
 
 `scripts/creer_compte_test.js` crée — ou réinitialise — un compte Firebase

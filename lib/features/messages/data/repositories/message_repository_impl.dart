@@ -1467,7 +1467,13 @@ class MessageRepositoryImpl implements MessageRepository {
 
       // 3. Merger avec le cache
       if (newMessages.isNotEmpty) {
-        final newMessagesJson = newMessages.map((m) => m.toJson()).toList();
+        // Soigner AVANT d'écrire : `cacheMessagesLRU` fusionne par id et la
+        // nouvelle version l'emporte, donc un placeholder écrit ici efface le
+        // texte clair déjà en cache — définitivement, le serveur ne pouvant pas
+        // le rendre une seconde fois. Les deux autres chemins de rechargement
+        // soignaient déjà ; celui-ci était le seul à ne pas le faire.
+        final healed = _healUndecryptableMessages(conversationId, newMessages);
+        final newMessagesJson = healed.map((m) => m.toJson()).toList();
         await cacheService.cacheMessagesLRU(conversationId, newMessagesJson);
       }
 
