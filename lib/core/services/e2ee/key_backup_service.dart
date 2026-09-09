@@ -63,6 +63,20 @@ class KeyBackupService {
       throw ArgumentError('Passphrase must be at least 8 characters');
     }
 
+    // Rien à sauvegarder = ne rien sauvegarder.
+    //
+    // `exportAllKeys` ne lève pas quand l'appareil n'a aucune identité : il
+    // rend une carte de champs nuls, et on uploadait joyeusement une
+    // sauvegarde vide. Elle est pire qu'inutile : le coordinateur voit
+    // désormais « une sauvegarde existe », refuse de générer une identité
+    // neuve pour ne pas la rendre irrécupérable, et le compte reste bloqué sur
+    // le repli AES — sans que rien ne le dise. Constaté le 2026-09-08 sur un
+    // compte dont les deux téléphones avaient perdu les clés : la sauvegarde
+    // créée « pour se protéger » a scellé le blocage.
+    if (!await _storage.hasE2EEKeys(userId)) {
+      throw const NoKeysToBackupException();
+    }
+
     // Exporter toutes les clés
     final keysData = await _storage.exportAllKeys(userId);
     final keysJson = jsonEncode(keysData);
@@ -483,6 +497,15 @@ class BackupMetadata {
 }
 
 /// Exception pour passphrase invalide
+/// Aucune identité E2EE sur cet appareil : il n'y a rien à sauvegarder, et
+/// écrire une sauvegarde vide bloquerait la création d'une identité neuve.
+class NoKeysToBackupException implements Exception {
+  const NoKeysToBackupException();
+
+  @override
+  String toString() => 'NoKeysToBackupException';
+}
+
 class PassphraseException implements Exception {
   final String message;
   PassphraseException(this.message);

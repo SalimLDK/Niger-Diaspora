@@ -11442,6 +11442,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Passphrase lost: delete the backup. A new identity will be created at the next sign-in, but messages already encrypted to the old one stay unreadable, for good.';
 
   @override
+  String get backupNothingToSave =>
+      'Nothing to back up on this device: it does not hold your encryption keys. Get them from the phone that holds them first, then come back and create a backup.';
+
+  @override
+  String get backupNoKeysError =>
+      'This device has no keys to back up. An empty backup would block the creation of a new identity.';
+
+  @override
   String get securityDeleteBackupStuck =>
       'This device does not hold your keys, and this backup prevents new ones from being created. Deleting it unblocks that: a new identity will be created at the next sign-in.\n\nOnly do this if you have lost the passphrase: messages already encrypted to the old identity stay unreadable, for good.';
 

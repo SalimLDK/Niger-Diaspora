@@ -11562,6 +11562,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Passphrase perdue : supprimez la sauvegarde. Une identité neuve sera créée à la prochaine connexion, mais les messages déjà chiffrés vers l\'ancienne resteront illisibles, définitivement.';
 
   @override
+  String get backupNothingToSave =>
+      'Rien à sauvegarder sur cet appareil : il n\'a pas vos clés de chiffrement. Récupérez-les d\'abord depuis le téléphone qui les détient, puis revenez créer une sauvegarde.';
+
+  @override
+  String get backupNoKeysError =>
+      'Cet appareil n\'a pas de clés à sauvegarder. Une sauvegarde vide bloquerait la création d\'une identité neuve.';
+
+  @override
   String get securityDeleteBackupStuck =>
       'Cet appareil n\'a pas vos clés, et cette sauvegarde empêche d\'en créer de nouvelles. La supprimer débloque la situation : une identité neuve sera créée à la prochaine connexion.\n\nÀ ne faire que si vous avez perdu la passphrase : les messages déjà chiffrés vers l\'ancienne identité resteront illisibles, définitivement.';
 

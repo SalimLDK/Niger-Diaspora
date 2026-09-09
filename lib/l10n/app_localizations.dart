@@ -21350,6 +21350,18 @@ abstract class AppLocalizations {
   /// **'Passphrase perdue : supprimez la sauvegarde. Une identité neuve sera créée à la prochaine connexion, mais les messages déjà chiffrés vers l\'ancienne resteront illisibles, définitivement.'**
   String get keyStateStuckDelete;
 
+  /// No description provided for @backupNothingToSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à sauvegarder sur cet appareil : il n\'a pas vos clés de chiffrement. Récupérez-les d\'abord depuis le téléphone qui les détient, puis revenez créer une sauvegarde.'**
+  String get backupNothingToSave;
+
+  /// No description provided for @backupNoKeysError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil n\'a pas de clés à sauvegarder. Une sauvegarde vide bloquerait la création d\'une identité neuve.'**
+  String get backupNoKeysError;
+
   /// No description provided for @securityDeleteBackupStuck.
   ///
   /// In fr, this message translates to:

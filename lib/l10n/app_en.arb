@@ -4784,6 +4784,8 @@
   "keyStateStuckWhy": "A backup exists for this account. While it is there, the app will not create a new identity: doing so would make that backup unrecoverable. Two ways out.",
   "keyStateStuckRestore": "You have the passphrase: restore the backup below. Your old encrypted messages become readable again.",
   "keyStateStuckDelete": "Passphrase lost: delete the backup. A new identity will be created at the next sign-in, but messages already encrypted to the old one stay unreadable, for good.",
+  "backupNothingToSave": "Nothing to back up on this device: it does not hold your encryption keys. Get them from the phone that holds them first, then come back and create a backup.",
+  "backupNoKeysError": "This device has no keys to back up. An empty backup would block the creation of a new identity.",
   "securityDeleteBackupStuck": "This device does not hold your keys, and this backup prevents new ones from being created. Deleting it unblocks that: a new identity will be created at the next sign-in.\n\nOnly do this if you have lost the passphrase: messages already encrypted to the old identity stay unreadable, for good.",
   "keyTransferSendHint": "On the new phone: \"Get them from my old phone\", then scan this code. Keep it on screen until it is scanned.",
   "keyTransferScanFirst": "First scan the code shown on the old phone, then sign in: your keys will be picked up automatically.",
