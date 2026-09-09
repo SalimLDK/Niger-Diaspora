@@ -23,9 +23,26 @@
          c'est donc à l'app de le faire. -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <!-- Les permissions d'appel restantes (USE_FULL_SCREEN_INTENT,
-         MANAGE_OWN_CALLS, FOREGROUND_SERVICE_PHONE_CALL, WAKE_LOCK, VIBRATE)
-         sont fusionnées depuis le manifeste de flutter_callkit_incoming. -->
+    <!-- Les permissions d'appel restantes (MANAGE_OWN_CALLS,
+         FOREGROUND_SERVICE_PHONE_CALL, WAKE_LOCK, VIBRATE) sont fusionnées
+         depuis le manifeste de flutter_callkit_incoming. -->
+
+    <!-- USE_FULL_SCREEN_INTENT retirée de la fusion, et ce n'est pas un choix.
+         Google a REFUSÉ la mise à jour du 11 mars 2026 dessus : « l'utilisation
+         de l'autorisation n'est pas directement liée à l'objectif principal de
+         l'appli ». Cette permission est réservée aux applications dont la
+         raison d'être est l'appel ou l'alarme ; Diaspo Niger est un réseau
+         social qui propose des appels, ce qui ne suffit pas. La consigne du
+         centre de conformité est explicite : la retirer de TOUS les codes de
+         version, test compris. Tant qu'elle est présente, aucune mise à jour
+         ne passe l'examen.
+
+         Ce que ça coûte : un appel entrant n'ouvre plus d'écran plein sur un
+         téléphone verrouillé, il arrive en notification prioritaire. Android
+         dégrade tout seul, il n'y a ni plantage ni erreur à traiter.
+         Ne pas rétablir sans un accord écrit de Google. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"
+        tools:node="remove" />
 
     <!-- Permissions for saving files to gallery -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" tools:replace="android:maxSdkVersion" />

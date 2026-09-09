@@ -1,4 +1,4 @@
-# Build 1.2.1+11 — ce qui a été produit et vérifié
+# Build 1.2.1+15 — ce qui a été produit et vérifié
 
 *2026-09-08. Branche `claude/publication-play`, arbre fusionné avec
 `origin/wip-jules-2025-12-29T23-58-34-776Z` (`c5e6342`).*
@@ -9,7 +9,7 @@ Le bundle n'est **pas versionné** (210 Mo) :
 
 | Fichier | Taille | md5 |
 |---|---|---|
-| `build/app/outputs/bundle/release/app-release.aab` | 210,5 Mo | `7237b5f2849cea32d333e100e15172ee` |
+| `build/app/outputs/bundle/release/app-release.aab` | 210,5 Mo | `71d852ce62f121a69a1d12e7ef29be2e` |
 
 Construit après intégration de deux commits sans lesquels il ne faut **pas**
 téléverser :
@@ -27,7 +27,7 @@ lu par étiquettes) — donc sur l'artefact téléversé, pas sur un APK voisin 
 ```
 package           com.diasponiger.diasponiger
 versionName       1.2.1
-versionCode       11
+versionCode       15
 minSdkVersion     24
 targetSdkVersion  36
 compileSdkVersion 36
@@ -67,6 +67,70 @@ alias `upload` / `storeFile=../upload-keystore.jks`, ce qui ne correspond pas
 au `key.properties` réel. À corriger une fois la bonne clé identifiée — la
 documentation ne doit pas désigner une clé qui ne signe rien.
 
+
+
+## Pourquoi 15, et pas 11
+
+L'explorateur de bundles de la console (relevé le 2026-09-09) donne l'historique
+réel des téléversements :
+
+| Code | Nom | Importé | État |
+|---|---|---|---|
+| 14 | 1.2.0 | 25 juin 2026 | Inactif |
+| 13 | 1.2.0 | 1 juin 2026 | Inactif |
+| 12 | 1.2.0 | 10 mars 2026 | Inactif |
+| 11 | 1.2.0 | 10 mars 2026 | Inactif |
+| 9 | 1.1.1 | 31 déc. 2025 | **Actif** (production) |
+| 8 | 1.1.0 | 31 déc. 2025 | Actif |
+
+Le **11 était déjà pris** : un bundle signé sur ce code aurait été rejeté à
+l'import. Le plus haut étant 14, on passe à **15**.
+
+Ce tableau corrige aussi une note du dépôt : `releases/1.2.0+14/` n'est **pas**
+un nom de dossier erroné hérité d'une renumérotation oubliée — la version 14
+existe bel et bien. `docs/ops/PUBLICATION_IOS.md` §6 affirme le contraire ; à
+corriger.
+
+Et surtout : les quatre bundles 11 à 14 sont **tous inactifs**. Aucun n'a
+jamais atteint la production. La cause est ci-dessous.
+
+## ⚠️ `USE_FULL_SCREEN_INTENT` — la vraie raison du blocage
+
+Le centre de conformité porte un refus daté du **11 mars 2026** :
+
+> Politique relative à l'autorisation d'afficher les intentions en plein écran :
+> l'utilisation des autorisations n'est pas directement liée à l'objectif
+> principal de votre appli.
+
+La permission n'est pas déclarée par l'app : elle est **fusionnée depuis
+`flutter_callkit_incoming` 2.5.8**. Le manifeste la mentionnait en commentaire
+depuis longtemps, sans jamais la retirer — d'où quatre bundles refusés d'affilée
+sans que la cause soit rattachée au bon endroit.
+
+La consigne de Google est explicite et ne laisse pas d'alternative : *retirer
+l'autorisation de tous les codes de version de la soumission, sous-ensembles de
+test compris*. Elle est donc neutralisée par `tools:node="remove"` dans
+`android/app/src/main/AndroidManifest.xml`, et vérifiée absente du bundle
+produit.
+
+**Ce que ça coûte :** un appel entrant n'ouvre plus d'écran plein sur un
+téléphone verrouillé ; il arrive en notification prioritaire. Android dégrade
+seul, sans plantage ni erreur à traiter. Ne pas rétablir sans accord écrit de
+Google.
+
+## ✅ La clé de signature est la bonne — vérifié
+
+Doute levé le 2026-09-09 dans la console (Protégé avec Play → Signature
+d'application). L'empreinte SHA-256 du **certificat de clé d'importation**
+attendu par Play est :
+
+```
+DD:A6:5C:3E:BC:08:BD:67:4F:FA:37:26:40:5C:4C:B7:5B:25:3E:DE:55:85:BB:E2:22:DA:34:20:51:94:CF:5D
+```
+
+Identique à celle de `android/app/diaspo-niger-release.jks`. **C'est donc bien
+`key.properties` qui a raison**, et `docs/deploiement/DEPLOYMENT.md` §6 qui
+désigne une clé (`upload-keystore.jks`, alias `upload`) ne servant à rien.
 
 ## Alignement 16 Ko — contrôlé
 
