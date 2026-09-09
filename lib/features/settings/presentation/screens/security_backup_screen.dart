@@ -285,7 +285,14 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
       builder:
           (context) => AlertDialog(
             title: Text(l10n.securityDeleteBackupTitle),
-            content: Text(l10n.securityDeleteBackupContent),
+            content: Text(
+              // Deux situations opposees derriere le meme bouton : quand
+              // l'appareil a ses cles, supprimer est une perte seche ; quand il
+              // ne les a pas, c'est la seule facon de sortir du blocage.
+              _hasLocalKeys == false
+                  ? l10n.securityDeleteBackupStuck
+                  : l10n.securityDeleteBackupContent,
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -518,6 +525,22 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                                         color: context.textSecondaryColor,
                                       ),
                                     ),
+                                    // Pas de clés ICI + une sauvegarde LA-BAS :
+                                    // le compte est bloqué. Le coordinateur
+                                    // refuse de generer une identite neuve tant
+                                    // que la sauvegarde existe (elle deviendrait
+                                    // irrecuperable), et sans passphrase la
+                                    // restauration est impossible. Personne ne
+                                    // pouvait deviner que la sortie etait le
+                                    // bouton « Supprimer » un peu plus bas.
+                                    if (_hasBackup) ...[
+                                      const SizedBox(height: 10),
+                                      Text(l10n.keyStateStuckWhy),
+                                      const SizedBox(height: 6),
+                                      Text('• ${l10n.keyStateStuckRestore}'),
+                                      const SizedBox(height: 4),
+                                      Text('• ${l10n.keyStateStuckDelete}'),
+                                    ],
                                   ],
                                 ],
                               ),

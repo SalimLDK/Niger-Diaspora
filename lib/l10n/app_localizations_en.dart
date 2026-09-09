@@ -11430,6 +11430,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'A phone can read your messages without holding these keys: most of them use a fallback whose key comes from the server. Only fully end-to-end encrypted messages depend on them.';
 
   @override
+  String get keyStateStuckWhy =>
+      'A backup exists for this account. While it is there, the app will not create a new identity: doing so would make that backup unrecoverable. Two ways out.';
+
+  @override
+  String get keyStateStuckRestore =>
+      'You have the passphrase: restore the backup below. Your old encrypted messages become readable again.';
+
+  @override
+  String get keyStateStuckDelete =>
+      'Passphrase lost: delete the backup. A new identity will be created at the next sign-in, but messages already encrypted to the old one stay unreadable, for good.';
+
+  @override
+  String get securityDeleteBackupStuck =>
+      'This device does not hold your keys, and this backup prevents new ones from being created. Deleting it unblocks that: a new identity will be created at the next sign-in.\n\nOnly do this if you have lost the passphrase: messages already encrypted to the old identity stay unreadable, for good.';
+
+  @override
   String get keyTransferSendHint =>
       'On the new phone: \"Get them from my old phone\", then scan this code. Keep it on screen until it is scanned.';
 

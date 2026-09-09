@@ -11550,6 +11550,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Un téléphone peut lire vos messages sans détenir ces clés : la plupart passent par un repli dont la clé vient du serveur. Seuls les messages en chiffrement bout-en-bout complet en dépendent.';
 
   @override
+  String get keyStateStuckWhy =>
+      'Une sauvegarde existe pour ce compte. Tant qu\'elle est là, l\'application ne crée pas d\'identité neuve : elle rendrait cette sauvegarde irrécupérable. Deux sorties.';
+
+  @override
+  String get keyStateStuckRestore =>
+      'Vous avez la passphrase : restaurez la sauvegarde ci-dessous. Vos anciens messages chiffrés redeviennent lisibles.';
+
+  @override
+  String get keyStateStuckDelete =>
+      'Passphrase perdue : supprimez la sauvegarde. Une identité neuve sera créée à la prochaine connexion, mais les messages déjà chiffrés vers l\'ancienne resteront illisibles, définitivement.';
+
+  @override
+  String get securityDeleteBackupStuck =>
+      'Cet appareil n\'a pas vos clés, et cette sauvegarde empêche d\'en créer de nouvelles. La supprimer débloque la situation : une identité neuve sera créée à la prochaine connexion.\n\nÀ ne faire que si vous avez perdu la passphrase : les messages déjà chiffrés vers l\'ancienne identité resteront illisibles, définitivement.';
+
+  @override
   String get keyTransferSendHint =>
       'Sur le nouveau téléphone : « Récupérer depuis mon ancien téléphone », puis scannez ce code. Gardez-le affiché jusqu\'au scan.';
 

@@ -21332,6 +21332,30 @@ abstract class AppLocalizations {
   /// **'Un téléphone peut lire vos messages sans détenir ces clés : la plupart passent par un repli dont la clé vient du serveur. Seuls les messages en chiffrement bout-en-bout complet en dépendent.'**
   String get keyStateAbsentHint;
 
+  /// No description provided for @keyStateStuckWhy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une sauvegarde existe pour ce compte. Tant qu\'elle est là, l\'application ne crée pas d\'identité neuve : elle rendrait cette sauvegarde irrécupérable. Deux sorties.'**
+  String get keyStateStuckWhy;
+
+  /// No description provided for @keyStateStuckRestore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez la passphrase : restaurez la sauvegarde ci-dessous. Vos anciens messages chiffrés redeviennent lisibles.'**
+  String get keyStateStuckRestore;
+
+  /// No description provided for @keyStateStuckDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passphrase perdue : supprimez la sauvegarde. Une identité neuve sera créée à la prochaine connexion, mais les messages déjà chiffrés vers l\'ancienne resteront illisibles, définitivement.'**
+  String get keyStateStuckDelete;
+
+  /// No description provided for @securityDeleteBackupStuck.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil n\'a pas vos clés, et cette sauvegarde empêche d\'en créer de nouvelles. La supprimer débloque la situation : une identité neuve sera créée à la prochaine connexion.\n\nÀ ne faire que si vous avez perdu la passphrase : les messages déjà chiffrés vers l\'ancienne identité resteront illisibles, définitivement.'**
+  String get securityDeleteBackupStuck;
+
   /// No description provided for @keyTransferSendHint.
   ///
   /// In fr, this message translates to:
