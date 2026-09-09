@@ -67,9 +67,25 @@
     <!-- Lecture audio en arrière-plan (podcasts, audio_service).
          Le plugin audio_service ne déclare RIEN dans son propre manifeste : la
          permission, le service et le receiver ci-dessous doivent être portés par
-         l'app. FOREGROUND_SERVICE_MEDIA_PLAYBACK est requise à partir du SDK 34. -->
+         l'app. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+    <!-- FOREGROUND_SERVICE_MEDIA_PLAYBACK retirée le 2026-09-09.
+         Play exige, pour chaque autorisation de service de premier plan, une
+         **vidéo de démonstration** de la fonctionnalité concernée. Or le seul
+         consommateur de ce service est le lecteur de podcasts
+         (`PodcastAudioHandler` via `AudioService.init`), et les podcasts sont
+         commentés dans `home_screen_widgets.dart` : la fonctionnalité est
+         injoignable dans l'app livrée, donc infilmable. Sans la vidéo, la
+         déclaration reste incomplète et la release ne peut pas être enregistrée.
+
+         Rien de livré n'en dépend : les messages vocaux passent par `just_audio`
+         directement (`audio_message_bubble.dart`), sans service de premier plan.
+
+         ⚠️ À rétablir en même temps que les podcasts, avec la vidéo de
+         démonstration correspondante. Même famille que USE_FULL_SCREEN_INTENT
+         ci-dessus : une autorisation qui décrit une fonction que l'examinateur
+         ne peut pas atteindre. -->
 
     <!-- Explicitly opt-out of Advertising ID -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/>

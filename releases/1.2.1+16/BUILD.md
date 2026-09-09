@@ -1,4 +1,4 @@
-# Build 1.2.1+15 — ce qui a été produit et vérifié
+# Build 1.2.1+16 — ce qui a été produit et vérifié
 
 *2026-09-08. Branche `claude/publication-play`, arbre fusionné avec
 `origin/wip-jules-2025-12-29T23-58-34-776Z` (`c5e6342`).*
@@ -9,7 +9,7 @@ Le bundle n'est **pas versionné** (210 Mo) :
 
 | Fichier | Taille | md5 |
 |---|---|---|
-| `build/app/outputs/bundle/release/app-release.aab` | 210,5 Mo | `71d852ce62f121a69a1d12e7ef29be2e` |
+| `build/app/outputs/bundle/release/app-release.aab` | 210,5 Mo | `6ad68fdc83597845e7852e1bd6e50da4` |
 
 Construit après intégration de deux commits sans lesquels il ne faut **pas**
 téléverser :
@@ -27,7 +27,7 @@ lu par étiquettes) — donc sur l'artefact téléversé, pas sur un APK voisin 
 ```
 package           com.diasponiger.diasponiger
 versionName       1.2.1
-versionCode       15
+versionCode       16
 minSdkVersion     24
 targetSdkVersion  36
 compileSdkVersion 36
@@ -117,6 +117,42 @@ produit.
 téléphone verrouillé ; il arrive en notification prioritaire. Android dégrade
 seul, sans plantage ni erreur à traiter. Ne pas rétablir sans accord écrit de
 Google.
+
+
+## ⚠️ `FOREGROUND_SERVICE_MEDIA_PLAYBACK` — retirée aussi (2026-09-09)
+
+L'écran « Prévisualiser et confirmer » refusait d'enregistrer la release tant
+que la déclaration « Autorisations pour le service de premier plan » était
+incomplète. Localisation et VoIP y étaient déjà renseignées avec leur vidéo de
+démonstration ; il manquait la lecture multimédia.
+
+Or cocher « Lecture de contenus multimédias » réclame **une vidéo montrant la
+fonctionnalité** — et le seul consommateur du service est le lecteur de
+podcasts (`PodcastAudioHandler` via `AudioService.init`), commenté dans
+`home_screen_widgets.dart`. Fonctionnalité injoignable donc infilmable : la
+déclaration ne pouvait pas être remplie honnêtement.
+
+Retirée du manifeste. Rien de livré n'en dépend : les messages vocaux passent par
+`just_audio` en direct (`audio_message_bubble.dart`). À rétablir avec les
+podcasts, vidéo à l'appui.
+
+## Ce qui a été envoyé pour examen le 2026-09-09
+
+| Élément | Description |
+|---|---|
+| Production | **16 (1.2.1)** — lancer le déploiement complet |
+| Pays/Régions | Ajouter 176 pays/régions, puis le reste du monde |
+| Contenu de l'application | Déclaration d'intent plein écran |
+
+Plus, pris en compte à l'examen sans être publiés : les déclarations « Services
+de premier plan » et « Autorisations liées aux photos et vidéos ».
+
+**Deux avertissements acceptés**, non bloquants :
+
+- **1 137 appareils perdus** par rapport à la version précédente (sur 19 117).
+  Le bundle passe de 4 ABI à 3. Ces appareils ne recevront plus de mise à jour
+  et l'app n'y sera plus installable — à vérifier si c'est voulu.
+- Forte augmentation de la taille téléchargée, attendue depuis la 1.1.1.
 
 ## ✅ La clé de signature est la bonne — vérifié
 

@@ -1,4 +1,4 @@
-# Google Play — Diaspo Niger v1.2.1 (versionCode 15)
+# Google Play — Diaspo Niger v1.2.1 (versionCode 16)
 
 > Remplace `releases/1.2.0+14/GOOGLE_PLAY_v1.2.0.md`, dont la description
 > mettait en avant deux modules **inaccessibles dans le binaire** (voir §0).
@@ -154,8 +154,8 @@ Confidentialité : https://diasponiger.com/privacy-policy
 | Élément | Exigence Google | Fichier | État |
 |---|---|---|---|
 | Icône | 512×512, PNG 32 bits **avec** alpha, ≤1024 Ko | `assets/import_icons/dn_ultra_minimal_icon.png` | conforme (512×512 RGBA, 24 Ko) |
-| Feature graphic | 1024×500, JPEG ou PNG 24 bits **sans** alpha | `releases/1.2.1+15/play/feature_graphic.png` | régénéré, **même système que les captures** |
-| Captures téléphone | côté long ≤ 2× côté court, sans alpha, 2 minimum | `releases/1.2.1+15/play/screenshots/` | **7**, 1080×1920 |
+| Feature graphic | 1024×500, JPEG ou PNG 24 bits **sans** alpha | `releases/1.2.1+16/play/feature_graphic.png` | régénéré, **même système que les captures** |
+| Captures téléphone | côté long ≤ 2× côté court, sans alpha, 2 minimum | `releases/1.2.1+16/play/screenshots/` | **7**, 1080×1920 |
 
 **Pourquoi les captures ne sont pas des copies d'écran brutes :** les deux
 appareils de test sont en 1080×2400, soit un rapport 2,22:1. Google impose que
@@ -206,7 +206,7 @@ L'ancien `feature_graphic.png` de la racine faisait **1024×1024** : il aurait
 |---|---|---|
 | applicationId | `com.diasponiger.diasponiger` | `android/app/build.gradle.kts` |
 | versionName | 1.2.1 | `pubspec.yaml` |
-| versionCode | 15 | `pubspec.yaml` |
+| versionCode | 16 | `pubspec.yaml` |
 | minSdk | **24** (Android 7.0) | défaut Flutter 3.44 |
 | targetSdk | **36** | épinglé dans `build.gradle.kts` |
 | compileSdk | 36 | défaut Flutter 3.44 |
