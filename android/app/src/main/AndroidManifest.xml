@@ -23,9 +23,26 @@
          c'est donc à l'app de le faire. -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <!-- Les permissions d'appel restantes (USE_FULL_SCREEN_INTENT,
-         MANAGE_OWN_CALLS, FOREGROUND_SERVICE_PHONE_CALL, WAKE_LOCK, VIBRATE)
-         sont fusionnées depuis le manifeste de flutter_callkit_incoming. -->
+    <!-- Les permissions d'appel restantes (MANAGE_OWN_CALLS,
+         FOREGROUND_SERVICE_PHONE_CALL, WAKE_LOCK, VIBRATE) sont fusionnées
+         depuis le manifeste de flutter_callkit_incoming. -->
+
+    <!-- USE_FULL_SCREEN_INTENT retirée de la fusion, et ce n'est pas un choix.
+         Google a REFUSÉ la mise à jour du 11 mars 2026 dessus : « l'utilisation
+         de l'autorisation n'est pas directement liée à l'objectif principal de
+         l'appli ». Cette permission est réservée aux applications dont la
+         raison d'être est l'appel ou l'alarme ; Diaspo Niger est un réseau
+         social qui propose des appels, ce qui ne suffit pas. La consigne du
+         centre de conformité est explicite : la retirer de TOUS les codes de
+         version, test compris. Tant qu'elle est présente, aucune mise à jour
+         ne passe l'examen.
+
+         Ce que ça coûte : un appel entrant n'ouvre plus d'écran plein sur un
+         téléphone verrouillé, il arrive en notification prioritaire. Android
+         dégrade tout seul, il n'y a ni plantage ni erreur à traiter.
+         Ne pas rétablir sans un accord écrit de Google. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"
+        tools:node="remove" />
 
     <!-- Permissions for saving files to gallery -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" tools:replace="android:maxSdkVersion" />
@@ -42,7 +59,33 @@
     <!-- Background Location Service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- ACCESS_BACKGROUND_LOCATION retirée le 2026-09-09, sur refus de Google.
+         Motif reçu par mail : « Missing Prominent Disclosure — Your app accesses
+         the BACKGROUND_LOCATION permission without a prominent disclosure. »
+         Deux envois (20 et 21) refusés dessus le même jour.
+
+         La permission était **déclarée sans jamais être demandée** :
+         `LocationService.requestBackgroundLocationPermission()` et
+         `hasBackgroundLocationPermission()` existent dans
+         `lib/core/services/location_service.dart` mais ne sont appelées nulle
+         part (grep sur tout `lib/`). Elle ne servait donc à rien tout en
+         déclenchant l'exigence d'information préalable.
+
+         Le partage de position continu ne s'appuie pas dessus : il passe par
+         `BackgroundLocationService`, un service de premier plan
+         (`foregroundServiceType="location"` ci-dessous), qui obtient la position
+         avec la seule ACCESS_FINE_LOCATION tant qu'il tourne.
+
+         ⚠️ Si un jour on veut vraiment la position hors service de premier plan,
+         il faudra RÉTABLIR cette permission **et** ajouter l'écran d'information
+         préalable exigé par Google, affiché AVANT la demande système. Les deux
+         vont ensemble, jamais l'une sans l'autre.
+
+         Troisième autorisation retirée pour la même raison, après
+         USE_FULL_SCREEN_INTENT et FOREGROUND_SERVICE_MEDIA_PLAYBACK : une
+         permission que l'examinateur ne peut pas relier à une fonctionnalité
+         visible ne passe pas. -->
 
     <!-- Notifications for Android 13+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -50,9 +93,25 @@
     <!-- Lecture audio en arrière-plan (podcasts, audio_service).
          Le plugin audio_service ne déclare RIEN dans son propre manifeste : la
          permission, le service et le receiver ci-dessous doivent être portés par
-         l'app. FOREGROUND_SERVICE_MEDIA_PLAYBACK est requise à partir du SDK 34. -->
+         l'app. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+    <!-- FOREGROUND_SERVICE_MEDIA_PLAYBACK retirée le 2026-09-09.
+         Play exige, pour chaque autorisation de service de premier plan, une
+         **vidéo de démonstration** de la fonctionnalité concernée. Or le seul
+         consommateur de ce service est le lecteur de podcasts
+         (`PodcastAudioHandler` via `AudioService.init`), et les podcasts sont
+         commentés dans `home_screen_widgets.dart` : la fonctionnalité est
+         injoignable dans l'app livrée, donc infilmable. Sans la vidéo, la
+         déclaration reste incomplète et la release ne peut pas être enregistrée.
+
+         Rien de livré n'en dépend : les messages vocaux passent par `just_audio`
+         directement (`audio_message_bubble.dart`), sans service de premier plan.
+
+         ⚠️ À rétablir en même temps que les podcasts, avec la vidéo de
+         démonstration correspondante. Même famille que USE_FULL_SCREEN_INTENT
+         ci-dessus : une autorisation qui décrit une fonction que l'examinateur
+         ne peut pas atteindre. -->
 
     <!-- Explicitly opt-out of Advertising ID -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/>
