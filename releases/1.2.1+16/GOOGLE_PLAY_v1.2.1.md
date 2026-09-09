@@ -214,8 +214,26 @@ L'ancien `feature_graphic.png` de la racine faisait **1024×1024** : il aurait
 | Minification | R8 + `shrinkResources` actifs | `buildTypes.release` |
 | Symboles natifs | `debugSymbolLevel = FULL` | idem |
 
-> L'ancienne fiche annonçait « SDK minimum : Android 6.0 (API 23) » et
-> « SDK cible : Android 14 (API 34) ». Les deux étaient faux.
+> L'ancienne fiche annonçait « SDK cible : Android 14 (API 34) » : faux.
+>
+> En revanche son « SDK minimum : Android 6.0 (API 23) » était **exact pour la
+> version livrée** — la 1.1.1 en production est bien en API 23. C'est le build
+> d'aujourd'hui qui est monté à 24, parce que `minSdk = flutter.minSdkVersion`
+> suit le SDK Flutter du poste, comme `targetSdk`. J'avais qualifié cette ligne
+> de fausse à tort.
+>
+> **Conséquence mesurée :** Play annonce **1 137 appareils perdus** par rapport à
+> la 9 (1.1.1). La cause dominante est ce 23 → 24, qui élimine les Android 6.0 ;
+> le passage de 4 à 3 ABI n'en explique que ~116 (19 233 appareils pour le
+> bundle 13 en ABI 4, contre 19 117 pour le 16 en ABI 3, à minSdk identique).
+>
+> **Non réversible :** une douzaine de plugins du socle exigent minSdk 24 —
+> `webview_flutter_android`, `video_player_android`, `google_maps_flutter_android`,
+> `flutter_secure_storage`, `google_sign_in_android`, `flutter_local_notifications`,
+> `url_launcher_android`, `shared_preferences_android`, `image_picker_android`,
+> `app_links`, `local_auth_android`. Revenir à 23 imposerait de tous les
+> rétrograder. La perte n'est pas propre à cette release : les bundles 11 à 14
+> étaient déjà en API 24.
 
 ---
 
