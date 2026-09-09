@@ -48,6 +48,60 @@ Il faut **deux téléphones** connectés au **même compte** :
 pas un. L'ancien oublie ses clés à la fin, exprès — deux appareils sur un même
 ratchet se cassent mutuellement le déchiffrement.
 
+---
+
+## ⬜ Site web entièrement refait sur cahier des charges (2026-09-08)
+
+Le site n'est plus la même page avec un autre thème : c'est une landing où
+l'application est le sujet. Sept sections, trois pages nouvelles
+(`/fonctionnalites`, `/a-propos`, `/telecharger`), une feuille de style
+partagée (`public/assets/`) au lieu du CSS recopié dans chaque page.
+
+Palette et typographie du cahier des charges : crème `#F8F5EF`, encre
+`#111713`, orange d'action `#E87B2E`, vert `#159447`, vert profond `#0B3D2E`,
+en **Plus Jakarta Sans + Inter**.
+
+**Deux teintes de la marque sont assombries pour le texte** : `#E87B2E` et
+`#159447` plafonnent entre 3,4 et 4,3:1 en petit corps sur crème. Le site
+utilise `#A8500F` et `#0C6B33` là où elles portent du texte, et garde les
+teintes pleines pour les aplats et les décors. L'audit de contraste tourne
+dans le navigateur sur les dix-neuf pages : zéro défaut, hors bouton
+« Supprimer définitivement » désactivé (2,9:1 — un contrôle inactif est hors
+du champ de WCAG).
+
+**Ce qui n'a pas pu être fait, faute de données** : le cahier des charges
+demande des captures d'Événements, de Messagerie, de l'Annuaire et des
+Notifications. Sur les deux appareils branchés, Événements et Annuaire sont
+**vides**, le Fil et les Notifications ne contiennent que des messages de
+test. Seule la liste des conversations était présentable ; elle est utilisée.
+Les sections Événements et Annuaire décrivent donc ce que l'app permet, sans
+capture — plutôt qu'une vitrine fabriquée.
+
+- [ ] **Le héros sur un vrai téléphone** : globe animé, appareil qui monte,
+      trois pastilles de notification. Vérifier que l'animation ne saccade pas
+      sur le SM-A515F, et qu'elle ne se rejoue pas à chaque défilement.
+- [ ] **Sélecteur de fonctionnalités** : six onglets qui changent la capture.
+      À vérifier au doigt (zone de frappe) et au lecteur d'écran (`role="tab"`,
+      flèches du clavier).
+- [ ] **Page `/telecharger`** : elle détecte l'appareil. Sur Android elle doit
+      montrer « Ouvrir Google Play », sur iPhone « Bientôt sur iOS », sur
+      ordinateur le QR code. Les trois cas sont à voir en vrai.
+- [ ] **Le QR code** doit s'ouvrir sur la bonne fiche Play depuis l'appareil
+      photo du téléphone.
+- [ ] **Lisibilité au soleil** : la page est claire, elle se comporte à
+      l'inverse d'une page sombre en extérieur.
+- [ ] **`prefers-reduced-motion`** : avec « Réduire les animations » activé,
+      le globe, le téléphone et les pastilles doivent apparaître sans
+      mouvement.
+- [ ] **Poids et vitesse** : huit captures WebP (~300 Ko), deux feuilles de
+      style, un script. À mesurer en 3G, objectif Lighthouse 90+.
+
+**Mesure d'audience** : les événements (`download_android`, `click_features`,
+`scroll_50`…) sont empilés dans `window.dnEvents`. **Aucun traceur tiers n'est
+chargé** — brancher un fournisseur demande une décision (et probablement une
+bannière de consentement), elle n'a pas été prise ici.
+
+---
 
 ## ✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)
 
