@@ -1324,7 +1324,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
       replyToMessageData: replyToMessageData,
     );
 
-    debugPrint('📍 sendLocation: Adding optimistic message with lat=$latitude, lng=$longitude, tempId=$tempId');
+    debugPrint('📍 sendLocation: Adding optimistic message tempId=$tempId');
     _ref.read(paginatedMessagesProvider(conversationId).notifier).addOptimisticMessage(optimisticMessage);
 
     final result = await _ref.read(messageRepositoryProvider).sendLocationMessage(
@@ -1347,7 +1347,8 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         return false;
       },
       (message) {
-        debugPrint('✅ sendLocation: Success - real message id=${message.id}, lat=${message.latitude}, lng=${message.longitude}');
+        // Pas de coordonnées ici : `debugPrint` écrit aussi en release (logcat).
+        debugPrint('✅ sendLocation: Success - real message id=${message.id}');
         // Mettre à jour immédiatement le message optimiste avec l'ID réel
         _ref.read(paginatedMessagesProvider(conversationId).notifier)
             .updateMessageStatusAndCancelTimeout(tempId, MessageStatus.sent, message.id);

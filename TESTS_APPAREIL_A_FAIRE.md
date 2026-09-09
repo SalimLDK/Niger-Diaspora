@@ -11829,6 +11829,55 @@ n'est enveloppé d'aucune condition.
 
 ---
 
+## ⬜ Journalisation : deux fuites en release et la garde du LoggerService (2026-09-09)
+
+`debugPrint` écrit **aussi en release** — la doc du SDK le dit noir sur blanc
+(`packages/flutter/lib/src/foundation/print.dart:37` : « logs to console even
+in release mode », avec la convention de l'entourer d'un `kDebugMode`). Le
+dépôt compte 922 appels actifs, dont 12 gardés. Rien de tout ça ne se voit en
+développement : ça se voit sur l'APK de production, avec un simple `adb logcat`.
+
+Trois corrections ici ; le reste du chantier (~900 appels) reste ouvert.
+
+[native_call_service.dart](lib/core/services/native_call_service.dart)
+`actionDidUpdateDevicePushTokenVoip` imprimait la **valeur complète du jeton
+VoIP**. Le log garde son intérêt (savoir que la mise à jour a eu lieu), la
+valeur part.
+
+[message_provider.dart](lib/features/messages/presentation/providers/message_provider.dart)
+`sendLocation` imprimait `lat=` / `lng=` du partage de position — de la donnée
+personnelle, dans les logs. **Deux fois** : à la pose du message optimiste
+(l. 1327) et à la confirmation d'envoi (l. 1350). La seconde s'était fait
+oublier lors du repérage — un `grep | head -25` avait mangé la ligne, et
+corriger une seule des deux n'aurait rien fermé du tout.
+
+[logger_service.dart](lib/core/services/logger_service.dart)
+Le garde `kDebugMode` ne couvrait que le niveau `debug` : `i`, `w` et `e`
+parlaient en release. Il couvre maintenant `_log` en entier, tous niveaux.
+
+⚠️ **Conséquence à assumer** : les 9 appels `LoggerService.w/e` existants
+(carte, publication de position, profil) n'écrivent plus rien en production, et
+ils ne sont pas routés vers Crashlytics — `error_handler.dart:185` a son
+`recordError` en commentaire. Si une de ces erreurs doit rester traçable en
+prod, c'est cette ligne-là qu'il faut décommenter, pas le garde qu'il faut
+retirer.
+
+- [ ] **Aucune régression d'appel** : passer un appel 1:1, sonnerie et bulle
+  d'appel comme avant. Le jeton VoIP est toujours propagé à
+  `onVoipTokenUpdated` — seul son affichage a changé — mais c'est le chemin
+  iOS/CallKit, donc à revalider le jour où un appareil iOS est disponible.
+- [ ] **Partage de position** : envoyer une position en 1:1, la bulle carte
+  s'affiche et le message passe à « Envoyé ».
+- [ ] **Logcat d'une release** : sur un APK release,
+  `adb logcat | grep -iE "VoIP token|sendLocation"` ne doit plus jamais montrer
+  de valeur de jeton ni de coordonnées.
+- [ ] **Carte en release** : ouvrir la carte hors ligne (c'est là que les
+  `LoggerService.w` de `map_screen.dart` se déclenchent) et vérifier que
+  l'écran se comporte comme avant — le silence des logs ne doit rien changer
+  à l'affichage ni aux replis.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

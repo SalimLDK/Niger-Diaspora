@@ -378,7 +378,8 @@ class NativeCallService {
         final token = body?['deviceTokenVoIP'] as String?;
         if (token != null && token.isNotEmpty) {
           _voipToken = token;
-          debugPrint('NativeCallService: VoIP token updated: $token');
+          // Jamais la valeur : `debugPrint` écrit aussi en release (logcat).
+          debugPrint('NativeCallService: VoIP token updated');
           onVoipTokenUpdated?.call(token);
         }
         return;

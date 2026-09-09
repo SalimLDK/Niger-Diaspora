@@ -3,10 +3,11 @@ import 'package:flutter/foundation.dart';
 enum LogLevel { debug, info, warning, error }
 
 /// Service de logging centralisé
+///
+/// Rien n'est écrit hors mode debug, quel que soit le niveau : `debugPrint`
+/// écrit aussi en release (cf. `foundation/print.dart`), où la sortie part
+/// dans logcat — lisible par quiconque branche l'appareil.
 class LoggerService {
-  static const bool _showDebugLogs = kDebugMode;
-  static const bool _showEmojis = kDebugMode;
-
   static void d(String message, [dynamic error, StackTrace? stackTrace]) {
     _log(LogLevel.debug, message, error, stackTrace);
   }
@@ -29,10 +30,10 @@ class LoggerService {
     dynamic error,
     StackTrace? stackTrace,
   ]) {
-    if (level == LogLevel.debug && !_showDebugLogs) return;
+    if (!kDebugMode) return;
 
     final timestamp = DateTime.now().toUtc().toIso8601String();
-    final emoji = _showEmojis ? _getEmoji(level) : '';
+    final emoji = _getEmoji(level);
     final label = _getLabel(level);
 
     debugPrint('[$timestamp] $emoji$label: $message');
