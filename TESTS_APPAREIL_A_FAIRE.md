@@ -72,11 +72,16 @@ compte Firebase créé pour l'occasion : le **premier** échange rend une sessio
 fonction est aussi épinglée à `supabase-js@2.116.0` depuis ce déploiement —
 elle n'importe plus `@2`, qui rebundlait au dernier 2.x du jour.
 
-⚠️ Mais **la reprise de l'étape 5 a été écrite après ce déploiement** : elle
-n'est donc pas en production. Le 401 du compte neuf est corrigé en ligne,
-celui de deux échanges concurrents ne l'est pas encore. Un
-`supabase functions deploy auth-firebase-exchange` de plus l'y mettra — la
-production est en retard sur le dépôt tant que ce n'est pas fait.
+La reprise de l'étape 5 ayant été écrite **après** ce premier déploiement, la
+fonction a été redéployée dans la foulée : la production porte donc les deux
+correctifs (mauvais type d'OTP **et** reprise sur refus). Revérifié après ce
+second déploiement, encore sur un compte Firebase neuf, même résultat.
+
+⚠️ Le déploiement d'une Edge Function est **fichier par fichier** : ce qui est
+en ligne, c'est le dernier `deploy` de CE fichier, pas l'état de la branche.
+Pour comparer sans supposer : `supabase functions download <nom>
+--project-ref <ref>` — mais il **écrase la copie de travail** au lieu d'écrire
+ailleurs, donc le faire sur un dépôt propre et relire par `git diff`.
 
 - [ ] Après déploiement : créer un compte neuf sur l'appareil et vérifier que
       l'accueil se remplit **sans** le trou de 5 s (logcat : plus de
