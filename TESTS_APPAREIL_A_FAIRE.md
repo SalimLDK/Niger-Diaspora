@@ -14,6 +14,49 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)
+
+Le travail iOS de `claude/ios-support` — première compilation de la cible,
+parité native Swift (identifiant d'appareil E2EE, notifications), et
+« Se connecter avec Apple » — vivait sur sa branche depuis le 2026-09-02 sans
+jamais être rapatrié. Il l'est maintenant. Il emporte deux montées de version
+majeures qui **ne sont pas propres à iOS** : elles partent aussi dans l'APK
+Android.
+
+| Paquet | Avant | Après | Ce qu'il porte |
+|---|---|---|---|
+| `mobile_scanner` | `^5.2.3` | `^7.4.0` | tout le scan de QR |
+| `purchases_flutter` | `^8.7.0` | `^10.10.1` | abonnements RevenueCat |
+
+`flutter analyze lib/` est propre et les 445 tests passent, mais **aucune des
+deux n'a tourné sur un appareil depuis la montée**. Le scan de QR, lui, a été
+vérifié sur SM A515F le 2026-09-08 — mais **avant** ce changement : cette
+vérification ne vaut plus.
+
+- [ ] **Scanner de QR sur SM A515F** — ouvrir `/qr-scanner`, scanner un code de
+      transfert de clés **et** un QR de profil. `mobile_scanner` 7 a changé la
+      signature de `errorBuilder` (adaptée dans
+      `lib/features/profile/presentation/screens/qr_scanner_screen.dart`) ; le
+      reste de son API caméra n'a pas été rejoué sur appareil.
+- [ ] **Permission caméra au premier lancement** après la montée, et la
+      lampe torche : c'est là qu'un changement de plugin caméra se voit.
+- [ ] **Achat RevenueCat** — `purchasePackage` est déprécié en 10.x, remplacé
+      par `purchase(PurchaseParams.package(...))` qui renvoie un
+      `PurchaseResult` (`lib/core/services/revenue_cat_service.dart`).
+      Intestable en pratique tant que le contrat « applications payantes »
+      n'est pas signé — à ne pas oublier le jour où il le sera.
+
+Le verrou `pubspec.lock` a été repris de la branche partagée puis résolu à
+nouveau, pour que **seuls** ces trois paquets bougent : la fusion brute le
+faisait régresser sur une quinzaine d'autres (et abaissait la contrainte SDK
+à `dart >=3.10.0`), et un `pub upgrade` en déplaçait 136.
+
+Les entrées iOS proprement dites — build simulateur, « Se connecter avec
+Apple », liens profonds, Supabase — sont plus bas, dans les sections du
+2026-09-01, telles qu'écrites à l'époque.
+
+---
+
 ## ✅ « Mon QR Code » depuis le scanner (2026-09-08)
 
 Le scanner (`/qr-scanner`) était un **aller simple** : on y entre depuis
