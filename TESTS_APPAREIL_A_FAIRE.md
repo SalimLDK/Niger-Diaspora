@@ -14,6 +14,41 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Compte de test dédié : première connexion (2026-09-09)
+
+`scripts/creer_compte_test.js` crée — ou réinitialise — un compte Firebase
+Auth séparé du compte personnel (`test.diaspo@example.com`, mot de passe tiré
+au hasard et affiché une seule fois à l'exécution).
+
+Vérifié **hors appareil**, en rejouant la chaîne de la première connexion :
+`signInWithPassword` accepte les identifiants, `auth-firebase-exchange` rend
+une session, et la ligne `users` existe avec `display_name = "Compte Test"`.
+
+À vérifier **sur SM A515F** :
+
+- [ ] La connexion aboutit depuis l'écran de connexion de l'app, pas seulement
+      par l'API.
+- [ ] L'enchaînement consentement → configuration du profil → intro se déroule
+      en entier (ces trois drapeaux sont dans les préférences **locales** : ils
+      se rejouent sur chaque appareil, pas une fois par compte).
+- [ ] Compte neuf = **0 groupe, 0 conversation, 0 post, 0 hashtag suivi** : les
+      états vides que plusieurs entrées de ce fichier déclarent « jamais vus »
+      (sondages, Découvrir, filtres Photos/Vidéos, panneau des villes)
+      deviennent enfin observables.
+
+⚠️ Constaté pendant la création : **le tout premier appel à
+`auth-firebase-exchange` pour un compte neuf répond 401 « Email link is
+invalid or has expired »** — la tentative suivante réussit (reproduit deux
+fois d'affilée : échec, puis succès). Dans l'app, `_scheduleRetry()` repasse
+5 s plus tard : le premier lancement d'un compte neuf a donc ~5 s de session
+anonyme avant que les données n'arrivent. Ça touche **tout compte neuf**, pas
+seulement celui-ci. Piste : `updateUserById` (étape 3 de la fonction)
+invalide le jeton du magic link généré à l'étape 2 tant que l'utilisateur
+n'est pas confirmé ; la reprise interne de l'étape 6 ne couvre que le cas
+« claim `firebase_uid` manquant », pas un `verifyOtp` en échec. Non corrigé.
+
+---
+
 ## ⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)
 
 Le travail iOS de `claude/ios-support` — première compilation de la cible,
