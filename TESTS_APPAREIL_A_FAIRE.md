@@ -51,6 +51,32 @@ nouveau, pour que **seuls** ces trois paquets bougent : la fusion brute le
 faisait régresser sur une quinzaine d'autres (et abaissait la contrainte SDK
 à `dart >=3.10.0`), et un `pub upgrade` en déplaçait 136.
 
+**Suite, le soir même : la montée cassait le build Android**, et ni
+`flutter analyze` ni les 445 tests ne pouvaient le dire — seul
+`flutter build apk` tombe. `mobile_scanner` 7.4.0 réclame `androidx.camera`
+1.6.x, qui exige l'AGP 8.9.1+ quand le projet était en 8.7.0 :
+
+    Dependency 'androidx.camera:camera-core:1.6.1' requires
+    Android Gradle plugin 8.9.1 or higher.
+
+Épingler `androidx.camera` en 1.4.2 (à la manière du `force(...)` mlkit déjà
+en place) ne sauve rien : le plugin utilise alors des API absentes de cette
+série et c'est lui qui ne compile plus. Corrigé en montant l'outillage —
+**AGP 8.10.1** (l'API 36 déjà ciblée le demande de toute façon) et **Gradle
+8.13** (l'AGP 8.10 exige au moins 8.11.1). Le build debug passe et tourne sur
+les deux appareils (md5 `18e2a33a19fca981463e0f44d82966ff`).
+
+Ce qu'une montée d'AGP peut changer sans prévenir, et qui ne se voit qu'au
+dépôt en Play Console :
+
+- [ ] **`flutter build apk --release` et le bundle** passent encore
+      (signature, R8, shrinking).
+- [ ] **Alignement 16 Ko** toujours bon :
+      `python tools/verifie_alignement_16k.py build/app/outputs/bundle/release/app-release.aab`.
+- [ ] **Le `force("com.google.mlkit:barcode-scanning:17.3.0")`** porte la note
+      « à retirer quand mobile_scanner sera monté en 6.x/7.x » — c'est fait.
+      À réévaluer, sans jamais sauter la vérification ci-dessus.
+
 Les entrées iOS proprement dites — build simulateur, « Se connecter avec
 Apple », liens profonds, Supabase — sont plus bas, dans les sections du
 2026-09-01, telles qu'écrites à l'époque.
