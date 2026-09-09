@@ -29,7 +29,10 @@ final keyBackupServiceProvider = Provider<KeyBackupService>((ref) {
 /// - Salt aléatoire par backup
 class KeyBackupService {
   final SecureKeyStorage _storage;
-  final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
+
+  /// Lu à l'usage, pas à la construction : le provider est instancié bien avant
+  /// que Firebase le soit (et jamais du tout sous test).
+  FirebaseStorage get _firebaseStorage => FirebaseStorage.instance;
 
   // Algorithmes cryptographiques
   final _aesGcm = AesGcm.with256bits();
