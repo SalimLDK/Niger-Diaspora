@@ -11651,6 +11651,38 @@ sélecteur de position des entreprises et du partage de lieu) tombe **toujours**
 sur son repli `geocoding` côté appareil, sans que rien ne le signale. À vérifier
 sur appareil : la recherche de lieu renvoie-t-elle des résultats utilisables ?
 
+## Réglages — ligne « Devise d'affichage » mise en commentaire (2026-09-08)
+
+Sur demande, la ligne *Devise d'affichage* de l'écran Réglages est commentée,
+pas supprimée —
+[settings_screen.dart:280](lib/features/settings/presentation/screens/settings_screen.dart:280).
+Le sélecteur (`_CurrencySelectorModal`, ses 50 devises classées par région) et
+les deux méthodes qui l'ouvrent restent en place, marquées
+`// ignore: unused_element` : décommenter la tuile suffit à tout rétablir.
+
+À noter, vérifié avant de masquer : `selectedDisplayCurrencyProvider` n'était
+lu **nulle part ailleurs** dans `lib/` — le choix ne changeait l'affichage
+d'aucun prix (marché, transferts, salons ont chacun leur propre devise par
+article). Masquer la ligne ne retire donc aucun comportement.
+
+- [x] **✅ SM A515F, 2026-09-08 : la ligne a bien disparu.** Section
+      APPLICATION, « Langue › Français » est suivi directement de « Fond
+      d'écran des conversations › Thème par défaut » — pas de trou, pas de
+      filet en double (`DesignListCard` pose ses propres séparateurs).
+- [x] **✅ Rien d'autre n'a bougé** : Notifications push, Notifications,
+      Thème, Langue, Fond d'écran, Suppression du bruit, Aide & FAQ,
+      À propos (1.2.1 (11)), Conditions d'utilisation — ordre et sous-titres
+      intacts. APK debug `6672c96e…`, md5 confirmé identique sur les deux
+      téléphones avant la capture.
+
+⚠️ **Le vrai piège de cette session n'était pas le code.** La tuile est restée
+visible après une livraison *réussie* : le commit était bien sur `origin`,
+mais le **dépôt principal**, d'où part la compilation, était resté 7 commits
+en arrière (`d62512c`). Un worktree pousse vers `origin`, il ne met pas à jour
+la copie de travail principale. Avant de conclure qu'un correctif « ne marche
+pas », vérifier `git log HEAD..origin/<branche>` dans le dépôt principal.
+
+
 ---
 
 ## Comment tester (rappel de la config utilisée précédemment)
