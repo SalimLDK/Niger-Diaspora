@@ -11452,6 +11452,87 @@ class AppLocalizationsFr extends AppLocalizations {
   String get e2eeNudgeMuteAction => 'Ne plus me le rappeler';
 
   @override
+  String get keyTransferSectionTitle => 'Changer de téléphone';
+
+  @override
+  String get keyTransferSectionBody =>
+      'Transférez vos clés d\'un téléphone à l\'autre en scannant un code. Aucune passphrase.';
+
+  @override
+  String get keyTransferReceiveAction =>
+      'Récupérer depuis mon ancien téléphone';
+
+  @override
+  String get keyTransferSendAction => 'Transférer vers un nouveau téléphone';
+
+  @override
+  String get keyTransferReceiveTitle => 'Récupérer mes clés';
+
+  @override
+  String get keyTransferReceiveHint =>
+      'Sur l\'ancien téléphone : Réglages › Sécurité › Sauvegarde des clés › Transférer vers un nouveau téléphone, puis scannez ce code.';
+
+  @override
+  String get keyTransferWaiting => 'En attente de l\'ancien téléphone…';
+
+  @override
+  String get keyTransferImported =>
+      'Clés récupérées. Vos messages chiffrés redeviennent lisibles.';
+
+  @override
+  String get keyTransferTimeout =>
+      'Aucun transfert reçu. Le code a expiré : recommencez.';
+
+  @override
+  String get keyTransferCorrupted =>
+      'Transfert illisible. Recommencez avec un nouveau code.';
+
+  @override
+  String get keyTransferSendTitle => 'Transférer mes clés';
+
+  @override
+  String get keyTransferScanHint =>
+      'Scannez le code affiché sur le nouveau téléphone.';
+
+  @override
+  String get keyTransferConfirmTitle => 'Transférer vos clés ?';
+
+  @override
+  String get keyTransferConfirmBody =>
+      'Le nouveau téléphone prendra la place de celui-ci. Cet appareil oubliera ses clés et ne pourra plus lire les messages chiffrés déjà reçus.';
+
+  @override
+  String get keyTransferConfirmAction => 'Transférer';
+
+  @override
+  String get keyTransferSending => 'Envoi des clés…';
+
+  @override
+  String get keyTransferWaitingAck =>
+      'En attente de la confirmation du nouveau téléphone…';
+
+  @override
+  String get keyTransferDone =>
+      'Transfert terminé. Cet appareil n\'a plus les clés.';
+
+  @override
+  String get keyTransferWrongAccount => 'Ce code appartient à un autre compte.';
+
+  @override
+  String get keyTransferNoKeys => 'Cet appareil n\'a aucune clé à transférer.';
+
+  @override
+  String get keyTransferNotAuthenticated =>
+      'Session indisponible. Réessayez dans un instant.';
+
+  @override
+  String get keyTransferNoAck =>
+      'Le nouveau téléphone n\'a pas confirmé. Vos clés restent sur cet appareil.';
+
+  @override
+  String get keyTransferRetry => 'Recommencer';
+
+  @override
   String get securityRestoreKeys => 'Restaurer les clés';
 
   @override

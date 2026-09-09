@@ -14,6 +14,41 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⛔ Transfert des clés par QR, sans passphrase (2026-09-08) — migration non appliquée
+
+Reprise des clés d'un téléphone à l'autre sans rien à retenir : le nouveau
+affiche un QR, l'ancien le scanne, et l'export complet du stockage sécurisé
+voyage chiffré en AES-256-GCM par une clé qui ne quitte jamais le canal
+optique. Le serveur ne relaie qu'un blob.
+
+**Bloquant avant tout test** : `supabase/migrations/20260908200000_e2ee_key_transfers.sql`
+n'est **pas appliquée**. Tant que `supabase db push` n'a pas tourné, la table
+`e2ee_key_transfers` n'existe pas et le transfert échoue en PGRST205 — un
+`db push` touche la production, il n'a pas été lancé sans arbitrage.
+
+Il faut **deux téléphones** connectés au **même compte** :
+
+- [ ] **Le QR se scanne.** Réglages › Sécurité › Sauvegarde des clés ›
+      « Récupérer depuis mon ancien téléphone » sur le neuf, « Transférer vers
+      un nouveau téléphone » sur l'ancien. Vérifier au passage la demande de
+      permission caméra (jamais testée sur ce chemin).
+- [ ] **Le QR d'un autre compte est refusé** — message « Ce code appartient à
+      un autre compte », et rien n'est envoyé.
+- [ ] **L'ancien n'oublie ses clés qu'après l'accusé.** Couper le réseau du
+      neuf juste après le scan : l'ancien doit finir sur « Le nouveau téléphone
+      n'a pas confirmé » et **garder** ses clés (le vérifier en rouvrant une
+      conversation chiffrée).
+- [ ] **Le neuf lit enfin l'historique.** Après import, les bulles « clé de
+      groupe introuvable » d'un fil de groupe doivent redevenir lisibles, et le
+      bandeau de restauration disparaître.
+- [ ] **La ligne de rendez-vous ne survit pas.** Après un transfert réussi,
+      `select * from e2ee_key_transfers` doit être vide pour ce compte.
+
+⚠️ **Ce que ce chemin ne fait pas** : il remplace un téléphone, il n'en ajoute
+pas un. L'ancien oublie ses clés à la fin, exprès — deux appareils sur un même
+ratchet se cassent mutuellement le déchiffrement.
+
+
 ## ✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)
 
 Deux bandeaux répétaient le même message et un seul savait se taire. Celui de

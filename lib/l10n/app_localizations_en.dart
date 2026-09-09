@@ -11334,6 +11334,84 @@ class AppLocalizationsEn extends AppLocalizations {
   String get e2eeNudgeMuteAction => 'Don\'t remind me again';
 
   @override
+  String get keyTransferSectionTitle => 'Switching phones';
+
+  @override
+  String get keyTransferSectionBody =>
+      'Move your keys from one phone to the other by scanning a code. No passphrase.';
+
+  @override
+  String get keyTransferReceiveAction => 'Get them from my old phone';
+
+  @override
+  String get keyTransferSendAction => 'Send them to a new phone';
+
+  @override
+  String get keyTransferReceiveTitle => 'Get my keys';
+
+  @override
+  String get keyTransferReceiveHint =>
+      'On the old phone: Settings › Security › Key backup › Send them to a new phone, then scan this code.';
+
+  @override
+  String get keyTransferWaiting => 'Waiting for the old phone…';
+
+  @override
+  String get keyTransferImported =>
+      'Keys recovered. Your encrypted messages are readable again.';
+
+  @override
+  String get keyTransferTimeout =>
+      'No transfer received. The code expired: start again.';
+
+  @override
+  String get keyTransferCorrupted =>
+      'Transfer unreadable. Start again with a new code.';
+
+  @override
+  String get keyTransferSendTitle => 'Send my keys';
+
+  @override
+  String get keyTransferScanHint => 'Scan the code shown on the new phone.';
+
+  @override
+  String get keyTransferConfirmTitle => 'Send your keys?';
+
+  @override
+  String get keyTransferConfirmBody =>
+      'The new phone takes this one\'s place. This device will forget its keys and will no longer read the encrypted messages it already received.';
+
+  @override
+  String get keyTransferConfirmAction => 'Send';
+
+  @override
+  String get keyTransferSending => 'Sending keys…';
+
+  @override
+  String get keyTransferWaitingAck => 'Waiting for the new phone to confirm…';
+
+  @override
+  String get keyTransferDone =>
+      'Transfer complete. This device no longer holds the keys.';
+
+  @override
+  String get keyTransferWrongAccount => 'This code belongs to another account.';
+
+  @override
+  String get keyTransferNoKeys => 'This device has no keys to send.';
+
+  @override
+  String get keyTransferNotAuthenticated =>
+      'Session unavailable. Try again in a moment.';
+
+  @override
+  String get keyTransferNoAck =>
+      'The new phone did not confirm. Your keys stay on this device.';
+
+  @override
+  String get keyTransferRetry => 'Start again';
+
+  @override
   String get securityRestoreKeys => 'Restore keys';
 
   @override

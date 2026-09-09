@@ -307,6 +307,37 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
 
                     const SizedBox(height: 24),
 
+                    // Changer de téléphone : reprise sans passphrase.
+                    //
+                    // Une passphrase perdue laisse un appareil neuf en « à
+                    // restaurer » à vie — le coordinateur refuse alors de
+                    // générer une identité neuve. Ce chemin-ci n'en demande
+                    // aucune : les clés passent d'un téléphone à l'autre par un
+                    // QR, chiffrées par une clé qui ne transite jamais.
+                    DesignSectionLabel(l10n.keyTransferSectionTitle),
+                    DesignBody(l10n.keyTransferSectionBody),
+                    const SizedBox(height: 8),
+                    DesignSettingsCard(
+                      children: [
+                        DesignSettingsTile(
+                          icon: const Icon(Icons.qr_code_2_outlined),
+                          title: l10n.keyTransferReceiveAction,
+                          onTap: () => context.push(
+                            '/settings/security/transfer/receive',
+                          ),
+                        ),
+                        DesignSettingsTile(
+                          icon: const Icon(Icons.photo_camera_outlined),
+                          title: l10n.keyTransferSendAction,
+                          onTap: () => context.push(
+                            '/settings/security/transfer/send',
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
                     // Existing backup info
                     if (_hasBackup) ...[
                       Text(

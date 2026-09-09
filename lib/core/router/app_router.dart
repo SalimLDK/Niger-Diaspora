@@ -59,6 +59,8 @@ import '../../features/search/presentation/providers/search_provider.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/legal/presentation/screens/legal_documents_screen.dart';
 import '../../features/settings/presentation/screens/security_backup_screen.dart';
+import '../../features/settings/presentation/screens/key_transfer_receive_screen.dart';
+import '../../features/settings/presentation/screens/key_transfer_send_screen.dart';
 import '../../features/settings/presentation/screens/devices_screen.dart';
 import '../../features/reports/presentation/screens/my_reports_screen.dart';
 import '../../features/friends/presentation/screens/friends_screen.dart';
@@ -640,6 +642,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/security/devices',
         builder: (context, state) => const DevicesScreen(),
+      ),
+      GoRoute(
+        path: '/settings/security/transfer/receive',
+        builder: (context, state) => const KeyTransferReceiveScreen(),
+      ),
+      GoRoute(
+        path: '/settings/security/transfer/send',
+        builder: (context, state) => const KeyTransferSendScreen(),
       ),
       // Embassies routes
       GoRoute(
