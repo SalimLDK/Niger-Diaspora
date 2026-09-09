@@ -36,16 +36,34 @@ une session, et la ligne `users` existe avec `display_name = "Compte Test"`.
       (sondages, Découvrir, filtres Photos/Vidéos, panneau des villes)
       deviennent enfin observables.
 
-⚠️ Constaté pendant la création : **le tout premier appel à
-`auth-firebase-exchange` pour un compte neuf répond 401 « Email link is
-invalid or has expired »** — la tentative suivante réussit (reproduit deux
-fois d'affilée : échec, puis succès). Dans l'app, `_scheduleRetry()` repasse
-5 s plus tard : le premier lancement d'un compte neuf a donc ~5 s de session
-anonyme avant que les données n'arrivent. Ça touche **tout compte neuf**, pas
-seulement celui-ci. Piste : `updateUserById` (étape 3 de la fonction)
-invalide le jeton du magic link généré à l'étape 2 tant que l'utilisateur
-n'est pas confirmé ; la reprise interne de l'étape 6 ne couvre que le cas
-« claim `firebase_uid` manquant », pas un `verifyOtp` en échec. Non corrigé.
+✅ **Corrigé le 2026-09-09 — pas encore déployé.** Le tout premier appel à
+`auth-firebase-exchange` pour un compte neuf répondait 401 « Email link is
+invalid or has expired », la tentative suivante réussissant. Dans l'app,
+`_scheduleRetry()` repasse 5 s plus tard : **tout compte neuf** démarrait donc
+sur ~5 s de session anonyme avant que ses données n'arrivent.
+
+La piste `updateUserById` était fausse — la séquence échoue tout autant **sans
+lui** (mesuré ; cette étape ne touche que `updated_at`). La cause est le
+**type** passé à `verifyOtp`. `generateLink({type:'magiclink'})` sur un email
+inconnu *crée* le compte, et le lien qu'il rend alors est de type **`signup`** :
+GoTrue range ce jeton dans `confirmation_token`, quand
+`verifyOtp({type:'magiclink'})` le cherche dans `recovery_token`. Le message
+parle d'expiration ; rien n'avait expiré, c'était le mauvais tiroir. Contrôle
+décisif : le **même** jeton, à la même seconde, est refusé en `magiclink` et
+accepté en `signup`. La 2e tentative passait simplement parce que le compte
+existait désormais, ce qui fait rendre à `generateLink` un lien `magiclink`.
+
+`supabase/functions/auth-firebase-exchange/index.ts` passe maintenant à
+`verifyOtp` le type que GoTrue a réellement émis
+(`properties.verification_type`), et retente **une** fois avec un lien frais si
+l'échange est refusé — le jeton est à usage unique, deux échanges concurrents
+se sabotent l'un l'autre. Mesuré bout-en-bout sur des comptes Firebase neufs :
+la fonction telle que déployée rend 401 puis 200, la séquence corrigée rend une
+session **au premier coup**, claim `firebase_uid` compris.
+
+- [ ] **Après déploiement** : première connexion d'un compte neuf sur SM A515F
+      — les données doivent arriver tout de suite, sans les ~5 s d'écrans vides
+      (`supabase/functions/auth-firebase-exchange/index.ts`).
 
 ---
 

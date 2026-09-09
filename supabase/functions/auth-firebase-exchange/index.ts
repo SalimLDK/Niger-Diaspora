@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = (Deno.env.get('SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!
@@ -79,6 +79,84 @@ async function verifyFirebaseToken(idToken: string): Promise<FirebaseTokenPayloa
   return payload
 }
 
+/** Ce que `generateLink` rend d'utile ici. */
+interface LienGenere {
+  properties: {
+    action_link: string
+    hashed_token?: string
+    verification_type?: string
+  }
+}
+
+/**
+ * Le type de vérification à passer à `verifyOtp` pour ce lien-ci.
+ *
+ * ⚠️ NE PAS remettre `'magiclink'` en dur. `generateLink({type:'magiclink'})`
+ * sur un email inconnu **crée** le compte, et le lien qu'il rend alors est de
+ * type **`signup`** — `properties.verification_type` le dit. GoTrue range ce
+ * jeton-là dans `confirmation_token` ; `verifyOtp({type:'magiclink'})`, lui,
+ * le cherche dans `recovery_token`, ne l'y trouve pas, et répond 403
+ * `otp_expired` « Email link is invalid or has expired ». Le message parle
+ * d'expiration, mais rien n'a expiré : c'est le mauvais tiroir.
+ *
+ * Mesuré hors app le 2026-09-09 sur des comptes Supabase neufs : le MÊME
+ * jeton, à la même seconde, est refusé en `magiclink` et accepté en `signup`.
+ * C'était l'échec **systématique du tout premier échange de chaque compte**
+ * (401 côté client), et il n'avait rien d'une course : la séquence échoue
+ * aussi bien sans `updateUserById` entre les deux — cette étape ne touche que
+ * `updated_at`. La 2e tentative passait simplement parce que le compte
+ * existait désormais, ce qui fait rendre à `generateLink` un lien `magiclink`.
+ * Conséquence dans l'app : tout compte neuf démarrait sur ~5 s de session
+ * anonyme, le temps de la première reprise de `SupabaseAuthBridge`.
+ *
+ * Le type émis vaut aussi mieux que `'magiclink'` sur le fond : vérifier un
+ * lien `signup` renseigne `email_confirmed_at`, que le compte a de toute façon
+ * déjà mérité côté Firebase.
+ */
+function typeDeVerification(props: LienGenere['properties']): 'magiclink' | 'signup' {
+  const type = props.verification_type ??
+    new URL(props.action_link).searchParams.get('type') ??
+    'magiclink'
+  return type === 'signup' ? 'signup' : 'magiclink'
+}
+
+/**
+ * Échange un lien d'authentification contre une session Supabase.
+ *
+ * Sans `lien`, en génère un frais pour `email`. Rend `null` sur échec — à
+ * l'appelant de décider s'il retente ; c'est ce qui permet à l'étape 5 de
+ * distinguer « ce jeton-ci a été refusé » de « l'échange est perdu ».
+ */
+async function echangerContreSession(
+  supabase: SupabaseClient,
+  email: string,
+  lien?: LienGenere,
+) {
+  if (!lien) {
+    const { data, error } = await supabase.auth.admin.generateLink({ type: 'magiclink', email })
+    if (error || !data) {
+      console.error('generateLink failed:', error?.message)
+      return null
+    }
+    lien = data as unknown as LienGenere
+  }
+
+  const token = lien.properties.hashed_token ??
+    new URL(lien.properties.action_link).searchParams.get('token')
+  if (!token) {
+    console.error('Failed to extract token from magic link')
+    return null
+  }
+
+  const type = typeDeVerification(lien.properties)
+  const { data, error } = await supabase.auth.verifyOtp({ type, token_hash: token })
+  if (error || !data.session) {
+    console.warn(`verifyOtp(${type}) failed: ${error?.message ?? 'no session'}`)
+    return null
+  }
+  return data.session
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -147,48 +225,39 @@ Deno.serve(async (req) => {
       display_name: payload.name ?? email.split('@')[0],
     }, { onConflict: 'id' })
 
-    // 5. Générer une session Supabase via le token du magic link
-    const url = new URL(linkData.properties.action_link)
-    const token = url.searchParams.get('token')
-    if (!token) throw new Error('Failed to extract token from magic link')
+    // 5. Échanger le lien de l'étape 2 contre une session Supabase.
+    let session = await echangerContreSession(supabase, email, linkData)
 
-    const { data: session, error: sessionError } = await supabase.auth.verifyOtp({
-      type: 'magiclink',
-      token_hash: token,
-    })
-    if (sessionError) throw sessionError
+    // Reprise. Le jeton est à usage unique, et `generateLink` invalide celui
+    // que le même compte venait de recevoir : deux échanges qui se croisent
+    // (deux appareils, deux isolats Edge) se sabotent l'un l'autre, avec le
+    // même 403 que celui décrit sur `typeDeVerification`. Un lien frais, un
+    // seul essai de plus — puis on rend la main.
+    if (!session) {
+      console.warn('échange refusé, nouvelle tentative avec un lien frais')
+      session = await echangerContreSession(supabase, email)
+    }
+    if (!session) throw new Error('Email link exchange failed twice')
 
-    // 6. Verify the issued JWT actually carries firebase_uid in app_metadata.
-    //    On first signup, verifyOtp can race with updateUserById and produce a
-    //    token that still lacks the claim. If so, generate a fresh link and
-    //    exchange it immediately so the caller always receives a valid JWT.
-    let accessToken = session.session!.access_token
-    let refreshToken = session.session!.refresh_token
-    let expiresIn = session.session!.expires_in
+    // 6. Filet : le JWT émis doit porter firebase_uid dans app_metadata.
+    //    L'étape 3 l'écrit avant l'échange, donc il ne devrait plus servir —
+    //    il reste parce qu'un JWT sans le claim fait dépendre `firebase_uid()`
+    //    du seul repli `auth_mappings` (étape 4a), et qu'un échange frais coûte
+    //    moins cher que ce doute.
+    let accessToken = session.access_token
+    let refreshToken = session.refresh_token
+    let expiresIn = session.expires_in
 
     const jwtParts = accessToken.split('.')
     const jwtPayload = decodeJwtPart(jwtParts[1])
 
     if (!jwtPayload?.app_metadata?.firebase_uid) {
       console.warn('firebase_uid missing from JWT on first attempt — retrying after metadata write')
-      const { data: retryLink, error: retryLinkErr } = await supabase.auth.admin.generateLink({
-        type: 'magiclink',
-        email,
-      })
-      if (!retryLinkErr && retryLink) {
-        const retryUrl = new URL(retryLink.properties.action_link)
-        const retryToken = retryUrl.searchParams.get('token')
-        if (retryToken) {
-          const { data: retrySession } = await supabase.auth.verifyOtp({
-            type: 'magiclink',
-            token_hash: retryToken,
-          })
-          if (retrySession?.session) {
-            accessToken = retrySession.session.access_token
-            refreshToken = retrySession.session.refresh_token
-            expiresIn = retrySession.session.expires_in
-          }
-        }
+      const frais = await echangerContreSession(supabase, email)
+      if (frais) {
+        accessToken = frais.access_token
+        refreshToken = frais.refresh_token
+        expiresIn = frais.expires_in
       }
     }
 
