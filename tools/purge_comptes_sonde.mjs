@@ -13,7 +13,7 @@
 //
 //   1. Sans `--confirmer`, le script ne fait que lire et afficher. Toujours
 //      lancer une fois sans, et relire la liste avant de la relancer avec.
-//   2. Le filtre est un motif exact et fermé (`^(sonde|verif)-…@example.com$`),
+//   2. Le filtre est un motif exact et fermé (`^(sonde|verif|device)-…@example.com$`),
 //      pas un « contient ». Un compte qui n'y répond pas n'est jamais touché,
 //      et n'est même jamais affiché.
 //   3. `test.diaspo@example.com` — le vrai compte de test, cf.
@@ -29,7 +29,7 @@ const CONFIRME = process.argv.includes('--confirmer');
 
 /// Seules ces adresses sont candidates. Motif ancré des deux côtés : rien
 /// d'autre ne peut y répondre par accident.
-const MOTIF = /^(sonde|verif)-[a-z0-9-]+@example\.com$/;
+const MOTIF = /^(sonde|verif|device)-[a-z0-9-]+@example\.com$/;
 
 /// Ceinture et bretelles : même si le motif venait à s'élargir un jour.
 const A_GARDER = new Set(['test.diaspo@example.com']);
