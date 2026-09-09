@@ -83,9 +83,20 @@ Pour comparer sans supposer : `supabase functions download <nom>
 --project-ref <ref>` — mais il **écrase la copie de travail** au lieu d'écrire
 ailleurs, donc le faire sur un dépôt propre et relire par `git diff`.
 
-- [ ] Après déploiement : créer un compte neuf sur l'appareil et vérifier que
-      l'accueil se remplit **sans** le trou de 5 s (logcat : plus de
-      `SupabaseAuthBridge: exchange failed (401)` au premier lancement).
+- [x] **Non-régression sur compte existant — ✅ SM A515F, 2026-09-09.** La
+      fonction d'échange sert TOUTES les connexions, pas seulement les
+      premières : après le redéploiement, démarrage à froid de l'APK debug
+      1.2.1+11 déjà installé (le correctif étant côté serveur, rien à
+      recompiler). Logcat : `SupabaseAuthBridge: session sync OK`, aucun
+      `exchange failed`, aucun 401. Accueil rempli avec des données qui
+      exigent une session authentifiée — badge de 2 notifications, « Membres
+      à proximité · 1 », ville et progression de profil.
+- [ ] Compte **neuf** créé depuis l'app, pour voir l'accueil se remplir sans
+      le trou de 5 s. Bloqué autrement que par le code : il faut se
+      déconnecter du compte personnel sur ce téléphone, et **s'y reconnecter
+      demande son mot de passe**. À faire sur le second téléphone, ou en
+      acceptant la déconnexion. Le chemin serveur, lui, est prouvé : trois
+      comptes Firebase neufs, premier appel en 200 à chaque fois.
 
 ---
 
