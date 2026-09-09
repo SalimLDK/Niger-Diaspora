@@ -158,8 +158,15 @@ les deux appareils (md5 `18e2a33a19fca981463e0f44d82966ff`).
 Ce qu'une montée d'AGP peut changer sans prévenir, et qui ne se voit qu'au
 dépôt en Play Console :
 
-- [ ] **`flutter build apk --release` et le bundle** passent encore
-      (signature, R8, shrinking).
+- [x] **`flutter build apk --release`** passe encore (signature, R8,
+      shrinking) — vérifié le 2026-09-09 sur SM A515F : `assembleRelease` en
+      656 s, APK de 168 Mo, versionCode 17, signé par
+      `android/app/diaspo-niger-release.jks` (`DD:A6:5C:3E…CF:5D`, l'empreinte
+      que Play attend), R8 actif — le paquet installé n'a plus le flag
+      `DEBUGGABLE`. Posé et lancé, md5 sur l'appareil identique au fichier
+      local (`9ee1f712…`).
+- [ ] **Le bundle `.aab`** passe encore : non revérifié depuis la montée d'AGP.
+      C'est lui que vise l'alignement 16 Ko ci-dessous.
 - [ ] **Alignement 16 Ko** toujours bon :
       `python tools/verifie_alignement_16k.py build/app/outputs/bundle/release/app-release.aab`.
 - [ ] **Le `force("com.google.mlkit:barcode-scanning:17.3.0")`** porte la note
@@ -2706,11 +2713,15 @@ rayé, en attente explicite dans le commentaire du code).
   Encore ouvert : **thème clair** et **accent vert** (seule la combinaison
   sombre/orange du compte de test a pu être vue — `font_scale` 1.1 aussi,
   l'appareil était repassé à 1.0 depuis la dernière session).
-- [ ] Pastille « DN » de connexion/inscription (`AuthBrandMark`) : pas
-  vérifiée sur appareil (nécessiterait une déconnexion du compte connecté,
-  écartée pour ne pas risquer une reconnexion SSO forcée) — seulement en
-  preview HTML fidèle aux valeurs réelles. Les deux lettres devraient tenir
-  dans le carré 46×46 sans être coupées, dans les deux couleurs d'accent.
+- [x] Pastille « DN » de connexion/inscription (`AuthBrandMark`) : **vue sur
+  SM A515F le 2026-09-09**, en thème clair et accent orange. Les deux lettres
+  tiennent dans le carré, centrées, aucune coupe. L'occasion est venue d'une
+  réinstallation en release (signature différente du debug → désinstallation
+  obligatoire), qui a rendu l'appareil déconnecté : c'est bien la déconnexion
+  que cette entrée disait rédhibitoire qui l'a débloquée, pas un contournement.
+- [ ] Pastille « DN » en **accent vert** et en **thème sombre** : toujours pas
+  vue sur appareil (l'écran de connexion s'ouvre en clair/orange par défaut,
+  et l'accent vert dépendait du compte de test dont la session est perdue).
 - [x] Écran « fête de la République » (onboarding 4/5) : les 3 pastilles
   orange/blanc/vert restent lisibles sur fond sombre, celle en blanc se
   détache bien grâce au cerclage `borderStrongColor`. Vu sur SM A515F.
