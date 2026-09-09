@@ -1,28 +1,36 @@
 # Build 1.2.1+11 — ce qui a été produit et vérifié
 
 *2026-09-08. Branche `claude/publication-play`, arbre fusionné avec
-`origin/wip-jules-2025-12-29T23-58-34-776Z` (`961d188`).*
+`origin/wip-jules-2025-12-29T23-58-34-776Z` (`c5e6342`).*
 
 ## Artefacts
 
-Les deux binaires ne sont **pas versionnés** (208 Mo et 169 Mo) :
+Le bundle n'est **pas versionné** (210 Mo) :
 
-| Fichier | Taille | md5 | Usage |
-|---|---|---|---|
-| `build/app/outputs/bundle/release/app-release.aab` | 208,1 Mo | `ad8684c7a3489945fd28d0d28292598b` | **à téléverser sur Play** |
-| `build/app/outputs/flutter-apk/app-release.apk` | 168,7 Mo | — | distribution directe / test |
+| Fichier | Taille | md5 |
+|---|---|---|
+| `build/app/outputs/bundle/release/app-release.aab` | 210,5 Mo | `7237b5f2849cea32d333e100e15172ee` |
 
-Construits après intégration de `1985efc` (alignement 16 Ko) : un binaire
-antérieur à ce commit ne porte pas l'alignement que Play contrôle.
+Construit après intégration de deux commits sans lesquels il ne faut **pas**
+téléverser :
+
+- `1985efc` — alignement 16 Ko, que Play contrôle ;
+- `e1011d4` — **AGP 8.10.1 et Gradle 8.13**, montée rendue nécessaire par celle
+  de `mobile_scanner` : sans elle la branche ne compilait plus. Un bundle
+  produit avant ce commit vient d'un arbre qui ne construisait pas.
 
 ## Vérifié, pas supposé
 
-Relevé avec `aapt2 dump badging` sur l'APK produit :
+Relevé dans `base/manifest/AndroidManifest.xml` du bundle lui-même (protobuf,
+lu par étiquettes) — donc sur l'artefact téléversé, pas sur un APK voisin :
 
 ```
-package: name='com.diasponiger.diasponiger' versionCode='11' versionName='1.2.1'
-targetSdkVersion:'36'   compileSdkVersion='36'
-application-label:'Diaspo Niger'
+package           com.diasponiger.diasponiger
+versionName       1.2.1
+versionCode       11
+minSdkVersion     24
+targetSdkVersion  36
+compileSdkVersion 36
 ```
 
 Signature (`apksigner` sur l'APK, `keytool -printcert -jarfile` sur l'AAB) :

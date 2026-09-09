@@ -124,9 +124,13 @@ Confidentialité : https://diasponiger.com/privacy-policy
 • 20 démarches consulaires détaillées
 • Messagerie chiffrée : vidéos, sondages, messages épinglés
 • Carte des membres à proximité, en temps réel
-• Thème sombre sur l'ensemble de l'application
+• Thème sombre : les écrans qui restaient illisibles sont corrigés
 • Navigation revue : sortie explicite depuis chaque écran
 ```
+
+> La ligne sur le thème sombre dit « corrigé » et non « ajouté » : la fiche
+> v1.1.1 en ligne annonçait déjà « Mode clair et mode sombre ». Le travail réel a
+> porté sur les écrans dont le fond restait figé sur un jeton clair.
 
 ---
 
