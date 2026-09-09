@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../encryption_service.dart';
 import 'secure_key_storage.dart';
+import 'undecryptable_placeholders.dart';
 
 final sessionBackupServiceProvider = Provider<SessionBackupService>((ref) {
   return SessionBackupService(
@@ -142,7 +143,7 @@ class SessionBackupService {
       if (encrypted == null || encrypted.isEmpty) return false;
 
       final plaintext = await _aes.decryptTextAsync(encrypted);
-      if (plaintext.startsWith('[Message illisible]')) {
+      if (plaintext.startsWith(kAesUndecryptablePlaceholder)) {
         debugPrint('SessionBackupService: decryption failed — key mismatch');
         return false;
       }

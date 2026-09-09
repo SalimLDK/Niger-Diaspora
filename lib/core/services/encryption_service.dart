@@ -4,6 +4,8 @@ import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'e2ee/undecryptable_placeholders.dart';
+
 final encryptionServiceProvider = Provider<EncryptionService>((ref) {
   return EncryptionService.instance;
 });
@@ -191,7 +193,7 @@ class EncryptionService {
 
     if (keyBase64 == null) {
       debugPrint('⚠️ Contenu versionné sans clé dérivée fournie');
-      return '[Message illisible]';
+      return kAesUndecryptablePlaceholder;
     }
 
     try {
@@ -203,7 +205,7 @@ class EncryptionService {
       // Mauvaise clé, version inconnue, contenu corrompu : même issue que le
       // chemin hérité — un marqueur, jamais le ciphertext brut.
       debugPrint('⚠️ Déchiffrement avec clé dérivée impossible : $e');
-      return '[Message illisible]';
+      return kAesUndecryptablePlaceholder;
     }
   }
 
@@ -292,7 +294,7 @@ class EncryptionService {
     // reconnu par la fusion des messages (message_provider) qui préserve alors
     // le texte en clair connu localement pour nos propres messages.
     if (encryptedFullText.startsWith('gcm:')) {
-      return '🔐 Message chiffré';
+      return kEncryptedMessagePlaceholder;
     }
 
     // Vérifier si le texte ressemble vraiment à du contenu chiffré
@@ -311,7 +313,7 @@ class EncryptionService {
       // En cas d'erreur de déchiffrement (clé changée, données corrompues)
       // Le message a été chiffré avec une autre clé et ne peut pas être récupéré
       debugPrint('⚠️ Decryption failed (likely different key): $e');
-      return '[Message illisible]';
+      return kAesUndecryptablePlaceholder;
     }
   }
 

@@ -24,10 +24,23 @@ const String kE2EESessionRequiredPlaceholder = '[🔐 E2EE — session requise]'
 /// erreur de déchiffrement sur un message marqué `e2ee`).
 const String kEncryptedMessagePlaceholder = '🔐 Message chiffré';
 
+/// Échec du repli AES : mauvaise clé, clé dérivée absente, contenu corrompu.
+/// Posé par les trois sorties d'échec d'`EncryptionService`.
+///
+/// **Il manquait ici.** Écrit en dur à quatre endroits et dans aucune des trois
+/// gardes qui s'appuient sur cette liste, ce marqueur les traversait toutes :
+/// le rechargement paginé ne le soignait pas depuis le cache, l'écho temps réel
+/// écrasait le texte clair avec, le bandeau de restauration ne s'affichait pas.
+/// Pire, `_healUndecryptableMessages` le prenait pour du contenu valide et le
+/// réécrivait par-dessus le texte déjà déchiffré : la perte devenait
+/// définitive, cache compris.
+const String kAesUndecryptablePlaceholder = '[Message illisible]';
+
 /// Tous les placeholders, pour les tests d'appartenance.
 const Set<String> kUndecryptablePlaceholders = {
   kE2EESessionRequiredPlaceholder,
   kEncryptedMessagePlaceholder,
+  kAesUndecryptablePlaceholder,
 };
 
 /// Vrai si [content] ne porte aucun texte lisible : vide, ou placeholder.
