@@ -10867,6 +10867,10 @@ implicitement que l'appelant reste participant après l'update.
 
 ## Heure/accusé masqués au tap sur une rafale envoyée (2026-08-14)
 
+> **Obsolète depuis le 2026-08-23** : la bascule décrite ci-dessous a été
+> supprimée, l'heure s'affiche désormais sur tous les messages. Voir
+> « Heure et accusé sur tous les messages » plus bas.
+
 [message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart) :
 un message envoyé qui n'est pas le dernier d'une rafale masquait déjà son
 heure par regroupement visuel, mais sans aucun moyen de la consulter
@@ -11771,6 +11775,46 @@ en arrière (`d62512c`). Un worktree pousse vers `origin`, il ne met pas à jour
 la copie de travail principale. Avant de conclure qu'un correctif « ne marche
 pas », vérifier `git log HEAD..origin/<branche>` dans le dépôt principal.
 
+
+---
+
+## ⬜ Heure et accusé sur tous les messages, bascule supprimée (2026-08-23)
+
+[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)
+`_buildMetaRow` : le regroupement visuel des rafales ne masque plus rien de la
+ligne méta. Chaque message — envoyé comme reçu, isolé comme au milieu d'une
+rafale — affiche son heure et, côté envoyé, son accusé. Le champ
+`_metaRevealed`, le getter `_isLastInGroup` et la zone de tap invisible de
+48×16 px sous la bulle ont été supprimés.
+
+Deux raisons : la zone tapable n'avait aucune affordance (indevinable), et
+elle masquait aussi le libellé « Échec · Réessayer » d'un envoi raté qui
+n'était pas le dernier de sa rafale — le seul chemin pour relancer l'envoi.
+
+⚠️ **Cette note a bien failli disparaître.** Le code est en place depuis le
+2026-08-23, mais sa justification vivait dans un commit resté sur une branche
+locale (`claude/heure-partout-base-1744c25`) : le comportement, lui, a été
+refait autrement sur `wip-jules`, sans reprendre l'explication. Récupérée le
+2026-09-09 juste avant la suppression de cette branche. Vérifié à cette
+occasion sur le fichier courant : plus une seule occurrence de `_metaRevealed`
+ni de `_isLastInGroup`, et l'appel `Text(_formatTime(...))` de `_buildMetaRow`
+n'est enveloppé d'aucune condition.
+
+- [ ] **Heure sur chaque message d'une rafale envoyée** : envoyer 3 messages
+  coup sur coup en 1:1, vérifier que les 3 portent leur heure sans aucun tap
+  (avant : seul le dernier).
+- [ ] **Accusé répété** : les 3 portent aussi « · Envoyé »/« · Lu ». C'est le
+  point à juger à l'œil — si la répétition est trop bruyante, il suffit de
+  re-conditionner `_buildReceiptLabel` à la fin de rafale sans revenir sur
+  l'heure.
+- [ ] **Plus aucun tap actif** : taper sous une bulle du milieu de rafale ne
+  doit plus rien masquer ni révéler (ni ouvrir quoi que ce soit).
+- [ ] **Échec d'envoi au milieu d'une rafale** (mode avion, 3 messages, le
+  2e forcé en échec) : « Échec · Réessayer » visible et cliquable sur ce
+  message sans interaction préalable.
+- [ ] **Rafale reçue** et **groupe** : heure sur chaque bulle, nom de
+  l'expéditeur toujours sur la seule première bulle, queue de bulle toujours
+  sur la dernière (le regroupement visuel n'a pas bougé).
 
 ---
 
