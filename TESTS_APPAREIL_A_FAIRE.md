@@ -1937,6 +1937,183 @@ Rappel : rien de tout ça ne peut aboutir tant que l'App ID n'est pas
 enregistré chez Apple (étape 3 du document ci-dessus) — la capability Push
 notamment conditionne la signature.
 
+## iOS : premier build réussi, sur simulateur (2026-09-01)
+
+La cible iOS n'avait **jamais été compilée**. Elle l'est désormais :
+`flutter build ios --simulator --debug` aboutit, l'app s'installe et démarre
+sur un simulateur iPhone 17 (iOS 26.1), l'écran de connexion s'affiche
+correctement et la demande d'autorisation de notifications apparaît — donc
+Firebase s'initialise.
+
+Quatre défauts bloquants trouvés et corrigés au passage :
+
+1. **`ios/Podfile` n'avait jamais existé** (absent de tout l'historique git).
+2. **`ios/Runner.xcodeproj/project.pbxproj` corrompu** : `GoogleService-Info.plist`
+   figurait dans la phase *Resources* en `PBXFileReference` au lieu d'un
+   `PBXBuildFile`, sous un UUID inventé (`ABCDEF1234567890ABCDEF12`). CocoaPods
+   refusait de s'exécuter, et **le fichier de configuration Firebase n'était pas
+   correctement embarqué dans le bundle**.
+3. **`NSPhotoLibraryUsageDescription` absent d'`Info.plist`** — seule la variante
+   `…AddUsageDescription` (écriture) était déclarée. iOS tue le processus à
+   l'ouverture du sélecteur de photos. `NSCalendars…` ajoutées aussi
+   (`add_2_calendar`).
+4. **Conflit `GoogleDataTransport`** : `firebase_messaging` le veut en `~> 10.0`,
+   `mobile_scanner` 5.2.3 en `< 10.0`. Résolu en montant `mobile_scanner` en
+   7.4.0 (une signature de `errorBuilder` à adapter) et, dans la foulée,
+   `purchases_flutter` 8 → 10.10.1 (RevenueCat 5.32.0 ne compile pas sous le
+   Swift d'Xcode 27 ; `purchasePackage` → `purchase(PurchaseParams)`).
+
+Cible de déploiement montée **iOS 12 → 15**, imposée par `GoogleMaps 9.x`.
+
+**Ce que le simulateur ne peut pas couvrir** — tout ce qui suit reste à faire
+sur un iPhone réel, et une partie exige un compte Apple Developer :
+
+- [ ] Caméra réelle : scan QR (`mobile_scanner` 7.x, API changée), photos,
+      vidéo WebRTC.
+- [ ] Micro réel : messages vocaux, appels.
+- [ ] Notifications push reçues (exige clé APNs + compte développeur).
+- [ ] Appels CallKit/PushKit (exige compte développeur).
+- [ ] Localisation réelle et carte Google Maps.
+- [ ] Achats RevenueCat après la montée en version majeure 8 → 10.
+- [ ] Deep links / Universal Links (exige Associated Domains signés).
+
+**Parité native Swift — premier passage fait le 2026-09-01.** `AppDelegate.swift`
+passe de 15 à 100 lignes. Après lecture de chacun des quatre canaux Android,
+deux seulement méritaient d'être portés :
+
+- [x] `diaspo_niger/share_intent` → `getInstallationId` rendu par
+      `identifierForVendor`, équivalent iOS du SSAID. Le garde Dart de
+      `stableDeviceId` s'ouvre à iOS en conséquence. Sans ça, chaque
+      régénération de clés créait une ligne de plus dans `e2ee_devices`, et
+      tout message destiné au compte doit être chiffré pour chacune.
+      `clearSharedIntent` répond sans rien faire : il manipule l'intent d'une
+      activité Android, notion inexistante ici.
+- [x] Délégué `UNUserNotificationCenter` posé — sans lui,
+      `flutter_local_notifications` ne peut rien afficher au premier plan et
+      iOS supprime la bannière en silence.
+- [x] `diaspo_niger/lockscreen` — **volontairement non porté.** Il remplace
+      `showWhenLocked`/`turnScreenOn` d'Android ; sur iOS c'est CallKit qui
+      gouverne l'affichage d'un appel sur écran verrouillé.
+      `LockScreenService._apply` sort déjà avant l'appel hors Android.
+- [x] `diaspo_niger/deep_link` — **volontairement non porté.** Côté Android il
+      contourne un défaut réel (le moteur mis en cache par `audio_service`
+      empêche le canal de navigation d'aboutir). Ce montage n'existe pas sur
+      iOS : `FlutterDeepLinkingEnabled` étant à `true`, `FlutterAppDelegate`
+      relaie lui-même les liens. Le porter ferait **naviguer deux fois**.
+- [ ] À vérifier sur appareil : que les liens profonds arrivent bien par ce
+      chemin natif iOS, l'hypothèse ci-dessus n'ayant pas pu être testée.
+
+## ⚠️ Simulateur : lancer DeviceHub AVANT de démarrer l'app (2026-09-01)
+
+**Sans fenêtre de simulateur ouverte, l'app se lance mais Flutter ne dessine
+jamais rien** — écran gris uniforme, aucune erreur, aucun plantage, la VM Dart
+répond et les journaux montrent l'initialisation complète. On croit à un bug
+de l'app ; c'en est un du poste de travail. Une demi-heure perdue à chercher
+au mauvais endroit.
+
+Xcode 27 n'a plus de `Simulator.app` : c'est **`DeviceHub.app`** qui porte la
+fenêtre, dans `Contents/Applications/` et non plus
+`Contents/Developer/Applications/`.
+
+```bash
+open /Users/mouba/Downloads/Xcode-beta.app/Contents/Applications/DeviceHub.app
+```
+
+Une fois lancée, l'écran de connexion s'affiche immédiatement et correctement
+(thème clair, fond crème). Écarté au passage comme régression de la parité
+Swift : même comportement avec l'`AppDelegate` d'origine, test A/B fait.
+
+- [x] Écran de connexion vérifié sur simulateur iPhone 17 (iOS 26.1).
+
+## « Se connecter avec Apple » ajouté (2026-09-01)
+
+Apple exige ce fournisseur de toute app en proposant déjà un tiers — Google
+ici — et son absence vaut un rejet à la soumission. Le bouton n'apparaît que
+sur iOS/macOS : sur Android il ouvrirait un parcours web réclamant une
+configuration Service ID distincte, absente aujourd'hui, et échouerait sous
+les yeux de l'utilisateur.
+
+- [ ] **Parcours complet à vérifier** — impossible sur simulateur non signé :
+      la feuille système Apple exige la capability « Sign In with Apple » sur
+      l'App ID, donc un compte développeur. Le bouton s'affiche, mais
+      l'autorisation sera refusée.
+- [ ] **Le nom n'est donné qu'à la PREMIÈRE autorisation.** Apple ne renvoie
+      `givenName`/`familyName` qu'une fois, jamais ensuite, et jamais dans le
+      jeton. Le code les capte et appelle `updateDisplayName` dans la foulée —
+      **à vérifier sur un compte Apple neuf**, car un second essai avec le même
+      compte ne rejouera pas ce cas. Pour le reproduire : *Réglages › Apple ID ›
+      Connexion et sécurité › Connexion avec Apple*, puis retirer l'app.
+- [ ] **« Masquer mon adresse e-mail »** donne une adresse
+      `@privaterelay.appleid.com`. Vérifier que le profil se crée normalement,
+      et garder en tête que tout courriel envoyé hors du relais Apple
+      n'arrivera pas.
+- [ ] Rendu du bouton en thème sombre : le logo Apple est monochrome, il est
+      teinté par `AuthButton.tintIcon` avec la couleur du texte. Dessiné en noir
+      sans cette teinte, il disparaîtrait sur fond sombre.
+
+## Supabase branché sur iOS — deux réserves (2026-09-01)
+
+`SUPABASE_ANON_KEY` renseignée, `***** Supabase init completed *****` dans les
+journaux, et GoRouter route normalement (`/splash` → `/auth/login`). Le
+dialogue App Tracking Transparency s'affiche aussi, donc
+`NSUserTrackingUsageDescription` est correcte.
+
+- [x] Initialisation Supabase vérifiée sur simulateur.
+
+**1. App Check échoue en 403 « App attestation failed ».** Attendu sur
+simulateur : l'app produit bien un jeton de debug, mais il n'est pas déclaré
+côté Firebase, donc l'échange est refusé.
+
+```
+Firebase App Check Debug Token: E42FC20C-8AE4-4474-BCFC-9A52B36DECEB
+```
+
+- [ ] Déclarer ce jeton dans *Firebase Console › App Check › l'app iOS ›
+      Gérer les jetons de debug*. **Sans lui, tout parcours authentifié est
+      intestable sur simulateur** dès que App Check est en mode contraint.
+      Le jeton est propre à cette installation : il change à chaque
+      réinstallation complète.
+
+**2. L'Edge Function `app-config` répond 404.** Le mécanisme de configuration
+distante — celui qui permet de changer une clé sans republier — n'est donc pas
+opérationnel. L'app retombe proprement sur le `.env` embarqué, rien n'est
+cassé, mais rien n'est pilotable à distance non plus.
+
+Vérifié au curl : `/auth/v1/settings` répond 200 (clé et projet valides),
+`/rest/v1/` répond 401 sans session (conforme : les RLS bloquent), mais
+**toutes** les Edge Functions répondent 404, `gif-proxy` compris. Ce n'est donc
+pas propre à `app-config`, et pas propre à iOS non plus.
+
+- [ ] Confirmer si les Edge Functions sont réellement déployées sur
+      `zyrfkcjjrhddpfxcgezo` (`supabase functions list`). Si oui, le 404 vient
+      d'ailleurs et mérite un examen ; si non, la config distante et le proxy
+      GIF sont hors service sur les deux plateformes.
+
+## Liens profonds iOS : la moitié testable est bonne (2026-09-01)
+
+- [x] **Schéma `diasponiger://` reconnu par iOS.** `simctl openurl` déclenche
+      bien « Ouvrir dans Diaspo Niger ? » : la déclaration
+      `CFBundleURLSchemes` d'`Info.plist` est correcte.
+- [x] **Routage vérifié.** `diasponiger:///auth/register` amène bien sur
+      « Créer un compte ». **Ça valide la décision de ne PAS porter le canal
+      `diaspo_niger/deep_link` sur iOS** : la route est arrivée par le canal de
+      navigation de l'embedding — aucune trace du gestionnaire
+      `_bindNativeDeepLinks` dans les journaux — donc ajouter le canal aurait
+      fait naviguer deux fois.
+- [ ] **Universal Links intestables sans compte développeur.**
+      `https://diasponiger.web.app/auth/register` s'ouvre **dans Safari**, pas
+      dans l'app : l'association de domaine exige une app signée portant
+      l'entitlement Associated Domains, plus le fichier AASA validé par le CDN
+      d'Apple. Rien à corriger côté code — à revérifier après la première
+      signature.
+
+À noter, sans lien avec iOS : les canaux `gsm_state`, `pip` et `proximity` ne
+sont implémentés **sur aucune des deux plateformes** — le code Dart de
+`proximity_service` et `pip_service` les appelle pourtant explicitement sur
+iOS *et* Android. À trancher : implémenter ou retirer.
+
+---
+
 ## Notification de message → « Utilisateur », écran bloqué (2026-08-30)
 
 Signalé par Salim : taper une notification de message dans `/notifications`

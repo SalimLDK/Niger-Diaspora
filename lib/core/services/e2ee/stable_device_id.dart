@@ -22,6 +22,9 @@ const MethodChannel _channel = MethodChannel('diaspo_niger/share_intent');
 /// Désormais dérivé du SSAID Android (`Settings.Secure.ANDROID_ID`), propre au
 /// triplet (clé de signature, utilisateur, appareil) depuis Android 8 : il
 /// survit au vidage de données et à une réinstallation signée de la même clé.
+/// Sur iOS, `identifierForVendor` joue le même rôle — propre au couple
+/// (éditeur, appareil), conservé tant qu'une app du même éditeur reste
+/// installée.
 ///
 /// **L'identifiant brut n'est jamais transmis.** On en publie un condensé
 /// SHA-256 salé par [userId] : deux comptes sur le même téléphone obtiennent
@@ -29,8 +32,7 @@ const MethodChannel _channel = MethodChannel('diaspo_niger/share_intent');
 /// rapprocher.
 ///
 /// Repli sur un UUID aléatoire si la plateforme ne fournit rien (ROM exotique,
-/// iOS/desktop pour l'instant) : c'est exactement l'ancien comportement, donc
-/// jamais pire.
+/// desktop) : c'est exactement l'ancien comportement, donc jamais pire.
 Future<String> stableDeviceId(String userId) async {
   final installationId = await _installationId();
   if (installationId == null || installationId.isEmpty) {
@@ -55,7 +57,11 @@ String deviceIdFromInstallation(String installationId, String userId) {
 }
 
 Future<String?> _installationId() async {
-  if (kIsWeb || !Platform.isAndroid) return null;
+  // iOS répond depuis le 2026-09-01 (`identifierForVendor` dans AppDelegate),
+  // avec les mêmes propriétés que le SSAID : stable entre réinstallations,
+  // cloisonné par éditeur. Les autres plateformes n'ont rien à offrir ici et
+  // gardent le repli sur UUID aléatoire.
+  if (kIsWeb || !(Platform.isAndroid || Platform.isIOS)) return null;
   try {
     return await _channel.invokeMethod<String>('getInstallationId');
   } catch (e) {

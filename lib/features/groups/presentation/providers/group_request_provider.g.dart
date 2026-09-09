@@ -7,7 +7,7 @@ part of 'group_request_provider.dart';
 // **************************************************************************
 
 String _$groupRequestDataSourceHash() =>
-    r'fddd1a1254177a8bcfaf6d962602066c3dec3b92';
+    r'cbdbd94f4e16489aff3f8e53159c1e230f081bfa';
 
 /// See also [groupRequestDataSource].
 @ProviderFor(groupRequestDataSource)
@@ -341,7 +341,7 @@ class _GroupSentInvitesProviderElement
 }
 
 String _$groupRequestNotifierHash() =>
-    r'141ad80d392c60352ad61940e65545315de5f4ea';
+    r'f14a6a77289b47ff7424b3fe2439baab7723feb6';
 
 /// See also [GroupRequestNotifier].
 @ProviderFor(GroupRequestNotifier)
@@ -361,7 +361,7 @@ final groupRequestNotifierProvider = AutoDisposeNotifierProvider<
 
 typedef _$GroupRequestNotifier = AutoDisposeNotifier<AsyncValue<void>>;
 String _$groupInviteNotifierHash() =>
-    r'ea3a2405f44e33fe35757b16509075eccadb82db';
+    r'23cf2f61a876f8a6afbe6dfd72b339e505a691a4';
 
 /// See also [GroupInviteNotifier].
 @ProviderFor(GroupInviteNotifier)

@@ -89,7 +89,7 @@ final businessDetailNotifierProvider = AutoDisposeNotifierProvider<
 typedef _$BusinessDetailNotifier =
     AutoDisposeNotifier<AsyncValue<BusinessEntity?>>;
 String _$myBusinessNotifierHash() =>
-    r'cd81b8ead4a625e163e278d7ab22b1feee5e537d';
+    r'21d6a9621c3291349dc912bb321e8e9caefd1ecf';
 
 /// See also [MyBusinessNotifier].
 @ProviderFor(MyBusinessNotifier)

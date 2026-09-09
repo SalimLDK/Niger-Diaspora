@@ -98,7 +98,7 @@ final usersWhoBlockedMeProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef UsersWhoBlockedMeRef = AutoDisposeStreamProviderRef<Set<String>>;
-String _$blockUserNotifierHash() => r'f63d4492dcc45d55d80d2a0f23a2efc04e572ddc';
+String _$blockUserNotifierHash() => r'f7e3078cd3889507421547ccd97f0dee8b2a34c8';
 
 /// See also [BlockUserNotifier].
 @ProviderFor(BlockUserNotifier)
