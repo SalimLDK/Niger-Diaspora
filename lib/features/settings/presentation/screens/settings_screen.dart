@@ -277,14 +277,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 .currentLocaleName,
                         onTap: () => _showLanguageSelector(l10n),
                       ),
-                      DesignSettingsTile(
-                        icon: const Icon(Icons.attach_money),
-                        title: l10n.displayCurrency,
-                        subtitle: _getCurrencyLabel(
-                          ref.watch(selectedDisplayCurrencyProvider),
-                        ),
-                        onTap: () => _showCurrencySelector(),
-                      ),
+                      // Devise d'affichage : ligne masquée à la demande. Le
+                      // sélecteur et son libellé restent en place plus bas,
+                      // décommenter ces lignes suffit à la rétablir.
+                      // DesignSettingsTile(
+                      //   icon: const Icon(Icons.attach_money),
+                      //   title: l10n.displayCurrency,
+                      //   subtitle: _getCurrencyLabel(
+                      //     ref.watch(selectedDisplayCurrencyProvider),
+                      //   ),
+                      //   onTap: () => _showCurrencySelector(),
+                      // ),
                       DesignSettingsTile(
                         icon: const Icon(Icons.wallpaper_outlined),
                         title: l10n.chatBackground,
@@ -715,10 +718,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  // Sans appelant tant que la ligne « Devise d'affichage » est en
+  // commentaire ci-dessus.
+  // ignore: unused_element
   String _getCurrencyLabel(Currency currency) {
     return '${currency.symbol} ${currency.code} - ${currency.name}';
   }
 
+  // ignore: unused_element
   void _showCurrencySelector() {
     HapticFeedback.lightImpact();
     final currentCurrency = ref.read(selectedDisplayCurrencyProvider);

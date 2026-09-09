@@ -11602,6 +11602,27 @@ sélecteur de position des entreprises et du partage de lieu) tombe **toujours**
 sur son repli `geocoding` côté appareil, sans que rien ne le signale. À vérifier
 sur appareil : la recherche de lieu renvoie-t-elle des résultats utilisables ?
 
+## Réglages — ligne « Devise d'affichage » mise en commentaire (2026-09-08)
+
+Sur demande, la ligne *Devise d'affichage* de l'écran Réglages est commentée,
+pas supprimée —
+[settings_screen.dart:280](lib/features/settings/presentation/screens/settings_screen.dart:280).
+Le sélecteur (`_CurrencySelectorModal`, ses 50 devises classées par région) et
+les deux méthodes qui l'ouvrent restent en place, marquées
+`// ignore: unused_element` : décommenter la tuile suffit à tout rétablir.
+
+À noter, vérifié avant de masquer : `selectedDisplayCurrencyProvider` n'était
+lu **nulle part ailleurs** dans `lib/` — le choix ne changeait l'affichage
+d'aucun prix (marché, transferts, salons ont chacun leur propre devise par
+article). Masquer la ligne ne retire donc aucun comportement.
+
+- [ ] **La ligne a bien disparu** des Réglages sur SM A515F, entre
+      « Langue » et « Fond de discussion », sans trou ni filet en double
+      (`DesignListCard` pose ses propres séparateurs).
+- [ ] Rien d'autre dans les Réglages n'a bougé (les tuiles voisines gardent
+      leur ordre et leur sous-titre).
+
+
 ---
 
 ## Comment tester (rappel de la config utilisée précédemment)
