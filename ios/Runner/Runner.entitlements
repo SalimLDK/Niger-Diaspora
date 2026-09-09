@@ -17,5 +17,16 @@
 	     `production` pour les archives App Store. -->
 	<key>aps-environment</key>
 	<string>development</string>
+	<!-- « Se connecter avec Apple ». Apple l'exige de toute app proposant déjà
+	     un fournisseur tiers — Google ici — et son absence vaut un rejet à la
+	     soumission.
+	     ⚠️ Comme pour `aps-environment`, la clé seule ne suffit pas : il faut
+	     activer la capability « Sign In with Apple » sur l'App ID et régénérer
+	     le profil de provisionnement, sinon la signature échoue. Sur simulateur
+	     non signé, le bouton s'affiche mais la feuille système sera refusée. -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 </dict>
 </plist>

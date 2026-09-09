@@ -7,7 +7,7 @@ part of 'media_gallery_provider.dart';
 // **************************************************************************
 
 String _$userConversationIdHash() =>
-    r'4f93a2f1e58a4567cae1419db88933dbb16f7f54';
+    r'8326c34ce1e461e8a48eca2eeb8e6994728dd3ec';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -169,7 +169,7 @@ class _UserConversationIdProviderElement
 }
 
 String _$groupConversationIdHash() =>
-    r'bfdea0f396f0c240a5eba4ebfd1d321f6a49796c';
+    r'3f897a7548f158001ec0529b22418bc7e29c06f7';
 
 /// Provider to get the conversation ID for a group (for group media section)
 /// Returns the conversation ID if a conversation exists with the given group ID

@@ -36,10 +36,10 @@ maintenant, pas après la première publication.
 | Ressource | État (mis à jour 2026-09-01, après création) |
 |---|---|
 | Apps dans App Store Connect | ✅ « Diaspo Niger », iOS 1.0, à finaliser |
-| Identifiers (App IDs) | ✅ créé, Push + Associated Domains |
+| Identifiers (App IDs) | ✅ créé, Push + Associated Domains + Sign In with Apple |
 | Keys (clés APNs) | ✅ `V2L2C994JJ` — `Sandbox & Production`, Team Scoped, importée dans les deux emplacements Firebase |
 | Certificates | **aucun** |
-| Accès API App Store Connect | ✅ **clé `M5WX9RLU5D` créée** le 2026-09-01 — `.p8` rangé hors dépôt |
+| Accès API App Store Connect | ✅ **clé `M5WX9RLU5D` utilisable** — `.p8` + Issuer ID hors dépôt, mais branchée sur aucun automatisme |
 | Contrat applications gratuites | ✅ actif, 1 sept. 2026 → 7 janv. 2027 |
 | Contrat applications payantes | ❌ « Nouveau » — non signé |
 | Statut de commerçant (DSA) | ❌ non fourni |
@@ -89,7 +89,23 @@ d'une supposition :
 |---|---|---|
 | **Push Notifications** | sinon `getAPNSToken()` renvoie nil et aucun token FCM n'est enregistré | `ios/Runner/Runner.entitlements` (`aps-environment`) |
 | **Associated Domains** | liens profonds `applinks:diasponiger.web.app` et `applinks:diasponiger.com` | `ios/Runner/Runner.entitlements` |
-| ~~Sign In with Apple~~ | **vérifié : non utilisé**, donc non coché — aucun paquet `sign_in_with_apple`, le seul `apple.com` du code était une URL App Store en dur | — |
+| **Sign In with Apple** | Apple l'**exige** de toute app proposant déjà un fournisseur tiers — Google ici. Son absence vaut un rejet à la soumission | `ios/Runner/Runner.entitlements` (`com.apple.developer.applesignin`), paquet `sign_in_with_apple` |
+
+⚠　Cette ligne disait le contraire jusqu'au 2026-09-02 (« vérifié : non
+utilisé »). C'était exact au moment où la doc a été écrite, et faux dès le
+lendemain : la branche `claude/ios-support` a ajouté le fournisseur côté code
+(commit `2e387d9`), et l'entitlement rendait la signature impossible tant que
+la case restait vide côté App ID. **Cochée le 2026-09-02**, en
+`Enable as a primary App ID`, bundleId interne `3T69D6WUKQ`.
+
+Côté Firebase, le fournisseur Apple est **activé** sur le projet
+`diaspo-niger`, lié au bundle `com.diasponiger.diaspoNiger` — relu le
+2026-09-08 sur l'API Identity Toolkit
+(`admin/v2/projects/diaspo-niger/defaultSupportedIdpConfigs`), pas supposé.
+La configuration ne déclare **que** `bundleIds` : c'est ce qu'il faut pour le
+parcours natif iOS, et c'est aussi pourquoi le bouton ne s'affiche que sur
+iOS/macOS — un parcours web ou Android exigerait un Service ID séparé, qui
+n'existe pas.
 
 Ne rien cocher d'autre. Une capability activée mais non utilisée fait
 échouer la revue Apple si l'app n'en montre pas l'usage.
@@ -153,7 +169,7 @@ disponible. Ce qui est établi, c'est que la configuration est complète et
 cohérente des deux côtés — pas qu'une notification arrive. La preuve
 attendra une build sur un vrai iPhone.
 
-### ◐ Étape 5 — Clé API App Store Connect (créée le 2026-09-01, Issuer ID à relever)
+### ✅ Étape 5 — Clé API App Store Connect (créée le 2026-09-01, Issuer ID relevé le 2026-09-02)
 
 **L'accès a été demandé et approuvé le 2026-09-01.** L'approbation a été
 immédiate : la mention « les organisations recevront leur accès avant les
@@ -165,13 +181,16 @@ hors du dépôt, avec celui d'APNs, dans `~/.secrets/apple/` — il ne se
 télécharge qu'une fois, et le périmètre d'une clé est **figé à la
 création** : elle ne peut pas être élargie après coup à d'autres services.
 
-**Ce qui manque encore pour s'en servir : l'Issuer ID.** C'est un UUID, et
-il n'apparaît sur la page qu'**une fois la première clé créée** — donc
-maintenant, et pas avant. Le relever sur App Store Connect → Utilisateurs et
-accès → Intégrations → API App Store Connect, en tête de la liste des clés,
-et le consigner en section 1. Le `.p8` seul ne signe aucune requête : le JWT
-d'App Store Connect porte le Key ID **et** l'Issuer ID, les deux vont par
-paire.
+**L'Issuer ID a été relevé le 2026-09-02.** C'est un UUID, et il n'apparaît
+sur la page qu'**une fois la première clé créée**. Il est unique au compte,
+pas à la clé, et ne change pas. Il vit dans le README de `~/.secrets/apple/`,
+**pas dans le dépôt** — le `.p8` seul ne signe aucune requête : le JWT d'App
+Store Connect porte le Key ID **et** l'Issuer ID, les deux vont par paire.
+
+La clé est donc utilisable. Reste qu'elle n'est **branchée sur rien** : ni
+fastlane, ni workflow CI, ni script du dépôt ne la lit — aucune montée de
+build ni dépôt TestFlight n'est automatisé à ce jour. À faire le jour où il
+existera une build iOS à monter, pas avant.
 
 L'engagement accepté au moment de la demande limite l'usage de l'API au
 développement, aux tests et aux rapports internes : interdiction de fournir
@@ -288,11 +307,11 @@ précédents**, et il n'y en a aucun.
 | Élément | Valeur |
 |---|---|
 | App ID | `com.diasponiger.diaspoNiger` (explicit), préfixe `3WM7VK48T3` |
-| Capabilities cochées | Push Notifications, Associated Domains — **rien d'autre** |
+| Capabilities cochées | Push Notifications, Associated Domains, **Sign In with Apple** (cochée le 2026-09-02) |
 | Fiche App Store Connect | « Diaspo Niger », iOS, français (fr-FR), accès complet |
 | Apple ID de l'app | `6807607258` |
 | UGS | `diasponiger-ios-001` |
-| Clé API App Store Connect | `M5WX9RLU5D` — `.p8` hors dépôt, Issuer ID pas encore relevé |
+| Clé API App Store Connect | `M5WX9RLU5D` — `.p8` **et** Issuer ID hors dépôt (`~/.secrets/apple/`) |
 
 Conséquence directe dans le code : `lib/core/services/support_service.dart`
 pointait sur `id123456789`, un identifiant inventé. Corrigé avec le vrai.

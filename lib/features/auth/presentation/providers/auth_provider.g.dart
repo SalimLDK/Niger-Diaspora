@@ -87,6 +87,26 @@ final signInWithGoogleUseCaseProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SignInWithGoogleUseCaseRef = AutoDisposeProviderRef<SignInWithGoogle>;
+String _$signInWithAppleUseCaseHash() =>
+    r'0f923d1b2a5ca647d86e2d0a9e3b0f2ce612233c';
+
+/// See also [signInWithAppleUseCase].
+@ProviderFor(signInWithAppleUseCase)
+final signInWithAppleUseCaseProvider =
+    AutoDisposeProvider<SignInWithApple>.internal(
+      signInWithAppleUseCase,
+      name: r'signInWithAppleUseCaseProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$signInWithAppleUseCaseHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SignInWithAppleUseCaseRef = AutoDisposeProviderRef<SignInWithApple>;
 String _$signUpUseCaseHash() => r'4dce6a82e98236d7e035a5d98ba2c80590b0e9f2';
 
 /// See also [signUpUseCase].
@@ -181,7 +201,7 @@ final currentUserAsyncProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentUserAsyncRef = AutoDisposeStreamProviderRef<UserEntity?>;
-String _$authNotifierHash() => r'122d876dab3e8c3b68ea7044f88d6b4bc7dd5418';
+String _$authNotifierHash() => r'9794e85c6f8b7da7c7a31f09f6c7f5a9ed96f206';
 
 /// See also [AuthNotifier].
 @ProviderFor(AuthNotifier)

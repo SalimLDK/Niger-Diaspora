@@ -278,6 +278,12 @@ abstract class AppLocalizations {
   /// **'Continuer avec Google'**
   String get continueWithGoogle;
 
+  /// No description provided for @continueWithApple.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer avec Apple'**
+  String get continueWithApple;
+
   /// No description provided for @or.
   ///
   /// In fr, this message translates to:

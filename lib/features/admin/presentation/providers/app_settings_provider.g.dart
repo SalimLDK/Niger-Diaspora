@@ -335,7 +335,7 @@ final locationUpdateIntervalProvider = AutoDisposeProvider<int>.internal(
 // ignore: unused_element
 typedef LocationUpdateIntervalRef = AutoDisposeProviderRef<int>;
 String _$appSettingsNotifierHash() =>
-    r'7d18c40bd02bc2badc3f4bf88a11c367bc5a1237';
+    r'270b7d4e580d2a1002cb5d0e26e5eb563a1ff3b5';
 
 /// Provider for current app settings with caching
 ///

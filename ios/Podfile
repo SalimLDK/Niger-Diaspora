@@ -1,0 +1,91 @@
+# Diaspo Niger -- Podfile
+#
+# ATTENTION : `pod install` exige une locale UTF-8. Sans elle :
+#
+#     export LANG=en_US.UTF-8
+#
+# Sous Ruby 3.4, CocoaPods 1.16 appelle `String#unicode_normalize` sur son
+# chemin d'installation (`cocoapods/config.rb:167`) ; avec une locale
+# ASCII-8BIT, Ruby refuse et la commande meurt sur " Unicode Normalization not
+# appropriate for ASCII-8BIT ". La trace ne mentionne alors que le rapport
+# d'erreur de CocoaPods, jamais la locale -- d'ou l'avertissement " CocoaPods
+# requires your terminal to be using UTF-8 encoding " affiche en tete, qu'il
+# faut prendre au mot. Le contenu du Podfile n'y est pour rien : le fichier a
+# ete reduit a l'ASCII pur pour tester, sans aucun effet.
+#
+# `flutter build ios` n'est pas concerne : il fixe l'encodage lui-meme avant
+# d'appeler CocoaPods. Le probleme ne se voit qu'en lancant `pod install`
+# a la main. Constate le 2026-09-01.
+#
+# iOS 15.0 et pas moins : `google_maps_flutter_ios` depend de
+# `GoogleMaps >= 8.4, < 10.0`, et CocoaPods resout sur la 9.x qui exige iOS 15.
+# Les plugins Flutter du projet plafonnent eux a iOS 13 (Firebase, WebRTC,
+# LiveKit, RevenueCat) -- c'est donc Maps qui fixe le plancher.
+platform :ios, '15.0'
+
+# CocoaPods analytics envoie des stats reseau a chaque build, ce qui rallonge
+# la phase de resolution.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    target.build_configurations.each do |config|
+      # Sans ca, chaque pod garde son propre minimum (parfois 8.0 ou 11.0) et
+      # Xcode 26+ refuse de lier des cibles plus anciennes que l'app.
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+
+      # Simulateur arm64 (Mac Apple Silicon) : certains pods embarquent des
+      # tranches x86_64 uniquement, ce qui casse l'edition de liens.
+      config.build_settings['ONLY_ACTIVE_ARCH'] = 'YES'
+
+      # permission_handler compile TOUTES les permissions par defaut, y compris
+      # celles dont l'app n'a pas la cle Info.plist correspondante -- ce qui vaut
+      # un rejet App Store automatique. On n'active que les cinq reellement
+      # demandees dans lib/ (camera, micro, photos, notifications,
+      # localisation) ; toute autre permission renvoie `denied` sans crasher.
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+        'PERMISSION_CAMERA=1',
+        'PERMISSION_MICROPHONE=1',
+        'PERMISSION_PHOTOS=1',
+        'PERMISSION_NOTIFICATIONS=1',
+        'PERMISSION_LOCATION=1',
+      ]
+    end
+  end
+end
