@@ -11,6 +11,8 @@ import '../../../../core/services/e2ee/key_transfer_service.dart';
 import '../../../../core/services/e2ee/messaging_e2ee_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/design_kit.dart';
+import '../../../../core/utils/screen_brightness_helper.dart';
+import '../../../../core/utils/wakelock_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 
 /// Nouveau téléphone : affiche le rendez-vous et attend les clés de l'ancien.
@@ -42,12 +44,18 @@ class _KeyTransferReceiveScreenState
   @override
   void initState() {
     super.initState();
+    // Un QR se scanne d'autant mieux que l'écran est lumineux, et l'écran qui
+    // s'éteint au bout de trente secondes oblige à tout recommencer.
+    unawaited(ScreenBrightnessHelper.max());
+    unawaited(WakelockHelper.enable());
     _start();
   }
 
   @override
   void dispose() {
     _rotation?.cancel();
+    unawaited(ScreenBrightnessHelper.restore());
+    unawaited(WakelockHelper.disable());
     super.dispose();
   }
 

@@ -2,6 +2,7 @@ package com.diasponiger.diasponiger;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.view.WindowManager;
 
 import com.ryanheise.audioservice.AudioServiceFragmentActivity;
 import io.flutter.embedding.engine.FlutterEngine;
@@ -43,6 +44,9 @@ public class MainActivity extends AudioServiceFragmentActivity {
      * et rendu à sa fermeture.
      */
     private static final String LOCKSCREEN_CHANNEL = "diaspo_niger/lockscreen";
+
+    /** Canal de la luminosité d'écran (affichage d'un QR à faire scanner). */
+    private static final String SCREEN_CHANNEL = "diaspo_niger/screen";
 
     /** Retenu pour pouvoir émettre depuis `onNewIntent`. */
     private MethodChannel deepLinkChannel;
@@ -96,6 +100,40 @@ public class MainActivity extends AudioServiceFragmentActivity {
                                 result.notImplemented();
                             }
                         });
+
+        new MethodChannel(
+                        flutterEngine.getDartExecutor().getBinaryMessenger(), SCREEN_CHANNEL)
+                .setMethodCallHandler(
+                        (call, result) -> {
+                            if ("setMaxBrightness".equals(call.method)) {
+                                Boolean enabled = call.argument("enabled");
+                                setMaxBrightness(Boolean.TRUE.equals(enabled));
+                                result.success(null);
+                            } else {
+                                result.notImplemented();
+                            }
+                        });
+    }
+
+    /**
+     * Pousse la luminosité au maximum, ou rend la main au réglage système.
+     *
+     * Porté par la fenêtre de l'activité, pas par les réglages de l'appareil :
+     * rien n'est modifié durablement, et l'effet disparaît de lui-même si
+     * l'activité meurt sans que Dart ait pu rétablir quoi que ce soit.
+     * BRIGHTNESS_OVERRIDE_NONE (-1) est la valeur qui signifie « laisse le
+     * système décider », pas « éteins l'écran ».
+     */
+    private void setMaxBrightness(boolean enabled) {
+        runOnUiThread(
+                () -> {
+                    WindowManager.LayoutParams params = getWindow().getAttributes();
+                    params.screenBrightness =
+                            enabled
+                                    ? 1.0f
+                                    : WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+                    getWindow().setAttributes(params);
+                });
     }
 
     /**
