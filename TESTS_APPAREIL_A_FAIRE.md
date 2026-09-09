@@ -12076,9 +12076,29 @@ un APK de profilage ne se distribue pas.
 - [ ] **Rien n'a changé en debug** : `flutter run` et vérifier que les logs
   habituels sortent toujours (la neutralisation est derrière `kReleaseMode`).
   Non vérifié — la session n'a construit que des release.
-- [ ] **Appels et carte sur la release** : non parcourus. Le démarrage et la
-  messagerie sont couverts ci-dessus, mais un appel WebRTC (140 `debugPrint`
-  dans `webrtc_service.dart`) et la carte ne l'ont pas été.
+- [x] **Logcat muet pendant un USAGE réel** — vérifié le 2026-09-09, même APK
+  `455a4c74…`. Le test au démarrage à froid ne couvrait que `main()` ; celui-ci
+  couvre les 734 `debugPrint` de `core/services`. Parcours : ouvrir la
+  conversation 1:1, saisir et envoyer un message texte, revenir à la liste,
+  onglet Carte, retour Accueil. Puis un second passage isolé sur la Carte.
+
+      usage complet : 7 740 lignes logcat → 0 ligne de tag flutter
+      carte seule   :   695 lignes logcat → 0 ligne de tag flutter
+
+  **Le contrôle qui rend ce zéro significatif** : « aucun log » ne prouve rien
+  si l'app n'a rien fait. Ici le message « test-logs » s'affiche en
+  « À l'instant · **Reçu** » — donc chiffrement E2EE, écriture Supabase et
+  accusé de retour ont bien eu lieu pendant la capture. Toujours apporter cette
+  preuve d'activité avec un résultat négatif.
+- [ ] **Appel WebRTC sur la release** : non parcouru. `webrtc_service.dart`
+  porte 140 `debugPrint` à lui seul — c'est le plus gros bloc encore non
+  observé.
+- [ ] **Carte avec partage de position actif** : l'onglet Carte a bien été
+  ouvert, mais le compte est en « Mode privé activé » : l'écran s'arrête sur
+  sa carte d'invitation (et la liste par ville, qui charge bien les ambassades).
+  Le rendu cartographique et les positions temps réel des membres — donc les
+  logs de `location_publisher_service` et du canal realtime — n'ont pas été
+  exercés.
 
 ---
 
