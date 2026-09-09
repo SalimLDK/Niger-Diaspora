@@ -73,6 +73,39 @@ Fichiers : `lib/core/services/e2ee/undecryptable_placeholders.dart`,
       juger, viser un message encore lisible aujourd'hui, ou vider la
       discussion.
 
+**Build installé le 2026-09-09 à 19:18 (SM A515F) et 19:28 (Pixel 10 Pro XL).**
+`1.2.1+17` release arm64, même certificat que l'installé
+(`DD:A6:5C:…:CF:5D`) donc `install -r` sans désinstallation : session, clés et
+cache conservés. APK vérifié avant installation — « Message indisponible sur
+cet appareil » présent 1 fois dans `libapp.so`, et « Récupérer la clé de
+groupe » **absent** (0 occurrence) : le tree-shaking a retiré
+`E2EESessionRequiredBubble` du binaire, preuve indépendante qu'elle n'est plus
+référencée.
+
+Vérifié :
+- [x] Une conversation 1:1 avec du contenu s'affiche normalement — texte en
+      clair, note vocale, carte de position, aucun placeholder (Pixel, 19:31).
+- [x] Les médias **sans légende** ne sont pas détournés par la garde : un fil
+      de 4 vidéos s'affiche intact (SM A515F, 19:20). C'était le risque du
+      choix « la LISTE plutôt qu'`isUndecryptableContent` ».
+
+⛔ **Le symptôme d'origine n'a PAS pu être rejoué.** Le groupe « Diaspora
+Niger — Canada » du signalement affiche maintenant « Aucun message » (3
+membres) : les quatre bulles fautives ont disparu entre la capture de 19:02 et
+la réouverture de 19:29. Piste, à confirmer : sur la capture de 19:02
+elle-même, la **liste** des discussions annonçait déjà « Nouvelle
+conversation » pour ce groupe — donc elle le tenait déjà pour vide pendant que
+le fil ouvert montrait quatre bulles. Ces bulles venaient vraisemblablement du
+cache local, sans rien derrière côté serveur ; au redémarrage, le fil a
+re-interrogé le serveur et n'a rien trouvé. Le correctif ne peut pas supprimer
+de message (il ne substitue qu'un texte et un widget), mais **cette
+disparition n'est pas expliquée avec certitude** — à creuser si elle se
+reproduit.
+
+Reste donc à voir **au moins une fois** la nouvelle bulle, et surtout à
+exercer le vrai chemin du correctif : envoyer un message dans un groupe,
+quitter la discussion, y revenir, faire un pull-to-refresh.
+
 ---
 
 ## ⬜ Compte de test dédié : première connexion (2026-09-09)
