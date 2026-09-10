@@ -859,6 +859,44 @@ Restent à faire :
 
 ---
 
+## ⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)
+
+Trouvé en vérifiant le point « médias de groupe » laissé ouvert plus bas.
+`sendMediaMessage` (`message_supabase_datasource.dart:1093`) écrit
+`'content': caption ?? ''` **tel quel** dans la ligne `messages`, et pose
+`'encryptionLevel': 'aes'` en dur. Il n'appelle jamais `_encryptContent`,
+contrairement à `sendTextMessage`. Le repository ne chiffre rien non plus en
+amont : `caption` traverse `sendFileMessage`
+(`message_repository_impl.dart:429`) sans être touché.
+
+Donc : le texte d'un message **texte** est chiffré (Signal quand une session
+existe, repli AES sinon) ; la **légende** d'une photo, d'une vidéo ou d'un
+fichier, elle, arrive en clair côté serveur — avec une étiquette
+`encryptionLevel: 'aes'` qui annonce le contraire. Les annexes voisines
+(citation, carte d'événement, aperçu de lien) sont, elles, bien chiffrées par
+`_annexesChiffreesPour` : c'est le seul champ oublié.
+
+Rappel utile pour juger de la gravité : le repli « AES » repose sur une clé
+constante embarquée dans l'APK (`encryption_service.dart:62`, « Ce n'est pas
+un secret »). L'écart réel n'est donc pas « chiffré vs clair » mais « obscurci
+vs lisible tel quel » pour tout ce qui n'a pas de session Signal — et « E2EE
+vs clair » pour tout ce qui en a une, c'est-à-dire les conversations
+normales.
+
+**Pas corrigé ici, volontairement** : toucher au chemin d'envoi des médias
+demande sa propre passe et une vérification appareil (photo, vidéo, fichier,
+note vocale, avec et sans légende, 1:1 et groupe). Un correctif bâclé casse
+l'envoi de médias pour tout le monde.
+
+- [ ] Chiffrer `caption` par `_encryptContent`, comme le fait
+      `sendTextMessage`, et poser le `encryptionLevel` réellement obtenu.
+- [ ] Vérifier que les anciennes légendes en clair restent lisibles (le
+      déchiffrement doit tolérer les deux formes).
+- [ ] Vérifier l'aperçu de notification, qui reconstruit le texte côté
+      Postgres (`decrypt_aes_fallback`).
+
+---
+
 ## ⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)
 
 Trouvé en essayant simplement d'ouvrir « Testeurs » depuis le SM A515F, avec
@@ -1053,15 +1091,25 @@ network'`, et un `ping`) : cet écran ne distingue pas « hors ligne » de
 « refusé », il affiche le même message dans les deux cas — ce qui est
 peut-être le vrai défaut à corriger.
 
-Restent à démêler :
+**Les deux points sont corrigés** (code) ; reste à les voir sur appareil.
 
-- [ ] Pourquoi `getGroupById` échouait là où l'écran affichait le groupe une
-      minute plus tôt (le groupe venait d'être créé — id récent, pas un id
-      hérité Firestore) — et si c'était simplement le réseau, faire dire à
-      l'écran « hors ligne » plutôt que « Erreur de chargement ».
-- [ ] La flèche « retour » de cet écran **quitte l'application** au lieu de
-      revenir à la fiche du groupe : `context.pop()` sur une pile qui ne
-      contient que cette route. Même famille que les écrans de lien profond.
+- [x] Le message ne ment plus quand c'est le réseau : hors ligne, la fiche
+      Membres et l'onglet Groupes affichent « Pas de connexion internet » au
+      lieu de « Erreur de chargement ». Fait au seul endroit qui compte pour
+      l'onglet Groupes — `_buildErrorWidget`, devant `FailureMapper`, parce
+      qu'une erreur réseau ne dit pas toujours qu'elle en est une.
+- [x] La flèche « retour » de la fiche Membres ne quitte plus l'application :
+      `context.canPop() ? context.pop() : context.go('/home')`, le même repli
+      que la fiche du groupe juste à côté.
+- [ ] **À voir sur appareil** : mode avion → ouvrir l'onglet Groupes, puis la
+      fiche Membres d'un groupe : « Pas de connexion internet » aux deux
+      endroits, et « Réessayer » qui refonctionne une fois le réseau revenu.
+- [ ] **À voir sur appareil** : arriver sur la fiche Membres par un lien
+      profond (ou relancer l'app dessus), puis toucher la flèche — on doit
+      atterrir sur l'accueil, pas sur le lanceur.
+- [ ] Reste ouvert : pourquoi `getGroupById` échouait là où l'écran affichait
+      le groupe une minute plus tôt. Si c'était le réseau, c'est réglé par
+      le message ci-dessus ; sinon la cause est toujours à trouver.
 
 ---
 

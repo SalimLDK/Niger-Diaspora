@@ -526,7 +526,38 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   @override
   Future<void> removeMember(String groupId, String userId) async {
-    await leaveGroup(groupId, userId);
+    // ⚠️ `leaveGroup` n'est PAS un retrait de tiers, malgré son paramètre
+    // `userId`. Il supprime bien la ligne `group_members` de `userId`, puis
+    // appelle `leave_group_conversation`, RPC qui agit sur **l'appelant
+    // authentifié** (`firebase_uid()`), jamais sur `userId` — son propre
+    // commentaire le dit (« cohérent avec le fait que `leaveGroup` n'est
+    // appelé aujourd'hui qu'avec `currentUser.id` »).
+    //
+    // Rediriger `removeMember` dessus faisait donc sortir l'ADMIN de la
+    // conversation à la place de la personne exclue. Et depuis le
+    // déclencheur de la migration 20260909234500 — disparaître de
+    // `participant_ids` d'une conversation de groupe supprime la ligne
+    // `group_members` —, ça exclut désormais l'admin **du groupe entier**.
+    // Le piège était dormant (aucun écran n'appelle ce chemin), il ne l'est
+    // qu'aussi longtemps que personne ne le branche.
+    //
+    // Le retrait d'un tiers existe déjà, et au bon endroit :
+    // `MessageSupabaseDatasource.removeUserFromGroup(conversationId, userId)`
+    // — il retire la personne visée de `participant_ids`, et le déclencheur
+    // ci-dessus la sort du groupe dans la foulée. C'est ce que l'écran des
+    // membres utilise (`group_members_screen.dart`).
+    //
+    // On refuse plutôt que de comparer `userId` à l'utilisateur courant :
+    // `group_members.user_id` porte l'UID Firebase, `_supabase.auth
+    // .currentUser?.id` l'id Supabase, et rien ne garantit qu'ils coïncident
+    // — une comparaison fausse rouvrirait exactement le piège. Le départ
+    // volontaire, lui, a déjà sa méthode : `leaveGroup`.
+    throw UnimplementedError(
+      'removeMember ne sait pas retirer un tiers : il sortirait l\'appelant '
+      'de la conversation à la place de la personne visée. Passer par '
+      'MessageSupabaseDatasource.removeUserFromGroup(conversationId, userId) '
+      'pour exclure, ou leaveGroup() pour un départ volontaire.',
+    );
   }
 
   // System messages sont gérés via Firestore (messaging feature non migrée)
