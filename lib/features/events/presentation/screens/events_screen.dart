@@ -783,7 +783,17 @@ class _EventCardState extends ConsumerState<_EventCard> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              event.status.label,
+                              // Le statut brut, pas la réalité : un
+                              // événement passé dont personne n'a changé
+                              // `status` est resté `upcoming`, et la pastille
+                              // annonçait « À venir » **dans l'onglet
+                              // Passés ». Vu sur « testeur » le 2026-09-09.
+                              // Cette pastille ne s'affiche que sur la liste
+                              // des passés : la seule distinction qui reste à
+                              // faire y est annulé / terminé.
+                              event.status == EventStatus.cancelled
+                                  ? EventStatus.cancelled.label
+                                  : EventStatus.completed.label,
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,

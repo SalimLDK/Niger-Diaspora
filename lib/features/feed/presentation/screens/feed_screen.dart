@@ -478,27 +478,28 @@ class _FeedHeader extends StatelessWidget {
           children: [
             // Le fil n'est pas un onglet de la barre principale : on y entre
             // par un `push` depuis Accueil, donc sans barre de navigation. La
-            // maquette n'a pas de flèche de retour parce qu'elle le suppose
-            // onglet — sans elle, on entrait dans le fil sans pouvoir en
-            // sortir autrement qu'en quittant l'app.
-            if (context.canPop()) ...[
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => context.pop(),
-                child: SizedBox(
-                  width: 34,
-                  height: 44,
-                  child: Center(
-                    child: AppIcon(
-                      AppIcon.arrowBack,
-                      size: 24,
-                      color: tokens.text,
-                    ),
+            // maquette n'a pas de flèche parce qu'elle le suppose onglet.
+            //
+            // Elle était posée sous `if (context.canPop())`, donc absente
+            // précisément quand elle sert le plus : par lien profond, la route
+            // est seule dans la pile. On la montre toujours, avec le repli.
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap:
+                  () => context.canPop() ? context.pop() : context.go('/home'),
+              child: SizedBox(
+                width: 34,
+                height: 44,
+                child: Center(
+                  child: AppIcon(
+                    AppIcon.arrowBack,
+                    size: 24,
+                    color: tokens.text,
                   ),
                 ),
               ),
-              const SizedBox(width: 4),
-            ],
+            ),
+            const SizedBox(width: 4),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

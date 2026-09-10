@@ -94,9 +94,32 @@ void main() {
 
     for (final source in sources) {
       final texte = source.readAsStringSync();
-      final blocs = texte.split(RegExp(r"\n\s*path:\s*'"));
+
+      // `path:` ne porte pas toujours un littéral. `PodcastsRoutes` déclare
+      // ses chemins en constantes (`path: detail`), et la version précédente
+      // de ce garde, qui découpait sur `path: '`, ne voyait donc **aucune**
+      // des cinq routes podcasts — dont deux sont les cibles de liens que
+      // l'app génère elle-même (`generatePodcastLink`, `generateEpisodeLink`).
+      // Les cinq écrans n'avaient aucune sortie, et aucun test ne le disait.
+      final constantes = <String, String>{};
+      for (final m in RegExp(
+        r"static const String (\w+)\s*=\s*'([^']*)'",
+      ).allMatches(texte)) {
+        constantes[m.group(1)!] = m.group(2)!;
+      }
+
+      final blocs = texte.split(RegExp(r'\n\s*path:\s*'));
       for (final bloc in blocs.skip(1)) {
-        final chemin = bloc.split("'").first;
+        final String chemin;
+        if (bloc.startsWith("'")) {
+          chemin = bloc.substring(1).split("'").first;
+        } else {
+          // `path: detail` ou `path: PodcastsRoutes.detail`.
+          final ident = RegExp(r'^(?:\w+\.)?(\w+)').firstMatch(bloc)?.group(1);
+          final resolu = ident == null ? null : constantes[ident];
+          if (resolu == null) continue;
+          chemin = resolu;
+        }
         final classes = ecran
             .allMatches(bloc.length > 4000 ? bloc.substring(0, 4000) : bloc)
             .map((m) => m.group(1)!)
@@ -173,6 +196,10 @@ void main() {
           'SliverAppBar dans la branche données',
       'lib/features/transfers/presentation/screens/transfer_screen.dart':
           'Scaffold de chargement sans barre quand le profil manque',
+      'lib/features/podcasts/presentation/screens/podcast_detail_screen.dart':
+          'SliverAppBar dans la branche données',
+      'lib/features/podcasts/presentation/screens/episode_detail_screen.dart':
+          'SliverAppBar dans la branche données',
     };
 
     final coupables = <String>[];
@@ -316,6 +343,61 @@ void main() {
           'Remplacez le `pop()` nu par '
           '`context.canPop() ? context.pop() : context.go(<parent>)`, avec le '
           'parent logique de la route, pas un `/home` uniforme.',
+    );
+  });
+  test('aucune sortie n\'est masquée quand la pile est vide', () {
+    // **Cinquième forme.** Une sortie peut être posée sous
+    // `if (context.canPop()) …` : elle disparaît alors exactement dans le cas
+    // qu'elle devait couvrir — l'entrée par lien profond ou par notification,
+    // où la pile ne contient que cet écran.
+    //
+    // Les quatre gardes précédents la laissaient passer : le fichier contient
+    // bien un marqueur de sortie (test 1) et le rappel voisine un `canPop`
+    // (test 4). Deux écrans vivaient dessous, `/feed` et `/calls/history`,
+    // tous deux avec la même justification écrite — « on n'y arrive que par un
+    // push ». Fausse pour les deux : le point d'entrée de `/calls/history`
+    // dans le profil est commenté, donc le lien profond et la notification
+    // étaient les seules façons d'ouvrir cet écran.
+    //
+    // Liste d'exceptions volontairement vide : si un écran a besoin de cacher
+    // sa sortie, la raison s'écrit ici.
+    const exceptions = <String, String>{};
+
+    final conditionnelle = RegExp(r'if\s*\(\s*context\.canPop\(\)\s*\)');
+    const portee = 500;
+
+    final fichiers = declarations();
+    final coupables = <String>[];
+    final vus = <String>{};
+
+    routes().forEach((chemin, classe) {
+      final fichier = fichiers[classe];
+      if (fichier == null) return;
+      final rel = fichier.path.replaceAll('\\', '/');
+      if (exceptions.keys.any(rel.endsWith)) return;
+      if (!vus.add(rel)) return;
+
+      final texte = fichier.readAsStringSync();
+      for (final m in conditionnelle.allMatches(texte)) {
+        final zone = texte.substring(
+          m.start,
+          (m.start + portee).clamp(0, texte.length),
+        );
+        if (!sorties.hasMatch(zone)) continue;
+
+        final ligne = '\n'.allMatches(texte.substring(0, m.start)).length + 1;
+        coupables.add('$rel:$ligne ($chemin)');
+      }
+    });
+
+    expect(
+      coupables,
+      isEmpty,
+      reason:
+          'Ces écrans ne montrent leur sortie que si la pile a de quoi '
+          'dépiler — donc jamais par lien profond ni par notification, les '
+          'deux entrées où elle est indispensable. Montrez-la toujours, avec '
+          'le repli `canPop() ? pop() : go(<parent>)`.',
     );
   });
 }

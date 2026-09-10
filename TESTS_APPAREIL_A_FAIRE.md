@@ -14,6 +14,181 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)
+
+**Ce qui a été observé.** Le 2026-09-10 sur SM-A515F (`R58N91XBA7B`), compte
+« Sim A », après plusieurs `adb install -r` d'un APK release : l'app a démarré
+sur l'onboarding 1/5 alors que le compte l'avait terminé de longue date.
+
+**Les deux causes ne s'excluent pas : elles se composent, et il en faut les
+deux.** Le dépôt consulte le local d'abord et ne va au réseau que si le local
+dit `false` — chaque drapeau a donc son propre chemin, indépendamment des
+trois autres.
+
+1. **Côté serveur, `has_seen_onboarding` valait réellement `false`** pour
+   « Sim A », alors que `has_given_consent` et `profile_config_complete`
+   valaient `true` (relevé en base ce jour-là ; `consent_date` est resté au
+   2026-07-16, jamais réécrit). Reliquat de la bascule Firestore→Supabase du
+   2026-08-13 (`160d417`) : avant cette date l'app écrivait ses drapeaux sur
+   Firestore, et la colonne Supabase est restée à son `DEFAULT false`.
+   Conséquence en chaîne : la synchronisation vers le local
+   (`if (remoteResult) setComplete(...)`) a recopié consentement et profil,
+   **jamais** l'intro.
+
+   ⚠️ **Ne pas en conclure qu'un backfill Firestore aurait sauvé ce compte** —
+   l'inventaire du 2026-09-10 (migration
+   `20260910071000_reprise_drapeaux_onboarding_firestore.sql`) a mesuré la
+   source au lieu de la supposer : `users/` sur Firestore ne contient plus que
+   **5 documents** pour 17 lignes Supabase, dont **2** portent des drapeaux, et
+   **un seul** compte restait à reprendre. Le document Firestore de « Sim A »
+   date d'*après* la bascule et ne porte aucun drapeau : la fin de son
+   onboarding n'a jamais été enregistrée nulle part côté serveur — c'est
+   précisément ce que disait le message de `160d417`, « seul le drapeau local
+   faisait foi ». Et les 8 comptes encore à `false` n'ont aucun document
+   Firestore : leur `false` n'est pas périmé, il est vrai.
+2. **Ce drapeau-là, et lui seul, repassait donc par le réseau à chaque
+   démarrage** — et sa lecture, en échec, valait « jamais vu ».
+
+⚠️ **Une déduction que j'avais faite est fausse, ne pas la refaire** :
+« atterrir sur l'étape 8 prouve que les étapes 6 et 7 ont lu `true` côté
+serveur, donc que le réseau marchait ». Non — consentement et profil pouvaient
+venir du **cache local**, sans le moindre appel réseau. Le `consent_date`
+intact ne prouve que l'absence d'écriture, pas la réussite d'une lecture. La
+section « ⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding
+(2026-09-10) » plus bas montre l'inverse en acte : même compte, même appareil,
+mode avion → le carrousel, précisément parce que seul le drapeau d'intro va
+au réseau.
+
+**Le défaut corrigé est donc bien celui-là.** Un échec de lecture était
+converti en `false`, c'est-à-dire en « rejoue tout ».
+`SupabaseAuthBridge.ensureReadableSession` rend la main au bout de **3 s sans
+session** en laissant la synchronisation finir en tâche de fond : un démarrage
+à froid sur réseau lent dépasse ce budget et faisait tomber les quatre
+drapeaux ensemble — consentement (réécrit `consent_date`), assistant de profil
+en 4 étapes (**écrit dans le profil, peut renommer le compte**), puis l'intro.
+L'indéterminé est désormais distinct de `false` de bout en bout, et ne
+redescend jamais un drapeau. Verrouillé par
+`test/features/onboarding/lecture_en_echec_test.dart` (21 cas).
+
+À vérifier sur appareil — rien de tout ceci n'est observable par
+`flutter test` :
+
+- [ ] **Compte neuf** : créer un compte et confirmer que consentement,
+      assistant de profil puis les 5 écrans d'intro s'affichent bien dans cet
+      ordre. C'est le cas que le repli optimiste pourrait avaler ; le test
+      « les quatre lectures rendent false » le couvre en unitaire, pas en
+      vrai.
+⛔ **La reproduction hors ligne ne se rejoue plus telle quelle, et c'est le
+piège de ce test.** En tapant « Passer » le 2026-09-10, `completeIntro()` a
+écrit le drapeau **des deux côtés** — base *et* SharedPreferences. Or le dépôt
+consulte le local en premier : sur « Sim A », `has_seen_onboarding` est
+désormais vrai en cache, donc **plus aucun appel réseau n'est émis** pour ce
+drapeau. Mode avion ou pas, il n'y a plus rien à observer. Un « ça ne fait plus
+le bug » mesuré comme ça ne prouve **rien** : le correctif n'est même pas
+sollicité.
+
+Pour que le correctif soit sollicité, il faut réunir les trois à la fois :
+authentifié, **drapeau local absent**, réseau coupé. Le drapeau local ne
+s'efface ni par `adb install -r` (qui conserve les données) ni depuis ce poste
+(build release, `run-as` refusé). Il faut donc `pm clear`, qui emporte aussi la
+session Firebase — **et une reconnexion, qui ne peut être faite que par
+l'utilisateur au téléphone.**
+
+- [ ] **Le test décisif** (demande une reconnexion manuelle) :
+      1. `adb -s R58N91XBA7B install -r <apk>` — l'APK doit être signé avec
+         `android/app/diaspo-niger-release.jks`, sinon la signature diffère et
+         Android impose une désinstallation ;
+      2. `adb -s R58N91XBA7B shell pm clear com.diasponiger.diasponiger` ;
+      3. **l'utilisateur se reconnecte** sur un compte dont
+         `has_seen_onboarding` vaut **`false`** en base. Le drapeau restant
+         faux côté serveur, il n'est jamais recopié en local : la condition
+         « local absent » se maintient toute seule, autant de fois qu'on veut.
+         ⚠️ **Deux comptes de test quasi homonymes coexistent**, et ils ne sont
+         pas dans le même état — se tromper de l'un pour l'autre donne deux
+         conclusions opposées :
+         - `test.diaspo@`**`example`**`.com` (« Compte Test », celui de
+           `scripts/creer_compte_test.js`) : les **quatre** drapeaux à `true`,
+           donc **inutilisable tel quel** pour ce test ;
+         - `test.diaspo@`**`exemple`**`.com` (« Test User », orthographe
+           française, visiblement créé par accident) : `has_seen_onboarding` et
+           `profile_config_complete` à `false` — **c'est celui-ci qu'il faut**,
+           et il ne demande aucune écriture en base.
+
+      4. mode avion, puis redémarrage forcé de l'app.
+      Attendu **après correctif** : `/home`. Avant correctif : le carrousel de
+      bienvenue. C'est le seul aller-retour qui distingue les deux.
+- [ ] **La reprise** : la lecture indéterminée est retentée une fois après 4 s
+      (`OnboardingNotifier.delaiDeReprise`). Sur un compte neuf dont la
+      première lecture échoue, l'écran de consentement doit apparaître ~4 s
+      après l'entrée dans l'app, pas jamais.
+- [ ] **Réinstallation** : `adb install -r` conserve les préférences, une
+      désinstallation non. Vérifier qu'après désinstallation + réinstallation,
+      un compte à jour côté serveur ne rejoue **pas** l'onboarding — c'est la
+      moitié serveur du garde-fou.
+
+⚠️ Le drapeau local ne se relit pas depuis ce poste : le build de l'appareil
+est **release**, `run-as` répond « package not debuggable ». Pour départager
+local et distant, passer par `public.users` en base, pas par `shared_prefs/`.
+
+### ⬜ Reprise des drapeaux restés sur Firestore (2026-09-10)
+
+Inventaire fait le 2026-09-10, une fois le correctif de lecture posé : la
+lecture réussit désormais, mais elle peut rendre un `false` **sincère et
+périmé** — le compte a fini son onboarding avant la bascule du 2026-08-13
+(`160d417`), quand l'app écrivait ces drapeaux sur Firestore.
+
+Ce que la mesure a donné, et qui réduit beaucoup la portée du problème :
+
+- Firestore `users/` ne contient plus que **5 documents** contre 17 lignes
+  dans `public.users`, et **2** seulement portent des drapeaux d'onboarding.
+- `U64HKfrjM5NwR6HO00XPKo6168z2` : déjà repris côté Supabase, au
+  `consent_date` près (même milliseconde). Une reprise Firestore→Supabase a
+  donc bien eu lieu, avant la bascule du code.
+- `czk5UoUclLOFmbRtUIZ5XYLYKo52` : les quatre drapeaux à `true` sur Firestore,
+  les quatre à `false` ici. Compte créé le 2026-08-13 à 22:29:01 UTC,
+  onboarding terminé en 90 s — **une heure et demie avant** `160d417`. Il est
+  passé entre la reprise (déjà faite) et la bascule (pas encore faite).
+- Les 8 autres comptes à `false` n'ont **aucun** document Firestore : leur
+  `false` n'est pas périmé, il est vrai. Rien à reprendre pour eux.
+
+`supabase/migrations/20260910071000_reprise_drapeaux_onboarding_firestore.sql`
+monte donc **une seule ligne**, par `or` colonne par colonne (jamais une
+affectation sèche) et `coalesce` sur `consent_date` : rejouer la migration ne
+change rien, et aucun drapeau ne peut redescendre.
+
+✅ **Appliquée en base le 2026-09-10** (`supabase db push`), et revérifiée
+après coup : la ligne porte les quatre drapeaux à `true` et
+`consent_date = 2026-08-13 22:29:10.098+00`. Les compteurs de `public.users`
+ont bougé d'exactement un, sur les quatre colonnes à la fois — `has_seen_onboarding`
+8→9, `has_seen_coach_marks` 5→6, `has_given_consent` 9→10,
+`profile_config_complete` 8→9, sur 17 comptes. Rien d'autre n'a bougé. Il ne
+reste donc que la vérification côté téléphone.
+
+⚠️ **« Sim A » (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), le compte de la section
+ci-dessus, lit aujourd'hui `true` partout** — il a rejoué l'onboarding le
+2026-09-10 (`updated_at` 05:12 UTC). Aucune reprise Firestore ne l'aurait
+sauvé : son document Firestore, créé le 2026-08-14 à 00:15 UTC — soit après
+la bascule — ne porte aucun drapeau. Ne pas compter sur ce compte pour
+observer le défaut : il est sorti de l'état fautif tout seul, au prix de
+l'onboarding refait.
+
+À vérifier sur appareil :
+
+- [ ] **Le compte repris ne rejoue plus rien** : se connecter avec
+      `czk5UoUclLOFmbRtUIZ5XYLYKo52` sur un téléphone où l'app vient d'être
+      **désinstallée** (le cache local masquerait le résultat — `adb install -r`
+      ne suffit pas). Attendu : `/home` directement, ni consentement, ni
+      assistant de profil, ni les 5 écrans d'intro.
+- [ ] **Ce compte n'a pas de `display_name`** (`handle = 'diaspo_ne'` et
+      `country_code = 'NE'` sont posés, le nom non) : l'assistant de profil a
+      tourné le 2026-08-13 sans que tout arrive en base. Monter
+      `profile_config_complete` le fait donc entrer dans l'app **sans nom
+      affiché**. Regarder ce que donnent le profil, le bandeau de complétude
+      (§11f) et l'en-tête des discussions dans cet état — c'est le seul point
+      où cette migration peut se voir en mal.
+
+---
+
 ## ⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)
 
 Troisième refus Google Play sur le même terrain, cette fois nommément :
@@ -374,12 +549,33 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
 
 ✅ `20260910023000` appliquée. Trigger en `SECURITY DEFINER`, compteurs recalés.
 
-**⚠️ Reste ouvert — un événement peut n'apparaître dans aucun onglet.**
-« À venir » filtre `startDate >= now`, « Passés » filtre `status == 'completed'`.
-Un événement dont la date est passée mais dont personne n'a changé le statut
-tombe entre les deux et devient invisible — c'est le cas de « testeur », et
-c'est ce qui m'a fait croire un moment que la collection Firestore était vide.
-Rien ne fait passer un événement de `upcoming` à `ended` automatiquement.
+**✅ Corrigé — les deux onglets partitionnent désormais par la date.**
+Ils filtraient chacun sur `status` (« À venir » exigeait `upcoming`, « Passés »
+exigeait `completed`) et rien ne fait la transition quand la date arrive : un
+événement dont personne n'avait touché le statut tombait entre les deux. C'est
+le cas de « testeur », et c'est ce qui m'a fait croire un moment que la
+collection Firestore était vide.
+
+`_estAVenir` est littéralement `!_estPasse` : la complémentarité est
+structurelle, elle ne peut plus dériver. Un brouillon reste hors des deux (la
+RLS ne le montre qu'à son organisateur) ; un annulé va dans « Passés » quelle
+que soit sa date.
+
+**Et un annulé se lit enfin comme tel.** Rien ne l'indiquait nulle part : la
+fiche proposait « Participer », et l'inscription aboutissait pour de bon — en
+base et en notification. Ajouté : une pastille rouge « Annulé » à côté du
+badge Gratuit/Payant, et le bouton éteint qui dit « Annulé » au lieu de
+« Complet ».
+
+- [x] « testeur » (passé, resté `upcoming`) apparaît dans « Passés » — ✅ SM A515F 2026-09-10 00:45, avec « gh » (19 juil.) : les deux étaient invisibles avant.
+- [x] « Tabaski 2026 » (annulé) : pastille rouge « Annulé » entre « Culturel »
+      et « Gratuit », et bouton grisé « Annulé » à la place de « Participer » —
+      ✅ SM A515F 2026-09-10 00:47.
+- [x] Aucun événement absent des deux onglets — ✅ les 3 événements en base sont
+      visibles. ⚠️ **Deuxième passe nécessaire** : la pastille de la carte
+      disait « À venir » **dans l'onglet Passés** (elle lisait `status` brut).
+      Corrigée en « Terminé » / « Annulé », revérifiée. Rendre visible sans
+      corriger l'étiquette aurait déplacé la confusion, pas retirée.
 
 **⚠️ Lectures Firestore `users` encore vivantes ailleurs**, même famille que
 la notification corrigée ici, non vérifiées : `core/services/session_service.dart`,
@@ -571,6 +767,56 @@ fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
 
 ---
 
+## ⬜ Podcasts : cinq routes qu'aucun garde ne voyait (2026-09-10)
+
+Trouvé en répondant à « tous les types de deep link ont été pris en compte ? ».
+Réponse : non, et le trou ne venait pas des écrans — il venait du **garde**.
+
+`PodcastsRoutes` déclare ses chemins en **constantes** :
+
+```dart
+static const String detail = '/podcasts/:podcastId';
+...
+GoRoute(path: detail, ...)
+```
+
+`fleche_retour_test.dart` découpait le routeur sur `path: '` — un littéral. Il
+ne voyait donc **aucune** des cinq routes podcasts, et elles n'avaient
+effectivement **aucune sortie** : `AppBar` et `SliverAppBar` sans `leading`,
+donc rien d'autre que la flèche implicite de Flutter, qui ne s'affiche pas
+quand la pile ne contient que cet écran.
+
+Deux de ces cinq sont des cibles de liens que **l'app génère elle-même** :
+`generatePodcastLink` (`/podcasts/<id>`) et `generateEpisodeLink`
+(`/podcasts/episodes/<id>`), tous deux dans `DeepLinkService`.
+
+⚠️ **Non observable aujourd'hui** : les podcasts sont derrière un feature-flag,
+le routeur renvoie ces chemins sur `/home`. Le défaut se découvrira le jour où
+le flag passera à `true` — d'où la correction maintenant.
+
+Corrigé :
+
+- [ ] **Cinq sorties posées** — `BackButton` explicite avec le repli maison sur
+      l'accueil des podcasts (→ `/home`), la création, « mes podcasts », la
+      fiche podcast et la fiche épisode (→ `/podcasts`).
+      Vérifier, une fois le flag actif : `diasponiger:///podcasts/<id>` et
+      `diasponiger:///podcasts/episodes/<id>`, flèche puis retour système.
+- [ ] **Les deux fiches posent leur `SliverAppBar` dans la branche « données »**
+      — chargement, erreur et « introuvable » n'avaient donc aucune sortie,
+      exactement comme la fiche entreprise en son temps. Enveloppées dans
+      `DesignExitOnlyBody`, et les deux boutons « Retour » de l'épisode
+      recâblés (ils faisaient `context.pop()` nu).
+- [x] **Le garde résout désormais les constantes** — il voit 116 routes au lieu
+      de 111, et 0 route dont l'écran ne se résout pas. Il est tombé tout seul
+      sur une flèche que j'avais oubliée de poser (`episode_detail_screen`),
+      ce qui vaut vérification.
+
+**Ce qu'il reste, après ce passage** : 1 `pop()` nu (la croix de la feuille de
+filtres de l'historique des transferts — le bon geste), 12 écrans sans sortie
+(les 5 onglets, le parcours de connexion, le splash, la maintenance, l'écran
+d'appel qui sort par « raccrocher », et `/share` qui est une feuille modale),
+et 2 sorties conditionnelles — voir l'entrée juste au-dessus.
+
 ## ⬜ Liens profonds : la flèche retour ne faisait rien (2026-09-09)
 
 Signalé par Salim : « les deep link, pas possible de faire des retours ».
@@ -602,12 +848,11 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       `canPop() ? pop() : go(<parent>)`, avec le parent logique de chaque
       route et non un `/home` uniforme.
 
-      **Deux rejouées à l'intent** : `diasponiger:///services` → accueil, et
-      `diasponiger:///groups/<id>` → **Groupes**, pas l'accueil — c'est bien
-      le parent qui sort, pas le repli uniforme. Les vingt autres sont le
-      même motif, tenu par le garde-fou ; restent à voir à l'œil :
-      `/events/<id>` (→ Événements), `/notifications/settings` (→ Réglages),
-      `/profile/edit` (→ Profil), `/feed/space/hashtags` (→ Mon espace).
+      **Seize rejouées à l'intent** le 2026-09-10 — voir le tableau de la passe
+      appareil plus bas. Chacune sort sur **son** parent, pas sur un `/home`
+      uniforme. Restent à voir à l'œil : `/events/<id>`, `/polls/<id>/results`,
+      les écrans de création/édition, et les cinq écrans podcasts (bloqués par
+      leur feature-flag).
       Trois d'entre elles ne sont venues qu'à la deuxième passe (galerie
       média, favoris, bandeau hashtag du fil) : leur `IconButton` déclare
       `onPressed:` **avant** `icon:`, et le détecteur partait de l'icône.
@@ -641,11 +886,110 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       depuis l'onglet Accueil, retour système → l'app se ferme, comme avant ✅ ;
       Groupes → une fiche (push interne) + retour système → la liste, **pas**
       l'accueil ✅.
-- [ ] **Deux écrans masquent leur flèche quand la pile est vide** —
-      `/feed` et `/calls/history` : `if (context.canPop()) …`, choix
-      documenté sur place. Arrivé là par lien profond, il n'y a donc aucune
-      flèche ; c'est le retour système ci-dessus qui sert de sortie.
-      Vérifier que ça suffit à l'usage, ou leur donner une flèche.
+- [x] **Deux écrans masquaient leur flèche quand la pile est vide** ✅ SM A515F 2026-09-10 01:04 —
+      `/feed` et `/calls/history` posaient leur sortie sous
+      `if (context.canPop()) …` : elle disparaissait donc exactement dans le
+      cas qu'elle devait couvrir. Les deux justifications écrites sur place
+      disaient « on n'y arrive que par un push » ; fausse pour les deux, et
+      spectaculairement pour `/calls/history`, dont le point d'entrée dans le
+      profil est **commenté** (`profile_screen.dart`) — le lien profond et la
+      notification y sont aujourd'hui les seules portes.
+      Flèche désormais toujours visible, repli `/home` pour le fil,
+      `/profile` pour l'historique des appels. Un 5e test tient la forme,
+      vérifié en la réintroduisant sur `feed_screen.dart`.
+      Vérifier : `diasponiger:///feed` et `diasponiger:///calls/history`,
+      flèche présente et qui sort.
+
+## ⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)
+
+Consigne de Salim : « pour les groupes privés, celui qui reçoit le lien fait
+une demande d'adhésion au groupe ». Le message honnête livré la veille restait
+une impasse ; il devient une porte.
+
+Tout le chemin existait déjà (`requestToJoinGroup`, et
+`group_requests_parties` laisse un non-membre créer **sa** demande). Il
+manquait une seule chose : `group_requests.group_name` est dénormalisé, donc
+sans un moyen de lire le nom, aucune demande n'est possible depuis un lien.
+
+`20260910060000` ajoute `group_link_preview(uuid)`, SECURITY DEFINER, réservée
+à `authenticated` : nom, avatar, nombre de membres, privé ou non. Rien
+d'autre. La RLS de `groups` n'a pas bougé — prouvé en transaction annulée :
+un inconnu authentifié voit toujours 3 groupes par la RLS (les publics), et
+n'obtient le nom du privé que par l'aperçu.
+
+⚠️ **Choix de produit assumé** : un uuid connu révèle désormais le nom d'un
+groupe privé — le modèle du lien d'invitation. Ce que ça ne rouvre **pas**,
+et c'est ce qui le distingue de la porte fermée par `20260909201500` :
+l'aperçu ne donne aucun accès, la seule suite est une demande qu'un
+administrateur doit approuver.
+
+Effet de bord utile : l'aperçu est la seule chose qui sache distinguer
+« privé » de « supprimé » — `getGroupById` rend le même PGRST116 pour les deux.
+
+**⚠️ L'aperçu était joignable en ANONYME — corrigé par `20260910070000`.**
+`20260910060000` annonçait « réservée à `authenticated` » et faisait
+`REVOKE ALL ... FROM PUBLIC` + `GRANT ... TO authenticated`. Insuffisant :
+Supabase pose un `ALTER DEFAULT PRIVILEGES` qui accorde EXECUTE **nommément**
+à `anon` sur toute nouvelle fonction de `public`, et révoquer `PUBLIC` n'y
+touche pas. Mesuré en production avec la clé publique du `.env` :
+`POST /rest/v1/rpc/group_link_preview` → **200**, nom du groupe privé rendu
+**sans compte**. Prouvé refermé : connecté → le nom, anonyme → 42501.
+
+⚠️ **Réflexe** : après toute fonction SECURITY DEFINER ajoutée ici, relire
+`proacl` — `REVOKE ... FROM PUBLIC` ne dit rien des rôles Supabase.
+
+**⚠️ `supabase db push` à relancer** pour `20260910070000`. Tant qu'elle n'est
+pas passée, l'aperçu échoue et l'écran retombe sur l'ancien message — c'est
+volontaire, mais rien n'est vérifiable sur appareil avant.
+
+Couvert par deux tests widget : aperçu résolu → nom + « Demander à
+rejoindre » ; aperçu nul → pas de fausse porte.
+
+- [ ] Depuis un compte **non-membre**, ouvrir le lien d'un groupe privé :
+      nom, avatar, « Privé · N membres », bouton « Demander à rejoindre ».
+- [ ] Le bouton devient inactif après l'envoi, et l'administrateur voit la
+      demande dans `/groups/<id>/requests`.
+- [ ] Un lien vers un groupe supprimé garde « Ce groupe est privé ou n'existe
+      plus. » — pas de bouton.
+- [ ] Redemander deux fois ne doit pas empiler deux demandes.
+
+---
+### Passe appareil du 2026-09-10 — seize liens rejoués
+
+SM A515F, build `317a775c…08c6`, md5 contrôlé avant **et** après (l'autre agent
+installe sur le même téléphone). Intents envoyés **à chaud** : à froid, le lien
+retombe sur `/home` par intermittence et la mesure est fausse.
+
+| Lien | Flèche → |
+|---|---|
+| `diasponiger:///services` | Accueil ✅ |
+| `diasponiger:///groups/<id>` | **Groupes** (le parent, pas l'accueil) ✅ |
+| `diasponiger:///feed` | Accueil ✅ *(flèche auparavant masquée)* |
+| `diasponiger:///calls/history` | **Mon profil** ✅ *(flèche auparavant masquée)* |
+| `diasponiger:///search` | Accueil ✅ |
+| `diasponiger:///feed/space/hashtags` | **Mon espace** ✅ |
+| `diasponiger:///notifications/settings` | **Réglages** ✅ |
+| `diasponiger:///groups/map` | **Groupes** ✅ |
+| `diasponiger:///profile/edit` | **Mon profil** ✅ |
+| `diasponiger:///events/<id>` | **Événements** ✅ |
+| `diasponiger:///feed/<postId>` | Accueil ✅ |
+| `diasponiger:///businesses/<id>` | **Annuaire** ✅ |
+| `diasponiger:///embassies/<id>` | **Ambassades** ✅ |
+| `diasponiger:///p/u/<userId>` | Accueil ✅ |
+| `diasponiger:///groups/create` | **Groupes** ✅ |
+| `diasponiger:///messages/new` | **Messages** ✅ |
+
+Plus les trois mesures du retour système : lien profond → accueil ; onglet
+Accueil → l'app se ferme, comme avant ; navigation interne → la liste, pas
+l'accueil.
+
+⚠️ **Piège de mesure, deux heures perdues avant de le voir** : `uiautomator`
+n'expose **pas** ces `IconButton` d'`AppBar` comme `clickable="true"`. Un
+script qui cherche « le premier nœud cliquable en haut à gauche » tape donc à
+côté — sur la tuile suivante, sur la carte, sur le sélecteur de photo — et
+conclut « la flèche ne marche pas ». Trois des quatre premiers verdicts étaient
+faux pour cette seule raison. La flèche est à **(73, 161)** sur cet appareil ;
+une capture d'écran tranche en dix secondes, un dump XML non.
 
 ## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
 
@@ -675,7 +1019,12 @@ Corrigé dans cette livraison :
       qui la portait déjà.
       Vérifier : ouvrir `…/events/<uuid inexistant>` → « Erreur de
       chargement » + « Réessayer », **pas** de roue infinie.
-- [ ] **Groupe privé : ne plus mentir.** ⚠️ NON REJOUÉ sur appareil : le compte du SM A515F (« Sim A ») est le **créateur** du groupe privé de test, la fiche s'ouvre donc normalement pour lui ; le Pixel, qui portait un compte non-membre, s'est déconnecté pendant les mesures (une seule session par compte). Couvert par test widget seulement. `getGroupById` finit sur `.single()`
+- [x] **Groupe privé : ne plus mentir.** ✅ vérifié SM A515F 2026-09-10 00:56 :
+      « Ce groupe est privé ou n'existe plus. » + « Retour », sans
+      « Réessayer ». ⚠️ Une première tentative identique avait atterri sur la
+      **liste** des groupes : au démarrage à froid le lien arrive parfois sur
+      le splash et se perd. Relance identique → bon écran. Non corrigé.
+      **Ce n'est plus l'état final** — voir la section « demander à rejoindre ». ⚠️ NON REJOUÉ sur appareil : le compte du SM A515F (« Sim A ») est le **créateur** du groupe privé de test, la fiche s'ouvre donc normalement pour lui ; le Pixel, qui portait un compte non-membre, s'est déconnecté pendant les mesures (une seule session par compte). Couvert par test widget seulement. `getGroupById` finit sur `.single()`
       ; la RLS d'un groupe privé rend zéro ligne, donc PGRST116 — le même
       code que pour un groupe supprimé. « Erreur de chargement » + un
       « Réessayer » qui ne peut jamais aboutir. Remplacé par « Ce groupe est
@@ -13717,6 +14066,176 @@ Trois pièces livrées : `BusinessSupabaseDataSource` (21 méthodes), la table
 
 Non vérifiés faute de données : création d'une entreprise, boost, offres et
 publications d'entreprise, recherche de proximité.
+
+---
+
+## ⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)
+
+Trouvé par accident en coupant le réseau pour déclencher une erreur de carte.
+Le compte était connecté, l'app affichait la carte en mode public. Mode avion
+activé, un rechargement forcé → l'app bascule sur **« Bienvenue sur Diaspo
+Niger »**, le carrousel d'accueil.
+
+**La session n'est PAS perdue** — c'est le point rassurant, et il a demandé
+d'être vérifié : « Passer » ramène directement à l'accueil connecté (« Bonjour,
+Sim », messages non lus et notifications intacts). Aucun `FATAL EXCEPTION`, et
+le pid n'a pas changé : l'app n'a ni planté ni redémarré, elle a **navigué**.
+
+**La chaîne, lue dans le code :**
+
+1. [onboarding_repository_impl.dart:23-48](lib/features/onboarding/data/repositories/onboarding_repository_impl.dart:23)
+   consulte d'abord le cache local (`has_seen_onboarding_<uid>`) ; **si celui-ci
+   est à `false`, il fait un appel réseau**. Hors ligne, l'appel lève →
+   `Left(ServerFailure)`.
+2. [onboarding_provider.dart:78](lib/features/onboarding/presentation/providers/onboarding_provider.dart:78)
+   traduit cet échec en `false` :
+
+   ```dart
+   hasSeenOnboardingResult.fold(
+     (failure) => hasSeenOnboarding = false,   // « je n'ai pas pu savoir » → « jamais vu »
+     (value)   => hasSeenOnboarding = value,
+   );
+   ```
+
+3. La règle 8 du routeur ([app_router.dart:320](lib/core/router/app_router.dart:320))
+   redirige alors vers `/onboarding/intro`.
+
+C'est la même famille que le garde d'autorisation déjà documenté : **« je n'ai
+pas pu vérifier » traité comme « la réponse est non »**. Ici, le coût est un
+utilisateur connecté à qui on remontre le carrousel de bienvenue dès qu'il perd
+le réseau — dans le métro, en avion, en zone blanche.
+
+**Correctif proposé, non appliqué** : pour un utilisateur **déjà authentifié**,
+un échec de lecture devrait valoir « ne pas interrompre » plutôt que « jamais
+vu ». Se tromper dans ce sens coûte un carrousel sauté une fois ; se tromper
+dans l'autre coûte une interruption à chaque coupure réseau. Non appliqué parce
+que toucher à une garde du routeur est précisément ce qui a déjà coûté cher ici
+(gating feature-flag, garde de session) — à décider explicitement.
+
+✅ **Tranché et appliqué le 2026-09-10**, exactement dans ce sens, et **sans
+toucher au routeur** : c'est la valeur qu'on lui donne qui change, pas la
+règle 8. Voir « ⬜ Onboarding rejoué : une lecture en échec n'est plus “jamais
+vu” » en tête de fichier — l'indéterminé y devient une valeur à part entière de
+la source distante jusqu'au notifier, et 21 cas le verrouillent. Cette
+observation-ci reste la seule reproduction **à volonté** du défaut : c'est elle
+qu'il faut rejouer pour valider le correctif sur appareil.
+
+- [ ] **Reproduire proprement** : compte connecté, mode avion, naviguer →
+  le carrousel doit apparaître. Puis vérifier qu'après retour du réseau **et**
+  redémarrage l'app revient d'elle-même à l'accueil (observé une fois : elle
+  restait sur l'onboarding, réseau rétabli, y compris après redémarrage — mais
+  le Wi-Fi pouvait n'être pas encore rétabli au lancement, donc à confirmer).
+- [ ] **Vérifier le cas du vrai nouveau compte** avant tout correctif : il doit
+  continuer à voir l'onboarding.
+
+---
+
+## ⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)
+
+Première lecture réelle de la console. Elle change l'interprétation des
+chiffres, et sort quatre défauts avec leur volume.
+
+**Le taux de plantage ne mesurait pas la stabilité.** « Utilisateurs sans
+plantage » à **80,95 %, en baisse de 19 points** — alarmant en apparence. Sur
+les quatre « plantages » ouverts, **trois étaient de simples pertes de
+réseau** :
+
+| Signalé comme plantage | Ce que c'est |
+|---|---|
+| `google_fonts` — `Failed host lookup: fonts.gstatic.com` | hors ligne, 4 évts / 3 users |
+| `postgrest` — `Failed host lookup: …supabase.co` | hors ligne, 2 évts / 1 user |
+| `ProfileSupabaseDataSource._requireAuth` — « Session Supabase non établie » | 3 évts / 2 users |
+
+Cause : `PlatformDispatcher.onError` ([main.dart](lib/main.dart)) enregistrait
+tout en `fatal: true`. **Corrigé** — une panne réseau part désormais en
+non-fatal, via [classification_erreurs.dart](lib/core/errors/classification_erreurs.dart).
+Les erreurs restent envoyées, seul leur classement change.
+
+⚠️ Le tri se fait sur le **texte** de l'erreur, pas sur son type : `dart:io`
+(donc `SocketException`) n'est pas importable, `web/` étant une cible réelle.
+C'est fragile ; [le test](test/core/errors/classification_erreurs_test.dart)
+fige les libellés **réellement observés en production**, pas des exemples
+inventés. Le cas « Session Supabase non établie » est laissé **fatal**
+sciemment : sa cause profonde est souvent le réseau, mais son libellé ne le dit
+pas, et le reclasser demanderait de décider ce que « fatal » veut dire pour une
+session absente.
+
+**Quatre défauts réels, avec leur volume — aucun corrigé :**
+
+- [ ] **`A RenderFlex overflowed by 100 pixels on the bottom` — 21 occurrences**,
+  de loin le premier non-fatal, 1 utilisateur. Écran inconnu : la pile pointe
+  `main.dart:172` (le `FlutterError.onError`), pas le widget fautif. À isoler.
+- [ ] **`GoError: There is nothing to pop` — 11 occurrences.** Famille déjà
+  documentée ici (écran noir au retour d'un lien profond) : une route de lien
+  profond seule dans la pile.
+- [ ] **`MissingPluginException` sur le canal `com.diasponiger.diaspo_niger/gsm_state`**
+  — 3 occurrences. Un canal de plateforme écouté côté Dart sans implémentation
+  native.
+- [ ] **`ForegroundServiceStartNotAllowedException` — NOUVEAU en 1.2.1**,
+  `flutter_background_service` ne peut plus démarrer. 2 occurrences.
+
+**Et une preuve que le plugin Gradle ajouté ce jour sert bien** : la pile de ce
+dernier s'affiche `d1.a.startForegroundService` / `SourceFile:7` — obfusquée.
+Les piles **Dart** sont lisibles (R8 n'y touche pas), les piles **Android** ne
+l'étaient pas. La prochaine version donnera un vrai nom de classe.
+
+- [ ] **Vérifier après publication** qu'une pile Android arrive déobfusquée.
+
+---
+
+## ⬜ Les quatre défauts de la console, triés par appareil (2026-09-10)
+
+Suite de la lecture de Crashlytics. **Le détail par appareil change les
+priorités** — la liste seule était trompeuse, et je l'avais présentée comme
+telle.
+
+| Problème | Volume | Qui est touché |
+|---|---|---|
+| `RenderFlex overflowed by 100 px` | 21 évts | **1 utilisateur, Pixel 10 Pro XL / Android 17** |
+| `GoError: There is nothing to pop` | 19 évts | même profil |
+| `google_fonts` — `Failed host lookup` | 4 évts, **3 users** | **75 % OnePlus 8 Pro / Android 11** |
+| `MissingPluginException` `gsm_state` | 3 évts | — |
+| `ForegroundServiceStartNotAllowedException` | 2 évts | Pixel |
+
+**Le Pixel 10 Pro XL sous Android 17, c'est l'appareil de test.** Les deux plus
+gros volumes (RenderFlex, GoError) ne viennent donc pas d'utilisateurs réels
+mais de nos propres parcours. Ça ne les rend pas faux — mais ça les fait passer
+derrière le seul qui touche du monde extérieur.
+
+**✅ `gsm_state` — corrigé.**
+[gsm_call_service.dart](lib/core/services/gsm_call_service.dart) écoutait
+`com.diasponiger.diaspo_niger/gsm_state`, un `EventChannel` qui **n'existe pas**
+côté natif (aucun enregistrement dans `android/app/src/main`). Le `try/catch` et
+le `onError` du flux ne pouvaient rien y faire : `receiveBroadcastStream`
+signale un échec d'activation par `FlutterError.reportError`
+(`platform_channel.dart:713`), qui va droit dans Crashlytics. L'écoute est
+désormais derrière un drapeau `_canalNatifImplemente = false`, à repasser à
+`true` le jour où le natif arrive.
+
+**✅ `ForegroundServiceStartNotAllowedException` — déjà corrigé**, rien à faire :
+le `BootReceiver` du plugin a été retiré du manifeste le 2026-09-09
+(`tools:node="remove"`) précisément pour ça. Les 2 occurrences sont antérieures
+et disparaîtront à la prochaine publication.
+
+- [ ] **`google_fonts` — le seul qui touche de vrais utilisateurs.** Aucune
+  police n'est embarquée (`pubspec.yaml` n'a pas de section `fonts:`, aucun
+  `.ttf` dans `assets/`) et `GoogleFonts.config.allowRuntimeFetching` n'est pas
+  réglé : **chaque appareil télécharge les polices depuis `fonts.gstatic.com` au
+  démarrage**. Sur réseau instable, l'appel échoue. Le rendu retombe sur la
+  police système — donc pas d'écran cassé, mais la typo de marque saute, et
+  l'erreur remontait.
+  Le correctif robuste est d'**embarquer les polices dans les assets** et de
+  couper `allowRuntimeFetching`. Non appliqué : il faut choisir les fichiers
+  `.ttf` et accepter les mégaoctets ajoutés à l'APK — c'est une décision, pas
+  une correction évidente.
+- [ ] **`RenderFlex` (21) et `GoError` (19)** : appareil de test uniquement.
+  Aucun des deux n'est diagnosticable en l'état — la pile s'arrête à
+  `main.dart:172`/`184`, c'est-à-dire au **gestionnaire d'erreurs**, jamais au
+  widget ni au `context.pop()` fautif. ⚠️ Le problème « RenderFlex » est en
+  réalité un **fourre-tout** : sa fiche contient aussi un avertissement
+  `ListTile background color or ink splashes may be invisible`, sans rapport.
+  Crashlytics regroupe par pile, et toutes les erreurs Flutter partagent la
+  même — celle du gestionnaire. Y toucher demande d'abord de les distinguer.
 
 ---
 

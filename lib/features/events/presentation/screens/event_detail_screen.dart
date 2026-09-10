@@ -351,6 +351,32 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                               ),
                             ),
                           ],
+                          // Rien n'indiquait jamais qu'un événement était
+                          // annulé : la fiche proposait « Participer » dessus,
+                          // et les deux onglets de la liste filtraient sur le
+                          // statut sans jamais l'afficher. Constaté le
+                          // 2026-09-09 sur « Tabaski 2026 », annulé en base.
+                          if (event.status == EventStatus.cancelled) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD32F2F),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                l10n.statusCancelled,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
                           // Badge Gratuit / Payant (§25a)
                           const SizedBox(width: 8),
                           Container(
@@ -958,7 +984,11 @@ Voir plus de d\u00e9tails sur DiaspoNiger
                               : null,
                       icon: const Icon(Icons.check),
                       label: Text(
-                        _canAttend(event) ? l10n.participate : l10n.full,
+                        event.status == EventStatus.cancelled
+                            ? l10n.statusCancelled
+                            : _canAttend(event)
+                            ? l10n.participate
+                            : l10n.full,
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: context.adaptivePrimaryColor,
@@ -973,6 +1003,9 @@ Voir plus de d\u00e9tails sur DiaspoNiger
   } // Close build method
 
   bool _canAttend(EventEntity event) {
+    // Un événement annulé n'accepte plus personne. Le bouton restait actif et
+    // l'inscription aboutissait vraiment, en base comme en notification.
+    if (event.status == EventStatus.cancelled) return false;
     if (event.maxAttendees == 0) return true;
     return event.attendeeIds.length < event.maxAttendees;
   }
