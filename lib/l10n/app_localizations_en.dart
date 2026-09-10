@@ -15196,11 +15196,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationReciprocity =>
-      'It\'s mutual: share your approximate location to see members near you.';
+      'It\'s mutual: share your location to see members near you.';
 
   @override
   String get locationGuarantee1 =>
-      'Approximate position, never your exact address';
+      'Only your latest position is kept, never your journeys';
 
   @override
   String get locationGuarantee2 => 'Can be turned off anytime';

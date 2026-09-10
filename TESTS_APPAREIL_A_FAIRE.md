@@ -47,6 +47,42 @@ Rien de tout ça n'a été vu sur un écran.
       (`onboarding_intro_screen.dart`, la page est déjà dans un
       `SingleChildScrollView` — le risque est qu'il passe sous la ligne de
       flottaison, pas qu'il déborde.)
+### Verifie sur SM-A515F le 2026-09-09 (build release, install en place)
+
+Permission revoquee par `adb` pour rejouer le parcours de l'examinateur, puis
+retablie a l'identique (COARSE accordee, FINE refusee).
+
+- [x] **Carte -> ACTIVER** : la feuille de divulgation s'ouvre, puis **et
+      seulement ensuite** la boite systeme Android. Sequence conforme.
+- [x] **Refus a la boite systeme** : la carte bascule sur « Localisation
+      requise pour voir les membres » + repli par ville. Pas de plantage, pas
+      d'ecran mort.
+- [x] **Mode Voyage** (Profil -> Modifier le profil -> Previsualiser -> bas de
+      page) : feuille « Partage de position en continu », portant la phrase
+      exigee « meme lorsque l'application est fermee ou n'est pas utilisee ».
+      « Non, merci » laisse l'interrupteur eteint et ne demande rien.
+- [x] **Position dans une discussion** : la feuille s'ouvre a l'ouverture du
+      selecteur, avant que la carte ne se construise, avec le texte propre au
+      cas (« participants de la discussion »).
+- [x] **Sous-titre localise du Mode Voyage** visible a l'ecran.
+
+⚠️ Trouve pendant ce test : la carte « Mode prive » de l'ecran Carte
+repetait « Position approximative, jamais votre adresse exacte » — la meme
+affirmation fausse que celle retiree de l'onboarding, et ici **au moment
+meme du consentement**. Corrigee (`locationGuarantee1`,
+`locationReciprocity`) : `users.latitude/longitude` stocke la position exacte
+et la carte l'affiche telle quelle. Ce qui est vrai, et desormais affiche :
+aucune historisation, `user_locations` etant declaree mais jamais ecrite.
+
+Reste a voir sur un ecran :
+
+- [ ] **Onboarding 5/5** — hors de portee sans changer de compte sur le
+      telephone : `has_seen_onboarding` est un booleen local **indexe par
+      userId**, et le routeur renvoie `/onboarding/intro` sur /home des qu'il
+      est vrai. Un lien profond n'y donne pas acces.
+- [ ] **Theme sombre** sur la feuille et le bloc d'onboarding.
+- [ ] **Admin > Fonctionnalites** : la ligne Podcasts grisee.
+
 - [ ] **Appui sur « Commencer » avec Localisation activée** : la feuille
       s'ouvre-t-elle **avant** la boîte système Android ? « Non, merci » doit
       n'ouvrir aucune boîte et laisser entrer dans l'application.
