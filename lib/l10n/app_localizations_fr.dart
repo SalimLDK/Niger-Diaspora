@@ -16225,4 +16225,35 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get embassySearchHint => 'Nom, pays ou ville';
+
+  @override
+  String get shareToChatTitle => 'Envoyer dans une discussion';
+
+  @override
+  String get shareToChatSubtitle => 'Groupes et messages privés';
+
+  @override
+  String get pickerTapToSend => 'Appuyez pour envoyer';
+
+  @override
+  String get pickerSelectConversations => 'Sélectionnez les discussions';
+
+  @override
+  String get pickerContentSent => 'Envoyé';
+
+  @override
+  String get pickerContentPartiallySent => 'Certains envois n\'ont pas abouti';
+
+  @override
+  String get privateMessage => 'Message privé';
+
+  @override
+  String shareProfileChatMessage(String name, String link) {
+    return 'Découvre le profil de $name sur Diaspo Niger\n$link';
+  }
+
+  @override
+  String shareLinkChatMessage(String title, String link) {
+    return '« $title » sur Diaspo Niger\n$link';
+  }
 }

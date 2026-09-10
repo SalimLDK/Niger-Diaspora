@@ -7,6 +7,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 import '../../domain/entities/group_entity.dart';
 import 'package:diaspo_niger/shared/utils/external_share.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -133,6 +134,10 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
                         // Share buttons
                         _buildShareButtons(isDark, l10n),
                         const SizedBox(height: 16),
+
+                        // Envoyer dans une discussion (groupes et 1:1)
+                        _buildShareToChatButton(l10n),
+                        const SizedBox(height: 12),
 
                         // Scan QR code button
                         _buildScanButton(isDark, l10n),
@@ -505,6 +510,33 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
     );
   }
 
+  /// « Partager » sans cette entrée ne savait sortir de l'app : réseaux
+  /// sociaux ou feuille système. Le lien reste le même — c'est la discussion
+  /// qui devient une destination, groupe comme 1:1.
+  Widget _buildShareToChatButton(AppLocalizations l10n) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _shareToChat,
+        icon: const Icon(Icons.forum_rounded, color: Colors.white),
+        label: Text(
+          l10n.shareToChatTitle,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: context.adaptiveSecondaryColor,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildScanButton(bool isDark, AppLocalizations l10n) {
     return SizedBox(
       width: double.infinity,
@@ -549,6 +581,29 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
   String _getShareMessage() {
     final l10n = AppLocalizations.of(context)!;
     return l10n.joinGroupInvite(widget.groupName, _shareUrl);
+  }
+
+  Future<void> _shareToChat() async {
+    HapticFeedback.lightImpact();
+    final l10n = AppLocalizations.of(context)!;
+
+    final sent = await ShareToChatSheet.show(
+      context,
+      content: ChatShareContent.link(
+        url: _shareUrl,
+        title: widget.groupName,
+        description: l10n.group,
+        imageUrl: widget.groupImageUrl,
+        message: _getShareMessage(),
+        icon: Icons.groups_rounded,
+      ),
+    );
+
+    // Le partage a abouti : la fiche de partage n'a plus de raison de rester
+    // ouverte par-dessus l'écran du groupe.
+    if (sent == true && mounted) {
+      Navigator.pop(context);
+    }
   }
 
   Future<void> _shareViaWhatsApp() async {

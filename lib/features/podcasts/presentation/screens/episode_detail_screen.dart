@@ -10,6 +10,8 @@ import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/podcast_download_service.dart';
+import '../../../../shared/widgets/share_options_sheet.dart';
+import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 import '../../../reports/domain/entities/report_entity.dart';
 import '../../../reports/presentation/widgets/report_content_modal.dart';
 import '../../domain/entities/podcast_episode_entity.dart';
@@ -847,11 +849,28 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
   }
 
   void _shareEpisode(PodcastEpisodeEntity episode) {
-    DeepLinkService.instance.shareEpisode(
-      episodeId: episode.id,
+    final l10n = AppLocalizations.of(context)!;
+    final link = DeepLinkService.instance.generateEpisodeLink(
+      episode.id,
       episodeTitle: episode.title,
       imageUrl: episode.coverImageUrl,
       duration: Duration(seconds: episode.durationSeconds),
+    );
+
+    // Une discussion est une destination de partage comme une autre : avant,
+    // « Partager » n'ouvrait que la feuille système.
+    ShareOptionsSheet.show(
+      context,
+      url: link,
+      subject: episode.title,
+      externalText: l10n.shareLinkChatMessage(episode.title, link),
+      chatContent: ChatShareContent.link(
+        url: link,
+        title: episode.title,
+        imageUrl: episode.coverImageUrl,
+        message: l10n.shareLinkChatMessage(episode.title, link),
+        icon: Icons.podcasts_rounded,
+      ),
     );
     ref.read(podcastNotifierProvider.notifier).recordShare(episode.id);
   }

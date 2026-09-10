@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,10 +5,10 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
+import 'conversation_picker_sheet.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class ForwardConversationPicker extends ConsumerStatefulWidget {
@@ -234,12 +233,18 @@ class _ForwardConversationPickerState
           Expanded(
             child: conversationsAsync.when(
               data: (conversations) {
+                // Résolution partagée : la recherche filtrait sur
+                // `conversation.name`, nul pour un 1:1 — taper le nom d'un
+                // contact faisait donc disparaître toutes les discussions
+                // privées de la liste des destinations.
+                final resolved = resolveConversations(
+                  ref,
+                  conversations,
+                  currentUserId: currentUser?.id,
+                  l10n: l10n,
+                );
                 final filtered =
-                    conversations.where((conv) {
-                      if (_searchQuery.isEmpty) return true;
-                      final name = conv.name?.toLowerCase() ?? '';
-                      return name.contains(_searchQuery.toLowerCase());
-                    }).toList();
+                    resolved.where((r) => r.matches(_searchQuery)).toList();
 
                 if (filtered.isEmpty) {
                   return Center(
@@ -253,24 +258,18 @@ class _ForwardConversationPickerState
                 return ListView.builder(
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    final conversation = filtered[index];
-                    final isSelected = _selectedConversationIds.contains(
-                      conversation.id,
-                    );
-                    final isLoading =
-                        _sendingToConversationId == conversation.id;
+                    final item = filtered[index];
 
-                    return _ConversationTile(
-                      conversation: conversation,
-                      currentUserId: currentUser?.id,
-                      isLoading: isLoading,
-                      isSelected: isSelected,
-                      isMultiSelectMode: isMultiSelectMode,
+                    return ConversationPickerTile(
+                      resolved: item,
+                      isSending: _sendingToConversationId == item.id,
+                      isSelected: _selectedConversationIds.contains(item.id),
+                      showCheckbox: isMultiSelectMode,
                       onTap: () {
                         if (isMultiSelectMode) {
-                          _toggleSelection(conversation.id);
+                          _toggleSelection(item.id);
                         } else {
-                          _forwardTo([conversation]);
+                          _forwardTo([item.conversation]);
                         }
                       },
                     );
@@ -458,124 +457,5 @@ class _ForwardConversationPickerState
         );
       }
     }
-  }
-}
-
-class _ConversationTile extends ConsumerWidget {
-  final ConversationEntity conversation;
-  final String? currentUserId;
-  final bool isLoading;
-  final bool isSelected;
-  final bool isMultiSelectMode;
-  final VoidCallback onTap;
-
-  const _ConversationTile({
-    required this.conversation,
-    required this.currentUserId,
-    required this.isLoading,
-    required this.isSelected,
-    required this.isMultiSelectMode,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    // For individual conversations, get the other user's profile
-    String displayName = conversation.name ?? l10n.conversation;
-    String? avatarUrl = conversation.imageUrl;
-
-    if (conversation.isIndividual && currentUserId != null) {
-      final otherUserId = conversation.getOtherParticipantId(currentUserId!);
-      final otherUser = ref.watch(userStreamProvider(otherUserId)).valueOrNull;
-      if (otherUser != null) {
-        displayName = otherUser.displayName ?? displayName;
-        avatarUrl = otherUser.photoUrl ?? avatarUrl;
-      }
-    }
-
-    return ListTile(
-      onTap: isLoading ? null : onTap,
-      tileColor:
-          isSelected
-              ? context.adaptivePrimaryColor.withValues(alpha: 0.1)
-              : null,
-      leading: Stack(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor:
-                conversation.isGroup
-                    ? context.adaptiveSecondaryColor.withValues(alpha: 0.2)
-                    : context.adaptivePrimaryColor.withValues(alpha: 0.2),
-            backgroundImage:
-                avatarUrl != null && avatarUrl.isNotEmpty
-                    ? CachedNetworkImageProvider(avatarUrl)
-                    : null,
-            child:
-                avatarUrl == null || avatarUrl.isEmpty
-                    ? (conversation.isGroup
-                        ? AppIcon(
-                          AppIcon.groups,
-                          color: context.adaptiveSecondaryColor,
-                        )
-                        : AppIcon(
-                          AppIcon.person,
-                          color: context.adaptivePrimaryColor,
-                        ))
-                    : null,
-          ),
-          if (isSelected)
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: context.adaptivePrimaryColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: context.surfaceColor, width: 2),
-                ),
-                child: const AppIcon(AppIcon.check, size: 12, color: Colors.white),
-              ),
-            ),
-        ],
-      ),
-      title: Text(
-        displayName,
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: context.textPrimaryColor,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        conversation.isGroup ? l10n.group : 'Message privé',
-        style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
-      ),
-      trailing:
-          isLoading
-              ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: context.adaptivePrimaryColor,
-                ),
-              )
-              : isMultiSelectMode
-              ? Checkbox(
-                value: isSelected,
-                onChanged: (_) => onTap(),
-                activeColor: context.adaptivePrimaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              )
-              : AppIcon(AppIcon.send, size: 20, color: context.adaptivePrimaryColor),
-    );
   }
 }

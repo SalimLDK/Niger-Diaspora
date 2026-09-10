@@ -14,6 +14,124 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)
+
+Le partage ne savait sortir de l'app (WhatsApp / Facebook / X / feuille
+système) sauf pour un post du fil, dont la liste de discussions était
+inutilisable pour les 1:1 : un message privé s'y affichait « Messages » avec
+un avatar « ? », et la recherche filtrait sur `conversation.name`, nul pour un
+1:1 — taper une lettre les faisait tous disparaître.
+
+Une destination « discussion » a été ajoutée partout, et la résolution
+nom/avatar d'une conversation vit désormais dans une seule source
+(`conversation_picker_sheet.dart`).
+
+- [ ] **Groupe → discussion** : fiche d'un groupe → Partager → « Envoyer dans
+  une discussion ». La liste doit montrer les 1:1 avec le vrai nom et la vraie
+  photo du contact, et les groupes avec leur nom.
+  (`lib/features/groups/presentation/widgets/share_group_modal.dart`)
+- [ ] **Profil → discussion** : idem depuis Partager un profil (le sien et
+  celui de quelqu'un d'autre).
+  (`lib/features/profile/presentation/widgets/share_profile_modal.dart`)
+- [ ] **Recherche dans le sélecteur** : taper le prénom d'un contact doit
+  laisser sa discussion privée visible — c'était le bug de fond, présent aussi
+  dans « Transférer » et dans le partage entrant depuis une autre app.
+  (`conversation_picker_sheet.dart`, `forward_conversation_picker.dart`,
+  `share_to_conversation_screen.dart`)
+- [ ] **Sélection multiple** : bouton « Sélectionner », cocher 2-3
+  discussions, « Envoyer à N conversation(s) » ; vérifier que le message
+  arrive dans chacune.
+- [ ] **Carte reçue à l'arrivée** : dans la discussion cible, un groupe ou un
+  profil partagé doit s'afficher en carte d'aperçu (image + titre) et le tap
+  doit ouvrir l'écran **dans l'app**, pas le navigateur (le site rend 404 sur
+  ces routes). (`link_preview_bubble.dart`)
+- [ ] **Post → discussion** : la liste du partage de post, corrigée, doit
+  afficher les 1:1 correctement ; la bulle reçue reste la carte de post.
+- [ ] **Événement / salon audio / podcast / épisode** : le bouton Partager
+  ouvre désormais une feuille à deux étages (discussion, puis réseaux). Sur
+  événement, la bulle reçue doit être la carte d'événement (date + lieu) et
+  ouvrir la fiche au tap.
+- [ ] **Thème sombre** : feuille de partage, sélecteur et carte d'aperçu en
+  mode nuit.
+- [ ] **Débordement** : le sélecteur avec le clavier ouvert (champ de
+  recherche) sur écran court, et un nom de contact très long.
+
+---
+
+## ⬜ Inviter des membres dans un groupe privé (2026-09-09)
+
+Signalé par Salim : « pour les groupes privés j'arrive pas à ajouter d'autres
+membres ». Il n'y arrivait pas parce que **l'app n'offrait nulle part de quoi
+le faire** — `GroupInviteNotifier.inviteUser` existait, le datasource Supabase
+écrivait bien `group_invites`, l'invité voyait l'invitation dans l'onglet
+Groupes et l'acceptation l'inscrivait dans `group_members` : tout le chemin
+était là, sauf l'écran qui l'appelle. Quatre traductions
+(`inviteMember`/`inviteSent`/`inviteAlreadySent`/`inviteError`) attendaient
+depuis le début, sans un seul usage dans le code.
+
+Sur un groupe **public** le manque se contournait — on partage le lien, la
+personne appuie sur « Rejoindre ». Sur un groupe **privé**, le lien ne produit
+qu'une demande d'adhésion à approuver : l'administrateur n'avait donc aucun
+moyen d'aller chercher quelqu'un.
+
+**Ce qui est à vérifier à l'écran** (aucun point ci-dessous n'est couvert par
+`flutter analyze`) :
+
+- [ ] Fiche d'un groupe privé dont on est administrateur : la ligne
+      « Aucun autre membre » devient « Inviter un membre », en couleur d'accent
+      avec un chevron, et ouvre la feuille
+      (`group_detail_screen.dart`, `_buildMembersSection`).
+- [ ] Menu ⋮ de la fiche : l'entrée « Inviter un membre » est présente pour un
+      administrateur, absente pour un simple membre. Son icône
+      (`group_add_outlined`) ne doit pas se confondre avec celle de
+      « Demandes d'adhésion » juste en dessous.
+- [ ] Écran « Membres » : l'icône d'ajout en barre de titre n'apparaît que
+      pour un administrateur (`group_members_screen.dart`).
+- [ ] Feuille elle-même (`invite_members_sheet.dart`) : suggestions à
+      l'ouverture (amis + personnes avec qui on a discuté), recherche par nom
+      au-delà de deux caractères, sélection multiple, « Inviter un membre · 2 »
+      sur le bouton.
+- [ ] **Clavier** : la feuille se recale au-dessus du clavier sans déborder, et
+      la croix d'effacement du champ apparaît dès la première frappe (pas au
+      bout de 350 ms).
+- [ ] **Thème sombre** et **échelle de police à 130 %** sur la feuille.
+- [ ] Une personne déjà invitée s'affiche estompée, « Déjà invité », non
+      sélectionnable — et le reste après avoir fermé puis rouvert la feuille.
+- [ ] **Bout en bout, deux téléphones** : inviter depuis le compte
+      administrateur, puis sur l'autre appareil voir l'invitation dans l'onglet
+      Groupes, l'accepter, et vérifier que le groupe apparaît **aussi dans
+      l'onglet Messages** — c'est ce dernier point qui est nouveau et jamais
+      testé (`acceptInvite` raccroche maintenant la conversation, comme
+      `joinGroup` le faisait déjà de son côté).
+
+**Sécurité fermée au passage — à rejouer après `supabase db push`.** La porte
+d'entrée de `group_members` (20260806210000) laissait une porte latérale :
+`group_invites_own` autorise à INSÉRER une invitation **dont on est soi-même
+le destinataire**, pour n'importe quel groupe. Deux appels d'API suffisaient
+donc pour entrer dans un groupe privé sans y avoir été invité — vérifié le
+2026-09-09 sous une identité réelle, dans une transaction annulée. Fermé par
+`20260909201500_invitations_groupe_porte_laterale.sql` (garde RESTRICTIVE à
+l'INSERT, trigger qui fige `group_id`/`invitee_id`, et `has_group_invite()`
+qui ne compte plus une invitation refusée).
+
+Banc rejouable, transaction annulée, rien n'est écrit :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_invitations_groupe.sql
+```
+
+Sortie attendue : « banc termine ». Tout « ECHEC n » interrompt le banc.
+Passer le fichier avec `-f` et non en argument : sous cette seconde forme les
+accents du banc le font échouer sur un message tronqué, qui se lit comme un
+vrai échec.
+
+**Appliqué en production le 2026-09-09** (`supabase db push`), banc rejoué
+contre la base réelle : « banc termine ». L'attaque est désormais refusée
+nommément — `new row violates row-level security policy
+"group_invites_insert_gate"`.
+
+---
+
 ## ⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)
 
 Trouvé en pilotant le **Pixel 10 Pro XL (Android 17)** : après un
@@ -1015,7 +1133,6 @@ et `md5sum` sur l'appareil identiques, `9793305acf2ea0dc2478ec436b3a7bba`) :
 - [ ] Un compteur à **trois chiffres** ne déforme pas sa colonne — pas
       vérifiable sur ce compte (4 / 2 / 0 / 1). Couvert au banc seulement.
 - [ ] Rendu en thème **clair** : jamais regardé.
-
 
 ---
 
@@ -12076,7 +12193,6 @@ en arrière (`d62512c`). Un worktree pousse vers `origin`, il ne met pas à jour
 la copie de travail principale. Avant de conclure qu'un correctif « ne marche
 pas », vérifier `git log HEAD..origin/<branche>` dans le dépôt principal.
 
-
 ---
 
 ## ⬜ Heure et accusé sur tous les messages, bascule supprimée (2026-08-23)
@@ -12429,8 +12545,26 @@ main :
       ouverture de l'écran de récupération. », et **pas** une erreur.
 - [ ] **QR d'un autre service** (n'importe quel QR du commerce) : message
       d'erreur, la caméra ne doit pas rester bloquée.
-- [ ] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
-      profil ».
+- [x] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
+      profil » — vérifié sur SM A515F le 2026-09-09 (capture). C'est aussi la
+      preuve que le build installé porte bien ce code : le titre est le seul
+      changement visible sans scanner quoi que ce soit.
+- [x] **La destination d'un scan de groupe s'ouvre** : lien
+      `https://diasponiger.web.app/groups/<id>` envoyé en intent sur
+      58221FDCQ0085Z → fiche « Diaspora Niger — Cap-Vert » complète, bouton
+      « Rejoindre le groupe ». La moitié « route » de la chaîne est donc
+      prouvée appareil ; il reste la moitié « caméra → parser ».
+- [x] **La caméra s'ouvre** sur l'écran du scanner (`dumpsys media.camera` :
+      CONNECT/DISCONNECT du paquet à chaque entrée/sortie) — ce que la montée
+      `mobile_scanner` 7 mettait en doute. Le rendu reste noir tant que
+      l'objectif ne voit rien d'éclairé : le cadre et le texte d'instruction
+      sont dans le sous-arbre `ColorFiltered(BlendMode.srcOut)`, donc invisibles
+      par construction sur fond noir. Ne pas confondre avec une caméra morte.
+
+**Piège de mesure (2026-09-09)** : le premier symptôme rapporté (« ça ne marche
+pas ») venait d'un APK antérieur au correctif — construit à 19:55, correctif
+committé à 20:12. Avant toute conclusion sur un comportement appareil, comparer
+`lastUpdateTime` (`dumpsys package`) à l'horodatage du commit.
 
 ---
 

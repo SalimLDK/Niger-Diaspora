@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
@@ -52,7 +54,7 @@ class LinkPreviewBubble extends StatelessWidget {
             : Colors.black.withValues(alpha: 0.10);
 
     return GestureDetector(
-      onTap: () => _openUrl(url!),
+      onTap: () => _open(context, url!),
       child: Container(
         margin: const EdgeInsets.only(top: 6),
         decoration: BoxDecoration(
@@ -219,7 +221,16 @@ class LinkPreviewBubble extends StatelessWidget {
     );
   }
 
-  Future<void> _openUrl(String url) async {
+  /// Un lien Diaspo Niger partagé dans une discussion (groupe, profil,
+  /// événement…) doit ouvrir l'écran correspondant, pas le navigateur : le
+  /// site web ne rend pas ces pages, l'utilisateur y tombait sur un 404.
+  Future<void> _open(BuildContext context, String url) async {
+    final info = DeepLinkService.instance.parseDeepLink(url);
+    if (info != null) {
+      context.push(info.routePath);
+      return;
+    }
+
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

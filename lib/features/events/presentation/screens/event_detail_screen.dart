@@ -13,6 +13,9 @@ import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../core/services/deep_link_service.dart';
+import '../../../../shared/widgets/share_options_sheet.dart';
+import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -1079,8 +1082,30 @@ ${event.isOnline && event.onlineLink != null ? '🔗 ${event.onlineLink}' : ''}
 Niger Diaspora
 ''';
 
-    SharePlus.instance.share(
-      ShareParams(text: shareText.trim(), subject: event.title),
+    // Une discussion est une destination de partage comme une autre : avant,
+    // « Partager » n'ouvrait que la feuille système.
+    final link = DeepLinkService.instance.generateEventLink(
+      event.id,
+      eventTitle: event.title,
+      imageUrl: event.posterUrls.isNotEmpty ? event.posterUrls.first : null,
+      date: event.startDate,
+    );
+
+    ShareOptionsSheet.show(
+      context,
+      url: link,
+      subject: event.title,
+      externalText: '${shareText.trim()}\n$link',
+      chatContent: ChatShareContent.event(
+        eventId: event.id,
+        title: event.title,
+        startDate: event.startDate,
+        location: event.location,
+        isOnline: event.isOnline,
+        imageUrl:
+            event.posterUrls.isNotEmpty ? event.posterUrls.first : null,
+        message: '📅 ${event.title}',
+      ),
     );
   }
 }

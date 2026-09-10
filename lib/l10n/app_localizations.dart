@@ -29653,6 +29653,60 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Nom, pays ou ville'**
   String get embassySearchHint;
+
+  /// No description provided for @shareToChatTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer dans une discussion'**
+  String get shareToChatTitle;
+
+  /// No description provided for @shareToChatSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes et messages privés'**
+  String get shareToChatSubtitle;
+
+  /// No description provided for @pickerTapToSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appuyez pour envoyer'**
+  String get pickerTapToSend;
+
+  /// No description provided for @pickerSelectConversations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionnez les discussions'**
+  String get pickerSelectConversations;
+
+  /// No description provided for @pickerContentSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyé'**
+  String get pickerContentSent;
+
+  /// No description provided for @pickerContentPartiallySent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Certains envois n\'ont pas abouti'**
+  String get pickerContentPartiallySent;
+
+  /// No description provided for @privateMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message privé'**
+  String get privateMessage;
+
+  /// No description provided for @shareProfileChatMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvre le profil de {name} sur Diaspo Niger\n{link}'**
+  String shareProfileChatMessage(String name, String link);
+
+  /// No description provided for @shareLinkChatMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'« {title} » sur Diaspo Niger\n{link}'**
+  String shareLinkChatMessage(String title, String link);
 }
 
 class _AppLocalizationsDelegate
