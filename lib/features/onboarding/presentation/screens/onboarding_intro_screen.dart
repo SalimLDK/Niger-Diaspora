@@ -79,6 +79,9 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
       description: l10n.onbConnectedBody,
       illustrationCaption: l10n.onbConnectedIllustration,
       illustration: const ConnectedIllustration(),
+      // Bandeau plat : c'est la place ainsi gagnée qui fait tenir la
+      // divulgation sans défilement.
+      illustrationAspectRatio: 3.2,
     ),
   ];
 

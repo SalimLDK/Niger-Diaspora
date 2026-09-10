@@ -76,10 +76,22 @@ aucune historisation, `user_locations` etant declaree mais jamais ecrite.
 
 Reste a voir sur un ecran :
 
-- [ ] **Onboarding 5/5** — hors de portee sans changer de compte sur le
-      telephone : `has_seen_onboarding` est un booleen local **indexe par
-      userId**, et le routeur renvoie `/onboarding/intro` sur /home des qu'il
-      est vrai. Un lien profond n'y donne pas acces.
+- [x] **Onboarding 5/5** — vu, via l'echappatoire routeur documentee dans
+      [[project_device_testing]] (patch temporaire, jamais committe : un lien
+      profond ne suffit pas, `has_seen_onboarding` est un booleen local indexe
+      par userId et le routeur renvoie la route sur /home des qu'il est vrai).
+
+      **La premiere mesure a trouve le defaut** : le bloc de divulgation
+      tombait **sous la ligne de flottaison** — seul le sous-titre corrige de
+      l'interrupteur etait visible, et c'est cette page que Google
+      photographie. Corrige en aplatissant l'illustration du dernier ecran en
+      bandeau (`illustrationAspectRatio: 3.2`), ce qui libere ~230 px : le
+      paragraphe et le lien vers la politique tiennent desormais juste
+      au-dessus de « Commencer ». Remesure sur l'appareil.
+
+      La ligne « Vos messages sont chiffres de bout en bout », elle, passe
+      maintenant sous la ligne de flottaison. Arbitrage assume : l'une est une
+      exigence de Play, l'autre une reassurance.
 - [ ] **Theme sombre** sur la feuille et le bloc d'onboarding.
 - [ ] **Admin > Fonctionnalites** : la ligne Podcasts grisee.
 
