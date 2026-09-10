@@ -24,10 +24,36 @@ class GsmCallService {
   /// Stream des événements d'appels GSM
   Stream<GsmCallEvent> get gsmCallEvents => _gsmCallController.stream;
 
+  /// Le canal natif est-il implémenté ?
+  ///
+  /// **Non**, et pas « pas encore prêt » : `com.diasponiger.diaspo_niger/gsm_state`
+  /// n'existe nulle part dans `android/app/src/main` — aucun `EventChannel`
+  /// correspondant n'est enregistré côté Kotlin/Java. Écouter ce canal ne peut
+  /// donc qu'échouer.
+  ///
+  /// Et l'échec n'était **pas** rattrapable là où il était écrit. Le
+  /// `try/catch` autour de `.listen()` et le `onError` du flux ne voient rien :
+  /// `EventChannel.receiveBroadcastStream` signale un échec d'activation par
+  /// `FlutterError.reportError` (cf. `platform_channel.dart:713`), qui part
+  /// directement dans `FlutterError.onError` — donc dans Crashlytics. Constaté
+  /// le 2026-09-10 : *MissingPluginException (No implementation found for
+  /// method listen on channel …/gsm_state)*, 3 occurrences.
+  ///
+  /// Tant que l'implémentation native n'existe pas, on n'active pas le canal.
+  /// Le jour où elle arrive, il suffit de passer ce drapeau à `true`.
+  static const bool _canalNatifImplemente = false;
+
   /// Démarre l'écoute des événements d'appels GSM
   void startListening() {
     // GSM call detection n'est supporté que sur Android
     if (!Platform.isAndroid) return;
+
+    if (!_canalNatifImplemente) {
+      debugPrint(
+        'GsmCallService: canal natif absent, détection GSM désactivée',
+      );
+      return;
+    }
 
     // Éviter les doublons
     if (_subscription != null) return;

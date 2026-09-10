@@ -151,10 +151,18 @@ Ce que la mesure a donné, et qui réduit beaucoup la portée du problème :
 - Les 8 autres comptes à `false` n'ont **aucun** document Firestore : leur
   `false` n'est pas périmé, il est vrai. Rien à reprendre pour eux.
 
-`supabase/migrations/20260910070000_reprise_drapeaux_onboarding_firestore.sql`
+`supabase/migrations/20260910071000_reprise_drapeaux_onboarding_firestore.sql`
 monte donc **une seule ligne**, par `or` colonne par colonne (jamais une
 affectation sèche) et `coalesce` sur `consent_date` : rejouer la migration ne
 change rien, et aucun drapeau ne peut redescendre.
+
+✅ **Appliquée en base le 2026-09-10** (`supabase db push`), et revérifiée
+après coup : la ligne porte les quatre drapeaux à `true` et
+`consent_date = 2026-08-13 22:29:10.098+00`. Les compteurs de `public.users`
+ont bougé d'exactement un, sur les quatre colonnes à la fois — `has_seen_onboarding`
+8→9, `has_seen_coach_marks` 5→6, `has_given_consent` 9→10,
+`profile_config_complete` 8→9, sur 17 comptes. Rien d'autre n'a bougé. Il ne
+reste donc que la vérification côté téléphone.
 
 ⚠️ **« Sim A » (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), le compte de la section
 ci-dessus, lit aujourd'hui `true` partout** — il a rejoué l'onboarding le
@@ -167,10 +175,10 @@ l'onboarding refait.
 À vérifier sur appareil :
 
 - [ ] **Le compte repris ne rejoue plus rien** : se connecter avec
-      `czk5UoUclLOFmbRtUIZ5XYLYKo52` après `supabase db push`, sur un
-      téléphone où l'app vient d'être **désinstallée** (le cache local
-      masquerait le résultat). Attendu : `/home` directement, ni consentement,
-      ni assistant de profil, ni les 5 écrans d'intro.
+      `czk5UoUclLOFmbRtUIZ5XYLYKo52` sur un téléphone où l'app vient d'être
+      **désinstallée** (le cache local masquerait le résultat — `adb install -r`
+      ne suffit pas). Attendu : `/home` directement, ni consentement, ni
+      assistant de profil, ni les 5 écrans d'intro.
 - [ ] **Ce compte n'a pas de `display_name`** (`handle = 'diaspo_ne'` et
       `country_code = 'NE'` sont posés, le nom non) : l'assistant de profil a
       tourné le 2026-08-13 sans que tout arrive en base. Monter
@@ -14172,6 +14180,62 @@ Les piles **Dart** sont lisibles (R8 n'y touche pas), les piles **Android** ne
 l'étaient pas. La prochaine version donnera un vrai nom de classe.
 
 - [ ] **Vérifier après publication** qu'une pile Android arrive déobfusquée.
+
+---
+
+## ⬜ Les quatre défauts de la console, triés par appareil (2026-09-10)
+
+Suite de la lecture de Crashlytics. **Le détail par appareil change les
+priorités** — la liste seule était trompeuse, et je l'avais présentée comme
+telle.
+
+| Problème | Volume | Qui est touché |
+|---|---|---|
+| `RenderFlex overflowed by 100 px` | 21 évts | **1 utilisateur, Pixel 10 Pro XL / Android 17** |
+| `GoError: There is nothing to pop` | 19 évts | même profil |
+| `google_fonts` — `Failed host lookup` | 4 évts, **3 users** | **75 % OnePlus 8 Pro / Android 11** |
+| `MissingPluginException` `gsm_state` | 3 évts | — |
+| `ForegroundServiceStartNotAllowedException` | 2 évts | Pixel |
+
+**Le Pixel 10 Pro XL sous Android 17, c'est l'appareil de test.** Les deux plus
+gros volumes (RenderFlex, GoError) ne viennent donc pas d'utilisateurs réels
+mais de nos propres parcours. Ça ne les rend pas faux — mais ça les fait passer
+derrière le seul qui touche du monde extérieur.
+
+**✅ `gsm_state` — corrigé.**
+[gsm_call_service.dart](lib/core/services/gsm_call_service.dart) écoutait
+`com.diasponiger.diaspo_niger/gsm_state`, un `EventChannel` qui **n'existe pas**
+côté natif (aucun enregistrement dans `android/app/src/main`). Le `try/catch` et
+le `onError` du flux ne pouvaient rien y faire : `receiveBroadcastStream`
+signale un échec d'activation par `FlutterError.reportError`
+(`platform_channel.dart:713`), qui va droit dans Crashlytics. L'écoute est
+désormais derrière un drapeau `_canalNatifImplemente = false`, à repasser à
+`true` le jour où le natif arrive.
+
+**✅ `ForegroundServiceStartNotAllowedException` — déjà corrigé**, rien à faire :
+le `BootReceiver` du plugin a été retiré du manifeste le 2026-09-09
+(`tools:node="remove"`) précisément pour ça. Les 2 occurrences sont antérieures
+et disparaîtront à la prochaine publication.
+
+- [ ] **`google_fonts` — le seul qui touche de vrais utilisateurs.** Aucune
+  police n'est embarquée (`pubspec.yaml` n'a pas de section `fonts:`, aucun
+  `.ttf` dans `assets/`) et `GoogleFonts.config.allowRuntimeFetching` n'est pas
+  réglé : **chaque appareil télécharge les polices depuis `fonts.gstatic.com` au
+  démarrage**. Sur réseau instable, l'appel échoue. Le rendu retombe sur la
+  police système — donc pas d'écran cassé, mais la typo de marque saute, et
+  l'erreur remontait.
+  Le correctif robuste est d'**embarquer les polices dans les assets** et de
+  couper `allowRuntimeFetching`. Non appliqué : il faut choisir les fichiers
+  `.ttf` et accepter les mégaoctets ajoutés à l'APK — c'est une décision, pas
+  une correction évidente.
+- [ ] **`RenderFlex` (21) et `GoError` (19)** : appareil de test uniquement.
+  Aucun des deux n'est diagnosticable en l'état — la pile s'arrête à
+  `main.dart:172`/`184`, c'est-à-dire au **gestionnaire d'erreurs**, jamais au
+  widget ni au `context.pop()` fautif. ⚠️ Le problème « RenderFlex » est en
+  réalité un **fourre-tout** : sa fiche contient aussi un avertissement
+  `ListTile background color or ink splashes may be invisible`, sans rapport.
+  Crashlytics regroupe par pile, et toutes les erreurs Flutter partagent la
+  même — celle du gestionnaire. Y toucher demande d'abord de les distinguer.
 
 ---
 
