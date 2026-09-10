@@ -53,16 +53,24 @@ Corrigé des deux côtés : `autoStartOnBoot: false`
 qu'après le premier lancement de l'app, ce qui laisse sans lui une fenêtre
 ouverte juste après une mise à jour.
 
-À vérifier sur **Pixel 10 Pro XL** avec le build corrigé :
+Vérifié sur **Pixel 10 Pro XL (Android 17)** avec le build corrigé
+(`96205c16…bebc`, installé à 20:38) :
 
-- [ ] `adb install -r` du nouvel APK **ne fait plus planter** l'app
-      (`MY_PACKAGE_REPLACED`) : `adb logcat -b crash` ne gagne aucune
-      `FATAL EXCEPTION` dans la minute qui suit.
-- [ ] `am force-stop` puis lancement : pas de plantage, pas de boîte
-      « s'arrête systématiquement ».
+- [x] `adb install -r` du nouvel APK **ne fait plus planter** l'app
+      (`MY_PACKAGE_REPLACED`) : `adb logcat -b crash` reste à 0
+      `FATAL EXCEPTION` douze secondes après.
+- [x] `am force-stop` puis lancement : pas de plantage, `MainActivity` au
+      premier plan, toujours 0 `FATAL EXCEPTION`.
+- [x] Preuve indépendante que la suppression a bien pris :
+      `adb shell dumpsys package com.diasponiger.diasponiger | grep -i
+      BootReceiver` ne rend **rien** — le receiver n'est plus enregistré chez
+      Android. Il l'était avant.
+
+Restent à faire, l'un et l'autre à la main :
+
 - [ ] ⚠️ **Redémarrage réel du téléphone** — le seul chemin qui rejoue
       vraiment BOOT_COMPLETED (`am broadcast … BOOT_COMPLETED` est refusé au
-      shell : « Permission Denial »). À faire à la main.
+      shell : « Permission Denial »).
 - [ ] Le partage de position continu **démarre toujours** quand on l'active
       dans l'app (c'est la seule chose que le receiver retiré aurait pu
       fournir, et il ne la fournissait qu'au boot).
@@ -98,15 +106,57 @@ Corrigé en remettant l'expéditeur dans la liste quand elle est vide :
 `distributeSenderKeyToGroup` écarte déjà l'expéditeur de ses destinataires
 (`sender_key_service.dart:189`), donc la distribution ne vise personne.
 
-À vérifier avec le build corrigé :
+Vérifié sur **SM A515F** avec le build corrigé, dans le groupe même qui
+refusait une heure plus tôt (« Groupe de test privé », 1 membre) :
 
-- [ ] Créer un groupe, ne pas inviter, envoyer un message : il part
-      (`Envoyé`), et il est toujours là après avoir quitté puis rouvert.
+- [x] Envoi dans un groupe où l'on est seul : `GRP-FIX-2041` passe à
+      **`À l'instant · Envoyé`** (20:40), là où `ECHO-A-1944` restait en
+      « Non envoyé » à 19:44 sur le même groupe et le même compte.
+- [x] Il est **réellement parti côté serveur**, pas seulement affiché : la
+      liste des discussions montre « Groupe de test privé — 20:40 — Vous:
+      GRP-FIX-2041 » et le groupe est remonté en tête. C'est
+      `_updateConversationLastMessage`, qui ne s'exécute qu'après l'insert.
+      À l'échec de 19:44, cette même ligne était restée sur « 30 août ».
+- [x] Quitter la discussion, y revenir : la bulle est toujours là, **en
+      clair** (20:42) — l'aller-retour Sender Key du chiffrement de groupe
+      tient.
+
+Restent à faire :
+
 - [ ] Ajouter un second membre, envoyer : le message est **lisible des deux
-      côtés** (c'est le vrai chemin Sender Key, jamais exercé jusqu'ici — voir
-      la section « écho temps réel » ci-dessus).
+      côtés** (c'est le vrai chemin Sender Key vers autrui, jamais exercé —
+      voir la section « écho temps réel » ci-dessus). Bloqué ce soir : le
+      Pixel s'est retrouvé déconnecté (voir la section suivante).
 - [ ] Les envois de **médias** en groupe : le provider ne leur passe aucun
       `participantIds`, à regarder de près (chemin non instruit ici).
+
+---
+
+## ⛔ Le Pixel s'est retrouvé DÉCONNECTÉ pendant la passe (2026-09-09, 20:39)
+
+À signaler avant tout : le Pixel 10 Pro XL porte le **vrai compte** de Salim
+(Salim L., administrateur). Il est ressorti de cette passe sur l'écran
+« Bon retour » — session perdue. La reconnexion passe par le SSO Google, donc
+par sa main : rien n'a été tenté.
+
+Ce qu'on sait, et ce qu'on ne sait pas :
+
+- il était connecté à 19:51 (fiche du groupe « Testeurs » affichée) ;
+- entre 20:01 et 20:02 il a planté deux fois (voir la section BootReceiver) ;
+- à 20:38 il a reçu `adb install -r` du build corrigé, puis un
+  `am force-stop` + relance ; à 20:39 il affichait l'écran de connexion ;
+- **le SM A515F a reçu exactement le même `install -r` à la même minute et a
+  gardé sa session** (« Bonjour, Sim »). L'installation seule ne suffit donc
+  pas à l'expliquer.
+
+Aucun bandeau « Connecté ailleurs » à l'écran. Cause non isolée : le plantage
+répété, l'expiration de la session Supabase, ou la règle « une seule session
+par compte » sont toutes plausibles et aucune n'est établie. À reprendre si
+ça se reproduit — et à ne pas confondre avec le piège déjà documenté du
+`flutter clean` + `install -r`, qui n'a pas eu lieu ici.
+
+Conséquence immédiate : **tout test à deux appareils est bloqué** (écho de
+groupe entre deux comptes, QR affiché sur l'un et scanné par l'autre).
 
 ---
 
