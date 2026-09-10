@@ -14,6 +14,68 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)
+
+Troisième refus Google Play sur le même terrain, cette fois nommément :
+« Inadequate Prominent Disclosure — The in-app Prominent Disclosure does not
+disclose the usage of accessed or collected Location data », capture jointe
+`IN_APP_EXPERIENCE-9805.png` = l'écran 5/5 de l'onboarding. La seule mention
+de position y disait « Réciproque : vous voyez ceux qui partagent » : un
+bénéfice, jamais une collecte.
+
+Ce qui a été posé (`lib/core/widgets/location_disclosure.dart`) :
+
+- `LocationDisclosureNotice`, bloc de texte **sur l'écran d'onboarding**, sous
+  les deux interrupteurs ;
+- `afficherDivulgationLocalisation(context)`, feuille modale avec
+  « Accepter et continuer » / « Non, merci », affichée **avant** la boîte
+  système ;
+- `demanderLocalisationAvecDivulgation(context)`, la porte d'entrée unique :
+  elle ne montre la feuille que si le système va réellement poser la question.
+
+Câblée sur les quatre chemins qui déclenchent la demande : onboarding 5/5,
+Accueil (`_loadData`), Carte (`_getCurrentLocation`), et le Mode Voyage du
+profil — celui-ci avec la variante « même lorsque l'application est fermée ou
+n'est pas utilisée », exigée parce que son service publie une position toutes
+les 5 minutes hors premier plan.
+
+Vérifié par `test/core/divulgation_localisation_test.dart` (structure + texte).
+Rien de tout ça n'a été vu sur un écran.
+
+- [ ] **Onboarding 5/5** : le bloc de divulgation tient-il sur l'écran sans
+      défilement, sur un petit téléphone et en échelle de police augmentée ?
+      (`onboarding_intro_screen.dart`, la page est déjà dans un
+      `SingleChildScrollView` — le risque est qu'il passe sous la ligne de
+      flottaison, pas qu'il déborde.)
+- [ ] **Appui sur « Commencer » avec Localisation activée** : la feuille
+      s'ouvre-t-elle **avant** la boîte système Android ? « Non, merci » doit
+      n'ouvrir aucune boîte et laisser entrer dans l'application.
+- [ ] **Parcours de l'examinateur** : passer l'onboarding (« Passer », puis
+      « Plus tard, sans autorisations »), puis ouvrir l'Accueil et la Carte —
+      la feuille doit apparaître là aussi, avant toute boîte système.
+- [ ] **Mode Voyage** (profil, section Paramètres) : la feuille porte-t-elle
+      bien la phrase « même lorsque l'application est fermée ou n'est pas
+      utilisée » ? Un refus doit laisser l'interrupteur éteint.
+- [ ] **Thème sombre** sur la feuille et sur le bloc de l'onboarding (jetons
+      adaptatifs, jamais `AppColors` en dur).
+- [ ] **Lien « Lire la politique de confidentialité »** depuis la feuille
+      pendant l'onboarding : `/settings/privacy` est censé échapper aux
+      redirections du routeur, à confirmer avant que le profil soit complet.
+
+⚠️ Deux points **hors code**, à faire dans la Play Console avant de renvoyer :
+le formulaire *Data safety* doit déclarer la localisation comme collectée
+**et partagée**, et la politique de confidentialité doit la décrire. Le refus
+porte sur l'in-app, mais les trois doivent concorder.
+
+⚠️ Reste ouvert : `users.latitude/longitude` stocke la position **exacte**,
+non arrondie, et la carte l'affiche telle quelle. La puce d'onboarding
+« Position approximative, jamais l'adresse exacte » affirmait donc quelque
+chose de faux — elle a été remplacée par « Partage facultatif, que vous coupez
+quand vous voulez ». Si la promesse d'approximation est voulue, il faut
+l'implémenter (arrondi avant écriture), pas la réécrire.
+
+---
+
 ## ⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)
 
 Signalé par Salim : « l'acceptation et exit dans les groupes ne sont pas mis à

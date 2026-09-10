@@ -39,6 +39,7 @@ import '../../../../features/map/presentation/utils/marker_image_loader.dart';
 import '../../domain/nearby_member_filter.dart';
 import '../widgets/map_legend.dart';
 import '../widgets/map_search_bar.dart';
+import '../../../../core/widgets/location_disclosure.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -435,6 +436,35 @@ class _MapScreenState extends ConsumerState<MapScreen>
       // Sans `await` : le point GPS frais est demandé en parallèle.
       unawaited(_loadNearbyMembers(known.latitude, known.longitude));
       unawaited(_loadNearbyBusinesses(known.latitude, known.longitude));
+    }
+
+    // Divulgation préalable avant que le système ne pose la question :
+    // `getCurrentPosition` demande l'autorisation lui-même, et la carte est
+    // l'écran où l'on arrive sans être passé par l'onboarding. Un refus suit
+    // le même chemin qu'une permission refusée, traité par le `catch`.
+    final localisationAutorisee = await demanderLocalisationAvecDivulgation(
+      context,
+    );
+    if (!mounted) return;
+    if (!localisationAutorisee) {
+      // Même sortie qu'une permission refusée plus bas : sans position, la
+      // carte annonce la réciprocité ; avec une position en cache, elle la
+      // garde et lance le suivi.
+      setState(() {
+        _isLoading = false;
+        if (_currentPosition == null) {
+          _isReciprocityRestricted = true;
+          _nearbyMembers = [];
+        }
+      });
+      if (_currentPosition == null) {
+        _updateMarkers();
+      } else {
+        _startPositionStream();
+        _startMemberUpdatesStream();
+        _startMembersRefreshTimer();
+      }
+      return;
     }
 
     try {

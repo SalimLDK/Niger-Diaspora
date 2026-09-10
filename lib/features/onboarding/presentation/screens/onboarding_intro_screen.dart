@@ -7,6 +7,7 @@ import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../providers/onboarding_provider.dart';
 import '../../../../core/theme/design_kit.dart';
+import '../../../../core/widgets/location_disclosure.dart';
 import '../widgets/onboarding_illustrations.dart';
 import '../widgets/onboarding_page.dart';
 
@@ -101,15 +102,28 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
 
   /// Dernier écran : ne demande que les autorisations laissées activées. Un
   /// refus système ne bloque jamais l'entrée dans l'application.
+  ///
+  /// La localisation passe d'abord par la divulgation préalable exigée par
+  /// Google Play : elle doit s'afficher **avant** la boîte système et se
+  /// conclure par une acceptation explicite. Un refus n'appelle donc rien du
+  /// tout — l'interrupteur retombe et on entre quand même dans l'application.
   Future<void> _completeWithPermissions() async {
     if (_requestingPermissions) return;
+
+    var location = _wantLocation;
+    if (location) {
+      location = await afficherDivulgationLocalisation(context);
+      if (!mounted) return;
+      if (!location) setState(() => _wantLocation = false);
+    }
+
     setState(() => _requestingPermissions = true);
     if (_wantNotifications) {
       try {
         await LocationService.instance.requestNotificationPermission();
       } catch (_) {}
     }
-    if (_wantLocation) {
+    if (location) {
       try {
         await LocationService.instance.requestLocationPermission();
       } catch (_) {}
@@ -166,7 +180,11 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 12),
+        // Divulgation préalable, sur l'écran même : c'est cette page que
+        // Google a photographiée en refusant l'envoi du 2026-09-09.
+        const LocationDisclosureNotice(),
+        const SizedBox(height: 12),
         DesignInfoLine(
           icon: Icons.lock_outline,
           text: l10n.e2eeFooterNote,

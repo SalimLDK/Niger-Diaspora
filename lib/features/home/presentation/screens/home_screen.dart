@@ -34,6 +34,7 @@ import '../providers/home_provider.dart';
 import '../widgets/home_section_header.dart';
 import '../widgets/home_empty_state_card.dart';
 import '../widgets/home_event_card.dart';
+import '../../../../core/widgets/location_disclosure.dart';
 
 part 'home_screen_widgets.dart';
 
@@ -421,6 +422,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         }
       } catch (_) {
         // Aucune position en cache : le point frais ci-dessous prend le relais.
+      }
+
+      // Divulgation préalable avant que le système ne pose la question :
+      // `getCurrentPosition` demande l'autorisation lui-même, et cet écran est
+      // le premier que voit qui a passé l'onboarding sans rien accorder.
+      // Refuser vaut permission refusée — la section « membres autour » reste
+      // vide, rien n'est demandé au système.
+      if (!mounted) return;
+      final localisationAutorisee = await demanderLocalisationAvecDivulgation(
+        context,
+      );
+      if (!mounted) return;
+      if (!localisationAutorisee) {
+        if (!hasEarlyPosition) {
+          setState(() => _locationError = 'localisation_non_autorisee');
+        }
+        return;
       }
 
       // Tenter d'obtenir la position actuelle pour mettre à jour

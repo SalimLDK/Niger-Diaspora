@@ -6200,7 +6200,7 @@
   "@onbMembersIllustration": {
     "description": "Legende de l emplacement d illustration 2/5"
   },
-  "onbMembersBullet1": "Approximate location, never the exact address",
+  "onbMembersBullet1": "Optional sharing, you can switch it off whenever you want",
   "@onbMembersBullet1": {
     "description": "Reassurance 2/5"
   },
@@ -6264,7 +6264,7 @@
   "@onbNotificationsSubtitle": {
     "description": "Sous-titre de l autorisation notifications"
   },
-  "onbLocationSubtitle": "Reciprocal: you see those who share",
+  "onbLocationSubtitle": "Place you on the map and see nearby members",
   "@onbLocationSubtitle": {
     "description": "Sous-titre de l autorisation localisation"
   },
@@ -7071,5 +7071,15 @@
         "type": "String"
       }
     }
-  }
+  },
+  "locationDisclosureTitle": "How Diaspo Niger uses your location",
+  "locationDisclosureBody": "Diaspo Niger collects location data to place you on the member map and show you members, groups, businesses and events near you. Your position is then visible to other members of the app. It is only collected while you are using Diaspo Niger, and you can stop sharing at any time in Settings.",
+  "locationDisclosureShort": "Diaspo Niger collects location data to place you on the member map and show you what is happening near you. Your position becomes visible to other members. It is only collected while you are using the app, and you can stop sharing at any time in Settings.",
+  "locationDisclosureBackgroundTitle": "Continuous location sharing",
+  "locationDisclosureBackgroundBody": "Travel Mode collects location data to keep you visible on the member map, even when the app is closed or not in use. Your position is sent every 5 minutes and stays visible to other Diaspo Niger members. You can stop sharing at any time from your profile.",
+  "locationDisclosureAccept": "Accept and continue",
+  "locationDisclosureDecline": "No thanks",
+  "locationDisclosureReadPolicy": "Read the privacy policy",
+  "travelModeSubtitle": "Share my location even when the app is closed (updated every 5 min)",
+  "locationPermissionOpenSettings": "Permission permanently denied. Turn it on in your phone settings."
 }
