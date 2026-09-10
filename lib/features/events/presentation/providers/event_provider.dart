@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../../core/network/network_info.dart';
 import '../../data/datasources/event_remote_datasource.dart';
+import '../../data/datasources/event_supabase_datasource.dart';
 import '../../data/repositories/event_repository_impl.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../domain/repositories/event_repository.dart';
@@ -11,7 +12,12 @@ part 'event_provider.g.dart';
 
 @riverpod
 EventRemoteDataSource eventRemoteDataSource(Ref ref) {
-  return EventRemoteDataSourceImpl();
+  // Supabase depuis le 2026-09-09. Le module lisait Firestore pendant que le
+  // back-office admin ecrivait `public.events` : un evenement cree d'un cote
+  // n'existait pas de l'autre, et un lien `/events/<uuid>` ne pouvait jamais
+  // s'ouvrir. `EventRemoteDataSourceImpl` (Firestore) reste dans le depot le
+  // temps que la bascule soit confirmee sur appareil.
+  return EventSupabaseDataSource();
 }
 
 @riverpod

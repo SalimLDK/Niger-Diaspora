@@ -167,7 +167,7 @@ produit **aucune erreur**, ni à l'écran ni dans logcat.
 
 ---
 
-## ⚠️ Événements sur Supabase — migration APPLIQUÉE, provider pas branché (2026-09-09)
+## ⚠️ Événements sur Supabase — provider BASCULÉ, une migration à appliquer (2026-09-09)
 
 Décision de Salim : `public.events` fait foi. Le module Événements lisait
 Firestore pendant que le back-office admin écrivait dans Supabase.
@@ -204,6 +204,45 @@ dont deux ne dépendent pas de moi.
    `attendeeIds.length >= maxAttendees` n'aurait **jamais** annoncé un
    événement complet ; et l'enum Dart dit `completed` là où la contrainte de
    base dit `ended` — traduit dans le datasource, pas dans la base.
+
+**⚠️ BLOCAGE DUR : `supabase db push` n'a PAS été lancé.** Le
+classificateur de permissions de Claude Code le refuse, et je ne le contourne
+pas. `20260910010000_reprise_evenement_firestore.sql` est écrite et rejouée en
+transaction annulée (elle passe : 3 événements, 1 inscription, compteur à 1),
+mais elle attend.
+
+**Tant qu'elle n'est pas appliquée, ne pas livrer d'APK depuis cette
+branche** : le provider est déjà basculé sur Supabase, donc « Participer » et
+la création d'un événement échouent (voir le trigger ci-dessous). Les
+**lectures**, elles, fonctionnent : `20260910003000` est déjà en place.
+
+```bash
+supabase db push   # une seule migration en attente
+```
+
+**Ce que la répétition à blanc a trouvé, et qui ne se devine pas.**
+`update_event_attendee_count()` teste `NEW.status = 'going'` alors que
+`event_attendees` n'a que `(event_id, user_id, joined_at)` — **aucune colonne
+`status`**. Tout INSERT partait en `42703: record "new" has no field
+"status"`. S'inscrire à un événement était donc impossible **depuis toujours**,
+pour tout le monde ; personne ne l'avait vu parce que rien n'écrit encore dans
+cette table. Le défaut se serait réveillé au premier « Participer » après la
+bascule. La migration réécrit la fonction sur la table telle qu'elle est — une
+ligne = un participant — et resynchronise `attendee_count`, qui ne reflétait
+rien.
+
+**Inventaire Firestore, fait pour de vrai** (API REST + `gcloud auth
+print-access-token`, et non « l'écran est vide ») : la collection `events`
+contient **un seul document**, `LmCs74hv84NSbKM7TDrx` — « testeur », organisé
+par Sim A, rattaché à une conversation, daté du 2026-08-24. La migration le
+reprend. Le document Firestore n'est **pas** supprimé : c'est la copie de
+secours tant que la recette n'est pas passée.
+
+⚠️ **Et c'est un défaut d'affichage à lui tout seul** : cet événement
+n'apparaît dans **aucun** des deux onglets. « À venir » filtre
+`startDate >= now` (il est passé), « Passés » filtre `status == 'completed'`
+(il est resté `upcoming`). Un événement dont personne ne change le statut
+disparaît de l'écran. Non corrigé.
 
 - [ ] Une fois la migration appliquée et le provider basculé : créer un
       événement depuis l'app, le retrouver dans le back-office admin, et
