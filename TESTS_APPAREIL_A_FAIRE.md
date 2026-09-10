@@ -14076,6 +14076,62 @@ l'étaient pas. La prochaine version donnera un vrai nom de classe.
 
 ---
 
+## ⬜ Les quatre défauts de la console, triés par appareil (2026-09-10)
+
+Suite de la lecture de Crashlytics. **Le détail par appareil change les
+priorités** — la liste seule était trompeuse, et je l'avais présentée comme
+telle.
+
+| Problème | Volume | Qui est touché |
+|---|---|---|
+| `RenderFlex overflowed by 100 px` | 21 évts | **1 utilisateur, Pixel 10 Pro XL / Android 17** |
+| `GoError: There is nothing to pop` | 19 évts | même profil |
+| `google_fonts` — `Failed host lookup` | 4 évts, **3 users** | **75 % OnePlus 8 Pro / Android 11** |
+| `MissingPluginException` `gsm_state` | 3 évts | — |
+| `ForegroundServiceStartNotAllowedException` | 2 évts | Pixel |
+
+**Le Pixel 10 Pro XL sous Android 17, c'est l'appareil de test.** Les deux plus
+gros volumes (RenderFlex, GoError) ne viennent donc pas d'utilisateurs réels
+mais de nos propres parcours. Ça ne les rend pas faux — mais ça les fait passer
+derrière le seul qui touche du monde extérieur.
+
+**✅ `gsm_state` — corrigé.**
+[gsm_call_service.dart](lib/core/services/gsm_call_service.dart) écoutait
+`com.diasponiger.diaspo_niger/gsm_state`, un `EventChannel` qui **n'existe pas**
+côté natif (aucun enregistrement dans `android/app/src/main`). Le `try/catch` et
+le `onError` du flux ne pouvaient rien y faire : `receiveBroadcastStream`
+signale un échec d'activation par `FlutterError.reportError`
+(`platform_channel.dart:713`), qui va droit dans Crashlytics. L'écoute est
+désormais derrière un drapeau `_canalNatifImplemente = false`, à repasser à
+`true` le jour où le natif arrive.
+
+**✅ `ForegroundServiceStartNotAllowedException` — déjà corrigé**, rien à faire :
+le `BootReceiver` du plugin a été retiré du manifeste le 2026-09-09
+(`tools:node="remove"`) précisément pour ça. Les 2 occurrences sont antérieures
+et disparaîtront à la prochaine publication.
+
+- [ ] **`google_fonts` — le seul qui touche de vrais utilisateurs.** Aucune
+  police n'est embarquée (`pubspec.yaml` n'a pas de section `fonts:`, aucun
+  `.ttf` dans `assets/`) et `GoogleFonts.config.allowRuntimeFetching` n'est pas
+  réglé : **chaque appareil télécharge les polices depuis `fonts.gstatic.com` au
+  démarrage**. Sur réseau instable, l'appel échoue. Le rendu retombe sur la
+  police système — donc pas d'écran cassé, mais la typo de marque saute, et
+  l'erreur remontait.
+  Le correctif robuste est d'**embarquer les polices dans les assets** et de
+  couper `allowRuntimeFetching`. Non appliqué : il faut choisir les fichiers
+  `.ttf` et accepter les mégaoctets ajoutés à l'APK — c'est une décision, pas
+  une correction évidente.
+- [ ] **`RenderFlex` (21) et `GoError` (19)** : appareil de test uniquement.
+  Aucun des deux n'est diagnosticable en l'état — la pile s'arrête à
+  `main.dart:172`/`184`, c'est-à-dire au **gestionnaire d'erreurs**, jamais au
+  widget ni au `context.pop()` fautif. ⚠️ Le problème « RenderFlex » est en
+  réalité un **fourre-tout** : sa fiche contient aussi un avertissement
+  `ListTile background color or ink splashes may be invisible`, sans rapport.
+  Crashlytics regroupe par pile, et toutes les erreurs Flutter partagent la
+  même — celle du gestionnaire. Y toucher demande d'abord de les distinguer.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
