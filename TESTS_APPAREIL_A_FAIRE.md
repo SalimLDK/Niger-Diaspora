@@ -66,14 +66,45 @@ redescend jamais un drapeau. Verrouillé par
       ordre. C'est le cas que le repli optimiste pourrait avaler ; le test
       « les quatre lectures rendent false » le couvre en unitaire, pas en
       vrai.
-- [ ] **La reproduction hors ligne, rejouée après correctif** : compte « Sim A »
-      connecté, mode avion, rechargement forcé. Attendu : `/home`, aucun écran
-      d'onboarding. C'est le scénario exact qui donnait le carrousel de
-      bienvenue (section plus bas) — le seul qui prouve le correctif, parce
-      qu'il est le seul reproductible à volonté.
-- [ ] **Le même, mais sur un compte dont aucun drapeau n'est en cache local**
-      (compte neuf sur ce téléphone, puis mode avion) : là c'est `/consent` qui
-      tombait, pas l'intro. Vérifier qu'il ne tombe plus.
+⛔ **La reproduction hors ligne ne se rejoue plus telle quelle, et c'est le
+piège de ce test.** En tapant « Passer » le 2026-09-10, `completeIntro()` a
+écrit le drapeau **des deux côtés** — base *et* SharedPreferences. Or le dépôt
+consulte le local en premier : sur « Sim A », `has_seen_onboarding` est
+désormais vrai en cache, donc **plus aucun appel réseau n'est émis** pour ce
+drapeau. Mode avion ou pas, il n'y a plus rien à observer. Un « ça ne fait plus
+le bug » mesuré comme ça ne prouve **rien** : le correctif n'est même pas
+sollicité.
+
+Pour que le correctif soit sollicité, il faut réunir les trois à la fois :
+authentifié, **drapeau local absent**, réseau coupé. Le drapeau local ne
+s'efface ni par `adb install -r` (qui conserve les données) ni depuis ce poste
+(build release, `run-as` refusé). Il faut donc `pm clear`, qui emporte aussi la
+session Firebase — **et une reconnexion, qui ne peut être faite que par
+l'utilisateur au téléphone.**
+
+- [ ] **Le test décisif** (demande une reconnexion manuelle) :
+      1. `adb -s R58N91XBA7B install -r <apk>` — l'APK doit être signé avec
+         `android/app/diaspo-niger-release.jks`, sinon la signature diffère et
+         Android impose une désinstallation ;
+      2. `adb -s R58N91XBA7B shell pm clear com.diasponiger.diasponiger` ;
+      3. **l'utilisateur se reconnecte** sur un compte dont
+         `has_seen_onboarding` vaut **`false`** en base. Le drapeau restant
+         faux côté serveur, il n'est jamais recopié en local : la condition
+         « local absent » se maintient toute seule, autant de fois qu'on veut.
+         ⚠️ **Deux comptes de test quasi homonymes coexistent**, et ils ne sont
+         pas dans le même état — se tromper de l'un pour l'autre donne deux
+         conclusions opposées :
+         - `test.diaspo@`**`example`**`.com` (« Compte Test », celui de
+           `scripts/creer_compte_test.js`) : les **quatre** drapeaux à `true`,
+           donc **inutilisable tel quel** pour ce test ;
+         - `test.diaspo@`**`exemple`**`.com` (« Test User », orthographe
+           française, visiblement créé par accident) : `has_seen_onboarding` et
+           `profile_config_complete` à `false` — **c'est celui-ci qu'il faut**,
+           et il ne demande aucune écriture en base.
+
+      4. mode avion, puis redémarrage forcé de l'app.
+      Attendu **après correctif** : `/home`. Avant correctif : le carrousel de
+      bienvenue. C'est le seul aller-retour qui distingue les deux.
 - [ ] **La reprise** : la lecture indéterminée est retentée une fois après 4 s
       (`OnboardingNotifier.delaiDeReprise`). Sur un compte neuf dont la
       première lecture échoue, l'écran de consentement doit apparaître ~4 s
