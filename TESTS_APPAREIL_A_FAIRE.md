@@ -13770,6 +13770,59 @@ publications d'entreprise, recherche de proximité.
 
 ---
 
+## ⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)
+
+Trouvé par accident en coupant le réseau pour déclencher une erreur de carte.
+Le compte était connecté, l'app affichait la carte en mode public. Mode avion
+activé, un rechargement forcé → l'app bascule sur **« Bienvenue sur Diaspo
+Niger »**, le carrousel d'accueil.
+
+**La session n'est PAS perdue** — c'est le point rassurant, et il a demandé
+d'être vérifié : « Passer » ramène directement à l'accueil connecté (« Bonjour,
+Sim », messages non lus et notifications intacts). Aucun `FATAL EXCEPTION`, et
+le pid n'a pas changé : l'app n'a ni planté ni redémarré, elle a **navigué**.
+
+**La chaîne, lue dans le code :**
+
+1. [onboarding_repository_impl.dart:23-48](lib/features/onboarding/data/repositories/onboarding_repository_impl.dart:23)
+   consulte d'abord le cache local (`has_seen_onboarding_<uid>`) ; **si celui-ci
+   est à `false`, il fait un appel réseau**. Hors ligne, l'appel lève →
+   `Left(ServerFailure)`.
+2. [onboarding_provider.dart:78](lib/features/onboarding/presentation/providers/onboarding_provider.dart:78)
+   traduit cet échec en `false` :
+
+   ```dart
+   hasSeenOnboardingResult.fold(
+     (failure) => hasSeenOnboarding = false,   // « je n'ai pas pu savoir » → « jamais vu »
+     (value)   => hasSeenOnboarding = value,
+   );
+   ```
+
+3. La règle 8 du routeur ([app_router.dart:320](lib/core/router/app_router.dart:320))
+   redirige alors vers `/onboarding/intro`.
+
+C'est la même famille que le garde d'autorisation déjà documenté : **« je n'ai
+pas pu vérifier » traité comme « la réponse est non »**. Ici, le coût est un
+utilisateur connecté à qui on remontre le carrousel de bienvenue dès qu'il perd
+le réseau — dans le métro, en avion, en zone blanche.
+
+**Correctif proposé, non appliqué** : pour un utilisateur **déjà authentifié**,
+un échec de lecture devrait valoir « ne pas interrompre » plutôt que « jamais
+vu ». Se tromper dans ce sens coûte un carrousel sauté une fois ; se tromper
+dans l'autre coûte une interruption à chaque coupure réseau. Non appliqué parce
+que toucher à une garde du routeur est précisément ce qui a déjà coûté cher ici
+(gating feature-flag, garde de session) — à décider explicitement.
+
+- [ ] **Reproduire proprement** : compte connecté, mode avion, naviguer →
+  le carrousel doit apparaître. Puis vérifier qu'après retour du réseau **et**
+  redémarrage l'app revient d'elle-même à l'accueil (observé une fois : elle
+  restait sur l'onboarding, réseau rétabli, y compris après redémarrage — mais
+  le Wi-Fi pouvait n'être pas encore rétabli au lancement, donc à confirmer).
+- [ ] **Vérifier le cas du vrai nouveau compte** avant tout correctif : il doit
+  continuer à voir l'onboarding.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
