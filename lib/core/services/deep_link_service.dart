@@ -225,9 +225,24 @@ class DeepLinkService {
     );
   }
 
-  /// Génère un lien d'invitation à rejoindre l'app
+  /// Génère un lien d'invitation à rejoindre l'app.
+  ///
+  /// Pointe la page de téléchargement du site, et non un chemin d'app, parce
+  /// que ce lien cible par définition quelqu'un qui **n'a pas** encore
+  /// l'application : un lien profond ne lui sert à rien. L'ancien `/invite`
+  /// n'avait d'ailleurs aucune route côté GoRouter — mesuré le 2026-09-09,
+  /// il atterrissait sur l'accueil et le `ref` était perdu en silence.
+  ///
+  /// `/telecharger` est réécrit vers `telecharger.html` par `firebase.json`,
+  /// sur les deux sites. Sur un téléphone qui a déjà l'app, App Links
+  /// revendique tout l'hôte : le lien ouvre donc l'app, que la route
+  /// `/telecharger` renvoie sur l'accueil — le bon résultat pour quelqu'un
+  /// qui l'a déjà.
+  ///
+  /// `?ref=` est conservé tel quel : rien ne le lit encore, mais il traverse
+  /// le web comme l'app et attend un backend de parrainage.
   String generateInviteLink({String? referrerId}) {
-    var path = '/invite';
+    var path = '/telecharger';
     if (referrerId != null) {
       path += '?ref=$referrerId';
     }

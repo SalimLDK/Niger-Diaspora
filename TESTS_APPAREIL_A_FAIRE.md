@@ -14,6 +14,82 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⚠️ Repli navigateur des liens d'app — prêt, PAS déployé (2026-09-09)
+
+Tout chemin d'app tapé dans un navigateur (ou dans le navigateur intégré de
+WhatsApp, qui court-circuite les App Links) tombait sur la page d'accueil du
+site, par la règle attrape-tout `**` → `/index.html`.
+
+`public/ouvrir.html` répond désormais à `/groups/**`, `/g/**`, `/feed/**`,
+`/events/**`, `/businesses/**`, `/marketplace/**`, `/audio-rooms/**`,
+`/podcasts/**`, `/profile/**`, `/p/**`, `/embassies/**`, `/calls/**` — sur
+les **deux** sites de `firebase.json`, inséré avant `**`. La page dit le
+**type** de contenu (« Groupe », « Événement »…) et jamais lequel : aucun
+appel réseau, aucun nom, cohérent avec la garde de `20260909201500`.
+
+Vérifié sur un canal d'aperçu Firebase (production intacte) :
+
+- Android (UA émulé) : `intent://…;package=com.diasponiger.diasponiger;S.browser_fallback_url=<Play>;end`
+- Ordinateur : bouton « Installer sur votre téléphone », doublon masqué
+- `Cache-Control: public, max-age=0, must-revalidate` (sans la règle ajoutée,
+  Hosting servait `max-age=3600` — la règle `**/*.@(html)` n'attrape pas un
+  chemin réécrit, qui ne finit pas en `.html`)
+
+**⚠️ Le déploiement est bloqué par une découverte plus grosse.** La
+production ne fait **pas** tourner le site du dépôt :
+
+| URL | En production le 2026-09-09 |
+|---|---|
+| `/assets/site.css` | rend du **HTML** (attrapé par `**`) — le fichier n'existe pas |
+| `/telecharger` | rend la page d'accueil |
+| `/a-propos`, `/fonctionnalites` | rendent la page d'accueil |
+| `/` | titre « La diaspora qui se retrouve », le dépôt dit « La communauté nigérienne partout dans le monde » |
+| `/.well-known/apple-app-site-association` | `VOTRE_TEAM_ID.com.diasponiger.diaspo_niger` — le gabarit jamais rempli |
+
+Donc `firebase deploy --only hosting` ne publierait pas seulement la page
+interstitielle : il publierait **toute la refonte du site**, celle des quatre
+entrées ⬜ ci-dessous (cahier des charges, palette Organic, accueil sur
+captures réelles, menu mobile). À arbitrer par Salim, pas à faire en passant.
+
+Ce que le déploiement corrigerait au passage, une fois décidé : les universal
+links iOS, aujourd'hui cassés par le `VOTRE_TEAM_ID` resté en place.
+
+Ce qu'il perdrait : l'entrée `assetlinks.json` du paquet hérité
+`com.diasponiger.diaspo_niger` (le dépôt ne déclare que le paquet livré).
+Vérifié sans risque : `pm list packages` sur les deux appareils ne connait
+que `com.diasponiger.diasponiger`, dont les deux empreintes sont bien dans le
+fichier du dépôt — dont `DD:A6:5C:3E`, celle que les deux téléphones
+rapportent.
+
+- [ ] Une fois déployé : ouvrir `https://diasponiger.web.app/groups/<id>` dans
+      **Chrome** sur un téléphone **sans** l'app → page interstitielle, puis
+      « Ouvrir dans l'application » → Play Store.
+- [ ] Le même lien envoyé par WhatsApp, ouvert dans son navigateur intégré.
+
+---
+
+## ⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)
+
+`generateInviteLink()` fabriquait `/invite?ref=<uid>` et **aucune route
+n'existait** pour ce chemin. Mesuré : atterrissage sur l'accueil, `ref` perdu.
+
+Le vrai problème était le choix de la cible : un lien d'invitation s'adresse
+par définition à quelqu'un qui **n'a pas** l'app, à qui un lien profond ne
+sert à rien. Il pointe désormais `/telecharger`.
+
+Et parce que l'intent-filter App Links revendique l'hôte **entier**, ce lien
+ouvre quand même l'app chez qui l'a déjà : deux routes de redirection
+(`/telecharger` et `/invite`, ce dernier pour les liens déjà partagés)
+renvoient explicitement sur l'accueil, au lieu de dépendre de ce que GoRouter
+fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
+
+- [ ] Accueil → « Inviter un proche » → le lien partagé finit par
+      `/telecharger?ref=<uid>`.
+- [ ] Ce lien tapé sur un téléphone **avec** l'app → l'accueil, pas d'erreur.
+- [ ] Un ancien lien `/invite?ref=…` → l'accueil aussi.
+
+---
+
 ## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
 
 Signalé par Salim : « les liens des groupes et autres ne marchent pas ».
