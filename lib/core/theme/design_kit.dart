@@ -192,16 +192,21 @@ class DesignIllustration extends StatelessWidget {
                     size: 34,
                     color: accent.withValues(alpha: 0.85),
                   ),
-                const SizedBox(height: 14),
-                Text(
-                  caption,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.robotoMono(
-                    fontSize: 10.5,
-                    letterSpacing: 0.4,
-                    color: context.textTertiaryColor,
+                // Aplati en bandeau, le bloc n'a plus la hauteur d'une
+                // légende : la garder la ferait déborder sous le `ClipRRect`,
+                // qui masque l'avertissement autant que le texte.
+                if (aspectRatio <= 2) ...[
+                  const SizedBox(height: 14),
+                  Text(
+                    caption,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.robotoMono(
+                      fontSize: 10.5,
+                      letterSpacing: 0.4,
+                      color: context.textTertiaryColor,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),

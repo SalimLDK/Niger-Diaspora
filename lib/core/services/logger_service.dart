@@ -1,12 +1,18 @@
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
 enum LogLevel { debug, info, warning, error }
 
 /// Service de logging centralisé
+///
+/// Rien n'est écrit hors mode debug, quel que soit le niveau : `debugPrint`
+/// écrit aussi en release (cf. `foundation/print.dart`), où la sortie part
+/// dans logcat — lisible par quiconque branche l'appareil.
+///
+/// Pour que le silence de la production ne fasse pas perdre les erreurs, le
+/// seul niveau `error` est remonté à Crashlytics en non-fatal. Les autres
+/// niveaux n'existent qu'en debug.
 class LoggerService {
-  static const bool _showDebugLogs = kDebugMode;
-  static const bool _showEmojis = kDebugMode;
-
   static void d(String message, [dynamic error, StackTrace? stackTrace]) {
     _log(LogLevel.debug, message, error, stackTrace);
   }
@@ -29,10 +35,13 @@ class LoggerService {
     dynamic error,
     StackTrace? stackTrace,
   ]) {
-    if (level == LogLevel.debug && !_showDebugLogs) return;
+    if (!kDebugMode) {
+      if (level == LogLevel.error) _recordToCrashlytics(message, error, stackTrace);
+      return;
+    }
 
     final timestamp = DateTime.now().toUtc().toIso8601String();
-    final emoji = _showEmojis ? _getEmoji(level) : '';
+    final emoji = _getEmoji(level);
     final label = _getLabel(level);
 
     debugPrint('[$timestamp] $emoji$label: $message');
@@ -42,6 +51,27 @@ class LoggerService {
     }
     if (stackTrace != null) {
       debugPrint('  StackTrace: $stackTrace');
+    }
+  }
+
+  /// Remonte une erreur de production à Crashlytics.
+  ///
+  /// Encadré : Crashlytics n'est utilisable qu'après l'initialisation de
+  /// Firebase, et un journal ne doit jamais faire tomber l'appelant.
+  static void _recordToCrashlytics(
+    String message,
+    dynamic error,
+    StackTrace? stackTrace,
+  ) {
+    try {
+      FirebaseCrashlytics.instance.recordError(
+        error ?? message,
+        stackTrace,
+        reason: message,
+        fatal: false,
+      );
+    } catch (_) {
+      // Firebase pas encore prêt : on préfère perdre la remontée que l'app.
     }
   }
 

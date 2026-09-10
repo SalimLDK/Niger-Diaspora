@@ -217,6 +217,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
     try {
       final backupService = ref.read(keyBackupServiceProvider);
       await backupService.createAndUploadBackup(userId, passphrase);
+      await _loadLocalKeyState();
 
       _showSuccessSnackBar(l10n.backupCreatedSuccess);
       // La sauvegarde existe : le bandeau d'invitation n'a plus lieu d'être,
@@ -229,6 +230,9 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
       setState(() => _generatedPassphrase = null);
 
       await _checkExistingBackup();
+    } on NoKeysToBackupException {
+      _showErrorSnackBar(l10n.backupNoKeysError);
+      await _loadLocalKeyState();
     } catch (e) {
       _showErrorSnackBar(
         ErrorHandler.instance.getShortMessage(
@@ -262,6 +266,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
       await ref
           .read(e2eeBackupCoordinatorProvider.notifier)
           .clearSnooze(userId);
+      await _loadLocalKeyState();
       _restorePassphraseController.clear();
 
       if (mounted) {
@@ -285,7 +290,14 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
       builder:
           (context) => AlertDialog(
             title: Text(l10n.securityDeleteBackupTitle),
-            content: Text(l10n.securityDeleteBackupContent),
+            content: Text(
+              // Deux situations opposees derriere le meme bouton : quand
+              // l'appareil a ses cles, supprimer est une perte seche ; quand il
+              // ne les a pas, c'est la seule facon de sortir du blocage.
+              _hasLocalKeys == false
+                  ? l10n.securityDeleteBackupStuck
+                  : l10n.securityDeleteBackupContent,
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -518,6 +530,22 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                                         color: context.textSecondaryColor,
                                       ),
                                     ),
+                                    // Pas de clés ICI + une sauvegarde LA-BAS :
+                                    // le compte est bloqué. Le coordinateur
+                                    // refuse de generer une identite neuve tant
+                                    // que la sauvegarde existe (elle deviendrait
+                                    // irrecuperable), et sans passphrase la
+                                    // restauration est impossible. Personne ne
+                                    // pouvait deviner que la sortie etait le
+                                    // bouton « Supprimer » un peu plus bas.
+                                    if (_hasBackup) ...[
+                                      const SizedBox(height: 10),
+                                      Text(l10n.keyStateStuckWhy),
+                                      const SizedBox(height: 6),
+                                      Text('• ${l10n.keyStateStuckRestore}'),
+                                      const SizedBox(height: 4),
+                                      Text('• ${l10n.keyStateStuckDelete}'),
+                                    ],
                                   ],
                                 ],
                               ),
@@ -678,6 +706,29 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                    ] else if (_hasLocalKeys == false) ...[
+                      // Pas de clés ici : proposer d'en sauvegarder
+                      // fabriquerait une sauvegarde vide, qui bloquerait
+                      // ensuite la création d'une identité neuve. C'est
+                      // exactement ce qui est arrivé le 2026-09-08.
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: context.warningBackgroundColor,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: context.warningColor,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text(l10n.backupNothingToSave)),
+                          ],
                         ),
                       ),
                     ] else ...[

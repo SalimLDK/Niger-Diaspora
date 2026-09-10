@@ -1,0 +1,41 @@
+-- =============================================================================
+-- `GRANT EXECUTE ... TO anon` manquant sur `has_group_invite`.
+--
+-- Constaté en production le 2026-09-09, en sondant PostgREST avec la clé
+-- publique du `.env` (donc rôle `anon`, comme un client sans session) :
+--
+--   GET /rest/v1/groups?select=id,name  →  401
+--   {"code":"42501","message":"permission denied for function has_group_invite"}
+--
+-- `events`, `posts`, `group_members`, `event_attendees` répondent 200. Seule
+-- `groups` échoue, parce que `20260909201500` a ajouté `has_group_invite(id)`
+-- à `groups_select_public` sans donner le droit d'exécution à `anon` — toutes
+-- ses fonctions sœurs (`is_group_member`, `is_group_admin`, `is_group_public`,
+-- `firebase_uid`) l'ont.
+--
+-- Ce n'est donc pas un choix de visibilité, c'est un oubli : Postgres refuse
+-- la requête **entière** au lieu d'évaluer le terme à `false`.
+--
+-- Ce que ça casse, et qui ne se voit pas en test : toute lecture de `groups`
+-- faite avant que la session Supabase soit établie. Le pont Firebase→Supabase
+-- n'est pas instantané (et le premier échange d'un compte neuf échoue
+-- toujours, cf. la note sur le cycle de vie des sessions) : sur ce chemin, la
+-- liste des groupes et la fiche d'un groupe ne remontent pas « moins de
+-- lignes », elles remontent une erreur.
+--
+-- Ça touchait aussi les événements par ricochet : le datasource Supabase des
+-- événements demande `select=*,groups(name)`, et l'embed déclenche la RLS de
+-- `groups`.
+--
+-- Le GRANT n'élargit **rien**. `has_group_invite` ne matche que sur
+-- `i.invitee_id = firebase_uid()` ; pour un appelant anonyme `firebase_uid()`
+-- est nul, donc la fonction rend `false`. Elle passe d'« erreur » à « faux »,
+-- ce qu'elle aurait dû rendre depuis le début.
+--
+-- Fichier séparé, et pas une retouche de `20260909201500` : cette migration-là
+-- est déjà appliquée, et son auteur travaille encore dessus.
+-- =============================================================================
+
+GRANT EXECUTE ON FUNCTION has_group_invite(UUID) TO anon;
+
+NOTIFY pgrst, 'reload schema';

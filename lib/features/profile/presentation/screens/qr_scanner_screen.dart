@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/feature_flag_service.dart';
+import '../../../../core/services/qr_code_parser.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile_share_provider.dart';
@@ -26,6 +30,9 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
 
   bool _isProcessing = false;
   bool _flashOn = false;
+
+  /// Delai avant de re-accepter une detection apres un echec.
+  Timer? _reprise;
   bool _myQrOpen = false;
   late AnimationController _animationController;
   late Animation<double> _animation;
@@ -36,7 +43,12 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     WidgetsBinding.instance.addObserver(this);
 
     _controller = MobileScannerController(
-      detectionSpeed: DetectionSpeed.noDuplicates,
+      // `noDuplicates` empoisonnait l'ecran : un code refuse une fois (parce
+      // qu'un autre QR passait devant, ou parce qu'il n'etait pas reconnu)
+      // n'etait plus jamais re-signale. L'utilisateur re-visait le meme code
+      // et il ne se passait plus rien, sans message. La deduplication est
+      // reprise ici par `_isProcessing` et le delai de `_showError`.
+      detectionSpeed: DetectionSpeed.normal,
       returnImage: false,
       autoStart: false,
     );
@@ -98,6 +110,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _reprise?.cancel();
     // Dispose controller which internally handles stopping
     _controller.dispose();
     _animationController.dispose();
@@ -107,81 +120,120 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
   void _onDetect(BarcodeCapture capture) {
     if (_isProcessing) return;
 
-    final List<Barcode> barcodes = capture.barcodes;
-    if (barcodes.isEmpty) return;
+    // Une image peut porter plusieurs codes : une planche de QR, un ecran qui
+    // en affiche deux, une affiche. `barcodes.first` rejetait alors le bon
+    // parce qu'un autre etait passe devant. On garde le premier que l'on sait
+    // lire, et on ne se rabat sur le premier code brut que pour le message
+    // d'erreur.
+    String? premierCode;
+    QrCodeTarget? cible;
+    for (final barcode in capture.barcodes) {
+      final valeur = barcode.rawValue;
+      if (valeur == null || valeur.isEmpty) continue;
+      premierCode ??= valeur;
+      final candidat = QrCodeParser.parse(valeur);
+      if (candidat != null) {
+        cible = candidat;
+        break;
+      }
+    }
 
-    final barcode = barcodes.first;
-    final String? code = barcode.rawValue;
-
-    if (code == null || code.isEmpty) return;
+    if (premierCode == null) return;
 
     setState(() => _isProcessing = true);
     HapticFeedback.mediumImpact();
 
-    // Parse the URL to extract userId
-    _processQrCode(code);
+    if (cible == null) {
+      _showError(_messageCodeInconnu(premierCode));
+      return;
+    }
+
+    _ouvrir(cible);
   }
 
-  Future<void> _processQrCode(String code) async {
-    // Expected format: https://diasponiger.com/p/{userId}
-    final uri = Uri.tryParse(code);
+  /// Message d'echec qui montre ce qui a ete lu.
+  ///
+  /// « QR code invalide » seul ne dit pas si la camera a mal lu, si le code
+  /// vient d'ailleurs, ou si l'app ne reconnait pas son propre lien — trois
+  /// causes qui se corrigent differemment.
+  String _messageCodeInconnu(String code) {
+    final apercu = code.length > 48 ? '${code.substring(0, 48)}...' : code;
+    return '${l10n.invalidQrCodeFormat}\n$apercu';
+  }
 
-    if (uri == null) {
-      _showError(l10n.invalidQRCode);
-      return;
-    }
-
-    // Extract userId from URL
-    String? userId;
-    String? shortCode;
-
-    if ((uri.host.contains('diasponiger.com') ||
-            uri.host.contains('diaspo-niger.web.app')) &&
-        uri.pathSegments.length >= 2) {
-      if (uri.pathSegments[0] == 'p') {
-        if (uri.pathSegments.length > 2 && uri.pathSegments[1] == 'u') {
-          userId = uri.pathSegments[2];
-        } else {
-          shortCode = uri.pathSegments[1];
-        }
-      }
-    }
-
-    if (userId != null && userId.isNotEmpty) {
-      await _navigateToProfile(userId);
-      return;
-    }
-
-    if (shortCode != null && shortCode.isNotEmpty) {
-      try {
-        final resolvedId = await ref.read(
-          profileUserIdFromShareCodeProvider(shortCode).future,
+  /// Ouvre ce que désigne le QR, quel que soit son type.
+  ///
+  /// Ce scanner est le seul de l'app à être atteignable depuis l'accueil : il
+  /// doit reconnaître tous les QR du projet — profil, groupe, et les liens
+  /// profonds partagés par le site — et pas seulement le profil.
+  Future<void> _ouvrir(QrCodeTarget target) async {
+    switch (target.kind) {
+      // Le rendez-vous de transfert se revendique sur son écran dédié : lui
+      // seul sait gérer le cas « pas encore connecté », qui est la situation
+      // normale d'un téléphone neuf.
+      case QrCodeKind.keyTransfer:
+        await _leaveFor(
+          '/settings/security/transfer/receive',
+          message: l10n.qrKeyTransferDetected,
         );
-        if (mounted) {
-          if (resolvedId != null) {
-            await _navigateToProfile(resolvedId);
-          } else {
-            _showError(l10n.linkExpiredOrNotFound);
+        return;
+
+      case QrCodeKind.profileShortCode:
+        await _openShortCode(target.shortCode!);
+        return;
+
+      default:
+        final feature = _featureOf(target.kind);
+        if (feature != null) {
+          // Sans cette garde, le routeur renverrait silencieusement sur
+          // /home (redirection des drapeaux phase 2) après un message de
+          // succès : un scan qui « marche » et n'ouvre rien.
+          final flags = ref.read(loadedFeatureFlagsProvider);
+          if (flags != null &&
+              !FeatureFlagService.isFeatureEnabled(flags, feature)) {
+            _showError(l10n.comingSoonShort);
+            return;
           }
         }
-      } catch (e) {
-        if (mounted) _showError(l10n.connectionError);
-      }
-      return;
+        await _leaveFor(target.routePath!, message: l10n.profileQRScanned);
     }
-
-    _showError(l10n.invalidQrCodeFormat);
   }
 
-  Future<void> _navigateToProfile(String userId) async {
+  /// Fonctionnalité à vérifier avant d'ouvrir la route, ou `null` si la
+  /// destination est toujours accessible.
+  AppFeature? _featureOf(QrCodeKind kind) => switch (kind) {
+    QrCodeKind.product => AppFeature.marketplace,
+    QrCodeKind.podcast || QrCodeKind.episode => AppFeature.podcasts,
+    QrCodeKind.audioRoom => AppFeature.audioRooms,
+    _ => null,
+  };
+
+  /// Résout le code court `/p/<code>` en identifiant avant de naviguer.
+  Future<void> _openShortCode(String shortCode) async {
+    try {
+      final resolvedId = await ref.read(
+        profileUserIdFromShareCodeProvider(shortCode).future,
+      );
+      if (!mounted) return;
+      if (resolvedId == null) {
+        _showError(l10n.linkExpiredOrNotFound);
+        return;
+      }
+      await _leaveFor('/profile/$resolvedId', message: l10n.profileQRScanned);
+    } catch (e) {
+      if (mounted) _showError(l10n.connectionError);
+    }
+  }
+
+  Future<void> _leaveFor(String routePath, {required String message}) async {
     // Stop camera before navigating to prevent BufferQueue errors
     await _controller.stop();
 
     if (!mounted) return;
 
-    // Close scanner and navigate to profile
+    // Close scanner and navigate to the scanned destination
     context.pop();
-    context.push('/profile/$userId');
+    context.push(routePath);
 
     // Show success feedback
     ScaffoldMessenger.of(context).showSnackBar(
@@ -190,7 +242,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
           children: [
             Icon(Icons.check_circle, color: AppColors.white),
             const SizedBox(width: 12),
-            Text(l10n.profileQRScanned),
+            Expanded(child: Text(message)),
           ],
         ),
         backgroundColor: AppColors.success,
@@ -201,7 +253,13 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
   }
 
   void _showError(String message) {
-    setState(() => _isProcessing = false);
+    // La detection reste bloquee le temps que le bandeau se lise. Sans ce
+    // delai, le meme code repasse a chaque image de la camera et empile les
+    // bandeaux jusqu'a rendre l'ecran inutilisable.
+    _reprise?.cancel();
+    _reprise = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _isProcessing = false);
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -390,30 +448,41 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
   }
 
   Widget _buildOverlay() {
-    return ColorFiltered(
-      colorFilter: ColorFilter.mode(
-        Colors.black.withValues(alpha: 0.5),
-        BlendMode.srcOut,
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.black,
-              backgroundBlendMode: BlendMode.dstOut,
-            ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Seuls le voile et la fenetre passent par `srcOut` : ce filtre
+        // *retire* ce que son sous-arbre dessine au lieu de le peindre. Le
+        // cadre, les coins, la ligne animee et le texte d'instruction y
+        // etaient enfermes — ils etaient donc decoupes dans le voile, donc
+        // invisibles. Ils sont desormais poses par-dessus.
+        ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            Colors.black.withValues(alpha: 0.5),
+            BlendMode.srcOut,
           ),
-          Center(
-            child: Container(
-              width: 280,
-              height: 280,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                  backgroundBlendMode: BlendMode.dstOut,
+                ),
               ),
-            ),
+              Center(
+                child: Container(
+                  width: 280,
+                  height: 280,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+              ),
+            ],
           ),
+        ),
           // Scanning frame decoration
           Center(
             child: Container(
@@ -488,8 +557,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
               ),
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -556,7 +624,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                l10n.scanProfile,
+                l10n.scanQrCode,
                 style: TextStyle(
                   color: AppColors.white,
                   fontSize: 16,

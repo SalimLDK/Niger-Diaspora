@@ -378,7 +378,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
         title: Text(l10n.editEvent),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/events'),
         ),
       ),
       body: Form(

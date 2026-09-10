@@ -15,6 +15,13 @@ import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/group_request_entity.dart';
 import 'package:intl/intl.dart';
 import '../providers/group_provider.dart';
+// `show` obligatoire : `myGroupRequestsProvider` et
+// `groupPendingRequestsProvider` existent en DOUBLE, ici et dans
+// `group_provider.dart` (deux définitions parallèles du même flux). Un
+// import nu rend les deux noms ambigus et l'écran ne compile plus.
+import '../providers/group_request_provider.dart'
+    show receivedGroupInvitesProvider, groupInviteNotifierProvider;
+import '../../domain/entities/group_invite_entity.dart';
 // Fonctionnalité épingle mise en pause (2026-08-14) : la ligne « Épinglés »
 // de cette fiche est commentée plus bas (`_GroupInfoCard.build` et
 // `_pinnedSummary`), ces deux imports n'ont donc plus d'usage vivant ici.
@@ -22,6 +29,7 @@ import '../providers/group_provider.dart';
 // import '../../domain/entities/group_pinned_item_entity.dart';
 import '../../../events/presentation/providers/group_next_event_provider.dart';
 import '../../../events/domain/entities/event_entity.dart';
+import '../widgets/invite_members_sheet.dart';
 import '../widgets/share_group_modal.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
@@ -67,10 +75,29 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     final detailState = ref.watch(groupDetailNotifierProvider);
     final l10n = AppLocalizations.of(context)!;
 
+    // `groupDetailNotifierProvider` est PARTAGÉ (pas une famille par id) : sa
+    // valeur peut appartenir à un groupe visité juste avant, et cet écran ne
+    // le peuple même pas quand `initialGroup` est fourni. Ne l'accepter que
+    // si l'id correspond — même garde que `GroupMembersScreen`.
+    final cachedDetail = detailState.valueOrNull;
+    final detailGroup =
+        cachedDetail?.id == widget.groupId ? cachedDetail : null;
+
+    // Ordre de préférence : le flux d'abord, `initialGroup` en dernier.
+    //
+    // C'était l'inverse (`widget.initialGroup ?? streamGroup`), et
+    // `initialGroup` est un instantané figé au moment de la navigation —
+    // celui de la liste « Mes groupes », par exemple. Tant qu'il était non
+    // nul, il gagnait sur tout : la fiche ouverte depuis une liste n'a jamais
+    // rien montré d'autre que l'état du groupe à l'instant du tap, quoi qu'il
+    // arrive ensuite — ni l'arrivée d'un membre, ni un départ, ni un
+    // renommage. Il reste utile comme premier rendu, avant que le flux n'ait
+    // répondu, et comme repli hors ligne.
     final group = groupStream.when(
-      data: (streamGroup) => widget.initialGroup ?? streamGroup ?? detailState.valueOrNull,
-      loading: () => widget.initialGroup ?? detailState.valueOrNull,
-      error: (_, __) => widget.initialGroup ?? detailState.valueOrNull,
+      data: (streamGroup) =>
+          streamGroup ?? detailGroup ?? widget.initialGroup,
+      loading: () => detailGroup ?? widget.initialGroup,
+      error: (_, __) => detailGroup ?? widget.initialGroup,
     );
 
     if (group == null) {
@@ -80,12 +107,27 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
       // accès refusé, réseau) plutôt que de spinner indéfiniment sans jamais
       // le signaler à l'utilisateur.
       if (detailState.hasError) {
+        // Deux echecs tres differents arrivaient sous le meme habillage.
+        //
+        // `getGroupById` finit sur `.single()` : quand la RLS ne rend aucune
+        // ligne — groupe prive dont on n'est ni membre, ni cree, ni invite —
+        // PostgREST repond PGRST116, exactement comme pour un groupe
+        // supprime. Ce n'est pas une panne : reessayer ne changera jamais
+        // rien, et « Erreur de chargement » laissait croire le contraire.
+        // Mesure du 2026-09-09 sur lien profond vers un groupe prive.
+        //
+        // On ne dit pas LEQUEL des deux, et ce n'est pas une approximation :
+        // distinguer « prive » de « supprime » confirmerait l'existence d'un
+        // groupe a qui detient son uuid, ce que la migration
+        // 20260909201500 vient precisement de fermer.
+        final introuvable = detailState.error.toString().contains('PGRST116');
         return Scaffold(
           backgroundColor: context.backgroundColor,
           appBar: AppBar(
             leading: IconButton(
               icon: const AppIcon(AppIcon.arrowBack),
-              onPressed: () => context.pop(),
+              onPressed: () =>
+                  context.canPop() ? context.pop() : context.go('/home'),
             ),
           ),
           body: Center(
@@ -101,17 +143,29 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    l10n.loadingError,
+                    introuvable
+                        ? l10n.groupUnavailableOrPrivate
+                        : l10n.loadingError,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: context.textPrimaryColor),
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => ref
-                        .read(groupDetailNotifierProvider.notifier)
-                        .loadGroup(widget.groupId),
-                    child: Text(l10n.retry),
-                  ),
+                  // Pas de « Reessayer » sur un refus definitif : le bouton
+                  // relancerait la meme requete pour le meme resultat.
+                  if (introuvable)
+                    ElevatedButton(
+                      onPressed: () => context.canPop()
+                          ? context.pop()
+                          : context.go('/home'),
+                      child: Text(l10n.back),
+                    )
+                  else
+                    ElevatedButton(
+                      onPressed: () => ref
+                          .read(groupDetailNotifierProvider.notifier)
+                          .loadGroup(widget.groupId),
+                      child: Text(l10n.retry),
+                    ),
                 ],
               ),
             ),
@@ -123,7 +177,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         appBar: AppBar(
           leading: IconButton(
             icon: const AppIcon(AppIcon.arrowBack),
-            onPressed: () => context.pop(),
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
         ),
         body: Center(
@@ -171,7 +226,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   AppIcon.arrowBack,
                   color: context.textPrimaryColor,
                 ),
-                onPressed: () => context.pop(),
+                onPressed:
+                    () => context.canPop() ? context.pop() : context.go('/groups'),
               ),
               // Fiche 9d : l'en-tete ne porte que le partage et un menu ⋮.
               // Elle alignait jusqu'a quatre pastilles muettes (demandes,
@@ -190,6 +246,11 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   group: group,
                   isCreator: isCreator,
                   isAdmin: isAdmin,
+                  // Volontairement PAS `isAdmin` : celui-ci englobe le
+                  // superAdmin plateforme sur un groupe officiel, à qui les
+                  // policies de `group_invites` ne donnent rien — l'entrée
+                  // aurait mené à un refus muet.
+                  canInvite: peutInviterDansGroupe(group, currentUser?.id),
                   onLeave: () => _leaveGroup(group.id),
                 ),
                 const SizedBox(width: 8),
@@ -431,6 +492,20 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   ? const SizedBox.shrink()
                   : Consumer(
                     builder: (context, ref, child) {
+                      // Une invitation en attente sur CE groupe passe devant
+                      // tout le reste. C'est là qu'atterrit la notification
+                      // d'invitation (`/groups/<id>`) : sans ce cas, la fiche
+                      // proposait « Demander à rejoindre » à quelqu'un qu'on
+                      // vient précisément d'inviter — et l'invitation, elle,
+                      // n'était acceptable que depuis l'onglet Groupes.
+                      final monInvitation = _invitationEnAttente(ref, group.id);
+                      if (monInvitation != null) {
+                        return _BarreInvitation(
+                          invitation: monInvitation,
+                          groupId: group.id,
+                        );
+                      }
+
                       if (!group.isPrivate) {
                         return SizedBox(
                           width: double.infinity,
@@ -755,31 +830,73 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
               ),
               // Afficher les autres membres ou un message s'il n'y en a pas
               if (otherMemberIds.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 20,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.group_add,
-                        size: 20,
-                        color: context.textTertiaryColor,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          l10n.noOtherMembers,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: context.textTertiaryColor,
-                            fontStyle: FontStyle.italic,
-                          ),
+                Builder(
+                  builder: (context) {
+                    // Groupe seul avec son administrateur : c'est ici, sous
+                    // « Membres · 1 », qu'on cherche à en ajouter un second.
+                    // La ligne qui constate le vide ouvre donc l'invitation,
+                    // au lieu de renvoyer au menu ⋮.
+                    final peutInviter = peutInviterDansGroupe(
+                      group,
+                      ref.watch(currentUserProvider).valueOrNull?.id,
+                    );
+                    return InkWell(
+                      onTap:
+                          peutInviter
+                              ? () => InviteMembersSheet.show(
+                                context,
+                                group: group,
+                              )
+                              : null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.group_add,
+                              size: 20,
+                              color:
+                                  peutInviter
+                                      ? context.adaptivePrimaryColor
+                                      : context.textTertiaryColor,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                peutInviter
+                                    ? l10n.inviteMember
+                                    : l10n.noOtherMembers,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight:
+                                      peutInviter
+                                          ? FontWeight.w600
+                                          : FontWeight.w400,
+                                  color:
+                                      peutInviter
+                                          ? context.adaptivePrimaryColor
+                                          : context.textTertiaryColor,
+                                  fontStyle:
+                                      peutInviter
+                                          ? FontStyle.normal
+                                          : FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                            if (peutInviter)
+                              Icon(
+                                Icons.chevron_right,
+                                size: 20,
+                                color: context.adaptivePrimaryColor,
+                              ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 )
               else
                 ...otherMemberIds.take(4).map((memberId) {
@@ -1103,6 +1220,126 @@ class _GroupActionRow extends ConsumerWidget {
 }
 
 
+/// Invitation en attente de l'utilisateur courant sur ce groupe, s'il y en a.
+///
+/// `receivedGroupInvitesProvider` ne rend déjà que les invitations en attente
+/// (le datasource filtre `status = 'pending'`), mais le statut est revérifié
+/// ici : la liste est un flux temps réel, et une acceptation faite ailleurs
+/// doit faire disparaître la barre plutôt que la laisser proposer une action
+/// devenue vide.
+GroupInviteEntity? _invitationEnAttente(WidgetRef ref, String groupId) {
+  final invitations = ref.watch(receivedGroupInvitesProvider).valueOrNull;
+  if (invitations == null) return null;
+  for (final invitation in invitations) {
+    if (invitation.groupId == groupId &&
+        invitation.status == GroupInviteStatus.pending) {
+      return invitation;
+    }
+  }
+  return null;
+}
+
+/// Barre de bas de page d'un groupe où l'on est invité : accepter ou refuser,
+/// sans repasser par l'onglet Groupes.
+class _BarreInvitation extends ConsumerStatefulWidget {
+  final GroupInviteEntity invitation;
+  final String groupId;
+
+  const _BarreInvitation({required this.invitation, required this.groupId});
+
+  @override
+  ConsumerState<_BarreInvitation> createState() => _BarreInvitationState();
+}
+
+class _BarreInvitationState extends ConsumerState<_BarreInvitation> {
+  bool _enCours = false;
+
+  Future<void> _repondre({required bool accepter}) async {
+    if (_enCours) return;
+    setState(() => _enCours = true);
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+
+    final notifier = ref.read(groupInviteNotifierProvider.notifier);
+    final ok =
+        accepter
+            ? await notifier.acceptInvite(
+              widget.invitation.id,
+              groupId: widget.groupId,
+            )
+            : await notifier.declineInvite(widget.invitation.id);
+
+    if (!mounted) return;
+    setState(() => _enCours = false);
+
+    if (!ok) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.groupsActionUnavailable),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // L'appartenance vient de changer : la fiche lit `memberIds`, la liste
+    // « Mes groupes » son propre cache. Sans ces deux invalidations, la barre
+    // reste affichée sur un groupe déjà rejoint.
+    ref.invalidate(myGroupsNotifierProvider);
+    ref.invalidate(groupStreamProvider(widget.groupId));
+    ref.read(groupDetailNotifierProvider.notifier).loadGroup(widget.groupId);
+
+    if (accepter) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.groupJoined),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    if (_enCours) {
+      return Center(
+        child: CircularProgressIndicator(color: context.adaptivePrimaryColor),
+      );
+    }
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => _repondre(accepter: false),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: context.textSecondaryColor,
+              side: BorderSide(color: context.borderColor),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: Text(l10n.declineRequest),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 2,
+          child: ElevatedButton.icon(
+            onPressed: () => _repondre(accepter: true),
+            icon: const Icon(Icons.check),
+            label: Text(l10n.acceptRequest),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.adaptivePrimaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Menu ⋮ de la fiche 9d. Rassemble ce que l'en-tête alignait en pastilles
 /// muettes — demandes d'adhésion, édition, signalement — plus la sortie du
 /// groupe, que la fiche ne met pas en barre de bas de page.
@@ -1113,12 +1350,14 @@ class _GroupOverflowMenu extends ConsumerWidget {
   final GroupEntity group;
   final bool isCreator;
   final bool isAdmin;
+  final bool canInvite;
   final VoidCallback onLeave;
 
   const _GroupOverflowMenu({
     required this.group,
     required this.isCreator,
     required this.isAdmin,
+    required this.canInvite,
     required this.onLeave,
   });
 
@@ -1144,6 +1383,8 @@ class _GroupOverflowMenu extends ConsumerWidget {
       ),
       onSelected: (value) {
         switch (value) {
+          case 'invite':
+            InviteMembersSheet.show(context, group: group);
           case 'requests':
             context.push('/groups/${group.id}/requests');
           case 'edit':
@@ -1160,6 +1401,21 @@ class _GroupOverflowMenu extends ConsumerWidget {
         }
       },
       itemBuilder: (_) => [
+        if (canInvite)
+          PopupMenuItem(
+            value: 'invite',
+            child: Row(
+              children: [
+                // `group_add`, pas `person_add` : l'entrée voisine
+                // « Demandes d'adhésion » porte déjà celle-ci, et deux
+                // silhouettes identiques dans un même menu ne distinguent
+                // plus « j'invite » de « on me demande ».
+                const Icon(Icons.group_add_outlined, size: 18),
+                const SizedBox(width: 10),
+                Text(l10n.inviteMember),
+              ],
+            ),
+          ),
         if (isAdmin)
           PopupMenuItem(
             value: 'requests',

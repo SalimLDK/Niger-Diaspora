@@ -13,6 +13,9 @@ import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../core/services/deep_link_service.dart';
+import '../../../../shared/widgets/share_options_sheet.dart';
+import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -54,16 +57,55 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     final event = widget.initialEvent ?? eventAsync.valueOrNull;
 
     if (event == null) {
+      // `loadEvent` place bien l'echec dans l'etat (AsyncValue.error), mais
+      // cet ecran ne regardait que `valueOrNull` : un evenement supprime, un
+      // refus de lecture ou une coupure reseau rendaient `null` comme un
+      // chargement en cours, et la roue tournait indefiniment. Mesure du
+      // 2026-09-09 : encore la apres 75 s, sur un lien profond
+      // /events/<id>. Meme garde que `GroupDetailScreen`, qui la porte deja.
+      final aEchoue = eventAsync.hasError;
       return Scaffold(
         backgroundColor: context.backgroundColor,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
+            // Un lien profond ouvre cette route SEULE dans la pile : `pop()`
+            // sur une pile vide laisse un ecran noir.
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
         ),
         body: Center(
-          child: CircularProgressIndicator(color: context.adaptivePrimaryColor),
+          child: aEchoue
+              ? Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: context.textSecondaryColor,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        AppLocalizations.of(context)!.loadingError,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => ref
+                            .read(eventDetailNotifierProvider.notifier)
+                            .loadEvent(widget.eventId),
+                        child: Text(AppLocalizations.of(context)!.retry),
+                      ),
+                    ],
+                  ),
+                )
+              : CircularProgressIndicator(
+                  color: context.adaptivePrimaryColor,
+                ),
         ),
       );
     }
@@ -109,7 +151,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     color: context.textPrimaryColor,
                   ),
                 ),
-                onPressed: () => context.pop(),
+                onPressed:
+                    () => context.canPop() ? context.pop() : context.go('/events'),
               ),
               actions: [
                 if (isOrganizer)
@@ -305,6 +348,32 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                                     ),
                                   ),
                                 ],
+                              ),
+                            ),
+                          ],
+                          // Rien n'indiquait jamais qu'un événement était
+                          // annulé : la fiche proposait « Participer » dessus,
+                          // et les deux onglets de la liste filtraient sur le
+                          // statut sans jamais l'afficher. Constaté le
+                          // 2026-09-09 sur « Tabaski 2026 », annulé en base.
+                          if (event.status == EventStatus.cancelled) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD32F2F),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                l10n.statusCancelled,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ],
@@ -915,7 +984,11 @@ Voir plus de d\u00e9tails sur DiaspoNiger
                               : null,
                       icon: const Icon(Icons.check),
                       label: Text(
-                        _canAttend(event) ? l10n.participate : l10n.full,
+                        event.status == EventStatus.cancelled
+                            ? l10n.statusCancelled
+                            : _canAttend(event)
+                            ? l10n.participate
+                            : l10n.full,
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: context.adaptivePrimaryColor,
@@ -930,6 +1003,9 @@ Voir plus de d\u00e9tails sur DiaspoNiger
   } // Close build method
 
   bool _canAttend(EventEntity event) {
+    // Un événement annulé n'accepte plus personne. Le bouton restait actif et
+    // l'inscription aboutissait vraiment, en base comme en notification.
+    if (event.status == EventStatus.cancelled) return false;
     if (event.maxAttendees == 0) return true;
     return event.attendeeIds.length < event.maxAttendees;
   }
@@ -1079,8 +1155,30 @@ ${event.isOnline && event.onlineLink != null ? '🔗 ${event.onlineLink}' : ''}
 Niger Diaspora
 ''';
 
-    SharePlus.instance.share(
-      ShareParams(text: shareText.trim(), subject: event.title),
+    // Une discussion est une destination de partage comme une autre : avant,
+    // « Partager » n'ouvrait que la feuille système.
+    final link = DeepLinkService.instance.generateEventLink(
+      event.id,
+      eventTitle: event.title,
+      imageUrl: event.posterUrls.isNotEmpty ? event.posterUrls.first : null,
+      date: event.startDate,
+    );
+
+    ShareOptionsSheet.show(
+      context,
+      url: link,
+      subject: event.title,
+      externalText: '${shareText.trim()}\n$link',
+      chatContent: ChatShareContent.event(
+        eventId: event.id,
+        title: event.title,
+        startDate: event.startDate,
+        location: event.location,
+        isOnline: event.isOnline,
+        imageUrl:
+            event.posterUrls.isNotEmpty ? event.posterUrls.first : null,
+        message: '📅 ${event.title}',
+      ),
     );
   }
 }

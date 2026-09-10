@@ -6,9 +6,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../features/profile/presentation/providers/profile_provider.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../../../features/messages/presentation/providers/conversation_actions_provider.dart';
+import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
+import '../widgets/invite_members_sheet.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class GroupMembersScreen extends ConsumerStatefulWidget {
@@ -57,10 +59,23 @@ class _GroupMembersScreenState extends ConsumerState<GroupMembersScreen> {
     // correspond à l'écran ouvert, sinon on affiche les membres du mauvais
     // groupe.
     final cachedGroup = groupAsync.valueOrNull;
+
+    // Le flux passe devant les deux autres sources : c'est le seul à suivre
+    // les arrivées et les départs pendant que l'écran est ouvert. `group`
+    // reçu par la navigation et la lecture one-shot du notifier sont des
+    // instantanés — cet écran est précisément celui où l'on regarde la liste
+    // au moment où un admin accepte quelqu'un.
+    //
+    // `valueOrNull` et non `value` : en Riverpod 2, `value` RELANCE l'erreur.
+    final liveGroup =
+        ref.watch(groupStreamProvider(widget.groupId)).valueOrNull;
+
     final groupEntity =
-        widget.group ??
-        (cachedGroup?.id == widget.groupId ? cachedGroup : null);
+        liveGroup ??
+        (cachedGroup?.id == widget.groupId ? cachedGroup : null) ??
+        widget.group;
     final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
+    final estHorsLigne = !ref.watch(connectivityNotifierProvider);
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
@@ -72,8 +87,31 @@ class _GroupMembersScreenState extends ConsumerState<GroupMembersScreen> {
         backgroundColor: context.surfaceColor,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
-          onPressed: () => context.pop(),
+          // `context.pop()` seul **quitte l'application** quand cette route
+          // est seule dans la pile — ce qui arrive dès qu'on y revient par un
+          // lien profond, ou après une reprise où GoRouter a reconstruit la
+          // pile depuis l'URL. Constaté sur Pixel 10 Pro XL le 2026-09-09 :
+          // la flèche renvoyait au lanceur. Même repli que la fiche du groupe
+          // juste à côté (`group_detail_screen.dart`).
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/home'),
         ),
+        actions: [
+          // Gate calqué sur `is_group_admin()`, pas sur le `canModerate`
+          // ci-dessous : celui-ci englobe le superAdmin plateforme d'un groupe
+          // officiel, à qui les policies de `group_invites` ne donnent rien.
+          if (groupEntity != null &&
+              peutInviterDansGroupe(groupEntity, currentUser?.id))
+            IconButton(
+              icon: Icon(
+                Icons.group_add_outlined,
+                color: context.textPrimaryColor,
+              ),
+              tooltip: l10n.inviteMember,
+              onPressed:
+                  () => InviteMembersSheet.show(context, group: groupEntity),
+            ),
+        ],
       ),
       body:
           groupEntity != null
@@ -117,7 +155,16 @@ class _GroupMembersScreenState extends ConsumerState<GroupMembersScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        l10n.loadingError,
+                        // Hors ligne, la requête échoue exactement comme sur
+                        // une panne : le même « Erreur de chargement » laissait
+                        // chercher un défaut applicatif là où il suffisait de
+                        // retrouver du réseau. Constaté le 2026-09-09 sur
+                        // SM A515F — l'onglet Groupes affichait ce message et
+                        // « Mes groupes · 0 » alors que le compte a trois
+                        // groupes ; un « Actualiser » une fois la connexion
+                        // revenue a tout rétabli.
+                        estHorsLigne ? l10n.noInternetConnection
+                            : l10n.loadingError,
                         textAlign: TextAlign.center,
                         style: TextStyle(color: context.textPrimaryColor),
                       ),

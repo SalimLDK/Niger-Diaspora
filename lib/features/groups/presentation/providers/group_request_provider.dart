@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../messages/presentation/providers/message_provider.dart';
 import '../../data/datasources/group_request_datasource.dart';
 import '../../data/datasources/group_request_supabase_datasource.dart';
 import '../../domain/entities/group_request_entity.dart';
@@ -194,12 +195,37 @@ class GroupInviteNotifier extends _$GroupInviteNotifier {
     }
   }
 
-  Future<bool> acceptInvite(String inviteId) async {
+  Future<bool> acceptInvite(String inviteId, {required String groupId}) async {
     state = const AsyncValue.loading();
 
     try {
       final dataSource = ref.read(groupRequestDataSourceProvider);
       await dataSource.acceptGroupInvite(inviteId);
+
+      // Entrer dans la conversation du groupe, comme `joinGroup` le fait
+      // (group_repository_impl.dart) : `acceptGroupInvite` n'écrit que
+      // `group_invites` et `group_members`, donc sans cet appel le groupe
+      // rejoint sur invitation reste absent de l'onglet Messages jusqu'à ce
+      // qu'un autre chemin — ouvrir la discussion depuis la fiche — rattrape
+      // le manque. La RPC `join_group_conversation` vérifie elle-même
+      // l'appartenance réelle, on ne peut donc l'appeler que pour soi : c'est
+      // bien l'invité qui exécute ce code.
+      //
+      // Non bloquant, et c'est le point du try/catch séparé : l'adhésion est
+      // déjà acquise en base à ce stade. La faire échouer ici afficherait
+      // « action impossible » à quelqu'un qui vient bel et bien de rejoindre
+      // le groupe, et l'inviterait à recommencer pour rien.
+      try {
+        final me = await ref.read(currentUserAsyncProvider.future);
+        if (me != null) {
+          await ref
+              .read(messageRepositoryProvider)
+              .findGroupConversationByGroupId(groupId: groupId, userId: me.id);
+        }
+      } catch (_) {
+        // La discussion se raccrochera à la première ouverture du groupe.
+      }
+
       state = const AsyncValue.data(null);
       ref.invalidate(receivedGroupInvitesProvider);
       return true;

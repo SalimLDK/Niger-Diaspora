@@ -19,6 +19,12 @@ abstract class GroupRepository {
   Future<Either<Failure, void>> leaveGroup(String groupId, String userId);
   Future<Either<Failure, void>> removeMember(String groupId, String userId);
   Future<Either<Failure, List<GroupEntity>>> getMyGroups(String userId);
+
+  /// Signal de changement d'appartenance de [userId] — voir
+  /// `GroupRemoteDataSource.watchMyMemberships`. Pas de `Either` : le flux ne
+  /// porte pas de donnée, donc rien à échouer côté appelant.
+  Stream<void> watchMyMemberships(String userId);
+
   Future<Either<Failure, List<GroupEntity>>> searchGroups(String query);
 
   // Join Requests

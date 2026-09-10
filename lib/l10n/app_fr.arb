@@ -2726,6 +2726,7 @@
   "nameRequired": "Le nom est requis",
   "nameMinLength": "Le nom doit contenir au moins 3 caractères",
   "privateGroup": "Groupe privé",
+  "groupUnavailableOrPrivate": "Ce groupe est privé ou n'existe plus.",
   "groupCreated": "Groupe créé avec succès",
   "groupCreationError": "Erreur lors de la création du groupe",
   "promotionError": "Erreur lors de la promotion",
@@ -5388,10 +5389,17 @@
   "keyTransferNotAuthenticated": "Session indisponible. Réessayez dans un instant.",
   "keyTransferNoAck": "Le nouveau téléphone n'a pas confirmé. Vos clés restent sur cet appareil.",
   "keyTransferRetry": "Recommencer",
+  "qrKeyTransferDetected": "Code de transfert de clés : ouverture de l'écran de récupération.",
   "keyStateHere": "Cet appareil détient vos clés de chiffrement.",
   "keyStateAbsent": "Cet appareil n'a pas vos clés de chiffrement.",
   "keyStateAbsentWhy": "Il ne peut donc pas les transférer. Faites le transfert depuis le téléphone qui les détient, ou restaurez-les ici avec votre passphrase.",
   "keyStateAbsentHint": "Un téléphone peut lire vos messages sans détenir ces clés : la plupart passent par un repli dont la clé vient du serveur. Seuls les messages en chiffrement bout-en-bout complet en dépendent.",
+  "keyStateStuckWhy": "Une sauvegarde existe pour ce compte. Tant qu'elle est là, l'application ne crée pas d'identité neuve : elle rendrait cette sauvegarde irrécupérable. Deux sorties.",
+  "keyStateStuckRestore": "Vous avez la passphrase : restaurez la sauvegarde ci-dessous. Vos anciens messages chiffrés redeviennent lisibles.",
+  "keyStateStuckDelete": "Passphrase perdue : supprimez la sauvegarde. Une identité neuve sera créée à la prochaine connexion, mais les messages déjà chiffrés vers l'ancienne resteront illisibles, définitivement.",
+  "backupNothingToSave": "Rien à sauvegarder sur cet appareil : il n'a pas vos clés de chiffrement. Récupérez-les d'abord depuis le téléphone qui les détient, puis revenez créer une sauvegarde.",
+  "backupNoKeysError": "Cet appareil n'a pas de clés à sauvegarder. Une sauvegarde vide bloquerait la création d'une identité neuve.",
+  "securityDeleteBackupStuck": "Cet appareil n'a pas vos clés, et cette sauvegarde empêche d'en créer de nouvelles. La supprimer débloque la situation : une identité neuve sera créée à la prochaine connexion.\n\nÀ ne faire que si vous avez perdu la passphrase : les messages déjà chiffrés vers l'ancienne identité resteront illisibles, définitivement.",
   "keyTransferSendHint": "Sur le nouveau téléphone : « Récupérer depuis mon ancien téléphone », puis scannez ce code. Gardez-le affiché jusqu'au scan.",
   "keyTransferScanFirst": "Scannez d'abord le code affiché sur l'ancien téléphone, puis connectez-vous : vos clés seront reprises automatiquement.",
   "keyTransferScannedSignIn": "Code reconnu. Connectez-vous maintenant pour terminer la reprise.",
@@ -7107,8 +7115,8 @@
   "settingsPrivacySecurity": "Confidentialité et sécurité",
   "settingsAppearanceLanguage": "Apparence et langue",
   "settingsHelpAbout": "Aide et à propos",
-  "locationReciprocity": "C'est donnant-donnant : partagez votre position approximative pour voir les membres proches de vous.",
-  "locationGuarantee1": "Position approximative, jamais votre adresse exacte",
+  "locationReciprocity": "C'est donnant-donnant : partagez votre position pour voir les membres proches de vous.",
+  "locationGuarantee1": "Seule votre dernière position est gardée, jamais vos trajets",
   "locationGuarantee2": "Désactivable à tout moment",
   "locationGuarantee3": "Invisible pour les comptes que vous bloquez",
   "exploreOtherwise": "Explorer autrement",
@@ -7337,7 +7345,7 @@
   "@onbMembersIllustration": {
     "description": "Legende de l emplacement d illustration 2/5"
   },
-  "onbMembersBullet1": "Position approximative, jamais l'adresse exacte",
+  "onbMembersBullet1": "Partage facultatif, que vous coupez quand vous voulez",
   "@onbMembersBullet1": {
     "description": "Reassurance 2/5"
   },
@@ -7401,7 +7409,7 @@
   "@onbNotificationsSubtitle": {
     "description": "Sous-titre de l autorisation notifications"
   },
-  "onbLocationSubtitle": "Réciproque : vous voyez ceux qui partagent",
+  "onbLocationSubtitle": "Vous placer sur la carte et voir les membres proches",
   "@onbLocationSubtitle": {
     "description": "Sous-titre de l autorisation localisation"
   },
@@ -8179,5 +8187,82 @@
   "embassyNotFoundMessage": "Ce poste diplomatique n'est plus dans l'annuaire, ou le lien est incorrect.",
   "embassyLoadFailedTitle": "Chargement impossible",
   "backToEmbassies": "Retour à l'annuaire",
-  "embassySearchHint": "Nom, pays ou ville"
+  "embassySearchHint": "Nom, pays ou ville",
+  "shareToChatTitle": "Envoyer dans une discussion",
+  "shareToChatSubtitle": "Groupes et messages privés",
+  "pickerTapToSend": "Appuyez pour envoyer",
+  "pickerSelectConversations": "Sélectionnez les discussions",
+  "pickerContentSent": "Envoyé",
+  "pickerContentPartiallySent": "Certains envois n'ont pas abouti",
+  "privateMessage": "Message privé",
+  "shareProfileChatMessage": "Découvre le profil de {name} sur Diaspo Niger\n{link}",
+  "@shareProfileChatMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "shareLinkChatMessage": "« {title} » sur Diaspo Niger\n{link}",
+  "@shareLinkChatMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "locationDisclosureTitle": "Comment Diaspo Niger utilise votre position",
+  "@locationDisclosureTitle": {
+    "description": "Titre de la divulgation prealable de localisation (Google Play)"
+  },
+  "locationDisclosureBody": "Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer les membres, groupes, commerces et événements proches de vous. Votre position est alors visible par les autres membres de l'application. Elle n'est collectée que pendant que vous utilisez Diaspo Niger, et vous pouvez arrêter le partage à tout moment dans Réglages.",
+  "@locationDisclosureBody": {
+    "description": "Divulgation prealable, collecte au premier plan"
+  },
+  "locationDisclosureShort": "Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer ce qui se passe près de vous. Votre position devient visible par les autres membres. Elle n'est collectée que pendant l'utilisation de l'application, et vous pouvez arrêter le partage à tout moment dans Réglages.",
+  "@locationDisclosureShort": {
+    "description": "Divulgation prealable affichee dans l onboarding, sous les interrupteurs"
+  },
+  "locationDisclosureBackgroundTitle": "Partage de position en continu",
+  "@locationDisclosureBackgroundTitle": {
+    "description": "Titre de la divulgation prealable, collecte en arriere-plan"
+  },
+  "locationDisclosureBackgroundBody": "Le Mode Voyage collecte des données de localisation pour vous garder visible sur la carte des membres, même lorsque l'application est fermée ou n'est pas utilisée. Votre position est envoyée toutes les 5 minutes et reste visible par les autres membres de Diaspo Niger. Vous pouvez arrêter le partage à tout moment depuis votre profil.",
+  "@locationDisclosureBackgroundBody": {
+    "description": "Divulgation prealable, collecte en arriere-plan (Mode Voyage)"
+  },
+  "locationDisclosureAccept": "Accepter et continuer",
+  "@locationDisclosureAccept": {
+    "description": "Action affirmative de la divulgation prealable"
+  },
+  "locationDisclosureDecline": "Non, merci",
+  "@locationDisclosureDecline": {
+    "description": "Refus de la divulgation prealable"
+  },
+  "locationDisclosureReadPolicy": "Lire la politique de confidentialité",
+  "@locationDisclosureReadPolicy": {
+    "description": "Lien vers la politique de confidentialite depuis la divulgation"
+  },
+  "travelModeSubtitle": "Partager ma position même lorsque l'application est fermée (mise à jour toutes les 5 min)",
+  "@travelModeSubtitle": {
+    "description": "Sous-titre de l interrupteur Mode Voyage"
+  },
+  "locationPermissionOpenSettings": "Autorisation refusée définitivement. Activez-la dans les paramètres du téléphone.",
+  "@locationPermissionOpenSettings": {
+    "description": "Message quand la permission de localisation est refusee definitivement"
+  },
+  "locationDisclosureChatTitle": "Votre position dans cette discussion",
+  "@locationDisclosureChatTitle": {
+    "description": "Titre de la divulgation prealable, partage dans une discussion"
+  },
+  "locationDisclosureChatBody": "Diaspo Niger lit votre position pour centrer la carte sur vous et vous laisser l'envoyer dans cette discussion. Elle n'est partagée qu'avec les participants de la discussion, et seulement si vous envoyez le message : elle ne rejoint pas la carte des membres.",
+  "@locationDisclosureChatBody": {
+    "description": "Divulgation prealable, partage dans une discussion"
+  }
 }

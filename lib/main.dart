@@ -12,6 +12,7 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
 import 'app.dart';
+import 'core/utils/logs_release.dart';
 import 'core/constants/app_config.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/cache_service.dart';
@@ -113,7 +114,11 @@ Widget construireEcranErreurNeutre(FlutterErrorDetails details) {
   );
 }
 
-void main() async {
+/// Point d'entrée. Le démarrage réel est dans [_demarrer] pour qu'il tourne
+/// entier dans la zone muette de release — voir `logs_release.dart`.
+void main() => demarrerSansLogsEnRelease(_demarrer);
+
+Future<void> _demarrer() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
 

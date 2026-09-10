@@ -55,7 +55,8 @@ class NotificationSettingsScreen extends ConsumerWidget {
         title: DesignTitle(l10n.notifications, size: 22),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/settings'),
         ),
       ),
       body: ListView(

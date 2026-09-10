@@ -20,24 +20,35 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 « Sim A », après plusieurs `adb install -r` d'un APK release : l'app a démarré
 sur l'onboarding 1/5 alors que le compte l'avait terminé de longue date.
 
-**Les deux causes ont été départagées, et ce n'était pas la lecture distante.**
-Le routeur teste le consentement (étape 6) et l'assistant de profil (étape 7)
-**avant** l'intro (étape 8) : atterrir sur 1/5 exige donc que ces deux
-drapeaux-là aient été lus à `true`. Et les quatre valeurs vivent ensemble —
-même fichier SharedPreferences côté local, même ligne `public.users` côté
-distant, lues dans la même session à quelques secondes d'intervalle. Aucun
-mode de panne ne produit « consentement vrai, intro faux » : seule la donnée
-le peut. Confirmé en base : `consent_date` de « Sim A » est resté au
-2026-07-16, donc l'écran de consentement **n'a pas été affiché** ce jour-là —
-il l'aurait réécrit. La lecture distante fonctionnait ; c'est
-`has_seen_onboarding` qui valait réellement `false` sur `public.users`,
-reliquat de la bascule Firestore→Supabase du 2026-08-13 (`160d417`) : avant
-cette date l'app écrivait ses drapeaux sur Firestore, la colonne Supabase est
-donc restée à son `DEFAULT false` pour tout compte ayant fini son onboarding
-plus tôt.
+**Les deux causes ne s'excluent pas : elles se composent, et il en faut les
+deux.** Le dépôt consulte le local d'abord et ne va au réseau que si le local
+dit `false` — chaque drapeau a donc son propre chemin, indépendamment des
+trois autres.
 
-**Le défaut corrigé est l'autre, réel mais non déclenché ce jour-là.** Un
-échec de lecture était converti en `false`, c'est-à-dire en « rejoue tout ».
+1. **Côté serveur, `has_seen_onboarding` valait réellement `false`** pour
+   « Sim A », alors que `has_given_consent` et `profile_config_complete`
+   valaient `true` (relevé en base ce jour-là ; `consent_date` est resté au
+   2026-07-16, jamais réécrit). Reliquat de la bascule Firestore→Supabase du
+   2026-08-13 (`160d417`) : avant cette date l'app écrivait ses drapeaux sur
+   Firestore, la colonne Supabase est donc restée à son `DEFAULT false` pour
+   tout compte ayant fini son onboarding plus tôt. Conséquence en chaîne : la
+   synchronisation vers le local (`if (remoteResult) setComplete(...)`) a
+   recopié consentement et profil, **jamais** l'intro.
+2. **Ce drapeau-là, et lui seul, repassait donc par le réseau à chaque
+   démarrage** — et sa lecture, en échec, valait « jamais vu ».
+
+⚠️ **Une déduction que j'avais faite est fausse, ne pas la refaire** :
+« atterrir sur l'étape 8 prouve que les étapes 6 et 7 ont lu `true` côté
+serveur, donc que le réseau marchait ». Non — consentement et profil pouvaient
+venir du **cache local**, sans le moindre appel réseau. Le `consent_date`
+intact ne prouve que l'absence d'écriture, pas la réussite d'une lecture. La
+section « ⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding
+(2026-09-10) » plus bas montre l'inverse en acte : même compte, même appareil,
+mode avion → le carrousel, précisément parce que seul le drapeau d'intro va
+au réseau.
+
+**Le défaut corrigé est donc bien celui-là.** Un échec de lecture était
+converti en `false`, c'est-à-dire en « rejoue tout ».
 `SupabaseAuthBridge.ensureReadableSession` rend la main au bout de **3 s sans
 session** en laissant la synchronisation finir en tâche de fond : un démarrage
 à froid sur réseau lent dépasse ce budget et faisait tomber les quatre
@@ -55,10 +66,14 @@ redescend jamais un drapeau. Verrouillé par
       ordre. C'est le cas que le repli optimiste pourrait avaler ; le test
       « les quatre lectures rendent false » le couvre en unitaire, pas en
       vrai.
-- [ ] **Compte établi, réseau lent** : brider le réseau (voir la recette
-      « mode avion / hôte injoignable » plus bas), tuer et relancer l'app avec
-      « Sim A ». Attendu : `/home` directement, aucun écran d'onboarding. Avant
-      correctif ce chemin passait par `/consent`.
+- [ ] **La reproduction hors ligne, rejouée après correctif** : compte « Sim A »
+      connecté, mode avion, rechargement forcé. Attendu : `/home`, aucun écran
+      d'onboarding. C'est le scénario exact qui donnait le carrousel de
+      bienvenue (section plus bas) — le seul qui prouve le correctif, parce
+      qu'il est le seul reproductible à volonté.
+- [ ] **Le même, mais sur un compte dont aucun drapeau n'est en cache local**
+      (compte neuf sur ce téléphone, puis mode avion) : là c'est `/consent` qui
+      tombait, pas l'intro. Vérifier qu'il ne tombe plus.
 - [ ] **La reprise** : la lecture indéterminée est retentée une fois après 4 s
       (`OnboardingNotifier.delaiDeReprise`). Sur un compte neuf dont la
       première lecture échoue, l'écran de consentement doit apparaître ~4 s
@@ -71,6 +86,1612 @@ redescend jamais un drapeau. Verrouillé par
 ⚠️ Le drapeau local ne se relit pas depuis ce poste : le build de l'appareil
 est **release**, `run-as` répond « package not debuggable ». Pour départager
 local et distant, passer par `public.users` en base, pas par `shared_prefs/`.
+
+---
+
+## ⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)
+
+Troisième refus Google Play sur le même terrain, cette fois nommément :
+« Inadequate Prominent Disclosure — The in-app Prominent Disclosure does not
+disclose the usage of accessed or collected Location data », capture jointe
+`IN_APP_EXPERIENCE-9805.png` = l'écran 5/5 de l'onboarding. La seule mention
+de position y disait « Réciproque : vous voyez ceux qui partagent » : un
+bénéfice, jamais une collecte.
+
+Ce qui a été posé (`lib/core/widgets/location_disclosure.dart`) :
+
+- `LocationDisclosureNotice`, bloc de texte **sur l'écran d'onboarding**, sous
+  les deux interrupteurs ;
+- `afficherDivulgationLocalisation(context)`, feuille modale avec
+  « Accepter et continuer » / « Non, merci », affichée **avant** la boîte
+  système ;
+- `demanderLocalisationAvecDivulgation(context)`, la porte d'entrée unique :
+  elle ne montre la feuille que si le système va réellement poser la question.
+
+Câblée sur les quatre chemins qui déclenchent la demande : onboarding 5/5,
+Accueil (`_loadData`), Carte (`_getCurrentLocation`), et le Mode Voyage du
+profil — celui-ci avec la variante « même lorsque l'application est fermée ou
+n'est pas utilisée », exigée parce que son service publie une position toutes
+les 5 minutes hors premier plan.
+
+Vérifié par `test/core/divulgation_localisation_test.dart` (structure + texte).
+Rien de tout ça n'a été vu sur un écran.
+
+- [ ] **Onboarding 5/5** : le bloc de divulgation tient-il sur l'écran sans
+      défilement, sur un petit téléphone et en échelle de police augmentée ?
+      (`onboarding_intro_screen.dart`, la page est déjà dans un
+      `SingleChildScrollView` — le risque est qu'il passe sous la ligne de
+      flottaison, pas qu'il déborde.)
+### Verifie sur SM-A515F le 2026-09-09 (build release, install en place)
+
+Permission revoquee par `adb` pour rejouer le parcours de l'examinateur, puis
+retablie a l'identique (COARSE accordee, FINE refusee).
+
+- [x] **Carte -> ACTIVER** : la feuille de divulgation s'ouvre, puis **et
+      seulement ensuite** la boite systeme Android. Sequence conforme.
+- [x] **Refus a la boite systeme** : la carte bascule sur « Localisation
+      requise pour voir les membres » + repli par ville. Pas de plantage, pas
+      d'ecran mort.
+- [x] **Mode Voyage** (Profil -> Modifier le profil -> Previsualiser -> bas de
+      page) : feuille « Partage de position en continu », portant la phrase
+      exigee « meme lorsque l'application est fermee ou n'est pas utilisee ».
+      « Non, merci » laisse l'interrupteur eteint et ne demande rien.
+- [x] **Position dans une discussion** : la feuille s'ouvre a l'ouverture du
+      selecteur, avant que la carte ne se construise, avec le texte propre au
+      cas (« participants de la discussion »).
+- [x] **Sous-titre localise du Mode Voyage** visible a l'ecran.
+
+⚠️ Trouve pendant ce test : la carte « Mode prive » de l'ecran Carte
+repetait « Position approximative, jamais votre adresse exacte » — la meme
+affirmation fausse que celle retiree de l'onboarding, et ici **au moment
+meme du consentement**. Corrigee (`locationGuarantee1`,
+`locationReciprocity`) : `users.latitude/longitude` stocke la position exacte
+et la carte l'affiche telle quelle. Ce qui est vrai, et desormais affiche :
+aucune historisation, `user_locations` etant declaree mais jamais ecrite.
+
+Reste a voir sur un ecran :
+
+- [x] **Onboarding 5/5** — vu, via l'echappatoire routeur documentee dans
+      [[project_device_testing]] (patch temporaire, jamais committe : un lien
+      profond ne suffit pas, `has_seen_onboarding` est un booleen local indexe
+      par userId et le routeur renvoie la route sur /home des qu'il est vrai).
+
+      **La premiere mesure a trouve le defaut** : le bloc de divulgation
+      tombait **sous la ligne de flottaison** — seul le sous-titre corrige de
+      l'interrupteur etait visible, et c'est cette page que Google
+      photographie. Corrige en aplatissant l'illustration du dernier ecran en
+      bandeau (`illustrationAspectRatio: 3.2`), ce qui libere ~230 px : le
+      paragraphe et le lien vers la politique tiennent desormais juste
+      au-dessus de « Commencer ». Remesure sur l'appareil.
+
+      La ligne « Vos messages sont chiffres de bout en bout », elle, passe
+      maintenant sous la ligne de flottaison. Arbitrage assume : l'une est une
+      exigence de Play, l'autre une reassurance.
+- [ ] **Theme sombre** sur la feuille et le bloc d'onboarding.
+- [ ] **Admin > Fonctionnalites** : la ligne Podcasts grisee.
+
+- [ ] **Appui sur « Commencer » avec Localisation activée** : la feuille
+      s'ouvre-t-elle **avant** la boîte système Android ? « Non, merci » doit
+      n'ouvrir aucune boîte et laisser entrer dans l'application.
+- [ ] **Parcours de l'examinateur** : passer l'onboarding (« Passer », puis
+      « Plus tard, sans autorisations »), puis ouvrir l'Accueil et la Carte —
+      la feuille doit apparaître là aussi, avant toute boîte système.
+- [ ] **Mode Voyage** (profil, section Paramètres) : la feuille porte-t-elle
+      bien la phrase « même lorsque l'application est fermée ou n'est pas
+      utilisée » ? Un refus doit laisser l'interrupteur éteint.
+- [ ] **Thème sombre** sur la feuille et sur le bloc de l'onboarding (jetons
+      adaptatifs, jamais `AppColors` en dur).
+- [ ] **Position dans une discussion** : ouvrir le sélecteur de position
+      depuis une conversation. La feuille doit porter le texte *discussion*
+      (« participants de la discussion »), jamais celui de la carte. Un refus
+      à l'ouverture doit laisser le bouton « envoyer ma position » reproposer
+      la feuille.
+- [ ] **Lien « Lire la politique de confidentialité »** depuis la feuille
+      pendant l'onboarding : `/settings/privacy` est censé échapper aux
+      redirections du routeur, à confirmer avant que le profil soit complet.
+
+⚠️ **Observe le 2026-09-10, hors sujet mais serieux** : apres plusieurs
+`adb install -r` d'un APK release, l'app a demarre sur l'onboarding 1/5 pour
+un compte qui l'avait termine depuis longtemps (session intacte par ailleurs).
+Deux causes possibles, non departagees : le drapeau local perdu a la
+reinstallation, ou la lecture distante en echec — car
+`onboarding_provider.dart` convertit **tout echec de lecture en « jamais
+vu »** (`fold((failure) => false, ...)`), pour les quatre drapeaux, y compris
+ceux qui gardent le consentement et l'assistant de profil. Remis d'aplomb sur
+l'appareil en tapant « Passer ». Suivi ouvert a part.
+
+⚠️ Interrupteur **Podcasts** du back-office désormais inerte, et c'est
+voulu : `FOREGROUND_SERVICE_MEDIA_PLAYBACK` a été retirée du manifeste alors
+que `AudioService` déclare toujours `foregroundServiceType="mediaPlayback"`.
+L'allumer rouvrait `/podcasts` sur un build où la lecture lève une
+`SecurityException` au premier `startForeground` (Android 14+). Il redevient
+actif tout seul quand `kPodcastsSupportesParCeBuild` repasse à `true`, ce que
+`test/core/podcasts_service_premier_plan_test.dart` interdit de faire sans
+rétablir l'autorisation.
+
+- [ ] **Admin › Fonctionnalités** : vérifier que la ligne Podcasts s'affiche
+      bien grisée, avec son explication, et que /podcasts reste inaccessible.
+
+⚠️ Deux points **hors code**, à faire dans la Play Console avant de renvoyer :
+le formulaire *Data safety* doit déclarer la localisation comme collectée
+**et partagée**, et la politique de confidentialité doit la décrire. Le refus
+porte sur l'in-app, mais les trois doivent concorder.
+
+⚠️ Reste ouvert : `users.latitude/longitude` stocke la position **exacte**,
+non arrondie, et la carte l'affiche telle quelle. La puce d'onboarding
+« Position approximative, jamais l'adresse exacte » affirmait donc quelque
+chose de faux — elle a été remplacée par « Partage facultatif, que vous coupez
+quand vous voulez ». Si la promesse d'approximation est voulue, il faut
+l'implémenter (arrondi avant écriture), pas la réécrire.
+
+---
+
+## ⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)
+
+Signalé par Salim : « l'acceptation et exit dans les groupes ne sont pas mis à
+jour automatiquement du côté de tous les users ». Deux causes superposées,
+toutes deux corrigées.
+
+**1. Côté base.** Ni `public.groups` ni `public.group_members` n'étaient dans
+la publication `supabase_realtime` (relevé du 2026-09-09 sur le projet lié).
+Le « stream » de la fiche groupe faisait donc son chargement initial et plus
+jamais rien : le commentaire « Stream provider for real-time group updates »
+décrivait une réactivité qui n'existait pas. Corrigé par
+`20260909210000_realtime_groupes_et_appartenance.sql`, **appliqué en
+production le 2026-09-09** et vérifié (les deux tables figurent maintenant
+dans la publication).
+
+**2. Côté app.** Même publiée, la table `groups` ne bouge pas quand
+l'appartenance change : la liste des membres vit dans `group_members`.
+`getGroupStream` écoute désormais les **deux** tables, chacune déclenchant la
+même relecture. Et les deux écrans concernés préféraient un instantané figé :
+`GroupDetailScreen` faisait `widget.initialGroup ?? streamGroup` (le paramètre
+de navigation gagnait sur tout), `GroupMembersScreen` ne lisait même pas le
+flux. « Mes groupes » ne se chargeait qu'une fois, à la construction du
+notifier : un groupe rejoint sur approbation n'y apparaissait qu'au
+redémarrage.
+
+Fichiers : `group_supabase_datasource.dart`, `group_remote_datasource.dart`,
+`group_repository_impl.dart`, `group_provider.dart`, `group_detail_screen.dart`,
+`group_members_screen.dart`.
+
+Verrouillé côté app par `test/features/groups/membres_temps_reel_test.dart`
+(3 cas) — mais le test remplace le flux par un `StreamController` : **il ne
+prouve rien du transport realtime**, qui est exactement ce qui manquait.
+D'où la liste ci-dessous, qui demande **deux téléphones** (deux comptes
+distincts).
+
+- [ ] **Acceptation d'une demande, écran Membres ouvert** : téléphone A
+      (administrateur) sur la fiche du groupe → Membres. Téléphone B demande à
+      rejoindre. A accepte depuis l'écran des demandes, revient sur Membres :
+      la personne doit y être **sans avoir refermé l'écran**.
+- [ ] **Acceptation vue par un TROISIÈME écran** : garder le téléphone A sur
+      la liste des membres pendant que l'acceptation se fait ailleurs (par
+      exemple depuis l'écran des demandes du même groupe sur l'autre
+      appareil). C'est le cas que la migration débloque : la mise à jour
+      arrive sans qu'aucun code local ne l'ait demandée.
+- [ ] **Départ** : B quitte le groupe. Sur A, resté sur Membres, la ligne
+      disparaît et le compte « Membres · N » se décrémente tout seul. C'est
+      l'événement DELETE — celui qui ne passe que parce que `group_id` fait
+      partie de la clé primaire de `group_members`.
+- [ ] **Exclusion** : A exclut B (appui long sur la ligne). Sur B, l'onglet
+      Groupes doit perdre le groupe **sans redémarrage de l'app**.
+- [ ] **« Mes groupes » à l'acceptation** : B, onglet Groupes ouvert, pendant
+      que A approuve sa demande. Le groupe doit apparaître dans la liste tout
+      seul, **sans spinner qui vide l'écran** (le rafraîchissement réactif est
+      volontairement silencieux).
+- [ ] **Fiche ouverte depuis une liste** : ouvrir la fiche groupe **depuis
+      l'onglet Groupes** (c'est ce chemin qui passe `initialGroup`, et c'est
+      lui qui était figé). Vérifier qu'un renommage ou un changement d'avatar
+      fait depuis l'autre téléphone s'y voit sans refermer.
+- [ ] **Hors ligne** : couper le réseau du téléphone A sur la fiche groupe. La
+      fiche doit garder ce qu'elle affichait (repli sur `initialGroup` /
+      lecture one-shot) et non se vider. Au retour du réseau, vérifier qu'une
+      modification faite entre-temps finit par arriver.
+- [ ] **Quitter et rouvrir vite le même groupe**, plusieurs fois de suite,
+      puis vérifier qu'une modification faite depuis l'autre téléphone arrive
+      toujours. Le flux est `autoDispose` : chaque aller-retour détruit
+      l'abonnement et en recrée un pendant que l'ancien se ferme encore.
+      C'est ce que le suffixe unique de topic realtime protège — sur un topic
+      partagé, le nouveau canal reste muet sans la moindre erreur.
+
+---
+
+## ⬜ Citations et modifications : plus de texte en clair (2026-09-09)
+
+Deux fuites de la même famille que les cartes de partage, trouvées en
+instrumentant ce chemin. Toutes deux écrivaient du texte utilisateur **en
+clair** dans `messages.data`, à côté d'un `content` chiffré.
+
+**1. Répondre recopiait le message cité en clair.** `replyToMessageData`
+contient le texte **déjà déchiffré** du message auquel on répond : chaque
+réponse en déposait une copie lisible. Une conversation active en laissait donc
+une trace message après message. La citation rejoint le blob `encAnnexes`, dans
+les **cinq** envois qui l'acceptent : texte, média, note vocale, localisation,
+sticker.
+
+**2. Modifier un message annulait son chiffrement.** `editMessage` réécrivait
+`data['content']` en clair tout en laissant `encryptionLevel` annoncer 'e2ee',
+et gardait le texte d'avant dans `editHistory`. Le texte modifié repasse
+maintenant par le chemin de l'envoi (`_encryptContent`), et l'historique ne
+garde plus que la date — rien ne l'affichait.
+
+- [ ] **Répondre, dans les cinq cas** : à un texte, à une photo (avec légende),
+  à une note vocale, à une localisation, à un sticker. La citation doit
+  s'afficher au-dessus de la bulle, chez l'expéditeur **et** chez l'autre.
+- [ ] **La citation survit à un accusé de lecture** : même piège que les
+  cartes ; le flux de mises à jour rend la ligne brute.
+- [ ] **Modifier un message d'un 1:1, puis d'un groupe** : le texte modifié
+  doit s'afficher correctement chez l'autre après rechargement. C'est le point
+  le plus risqué du lot — le rechiffrement d'une modification n'a jamais tourné
+  contre de vraies sessions Signal.
+- [ ] **Modifier un message de « Mes notes »** (aucun destinataire, chemin
+  `selfNote`).
+- [ ] **Rouvrir la conversation après avoir modifié** : côté EXPÉDITEUR, le
+  texte modifié doit rester. Il ne sait pas relire son propre message chiffré
+  (les charges Signal visent les appareils du destinataire) : sa bulle vient du
+  cache, qui est réécrit à la modification. Si le texte d'avant revient, c'est
+  cette réécriture qui a manqué.
+- [ ] **Modifier deux fois de suite** le même message : la deuxième
+  modification doit rester lisible (les charges du format précédent sont
+  purgées avant d'écrire les nouvelles).
+- [ ] **En base** : `select data->>'content' from messages where data ?
+  'editedAt'` ne doit plus rien montrer de lisible, et
+  `data->'editHistory'` ne doit plus contenir de champ `content`.
+
+---
+
+## ⬜ Cartes de partage chiffrées au repos (2026-09-09)
+
+Une carte de partage (post, événement, annonce, aperçu de lien) ne transite pas
+par `content` : elle ne passait donc pas par Signal et partait **en clair**
+dans `messages.data`. Elle voyage désormais dans un blob unique `encAnnexes`,
+chiffré avec la clé dérivée de la conversation — même famille que les aperçus,
+la localisation et les médias.
+
+Les deux formats cohabitent sans migration : un message d'avant garde ses
+champs en clair et se relit tel quel. Un client plus ancien n'affichera pas la
+carte, mais le texte reste lisible.
+
+C'est le chemin le plus silencieux du dépôt : une carte qui n'arrive pas ne
+produit **aucune erreur**, ni à l'écran ni dans logcat.
+
+- [ ] **Aller-retour réel entre deux comptes** : partager un groupe depuis le
+  téléphone A vers un 1:1 et vers un groupe ; vérifier sur le téléphone B que
+  la carte s'affiche avec image et titre, et que le tap ouvre l'écran.
+  (Deux appareils = deux comptes, cf. le rappel de config plus bas.)
+- [ ] **La carte survit à un accusé de lecture** : c'était le piège. Le flux de
+  mises à jour rend la ligne BRUTE ; sans report explicite, la carte
+  disparaissait de la bulle dès que l'autre lisait le message.
+  (`message_provider.dart`, `_listenForMessageUpdates`)
+- [ ] **La carte survit à un redémarrage** (relecture depuis le cache Hive puis
+  depuis le serveur) et à un défilement qui recharge la page de messages.
+- [ ] **Hors ligne au moment de l'envoi** : la clé dérivée vient d'un
+  aller-retour réseau (`crypto-keys`). Vérifier ce que devient un partage
+  envoyé sans réseau, puis à la reconnexion.
+- [ ] **En base, plus rien de lisible** : `select data from messages where
+  data ? 'encAnnexes' limit 1` ne doit montrer ni titre, ni URL, ni nom.
+- [ ] **« Supprimer pour tout le monde » efface aussi la carte** : la ligne ne
+  doit plus porter `encAnnexes` après suppression.
+- [ ] **Mesure du repli** : quelle proportion des blobs est au format dérivé
+  (`v<n>:`) plutôt qu'à la clé globale. Tant que le repli global sert, la
+  confidentialité n'est pas acquise — la clé globale est extractible de l'APK.
+
+---
+
+## ⚠️ Lire les groupes SANS session échoue en production (2026-09-09)
+
+Trouvé en sondant PostgREST avec la clé publique du `.env` — donc rôle `anon`,
+exactement ce qu'est un client dont la session Supabase n'est pas encore
+établie :
+
+```
+GET /rest/v1/groups?select=id,name  →  401
+{"code":"42501","message":"permission denied for function has_group_invite"}
+```
+
+`events`, `posts`, `group_members`, `event_attendees` répondent 200. **Seule
+`groups` échoue.** `20260909201500` a ajouté `has_group_invite(id)` à
+`groups_select_public` sans donner l'exécution à `anon` ; toutes ses fonctions
+sœurs (`is_group_member`, `is_group_admin`, `is_group_public`, `firebase_uid`)
+l'ont. Postgres refuse alors la requête **entière** au lieu d'évaluer le terme
+à `false`.
+
+Ce que ça casse, et qui ne se voit dans aucun test : toute lecture de `groups`
+faite avant que le pont Firebase→Supabase ait abouti — la liste des groupes et
+la fiche d'un groupe ne rendent pas « moins de lignes », elles rendent une
+erreur. Et par ricochet les événements, dont le datasource demande
+`select=*,groups(name)` : l'embed déclenche la RLS de `groups`.
+
+`20260910014500_has_group_invite_executable_par_anon.sql` ajoute le GRANT
+manquant. Prouvé en transaction annulée, dans les deux sens : sans lui `anon`
+reçoit 42501 ; avec lui il voit **3 groupes** — les 3 publics, aucun des 2
+privés. La visibilité ne bouge pas, l'erreur dure devient un `false`.
+
+⚠️ Fichier séparé, pas une retouche de `20260909201500` : celle-là est déjà
+appliquée et son auteur travaille encore dessus. À lui signaler.
+
+- [ ] Après `db push` : démarrage à froid, ouvrir l'onglet Groupes tout de
+      suite (avant que la session s'établisse) — la liste doit s'afficher.
+- [ ] Un lien profond `/groups/<public>` reçu par quelqu'un qui vient
+      d'installer l'app.
+
+---
+
+## ✅ Événements sur Supabase — BASCULÉ et vérifié SM A515F (2026-09-09 22:35)
+
+**✅ Vérifié sur SM A515F avec l'APK de 22:21** (md5 `8b3cb4753c`) :
+
+- `…/events/6a5b77cb-…` — un uuid qui n'existe **que** dans Supabase — ouvre
+  « Tabaski 2026 » avec sa date, son lieu, sa description et son organisateur.
+  Le même lien tournait à vide indéfiniment avant la bascule.
+- « Participer » insère bien dans `event_attendees` : plus de 42703.
+
+**⚠️ Deux défauts trouvés en le vérifiant, corrigés mais PAS encore livrés :**
+
+- [x] **Le compteur de participants ne bougeait pas** — ✅ vérifié SM A515F 2026-09-09 23:05 : annulation → 0, réinscription → 1, en base comme à l'écran. (`event_attendees` à 1,
+      `events.attendee_count` à 0). Ma faute dans `20260910010000` : j'ai
+      réécrit le trigger sans `SECURITY DEFINER`. Il tourne donc sous
+      l'identité du participant, et `events_manage_own` réserve l'UPDATE à
+      l'organisateur — la RLS ne fait pas échouer l'UPDATE, elle lui donne
+      **zéro ligne**. Aucune erreur nulle part. C'est la forme d'échec muet
+      la mieux connue du projet, réintroduite par moi.
+      `20260910023000` la remet en DEFINER et recale les compteurs.
+      Vérifier : « Participer » depuis un compte non-organisateur → le
+      nombre de participants augmente à l'écran.
+- [x] **La notification disait « Un utilisateur participera à … »** — ✅ vérifié : la ligne de 23:05 dit « **Sim A** participera à "Tabaski 2026" », juste au-dessus des deux anciennes en « Un utilisateur » (dont une du 5 août).
+      (signalé par Salim). `attendEvent` lisait le nom dans **Firestore**
+      (`users/<uid>.displayName`) alors que les comptes vivent sur Supabase :
+      le document n'existe pas, et le repli générique masquait la panne au
+      lieu de la signaler. Lu depuis `public.users.display_name`.
+      Vérifier : participer à l'événement de quelqu'un d'autre → il reçoit
+      « <votre nom> participera à … ».
+
+✅ `20260910023000` appliquée. Trigger en `SECURITY DEFINER`, compteurs recalés.
+
+**✅ Corrigé — les deux onglets partitionnent désormais par la date.**
+Ils filtraient chacun sur `status` (« À venir » exigeait `upcoming`, « Passés »
+exigeait `completed`) et rien ne fait la transition quand la date arrive : un
+événement dont personne n'avait touché le statut tombait entre les deux. C'est
+le cas de « testeur », et c'est ce qui m'a fait croire un moment que la
+collection Firestore était vide.
+
+`_estAVenir` est littéralement `!_estPasse` : la complémentarité est
+structurelle, elle ne peut plus dériver. Un brouillon reste hors des deux (la
+RLS ne le montre qu'à son organisateur) ; un annulé va dans « Passés » quelle
+que soit sa date.
+
+**Et un annulé se lit enfin comme tel.** Rien ne l'indiquait nulle part : la
+fiche proposait « Participer », et l'inscription aboutissait pour de bon — en
+base et en notification. Ajouté : une pastille rouge « Annulé » à côté du
+badge Gratuit/Payant, et le bouton éteint qui dit « Annulé » au lieu de
+« Complet ».
+
+- [x] « testeur » (passé, resté `upcoming`) apparaît dans « Passés » — ✅ SM A515F 2026-09-10 00:45, avec « gh » (19 juil.) : les deux étaient invisibles avant.
+- [x] « Tabaski 2026 » (annulé) : pastille rouge « Annulé » entre « Culturel »
+      et « Gratuit », et bouton grisé « Annulé » à la place de « Participer » —
+      ✅ SM A515F 2026-09-10 00:47.
+- [x] Aucun événement absent des deux onglets — ✅ les 3 événements en base sont
+      visibles. ⚠️ **Deuxième passe nécessaire** : la pastille de la carte
+      disait « À venir » **dans l'onglet Passés** (elle lisait `status` brut).
+      Corrigée en « Terminé » / « Annulé », revérifiée. Rendre visible sans
+      corriger l'étiquette aurait déplacé la confusion, pas retirée.
+
+**⚠️ Lectures Firestore `users` encore vivantes ailleurs**, même famille que
+la notification corrigée ici, non vérifiées : `core/services/session_service.dart`,
+`core/services/e2ee/content_moderation_service.dart`,
+`core/services/e2ee/session_backup_service.dart`,
+`features/admin/.../permission_provider.dart`,
+`features/admin/.../role_management_provider.dart`.
+(`GroupRemoteDataSourceImpl._getUserDisplayName` porte le même motif mais est
+du **code mort** : le provider rend `GroupSupabaseDataSource()`.)
+
+
+
+Décision de Salim : `public.events` fait foi. Le module Événements lisait
+Firestore pendant que le back-office admin écrivait dans Supabase.
+
+Livré dans cette passe :
+
+- `lib/features/events/data/datasources/event_supabase_datasource.dart`
+  (17 méthodes de l'interface, `flutter analyze` propre) ;
+- `supabase/migrations/20260910003000_events_lisibles_par_l_app.sql`, rejouée
+  en transaction annulée contre la production — elle passe.
+
+**Le provider n'est PAS basculé**, et c'est délibéré : trois choses manquent,
+dont deux ne dépendent pas de moi.
+
+1. ~~La migration n'est pas appliquée.~~ **Résolu sans intervention** : un
+   autre agent a poussé ses propres migrations et la mienne est partie avec.
+   Vérifié au distant le 2026-09-09 — colonne `price`, policy
+   `event_attendees_select`, fonction `is_event_readable` et FK
+   `event_attendees_event_id_fkey` sont toutes en place, et
+   `supabase db push --dry-run` dit « Remote database is up to date ».
+   ⚠️ La réparation d'historique que le CLI suggérait
+   (`migration repair --status reverted 20260909210000`) aurait été **fausse** :
+   cette migration EST appliquée au distant, la marquer « reverted » aurait
+   écrit le contraire dans la table d'historique. Ne pas la lancer.
+2. **Personne ne sait ce qu'il y a dans Firestore.** Basculer le provider rend
+   invisibles les événements restés côté Firestore. Impossible de les compter
+   depuis ce poste : `scripts/set_admin.js` s'appuie sur
+   `applicationDefault()` et il n'y a pas d'identifiants gcloud ici — le
+   script reste suspendu. Le plus simple : ouvrir l'onglet Événements de
+   l'app **avant** la bascule et noter ce qui s'affiche, puis recopier.
+3. **Trois écarts comblés par la migration, à revalider après coup** :
+   `price` n'existait pas en base (affiché sur la fiche, saisi à la
+   création) ; `event_attendees` n'était lisible que pour sa propre ligne, donc
+   `attendeeIds.length >= maxAttendees` n'aurait **jamais** annoncé un
+   événement complet ; et l'enum Dart dit `completed` là où la contrainte de
+   base dit `ended` — traduit dans le datasource, pas dans la base.
+
+**⚠️ BLOCAGE DUR : `supabase db push` n'a PAS été lancé.** Le
+classificateur de permissions de Claude Code le refuse, et je ne le contourne
+pas. `20260910010000_reprise_evenement_firestore.sql` est écrite et rejouée en
+transaction annulée (elle passe : 3 événements, 1 inscription, compteur à 1),
+mais elle attend.
+
+**Tant qu'elle n'est pas appliquée, ne pas livrer d'APK depuis cette
+branche** : le provider est déjà basculé sur Supabase, donc « Participer » et
+la création d'un événement échouent (voir le trigger ci-dessous). Les
+**lectures**, elles, fonctionnent : `20260910003000` est déjà en place.
+
+```bash
+supabase db push   # une seule migration en attente
+```
+
+**Ce que la répétition à blanc a trouvé, et qui ne se devine pas.**
+`update_event_attendee_count()` teste `NEW.status = 'going'` alors que
+`event_attendees` n'a que `(event_id, user_id, joined_at)` — **aucune colonne
+`status`**. Tout INSERT partait en `42703: record "new" has no field
+"status"`. S'inscrire à un événement était donc impossible **depuis toujours**,
+pour tout le monde ; personne ne l'avait vu parce que rien n'écrit encore dans
+cette table. Le défaut se serait réveillé au premier « Participer » après la
+bascule. La migration réécrit la fonction sur la table telle qu'elle est — une
+ligne = un participant — et resynchronise `attendee_count`, qui ne reflétait
+rien.
+
+**Inventaire Firestore, fait pour de vrai** (API REST + `gcloud auth
+print-access-token`, et non « l'écran est vide ») : la collection `events`
+contient **un seul document**, `LmCs74hv84NSbKM7TDrx` — « testeur », organisé
+par Sim A, rattaché à une conversation, daté du 2026-08-24. La migration le
+reprend. Le document Firestore n'est **pas** supprimé : c'est la copie de
+secours tant que la recette n'est pas passée.
+
+⚠️ **Et c'est un défaut d'affichage à lui tout seul** : cet événement
+n'apparaît dans **aucun** des deux onglets. « À venir » filtre
+`startDate >= now` (il est passé), « Passés » filtre `status == 'completed'`
+(il est resté `upcoming`). Un événement dont personne ne change le statut
+disparaît de l'écran. Non corrigé.
+
+- [ ] Une fois la migration appliquée et le provider basculé : créer un
+      événement depuis l'app, le retrouver dans le back-office admin, et
+      l'inverse.
+- [ ] Un événement avec `maxAttendees = 1` doit s'afficher **complet** après
+      une inscription (c'est le défaut que la policy élargie corrige).
+- [ ] Un événement passé (`ended` en base) doit apparaître comme terminé, pas
+      comme à venir.
+- [ ] Le prix saisi à la création doit se relire sur la fiche.
+
+---
+
+## ✅ Repli navigateur des liens d'app — DÉPLOYÉ (2026-09-09 21:5x)
+
+Tout chemin d'app tapé dans un navigateur (ou dans le navigateur intégré de
+WhatsApp, qui court-circuite les App Links) tombait sur la page d'accueil du
+site, par la règle attrape-tout `**` → `/index.html`.
+
+`public/ouvrir.html` répond désormais à `/groups/**`, `/g/**`, `/feed/**`,
+`/events/**`, `/businesses/**`, `/marketplace/**`, `/audio-rooms/**`,
+`/podcasts/**`, `/profile/**`, `/p/**`, `/embassies/**`, `/calls/**` — sur
+les **deux** sites de `firebase.json`, inséré avant `**`. La page dit le
+**type** de contenu (« Groupe », « Événement »…) et jamais lequel : aucun
+appel réseau, aucun nom, cohérent avec la garde de `20260909201500`.
+
+Vérifié sur un canal d'aperçu Firebase (production intacte) :
+
+- Android (UA émulé) : `intent://…;package=com.diasponiger.diasponiger;S.browser_fallback_url=<Play>;end`
+- Ordinateur : bouton « Installer sur votre téléphone », doublon masqué
+- `Cache-Control: public, max-age=0, must-revalidate` (sans la règle ajoutée,
+  Hosting servait `max-age=3600` — la règle `**/*.@(html)` n'attrape pas un
+  chemin réécrit, qui ne finit pas en `.html`)
+
+**⚠️ Le déploiement est bloqué par une découverte plus grosse.** La
+production ne fait **pas** tourner le site du dépôt :
+
+| URL | En production le 2026-09-09 |
+|---|---|
+| `/assets/site.css` | rend du **HTML** (attrapé par `**`) — le fichier n'existe pas |
+| `/telecharger` | rend la page d'accueil |
+| `/a-propos`, `/fonctionnalites` | rendent la page d'accueil |
+| `/` | titre « La diaspora qui se retrouve », le dépôt dit « La communauté nigérienne partout dans le monde » |
+| `/.well-known/apple-app-site-association` | `VOTRE_TEAM_ID.com.diasponiger.diaspo_niger` — le gabarit jamais rempli |
+
+Donc `firebase deploy --only hosting` ne publierait pas seulement la page
+interstitielle : il publierait **toute la refonte du site**, celle des quatre
+entrées ⬜ ci-dessous (cahier des charges, palette Organic, accueil sur
+captures réelles, menu mobile). À arbitrer par Salim, pas à faire en passant.
+
+Ce que le déploiement corrigerait au passage, une fois décidé : les universal
+links iOS, aujourd'hui cassés par le `VOTRE_TEAM_ID` resté en place.
+
+Ce qu'il perdrait : l'entrée `assetlinks.json` du paquet hérité
+`com.diasponiger.diaspo_niger` (le dépôt ne déclare que le paquet livré).
+Vérifié sans risque : `pm list packages` sur les deux appareils ne connait
+que `com.diasponiger.diasponiger`, dont les deux empreintes sont bien dans le
+fichier du dépôt — dont `DD:A6:5C:3E`, celle que les deux téléphones
+rapportent.
+
+**Déployé en production le 2026-09-09 sur les deux sites**, sur décision de
+Salim — donc la refonte du site est en ligne du même coup. Vérifié après coup :
+
+| URL | Avant | Après |
+|---|---|---|
+| `/groups/<id>`, `/feed/abc` | page d'accueil | « Ouvrir dans Diaspo Niger » |
+| `/telecharger`, `/a-propos` | page d'accueil | leurs vraies pages |
+| `/assets/site.css` | `text/html` | `text/css` |
+| AASA | `VOTRE_TEAM_ID` | `3WM7VK48T3.com.diasponiger.diaspoNiger` |
+
+✅ **Non-régression App Links vérifiée sur SM A515F après le déploiement** :
+`pm get-app-links` dit toujours `verified` sur les deux domaines, et
+`https://diasponiger.web.app/groups/<id>` ouvre l'app directement sur la fiche
+du groupe — pas le navigateur, pas la page interstitielle. C'était le risque
+de ce déploiement : `assetlinks.json` du dépôt ne déclare plus le paquet
+hérité `com.diasponiger.diaspo_niger`.
+
+- [ ] Une fois déployé : ouvrir `https://diasponiger.web.app/groups/<id>` dans
+      **Chrome** sur un téléphone **sans** l'app → page interstitielle, puis
+      « Ouvrir dans l'application » → Play Store.
+- [ ] Le même lien envoyé par WhatsApp, ouvert dans son navigateur intégré.
+
+---
+
+## ⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)
+
+`generateInviteLink()` fabriquait `/invite?ref=<uid>` et **aucune route
+n'existait** pour ce chemin. Mesuré : atterrissage sur l'accueil, `ref` perdu.
+
+Le vrai problème était le choix de la cible : un lien d'invitation s'adresse
+par définition à quelqu'un qui **n'a pas** l'app, à qui un lien profond ne
+sert à rien. Il pointe désormais `/telecharger`.
+
+Et parce que l'intent-filter App Links revendique l'hôte **entier**, ce lien
+ouvre quand même l'app chez qui l'a déjà : deux routes de redirection
+(`/telecharger` et `/invite`, ce dernier pour les liens déjà partagés)
+renvoient explicitement sur l'accueil, au lieu de dépendre de ce que GoRouter
+fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
+
+- [ ] Accueil → « Inviter un proche » → le lien partagé finit par
+      `/telecharger?ref=<uid>`.
+- [x] Ce lien tapé sur un téléphone **avec** l'app → l'accueil, pas d'erreur. ✅ SM A515F 2026-09-09 21:42
+- [ ] Un ancien lien `/invite?ref=…` → l'accueil aussi.
+
+---
+
+## ⬜ Podcasts : cinq routes qu'aucun garde ne voyait (2026-09-10)
+
+Trouvé en répondant à « tous les types de deep link ont été pris en compte ? ».
+Réponse : non, et le trou ne venait pas des écrans — il venait du **garde**.
+
+`PodcastsRoutes` déclare ses chemins en **constantes** :
+
+```dart
+static const String detail = '/podcasts/:podcastId';
+...
+GoRoute(path: detail, ...)
+```
+
+`fleche_retour_test.dart` découpait le routeur sur `path: '` — un littéral. Il
+ne voyait donc **aucune** des cinq routes podcasts, et elles n'avaient
+effectivement **aucune sortie** : `AppBar` et `SliverAppBar` sans `leading`,
+donc rien d'autre que la flèche implicite de Flutter, qui ne s'affiche pas
+quand la pile ne contient que cet écran.
+
+Deux de ces cinq sont des cibles de liens que **l'app génère elle-même** :
+`generatePodcastLink` (`/podcasts/<id>`) et `generateEpisodeLink`
+(`/podcasts/episodes/<id>`), tous deux dans `DeepLinkService`.
+
+⚠️ **Non observable aujourd'hui** : les podcasts sont derrière un feature-flag,
+le routeur renvoie ces chemins sur `/home`. Le défaut se découvrira le jour où
+le flag passera à `true` — d'où la correction maintenant.
+
+Corrigé :
+
+- [ ] **Cinq sorties posées** — `BackButton` explicite avec le repli maison sur
+      l'accueil des podcasts (→ `/home`), la création, « mes podcasts », la
+      fiche podcast et la fiche épisode (→ `/podcasts`).
+      Vérifier, une fois le flag actif : `diasponiger:///podcasts/<id>` et
+      `diasponiger:///podcasts/episodes/<id>`, flèche puis retour système.
+- [ ] **Les deux fiches posent leur `SliverAppBar` dans la branche « données »**
+      — chargement, erreur et « introuvable » n'avaient donc aucune sortie,
+      exactement comme la fiche entreprise en son temps. Enveloppées dans
+      `DesignExitOnlyBody`, et les deux boutons « Retour » de l'épisode
+      recâblés (ils faisaient `context.pop()` nu).
+- [x] **Le garde résout désormais les constantes** — il voit 116 routes au lieu
+      de 111, et 0 route dont l'écran ne se résout pas. Il est tombé tout seul
+      sur une flèche que j'avais oubliée de poser (`episode_detail_screen`),
+      ce qui vaut vérification.
+
+**Ce qu'il reste, après ce passage** : 1 `pop()` nu (la croix de la feuille de
+filtres de l'historique des transferts — le bon geste), 12 écrans sans sortie
+(les 5 onglets, le parcours de connexion, le splash, la maintenance, l'écran
+d'appel qui sort par « raccrocher », et `/share` qui est une feuille modale),
+et 2 sorties conditionnelles — voir l'entrée juste au-dessus.
+
+## ⬜ Liens profonds : la flèche retour ne faisait rien (2026-09-09)
+
+Signalé par Salim : « les deep link, pas possible de faire des retours ».
+Suite directe de la section ci-dessous — le lien arrive bien, l'écran
+s'affiche, c'est la **sortie** qui manque.
+
+Mesuré sur SM A515F, `diasponiger:///services`, intent envoyé à chaud :
+
+| Geste | Avant |
+|---|---|
+| flèche de l'en-tête | l'écran ne bouge pas |
+| bouton retour système | **quitte l'application** (retour au lanceur) |
+
+Cause : arrivée par lien profond, la route est **seule dans la pile** — le
+routeur rejoue la destination mise de côté par un `go`, qui remplace la pile
+au lieu de l'empiler. `context.pop()` n'a alors rien à dépiler ; go_router
+14.8.1 lève `GoError('There is nothing to pop')` (`delegate.dart:100`), que
+rien n'attrape et que logcat ne montre pas — Crashlytics remplace
+`FlutterError.onError` (cf. la section « aucune exception Flutter »). En
+navigation interne le défaut est invisible : ces écrans sont toujours atteints
+par `push`, donc il y a quelque chose à dépiler.
+
+Le garde `fleche_retour_test.dart` ne pouvait pas le voir : ses trois tests
+vérifient la **présence** d'une sortie, jamais son **câblage**. Un quatrième
+test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
+`services_screen.dart`, il tombe dessus et sur lui seul.
+
+- [x] **22 sorties recâblées** ✅ SM A515F 2026-09-10 00:25 (build `3198bfc5…b2ff`) sur le repli maison
+      `canPop() ? pop() : go(<parent>)`, avec le parent logique de chaque
+      route et non un `/home` uniforme.
+
+      **Deux rejouées à l'intent** : `diasponiger:///services` → accueil, et
+      `diasponiger:///groups/<id>` → **Groupes**, pas l'accueil — c'est bien
+      le parent qui sort, pas le repli uniforme. Les vingt autres sont le
+      même motif, tenu par le garde-fou ; restent à voir à l'œil :
+      `/events/<id>` (→ Événements), `/notifications/settings` (→ Réglages),
+      `/profile/edit` (→ Profil), `/feed/space/hashtags` (→ Mon espace).
+      Trois d'entre elles ne sont venues qu'à la deuxième passe (galerie
+      média, favoris, bandeau hashtag du fil) : leur `IconButton` déclare
+      `onPressed:` **avant** `icon:`, et le détecteur partait de l'icône.
+- [x] **Le retour système ne quitte plus l'application.** ✅ SM A515F 2026-09-10 00:25 Il ne passe ni par
+      la flèche ni par un `context.pop()` métier : il descendait jusqu'à
+      Android, qui fermait l'app. Plutôt qu'un `PopScope` sur chacun des 22
+      écrans, `RetourSystemeVersAccueil` (`lib/core/router/retour_systeme.dart`)
+      rattrape le geste **une fois**, au-dessus du routeur, et seulement
+      quand personne d'autre ne l'a traité : les écrans qui portent déjà un
+      `PopScope` gardent la main.
+
+      ⚠️ **Un `BackButtonDispatcher` seul ne suffit pas** —
+      première version livrée ainsi, 5 tests verts, et le retour quittait
+      toujours l'app sur SM A515F. `android:enableOnBackInvokedCallback` vaut
+      `true` (obligatoire à partir de targetSdk 36) : Android ne route le
+      retour vers Flutter que si le framework s'est **annoncé preneur**, via
+      `SystemNavigator.setFrameworkHandlesBack`. C'est le `Navigator` qui
+      répond, et sur une pile d'une seule route il répond « non ». La
+      réclamation passe par `MaterialApp.onNavigationNotification`.
+
+      Repli `/home` — le geste système n'a pas la précision d'une flèche, et
+      le parent d'un chemin n'est pas toujours une route déclarée. Quitter
+      l'app reste le bon geste sur les cinq onglets et sur le parcours de
+      connexion : la liste est dans le fichier.
+
+      **Mesuré, cinq fois, md5 de l'APK contrôlé avant et après** :
+      `diasponiger:///services` + retour système → accueil ✅ ;
+      même écran + flèche → accueil ✅ ;
+      `diasponiger:///groups/<id>` + flèche → **Groupes** (le parent, pas
+      l'accueil) ✅ ;
+      depuis l'onglet Accueil, retour système → l'app se ferme, comme avant ✅ ;
+      Groupes → une fiche (push interne) + retour système → la liste, **pas**
+      l'accueil ✅.
+- [ ] **Deux écrans masquent leur flèche quand la pile est vide** —
+      `/feed` et `/calls/history` : `if (context.canPop()) …`, choix
+      documenté sur place. Arrivé là par lien profond, il n'y a donc aucune
+      flèche ; c'est le retour système ci-dessus qui sert de sortie.
+      Vérifier que ça suffit à l'usage, ou leur donner une flèche.
+
+## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
+
+Signalé par Salim : « les liens des groupes et autres ne marchent pas ».
+Sept liens rejoués à l'intent, démarrage à froid, sur Pixel `58221FDCQ0085Z`
+(compte « Salim L. ») — le lien **arrive** bien à l'app dans tous les cas, la
+vérification App Links est `verified` sur les deux appareils. Ce qui casse est
+toujours **après**, à l'écran d'arrivée :
+
+| Lien | Mesuré le 2026-09-09 |
+|---|---|
+| `/groups/<public>` | ✅ fiche du groupe, complète |
+| `/groups/<privé>` non-membre | ❌ « Erreur de chargement » + Réessayer inutile |
+| `/p/u/<userId>` | ✅ profil |
+| `/events/<uuid Supabase>` | ❌ roue qui tourne, encore là **après 75 s** |
+| `/invite?ref=…` | ⚠️ accueil ; aucune route `/invite` n'existe, le `ref` est perdu |
+| `/groups/<inexistant>` | ❌ « Erreur de chargement » (même écran que le privé) |
+| `…/groups/<id>` dans un navigateur | ⚠️ page d'accueil du site (règle `**` → index.html) |
+
+Corrigé dans cette livraison :
+
+- [x] **`/events/<id>` qui échoue affiche enfin quelque chose.** ✅ SM A515F 2026-09-09 21:42
+      `EventDetailScreen` ne regardait que `eventAsync.valueOrNull` : un
+      événement supprimé, un refus de lecture ou une coupure réseau rendaient
+      `null`, exactement comme un chargement en cours — d'où la roue
+      éternelle. Garde `hasError` ajoutée, calquée sur `GroupDetailScreen`
+      qui la portait déjà.
+      Vérifier : ouvrir `…/events/<uuid inexistant>` → « Erreur de
+      chargement » + « Réessayer », **pas** de roue infinie.
+- [ ] **Groupe privé : ne plus mentir.** ⚠️ NON REJOUÉ sur appareil : le compte du SM A515F (« Sim A ») est le **créateur** du groupe privé de test, la fiche s'ouvre donc normalement pour lui ; le Pixel, qui portait un compte non-membre, s'est déconnecté pendant les mesures (une seule session par compte). Couvert par test widget seulement. `getGroupById` finit sur `.single()`
+      ; la RLS d'un groupe privé rend zéro ligne, donc PGRST116 — le même
+      code que pour un groupe supprimé. « Erreur de chargement » + un
+      « Réessayer » qui ne peut jamais aboutir. Remplacé par « Ce groupe est
+      privé ou n'existe plus. » et un bouton « Retour ».
+      Le message ne distingue **pas** privé de supprimé, volontairement :
+      confirmer l'existence d'un groupe à qui détient son uuid rouvrirait ce
+      que `20260909201500` vient de fermer.
+      Vérifier : `…/groups/2b24986f-08b5-4840-9931-dbe046ffb394` (groupe
+      privé de test) depuis un compte non-membre.
+- [x] **Flèche retour des deux écrans d'erreur/chargement.** ✅ SM A515F 2026-09-09 21:43 Elles faisaient
+      `context.pop()` : arrivé par lien profond, la route est seule dans la
+      pile → écran noir. Repli `canPop ? pop : go('/home')`.
+      Vérifier : lien profond → erreur → flèche retour → accueil, pas de noir.
+
+**Pas corrigé, décision à prendre :**
+
+- ⚠️ **Les événements sont sur deux bases à la fois.** Le module Événements
+  (`EventRemoteDataSourceImpl`, liste + fiche + création) lit et écrit
+  **Firestore** ; le back-office admin (`admin_provider.dart`, 5 appels)
+  lit et écrit `public.events` **sur Supabase**, où se trouvent 2 lignes. Un
+  événement créé d'un côté est invisible de l'autre, et un lien portant un
+  uuid Supabase ne pourra jamais s'ouvrir dans l'app — c'est ce qui produisait
+  la roue infinie ci-dessus. Le correctif d'affichage rend l'échec visible,
+  il ne réconcilie rien.
+- ⚠️ **Pas de route `/invite`.** `DeepLinkService.generateInviteLink()`
+  fabrique `…/invite?ref=<uid>` (bouton « Inviter des amis » de l'accueil) et
+  le routeur n'a rien pour ce chemin : atterrissage sur l'accueil, parrainage
+  perdu. À décider : route de parrainage, ou lien qui pointe ailleurs.
+- ⚠️ **Repli navigateur inexistant.** `firebase.json` renvoie tout chemin
+  inconnu sur `/index.html`. Quelqu'un sans l'app — ou qui tape le lien depuis
+  le navigateur intégré de WhatsApp, qui court-circuite les App Links —
+  tombe sur la page d'accueil du site, sans un mot sur le groupe ni de bouton
+  « Ouvrir dans l'application ».
+- ⚠️ **`/businesses/<id>` d'une fiche inactive.** `businesses_select_active`
+  n'ouvre la lecture que si `is_active`. Les 2 entreprises en base sont
+  `is_active = false` : leurs liens sont donc morts pour tout le monde sauf
+  leur propriétaire, et rien dans l'app ne le dit au propriétaire qui partage.
+
+---
+
+## ⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)
+
+Le partage ne savait sortir de l'app (WhatsApp / Facebook / X / feuille
+système) sauf pour un post du fil, dont la liste de discussions était
+inutilisable pour les 1:1 : un message privé s'y affichait « Messages » avec
+un avatar « ? », et la recherche filtrait sur `conversation.name`, nul pour un
+1:1 — taper une lettre les faisait tous disparaître.
+
+Une destination « discussion » a été ajoutée partout, et la résolution
+nom/avatar d'une conversation vit désormais dans une seule source
+(`conversation_picker_sheet.dart`).
+
+- [ ] **Groupe → discussion** : fiche d'un groupe → Partager → « Envoyer dans
+  une discussion ». La liste doit montrer les 1:1 avec le vrai nom et la vraie
+  photo du contact, et les groupes avec leur nom.
+  (`lib/features/groups/presentation/widgets/share_group_modal.dart`)
+- [ ] **Profil → discussion** : idem depuis Partager un profil (le sien et
+  celui de quelqu'un d'autre).
+  (`lib/features/profile/presentation/widgets/share_profile_modal.dart`)
+- [ ] **Recherche dans le sélecteur** : taper le prénom d'un contact doit
+  laisser sa discussion privée visible — c'était le bug de fond, présent aussi
+  dans « Transférer » et dans le partage entrant depuis une autre app.
+  (`conversation_picker_sheet.dart`, `forward_conversation_picker.dart`,
+  `share_to_conversation_screen.dart`)
+- [ ] **Sélection multiple** : bouton « Sélectionner », cocher 2-3
+  discussions, « Envoyer à N conversation(s) » ; vérifier que le message
+  arrive dans chacune.
+- [ ] **Carte reçue à l'arrivée** : dans la discussion cible, un groupe ou un
+  profil partagé doit s'afficher en carte d'aperçu (image + titre) et le tap
+  doit ouvrir l'écran **dans l'app**, pas le navigateur (le site rend 404 sur
+  ces routes). (`link_preview_bubble.dart`)
+- [ ] **Post → discussion** : la liste du partage de post, corrigée, doit
+  afficher les 1:1 correctement ; la bulle reçue reste la carte de post.
+- [ ] **Événement / salon audio / podcast / épisode** : le bouton Partager
+  ouvre désormais une feuille à deux étages (discussion, puis réseaux). Sur
+  événement, la bulle reçue doit être la carte d'événement (date + lieu) et
+  ouvrir la fiche au tap.
+- [ ] **Thème sombre** : feuille de partage, sélecteur et carte d'aperçu en
+  mode nuit.
+- [ ] **Débordement** : le sélecteur avec le clavier ouvert (champ de
+  recherche) sur écran court, et un nom de contact très long.
+
+---
+
+## ⬜ Inviter des membres dans un groupe privé (2026-09-09)
+
+Signalé par Salim : « pour les groupes privés j'arrive pas à ajouter d'autres
+membres ». Il n'y arrivait pas parce que **l'app n'offrait nulle part de quoi
+le faire** — `GroupInviteNotifier.inviteUser` existait, le datasource Supabase
+écrivait bien `group_invites`, l'invité voyait l'invitation dans l'onglet
+Groupes et l'acceptation l'inscrivait dans `group_members` : tout le chemin
+était là, sauf l'écran qui l'appelle. Quatre traductions
+(`inviteMember`/`inviteSent`/`inviteAlreadySent`/`inviteError`) attendaient
+depuis le début, sans un seul usage dans le code.
+
+Sur un groupe **public** le manque se contournait — on partage le lien, la
+personne appuie sur « Rejoindre ». Sur un groupe **privé**, le lien ne produit
+qu'une demande d'adhésion à approuver : l'administrateur n'avait donc aucun
+moyen d'aller chercher quelqu'un.
+
+**Ce qui est à vérifier à l'écran** (aucun point ci-dessous n'est couvert par
+`flutter analyze`) :
+
+- [ ] Fiche d'un groupe privé dont on est administrateur : la ligne
+      « Aucun autre membre » devient « Inviter un membre », en couleur d'accent
+      avec un chevron, et ouvre la feuille
+      (`group_detail_screen.dart`, `_buildMembersSection`).
+- [ ] Menu ⋮ de la fiche : l'entrée « Inviter un membre » est présente pour un
+      administrateur, absente pour un simple membre. Son icône
+      (`group_add_outlined`) ne doit pas se confondre avec celle de
+      « Demandes d'adhésion » juste en dessous.
+- [ ] Écran « Membres » : l'icône d'ajout en barre de titre n'apparaît que
+      pour un administrateur (`group_members_screen.dart`).
+- [ ] Feuille elle-même (`invite_members_sheet.dart`) : suggestions à
+      l'ouverture (amis + personnes avec qui on a discuté), recherche par nom
+      au-delà de deux caractères, sélection multiple, « Inviter un membre · 2 »
+      sur le bouton.
+- [ ] **Clavier** : la feuille se recale au-dessus du clavier sans déborder, et
+      la croix d'effacement du champ apparaît dès la première frappe (pas au
+      bout de 350 ms).
+- [ ] **Thème sombre** et **échelle de police à 130 %** sur la feuille.
+- [ ] Une personne déjà invitée s'affiche estompée, « Déjà invité », non
+      sélectionnable — et le reste après avoir fermé puis rouvert la feuille.
+- [ ] **Bout en bout, deux téléphones** : inviter depuis le compte
+      administrateur, puis sur l'autre appareil voir l'invitation dans l'onglet
+      Groupes, l'accepter, et vérifier que le groupe apparaît **aussi dans
+      l'onglet Messages** — c'est ce dernier point qui est nouveau et jamais
+      testé (`acceptInvite` raccroche maintenant la conversation, comme
+      `joinGroup` le faisait déjà de son côté).
+
+**Sécurité fermée au passage — à rejouer après `supabase db push`.** La porte
+d'entrée de `group_members` (20260806210000) laissait une porte latérale :
+`group_invites_own` autorise à INSÉRER une invitation **dont on est soi-même
+le destinataire**, pour n'importe quel groupe. Deux appels d'API suffisaient
+donc pour entrer dans un groupe privé sans y avoir été invité — vérifié le
+2026-09-09 sous une identité réelle, dans une transaction annulée. Fermé par
+`20260909201500_invitations_groupe_porte_laterale.sql` (garde RESTRICTIVE à
+l'INSERT, trigger qui fige `group_id`/`invitee_id`, et `has_group_invite()`
+qui ne compte plus une invitation refusée).
+
+Banc rejouable, transaction annulée, rien n'est écrit :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_invitations_groupe.sql
+```
+
+Sortie attendue : « banc termine ». Tout « ECHEC n » interrompt le banc.
+
+### ⛔ Deuxième temps : l'invité ne pouvait pas ouvrir la discussion
+
+Trouvé en branchant les notifications, **pas signalé** : `join_group_conversation()`
+rattache l'appelant à `conversations.participant_ids` — c'est ce qui fait
+apparaître un groupe rejoint dans l'onglet Messages — mais le garde
+`conversations_guard_admin_fields` (2026-08-14) refuse **toute** modification de
+`participant_ids` par qui n'est pas administrateur du groupe. Un invité qui
+vient d'accepter ne l'est pas.
+
+Mesuré sous identité réelle non privilégiée, en transaction annulée :
+`EXCEPTION 42501`, `participant_ids` inchangé. Le premier test avait conclu
+l'inverse — le compte utilisé est superAdmin plateforme **et** le groupe testé
+était officiel, deux privilèges qu'un invité n'a pas.
+
+**Corrigé par l'autre agent, pas par moi, et pas encore déployé.** Il l'avait
+trouvé en même temps depuis un appareil (« Ouvrir la discussion » → bandeau
+rouge 42501) et corrigé plus largement dans
+`20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql` : son
+exemption vaut pour **tout membre réel** qui s'ajoute lui-même, donc aussi
+pour un groupe public, et elle traite un écart que j'avais manqué — le garde
+identifie l'appelant par `firebase_uid()` là où la RPC ajoute
+`current_user_id()`. Ma version, plus étroite, a été retirée : un
+`CREATE OR REPLACE FUNCTION` l'aurait remplacée sans conflit git et sans un
+mot.
+
+✅ **Déployé le 2026-09-09** après avoir débloqué `db push` : la version
+orpheline `20260909210000` avait été poussée en production depuis la branche
+`claude/groupes-temps-reel`, jamais fusionnée — son fichier a été rapatrié
+plutôt que sa ligne effacée. Les trois migrations en attente (deux à moi, une
+sur les événements à un autre agent) sont passées, et les trois bancs rejoués
+contre la base réelle rendent « banc termine ».
+
+- [ ] **Deux téléphones** : accepter une invitation, puis vérifier que le
+      groupe apparaît dans l'onglet **Messages** sans avoir à ouvrir sa fiche,
+      et que la discussion s'ouvre.
+- [ ] Envoyer un message depuis chaque côté : lisible des deux (vrai chemin
+      Sender Key — voir la section « un groupe dont on est le seul membre »).
+
+### ⬜ Notifications de groupe : personne n'était prévenu de rien
+
+Le type `groupInvite` est câblé de bout en bout côté app depuis toujours
+(routage, style, canal Android, clé de préférence `groups` dans `send-push`),
+et un INSERT dans `notifications` déclenche déjà le push. **Aucun code, client
+ou serveur, n'en créait jamais** — ni pour une invitation, ni pour une demande
+d'adhésion, ni pour sa réponse. Trois déclencheurs ajoutés dans la même
+migration.
+
+- [ ] Recevoir la **notification push** d'invitation sur l'autre téléphone,
+      app fermée ; l'appui ouvre la fiche du groupe.
+- [ ] Sur cette fiche, la barre du bas propose **« Accepter » / « Refuser »**
+      et non « Demander à rejoindre » (`_BarreInvitation`,
+      `group_detail_screen.dart`). Accepter fait disparaître la barre.
+- [ ] Couper la bascule « Groupes » dans les réglages de notifications :
+      l'invitation suivante ne doit **pas** arriver en push (elle reste dans
+      la liste in-app).
+- [ ] Demander à rejoindre un groupe privé depuis l'autre compte :
+      l'administrateur reçoit la notification. Approuver : le demandeur reçoit
+      « Adhésion acceptée ». Refuser sur une autre demande : « Adhésion
+      refusée ».
+
+Banc dédié, transaction annulée (⚠️ son étape A a été retirée : elle exigeait
+qu'un membre sans invitation soit refusé, conception abandonnée depuis, et
+faisait donc échouer le banc sur du code correct) :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_invite_discussion_et_notifications.sql
+```
+
+### ⚠️ Deux défauts voisins trouvés, **non corrigés**
+
+- [x] **« Retirer du groupe » ne retirait pas du groupe** — corrigé (voir la
+      section suivante).
+      `removeUserFromGroup` (`message_supabase_datasource.dart:2045`) ne touche
+      que `conversations.participant_ids` et `data.adminIds` ; la ligne
+      `group_members` reste, donc la personne **figure toujours dans la liste
+      des membres** et compte dans `member_count`. Aucune policy ne permet à
+      un administrateur de supprimer la ligne d'un autre : il faut une RPC
+      `SECURITY DEFINER` dédiée.
+
+**Mesuré**, en appliquant la migration de l'autre agent dans une transaction
+annulée puis en rejouant le cas d'un exclu : `exclu_de_retour = true`, la RPC
+rend l'id de la conversation. Une fois son correctif déployé, toute exclusion
+est donc annulable par l'exclu lui-même, en ouvrant simplement la discussion.
+
+### ⬜ L'impasse tranchée : l'exclusion s'enregistre, tout membre ouvre sa discussion
+
+Demande de Salim le 2026-09-09 : « tout membre peut ouvrir les conversations ».
+Les deux agents avaient écrit l'exemption du garde, chacun de son côté, et
+chacun l'avait retirée — adossée à l'**invitation** elle laisse de côté qui a
+rejoint un groupe public ; adossée à l'**appartenance** elle rouvre la porte
+aux exclus. Parce que l'exclusion n'était enregistrée nulle part : elle
+n'existait que comme une absence dans `conversations.participant_ids`, et
+`group_members` continuait d'affirmer le contraire.
+
+Fermé par le bas, côté base : `20260909234500` pose un déclencheur —
+disparaître de `participant_ids` d'une conversation de **groupe**, c'est ne
+plus être membre du groupe. `removeUserFromGroup` fait dès lors ce que son nom
+annonce, **sans un changement côté app** : `message_supabase_datasource.dart`
+est tenu par le worktree `partage-discussion`, et une RPC de retrait aurait dû
+y être appelée. L'exemption de l'autre agent (tout membre réel s'ajoute
+lui-même) est reprise telle quelle dans la même migration, où elle redevient
+sûre.
+
+Vérifié qu'aucune reprise de données n'est nécessaire : les deux seules
+appartenances absentes de leur conversation (« Diaspora Niger — NE » et
+« Testeurs ») sont des membres qui n'ont jamais pu se rattacher, pas des
+exclus.
+
+Banc dédié, 8 étapes, transaction annulée — il échoue bien sur l'état d'avant
+(« ECHEC A : raccrochage encore refuse (42501) ») :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_exclusion_et_ouverture_discussion.sql
+```
+
+À vérifier sur appareil, après déploiement :
+
+- [ ] Un membre simple ouvre la discussion de son groupe (le défaut d'origine,
+      vu sur SM A515F : bandeau rouge 42501).
+- [ ] Retirer quelqu'un d'un groupe : il **disparaît de la liste des membres**
+      de la fiche, et `Membres · n` décroît (c'est nouveau — il y restait).
+- [ ] Depuis le compte retiré, ouvrir la discussion du groupe : il ne revient
+      ni dans les participants, ni dans les membres.
+- [ ] Quitter un groupe volontairement : toujours possible, et le groupe
+      disparaît de l'onglet Messages.
+- [ ] Envoyer des messages dans un groupe : personne n'est retiré au passage
+      (le déclencheur est posé sur `UPDATE OF participant_ids`, un message
+      n'écrit que `data` — couvert par l'étape E du banc, mais jamais vu
+      tourner sur un vrai fil).
+
+⚠️ **Collision possible** : l'autre agent peut relivrer sa propre version de
+`conversations_guard_admin_fields`. Les deux corps sont identiques, un
+`CREATE OR REPLACE` de plus est sans conséquence — mais si sa version revient
+**sans** le déclencheur d'exclusion, l'exclusion redevient annulable. Vérifier
+`git log` avant de conclure.
+Passer le fichier avec `-f` et non en argument : sous cette seconde forme les
+accents du banc le font échouer sur un message tronqué, qui se lit comme un
+vrai échec.
+
+**Appliqué en production le 2026-09-09** (`supabase db push`), banc rejoué
+contre la base réelle : « banc termine ». L'attaque est désormais refusée
+nommément — `new row violates row-level security policy
+"group_invites_insert_gate"`.
+
+---
+
+## ⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)
+
+Trouvé en pilotant le **Pixel 10 Pro XL (Android 17)** : après un
+`am force-stop` suivi d'un lancement, Android a affiché la boîte
+« Diaspo Niger s'arrête systématiquement ». Deux `FATAL EXCEPTION` dans le
+tampon `crash`, à 20:01:18 et 20:01:23, même trace :
+
+```
+java.lang.RuntimeException: Unable to start receiver
+  id.flutter.flutter_background_service.BootReceiver
+Caused by: android.app.ForegroundServiceStartNotAllowedException:
+  startForegroundService() not allowed: service
+  com.diasponiger.diasponiger/id.flutter.flutter_background_service.BackgroundService
+```
+
+La ligne système juste avant nomme le déclencheur :
+`BroadcastQueue: … action:android.intent.action.BOOT_COMPLETED`.
+
+**Deux drapeaux, pas un.** `BackgroundLocationService.initialize()` passe bien
+`autoStart: false`, mais le plugin en a un **second**, `autoStartOnBoot`, qui
+vaut `true` par défaut et n'était pas renseigné. Son `BootReceiver` (déclaré
+dans le manifeste du plugin, sur BOOT_COMPLETED / QUICKBOOT_POWERON /
+**MY_PACKAGE_REPLACED**) relance donc le service de premier plan de type
+`location` — ce qu'Android 15+ interdit depuis BOOT_COMPLETED. Le plugin ne
+rattrape pas l'exception : le process meurt.
+
+Portée réelle, plus large que le force-stop qui l'a révélé : le receiver écoute
+aussi `MY_PACKAGE_REPLACED`, donc **chaque mise à jour de l'app** le déclenche,
+et chaque redémarrage du téléphone aussi. Le SM A515F (Android 13) n'est pas
+touché — c'est une suite directe du passage à `targetSdk 36`, à ajouter aux
+comportements Android 16 déjà listés plus bas.
+
+Corrigé des deux côtés : `autoStartOnBoot: false`
+(`lib/core/services/background_location_service.dart`) pour dire l'intention,
+**et** `tools:node="remove"` sur le receiver dans
+`android/app/src/main/AndroidManifest.xml` — parce que le drapeau n'est lu
+qu'après le premier lancement de l'app, ce qui laisse sans lui une fenêtre
+ouverte juste après une mise à jour.
+
+Vérifié sur **Pixel 10 Pro XL (Android 17)** avec le build corrigé
+(`96205c16…bebc`, installé à 20:38) :
+
+- [x] `adb install -r` du nouvel APK **ne fait plus planter** l'app
+      (`MY_PACKAGE_REPLACED`) : `adb logcat -b crash` reste à 0
+      `FATAL EXCEPTION` douze secondes après.
+- [x] `am force-stop` puis lancement : pas de plantage, `MainActivity` au
+      premier plan, toujours 0 `FATAL EXCEPTION`.
+- [x] Preuve indépendante que la suppression a bien pris :
+      `adb shell dumpsys package com.diasponiger.diasponiger | grep -i
+      BootReceiver` ne rend **rien** — le receiver n'est plus enregistré chez
+      Android. Il l'était avant.
+
+Restent à faire, l'un et l'autre à la main :
+
+- [ ] ⚠️ **Redémarrage réel du téléphone** — le seul chemin qui rejoue
+      vraiment BOOT_COMPLETED (`am broadcast … BOOT_COMPLETED` est refusé au
+      shell : « Permission Denial »).
+- [ ] Le partage de position continu **démarre toujours** quand on l'active
+      dans l'app (c'est la seule chose que le receiver retiré aurait pu
+      fournir, et il ne la fournissait qu'au boot).
+
+---
+
+## ⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)
+
+Vu sur les **deux** appareils, dans deux groupes différents — donc pas une
+donnée périmée :
+
+- SM A515F, « Groupe de test privé » (1 membre) : `ECHO-A-1944` reste en
+  « Non envoyé · Réessayer », et « Réessayer » échoue pareil, alors que
+  l'appareil est en ligne (ping ok) et qu'un message 1:1 part sans problème à
+  la même minute ;
+- Pixel 10 Pro XL, « Testeurs » (1 membre, créé quelques minutes plus tôt) :
+  `GRP-TEST-1955` échoue exactement de la même façon.
+
+**Cause.** `message_provider.dart` calcule les destinataires d'un groupe en
+retirant l'expéditeur : `participantIds.where((id) => id != currentUser.id)`.
+Dans un groupe où l'on est seul, la liste est **vide** — et
+`_encryptContent` (`message_supabase_datasource.dart:247`) lève alors
+`E2EEException('Destinataire manquant — chiffrement impossible.')`, garde
+écrite pour le cas « 1:1 dont on n'a pas résolu le destinataire ».
+
+Rien ne le dit à l'écran : pas de SnackBar, juste le triangle rouge — et
+l'état vide du fil invite pourtant à « Soyez le premier à envoyer un message
+dans ce groupe ! ». C'est donc le tout premier geste après la création d'un
+groupe qui échoue.
+
+Corrigé en remettant l'expéditeur dans la liste quand elle est vide :
+`encryptGroup` chiffre avec NOTRE Sender Key, et
+`distributeSenderKeyToGroup` écarte déjà l'expéditeur de ses destinataires
+(`sender_key_service.dart:189`), donc la distribution ne vise personne.
+
+Vérifié sur **SM A515F** avec le build corrigé, dans le groupe même qui
+refusait une heure plus tôt (« Groupe de test privé », 1 membre) :
+
+- [x] Envoi dans un groupe où l'on est seul : `GRP-FIX-2041` passe à
+      **`À l'instant · Envoyé`** (20:40), là où `ECHO-A-1944` restait en
+      « Non envoyé » à 19:44 sur le même groupe et le même compte.
+- [x] Il est **réellement parti côté serveur**, pas seulement affiché : la
+      liste des discussions montre « Groupe de test privé — 20:40 — Vous:
+      GRP-FIX-2041 » et le groupe est remonté en tête. C'est
+      `_updateConversationLastMessage`, qui ne s'exécute qu'après l'insert.
+      À l'échec de 19:44, cette même ligne était restée sur « 30 août ».
+- [x] Quitter la discussion, y revenir : la bulle est toujours là, **en
+      clair** (20:42) — l'aller-retour Sender Key du chiffrement de groupe
+      tient.
+
+Restent à faire :
+
+- [x] **Le vrai chemin Sender Key vers autrui, exercé pour la première fois**
+      (2026-09-09, 22:52-22:54). Groupe « Testeurs », 2 membres. Depuis le
+      SM A515F, compte **Sim A qui n'est pas administrateur** : la discussion
+      s'ouvre (plus de 42501), `SENDERKEY-2253` part et passe à
+      « À l'instant · Reçu ». Sur le Pixel, compte Salim L., la bulle
+      s'affiche **en clair** — « Sim A / SENDERKEY-2253 », 22:52, thème
+      sombre, aucun placeholder. Chiffrement de groupe, aller ET retour, entre
+      deux comptes distincts.
+- [x] Par la même occasion : l'écho temps réel **en groupe**, qui manquait à
+      la section « Aucun marqueur technique dans une bulle » — la bulle a
+      gardé son texte côté expéditeur.
+- [ ] Les envois de **médias** en groupe : le provider ne leur passe aucun
+      `participantIds` — et la légende part en clair, voir la section « La
+      légende d'une photo/vidéo part EN CLAIR » en tête de fichier.
+
+---
+
+## ⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)
+
+Trouvé en vérifiant le point « médias de groupe » laissé ouvert plus bas.
+`sendMediaMessage` (`message_supabase_datasource.dart:1093`) écrit
+`'content': caption ?? ''` **tel quel** dans la ligne `messages`, et pose
+`'encryptionLevel': 'aes'` en dur. Il n'appelle jamais `_encryptContent`,
+contrairement à `sendTextMessage`. Le repository ne chiffre rien non plus en
+amont : `caption` traverse `sendFileMessage`
+(`message_repository_impl.dart:429`) sans être touché.
+
+Donc : le texte d'un message **texte** est chiffré (Signal quand une session
+existe, repli AES sinon) ; la **légende** d'une photo, d'une vidéo ou d'un
+fichier, elle, arrive en clair côté serveur — avec une étiquette
+`encryptionLevel: 'aes'` qui annonce le contraire. Les annexes voisines
+(citation, carte d'événement, aperçu de lien) sont, elles, bien chiffrées par
+`_annexesChiffreesPour` : c'est le seul champ oublié.
+
+Rappel utile pour juger de la gravité : le repli « AES » repose sur une clé
+constante embarquée dans l'APK (`encryption_service.dart:62`, « Ce n'est pas
+un secret »). L'écart réel n'est donc pas « chiffré vs clair » mais « obscurci
+vs lisible tel quel » pour tout ce qui n'a pas de session Signal — et « E2EE
+vs clair » pour tout ce qui en a une, c'est-à-dire les conversations
+normales.
+
+**Pas corrigé ici, volontairement** : toucher au chemin d'envoi des médias
+demande sa propre passe et une vérification appareil (photo, vidéo, fichier,
+note vocale, avec et sans légende, 1:1 et groupe). Un correctif bâclé casse
+l'envoi de médias pour tout le monde.
+
+- [ ] Chiffrer `caption` par `_encryptContent`, comme le fait
+      `sendTextMessage`, et poser le `encryptionLevel` réellement obtenu.
+- [ ] Vérifier que les anciennes légendes en clair restent lisibles (le
+      déchiffrement doit tolérer les deux formes).
+- [ ] Vérifier l'aperçu de notification, qui reconstruit le texte côté
+      Postgres (`decrypt_aes_fallback`).
+
+---
+
+## ⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)
+
+Trouvé en essayant simplement d'ouvrir « Testeurs » depuis le SM A515F, avec
+le compte **Sim A**, membre simple (Salim L. est le créateur). « Ouvrir la
+discussion » ne fait rien pendant ~4 s, puis un bandeau rouge — et il faut
+capturer à ~1 s pour le voir, sinon on croit à un bouton mort :
+
+```
+Erreur lors de l'ouverture de la discussion — createGroupConversation error:
+ServerException: findGroupConversationByGroupId error:
+PostgrestException(message: Seul un administrateur du groupe peut modifier les
+membres ou les droits admin de cette conversation, code: 42501,
+details: Forbidden, hint: null)
+```
+
+**Deux migrations justes séparément, incompatibles ensemble.**
+
+- `20260720130000` crée `join_group_conversation()`, SECURITY DEFINER, dont le
+  travail est précisément d'ajouter l'appelant à
+  `conversations.participant_ids` quand il a rejoint le groupe **après** la
+  création de la conversation — le cas courant. Elle vérifie d'abord
+  l'appartenance réelle dans `group_members`.
+- `20260814000500` pose ensuite le trigger `conversations_guard_admin_fields`,
+  qui refuse toute UPDATE touchant `participant_ids` ou `adminIds` à qui n'est
+  pas administrateur.
+
+**SECURITY DEFINER contourne les policies RLS, pas les TRIGGERS.** L'UPDATE de
+la RPC déclenche donc la garde, qui la refuse. La fonction écrite pour laisser
+entrer un nouveau membre est bloquée par une garde écrite trois semaines plus
+tard : le groupe devient inouvrable pour **tous ses membres simples**. Seuls
+les administrateurs voyaient encore leur discussion — ce qui explique aussi
+pourquoi le défaut a pu vivre longtemps sans être vu (les deux comptes de test
+étaient créateurs de leurs propres groupes).
+
+**Le correctif appartient à l'autre session** (worktree `inviter-membres`,
+`20260909223000_invite_entre_dans_la_discussion.sql`). J'en avais écrit un —
+`20260909210500`, exemption « un membre réel du groupe peut s'ajouter
+lui-même » — **il était faux et a été retiré** avant tout déploiement.
+
+Pourquoi il était faux, et c'est le point à retenir : `removeUserFromGroup`
+(`message_supabase_datasource.dart:2044`) ne retire la personne **que** de
+`conversations.participant_ids` et de `data.adminIds` — **sa ligne
+`group_members` reste**. Une exemption adossée à « est membre du groupe »
+aurait donc rendu à chaque personne exclue le droit de se remettre dans la
+discussion en l'ouvrant : toutes les exclusions annulées en silence, sans
+trace. Aujourd'hui c'est ce garde qui fait tenir l'exclusion — par effet de
+bord, pas par intention. L'autre session adosse son exemption à
+`has_group_invite()`, ce qui ne rouvre pas cette porte.
+
+**Décision de Salim, 2026-09-09 : « B puis C ».** B = le correctif adossé à
+l'invitation, à l'autre session, qui débloque ce soir les membres invités.
+C = réparer l'exclusion elle-même, à faire ensuite, pour que « tout membre »
+soit vrai y compris pour qui a rejoint un groupe public. Ce qu'il faut savoir
+avant d'attaquer C, relevé en préparation :
+
+- **Deux chemins de retrait coexistent et font l'inverse l'un de l'autre.**
+  `GroupSupabaseDatasource.removeMember` → `leaveGroup`
+  (`group_supabase_datasource.dart:343`) **supprime bien** la ligne
+  `group_members`. `MessageSupabaseDatasource.removeUserFromGroup`
+  (`message_supabase_datasource.dart:2044`) ne touche **que**
+  `conversations`. C'est le second que l'écran utilise
+  (`group_members_screen.dart:324`, via `conversationActionsNotifier`) — donc
+  en pratique une exclusion ne retire jamais du groupe.
+- ⚠️ **Et le premier chemin a son propre défaut** : `leaveGroup` supprime la
+  ligne de `userId`, puis appelle la RPC `leave_group_conversation`, qui agit
+  sur **l'appelant authentifié** (`firebase_uid`), jamais sur `userId`.
+  Utilisé pour exclure quelqu'un d'autre, il sortirait donc **l'admin** de la
+  conversation à la place de l'exclu. Le commentaire du code le dit lui-même
+  (« cohérent avec le fait que `leaveGroup` n'est appelé aujourd'hui qu'avec
+  `currentUser.id` ») — mais `removeMember` l'appelle avec un `userId`
+  quelconque. Dormant tant que `GroupRepositoryImpl.removeMember` n'a pas
+  d'appelant d'écran (`group_repository_impl.dart:278` est le seul).
+- Donc C n'est pas « ajouter un DELETE » : c'est unifier les deux chemins sur
+  un seul, qui retire la personne des DEUX tables, et qui vise bien la
+  personne exclue et pas l'appelant.
+
+**La question de fond, tranchée par cette décision** (demande de Salim le
+2026-09-09 : « tout membre peut ouvrir les conversations »). Adosser
+l'exemption à l'**invitation** ne couvre pas quelqu'un qui a rejoint un
+groupe **public** sans jamais être invité. Adosser à l'**appartenance** rouvre
+la porte aux exclus. Les deux options sont bancales pour la même raison :
+**l'exclusion n'est enregistrée nulle part de durable** — elle n'existe que
+comme une absence dans `conversations.participant_ids`, et `group_members`
+continue d'affirmer le contraire. Tant que `removeUserFromGroup` ne supprime
+pas aussi la ligne `group_members` (ou n'écrit pas un état « exclu »),
+« membre du groupe » restera un critère qu'on ne peut pas utiliser pour
+autoriser quoi que ce soit.
+
+⚠️ `message_supabase_datasource.dart` est **tenu par le worktree
+`partage-discussion`** (modifié, non committé) : ne pas y toucher sans
+coordination.
+
+✅ **Déployé** — `supabase db push --dry-run` rend « Remote database is up to
+date » au 2026-09-09 22:07 : B (`20260909223000`) **et** C
+(`20260909234500_exclusion_enregistree_membre_ouvre_sa_discussion.sql`, écrit
+par une autre session) sont en base. C ferme par un déclencheur — disparaître
+de `participant_ids` d'une conversation de groupe supprime la ligne
+`group_members` — donc sans toucher au fichier Dart tenu par
+`partage-discussion`, et sans le travail d'unification décrit plus haut.
+
+À noter pour la prochaine fois : `db push` a un moment refusé de tourner
+parce que la base portait une version (`20260909210000`) dont le fichier
+n'était encore poussé nulle part — il vivait dans le worktree
+`groupes-temps-reel`. **Une migration appliquée en production avant que son
+fichier ne soit livré bloque le déploiement de tout le monde.**
+
+⚠️ **Vérification appareil non faite** : le SM A515F était piloté en parallèle
+par une autre session (il est passé tout seul sur la fiche « Diaspora Niger —
+Cap-Vert »), mes taps sont tombés à côté. Reste donc à ouvrir « Testeurs »
+depuis Sim A pour confirmer de visu.
+
+À vérifier une fois le correctif de l'autre session déployé :
+
+- [ ] SM A515F (Sim A, membre simple de « Testeurs ») : « Ouvrir la
+      discussion » ouvre le fil, sans bandeau rouge.
+- [ ] Le groupe apparaît ensuite dans l'onglet Messages de Sim A (c'est
+      l'ajout à `participant_ids` qui l'y fait entrer).
+- [ ] **Non-régression de la garde** : depuis un compte membre simple, tenter
+      de se promouvoir admin ou d'exclure quelqu'un doit toujours être refusé.
+- [ ] **Non-régression de l'exclusion** : exclure quelqu'un, puis depuis SON
+      compte rouvrir la discussion du groupe — il ne doit **pas** y rentrer.
+      C'est précisément ce que mon correctif cassait.
+- [ ] Quitter un groupe en tant que membre simple marche encore.
+
+---
+
+## ⛔ Le Pixel s'est retrouvé DÉCONNECTÉ pendant la passe (2026-09-09, 20:39)
+
+À signaler avant tout : le Pixel 10 Pro XL porte le **vrai compte** de Salim
+(Salim L., administrateur). Il est ressorti de cette passe sur l'écran
+« Bon retour » — session perdue. La reconnexion passe par le SSO Google, donc
+par sa main : rien n'a été tenté.
+
+Ce qu'on sait, et ce qu'on ne sait pas :
+
+- il était connecté à 19:51 (fiche du groupe « Testeurs » affichée) ;
+- entre 20:01 et 20:02 il a planté deux fois (voir la section BootReceiver) ;
+- à 20:38 il a reçu `adb install -r` du build corrigé, puis un
+  `am force-stop` + relance ; à 20:39 il affichait l'écran de connexion ;
+- **le SM A515F a reçu exactement le même `install -r` à la même minute et a
+  gardé sa session** (« Bonjour, Sim »). L'installation seule ne suffit donc
+  pas à l'expliquer.
+
+Aucun bandeau « Connecté ailleurs » à l'écran. Cause non isolée : le plantage
+répété, l'expiration de la session Supabase, ou la règle « une seule session
+par compte » sont toutes plausibles et aucune n'est établie. À reprendre si
+ça se reproduit — et à ne pas confondre avec le piège déjà documenté du
+`flutter clean` + `install -r`, qui n'a pas eu lieu ici.
+
+Conséquence immédiate : **tout test à deux appareils est bloqué** (écho de
+groupe entre deux comptes, QR affiché sur l'un et scanné par l'autre).
+
+---
+
+## ⬜ Le QR d'un groupe est refusé par le scanner — **observation terrain**
+
+Le défaut a été vu **en direct**, sur SM A515F, pendant que Salim scannait
+depuis « Scanner un profil » le QR affiché par « Partager » d'une fiche de
+groupe : « **QR code invalide ou format non reconnu** ». Ce n'était ni la
+caméra ni le QR.
+
+Le correctif est celui de l'autre agent, plus large et testé
+(`QrCodeParser`, 23 cas) : **voir la section « Le scanner de l'accueil lit
+tous les QR du projet » plus bas**, qui porte la liste des vérifications.
+Cette section-ci ne garde que la trace de l'observation, et un point que ce
+correctif ne change pas :
+
+- `DeepLinkService.parseDeepLink` / `DeepLinkType` savaient **déjà** lire huit
+  formes de liens et n'étaient appelés nulle part dans `lib/`. Il y a
+  maintenant deux parseurs de liens dans le projet, dont un mort — à
+  fusionner ou à supprimer, pas à laisser diverger.
+
+---
+
+## ⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)
+
+Vu sur Pixel 10 Pro XL, non corrigé, cause non isolée. L'écran des membres
+s'affichait correctement (« Salim L. — Créateur ») ; après un passage par
+l'accueil et un retour dans l'app, il est passé à « Erreur de chargement »
+avec un bouton « Réessayer » qui **échoue à chaque fois** (deux essais, à
+plusieurs secondes d'écart). Donc `GroupMembersScreen` sans `widget.group`
+→ `loadGroup(groupId)` → `getGroupById` en échec.
+
+**Piste sérieuse trouvée à 20:54, à ne pas confondre avec un vrai bug** :
+le même « Erreur de chargement » est apparu sur l'onglet **Groupes** du
+SM A515F, avec « Mes groupes · 0 » — l'appareil était alors **hors ligne**
+(aucune barre de réseau à l'écran). Un simple « Actualiser » une fois la
+connexion revenue a rendu « 3 rejoints » et les trois groupes. Avant de
+chercher plus loin sur la fiche Membres, **vérifier la connectivité au moment
+exact de l'erreur** (`adb shell dumpsys connectivity | grep 'Active default
+network'`, et un `ping`) : cet écran ne distingue pas « hors ligne » de
+« refusé », il affiche le même message dans les deux cas — ce qui est
+peut-être le vrai défaut à corriger.
+
+**Les deux points sont corrigés** (code) ; reste à les voir sur appareil.
+
+- [x] Le message ne ment plus quand c'est le réseau : hors ligne, la fiche
+      Membres et l'onglet Groupes affichent « Pas de connexion internet » au
+      lieu de « Erreur de chargement ». Fait au seul endroit qui compte pour
+      l'onglet Groupes — `_buildErrorWidget`, devant `FailureMapper`, parce
+      qu'une erreur réseau ne dit pas toujours qu'elle en est une.
+- [x] La flèche « retour » de la fiche Membres ne quitte plus l'application :
+      `context.canPop() ? context.pop() : context.go('/home')`, le même repli
+      que la fiche du groupe juste à côté.
+- [ ] **À voir sur appareil, demande la main de Salim** : couper le réseau est
+      un réglage système. Mode avion → onglet Groupes, puis fiche Membres :
+      « Pas de connexion internet » aux deux endroits, et « Réessayer » qui
+      refonctionne une fois le réseau revenu.
+- [x] **Vérifié SM A515F, 22:57** (build `b38194eb…46f3`) : lien profond
+      direct sur `/groups/<uuid>/members`, app relancée à froid — la fiche
+      s'ouvre seule dans la pile, et la flèche ramène à **l'accueil**
+      (« Bonjour, Sim », `MainActivity` toujours au premier plan). Avant, elle
+      renvoyait au lanceur. Au passage, l'écran affiche bien « Erreur de
+      chargement » et non « Pas de connexion internet » — l'appareil était en
+      ligne et l'uuid bidon : la branche hors ligne ne se déclenche pas à
+      tort.
+- [ ] Reste ouvert : pourquoi `getGroupById` échouait là où l'écran affichait
+      le groupe une minute plus tôt. Si c'était le réseau, c'est réglé par
+      le message ci-dessus ; sinon la cause est toujours à trouver.
+
+---
+
+## ⬜ Aucun marqueur technique dans une bulle (2026-09-09)
+
+Constaté sur SM A515F (capture du 2026-09-09, 19:02, groupe « Diaspora
+Niger ») : un fil de groupe affichait trois bulles « *Message chiffré — clé de
+groupe introuvable* » avec un bouton « Récupérer la clé de groupe », et une
+quatrième « [Message illisible] ». Demande explicite de Salim : ne plus voir
+ni l'un ni l'autre, et retrouver le texte précédent.
+
+Deux choses corrigées, de nature différente.
+
+**1. `[Message illisible]` échappait à toutes les gardes.** Écrit en dur dans
+quatre fichiers et absent de `kUndecryptablePlaceholders`, il traversait les
+trois protections qui s'appuient sur cette liste : le soin depuis le cache
+(`_healUndecryptableMessages`), la fusion de l'écho temps réel
+(`reconcileEchoContent`) et le bandeau de restauration. Pire, le soin le
+prenait pour du **contenu valide** et le réécrivait par-dessus le texte déjà
+déchiffré — le cache local perdait le clair, définitivement, le serveur ne
+pouvant pas le rendre une seconde fois (ratchet Signal / Sender Key).
+Quatrième trou de la même famille : `syncMessagesIncremental` écrivait en
+cache **sans** passer par le soin.
+
+**2. La bulle n'affiche plus de vocabulaire interne.** Les trois marqueurs
+mènent désormais à `UndecryptableMessageBubble` — « *Message indisponible sur
+cet appareil* », en gris, sans bouton. `E2EESessionRequiredBubble` (et son
+bouton « Récupérer la clé de groupe ») n'est plus branchée nulle part ; le
+remède reste porté **une seule fois** par le bandeau en tête de discussion
+(`_buildE2eeRestoreBanner`), au lieu d'être répété sur chaque bulle.
+
+Fichiers : `lib/core/services/e2ee/undecryptable_placeholders.dart`,
+`lib/core/services/encryption_service.dart`,
+`lib/core/services/e2ee/session_backup_service.dart`,
+`lib/features/messages/data/repositories/message_repository_impl.dart`,
+`lib/features/messages/presentation/widgets/message_bubble.dart`,
+`lib/features/messages/presentation/widgets/undecryptable_message_bubble.dart`.
+
+À vérifier **sur SM A515F** :
+
+- [ ] Le fil de la capture n'affiche plus « Message chiffré — clé de groupe
+      introuvable », ni le bouton « Récupérer la clé de groupe », ni
+      « [Message illisible] » : une ligne grise « Message indisponible sur cet
+      appareil » à la place.
+- [x] **Le vrai test du correctif**, moitié faite (SM A515F, 19:46) : le 1:1
+      « Salim L. » ouvert, quitté, rouvert — « Yo », la note vocale, la carte
+      de position, « test-logs » et le message qui venait d'arriver sont tous
+      restés lisibles, aucun marqueur. ⚠️ **Le pull-to-refresh et la remontée
+      d'une page restent à faire** : le glissé lancé depuis le milieu du fil
+      est tombé sur la **carte de position**, qui l'a pris pour un tap et a
+      ouvert Google Maps. Repris depuis la marge gauche (x=90) : **même
+      résultat**, la carte s'ouvre encore — dans ce fil-là, la rangée du
+      message est cliquable sur toute la largeur. La remontée a donc été faite
+      dans « Groupe de test privé » (20:14), fil sans carte : le défilement
+      jusqu'au 30 août marche et les 4 vidéos restent intactes. Reste à
+      refaire sur un fil de **texte** long.
+- [x] Écho temps réel : la bulle garde son texte (SM A515F, 19:47).
+      `ECHO-DM-1947` envoyé dans le 1:1 est passé à `· Reçu` en gardant son
+      texte — `reconcileEchoContent` fait son travail. ⚠️ Fait en **1:1**, pas
+      en groupe : l'envoi de groupe était cassé (voir la section « Un groupe
+      dont on est le seul membre » ci-dessous), donc le chemin Sender Key de
+      `reconcileEchoContent` n'est toujours pas exercé.
+- [ ] Une photo **sans légende** s'affiche normalement — la garde lit la
+      LISTE, pas `isUndecryptableContent`, qui tient le vide pour illisible et
+      masquerait chaque média sans légende.
+- [ ] Thème sombre : la ligne grise reste lisible (jetons `textTertiaryColor`
+      / `iconTertiaryColor`, pas de teinte figée).
+- [ ] ⚠️ Le cache local **fusionne**, il ne se vide pas : un message déjà
+      empoisonné par `[Message illisible]` avant ce correctif le reste. Pour
+      juger, viser un message encore lisible aujourd'hui, ou vider la
+      discussion.
+
+**Build installé le 2026-09-09 à 19:18 (SM A515F) et 19:28 (Pixel 10 Pro XL).**
+`1.2.1+17` release arm64, même certificat que l'installé
+(`DD:A6:5C:…:CF:5D`) donc `install -r` sans désinstallation : session, clés et
+cache conservés. APK vérifié avant installation — « Message indisponible sur
+cet appareil » présent 1 fois dans `libapp.so`, et « Récupérer la clé de
+groupe » **absent** (0 occurrence) : le tree-shaking a retiré
+`E2EESessionRequiredBubble` du binaire, preuve indépendante qu'elle n'est plus
+référencée.
+
+Vérifié :
+- [x] Une conversation 1:1 avec du contenu s'affiche normalement — texte en
+      clair, note vocale, carte de position, aucun placeholder (Pixel, 19:31).
+- [x] Les médias **sans légende** ne sont pas détournés par la garde : un fil
+      de 4 vidéos s'affiche intact (SM A515F, 19:20). C'était le risque du
+      choix « la LISTE plutôt qu'`isUndecryptableContent` ».
+
+⛔ **Le symptôme d'origine n'a PAS pu être rejoué.** Le groupe « Diaspora
+Niger — Canada » du signalement affiche maintenant « Aucun message » (3
+membres) : les quatre bulles fautives ont disparu entre la capture de 19:02 et
+la réouverture de 19:29. Piste, à confirmer : sur la capture de 19:02
+elle-même, la **liste** des discussions annonçait déjà « Nouvelle
+conversation » pour ce groupe — donc elle le tenait déjà pour vide pendant que
+le fil ouvert montrait quatre bulles. Ces bulles venaient vraisemblablement du
+cache local, sans rien derrière côté serveur ; au redémarrage, le fil a
+re-interrogé le serveur et n'a rien trouvé. Le correctif ne peut pas supprimer
+de message (il ne substitue qu'un texte et un widget), mais **cette
+disparition n'est pas expliquée avec certitude** — à creuser si elle se
+reproduit.
+
+Reste donc à voir **au moins une fois** la nouvelle bulle, et surtout à
+exercer le vrai chemin du correctif : envoyer un message dans un groupe,
+quitter la discussion, y revenir, faire un pull-to-refresh.
+
+---
+
+## ⬜ Compte de test dédié : première connexion (2026-09-09)
+
+`scripts/creer_compte_test.js` crée — ou réinitialise — un compte Firebase
+Auth séparé du compte personnel (`test.diaspo@example.com`, mot de passe tiré
+au hasard et affiché une seule fois à l'exécution).
+
+Vérifié **hors appareil**, en rejouant la chaîne de la première connexion :
+`signInWithPassword` accepte les identifiants, `auth-firebase-exchange` rend
+une session, et la ligne `users` existe avec `display_name = "Compte Test"`.
+
+À vérifier **sur SM A515F** :
+
+- [ ] La connexion aboutit depuis l'écran de connexion de l'app, pas seulement
+      par l'API.
+- [ ] L'enchaînement consentement → configuration du profil → intro se déroule
+      en entier (ces trois drapeaux sont dans les préférences **locales** : ils
+      se rejouent sur chaque appareil, pas une fois par compte).
+- [ ] Compte neuf = **0 groupe, 0 conversation, 0 post, 0 hashtag suivi** : les
+      états vides que plusieurs entrées de ce fichier déclarent « jamais vus »
+      (sondages, Découvrir, filtres Photos/Vidéos, panneau des villes)
+      deviennent enfin observables.
+
+⚠️ Constaté pendant la création : **le tout premier appel à
+`auth-firebase-exchange` pour un compte neuf répondait 401 « Email link is
+invalid or has expired »** — la tentative suivante réussissait. Dans l'app,
+`_scheduleRetry()` repasse 5 s plus tard : le premier lancement d'un compte
+neuf avait donc ~5 s de session anonyme avant que les données n'arrivent, et
+ça touchait **tout compte neuf**, pas seulement celui-ci.
+
+**Corrigé le 2026-09-09**, la cause n'était pas celle qu'on croyait : ce n'est
+pas `updateUserById` qui invalidait le lien. `generateLink({type:'magiclink'})`
+ne rend un lien `magiclink` que si l'utilisateur **existe déjà** ; sur un
+compte neuf, gotrue le crée et rend un lien **`signup`**, dont le jeton part
+dans `confirmation_token` — là où `verifyOtp({type:'magiclink'})` fouille
+`recovery_token`. La fonction lit désormais le type dans la réponse
+(`typeEmis()`) au lieu de l'écrire en dur.
+
+Vérifié hors appareil par `tools/sonde_echange_auth.mjs`, qui rejoue la
+séquence contre le gotrue de production : témoin (type figé) en échec,
+correctif en session valide avec le claim `firebase_uid` dès la première
+tentative. Confirmé bout-en-bout sur des comptes **Firebase** neufs
+(`signInWithPassword` → Edge Function) : la version en production rendait 401
+puis 200, la corrigée rend une session au premier coup.
+
+Le même message d'erreur a une **seconde** cause, mesurée au passage : deux
+`generateLink` de suite sur un compte existant écrivent dans la même colonne et
+le second invalide le jeton du premier, donc deux échanges concurrents (deux
+appareils, deux isolats Edge) se sabotent l'un l'autre — `_inFlightSync` ne
+dédoublonne qu'au sein d'un processus. L'étape 5 retente donc **une** fois avec
+un lien frais ; la 3e mesure du banc couvre ce cas.
+
+✅ **Déployé le 2026-09-09** et vérifié contre la fonction réelle, sur un
+compte Firebase créé pour l'occasion : le **premier** échange rend une session
+(c'est exactement l'appel qui répondait 401), le JWT porte le claim
+`firebase_uid`, et la ligne `users` se lit avec le jeton du compte. La
+fonction est aussi épinglée à `supabase-js@2.116.0` depuis ce déploiement —
+elle n'importe plus `@2`, qui rebundlait au dernier 2.x du jour.
+
+La reprise de l'étape 5 ayant été écrite **après** ce premier déploiement, la
+fonction a été redéployée dans la foulée : la production porte donc les deux
+correctifs (mauvais type d'OTP **et** reprise sur refus). Revérifié après ce
+second déploiement, encore sur un compte Firebase neuf, même résultat.
+
+⚠️ Le déploiement d'une Edge Function est **fichier par fichier** : ce qui est
+en ligne, c'est le dernier `deploy` de CE fichier, pas l'état de la branche.
+Pour comparer sans supposer : `supabase functions download <nom>
+--project-ref <ref>` — mais il **écrase la copie de travail** au lieu d'écrire
+ailleurs, donc le faire sur un dépôt propre et relire par `git diff`.
+
+- [x] **Non-régression sur compte existant — ✅ SM A515F, 2026-09-09.** La
+      fonction d'échange sert TOUTES les connexions, pas seulement les
+      premières : après le redéploiement, démarrage à froid de l'APK debug
+      1.2.1+11 déjà installé (le correctif étant côté serveur, rien à
+      recompiler). Logcat : `SupabaseAuthBridge: session sync OK`, aucun
+      `exchange failed`, aucun 401. Accueil rempli avec des données qui
+      exigent une session authentifiée — badge de 2 notifications, « Membres
+      à proximité · 1 », ville et progression de profil.
+- [x] **Compte neuf connecté depuis l'app — ✅ SM A515F, 2026-09-09.** Compte
+      Firebase créé pour l'occasion, connexion par l'écran de l'app (pas par
+      l'API), logcat vidé juste avant. Résultat : **une seule** ligne du pont,
+      `SupabaseAuthBridge: session sync OK`, à la seconde de la connexion.
+      Aucune occurrence de `exchange failed`, aucune ligne Flutter portant un
+      401. C'est exactement l'endroit où le défaut se voyait : avant le
+      correctif, le premier échange échouait et seule la reprise 5 s plus tard
+      sauvait la mise. L'app enchaîne ensuite sur le consentement, donc le
+      parcours d'inscription reprend normalement.
 
 ---
 
@@ -129,8 +1750,15 @@ les deux appareils (md5 `18e2a33a19fca981463e0f44d82966ff`).
 Ce qu'une montée d'AGP peut changer sans prévenir, et qui ne se voit qu'au
 dépôt en Play Console :
 
-- [ ] **`flutter build apk --release` et le bundle** passent encore
-      (signature, R8, shrinking).
+- [x] **`flutter build apk --release`** passe encore (signature, R8,
+      shrinking) — vérifié le 2026-09-09 sur SM A515F : `assembleRelease` en
+      656 s, APK de 168 Mo, versionCode 17, signé par
+      `android/app/diaspo-niger-release.jks` (`DD:A6:5C:3E…CF:5D`, l'empreinte
+      que Play attend), R8 actif — le paquet installé n'a plus le flag
+      `DEBUGGABLE`. Posé et lancé, md5 sur l'appareil identique au fichier
+      local (`9ee1f712…`).
+- [ ] **Le bundle `.aab`** passe encore : non revérifié depuis la montée d'AGP.
+      C'est lui que vise l'alignement 16 Ko ci-dessous.
 - [ ] **Alignement 16 Ko** toujours bon :
       `python tools/verifie_alignement_16k.py build/app/outputs/bundle/release/app-release.aab`.
 - [ ] **Le `force("com.google.mlkit:barcode-scanning:17.3.0")`** porte la note
@@ -689,7 +2317,6 @@ et `md5sum` sur l'appareil identiques, `9793305acf2ea0dc2478ec436b3a7bba`) :
 - [ ] Un compteur à **trois chiffres** ne déforme pas sa colonne — pas
       vérifiable sur ce compte (4 / 2 / 0 / 1). Couvert au banc seulement.
 - [ ] Rendu en thème **clair** : jamais regardé.
-
 
 ---
 
@@ -2677,11 +4304,15 @@ rayé, en attente explicite dans le commentaire du code).
   Encore ouvert : **thème clair** et **accent vert** (seule la combinaison
   sombre/orange du compte de test a pu être vue — `font_scale` 1.1 aussi,
   l'appareil était repassé à 1.0 depuis la dernière session).
-- [ ] Pastille « DN » de connexion/inscription (`AuthBrandMark`) : pas
-  vérifiée sur appareil (nécessiterait une déconnexion du compte connecté,
-  écartée pour ne pas risquer une reconnexion SSO forcée) — seulement en
-  preview HTML fidèle aux valeurs réelles. Les deux lettres devraient tenir
-  dans le carré 46×46 sans être coupées, dans les deux couleurs d'accent.
+- [x] Pastille « DN » de connexion/inscription (`AuthBrandMark`) : **vue sur
+  SM A515F le 2026-09-09**, en thème clair et accent orange. Les deux lettres
+  tiennent dans le carré, centrées, aucune coupe. L'occasion est venue d'une
+  réinstallation en release (signature différente du debug → désinstallation
+  obligatoire), qui a rendu l'appareil déconnecté : c'est bien la déconnexion
+  que cette entrée disait rédhibitoire qui l'a débloquée, pas un contournement.
+- [ ] Pastille « DN » en **accent vert** et en **thème sombre** : toujours pas
+  vue sur appareil (l'écran de connexion s'ouvre en clair/orange par défaut,
+  et l'accent vert dépendait du compte de test dont la session est perdue).
 - [x] Écran « fête de la République » (onboarding 4/5) : les 3 pastilles
   orange/blanc/vert restent lisibles sur fond sombre, celle en blanc se
   détache bien grâce au cerclage `borderStrongColor`. Vu sur SM A515F.
@@ -10838,6 +12469,10 @@ implicitement que l'appelant reste participant après l'update.
 
 ## Heure/accusé masqués au tap sur une rafale envoyée (2026-08-14)
 
+> **Obsolète depuis le 2026-08-23** : la bascule décrite ci-dessous a été
+> supprimée, l'heure s'affiche désormais sur tous les messages. Voir
+> « Heure et accusé sur tous les messages » plus bas.
+
 [message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart) :
 un message envoyé qui n'est pas le dernier d'une rafale masquait déjà son
 heure par regroupement visuel, mais sans aucun moyen de la consulter
@@ -11725,12 +13360,570 @@ lu **nulle part ailleurs** dans `lib/` — le choix ne changeait l'affichage
 d'aucun prix (marché, transferts, salons ont chacun leur propre devise par
 article). Masquer la ligne ne retire donc aucun comportement.
 
-- [ ] **La ligne a bien disparu** des Réglages sur SM A515F, entre
-      « Langue » et « Fond de discussion », sans trou ni filet en double
-      (`DesignListCard` pose ses propres séparateurs).
-- [ ] Rien d'autre dans les Réglages n'a bougé (les tuiles voisines gardent
-      leur ordre et leur sous-titre).
+- [x] **✅ SM A515F, 2026-09-08 : la ligne a bien disparu.** Section
+      APPLICATION, « Langue › Français » est suivi directement de « Fond
+      d'écran des conversations › Thème par défaut » — pas de trou, pas de
+      filet en double (`DesignListCard` pose ses propres séparateurs).
+- [x] **✅ Rien d'autre n'a bougé** : Notifications push, Notifications,
+      Thème, Langue, Fond d'écran, Suppression du bruit, Aide & FAQ,
+      À propos (1.2.1 (11)), Conditions d'utilisation — ordre et sous-titres
+      intacts. APK debug `6672c96e…`, md5 confirmé identique sur les deux
+      téléphones avant la capture.
 
+⚠️ **Le vrai piège de cette session n'était pas le code.** La tuile est restée
+visible après une livraison *réussie* : le commit était bien sur `origin`,
+mais le **dépôt principal**, d'où part la compilation, était resté 7 commits
+en arrière (`d62512c`). Un worktree pousse vers `origin`, il ne met pas à jour
+la copie de travail principale. Avant de conclure qu'un correctif « ne marche
+pas », vérifier `git log HEAD..origin/<branche>` dans le dépôt principal.
+
+---
+
+## ⬜ Heure et accusé sur tous les messages, bascule supprimée (2026-08-23)
+
+[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)
+`_buildMetaRow` : le regroupement visuel des rafales ne masque plus rien de la
+ligne méta. Chaque message — envoyé comme reçu, isolé comme au milieu d'une
+rafale — affiche son heure et, côté envoyé, son accusé. Le champ
+`_metaRevealed`, le getter `_isLastInGroup` et la zone de tap invisible de
+48×16 px sous la bulle ont été supprimés.
+
+Deux raisons : la zone tapable n'avait aucune affordance (indevinable), et
+elle masquait aussi le libellé « Échec · Réessayer » d'un envoi raté qui
+n'était pas le dernier de sa rafale — le seul chemin pour relancer l'envoi.
+
+⚠️ **Cette note a bien failli disparaître.** Le code est en place depuis le
+2026-08-23, mais sa justification vivait dans un commit resté sur une branche
+locale (`claude/heure-partout-base-1744c25`) : le comportement, lui, a été
+refait autrement sur `wip-jules`, sans reprendre l'explication. Récupérée le
+2026-09-09 juste avant la suppression de cette branche. Vérifié à cette
+occasion sur le fichier courant : plus une seule occurrence de `_metaRevealed`
+ni de `_isLastInGroup`, et l'appel `Text(_formatTime(...))` de `_buildMetaRow`
+n'est enveloppé d'aucune condition.
+
+- [ ] **Heure sur chaque message d'une rafale envoyée** : envoyer 3 messages
+  coup sur coup en 1:1, vérifier que les 3 portent leur heure sans aucun tap
+  (avant : seul le dernier).
+- [ ] **Accusé répété** : les 3 portent aussi « · Envoyé »/« · Lu ». C'est le
+  point à juger à l'œil — si la répétition est trop bruyante, il suffit de
+  re-conditionner `_buildReceiptLabel` à la fin de rafale sans revenir sur
+  l'heure.
+- [ ] **Plus aucun tap actif** : taper sous une bulle du milieu de rafale ne
+  doit plus rien masquer ni révéler (ni ouvrir quoi que ce soit).
+- [ ] **Échec d'envoi au milieu d'une rafale** (mode avion, 3 messages, le
+  2e forcé en échec) : « Échec · Réessayer » visible et cliquable sur ce
+  message sans interaction préalable.
+- [ ] **Rafale reçue** et **groupe** : heure sur chaque bulle, nom de
+  l'expéditeur toujours sur la seule première bulle, queue de bulle toujours
+  sur la dernière (le regroupement visuel n'a pas bougé).
+
+---
+
+## ⬜ Journalisation : deux fuites en release et la garde du LoggerService (2026-09-09)
+
+`debugPrint` écrit **aussi en release** — la doc du SDK le dit noir sur blanc
+(`packages/flutter/lib/src/foundation/print.dart:37` : « logs to console even
+in release mode », avec la convention de l'entourer d'un `kDebugMode`). Le
+dépôt compte 922 appels actifs, dont 12 gardés. Rien de tout ça ne se voit en
+développement : ça se voit sur l'APK de production, avec un simple `adb logcat`.
+
+Trois corrections ici ; le reste du chantier (~900 appels) reste ouvert.
+
+[native_call_service.dart](lib/core/services/native_call_service.dart)
+`actionDidUpdateDevicePushTokenVoip` imprimait la **valeur complète du jeton
+VoIP**. Le log garde son intérêt (savoir que la mise à jour a eu lieu), la
+valeur part.
+
+[message_provider.dart](lib/features/messages/presentation/providers/message_provider.dart)
+`sendLocation` imprimait `lat=` / `lng=` du partage de position — de la donnée
+personnelle, dans les logs. **Deux fois** : à la pose du message optimiste
+(l. 1327) et à la confirmation d'envoi (l. 1350). La seconde s'était fait
+oublier lors du repérage — un `grep | head -25` avait mangé la ligne, et
+corriger une seule des deux n'aurait rien fermé du tout.
+
+[message_remote_datasource.dart:2180](lib/features/messages/data/datasources/message_remote_datasource.dart:2180)
+Même `lat=` / `lng=`, troisième occurrence, trouvée encore après — celle-ci
+écrivait `${data['latitude']}`, une forme que deux balayages successifs
+avaient manquée parce qu'ils cherchaient un identifiant (`$latitude`), pas un
+accès map. **Chemin non actif** : la messagerie passe par
+`MessageSupabaseDataSource`, et `MessageRemoteDataSourceImpl` n'est instancié
+que par la recherche, qui n'envoie jamais de position. Corrigé quand même —
+la ligne se réveillerait au premier recâblage.
+
+⚠️ **La leçon d'outillage** : ne jamais conclure un audit de logs sur un motif
+qui suppose la forme de l'interpolation. Le balayage qui a fini par tout
+trouver cherche dans le **texte** du message (`lat=`, `token`, `phone`…),
+indépendamment de la façon dont la valeur est injectée.
+
+[logger_service.dart](lib/core/services/logger_service.dart)
+Le garde `kDebugMode` ne couvrait que le niveau `debug` : `i`, `w` et `e`
+parlaient en release. Il couvre maintenant `_log` en entier, tous niveaux.
+
+**Suite (2026-09-09) — les erreurs remontent maintenant à Crashlytics.**
+Le garde laissait les 9 appels `LoggerService.w/e` (carte, publication de
+position, profil) totalement muets en production. `_log` remonte désormais le
+**seul** niveau `error` à `FirebaseCrashlytics.recordError(..., fatal: false)`,
+avec `reason` = le message. Les autres niveaux restent debug-only.
+
+⚠️ **Correction d'un diagnostic que j'avais donné de travers** : j'avais désigné
+`error_handler.dart:185` comme « la bonne porte ». C'est faux — `logError` de
+`ErrorHandler` n'est **appelé nulle part** dans `lib/` (`grep 'logError('` ne
+remonte que sa propre déclaration et l'homonyme d'`AnalyticsService`).
+Décommenter cette ligne seule n'aurait rien changé au runtime. Elle est
+décommentée quand même (le jour où la méthode sert, elle sera correcte), mais
+ce qui rétablit vraiment la traçabilité, c'est le branchement dans
+`LoggerService`.
+
+Deux détails de mise en œuvre : l'appel est encadré d'un `try/catch` — un
+journal ne doit jamais faire tomber l'appelant si Firebase n'est pas encore
+initialisé — et il n'y a pas de `kReleaseMode` explicite, la branche étant
+déjà celle du `!kDebugMode`.
+
+- [ ] **Aucune régression d'appel** : passer un appel 1:1, sonnerie et bulle
+  d'appel comme avant. Le jeton VoIP est toujours propagé à
+  `onVoipTokenUpdated` — seul son affichage a changé — mais c'est le chemin
+  iOS/CallKit, donc à revalider le jour où un appareil iOS est disponible.
+- [x] **Partage de position** — vérifié sur SM A515F le 2026-09-09, APK release
+  `6dc726f453c70d23b0f94b100ac7e287` (md5 local = md5 `pm path`, et
+  `flags=[ HAS_CODE ... ]` sans `DEBUGGABLE`). Conversation 1:1 « Salim L. »,
+  pièce jointe → Position → « Envoyer cette position ». La bulle carte
+  s'affiche avec « 3010 Boul Lévesque E, Laval, Canada » et passe à
+  « À l'instant · Reçu ». Aucune régression fonctionnelle.
+- [x] **Logcat d'une release** — vérifié le 2026-09-09, logcat vidé juste avant
+  l'envoi. Les deux lignes sortent **au nouveau format** :
+
+      📍 sendLocation: Adding optimistic message tempId=temp_location_1788994896202
+      ✅ sendLocation: Success - real message id=9d35cb49-f82c-4ea0-9cc1-640c9a312a28
+
+  Ni `lat=` ni `lng=`. Sur les 12 498 lignes capturées, aucune coordonnée dans
+  une ligne de tag `flutter`. (Piège de mesure : un `grep '45\.[0-9]{3}'` naïf
+  remonte les **secondes des horodatages** du pilote NFC — filtrer sur
+  ` flutter ` avant de conclure.)
+
+  Ce test tranche **deux** questions d'un coup. Que les lignes sortent du tout
+  prouve que `debugPrint` écrit bien en release ; qu'elles sortent au nouveau
+  format prouve que l'APK n'est pas périmé. L'ancien format aurait signifié un
+  build stale, pas un correctif raté.
+- [ ] **Carte en release** : ouvrir la carte hors ligne (c'est là que les
+  `LoggerService.w` de `map_screen.dart` se déclenchent) et vérifier que
+  l'écran se comporte comme avant — le silence des logs ne doit rien changer
+  à l'affichage ni aux replis.
+- [ ] **Remontée Crashlytics** : provoquer le `LoggerService.e` de
+  `map_screen.dart:760` (« Error loading nearby members », carte hors ligne)
+  sur un APK **release**, puis vérifier dans la console Firebase Crashlytics
+  qu'un non-fatal apparaît avec ce message en `reason`. Compter quelques
+  minutes de latence, et **relancer l'app une fois** : Crashlytics n'envoie
+  souvent son lot qu'au démarrage suivant. Ne pas chercher à le vérifier en
+  debug — la branche n'y est pas prise.
+
+---
+
+## ⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)
+
+Suite directe de l'entrée ci-dessus. Après les trois fuites nommées, il restait
+**922 appels actifs dans 115 fichiers**, dont 12 gardés — tous bavards dans
+logcat sur un APK de production (734 sous `core/services`, dont 140 pour le
+seul `webrtc_service.dart`).
+
+[main.dart](lib/main.dart) — une ligne, en tête de `main()` :
+
+```dart
+if (kReleaseMode) {
+  debugPrint = (String? message, {int? wrapWidth}) {};
+}
+```
+
+`debugPrint` est une **variable** du SDK (`DebugPrintCallback debugPrint =
+debugPrintThrottled;`), pas une fonction : la réassigner neutralise les 922
+appels d'un coup, sans en toucher un seul.
+
+Pourquoi pas les 922 réécritures : sur une branche partagée où l'autre agent
+travaille en parallèle, un diff de 922 lignes sur 115 fichiers lui coûte des
+conflits pour un résultat identique. Même raisonnement que l'interdiction de
+`dart format` dans le CLAUDE.md.
+
+⚠️ **Ce que ça ne fait pas.** Les chaînes restent dans le binaire de l'APK et
+leurs arguments sont toujours évalués — seule la **sortie** disparaît. Un log
+qui ne doit pas exister du tout (valeur de jeton, coordonnées) se supprime à la
+source ; c'est pour ça que les trois fuites ont été traitées séparément avant.
+Le mode **profile** n'est pas couvert (`kReleaseMode` y est faux), volontairement :
+un APK de profilage ne se distribue pas.
+
+- [x] **Logcat muet en release** — vérifié sur SM A515F le 2026-09-09, APK
+  release `455a4c74b0bfc7a609a68ec6a3fb183d` (md5 local = md5 `pm path`, pas de
+  flag `DEBUGGABLE`). Même démarrage à froid, même protocole que la mesure
+  d'avant :
+
+      AVANT (APK 6dc726f4) : 14 lignes de tag flutter
+      APRÈS (APK 455a4c74) :  2 lignes de tag flutter
+
+  Les 2 restantes sont
+  `[IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc]` —
+  du moteur natif, qui ne passe pas par `debugPrint`. Tout ce qui venait de
+  Dart a disparu : `Encryption service initialized`, `SupabaseAuthBridge:
+  session sync OK`, `SecureKeyStorage: Initialized`, `DerivedKeyStore`,
+  `NativeCallService: Initialized`, `GoogleMapsService initialized`.
+- [x] **Pas de casse au démarrage** — vérifié le 2026-09-09. Aucun
+  `FATAL EXCEPTION` dans les 3 917 lignes capturées, l'app rend l'accueil
+  session restaurée (« Bonjour, Sim », Montréal, badge notifications à 2), et
+  l'onglet Messages charge la liste — dont l'aperçu déchiffré du message de
+  position envoyé juste avant (« Vous: 📍 Position »). Supabase, realtime et
+  déchiffrement E2EE fonctionnent donc toujours.
+- [ ] **Rien n'a changé en debug** : `flutter run` et vérifier que les logs
+  habituels sortent toujours (la neutralisation est derrière `kReleaseMode`).
+  Non vérifié — la session n'a construit que des release.
+- [x] **Logcat muet pendant un USAGE réel** — vérifié le 2026-09-09, même APK
+  `455a4c74…`. Le test au démarrage à froid ne couvrait que `main()` ; celui-ci
+  couvre les 734 `debugPrint` de `core/services`. Parcours : ouvrir la
+  conversation 1:1, saisir et envoyer un message texte, revenir à la liste,
+  onglet Carte, retour Accueil. Puis un second passage isolé sur la Carte.
+
+      usage complet : 7 740 lignes logcat → 0 ligne de tag flutter
+      carte seule   :   695 lignes logcat → 0 ligne de tag flutter
+
+  **Le contrôle qui rend ce zéro significatif** : « aucun log » ne prouve rien
+  si l'app n'a rien fait. Ici le message « test-logs » s'affiche en
+  « À l'instant · **Reçu** » — donc chiffrement E2EE, écriture Supabase et
+  accusé de retour ont bien eu lieu pendant la capture. Toujours apporter cette
+  preuve d'activité avec un résultat négatif.
+- [ ] **Appel WebRTC sur la release** : non parcouru. `webrtc_service.dart`
+  porte 140 `debugPrint` à lui seul — c'est le plus gros bloc encore non
+  observé.
+- [ ] **Carte avec partage de position actif** : l'onglet Carte a bien été
+  ouvert, mais le compte est en « Mode privé activé » : l'écran s'arrête sur
+  sa carte d'invitation (et la liste par ville, qui charge bien les ambassades).
+  Le rendu cartographique et les positions temps réel des membres — donc les
+  logs de `location_publisher_service` et du canal realtime — n'ont pas été
+  exercés.
+
+---
+
+## ⬜ Second verrou : `print` brut et paquets tiers (2026-09-09)
+
+La neutralisation de l'entrée précédente ne visait que `debugPrint`. Elle
+laissait passer deux choses :
+
+- un **`print()` brut** ajouté par mégarde — `avoid_print` est bien actif
+  (hérité de `flutter_lints`), mais au niveau *info* : ça n'échoue nulle part ;
+- les **paquets tiers**, dont le code ne nous appartient pas et qui peuvent
+  imprimer ce qu'ils veulent.
+
+[logs_release.dart](lib/core/utils/logs_release.dart) — `main()` lance
+désormais le démarrage dans une zone qui avale `print` :
+
+```dart
+void main() => demarrerSansLogsEnRelease(_demarrer);
+```
+
+`debugPrint` passant par `print`, la zone couvrirait déjà à elle seule la
+réassignation de `debugPrint`. Les deux sont gardés : la réassignation évite le
+travail (découpage, throttling), la zone garantit le résultat.
+
+Piège évité au passage : `ensureInitialized()` et `runApp` doivent vivre dans
+la **même** zone, sinon Flutter refuse de démarrer. Les deux sont à l'intérieur
+de `_demarrer`, donc de la même zone dans les deux branches.
+
+Couvert par [logs_release_test.dart](test/core/utils/logs_release_test.dart),
+4 tests : `print` avalé, `debugPrint` avalé, **un témoin** qui vérifie que le
+mécanisme de capture voit bien une sortie non protégée (sans lui, les deux
+premiers passeraient avec une capture cassée), et un balayage de source qui
+échoue si un `print(` brut réapparaît dans `lib/`.
+
+- [x] **Logcat toujours muet après ce changement** — vérifié sur SM A515F le
+  2026-09-09, APK release `e0924e531e7e0b0fcadffef3515121a3` (md5 local = md5
+  `pm path`, pas de flag `DEBUGGABLE`).
+
+      démarrage à froid : 6 291 lignes logcat → 2 lignes flutter (moteur natif)
+      envoi d'un message : 1 417 lignes logcat → 0 ligne flutter
+
+  L'envoi est la mesure qui compte, et elle est **contrôlée** : le message
+  « zone-verif » s'affiche « À l'instant · Envoyé » dans la conversation, et
+  18 lignes de la fenêtre mentionnent l'app/Supabase. L'app a donc chiffré,
+  écrit et livré pendant que logcat ne disait rien.
+- [x] **Le démarrage n'a pas régressé** — vérifié le 2026-09-09. Aucune erreur
+  de zone, aucun `FATAL EXCEPTION` imputable à l'app, accueil rendu session
+  restaurée (« Bonjour, Sim », badge notifications, « La carte · Il y a 10 s »
+  — les services de fond tournent), liste de conversations chargée et
+  déchiffrée.
+
+⚠️ **Deux pièges de mesure rencontrés, à ne pas répéter.**
+
+**0. Le relevé `uiautomator` peut contredire l'écran.** Le plus coûteux des
+trois. En cherchant à supprimer le message envoyé par erreur, le dump plaçait
+la bulle visée à `601,941` ; l'appui long à cet endroit a sélectionné un
+**autre** message (une position, envoyée 56 min plus tôt), deux fois de suite.
+La capture d'écran, elle, montrait la bonne chose. Sur cet écran Flutter,
+l'arbre sémantique ne reflétait pas la position de défilement réelle.
+
+**Conséquence pratique** : pour toute action destructrice sur appareil,
+ne jamais se fier au dump seul. Ouvrir le menu, **capturer l'écran, vérifier
+visuellement la cible sélectionnée**, et seulement ensuite confirmer. C'est ce
+contrôle qui a évité de supprimer un message innocent.
+
+**Et quand la vérification est impossible, renoncer.** La feuille d'actions
+occupe le bas de l'écran et masque tout ce qui s'y trouve : elle ne laisse voir
+la bulle sélectionnée (les autres sont estompées par le voile) que si celle-ci
+est assez haute. Pour un message situé en bas — typiquement le dernier de la
+conversation — la cible est *derrière* la feuille, et « Supprimer » devient un
+tap non vérifiable. Deux messages de test (`test-logs` 19:37, `zone-verif`
+20:03) ont été laissés en place pour cette raison : deux chaînes inoffensives
+coûtent moins cher qu'une suppression à l'aveugle après trois erreurs de
+ciblage.
+
+**1. Les coordonnées de tap se périment.** Une première tentative d'usage a
+échoué en silence : la liste s'était réordonnée depuis la capture précédente
+(un message reçu remonte sa conversation), et le tap à `540,987` a ouvert un
+groupe au lieu du 1:1. La suite est partie à l'aveugle — un `KEYCODE_BACK` de
+trop a quitté l'app, un autre tap a **envoyé un lien de partage de groupe** dans
+la vraie conversation à 19:57. Toujours re-dumper l'UI et localiser la cible par
+son libellé avant chaque tap, jamais réutiliser des coordonnées d'un dump
+antérieur.
+
+**2. « Zéro log » ne vaut que si l'app a travaillé.** Cette tentative ratée
+donnait pourtant 0 ligne flutter — un résultat juste, obtenu pour de mauvaises
+raisons. Elle reste exploitable *a posteriori* (1 754 lignes horodatées 19:57
+dans la fenêtre, et l'envoi accidentel a bien eu lieu), mais c'est un coup de
+chance. Exiger une preuve d'activité explicite : ici, l'accusé « Envoyé » sur
+un message nommé.
+
+⚠️ **La conversation « Salim L. » est utilisée par un autre banc de test** —
+des messages « Hi » et « ECHO-DM-1947 » y sont arrivés à 19:46 et 19:47, hors
+de toute action de cette session. Ne pas prendre son contenu pour un état
+stable, et ne pas conclure d'un message qu'on n'a pas envoyé soi-même.
+
+  Précision, apportée par la session qui les a produits : `ECHO-DM-1947` est
+  un envoi de **test** depuis le SM A515F (vérification de l'écho temps réel,
+  cf. la section sur les marqueurs de bulle) ; « Hi » venait du Pixel. Les
+  deux appareils étaient pilotés en parallèle ce soir-là, l'un par un agent,
+  l'autre à la main — d'où l'avertissement ci-dessus, qui reste valable.
+
+---
+
+## ⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)
+
+Le scanner ouvert depuis l'accueil (`/qr-scanner`) ne savait lire qu'un QR de
+**profil**. Tout le reste — le QR de groupe que `share_group_modal` affiche
+juste à côté, le code de transfert de clés, les liens du site — tombait sur
+« QR code invalide ou format non reconnu ».
+
+Deux causes, et la seconde est la plus traître : le contrôle d'hôte ne
+connaissait que `diasponiger.com` et `diaspo-niger.web.app`, alors que
+`DEEP_LINK_BASE_URL` du `.env` vaut `https://diasponiger.web.app` — l'app
+refusait donc les QR **qu'elle fabrique elle-même** via `DeepLinkService`.
+
+`lib/core/services/qr_code_parser.dart` (couvert par
+`test/core/services/qr_code_parser_test.dart`, 23 cas) reconnaît maintenant
+profil (lien long et code court), groupe, fil, événement, entreprise, produit,
+ambassade, salon audio, podcast, épisode, appel, le schéma `diasponiger://` et
+le rendez-vous de transfert de clés. Rien de tout cela n'a été rejoué caméra en
+main :
+
+- [ ] **QR de groupe** — afficher le QR d'un groupe sur un second écran
+      (Discussions › groupe › Partager), le scanner depuis l'accueil : la
+      fiche du groupe doit s'ouvrir.
+- [ ] **QR de profil**, les deux formes : le lien long `/p/u/<id>` (bouton
+      « Mon QR Code » du scanner) et le code court `/p/<code>` (dialogue de
+      partage du profil, qui passe par le serveur pour être résolu).
+- [ ] **Code de transfert de clés** scanné depuis l'accueil : doit basculer
+      sur l'écran de récupération avec le message « Code de transfert de clés :
+      ouverture de l'écran de récupération. », et **pas** une erreur.
+- [ ] **QR d'un autre service** (n'importe quel QR du commerce) : message
+      d'erreur, la caméra ne doit pas rester bloquée.
+- [x] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
+      profil » — vérifié sur SM A515F le 2026-09-09 (capture). C'est aussi la
+      preuve que le build installé porte bien ce code : le titre est le seul
+      changement visible sans scanner quoi que ce soit.
+- [x] **La destination d'un scan de groupe s'ouvre** : lien
+      `https://diasponiger.web.app/groups/<id>` envoyé en intent sur
+      58221FDCQ0085Z → fiche « Diaspora Niger — Cap-Vert » complète, bouton
+      « Rejoindre le groupe ». La moitié « route » de la chaîne est donc
+      prouvée appareil ; il reste la moitié « caméra → parser ».
+- [x] **La caméra s'ouvre** sur l'écran du scanner (`dumpsys media.camera` :
+      CONNECT/DISCONNECT du paquet à chaque entrée/sortie) — ce que la montée
+      `mobile_scanner` 7 mettait en doute. Le rendu reste noir tant que
+      l'objectif ne voit rien d'éclairé : le cadre et le texte d'instruction
+      sont dans le sous-arbre `ColorFiltered(BlendMode.srcOut)`, donc invisibles
+      par construction sur fond noir. Ne pas confondre avec une caméra morte.
+
+- [x] **Le cadre de visée et le texte d'instruction s'affichent** — vérifié
+      SM A515F le 2026-09-09 après correctif : cadre orange, coins blancs,
+      ligne animée et « Placez le QR code dans le cadre pour scanner » sont
+      visibles. Ils ne l'étaient jamais avant (enfermés dans le sous-arbre
+      `ColorFiltered(srcOut)`, qui les découpait dans le voile).
+
+**Piège de mesure (2026-09-09)** : le premier symptôme rapporté (« ça ne marche
+pas ») venait d'un APK antérieur au correctif — construit à 19:55, correctif
+committé à 20:12. Avant toute conclusion sur un comportement appareil, comparer
+`lastUpdateTime` (`dumpsys package`) à l'horodatage du commit.
+
+---
+
+## ⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09)
+
+Trouvé en cherchant à vérifier la remontée d'erreurs. Le SDK Crashlytics
+s'initialise bien sur la build release (`Initializing Firebase Crashlytics
+19.4.4` dans logcat) et les non-fatals partent — mais **le plugin Gradle
+n'était déclaré nulle part** dans `android/`. Or `isMinifyEnabled = true` sur
+release : sans lui, aucun fichier de mapping R8 n'est envoyé, et les piles
+d'appel arrivent obfusquées, donc inexploitables. C'est aussi ce plugin qui
+pousse les symboles NDK (le `debugSymbolLevel = "FULL"` existant ne sert que
+pour Play).
+
+Déclaré dans [settings.gradle.kts](android/settings.gradle.kts) et
+[app/build.gradle.kts](android/app/build.gradle.kts).
+
+⚠️ **Le premier build a échoué** : le plugin Crashlytics 3 exige
+`google-services` **4.4.1 minimum**, le projet était en 4.3.15 —
+« Failed to query the value of task
+':app:uploadCrashlyticsMappingFileRelease' property 'appIdFile' ». Monté à
+4.4.2, le build passe. Une montée de `google-services` seule n'aurait servi à
+rien : les deux vont ensemble.
+
+Vérifié après build : `build/app/crashlytics/release/mappingFileId.txt` et
+`com_google_firebase_crashlytics_mappingfileid.xml` injecté dans les
+ressources — c'est cet identifiant qui relie un rapport à son mapping, et il
+n'existait pas avant.
+
+- [x] **L'app démarre toujours** — SM A515F, APK release
+  `ea2db3cdb3c0153e9bc6107a16ce7f61` (md5 local = md5 `pm path`). Firebase et
+  Crashlytics s'initialisent, aucun `FATAL EXCEPTION`, et la zone muette tient
+  (2 lignes flutter, moteur natif). La montée de `google-services` n'a rien
+  cassé au runtime.
+- [ ] **Un non-fatal arrive-t-il vraiment dans la console ?** ⚠️ **Non
+  vérifiable en l'état.** Le seul site qui appelle `LoggerService.e` est
+  `map_screen.dart:760`, dans le `catch` de `_loadNearbyMembers` — lequel
+  exige `_currentPosition != null`. Or le compte de test est en **« Mode privé
+  activé »** : la carte s'arrête sur sa carte d'invitation et ne demande jamais
+  de position. Coupure réseau confirmée (mode avion), l'écran ne bouge pas.
+  Pour déclencher, il faudrait appuyer sur « ACTIVER » — donc **modifier un
+  réglage de confidentialité du compte**, ce qu'une session de test ne doit pas
+  faire sans accord explicite.
+- [ ] **Piles déobfusquées dans la console** : après une remontée réelle,
+  vérifier que la trace est lisible (noms de classes Dart/Java, pas `a.b.c`).
+  C'est le bénéfice concret du plugin, et il ne se voit que côté console.
+
+⚠️ **À savoir sur la portée du branchement Crashlytics** : `LoggerService.e`
+n'a **qu'un seul** site d'appel dans tout `lib/`. Les huit autres usages du
+logger sont des `.w`, volontairement laissés muets. Le branchement ajouté le
+2026-09-09 couvre donc un chemin d'erreur, pas neuf.
+
+---
+
+## ✅ Liens profonds : schéma maison et événements (2026-09-09)
+
+Vérifié sur SM A515F, build de 22:44.
+
+- [x] **`diasponiger://groups/<id>` ouvre la fiche du groupe.** Avant :
+      « Page Not Found » avec `GoException: no routes for location:
+      diasponiger://groups/<id>`. Preuve dans logcat, côté natif :
+      `DiaspoDeepLink: route poussee vers Dart : /groups/<id>` — l'hôte est
+      bien recollé devant le chemin.
+- [x] **`/events/<id>` ouvre la fiche** (« Tabaski 2026 ») au lieu de
+      « Erreur de chargement », après la bascule du provider sur
+      `EventSupabaseDataSource`.
+- [x] **Liens `https` de groupe, de fil et de profil** : ouverts à chaud et à
+      froid, App Links `verified` pour `diasponiger.com` et
+      `diasponiger.web.app` (`pm get-app-links`).
+
+**Piège de mesure** : après avoir envoyé un lien profond par `am start`, ne
+pas ramener l'app avec `monkey ... LAUNCHER` avant la capture — le lancement
+depuis le launcher réinitialise la pile de la tâche et la route du lien
+profond disparaît. Le lien semble alors perdu alors qu'il avait bien été
+poussé (logcat le prouve). Envoyer l'intent **app au premier plan**, puis
+capturer sans rien toucher d'autre.
+
+Reste non vérifié : le scan physique d'un QR, qui demande de présenter un code
+à l'objectif.
+
+---
+
+## ✅ Annuaire d'entreprises branché sur Supabase (2026-09-09)
+
+`/businesses/<uuid>` affichait « Entreprise non trouvée » quel que soit le
+chemin d'accès. Même famille que les événements : le module lisait
+**Firestore** alors que les entreprises vivent dans `public.businesses`.
+
+Trois pièces livrées : `BusinessSupabaseDataSource` (21 méthodes), la table
+`business_boosts` qui manquait, et `increment_business_view_count`.
+
+**Deux fausses pistes écartées, à ne pas refaire :**
+
+1. Les deux lignes étaient `is_active = false` — activées, sans aucun effet :
+   la fiche ne regardait même pas cette table.
+2. L'embed `users(display_name)` échouait en **PGRST200**. Cause :
+   `businesses` n'avait **aucune clé étrangère**, alors que le schéma initial
+   en déclare une. La table venait de l'import Firestore du 2026-04-12, donc
+   le `CREATE TABLE IF NOT EXISTS` du schéma initial n'a rien créé — ni la
+   clé, ni le `DEFAULT TRUE` de `is_active`, ce qui explique aussi le point 1.
+   **Réflexe à garder : une table importée peut avoir traversé un
+   `CREATE TABLE IF NOT EXISTS` sans rien en recevoir.**
+
+- [x] **`/businesses/<uuid>` ouvre la fiche** — vérifié SM A515F, démarrage à
+      froid : « Sonda », Restaurant, contact, Talladje/Niamey.
+
+Non vérifiés faute de données : création d'une entreprise, boost, offres et
+publications d'entreprise, recherche de proximité.
+
+---
+
+## ⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)
+
+Trouvé par accident en coupant le réseau pour déclencher une erreur de carte.
+Le compte était connecté, l'app affichait la carte en mode public. Mode avion
+activé, un rechargement forcé → l'app bascule sur **« Bienvenue sur Diaspo
+Niger »**, le carrousel d'accueil.
+
+**La session n'est PAS perdue** — c'est le point rassurant, et il a demandé
+d'être vérifié : « Passer » ramène directement à l'accueil connecté (« Bonjour,
+Sim », messages non lus et notifications intacts). Aucun `FATAL EXCEPTION`, et
+le pid n'a pas changé : l'app n'a ni planté ni redémarré, elle a **navigué**.
+
+**La chaîne, lue dans le code :**
+
+1. [onboarding_repository_impl.dart:23-48](lib/features/onboarding/data/repositories/onboarding_repository_impl.dart:23)
+   consulte d'abord le cache local (`has_seen_onboarding_<uid>`) ; **si celui-ci
+   est à `false`, il fait un appel réseau**. Hors ligne, l'appel lève →
+   `Left(ServerFailure)`.
+2. [onboarding_provider.dart:78](lib/features/onboarding/presentation/providers/onboarding_provider.dart:78)
+   traduit cet échec en `false` :
+
+   ```dart
+   hasSeenOnboardingResult.fold(
+     (failure) => hasSeenOnboarding = false,   // « je n'ai pas pu savoir » → « jamais vu »
+     (value)   => hasSeenOnboarding = value,
+   );
+   ```
+
+3. La règle 8 du routeur ([app_router.dart:320](lib/core/router/app_router.dart:320))
+   redirige alors vers `/onboarding/intro`.
+
+C'est la même famille que le garde d'autorisation déjà documenté : **« je n'ai
+pas pu vérifier » traité comme « la réponse est non »**. Ici, le coût est un
+utilisateur connecté à qui on remontre le carrousel de bienvenue dès qu'il perd
+le réseau — dans le métro, en avion, en zone blanche.
+
+**Correctif proposé, non appliqué** : pour un utilisateur **déjà authentifié**,
+un échec de lecture devrait valoir « ne pas interrompre » plutôt que « jamais
+vu ». Se tromper dans ce sens coûte un carrousel sauté une fois ; se tromper
+dans l'autre coûte une interruption à chaque coupure réseau. Non appliqué parce
+que toucher à une garde du routeur est précisément ce qui a déjà coûté cher ici
+(gating feature-flag, garde de session) — à décider explicitement.
+
+✅ **Tranché et appliqué le 2026-09-10**, exactement dans ce sens, et **sans
+toucher au routeur** : c'est la valeur qu'on lui donne qui change, pas la
+règle 8. Voir « ⬜ Onboarding rejoué : une lecture en échec n'est plus “jamais
+vu” » en tête de fichier — l'indéterminé y devient une valeur à part entière de
+la source distante jusqu'au notifier, et 21 cas le verrouillent. Cette
+observation-ci reste la seule reproduction **à volonté** du défaut : c'est elle
+qu'il faut rejouer pour valider le correctif sur appareil.
+
+- [ ] **Reproduire proprement** : compte connecté, mode avion, naviguer →
+  le carrousel doit apparaître. Puis vérifier qu'après retour du réseau **et**
+  redémarrage l'app revient d'elle-même à l'accueil (observé une fois : elle
+  restait sur l'onboarding, réseau rétabli, y compris après redémarrage — mais
+  le Wi-Fi pouvait n'être pas encore rétabli au lancement, donc à confirmer).
+- [ ] **Vérifier le cas du vrai nouveau compte** avant tout correctif : il doit
+  continuer à voir l'onboarding.
 
 ---
 

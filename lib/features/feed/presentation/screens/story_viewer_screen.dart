@@ -285,7 +285,8 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
                             ),
                             IconButton(
                               icon: const Icon(Icons.close, color: Colors.white),
-                              onPressed: () => context.pop(),
+                              onPressed:
+                                  () => context.canPop() ? context.pop() : context.go('/feed'),
                             ),
                           ],
                         ),

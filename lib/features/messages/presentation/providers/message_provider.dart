@@ -472,10 +472,21 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
                 // les métadonnées mutables portées par l'update (réactions, statut
                 // lu/livré, épinglage, etc.). Les vrais changements de contenu
                 // (suppression pour tous) passent par des chemins dédiés.
+                //
+                // Les charges annexes suivent la même règle depuis qu'elles sont
+                // chiffrées au repos : la ligne brute ne porte que leur blob, que
+                // ce chemin ne déchiffre pas. Sans ce rappel, le premier accusé
+                // de lecture faisait disparaître la carte du post ou du groupe
+                // partagé — sans erreur nulle part.
                 final existing = existingMessages[index];
                 existingMessages[index] = updatedMessage.copyWith(
                   content: existing.content,
                   fileUrl: existing.fileUrl,
+                  postData: existing.postData,
+                  eventData: existing.eventData,
+                  productData: existing.productData,
+                  linkPreviewData: existing.linkPreviewData,
+                  replyToMessageData: existing.replyToMessageData,
                 );
                 debugPrint(
                   'Message ${updatedMessage.id} read_by updated: ${updatedMessage.readBy}',
@@ -953,6 +964,21 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         participantIds = conversation.participantIds
             .where((id) => id != currentUser.id)
             .toList();
+        // Un groupe dont on est le seul membre — celui qu'on vient de créer,
+        // avant d'inviter qui que ce soit — laissait cette liste VIDE. La
+        // garde « Destinataire manquant » du datasource refusait alors tout
+        // envoi : chaque message repartait en « Non envoyé · Réessayer », sans
+        // un mot sur la cause, sous un état vide qui invite pourtant à
+        // « Soyez le premier à envoyer un message dans ce groupe ! ».
+        // Vérifié sur Pixel 10 Pro XL et SM A515F le 2026-09-09.
+        //
+        // Se remettre soi-même dans la liste suffit : `encryptGroup` chiffre
+        // avec NOTRE Sender Key, et `distributeSenderKeyToGroup` écarte déjà
+        // l'expéditeur de ses destinataires — la distribution ne vise donc
+        // personne, sans rien casser.
+        if (participantIds.isEmpty) {
+          participantIds = [currentUser.id];
+        }
       }
     }
 
@@ -1324,7 +1350,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
       replyToMessageData: replyToMessageData,
     );
 
-    debugPrint('📍 sendLocation: Adding optimistic message with lat=$latitude, lng=$longitude, tempId=$tempId');
+    debugPrint('📍 sendLocation: Adding optimistic message tempId=$tempId');
     _ref.read(paginatedMessagesProvider(conversationId).notifier).addOptimisticMessage(optimisticMessage);
 
     final result = await _ref.read(messageRepositoryProvider).sendLocationMessage(
@@ -1347,7 +1373,8 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         return false;
       },
       (message) {
-        debugPrint('✅ sendLocation: Success - real message id=${message.id}, lat=${message.latitude}, lng=${message.longitude}');
+        // Pas de coordonnées ici : `debugPrint` écrit aussi en release (logcat).
+        debugPrint('✅ sendLocation: Success - real message id=${message.id}');
         // Mettre à jour immédiatement le message optimiste avec l'ID réel
         _ref.read(paginatedMessagesProvider(conversationId).notifier)
             .updateMessageStatusAndCancelTimeout(tempId, MessageStatus.sent, message.id);

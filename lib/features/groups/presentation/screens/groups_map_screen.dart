@@ -73,7 +73,8 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
         title: Text(l10n.groupsByCountry),
         leading: IconButton(
           icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/groups'),
         ),
       ),
       body: groupsAsync.when(

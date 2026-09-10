@@ -3,10 +3,13 @@ import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/services/deep_link_service.dart';
 import '../../../../shared/widgets/price_text.dart';
+import '../../../../shared/widgets/share_options_sheet.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
+import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 import '../../../reports/domain/entities/report_entity.dart';
 import '../../../reports/presentation/widgets/report_content_modal.dart';
 import '../../domain/entities/product_entity.dart';
@@ -89,9 +92,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       ),
                     IconButton(
                       icon: const Icon(Icons.share),
-                      onPressed: () {
-                        // Share functionality
-                      },
+                      onPressed: () => _shareProduct(context, product),
                     ),
                     if (!isOwner)
                       IconButton(
@@ -506,6 +507,36 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     } else {
       return 'Il y a ${(diff.inDays / 30).floor()} mois';
     }
+  }
+
+  /// Le bouton « Partager » de la fiche produit était un `onPressed` vide
+  /// (« // Share functionality ») : il ne faisait rien, sans la moindre trace.
+  void _shareProduct(BuildContext context, ProductEntity product) {
+    final imageUrl =
+        product.imageUrls.isNotEmpty ? product.imageUrls.first : null;
+    final link = DeepLinkService.instance.generateProductLink(
+      product.id,
+      productName: product.title,
+      price: product.price,
+      imageUrl: imageUrl,
+    );
+
+    ShareOptionsSheet.show(
+      context,
+      url: link,
+      subject: product.title,
+      externalText: l10n.shareLinkChatMessage(product.title, link),
+      chatContent: ChatShareContent.product(
+        productId: product.id,
+        title: product.title,
+        price: product.price,
+        currency: product.currency,
+        imageUrl: imageUrl,
+        sellerId: product.sellerId,
+        sellerName: product.sellerName,
+        message: l10n.shareLinkChatMessage(product.title, link),
+      ),
+    );
   }
 }
 

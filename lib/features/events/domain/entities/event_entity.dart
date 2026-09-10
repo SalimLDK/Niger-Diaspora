@@ -83,13 +83,13 @@ extension EventStatusExtension on EventStatus {
   String get label {
     switch (this) {
       case EventStatus.upcoming:
-        return 'A venir';
+        return 'À venir';
       case EventStatus.ongoing:
         return 'En cours';
       case EventStatus.completed:
-        return 'Termine';
+        return 'Terminé';
       case EventStatus.cancelled:
-        return 'Annule';
+        return 'Annulé';
     }
   }
 }

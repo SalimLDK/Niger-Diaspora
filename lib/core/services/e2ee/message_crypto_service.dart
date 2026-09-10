@@ -296,11 +296,18 @@ class MessageCryptoService {
     }
 
     // ── Format 4: repli AES ────────────────────────────────────────────────
-    //
-    // Deux sous-formats, et la lecture doit accepter les deux : un message
-    // d'avant le chantier (clé globale) et un message d'après (clé dérivée)
-    // cohabitent dans la même conversation, sans migration préalable.
-    final contenu = payload['content'] as String? ?? '';
+    return _dechiffrerRepli(payload['content'] as String? ?? '', conversationId);
+  }
+
+  /// Lit un contenu chiffré par [_chiffrerRepli].
+  ///
+  /// Deux sous-formats, et la lecture doit accepter les deux : un message
+  /// d'avant le chantier (clé globale) et un message d'après (clé dérivée)
+  /// cohabitent dans la même conversation, sans migration préalable.
+  Future<String> _dechiffrerRepli(
+    String contenu,
+    String? conversationId,
+  ) async {
     if (!EncryptionService.estFormatVersionne(contenu)) {
       return _aes.decryptText(contenu);
     }
@@ -319,6 +326,34 @@ class MessageCryptoService {
     );
     return _aes.decryptWithDerivedKey(contenu, keyBase64: cle);
   }
+
+  // ── Charges annexes (cartes de partage, aperçu de lien) ────────────────────
+
+  /// Chiffre **au repos** une charge annexe d'un message : la carte d'un post,
+  /// d'un événement, d'un produit, ou l'aperçu d'un lien.
+  ///
+  /// Ces charges ne transitent pas par `content`, donc pas par Signal : elles
+  /// étaient écrites en clair dans `messages.data`, avec le titre, l'extrait,
+  /// l'URL cible et l'image de ce qui était partagé. Elles rejoignent ici la
+  /// famille déjà chiffrée au repos avec la clé dérivée de la conversation —
+  /// aperçus, localisation, médias.
+  ///
+  /// **Ce que ça vaut, et ce que ça ne vaut pas.** Ça retire ces champs de la
+  /// portée d'un export de base, d'une règle RLS trop large ou d'un opérateur
+  /// curieux. Ça ne les met PAS au niveau de `content` : le repli sur la clé
+  /// globale décrit dans [_chiffrerRepli] s'applique tel quel, et une charge
+  /// chiffrée à la clé globale est lisible par tout porteur de l'APK.
+  Future<String> chiffrerAnnexe(String clair, {String? conversationId}) =>
+      _chiffrerRepli(clair, conversationId);
+
+  /// Lit une charge écrite par [chiffrerAnnexe].
+  ///
+  /// Ne lève jamais : une annexe illisible doit coûter la carte, jamais le
+  /// message. L'appelant reconnaît l'échec au JSON qu'il ne saura pas relire.
+  Future<String> dechiffrerAnnexe(
+    String chiffre, {
+    String? conversationId,
+  }) => _dechiffrerRepli(chiffre, conversationId);
 
   String decryptLegacy(String encryptedContent) => _aes.decryptText(encryptedContent);
 

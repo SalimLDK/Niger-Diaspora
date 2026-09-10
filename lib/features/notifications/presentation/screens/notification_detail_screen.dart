@@ -32,7 +32,8 @@ class NotificationDetailScreen extends ConsumerWidget {
         title: Text(l10n.notificationsTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/notifications'),
         ),
         actions: [
           notificationsAsync.when(

@@ -10670,6 +10670,12 @@ abstract class AppLocalizations {
   /// **'Groupe privé'**
   String get privateGroup;
 
+  /// No description provided for @groupUnavailableOrPrivate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce groupe est privé ou n\'existe plus.'**
+  String get groupUnavailableOrPrivate;
+
   /// No description provided for @groupCreated.
   ///
   /// In fr, this message translates to:
@@ -21308,6 +21314,12 @@ abstract class AppLocalizations {
   /// **'Recommencer'**
   String get keyTransferRetry;
 
+  /// No description provided for @qrKeyTransferDetected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de transfert de clés : ouverture de l\'écran de récupération.'**
+  String get qrKeyTransferDetected;
+
   /// No description provided for @keyStateHere.
   ///
   /// In fr, this message translates to:
@@ -21331,6 +21343,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Un téléphone peut lire vos messages sans détenir ces clés : la plupart passent par un repli dont la clé vient du serveur. Seuls les messages en chiffrement bout-en-bout complet en dépendent.'**
   String get keyStateAbsentHint;
+
+  /// No description provided for @keyStateStuckWhy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une sauvegarde existe pour ce compte. Tant qu\'elle est là, l\'application ne crée pas d\'identité neuve : elle rendrait cette sauvegarde irrécupérable. Deux sorties.'**
+  String get keyStateStuckWhy;
+
+  /// No description provided for @keyStateStuckRestore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez la passphrase : restaurez la sauvegarde ci-dessous. Vos anciens messages chiffrés redeviennent lisibles.'**
+  String get keyStateStuckRestore;
+
+  /// No description provided for @keyStateStuckDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passphrase perdue : supprimez la sauvegarde. Une identité neuve sera créée à la prochaine connexion, mais les messages déjà chiffrés vers l\'ancienne resteront illisibles, définitivement.'**
+  String get keyStateStuckDelete;
+
+  /// No description provided for @backupNothingToSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à sauvegarder sur cet appareil : il n\'a pas vos clés de chiffrement. Récupérez-les d\'abord depuis le téléphone qui les détient, puis revenez créer une sauvegarde.'**
+  String get backupNothingToSave;
+
+  /// No description provided for @backupNoKeysError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil n\'a pas de clés à sauvegarder. Une sauvegarde vide bloquerait la création d\'une identité neuve.'**
+  String get backupNoKeysError;
+
+  /// No description provided for @securityDeleteBackupStuck.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil n\'a pas vos clés, et cette sauvegarde empêche d\'en créer de nouvelles. La supprimer débloque la situation : une identité neuve sera créée à la prochaine connexion.\n\nÀ ne faire que si vous avez perdu la passphrase : les messages déjà chiffrés vers l\'ancienne identité resteront illisibles, définitivement.'**
+  String get securityDeleteBackupStuck;
 
   /// No description provided for @keyTransferSendHint.
   ///
@@ -28187,13 +28235,13 @@ abstract class AppLocalizations {
   /// No description provided for @locationReciprocity.
   ///
   /// In fr, this message translates to:
-  /// **'C\'est donnant-donnant : partagez votre position approximative pour voir les membres proches de vous.'**
+  /// **'C\'est donnant-donnant : partagez votre position pour voir les membres proches de vous.'**
   String get locationReciprocity;
 
   /// No description provided for @locationGuarantee1.
   ///
   /// In fr, this message translates to:
-  /// **'Position approximative, jamais votre adresse exacte'**
+  /// **'Seule votre dernière position est gardée, jamais vos trajets'**
   String get locationGuarantee1;
 
   /// No description provided for @locationGuarantee2.
@@ -28355,7 +28403,7 @@ abstract class AppLocalizations {
   /// Reassurance 2/5
   ///
   /// In fr, this message translates to:
-  /// **'Position approximative, jamais l\'adresse exacte'**
+  /// **'Partage facultatif, que vous coupez quand vous voulez'**
   String get onbMembersBullet1;
 
   /// Reassurance 2/5
@@ -28451,7 +28499,7 @@ abstract class AppLocalizations {
   /// Sous-titre de l autorisation localisation
   ///
   /// In fr, this message translates to:
-  /// **'Réciproque : vous voyez ceux qui partagent'**
+  /// **'Vous placer sur la carte et voir les membres proches'**
   String get onbLocationSubtitle;
 
   /// Entrer sans accorder les autorisations
@@ -29611,6 +29659,132 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Nom, pays ou ville'**
   String get embassySearchHint;
+
+  /// No description provided for @shareToChatTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer dans une discussion'**
+  String get shareToChatTitle;
+
+  /// No description provided for @shareToChatSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes et messages privés'**
+  String get shareToChatSubtitle;
+
+  /// No description provided for @pickerTapToSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appuyez pour envoyer'**
+  String get pickerTapToSend;
+
+  /// No description provided for @pickerSelectConversations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionnez les discussions'**
+  String get pickerSelectConversations;
+
+  /// No description provided for @pickerContentSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyé'**
+  String get pickerContentSent;
+
+  /// No description provided for @pickerContentPartiallySent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Certains envois n\'ont pas abouti'**
+  String get pickerContentPartiallySent;
+
+  /// No description provided for @privateMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message privé'**
+  String get privateMessage;
+
+  /// No description provided for @shareProfileChatMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Découvre le profil de {name} sur Diaspo Niger\n{link}'**
+  String shareProfileChatMessage(String name, String link);
+
+  /// No description provided for @shareLinkChatMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'« {title} » sur Diaspo Niger\n{link}'**
+  String shareLinkChatMessage(String title, String link);
+
+  /// Titre de la divulgation prealable de localisation (Google Play)
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment Diaspo Niger utilise votre position'**
+  String get locationDisclosureTitle;
+
+  /// Divulgation prealable, collecte au premier plan
+  ///
+  /// In fr, this message translates to:
+  /// **'Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer les membres, groupes, commerces et événements proches de vous. Votre position est alors visible par les autres membres de l\'application. Elle n\'est collectée que pendant que vous utilisez Diaspo Niger, et vous pouvez arrêter le partage à tout moment dans Réglages.'**
+  String get locationDisclosureBody;
+
+  /// Divulgation prealable affichee dans l onboarding, sous les interrupteurs
+  ///
+  /// In fr, this message translates to:
+  /// **'Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer ce qui se passe près de vous. Votre position devient visible par les autres membres. Elle n\'est collectée que pendant l\'utilisation de l\'application, et vous pouvez arrêter le partage à tout moment dans Réglages.'**
+  String get locationDisclosureShort;
+
+  /// Titre de la divulgation prealable, collecte en arriere-plan
+  ///
+  /// In fr, this message translates to:
+  /// **'Partage de position en continu'**
+  String get locationDisclosureBackgroundTitle;
+
+  /// Divulgation prealable, collecte en arriere-plan (Mode Voyage)
+  ///
+  /// In fr, this message translates to:
+  /// **'Le Mode Voyage collecte des données de localisation pour vous garder visible sur la carte des membres, même lorsque l\'application est fermée ou n\'est pas utilisée. Votre position est envoyée toutes les 5 minutes et reste visible par les autres membres de Diaspo Niger. Vous pouvez arrêter le partage à tout moment depuis votre profil.'**
+  String get locationDisclosureBackgroundBody;
+
+  /// Action affirmative de la divulgation prealable
+  ///
+  /// In fr, this message translates to:
+  /// **'Accepter et continuer'**
+  String get locationDisclosureAccept;
+
+  /// Refus de la divulgation prealable
+  ///
+  /// In fr, this message translates to:
+  /// **'Non, merci'**
+  String get locationDisclosureDecline;
+
+  /// Lien vers la politique de confidentialite depuis la divulgation
+  ///
+  /// In fr, this message translates to:
+  /// **'Lire la politique de confidentialité'**
+  String get locationDisclosureReadPolicy;
+
+  /// Sous-titre de l interrupteur Mode Voyage
+  ///
+  /// In fr, this message translates to:
+  /// **'Partager ma position même lorsque l\'application est fermée (mise à jour toutes les 5 min)'**
+  String get travelModeSubtitle;
+
+  /// Message quand la permission de localisation est refusee definitivement
+  ///
+  /// In fr, this message translates to:
+  /// **'Autorisation refusée définitivement. Activez-la dans les paramètres du téléphone.'**
+  String get locationPermissionOpenSettings;
+
+  /// Titre de la divulgation prealable, partage dans une discussion
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre position dans cette discussion'**
+  String get locationDisclosureChatTitle;
+
+  /// Divulgation prealable, partage dans une discussion
+  ///
+  /// In fr, this message translates to:
+  /// **'Diaspo Niger lit votre position pour centrer la carte sur vous et vous laisser l\'envoyer dans cette discussion. Elle n\'est partagée qu\'avec les participants de la discussion, et seulement si vous envoyez le message : elle ne rejoint pas la carte des membres.'**
+  String get locationDisclosureChatBody;
 }
 
 class _AppLocalizationsDelegate

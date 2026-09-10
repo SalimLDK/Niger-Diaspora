@@ -1,11 +1,12 @@
 import 'package:diaspo_niger/core/errors/app_error_messages.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../domain/repositories/event_repository.dart';
 import '../datasources/event_remote_datasource.dart';
@@ -162,17 +163,28 @@ class EventRepositoryImpl implements EventRepository {
 
       // Only notify if the attendee is not the organizer
       if (event.organizerId != userId) {
-        // Get user info for notification
-        final userDoc =
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(userId)
-                .get();
-
-        final userName =
-            userDoc.exists
-                ? (userDoc.data()?['displayName'] ?? 'Un utilisateur')
-                : 'Un utilisateur';
+        // Le nom du participant, lu dans `public.users`.
+        //
+        // Il venait de Firestore (`users/<uid>.displayName`) alors que les
+        // comptes vivent sur Supabase : le document n'existait pas, `exists`
+        // rendait `false`, et la notification annonçait « Un utilisateur
+        // participera à … » — signalé par Salim le 2026-09-09, dès que
+        // « Participer » a recommencé à fonctionner. Le repli masquait la
+        // panne au lieu de la signaler, c'est pour ça qu'elle a duré.
+        String userName = 'Un utilisateur';
+        try {
+          await SupabaseAuthBridge.instance.ensureAuthenticated();
+          final row = await Supabase.instance.client
+              .from('users')
+              .select('display_name')
+              .eq('id', userId)
+              .maybeSingle();
+          final nom = row?['display_name'] as String?;
+          if (nom != null && nom.trim().isNotEmpty) userName = nom;
+        } catch (_) {
+          // Un nom illisible ne doit pas empêcher l'inscription d'aboutir :
+          // la notification part avec le libellé générique.
+        }
 
         // Notify the event organizer
         await NotificationService().createNotification(

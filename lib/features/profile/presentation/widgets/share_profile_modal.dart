@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile_share_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -185,6 +186,10 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
                           // Share buttons
                           _buildShareButtons(isDark),
                           const SizedBox(height: 16),
+
+                          // Envoyer dans une discussion (groupes et 1:1)
+                          _buildShareToChatButton(),
+                          const SizedBox(height: 12),
 
                           // Scan QR code button
                           if (widget.showScanButton)
@@ -704,6 +709,64 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
           setState(() => _copied = false);
         }
       });
+    }
+  }
+
+  /// « Partager » sans cette entrée ne savait sortir de l'app : réseaux
+  /// sociaux ou feuille système. Le lien reste le même — c'est la discussion
+  /// qui devient une destination, groupe comme 1:1.
+  Widget _buildShareToChatButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _shareToChat,
+        icon: const Icon(Icons.forum_rounded, color: Colors.white),
+        label: Text(
+          l10n.shareToChatTitle,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: context.adaptivePrimaryColor,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _shareToChat() async {
+    final url = _shareUrl;
+    if (url == null) return;
+    HapticFeedback.lightImpact();
+
+    // La fiche sert aussi bien à partager son propre profil (ouverte sans
+    // `userName`) que celui de quelqu'un d'autre.
+    final name = widget.userName?.trim();
+    final hasName = name != null && name.isNotEmpty;
+
+    final sent = await ShareToChatSheet.show(
+      context,
+      content: ChatShareContent.link(
+        url: url,
+        title: hasName ? name : l10n.myProfileOnDiaspoNiger,
+        imageUrl: widget.userPhotoUrl,
+        message:
+            hasName
+                ? l10n.shareProfileChatMessage(name, url)
+                : '${l10n.myProfileOnDiaspoNiger}\n$url',
+        icon: Icons.person_rounded,
+      ),
+    );
+
+    // Le partage a abouti : la fiche de partage n'a plus de raison de rester
+    // ouverte par-dessus le profil.
+    if (sent == true && mounted) {
+      Navigator.pop(context);
     }
   }
 

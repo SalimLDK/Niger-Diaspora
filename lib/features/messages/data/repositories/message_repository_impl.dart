@@ -1397,6 +1397,23 @@ class MessageRepositoryImpl implements MessageRepository {
         newContent: newContent,
         oldContent: oldContent,
       );
+
+      // Depuis que la modification est rechiffrée, l'expéditeur ne sait plus
+      // relire son propre message depuis le serveur : les charges Signal d'un
+      // 1:1 sont destinées aux appareils du DESTINATAIRE, jamais aux siens. Sa
+      // bulle vient du cache, via `_healUndecryptableMessages`. Sans cette
+      // mise à jour, rouvrir la conversation faisait **revenir le texte
+      // d'avant** — le soin réécrivant l'ancien contenu par-dessus le nouveau,
+      // sans la moindre erreur.
+      final cached = cacheService.getCachedMessages(conversationId);
+      final index = cached.indexWhere((m) => m['id'] == messageId);
+      if (index != -1) {
+        final mis = Map<String, dynamic>.from(cached[index]);
+        mis['content'] = newContent;
+        mis['editedAt'] = DateTime.now().toUtc().toIso8601String();
+        await cacheService.cacheMessages(conversationId, [mis]);
+      }
+
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -1467,7 +1484,13 @@ class MessageRepositoryImpl implements MessageRepository {
 
       // 3. Merger avec le cache
       if (newMessages.isNotEmpty) {
-        final newMessagesJson = newMessages.map((m) => m.toJson()).toList();
+        // Soigner AVANT d'écrire : `cacheMessagesLRU` fusionne par id et la
+        // nouvelle version l'emporte, donc un placeholder écrit ici efface le
+        // texte clair déjà en cache — définitivement, le serveur ne pouvant pas
+        // le rendre une seconde fois. Les deux autres chemins de rechargement
+        // soignaient déjà ; celui-ci était le seul à ne pas le faire.
+        final healed = _healUndecryptableMessages(conversationId, newMessages);
+        final newMessagesJson = healed.map((m) => m.toJson()).toList();
         await cacheService.cacheMessagesLRU(conversationId, newMessagesJson);
       }
 

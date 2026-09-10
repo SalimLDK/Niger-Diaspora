@@ -28,6 +28,11 @@ class MyPodcastsScreen extends ConsumerWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 0,
+        leading: BackButton(
+          onPressed:
+              () =>
+                  context.canPop() ? context.pop() : context.go('/podcasts'),
+        ),
         title: Text(
           l10n.myPodcasts,
           style: DNText.serif(size: 22, color: context.dn.onSurface),

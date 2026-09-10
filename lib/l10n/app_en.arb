@@ -2668,6 +2668,7 @@
   "nameRequired": "Name is required",
   "nameMinLength": "Name must be at least 3 characters",
   "privateGroup": "Private group",
+  "groupUnavailableOrPrivate": "This group is private or no longer exists.",
   "groupCreated": "Group created successfully",
   "groupCreationError": "Error creating group",
   "promotionError": "Error during promotion",
@@ -4777,10 +4778,17 @@
   "keyTransferNotAuthenticated": "Session unavailable. Try again in a moment.",
   "keyTransferNoAck": "The new phone did not confirm. Your keys stay on this device.",
   "keyTransferRetry": "Start again",
+  "qrKeyTransferDetected": "Key transfer code: opening the recovery screen.",
   "keyStateHere": "This device holds your encryption keys.",
   "keyStateAbsent": "This device does not hold your encryption keys.",
   "keyStateAbsentWhy": "So it cannot send them. Start the transfer from the phone that holds them, or restore them here with your passphrase.",
   "keyStateAbsentHint": "A phone can read your messages without holding these keys: most of them use a fallback whose key comes from the server. Only fully end-to-end encrypted messages depend on them.",
+  "keyStateStuckWhy": "A backup exists for this account. While it is there, the app will not create a new identity: doing so would make that backup unrecoverable. Two ways out.",
+  "keyStateStuckRestore": "You have the passphrase: restore the backup below. Your old encrypted messages become readable again.",
+  "keyStateStuckDelete": "Passphrase lost: delete the backup. A new identity will be created at the next sign-in, but messages already encrypted to the old one stay unreadable, for good.",
+  "backupNothingToSave": "Nothing to back up on this device: it does not hold your encryption keys. Get them from the phone that holds them first, then come back and create a backup.",
+  "backupNoKeysError": "This device has no keys to back up. An empty backup would block the creation of a new identity.",
+  "securityDeleteBackupStuck": "This device does not hold your keys, and this backup prevents new ones from being created. Deleting it unblocks that: a new identity will be created at the next sign-in.\n\nOnly do this if you have lost the passphrase: messages already encrypted to the old identity stay unreadable, for good.",
   "keyTransferSendHint": "On the new phone: \"Get them from my old phone\", then scan this code. Keep it on screen until it is scanned.",
   "keyTransferScanFirst": "First scan the code shown on the old phone, then sign in: your keys will be picked up automatically.",
   "keyTransferScannedSignIn": "Code recognised. Sign in now to finish.",
@@ -6138,8 +6146,8 @@
   "settingsPrivacySecurity": "Privacy & security",
   "settingsAppearanceLanguage": "Appearance & language",
   "settingsHelpAbout": "Help & about",
-  "locationReciprocity": "It's mutual: share your approximate location to see members near you.",
-  "locationGuarantee1": "Approximate position, never your exact address",
+  "locationReciprocity": "It's mutual: share your location to see members near you.",
+  "locationGuarantee1": "Only your latest position is kept, never your journeys",
   "locationGuarantee2": "Can be turned off anytime",
   "locationGuarantee3": "Hidden from accounts you block",
   "exploreOtherwise": "Explore another way",
@@ -6192,7 +6200,7 @@
   "@onbMembersIllustration": {
     "description": "Legende de l emplacement d illustration 2/5"
   },
-  "onbMembersBullet1": "Approximate location, never the exact address",
+  "onbMembersBullet1": "Optional sharing, you can switch it off whenever you want",
   "@onbMembersBullet1": {
     "description": "Reassurance 2/5"
   },
@@ -6256,7 +6264,7 @@
   "@onbNotificationsSubtitle": {
     "description": "Sous-titre de l autorisation notifications"
   },
-  "onbLocationSubtitle": "Reciprocal: you see those who share",
+  "onbLocationSubtitle": "Place you on the map and see nearby members",
   "@onbLocationSubtitle": {
     "description": "Sous-titre de l autorisation localisation"
   },
@@ -7034,5 +7042,46 @@
   "embassyNotFoundMessage": "This diplomatic mission is no longer in the directory, or the link is incorrect.",
   "embassyLoadFailedTitle": "Could not load",
   "backToEmbassies": "Back to the directory",
-  "embassySearchHint": "Name, country or city"
+  "embassySearchHint": "Name, country or city",
+  "shareToChatTitle": "Send to a chat",
+  "shareToChatSubtitle": "Groups and private messages",
+  "pickerTapToSend": "Tap to send",
+  "pickerSelectConversations": "Select chats",
+  "pickerContentSent": "Sent",
+  "pickerContentPartiallySent": "Some items were not sent",
+  "privateMessage": "Private message",
+  "shareProfileChatMessage": "Check out {name}'s profile on Diaspo Niger\n{link}",
+  "@shareProfileChatMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "shareLinkChatMessage": "“{title}” on Diaspo Niger\n{link}",
+  "@shareLinkChatMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "locationDisclosureTitle": "How Diaspo Niger uses your location",
+  "locationDisclosureBody": "Diaspo Niger collects location data to place you on the member map and show you members, groups, businesses and events near you. Your position is then visible to other members of the app. It is only collected while you are using Diaspo Niger, and you can stop sharing at any time in Settings.",
+  "locationDisclosureShort": "Diaspo Niger collects location data to place you on the member map and show you what is happening near you. Your position becomes visible to other members. It is only collected while you are using the app, and you can stop sharing at any time in Settings.",
+  "locationDisclosureBackgroundTitle": "Continuous location sharing",
+  "locationDisclosureBackgroundBody": "Travel Mode collects location data to keep you visible on the member map, even when the app is closed or not in use. Your position is sent every 5 minutes and stays visible to other Diaspo Niger members. You can stop sharing at any time from your profile.",
+  "locationDisclosureAccept": "Accept and continue",
+  "locationDisclosureDecline": "No thanks",
+  "locationDisclosureReadPolicy": "Read the privacy policy",
+  "travelModeSubtitle": "Share my location even when the app is closed (updated every 5 min)",
+  "locationPermissionOpenSettings": "Permission permanently denied. Turn it on in your phone settings.",
+  "locationDisclosureChatTitle": "Your location in this conversation",
+  "locationDisclosureChatBody": "Diaspo Niger reads your location to centre the map on you and let you send it in this conversation. It is only shared with the people in that conversation, and only if you send the message: it does not go to the member map."
 }

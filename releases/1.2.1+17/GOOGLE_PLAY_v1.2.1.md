@@ -1,4 +1,4 @@
-# Google Play — Diaspo Niger v1.2.1 (versionCode 11)
+# Google Play — Diaspo Niger v1.2.1 (versionCode 17)
 
 > Remplace `releases/1.2.0+14/GOOGLE_PLAY_v1.2.0.md`, dont la description
 > mettait en avant deux modules **inaccessibles dans le binaire** (voir §0).
@@ -124,9 +124,13 @@ Confidentialité : https://diasponiger.com/privacy-policy
 • 20 démarches consulaires détaillées
 • Messagerie chiffrée : vidéos, sondages, messages épinglés
 • Carte des membres à proximité, en temps réel
-• Thème sombre sur l'ensemble de l'application
+• Thème sombre : les écrans qui restaient illisibles sont corrigés
 • Navigation revue : sortie explicite depuis chaque écran
 ```
+
+> La ligne sur le thème sombre dit « corrigé » et non « ajouté » : la fiche
+> v1.1.1 en ligne annonçait déjà « Mode clair et mode sombre ». Le travail réel a
+> porté sur les écrans dont le fond restait figé sur un jeton clair.
 
 ---
 
@@ -150,8 +154,8 @@ Confidentialité : https://diasponiger.com/privacy-policy
 | Élément | Exigence Google | Fichier | État |
 |---|---|---|---|
 | Icône | 512×512, PNG 32 bits **avec** alpha, ≤1024 Ko | `assets/import_icons/dn_ultra_minimal_icon.png` | conforme (512×512 RGBA, 24 Ko) |
-| Feature graphic | 1024×500, JPEG ou PNG 24 bits **sans** alpha | `releases/1.2.1+11/play/feature_graphic.png` | régénéré, **même système que les captures** |
-| Captures téléphone | côté long ≤ 2× côté court, sans alpha, 2 minimum | `releases/1.2.1+11/play/screenshots/` | **7**, 1080×1920 |
+| Feature graphic | 1024×500, JPEG ou PNG 24 bits **sans** alpha | `releases/1.2.1+17/play/feature_graphic.png` | régénéré, **même système que les captures** |
+| Captures téléphone | côté long ≤ 2× côté court, sans alpha, 2 minimum | `releases/1.2.1+17/play/screenshots/` | **7**, 1080×1920 |
 
 **Pourquoi les captures ne sont pas des copies d'écran brutes :** les deux
 appareils de test sont en 1080×2400, soit un rapport 2,22:1. Google impose que
@@ -202,7 +206,7 @@ L'ancien `feature_graphic.png` de la racine faisait **1024×1024** : il aurait
 |---|---|---|
 | applicationId | `com.diasponiger.diasponiger` | `android/app/build.gradle.kts` |
 | versionName | 1.2.1 | `pubspec.yaml` |
-| versionCode | 11 | `pubspec.yaml` |
+| versionCode | 17 | `pubspec.yaml` |
 | minSdk | **24** (Android 7.0) | défaut Flutter 3.44 |
 | targetSdk | **36** | épinglé dans `build.gradle.kts` |
 | compileSdk | 36 | défaut Flutter 3.44 |
@@ -210,8 +214,26 @@ L'ancien `feature_graphic.png` de la racine faisait **1024×1024** : il aurait
 | Minification | R8 + `shrinkResources` actifs | `buildTypes.release` |
 | Symboles natifs | `debugSymbolLevel = FULL` | idem |
 
-> L'ancienne fiche annonçait « SDK minimum : Android 6.0 (API 23) » et
-> « SDK cible : Android 14 (API 34) ». Les deux étaient faux.
+> L'ancienne fiche annonçait « SDK cible : Android 14 (API 34) » : faux.
+>
+> En revanche son « SDK minimum : Android 6.0 (API 23) » était **exact pour la
+> version livrée** — la 1.1.1 en production est bien en API 23. C'est le build
+> d'aujourd'hui qui est monté à 24, parce que `minSdk = flutter.minSdkVersion`
+> suit le SDK Flutter du poste, comme `targetSdk`. J'avais qualifié cette ligne
+> de fausse à tort.
+>
+> **Conséquence mesurée :** Play annonce **1 137 appareils perdus** par rapport à
+> la 9 (1.1.1). La cause dominante est ce 23 → 24, qui élimine les Android 6.0 ;
+> le passage de 4 à 3 ABI n'en explique que ~116 (19 233 appareils pour le
+> bundle 13 en ABI 4, contre 19 117 pour le 16 en ABI 3, à minSdk identique).
+>
+> **Non réversible :** une douzaine de plugins du socle exigent minSdk 24 —
+> `webview_flutter_android`, `video_player_android`, `google_maps_flutter_android`,
+> `flutter_secure_storage`, `google_sign_in_android`, `flutter_local_notifications`,
+> `url_launcher_android`, `shared_preferences_android`, `image_picker_android`,
+> `app_links`, `local_auth_android`. Revenir à 23 imposerait de tous les
+> rétrograder. La perte n'est pas propre à cette release : les bundles 11 à 14
+> étaient déjà en API 24.
 
 ---
 

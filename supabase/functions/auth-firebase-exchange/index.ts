@@ -1,4 +1,13 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// Version figée, et pas `@2` : esm.sh résout `@2` au dernier 2.x **du jour du
+// déploiement**. Deux déploiements du même fichier, à deux dates, n'embarquent
+// donc pas la même bibliothèque — et cette fonction garde toutes les
+// connexions de l'app. 2.116.0 est ce que `@2` rendait le 2026-09-09 : c'est
+// la version contre laquelle le code ci-dessous a été relu (`hashed_token` et
+// `verification_type` présents dans `GenerateLinkProperties`) et mesuré.
+//
+// Les 16 autres Edge Functions sont restées en `@2` (et `stripe@14`) : les
+// épingler obligerait à toutes les redéployer, ce qui est un autre chantier.
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.116.0'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = (Deno.env.get('SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!
@@ -33,6 +42,29 @@ function decodeJwtPart(part: string): any {
   const base64 = part.replace(/-/g, '+').replace(/_/g, '/')
   const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))
   return JSON.parse(new TextDecoder().decode(bytes))
+}
+
+/**
+ * Le type d'OTP réellement émis par `generateLink`, à donner tel quel à
+ * `verifyOtp`.
+ *
+ * ⚠️ NE PAS réécrire en dur `'magiclink'`. `generateLink({type:'magiclink'})`
+ * ne rend un lien `magiclink` que si l'utilisateur **existe déjà** : sur un
+ * compte neuf, gotrue le crée et rend un lien `signup`. Or le jeton d'un lien
+ * `signup` est rangé dans `confirmation_token`, tandis qu'un
+ * `verifyOtp({type:'magiclink'})` va le chercher dans `recovery_token` — il ne
+ * le trouve pas, et répond « Email link is invalid or has expired ».
+ *
+ * Mesuré le 2026-09-09 en rejouant la séquence contre le gotrue de
+ * production : deux `generateLink` de suite sur la même adresse rendent
+ * `verification_type` = `signup` puis `magiclink`. C'est ce qui faisait
+ * échouer **le premier échange de chaque compte neuf**, et lui seul : la
+ * tentative suivante, déclenchée 5 s plus tard par `_scheduleRetry()` côté
+ * app, tombait sur l'utilisateur désormais existant et passait. Symptôme
+ * visible : ~5 s de session anonyme au tout premier lancement, écrans vides.
+ */
+function typeEmis(verificationType: string) {
+  return verificationType === 'signup' ? ('signup' as const) : ('magiclink' as const)
 }
 
 /**
@@ -147,21 +179,57 @@ Deno.serve(async (req) => {
       display_name: payload.name ?? email.split('@')[0],
     }, { onConflict: 'id' })
 
-    // 5. Générer une session Supabase via le token du magic link
-    const url = new URL(linkData.properties.action_link)
-    const token = url.searchParams.get('token')
-    if (!token) throw new Error('Failed to extract token from magic link')
+    // 5. Générer une session Supabase via le jeton du lien.
+    //    Le type vient de la réponse, jamais d'une constante — cf. [typeEmis].
+    //    `hashed_token` est exactement le paramètre `token` du `action_link`
+    //    (vérifié le 2026-09-09), sans avoir à re-parser l'URL.
+    const token = linkData.properties.hashed_token
+    if (!token) throw new Error('Failed to extract token from generated link')
 
-    const { data: session, error: sessionError } = await supabase.auth.verifyOtp({
-      type: 'magiclink',
+    let { data: session, error: sessionError } = await supabase.auth.verifyOtp({
+      type: typeEmis(linkData.properties.verification_type),
       token_hash: token,
     })
-    if (sessionError) throw sessionError
+
+    // Reprise sur refus, pour la SECONDE cause du même message.
+    //
+    // Mesuré le 2026-09-09 : deux `generateLink` de suite sur un compte
+    // existant rendent deux jetons `magiclink`, et le second **invalide** le
+    // premier — `otp_expired`, mot pour mot le message de [typeEmis]. Deux
+    // échanges qui se croisent (deux appareils, deux isolats Edge) se sabotent
+    // donc l'un l'autre ; le dédoublonnage `_inFlightSync` du pont Dart, lui,
+    // ne couvre que les appels simultanés d'un même processus. Mesuré aussi :
+    // sur un compte neuf, deux `generateLink` simultanés font rendre à l'un des
+    // deux un `verification_type` vide, que [typeEmis] traduit alors en
+    // `magiclink` — soit le mauvais tiroir, et le même refus.
+    //
+    // Un lien frais, un seul essai de plus, puis on rend la main.
+    if (sessionError) {
+      console.warn(`verifyOtp refusé (${sessionError.message}) — nouvel essai avec un lien frais`)
+      const { data: frais, error: fraisErr } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email,
+      })
+      if (fraisErr) throw sessionError
+      const reprise = await supabase.auth.verifyOtp({
+        type: typeEmis(frais.properties.verification_type),
+        token_hash: frais.properties.hashed_token,
+      })
+      if (reprise.error) throw reprise.error
+      session = reprise.data
+    }
 
     // 6. Verify the issued JWT actually carries firebase_uid in app_metadata.
-    //    On first signup, verifyOtp can race with updateUserById and produce a
-    //    token that still lacks the claim. If so, generate a fresh link and
-    //    exchange it immediately so the caller always receives a valid JWT.
+    //    Filet de sécurité : verifyOtp peut courir avec updateUserById et
+    //    rendre un jeton qui n'a pas encore le claim. Le cas échéant, on
+    //    régénère un lien et on l'échange tout de suite, pour que l'appelant
+    //    reçoive toujours un JWT exploitable.
+    //
+    //    Ce filet ne couvrait PAS la panne du premier échange d'un compte neuf
+    //    (cf. [typeEmis]) : celle-là tombait à l'étape 5, sur `sessionError`,
+    //    donc bien avant d'arriver ici. Depuis le correctif du 2026-09-09, la
+    //    séquence rejouée sur un compte neuf rend le claim dès la première
+    //    tentative — ce bloc ne devrait plus se déclencher.
     let accessToken = session.session!.access_token
     let refreshToken = session.session!.refresh_token
     let expiresIn = session.session!.expires_in
@@ -176,11 +244,10 @@ Deno.serve(async (req) => {
         email,
       })
       if (!retryLinkErr && retryLink) {
-        const retryUrl = new URL(retryLink.properties.action_link)
-        const retryToken = retryUrl.searchParams.get('token')
+        const retryToken = retryLink.properties.hashed_token
         if (retryToken) {
           const { data: retrySession } = await supabase.auth.verifyOtp({
-            type: 'magiclink',
+            type: typeEmis(retryLink.properties.verification_type),
             token_hash: retryToken,
           })
           if (retrySession?.session) {

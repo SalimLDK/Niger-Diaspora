@@ -242,11 +242,25 @@ public class MainActivity extends AudioServiceFragmentActivity {
         if (data == null) return;
 
         String path = data.getPath();
-        // Un schéma custom (diasponiger://feed/<id>) porte « feed » dans l'hôte
-        // et non dans le chemin : il n'y a alors rien de routable à pousser.
-        if (path == null || path.isEmpty()) return;
+        String host = data.getHost();
+        String scheme = data.getScheme();
 
-        StringBuilder route = new StringBuilder(path);
+        // Un schéma maison (diasponiger://groups/<id>) porte la SECTION dans
+        // l'hôte et l'identifiant dans le chemin. Ne garder que le chemin
+        // poussait « /<id> », une route qui n'existe pas : l'app tombait sur
+        // « Page Not Found ». On recolle donc l'hôte devant.
+        //
+        // Pour un lien https, l'hôte est le domaine et ne doit surtout pas
+        // être recollé : d'où le test sur le schéma.
+        // Vérifié SM A515F le 2026-09-09.
+        boolean schemaMaison = scheme != null && !scheme.startsWith("http");
+
+        StringBuilder route = new StringBuilder();
+        if (schemaMaison && host != null && !host.isEmpty()) {
+            route.append('/').append(host);
+        }
+        if (path != null) route.append(path);
+        if (route.length() == 0) return;
         if (data.getQuery() != null) route.append('?').append(data.getQuery());
         if (data.getFragment() != null) route.append('#').append(data.getFragment());
 

@@ -5,12 +5,36 @@ import 'package:flutter_test/flutter_test.dart';
 /// propre auteur** : la bulle optimiste affichait le texte clair, puis l'écho
 /// temps réel arrivait avec `[🔐 E2EE — session requise]` et l'écrasait, parce
 /// que le filtre ne connaissait que l'autre placeholder.
+///
+/// Même famille, troisième marqueur : `[Message illisible]` (échec du repli
+/// AES) était écrit en dur dans quatre fichiers et absent de cette liste. Il
+/// traversait donc les trois gardes, et `_healUndecryptableMessages` le
+/// réécrivait par-dessus le texte clair du cache — perte définitive.
 void main() {
   group('isUndecryptableContent', () {
-    test('reconnaît les DEUX placeholders', () {
+    test('reconnaît les TROIS placeholders', () {
       // Celui des groupes — c'est lui qui manquait au filtre de l'écho.
       expect(isUndecryptableContent(kE2EESessionRequiredPlaceholder), isTrue);
       expect(isUndecryptableContent(kEncryptedMessagePlaceholder), isTrue);
+      // Celui du repli AES — il manquait aux TROIS gardes.
+      expect(isUndecryptableContent(kAesUndecryptablePlaceholder), isTrue);
+    });
+
+    test('la liste couvre bien les trois marqueurs', () {
+      // `_healUndecryptableMessages` et le bandeau de restauration lisent la
+      // liste, pas la fonction : un marqueur absent d'ici les traverse.
+      expect(kUndecryptablePlaceholders, hasLength(3));
+      expect(
+        kUndecryptablePlaceholders,
+        contains(kAesUndecryptablePlaceholder),
+      );
+    });
+
+    test('le texte exact des marqueurs ne bouge pas', () {
+      // Ces chaînes ont été écrites en dur ailleurs pendant des mois : si l'une
+      // change ici sans que l'autre copie suive, la garde retombe en silence.
+      expect(kAesUndecryptablePlaceholder, '[Message illisible]');
+      expect(kEncryptedMessagePlaceholder, '🔐 Message chiffré');
     });
 
     test('le vide compte comme illisible', () {
@@ -39,6 +63,13 @@ void main() {
         reconcileEchoContent(
           local: local,
           incoming: kEncryptedMessagePlaceholder,
+        ),
+        local,
+      );
+      expect(
+        reconcileEchoContent(
+          local: local,
+          incoming: kAesUndecryptablePlaceholder,
         ),
         local,
       );

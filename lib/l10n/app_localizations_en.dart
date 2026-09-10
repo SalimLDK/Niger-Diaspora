@@ -5712,6 +5712,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privateGroup => 'Private group';
 
   @override
+  String get groupUnavailableOrPrivate =>
+      'This group is private or no longer exists.';
+
+  @override
   String get groupCreated => 'Group created successfully';
 
   @override
@@ -11415,6 +11419,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyTransferRetry => 'Start again';
 
   @override
+  String get qrKeyTransferDetected =>
+      'Key transfer code: opening the recovery screen.';
+
+  @override
   String get keyStateHere => 'This device holds your encryption keys.';
 
   @override
@@ -11428,6 +11436,30 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get keyStateAbsentHint =>
       'A phone can read your messages without holding these keys: most of them use a fallback whose key comes from the server. Only fully end-to-end encrypted messages depend on them.';
+
+  @override
+  String get keyStateStuckWhy =>
+      'A backup exists for this account. While it is there, the app will not create a new identity: doing so would make that backup unrecoverable. Two ways out.';
+
+  @override
+  String get keyStateStuckRestore =>
+      'You have the passphrase: restore the backup below. Your old encrypted messages become readable again.';
+
+  @override
+  String get keyStateStuckDelete =>
+      'Passphrase lost: delete the backup. A new identity will be created at the next sign-in, but messages already encrypted to the old one stay unreadable, for good.';
+
+  @override
+  String get backupNothingToSave =>
+      'Nothing to back up on this device: it does not hold your encryption keys. Get them from the phone that holds them first, then come back and create a backup.';
+
+  @override
+  String get backupNoKeysError =>
+      'This device has no keys to back up. An empty backup would block the creation of a new identity.';
+
+  @override
+  String get securityDeleteBackupStuck =>
+      'This device does not hold your keys, and this backup prevents new ones from being created. Deleting it unblocks that: a new identity will be created at the next sign-in.\n\nOnly do this if you have lost the passphrase: messages already encrypted to the old identity stay unreadable, for good.';
 
   @override
   String get keyTransferSendHint =>
@@ -15164,11 +15196,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationReciprocity =>
-      'It\'s mutual: share your approximate location to see members near you.';
+      'It\'s mutual: share your location to see members near you.';
 
   @override
   String get locationGuarantee1 =>
-      'Approximate position, never your exact address';
+      'Only your latest position is kept, never your journeys';
 
   @override
   String get locationGuarantee2 => 'Can be turned off anytime';
@@ -15260,7 +15292,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onbMembersBullet1 =>
-      'Approximate location, never the exact address';
+      'Optional sharing, you can switch it off whenever you want';
 
   @override
   String get onbMembersBullet2 => 'You see those who share, and they see you';
@@ -15312,7 +15344,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Messages, invitations, event reminders';
 
   @override
-  String get onbLocationSubtitle => 'Reciprocal: you see those who share';
+  String get onbLocationSubtitle =>
+      'Place you on the map and see nearby members';
 
   @override
   String get onbLaterWithoutPermissions => 'Later, without permissions';
@@ -16044,4 +16077,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get embassySearchHint => 'Name, country or city';
+
+  @override
+  String get shareToChatTitle => 'Send to a chat';
+
+  @override
+  String get shareToChatSubtitle => 'Groups and private messages';
+
+  @override
+  String get pickerTapToSend => 'Tap to send';
+
+  @override
+  String get pickerSelectConversations => 'Select chats';
+
+  @override
+  String get pickerContentSent => 'Sent';
+
+  @override
+  String get pickerContentPartiallySent => 'Some items were not sent';
+
+  @override
+  String get privateMessage => 'Private message';
+
+  @override
+  String shareProfileChatMessage(String name, String link) {
+    return 'Check out $name\'s profile on Diaspo Niger\n$link';
+  }
+
+  @override
+  String shareLinkChatMessage(String title, String link) {
+    return '“$title” on Diaspo Niger\n$link';
+  }
+
+  @override
+  String get locationDisclosureTitle => 'How Diaspo Niger uses your location';
+
+  @override
+  String get locationDisclosureBody =>
+      'Diaspo Niger collects location data to place you on the member map and show you members, groups, businesses and events near you. Your position is then visible to other members of the app. It is only collected while you are using Diaspo Niger, and you can stop sharing at any time in Settings.';
+
+  @override
+  String get locationDisclosureShort =>
+      'Diaspo Niger collects location data to place you on the member map and show you what is happening near you. Your position becomes visible to other members. It is only collected while you are using the app, and you can stop sharing at any time in Settings.';
+
+  @override
+  String get locationDisclosureBackgroundTitle => 'Continuous location sharing';
+
+  @override
+  String get locationDisclosureBackgroundBody =>
+      'Travel Mode collects location data to keep you visible on the member map, even when the app is closed or not in use. Your position is sent every 5 minutes and stays visible to other Diaspo Niger members. You can stop sharing at any time from your profile.';
+
+  @override
+  String get locationDisclosureAccept => 'Accept and continue';
+
+  @override
+  String get locationDisclosureDecline => 'No thanks';
+
+  @override
+  String get locationDisclosureReadPolicy => 'Read the privacy policy';
+
+  @override
+  String get travelModeSubtitle =>
+      'Share my location even when the app is closed (updated every 5 min)';
+
+  @override
+  String get locationPermissionOpenSettings =>
+      'Permission permanently denied. Turn it on in your phone settings.';
+
+  @override
+  String get locationDisclosureChatTitle =>
+      'Your location in this conversation';
+
+  @override
+  String get locationDisclosureChatBody =>
+      'Diaspo Niger reads your location to centre the map on you and let you send it in this conversation. It is only shared with the people in that conversation, and only if you send the message: it does not go to the member map.';
 }

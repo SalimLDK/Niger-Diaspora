@@ -990,7 +990,8 @@ class _HashtagBanner extends ConsumerWidget {
           ),
           const Spacer(),
           GestureDetector(
-            onTap: () => context.pop(),
+            onTap:
+                () => context.canPop() ? context.pop() : context.go('/feed'),
             child: AppIcon(AppIcon.close, size: 18, color: tokens.accent),
           ),
         ],

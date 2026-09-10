@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../../core/services/audio_playback_service.dart';
@@ -356,7 +357,8 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                     IconButton(
                       icon: const Icon(Icons.keyboard_arrow_down,
                           color: DNColors.paper, size: 28,),
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed:
+                          () => context.canPop() ? context.pop() : context.go('/audio-rooms'),
                     ),
                     const Spacer(),
                     Text(AppLocalizations.of(context)!.replayBadge, style: DNText.mono(size: 9, color: DNColors.ink4)),

@@ -22,6 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/services/background_location_service.dart';
 import '../../../../core/services/location_service.dart';
+import '../../../../core/widgets/location_disclosure.dart';
 import '../widgets/share_profile_modal.dart';
 import 'package:flutter/services.dart';
 import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
@@ -84,36 +85,43 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     }
   }
 
+  /// Active ou coupe le partage de position en continu (« Mode Voyage »).
+  ///
+  /// Le service publie une position toutes les 5 minutes tant qu'il tourne,
+  /// application au premier plan ou non : Google Play exige donc une
+  /// divulgation préalable portant la mention « même lorsque l'application est
+  /// fermée ou n'est pas utilisée », affichée **avant** la boîte système et
+  /// close par une acceptation explicite. Refuser ne demande rien et laisse
+  /// l'interrupteur là où il était.
   Future<void> _toggleBackgroundLocation(bool value) async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+
     if (value) {
+      final accepte = await afficherDivulgationLocalisation(
+        context,
+        usage: UsageLocalisation.arrierePlan,
+      );
+      if (!accepte || !mounted) return;
+
       // Step 1: Check basic location permission
       LocationPermission permission = await Geolocator.checkPermission();
 
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Permission de localisation refusée"),
-              ),
-            );
-          }
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.locationPermissionDenied)),
+          );
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                "Permission de localisation refusée définitivement. Veuillez l'activer dans les paramètres.",
-              ),
-            ),
-          );
-          await Geolocator.openAppSettings();
-        }
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.locationPermissionOpenSettings)),
+        );
+        await Geolocator.openAppSettings();
         return;
       }
 
@@ -122,22 +130,17 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     }
 
     await BackgroundLocationService.setEnabled(value);
+    if (!mounted) return;
     setState(() {
       _isBackgroundLocationEnabled = value;
     });
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            value
-                ? "Mode Voyage activé (Localisation en arrière-plan)"
-                : "Mode Voyage désactivé",
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(value ? l10n.travelModeEnabled : l10n.travelModeDisabled),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   Future<void> _startConversation() async {
@@ -997,10 +1000,10 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                         child: Column(
                           children: [
                             SwitchListTile(
-                              title: const Text("Mode Voyage"),
-                              subtitle: const Text(
-                                "Permettre la localisation même quand l'application est fermée (Mise à jour toutes les 5 min)",
-                                style: TextStyle(fontSize: 12),
+                              title: Text(l10n.travelMode),
+                              subtitle: Text(
+                                l10n.travelModeSubtitle,
+                                style: const TextStyle(fontSize: 12),
                               ),
                               value: _isBackgroundLocationEnabled,
                               activeThumbColor: context.adaptivePrimaryColor,

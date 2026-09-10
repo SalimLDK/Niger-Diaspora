@@ -136,6 +136,11 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 0,
+        leading: BackButton(
+          onPressed:
+              () =>
+                  context.canPop() ? context.pop() : context.go('/podcasts'),
+        ),
         title: Text(
           l10n.createPodcast,
           style: DNText.serif(size: 22, color: dn.onSurface),

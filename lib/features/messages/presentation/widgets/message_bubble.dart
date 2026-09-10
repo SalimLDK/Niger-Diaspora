@@ -33,7 +33,7 @@ import 'audio_message_bubble.dart';
 import '../widgets/blurhash_image.dart';
 import '../widgets/data_saver_gate.dart';
 import '../widgets/call_message_bubble.dart';
-import '../widgets/e2ee_session_required_bubble.dart';
+import '../widgets/undecryptable_message_bubble.dart';
 import '../widgets/delete_message_modal.dart';
 import '../widgets/full_screen_image_viewer.dart';
 import '../widgets/link_preview_bubble.dart';
@@ -115,8 +115,8 @@ class MessageBubble extends ConsumerStatefulWidget {
   // Hide read/delivered status for pending requests (sender only sees "sent")
   final bool isPendingRequest;
 
-  // Non-null for group conversations — forwarded to E2EESessionRequiredBubble
-  // so it can call fetchPendingDistributions instead of preEstablishSessions.
+  // Non-null for group conversations — distingue un message reçu d'un groupe
+  // (accusés, en-tête d'expéditeur) d'un message reçu en 1:1.
   final String? groupId;
 
   const MessageBubble({
@@ -2344,16 +2344,18 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   }
 
   Widget _buildTextContent(BuildContext context) {
-    // E2EE session missing — show contextual re-establish UI instead of raw text.
-    if (widget.message.content == kE2EESessionRequiredPlaceholder) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: E2EESessionRequiredBubble(
-          senderId: widget.message.senderId,
-          isSentByMe: widget.isMe,
-          groupId: widget.groupId,
-        ),
-      );
+    // Aucun marqueur technique dans une bulle : ni « [Message illisible] », ni
+    // « 🔐 Message chiffré », ni « session requise ». Quand le texte a déjà été
+    // lu une fois sur cet appareil, il revient du cache bien avant ici
+    // (`_healUndecryptableMessages`) ; s'il arrive quand même jusqu'ici, c'est
+    // qu'il n'a jamais été lisible, et une phrase neutre vaut mieux qu'un
+    // vocabulaire interne.
+    //
+    // La LISTE, pas `isUndecryptableContent` : celui-ci tient aussi le contenu
+    // vide pour illisible, ce qu'est tout média sans légende — il masquerait
+    // alors la légende absente de chaque photo.
+    if (kUndecryptablePlaceholders.contains(widget.message.content)) {
+      return const UndecryptableMessageBubble();
     }
 
     final isEmojiOnly = _isEmojiOnly(widget.message.content);

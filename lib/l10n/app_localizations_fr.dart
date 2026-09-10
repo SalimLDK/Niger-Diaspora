@@ -5778,6 +5778,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get privateGroup => 'Groupe privé';
 
   @override
+  String get groupUnavailableOrPrivate =>
+      'Ce groupe est privé ou n\'existe plus.';
+
+  @override
   String get groupCreated => 'Groupe créé avec succès';
 
   @override
@@ -11536,6 +11540,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get keyTransferRetry => 'Recommencer';
 
   @override
+  String get qrKeyTransferDetected =>
+      'Code de transfert de clés : ouverture de l\'écran de récupération.';
+
+  @override
   String get keyStateHere => 'Cet appareil détient vos clés de chiffrement.';
 
   @override
@@ -11548,6 +11556,30 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get keyStateAbsentHint =>
       'Un téléphone peut lire vos messages sans détenir ces clés : la plupart passent par un repli dont la clé vient du serveur. Seuls les messages en chiffrement bout-en-bout complet en dépendent.';
+
+  @override
+  String get keyStateStuckWhy =>
+      'Une sauvegarde existe pour ce compte. Tant qu\'elle est là, l\'application ne crée pas d\'identité neuve : elle rendrait cette sauvegarde irrécupérable. Deux sorties.';
+
+  @override
+  String get keyStateStuckRestore =>
+      'Vous avez la passphrase : restaurez la sauvegarde ci-dessous. Vos anciens messages chiffrés redeviennent lisibles.';
+
+  @override
+  String get keyStateStuckDelete =>
+      'Passphrase perdue : supprimez la sauvegarde. Une identité neuve sera créée à la prochaine connexion, mais les messages déjà chiffrés vers l\'ancienne resteront illisibles, définitivement.';
+
+  @override
+  String get backupNothingToSave =>
+      'Rien à sauvegarder sur cet appareil : il n\'a pas vos clés de chiffrement. Récupérez-les d\'abord depuis le téléphone qui les détient, puis revenez créer une sauvegarde.';
+
+  @override
+  String get backupNoKeysError =>
+      'Cet appareil n\'a pas de clés à sauvegarder. Une sauvegarde vide bloquerait la création d\'une identité neuve.';
+
+  @override
+  String get securityDeleteBackupStuck =>
+      'Cet appareil n\'a pas vos clés, et cette sauvegarde empêche d\'en créer de nouvelles. La supprimer débloque la situation : une identité neuve sera créée à la prochaine connexion.\n\nÀ ne faire que si vous avez perdu la passphrase : les messages déjà chiffrés vers l\'ancienne identité resteront illisibles, définitivement.';
 
   @override
   String get keyTransferSendHint =>
@@ -15310,11 +15342,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get locationReciprocity =>
-      'C\'est donnant-donnant : partagez votre position approximative pour voir les membres proches de vous.';
+      'C\'est donnant-donnant : partagez votre position pour voir les membres proches de vous.';
 
   @override
   String get locationGuarantee1 =>
-      'Position approximative, jamais votre adresse exacte';
+      'Seule votre dernière position est gardée, jamais vos trajets';
 
   @override
   String get locationGuarantee2 => 'Désactivable à tout moment';
@@ -15408,7 +15440,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onbMembersBullet1 =>
-      'Position approximative, jamais l\'adresse exacte';
+      'Partage facultatif, que vous coupez quand vous voulez';
 
   @override
   String get onbMembersBullet2 =>
@@ -15462,7 +15494,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onbLocationSubtitle =>
-      'Réciproque : vous voyez ceux qui partagent';
+      'Vous placer sur la carte et voir les membres proches';
 
   @override
   String get onbLaterWithoutPermissions => 'Plus tard, sans autorisations';
@@ -16197,4 +16229,81 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get embassySearchHint => 'Nom, pays ou ville';
+
+  @override
+  String get shareToChatTitle => 'Envoyer dans une discussion';
+
+  @override
+  String get shareToChatSubtitle => 'Groupes et messages privés';
+
+  @override
+  String get pickerTapToSend => 'Appuyez pour envoyer';
+
+  @override
+  String get pickerSelectConversations => 'Sélectionnez les discussions';
+
+  @override
+  String get pickerContentSent => 'Envoyé';
+
+  @override
+  String get pickerContentPartiallySent => 'Certains envois n\'ont pas abouti';
+
+  @override
+  String get privateMessage => 'Message privé';
+
+  @override
+  String shareProfileChatMessage(String name, String link) {
+    return 'Découvre le profil de $name sur Diaspo Niger\n$link';
+  }
+
+  @override
+  String shareLinkChatMessage(String title, String link) {
+    return '« $title » sur Diaspo Niger\n$link';
+  }
+
+  @override
+  String get locationDisclosureTitle =>
+      'Comment Diaspo Niger utilise votre position';
+
+  @override
+  String get locationDisclosureBody =>
+      'Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer les membres, groupes, commerces et événements proches de vous. Votre position est alors visible par les autres membres de l\'application. Elle n\'est collectée que pendant que vous utilisez Diaspo Niger, et vous pouvez arrêter le partage à tout moment dans Réglages.';
+
+  @override
+  String get locationDisclosureShort =>
+      'Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer ce qui se passe près de vous. Votre position devient visible par les autres membres. Elle n\'est collectée que pendant l\'utilisation de l\'application, et vous pouvez arrêter le partage à tout moment dans Réglages.';
+
+  @override
+  String get locationDisclosureBackgroundTitle =>
+      'Partage de position en continu';
+
+  @override
+  String get locationDisclosureBackgroundBody =>
+      'Le Mode Voyage collecte des données de localisation pour vous garder visible sur la carte des membres, même lorsque l\'application est fermée ou n\'est pas utilisée. Votre position est envoyée toutes les 5 minutes et reste visible par les autres membres de Diaspo Niger. Vous pouvez arrêter le partage à tout moment depuis votre profil.';
+
+  @override
+  String get locationDisclosureAccept => 'Accepter et continuer';
+
+  @override
+  String get locationDisclosureDecline => 'Non, merci';
+
+  @override
+  String get locationDisclosureReadPolicy =>
+      'Lire la politique de confidentialité';
+
+  @override
+  String get travelModeSubtitle =>
+      'Partager ma position même lorsque l\'application est fermée (mise à jour toutes les 5 min)';
+
+  @override
+  String get locationPermissionOpenSettings =>
+      'Autorisation refusée définitivement. Activez-la dans les paramètres du téléphone.';
+
+  @override
+  String get locationDisclosureChatTitle =>
+      'Votre position dans cette discussion';
+
+  @override
+  String get locationDisclosureChatBody =>
+      'Diaspo Niger lit votre position pour centrer la carte sur vous et vous laisser l\'envoyer dans cette discussion. Elle n\'est partagée qu\'avec les participants de la discussion, et seulement si vous envoyez le message : elle ne rejoint pas la carte des membres.';
 }

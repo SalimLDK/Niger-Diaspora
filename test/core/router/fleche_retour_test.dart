@@ -94,9 +94,32 @@ void main() {
 
     for (final source in sources) {
       final texte = source.readAsStringSync();
-      final blocs = texte.split(RegExp(r"\n\s*path:\s*'"));
+
+      // `path:` ne porte pas toujours un littéral. `PodcastsRoutes` déclare
+      // ses chemins en constantes (`path: detail`), et la version précédente
+      // de ce garde, qui découpait sur `path: '`, ne voyait donc **aucune**
+      // des cinq routes podcasts — dont deux sont les cibles de liens que
+      // l'app génère elle-même (`generatePodcastLink`, `generateEpisodeLink`).
+      // Les cinq écrans n'avaient aucune sortie, et aucun test ne le disait.
+      final constantes = <String, String>{};
+      for (final m in RegExp(
+        r"static const String (\w+)\s*=\s*'([^']*)'",
+      ).allMatches(texte)) {
+        constantes[m.group(1)!] = m.group(2)!;
+      }
+
+      final blocs = texte.split(RegExp(r'\n\s*path:\s*'));
       for (final bloc in blocs.skip(1)) {
-        final chemin = bloc.split("'").first;
+        final String chemin;
+        if (bloc.startsWith("'")) {
+          chemin = bloc.substring(1).split("'").first;
+        } else {
+          // `path: detail` ou `path: PodcastsRoutes.detail`.
+          final ident = RegExp(r'^(?:\w+\.)?(\w+)').firstMatch(bloc)?.group(1);
+          final resolu = ident == null ? null : constantes[ident];
+          if (resolu == null) continue;
+          chemin = resolu;
+        }
         final classes = ecran
             .allMatches(bloc.length > 4000 ? bloc.substring(0, 4000) : bloc)
             .map((m) => m.group(1)!)
@@ -173,6 +196,10 @@ void main() {
           'SliverAppBar dans la branche données',
       'lib/features/transfers/presentation/screens/transfer_screen.dart':
           'Scaffold de chargement sans barre quand le profil manque',
+      'lib/features/podcasts/presentation/screens/podcast_detail_screen.dart':
+          'SliverAppBar dans la branche données',
+      'lib/features/podcasts/presentation/screens/episode_detail_screen.dart':
+          'SliverAppBar dans la branche données',
     };
 
     final coupables = <String>[];
@@ -218,6 +245,104 @@ void main() {
           '`automaticallyImplyLeading: false` retire la flèche de retour de '
           "l'AppBar. Sur un écran poussé, il faut alors un contrôle de sortie "
           'explicite.',
+    );
+  });
+  test('la sortie de retour retombe sur une route, jamais sur un `pop()` nu', () {
+    // **Quatrième forme**, mesurée sur SM A515F le 2026-09-09 et invisible
+    // aux trois tests ci-dessus : la sortie est bien là, visible, et elle ne
+    // fait rien.
+    //
+    // Les trois premiers gardes vérifient la *présence* d'un contrôle de
+    // sortie ; celui-ci vérifie son *câblage*. Sur une pile d'une seule
+    // route — ce qu'est toujours une route atteinte par lien profond ou par
+    // notification — `context.pop()` n'a rien à dépiler : go_router 14.8.1
+    // lève `GoError('There is nothing to pop')` (`delegate.dart:100`), que
+    // rien n'attrape et que logcat ne montre pas (Crashlytics remplace
+    // `FlutterError.onError`). `diasponiger:///services` puis un appui sur la
+    // flèche : l'écran ne bouge pas. Le commentaire de
+    // `group_members_screen.dart` note l'autre issue observée le même jour,
+    // sur Pixel — la flèche renvoyait au lanceur.
+    //
+    // D'où l'invariant : toute sortie de retour porte le repli maison
+    // `context.canPop() ? context.pop() : context.go(<parent>)`.
+    //
+    // **On ancre sur le rappel, pas sur l'icône.** La première version de ce
+    // garde partait du marqueur visuel et cherchait le `onPressed:` qui suit —
+    // elle ratait les `IconButton` qui déclarent `onPressed:` **avant**
+    // `icon:`, soit deux écrans de la messagerie. L'ordre des arguments
+    // nommés est libre en Dart ; seul le rappel est un point fixe.
+    const exceptions = <String, String>{
+      'lib/features/transfers/presentation/screens/transaction_history_screen.dart':
+          'la croix ferme la feuille de filtres (showModalBottomSheet), '
+              'pas la route : `Navigator.pop` y est le bon geste',
+    };
+
+    /// Retire les `//…` en gardant la longueur, pour que les index restent
+    /// valides. Plusieurs commentaires du dépôt citent le motif fautif en
+    /// exemple — les lire ferait tomber le garde sur des écrans corrigés.
+    String sansCommentaires(String texte) {
+      return texte
+          .split('\n')
+          .map((ligne) {
+            final i = ligne.indexOf('//');
+            if (i < 0) return ligne;
+            final avant = ligne.substring(0, i);
+            if ('"'.allMatches(avant).length.isOdd ||
+                "'".allMatches(avant).length.isOdd) {
+              return ligne;
+            }
+            return avant + ' ' * (ligne.length - i);
+          })
+          .join('\n');
+    }
+
+    // Le marqueur visuel et le repli tiennent tous deux à portée du rappel ;
+    // au-delà on lit le widget voisin et on fabrique des faux positifs.
+    const portee = 300;
+    final rappelPop = RegExp(
+      r'on(?:Pressed|Tap)\s*:\s*(?:\([^)]*\)\s*(?:async\s*)?=>\s*)?'
+      r'(?:context\.pop\(\)|Navigator\.of\(context\)\.pop\(\)|'
+      r'Navigator\.pop\(context\))',
+    );
+
+    final fichiers = declarations();
+    final coupables = <String>[];
+    final vus = <String>{};
+
+    routes().forEach((chemin, classe) {
+      final fichier = fichiers[classe];
+      if (fichier == null) return;
+      final rel = fichier.path.replaceAll('\\', '/');
+      if (exceptions.keys.any(rel.endsWith)) return;
+      if (!vus.add(rel)) return;
+
+      final texte = sansCommentaires(fichier.readAsStringSync());
+      for (final m in rappelPop.allMatches(texte)) {
+        final zone = texte.substring(
+          (m.start - portee).clamp(0, texte.length),
+          (m.end + portee).clamp(0, texte.length),
+        );
+        // Sans marqueur autour, ce `pop()` ferme un dialogue ou une feuille,
+        // pas la route : ce n'est pas la sortie de l'écran.
+        if (!sorties.hasMatch(zone)) continue;
+        // `if (context.canPop()) …` compte aussi : la sortie est alors
+        // simplement masquée quand il n'y a rien à dépiler.
+        if (zone.contains('canPop')) continue;
+
+        final ligne = '\n'.allMatches(texte.substring(0, m.start)).length + 1;
+        coupables.add('$rel:$ligne ($chemin)');
+      }
+    });
+
+    expect(
+      coupables,
+      isEmpty,
+      reason:
+          'Ces sorties sont visibles mais mortes dès que la pile ne contient '
+          "qu'elles — l'entrée par lien profond et par notification. "
+          'Remplacez le `pop()` nu par '
+          '`context.canPop() ? context.pop() : context.go(<parent>)`, avec le '
+          'parent logique de la route, pas un `/home` uniforme.',
     );
   });
 }

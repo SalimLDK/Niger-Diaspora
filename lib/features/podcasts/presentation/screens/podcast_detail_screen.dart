@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/dn_text.dart';
+import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/dn_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,8 @@ import '../../../../core/providers/revenue_cat_provider.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/revenue_cat_service.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/share_options_sheet.dart';
+import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 import '../../domain/entities/podcast_entity.dart';
 import '../providers/podcast_provider.dart';
 import '../widgets/episode_tile.dart';
@@ -42,17 +45,29 @@ class PodcastDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       body: podcastAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Text(
-            ErrorHandler.instance.getShortMessage(
-              ErrorHandler.instance.handleException(e),
+        // La `SliverAppBar` vit dans la branche « données » : sans ces
+        // enveloppes, chargement, erreur et « introuvable » n'ont aucune
+        // sortie quand on arrive ici par lien profond.
+        loading: () => const DesignExitOnlyBody(
+          fallbackRoute: '/podcasts',
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (e, _) => DesignExitOnlyBody(
+          fallbackRoute: '/podcasts',
+          child: Center(
+            child: Text(
+              ErrorHandler.instance.getShortMessage(
+                ErrorHandler.instance.handleException(e),
+              ),
             ),
           ),
         ),
         data: (podcast) {
           if (podcast == null) {
-            return Center(child: Text(l10n.podcastsNotFound));
+            return DesignExitOnlyBody(
+              fallbackRoute: '/podcasts',
+              child: Center(child: Text(l10n.podcastsNotFound)),
+            );
           }
 
           return CustomScrollView(
@@ -61,17 +76,15 @@ class PodcastDetailScreen extends ConsumerWidget {
               SliverAppBar(
                 expandedHeight: 300,
                 pinned: true,
+                leading: BackButton(
+                  onPressed: () => context.canPop()
+                      ? context.pop()
+                      : context.go('/podcasts'),
+                ),
                 actions: [
                   IconButton(
                     icon: AppIcon(AppIcon.share, color: context.dn.onSurface2),
-                    onPressed: () {
-                      DeepLinkService.instance.sharePodcast(
-                        podcastId: podcastId,
-                        podcastTitle: podcast.title,
-                        hostName: podcast.hostName,
-                        imageUrl: podcast.coverImageUrl,
-                      );
-                    },
+                    onPressed: () => _sharePodcast(context, podcast),
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -315,6 +328,33 @@ class PodcastDetailScreen extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+
+  /// Une discussion est une destination de partage comme une autre : avant,
+  /// « Partager » n'ouvrait que la feuille système.
+  void _sharePodcast(BuildContext context, PodcastEntity podcast) {
+    final l10n = AppLocalizations.of(context)!;
+    final link = DeepLinkService.instance.generatePodcastLink(
+      podcastId,
+      podcastTitle: podcast.title,
+      hostName: podcast.hostName,
+      imageUrl: podcast.coverImageUrl,
+    );
+
+    ShareOptionsSheet.show(
+      context,
+      url: link,
+      subject: podcast.title,
+      externalText: l10n.shareLinkChatMessage(podcast.title, link),
+      chatContent: ChatShareContent.link(
+        url: link,
+        title: podcast.title,
+        description: podcast.hostName,
+        imageUrl: podcast.coverImageUrl,
+        message: l10n.shareLinkChatMessage(podcast.title, link),
+        icon: Icons.podcasts_rounded,
       ),
     );
   }
