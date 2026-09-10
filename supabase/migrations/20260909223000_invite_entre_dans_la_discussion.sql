@@ -1,136 +1,44 @@
--- L'invité rejoignait le groupe sans jamais pouvoir ouvrir sa discussion.
+-- Notifications de groupe : personne n'etait prevenu de rien.
 --
--- `join_group_conversation()` (RPC SECURITY DEFINER) rattache l'appelant à
--- `conversations.participant_ids` -- c'est ce qui fait apparaître un groupe
--- rejoint dans l'onglet Messages. Mais le garde
--- `conversations_guard_admin_fields` (20260814000500) refuse TOUTE
--- modification de `participant_ids` par qui n'est pas administrateur du
--- groupe. Un invité qui vient d'accepter ne l'est pas.
+-- ── Ce fichier a d'abord contenu autre chose ───────────────────────────────
 --
--- Mesuré le 2026-09-09, identité réelle non privilégiée (`DfSyAW…`, membre
--- `role='member'` d'un groupe privé non officiel), en transaction annulée :
+-- Il corrigeait aussi le garde `conversations_guard_admin_fields`, qui refuse
+-- toute modification de `participant_ids` a qui n'est pas administrateur du
+-- groupe -- et bloque donc `join_group_conversation()`, dont tout le travail
+-- est justement d'y ajouter un membre qui a rejoint apres la creation de la
+-- conversation. Mesure sous identite reelle non privilegiee le 2026-09-09 :
+-- `EXCEPTION 42501`, `participant_ids` inchange.
 --
---   join_group_conversation(...) -> EXCEPTION 42501
---   « Seul un administrateur du groupe peut modifier les membres ou les
---     droits admin de cette conversation »
---   participant_ids : inchangé
+-- L'autre agent l'avait trouve en meme temps, depuis un appareil, et corrige
+-- dans `20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql`.
+-- Sa version est plus large que ce qui etait ecrit ici -- elle exempte tout membre REEL du groupe qui s'ajoute lui-meme,
+-- donc aussi celui qui rejoint un groupe PUBLIC, cas que cette migration-ci
+-- laissait de cote -- et elle traite un ecart que je n'avais pas vu : le
+-- garde identifie l'appelant par `firebase_uid()` la ou la RPC ajoute
+-- `current_user_id()`.
 --
--- Un premier test avait conclu l'inverse : le compte utilisé (`U64HK…`) est
--- superAdmin plateforme ET le groupe testé était officiel, donc le garde
--- l'acceptait par sa troisième branche. Deux privilèges qu'un invité normal
--- n'a pas. À retenir pour tout test de ce garde : prendre un compte
--- `users.is_admin = false` sur un groupe `is_official = false`.
+-- Mon `CREATE OR REPLACE FUNCTION` aurait donc REMPLACE sa correction par une
+-- version moins bonne, sans conflit git et sans un mot : les deux fichiers ont
+-- des noms differents, et `CREATE OR REPLACE` ne previent jamais qu'il ecrase.
+-- Retire. Ce fichier ne porte plus que les declencheurs de notification.
 --
--- ── Pourquoi l'exemption est adossée à l'INVITATION, et pas au simple fait
---    d'être membre ────────────────────────────────────────────────────────
+-- ⚠️ NI SA MIGRATION NI CELLE-CI N'ETAIENT APPLIQUEES au moment d'ecrire ces
+-- lignes (2026-09-09). La fonction deployee ne porte aucune des deux
+-- exemptions -- verifie sur `pg_proc.prosrc` -- et `db push` est bloque par
+-- une version orpheline dans `supabase_migrations.schema_migrations`
+-- (`20260909210000`, sans fichier local). Non repare ici : c'est de l'etat
+-- partage au milieu du travail de l'autre agent. Tant que ce n'est pas fait,
+-- l'invite rejoint bien le groupe mais ne peut pas ouvrir sa discussion.
 --
--- « Retirer du groupe » (`removeUserFromGroup`,
--- message_supabase_datasource.dart:2045) ne retire la personne QUE de
--- `participant_ids` et de `data.adminIds` : sa ligne `group_members` reste.
--- Elle demeure donc membre du groupe au sens de la base -- elle apparaît
--- même encore dans la liste des membres de la fiche.
---
--- Une exemption formulée « un membre réel du groupe peut entrer dans la
--- conversation » rendrait donc à chaque exclu le droit de se remettre dans la
--- discussion en l'ouvrant, ce qui annulerait silencieusement toutes les
--- exclusions. C'est le garde qui, aujourd'hui, fait tenir l'exclusion -- par
--- effet de bord, pas par intention.
---
--- On s'adosse donc à `has_group_invite()` : une invitation existe, elle n'est
--- pas auto-décernée et n'est pas refusée (garanti par
--- 20260909201500). Un exclu n'en a aucune, il reste bloqué.
---
--- ⚠️ Reste donc ouvert, volontairement, et signalé plutôt que corrigé ici :
---   * un membre qui rejoint un groupe PUBLIC par « Rejoindre » n'a pas
---     d'invitation, donc son rattachement est toujours refusé -- même défaut,
---     autre porte ;
---   * « retirer du groupe » devrait supprimer la ligne `group_members` (il
---     n'existe aucune policy le permettant à un administrateur : il faudrait
---     une RPC dédiée). Tant que ce n'est pas fait, l'exemption ci-dessus ne
---     peut pas être élargie sans casser l'exclusion.
-
-CREATE OR REPLACE FUNCTION public.conversations_guard_admin_fields()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public', 'pg_temp'
-AS $$
-DECLARE
-  v_caller text := firebase_uid();
-  v_old_admins text[];
-  v_new_admins text[];
-  v_group_uuid uuid;
-  v_is_privileged boolean;
-BEGIN
-  -- Les conversations 1:1 n'ont pas de notion d'admin/exclusion.
-  IF NEW.group_id IS NULL THEN
-    RETURN NEW;
-  END IF;
-
-  v_old_admins := ARRAY(
-    SELECT jsonb_array_elements_text(COALESCE(OLD.data->'adminIds', '[]'::jsonb))
-  );
-  v_new_admins := ARRAY(
-    SELECT jsonb_array_elements_text(COALESCE(NEW.data->'adminIds', '[]'::jsonb))
-  );
-
-  -- adminIds et participant_ids inchangés : rien à protéger ici (mute,
-  -- épingle, nom, etc. passent librement, comme avant).
-  IF v_old_admins = v_new_admins AND OLD.participant_ids = NEW.participant_ids THEN
-    RETURN NEW;
-  END IF;
-
-  -- Un participant qui se retire lui-même (quitter le groupe) reste autorisé
-  -- sans être admin -- seul SON id disparaît de participant_ids et adminIds.
-  IF NEW.participant_ids = array_remove(OLD.participant_ids, v_caller)
-     AND OLD.participant_ids @> ARRAY[v_caller]
-     AND NEW.participant_ids <> OLD.participant_ids
-     AND v_new_admins = array_remove(v_old_admins, v_caller) THEN
-    RETURN NEW;
-  END IF;
-
-  -- group_id peut être un id hérité Firestore (non-UUID) : cast protégé, une
-  -- valeur non-UUID retombe simplement sur "pas de groupe Supabase associé"
-  -- plutôt que de faire échouer le trigger.
-  BEGIN
-    v_group_uuid := NULLIF(NEW.group_id, '')::uuid;
-  EXCEPTION WHEN invalid_text_representation THEN
-    v_group_uuid := NULL;
-  END;
-
-  -- NOUVEAU (2026-09-09) : l'entrée volontaire de l'invité, miroir exact du
-  -- départ volontaire ci-dessus. L'appelant s'ajoute LUI SEUL, ne touche pas
-  -- à adminIds, et détient une invitation valide pour ce groupe.
-  --
-  -- `array_remove(NEW, v_caller) = OLD` est la forme symétrique du départ :
-  -- elle vaut vrai quelle que soit la position de l'id ajouté, et faux dès
-  -- qu'un autre id bouge -- donc on ne peut ni ajouter, ni retirer personne
-  -- d'autre par cette porte.
-  IF v_caller IS NOT NULL
-     AND v_new_admins = v_old_admins
-     AND NOT (OLD.participant_ids @> ARRAY[v_caller])
-     AND array_remove(NEW.participant_ids, v_caller) = OLD.participant_ids
-     AND NEW.participant_ids <> OLD.participant_ids
-     AND v_group_uuid IS NOT NULL
-     AND has_group_invite(v_group_uuid) THEN
-    RETURN NEW;
-  END IF;
-
-  v_is_privileged := v_caller = ANY(v_old_admins)
-    OR (v_group_uuid IS NOT NULL AND is_group_admin(v_group_uuid))
-    OR (
-      v_group_uuid IS NOT NULL AND is_admin()
-      AND EXISTS (SELECT 1 FROM groups g WHERE g.id = v_group_uuid AND g.is_official)
-    );
-
-  IF NOT v_is_privileged THEN
-    RAISE EXCEPTION 'Seul un administrateur du groupe peut modifier les membres ou les droits admin de cette conversation'
-      USING ERRCODE = '42501';
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
+-- ⚠️ Et une consequence de sa version, MESUREE le 2026-09-09 en appliquant sa
+-- migration dans une transaction annulee : « retirer du groupe »
+-- (`removeUserFromGroup`) ne supprime pas la ligne `group_members`, donc un
+-- exclu reste membre du groupe -- et l'exemption « tout membre reel peut
+-- s'ajouter » lui rend le droit de se remettre dans la discussion en
+-- l'ouvrant. Mesure : `exclu_de_retour = true`. Consigne dans
+-- TESTS_APPAREIL_A_FAIRE.md, non corrige : le vrai correctif est que
+-- l'exclusion supprime l'appartenance, ce qui demande une RPC dediee (aucune
+-- policy ne permet a un administrateur de supprimer la ligne d'un autre).
 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Notifications : personne n'était prévenu de rien

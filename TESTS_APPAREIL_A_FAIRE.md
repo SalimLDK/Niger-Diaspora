@@ -205,9 +205,24 @@ Mesuré sous identité réelle non privilégiée, en transaction annulée :
 l'inverse — le compte utilisé est superAdmin plateforme **et** le groupe testé
 était officiel, deux privilèges qu'un invité n'a pas.
 
-Corrigé par `20260909223000_invite_entre_dans_la_discussion.sql` : le garde
-accepte désormais l'entrée volontaire de qui détient une invitation valide,
-miroir du départ volontaire déjà exempté.
+**Corrigé par l'autre agent, pas par moi, et pas encore déployé.** Il l'avait
+trouvé en même temps depuis un appareil (« Ouvrir la discussion » → bandeau
+rouge 42501) et corrigé plus largement dans
+`20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql` : son
+exemption vaut pour **tout membre réel** qui s'ajoute lui-même, donc aussi
+pour un groupe public, et elle traite un écart que j'avais manqué — le garde
+identifie l'appelant par `firebase_uid()` là où la RPC ajoute
+`current_user_id()`. Ma version, plus étroite, a été retirée : un
+`CREATE OR REPLACE FUNCTION` l'aurait remplacée sans conflit git et sans un
+mot.
+
+⚠️ **Rien de tout cela n'est en production au 2026-09-09.** La fonction
+déployée ne porte aucune des deux exemptions (vérifié sur `pg_proc.prosrc`), et
+`db push` est bloqué par une version orpheline dans
+`supabase_migrations.schema_migrations` — `20260909210000`, sans fichier local.
+Non réparé : c'est de l'état partagé au milieu du travail de l'autre agent.
+Donc, aujourd'hui encore, **un invité rejoint le groupe et ne peut pas ouvrir
+sa discussion**.
 
 - [ ] **Deux téléphones** : accepter une invitation, puis vérifier que le
       groupe apparaît dans l'onglet **Messages** sans avoir à ouvrir sa fiche,
@@ -245,12 +260,8 @@ supabase db query --linked -f supabase/diagnostics/2026-09-09_invite_discussion_
 
 ### ⚠️ Deux défauts voisins trouvés, **non corrigés**
 
-- [ ] **Un membre qui rejoint un groupe PUBLIC** par « Rejoindre » n'a pas
-      d'invitation : son rattachement à la discussion est toujours refusé par
-      le même garde. Même défaut, autre porte. L'échec est avalé
-      (`joinGroup` ignore le `Left` de `findGroupConversationByGroupId`) :
-      la personne rejoint, et le groupe n'apparaît jamais dans Messages.
-- [ ] **« Retirer du groupe » ne retire pas du groupe.**
+- [ ] **« Retirer du groupe » ne retire pas du groupe** — et l'exemption
+      ci-dessus rend l'exclusion annulable.**
       `removeUserFromGroup` (`message_supabase_datasource.dart:2045`) ne touche
       que `conversations.participant_ids` et `data.adminIds` ; la ligne
       `group_members` reste, donc la personne **figure toujours dans la liste
@@ -258,10 +269,14 @@ supabase db query --linked -f supabase/diagnostics/2026-09-09_invite_discussion_
       un administrateur de supprimer la ligne d'un autre : il faut une RPC
       `SECURITY DEFINER` dédiée.
 
-Ces deux-là se tiennent : c'est parce que l'exclusion ne supprime pas
-l'appartenance que l'exemption du garde a dû être adossée à l'invitation
-plutôt qu'au simple fait d'être membre. Élargir l'un sans corriger l'autre
-rendrait à chaque exclu le droit de se remettre dans la discussion.
+**Mesuré**, en appliquant la migration de l'autre agent dans une transaction
+annulée puis en rejouant le cas d'un exclu : `exclu_de_retour = true`, la RPC
+rend l'id de la conversation. Une fois son correctif déployé, toute exclusion
+est donc annulable par l'exclu lui-même, en ouvrant simplement la discussion.
+
+- [ ] Sur appareil, après déploiement : retirer quelqu'un d'un groupe, puis
+      depuis son compte ouvrir la discussion du groupe — il ne doit pas
+      revenir dans la liste des participants.
 Passer le fichier avec `-f` et non en argument : sous cette seconde forme les
 accents du banc le font échouer sur un message tronqué, qui se lit comme un
 vrai échec.
