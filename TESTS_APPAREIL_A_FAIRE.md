@@ -13557,6 +13557,35 @@ Reste non vérifié : le scan physique d'un QR, qui demande de présenter un cod
 
 ---
 
+## ✅ Annuaire d'entreprises branché sur Supabase (2026-09-09)
+
+`/businesses/<uuid>` affichait « Entreprise non trouvée » quel que soit le
+chemin d'accès. Même famille que les événements : le module lisait
+**Firestore** alors que les entreprises vivent dans `public.businesses`.
+
+Trois pièces livrées : `BusinessSupabaseDataSource` (21 méthodes), la table
+`business_boosts` qui manquait, et `increment_business_view_count`.
+
+**Deux fausses pistes écartées, à ne pas refaire :**
+
+1. Les deux lignes étaient `is_active = false` — activées, sans aucun effet :
+   la fiche ne regardait même pas cette table.
+2. L'embed `users(display_name)` échouait en **PGRST200**. Cause :
+   `businesses` n'avait **aucune clé étrangère**, alors que le schéma initial
+   en déclare une. La table venait de l'import Firestore du 2026-04-12, donc
+   le `CREATE TABLE IF NOT EXISTS` du schéma initial n'a rien créé — ni la
+   clé, ni le `DEFAULT TRUE` de `is_active`, ce qui explique aussi le point 1.
+   **Réflexe à garder : une table importée peut avoir traversé un
+   `CREATE TABLE IF NOT EXISTS` sans rien en recevoir.**
+
+- [x] **`/businesses/<uuid>` ouvre la fiche** — vérifié SM A515F, démarrage à
+      froid : « Sonda », Restaurant, contact, Talladje/Niamey.
+
+Non vérifiés faute de données : création d'une entreprise, boost, offres et
+publications d'entreprise, recherche de proximité.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
