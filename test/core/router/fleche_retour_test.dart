@@ -345,4 +345,59 @@ void main() {
           'parent logique de la route, pas un `/home` uniforme.',
     );
   });
+  test('aucune sortie n\'est masquée quand la pile est vide', () {
+    // **Cinquième forme.** Une sortie peut être posée sous
+    // `if (context.canPop()) …` : elle disparaît alors exactement dans le cas
+    // qu'elle devait couvrir — l'entrée par lien profond ou par notification,
+    // où la pile ne contient que cet écran.
+    //
+    // Les quatre gardes précédents la laissaient passer : le fichier contient
+    // bien un marqueur de sortie (test 1) et le rappel voisine un `canPop`
+    // (test 4). Deux écrans vivaient dessous, `/feed` et `/calls/history`,
+    // tous deux avec la même justification écrite — « on n'y arrive que par un
+    // push ». Fausse pour les deux : le point d'entrée de `/calls/history`
+    // dans le profil est commenté, donc le lien profond et la notification
+    // étaient les seules façons d'ouvrir cet écran.
+    //
+    // Liste d'exceptions volontairement vide : si un écran a besoin de cacher
+    // sa sortie, la raison s'écrit ici.
+    const exceptions = <String, String>{};
+
+    final conditionnelle = RegExp(r'if\s*\(\s*context\.canPop\(\)\s*\)');
+    const portee = 500;
+
+    final fichiers = declarations();
+    final coupables = <String>[];
+    final vus = <String>{};
+
+    routes().forEach((chemin, classe) {
+      final fichier = fichiers[classe];
+      if (fichier == null) return;
+      final rel = fichier.path.replaceAll('\\', '/');
+      if (exceptions.keys.any(rel.endsWith)) return;
+      if (!vus.add(rel)) return;
+
+      final texte = fichier.readAsStringSync();
+      for (final m in conditionnelle.allMatches(texte)) {
+        final zone = texte.substring(
+          m.start,
+          (m.start + portee).clamp(0, texte.length),
+        );
+        if (!sorties.hasMatch(zone)) continue;
+
+        final ligne = '\n'.allMatches(texte.substring(0, m.start)).length + 1;
+        coupables.add('$rel:$ligne ($chemin)');
+      }
+    });
+
+    expect(
+      coupables,
+      isEmpty,
+      reason:
+          'Ces écrans ne montrent leur sortie que si la pile a de quoi '
+          'dépiler — donc jamais par lien profond ni par notification, les '
+          'deux entrées où elle est indispensable. Montrez-la toujours, avec '
+          'le repli `canPop() ? pop() : go(<parent>)`.',
+    );
+  });
 }
