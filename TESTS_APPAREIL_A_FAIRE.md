@@ -266,6 +266,141 @@ supabase db query --linked -f supabase/diagnostics/2026-09-09_invitations_groupe
 ```
 
 Sortie attendue : « banc termine ». Tout « ECHEC n » interrompt le banc.
+
+### ⛔ Deuxième temps : l'invité ne pouvait pas ouvrir la discussion
+
+Trouvé en branchant les notifications, **pas signalé** : `join_group_conversation()`
+rattache l'appelant à `conversations.participant_ids` — c'est ce qui fait
+apparaître un groupe rejoint dans l'onglet Messages — mais le garde
+`conversations_guard_admin_fields` (2026-08-14) refuse **toute** modification de
+`participant_ids` par qui n'est pas administrateur du groupe. Un invité qui
+vient d'accepter ne l'est pas.
+
+Mesuré sous identité réelle non privilégiée, en transaction annulée :
+`EXCEPTION 42501`, `participant_ids` inchangé. Le premier test avait conclu
+l'inverse — le compte utilisé est superAdmin plateforme **et** le groupe testé
+était officiel, deux privilèges qu'un invité n'a pas.
+
+**Corrigé par l'autre agent, pas par moi, et pas encore déployé.** Il l'avait
+trouvé en même temps depuis un appareil (« Ouvrir la discussion » → bandeau
+rouge 42501) et corrigé plus largement dans
+`20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql` : son
+exemption vaut pour **tout membre réel** qui s'ajoute lui-même, donc aussi
+pour un groupe public, et elle traite un écart que j'avais manqué — le garde
+identifie l'appelant par `firebase_uid()` là où la RPC ajoute
+`current_user_id()`. Ma version, plus étroite, a été retirée : un
+`CREATE OR REPLACE FUNCTION` l'aurait remplacée sans conflit git et sans un
+mot.
+
+⚠️ **Rien de tout cela n'est en production au 2026-09-09.** La fonction
+déployée ne porte aucune des deux exemptions (vérifié sur `pg_proc.prosrc`), et
+`db push` est bloqué par une version orpheline dans
+`supabase_migrations.schema_migrations` — `20260909210000`, sans fichier local.
+Non réparé : c'est de l'état partagé au milieu du travail de l'autre agent.
+Donc, aujourd'hui encore, **un invité rejoint le groupe et ne peut pas ouvrir
+sa discussion**.
+
+- [ ] **Deux téléphones** : accepter une invitation, puis vérifier que le
+      groupe apparaît dans l'onglet **Messages** sans avoir à ouvrir sa fiche,
+      et que la discussion s'ouvre.
+- [ ] Envoyer un message depuis chaque côté : lisible des deux (vrai chemin
+      Sender Key — voir la section « un groupe dont on est le seul membre »).
+
+### ⬜ Notifications de groupe : personne n'était prévenu de rien
+
+Le type `groupInvite` est câblé de bout en bout côté app depuis toujours
+(routage, style, canal Android, clé de préférence `groups` dans `send-push`),
+et un INSERT dans `notifications` déclenche déjà le push. **Aucun code, client
+ou serveur, n'en créait jamais** — ni pour une invitation, ni pour une demande
+d'adhésion, ni pour sa réponse. Trois déclencheurs ajoutés dans la même
+migration.
+
+- [ ] Recevoir la **notification push** d'invitation sur l'autre téléphone,
+      app fermée ; l'appui ouvre la fiche du groupe.
+- [ ] Sur cette fiche, la barre du bas propose **« Accepter » / « Refuser »**
+      et non « Demander à rejoindre » (`_BarreInvitation`,
+      `group_detail_screen.dart`). Accepter fait disparaître la barre.
+- [ ] Couper la bascule « Groupes » dans les réglages de notifications :
+      l'invitation suivante ne doit **pas** arriver en push (elle reste dans
+      la liste in-app).
+- [ ] Demander à rejoindre un groupe privé depuis l'autre compte :
+      l'administrateur reçoit la notification. Approuver : le demandeur reçoit
+      « Adhésion acceptée ». Refuser sur une autre demande : « Adhésion
+      refusée ».
+
+Banc dédié, transaction annulée, 8 étapes :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_invite_discussion_et_notifications.sql
+```
+
+### ⚠️ Deux défauts voisins trouvés, **non corrigés**
+
+- [x] **« Retirer du groupe » ne retirait pas du groupe** — corrigé (voir la
+      section suivante).
+      `removeUserFromGroup` (`message_supabase_datasource.dart:2045`) ne touche
+      que `conversations.participant_ids` et `data.adminIds` ; la ligne
+      `group_members` reste, donc la personne **figure toujours dans la liste
+      des membres** et compte dans `member_count`. Aucune policy ne permet à
+      un administrateur de supprimer la ligne d'un autre : il faut une RPC
+      `SECURITY DEFINER` dédiée.
+
+**Mesuré**, en appliquant la migration de l'autre agent dans une transaction
+annulée puis en rejouant le cas d'un exclu : `exclu_de_retour = true`, la RPC
+rend l'id de la conversation. Une fois son correctif déployé, toute exclusion
+est donc annulable par l'exclu lui-même, en ouvrant simplement la discussion.
+
+### ⬜ L'impasse tranchée : l'exclusion s'enregistre, tout membre ouvre sa discussion
+
+Demande de Salim le 2026-09-09 : « tout membre peut ouvrir les conversations ».
+Les deux agents avaient écrit l'exemption du garde, chacun de son côté, et
+chacun l'avait retirée — adossée à l'**invitation** elle laisse de côté qui a
+rejoint un groupe public ; adossée à l'**appartenance** elle rouvre la porte
+aux exclus. Parce que l'exclusion n'était enregistrée nulle part : elle
+n'existait que comme une absence dans `conversations.participant_ids`, et
+`group_members` continuait d'affirmer le contraire.
+
+Fermé par le bas, côté base : `20260909234500` pose un déclencheur —
+disparaître de `participant_ids` d'une conversation de **groupe**, c'est ne
+plus être membre du groupe. `removeUserFromGroup` fait dès lors ce que son nom
+annonce, **sans un changement côté app** : `message_supabase_datasource.dart`
+est tenu par le worktree `partage-discussion`, et une RPC de retrait aurait dû
+y être appelée. L'exemption de l'autre agent (tout membre réel s'ajoute
+lui-même) est reprise telle quelle dans la même migration, où elle redevient
+sûre.
+
+Vérifié qu'aucune reprise de données n'est nécessaire : les deux seules
+appartenances absentes de leur conversation (« Diaspora Niger — NE » et
+« Testeurs ») sont des membres qui n'ont jamais pu se rattacher, pas des
+exclus.
+
+Banc dédié, 8 étapes, transaction annulée — il échoue bien sur l'état d'avant
+(« ECHEC A : raccrochage encore refuse (42501) ») :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_exclusion_et_ouverture_discussion.sql
+```
+
+À vérifier sur appareil, après déploiement :
+
+- [ ] Un membre simple ouvre la discussion de son groupe (le défaut d'origine,
+      vu sur SM A515F : bandeau rouge 42501).
+- [ ] Retirer quelqu'un d'un groupe : il **disparaît de la liste des membres**
+      de la fiche, et `Membres · n` décroît (c'est nouveau — il y restait).
+- [ ] Depuis le compte retiré, ouvrir la discussion du groupe : il ne revient
+      ni dans les participants, ni dans les membres.
+- [ ] Quitter un groupe volontairement : toujours possible, et le groupe
+      disparaît de l'onglet Messages.
+- [ ] Envoyer des messages dans un groupe : personne n'est retiré au passage
+      (le déclencheur est posé sur `UPDATE OF participant_ids`, un message
+      n'écrit que `data` — couvert par l'étape E du banc, mais jamais vu
+      tourner sur un vrai fil).
+
+⚠️ **Collision possible** : l'autre agent peut relivrer sa propre version de
+`conversations_guard_admin_fields`. Les deux corps sont identiques, un
+`CREATE OR REPLACE` de plus est sans conséquence — mais si sa version revient
+**sans** le déclencheur d'exclusion, l'exclusion redevient annulable. Vérifier
+`git log` avant de conclure.
 Passer le fichier avec `-f` et non en argument : sous cette seconde forme les
 accents du banc le font échouer sur un message tronqué, qui se lit comme un
 vrai échec.
@@ -429,29 +564,55 @@ les administrateurs voyaient encore leur discussion — ce qui explique aussi
 pourquoi le défaut a pu vivre longtemps sans être vu (les deux comptes de test
 étaient créateurs de leurs propres groupes).
 
-Correctif écrit :
-`supabase/migrations/20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql`
-— exemption miroir de celle qui existe déjà pour « quitter le groupe » :
-s'ajouter **soi seul** en queue de `participant_ids`, `adminIds` inchangé, et
-seulement si l'on est un membre réel du groupe. Subtilité prise en compte : le
-trigger identifie l'appelant par `firebase_uid()` alors que la RPC ajoute
-`current_user_id()`, deux fonctions différentes — l'exemption accepte les deux
-identités, l'autorisation réelle venant de `group_members`.
+**Le correctif appartient à l'autre session** (worktree `inviter-membres`,
+`20260909223000_invite_entre_dans_la_discussion.sql`). J'en avais écrit un —
+`20260909210500`, exemption « un membre réel du groupe peut s'ajouter
+lui-même » — **il était faux et a été retiré** avant tout déploiement.
 
-⚠️ **Non déployé** : la migration n'est pas encore passée par `supabase db
-push`. Tant qu'elle ne l'est pas, le défaut reste entier en production.
+Pourquoi il était faux, et c'est le point à retenir : `removeUserFromGroup`
+(`message_supabase_datasource.dart:2044`) ne retire la personne **que** de
+`conversations.participant_ids` et de `data.adminIds` — **sa ligne
+`group_members` reste**. Une exemption adossée à « est membre du groupe »
+aurait donc rendu à chaque personne exclue le droit de se remettre dans la
+discussion en l'ouvrant : toutes les exclusions annulées en silence, sans
+trace. Aujourd'hui c'est ce garde qui fait tenir l'exclusion — par effet de
+bord, pas par intention. L'autre session adosse son exemption à
+`has_group_invite()`, ce qui ne rouvre pas cette porte.
 
-À vérifier une fois déployée :
+**La question de fond, à trancher une fois** (demande de Salim le
+2026-09-09 : « tout membre peut ouvrir les conversations »). Adosser
+l'exemption à l'**invitation** ne couvre pas quelqu'un qui a rejoint un
+groupe **public** sans jamais être invité. Adosser à l'**appartenance** rouvre
+la porte aux exclus. Les deux options sont bancales pour la même raison :
+**l'exclusion n'est enregistrée nulle part de durable** — elle n'existe que
+comme une absence dans `conversations.participant_ids`, et `group_members`
+continue d'affirmer le contraire. Tant que `removeUserFromGroup` ne supprime
+pas aussi la ligne `group_members` (ou n'écrit pas un état « exclu »),
+« membre du groupe » restera un critère qu'on ne peut pas utiliser pour
+autoriser quoi que ce soit.
 
-- [ ] SM A515F (Sim A, membre simple) : « Ouvrir la discussion » sur
-      « Testeurs » ouvre le fil, sans bandeau rouge.
+⚠️ `message_supabase_datasource.dart` est **tenu par le worktree
+`partage-discussion`** (modifié, non committé) : ne pas y toucher sans
+coordination.
+
+⚠️ **Non déployé au 2026-09-09 21:15** : `supabase db push` échoue avant même
+de commencer — la base a une version `20260909210000` dont le fichier n'est
+poussé nulle part (il vit dans le worktree `groupes-temps-reel`). Tant que
+cette session n'a pas livré son fichier, **personne ne peut déployer quoi que
+ce soit** : `db push` refuse de tourner sur un historique incomplet.
+
+À vérifier une fois le correctif de l'autre session déployé :
+
+- [ ] SM A515F (Sim A, membre simple de « Testeurs ») : « Ouvrir la
+      discussion » ouvre le fil, sans bandeau rouge.
 - [ ] Le groupe apparaît ensuite dans l'onglet Messages de Sim A (c'est
       l'ajout à `participant_ids` qui l'y fait entrer).
 - [ ] **Non-régression de la garde** : depuis un compte membre simple, tenter
-      de se promouvoir admin ou d'exclure quelqu'un doit toujours être refusé
-      (c'est ce que le trigger protège à l'origine).
-- [ ] Quitter un groupe en tant que membre simple marche encore (l'exemption
-      symétrique, qu'on n'a fait que déplacer dans la fonction).
+      de se promouvoir admin ou d'exclure quelqu'un doit toujours être refusé.
+- [ ] **Non-régression de l'exclusion** : exclure quelqu'un, puis depuis SON
+      compte rouvrir la discussion du groupe — il ne doit **pas** y rentrer.
+      C'est précisément ce que mon correctif cassait.
+- [ ] Quitter un groupe en tant que membre simple marche encore.
 
 ---
 
@@ -12777,6 +12938,12 @@ main :
       l'objectif ne voit rien d'éclairé : le cadre et le texte d'instruction
       sont dans le sous-arbre `ColorFiltered(BlendMode.srcOut)`, donc invisibles
       par construction sur fond noir. Ne pas confondre avec une caméra morte.
+
+- [x] **Le cadre de visée et le texte d'instruction s'affichent** — vérifié
+      SM A515F le 2026-09-09 après correctif : cadre orange, coins blancs,
+      ligne animée et « Placez le QR code dans le cadre pour scanner » sont
+      visibles. Ils ne l'étaient jamais avant (enfermés dans le sous-arbre
+      `ColorFiltered(srcOut)`, qui les découpait dans le voile).
 
 **Piège de mesure (2026-09-09)** : le premier symptôme rapporté (« ça ne marche
 pas ») venait d'un APK antérieur au correctif — construit à 19:55, correctif
