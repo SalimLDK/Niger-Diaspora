@@ -63,6 +63,16 @@ class BackgroundLocationService {
 
         // auto start service
         autoStart: false,
+        // `autoStart: false` ne couvre PAS le démarrage du téléphone : le
+        // plugin a un second drapeau, `autoStartOnBoot`, qui vaut `true` par
+        // défaut. Laissé tel quel, son `BootReceiver` relance ce service de
+        // premier plan à chaque boot — donc un partage de position que
+        // personne n'a demandé, et sur Android 15+ un plantage sec
+        // (`ForegroundServiceStartNotAllowedException` : un service de type
+        // `location` ne peut pas démarrer depuis BOOT_COMPLETED). Le receiver
+        // est aussi retiré du manifeste, parce que ce drapeau-ci n'est lu
+        // qu'après le premier lancement de l'app.
+        autoStartOnBoot: false,
         isForegroundMode: true,
 
         notificationChannelId: notificationChannelId,
