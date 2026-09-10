@@ -14,6 +14,75 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
+
+Signalé par Salim : « les liens des groupes et autres ne marchent pas ».
+Sept liens rejoués à l'intent, démarrage à froid, sur Pixel `58221FDCQ0085Z`
+(compte « Salim L. ») — le lien **arrive** bien à l'app dans tous les cas, la
+vérification App Links est `verified` sur les deux appareils. Ce qui casse est
+toujours **après**, à l'écran d'arrivée :
+
+| Lien | Mesuré le 2026-09-09 |
+|---|---|
+| `/groups/<public>` | ✅ fiche du groupe, complète |
+| `/groups/<privé>` non-membre | ❌ « Erreur de chargement » + Réessayer inutile |
+| `/p/u/<userId>` | ✅ profil |
+| `/events/<uuid Supabase>` | ❌ roue qui tourne, encore là **après 75 s** |
+| `/invite?ref=…` | ⚠️ accueil ; aucune route `/invite` n'existe, le `ref` est perdu |
+| `/groups/<inexistant>` | ❌ « Erreur de chargement » (même écran que le privé) |
+| `…/groups/<id>` dans un navigateur | ⚠️ page d'accueil du site (règle `**` → index.html) |
+
+Corrigé dans cette livraison :
+
+- [ ] **`/events/<id>` qui échoue affiche enfin quelque chose.**
+      `EventDetailScreen` ne regardait que `eventAsync.valueOrNull` : un
+      événement supprimé, un refus de lecture ou une coupure réseau rendaient
+      `null`, exactement comme un chargement en cours — d'où la roue
+      éternelle. Garde `hasError` ajoutée, calquée sur `GroupDetailScreen`
+      qui la portait déjà.
+      Vérifier : ouvrir `…/events/<uuid inexistant>` → « Erreur de
+      chargement » + « Réessayer », **pas** de roue infinie.
+- [ ] **Groupe privé : ne plus mentir.** `getGroupById` finit sur `.single()`
+      ; la RLS d'un groupe privé rend zéro ligne, donc PGRST116 — le même
+      code que pour un groupe supprimé. « Erreur de chargement » + un
+      « Réessayer » qui ne peut jamais aboutir. Remplacé par « Ce groupe est
+      privé ou n'existe plus. » et un bouton « Retour ».
+      Le message ne distingue **pas** privé de supprimé, volontairement :
+      confirmer l'existence d'un groupe à qui détient son uuid rouvrirait ce
+      que `20260909201500` vient de fermer.
+      Vérifier : `…/groups/2b24986f-08b5-4840-9931-dbe046ffb394` (groupe
+      privé de test) depuis un compte non-membre.
+- [ ] **Flèche retour des deux écrans d'erreur/chargement.** Elles faisaient
+      `context.pop()` : arrivé par lien profond, la route est seule dans la
+      pile → écran noir. Repli `canPop ? pop : go('/home')`.
+      Vérifier : lien profond → erreur → flèche retour → accueil, pas de noir.
+
+**Pas corrigé, décision à prendre :**
+
+- ⚠️ **Les événements sont sur deux bases à la fois.** Le module Événements
+  (`EventRemoteDataSourceImpl`, liste + fiche + création) lit et écrit
+  **Firestore** ; le back-office admin (`admin_provider.dart`, 5 appels)
+  lit et écrit `public.events` **sur Supabase**, où se trouvent 2 lignes. Un
+  événement créé d'un côté est invisible de l'autre, et un lien portant un
+  uuid Supabase ne pourra jamais s'ouvrir dans l'app — c'est ce qui produisait
+  la roue infinie ci-dessus. Le correctif d'affichage rend l'échec visible,
+  il ne réconcilie rien.
+- ⚠️ **Pas de route `/invite`.** `DeepLinkService.generateInviteLink()`
+  fabrique `…/invite?ref=<uid>` (bouton « Inviter des amis » de l'accueil) et
+  le routeur n'a rien pour ce chemin : atterrissage sur l'accueil, parrainage
+  perdu. À décider : route de parrainage, ou lien qui pointe ailleurs.
+- ⚠️ **Repli navigateur inexistant.** `firebase.json` renvoie tout chemin
+  inconnu sur `/index.html`. Quelqu'un sans l'app — ou qui tape le lien depuis
+  le navigateur intégré de WhatsApp, qui court-circuite les App Links —
+  tombe sur la page d'accueil du site, sans un mot sur le groupe ni de bouton
+  « Ouvrir dans l'application ».
+- ⚠️ **`/businesses/<id>` d'une fiche inactive.** `businesses_select_active`
+  n'ouvre la lecture que si `is_active`. Les 2 entreprises en base sont
+  `is_active = false` : leurs liens sont donc morts pour tout le monde sauf
+  leur propriétaire, et rien dans l'app ne le dit au propriétaire qui partage.
+
+---
+
 ## ⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)
 
 Le partage ne savait sortir de l'app (WhatsApp / Facebook / X / feuille
@@ -12637,6 +12706,57 @@ main :
 pas ») venait d'un APK antérieur au correctif — construit à 19:55, correctif
 committé à 20:12. Avant toute conclusion sur un comportement appareil, comparer
 `lastUpdateTime` (`dumpsys package`) à l'horodatage du commit.
+
+---
+
+## ⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09)
+
+Trouvé en cherchant à vérifier la remontée d'erreurs. Le SDK Crashlytics
+s'initialise bien sur la build release (`Initializing Firebase Crashlytics
+19.4.4` dans logcat) et les non-fatals partent — mais **le plugin Gradle
+n'était déclaré nulle part** dans `android/`. Or `isMinifyEnabled = true` sur
+release : sans lui, aucun fichier de mapping R8 n'est envoyé, et les piles
+d'appel arrivent obfusquées, donc inexploitables. C'est aussi ce plugin qui
+pousse les symboles NDK (le `debugSymbolLevel = "FULL"` existant ne sert que
+pour Play).
+
+Déclaré dans [settings.gradle.kts](android/settings.gradle.kts) et
+[app/build.gradle.kts](android/app/build.gradle.kts).
+
+⚠️ **Le premier build a échoué** : le plugin Crashlytics 3 exige
+`google-services` **4.4.1 minimum**, le projet était en 4.3.15 —
+« Failed to query the value of task
+':app:uploadCrashlyticsMappingFileRelease' property 'appIdFile' ». Monté à
+4.4.2, le build passe. Une montée de `google-services` seule n'aurait servi à
+rien : les deux vont ensemble.
+
+Vérifié après build : `build/app/crashlytics/release/mappingFileId.txt` et
+`com_google_firebase_crashlytics_mappingfileid.xml` injecté dans les
+ressources — c'est cet identifiant qui relie un rapport à son mapping, et il
+n'existait pas avant.
+
+- [x] **L'app démarre toujours** — SM A515F, APK release
+  `ea2db3cdb3c0153e9bc6107a16ce7f61` (md5 local = md5 `pm path`). Firebase et
+  Crashlytics s'initialisent, aucun `FATAL EXCEPTION`, et la zone muette tient
+  (2 lignes flutter, moteur natif). La montée de `google-services` n'a rien
+  cassé au runtime.
+- [ ] **Un non-fatal arrive-t-il vraiment dans la console ?** ⚠️ **Non
+  vérifiable en l'état.** Le seul site qui appelle `LoggerService.e` est
+  `map_screen.dart:760`, dans le `catch` de `_loadNearbyMembers` — lequel
+  exige `_currentPosition != null`. Or le compte de test est en **« Mode privé
+  activé »** : la carte s'arrête sur sa carte d'invitation et ne demande jamais
+  de position. Coupure réseau confirmée (mode avion), l'écran ne bouge pas.
+  Pour déclencher, il faudrait appuyer sur « ACTIVER » — donc **modifier un
+  réglage de confidentialité du compte**, ce qu'une session de test ne doit pas
+  faire sans accord explicite.
+- [ ] **Piles déobfusquées dans la console** : après une remontée réelle,
+  vérifier que la trace est lisible (noms de classes Dart/Java, pas `a.b.c`).
+  C'est le bénéfice concret du plugin, et il ne se voit que côté console.
+
+⚠️ **À savoir sur la portée du branchement Crashlytics** : `LoggerService.e`
+n'a **qu'un seul** site d'appel dans tout `lib/`. Les huit autres usages du
+logger sont des `.w`, volontairement laissés muets. Le branchement ajouté le
+2026-09-09 couvre donc un chemin d'erreur, pas neuf.
 
 ---
 
