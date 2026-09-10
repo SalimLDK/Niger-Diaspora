@@ -110,35 +110,23 @@ Corrigé en remettant l'expéditeur dans la liste quand elle est vide :
 
 ---
 
-## ⬜ Le QR d'un groupe est refusé par le scanner de l'app (2026-09-09)
+## ⬜ Le QR d'un groupe est refusé par le scanner — **observation terrain**
 
-Constaté en direct sur SM A515F pendant que Salim scannait, depuis « Scanner
-un profil », le QR affiché par « Partager » sur la fiche d'un groupe :
-« **QR code invalide ou format non reconnu** ».
+Le défaut a été vu **en direct**, sur SM A515F, pendant que Salim scannait
+depuis « Scanner un profil » le QR affiché par « Partager » d'une fiche de
+groupe : « **QR code invalide ou format non reconnu** ». Ce n'était ni la
+caméra ni le QR.
 
-Ce n'est ni la caméra ni le QR. `qr_scanner_screen.dart` ne connaissait que
-les liens de **profil** (`/p/{code}` et `/p/u/{userId}`) ; le QR de groupe
-encode `/groups/{groupId}` (`DeepLinkService.generateGroupLink`). Tout QR de
-groupe tombait donc dans le `_showError` final.
+Le correctif est celui de l'autre agent, plus large et testé
+(`QrCodeParser`, 23 cas) : **voir la section « Le scanner de l'accueil lit
+tous les QR du projet » plus bas**, qui porte la liste des vérifications.
+Cette section-ci ne garde que la trace de l'observation, et un point que ce
+correctif ne change pas :
 
-Corrigé : le scanner accepte désormais `/groups/{id}` et son raccourci
-`/g/{id}`, et pousse `/groups/{id}`.
-
-À noter au passage, non corrigé : `DeepLinkService.parseDeepLink` /
-`DeepLinkType` savent déjà lire **huit** formes de liens (profil, groupe,
-événement, commerce, produit, invitation…) et ne sont appelés **nulle part**
-dans `lib/` — le scanner réimplémentait donc à la main un sous-ensemble d'un
-parseur mort.
-
-À vérifier avec le build corrigé :
-
-- [ ] Afficher le QR d'un groupe sur un téléphone, le scanner avec l'autre :
-      la fiche du groupe s'ouvre, avec « QR code scanné avec succès ».
-- [ ] Un QR de **profil** continue de marcher (non-régression du chemin
-      d'origine, `/p/{shortCode}` compris — c'est celui qui passe par
-      `profileUserIdFromShareCodeProvider`).
-- [ ] Un QR quelconque (pas Diaspo Niger) affiche toujours « QR code invalide
-      ou format non reconnu ».
+- `DeepLinkService.parseDeepLink` / `DeepLinkType` savaient **déjà** lire huit
+  formes de liens et n'étaient appelés nulle part dans `lib/`. Il y a
+  maintenant deux parseurs de liens dans le projet, dont un mort — à
+  fusionner ou à supprimer, pas à laisser diverger.
 
 ---
 
@@ -12352,6 +12340,12 @@ un message nommé.
 des messages « Hi » et « ECHO-DM-1947 » y sont arrivés à 19:46 et 19:47, hors
 de toute action de cette session. Ne pas prendre son contenu pour un état
 stable, et ne pas conclure d'un message qu'on n'a pas envoyé soi-même.
+
+  Précision, apportée par la session qui les a produits : `ECHO-DM-1947` est
+  un envoi de **test** depuis le SM A515F (vérification de l'écho temps réel,
+  cf. la section sur les marqueurs de bulle) ; « Hi » venait du Pixel. Les
+  deux appareils étaient pilotés en parallèle ce soir-là, l'un par un agent,
+  l'autre à la main — d'où l'avertissement ci-dessus, qui reste valable.
 
 ---
 
