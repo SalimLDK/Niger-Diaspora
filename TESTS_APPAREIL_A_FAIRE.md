@@ -13420,6 +13420,34 @@ logger sont des `.w`, volontairement laissés muets. Le branchement ajouté le
 
 ---
 
+## ✅ Liens profonds : schéma maison et événements (2026-09-09)
+
+Vérifié sur SM A515F, build de 22:44.
+
+- [x] **`diasponiger://groups/<id>` ouvre la fiche du groupe.** Avant :
+      « Page Not Found » avec `GoException: no routes for location:
+      diasponiger://groups/<id>`. Preuve dans logcat, côté natif :
+      `DiaspoDeepLink: route poussee vers Dart : /groups/<id>` — l'hôte est
+      bien recollé devant le chemin.
+- [x] **`/events/<id>` ouvre la fiche** (« Tabaski 2026 ») au lieu de
+      « Erreur de chargement », après la bascule du provider sur
+      `EventSupabaseDataSource`.
+- [x] **Liens `https` de groupe, de fil et de profil** : ouverts à chaud et à
+      froid, App Links `verified` pour `diasponiger.com` et
+      `diasponiger.web.app` (`pm get-app-links`).
+
+**Piège de mesure** : après avoir envoyé un lien profond par `am start`, ne
+pas ramener l'app avec `monkey ... LAUNCHER` avant la capture — le lancement
+depuis le launcher réinitialise la pile de la tâche et la route du lien
+profond disparaît. Le lien semble alors perdu alors qu'il avait bien été
+poussé (logcat le prouve). Envoyer l'intent **app au premier plan**, puis
+capturer sans rien toucher d'autre.
+
+Reste non vérifié : le scan physique d'un QR, qui demande de présenter un code
+à l'objectif.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
