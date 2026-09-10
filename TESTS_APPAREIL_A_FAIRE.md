@@ -368,6 +368,22 @@ trace. Aujourd'hui c'est ce garde qui fait tenir l'exclusion — par effet de
 bord, pas par intention. L'autre session adosse son exemption à
 `has_group_invite()`, ce qui ne rouvre pas cette porte.
 
+**La question de fond, à trancher une fois** (demande de Salim le
+2026-09-09 : « tout membre peut ouvrir les conversations »). Adosser
+l'exemption à l'**invitation** ne couvre pas quelqu'un qui a rejoint un
+groupe **public** sans jamais être invité. Adosser à l'**appartenance** rouvre
+la porte aux exclus. Les deux options sont bancales pour la même raison :
+**l'exclusion n'est enregistrée nulle part de durable** — elle n'existe que
+comme une absence dans `conversations.participant_ids`, et `group_members`
+continue d'affirmer le contraire. Tant que `removeUserFromGroup` ne supprime
+pas aussi la ligne `group_members` (ou n'écrit pas un état « exclu »),
+« membre du groupe » restera un critère qu'on ne peut pas utiliser pour
+autoriser quoi que ce soit.
+
+⚠️ `message_supabase_datasource.dart` est **tenu par le worktree
+`partage-discussion`** (modifié, non committé) : ne pas y toucher sans
+coordination.
+
 ⚠️ **Non déployé au 2026-09-09 21:15** : `supabase db push` échoue avant même
 de commencer — la base a une version `20260909210000` dont le fichier n'est
 poussé nulle part (il vit dans le worktree `groupes-temps-reel`). Tant que
