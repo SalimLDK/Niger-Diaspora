@@ -7042,5 +7042,34 @@
   "embassyNotFoundMessage": "This diplomatic mission is no longer in the directory, or the link is incorrect.",
   "embassyLoadFailedTitle": "Could not load",
   "backToEmbassies": "Back to the directory",
-  "embassySearchHint": "Name, country or city"
+  "embassySearchHint": "Name, country or city",
+  "shareToChatTitle": "Send to a chat",
+  "shareToChatSubtitle": "Groups and private messages",
+  "pickerTapToSend": "Tap to send",
+  "pickerSelectConversations": "Select chats",
+  "pickerContentSent": "Sent",
+  "pickerContentPartiallySent": "Some items were not sent",
+  "privateMessage": "Private message",
+  "shareProfileChatMessage": "Check out {name}'s profile on Diaspo Niger\n{link}",
+  "@shareProfileChatMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "shareLinkChatMessage": "“{title}” on Diaspo Niger\n{link}",
+  "@shareLinkChatMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  }
 }

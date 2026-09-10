@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
@@ -9,10 +8,10 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
+import '../widgets/conversation_picker_sheet.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Screen that lets the user choose a conversation to send shared media/text to.
@@ -134,12 +133,18 @@ class _ShareToConversationScreenState
           Expanded(
             child: conversationsAsync.when(
               data: (conversations) {
+                // Résolution partagée : la recherche filtrait sur
+                // `conversation.name`, nul pour un 1:1 — taper le nom d'un
+                // contact faisait donc disparaître toutes les discussions
+                // privées de la liste des destinations.
+                final resolved = resolveConversations(
+                  ref,
+                  conversations,
+                  currentUserId: currentUser?.id,
+                  l10n: l10n,
+                );
                 final filtered =
-                    conversations.where((conv) {
-                      if (_searchQuery.isEmpty) return true;
-                      final name = conv.name?.toLowerCase() ?? '';
-                      return name.contains(_searchQuery.toLowerCase());
-                    }).toList();
+                    resolved.where((r) => r.matches(_searchQuery)).toList();
 
                 if (filtered.isEmpty) {
                   return Center(
@@ -153,15 +158,12 @@ class _ShareToConversationScreenState
                 return ListView.builder(
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    final conversation = filtered[index];
-                    final isLoading =
-                        _sendingToConversationId == conversation.id;
+                    final item = filtered[index];
 
-                    return _ConversationTile(
-                      conversation: conversation,
-                      currentUserId: currentUser?.id,
-                      isLoading: isLoading,
-                      onTap: () => _shareTo(conversation),
+                    return ConversationPickerTile(
+                      resolved: item,
+                      isSending: _sendingToConversationId == item.id,
+                      onTap: () => _shareTo(item.conversation),
                     );
                   },
                 );
@@ -408,88 +410,6 @@ class _FallbackIcon extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: icon,
-    );
-  }
-}
-
-class _ConversationTile extends ConsumerWidget {
-  final ConversationEntity conversation;
-  final String? currentUserId;
-  final bool isLoading;
-  final VoidCallback onTap;
-
-  const _ConversationTile({
-    required this.conversation,
-    required this.currentUserId,
-    required this.isLoading,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    String displayName = conversation.name ?? l10n.conversation;
-    String? avatarUrl = conversation.imageUrl;
-
-    if (conversation.isIndividual && currentUserId != null) {
-      final otherUserId = conversation.getOtherParticipantId(currentUserId!);
-      final otherUser = ref.watch(userStreamProvider(otherUserId)).valueOrNull;
-      if (otherUser != null) {
-        displayName = otherUser.displayName ?? displayName;
-        avatarUrl = otherUser.photoUrl ?? avatarUrl;
-      }
-    }
-
-    return ListTile(
-      onTap: isLoading ? null : onTap,
-      leading: CircleAvatar(
-        radius: 24,
-        backgroundColor:
-            conversation.isGroup
-                ? context.adaptiveSecondaryColor.withValues(alpha: 0.2)
-                : context.adaptivePrimaryColor.withValues(alpha: 0.2),
-        backgroundImage:
-            avatarUrl != null && avatarUrl.isNotEmpty
-                ? CachedNetworkImageProvider(avatarUrl)
-                : null,
-        child:
-            avatarUrl == null || avatarUrl.isEmpty
-                ? (conversation.isGroup
-                    ? AppIcon(
-                      AppIcon.groups,
-                      color: context.adaptiveSecondaryColor,
-                    )
-                    : AppIcon(
-                      AppIcon.person,
-                      color: context.adaptivePrimaryColor,
-                    ))
-                : null,
-      ),
-      title: Text(
-        displayName,
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: context.textPrimaryColor,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: Text(
-        conversation.isGroup ? l10n.group : 'Message privé',
-        style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
-      ),
-      trailing:
-          isLoading
-              ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: context.adaptivePrimaryColor,
-                ),
-              )
-              : AppIcon(AppIcon.send, size: 20, color: context.adaptivePrimaryColor),
     );
   }
 }

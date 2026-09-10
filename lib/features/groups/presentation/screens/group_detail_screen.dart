@@ -22,6 +22,7 @@ import '../providers/group_provider.dart';
 // import '../../domain/entities/group_pinned_item_entity.dart';
 import '../../../events/presentation/providers/group_next_event_provider.dart';
 import '../../../events/domain/entities/event_entity.dart';
+import '../widgets/invite_members_sheet.dart';
 import '../widgets/share_group_modal.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
@@ -218,6 +219,11 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   group: group,
                   isCreator: isCreator,
                   isAdmin: isAdmin,
+                  // Volontairement PAS `isAdmin` : celui-ci englobe le
+                  // superAdmin plateforme sur un groupe officiel, à qui les
+                  // policies de `group_invites` ne donnent rien — l'entrée
+                  // aurait mené à un refus muet.
+                  canInvite: peutInviterDansGroupe(group, currentUser?.id),
                   onLeave: () => _leaveGroup(group.id),
                 ),
                 const SizedBox(width: 8),
@@ -783,31 +789,73 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
               ),
               // Afficher les autres membres ou un message s'il n'y en a pas
               if (otherMemberIds.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 20,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.group_add,
-                        size: 20,
-                        color: context.textTertiaryColor,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          l10n.noOtherMembers,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: context.textTertiaryColor,
-                            fontStyle: FontStyle.italic,
-                          ),
+                Builder(
+                  builder: (context) {
+                    // Groupe seul avec son administrateur : c'est ici, sous
+                    // « Membres · 1 », qu'on cherche à en ajouter un second.
+                    // La ligne qui constate le vide ouvre donc l'invitation,
+                    // au lieu de renvoyer au menu ⋮.
+                    final peutInviter = peutInviterDansGroupe(
+                      group,
+                      ref.watch(currentUserProvider).valueOrNull?.id,
+                    );
+                    return InkWell(
+                      onTap:
+                          peutInviter
+                              ? () => InviteMembersSheet.show(
+                                context,
+                                group: group,
+                              )
+                              : null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.group_add,
+                              size: 20,
+                              color:
+                                  peutInviter
+                                      ? context.adaptivePrimaryColor
+                                      : context.textTertiaryColor,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                peutInviter
+                                    ? l10n.inviteMember
+                                    : l10n.noOtherMembers,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight:
+                                      peutInviter
+                                          ? FontWeight.w600
+                                          : FontWeight.w400,
+                                  color:
+                                      peutInviter
+                                          ? context.adaptivePrimaryColor
+                                          : context.textTertiaryColor,
+                                  fontStyle:
+                                      peutInviter
+                                          ? FontStyle.normal
+                                          : FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                            if (peutInviter)
+                              Icon(
+                                Icons.chevron_right,
+                                size: 20,
+                                color: context.adaptivePrimaryColor,
+                              ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 )
               else
                 ...otherMemberIds.take(4).map((memberId) {
@@ -1141,12 +1189,14 @@ class _GroupOverflowMenu extends ConsumerWidget {
   final GroupEntity group;
   final bool isCreator;
   final bool isAdmin;
+  final bool canInvite;
   final VoidCallback onLeave;
 
   const _GroupOverflowMenu({
     required this.group,
     required this.isCreator,
     required this.isAdmin,
+    required this.canInvite,
     required this.onLeave,
   });
 
@@ -1172,6 +1222,8 @@ class _GroupOverflowMenu extends ConsumerWidget {
       ),
       onSelected: (value) {
         switch (value) {
+          case 'invite':
+            InviteMembersSheet.show(context, group: group);
           case 'requests':
             context.push('/groups/${group.id}/requests');
           case 'edit':
@@ -1188,6 +1240,21 @@ class _GroupOverflowMenu extends ConsumerWidget {
         }
       },
       itemBuilder: (_) => [
+        if (canInvite)
+          PopupMenuItem(
+            value: 'invite',
+            child: Row(
+              children: [
+                // `group_add`, pas `person_add` : l'entrée voisine
+                // « Demandes d'adhésion » porte déjà celle-ci, et deux
+                // silhouettes identiques dans un même menu ne distinguent
+                // plus « j'invite » de « on me demande ».
+                const Icon(Icons.group_add_outlined, size: 18),
+                const SizedBox(width: 10),
+                Text(l10n.inviteMember),
+              ],
+            ),
+          ),
         if (isAdmin)
           PopupMenuItem(
             value: 'requests',

@@ -80,6 +80,309 @@ Corrigé dans cette livraison :
   n'ouvre la lecture que si `is_active`. Les 2 entreprises en base sont
   `is_active = false` : leurs liens sont donc morts pour tout le monde sauf
   leur propriétaire, et rien dans l'app ne le dit au propriétaire qui partage.
+## ⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)
+
+Le partage ne savait sortir de l'app (WhatsApp / Facebook / X / feuille
+système) sauf pour un post du fil, dont la liste de discussions était
+inutilisable pour les 1:1 : un message privé s'y affichait « Messages » avec
+un avatar « ? », et la recherche filtrait sur `conversation.name`, nul pour un
+1:1 — taper une lettre les faisait tous disparaître.
+
+Une destination « discussion » a été ajoutée partout, et la résolution
+nom/avatar d'une conversation vit désormais dans une seule source
+(`conversation_picker_sheet.dart`).
+
+- [ ] **Groupe → discussion** : fiche d'un groupe → Partager → « Envoyer dans
+  une discussion ». La liste doit montrer les 1:1 avec le vrai nom et la vraie
+  photo du contact, et les groupes avec leur nom.
+  (`lib/features/groups/presentation/widgets/share_group_modal.dart`)
+- [ ] **Profil → discussion** : idem depuis Partager un profil (le sien et
+  celui de quelqu'un d'autre).
+  (`lib/features/profile/presentation/widgets/share_profile_modal.dart`)
+- [ ] **Recherche dans le sélecteur** : taper le prénom d'un contact doit
+  laisser sa discussion privée visible — c'était le bug de fond, présent aussi
+  dans « Transférer » et dans le partage entrant depuis une autre app.
+  (`conversation_picker_sheet.dart`, `forward_conversation_picker.dart`,
+  `share_to_conversation_screen.dart`)
+- [ ] **Sélection multiple** : bouton « Sélectionner », cocher 2-3
+  discussions, « Envoyer à N conversation(s) » ; vérifier que le message
+  arrive dans chacune.
+- [ ] **Carte reçue à l'arrivée** : dans la discussion cible, un groupe ou un
+  profil partagé doit s'afficher en carte d'aperçu (image + titre) et le tap
+  doit ouvrir l'écran **dans l'app**, pas le navigateur (le site rend 404 sur
+  ces routes). (`link_preview_bubble.dart`)
+- [ ] **Post → discussion** : la liste du partage de post, corrigée, doit
+  afficher les 1:1 correctement ; la bulle reçue reste la carte de post.
+- [ ] **Événement / salon audio / podcast / épisode** : le bouton Partager
+  ouvre désormais une feuille à deux étages (discussion, puis réseaux). Sur
+  événement, la bulle reçue doit être la carte d'événement (date + lieu) et
+  ouvrir la fiche au tap.
+- [ ] **Thème sombre** : feuille de partage, sélecteur et carte d'aperçu en
+  mode nuit.
+- [ ] **Débordement** : le sélecteur avec le clavier ouvert (champ de
+  recherche) sur écran court, et un nom de contact très long.
+
+---
+
+## ⬜ Inviter des membres dans un groupe privé (2026-09-09)
+
+Signalé par Salim : « pour les groupes privés j'arrive pas à ajouter d'autres
+membres ». Il n'y arrivait pas parce que **l'app n'offrait nulle part de quoi
+le faire** — `GroupInviteNotifier.inviteUser` existait, le datasource Supabase
+écrivait bien `group_invites`, l'invité voyait l'invitation dans l'onglet
+Groupes et l'acceptation l'inscrivait dans `group_members` : tout le chemin
+était là, sauf l'écran qui l'appelle. Quatre traductions
+(`inviteMember`/`inviteSent`/`inviteAlreadySent`/`inviteError`) attendaient
+depuis le début, sans un seul usage dans le code.
+
+Sur un groupe **public** le manque se contournait — on partage le lien, la
+personne appuie sur « Rejoindre ». Sur un groupe **privé**, le lien ne produit
+qu'une demande d'adhésion à approuver : l'administrateur n'avait donc aucun
+moyen d'aller chercher quelqu'un.
+
+**Ce qui est à vérifier à l'écran** (aucun point ci-dessous n'est couvert par
+`flutter analyze`) :
+
+- [ ] Fiche d'un groupe privé dont on est administrateur : la ligne
+      « Aucun autre membre » devient « Inviter un membre », en couleur d'accent
+      avec un chevron, et ouvre la feuille
+      (`group_detail_screen.dart`, `_buildMembersSection`).
+- [ ] Menu ⋮ de la fiche : l'entrée « Inviter un membre » est présente pour un
+      administrateur, absente pour un simple membre. Son icône
+      (`group_add_outlined`) ne doit pas se confondre avec celle de
+      « Demandes d'adhésion » juste en dessous.
+- [ ] Écran « Membres » : l'icône d'ajout en barre de titre n'apparaît que
+      pour un administrateur (`group_members_screen.dart`).
+- [ ] Feuille elle-même (`invite_members_sheet.dart`) : suggestions à
+      l'ouverture (amis + personnes avec qui on a discuté), recherche par nom
+      au-delà de deux caractères, sélection multiple, « Inviter un membre · 2 »
+      sur le bouton.
+- [ ] **Clavier** : la feuille se recale au-dessus du clavier sans déborder, et
+      la croix d'effacement du champ apparaît dès la première frappe (pas au
+      bout de 350 ms).
+- [ ] **Thème sombre** et **échelle de police à 130 %** sur la feuille.
+- [ ] Une personne déjà invitée s'affiche estompée, « Déjà invité », non
+      sélectionnable — et le reste après avoir fermé puis rouvert la feuille.
+- [ ] **Bout en bout, deux téléphones** : inviter depuis le compte
+      administrateur, puis sur l'autre appareil voir l'invitation dans l'onglet
+      Groupes, l'accepter, et vérifier que le groupe apparaît **aussi dans
+      l'onglet Messages** — c'est ce dernier point qui est nouveau et jamais
+      testé (`acceptInvite` raccroche maintenant la conversation, comme
+      `joinGroup` le faisait déjà de son côté).
+
+**Sécurité fermée au passage — à rejouer après `supabase db push`.** La porte
+d'entrée de `group_members` (20260806210000) laissait une porte latérale :
+`group_invites_own` autorise à INSÉRER une invitation **dont on est soi-même
+le destinataire**, pour n'importe quel groupe. Deux appels d'API suffisaient
+donc pour entrer dans un groupe privé sans y avoir été invité — vérifié le
+2026-09-09 sous une identité réelle, dans une transaction annulée. Fermé par
+`20260909201500_invitations_groupe_porte_laterale.sql` (garde RESTRICTIVE à
+l'INSERT, trigger qui fige `group_id`/`invitee_id`, et `has_group_invite()`
+qui ne compte plus une invitation refusée).
+
+Banc rejouable, transaction annulée, rien n'est écrit :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_invitations_groupe.sql
+```
+
+Sortie attendue : « banc termine ». Tout « ECHEC n » interrompt le banc.
+Passer le fichier avec `-f` et non en argument : sous cette seconde forme les
+accents du banc le font échouer sur un message tronqué, qui se lit comme un
+vrai échec.
+
+**Appliqué en production le 2026-09-09** (`supabase db push`), banc rejoué
+contre la base réelle : « banc termine ». L'attaque est désormais refusée
+nommément — `new row violates row-level security policy
+"group_invites_insert_gate"`.
+
+---
+
+## ⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)
+
+Trouvé en pilotant le **Pixel 10 Pro XL (Android 17)** : après un
+`am force-stop` suivi d'un lancement, Android a affiché la boîte
+« Diaspo Niger s'arrête systématiquement ». Deux `FATAL EXCEPTION` dans le
+tampon `crash`, à 20:01:18 et 20:01:23, même trace :
+
+```
+java.lang.RuntimeException: Unable to start receiver
+  id.flutter.flutter_background_service.BootReceiver
+Caused by: android.app.ForegroundServiceStartNotAllowedException:
+  startForegroundService() not allowed: service
+  com.diasponiger.diasponiger/id.flutter.flutter_background_service.BackgroundService
+```
+
+La ligne système juste avant nomme le déclencheur :
+`BroadcastQueue: … action:android.intent.action.BOOT_COMPLETED`.
+
+**Deux drapeaux, pas un.** `BackgroundLocationService.initialize()` passe bien
+`autoStart: false`, mais le plugin en a un **second**, `autoStartOnBoot`, qui
+vaut `true` par défaut et n'était pas renseigné. Son `BootReceiver` (déclaré
+dans le manifeste du plugin, sur BOOT_COMPLETED / QUICKBOOT_POWERON /
+**MY_PACKAGE_REPLACED**) relance donc le service de premier plan de type
+`location` — ce qu'Android 15+ interdit depuis BOOT_COMPLETED. Le plugin ne
+rattrape pas l'exception : le process meurt.
+
+Portée réelle, plus large que le force-stop qui l'a révélé : le receiver écoute
+aussi `MY_PACKAGE_REPLACED`, donc **chaque mise à jour de l'app** le déclenche,
+et chaque redémarrage du téléphone aussi. Le SM A515F (Android 13) n'est pas
+touché — c'est une suite directe du passage à `targetSdk 36`, à ajouter aux
+comportements Android 16 déjà listés plus bas.
+
+Corrigé des deux côtés : `autoStartOnBoot: false`
+(`lib/core/services/background_location_service.dart`) pour dire l'intention,
+**et** `tools:node="remove"` sur le receiver dans
+`android/app/src/main/AndroidManifest.xml` — parce que le drapeau n'est lu
+qu'après le premier lancement de l'app, ce qui laisse sans lui une fenêtre
+ouverte juste après une mise à jour.
+
+Vérifié sur **Pixel 10 Pro XL (Android 17)** avec le build corrigé
+(`96205c16…bebc`, installé à 20:38) :
+
+- [x] `adb install -r` du nouvel APK **ne fait plus planter** l'app
+      (`MY_PACKAGE_REPLACED`) : `adb logcat -b crash` reste à 0
+      `FATAL EXCEPTION` douze secondes après.
+- [x] `am force-stop` puis lancement : pas de plantage, `MainActivity` au
+      premier plan, toujours 0 `FATAL EXCEPTION`.
+- [x] Preuve indépendante que la suppression a bien pris :
+      `adb shell dumpsys package com.diasponiger.diasponiger | grep -i
+      BootReceiver` ne rend **rien** — le receiver n'est plus enregistré chez
+      Android. Il l'était avant.
+
+Restent à faire, l'un et l'autre à la main :
+
+- [ ] ⚠️ **Redémarrage réel du téléphone** — le seul chemin qui rejoue
+      vraiment BOOT_COMPLETED (`am broadcast … BOOT_COMPLETED` est refusé au
+      shell : « Permission Denial »).
+- [ ] Le partage de position continu **démarre toujours** quand on l'active
+      dans l'app (c'est la seule chose que le receiver retiré aurait pu
+      fournir, et il ne la fournissait qu'au boot).
+
+---
+
+## ⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)
+
+Vu sur les **deux** appareils, dans deux groupes différents — donc pas une
+donnée périmée :
+
+- SM A515F, « Groupe de test privé » (1 membre) : `ECHO-A-1944` reste en
+  « Non envoyé · Réessayer », et « Réessayer » échoue pareil, alors que
+  l'appareil est en ligne (ping ok) et qu'un message 1:1 part sans problème à
+  la même minute ;
+- Pixel 10 Pro XL, « Testeurs » (1 membre, créé quelques minutes plus tôt) :
+  `GRP-TEST-1955` échoue exactement de la même façon.
+
+**Cause.** `message_provider.dart` calcule les destinataires d'un groupe en
+retirant l'expéditeur : `participantIds.where((id) => id != currentUser.id)`.
+Dans un groupe où l'on est seul, la liste est **vide** — et
+`_encryptContent` (`message_supabase_datasource.dart:247`) lève alors
+`E2EEException('Destinataire manquant — chiffrement impossible.')`, garde
+écrite pour le cas « 1:1 dont on n'a pas résolu le destinataire ».
+
+Rien ne le dit à l'écran : pas de SnackBar, juste le triangle rouge — et
+l'état vide du fil invite pourtant à « Soyez le premier à envoyer un message
+dans ce groupe ! ». C'est donc le tout premier geste après la création d'un
+groupe qui échoue.
+
+Corrigé en remettant l'expéditeur dans la liste quand elle est vide :
+`encryptGroup` chiffre avec NOTRE Sender Key, et
+`distributeSenderKeyToGroup` écarte déjà l'expéditeur de ses destinataires
+(`sender_key_service.dart:189`), donc la distribution ne vise personne.
+
+Vérifié sur **SM A515F** avec le build corrigé, dans le groupe même qui
+refusait une heure plus tôt (« Groupe de test privé », 1 membre) :
+
+- [x] Envoi dans un groupe où l'on est seul : `GRP-FIX-2041` passe à
+      **`À l'instant · Envoyé`** (20:40), là où `ECHO-A-1944` restait en
+      « Non envoyé » à 19:44 sur le même groupe et le même compte.
+- [x] Il est **réellement parti côté serveur**, pas seulement affiché : la
+      liste des discussions montre « Groupe de test privé — 20:40 — Vous:
+      GRP-FIX-2041 » et le groupe est remonté en tête. C'est
+      `_updateConversationLastMessage`, qui ne s'exécute qu'après l'insert.
+      À l'échec de 19:44, cette même ligne était restée sur « 30 août ».
+- [x] Quitter la discussion, y revenir : la bulle est toujours là, **en
+      clair** (20:42) — l'aller-retour Sender Key du chiffrement de groupe
+      tient.
+
+Restent à faire :
+
+- [ ] Ajouter un second membre, envoyer : le message est **lisible des deux
+      côtés** (c'est le vrai chemin Sender Key vers autrui, jamais exercé —
+      voir la section « écho temps réel » ci-dessus). Bloqué ce soir : le
+      Pixel s'est retrouvé déconnecté (voir la section suivante).
+- [ ] Les envois de **médias** en groupe : le provider ne leur passe aucun
+      `participantIds`, à regarder de près (chemin non instruit ici).
+
+---
+
+## ⛔ Le Pixel s'est retrouvé DÉCONNECTÉ pendant la passe (2026-09-09, 20:39)
+
+À signaler avant tout : le Pixel 10 Pro XL porte le **vrai compte** de Salim
+(Salim L., administrateur). Il est ressorti de cette passe sur l'écran
+« Bon retour » — session perdue. La reconnexion passe par le SSO Google, donc
+par sa main : rien n'a été tenté.
+
+Ce qu'on sait, et ce qu'on ne sait pas :
+
+- il était connecté à 19:51 (fiche du groupe « Testeurs » affichée) ;
+- entre 20:01 et 20:02 il a planté deux fois (voir la section BootReceiver) ;
+- à 20:38 il a reçu `adb install -r` du build corrigé, puis un
+  `am force-stop` + relance ; à 20:39 il affichait l'écran de connexion ;
+- **le SM A515F a reçu exactement le même `install -r` à la même minute et a
+  gardé sa session** (« Bonjour, Sim »). L'installation seule ne suffit donc
+  pas à l'expliquer.
+
+Aucun bandeau « Connecté ailleurs » à l'écran. Cause non isolée : le plantage
+répété, l'expiration de la session Supabase, ou la règle « une seule session
+par compte » sont toutes plausibles et aucune n'est établie. À reprendre si
+ça se reproduit — et à ne pas confondre avec le piège déjà documenté du
+`flutter clean` + `install -r`, qui n'a pas eu lieu ici.
+
+Conséquence immédiate : **tout test à deux appareils est bloqué** (écho de
+groupe entre deux comptes, QR affiché sur l'un et scanné par l'autre).
+
+---
+
+## ⬜ Le QR d'un groupe est refusé par le scanner — **observation terrain**
+
+Le défaut a été vu **en direct**, sur SM A515F, pendant que Salim scannait
+depuis « Scanner un profil » le QR affiché par « Partager » d'une fiche de
+groupe : « **QR code invalide ou format non reconnu** ». Ce n'était ni la
+caméra ni le QR.
+
+Le correctif est celui de l'autre agent, plus large et testé
+(`QrCodeParser`, 23 cas) : **voir la section « Le scanner de l'accueil lit
+tous les QR du projet » plus bas**, qui porte la liste des vérifications.
+Cette section-ci ne garde que la trace de l'observation, et un point que ce
+correctif ne change pas :
+
+- `DeepLinkService.parseDeepLink` / `DeepLinkType` savaient **déjà** lire huit
+  formes de liens et n'étaient appelés nulle part dans `lib/`. Il y a
+  maintenant deux parseurs de liens dans le projet, dont un mort — à
+  fusionner ou à supprimer, pas à laisser diverger.
+
+---
+
+## ⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)
+
+Vu sur Pixel 10 Pro XL, non corrigé, cause non isolée. L'écran des membres
+s'affichait correctement (« Salim L. — Créateur ») ; après un passage par
+l'accueil et un retour dans l'app, il est passé à « Erreur de chargement »
+avec un bouton « Réessayer » qui **échoue à chaque fois** (deux essais, à
+plusieurs secondes d'écart). Donc `GroupMembersScreen` sans `widget.group`
+→ `loadGroup(groupId)` → `getGroupById` en échec.
+
+Deux choses à démêler quand on le reprendra :
+
+- [ ] Pourquoi `getGroupById` échoue là où l'écran affichait le groupe une
+      minute plus tôt (le groupe venait d'être créé — id récent, pas un id
+      hérité Firestore).
+- [ ] La flèche « retour » de cet écran **quitte l'application** au lieu de
+      revenir à la fiche du groupe : `context.pop()` sur une pile qui ne
+      contient que cette route. Même famille que les écrans de lien profond.
+
+---
 
 ## ⬜ Aucun marqueur technique dans une bulle (2026-09-09)
 
@@ -122,14 +425,24 @@ Fichiers : `lib/core/services/e2ee/undecryptable_placeholders.dart`,
       introuvable », ni le bouton « Récupérer la clé de groupe », ni
       « [Message illisible] » : une ligne grise « Message indisponible sur cet
       appareil » à la place.
-- [ ] **Le vrai test du correctif** : ouvrir une discussion lisible, la
-      quitter, y revenir, faire un pull-to-refresh, remonter d'une page. Le
-      texte doit rester lisible — c'est le chemin où le soin depuis le cache
-      opère. Avant, un message pouvait basculer en marqueur et ne plus jamais
-      revenir.
-- [ ] Envoyer un message dans un groupe et attendre l'écho temps réel : la
-      bulle garde son texte (c'est `reconcileEchoContent`, désormais au
-      courant du troisième marqueur).
+- [x] **Le vrai test du correctif**, moitié faite (SM A515F, 19:46) : le 1:1
+      « Salim L. » ouvert, quitté, rouvert — « Yo », la note vocale, la carte
+      de position, « test-logs » et le message qui venait d'arriver sont tous
+      restés lisibles, aucun marqueur. ⚠️ **Le pull-to-refresh et la remontée
+      d'une page restent à faire** : le glissé lancé depuis le milieu du fil
+      est tombé sur la **carte de position**, qui l'a pris pour un tap et a
+      ouvert Google Maps. Repris depuis la marge gauche (x=90) : **même
+      résultat**, la carte s'ouvre encore — dans ce fil-là, la rangée du
+      message est cliquable sur toute la largeur. La remontée a donc été faite
+      dans « Groupe de test privé » (20:14), fil sans carte : le défilement
+      jusqu'au 30 août marche et les 4 vidéos restent intactes. Reste à
+      refaire sur un fil de **texte** long.
+- [x] Écho temps réel : la bulle garde son texte (SM A515F, 19:47).
+      `ECHO-DM-1947` envoyé dans le 1:1 est passé à `· Reçu` en gardant son
+      texte — `reconcileEchoContent` fait son travail. ⚠️ Fait en **1:1**, pas
+      en groupe : l'envoi de groupe était cassé (voir la section « Un groupe
+      dont on est le seul membre » ci-dessous), donc le chemin Sender Key de
+      `reconcileEchoContent` n'est toujours pas exercé.
 - [ ] Une photo **sans légende** s'affiche normalement — la garde lit la
       LISTE, pas `isUndecryptableContent`, qui tient le vide pour illisible et
       masquerait chaque média sans légende.
@@ -886,7 +1199,6 @@ et `md5sum` sur l'appareil identiques, `9793305acf2ea0dc2478ec436b3a7bba`) :
 - [ ] Un compteur à **trois chiffres** ne déforme pas sa colonne — pas
       vérifiable sur ce compte (4 / 2 / 0 / 1). Couvert au banc seulement.
 - [ ] Rendu en thème **clair** : jamais regardé.
-
 
 ---
 
@@ -11947,7 +12259,6 @@ en arrière (`d62512c`). Un worktree pousse vers `origin`, il ne met pas à jour
 la copie de travail principale. Avant de conclure qu'un correctif « ne marche
 pas », vérifier `git log HEAD..origin/<branche>` dans le dépôt principal.
 
-
 ---
 
 ## ⬜ Heure et accusé sur tous les messages, bascule supprimée (2026-08-23)
@@ -12262,6 +12573,12 @@ des messages « Hi » et « ECHO-DM-1947 » y sont arrivés à 19:46 et 19:47, h
 de toute action de cette session. Ne pas prendre son contenu pour un état
 stable, et ne pas conclure d'un message qu'on n'a pas envoyé soi-même.
 
+  Précision, apportée par la session qui les a produits : `ECHO-DM-1947` est
+  un envoi de **test** depuis le SM A515F (vérification de l'écho temps réel,
+  cf. la section sur les marqueurs de bulle) ; « Hi » venait du Pixel. Les
+  deux appareils étaient pilotés en parallèle ce soir-là, l'un par un agent,
+  l'autre à la main — d'où l'avertissement ci-dessus, qui reste valable.
+
 ---
 
 ## ⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)
@@ -12294,8 +12611,26 @@ main :
       ouverture de l'écran de récupération. », et **pas** une erreur.
 - [ ] **QR d'un autre service** (n'importe quel QR du commerce) : message
       d'erreur, la caméra ne doit pas rester bloquée.
-- [ ] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
-      profil ».
+- [x] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
+      profil » — vérifié sur SM A515F le 2026-09-09 (capture). C'est aussi la
+      preuve que le build installé porte bien ce code : le titre est le seul
+      changement visible sans scanner quoi que ce soit.
+- [x] **La destination d'un scan de groupe s'ouvre** : lien
+      `https://diasponiger.web.app/groups/<id>` envoyé en intent sur
+      58221FDCQ0085Z → fiche « Diaspora Niger — Cap-Vert » complète, bouton
+      « Rejoindre le groupe ». La moitié « route » de la chaîne est donc
+      prouvée appareil ; il reste la moitié « caméra → parser ».
+- [x] **La caméra s'ouvre** sur l'écran du scanner (`dumpsys media.camera` :
+      CONNECT/DISCONNECT du paquet à chaque entrée/sortie) — ce que la montée
+      `mobile_scanner` 7 mettait en doute. Le rendu reste noir tant que
+      l'objectif ne voit rien d'éclairé : le cadre et le texte d'instruction
+      sont dans le sous-arbre `ColorFiltered(BlendMode.srcOut)`, donc invisibles
+      par construction sur fond noir. Ne pas confondre avec une caméra morte.
+
+**Piège de mesure (2026-09-09)** : le premier symptôme rapporté (« ça ne marche
+pas ») venait d'un APK antérieur au correctif — construit à 19:55, correctif
+committé à 20:12. Avant toute conclusion sur un comportement appareil, comparer
+`lastUpdateTime` (`dumpsys package`) à l'horodatage du commit.
 
 ---
 
