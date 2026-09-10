@@ -12152,6 +12152,18 @@ premiers passeraient avec une capture cassée), et un balayage de source qui
 
 ⚠️ **Deux pièges de mesure rencontrés, à ne pas répéter.**
 
+**0. Le relevé `uiautomator` peut contredire l'écran.** Le plus coûteux des
+trois. En cherchant à supprimer le message envoyé par erreur, le dump plaçait
+la bulle visée à `601,941` ; l'appui long à cet endroit a sélectionné un
+**autre** message (une position, envoyée 56 min plus tôt), deux fois de suite.
+La capture d'écran, elle, montrait la bonne chose. Sur cet écran Flutter,
+l'arbre sémantique ne reflétait pas la position de défilement réelle.
+
+**Conséquence pratique** : pour toute action destructrice sur appareil,
+ne jamais se fier au dump seul. Ouvrir le menu, **capturer l'écran, vérifier
+visuellement la cible sélectionnée**, et seulement ensuite confirmer. C'est ce
+contrôle qui a évité de supprimer un message innocent.
+
 **1. Les coordonnées de tap se périment.** Une première tentative d'usage a
 échoué en silence : la liste s'était réordonnée depuis la capture précédente
 (un message reçu remonte sa conversation), et le tap à `540,987` a ouvert un
