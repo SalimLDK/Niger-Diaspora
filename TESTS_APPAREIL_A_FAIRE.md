@@ -279,7 +279,7 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
 
 **⚠️ Deux défauts trouvés en le vérifiant, corrigés mais PAS encore livrés :**
 
-- [ ] **Le compteur de participants ne bougeait pas** (`event_attendees` à 1,
+- [x] **Le compteur de participants ne bougeait pas** — ✅ vérifié SM A515F 2026-09-09 23:05 : annulation → 0, réinscription → 1, en base comme à l'écran. (`event_attendees` à 1,
       `events.attendee_count` à 0). Ma faute dans `20260910010000` : j'ai
       réécrit le trigger sans `SECURITY DEFINER`. Il tourne donc sous
       l'identité du participant, et `events_manage_own` réserve l'UPDATE à
@@ -289,7 +289,7 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
       `20260910023000` la remet en DEFINER et recale les compteurs.
       Vérifier : « Participer » depuis un compte non-organisateur → le
       nombre de participants augmente à l'écran.
-- [ ] **La notification disait « Un utilisateur participera à … »**
+- [x] **La notification disait « Un utilisateur participera à … »** — ✅ vérifié : la ligne de 23:05 dit « **Sim A** participera à "Tabaski 2026" », juste au-dessus des deux anciennes en « Un utilisateur » (dont une du 5 août).
       (signalé par Salim). `attendEvent` lisait le nom dans **Firestore**
       (`users/<uid>.displayName`) alors que les comptes vivent sur Supabase :
       le document n'existe pas, et le repli générique masquait la panne au
@@ -297,7 +297,23 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
       Vérifier : participer à l'événement de quelqu'un d'autre → il reçoit
       « <votre nom> participera à … ».
 
-⚠️ **`supabase db push` à relancer** pour `20260910023000`.
+✅ `20260910023000` appliquée. Trigger en `SECURITY DEFINER`, compteurs recalés.
+
+**⚠️ Reste ouvert — un événement peut n'apparaître dans aucun onglet.**
+« À venir » filtre `startDate >= now`, « Passés » filtre `status == 'completed'`.
+Un événement dont la date est passée mais dont personne n'a changé le statut
+tombe entre les deux et devient invisible — c'est le cas de « testeur », et
+c'est ce qui m'a fait croire un moment que la collection Firestore était vide.
+Rien ne fait passer un événement de `upcoming` à `ended` automatiquement.
+
+**⚠️ Lectures Firestore `users` encore vivantes ailleurs**, même famille que
+la notification corrigée ici, non vérifiées : `core/services/session_service.dart`,
+`core/services/e2ee/content_moderation_service.dart`,
+`core/services/e2ee/session_backup_service.dart`,
+`features/admin/.../permission_provider.dart`,
+`features/admin/.../role_management_provider.dart`.
+(`GroupRemoteDataSourceImpl._getUserDisplayName` porte le même motif mais est
+du **code mort** : le provider rend `GroupSupabaseDataSource()`.)
 
 
 
