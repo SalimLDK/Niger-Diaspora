@@ -392,10 +392,15 @@ base et en notification. Ajouté : une pastille rouge « Annulé » à côté du
 badge Gratuit/Payant, et le bouton éteint qui dit « Annulé » au lieu de
 « Complet ».
 
-- [ ] « testeur » (passé, resté `upcoming`) doit apparaître dans « Passés ».
-- [ ] « Tabaski 2026 » (annulé) aussi, avec sa pastille rouge, et son bouton
-      « Annulé » inactif.
-- [ ] Aucun événement ne doit être absent des deux onglets.
+- [x] « testeur » (passé, resté `upcoming`) apparaît dans « Passés » — ✅ SM A515F 2026-09-10 00:45, avec « gh » (19 juil.) : les deux étaient invisibles avant.
+- [x] « Tabaski 2026 » (annulé) : pastille rouge « Annulé » entre « Culturel »
+      et « Gratuit », et bouton grisé « Annulé » à la place de « Participer » —
+      ✅ SM A515F 2026-09-10 00:47.
+- [x] Aucun événement absent des deux onglets — ✅ les 3 événements en base sont
+      visibles. ⚠️ **Deuxième passe nécessaire** : la pastille de la carte
+      disait « À venir » **dans l'onglet Passés** (elle lisait `status` brut).
+      Corrigée en « Terminé » / « Annulé », revérifiée. Rendre visible sans
+      corriger l'étiquette aurait déplacé la confusion, pas retirée.
 
 **⚠️ Lectures Firestore `users` encore vivantes ailleurs**, même famille que
 la notification corrigée ici, non vérifiées : `core/services/session_service.dart`,
