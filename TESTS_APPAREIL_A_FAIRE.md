@@ -748,7 +748,7 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       `canPop() ? pop() : go(<parent>)`, avec le parent logique de chaque
       route et non un `/home` uniforme.
 
-      **Neuf rejouées à l'intent** le 2026-09-10 — voir le tableau de la passe
+      **Seize rejouées à l'intent** le 2026-09-10 — voir le tableau de la passe
       appareil plus bas. Chacune sort sur **son** parent, pas sur un `/home`
       uniforme. Restent à voir à l'œil : `/events/<id>`, `/polls/<id>/results`,
       les écrans de création/édition, et les cinq écrans podcasts (bloqués par
@@ -800,7 +800,7 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       Vérifier : `diasponiger:///feed` et `diasponiger:///calls/history`,
       flèche présente et qui sort.
 
-### Passe appareil du 2026-09-10 — neuf liens rejoués
+### Passe appareil du 2026-09-10 — seize liens rejoués
 
 SM A515F, build `317a775c…08c6`, md5 contrôlé avant **et** après (l'autre agent
 installe sur le même téléphone). Intents envoyés **à chaud** : à froid, le lien
@@ -817,6 +817,13 @@ retombe sur `/home` par intermittence et la mesure est fausse.
 | `diasponiger:///notifications/settings` | **Réglages** ✅ |
 | `diasponiger:///groups/map` | **Groupes** ✅ |
 | `diasponiger:///profile/edit` | **Mon profil** ✅ |
+| `diasponiger:///events/<id>` | **Événements** ✅ |
+| `diasponiger:///feed/<postId>` | Accueil ✅ |
+| `diasponiger:///businesses/<id>` | **Annuaire** ✅ |
+| `diasponiger:///embassies/<id>` | **Ambassades** ✅ |
+| `diasponiger:///p/u/<userId>` | Accueil ✅ |
+| `diasponiger:///groups/create` | **Groupes** ✅ |
+| `diasponiger:///messages/new` | **Messages** ✅ |
 
 Plus les trois mesures du retour système : lien profond → accueil ; onglet
 Accueil → l'app se ferme, comme avant ; navigation interne → la liste, pas
