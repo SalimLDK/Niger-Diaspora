@@ -716,6 +716,45 @@ fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
 
 ---
 
+## ⬜ Une route sous feature-flag est joignable au démarrage (2026-09-10)
+
+Trouvé en cherchant à mesurer les écrans podcasts, qu'on croyait injoignables.
+
+Le routeur ne ferme la porte des routes « phase 2 » que **si les drapeaux sont
+chargés** :
+
+```dart
+final flags = ref.read(loadedFeatureFlagsProvider);
+if (flags != null) { … return '/home'; }
+```
+
+Le choix est écrit et défendable — bloquer pendant le chargement appliquerait
+les valeurs par défaut de `FeatureFlagsEntity` (podcasts et salons audio à
+`false`) et renverrait ces écrans sur `/home` à **chaque** démarrage à froid.
+Mais la contrepartie n'était notée nulle part : entre le lancement de l'app et
+l'arrivée de `app_config/settings`, `/podcasts/*`, `/marketplace/*`,
+`/transfers/*`, `/payment-*` et `/audio-rooms/*` **s'ouvrent normalement**.
+
+Mesuré sur SM A515F le 2026-09-10, sur un build de production : le même intent
+`diasponiger:///podcasts` donne l'écran Podcasts s'il arrive tôt, et l'accueil
+s'il arrive tard. Rien dans les logs ne distingue les deux.
+
+C'est ce qui rendait réellement atteignables les cinq écrans podcasts qui
+n'avaient aucune sortie (section précédente) — donc un défaut de sortie sur un
+écran « désactivé » n'est pas théorique.
+
+- [ ] **Décider si la fenêtre doit rester ouverte.** Deux options, aucune
+      gratuite : garder le comportement actuel (une poignée de secondes où
+      tout est joignable), ou attendre les drapeaux sur ces routes-là
+      seulement — au prix d'un écran d'attente sur un lien profond reçu à
+      froid. À trancher avec Salim ; ne rien changer sans lui, le commentaire
+      du routeur dit que le sens inverse a déjà coûté un défaut.
+- [ ] **Piège de mesure à retenir** : viser cette fenêtre à la main est
+      instable. 22 s après le lancement, l'intent tombe tantôt sur le splash
+      (mesure trop tôt), tantôt après le chargement des drapeaux (mesure trop
+      tard). Pour mesurer un écran sous drapeau, ouvrir les verrous dans un
+      build **jetable** et le dire dans le compte rendu.
+
 ## ⬜ Podcasts : cinq routes qu'aucun garde ne voyait (2026-09-10)
 
 Trouvé en répondant à « tous les types de deep link ont été pris en compte ? ».
