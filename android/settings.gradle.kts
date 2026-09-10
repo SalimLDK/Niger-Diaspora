@@ -27,7 +27,16 @@ plugins {
     id("com.android.application") version "8.10.1" apply false
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
     // START: FlutterFire Configuration
-    id("com.google.gms.google-services") version "4.3.15" apply false
+    // 4.4.1 minimum : exigé par le plugin Crashlytics 3 ci-dessous, qui échoue
+    // sinon sur « Failed to query ... property 'appIdFile' » à la création de
+    // la tâche uploadCrashlyticsMappingFileRelease.
+    id("com.google.gms.google-services") version "4.4.2" apply false
+    // Sans ce plugin, le SDK Crashlytics tourne quand même et les non-fatals
+    // partent — mais les fichiers de mapping R8 ne sont jamais envoyés
+    // (`isMinifyEnabled = true` sur release), donc les piles d'appel arrivent
+    // obfusquées et illisibles dans la console. Il porte aussi l'envoi des
+    // symboles NDK.
+    id("com.google.firebase.crashlytics") version "3.0.2" apply false
     // END: FlutterFire Configuration
 }
 

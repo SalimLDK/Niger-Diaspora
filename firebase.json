@@ -133,6 +133,54 @@
                     "destination": "/code-of-conduct-en.html"
                 },
                 {
+                    "source": "/groups/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/g/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/feed/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/events/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/businesses/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/marketplace/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/audio-rooms/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/podcasts/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/profile/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/p/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/embassies/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/calls/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
                     "source": "**",
                     "destination": "/index.html"
                 }
@@ -170,6 +218,15 @@
                         {
                             "key": "Cache-Control",
                             "value": "public, max-age=3600"
+                        }
+                    ]
+                },
+                {
+                    "source": "/@(groups|g|feed|events|businesses|marketplace|audio-rooms|podcasts|profile|p|embassies|calls)/**",
+                    "headers": [
+                        {
+                            "key": "Cache-Control",
+                            "value": "public, max-age=0, must-revalidate"
                         }
                     ]
                 },
@@ -273,6 +330,54 @@
                     "destination": "/code-of-conduct-en.html"
                 },
                 {
+                    "source": "/groups/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/g/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/feed/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/events/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/businesses/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/marketplace/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/audio-rooms/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/podcasts/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/profile/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/p/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/embassies/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
+                    "source": "/calls/**",
+                    "destination": "/ouvrir.html"
+                },
+                {
                     "source": "**",
                     "destination": "/index.html"
                 }
@@ -310,6 +415,15 @@
                         {
                             "key": "Cache-Control",
                             "value": "public, max-age=3600"
+                        }
+                    ]
+                },
+                {
+                    "source": "/@(groups|g|feed|events|businesses|marketplace|audio-rooms|podcasts|profile|p|embassies|calls)/**",
+                    "headers": [
+                        {
+                            "key": "Cache-Control",
+                            "value": "public, max-age=0, must-revalidate"
                         }
                     ]
                 },

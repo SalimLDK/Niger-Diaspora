@@ -2726,6 +2726,7 @@
   "nameRequired": "Le nom est requis",
   "nameMinLength": "Le nom doit contenir au moins 3 caractères",
   "privateGroup": "Groupe privé",
+  "groupUnavailableOrPrivate": "Ce groupe est privé ou n'existe plus.",
   "groupCreated": "Groupe créé avec succès",
   "groupCreationError": "Erreur lors de la création du groupe",
   "promotionError": "Erreur lors de la promotion",
