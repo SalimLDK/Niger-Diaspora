@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,6 +10,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../features/messages/presentation/providers/message_provider.dart';
+import '../../../../features/messages/presentation/widgets/conversation_picker_sheet.dart';
+import '../../../../features/messages/presentation/widgets/share_to_chat_sheet.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/post_entity.dart';
 import '../providers/feed_provider.dart';
 import 'package:diaspo_niger/shared/utils/external_share.dart';
@@ -29,6 +31,7 @@ class _SharePostSheetState extends ConsumerState<SharePostSheet> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
   bool _isSending = false;
+  String? _sendingToConversationId;
   bool _isSharingExternally = false;
 
   @override
@@ -37,35 +40,37 @@ class _SharePostSheetState extends ConsumerState<SharePostSheet> {
     super.dispose();
   }
 
-  Future<void> _share(String conversationId, String conversationName) async {
-    setState(() => _isSending = true);
+  Future<void> _share(String conversationId) async {
+    if (_isSending) return;
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      setState(() => _isSending = false);
-      return;
-    }
+    setState(() {
+      _isSending = true;
+      _sendingToConversationId = conversationId;
+    });
 
-    final preview = widget.post.content.length > 100
-        ? '${widget.post.content.substring(0, 100)}…'
-        : widget.post.content;
-
-    final postData = <String, dynamic>{
-      'postId': widget.post.id,
-      'authorId': widget.post.authorId,
-      'authorName': widget.post.authorName,
-      'content': preview,
-      if (widget.post.mediaUrls.isNotEmpty) 'mediaUrl': widget.post.mediaUrls.first,
-    };
+    final content = ChatShareContent.post(
+      postId: widget.post.id,
+      authorId: widget.post.authorId,
+      authorName: widget.post.authorName,
+      content: widget.post.content,
+      mediaUrl:
+          widget.post.mediaUrls.isNotEmpty
+              ? widget.post.mediaUrls.first
+              : null,
+      message: '📌 Post de ${widget.post.authorName}',
+    );
 
     await ref.read(sendMessageProvider.notifier).sendText(
           conversationId: conversationId,
-          content: '📌 Post de ${widget.post.authorName}',
-          postData: postData,
+          content: content.message,
+          postData: content.postData,
         );
 
     if (mounted) {
-      setState(() => _isSending = false);
+      setState(() {
+        _isSending = false;
+        _sendingToConversationId = null;
+      });
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -161,6 +166,7 @@ class _SharePostSheetState extends ConsumerState<SharePostSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final conversationsAsync = ref.watch(conversationsProvider);
+    final currentUserId = ref.watch(currentUserProvider).valueOrNull?.id;
     final theme = Theme.of(context);
 
     return DraggableScrollableSheet(
@@ -265,16 +271,23 @@ class _SharePostSheetState extends ConsumerState<SharePostSheet> {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (_, __) => Center(child: Text(l10n.feedError)),
                 data: (conversations) {
-                  final filtered = conversations.where((c) {
-                    if (_searchQuery.isEmpty) return true;
-                    final name = (c.name ?? '').toLowerCase();
-                    return name.contains(_searchQuery);
-                  }).toList();
+                  // Résolution partagée : sans elle, un 1:1 s'affichait sous
+                  // « Messages » avec un avatar « ? » et la recherche, qui
+                  // filtrait sur `conversation.name` (nul pour un 1:1), les
+                  // faisait tous disparaître dès la première lettre tapée.
+                  final resolved = resolveConversations(
+                    ref,
+                    conversations,
+                    currentUserId: currentUserId,
+                    l10n: l10n,
+                  );
+                  final filtered =
+                      resolved.where((r) => r.matches(_searchQuery)).toList();
 
                   if (filtered.isEmpty) {
                     return Center(
                       child: Text(
-                        l10n.feedEmpty,
+                        l10n.noConversationFound,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: Colors.grey,
                         ),
@@ -286,39 +299,15 @@ class _SharePostSheetState extends ConsumerState<SharePostSheet> {
                     controller: scrollController,
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
-                      final conv = filtered[index];
-                      final name = conv.name ?? l10n.messages;
+                      final item = filtered[index];
 
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: conv.imageUrl != null
-                              ? NetworkImage(conv.imageUrl!)
-                              : null,
-                          child: conv.imageUrl == null
-                              ? Text(
-                                  name.isNotEmpty
-                                      ? name[0].toUpperCase()
-                                      : '?',
-                                )
-                              : null,
-                        ),
-                        title: Text(
-                          name,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: _isSending
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : IconButton(
-                                icon: const AppIcon(AppIcon.send,
-                                  color: Colors.teal,
-                                ),
-                                onPressed: () => _share(conv.id, name),
-                              ),
-                        onTap: _isSending ? null : () => _share(conv.id, name),
+                      return ConversationPickerTile(
+                        resolved: item,
+                        isSending: _sendingToConversationId == item.id,
+                        onTap:
+                            _isSending
+                                ? () {}
+                                : () => _share(item.conversation.id),
                       );
                     },
                   );

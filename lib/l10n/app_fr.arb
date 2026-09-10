@@ -8185,5 +8185,34 @@
   "embassyNotFoundMessage": "Ce poste diplomatique n'est plus dans l'annuaire, ou le lien est incorrect.",
   "embassyLoadFailedTitle": "Chargement impossible",
   "backToEmbassies": "Retour à l'annuaire",
-  "embassySearchHint": "Nom, pays ou ville"
+  "embassySearchHint": "Nom, pays ou ville",
+  "shareToChatTitle": "Envoyer dans une discussion",
+  "shareToChatSubtitle": "Groupes et messages privés",
+  "pickerTapToSend": "Appuyez pour envoyer",
+  "pickerSelectConversations": "Sélectionnez les discussions",
+  "pickerContentSent": "Envoyé",
+  "pickerContentPartiallySent": "Certains envois n'ont pas abouti",
+  "privateMessage": "Message privé",
+  "shareProfileChatMessage": "Découvre le profil de {name} sur Diaspo Niger\n{link}",
+  "@shareProfileChatMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "shareLinkChatMessage": "« {title} » sur Diaspo Niger\n{link}",
+  "@shareLinkChatMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  }
 }

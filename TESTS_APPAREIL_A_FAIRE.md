@@ -14,6 +14,50 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)
+
+Le partage ne savait sortir de l'app (WhatsApp / Facebook / X / feuille
+système) sauf pour un post du fil, dont la liste de discussions était
+inutilisable pour les 1:1 : un message privé s'y affichait « Messages » avec
+un avatar « ? », et la recherche filtrait sur `conversation.name`, nul pour un
+1:1 — taper une lettre les faisait tous disparaître.
+
+Une destination « discussion » a été ajoutée partout, et la résolution
+nom/avatar d'une conversation vit désormais dans une seule source
+(`conversation_picker_sheet.dart`).
+
+- [ ] **Groupe → discussion** : fiche d'un groupe → Partager → « Envoyer dans
+  une discussion ». La liste doit montrer les 1:1 avec le vrai nom et la vraie
+  photo du contact, et les groupes avec leur nom.
+  (`lib/features/groups/presentation/widgets/share_group_modal.dart`)
+- [ ] **Profil → discussion** : idem depuis Partager un profil (le sien et
+  celui de quelqu'un d'autre).
+  (`lib/features/profile/presentation/widgets/share_profile_modal.dart`)
+- [ ] **Recherche dans le sélecteur** : taper le prénom d'un contact doit
+  laisser sa discussion privée visible — c'était le bug de fond, présent aussi
+  dans « Transférer » et dans le partage entrant depuis une autre app.
+  (`conversation_picker_sheet.dart`, `forward_conversation_picker.dart`,
+  `share_to_conversation_screen.dart`)
+- [ ] **Sélection multiple** : bouton « Sélectionner », cocher 2-3
+  discussions, « Envoyer à N conversation(s) » ; vérifier que le message
+  arrive dans chacune.
+- [ ] **Carte reçue à l'arrivée** : dans la discussion cible, un groupe ou un
+  profil partagé doit s'afficher en carte d'aperçu (image + titre) et le tap
+  doit ouvrir l'écran **dans l'app**, pas le navigateur (le site rend 404 sur
+  ces routes). (`link_preview_bubble.dart`)
+- [ ] **Post → discussion** : la liste du partage de post, corrigée, doit
+  afficher les 1:1 correctement ; la bulle reçue reste la carte de post.
+- [ ] **Événement / salon audio / podcast / épisode** : le bouton Partager
+  ouvre désormais une feuille à deux étages (discussion, puis réseaux). Sur
+  événement, la bulle reçue doit être la carte d'événement (date + lieu) et
+  ouvrir la fiche au tap.
+- [ ] **Thème sombre** : feuille de partage, sélecteur et carte d'aperçu en
+  mode nuit.
+- [ ] **Débordement** : le sélecteur avec le clavier ouvert (champ de
+  recherche) sur écran court, et un nom de contact très long.
+
+---
+
 ## ⬜ Aucun marqueur technique dans une bulle (2026-09-09)
 
 Constaté sur SM A515F (capture du 2026-09-09, 19:02, groupe « Diaspora
