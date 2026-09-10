@@ -268,7 +268,38 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
 
 ---
 
-## ⚠️ Événements sur Supabase — provider BASCULÉ, une migration à appliquer (2026-09-09)
+## ✅ Événements sur Supabase — BASCULÉ et vérifié SM A515F (2026-09-09 22:35)
+
+**✅ Vérifié sur SM A515F avec l'APK de 22:21** (md5 `8b3cb4753c`) :
+
+- `…/events/6a5b77cb-…` — un uuid qui n'existe **que** dans Supabase — ouvre
+  « Tabaski 2026 » avec sa date, son lieu, sa description et son organisateur.
+  Le même lien tournait à vide indéfiniment avant la bascule.
+- « Participer » insère bien dans `event_attendees` : plus de 42703.
+
+**⚠️ Deux défauts trouvés en le vérifiant, corrigés mais PAS encore livrés :**
+
+- [ ] **Le compteur de participants ne bougeait pas** (`event_attendees` à 1,
+      `events.attendee_count` à 0). Ma faute dans `20260910010000` : j'ai
+      réécrit le trigger sans `SECURITY DEFINER`. Il tourne donc sous
+      l'identité du participant, et `events_manage_own` réserve l'UPDATE à
+      l'organisateur — la RLS ne fait pas échouer l'UPDATE, elle lui donne
+      **zéro ligne**. Aucune erreur nulle part. C'est la forme d'échec muet
+      la mieux connue du projet, réintroduite par moi.
+      `20260910023000` la remet en DEFINER et recale les compteurs.
+      Vérifier : « Participer » depuis un compte non-organisateur → le
+      nombre de participants augmente à l'écran.
+- [ ] **La notification disait « Un utilisateur participera à … »**
+      (signalé par Salim). `attendEvent` lisait le nom dans **Firestore**
+      (`users/<uid>.displayName`) alors que les comptes vivent sur Supabase :
+      le document n'existe pas, et le repli générique masquait la panne au
+      lieu de la signaler. Lu depuis `public.users.display_name`.
+      Vérifier : participer à l'événement de quelqu'un d'autre → il reçoit
+      « <votre nom> participera à … ».
+
+⚠️ **`supabase db push` à relancer** pour `20260910023000`.
+
+
 
 Décision de Salim : `public.events` fait foi. Le module Événements lisait
 Firestore pendant que le back-office admin écrivait dans Supabase.
@@ -13448,6 +13479,34 @@ n'existait pas avant.
 n'a **qu'un seul** site d'appel dans tout `lib/`. Les huit autres usages du
 logger sont des `.w`, volontairement laissés muets. Le branchement ajouté le
 2026-09-09 couvre donc un chemin d'erreur, pas neuf.
+
+---
+
+## ✅ Liens profonds : schéma maison et événements (2026-09-09)
+
+Vérifié sur SM A515F, build de 22:44.
+
+- [x] **`diasponiger://groups/<id>` ouvre la fiche du groupe.** Avant :
+      « Page Not Found » avec `GoException: no routes for location:
+      diasponiger://groups/<id>`. Preuve dans logcat, côté natif :
+      `DiaspoDeepLink: route poussee vers Dart : /groups/<id>` — l'hôte est
+      bien recollé devant le chemin.
+- [x] **`/events/<id>` ouvre la fiche** (« Tabaski 2026 ») au lieu de
+      « Erreur de chargement », après la bascule du provider sur
+      `EventSupabaseDataSource`.
+- [x] **Liens `https` de groupe, de fil et de profil** : ouverts à chaud et à
+      froid, App Links `verified` pour `diasponiger.com` et
+      `diasponiger.web.app` (`pm get-app-links`).
+
+**Piège de mesure** : après avoir envoyé un lien profond par `am start`, ne
+pas ramener l'app avec `monkey ... LAUNCHER` avant la capture — le lancement
+depuis le launcher réinitialise la pile de la tâche et la route du lien
+profond disparaît. Le lien semble alors perdu alors qu'il avait bien été
+poussé (logcat le prouve). Envoyer l'intent **app au premier plan**, puis
+capturer sans rien toucher d'autre.
+
+Reste non vérifié : le scan physique d'un QR, qui demande de présenter un code
+à l'objectif.
 
 ---
 
