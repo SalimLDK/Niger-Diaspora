@@ -80,12 +80,27 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
       // accès refusé, réseau) plutôt que de spinner indéfiniment sans jamais
       // le signaler à l'utilisateur.
       if (detailState.hasError) {
+        // Deux echecs tres differents arrivaient sous le meme habillage.
+        //
+        // `getGroupById` finit sur `.single()` : quand la RLS ne rend aucune
+        // ligne — groupe prive dont on n'est ni membre, ni cree, ni invite —
+        // PostgREST repond PGRST116, exactement comme pour un groupe
+        // supprime. Ce n'est pas une panne : reessayer ne changera jamais
+        // rien, et « Erreur de chargement » laissait croire le contraire.
+        // Mesure du 2026-09-09 sur lien profond vers un groupe prive.
+        //
+        // On ne dit pas LEQUEL des deux, et ce n'est pas une approximation :
+        // distinguer « prive » de « supprime » confirmerait l'existence d'un
+        // groupe a qui detient son uuid, ce que la migration
+        // 20260909201500 vient precisement de fermer.
+        final introuvable = detailState.error.toString().contains('PGRST116');
         return Scaffold(
           backgroundColor: context.backgroundColor,
           appBar: AppBar(
             leading: IconButton(
               icon: const AppIcon(AppIcon.arrowBack),
-              onPressed: () => context.pop(),
+              onPressed: () =>
+                  context.canPop() ? context.pop() : context.go('/home'),
             ),
           ),
           body: Center(
@@ -101,17 +116,29 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    l10n.loadingError,
+                    introuvable
+                        ? l10n.groupUnavailableOrPrivate
+                        : l10n.loadingError,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: context.textPrimaryColor),
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => ref
-                        .read(groupDetailNotifierProvider.notifier)
-                        .loadGroup(widget.groupId),
-                    child: Text(l10n.retry),
-                  ),
+                  // Pas de « Reessayer » sur un refus definitif : le bouton
+                  // relancerait la meme requete pour le meme resultat.
+                  if (introuvable)
+                    ElevatedButton(
+                      onPressed: () => context.canPop()
+                          ? context.pop()
+                          : context.go('/home'),
+                      child: Text(l10n.back),
+                    )
+                  else
+                    ElevatedButton(
+                      onPressed: () => ref
+                          .read(groupDetailNotifierProvider.notifier)
+                          .loadGroup(widget.groupId),
+                      child: Text(l10n.retry),
+                    ),
                 ],
               ),
             ),
@@ -123,7 +150,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         appBar: AppBar(
           leading: IconButton(
             icon: const AppIcon(AppIcon.arrowBack),
-            onPressed: () => context.pop(),
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
         ),
         body: Center(

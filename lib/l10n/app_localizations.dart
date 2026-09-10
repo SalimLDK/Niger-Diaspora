@@ -10670,6 +10670,12 @@ abstract class AppLocalizations {
   /// **'Groupe privé'**
   String get privateGroup;
 
+  /// No description provided for @groupUnavailableOrPrivate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce groupe est privé ou n\'existe plus.'**
+  String get groupUnavailableOrPrivate;
+
   /// No description provided for @groupCreated.
   ///
   /// In fr, this message translates to:

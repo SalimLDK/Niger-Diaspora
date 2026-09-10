@@ -14,6 +14,73 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
+
+Signalé par Salim : « les liens des groupes et autres ne marchent pas ».
+Sept liens rejoués à l'intent, démarrage à froid, sur Pixel `58221FDCQ0085Z`
+(compte « Salim L. ») — le lien **arrive** bien à l'app dans tous les cas, la
+vérification App Links est `verified` sur les deux appareils. Ce qui casse est
+toujours **après**, à l'écran d'arrivée :
+
+| Lien | Mesuré le 2026-09-09 |
+|---|---|
+| `/groups/<public>` | ✅ fiche du groupe, complète |
+| `/groups/<privé>` non-membre | ❌ « Erreur de chargement » + Réessayer inutile |
+| `/p/u/<userId>` | ✅ profil |
+| `/events/<uuid Supabase>` | ❌ roue qui tourne, encore là **après 75 s** |
+| `/invite?ref=…` | ⚠️ accueil ; aucune route `/invite` n'existe, le `ref` est perdu |
+| `/groups/<inexistant>` | ❌ « Erreur de chargement » (même écran que le privé) |
+| `…/groups/<id>` dans un navigateur | ⚠️ page d'accueil du site (règle `**` → index.html) |
+
+Corrigé dans cette livraison :
+
+- [ ] **`/events/<id>` qui échoue affiche enfin quelque chose.**
+      `EventDetailScreen` ne regardait que `eventAsync.valueOrNull` : un
+      événement supprimé, un refus de lecture ou une coupure réseau rendaient
+      `null`, exactement comme un chargement en cours — d'où la roue
+      éternelle. Garde `hasError` ajoutée, calquée sur `GroupDetailScreen`
+      qui la portait déjà.
+      Vérifier : ouvrir `…/events/<uuid inexistant>` → « Erreur de
+      chargement » + « Réessayer », **pas** de roue infinie.
+- [ ] **Groupe privé : ne plus mentir.** `getGroupById` finit sur `.single()`
+      ; la RLS d'un groupe privé rend zéro ligne, donc PGRST116 — le même
+      code que pour un groupe supprimé. « Erreur de chargement » + un
+      « Réessayer » qui ne peut jamais aboutir. Remplacé par « Ce groupe est
+      privé ou n'existe plus. » et un bouton « Retour ».
+      Le message ne distingue **pas** privé de supprimé, volontairement :
+      confirmer l'existence d'un groupe à qui détient son uuid rouvrirait ce
+      que `20260909201500` vient de fermer.
+      Vérifier : `…/groups/2b24986f-08b5-4840-9931-dbe046ffb394` (groupe
+      privé de test) depuis un compte non-membre.
+- [ ] **Flèche retour des deux écrans d'erreur/chargement.** Elles faisaient
+      `context.pop()` : arrivé par lien profond, la route est seule dans la
+      pile → écran noir. Repli `canPop ? pop : go('/home')`.
+      Vérifier : lien profond → erreur → flèche retour → accueil, pas de noir.
+
+**Pas corrigé, décision à prendre :**
+
+- ⚠️ **Les événements sont sur deux bases à la fois.** Le module Événements
+  (`EventRemoteDataSourceImpl`, liste + fiche + création) lit et écrit
+  **Firestore** ; le back-office admin (`admin_provider.dart`, 5 appels)
+  lit et écrit `public.events` **sur Supabase**, où se trouvent 2 lignes. Un
+  événement créé d'un côté est invisible de l'autre, et un lien portant un
+  uuid Supabase ne pourra jamais s'ouvrir dans l'app — c'est ce qui produisait
+  la roue infinie ci-dessus. Le correctif d'affichage rend l'échec visible,
+  il ne réconcilie rien.
+- ⚠️ **Pas de route `/invite`.** `DeepLinkService.generateInviteLink()`
+  fabrique `…/invite?ref=<uid>` (bouton « Inviter des amis » de l'accueil) et
+  le routeur n'a rien pour ce chemin : atterrissage sur l'accueil, parrainage
+  perdu. À décider : route de parrainage, ou lien qui pointe ailleurs.
+- ⚠️ **Repli navigateur inexistant.** `firebase.json` renvoie tout chemin
+  inconnu sur `/index.html`. Quelqu'un sans l'app — ou qui tape le lien depuis
+  le navigateur intégré de WhatsApp, qui court-circuite les App Links —
+  tombe sur la page d'accueil du site, sans un mot sur le groupe ni de bouton
+  « Ouvrir dans l'application ».
+- ⚠️ **`/businesses/<id>` d'une fiche inactive.** `businesses_select_active`
+  n'ouvre la lecture que si `is_active`. Les 2 entreprises en base sont
+  `is_active = false` : leurs liens sont donc morts pour tout le monde sauf
+  leur propriétaire, et rien dans l'app ne le dit au propriétaire qui partage.
+
 ## ⬜ Aucun marqueur technique dans une bulle (2026-09-09)
 
 Constaté sur SM A515F (capture du 2026-09-09, 19:02, groupe « Diaspora

@@ -5778,6 +5778,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get privateGroup => 'Groupe privé';
 
   @override
+  String get groupUnavailableOrPrivate =>
+      'Ce groupe est privé ou n\'existe plus.';
+
+  @override
   String get groupCreated => 'Groupe créé avec succès';
 
   @override
