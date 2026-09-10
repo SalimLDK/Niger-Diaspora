@@ -801,6 +801,49 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       Vérifier : `diasponiger:///feed` et `diasponiger:///calls/history`,
       flèche présente et qui sort.
 
+## ⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)
+
+Consigne de Salim : « pour les groupes privés, celui qui reçoit le lien fait
+une demande d'adhésion au groupe ». Le message honnête livré la veille restait
+une impasse ; il devient une porte.
+
+Tout le chemin existait déjà (`requestToJoinGroup`, et
+`group_requests_parties` laisse un non-membre créer **sa** demande). Il
+manquait une seule chose : `group_requests.group_name` est dénormalisé, donc
+sans un moyen de lire le nom, aucune demande n'est possible depuis un lien.
+
+`20260910060000` ajoute `group_link_preview(uuid)`, SECURITY DEFINER, réservée
+à `authenticated` : nom, avatar, nombre de membres, privé ou non. Rien
+d'autre. La RLS de `groups` n'a pas bougé — prouvé en transaction annulée :
+un inconnu authentifié voit toujours 3 groupes par la RLS (les publics), et
+n'obtient le nom du privé que par l'aperçu.
+
+⚠️ **Choix de produit assumé** : un uuid connu révèle désormais le nom d'un
+groupe privé — le modèle du lien d'invitation. Ce que ça ne rouvre **pas**,
+et c'est ce qui le distingue de la porte fermée par `20260909201500` :
+l'aperçu ne donne aucun accès, la seule suite est une demande qu'un
+administrateur doit approuver.
+
+Effet de bord utile : l'aperçu est la seule chose qui sache distinguer
+« privé » de « supprimé » — `getGroupById` rend le même PGRST116 pour les deux.
+
+**⚠️ `supabase db push` à relancer** pour `20260910060000`. Tant qu'elle n'est
+pas passée, l'aperçu échoue et l'écran retombe sur l'ancien message — c'est
+volontaire, mais rien n'est vérifiable sur appareil avant.
+
+Couvert par deux tests widget : aperçu résolu → nom + « Demander à
+rejoindre » ; aperçu nul → pas de fausse porte.
+
+- [ ] Depuis un compte **non-membre**, ouvrir le lien d'un groupe privé :
+      nom, avatar, « Privé · N membres », bouton « Demander à rejoindre ».
+- [ ] Le bouton devient inactif après l'envoi, et l'administrateur voit la
+      demande dans `/groups/<id>/requests`.
+- [ ] Un lien vers un groupe supprimé garde « Ce groupe est privé ou n'existe
+      plus. » — pas de bouton.
+- [ ] Redemander deux fois ne doit pas empiler deux demandes.
+
+---
+
 ## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
 
 Signalé par Salim : « les liens des groupes et autres ne marchent pas ».
@@ -829,7 +872,12 @@ Corrigé dans cette livraison :
       qui la portait déjà.
       Vérifier : ouvrir `…/events/<uuid inexistant>` → « Erreur de
       chargement » + « Réessayer », **pas** de roue infinie.
-- [ ] **Groupe privé : ne plus mentir.** ⚠️ NON REJOUÉ sur appareil : le compte du SM A515F (« Sim A ») est le **créateur** du groupe privé de test, la fiche s'ouvre donc normalement pour lui ; le Pixel, qui portait un compte non-membre, s'est déconnecté pendant les mesures (une seule session par compte). Couvert par test widget seulement. `getGroupById` finit sur `.single()`
+- [x] **Groupe privé : ne plus mentir.** ✅ vérifié SM A515F 2026-09-10 00:56 :
+      « Ce groupe est privé ou n'existe plus. » + « Retour », sans
+      « Réessayer ». ⚠️ Une première tentative identique avait atterri sur la
+      **liste** des groupes : au démarrage à froid le lien arrive parfois sur
+      le splash et se perd. Relance identique → bon écran. Non corrigé.
+      **Ce n'est plus l'état final** — voir la section « demander à rejoindre ». ⚠️ NON REJOUÉ sur appareil : le compte du SM A515F (« Sim A ») est le **créateur** du groupe privé de test, la fiche s'ouvre donc normalement pour lui ; le Pixel, qui portait un compte non-membre, s'est déconnecté pendant les mesures (une seule session par compte). Couvert par test widget seulement. `getGroupById` finit sur `.single()`
       ; la RLS d'un groupe privé rend zéro ligne, donc PGRST116 — le même
       code que pour un groupe supprimé. « Erreur de chargement » + un
       « Réessayer » qui ne peut jamais aboutir. Remplacé par « Ce groupe est
