@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ouvrir dans Diaspo Niger</title>
+    <meta name="description"
+        content="Ce lien mène à un contenu de l'application Diaspo Niger. Ouvrez-le dans l'application, ou installez-la.">
+    <!-- Page de hand-off, pas une page de contenu : rien à indexer, et son
+         URL change à chaque lien. -->
+    <meta name="robots" content="noindex, follow">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#F8F5EF">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Diaspo Niger">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:title" content="Diaspo Niger">
+    <meta property="og:description" content="La communauté nigérienne à travers le monde.">
+    <meta property="og:image" content="https://diasponiger.web.app/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://diasponiger.web.app/og-image.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/assets/site.css">
+    <style>
+        /* Page autonome et courte : pas de nav, pas de pied. C'est un
+           aiguillage, tout ce qui distrait du bouton est du bruit. */
+        .ho {
+            min-height: 100svh;
+            display: grid;
+            place-items: center;
+            padding: 1.5rem;
+        }
+
+        .ho-card {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-radius: var(--r-l);
+            box-shadow: var(--shadow-m);
+            padding: clamp(1.8rem, 6vw, 2.8rem);
+            max-width: 30rem;
+            width: 100%;
+            text-align: center;
+        }
+
+        .ho-logo {
+            border-radius: 18px;
+            margin: 0 auto 1.4rem;
+            display: block;
+        }
+
+        .ho-kind {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--green-deep);
+            margin-bottom: 0.5rem;
+        }
+
+        .ho-card h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(1.4rem, 5vw, 1.85rem);
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            color: var(--dark);
+            margin-bottom: 0.7rem;
+        }
+
+        .ho-card p {
+            color: var(--muted);
+            font-size: 0.98rem;
+            line-height: 1.6;
+        }
+
+        .ho-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            margin-top: 1.8rem;
+        }
+
+        /* `.btn` pose `display: inline-flex` : une regle d'auteur bat le
+           `[hidden] { display: none }` de la feuille du navigateur, et
+           l'attribut `hidden` seul ne masquerait rien. */
+        [hidden] {
+            display: none !important;
+        }
+
+        .ho-note {
+            margin-top: 1.4rem;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .ho-note a {
+            color: var(--green-deep);
+        }
+    </style>
+</head>
+
+<body>
+    <main class="ho">
+        <div class="ho-card">
+            <img class="ho-logo" src="/logo-96.png" alt="Diaspo Niger" width="64" height="64">
+            <p class="ho-kind" id="kind" hidden></p>
+            <h1>Ouvrez ce lien dans l&rsquo;application</h1>
+            <p id="blurb">Ce lien mène à un contenu de Diaspo Niger. L&rsquo;application est
+                nécessaire pour l&rsquo;afficher.</p>
+
+            <div class="ho-actions">
+                <a class="btn btn-primary" id="open" href="/telecharger">Ouvrir dans l&rsquo;application</a>
+                <a class="btn btn-ghost" id="install" href="/telecharger">Installer Diaspo Niger</a>
+            </div>
+
+            <p class="ho-note">
+                Vous consultez peut-être ce lien dans le navigateur intégré d&rsquo;une autre
+                application, qui ne sait pas passer la main à Diaspo Niger.
+                <a href="/">Aller au site</a>
+            </p>
+        </div>
+    </main>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var PKG = 'com.diasponiger.diasponiger';
+            var PLAY = 'https://play.google.com/store/apps/details?id=' + PKG;
+
+            // Le chemin demandé, tel quel. C'est la seule donnée que cette page
+            // manipule : aucun appel réseau, aucun nom de groupe, aucun titre.
+            // Afficher « ce lien mène à un groupe » ne révèle rien ; afficher
+            // LEQUEL révélerait qu'un groupe privé existe (cf. la garde côté
+            // app, migration 20260909201500).
+            var path = location.pathname + location.search;
+
+            var KINDS = {
+                groups: 'Groupe',
+                g: 'Groupe',
+                feed: 'Publication',
+                events: 'Événement',
+                businesses: 'Entreprise',
+                marketplace: 'Annonce',
+                'audio-rooms': 'Salon audio',
+                podcasts: 'Podcast',
+                profile: 'Profil',
+                p: 'Profil',
+                embassies: 'Ambassade',
+                calls: 'Appel'
+            };
+
+            var first = location.pathname.split('/').filter(Boolean)[0];
+            var kind = KINDS[first];
+            if (kind) {
+                var el = document.getElementById('kind');
+                el.textContent = kind;
+                el.hidden = false;
+            }
+
+            var open = document.getElementById('open');
+            var blurb = document.getElementById('blurb');
+            var ua = navigator.userAgent || '';
+
+            if (/Android/i.test(ua)) {
+                // `intent://` porte son propre repli : si le paquet est absent,
+                // Chrome part sur browser_fallback_url au lieu d'echouer en
+                // silence. Le fragment `#Intent` doit rester en fin de chaine.
+                open.setAttribute('href',
+                    'intent://' + location.host + path +
+                    '#Intent;scheme=https;package=' + PKG +
+                    ';S.browser_fallback_url=' + encodeURIComponent(PLAY) + ';end');
+            } else if (/iPhone|iPad|iPod/i.test(ua)) {
+                // Pas d'equivalent d'intent:// : on tente le schema prive
+                // declare par l'app, et si rien ne le prend la page reste la.
+                open.setAttribute('href', 'diasponiger://' + path.replace(/^\//, ''));
+                blurb.textContent =
+                    'Ce lien mène à un contenu de Diaspo Niger. L’application iOS ' +
+                    'est en préparation — le contenu est pour l’instant ' +
+                    'accessible depuis Android.';
+            } else {
+                // Ordinateur : rien a ouvrir ici, on n'offre pas un bouton mort.
+                // Le bouton secondaire dirait alors la meme chose que le
+                // premier : on le retire plutot que de le repeter.
+                open.setAttribute('href', '/telecharger');
+                open.textContent = 'Installer sur votre téléphone';
+                document.getElementById('install').hidden = true;
+                blurb.textContent =
+                    'Ce lien mène à un contenu de Diaspo Niger, une application ' +
+                    'mobile. Ouvrez-le depuis votre téléphone, ou installez ' +
+                    'l’application.';
+            }
+        })();
+    </script>
+</body>
+
+</html>

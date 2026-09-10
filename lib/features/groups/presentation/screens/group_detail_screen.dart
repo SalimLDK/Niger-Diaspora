@@ -15,6 +15,13 @@ import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/group_request_entity.dart';
 import 'package:intl/intl.dart';
 import '../providers/group_provider.dart';
+// `show` obligatoire : `myGroupRequestsProvider` et
+// `groupPendingRequestsProvider` existent en DOUBLE, ici et dans
+// `group_provider.dart` (deux définitions parallèles du même flux). Un
+// import nu rend les deux noms ambigus et l'écran ne compile plus.
+import '../providers/group_request_provider.dart'
+    show receivedGroupInvitesProvider, groupInviteNotifierProvider;
+import '../../domain/entities/group_invite_entity.dart';
 // Fonctionnalité épingle mise en pause (2026-08-14) : la ligne « Épinglés »
 // de cette fiche est commentée plus bas (`_GroupInfoCard.build` et
 // `_pinnedSummary`), ces deux imports n'ont donc plus d'usage vivant ici.
@@ -68,10 +75,29 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     final detailState = ref.watch(groupDetailNotifierProvider);
     final l10n = AppLocalizations.of(context)!;
 
+    // `groupDetailNotifierProvider` est PARTAGÉ (pas une famille par id) : sa
+    // valeur peut appartenir à un groupe visité juste avant, et cet écran ne
+    // le peuple même pas quand `initialGroup` est fourni. Ne l'accepter que
+    // si l'id correspond — même garde que `GroupMembersScreen`.
+    final cachedDetail = detailState.valueOrNull;
+    final detailGroup =
+        cachedDetail?.id == widget.groupId ? cachedDetail : null;
+
+    // Ordre de préférence : le flux d'abord, `initialGroup` en dernier.
+    //
+    // C'était l'inverse (`widget.initialGroup ?? streamGroup`), et
+    // `initialGroup` est un instantané figé au moment de la navigation —
+    // celui de la liste « Mes groupes », par exemple. Tant qu'il était non
+    // nul, il gagnait sur tout : la fiche ouverte depuis une liste n'a jamais
+    // rien montré d'autre que l'état du groupe à l'instant du tap, quoi qu'il
+    // arrive ensuite — ni l'arrivée d'un membre, ni un départ, ni un
+    // renommage. Il reste utile comme premier rendu, avant que le flux n'ait
+    // répondu, et comme repli hors ligne.
     final group = groupStream.when(
-      data: (streamGroup) => widget.initialGroup ?? streamGroup ?? detailState.valueOrNull,
-      loading: () => widget.initialGroup ?? detailState.valueOrNull,
-      error: (_, __) => widget.initialGroup ?? detailState.valueOrNull,
+      data: (streamGroup) =>
+          streamGroup ?? detailGroup ?? widget.initialGroup,
+      loading: () => detailGroup ?? widget.initialGroup,
+      error: (_, __) => detailGroup ?? widget.initialGroup,
     );
 
     if (group == null) {
@@ -465,6 +491,20 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   ? const SizedBox.shrink()
                   : Consumer(
                     builder: (context, ref, child) {
+                      // Une invitation en attente sur CE groupe passe devant
+                      // tout le reste. C'est là qu'atterrit la notification
+                      // d'invitation (`/groups/<id>`) : sans ce cas, la fiche
+                      // proposait « Demander à rejoindre » à quelqu'un qu'on
+                      // vient précisément d'inviter — et l'invitation, elle,
+                      // n'était acceptable que depuis l'onglet Groupes.
+                      final monInvitation = _invitationEnAttente(ref, group.id);
+                      if (monInvitation != null) {
+                        return _BarreInvitation(
+                          invitation: monInvitation,
+                          groupId: group.id,
+                        );
+                      }
+
                       if (!group.isPrivate) {
                         return SizedBox(
                           width: double.infinity,
@@ -1178,6 +1218,126 @@ class _GroupActionRow extends ConsumerWidget {
   }
 }
 
+
+/// Invitation en attente de l'utilisateur courant sur ce groupe, s'il y en a.
+///
+/// `receivedGroupInvitesProvider` ne rend déjà que les invitations en attente
+/// (le datasource filtre `status = 'pending'`), mais le statut est revérifié
+/// ici : la liste est un flux temps réel, et une acceptation faite ailleurs
+/// doit faire disparaître la barre plutôt que la laisser proposer une action
+/// devenue vide.
+GroupInviteEntity? _invitationEnAttente(WidgetRef ref, String groupId) {
+  final invitations = ref.watch(receivedGroupInvitesProvider).valueOrNull;
+  if (invitations == null) return null;
+  for (final invitation in invitations) {
+    if (invitation.groupId == groupId &&
+        invitation.status == GroupInviteStatus.pending) {
+      return invitation;
+    }
+  }
+  return null;
+}
+
+/// Barre de bas de page d'un groupe où l'on est invité : accepter ou refuser,
+/// sans repasser par l'onglet Groupes.
+class _BarreInvitation extends ConsumerStatefulWidget {
+  final GroupInviteEntity invitation;
+  final String groupId;
+
+  const _BarreInvitation({required this.invitation, required this.groupId});
+
+  @override
+  ConsumerState<_BarreInvitation> createState() => _BarreInvitationState();
+}
+
+class _BarreInvitationState extends ConsumerState<_BarreInvitation> {
+  bool _enCours = false;
+
+  Future<void> _repondre({required bool accepter}) async {
+    if (_enCours) return;
+    setState(() => _enCours = true);
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+
+    final notifier = ref.read(groupInviteNotifierProvider.notifier);
+    final ok =
+        accepter
+            ? await notifier.acceptInvite(
+              widget.invitation.id,
+              groupId: widget.groupId,
+            )
+            : await notifier.declineInvite(widget.invitation.id);
+
+    if (!mounted) return;
+    setState(() => _enCours = false);
+
+    if (!ok) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.groupsActionUnavailable),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // L'appartenance vient de changer : la fiche lit `memberIds`, la liste
+    // « Mes groupes » son propre cache. Sans ces deux invalidations, la barre
+    // reste affichée sur un groupe déjà rejoint.
+    ref.invalidate(myGroupsNotifierProvider);
+    ref.invalidate(groupStreamProvider(widget.groupId));
+    ref.read(groupDetailNotifierProvider.notifier).loadGroup(widget.groupId);
+
+    if (accepter) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.groupJoined),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    if (_enCours) {
+      return Center(
+        child: CircularProgressIndicator(color: context.adaptivePrimaryColor),
+      );
+    }
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => _repondre(accepter: false),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: context.textSecondaryColor,
+              side: BorderSide(color: context.borderColor),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: Text(l10n.declineRequest),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 2,
+          child: ElevatedButton.icon(
+            onPressed: () => _repondre(accepter: true),
+            icon: const Icon(Icons.check),
+            label: Text(l10n.acceptRequest),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: context.adaptivePrimaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 /// Menu ⋮ de la fiche 9d. Rassemble ce que l'en-tête alignait en pastilles
 /// muettes — demandes d'adhésion, édition, signalement — plus la sortie du

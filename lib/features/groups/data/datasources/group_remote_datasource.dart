@@ -19,6 +19,15 @@ abstract class GroupRemoteDataSource {
   Future<void> leaveGroup(String groupId, String userId);
   Future<void> removeMember(String groupId, String userId);
   Future<List<GroupModel>> getMyGroups(String userId);
+
+  /// Signal — sans donnée — émis à chaque fois que l'appartenance de [userId]
+  /// change, dans n'importe quel groupe et quel qu'en soit l'auteur : un
+  /// admin qui approuve une demande, un admin qui exclut, l'utilisateur
+  /// lui-même depuis un autre appareil.
+  ///
+  /// Sert à rafraîchir « Mes groupes », qui se chargeait une seule fois.
+  Stream<void> watchMyMemberships(String userId);
+
   Future<List<GroupModel>> searchGroups(String query);
 
   /// Get or create the official country group for auto-join.
@@ -555,6 +564,14 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       // debugPrint('⚠️ Failed to remove user from group conversation: $e');
     }
   }
+
+  /// Aucun équivalent Firestore : l'appartenance vit dans la table Supabase
+  /// `group_members`, et cette implémentation-ci n'est plus câblée nulle part
+  /// (voir l'en-tête de `group_provider.dart`). Un flux vide plutôt qu'un
+  /// `UnimplementedError` : l'appelant en fait un rafraîchissement, pas une
+  /// fonctionnalité — planter serait pire que ne pas rafraîchir.
+  @override
+  Stream<void> watchMyMemberships(String userId) => const Stream.empty();
 
   @override
   Future<List<GroupModel>> getMyGroups(String userId) async {

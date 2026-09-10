@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/models/country.dart';
@@ -33,6 +35,17 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   GroupSupabaseDataSource({SupabaseClient? supabase})
       : _supabase = supabase ?? Supabase.instance.client;
+
+  /// Compteur de topics realtime.
+  ///
+  /// `groupStreamProvider` est `autoDispose` : quitter puis rouvrir un groupe,
+  /// ou simplement le dernier `ref.watch` qui disparaît le temps d'une
+  /// transition, détruit l'abonnement et en recrée un aussitôt. Le
+  /// `removeChannel` de l'ancien est asynchrone et n'a pas fini quand le
+  /// nouveau s'abonne : sur un topic partagé, deux canaux homonymes se
+  /// marchent dessus et c'est le neuf qui reste muet, sans la moindre erreur.
+  /// Un suffixe unique par abonnement rend les deux indépendants.
+  static int _topicSeq = 0;
 
   // ═══════════════════════════════════════════
   // APPARTENANCE
@@ -180,32 +193,185 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     return GroupModel.fromJson(_mapGroup(data.first));
   }
 
+  /// Lecture ponctuelle du groupe, `null` s'il n'existe pas (ou plus).
+  ///
+  /// Jumeau de [getGroupById] à un détail près : `maybeSingle()` au lieu de
+  /// `single()`. Le flux réactif a besoin de distinguer « supprimé » (émettre
+  /// `null`) de « échec de lecture » (ne rien émettre), là où `single()`
+  /// lève dans les deux cas.
+  Future<GroupModel?> _fetchGroupOrNull(String groupId) async {
+    final data =
+        await _supabase.from('groups').select().eq('id', groupId).maybeSingle();
+    if (data == null) return null;
+    // Comme getGroupById : `groups.member_ids`/`admin_ids` sont NULL en base,
+    // seule `group_members` fait foi. Sans ce correctif, la fiche groupe
+    // atteinte SANS `initialGroup` (ex. depuis l'en-tête de la conversation)
+    // affichait « Membres · 0 » et « Rejoindre le groupe » à des membres
+    // réels — le flux réactif écrasait en permanence la lecture ponctuelle
+    // correcte de `groupDetailNotifierProvider` via le `??` de
+    // `GroupDetailScreen`.
+    final membership = await _membershipFor([groupId]);
+    return GroupModel.fromJson(
+      _mapGroup(_withMembership(Map<String, dynamic>.from(data), membership)),
+    );
+  }
+
+  /// Flux réactif de la fiche groupe : la ligne `groups` **et** son
+  /// appartenance.
+  ///
+  /// Ce n'est volontairement plus un `.stream()` PostgREST sur `groups`.
+  /// Celui-ci ne pouvait pas rendre ce que la fiche affiche, pour deux
+  /// raisons cumulées :
+  ///
+  /// 1. `public.groups` n'était pas dans la publication `supabase_realtime`
+  ///    (relevé du 2026-09-09, corrigé par la migration
+  ///    `20260909210000_realtime_groupes_et_appartenance.sql`) : le
+  ///    `.stream()` faisait son chargement initial puis n'émettait plus
+  ///    jamais rien. « Stream provider for real-time group updates » décrivait
+  ///    une réactivité qui n'existait pas.
+  /// 2. Même publiée, la table `groups` ne bouge pas quand l'appartenance
+  ///    change. La liste des membres vient de `group_members` — un rôle passé
+  ///    de `member` à `admin` est un UPDATE là-bas et ne touche rien ici.
+  ///    Seul `member_count` suit, par `group_members_count_trigger`, et
+  ///    seulement sur INSERT/DELETE.
+  ///
+  /// D'où l'abonnement aux **deux** tables, chacune déclenchant la même
+  /// relecture. C'est le défaut signalé : accepter une demande d'adhésion ou
+  /// quitter un groupe ne se voyait pas chez les autres avant de rouvrir la
+  /// fiche.
+  ///
+  /// Un échec de relecture (réseau, RLS le temps d'une ré-authentification)
+  /// n'émet **rien** et ne clôt pas le flux : le prochain événement retentera,
+  /// et l'écran garde la dernière valeur bonne. C'est le contrat sur lequel
+  /// `GroupDetailScreen` est bâti — il se fie à l'appel one-shot
+  /// `groupDetailNotifierProvider` pour détecter un échec réel, ce flux-ci ne
+  /// remontant jamais d'erreur explicite.
   @override
-  Stream<GroupModel?> getGroupStream(String groupId) async* {
-    // Session d'abord : un .stream() créé en anon fait son fetch initial sous
-    // RLS sans droits → 0 ligne pour toujours (groupe « introuvable », écran
-    // de détails en chargement infini, permissions par défaut).
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
-    yield* _supabase
-        .from('groups')
-        .stream(primaryKey: ['id'])
-        .eq('id', groupId)
-        .asyncMap((rows) async {
-          if (rows.isEmpty) return null;
-          // Comme getGroupById : `groups.member_ids`/`admin_ids` sont NULL en
-          // base, seule `group_members` fait foi. Sans ce correctif, la fiche
-          // groupe atteinte SANS `initialGroup` (ex. depuis l'en-tête de la
-          // conversation) affichait « Membres · 0 » et « Rejoindre le groupe »
-          // à des membres réels — le flux réactif écrasait en permanence la
-          // lecture ponctuelle correcte de `groupDetailNotifierProvider` via
-          // le `??` de `GroupDetailScreen`.
-          final membership = await _membershipFor([groupId]);
-          return GroupModel.fromJson(
-            _mapGroup(
-              _withMembership(Map<String, dynamic>.from(rows.first), membership),
-            ),
-          );
-        });
+  Stream<GroupModel?> getGroupStream(String groupId) {
+    final controller = StreamController<GroupModel?>();
+    final topic = 'group_${groupId}_${_topicSeq++}';
+    RealtimeChannel? channel;
+    var cancelled = false;
+
+    Future<void> refetch() async {
+      if (controller.isClosed) return;
+      try {
+        final model = await _fetchGroupOrNull(groupId);
+        if (!controller.isClosed) controller.add(model);
+      } catch (_) {
+        // Voir le contrat ci-dessus : on garde la dernière valeur émise.
+      }
+    }
+
+    Future<void> start() async {
+      // Session d'abord : un abonnement créé en anon fait son fetch initial
+      // sous RLS sans droits → 0 ligne pour toujours (groupe « introuvable »,
+      // écran de détails en chargement infini, permissions par défaut).
+      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      if (cancelled) return;
+      await refetch();
+      if (cancelled) return;
+
+      channel = _supabase.channel(topic)
+        ..onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'groups',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'id',
+            value: groupId,
+          ),
+          callback: (_) => refetch(),
+        )
+        ..onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'group_members',
+          // `group_members` a pour clé primaire `(group_id, user_id)` : un
+          // événement DELETE porte donc `group_id` malgré la REPLICA IDENTITY
+          // par défaut, et ce filtre s'évalue dessus. C'est ce qui fait
+          // remonter « untel a quitté le groupe » — l'inverse du cas
+          // `notifications`, dont le filtre porte sur une colonne hors clé.
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'group_id',
+            value: groupId,
+          ),
+          callback: (_) => refetch(),
+        );
+      channel!.subscribe();
+    }
+
+    controller.onListen = () {
+      unawaited(start());
+    };
+    controller.onCancel = () async {
+      cancelled = true;
+      final c = channel;
+      channel = null;
+      if (c != null) await _supabase.removeChannel(c);
+      await controller.close();
+    };
+
+    return controller.stream;
+  }
+
+  /// Émet à chaque changement d'appartenance de [userId], quel que soit le
+  /// groupe — y compris quand la ligne est écrite par quelqu'un d'autre
+  /// (admin qui approuve une demande, admin qui exclut un membre).
+  ///
+  /// « Mes groupes » se chargeait une fois, à la construction du notifier
+  /// `keepAlive`, et plus jamais : un groupe rejoint sur invitation ou sur
+  /// approbation n'y apparaissait qu'au redémarrage de l'app, et un groupe
+  /// quitté depuis un autre appareil y restait.
+  ///
+  /// Le flux ne porte pas la donnée, seulement le signal : l'appelant relit
+  /// par `get_my_groups`, qui est la seule source correcte (RPC SECURITY
+  /// DEFINER, appartenance recomposée).
+  @override
+  Stream<void> watchMyMemberships(String userId) {
+    final controller = StreamController<void>();
+    final topic = 'my_memberships_${userId}_${_topicSeq++}';
+    RealtimeChannel? channel;
+    var cancelled = false;
+
+    Future<void> start() async {
+      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      if (cancelled) return;
+      channel = _supabase.channel(topic)
+        ..onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'group_members',
+          // `user_id` fait partie de la clé primaire `(group_id, user_id)` :
+          // le filtre tient donc aussi sur les DELETE, c'est-à-dire sur le
+          // départ ou l'exclusion — l'événement qui doit retirer le groupe de
+          // la liste.
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userId,
+          ),
+          callback: (_) {
+            if (!controller.isClosed) controller.add(null);
+          },
+        );
+      channel!.subscribe();
+    }
+
+    controller.onListen = () {
+      unawaited(start());
+    };
+    controller.onCancel = () async {
+      cancelled = true;
+      final c = channel;
+      channel = null;
+      if (c != null) await _supabase.removeChannel(c);
+      await controller.close();
+    };
+
+    return controller.stream;
   }
 
   @override

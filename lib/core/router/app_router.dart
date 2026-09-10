@@ -347,6 +347,20 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       // Root route redirect to home
       GoRoute(path: '/', redirect: (context, state) => '/home'),
+      // Chemins du SITE que l'app revendique quand même.
+      //
+      // L'intent-filter App Links porte sur l'hôte entier
+      // (`diasponiger.web.app`, `diasponiger.com`) : un lien vers une page du
+      // site ouvre donc l'app sur un téléphone qui l'a. Sans route, la
+      // destination dépend de ce que GoRouter fait d'un chemin inconnu — il
+      // n'y a ni `errorBuilder` ni `onException` ici, donc autant ne rien
+      // laisser au hasard.
+      //
+      // `/telecharger` est la cible du lien « Inviter un proche » (cf.
+      // `DeepLinkService.generateInviteLink`) ; `/invite` était la cible
+      // AVANT le 2026-09-09 et reste dans les liens déjà partagés.
+      GoRoute(path: '/telecharger', redirect: (context, state) => '/home'),
+      GoRoute(path: '/invite', redirect: (context, state) => '/home'),
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),

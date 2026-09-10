@@ -14,6 +14,301 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)
+
+Signalé par Salim : « l'acceptation et exit dans les groupes ne sont pas mis à
+jour automatiquement du côté de tous les users ». Deux causes superposées,
+toutes deux corrigées.
+
+**1. Côté base.** Ni `public.groups` ni `public.group_members` n'étaient dans
+la publication `supabase_realtime` (relevé du 2026-09-09 sur le projet lié).
+Le « stream » de la fiche groupe faisait donc son chargement initial et plus
+jamais rien : le commentaire « Stream provider for real-time group updates »
+décrivait une réactivité qui n'existait pas. Corrigé par
+`20260909210000_realtime_groupes_et_appartenance.sql`, **appliqué en
+production le 2026-09-09** et vérifié (les deux tables figurent maintenant
+dans la publication).
+
+**2. Côté app.** Même publiée, la table `groups` ne bouge pas quand
+l'appartenance change : la liste des membres vit dans `group_members`.
+`getGroupStream` écoute désormais les **deux** tables, chacune déclenchant la
+même relecture. Et les deux écrans concernés préféraient un instantané figé :
+`GroupDetailScreen` faisait `widget.initialGroup ?? streamGroup` (le paramètre
+de navigation gagnait sur tout), `GroupMembersScreen` ne lisait même pas le
+flux. « Mes groupes » ne se chargeait qu'une fois, à la construction du
+notifier : un groupe rejoint sur approbation n'y apparaissait qu'au
+redémarrage.
+
+Fichiers : `group_supabase_datasource.dart`, `group_remote_datasource.dart`,
+`group_repository_impl.dart`, `group_provider.dart`, `group_detail_screen.dart`,
+`group_members_screen.dart`.
+
+Verrouillé côté app par `test/features/groups/membres_temps_reel_test.dart`
+(3 cas) — mais le test remplace le flux par un `StreamController` : **il ne
+prouve rien du transport realtime**, qui est exactement ce qui manquait.
+D'où la liste ci-dessous, qui demande **deux téléphones** (deux comptes
+distincts).
+
+- [ ] **Acceptation d'une demande, écran Membres ouvert** : téléphone A
+      (administrateur) sur la fiche du groupe → Membres. Téléphone B demande à
+      rejoindre. A accepte depuis l'écran des demandes, revient sur Membres :
+      la personne doit y être **sans avoir refermé l'écran**.
+- [ ] **Acceptation vue par un TROISIÈME écran** : garder le téléphone A sur
+      la liste des membres pendant que l'acceptation se fait ailleurs (par
+      exemple depuis l'écran des demandes du même groupe sur l'autre
+      appareil). C'est le cas que la migration débloque : la mise à jour
+      arrive sans qu'aucun code local ne l'ait demandée.
+- [ ] **Départ** : B quitte le groupe. Sur A, resté sur Membres, la ligne
+      disparaît et le compte « Membres · N » se décrémente tout seul. C'est
+      l'événement DELETE — celui qui ne passe que parce que `group_id` fait
+      partie de la clé primaire de `group_members`.
+- [ ] **Exclusion** : A exclut B (appui long sur la ligne). Sur B, l'onglet
+      Groupes doit perdre le groupe **sans redémarrage de l'app**.
+- [ ] **« Mes groupes » à l'acceptation** : B, onglet Groupes ouvert, pendant
+      que A approuve sa demande. Le groupe doit apparaître dans la liste tout
+      seul, **sans spinner qui vide l'écran** (le rafraîchissement réactif est
+      volontairement silencieux).
+- [ ] **Fiche ouverte depuis une liste** : ouvrir la fiche groupe **depuis
+      l'onglet Groupes** (c'est ce chemin qui passe `initialGroup`, et c'est
+      lui qui était figé). Vérifier qu'un renommage ou un changement d'avatar
+      fait depuis l'autre téléphone s'y voit sans refermer.
+- [ ] **Hors ligne** : couper le réseau du téléphone A sur la fiche groupe. La
+      fiche doit garder ce qu'elle affichait (repli sur `initialGroup` /
+      lecture one-shot) et non se vider. Au retour du réseau, vérifier qu'une
+      modification faite entre-temps finit par arriver.
+- [ ] **Quitter et rouvrir vite le même groupe**, plusieurs fois de suite,
+      puis vérifier qu'une modification faite depuis l'autre téléphone arrive
+      toujours. Le flux est `autoDispose` : chaque aller-retour détruit
+      l'abonnement et en recrée un pendant que l'ancien se ferme encore.
+      C'est ce que le suffixe unique de topic realtime protège — sur un topic
+      partagé, le nouveau canal reste muet sans la moindre erreur.
+
+---
+
+## ⬜ Citations et modifications : plus de texte en clair (2026-09-09)
+
+Deux fuites de la même famille que les cartes de partage, trouvées en
+instrumentant ce chemin. Toutes deux écrivaient du texte utilisateur **en
+clair** dans `messages.data`, à côté d'un `content` chiffré.
+
+**1. Répondre recopiait le message cité en clair.** `replyToMessageData`
+contient le texte **déjà déchiffré** du message auquel on répond : chaque
+réponse en déposait une copie lisible. Une conversation active en laissait donc
+une trace message après message. La citation rejoint le blob `encAnnexes`, dans
+les **cinq** envois qui l'acceptent : texte, média, note vocale, localisation,
+sticker.
+
+**2. Modifier un message annulait son chiffrement.** `editMessage` réécrivait
+`data['content']` en clair tout en laissant `encryptionLevel` annoncer 'e2ee',
+et gardait le texte d'avant dans `editHistory`. Le texte modifié repasse
+maintenant par le chemin de l'envoi (`_encryptContent`), et l'historique ne
+garde plus que la date — rien ne l'affichait.
+
+- [ ] **Répondre, dans les cinq cas** : à un texte, à une photo (avec légende),
+  à une note vocale, à une localisation, à un sticker. La citation doit
+  s'afficher au-dessus de la bulle, chez l'expéditeur **et** chez l'autre.
+- [ ] **La citation survit à un accusé de lecture** : même piège que les
+  cartes ; le flux de mises à jour rend la ligne brute.
+- [ ] **Modifier un message d'un 1:1, puis d'un groupe** : le texte modifié
+  doit s'afficher correctement chez l'autre après rechargement. C'est le point
+  le plus risqué du lot — le rechiffrement d'une modification n'a jamais tourné
+  contre de vraies sessions Signal.
+- [ ] **Modifier un message de « Mes notes »** (aucun destinataire, chemin
+  `selfNote`).
+- [ ] **Rouvrir la conversation après avoir modifié** : côté EXPÉDITEUR, le
+  texte modifié doit rester. Il ne sait pas relire son propre message chiffré
+  (les charges Signal visent les appareils du destinataire) : sa bulle vient du
+  cache, qui est réécrit à la modification. Si le texte d'avant revient, c'est
+  cette réécriture qui a manqué.
+- [ ] **Modifier deux fois de suite** le même message : la deuxième
+  modification doit rester lisible (les charges du format précédent sont
+  purgées avant d'écrire les nouvelles).
+- [ ] **En base** : `select data->>'content' from messages where data ?
+  'editedAt'` ne doit plus rien montrer de lisible, et
+  `data->'editHistory'` ne doit plus contenir de champ `content`.
+
+---
+
+## ⬜ Cartes de partage chiffrées au repos (2026-09-09)
+
+Une carte de partage (post, événement, annonce, aperçu de lien) ne transite pas
+par `content` : elle ne passait donc pas par Signal et partait **en clair**
+dans `messages.data`. Elle voyage désormais dans un blob unique `encAnnexes`,
+chiffré avec la clé dérivée de la conversation — même famille que les aperçus,
+la localisation et les médias.
+
+Les deux formats cohabitent sans migration : un message d'avant garde ses
+champs en clair et se relit tel quel. Un client plus ancien n'affichera pas la
+carte, mais le texte reste lisible.
+
+C'est le chemin le plus silencieux du dépôt : une carte qui n'arrive pas ne
+produit **aucune erreur**, ni à l'écran ni dans logcat.
+
+- [ ] **Aller-retour réel entre deux comptes** : partager un groupe depuis le
+  téléphone A vers un 1:1 et vers un groupe ; vérifier sur le téléphone B que
+  la carte s'affiche avec image et titre, et que le tap ouvre l'écran.
+  (Deux appareils = deux comptes, cf. le rappel de config plus bas.)
+- [ ] **La carte survit à un accusé de lecture** : c'était le piège. Le flux de
+  mises à jour rend la ligne BRUTE ; sans report explicite, la carte
+  disparaissait de la bulle dès que l'autre lisait le message.
+  (`message_provider.dart`, `_listenForMessageUpdates`)
+- [ ] **La carte survit à un redémarrage** (relecture depuis le cache Hive puis
+  depuis le serveur) et à un défilement qui recharge la page de messages.
+- [ ] **Hors ligne au moment de l'envoi** : la clé dérivée vient d'un
+  aller-retour réseau (`crypto-keys`). Vérifier ce que devient un partage
+  envoyé sans réseau, puis à la reconnexion.
+- [ ] **En base, plus rien de lisible** : `select data from messages where
+  data ? 'encAnnexes' limit 1` ne doit montrer ni titre, ni URL, ni nom.
+- [ ] **« Supprimer pour tout le monde » efface aussi la carte** : la ligne ne
+  doit plus porter `encAnnexes` après suppression.
+- [ ] **Mesure du repli** : quelle proportion des blobs est au format dérivé
+  (`v<n>:`) plutôt qu'à la clé globale. Tant que le repli global sert, la
+  confidentialité n'est pas acquise — la clé globale est extractible de l'APK.
+
+---
+
+## ⚠️ Événements sur Supabase — migration APPLIQUÉE, provider pas branché (2026-09-09)
+
+Décision de Salim : `public.events` fait foi. Le module Événements lisait
+Firestore pendant que le back-office admin écrivait dans Supabase.
+
+Livré dans cette passe :
+
+- `lib/features/events/data/datasources/event_supabase_datasource.dart`
+  (17 méthodes de l'interface, `flutter analyze` propre) ;
+- `supabase/migrations/20260910003000_events_lisibles_par_l_app.sql`, rejouée
+  en transaction annulée contre la production — elle passe.
+
+**Le provider n'est PAS basculé**, et c'est délibéré : trois choses manquent,
+dont deux ne dépendent pas de moi.
+
+1. ~~La migration n'est pas appliquée.~~ **Résolu sans intervention** : un
+   autre agent a poussé ses propres migrations et la mienne est partie avec.
+   Vérifié au distant le 2026-09-09 — colonne `price`, policy
+   `event_attendees_select`, fonction `is_event_readable` et FK
+   `event_attendees_event_id_fkey` sont toutes en place, et
+   `supabase db push --dry-run` dit « Remote database is up to date ».
+   ⚠️ La réparation d'historique que le CLI suggérait
+   (`migration repair --status reverted 20260909210000`) aurait été **fausse** :
+   cette migration EST appliquée au distant, la marquer « reverted » aurait
+   écrit le contraire dans la table d'historique. Ne pas la lancer.
+2. **Personne ne sait ce qu'il y a dans Firestore.** Basculer le provider rend
+   invisibles les événements restés côté Firestore. Impossible de les compter
+   depuis ce poste : `scripts/set_admin.js` s'appuie sur
+   `applicationDefault()` et il n'y a pas d'identifiants gcloud ici — le
+   script reste suspendu. Le plus simple : ouvrir l'onglet Événements de
+   l'app **avant** la bascule et noter ce qui s'affiche, puis recopier.
+3. **Trois écarts comblés par la migration, à revalider après coup** :
+   `price` n'existait pas en base (affiché sur la fiche, saisi à la
+   création) ; `event_attendees` n'était lisible que pour sa propre ligne, donc
+   `attendeeIds.length >= maxAttendees` n'aurait **jamais** annoncé un
+   événement complet ; et l'enum Dart dit `completed` là où la contrainte de
+   base dit `ended` — traduit dans le datasource, pas dans la base.
+
+- [ ] Une fois la migration appliquée et le provider basculé : créer un
+      événement depuis l'app, le retrouver dans le back-office admin, et
+      l'inverse.
+- [ ] Un événement avec `maxAttendees = 1` doit s'afficher **complet** après
+      une inscription (c'est le défaut que la policy élargie corrige).
+- [ ] Un événement passé (`ended` en base) doit apparaître comme terminé, pas
+      comme à venir.
+- [ ] Le prix saisi à la création doit se relire sur la fiche.
+
+---
+
+## ✅ Repli navigateur des liens d'app — DÉPLOYÉ (2026-09-09 21:5x)
+
+Tout chemin d'app tapé dans un navigateur (ou dans le navigateur intégré de
+WhatsApp, qui court-circuite les App Links) tombait sur la page d'accueil du
+site, par la règle attrape-tout `**` → `/index.html`.
+
+`public/ouvrir.html` répond désormais à `/groups/**`, `/g/**`, `/feed/**`,
+`/events/**`, `/businesses/**`, `/marketplace/**`, `/audio-rooms/**`,
+`/podcasts/**`, `/profile/**`, `/p/**`, `/embassies/**`, `/calls/**` — sur
+les **deux** sites de `firebase.json`, inséré avant `**`. La page dit le
+**type** de contenu (« Groupe », « Événement »…) et jamais lequel : aucun
+appel réseau, aucun nom, cohérent avec la garde de `20260909201500`.
+
+Vérifié sur un canal d'aperçu Firebase (production intacte) :
+
+- Android (UA émulé) : `intent://…;package=com.diasponiger.diasponiger;S.browser_fallback_url=<Play>;end`
+- Ordinateur : bouton « Installer sur votre téléphone », doublon masqué
+- `Cache-Control: public, max-age=0, must-revalidate` (sans la règle ajoutée,
+  Hosting servait `max-age=3600` — la règle `**/*.@(html)` n'attrape pas un
+  chemin réécrit, qui ne finit pas en `.html`)
+
+**⚠️ Le déploiement est bloqué par une découverte plus grosse.** La
+production ne fait **pas** tourner le site du dépôt :
+
+| URL | En production le 2026-09-09 |
+|---|---|
+| `/assets/site.css` | rend du **HTML** (attrapé par `**`) — le fichier n'existe pas |
+| `/telecharger` | rend la page d'accueil |
+| `/a-propos`, `/fonctionnalites` | rendent la page d'accueil |
+| `/` | titre « La diaspora qui se retrouve », le dépôt dit « La communauté nigérienne partout dans le monde » |
+| `/.well-known/apple-app-site-association` | `VOTRE_TEAM_ID.com.diasponiger.diaspo_niger` — le gabarit jamais rempli |
+
+Donc `firebase deploy --only hosting` ne publierait pas seulement la page
+interstitielle : il publierait **toute la refonte du site**, celle des quatre
+entrées ⬜ ci-dessous (cahier des charges, palette Organic, accueil sur
+captures réelles, menu mobile). À arbitrer par Salim, pas à faire en passant.
+
+Ce que le déploiement corrigerait au passage, une fois décidé : les universal
+links iOS, aujourd'hui cassés par le `VOTRE_TEAM_ID` resté en place.
+
+Ce qu'il perdrait : l'entrée `assetlinks.json` du paquet hérité
+`com.diasponiger.diaspo_niger` (le dépôt ne déclare que le paquet livré).
+Vérifié sans risque : `pm list packages` sur les deux appareils ne connait
+que `com.diasponiger.diasponiger`, dont les deux empreintes sont bien dans le
+fichier du dépôt — dont `DD:A6:5C:3E`, celle que les deux téléphones
+rapportent.
+
+**Déployé en production le 2026-09-09 sur les deux sites**, sur décision de
+Salim — donc la refonte du site est en ligne du même coup. Vérifié après coup :
+
+| URL | Avant | Après |
+|---|---|---|
+| `/groups/<id>`, `/feed/abc` | page d'accueil | « Ouvrir dans Diaspo Niger » |
+| `/telecharger`, `/a-propos` | page d'accueil | leurs vraies pages |
+| `/assets/site.css` | `text/html` | `text/css` |
+| AASA | `VOTRE_TEAM_ID` | `3WM7VK48T3.com.diasponiger.diaspoNiger` |
+
+✅ **Non-régression App Links vérifiée sur SM A515F après le déploiement** :
+`pm get-app-links` dit toujours `verified` sur les deux domaines, et
+`https://diasponiger.web.app/groups/<id>` ouvre l'app directement sur la fiche
+du groupe — pas le navigateur, pas la page interstitielle. C'était le risque
+de ce déploiement : `assetlinks.json` du dépôt ne déclare plus le paquet
+hérité `com.diasponiger.diaspo_niger`.
+
+- [ ] Une fois déployé : ouvrir `https://diasponiger.web.app/groups/<id>` dans
+      **Chrome** sur un téléphone **sans** l'app → page interstitielle, puis
+      « Ouvrir dans l'application » → Play Store.
+- [ ] Le même lien envoyé par WhatsApp, ouvert dans son navigateur intégré.
+
+---
+
+## ⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)
+
+`generateInviteLink()` fabriquait `/invite?ref=<uid>` et **aucune route
+n'existait** pour ce chemin. Mesuré : atterrissage sur l'accueil, `ref` perdu.
+
+Le vrai problème était le choix de la cible : un lien d'invitation s'adresse
+par définition à quelqu'un qui **n'a pas** l'app, à qui un lien profond ne
+sert à rien. Il pointe désormais `/telecharger`.
+
+Et parce que l'intent-filter App Links revendique l'hôte **entier**, ce lien
+ouvre quand même l'app chez qui l'a déjà : deux routes de redirection
+(`/telecharger` et `/invite`, ce dernier pour les liens déjà partagés)
+renvoient explicitement sur l'accueil, au lieu de dépendre de ce que GoRouter
+fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
+
+- [ ] Accueil → « Inviter un proche » → le lien partagé finit par
+      `/telecharger?ref=<uid>`.
+- [x] Ce lien tapé sur un téléphone **avec** l'app → l'accueil, pas d'erreur. ✅ SM A515F 2026-09-09 21:42
+- [ ] Un ancien lien `/invite?ref=…` → l'accueil aussi.
+
+---
+
 ## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
 
 Signalé par Salim : « les liens des groupes et autres ne marchent pas ».
@@ -34,7 +329,7 @@ toujours **après**, à l'écran d'arrivée :
 
 Corrigé dans cette livraison :
 
-- [ ] **`/events/<id>` qui échoue affiche enfin quelque chose.**
+- [x] **`/events/<id>` qui échoue affiche enfin quelque chose.** ✅ SM A515F 2026-09-09 21:42
       `EventDetailScreen` ne regardait que `eventAsync.valueOrNull` : un
       événement supprimé, un refus de lecture ou une coupure réseau rendaient
       `null`, exactement comme un chargement en cours — d'où la roue
@@ -42,7 +337,7 @@ Corrigé dans cette livraison :
       qui la portait déjà.
       Vérifier : ouvrir `…/events/<uuid inexistant>` → « Erreur de
       chargement » + « Réessayer », **pas** de roue infinie.
-- [ ] **Groupe privé : ne plus mentir.** `getGroupById` finit sur `.single()`
+- [ ] **Groupe privé : ne plus mentir.** ⚠️ NON REJOUÉ sur appareil : le compte du SM A515F (« Sim A ») est le **créateur** du groupe privé de test, la fiche s'ouvre donc normalement pour lui ; le Pixel, qui portait un compte non-membre, s'est déconnecté pendant les mesures (une seule session par compte). Couvert par test widget seulement. `getGroupById` finit sur `.single()`
       ; la RLS d'un groupe privé rend zéro ligne, donc PGRST116 — le même
       code que pour un groupe supprimé. « Erreur de chargement » + un
       « Réessayer » qui ne peut jamais aboutir. Remplacé par « Ce groupe est
@@ -52,7 +347,7 @@ Corrigé dans cette livraison :
       que `20260909201500` vient de fermer.
       Vérifier : `…/groups/2b24986f-08b5-4840-9931-dbe046ffb394` (groupe
       privé de test) depuis un compte non-membre.
-- [ ] **Flèche retour des deux écrans d'erreur/chargement.** Elles faisaient
+- [x] **Flèche retour des deux écrans d'erreur/chargement.** ✅ SM A515F 2026-09-09 21:43 Elles faisaient
       `context.pop()` : arrivé par lien profond, la route est seule dans la
       pile → écran noir. Repli `canPop ? pop : go('/home')`.
       Vérifier : lien profond → erreur → flèche retour → accueil, pas de noir.
@@ -190,6 +485,142 @@ supabase db query --linked -f supabase/diagnostics/2026-09-09_invitations_groupe
 ```
 
 Sortie attendue : « banc termine ». Tout « ECHEC n » interrompt le banc.
+
+### ⛔ Deuxième temps : l'invité ne pouvait pas ouvrir la discussion
+
+Trouvé en branchant les notifications, **pas signalé** : `join_group_conversation()`
+rattache l'appelant à `conversations.participant_ids` — c'est ce qui fait
+apparaître un groupe rejoint dans l'onglet Messages — mais le garde
+`conversations_guard_admin_fields` (2026-08-14) refuse **toute** modification de
+`participant_ids` par qui n'est pas administrateur du groupe. Un invité qui
+vient d'accepter ne l'est pas.
+
+Mesuré sous identité réelle non privilégiée, en transaction annulée :
+`EXCEPTION 42501`, `participant_ids` inchangé. Le premier test avait conclu
+l'inverse — le compte utilisé est superAdmin plateforme **et** le groupe testé
+était officiel, deux privilèges qu'un invité n'a pas.
+
+**Corrigé par l'autre agent, pas par moi, et pas encore déployé.** Il l'avait
+trouvé en même temps depuis un appareil (« Ouvrir la discussion » → bandeau
+rouge 42501) et corrigé plus largement dans
+`20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql` : son
+exemption vaut pour **tout membre réel** qui s'ajoute lui-même, donc aussi
+pour un groupe public, et elle traite un écart que j'avais manqué — le garde
+identifie l'appelant par `firebase_uid()` là où la RPC ajoute
+`current_user_id()`. Ma version, plus étroite, a été retirée : un
+`CREATE OR REPLACE FUNCTION` l'aurait remplacée sans conflit git et sans un
+mot.
+
+✅ **Déployé le 2026-09-09** après avoir débloqué `db push` : la version
+orpheline `20260909210000` avait été poussée en production depuis la branche
+`claude/groupes-temps-reel`, jamais fusionnée — son fichier a été rapatrié
+plutôt que sa ligne effacée. Les trois migrations en attente (deux à moi, une
+sur les événements à un autre agent) sont passées, et les trois bancs rejoués
+contre la base réelle rendent « banc termine ».
+
+- [ ] **Deux téléphones** : accepter une invitation, puis vérifier que le
+      groupe apparaît dans l'onglet **Messages** sans avoir à ouvrir sa fiche,
+      et que la discussion s'ouvre.
+- [ ] Envoyer un message depuis chaque côté : lisible des deux (vrai chemin
+      Sender Key — voir la section « un groupe dont on est le seul membre »).
+
+### ⬜ Notifications de groupe : personne n'était prévenu de rien
+
+Le type `groupInvite` est câblé de bout en bout côté app depuis toujours
+(routage, style, canal Android, clé de préférence `groups` dans `send-push`),
+et un INSERT dans `notifications` déclenche déjà le push. **Aucun code, client
+ou serveur, n'en créait jamais** — ni pour une invitation, ni pour une demande
+d'adhésion, ni pour sa réponse. Trois déclencheurs ajoutés dans la même
+migration.
+
+- [ ] Recevoir la **notification push** d'invitation sur l'autre téléphone,
+      app fermée ; l'appui ouvre la fiche du groupe.
+- [ ] Sur cette fiche, la barre du bas propose **« Accepter » / « Refuser »**
+      et non « Demander à rejoindre » (`_BarreInvitation`,
+      `group_detail_screen.dart`). Accepter fait disparaître la barre.
+- [ ] Couper la bascule « Groupes » dans les réglages de notifications :
+      l'invitation suivante ne doit **pas** arriver en push (elle reste dans
+      la liste in-app).
+- [ ] Demander à rejoindre un groupe privé depuis l'autre compte :
+      l'administrateur reçoit la notification. Approuver : le demandeur reçoit
+      « Adhésion acceptée ». Refuser sur une autre demande : « Adhésion
+      refusée ».
+
+Banc dédié, transaction annulée (⚠️ son étape A a été retirée : elle exigeait
+qu'un membre sans invitation soit refusé, conception abandonnée depuis, et
+faisait donc échouer le banc sur du code correct) :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_invite_discussion_et_notifications.sql
+```
+
+### ⚠️ Deux défauts voisins trouvés, **non corrigés**
+
+- [x] **« Retirer du groupe » ne retirait pas du groupe** — corrigé (voir la
+      section suivante).
+      `removeUserFromGroup` (`message_supabase_datasource.dart:2045`) ne touche
+      que `conversations.participant_ids` et `data.adminIds` ; la ligne
+      `group_members` reste, donc la personne **figure toujours dans la liste
+      des membres** et compte dans `member_count`. Aucune policy ne permet à
+      un administrateur de supprimer la ligne d'un autre : il faut une RPC
+      `SECURITY DEFINER` dédiée.
+
+**Mesuré**, en appliquant la migration de l'autre agent dans une transaction
+annulée puis en rejouant le cas d'un exclu : `exclu_de_retour = true`, la RPC
+rend l'id de la conversation. Une fois son correctif déployé, toute exclusion
+est donc annulable par l'exclu lui-même, en ouvrant simplement la discussion.
+
+### ⬜ L'impasse tranchée : l'exclusion s'enregistre, tout membre ouvre sa discussion
+
+Demande de Salim le 2026-09-09 : « tout membre peut ouvrir les conversations ».
+Les deux agents avaient écrit l'exemption du garde, chacun de son côté, et
+chacun l'avait retirée — adossée à l'**invitation** elle laisse de côté qui a
+rejoint un groupe public ; adossée à l'**appartenance** elle rouvre la porte
+aux exclus. Parce que l'exclusion n'était enregistrée nulle part : elle
+n'existait que comme une absence dans `conversations.participant_ids`, et
+`group_members` continuait d'affirmer le contraire.
+
+Fermé par le bas, côté base : `20260909234500` pose un déclencheur —
+disparaître de `participant_ids` d'une conversation de **groupe**, c'est ne
+plus être membre du groupe. `removeUserFromGroup` fait dès lors ce que son nom
+annonce, **sans un changement côté app** : `message_supabase_datasource.dart`
+est tenu par le worktree `partage-discussion`, et une RPC de retrait aurait dû
+y être appelée. L'exemption de l'autre agent (tout membre réel s'ajoute
+lui-même) est reprise telle quelle dans la même migration, où elle redevient
+sûre.
+
+Vérifié qu'aucune reprise de données n'est nécessaire : les deux seules
+appartenances absentes de leur conversation (« Diaspora Niger — NE » et
+« Testeurs ») sont des membres qui n'ont jamais pu se rattacher, pas des
+exclus.
+
+Banc dédié, 8 étapes, transaction annulée — il échoue bien sur l'état d'avant
+(« ECHEC A : raccrochage encore refuse (42501) ») :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_exclusion_et_ouverture_discussion.sql
+```
+
+À vérifier sur appareil, après déploiement :
+
+- [ ] Un membre simple ouvre la discussion de son groupe (le défaut d'origine,
+      vu sur SM A515F : bandeau rouge 42501).
+- [ ] Retirer quelqu'un d'un groupe : il **disparaît de la liste des membres**
+      de la fiche, et `Membres · n` décroît (c'est nouveau — il y restait).
+- [ ] Depuis le compte retiré, ouvrir la discussion du groupe : il ne revient
+      ni dans les participants, ni dans les membres.
+- [ ] Quitter un groupe volontairement : toujours possible, et le groupe
+      disparaît de l'onglet Messages.
+- [ ] Envoyer des messages dans un groupe : personne n'est retiré au passage
+      (le déclencheur est posé sur `UPDATE OF participant_ids`, un message
+      n'écrit que `data` — couvert par l'étape E du banc, mais jamais vu
+      tourner sur un vrai fil).
+
+⚠️ **Collision possible** : l'autre agent peut relivrer sa propre version de
+`conversations_guard_admin_fields`. Les deux corps sont identiques, un
+`CREATE OR REPLACE` de plus est sans conséquence — mais si sa version revient
+**sans** le déclencheur d'exclusion, l'exclusion redevient annulable. Vérifier
+`git log` avant de conclure.
 Passer le fichier avec `-f` et non en argument : sous cette seconde forme les
 accents du banc le font échouer sur un message tronqué, qui se lit comme un
 vrai échec.
@@ -12754,6 +13185,12 @@ main :
       l'objectif ne voit rien d'éclairé : le cadre et le texte d'instruction
       sont dans le sous-arbre `ColorFiltered(BlendMode.srcOut)`, donc invisibles
       par construction sur fond noir. Ne pas confondre avec une caméra morte.
+
+- [x] **Le cadre de visée et le texte d'instruction s'affichent** — vérifié
+      SM A515F le 2026-09-09 après correctif : cadre orange, coins blancs,
+      ligne animée et « Placez le QR code dans le cadre pour scanner » sont
+      visibles. Ils ne l'étaient jamais avant (enfermés dans le sous-arbre
+      `ColorFiltered(srcOut)`, qui les découpait dans le voile).
 
 **Piège de mesure (2026-09-09)** : le premier symptôme rapporté (« ça ne marche
 pas ») venait d'un APK antérieur au correctif — construit à 19:55, correctif
