@@ -66,14 +66,45 @@ redescend jamais un drapeau. Verrouillé par
       ordre. C'est le cas que le repli optimiste pourrait avaler ; le test
       « les quatre lectures rendent false » le couvre en unitaire, pas en
       vrai.
-- [ ] **La reproduction hors ligne, rejouée après correctif** : compte « Sim A »
-      connecté, mode avion, rechargement forcé. Attendu : `/home`, aucun écran
-      d'onboarding. C'est le scénario exact qui donnait le carrousel de
-      bienvenue (section plus bas) — le seul qui prouve le correctif, parce
-      qu'il est le seul reproductible à volonté.
-- [ ] **Le même, mais sur un compte dont aucun drapeau n'est en cache local**
-      (compte neuf sur ce téléphone, puis mode avion) : là c'est `/consent` qui
-      tombait, pas l'intro. Vérifier qu'il ne tombe plus.
+⛔ **La reproduction hors ligne ne se rejoue plus telle quelle, et c'est le
+piège de ce test.** En tapant « Passer » le 2026-09-10, `completeIntro()` a
+écrit le drapeau **des deux côtés** — base *et* SharedPreferences. Or le dépôt
+consulte le local en premier : sur « Sim A », `has_seen_onboarding` est
+désormais vrai en cache, donc **plus aucun appel réseau n'est émis** pour ce
+drapeau. Mode avion ou pas, il n'y a plus rien à observer. Un « ça ne fait plus
+le bug » mesuré comme ça ne prouve **rien** : le correctif n'est même pas
+sollicité.
+
+Pour que le correctif soit sollicité, il faut réunir les trois à la fois :
+authentifié, **drapeau local absent**, réseau coupé. Le drapeau local ne
+s'efface ni par `adb install -r` (qui conserve les données) ni depuis ce poste
+(build release, `run-as` refusé). Il faut donc `pm clear`, qui emporte aussi la
+session Firebase — **et une reconnexion, qui ne peut être faite que par
+l'utilisateur au téléphone.**
+
+- [ ] **Le test décisif** (demande une reconnexion manuelle) :
+      1. `adb -s R58N91XBA7B install -r <apk>` — l'APK doit être signé avec
+         `android/app/diaspo-niger-release.jks`, sinon la signature diffère et
+         Android impose une désinstallation ;
+      2. `adb -s R58N91XBA7B shell pm clear com.diasponiger.diasponiger` ;
+      3. **l'utilisateur se reconnecte** sur un compte dont
+         `has_seen_onboarding` vaut **`false`** en base. Le drapeau restant
+         faux côté serveur, il n'est jamais recopié en local : la condition
+         « local absent » se maintient toute seule, autant de fois qu'on veut.
+         ⚠️ **Deux comptes de test quasi homonymes coexistent**, et ils ne sont
+         pas dans le même état — se tromper de l'un pour l'autre donne deux
+         conclusions opposées :
+         - `test.diaspo@`**`example`**`.com` (« Compte Test », celui de
+           `scripts/creer_compte_test.js`) : les **quatre** drapeaux à `true`,
+           donc **inutilisable tel quel** pour ce test ;
+         - `test.diaspo@`**`exemple`**`.com` (« Test User », orthographe
+           française, visiblement créé par accident) : `has_seen_onboarding` et
+           `profile_config_complete` à `false` — **c'est celui-ci qu'il faut**,
+           et il ne demande aucune écriture en base.
+
+      4. mode avion, puis redémarrage forcé de l'app.
+      Attendu **après correctif** : `/home`. Avant correctif : le carrousel de
+      bienvenue. C'est le seul aller-retour qui distingue les deux.
 - [ ] **La reprise** : la lecture indéterminée est retentée une fois après 4 s
       (`OnboardingNotifier.delaiDeReprise`). Sur un compte neuf dont la
       première lecture échoue, l'écran de consentement doit apparaître ~4 s
@@ -86,6 +117,55 @@ redescend jamais un drapeau. Verrouillé par
 ⚠️ Le drapeau local ne se relit pas depuis ce poste : le build de l'appareil
 est **release**, `run-as` répond « package not debuggable ». Pour départager
 local et distant, passer par `public.users` en base, pas par `shared_prefs/`.
+
+### ⬜ Reprise des drapeaux restés sur Firestore (2026-09-10)
+
+Inventaire fait le 2026-09-10, une fois le correctif de lecture posé : la
+lecture réussit désormais, mais elle peut rendre un `false` **sincère et
+périmé** — le compte a fini son onboarding avant la bascule du 2026-08-13
+(`160d417`), quand l'app écrivait ces drapeaux sur Firestore.
+
+Ce que la mesure a donné, et qui réduit beaucoup la portée du problème :
+
+- Firestore `users/` ne contient plus que **5 documents** contre 17 lignes
+  dans `public.users`, et **2** seulement portent des drapeaux d'onboarding.
+- `U64HKfrjM5NwR6HO00XPKo6168z2` : déjà repris côté Supabase, au
+  `consent_date` près (même milliseconde). Une reprise Firestore→Supabase a
+  donc bien eu lieu, avant la bascule du code.
+- `czk5UoUclLOFmbRtUIZ5XYLYKo52` : les quatre drapeaux à `true` sur Firestore,
+  les quatre à `false` ici. Compte créé le 2026-08-13 à 22:29:01 UTC,
+  onboarding terminé en 90 s — **une heure et demie avant** `160d417`. Il est
+  passé entre la reprise (déjà faite) et la bascule (pas encore faite).
+- Les 8 autres comptes à `false` n'ont **aucun** document Firestore : leur
+  `false` n'est pas périmé, il est vrai. Rien à reprendre pour eux.
+
+`supabase/migrations/20260910071000_reprise_drapeaux_onboarding_firestore.sql`
+monte donc **une seule ligne**, par `or` colonne par colonne (jamais une
+affectation sèche) et `coalesce` sur `consent_date` : rejouer la migration ne
+change rien, et aucun drapeau ne peut redescendre.
+
+⚠️ **« Sim A » (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), le compte de la section
+ci-dessus, lit aujourd'hui `true` partout** — il a rejoué l'onboarding le
+2026-09-10 (`updated_at` 05:12 UTC). Aucune reprise Firestore ne l'aurait
+sauvé : son document Firestore, créé le 2026-08-14 à 00:15 UTC — soit après
+la bascule — ne porte aucun drapeau. Ne pas compter sur ce compte pour
+observer le défaut : il est sorti de l'état fautif tout seul, au prix de
+l'onboarding refait.
+
+À vérifier sur appareil :
+
+- [ ] **Le compte repris ne rejoue plus rien** : se connecter avec
+      `czk5UoUclLOFmbRtUIZ5XYLYKo52` après `supabase db push`, sur un
+      téléphone où l'app vient d'être **désinstallée** (le cache local
+      masquerait le résultat). Attendu : `/home` directement, ni consentement,
+      ni assistant de profil, ni les 5 écrans d'intro.
+- [ ] **Ce compte n'a pas de `display_name`** (`handle = 'diaspo_ne'` et
+      `country_code = 'NE'` sont posés, le nom non) : l'assistant de profil a
+      tourné le 2026-08-13 sans que tout arrive en base. Monter
+      `profile_config_complete` le fait donc entrer dans l'app **sans nom
+      affiché**. Regarder ce que donnent le profil, le bandeau de complétude
+      (§11f) et l'en-tête des discussions dans cet état — c'est le seul point
+      où cette migration peut se voir en mal.
 
 ---
 
@@ -748,7 +828,7 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       `canPop() ? pop() : go(<parent>)`, avec le parent logique de chaque
       route et non un `/home` uniforme.
 
-      **Neuf rejouées à l'intent** le 2026-09-10 — voir le tableau de la passe
+      **Seize rejouées à l'intent** le 2026-09-10 — voir le tableau de la passe
       appareil plus bas. Chacune sort sur **son** parent, pas sur un `/home`
       uniforme. Restent à voir à l'œil : `/events/<id>`, `/polls/<id>/results`,
       les écrans de création/édition, et les cinq écrans podcasts (bloqués par
@@ -854,7 +934,7 @@ rejoindre » ; aperçu nul → pas de fausse porte.
 - [ ] Redemander deux fois ne doit pas empiler deux demandes.
 
 ---
-### Passe appareil du 2026-09-10 — neuf liens rejoués
+### Passe appareil du 2026-09-10 — seize liens rejoués
 
 SM A515F, build `317a775c…08c6`, md5 contrôlé avant **et** après (l'autre agent
 installe sur le même téléphone). Intents envoyés **à chaud** : à froid, le lien
@@ -871,6 +951,13 @@ retombe sur `/home` par intermittence et la mesure est fausse.
 | `diasponiger:///notifications/settings` | **Réglages** ✅ |
 | `diasponiger:///groups/map` | **Groupes** ✅ |
 | `diasponiger:///profile/edit` | **Mon profil** ✅ |
+| `diasponiger:///events/<id>` | **Événements** ✅ |
+| `diasponiger:///feed/<postId>` | Accueil ✅ |
+| `diasponiger:///businesses/<id>` | **Annuaire** ✅ |
+| `diasponiger:///embassies/<id>` | **Ambassades** ✅ |
+| `diasponiger:///p/u/<userId>` | Accueil ✅ |
+| `diasponiger:///groups/create` | **Groupes** ✅ |
+| `diasponiger:///messages/new` | **Messages** ✅ |
 
 Plus les trois mesures du retour système : lien profond → accueil ; onglet
 Accueil → l'app se ferme, comme avant ; navigation interne → la liste, pas
