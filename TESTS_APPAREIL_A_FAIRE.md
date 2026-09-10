@@ -108,7 +108,7 @@ Ce que la mesure a donné, et qui réduit beaucoup la portée du problème :
 - Les 8 autres comptes à `false` n'ont **aucun** document Firestore : leur
   `false` n'est pas périmé, il est vrai. Rien à reprendre pour eux.
 
-`supabase/migrations/20260910070000_reprise_drapeaux_onboarding_firestore.sql`
+`supabase/migrations/20260910080000_reprise_drapeaux_onboarding_firestore.sql`
 monte donc **une seule ligne**, par `or` colonne par colonne (jamais une
 affectation sèche) et `coalesce` sur `consent_date` : rejouer la migration ne
 change rien, et aucun drapeau ne peut redescendre.
