@@ -5388,6 +5388,7 @@
   "keyTransferNotAuthenticated": "Session indisponible. Réessayez dans un instant.",
   "keyTransferNoAck": "Le nouveau téléphone n'a pas confirmé. Vos clés restent sur cet appareil.",
   "keyTransferRetry": "Recommencer",
+  "qrKeyTransferDetected": "Code de transfert de clés : ouverture de l'écran de récupération.",
   "keyStateHere": "Cet appareil détient vos clés de chiffrement.",
   "keyStateAbsent": "Cet appareil n'a pas vos clés de chiffrement.",
   "keyStateAbsentWhy": "Il ne peut donc pas les transférer. Faites le transfert depuis le téléphone qui les détient, ou restaurez-les ici avec votre passphrase.",

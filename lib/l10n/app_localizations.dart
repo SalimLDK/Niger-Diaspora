@@ -21308,6 +21308,12 @@ abstract class AppLocalizations {
   /// **'Recommencer'**
   String get keyTransferRetry;
 
+  /// No description provided for @qrKeyTransferDetected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de transfert de clés : ouverture de l\'écran de récupération.'**
+  String get qrKeyTransferDetected;
+
   /// No description provided for @keyStateHere.
   ///
   /// In fr, this message translates to:

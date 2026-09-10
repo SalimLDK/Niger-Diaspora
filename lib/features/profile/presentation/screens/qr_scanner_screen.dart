@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/feature_flag_service.dart';
+import '../../../../core/services/qr_code_parser.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile_share_provider.dart';
@@ -122,66 +124,86 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     _processQrCode(code);
   }
 
+  /// Ouvre ce que désigne le QR, quel que soit son type.
+  ///
+  /// Ce scanner est le seul de l'app à être atteignable depuis l'accueil : il
+  /// doit reconnaître tous les QR du projet — profil, groupe, et les liens
+  /// profonds partagés par le site — et pas seulement le profil.
   Future<void> _processQrCode(String code) async {
-    // Expected format: https://diasponiger.com/p/{userId}
-    final uri = Uri.tryParse(code);
+    final target = QrCodeParser.parse(code);
 
-    if (uri == null) {
-      _showError(l10n.invalidQRCode);
+    if (target == null) {
+      _showError(l10n.invalidQrCodeFormat);
       return;
     }
 
-    // Extract userId from URL
-    String? userId;
-    String? shortCode;
-
-    if ((uri.host.contains('diasponiger.com') ||
-            uri.host.contains('diaspo-niger.web.app')) &&
-        uri.pathSegments.length >= 2) {
-      if (uri.pathSegments[0] == 'p') {
-        if (uri.pathSegments.length > 2 && uri.pathSegments[1] == 'u') {
-          userId = uri.pathSegments[2];
-        } else {
-          shortCode = uri.pathSegments[1];
-        }
-      }
-    }
-
-    if (userId != null && userId.isNotEmpty) {
-      await _navigateToProfile(userId);
-      return;
-    }
-
-    if (shortCode != null && shortCode.isNotEmpty) {
-      try {
-        final resolvedId = await ref.read(
-          profileUserIdFromShareCodeProvider(shortCode).future,
+    switch (target.kind) {
+      // Le rendez-vous de transfert se revendique sur son écran dédié : lui
+      // seul sait gérer le cas « pas encore connecté », qui est la situation
+      // normale d'un téléphone neuf.
+      case QrCodeKind.keyTransfer:
+        await _leaveFor(
+          '/settings/security/transfer/receive',
+          message: l10n.qrKeyTransferDetected,
         );
-        if (mounted) {
-          if (resolvedId != null) {
-            await _navigateToProfile(resolvedId);
-          } else {
-            _showError(l10n.linkExpiredOrNotFound);
+        return;
+
+      case QrCodeKind.profileShortCode:
+        await _openShortCode(target.shortCode!);
+        return;
+
+      default:
+        final feature = _featureOf(target.kind);
+        if (feature != null) {
+          // Sans cette garde, le routeur renverrait silencieusement sur
+          // /home (redirection des drapeaux phase 2) après un message de
+          // succès : un scan qui « marche » et n'ouvre rien.
+          final flags = ref.read(loadedFeatureFlagsProvider);
+          if (flags != null &&
+              !FeatureFlagService.isFeatureEnabled(flags, feature)) {
+            _showError(l10n.comingSoonShort);
+            return;
           }
         }
-      } catch (e) {
-        if (mounted) _showError(l10n.connectionError);
-      }
-      return;
+        await _leaveFor(target.routePath!, message: l10n.profileQRScanned);
     }
-
-    _showError(l10n.invalidQrCodeFormat);
   }
 
-  Future<void> _navigateToProfile(String userId) async {
+  /// Fonctionnalité à vérifier avant d'ouvrir la route, ou `null` si la
+  /// destination est toujours accessible.
+  AppFeature? _featureOf(QrCodeKind kind) => switch (kind) {
+    QrCodeKind.product => AppFeature.marketplace,
+    QrCodeKind.podcast || QrCodeKind.episode => AppFeature.podcasts,
+    QrCodeKind.audioRoom => AppFeature.audioRooms,
+    _ => null,
+  };
+
+  /// Résout le code court `/p/<code>` en identifiant avant de naviguer.
+  Future<void> _openShortCode(String shortCode) async {
+    try {
+      final resolvedId = await ref.read(
+        profileUserIdFromShareCodeProvider(shortCode).future,
+      );
+      if (!mounted) return;
+      if (resolvedId == null) {
+        _showError(l10n.linkExpiredOrNotFound);
+        return;
+      }
+      await _leaveFor('/profile/$resolvedId', message: l10n.profileQRScanned);
+    } catch (e) {
+      if (mounted) _showError(l10n.connectionError);
+    }
+  }
+
+  Future<void> _leaveFor(String routePath, {required String message}) async {
     // Stop camera before navigating to prevent BufferQueue errors
     await _controller.stop();
 
     if (!mounted) return;
 
-    // Close scanner and navigate to profile
+    // Close scanner and navigate to the scanned destination
     context.pop();
-    context.push('/profile/$userId');
+    context.push(routePath);
 
     // Show success feedback
     ScaffoldMessenger.of(context).showSnackBar(
@@ -190,7 +212,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
           children: [
             Icon(Icons.check_circle, color: AppColors.white),
             const SizedBox(width: 12),
-            Text(l10n.profileQRScanned),
+            Expanded(child: Text(message)),
           ],
         ),
         backgroundColor: AppColors.success,
@@ -556,7 +578,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                l10n.scanProfile,
+                l10n.scanQrCode,
                 style: TextStyle(
                   color: AppColors.white,
                   fontSize: 16,

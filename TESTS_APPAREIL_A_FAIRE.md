@@ -12144,6 +12144,41 @@ premiers passeraient avec une capture cassée), et un balayage de source qui
 
 ---
 
+## ⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)
+
+Le scanner ouvert depuis l'accueil (`/qr-scanner`) ne savait lire qu'un QR de
+**profil**. Tout le reste — le QR de groupe que `share_group_modal` affiche
+juste à côté, le code de transfert de clés, les liens du site — tombait sur
+« QR code invalide ou format non reconnu ».
+
+Deux causes, et la seconde est la plus traître : le contrôle d'hôte ne
+connaissait que `diasponiger.com` et `diaspo-niger.web.app`, alors que
+`DEEP_LINK_BASE_URL` du `.env` vaut `https://diasponiger.web.app` — l'app
+refusait donc les QR **qu'elle fabrique elle-même** via `DeepLinkService`.
+
+`lib/core/services/qr_code_parser.dart` (couvert par
+`test/core/services/qr_code_parser_test.dart`, 23 cas) reconnaît maintenant
+profil (lien long et code court), groupe, fil, événement, entreprise, produit,
+ambassade, salon audio, podcast, épisode, appel, le schéma `diasponiger://` et
+le rendez-vous de transfert de clés. Rien de tout cela n'a été rejoué caméra en
+main :
+
+- [ ] **QR de groupe** — afficher le QR d'un groupe sur un second écran
+      (Discussions › groupe › Partager), le scanner depuis l'accueil : la
+      fiche du groupe doit s'ouvrir.
+- [ ] **QR de profil**, les deux formes : le lien long `/p/u/<id>` (bouton
+      « Mon QR Code » du scanner) et le code court `/p/<code>` (dialogue de
+      partage du profil, qui passe par le serveur pour être résolu).
+- [ ] **Code de transfert de clés** scanné depuis l'accueil : doit basculer
+      sur l'écran de récupération avec le message « Code de transfert de clés :
+      ouverture de l'écran de récupération. », et **pas** une erreur.
+- [ ] **QR d'un autre service** (n'importe quel QR du commerce) : message
+      d'erreur, la caméra ne doit pas rester bloquée.
+- [ ] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
+      profil ».
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

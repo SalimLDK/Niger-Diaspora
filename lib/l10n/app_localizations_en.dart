@@ -11415,6 +11415,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyTransferRetry => 'Start again';
 
   @override
+  String get qrKeyTransferDetected =>
+      'Key transfer code: opening the recovery screen.';
+
+  @override
   String get keyStateHere => 'This device holds your encryption keys.';
 
   @override
