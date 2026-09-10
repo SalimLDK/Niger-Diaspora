@@ -115,6 +115,16 @@ Reste a voir sur un ecran :
       pendant l'onboarding : `/settings/privacy` est censé échapper aux
       redirections du routeur, à confirmer avant que le profil soit complet.
 
+⚠️ **Observe le 2026-09-10, hors sujet mais serieux** : apres plusieurs
+`adb install -r` d'un APK release, l'app a demarre sur l'onboarding 1/5 pour
+un compte qui l'avait termine depuis longtemps (session intacte par ailleurs).
+Deux causes possibles, non departagees : le drapeau local perdu a la
+reinstallation, ou la lecture distante en echec — car
+`onboarding_provider.dart` convertit **tout echec de lecture en « jamais
+vu »** (`fold((failure) => false, ...)`), pour les quatre drapeaux, y compris
+ceux qui gardent le consentement et l'assistant de profil. Remis d'aplomb sur
+l'appareil en tapant « Passer ». Suivi ouvert a part.
+
 ⚠️ Interrupteur **Podcasts** du back-office désormais inerte, et c'est
 voulu : `FOREGROUND_SERVICE_MEDIA_PLAYBACK` a été retirée du manifeste alors
 que `AudioService` déclare toujours `foregroundServiceType="mediaPlayback"`.
