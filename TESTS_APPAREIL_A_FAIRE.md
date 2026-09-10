@@ -76,10 +76,22 @@ aucune historisation, `user_locations` etant declaree mais jamais ecrite.
 
 Reste a voir sur un ecran :
 
-- [ ] **Onboarding 5/5** — hors de portee sans changer de compte sur le
-      telephone : `has_seen_onboarding` est un booleen local **indexe par
-      userId**, et le routeur renvoie `/onboarding/intro` sur /home des qu'il
-      est vrai. Un lien profond n'y donne pas acces.
+- [x] **Onboarding 5/5** — vu, via l'echappatoire routeur documentee dans
+      [[project_device_testing]] (patch temporaire, jamais committe : un lien
+      profond ne suffit pas, `has_seen_onboarding` est un booleen local indexe
+      par userId et le routeur renvoie la route sur /home des qu'il est vrai).
+
+      **La premiere mesure a trouve le defaut** : le bloc de divulgation
+      tombait **sous la ligne de flottaison** — seul le sous-titre corrige de
+      l'interrupteur etait visible, et c'est cette page que Google
+      photographie. Corrige en aplatissant l'illustration du dernier ecran en
+      bandeau (`illustrationAspectRatio: 3.2`), ce qui libere ~230 px : le
+      paragraphe et le lien vers la politique tiennent desormais juste
+      au-dessus de « Commencer ». Remesure sur l'appareil.
+
+      La ligne « Vos messages sont chiffres de bout en bout », elle, passe
+      maintenant sous la ligne de flottaison. Arbitrage assume : l'une est une
+      exigence de Play, l'autre une reassurance.
 - [ ] **Theme sombre** sur la feuille et le bloc d'onboarding.
 - [ ] **Admin > Fonctionnalites** : la ligne Podcasts grisee.
 
@@ -102,6 +114,16 @@ Reste a voir sur un ecran :
 - [ ] **Lien « Lire la politique de confidentialité »** depuis la feuille
       pendant l'onboarding : `/settings/privacy` est censé échapper aux
       redirections du routeur, à confirmer avant que le profil soit complet.
+
+⚠️ **Observe le 2026-09-10, hors sujet mais serieux** : apres plusieurs
+`adb install -r` d'un APK release, l'app a demarre sur l'onboarding 1/5 pour
+un compte qui l'avait termine depuis longtemps (session intacte par ailleurs).
+Deux causes possibles, non departagees : le drapeau local perdu a la
+reinstallation, ou la lecture distante en echec — car
+`onboarding_provider.dart` convertit **tout echec de lecture en « jamais
+vu »** (`fold((failure) => false, ...)`), pour les quatre drapeaux, y compris
+ceux qui gardent le consentement et l'assistant de profil. Remis d'aplomb sur
+l'appareil en tapant « Passer ». Suivi ouvert a part.
 
 ⚠️ Interrupteur **Podcasts** du back-office désormais inerte, et c'est
 voulu : `FOREGROUND_SERVICE_MEDIA_PLAYBACK` a été retirée du manifeste alors
@@ -565,6 +587,56 @@ fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
 
 ---
 
+## ⬜ Podcasts : cinq routes qu'aucun garde ne voyait (2026-09-10)
+
+Trouvé en répondant à « tous les types de deep link ont été pris en compte ? ».
+Réponse : non, et le trou ne venait pas des écrans — il venait du **garde**.
+
+`PodcastsRoutes` déclare ses chemins en **constantes** :
+
+```dart
+static const String detail = '/podcasts/:podcastId';
+...
+GoRoute(path: detail, ...)
+```
+
+`fleche_retour_test.dart` découpait le routeur sur `path: '` — un littéral. Il
+ne voyait donc **aucune** des cinq routes podcasts, et elles n'avaient
+effectivement **aucune sortie** : `AppBar` et `SliverAppBar` sans `leading`,
+donc rien d'autre que la flèche implicite de Flutter, qui ne s'affiche pas
+quand la pile ne contient que cet écran.
+
+Deux de ces cinq sont des cibles de liens que **l'app génère elle-même** :
+`generatePodcastLink` (`/podcasts/<id>`) et `generateEpisodeLink`
+(`/podcasts/episodes/<id>`), tous deux dans `DeepLinkService`.
+
+⚠️ **Non observable aujourd'hui** : les podcasts sont derrière un feature-flag,
+le routeur renvoie ces chemins sur `/home`. Le défaut se découvrira le jour où
+le flag passera à `true` — d'où la correction maintenant.
+
+Corrigé :
+
+- [ ] **Cinq sorties posées** — `BackButton` explicite avec le repli maison sur
+      l'accueil des podcasts (→ `/home`), la création, « mes podcasts », la
+      fiche podcast et la fiche épisode (→ `/podcasts`).
+      Vérifier, une fois le flag actif : `diasponiger:///podcasts/<id>` et
+      `diasponiger:///podcasts/episodes/<id>`, flèche puis retour système.
+- [ ] **Les deux fiches posent leur `SliverAppBar` dans la branche « données »**
+      — chargement, erreur et « introuvable » n'avaient donc aucune sortie,
+      exactement comme la fiche entreprise en son temps. Enveloppées dans
+      `DesignExitOnlyBody`, et les deux boutons « Retour » de l'épisode
+      recâblés (ils faisaient `context.pop()` nu).
+- [x] **Le garde résout désormais les constantes** — il voit 116 routes au lieu
+      de 111, et 0 route dont l'écran ne se résout pas. Il est tombé tout seul
+      sur une flèche que j'avais oubliée de poser (`episode_detail_screen`),
+      ce qui vaut vérification.
+
+**Ce qu'il reste, après ce passage** : 1 `pop()` nu (la croix de la feuille de
+filtres de l'historique des transferts — le bon geste), 12 écrans sans sortie
+(les 5 onglets, le parcours de connexion, le splash, la maintenance, l'écran
+d'appel qui sort par « raccrocher », et `/share` qui est une feuille modale),
+et 2 sorties conditionnelles — voir l'entrée juste au-dessus.
+
 ## ⬜ Liens profonds : la flèche retour ne faisait rien (2026-09-09)
 
 Signalé par Salim : « les deep link, pas possible de faire des retours ».
@@ -592,20 +664,54 @@ vérifient la **présence** d'une sortie, jamais son **câblage**. Un quatrième
 test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
 `services_screen.dart`, il tombe dessus et sur lui seul.
 
-- [ ] **19 sorties recâblées** sur le repli maison
+- [x] **22 sorties recâblées** ✅ SM A515F 2026-09-10 00:25 (build `3198bfc5…b2ff`) sur le repli maison
       `canPop() ? pop() : go(<parent>)`, avec le parent logique de chaque
-      route et non un `/home` uniforme. À rejouer par lien profond, puis
-      flèche :
-      `diasponiger:///services` (→ accueil),
-      `diasponiger:///groups/<id>` (→ Groupes),
-      `diasponiger:///events/<id>` (→ Événements),
-      `diasponiger:///notifications/settings` (→ Réglages),
-      `diasponiger:///profile/edit` (→ Profil),
-      `diasponiger:///feed/space/hashtags` (→ Mon espace).
-- [ ] **Le retour système quitte encore l'application.** Il ne passe ni par la
-      flèche ni par un `context.pop()` métier : il lui faut un `PopScope` par
-      écran, ou un dispatcher global. Mesuré sur SM A515F le 2026-09-09 :
-      `diasponiger:///services` puis retour système → lanceur.
+      route et non un `/home` uniforme.
+
+      **Deux rejouées à l'intent** : `diasponiger:///services` → accueil, et
+      `diasponiger:///groups/<id>` → **Groupes**, pas l'accueil — c'est bien
+      le parent qui sort, pas le repli uniforme. Les vingt autres sont le
+      même motif, tenu par le garde-fou ; restent à voir à l'œil :
+      `/events/<id>` (→ Événements), `/notifications/settings` (→ Réglages),
+      `/profile/edit` (→ Profil), `/feed/space/hashtags` (→ Mon espace).
+      Trois d'entre elles ne sont venues qu'à la deuxième passe (galerie
+      média, favoris, bandeau hashtag du fil) : leur `IconButton` déclare
+      `onPressed:` **avant** `icon:`, et le détecteur partait de l'icône.
+- [x] **Le retour système ne quitte plus l'application.** ✅ SM A515F 2026-09-10 00:25 Il ne passe ni par
+      la flèche ni par un `context.pop()` métier : il descendait jusqu'à
+      Android, qui fermait l'app. Plutôt qu'un `PopScope` sur chacun des 22
+      écrans, `RetourSystemeVersAccueil` (`lib/core/router/retour_systeme.dart`)
+      rattrape le geste **une fois**, au-dessus du routeur, et seulement
+      quand personne d'autre ne l'a traité : les écrans qui portent déjà un
+      `PopScope` gardent la main.
+
+      ⚠️ **Un `BackButtonDispatcher` seul ne suffit pas** —
+      première version livrée ainsi, 5 tests verts, et le retour quittait
+      toujours l'app sur SM A515F. `android:enableOnBackInvokedCallback` vaut
+      `true` (obligatoire à partir de targetSdk 36) : Android ne route le
+      retour vers Flutter que si le framework s'est **annoncé preneur**, via
+      `SystemNavigator.setFrameworkHandlesBack`. C'est le `Navigator` qui
+      répond, et sur une pile d'une seule route il répond « non ». La
+      réclamation passe par `MaterialApp.onNavigationNotification`.
+
+      Repli `/home` — le geste système n'a pas la précision d'une flèche, et
+      le parent d'un chemin n'est pas toujours une route déclarée. Quitter
+      l'app reste le bon geste sur les cinq onglets et sur le parcours de
+      connexion : la liste est dans le fichier.
+
+      **Mesuré, cinq fois, md5 de l'APK contrôlé avant et après** :
+      `diasponiger:///services` + retour système → accueil ✅ ;
+      même écran + flèche → accueil ✅ ;
+      `diasponiger:///groups/<id>` + flèche → **Groupes** (le parent, pas
+      l'accueil) ✅ ;
+      depuis l'onglet Accueil, retour système → l'app se ferme, comme avant ✅ ;
+      Groupes → une fiche (push interne) + retour système → la liste, **pas**
+      l'accueil ✅.
+- [ ] **Deux écrans masquent leur flèche quand la pile est vide** —
+      `/feed` et `/calls/history` : `if (context.canPop()) …`, choix
+      documenté sur place. Arrivé là par lien profond, il n'y a donc aucune
+      flèche ; c'est le retour système ci-dessus qui sert de sortie.
+      Vérifier que ça suffit à l'usage, ou leur donner une flèche.
 
 ## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
 
@@ -13677,6 +13783,59 @@ Trois pièces livrées : `BusinessSupabaseDataSource` (21 méthodes), la table
 
 Non vérifiés faute de données : création d'une entreprise, boost, offres et
 publications d'entreprise, recherche de proximité.
+
+---
+
+## ⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)
+
+Trouvé par accident en coupant le réseau pour déclencher une erreur de carte.
+Le compte était connecté, l'app affichait la carte en mode public. Mode avion
+activé, un rechargement forcé → l'app bascule sur **« Bienvenue sur Diaspo
+Niger »**, le carrousel d'accueil.
+
+**La session n'est PAS perdue** — c'est le point rassurant, et il a demandé
+d'être vérifié : « Passer » ramène directement à l'accueil connecté (« Bonjour,
+Sim », messages non lus et notifications intacts). Aucun `FATAL EXCEPTION`, et
+le pid n'a pas changé : l'app n'a ni planté ni redémarré, elle a **navigué**.
+
+**La chaîne, lue dans le code :**
+
+1. [onboarding_repository_impl.dart:23-48](lib/features/onboarding/data/repositories/onboarding_repository_impl.dart:23)
+   consulte d'abord le cache local (`has_seen_onboarding_<uid>`) ; **si celui-ci
+   est à `false`, il fait un appel réseau**. Hors ligne, l'appel lève →
+   `Left(ServerFailure)`.
+2. [onboarding_provider.dart:78](lib/features/onboarding/presentation/providers/onboarding_provider.dart:78)
+   traduit cet échec en `false` :
+
+   ```dart
+   hasSeenOnboardingResult.fold(
+     (failure) => hasSeenOnboarding = false,   // « je n'ai pas pu savoir » → « jamais vu »
+     (value)   => hasSeenOnboarding = value,
+   );
+   ```
+
+3. La règle 8 du routeur ([app_router.dart:320](lib/core/router/app_router.dart:320))
+   redirige alors vers `/onboarding/intro`.
+
+C'est la même famille que le garde d'autorisation déjà documenté : **« je n'ai
+pas pu vérifier » traité comme « la réponse est non »**. Ici, le coût est un
+utilisateur connecté à qui on remontre le carrousel de bienvenue dès qu'il perd
+le réseau — dans le métro, en avion, en zone blanche.
+
+**Correctif proposé, non appliqué** : pour un utilisateur **déjà authentifié**,
+un échec de lecture devrait valoir « ne pas interrompre » plutôt que « jamais
+vu ». Se tromper dans ce sens coûte un carrousel sauté une fois ; se tromper
+dans l'autre coûte une interruption à chaque coupure réseau. Non appliqué parce
+que toucher à une garde du routeur est précisément ce qui a déjà coûté cher ici
+(gating feature-flag, garde de session) — à décider explicitement.
+
+- [ ] **Reproduire proprement** : compte connecté, mode avion, naviguer →
+  le carrousel doit apparaître. Puis vérifier qu'après retour du réseau **et**
+  redémarrage l'app revient d'elle-même à l'accueil (observé une fois : elle
+  restait sur l'onboarding, réseau rétabli, y compris après redémarrage — mais
+  le Wi-Fi pouvait n'être pas encore rétabli au lancement, donc à confirmer).
+- [ ] **Vérifier le cas du vrai nouveau compte** avant tout correctif : il doit
+  continuer à voir l'onboarding.
 
 ---
 

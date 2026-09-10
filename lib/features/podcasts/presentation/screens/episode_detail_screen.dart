@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/services/deep_link_service.dart';
@@ -125,7 +126,13 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: episodeAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        // La `SliverAppBar` vit dans la branche « données » : sans ces
+        // enveloppes, chargement, erreur et « introuvable » n'ont aucune
+        // sortie quand on arrive ici par lien profond.
+        loading: () => const DesignExitOnlyBody(
+          fallbackRoute: '/podcasts',
+          child: Center(child: CircularProgressIndicator()),
+        ),
         error: (e, _) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -139,7 +146,10 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => context.pop(),
+                onPressed:
+                    () => context.canPop()
+                        ? context.pop()
+                        : context.go('/podcasts'),
                 child: Text(l10n.back),
               ),
             ],
@@ -158,7 +168,10 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
                   Text(l10n.episodeNotFound),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => context.pop(),
+                    onPressed:
+                        () => context.canPop()
+                            ? context.pop()
+                            : context.go('/podcasts'),
                     child: Text(l10n.back),
                   ),
                 ],
@@ -180,6 +193,11 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
         SliverAppBar(
           expandedHeight: episode.isVideoEpisode ? 220 : 300,
           pinned: true,
+          leading: BackButton(
+            onPressed:
+                () =>
+                    context.canPop() ? context.pop() : context.go('/podcasts'),
+          ),
           flexibleSpace: FlexibleSpaceBar(
             background: episode.isVideoEpisode
                 ? Container(

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/dn_text.dart';
+import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/dn_theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,17 +45,29 @@ class PodcastDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       body: podcastAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Text(
-            ErrorHandler.instance.getShortMessage(
-              ErrorHandler.instance.handleException(e),
+        // La `SliverAppBar` vit dans la branche « données » : sans ces
+        // enveloppes, chargement, erreur et « introuvable » n'ont aucune
+        // sortie quand on arrive ici par lien profond.
+        loading: () => const DesignExitOnlyBody(
+          fallbackRoute: '/podcasts',
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (e, _) => DesignExitOnlyBody(
+          fallbackRoute: '/podcasts',
+          child: Center(
+            child: Text(
+              ErrorHandler.instance.getShortMessage(
+                ErrorHandler.instance.handleException(e),
+              ),
             ),
           ),
         ),
         data: (podcast) {
           if (podcast == null) {
-            return Center(child: Text(l10n.podcastsNotFound));
+            return DesignExitOnlyBody(
+              fallbackRoute: '/podcasts',
+              child: Center(child: Text(l10n.podcastsNotFound)),
+            );
           }
 
           return CustomScrollView(
@@ -63,6 +76,11 @@ class PodcastDetailScreen extends ConsumerWidget {
               SliverAppBar(
                 expandedHeight: 300,
                 pinned: true,
+                leading: BackButton(
+                  onPressed: () => context.canPop()
+                      ? context.pop()
+                      : context.go('/podcasts'),
+                ),
                 actions: [
                   IconButton(
                     icon: AppIcon(AppIcon.share, color: context.dn.onSurface2),

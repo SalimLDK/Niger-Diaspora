@@ -94,9 +94,32 @@ void main() {
 
     for (final source in sources) {
       final texte = source.readAsStringSync();
-      final blocs = texte.split(RegExp(r"\n\s*path:\s*'"));
+
+      // `path:` ne porte pas toujours un littéral. `PodcastsRoutes` déclare
+      // ses chemins en constantes (`path: detail`), et la version précédente
+      // de ce garde, qui découpait sur `path: '`, ne voyait donc **aucune**
+      // des cinq routes podcasts — dont deux sont les cibles de liens que
+      // l'app génère elle-même (`generatePodcastLink`, `generateEpisodeLink`).
+      // Les cinq écrans n'avaient aucune sortie, et aucun test ne le disait.
+      final constantes = <String, String>{};
+      for (final m in RegExp(
+        r"static const String (\w+)\s*=\s*'([^']*)'",
+      ).allMatches(texte)) {
+        constantes[m.group(1)!] = m.group(2)!;
+      }
+
+      final blocs = texte.split(RegExp(r'\n\s*path:\s*'));
       for (final bloc in blocs.skip(1)) {
-        final chemin = bloc.split("'").first;
+        final String chemin;
+        if (bloc.startsWith("'")) {
+          chemin = bloc.substring(1).split("'").first;
+        } else {
+          // `path: detail` ou `path: PodcastsRoutes.detail`.
+          final ident = RegExp(r'^(?:\w+\.)?(\w+)').firstMatch(bloc)?.group(1);
+          final resolu = ident == null ? null : constantes[ident];
+          if (resolu == null) continue;
+          chemin = resolu;
+        }
         final classes = ecran
             .allMatches(bloc.length > 4000 ? bloc.substring(0, 4000) : bloc)
             .map((m) => m.group(1)!)
@@ -173,6 +196,10 @@ void main() {
           'SliverAppBar dans la branche données',
       'lib/features/transfers/presentation/screens/transfer_screen.dart':
           'Scaffold de chargement sans barre quand le profil manque',
+      'lib/features/podcasts/presentation/screens/podcast_detail_screen.dart':
+          'SliverAppBar dans la branche données',
+      'lib/features/podcasts/presentation/screens/episode_detail_screen.dart':
+          'SliverAppBar dans la branche données',
     };
 
     final coupables = <String>[];
@@ -238,6 +265,12 @@ void main() {
     //
     // D'où l'invariant : toute sortie de retour porte le repli maison
     // `context.canPop() ? context.pop() : context.go(<parent>)`.
+    //
+    // **On ancre sur le rappel, pas sur l'icône.** La première version de ce
+    // garde partait du marqueur visuel et cherchait le `onPressed:` qui suit —
+    // elle ratait les `IconButton` qui déclarent `onPressed:` **avant**
+    // `icon:`, soit deux écrans de la messagerie. L'ordre des arguments
+    // nommés est libre en Dart ; seul le rappel est un point fixe.
     const exceptions = <String, String>{
       'lib/features/transfers/presentation/screens/transaction_history_screen.dart':
           'la croix ferme la feuille de filtres (showModalBottomSheet), '
@@ -263,13 +296,13 @@ void main() {
           .join('\n');
     }
 
-    // Un rappel de retour tient en peu de caractères ; au-delà on lit le
-    // widget suivant et on fabrique des faux positifs.
-    const distanceRappel = 400;
-    const tailleCorps = 260;
-    final rappel = RegExp(r'on(?:Pressed|Tap)\s*:');
-    final popNu = RegExp(
-      r'context\.pop\(|Navigator\.of\(context\)\.pop\(|Navigator\.pop\(context',
+    // Le marqueur visuel et le repli tiennent tous deux à portée du rappel ;
+    // au-delà on lit le widget voisin et on fabrique des faux positifs.
+    const portee = 300;
+    final rappelPop = RegExp(
+      r'on(?:Pressed|Tap)\s*:\s*(?:\([^)]*\)\s*(?:async\s*)?=>\s*)?'
+      r'(?:context\.pop\(\)|Navigator\.of\(context\)\.pop\(\)|'
+      r'Navigator\.pop\(context\))',
     );
 
     final fichiers = declarations();
@@ -284,22 +317,17 @@ void main() {
       if (!vus.add(rel)) return;
 
       final texte = sansCommentaires(fichier.readAsStringSync());
-      for (final m in sorties.allMatches(texte)) {
-        // La brique du kit porte le repli elle-même ; le `onPressed:` qui
-        // suit appartient au widget d'à côté.
-        if (m.group(0) == 'DesignBackLeading') continue;
-
-        final finZone = (m.start + distanceRappel).clamp(0, texte.length);
-        final r = rappel.firstMatch(texte.substring(m.start, finZone));
-        if (r == null) continue;
-
-        final debut = m.start + r.end;
-        final corps = texte.substring(
-          debut,
-          (debut + tailleCorps).clamp(0, texte.length),
+      for (final m in rappelPop.allMatches(texte)) {
+        final zone = texte.substring(
+          (m.start - portee).clamp(0, texte.length),
+          (m.end + portee).clamp(0, texte.length),
         );
-        if (corps.contains('canPop')) continue;
-        if (!popNu.hasMatch(corps)) continue;
+        // Sans marqueur autour, ce `pop()` ferme un dialogue ou une feuille,
+        // pas la route : ce n'est pas la sortie de l'écran.
+        if (!sorties.hasMatch(zone)) continue;
+        // `if (context.canPop()) …` compte aussi : la sortie est alors
+        // simplement masquée quand il n'y a rien à dépiler.
+        if (zone.contains('canPop')) continue;
 
         final ligne = '\n'.allMatches(texte.substring(0, m.start)).length + 1;
         coupables.add('$rel:$ligne ($chemin)');
