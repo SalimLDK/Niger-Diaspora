@@ -118,6 +118,55 @@ l'utilisateur au téléphone.**
 est **release**, `run-as` répond « package not debuggable ». Pour départager
 local et distant, passer par `public.users` en base, pas par `shared_prefs/`.
 
+### ⬜ Reprise des drapeaux restés sur Firestore (2026-09-10)
+
+Inventaire fait le 2026-09-10, une fois le correctif de lecture posé : la
+lecture réussit désormais, mais elle peut rendre un `false` **sincère et
+périmé** — le compte a fini son onboarding avant la bascule du 2026-08-13
+(`160d417`), quand l'app écrivait ces drapeaux sur Firestore.
+
+Ce que la mesure a donné, et qui réduit beaucoup la portée du problème :
+
+- Firestore `users/` ne contient plus que **5 documents** contre 17 lignes
+  dans `public.users`, et **2** seulement portent des drapeaux d'onboarding.
+- `U64HKfrjM5NwR6HO00XPKo6168z2` : déjà repris côté Supabase, au
+  `consent_date` près (même milliseconde). Une reprise Firestore→Supabase a
+  donc bien eu lieu, avant la bascule du code.
+- `czk5UoUclLOFmbRtUIZ5XYLYKo52` : les quatre drapeaux à `true` sur Firestore,
+  les quatre à `false` ici. Compte créé le 2026-08-13 à 22:29:01 UTC,
+  onboarding terminé en 90 s — **une heure et demie avant** `160d417`. Il est
+  passé entre la reprise (déjà faite) et la bascule (pas encore faite).
+- Les 8 autres comptes à `false` n'ont **aucun** document Firestore : leur
+  `false` n'est pas périmé, il est vrai. Rien à reprendre pour eux.
+
+`supabase/migrations/20260910070000_reprise_drapeaux_onboarding_firestore.sql`
+monte donc **une seule ligne**, par `or` colonne par colonne (jamais une
+affectation sèche) et `coalesce` sur `consent_date` : rejouer la migration ne
+change rien, et aucun drapeau ne peut redescendre.
+
+⚠️ **« Sim A » (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), le compte de la section
+ci-dessus, lit aujourd'hui `true` partout** — il a rejoué l'onboarding le
+2026-09-10 (`updated_at` 05:12 UTC). Aucune reprise Firestore ne l'aurait
+sauvé : son document Firestore, créé le 2026-08-14 à 00:15 UTC — soit après
+la bascule — ne porte aucun drapeau. Ne pas compter sur ce compte pour
+observer le défaut : il est sorti de l'état fautif tout seul, au prix de
+l'onboarding refait.
+
+À vérifier sur appareil :
+
+- [ ] **Le compte repris ne rejoue plus rien** : se connecter avec
+      `czk5UoUclLOFmbRtUIZ5XYLYKo52` après `supabase db push`, sur un
+      téléphone où l'app vient d'être **désinstallée** (le cache local
+      masquerait le résultat). Attendu : `/home` directement, ni consentement,
+      ni assistant de profil, ni les 5 écrans d'intro.
+- [ ] **Ce compte n'a pas de `display_name`** (`handle = 'diaspo_ne'` et
+      `country_code = 'NE'` sont posés, le nom non) : l'assistant de profil a
+      tourné le 2026-08-13 sans que tout arrive en base. Monter
+      `profile_config_complete` le fait donc entrer dans l'app **sans nom
+      affiché**. Regarder ce que donnent le profil, le bandeau de complétude
+      (§11f) et l'en-tête des discussions dans cet état — c'est le seul point
+      où cette migration peut se voir en mal.
+
 ---
 
 ## ⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)
@@ -779,7 +828,7 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       `canPop() ? pop() : go(<parent>)`, avec le parent logique de chaque
       route et non un `/home` uniforme.
 
-      **Neuf rejouées à l'intent** le 2026-09-10 — voir le tableau de la passe
+      **Seize rejouées à l'intent** le 2026-09-10 — voir le tableau de la passe
       appareil plus bas. Chacune sort sur **son** parent, pas sur un `/home`
       uniforme. Restent à voir à l'œil : `/events/<id>`, `/polls/<id>/results`,
       les écrans de création/édition, et les cinq écrans podcasts (bloqués par
@@ -831,7 +880,61 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       Vérifier : `diasponiger:///feed` et `diasponiger:///calls/history`,
       flèche présente et qui sort.
 
-### Passe appareil du 2026-09-10 — neuf liens rejoués
+## ⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)
+
+Consigne de Salim : « pour les groupes privés, celui qui reçoit le lien fait
+une demande d'adhésion au groupe ». Le message honnête livré la veille restait
+une impasse ; il devient une porte.
+
+Tout le chemin existait déjà (`requestToJoinGroup`, et
+`group_requests_parties` laisse un non-membre créer **sa** demande). Il
+manquait une seule chose : `group_requests.group_name` est dénormalisé, donc
+sans un moyen de lire le nom, aucune demande n'est possible depuis un lien.
+
+`20260910060000` ajoute `group_link_preview(uuid)`, SECURITY DEFINER, réservée
+à `authenticated` : nom, avatar, nombre de membres, privé ou non. Rien
+d'autre. La RLS de `groups` n'a pas bougé — prouvé en transaction annulée :
+un inconnu authentifié voit toujours 3 groupes par la RLS (les publics), et
+n'obtient le nom du privé que par l'aperçu.
+
+⚠️ **Choix de produit assumé** : un uuid connu révèle désormais le nom d'un
+groupe privé — le modèle du lien d'invitation. Ce que ça ne rouvre **pas**,
+et c'est ce qui le distingue de la porte fermée par `20260909201500` :
+l'aperçu ne donne aucun accès, la seule suite est une demande qu'un
+administrateur doit approuver.
+
+Effet de bord utile : l'aperçu est la seule chose qui sache distinguer
+« privé » de « supprimé » — `getGroupById` rend le même PGRST116 pour les deux.
+
+**⚠️ L'aperçu était joignable en ANONYME — corrigé par `20260910070000`.**
+`20260910060000` annonçait « réservée à `authenticated` » et faisait
+`REVOKE ALL ... FROM PUBLIC` + `GRANT ... TO authenticated`. Insuffisant :
+Supabase pose un `ALTER DEFAULT PRIVILEGES` qui accorde EXECUTE **nommément**
+à `anon` sur toute nouvelle fonction de `public`, et révoquer `PUBLIC` n'y
+touche pas. Mesuré en production avec la clé publique du `.env` :
+`POST /rest/v1/rpc/group_link_preview` → **200**, nom du groupe privé rendu
+**sans compte**. Prouvé refermé : connecté → le nom, anonyme → 42501.
+
+⚠️ **Réflexe** : après toute fonction SECURITY DEFINER ajoutée ici, relire
+`proacl` — `REVOKE ... FROM PUBLIC` ne dit rien des rôles Supabase.
+
+**⚠️ `supabase db push` à relancer** pour `20260910070000`. Tant qu'elle n'est
+pas passée, l'aperçu échoue et l'écran retombe sur l'ancien message — c'est
+volontaire, mais rien n'est vérifiable sur appareil avant.
+
+Couvert par deux tests widget : aperçu résolu → nom + « Demander à
+rejoindre » ; aperçu nul → pas de fausse porte.
+
+- [ ] Depuis un compte **non-membre**, ouvrir le lien d'un groupe privé :
+      nom, avatar, « Privé · N membres », bouton « Demander à rejoindre ».
+- [ ] Le bouton devient inactif après l'envoi, et l'administrateur voit la
+      demande dans `/groups/<id>/requests`.
+- [ ] Un lien vers un groupe supprimé garde « Ce groupe est privé ou n'existe
+      plus. » — pas de bouton.
+- [ ] Redemander deux fois ne doit pas empiler deux demandes.
+
+---
+### Passe appareil du 2026-09-10 — seize liens rejoués
 
 SM A515F, build `317a775c…08c6`, md5 contrôlé avant **et** après (l'autre agent
 installe sur le même téléphone). Intents envoyés **à chaud** : à froid, le lien
@@ -848,6 +951,13 @@ retombe sur `/home` par intermittence et la mesure est fausse.
 | `diasponiger:///notifications/settings` | **Réglages** ✅ |
 | `diasponiger:///groups/map` | **Groupes** ✅ |
 | `diasponiger:///profile/edit` | **Mon profil** ✅ |
+| `diasponiger:///events/<id>` | **Événements** ✅ |
+| `diasponiger:///feed/<postId>` | Accueil ✅ |
+| `diasponiger:///businesses/<id>` | **Annuaire** ✅ |
+| `diasponiger:///embassies/<id>` | **Ambassades** ✅ |
+| `diasponiger:///p/u/<userId>` | Accueil ✅ |
+| `diasponiger:///groups/create` | **Groupes** ✅ |
+| `diasponiger:///messages/new` | **Messages** ✅ |
 
 Plus les trois mesures du retour système : lien profond → accueil ; onglet
 Accueil → l'app se ferme, comme avant ; navigation interne → la liste, pas
@@ -889,7 +999,12 @@ Corrigé dans cette livraison :
       qui la portait déjà.
       Vérifier : ouvrir `…/events/<uuid inexistant>` → « Erreur de
       chargement » + « Réessayer », **pas** de roue infinie.
-- [ ] **Groupe privé : ne plus mentir.** ⚠️ NON REJOUÉ sur appareil : le compte du SM A515F (« Sim A ») est le **créateur** du groupe privé de test, la fiche s'ouvre donc normalement pour lui ; le Pixel, qui portait un compte non-membre, s'est déconnecté pendant les mesures (une seule session par compte). Couvert par test widget seulement. `getGroupById` finit sur `.single()`
+- [x] **Groupe privé : ne plus mentir.** ✅ vérifié SM A515F 2026-09-10 00:56 :
+      « Ce groupe est privé ou n'existe plus. » + « Retour », sans
+      « Réessayer ». ⚠️ Une première tentative identique avait atterri sur la
+      **liste** des groupes : au démarrage à froid le lien arrive parfois sur
+      le splash et se perd. Relance identique → bon écran. Non corrigé.
+      **Ce n'est plus l'état final** — voir la section « demander à rejoindre ». ⚠️ NON REJOUÉ sur appareil : le compte du SM A515F (« Sim A ») est le **créateur** du groupe privé de test, la fiche s'ouvre donc normalement pour lui ; le Pixel, qui portait un compte non-membre, s'est déconnecté pendant les mesures (une seule session par compte). Couvert par test widget seulement. `getGroupById` finit sur `.single()`
       ; la RLS d'un groupe privé rend zéro ligne, donc PGRST116 — le même
       code que pour un groupe supprimé. « Erreur de chargement » + un
       « Réessayer » qui ne peut jamais aboutir. Remplacé par « Ce groupe est
