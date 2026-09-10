@@ -72,6 +72,10 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
         backgroundColor: context.dn.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        leading: BackButton(
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/home'),
+        ),
         // Sous-titre « N abonnements · M en cours d'écoute » : dit d'un coup
         // d'œil s'il y a quelque chose à reprendre.
         title: Column(

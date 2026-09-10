@@ -94,9 +94,32 @@ void main() {
 
     for (final source in sources) {
       final texte = source.readAsStringSync();
-      final blocs = texte.split(RegExp(r"\n\s*path:\s*'"));
+
+      // `path:` ne porte pas toujours un littéral. `PodcastsRoutes` déclare
+      // ses chemins en constantes (`path: detail`), et la version précédente
+      // de ce garde, qui découpait sur `path: '`, ne voyait donc **aucune**
+      // des cinq routes podcasts — dont deux sont les cibles de liens que
+      // l'app génère elle-même (`generatePodcastLink`, `generateEpisodeLink`).
+      // Les cinq écrans n'avaient aucune sortie, et aucun test ne le disait.
+      final constantes = <String, String>{};
+      for (final m in RegExp(
+        r"static const String (\w+)\s*=\s*'([^']*)'",
+      ).allMatches(texte)) {
+        constantes[m.group(1)!] = m.group(2)!;
+      }
+
+      final blocs = texte.split(RegExp(r'\n\s*path:\s*'));
       for (final bloc in blocs.skip(1)) {
-        final chemin = bloc.split("'").first;
+        final String chemin;
+        if (bloc.startsWith("'")) {
+          chemin = bloc.substring(1).split("'").first;
+        } else {
+          // `path: detail` ou `path: PodcastsRoutes.detail`.
+          final ident = RegExp(r'^(?:\w+\.)?(\w+)').firstMatch(bloc)?.group(1);
+          final resolu = ident == null ? null : constantes[ident];
+          if (resolu == null) continue;
+          chemin = resolu;
+        }
         final classes = ecran
             .allMatches(bloc.length > 4000 ? bloc.substring(0, 4000) : bloc)
             .map((m) => m.group(1)!)
@@ -173,6 +196,10 @@ void main() {
           'SliverAppBar dans la branche données',
       'lib/features/transfers/presentation/screens/transfer_screen.dart':
           'Scaffold de chargement sans barre quand le profil manque',
+      'lib/features/podcasts/presentation/screens/podcast_detail_screen.dart':
+          'SliverAppBar dans la branche données',
+      'lib/features/podcasts/presentation/screens/episode_detail_screen.dart':
+          'SliverAppBar dans la branche données',
     };
 
     final coupables = <String>[];

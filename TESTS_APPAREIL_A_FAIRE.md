@@ -571,6 +571,56 @@ fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
 
 ---
 
+## ⬜ Podcasts : cinq routes qu'aucun garde ne voyait (2026-09-10)
+
+Trouvé en répondant à « tous les types de deep link ont été pris en compte ? ».
+Réponse : non, et le trou ne venait pas des écrans — il venait du **garde**.
+
+`PodcastsRoutes` déclare ses chemins en **constantes** :
+
+```dart
+static const String detail = '/podcasts/:podcastId';
+...
+GoRoute(path: detail, ...)
+```
+
+`fleche_retour_test.dart` découpait le routeur sur `path: '` — un littéral. Il
+ne voyait donc **aucune** des cinq routes podcasts, et elles n'avaient
+effectivement **aucune sortie** : `AppBar` et `SliverAppBar` sans `leading`,
+donc rien d'autre que la flèche implicite de Flutter, qui ne s'affiche pas
+quand la pile ne contient que cet écran.
+
+Deux de ces cinq sont des cibles de liens que **l'app génère elle-même** :
+`generatePodcastLink` (`/podcasts/<id>`) et `generateEpisodeLink`
+(`/podcasts/episodes/<id>`), tous deux dans `DeepLinkService`.
+
+⚠️ **Non observable aujourd'hui** : les podcasts sont derrière un feature-flag,
+le routeur renvoie ces chemins sur `/home`. Le défaut se découvrira le jour où
+le flag passera à `true` — d'où la correction maintenant.
+
+Corrigé :
+
+- [ ] **Cinq sorties posées** — `BackButton` explicite avec le repli maison sur
+      l'accueil des podcasts (→ `/home`), la création, « mes podcasts », la
+      fiche podcast et la fiche épisode (→ `/podcasts`).
+      Vérifier, une fois le flag actif : `diasponiger:///podcasts/<id>` et
+      `diasponiger:///podcasts/episodes/<id>`, flèche puis retour système.
+- [ ] **Les deux fiches posent leur `SliverAppBar` dans la branche « données »**
+      — chargement, erreur et « introuvable » n'avaient donc aucune sortie,
+      exactement comme la fiche entreprise en son temps. Enveloppées dans
+      `DesignExitOnlyBody`, et les deux boutons « Retour » de l'épisode
+      recâblés (ils faisaient `context.pop()` nu).
+- [x] **Le garde résout désormais les constantes** — il voit 116 routes au lieu
+      de 111, et 0 route dont l'écran ne se résout pas. Il est tombé tout seul
+      sur une flèche que j'avais oubliée de poser (`episode_detail_screen`),
+      ce qui vaut vérification.
+
+**Ce qu'il reste, après ce passage** : 1 `pop()` nu (la croix de la feuille de
+filtres de l'historique des transferts — le bon geste), 12 écrans sans sortie
+(les 5 onglets, le parcours de connexion, le splash, la maintenance, l'écran
+d'appel qui sort par « raccrocher », et `/share` qui est une feuille modale),
+et 2 sorties conditionnelles — voir l'entrée juste au-dessus.
+
 ## ⬜ Liens profonds : la flèche retour ne faisait rien (2026-09-09)
 
 Signalé par Salim : « les deep link, pas possible de faire des retours ».
