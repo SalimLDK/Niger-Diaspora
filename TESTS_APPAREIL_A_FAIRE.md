@@ -368,7 +368,34 @@ trace. Aujourd'hui c'est ce garde qui fait tenir l'exclusion — par effet de
 bord, pas par intention. L'autre session adosse son exemption à
 `has_group_invite()`, ce qui ne rouvre pas cette porte.
 
-**La question de fond, à trancher une fois** (demande de Salim le
+**Décision de Salim, 2026-09-09 : « B puis C ».** B = le correctif adossé à
+l'invitation, à l'autre session, qui débloque ce soir les membres invités.
+C = réparer l'exclusion elle-même, à faire ensuite, pour que « tout membre »
+soit vrai y compris pour qui a rejoint un groupe public. Ce qu'il faut savoir
+avant d'attaquer C, relevé en préparation :
+
+- **Deux chemins de retrait coexistent et font l'inverse l'un de l'autre.**
+  `GroupSupabaseDatasource.removeMember` → `leaveGroup`
+  (`group_supabase_datasource.dart:343`) **supprime bien** la ligne
+  `group_members`. `MessageSupabaseDatasource.removeUserFromGroup`
+  (`message_supabase_datasource.dart:2044`) ne touche **que**
+  `conversations`. C'est le second que l'écran utilise
+  (`group_members_screen.dart:324`, via `conversationActionsNotifier`) — donc
+  en pratique une exclusion ne retire jamais du groupe.
+- ⚠️ **Et le premier chemin a son propre défaut** : `leaveGroup` supprime la
+  ligne de `userId`, puis appelle la RPC `leave_group_conversation`, qui agit
+  sur **l'appelant authentifié** (`firebase_uid`), jamais sur `userId`.
+  Utilisé pour exclure quelqu'un d'autre, il sortirait donc **l'admin** de la
+  conversation à la place de l'exclu. Le commentaire du code le dit lui-même
+  (« cohérent avec le fait que `leaveGroup` n'est appelé aujourd'hui qu'avec
+  `currentUser.id` ») — mais `removeMember` l'appelle avec un `userId`
+  quelconque. Dormant tant que `GroupRepositoryImpl.removeMember` n'a pas
+  d'appelant d'écran (`group_repository_impl.dart:278` est le seul).
+- Donc C n'est pas « ajouter un DELETE » : c'est unifier les deux chemins sur
+  un seul, qui retire la personne des DEUX tables, et qui vise bien la
+  personne exclue et pas l'appelant.
+
+**La question de fond, tranchée par cette décision** (demande de Salim le
 2026-09-09 : « tout membre peut ouvrir les conversations »). Adosser
 l'exemption à l'**invitation** ne couvre pas quelqu'un qui a rejoint un
 groupe **public** sans jamais être invité. Adosser à l'**appartenance** rouvre
