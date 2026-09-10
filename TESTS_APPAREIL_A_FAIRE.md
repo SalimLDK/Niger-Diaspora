@@ -12630,6 +12630,12 @@ main :
       sont dans le sous-arbre `ColorFiltered(BlendMode.srcOut)`, donc invisibles
       par construction sur fond noir. Ne pas confondre avec une caméra morte.
 
+- [x] **Le cadre de visée et le texte d'instruction s'affichent** — vérifié
+      SM A515F le 2026-09-09 après correctif : cadre orange, coins blancs,
+      ligne animée et « Placez le QR code dans le cadre pour scanner » sont
+      visibles. Ils ne l'étaient jamais avant (enfermés dans le sous-arbre
+      `ColorFiltered(srcOut)`, qui les découpait dans le voile).
+
 **Piège de mesure (2026-09-09)** : le premier symptôme rapporté (« ça ne marche
 pas ») venait d'un APK antérieur au correctif — construit à 19:55, correctif
 committé à 20:12. Avant toute conclusion sur un comportement appareil, comparer
