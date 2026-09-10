@@ -30,10 +30,22 @@ trois autres.
    valaient `true` (relevé en base ce jour-là ; `consent_date` est resté au
    2026-07-16, jamais réécrit). Reliquat de la bascule Firestore→Supabase du
    2026-08-13 (`160d417`) : avant cette date l'app écrivait ses drapeaux sur
-   Firestore, la colonne Supabase est donc restée à son `DEFAULT false` pour
-   tout compte ayant fini son onboarding plus tôt. Conséquence en chaîne : la
-   synchronisation vers le local (`if (remoteResult) setComplete(...)`) a
-   recopié consentement et profil, **jamais** l'intro.
+   Firestore, et la colonne Supabase est restée à son `DEFAULT false`.
+   Conséquence en chaîne : la synchronisation vers le local
+   (`if (remoteResult) setComplete(...)`) a recopié consentement et profil,
+   **jamais** l'intro.
+
+   ⚠️ **Ne pas en conclure qu'un backfill Firestore aurait sauvé ce compte** —
+   l'inventaire du 2026-09-10 (migration
+   `20260910071000_reprise_drapeaux_onboarding_firestore.sql`) a mesuré la
+   source au lieu de la supposer : `users/` sur Firestore ne contient plus que
+   **5 documents** pour 17 lignes Supabase, dont **2** portent des drapeaux, et
+   **un seul** compte restait à reprendre. Le document Firestore de « Sim A »
+   date d'*après* la bascule et ne porte aucun drapeau : la fin de son
+   onboarding n'a jamais été enregistrée nulle part côté serveur — c'est
+   précisément ce que disait le message de `160d417`, « seul le drapeau local
+   faisait foi ». Et les 8 comptes encore à `false` n'ont aucun document
+   Firestore : leur `false` n'est pas périmé, il est vrai.
 2. **Ce drapeau-là, et lui seul, repassait donc par le réseau à chaque
    démarrage** — et sa lecture, en échec, valait « jamais vu ».
 
@@ -66,14 +78,77 @@ redescend jamais un drapeau. Verrouillé par
       ordre. C'est le cas que le repli optimiste pourrait avaler ; le test
       « les quatre lectures rendent false » le couvre en unitaire, pas en
       vrai.
-- [ ] **La reproduction hors ligne, rejouée après correctif** : compte « Sim A »
-      connecté, mode avion, rechargement forcé. Attendu : `/home`, aucun écran
-      d'onboarding. C'est le scénario exact qui donnait le carrousel de
-      bienvenue (section plus bas) — le seul qui prouve le correctif, parce
-      qu'il est le seul reproductible à volonté.
-- [ ] **Le même, mais sur un compte dont aucun drapeau n'est en cache local**
-      (compte neuf sur ce téléphone, puis mode avion) : là c'est `/consent` qui
-      tombait, pas l'intro. Vérifier qu'il ne tombe plus.
+⛔ **La reproduction hors ligne ne se rejoue plus telle quelle, et c'est le
+piège de ce test.** En tapant « Passer » le 2026-09-10, `completeIntro()` a
+écrit le drapeau **des deux côtés** — base *et* SharedPreferences. Or le dépôt
+consulte le local en premier : sur « Sim A », `has_seen_onboarding` est
+désormais vrai en cache, donc **plus aucun appel réseau n'est émis** pour ce
+drapeau. Mode avion ou pas, il n'y a plus rien à observer. Un « ça ne fait plus
+le bug » mesuré comme ça ne prouve **rien** : le correctif n'est même pas
+sollicité.
+
+Pour que le correctif soit sollicité, il faut réunir les trois à la fois :
+authentifié, **drapeau local absent**, réseau coupé. Le drapeau local ne
+s'efface ni par `adb install -r` (qui conserve les données) ni depuis ce poste
+(build release, `run-as` refusé). Il faut donc `pm clear`, qui emporte aussi la
+session Firebase — **et une reconnexion, qui ne peut être faite que par
+l'utilisateur au téléphone.**
+
+- [ ] **Le test décisif** (demande une reconnexion manuelle) :
+      1. `adb -s R58N91XBA7B install -r <apk>` — l'APK doit être signé avec
+         `android/app/diaspo-niger-release.jks`, sinon la signature diffère et
+         Android impose une désinstallation ;
+      2. `adb -s R58N91XBA7B shell pm clear com.diasponiger.diasponiger` ;
+      3. **l'utilisateur se reconnecte** sur un compte dont
+         `has_seen_onboarding` vaut **`false`** en base. Le drapeau restant
+         faux côté serveur, il n'est jamais recopié en local : la condition
+         « local absent » se maintient toute seule, autant de fois qu'on veut.
+         ⚠️ **Deux comptes de test quasi homonymes coexistent**, et ils ne sont
+         pas dans le même état — se tromper de l'un pour l'autre donne deux
+         conclusions opposées :
+         - `test.diaspo@`**`example`**`.com` (« Compte Test », celui de
+           `scripts/creer_compte_test.js`) : les **quatre** drapeaux à `true`,
+           donc **inutilisable tel quel** pour ce test ;
+         - `test.diaspo@`**`exemple`**`.com` (« Test User », orthographe
+           française, visiblement créé par accident) : `has_seen_onboarding` et
+           `profile_config_complete` à `false` — **c'est celui-ci qu'il faut**,
+           et il ne demande aucune écriture en base.
+
+      ⚠️ **Ne pas terminer l'assistant de profil après la reconnexion.** Sur
+         ce compte, `profile_config_complete` est faux : la connexion en ligne
+         atterrit sur `/profile-config`. Le finir écrirait `true` en base ET en
+         local, et détruirait la condition du test. Tuer l'app là, sans
+         toucher à l'assistant.
+      4. mode avion, puis redémarrage forcé de l'app.
+      Attendu **après correctif** : `/home`.
+      ⚠️ **Avant correctif, l'écran fautif n'est PAS le carrousel de
+      bienvenue, c'est `/profile-config`** — et confondre les deux ferait
+      conclure à tort que « ça ne fait plus le bug ». Raison : `_lireDrapeau`
+      ne mémorise en local que les `true`. À la reconnexion en ligne,
+      `has_given_consent` (vrai en base) est donc mis en cache, alors que
+      `profile_config_complete` et `has_seen_onboarding` (faux en base) ne le
+      sont pas. Hors ligne, seuls ces deux-là repassent par le réseau, et le
+      routeur teste le profil (étape 7) **avant** l'intro (étape 8). C'est
+      donc `/profile-config` vs `/home` qui distingue les deux builds.
+
+✅ **Ce qui a été mesuré le 2026-09-10 à 01:50 sur SM-A515F, et ce que ça ne
+prouve pas.** APK release reconstruit depuis `7c5627c`
+(md5 `a9e547fbfb5c29b00ebe9313bc2643a8`), posé par `install -r`, **md5 de
+`base.apk` sur l'appareil identique au fichier** — c'est cette vérification-là
+qui manquait : les trois APK comparés avant l'install avaient trois md5
+différents pour un même `versionCode=17`, donc **le numéro de version ne
+discrimine rien ici**. Démarrage en ligne → `/home`. Réseau coupé
+(`svc wifi disable` + `svc data disable`, « Active default network: none »),
+`force-stop`, relance → `/home` à nouveau, et toujours `/home` 10 s plus tard
+(donc au-delà de `delaiDeReprise`).
+
+⛔ **Ce résultat ne prouve rien sur `e071491`, et je suis tombé dans le piège
+décrit juste au-dessus.** `install -r` conserve les données : sur « Sim A » le
+drapeau local est vrai, aucun appel réseau n'est émis, le correctif n'est pas
+sollicité. Ce que la campagne établit vraiment se limite à : le build de
+`7c5627c` s'installe et démarre sans régression, en ligne comme hors ligne.
+La case ci-dessous reste donc à faire.
+
 - [ ] **La reprise** : la lecture indéterminée est retentée une fois après 4 s
       (`OnboardingNotifier.delaiDeReprise`). Sur un compte neuf dont la
       première lecture échoue, l'écran de consentement doit apparaître ~4 s
@@ -108,10 +183,18 @@ Ce que la mesure a donné, et qui réduit beaucoup la portée du problème :
 - Les 8 autres comptes à `false` n'ont **aucun** document Firestore : leur
   `false` n'est pas périmé, il est vrai. Rien à reprendre pour eux.
 
-`supabase/migrations/20260910070000_reprise_drapeaux_onboarding_firestore.sql`
+`supabase/migrations/20260910071000_reprise_drapeaux_onboarding_firestore.sql`
 monte donc **une seule ligne**, par `or` colonne par colonne (jamais une
 affectation sèche) et `coalesce` sur `consent_date` : rejouer la migration ne
 change rien, et aucun drapeau ne peut redescendre.
+
+✅ **Appliquée en base le 2026-09-10** (`supabase db push`), et revérifiée
+après coup : la ligne porte les quatre drapeaux à `true` et
+`consent_date = 2026-08-13 22:29:10.098+00`. Les compteurs de `public.users`
+ont bougé d'exactement un, sur les quatre colonnes à la fois — `has_seen_onboarding`
+8→9, `has_seen_coach_marks` 5→6, `has_given_consent` 9→10,
+`profile_config_complete` 8→9, sur 17 comptes. Rien d'autre n'a bougé. Il ne
+reste donc que la vérification côté téléphone.
 
 ⚠️ **« Sim A » (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), le compte de la section
 ci-dessus, lit aujourd'hui `true` partout** — il a rejoué l'onboarding le
@@ -124,10 +207,10 @@ l'onboarding refait.
 À vérifier sur appareil :
 
 - [ ] **Le compte repris ne rejoue plus rien** : se connecter avec
-      `czk5UoUclLOFmbRtUIZ5XYLYKo52` après `supabase db push`, sur un
-      téléphone où l'app vient d'être **désinstallée** (le cache local
-      masquerait le résultat). Attendu : `/home` directement, ni consentement,
-      ni assistant de profil, ni les 5 écrans d'intro.
+      `czk5UoUclLOFmbRtUIZ5XYLYKo52` sur un téléphone où l'app vient d'être
+      **désinstallée** (le cache local masquerait le résultat — `adb install -r`
+      ne suffit pas). Attendu : `/home` directement, ni consentement, ni
+      assistant de profil, ni les 5 écrans d'intro.
 - [ ] **Ce compte n'a pas de `display_name`** (`handle = 'diaspo_ne'` et
       `country_code = 'NE'` sont posés, le nom non) : l'assistant de profil a
       tourné le 2026-08-13 sans que tout arrive en base. Monter
@@ -932,6 +1015,16 @@ touche pas. Mesuré en production avec la clé publique du `.env` :
 `POST /rest/v1/rpc/group_link_preview` → **200**, nom du groupe privé rendu
 **sans compte**. Prouvé refermé : connecté → le nom, anonyme → 42501.
 
+✅ **Trou refermé en production, vérifié de l'extérieur** :
+`POST /rest/v1/rpc/group_link_preview` avec la clé publique → **401 / 42501**.
+
+⚠️ **Deux fois de suite le lien profond s'est perdu au démarrage à froid**
+(2026-09-10, 00:55 et 01:41) : l'app atterrit sur la liste des groupes ou sur
+l'accueil au lieu de la cible. Rejoué à chaud, c'est bon à chaque fois. Le
+repli `_pendingDeepLink` ne rattrape donc pas tout — à creuser, non corrigé.
+Conséquence pratique pour toute mesure : **laisser l'app démarrer une première
+fois** après une installation avant d'envoyer un lien.
+
 ⚠️ **Réflexe** : après toute fonction SECURITY DEFINER ajoutée ici, relire
 `proacl` — `REVOKE ... FROM PUBLIC` ne dit rien des rôles Supabase.
 
@@ -944,10 +1037,16 @@ rejoindre » ; aperçu nul → pas de fausse porte.
 
 - [ ] Depuis un compte **non-membre**, ouvrir le lien d'un groupe privé :
       nom, avatar, « Privé · N membres », bouton « Demander à rejoindre ».
+      ⚠️ **Invérifiable en l'état** : « Sim A » (SM A515F) est membre des DEUX
+      groupes privés de la base, donc la porte ne s'ouvre jamais pour lui ; et
+      le Pixel est resté sur l'écran de connexion (relancé à froid à 01:18).
+      Il faut un second compte connecté, ou un groupe privé dont Sim A n'est
+      pas membre. La porte n'est couverte que par le test widget et par la
+      preuve SQL en transaction annulée.
 - [ ] Le bouton devient inactif après l'envoi, et l'administrateur voit la
       demande dans `/groups/<id>/requests`.
-- [ ] Un lien vers un groupe supprimé garde « Ce groupe est privé ou n'existe
-      plus. » — pas de bouton.
+- [x] Un lien vers un groupe supprimé garde « Ce groupe est privé ou n'existe
+      plus. » — pas de bouton. ✅ SM A515F 2026-09-10 01:44, APK md5 8f9cc4d9b2.
 - [ ] Redemander deux fois ne doit pas empiler deux demandes.
 
 ---
@@ -14177,6 +14276,62 @@ Les piles **Dart** sont lisibles (R8 n'y touche pas), les piles **Android** ne
 l'étaient pas. La prochaine version donnera un vrai nom de classe.
 
 - [ ] **Vérifier après publication** qu'une pile Android arrive déobfusquée.
+
+---
+
+## ⬜ Les quatre défauts de la console, triés par appareil (2026-09-10)
+
+Suite de la lecture de Crashlytics. **Le détail par appareil change les
+priorités** — la liste seule était trompeuse, et je l'avais présentée comme
+telle.
+
+| Problème | Volume | Qui est touché |
+|---|---|---|
+| `RenderFlex overflowed by 100 px` | 21 évts | **1 utilisateur, Pixel 10 Pro XL / Android 17** |
+| `GoError: There is nothing to pop` | 19 évts | même profil |
+| `google_fonts` — `Failed host lookup` | 4 évts, **3 users** | **75 % OnePlus 8 Pro / Android 11** |
+| `MissingPluginException` `gsm_state` | 3 évts | — |
+| `ForegroundServiceStartNotAllowedException` | 2 évts | Pixel |
+
+**Le Pixel 10 Pro XL sous Android 17, c'est l'appareil de test.** Les deux plus
+gros volumes (RenderFlex, GoError) ne viennent donc pas d'utilisateurs réels
+mais de nos propres parcours. Ça ne les rend pas faux — mais ça les fait passer
+derrière le seul qui touche du monde extérieur.
+
+**✅ `gsm_state` — corrigé.**
+[gsm_call_service.dart](lib/core/services/gsm_call_service.dart) écoutait
+`com.diasponiger.diaspo_niger/gsm_state`, un `EventChannel` qui **n'existe pas**
+côté natif (aucun enregistrement dans `android/app/src/main`). Le `try/catch` et
+le `onError` du flux ne pouvaient rien y faire : `receiveBroadcastStream`
+signale un échec d'activation par `FlutterError.reportError`
+(`platform_channel.dart:713`), qui va droit dans Crashlytics. L'écoute est
+désormais derrière un drapeau `_canalNatifImplemente = false`, à repasser à
+`true` le jour où le natif arrive.
+
+**✅ `ForegroundServiceStartNotAllowedException` — déjà corrigé**, rien à faire :
+le `BootReceiver` du plugin a été retiré du manifeste le 2026-09-09
+(`tools:node="remove"`) précisément pour ça. Les 2 occurrences sont antérieures
+et disparaîtront à la prochaine publication.
+
+- [ ] **`google_fonts` — le seul qui touche de vrais utilisateurs.** Aucune
+  police n'est embarquée (`pubspec.yaml` n'a pas de section `fonts:`, aucun
+  `.ttf` dans `assets/`) et `GoogleFonts.config.allowRuntimeFetching` n'est pas
+  réglé : **chaque appareil télécharge les polices depuis `fonts.gstatic.com` au
+  démarrage**. Sur réseau instable, l'appel échoue. Le rendu retombe sur la
+  police système — donc pas d'écran cassé, mais la typo de marque saute, et
+  l'erreur remontait.
+  Le correctif robuste est d'**embarquer les polices dans les assets** et de
+  couper `allowRuntimeFetching`. Non appliqué : il faut choisir les fichiers
+  `.ttf` et accepter les mégaoctets ajoutés à l'APK — c'est une décision, pas
+  une correction évidente.
+- [ ] **`RenderFlex` (21) et `GoError` (19)** : appareil de test uniquement.
+  Aucun des deux n'est diagnosticable en l'état — la pile s'arrête à
+  `main.dart:172`/`184`, c'est-à-dire au **gestionnaire d'erreurs**, jamais au
+  widget ni au `context.pop()` fautif. ⚠️ Le problème « RenderFlex » est en
+  réalité un **fourre-tout** : sa fiche contient aussi un avertissement
+  `ListTile background color or ink splashes may be invisible`, sans rapport.
+  Crashlytics regroupe par pile, et toutes les erreurs Flutter partagent la
+  même — celle du gestionnaire. Y toucher demande d'abord de les distinguer.
 
 ---
 

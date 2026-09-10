@@ -727,6 +727,7 @@
                     <li>Identifiants d'appareil</li>
                     <li>Données d'utilisation de l'application</li>
                     <li>Journaux de connexion</li>
+                    <li>Votre position géographique précise, si vous l'autorisez — y compris lorsque l'application est fermée ou n'est pas utilisée, tant que le Mode Voyage reste activé</li>
                 </ul>
             </section>
 
@@ -738,7 +739,7 @@
                 <ul>
                     <li>Créer et gérer votre compte</li>
                     <li>Permettre la communication entre membres</li>
-                    <li>Afficher votre position sur la carte (si activée)</li>
+                    <li>Vous placer sur la carte des membres et vous montrer les membres, groupes, commerces et événements proches de vous (si la localisation est activée)</li>
                     <li>Traiter vos transactions et transferts</li>
                     <li>Gérer vos abonnements et paiements</li>
                 </ul>
@@ -776,11 +777,12 @@
                 <ul>
                     <li>Votre profil public</li>
                     <li>Vos publications et contenus</li>
-                    <li>Votre position géographique (si activée)</li>
+                    <li>Votre position géographique précise, visible par les autres membres tant que le partage reste activé</li>
                 </ul>
                 <h3>Prestataires de services</h3>
                 <ul>
                     <li>Firebase / Google Cloud (hébergement)</li>
+                    <li>Supabase (base de données et stockage)</li>
                     <!-- <li>Stripe (paiements)</li> -->
                     <li>Prestataires d'envoi de notifications</li>
                 </ul>
@@ -878,6 +880,10 @@
                             <tr>
                                 <td>Journaux de sécurité</td>
                                 <td>1 an</td>
+                            </tr>
+                            <tr>
+                                <td>Position géographique</td>
+                                <td>Dernière position uniquement, écrasée à chaque mise à jour — aucun historique de vos déplacements n'est conservé</td>
                             </tr>
                             <tr>
                                 <td>Données KYC</td>
