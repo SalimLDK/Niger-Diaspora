@@ -134,27 +134,9 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     // Extract userId from URL
     String? userId;
     String? shortCode;
-    String? groupId;
 
-    // Hôtes reconnus, alignés sur `DeepLinkService.parseDeepLink`. Deux
-    // choses corrigées ici le 2026-09-09 :
-    //   • `diasponiger.web.app` manquait — c'est pourtant l'hôte RÉEL de tout
-    //     lien produit par `DeepLinkService` (`DEEP_LINK_BASE_URL` du `.env`),
-    //     donc le QR d'un groupe n'avait aucune chance d'être reconnu ; seul
-    //     celui d'un profil passait, parce que `share_profile_modal.dart`
-    //     écrit `https://diasponiger.com/...` en dur. Le `diaspo-niger.web.app`
-    //     déjà listé (avec tiret) ne correspond à rien de produit.
-    //   • `contains` accepte n'importe quel hôte qui CONTIENT la chaîne, donc
-    //     `diasponiger.com.exemple.net` : un QR hostile pouvait pousser une
-    //     route interne. Égalité stricte, comme `parseDeepLink` le fait déjà.
-    const knownHosts = {
-      'diasponiger.com',
-      'www.diasponiger.com',
-      'diasponiger.web.app',
-      'diaspo-niger.web.app',
-    };
-
-    if (knownHosts.contains(uri.host.toLowerCase()) &&
+    if ((uri.host.contains('diasponiger.com') ||
+            uri.host.contains('diaspo-niger.web.app')) &&
         uri.pathSegments.length >= 2) {
       if (uri.pathSegments[0] == 'p') {
         if (uri.pathSegments.length > 2 && uri.pathSegments[1] == 'u') {
@@ -162,23 +144,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
         } else {
           shortCode = uri.pathSegments[1];
         }
-      } else if (uri.pathSegments[0] == 'groups' ||
-          uri.pathSegments[0] == 'g') {
-        // Le QR d'invitation d'un groupe encode `/groups/{id}` (voir
-        // `DeepLinkService.generateGroupLink`), et `/g/{id}` en est le
-        // raccourci. Cet écran ne connaissait que les liens de profil : tout
-        // QR de groupe — celui-là même que « Partager » affiche en grand dans
-        // la fiche du groupe — tombait sur « QR code invalide ou format non
-        // reconnu ». Constaté sur SM A515F le 2026-09-09.
-        groupId = uri.pathSegments[1];
       }
-    }
-
-    if (groupId != null && groupId.isNotEmpty) {
-      // `profileQRScanned` dit « QR code scanné avec succès » : le libellé est
-      // générique, seul son nom de clé parle de profil.
-      await _navigateTo('/groups/$groupId', l10n.profileQRScanned);
-      return;
     }
 
     if (userId != null && userId.isNotEmpty) {
@@ -207,18 +173,15 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     _showError(l10n.invalidQrCodeFormat);
   }
 
-  Future<void> _navigateToProfile(String userId) =>
-      _navigateTo('/profile/$userId', l10n.profileQRScanned);
-
-  Future<void> _navigateTo(String route, String successMessage) async {
+  Future<void> _navigateToProfile(String userId) async {
     // Stop camera before navigating to prevent BufferQueue errors
     await _controller.stop();
 
     if (!mounted) return;
 
-    // Close scanner and navigate to the scanned destination
+    // Close scanner and navigate to profile
     context.pop();
-    context.push(route);
+    context.push('/profile/$userId');
 
     // Show success feedback
     ScaffoldMessenger.of(context).showSnackBar(
@@ -227,7 +190,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
           children: [
             Icon(Icons.check_circle, color: AppColors.white),
             const SizedBox(width: 12),
-            Text(successMessage),
+            Text(l10n.profileQRScanned),
           ],
         ),
         backgroundColor: AppColors.success,
