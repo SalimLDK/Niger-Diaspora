@@ -486,6 +486,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
                   eventData: existing.eventData,
                   productData: existing.productData,
                   linkPreviewData: existing.linkPreviewData,
+                  replyToMessageData: existing.replyToMessageData,
                 );
                 debugPrint(
                   'Message ${updatedMessage.id} read_by updated: ${updatedMessage.readBy}',

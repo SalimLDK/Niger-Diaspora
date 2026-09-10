@@ -14,6 +14,50 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Citations et modifications : plus de texte en clair (2026-09-09)
+
+Deux fuites de la même famille que les cartes de partage, trouvées en
+instrumentant ce chemin. Toutes deux écrivaient du texte utilisateur **en
+clair** dans `messages.data`, à côté d'un `content` chiffré.
+
+**1. Répondre recopiait le message cité en clair.** `replyToMessageData`
+contient le texte **déjà déchiffré** du message auquel on répond : chaque
+réponse en déposait une copie lisible. Une conversation active en laissait donc
+une trace message après message. La citation rejoint le blob `encAnnexes`, dans
+les **cinq** envois qui l'acceptent : texte, média, note vocale, localisation,
+sticker.
+
+**2. Modifier un message annulait son chiffrement.** `editMessage` réécrivait
+`data['content']` en clair tout en laissant `encryptionLevel` annoncer 'e2ee',
+et gardait le texte d'avant dans `editHistory`. Le texte modifié repasse
+maintenant par le chemin de l'envoi (`_encryptContent`), et l'historique ne
+garde plus que la date — rien ne l'affichait.
+
+- [ ] **Répondre, dans les cinq cas** : à un texte, à une photo (avec légende),
+  à une note vocale, à une localisation, à un sticker. La citation doit
+  s'afficher au-dessus de la bulle, chez l'expéditeur **et** chez l'autre.
+- [ ] **La citation survit à un accusé de lecture** : même piège que les
+  cartes ; le flux de mises à jour rend la ligne brute.
+- [ ] **Modifier un message d'un 1:1, puis d'un groupe** : le texte modifié
+  doit s'afficher correctement chez l'autre après rechargement. C'est le point
+  le plus risqué du lot — le rechiffrement d'une modification n'a jamais tourné
+  contre de vraies sessions Signal.
+- [ ] **Modifier un message de « Mes notes »** (aucun destinataire, chemin
+  `selfNote`).
+- [ ] **Rouvrir la conversation après avoir modifié** : côté EXPÉDITEUR, le
+  texte modifié doit rester. Il ne sait pas relire son propre message chiffré
+  (les charges Signal visent les appareils du destinataire) : sa bulle vient du
+  cache, qui est réécrit à la modification. Si le texte d'avant revient, c'est
+  cette réécriture qui a manqué.
+- [ ] **Modifier deux fois de suite** le même message : la deuxième
+  modification doit rester lisible (les charges du format précédent sont
+  purgées avant d'écrire les nouvelles).
+- [ ] **En base** : `select data->>'content' from messages where data ?
+  'editedAt'` ne doit plus rien montrer de lisible, et
+  `data->'editHistory'` ne doit plus contenir de champ `content`.
+
+---
+
 ## ⬜ Cartes de partage chiffrées au repos (2026-09-09)
 
 Une carte de partage (post, événement, annonce, aperçu de lien) ne transite pas

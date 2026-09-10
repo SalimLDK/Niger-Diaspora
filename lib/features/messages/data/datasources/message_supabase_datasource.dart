@@ -19,17 +19,23 @@ import 'message_remote_datasource.dart';
 
 /// Champs de `data` qui portent du contenu utilisateur **sans passer par
 /// `content`** — donc sans passer par Signal : la carte d'un post, d'un
-/// événement, d'une annonce, et l'aperçu d'un lien.
+/// événement, d'une annonce, l'aperçu d'un lien, et la citation d'un message
+/// auquel on répond.
 ///
-/// Ils partaient en clair dans `messages.data` : titre, extrait, nom, URL
-/// cible et image de ce qui était partagé. Ils sont désormais regroupés dans
-/// [_kAnnexesChiffrees], chiffré au repos avec la clé dérivée de la
-/// conversation.
+/// Ils partaient en clair dans `messages.data`. Le plus coûteux des cinq était
+/// `replyToMessageData` : il recopie le **texte déjà déchiffré** du message
+/// cité, si bien que chaque réponse reposait en clair à côté du message
+/// chiffré qu'elle citait — et qu'une conversation active en laissait une
+/// trace lisible message après message.
+///
+/// Ils sont désormais regroupés dans [_kAnnexesChiffrees], chiffré au repos
+/// avec la clé dérivée de la conversation.
 const _kChampsAnnexes = <String>[
   'postData',
   'eventData',
   'productData',
   'linkPreviewData',
+  'replyToMessageData',
 ];
 
 /// Clé du blob chiffré qui remplace les champs de [_kChampsAnnexes].
@@ -247,6 +253,105 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       debugPrint('MessageSupabaseDataSource: annexes non chiffrées ($e)');
       return const {};
     }
+  }
+
+  /// Forme **chiffrée** des charges annexes, à étaler dans `msgData`.
+  ///
+  /// Les cinq méthodes d'envoi passent par ici : c'est ce qui garantit qu'une
+  /// citation ou une carte ne peut pas repartir en clair par un chemin oublié.
+  Future<Map<String, dynamic>> _annexesChiffreesPour(
+    String conversationId, {
+    Map<String, dynamic>? replyToMessageData,
+    Map<String, dynamic>? postData,
+    Map<String, dynamic>? eventData,
+    Map<String, dynamic>? productData,
+    Map<String, dynamic>? linkPreviewData,
+  }) {
+    return _chiffrerAnnexes({
+      'replyToMessageData': replyToMessageData,
+      'postData': postData,
+      'eventData': eventData,
+      'productData': productData,
+      'linkPreviewData': linkPreviewData,
+    }, conversationId);
+  }
+
+  /// Forme **en clair** des mêmes charges, pour le modèle rendu à
+  /// l'expéditeur : celui-là ne quitte pas l'appareil, et sans lui l'auteur
+  /// verrait sa propre citation ou sa propre carte disparaître de sa bulle
+  /// jusqu'au prochain chargement.
+  Map<String, dynamic> _annexesEnClair({
+    Map<String, dynamic>? replyToMessageData,
+    Map<String, dynamic>? postData,
+    Map<String, dynamic>? eventData,
+    Map<String, dynamic>? productData,
+    Map<String, dynamic>? linkPreviewData,
+  }) {
+    return {
+      if (replyToMessageData != null) 'replyToMessageData': replyToMessageData,
+      if (postData != null) 'postData': postData,
+      if (eventData != null) 'eventData': eventData,
+      if (productData != null) 'productData': productData,
+      if (linkPreviewData != null) 'linkPreviewData': linkPreviewData,
+    };
+  }
+
+  /// Résout la cible de chiffrement d'un message depuis sa conversation.
+  ///
+  /// L'envoi la reçoit déjà résolue par le provider ; [editMessage], lui, n'a
+  /// que l'identifiant de la conversation — faute de cette résolution, il
+  /// n'avait aucun moyen de rechiffrer et réécrivait le texte modifié en clair.
+  ///
+  /// Mêmes règles que l'envoi, dans le même ordre : « Mes notes », puis 1:1,
+  /// puis groupe.
+  Future<({String? recipientId, List<String> participantIds, bool selfNote})>
+  _cibleChiffrement(String conversationId, String senderId) async {
+    const aucune = (
+      recipientId: null,
+      participantIds: <String>[],
+      selfNote: false,
+    );
+
+    final rows = await _supabase
+        .from('conversations')
+        .select('type, participant_ids, group_id')
+        .eq('id', conversationId)
+        .limit(1);
+    if (rows.isEmpty) return aucune;
+
+    final row = rows.first;
+    final participants = <String>[
+      ...?(row['participant_ids'] as List?)?.map((e) => e.toString()),
+    ];
+    final estGroupe = row['type'] == 'group' || row['group_id'] != null;
+
+    if (!estGroupe &&
+        participants.length == 1 &&
+        participants.first == senderId) {
+      return (
+        recipientId: null,
+        participantIds: <String>[],
+        selfNote: true,
+      );
+    }
+
+    if (!estGroupe) {
+      final autre = participants.firstWhere(
+        (id) => id != senderId,
+        orElse: () => '',
+      );
+      return (
+        recipientId: autre.isEmpty ? null : autre,
+        participantIds: <String>[],
+        selfNote: false,
+      );
+    }
+
+    return (
+      recipientId: null,
+      participantIds: participants.where((id) => id != senderId).toList(),
+      selfNote: false,
+    );
   }
 
   /// Remet les charges annexes déchiffrées dans `data`, à leur place d'origine.
@@ -877,12 +982,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         selfNote: selfNote,
       );
 
-      final annexesChiffrees = await _chiffrerAnnexes({
-        'postData': postData,
-        'eventData': eventData,
-        'productData': productData,
-        'linkPreviewData': linkPreviewData,
-      }, conversationId);
+      final annexes = await _annexesChiffreesPour(
+        conversationId,
+        replyToMessageData: replyToMessageData,
+        postData: postData,
+        eventData: eventData,
+        productData: productData,
+        linkPreviewData: linkPreviewData,
+      );
 
       final msgData = <String, dynamic>{
         'senderName': senderName,
@@ -896,9 +1003,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'deliveredTo': [senderId],
         'deliveredAt': {senderId: now},
         if (replyToId != null) 'replyToId': replyToId,
-        if (replyToMessageData != null)
-          'replyToMessageData': replyToMessageData,
-        ...annexesChiffrees,
+        ...annexes,
         if (sentWhileBlockedBy.isNotEmpty)
           'sentWhileBlockedBy': sentWhileBlockedBy,
         if (isForwarded) 'isForwarded': isForwarded,
@@ -938,10 +1043,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       return MessageModel.fromJson({
         ...msgData,
         'content': content,
-        if (postData != null) 'postData': postData,
-        if (eventData != null) 'eventData': eventData,
-        if (productData != null) 'productData': productData,
-        if (linkPreviewData != null) 'linkPreviewData': linkPreviewData,
+        ..._annexesEnClair(
+          replyToMessageData: replyToMessageData,
+          postData: postData,
+          eventData: eventData,
+          productData: productData,
+          linkPreviewData: linkPreviewData,
+        ),
         'id': msgId,
         'senderId': senderId,
         'type': 'text',
@@ -977,6 +1085,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       final msgId = _uuid.v4();
       final now = DateTime.now().toUtc().toIso8601String();
 
+      final annexes = await _annexesChiffreesPour(
+        conversationId,
+        replyToMessageData: replyToMessageData,
+      );
+
       final msgData = <String, dynamic>{
         'senderName': senderName,
         if (senderPhotoUrl != null) 'senderPhotoUrl': senderPhotoUrl,
@@ -992,8 +1105,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'deliveredAt': {senderId: now},
         'encryptionLevel': 'aes',
         if (replyToId != null) 'replyToId': replyToId,
-        if (replyToMessageData != null)
-          'replyToMessageData': replyToMessageData,
+        ...annexes,
         if (isForwarded) 'isForwarded': isForwarded,
         if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
         if (videoDuration != null) 'videoDuration': videoDuration,
@@ -1039,6 +1151,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
       return MessageModel.fromJson({
         ...msgData,
+        ..._annexesEnClair(replyToMessageData: replyToMessageData),
         'id': msgId,
         'senderId': senderId,
         'type': type,
@@ -1090,6 +1203,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       final nowDateTime = DateTime.now();
       final now = nowDateTime.toUtc().toIso8601String();
 
+      final annexes = await _annexesChiffreesPour(
+        conversationId,
+        replyToMessageData: replyToMessageData,
+      );
+
       final msgData = <String, dynamic>{
         'senderName': senderName,
         if (senderPhotoUrl != null) 'senderPhotoUrl': senderPhotoUrl,
@@ -1107,8 +1225,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'deliveredAt': {senderId: now},
         'encryptionLevel': 'aes',
         if (replyToId != null) 'replyToId': replyToId,
-        if (replyToMessageData != null)
-          'replyToMessageData': replyToMessageData,
+        ...annexes,
         if (isForwarded) 'isForwarded': true,
         'mediaExpiresAt':
             nowDateTime.add(const Duration(days: 15)).toUtc().toIso8601String(),
@@ -1141,6 +1258,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
       return MessageModel.fromJson({
         ...msgData,
+        ..._annexesEnClair(replyToMessageData: replyToMessageData),
         'id': msgId,
         'senderId': senderId,
         'type': 'voiceNote',
@@ -1184,6 +1302,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       final msgId = _uuid.v4();
       final now = DateTime.now().toUtc().toIso8601String();
 
+      final annexes = await _annexesChiffreesPour(
+        conversationId,
+        replyToMessageData: replyToMessageData,
+      );
+
       final msgData = <String, dynamic>{
         'senderName': senderName,
         if (senderPhotoUrl != null) 'senderPhotoUrl': senderPhotoUrl,
@@ -1198,8 +1321,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'deliveredAt': {senderId: now},
         'encryptionLevel': 'aes',
         if (replyToId != null) 'replyToId': replyToId,
-        if (replyToMessageData != null)
-          'replyToMessageData': replyToMessageData,
+        ...annexes,
       };
 
       await _supabase.from('messages').insert({
@@ -1221,6 +1343,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
       return MessageModel.fromJson({
         ...msgData,
+        ..._annexesEnClair(replyToMessageData: replyToMessageData),
         'id': msgId,
         'senderId': senderId,
         'type': 'location',
@@ -1303,6 +1426,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       final msgId = _uuid.v4();
       final now = DateTime.now().toUtc().toIso8601String();
 
+      final annexes = await _annexesChiffreesPour(
+        conversationId,
+        replyToMessageData: replyToMessageData,
+      );
+
       final msgData = <String, dynamic>{
         'senderName': senderName,
         if (senderPhotoUrl != null) 'senderPhotoUrl': senderPhotoUrl,
@@ -1318,8 +1446,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'deliveredAt': {senderId: now},
         'encryptionLevel': 'aes',
         if (replyToId != null) 'replyToId': replyToId,
-        if (replyToMessageData != null)
-          'replyToMessageData': replyToMessageData,
+        ...annexes,
       };
 
       await _supabase.from('messages').insert({
@@ -1341,6 +1468,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
       return MessageModel.fromJson({
         ...msgData,
+        ..._annexesEnClair(replyToMessageData: replyToMessageData),
         'id': msgId,
         'senderId': senderId,
         'type': 'sticker',
@@ -2348,6 +2476,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     }
   }
 
+  /// Modifie le texte d'un message, **rechiffré** comme à l'envoi.
+  ///
+  /// [oldContent] n'est plus écrit nulle part : l'historique ne conserve que la
+  /// date des modifications. Le paramètre reste à la signature parce que
+  /// l'appelant s'en sert pour revenir en arrière si l'écriture échoue.
   @override
   Future<void> editMessage({
     required String conversationId,
@@ -2360,20 +2493,48 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
       final rows = await _supabase
           .from('messages')
-          .select('data')
+          .select('data, sender_id')
           .eq('id', messageId)
           .limit(1);
       if (rows.isEmpty) return;
       final data = Map<String, dynamic>.from(
         (rows.first['data'] as Map?) ?? {},
       );
+      // Le message modifié est forcément celui de son auteur (`canEdit` le
+      // vérifie côté appelant) : sa ligne porte donc l'identifiant dont la
+      // résolution du destinataire a besoin.
+      final senderId = (rows.first['sender_id'] as String?) ?? '';
 
+      // L'historique ne garde plus le texte d'avant. Il reposait en clair à
+      // côté d'un contenu chiffré, et **rien ne l'affiche** : aucun écran ne
+      // lit `editHistory`, seul le modèle le transporte. On garde la trace du
+      // passage — combien de modifications, et quand — sans le contenu.
       final editHistory = List<Map<String, dynamic>>.from(
         data['editHistory'] as List? ?? [],
       );
-      editHistory.add({'content': oldContent, 'editedAt': now});
+      editHistory.add({'editedAt': now});
 
-      data['content'] = newContent;
+      // Rechiffrer par le chemin de l'envoi. Sans ça, `data['content']`
+      // repartait en clair : modifier un message annulait son chiffrement, et
+      // `encryptionLevel` continuait d'annoncer 'e2ee' par-dessus.
+      final cible = await _cibleChiffrement(conversationId, senderId);
+      final cryptoFields = await _encryptContent(
+        plaintext: newContent,
+        recipientId: cible.recipientId,
+        participantIds: cible.participantIds,
+        conversationId: conversationId,
+        selfNote: cible.selfNote,
+      );
+
+      // Purger les charges de la version précédente AVANT d'appliquer les
+      // nouvelles : `decrypt` reconnaît les formats dans un ordre fixe, et un
+      // `senderKeyPayload` périmé resté à côté d'un `e2eePayloads` neuf serait
+      // lu en premier — le message deviendrait illisible sans rien signaler.
+      data.remove('e2eePayloads');
+      data.remove('e2eePayload');
+      data.remove('senderKeyPayload');
+      data.addAll(cryptoFields);
+
       data['editedAt'] = now;
       data['editHistory'] = editHistory;
 
