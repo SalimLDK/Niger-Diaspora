@@ -733,6 +733,7 @@
                     <li>Device identifiers</li>
                     <li>App usage data</li>
                     <li>Connection logs</li>
+                    <li>Your precise geographic location, if you allow it — including when the app is closed or not in use, for as long as Travel Mode stays enabled</li>
                 </ul>
             </section>
 
@@ -744,7 +745,7 @@
                 <ul>
                     <li>Create and manage your account</li>
                     <li>Enable communication between members</li>
-                    <li>Display your location on the map (if enabled)</li>
+                    <li>Place you on the member map and show you the members, groups, businesses and events near you (if location is enabled)</li>
                     <li>Process your transactions and transfers</li>
                     <li>Manage your subscriptions and payments</li>
                 </ul>
@@ -782,11 +783,12 @@
                 <ul>
                     <li>Your public profile</li>
                     <li>Your posts and content</li>
-                    <li>Your geographic location (if enabled)</li>
+                    <li>Your precise geographic location, visible to other members for as long as sharing stays enabled</li>
                 </ul>
                 <h3>Service providers</h3>
                 <ul>
                     <li>Firebase / Google Cloud (hosting)</li>
+                    <li>Supabase (database and storage)</li>
                     <!-- <li>Stripe (payments)</li> -->
                     <li>Notification delivery providers</li>
                 </ul>
@@ -884,6 +886,10 @@
                             <tr>
                                 <td>Security logs</td>
                                 <td>1 year</td>
+                            </tr>
+                            <tr>
+                                <td>Geographic location</td>
+                                <td>Latest position only, overwritten on each update — no history of your movements is kept</td>
                             </tr>
                             <tr>
                                 <td>KYC data</td>
