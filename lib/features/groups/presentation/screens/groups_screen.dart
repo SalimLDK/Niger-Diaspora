@@ -8,6 +8,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/models/country.dart';
 import '../../../../core/errors/failure_mapper.dart';
+import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/responsive/responsive_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
@@ -679,6 +680,19 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   }
 
   Widget _buildErrorWidget(String message) {
+    // Hors ligne, la requête échoue exactement comme sur une panne, et le
+    // même « Erreur de chargement » s'affichait — avec, juste au-dessus,
+    // « Mes groupes · 0 » alors que le compte a bien ses groupes. Constaté le
+    // 2026-09-09 sur SM A515F : un « Actualiser » une fois la connexion
+    // revenue a rendu « 3 rejoints » et les trois groupes. Le défaut n'était
+    // pas le chargement, c'était le message.
+    //
+    // Le test passe avant `FailureMapper` : celui-ci traduit ce que dit
+    // l'erreur, et une erreur réseau ne dit pas toujours qu'elle en est une
+    // (annulation, délai, PostgREST sans réponse).
+    if (!ref.watch(connectivityNotifierProvider)) {
+      message = AppLocalizations.of(context)!.noInternetConnection;
+    }
     // Convertir l'erreur technique en message user-friendly
     final userFriendlyMessage = FailureMapper.toUserFriendlyString(message, context);
     return Container(
