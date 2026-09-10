@@ -87,6 +87,55 @@ redescend jamais un drapeau. Verrouillé par
 est **release**, `run-as` répond « package not debuggable ». Pour départager
 local et distant, passer par `public.users` en base, pas par `shared_prefs/`.
 
+### ⬜ Reprise des drapeaux restés sur Firestore (2026-09-10)
+
+Inventaire fait le 2026-09-10, une fois le correctif de lecture posé : la
+lecture réussit désormais, mais elle peut rendre un `false` **sincère et
+périmé** — le compte a fini son onboarding avant la bascule du 2026-08-13
+(`160d417`), quand l'app écrivait ces drapeaux sur Firestore.
+
+Ce que la mesure a donné, et qui réduit beaucoup la portée du problème :
+
+- Firestore `users/` ne contient plus que **5 documents** contre 17 lignes
+  dans `public.users`, et **2** seulement portent des drapeaux d'onboarding.
+- `U64HKfrjM5NwR6HO00XPKo6168z2` : déjà repris côté Supabase, au
+  `consent_date` près (même milliseconde). Une reprise Firestore→Supabase a
+  donc bien eu lieu, avant la bascule du code.
+- `czk5UoUclLOFmbRtUIZ5XYLYKo52` : les quatre drapeaux à `true` sur Firestore,
+  les quatre à `false` ici. Compte créé le 2026-08-13 à 22:29:01 UTC,
+  onboarding terminé en 90 s — **une heure et demie avant** `160d417`. Il est
+  passé entre la reprise (déjà faite) et la bascule (pas encore faite).
+- Les 8 autres comptes à `false` n'ont **aucun** document Firestore : leur
+  `false` n'est pas périmé, il est vrai. Rien à reprendre pour eux.
+
+`supabase/migrations/20260910070000_reprise_drapeaux_onboarding_firestore.sql`
+monte donc **une seule ligne**, par `or` colonne par colonne (jamais une
+affectation sèche) et `coalesce` sur `consent_date` : rejouer la migration ne
+change rien, et aucun drapeau ne peut redescendre.
+
+⚠️ **« Sim A » (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), le compte de la section
+ci-dessus, lit aujourd'hui `true` partout** — il a rejoué l'onboarding le
+2026-09-10 (`updated_at` 05:12 UTC). Aucune reprise Firestore ne l'aurait
+sauvé : son document Firestore, créé le 2026-08-14 à 00:15 UTC — soit après
+la bascule — ne porte aucun drapeau. Ne pas compter sur ce compte pour
+observer le défaut : il est sorti de l'état fautif tout seul, au prix de
+l'onboarding refait.
+
+À vérifier sur appareil :
+
+- [ ] **Le compte repris ne rejoue plus rien** : se connecter avec
+      `czk5UoUclLOFmbRtUIZ5XYLYKo52` après `supabase db push`, sur un
+      téléphone où l'app vient d'être **désinstallée** (le cache local
+      masquerait le résultat). Attendu : `/home` directement, ni consentement,
+      ni assistant de profil, ni les 5 écrans d'intro.
+- [ ] **Ce compte n'a pas de `display_name`** (`handle = 'diaspo_ne'` et
+      `country_code = 'NE'` sont posés, le nom non) : l'assistant de profil a
+      tourné le 2026-08-13 sans que tout arrive en base. Monter
+      `profile_config_complete` le fait donc entrer dans l'app **sans nom
+      affiché**. Regarder ce que donnent le profil, le bandeau de complétude
+      (§11f) et l'en-tête des discussions dans cet état — c'est le seul point
+      où cette migration peut se voir en mal.
+
 ---
 
 ## ⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)
