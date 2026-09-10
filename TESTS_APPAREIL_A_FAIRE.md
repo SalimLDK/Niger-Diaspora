@@ -935,6 +935,16 @@ touche pas. Mesuré en production avec la clé publique du `.env` :
 `POST /rest/v1/rpc/group_link_preview` → **200**, nom du groupe privé rendu
 **sans compte**. Prouvé refermé : connecté → le nom, anonyme → 42501.
 
+✅ **Trou refermé en production, vérifié de l'extérieur** :
+`POST /rest/v1/rpc/group_link_preview` avec la clé publique → **401 / 42501**.
+
+⚠️ **Deux fois de suite le lien profond s'est perdu au démarrage à froid**
+(2026-09-10, 00:55 et 01:41) : l'app atterrit sur la liste des groupes ou sur
+l'accueil au lieu de la cible. Rejoué à chaud, c'est bon à chaque fois. Le
+repli `_pendingDeepLink` ne rattrape donc pas tout — à creuser, non corrigé.
+Conséquence pratique pour toute mesure : **laisser l'app démarrer une première
+fois** après une installation avant d'envoyer un lien.
+
 ⚠️ **Réflexe** : après toute fonction SECURITY DEFINER ajoutée ici, relire
 `proacl` — `REVOKE ... FROM PUBLIC` ne dit rien des rôles Supabase.
 
@@ -947,10 +957,16 @@ rejoindre » ; aperçu nul → pas de fausse porte.
 
 - [ ] Depuis un compte **non-membre**, ouvrir le lien d'un groupe privé :
       nom, avatar, « Privé · N membres », bouton « Demander à rejoindre ».
+      ⚠️ **Invérifiable en l'état** : « Sim A » (SM A515F) est membre des DEUX
+      groupes privés de la base, donc la porte ne s'ouvre jamais pour lui ; et
+      le Pixel est resté sur l'écran de connexion (relancé à froid à 01:18).
+      Il faut un second compte connecté, ou un groupe privé dont Sim A n'est
+      pas membre. La porte n'est couverte que par le test widget et par la
+      preuve SQL en transaction annulée.
 - [ ] Le bouton devient inactif après l'envoi, et l'administrateur voit la
       demande dans `/groups/<id>/requests`.
-- [ ] Un lien vers un groupe supprimé garde « Ce groupe est privé ou n'existe
-      plus. » — pas de bouton.
+- [x] Un lien vers un groupe supprimé garde « Ce groupe est privé ou n'existe
+      plus. » — pas de bouton. ✅ SM A515F 2026-09-10 01:44, APK md5 8f9cc4d9b2.
 - [ ] Redemander deux fois ne doit pas empiler deux demandes.
 
 ---
