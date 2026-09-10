@@ -167,6 +167,45 @@ produit **aucune erreur**, ni à l'écran ni dans logcat.
 
 ---
 
+## ⚠️ Lire les groupes SANS session échoue en production (2026-09-09)
+
+Trouvé en sondant PostgREST avec la clé publique du `.env` — donc rôle `anon`,
+exactement ce qu'est un client dont la session Supabase n'est pas encore
+établie :
+
+```
+GET /rest/v1/groups?select=id,name  →  401
+{"code":"42501","message":"permission denied for function has_group_invite"}
+```
+
+`events`, `posts`, `group_members`, `event_attendees` répondent 200. **Seule
+`groups` échoue.** `20260909201500` a ajouté `has_group_invite(id)` à
+`groups_select_public` sans donner l'exécution à `anon` ; toutes ses fonctions
+sœurs (`is_group_member`, `is_group_admin`, `is_group_public`, `firebase_uid`)
+l'ont. Postgres refuse alors la requête **entière** au lieu d'évaluer le terme
+à `false`.
+
+Ce que ça casse, et qui ne se voit dans aucun test : toute lecture de `groups`
+faite avant que le pont Firebase→Supabase ait abouti — la liste des groupes et
+la fiche d'un groupe ne rendent pas « moins de lignes », elles rendent une
+erreur. Et par ricochet les événements, dont le datasource demande
+`select=*,groups(name)` : l'embed déclenche la RLS de `groups`.
+
+`20260910014500_has_group_invite_executable_par_anon.sql` ajoute le GRANT
+manquant. Prouvé en transaction annulée, dans les deux sens : sans lui `anon`
+reçoit 42501 ; avec lui il voit **3 groupes** — les 3 publics, aucun des 2
+privés. La visibilité ne bouge pas, l'erreur dure devient un `false`.
+
+⚠️ Fichier séparé, pas une retouche de `20260909201500` : celle-là est déjà
+appliquée et son auteur travaille encore dessus. À lui signaler.
+
+- [ ] Après `db push` : démarrage à froid, ouvrir l'onglet Groupes tout de
+      suite (avant que la session s'établisse) — la liste doit s'afficher.
+- [ ] Un lien profond `/groups/<public>` reçu par quelqu'un qui vient
+      d'installer l'app.
+
+---
+
 ## ⚠️ Événements sur Supabase — provider BASCULÉ, une migration à appliquer (2026-09-09)
 
 Décision de Salim : `public.events` fait foi. Le module Événements lisait
