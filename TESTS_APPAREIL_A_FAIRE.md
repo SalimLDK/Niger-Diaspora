@@ -167,7 +167,7 @@ produit **aucune erreur**, ni à l'écran ni dans logcat.
 
 ---
 
-## ⚠️ Événements sur Supabase — écrit, PAS branché (2026-09-09)
+## ⚠️ Événements sur Supabase — migration APPLIQUÉE, provider pas branché (2026-09-09)
 
 Décision de Salim : `public.events` fait foi. Le module Événements lisait
 Firestore pendant que le back-office admin écrivait dans Supabase.
@@ -182,14 +182,16 @@ Livré dans cette passe :
 **Le provider n'est PAS basculé**, et c'est délibéré : trois choses manquent,
 dont deux ne dépendent pas de moi.
 
-1. **La migration n'est pas appliquée.** `supabase db push` est bloqué par une
-   dérive d'historique : « Remote migration versions not found in local
-   migrations directory — `20260909210000` ». Une migration a été appliquée
-   au distant puis renommée localement (le merge du soir montre bien un
-   `delete mode` sur `20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql`).
-   Réparer l'historique est une action partagée, sur un chantier en cours chez
-   quelqu'un d'autre : à faire par celui qui l'a déplacée, avec
-   `supabase migration repair`.
+1. ~~La migration n'est pas appliquée.~~ **Résolu sans intervention** : un
+   autre agent a poussé ses propres migrations et la mienne est partie avec.
+   Vérifié au distant le 2026-09-09 — colonne `price`, policy
+   `event_attendees_select`, fonction `is_event_readable` et FK
+   `event_attendees_event_id_fkey` sont toutes en place, et
+   `supabase db push --dry-run` dit « Remote database is up to date ».
+   ⚠️ La réparation d'historique que le CLI suggérait
+   (`migration repair --status reverted 20260909210000`) aurait été **fausse** :
+   cette migration EST appliquée au distant, la marquer « reverted » aurait
+   écrit le contraire dans la table d'historique. Ne pas la lancer.
 2. **Personne ne sait ce qu'il y a dans Firestore.** Basculer le provider rend
    invisibles les événements restés côté Firestore. Impossible de les compter
    depuis ce poste : `scripts/set_admin.js` s'appuie sur
@@ -214,7 +216,7 @@ dont deux ne dépendent pas de moi.
 
 ---
 
-## ⚠️ Repli navigateur des liens d'app — prêt, PAS déployé (2026-09-09)
+## ✅ Repli navigateur des liens d'app — DÉPLOYÉ (2026-09-09 21:5x)
 
 Tout chemin d'app tapé dans un navigateur (ou dans le navigateur intégré de
 WhatsApp, qui court-circuite les App Links) tombait sur la page d'accueil du
@@ -260,6 +262,23 @@ Vérifié sans risque : `pm list packages` sur les deux appareils ne connait
 que `com.diasponiger.diasponiger`, dont les deux empreintes sont bien dans le
 fichier du dépôt — dont `DD:A6:5C:3E`, celle que les deux téléphones
 rapportent.
+
+**Déployé en production le 2026-09-09 sur les deux sites**, sur décision de
+Salim — donc la refonte du site est en ligne du même coup. Vérifié après coup :
+
+| URL | Avant | Après |
+|---|---|---|
+| `/groups/<id>`, `/feed/abc` | page d'accueil | « Ouvrir dans Diaspo Niger » |
+| `/telecharger`, `/a-propos` | page d'accueil | leurs vraies pages |
+| `/assets/site.css` | `text/html` | `text/css` |
+| AASA | `VOTRE_TEAM_ID` | `3WM7VK48T3.com.diasponiger.diaspoNiger` |
+
+✅ **Non-régression App Links vérifiée sur SM A515F après le déploiement** :
+`pm get-app-links` dit toujours `verified` sur les deux domaines, et
+`https://diasponiger.web.app/groups/<id>` ouvre l'app directement sur la fiche
+du groupe — pas le navigateur, pas la page interstitielle. C'était le risque
+de ce déploiement : `assetlinks.json` du dépôt ne déclare plus le paquet
+hérité `com.diasponiger.diaspo_niger`.
 
 - [ ] Une fois déployé : ouvrir `https://diasponiger.web.app/groups/<id>` dans
       **Chrome** sur un téléphone **sans** l'app → page interstitielle, puis
