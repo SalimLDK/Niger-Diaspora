@@ -5712,6 +5712,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privateGroup => 'Private group';
 
   @override
+  String get groupUnavailableOrPrivate =>
+      'This group is private or no longer exists.';
+
+  @override
   String get groupCreated => 'Group created successfully';
 
   @override

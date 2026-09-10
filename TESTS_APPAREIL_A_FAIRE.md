@@ -96,6 +96,151 @@ produit **aucune erreur**, ni à l'écran ni dans logcat.
 
 ---
 
+## ⚠️ Repli navigateur des liens d'app — prêt, PAS déployé (2026-09-09)
+
+Tout chemin d'app tapé dans un navigateur (ou dans le navigateur intégré de
+WhatsApp, qui court-circuite les App Links) tombait sur la page d'accueil du
+site, par la règle attrape-tout `**` → `/index.html`.
+
+`public/ouvrir.html` répond désormais à `/groups/**`, `/g/**`, `/feed/**`,
+`/events/**`, `/businesses/**`, `/marketplace/**`, `/audio-rooms/**`,
+`/podcasts/**`, `/profile/**`, `/p/**`, `/embassies/**`, `/calls/**` — sur
+les **deux** sites de `firebase.json`, inséré avant `**`. La page dit le
+**type** de contenu (« Groupe », « Événement »…) et jamais lequel : aucun
+appel réseau, aucun nom, cohérent avec la garde de `20260909201500`.
+
+Vérifié sur un canal d'aperçu Firebase (production intacte) :
+
+- Android (UA émulé) : `intent://…;package=com.diasponiger.diasponiger;S.browser_fallback_url=<Play>;end`
+- Ordinateur : bouton « Installer sur votre téléphone », doublon masqué
+- `Cache-Control: public, max-age=0, must-revalidate` (sans la règle ajoutée,
+  Hosting servait `max-age=3600` — la règle `**/*.@(html)` n'attrape pas un
+  chemin réécrit, qui ne finit pas en `.html`)
+
+**⚠️ Le déploiement est bloqué par une découverte plus grosse.** La
+production ne fait **pas** tourner le site du dépôt :
+
+| URL | En production le 2026-09-09 |
+|---|---|
+| `/assets/site.css` | rend du **HTML** (attrapé par `**`) — le fichier n'existe pas |
+| `/telecharger` | rend la page d'accueil |
+| `/a-propos`, `/fonctionnalites` | rendent la page d'accueil |
+| `/` | titre « La diaspora qui se retrouve », le dépôt dit « La communauté nigérienne partout dans le monde » |
+| `/.well-known/apple-app-site-association` | `VOTRE_TEAM_ID.com.diasponiger.diaspo_niger` — le gabarit jamais rempli |
+
+Donc `firebase deploy --only hosting` ne publierait pas seulement la page
+interstitielle : il publierait **toute la refonte du site**, celle des quatre
+entrées ⬜ ci-dessous (cahier des charges, palette Organic, accueil sur
+captures réelles, menu mobile). À arbitrer par Salim, pas à faire en passant.
+
+Ce que le déploiement corrigerait au passage, une fois décidé : les universal
+links iOS, aujourd'hui cassés par le `VOTRE_TEAM_ID` resté en place.
+
+Ce qu'il perdrait : l'entrée `assetlinks.json` du paquet hérité
+`com.diasponiger.diaspo_niger` (le dépôt ne déclare que le paquet livré).
+Vérifié sans risque : `pm list packages` sur les deux appareils ne connait
+que `com.diasponiger.diasponiger`, dont les deux empreintes sont bien dans le
+fichier du dépôt — dont `DD:A6:5C:3E`, celle que les deux téléphones
+rapportent.
+
+- [ ] Une fois déployé : ouvrir `https://diasponiger.web.app/groups/<id>` dans
+      **Chrome** sur un téléphone **sans** l'app → page interstitielle, puis
+      « Ouvrir dans l'application » → Play Store.
+- [ ] Le même lien envoyé par WhatsApp, ouvert dans son navigateur intégré.
+
+---
+
+## ⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)
+
+`generateInviteLink()` fabriquait `/invite?ref=<uid>` et **aucune route
+n'existait** pour ce chemin. Mesuré : atterrissage sur l'accueil, `ref` perdu.
+
+Le vrai problème était le choix de la cible : un lien d'invitation s'adresse
+par définition à quelqu'un qui **n'a pas** l'app, à qui un lien profond ne
+sert à rien. Il pointe désormais `/telecharger`.
+
+Et parce que l'intent-filter App Links revendique l'hôte **entier**, ce lien
+ouvre quand même l'app chez qui l'a déjà : deux routes de redirection
+(`/telecharger` et `/invite`, ce dernier pour les liens déjà partagés)
+renvoient explicitement sur l'accueil, au lieu de dépendre de ce que GoRouter
+fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
+
+- [ ] Accueil → « Inviter un proche » → le lien partagé finit par
+      `/telecharger?ref=<uid>`.
+- [ ] Ce lien tapé sur un téléphone **avec** l'app → l'accueil, pas d'erreur.
+- [ ] Un ancien lien `/invite?ref=…` → l'accueil aussi.
+
+---
+
+## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
+
+Signalé par Salim : « les liens des groupes et autres ne marchent pas ».
+Sept liens rejoués à l'intent, démarrage à froid, sur Pixel `58221FDCQ0085Z`
+(compte « Salim L. ») — le lien **arrive** bien à l'app dans tous les cas, la
+vérification App Links est `verified` sur les deux appareils. Ce qui casse est
+toujours **après**, à l'écran d'arrivée :
+
+| Lien | Mesuré le 2026-09-09 |
+|---|---|
+| `/groups/<public>` | ✅ fiche du groupe, complète |
+| `/groups/<privé>` non-membre | ❌ « Erreur de chargement » + Réessayer inutile |
+| `/p/u/<userId>` | ✅ profil |
+| `/events/<uuid Supabase>` | ❌ roue qui tourne, encore là **après 75 s** |
+| `/invite?ref=…` | ⚠️ accueil ; aucune route `/invite` n'existe, le `ref` est perdu |
+| `/groups/<inexistant>` | ❌ « Erreur de chargement » (même écran que le privé) |
+| `…/groups/<id>` dans un navigateur | ⚠️ page d'accueil du site (règle `**` → index.html) |
+
+Corrigé dans cette livraison :
+
+- [ ] **`/events/<id>` qui échoue affiche enfin quelque chose.**
+      `EventDetailScreen` ne regardait que `eventAsync.valueOrNull` : un
+      événement supprimé, un refus de lecture ou une coupure réseau rendaient
+      `null`, exactement comme un chargement en cours — d'où la roue
+      éternelle. Garde `hasError` ajoutée, calquée sur `GroupDetailScreen`
+      qui la portait déjà.
+      Vérifier : ouvrir `…/events/<uuid inexistant>` → « Erreur de
+      chargement » + « Réessayer », **pas** de roue infinie.
+- [ ] **Groupe privé : ne plus mentir.** `getGroupById` finit sur `.single()`
+      ; la RLS d'un groupe privé rend zéro ligne, donc PGRST116 — le même
+      code que pour un groupe supprimé. « Erreur de chargement » + un
+      « Réessayer » qui ne peut jamais aboutir. Remplacé par « Ce groupe est
+      privé ou n'existe plus. » et un bouton « Retour ».
+      Le message ne distingue **pas** privé de supprimé, volontairement :
+      confirmer l'existence d'un groupe à qui détient son uuid rouvrirait ce
+      que `20260909201500` vient de fermer.
+      Vérifier : `…/groups/2b24986f-08b5-4840-9931-dbe046ffb394` (groupe
+      privé de test) depuis un compte non-membre.
+- [ ] **Flèche retour des deux écrans d'erreur/chargement.** Elles faisaient
+      `context.pop()` : arrivé par lien profond, la route est seule dans la
+      pile → écran noir. Repli `canPop ? pop : go('/home')`.
+      Vérifier : lien profond → erreur → flèche retour → accueil, pas de noir.
+
+**Pas corrigé, décision à prendre :**
+
+- ⚠️ **Les événements sont sur deux bases à la fois.** Le module Événements
+  (`EventRemoteDataSourceImpl`, liste + fiche + création) lit et écrit
+  **Firestore** ; le back-office admin (`admin_provider.dart`, 5 appels)
+  lit et écrit `public.events` **sur Supabase**, où se trouvent 2 lignes. Un
+  événement créé d'un côté est invisible de l'autre, et un lien portant un
+  uuid Supabase ne pourra jamais s'ouvrir dans l'app — c'est ce qui produisait
+  la roue infinie ci-dessus. Le correctif d'affichage rend l'échec visible,
+  il ne réconcilie rien.
+- ⚠️ **Pas de route `/invite`.** `DeepLinkService.generateInviteLink()`
+  fabrique `…/invite?ref=<uid>` (bouton « Inviter des amis » de l'accueil) et
+  le routeur n'a rien pour ce chemin : atterrissage sur l'accueil, parrainage
+  perdu. À décider : route de parrainage, ou lien qui pointe ailleurs.
+- ⚠️ **Repli navigateur inexistant.** `firebase.json` renvoie tout chemin
+  inconnu sur `/index.html`. Quelqu'un sans l'app — ou qui tape le lien depuis
+  le navigateur intégré de WhatsApp, qui court-circuite les App Links —
+  tombe sur la page d'accueil du site, sans un mot sur le groupe ni de bouton
+  « Ouvrir dans l'application ».
+- ⚠️ **`/businesses/<id>` d'une fiche inactive.** `businesses_select_active`
+  n'ouvre la lecture que si `is_active`. Les 2 entreprises en base sont
+  `is_active = false` : leurs liens sont donc morts pour tout le monde sauf
+  leur propriétaire, et rien dans l'app ne le dit au propriétaire qui partage.
+
+---
+
 ## ⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)
 
 Le partage ne savait sortir de l'app (WhatsApp / Facebook / X / feuille
@@ -203,6 +348,141 @@ supabase db query --linked -f supabase/diagnostics/2026-09-09_invitations_groupe
 ```
 
 Sortie attendue : « banc termine ». Tout « ECHEC n » interrompt le banc.
+
+### ⛔ Deuxième temps : l'invité ne pouvait pas ouvrir la discussion
+
+Trouvé en branchant les notifications, **pas signalé** : `join_group_conversation()`
+rattache l'appelant à `conversations.participant_ids` — c'est ce qui fait
+apparaître un groupe rejoint dans l'onglet Messages — mais le garde
+`conversations_guard_admin_fields` (2026-08-14) refuse **toute** modification de
+`participant_ids` par qui n'est pas administrateur du groupe. Un invité qui
+vient d'accepter ne l'est pas.
+
+Mesuré sous identité réelle non privilégiée, en transaction annulée :
+`EXCEPTION 42501`, `participant_ids` inchangé. Le premier test avait conclu
+l'inverse — le compte utilisé est superAdmin plateforme **et** le groupe testé
+était officiel, deux privilèges qu'un invité n'a pas.
+
+**Corrigé par l'autre agent, pas par moi, et pas encore déployé.** Il l'avait
+trouvé en même temps depuis un appareil (« Ouvrir la discussion » → bandeau
+rouge 42501) et corrigé plus largement dans
+`20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql` : son
+exemption vaut pour **tout membre réel** qui s'ajoute lui-même, donc aussi
+pour un groupe public, et elle traite un écart que j'avais manqué — le garde
+identifie l'appelant par `firebase_uid()` là où la RPC ajoute
+`current_user_id()`. Ma version, plus étroite, a été retirée : un
+`CREATE OR REPLACE FUNCTION` l'aurait remplacée sans conflit git et sans un
+mot.
+
+⚠️ **Rien de tout cela n'est en production au 2026-09-09.** La fonction
+déployée ne porte aucune des deux exemptions (vérifié sur `pg_proc.prosrc`), et
+`db push` est bloqué par une version orpheline dans
+`supabase_migrations.schema_migrations` — `20260909210000`, sans fichier local.
+Non réparé : c'est de l'état partagé au milieu du travail de l'autre agent.
+Donc, aujourd'hui encore, **un invité rejoint le groupe et ne peut pas ouvrir
+sa discussion**.
+
+- [ ] **Deux téléphones** : accepter une invitation, puis vérifier que le
+      groupe apparaît dans l'onglet **Messages** sans avoir à ouvrir sa fiche,
+      et que la discussion s'ouvre.
+- [ ] Envoyer un message depuis chaque côté : lisible des deux (vrai chemin
+      Sender Key — voir la section « un groupe dont on est le seul membre »).
+
+### ⬜ Notifications de groupe : personne n'était prévenu de rien
+
+Le type `groupInvite` est câblé de bout en bout côté app depuis toujours
+(routage, style, canal Android, clé de préférence `groups` dans `send-push`),
+et un INSERT dans `notifications` déclenche déjà le push. **Aucun code, client
+ou serveur, n'en créait jamais** — ni pour une invitation, ni pour une demande
+d'adhésion, ni pour sa réponse. Trois déclencheurs ajoutés dans la même
+migration.
+
+- [ ] Recevoir la **notification push** d'invitation sur l'autre téléphone,
+      app fermée ; l'appui ouvre la fiche du groupe.
+- [ ] Sur cette fiche, la barre du bas propose **« Accepter » / « Refuser »**
+      et non « Demander à rejoindre » (`_BarreInvitation`,
+      `group_detail_screen.dart`). Accepter fait disparaître la barre.
+- [ ] Couper la bascule « Groupes » dans les réglages de notifications :
+      l'invitation suivante ne doit **pas** arriver en push (elle reste dans
+      la liste in-app).
+- [ ] Demander à rejoindre un groupe privé depuis l'autre compte :
+      l'administrateur reçoit la notification. Approuver : le demandeur reçoit
+      « Adhésion acceptée ». Refuser sur une autre demande : « Adhésion
+      refusée ».
+
+Banc dédié, transaction annulée, 8 étapes :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_invite_discussion_et_notifications.sql
+```
+
+### ⚠️ Deux défauts voisins trouvés, **non corrigés**
+
+- [x] **« Retirer du groupe » ne retirait pas du groupe** — corrigé (voir la
+      section suivante).
+      `removeUserFromGroup` (`message_supabase_datasource.dart:2045`) ne touche
+      que `conversations.participant_ids` et `data.adminIds` ; la ligne
+      `group_members` reste, donc la personne **figure toujours dans la liste
+      des membres** et compte dans `member_count`. Aucune policy ne permet à
+      un administrateur de supprimer la ligne d'un autre : il faut une RPC
+      `SECURITY DEFINER` dédiée.
+
+**Mesuré**, en appliquant la migration de l'autre agent dans une transaction
+annulée puis en rejouant le cas d'un exclu : `exclu_de_retour = true`, la RPC
+rend l'id de la conversation. Une fois son correctif déployé, toute exclusion
+est donc annulable par l'exclu lui-même, en ouvrant simplement la discussion.
+
+### ⬜ L'impasse tranchée : l'exclusion s'enregistre, tout membre ouvre sa discussion
+
+Demande de Salim le 2026-09-09 : « tout membre peut ouvrir les conversations ».
+Les deux agents avaient écrit l'exemption du garde, chacun de son côté, et
+chacun l'avait retirée — adossée à l'**invitation** elle laisse de côté qui a
+rejoint un groupe public ; adossée à l'**appartenance** elle rouvre la porte
+aux exclus. Parce que l'exclusion n'était enregistrée nulle part : elle
+n'existait que comme une absence dans `conversations.participant_ids`, et
+`group_members` continuait d'affirmer le contraire.
+
+Fermé par le bas, côté base : `20260909234500` pose un déclencheur —
+disparaître de `participant_ids` d'une conversation de **groupe**, c'est ne
+plus être membre du groupe. `removeUserFromGroup` fait dès lors ce que son nom
+annonce, **sans un changement côté app** : `message_supabase_datasource.dart`
+est tenu par le worktree `partage-discussion`, et une RPC de retrait aurait dû
+y être appelée. L'exemption de l'autre agent (tout membre réel s'ajoute
+lui-même) est reprise telle quelle dans la même migration, où elle redevient
+sûre.
+
+Vérifié qu'aucune reprise de données n'est nécessaire : les deux seules
+appartenances absentes de leur conversation (« Diaspora Niger — NE » et
+« Testeurs ») sont des membres qui n'ont jamais pu se rattacher, pas des
+exclus.
+
+Banc dédié, 8 étapes, transaction annulée — il échoue bien sur l'état d'avant
+(« ECHEC A : raccrochage encore refuse (42501) ») :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_exclusion_et_ouverture_discussion.sql
+```
+
+À vérifier sur appareil, après déploiement :
+
+- [ ] Un membre simple ouvre la discussion de son groupe (le défaut d'origine,
+      vu sur SM A515F : bandeau rouge 42501).
+- [ ] Retirer quelqu'un d'un groupe : il **disparaît de la liste des membres**
+      de la fiche, et `Membres · n` décroît (c'est nouveau — il y restait).
+- [ ] Depuis le compte retiré, ouvrir la discussion du groupe : il ne revient
+      ni dans les participants, ni dans les membres.
+- [ ] Quitter un groupe volontairement : toujours possible, et le groupe
+      disparaît de l'onglet Messages.
+- [ ] Envoyer des messages dans un groupe : personne n'est retiré au passage
+      (le déclencheur est posé sur `UPDATE OF participant_ids`, un message
+      n'écrit que `data` — couvert par l'étape E du banc, mais jamais vu
+      tourner sur un vrai fil).
+
+⚠️ **Collision possible** : l'autre agent peut relivrer sa propre version de
+`conversations_guard_admin_fields`. Les deux corps sont identiques, un
+`CREATE OR REPLACE` de plus est sans conséquence — mais si sa version revient
+**sans** le déclencheur d'exclusion, l'exclusion redevient annulable. Vérifier
+`git log` avant de conclure.
 Passer le fichier avec `-f` et non en argument : sous cette seconde forme les
 accents du banc le font échouer sur un message tronqué, qui se lit comme un
 vrai échec.
@@ -253,16 +533,24 @@ Corrigé des deux côtés : `autoStartOnBoot: false`
 qu'après le premier lancement de l'app, ce qui laisse sans lui une fenêtre
 ouverte juste après une mise à jour.
 
-À vérifier sur **Pixel 10 Pro XL** avec le build corrigé :
+Vérifié sur **Pixel 10 Pro XL (Android 17)** avec le build corrigé
+(`96205c16…bebc`, installé à 20:38) :
 
-- [ ] `adb install -r` du nouvel APK **ne fait plus planter** l'app
-      (`MY_PACKAGE_REPLACED`) : `adb logcat -b crash` ne gagne aucune
-      `FATAL EXCEPTION` dans la minute qui suit.
-- [ ] `am force-stop` puis lancement : pas de plantage, pas de boîte
-      « s'arrête systématiquement ».
+- [x] `adb install -r` du nouvel APK **ne fait plus planter** l'app
+      (`MY_PACKAGE_REPLACED`) : `adb logcat -b crash` reste à 0
+      `FATAL EXCEPTION` douze secondes après.
+- [x] `am force-stop` puis lancement : pas de plantage, `MainActivity` au
+      premier plan, toujours 0 `FATAL EXCEPTION`.
+- [x] Preuve indépendante que la suppression a bien pris :
+      `adb shell dumpsys package com.diasponiger.diasponiger | grep -i
+      BootReceiver` ne rend **rien** — le receiver n'est plus enregistré chez
+      Android. Il l'était avant.
+
+Restent à faire, l'un et l'autre à la main :
+
 - [ ] ⚠️ **Redémarrage réel du téléphone** — le seul chemin qui rejoue
       vraiment BOOT_COMPLETED (`am broadcast … BOOT_COMPLETED` est refusé au
-      shell : « Permission Denial »). À faire à la main.
+      shell : « Permission Denial »).
 - [ ] Le partage de position continu **démarre toujours** quand on l'active
       dans l'app (c'est la seule chose que le receiver retiré aurait pu
       fournir, et il ne la fournissait qu'au boot).
@@ -298,15 +586,143 @@ Corrigé en remettant l'expéditeur dans la liste quand elle est vide :
 `distributeSenderKeyToGroup` écarte déjà l'expéditeur de ses destinataires
 (`sender_key_service.dart:189`), donc la distribution ne vise personne.
 
-À vérifier avec le build corrigé :
+Vérifié sur **SM A515F** avec le build corrigé, dans le groupe même qui
+refusait une heure plus tôt (« Groupe de test privé », 1 membre) :
 
-- [ ] Créer un groupe, ne pas inviter, envoyer un message : il part
-      (`Envoyé`), et il est toujours là après avoir quitté puis rouvert.
+- [x] Envoi dans un groupe où l'on est seul : `GRP-FIX-2041` passe à
+      **`À l'instant · Envoyé`** (20:40), là où `ECHO-A-1944` restait en
+      « Non envoyé » à 19:44 sur le même groupe et le même compte.
+- [x] Il est **réellement parti côté serveur**, pas seulement affiché : la
+      liste des discussions montre « Groupe de test privé — 20:40 — Vous:
+      GRP-FIX-2041 » et le groupe est remonté en tête. C'est
+      `_updateConversationLastMessage`, qui ne s'exécute qu'après l'insert.
+      À l'échec de 19:44, cette même ligne était restée sur « 30 août ».
+- [x] Quitter la discussion, y revenir : la bulle est toujours là, **en
+      clair** (20:42) — l'aller-retour Sender Key du chiffrement de groupe
+      tient.
+
+Restent à faire :
+
 - [ ] Ajouter un second membre, envoyer : le message est **lisible des deux
-      côtés** (c'est le vrai chemin Sender Key, jamais exercé jusqu'ici — voir
-      la section « écho temps réel » ci-dessus).
+      côtés** (c'est le vrai chemin Sender Key vers autrui, jamais exercé —
+      voir la section « écho temps réel » ci-dessus). Bloqué ce soir : le
+      Pixel s'est retrouvé déconnecté (voir la section suivante).
 - [ ] Les envois de **médias** en groupe : le provider ne leur passe aucun
       `participantIds`, à regarder de près (chemin non instruit ici).
+
+---
+
+## ⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)
+
+Trouvé en essayant simplement d'ouvrir « Testeurs » depuis le SM A515F, avec
+le compte **Sim A**, membre simple (Salim L. est le créateur). « Ouvrir la
+discussion » ne fait rien pendant ~4 s, puis un bandeau rouge — et il faut
+capturer à ~1 s pour le voir, sinon on croit à un bouton mort :
+
+```
+Erreur lors de l'ouverture de la discussion — createGroupConversation error:
+ServerException: findGroupConversationByGroupId error:
+PostgrestException(message: Seul un administrateur du groupe peut modifier les
+membres ou les droits admin de cette conversation, code: 42501,
+details: Forbidden, hint: null)
+```
+
+**Deux migrations justes séparément, incompatibles ensemble.**
+
+- `20260720130000` crée `join_group_conversation()`, SECURITY DEFINER, dont le
+  travail est précisément d'ajouter l'appelant à
+  `conversations.participant_ids` quand il a rejoint le groupe **après** la
+  création de la conversation — le cas courant. Elle vérifie d'abord
+  l'appartenance réelle dans `group_members`.
+- `20260814000500` pose ensuite le trigger `conversations_guard_admin_fields`,
+  qui refuse toute UPDATE touchant `participant_ids` ou `adminIds` à qui n'est
+  pas administrateur.
+
+**SECURITY DEFINER contourne les policies RLS, pas les TRIGGERS.** L'UPDATE de
+la RPC déclenche donc la garde, qui la refuse. La fonction écrite pour laisser
+entrer un nouveau membre est bloquée par une garde écrite trois semaines plus
+tard : le groupe devient inouvrable pour **tous ses membres simples**. Seuls
+les administrateurs voyaient encore leur discussion — ce qui explique aussi
+pourquoi le défaut a pu vivre longtemps sans être vu (les deux comptes de test
+étaient créateurs de leurs propres groupes).
+
+**Le correctif appartient à l'autre session** (worktree `inviter-membres`,
+`20260909223000_invite_entre_dans_la_discussion.sql`). J'en avais écrit un —
+`20260909210500`, exemption « un membre réel du groupe peut s'ajouter
+lui-même » — **il était faux et a été retiré** avant tout déploiement.
+
+Pourquoi il était faux, et c'est le point à retenir : `removeUserFromGroup`
+(`message_supabase_datasource.dart:2044`) ne retire la personne **que** de
+`conversations.participant_ids` et de `data.adminIds` — **sa ligne
+`group_members` reste**. Une exemption adossée à « est membre du groupe »
+aurait donc rendu à chaque personne exclue le droit de se remettre dans la
+discussion en l'ouvrant : toutes les exclusions annulées en silence, sans
+trace. Aujourd'hui c'est ce garde qui fait tenir l'exclusion — par effet de
+bord, pas par intention. L'autre session adosse son exemption à
+`has_group_invite()`, ce qui ne rouvre pas cette porte.
+
+**La question de fond, à trancher une fois** (demande de Salim le
+2026-09-09 : « tout membre peut ouvrir les conversations »). Adosser
+l'exemption à l'**invitation** ne couvre pas quelqu'un qui a rejoint un
+groupe **public** sans jamais être invité. Adosser à l'**appartenance** rouvre
+la porte aux exclus. Les deux options sont bancales pour la même raison :
+**l'exclusion n'est enregistrée nulle part de durable** — elle n'existe que
+comme une absence dans `conversations.participant_ids`, et `group_members`
+continue d'affirmer le contraire. Tant que `removeUserFromGroup` ne supprime
+pas aussi la ligne `group_members` (ou n'écrit pas un état « exclu »),
+« membre du groupe » restera un critère qu'on ne peut pas utiliser pour
+autoriser quoi que ce soit.
+
+⚠️ `message_supabase_datasource.dart` est **tenu par le worktree
+`partage-discussion`** (modifié, non committé) : ne pas y toucher sans
+coordination.
+
+⚠️ **Non déployé au 2026-09-09 21:15** : `supabase db push` échoue avant même
+de commencer — la base a une version `20260909210000` dont le fichier n'est
+poussé nulle part (il vit dans le worktree `groupes-temps-reel`). Tant que
+cette session n'a pas livré son fichier, **personne ne peut déployer quoi que
+ce soit** : `db push` refuse de tourner sur un historique incomplet.
+
+À vérifier une fois le correctif de l'autre session déployé :
+
+- [ ] SM A515F (Sim A, membre simple de « Testeurs ») : « Ouvrir la
+      discussion » ouvre le fil, sans bandeau rouge.
+- [ ] Le groupe apparaît ensuite dans l'onglet Messages de Sim A (c'est
+      l'ajout à `participant_ids` qui l'y fait entrer).
+- [ ] **Non-régression de la garde** : depuis un compte membre simple, tenter
+      de se promouvoir admin ou d'exclure quelqu'un doit toujours être refusé.
+- [ ] **Non-régression de l'exclusion** : exclure quelqu'un, puis depuis SON
+      compte rouvrir la discussion du groupe — il ne doit **pas** y rentrer.
+      C'est précisément ce que mon correctif cassait.
+- [ ] Quitter un groupe en tant que membre simple marche encore.
+
+---
+
+## ⛔ Le Pixel s'est retrouvé DÉCONNECTÉ pendant la passe (2026-09-09, 20:39)
+
+À signaler avant tout : le Pixel 10 Pro XL porte le **vrai compte** de Salim
+(Salim L., administrateur). Il est ressorti de cette passe sur l'écran
+« Bon retour » — session perdue. La reconnexion passe par le SSO Google, donc
+par sa main : rien n'a été tenté.
+
+Ce qu'on sait, et ce qu'on ne sait pas :
+
+- il était connecté à 19:51 (fiche du groupe « Testeurs » affichée) ;
+- entre 20:01 et 20:02 il a planté deux fois (voir la section BootReceiver) ;
+- à 20:38 il a reçu `adb install -r` du build corrigé, puis un
+  `am force-stop` + relance ; à 20:39 il affichait l'écran de connexion ;
+- **le SM A515F a reçu exactement le même `install -r` à la même minute et a
+  gardé sa session** (« Bonjour, Sim »). L'installation seule ne suffit donc
+  pas à l'expliquer.
+
+Aucun bandeau « Connecté ailleurs » à l'écran. Cause non isolée : le plantage
+répété, l'expiration de la session Supabase, ou la règle « une seule session
+par compte » sont toutes plausibles et aucune n'est établie. À reprendre si
+ça se reproduit — et à ne pas confondre avec le piège déjà documenté du
+`flutter clean` + `install -r`, qui n'a pas eu lieu ici.
+
+Conséquence immédiate : **tout test à deux appareils est bloqué** (écho de
+groupe entre deux comptes, QR affiché sur l'un et scanné par l'autre).
 
 ---
 
@@ -339,11 +755,23 @@ avec un bouton « Réessayer » qui **échoue à chaque fois** (deux essais, à
 plusieurs secondes d'écart). Donc `GroupMembersScreen` sans `widget.group`
 → `loadGroup(groupId)` → `getGroupById` en échec.
 
-Deux choses à démêler quand on le reprendra :
+**Piste sérieuse trouvée à 20:54, à ne pas confondre avec un vrai bug** :
+le même « Erreur de chargement » est apparu sur l'onglet **Groupes** du
+SM A515F, avec « Mes groupes · 0 » — l'appareil était alors **hors ligne**
+(aucune barre de réseau à l'écran). Un simple « Actualiser » une fois la
+connexion revenue a rendu « 3 rejoints » et les trois groupes. Avant de
+chercher plus loin sur la fiche Membres, **vérifier la connectivité au moment
+exact de l'erreur** (`adb shell dumpsys connectivity | grep 'Active default
+network'`, et un `ping`) : cet écran ne distingue pas « hors ligne » de
+« refusé », il affiche le même message dans les deux cas — ce qui est
+peut-être le vrai défaut à corriger.
 
-- [ ] Pourquoi `getGroupById` échoue là où l'écran affichait le groupe une
+Restent à démêler :
+
+- [ ] Pourquoi `getGroupById` échouait là où l'écran affichait le groupe une
       minute plus tôt (le groupe venait d'être créé — id récent, pas un id
-      hérité Firestore).
+      hérité Firestore) — et si c'était simplement le réseau, faire dire à
+      l'écran « hors ligne » plutôt que « Erreur de chargement ».
 - [ ] La flèche « retour » de cet écran **quitte l'application** au lieu de
       revenir à la fiche du groupe : `context.pop()` sur une pile qui ne
       contient que cette route. Même famille que les écrans de lien profond.
@@ -12577,8 +13005,83 @@ main :
       ouverture de l'écran de récupération. », et **pas** une erreur.
 - [ ] **QR d'un autre service** (n'importe quel QR du commerce) : message
       d'erreur, la caméra ne doit pas rester bloquée.
-- [ ] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
-      profil ».
+- [x] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
+      profil » — vérifié sur SM A515F le 2026-09-09 (capture). C'est aussi la
+      preuve que le build installé porte bien ce code : le titre est le seul
+      changement visible sans scanner quoi que ce soit.
+- [x] **La destination d'un scan de groupe s'ouvre** : lien
+      `https://diasponiger.web.app/groups/<id>` envoyé en intent sur
+      58221FDCQ0085Z → fiche « Diaspora Niger — Cap-Vert » complète, bouton
+      « Rejoindre le groupe ». La moitié « route » de la chaîne est donc
+      prouvée appareil ; il reste la moitié « caméra → parser ».
+- [x] **La caméra s'ouvre** sur l'écran du scanner (`dumpsys media.camera` :
+      CONNECT/DISCONNECT du paquet à chaque entrée/sortie) — ce que la montée
+      `mobile_scanner` 7 mettait en doute. Le rendu reste noir tant que
+      l'objectif ne voit rien d'éclairé : le cadre et le texte d'instruction
+      sont dans le sous-arbre `ColorFiltered(BlendMode.srcOut)`, donc invisibles
+      par construction sur fond noir. Ne pas confondre avec une caméra morte.
+
+- [x] **Le cadre de visée et le texte d'instruction s'affichent** — vérifié
+      SM A515F le 2026-09-09 après correctif : cadre orange, coins blancs,
+      ligne animée et « Placez le QR code dans le cadre pour scanner » sont
+      visibles. Ils ne l'étaient jamais avant (enfermés dans le sous-arbre
+      `ColorFiltered(srcOut)`, qui les découpait dans le voile).
+
+**Piège de mesure (2026-09-09)** : le premier symptôme rapporté (« ça ne marche
+pas ») venait d'un APK antérieur au correctif — construit à 19:55, correctif
+committé à 20:12. Avant toute conclusion sur un comportement appareil, comparer
+`lastUpdateTime` (`dumpsys package`) à l'horodatage du commit.
+
+---
+
+## ⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09)
+
+Trouvé en cherchant à vérifier la remontée d'erreurs. Le SDK Crashlytics
+s'initialise bien sur la build release (`Initializing Firebase Crashlytics
+19.4.4` dans logcat) et les non-fatals partent — mais **le plugin Gradle
+n'était déclaré nulle part** dans `android/`. Or `isMinifyEnabled = true` sur
+release : sans lui, aucun fichier de mapping R8 n'est envoyé, et les piles
+d'appel arrivent obfusquées, donc inexploitables. C'est aussi ce plugin qui
+pousse les symboles NDK (le `debugSymbolLevel = "FULL"` existant ne sert que
+pour Play).
+
+Déclaré dans [settings.gradle.kts](android/settings.gradle.kts) et
+[app/build.gradle.kts](android/app/build.gradle.kts).
+
+⚠️ **Le premier build a échoué** : le plugin Crashlytics 3 exige
+`google-services` **4.4.1 minimum**, le projet était en 4.3.15 —
+« Failed to query the value of task
+':app:uploadCrashlyticsMappingFileRelease' property 'appIdFile' ». Monté à
+4.4.2, le build passe. Une montée de `google-services` seule n'aurait servi à
+rien : les deux vont ensemble.
+
+Vérifié après build : `build/app/crashlytics/release/mappingFileId.txt` et
+`com_google_firebase_crashlytics_mappingfileid.xml` injecté dans les
+ressources — c'est cet identifiant qui relie un rapport à son mapping, et il
+n'existait pas avant.
+
+- [x] **L'app démarre toujours** — SM A515F, APK release
+  `ea2db3cdb3c0153e9bc6107a16ce7f61` (md5 local = md5 `pm path`). Firebase et
+  Crashlytics s'initialisent, aucun `FATAL EXCEPTION`, et la zone muette tient
+  (2 lignes flutter, moteur natif). La montée de `google-services` n'a rien
+  cassé au runtime.
+- [ ] **Un non-fatal arrive-t-il vraiment dans la console ?** ⚠️ **Non
+  vérifiable en l'état.** Le seul site qui appelle `LoggerService.e` est
+  `map_screen.dart:760`, dans le `catch` de `_loadNearbyMembers` — lequel
+  exige `_currentPosition != null`. Or le compte de test est en **« Mode privé
+  activé »** : la carte s'arrête sur sa carte d'invitation et ne demande jamais
+  de position. Coupure réseau confirmée (mode avion), l'écran ne bouge pas.
+  Pour déclencher, il faudrait appuyer sur « ACTIVER » — donc **modifier un
+  réglage de confidentialité du compte**, ce qu'une session de test ne doit pas
+  faire sans accord explicite.
+- [ ] **Piles déobfusquées dans la console** : après une remontée réelle,
+  vérifier que la trace est lisible (noms de classes Dart/Java, pas `a.b.c`).
+  C'est le bénéfice concret du plugin, et il ne se voit que côté console.
+
+⚠️ **À savoir sur la portée du branchement Crashlytics** : `LoggerService.e`
+n'a **qu'un seul** site d'appel dans tout `lib/`. Les huit autres usages du
+logger sont des `.w`, volontairement laissés muets. Le branchement ajouté le
+2026-09-09 couvre donc un chemin d'erreur, pas neuf.
 
 ---
 

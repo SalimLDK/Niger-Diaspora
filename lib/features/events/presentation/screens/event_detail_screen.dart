@@ -57,16 +57,55 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     final event = widget.initialEvent ?? eventAsync.valueOrNull;
 
     if (event == null) {
+      // `loadEvent` place bien l'echec dans l'etat (AsyncValue.error), mais
+      // cet ecran ne regardait que `valueOrNull` : un evenement supprime, un
+      // refus de lecture ou une coupure reseau rendaient `null` comme un
+      // chargement en cours, et la roue tournait indefiniment. Mesure du
+      // 2026-09-09 : encore la apres 75 s, sur un lien profond
+      // /events/<id>. Meme garde que `GroupDetailScreen`, qui la porte deja.
+      final aEchoue = eventAsync.hasError;
       return Scaffold(
         backgroundColor: context.backgroundColor,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
+            // Un lien profond ouvre cette route SEULE dans la pile : `pop()`
+            // sur une pile vide laisse un ecran noir.
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
         ),
         body: Center(
-          child: CircularProgressIndicator(color: context.adaptivePrimaryColor),
+          child: aEchoue
+              ? Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: context.textSecondaryColor,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        AppLocalizations.of(context)!.loadingError,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => ref
+                            .read(eventDetailNotifierProvider.notifier)
+                            .loadEvent(widget.eventId),
+                        child: Text(AppLocalizations.of(context)!.retry),
+                      ),
+                    ],
+                  ),
+                )
+              : CircularProgressIndicator(
+                  color: context.adaptivePrimaryColor,
+                ),
         ),
       );
     }
