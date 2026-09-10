@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -28,6 +30,9 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
 
   bool _isProcessing = false;
   bool _flashOn = false;
+
+  /// Delai avant de re-accepter une detection apres un echec.
+  Timer? _reprise;
   bool _myQrOpen = false;
   late AnimationController _animationController;
   late Animation<double> _animation;
@@ -38,7 +43,12 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     WidgetsBinding.instance.addObserver(this);
 
     _controller = MobileScannerController(
-      detectionSpeed: DetectionSpeed.noDuplicates,
+      // `noDuplicates` empoisonnait l'ecran : un code refuse une fois (parce
+      // qu'un autre QR passait devant, ou parce qu'il n'etait pas reconnu)
+      // n'etait plus jamais re-signale. L'utilisateur re-visait le meme code
+      // et il ne se passait plus rien, sans message. La deduplication est
+      // reprise ici par `_isProcessing` et le delai de `_showError`.
+      detectionSpeed: DetectionSpeed.normal,
       returnImage: false,
       autoStart: false,
     );
@@ -100,6 +110,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _reprise?.cancel();
     // Dispose controller which internally handles stopping
     _controller.dispose();
     _animationController.dispose();
@@ -109,19 +120,45 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
   void _onDetect(BarcodeCapture capture) {
     if (_isProcessing) return;
 
-    final List<Barcode> barcodes = capture.barcodes;
-    if (barcodes.isEmpty) return;
+    // Une image peut porter plusieurs codes : une planche de QR, un ecran qui
+    // en affiche deux, une affiche. `barcodes.first` rejetait alors le bon
+    // parce qu'un autre etait passe devant. On garde le premier que l'on sait
+    // lire, et on ne se rabat sur le premier code brut que pour le message
+    // d'erreur.
+    String? premierCode;
+    QrCodeTarget? cible;
+    for (final barcode in capture.barcodes) {
+      final valeur = barcode.rawValue;
+      if (valeur == null || valeur.isEmpty) continue;
+      premierCode ??= valeur;
+      final candidat = QrCodeParser.parse(valeur);
+      if (candidat != null) {
+        cible = candidat;
+        break;
+      }
+    }
 
-    final barcode = barcodes.first;
-    final String? code = barcode.rawValue;
-
-    if (code == null || code.isEmpty) return;
+    if (premierCode == null) return;
 
     setState(() => _isProcessing = true);
     HapticFeedback.mediumImpact();
 
-    // Parse the URL to extract userId
-    _processQrCode(code);
+    if (cible == null) {
+      _showError(_messageCodeInconnu(premierCode));
+      return;
+    }
+
+    _ouvrir(cible);
+  }
+
+  /// Message d'echec qui montre ce qui a ete lu.
+  ///
+  /// « QR code invalide » seul ne dit pas si la camera a mal lu, si le code
+  /// vient d'ailleurs, ou si l'app ne reconnait pas son propre lien — trois
+  /// causes qui se corrigent differemment.
+  String _messageCodeInconnu(String code) {
+    final apercu = code.length > 48 ? '${code.substring(0, 48)}...' : code;
+    return '${l10n.invalidQrCodeFormat}\n$apercu';
   }
 
   /// Ouvre ce que désigne le QR, quel que soit son type.
@@ -129,14 +166,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
   /// Ce scanner est le seul de l'app à être atteignable depuis l'accueil : il
   /// doit reconnaître tous les QR du projet — profil, groupe, et les liens
   /// profonds partagés par le site — et pas seulement le profil.
-  Future<void> _processQrCode(String code) async {
-    final target = QrCodeParser.parse(code);
-
-    if (target == null) {
-      _showError(l10n.invalidQrCodeFormat);
-      return;
-    }
-
+  Future<void> _ouvrir(QrCodeTarget target) async {
     switch (target.kind) {
       // Le rendez-vous de transfert se revendique sur son écran dédié : lui
       // seul sait gérer le cas « pas encore connecté », qui est la situation
@@ -223,7 +253,13 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
   }
 
   void _showError(String message) {
-    setState(() => _isProcessing = false);
+    // La detection reste bloquee le temps que le bandeau se lise. Sans ce
+    // delai, le meme code repasse a chaque image de la camera et empile les
+    // bandeaux jusqu'a rendre l'ecran inutilisable.
+    _reprise?.cancel();
+    _reprise = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _isProcessing = false);
+    });
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -412,30 +448,41 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
   }
 
   Widget _buildOverlay() {
-    return ColorFiltered(
-      colorFilter: ColorFilter.mode(
-        Colors.black.withValues(alpha: 0.5),
-        BlendMode.srcOut,
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.black,
-              backgroundBlendMode: BlendMode.dstOut,
-            ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Seuls le voile et la fenetre passent par `srcOut` : ce filtre
+        // *retire* ce que son sous-arbre dessine au lieu de le peindre. Le
+        // cadre, les coins, la ligne animee et le texte d'instruction y
+        // etaient enfermes — ils etaient donc decoupes dans le voile, donc
+        // invisibles. Ils sont desormais poses par-dessus.
+        ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            Colors.black.withValues(alpha: 0.5),
+            BlendMode.srcOut,
           ),
-          Center(
-            child: Container(
-              width: 280,
-              height: 280,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black,
+                  backgroundBlendMode: BlendMode.dstOut,
+                ),
               ),
-            ),
+              Center(
+                child: Container(
+                  width: 280,
+                  height: 280,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                ),
+              ),
+            ],
           ),
+        ),
           // Scanning frame decoration
           Center(
             child: Container(
@@ -510,8 +557,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
               ),
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
