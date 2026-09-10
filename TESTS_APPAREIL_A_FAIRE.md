@@ -14,6 +14,81 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)
+
+**Ce qui a été observé.** Le 2026-09-10 sur SM-A515F (`R58N91XBA7B`), compte
+« Sim A », après plusieurs `adb install -r` d'un APK release : l'app a démarré
+sur l'onboarding 1/5 alors que le compte l'avait terminé de longue date.
+
+**Les deux causes ne s'excluent pas : elles se composent, et il en faut les
+deux.** Le dépôt consulte le local d'abord et ne va au réseau que si le local
+dit `false` — chaque drapeau a donc son propre chemin, indépendamment des
+trois autres.
+
+1. **Côté serveur, `has_seen_onboarding` valait réellement `false`** pour
+   « Sim A », alors que `has_given_consent` et `profile_config_complete`
+   valaient `true` (relevé en base ce jour-là ; `consent_date` est resté au
+   2026-07-16, jamais réécrit). Reliquat de la bascule Firestore→Supabase du
+   2026-08-13 (`160d417`) : avant cette date l'app écrivait ses drapeaux sur
+   Firestore, la colonne Supabase est donc restée à son `DEFAULT false` pour
+   tout compte ayant fini son onboarding plus tôt. Conséquence en chaîne : la
+   synchronisation vers le local (`if (remoteResult) setComplete(...)`) a
+   recopié consentement et profil, **jamais** l'intro.
+2. **Ce drapeau-là, et lui seul, repassait donc par le réseau à chaque
+   démarrage** — et sa lecture, en échec, valait « jamais vu ».
+
+⚠️ **Une déduction que j'avais faite est fausse, ne pas la refaire** :
+« atterrir sur l'étape 8 prouve que les étapes 6 et 7 ont lu `true` côté
+serveur, donc que le réseau marchait ». Non — consentement et profil pouvaient
+venir du **cache local**, sans le moindre appel réseau. Le `consent_date`
+intact ne prouve que l'absence d'écriture, pas la réussite d'une lecture. La
+section « ⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding
+(2026-09-10) » plus bas montre l'inverse en acte : même compte, même appareil,
+mode avion → le carrousel, précisément parce que seul le drapeau d'intro va
+au réseau.
+
+**Le défaut corrigé est donc bien celui-là.** Un échec de lecture était
+converti en `false`, c'est-à-dire en « rejoue tout ».
+`SupabaseAuthBridge.ensureReadableSession` rend la main au bout de **3 s sans
+session** en laissant la synchronisation finir en tâche de fond : un démarrage
+à froid sur réseau lent dépasse ce budget et faisait tomber les quatre
+drapeaux ensemble — consentement (réécrit `consent_date`), assistant de profil
+en 4 étapes (**écrit dans le profil, peut renommer le compte**), puis l'intro.
+L'indéterminé est désormais distinct de `false` de bout en bout, et ne
+redescend jamais un drapeau. Verrouillé par
+`test/features/onboarding/lecture_en_echec_test.dart` (21 cas).
+
+À vérifier sur appareil — rien de tout ceci n'est observable par
+`flutter test` :
+
+- [ ] **Compte neuf** : créer un compte et confirmer que consentement,
+      assistant de profil puis les 5 écrans d'intro s'affichent bien dans cet
+      ordre. C'est le cas que le repli optimiste pourrait avaler ; le test
+      « les quatre lectures rendent false » le couvre en unitaire, pas en
+      vrai.
+- [ ] **La reproduction hors ligne, rejouée après correctif** : compte « Sim A »
+      connecté, mode avion, rechargement forcé. Attendu : `/home`, aucun écran
+      d'onboarding. C'est le scénario exact qui donnait le carrousel de
+      bienvenue (section plus bas) — le seul qui prouve le correctif, parce
+      qu'il est le seul reproductible à volonté.
+- [ ] **Le même, mais sur un compte dont aucun drapeau n'est en cache local**
+      (compte neuf sur ce téléphone, puis mode avion) : là c'est `/consent` qui
+      tombait, pas l'intro. Vérifier qu'il ne tombe plus.
+- [ ] **La reprise** : la lecture indéterminée est retentée une fois après 4 s
+      (`OnboardingNotifier.delaiDeReprise`). Sur un compte neuf dont la
+      première lecture échoue, l'écran de consentement doit apparaître ~4 s
+      après l'entrée dans l'app, pas jamais.
+- [ ] **Réinstallation** : `adb install -r` conserve les préférences, une
+      désinstallation non. Vérifier qu'après désinstallation + réinstallation,
+      un compte à jour côté serveur ne rejoue **pas** l'onboarding — c'est la
+      moitié serveur du garde-fou.
+
+⚠️ Le drapeau local ne se relit pas depuis ce poste : le build de l'appareil
+est **release**, `run-as` répond « package not debuggable ». Pour départager
+local et distant, passer par `public.users` en base, pas par `shared_prefs/`.
+
+---
+
 ## ⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)
 
 Troisième refus Google Play sur le même terrain, cette fois nommément :
@@ -13871,6 +13946,14 @@ dans l'autre coûte une interruption à chaque coupure réseau. Non appliqué pa
 que toucher à une garde du routeur est précisément ce qui a déjà coûté cher ici
 (gating feature-flag, garde de session) — à décider explicitement.
 
+✅ **Tranché et appliqué le 2026-09-10**, exactement dans ce sens, et **sans
+toucher au routeur** : c'est la valeur qu'on lui donne qui change, pas la
+règle 8. Voir « ⬜ Onboarding rejoué : une lecture en échec n'est plus “jamais
+vu” » en tête de fichier — l'indéterminé y devient une valeur à part entière de
+la source distante jusqu'au notifier, et 21 cas le verrouillent. Cette
+observation-ci reste la seule reproduction **à volonté** du défaut : c'est elle
+qu'il faut rejouer pour valider le correctif sur appareil.
+
 - [ ] **Reproduire proprement** : compte connecté, mode avion, naviguer →
   le carrousel doit apparaître. Puis vérifier qu'après retour du réseau **et**
   redémarrage l'app revient d'elle-même à l'accueil (observé une fois : elle
@@ -13878,6 +13961,59 @@ que toucher à une garde du routeur est précisément ce qui a déjà coûté ch
   le Wi-Fi pouvait n'être pas encore rétabli au lancement, donc à confirmer).
 - [ ] **Vérifier le cas du vrai nouveau compte** avant tout correctif : il doit
   continuer à voir l'onboarding.
+
+---
+
+## ⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)
+
+Première lecture réelle de la console. Elle change l'interprétation des
+chiffres, et sort quatre défauts avec leur volume.
+
+**Le taux de plantage ne mesurait pas la stabilité.** « Utilisateurs sans
+plantage » à **80,95 %, en baisse de 19 points** — alarmant en apparence. Sur
+les quatre « plantages » ouverts, **trois étaient de simples pertes de
+réseau** :
+
+| Signalé comme plantage | Ce que c'est |
+|---|---|
+| `google_fonts` — `Failed host lookup: fonts.gstatic.com` | hors ligne, 4 évts / 3 users |
+| `postgrest` — `Failed host lookup: …supabase.co` | hors ligne, 2 évts / 1 user |
+| `ProfileSupabaseDataSource._requireAuth` — « Session Supabase non établie » | 3 évts / 2 users |
+
+Cause : `PlatformDispatcher.onError` ([main.dart](lib/main.dart)) enregistrait
+tout en `fatal: true`. **Corrigé** — une panne réseau part désormais en
+non-fatal, via [classification_erreurs.dart](lib/core/errors/classification_erreurs.dart).
+Les erreurs restent envoyées, seul leur classement change.
+
+⚠️ Le tri se fait sur le **texte** de l'erreur, pas sur son type : `dart:io`
+(donc `SocketException`) n'est pas importable, `web/` étant une cible réelle.
+C'est fragile ; [le test](test/core/errors/classification_erreurs_test.dart)
+fige les libellés **réellement observés en production**, pas des exemples
+inventés. Le cas « Session Supabase non établie » est laissé **fatal**
+sciemment : sa cause profonde est souvent le réseau, mais son libellé ne le dit
+pas, et le reclasser demanderait de décider ce que « fatal » veut dire pour une
+session absente.
+
+**Quatre défauts réels, avec leur volume — aucun corrigé :**
+
+- [ ] **`A RenderFlex overflowed by 100 pixels on the bottom` — 21 occurrences**,
+  de loin le premier non-fatal, 1 utilisateur. Écran inconnu : la pile pointe
+  `main.dart:172` (le `FlutterError.onError`), pas le widget fautif. À isoler.
+- [ ] **`GoError: There is nothing to pop` — 11 occurrences.** Famille déjà
+  documentée ici (écran noir au retour d'un lien profond) : une route de lien
+  profond seule dans la pile.
+- [ ] **`MissingPluginException` sur le canal `com.diasponiger.diaspo_niger/gsm_state`**
+  — 3 occurrences. Un canal de plateforme écouté côté Dart sans implémentation
+  native.
+- [ ] **`ForegroundServiceStartNotAllowedException` — NOUVEAU en 1.2.1**,
+  `flutter_background_service` ne peut plus démarrer. 2 occurrences.
+
+**Et une preuve que le plugin Gradle ajouté ce jour sert bien** : la pile de ce
+dernier s'affiche `d1.a.startForegroundService` / `SourceFile:7` — obfusquée.
+Les piles **Dart** sont lisibles (R8 n'y touche pas), les piles **Android** ne
+l'étaient pas. La prochaine version donnera un vrai nom de classe.
+
+- [ ] **Vérifier après publication** qu'une pile Android arrive déobfusquée.
 
 ---
 

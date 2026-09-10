@@ -19,34 +19,55 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
        _remoteDataSource = remoteDataSource,
        _firebaseAuth = firebaseAuth;
 
-  @override
-  Future<Either<Failure, bool>> hasSeenOnboarding() async {
+  /// Lecture commune aux quatre drapeaux.
+  ///
+  /// **Un `Left` veut dire « on ne sait pas », jamais « pas fait ».** Les
+  /// quatre lectures répondaient `Right(false)` dès que quelque chose se
+  /// passait mal — pas d'utilisateur, session Supabase pas encore lisible,
+  /// réseau — et `false` est précisément la valeur qui rejoue tout
+  /// l'onboarding. Le repli appartient à `OnboardingNotifier`, qui sait ce
+  /// que chaque écran coûte quand on le montre à tort ; ici on se contente de
+  /// dire ce qu'on a pu établir.
+  Future<Either<Failure, bool>> _lireDrapeau({
+    required String nom,
+    required Future<bool> Function(String uid) local,
+    required Future<bool?> Function() distant,
+    required Future<void> Function(String uid) memoriser,
+  }) async {
     try {
       final user = _firebaseAuth.currentUser;
       if (user == null) {
-        // Safe default if called when unauthenticated
-        return const Right(false);
+        return Left(ServerFailure('Lecture de $nom sans utilisateur connecte'));
       }
 
-      // Check local first for speed
-      final localResult = await _localDataSource.hasSeenOnboarding(user.uid);
-      if (localResult) {
-        return const Right(true);
+      // Le local d'abord, pour la vitesse : il n'est écrit qu'après coup et ne
+      // redescend jamais à `false`, donc un « oui » local fait foi.
+      if (await local(user.uid)) return const Right(true);
+
+      final valeur = await distant();
+      if (valeur == null) {
+        return Left(ServerFailure('Lecture de $nom indeterminee'));
       }
 
-      // If not in local, check remote
-      final remoteResult = await _remoteDataSource.hasSeenOnboarding();
-      if (remoteResult) {
-        // Sync to local
-        await _localDataSource.setOnboardingComplete(user.uid);
-      }
-      return Right(remoteResult);
+      // On ne mémorise que ce qui a été lu. Figer un repli en local le
+      // rendrait définitif : plus aucune lecture ultérieure ne le corrigerait,
+      // puisque le local court-circuite le distant deux lignes plus haut.
+      if (valeur) await memoriser(user.uid);
+      return Right(valeur);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, bool>> hasSeenOnboarding() => _lireDrapeau(
+    nom: 'has_seen_onboarding',
+    local: _localDataSource.hasSeenOnboarding,
+    distant: _remoteDataSource.hasSeenOnboarding,
+    memoriser: _localDataSource.setOnboardingComplete,
+  );
 
   @override
   Future<Either<Failure, void>> markOnboardingComplete() async {
@@ -74,32 +95,12 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> hasSeenCoachMarks() async {
-    try {
-      final user = _firebaseAuth.currentUser;
-      if (user == null) {
-        return const Right(false);
-      }
-
-      // Check local first for speed
-      final localResult = await _localDataSource.hasSeenCoachMarks(user.uid);
-      if (localResult) {
-        return const Right(true);
-      }
-
-      // If not in local, check remote
-      final remoteResult = await _remoteDataSource.hasSeenCoachMarks();
-      if (remoteResult) {
-        // Sync to local
-        await _localDataSource.setCoachMarksComplete(user.uid);
-      }
-      return Right(remoteResult);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
+  Future<Either<Failure, bool>> hasSeenCoachMarks() => _lireDrapeau(
+    nom: 'has_seen_coach_marks',
+    local: _localDataSource.hasSeenCoachMarks,
+    distant: _remoteDataSource.hasSeenCoachMarks,
+    memoriser: _localDataSource.setCoachMarksComplete,
+  );
 
   @override
   Future<Either<Failure, void>> markCoachMarksComplete() async {
@@ -127,29 +128,12 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> hasGivenConsent() async {
-    try {
-      final user = _firebaseAuth.currentUser;
-      if (user == null) {
-        return const Right(false);
-      }
-
-      final localResult = await _localDataSource.hasGivenConsent(user.uid);
-      if (localResult) {
-        return const Right(true);
-      }
-
-      final remoteResult = await _remoteDataSource.hasGivenConsent();
-      if (remoteResult) {
-        await _localDataSource.setConsentGiven(user.uid);
-      }
-      return Right(remoteResult);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
+  Future<Either<Failure, bool>> hasGivenConsent() => _lireDrapeau(
+    nom: 'has_given_consent',
+    local: _localDataSource.hasGivenConsent,
+    distant: _remoteDataSource.hasGivenConsent,
+    memoriser: _localDataSource.setConsentGiven,
+  );
 
   @override
   Future<Either<Failure, void>> markConsentGiven() async {
@@ -174,30 +158,12 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
   }
 
   @override
-  Future<Either<Failure, bool>> hasCompletedProfileConfig() async {
-    try {
-      final user = _firebaseAuth.currentUser;
-      if (user == null) {
-        return const Right(false);
-      }
-
-      final localResult =
-          await _localDataSource.hasCompletedProfileConfig(user.uid);
-      if (localResult) {
-        return const Right(true);
-      }
-
-      final remoteResult = await _remoteDataSource.hasCompletedProfileConfig();
-      if (remoteResult) {
-        await _localDataSource.setProfileConfigComplete(user.uid);
-      }
-      return Right(remoteResult);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
+  Future<Either<Failure, bool>> hasCompletedProfileConfig() => _lireDrapeau(
+    nom: 'profile_config_complete',
+    local: _localDataSource.hasCompletedProfileConfig,
+    distant: _remoteDataSource.hasCompletedProfileConfig,
+    memoriser: _localDataSource.setProfileConfigComplete,
+  );
 
   @override
   Future<Either<Failure, void>> markProfileConfigComplete() async {

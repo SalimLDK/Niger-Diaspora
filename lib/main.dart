@@ -12,6 +12,7 @@ import 'package:firebase_performance/firebase_performance.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
 import 'app.dart';
+import 'core/errors/classification_erreurs.dart';
 import 'core/utils/logs_release.dart';
 import 'core/constants/app_config.dart';
 import 'core/services/notification_service.dart';
@@ -193,9 +194,20 @@ Future<void> _demarrer() async {
   // docstring de la fonction).
   ErrorWidget.builder = construireEcranErreurNeutre;
 
-  // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
+  // Erreurs asynchrones non rattrapées par le framework.
+  //
+  // `fatal` distingue un défaut de l'app d'une panne d'environnement : une
+  // perte de réseau part en non-fatal. Sans ce tri, le taux « utilisateurs
+  // sans plantage » mesure la couverture réseau des utilisateurs — constaté
+  // à 80,95 % (-19 points) le 2026-09-10, alors que trois des quatre
+  // « plantages » ouverts étaient des `Failed host lookup`. Voir
+  // `classification_erreurs.dart`.
   PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    FirebaseCrashlytics.instance.recordError(
+      error,
+      stack,
+      fatal: !estPanneReseau(error),
+    );
     return true;
   };
 
