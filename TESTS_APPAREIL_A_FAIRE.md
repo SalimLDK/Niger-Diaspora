@@ -260,8 +260,8 @@ supabase db query --linked -f supabase/diagnostics/2026-09-09_invite_discussion_
 
 ### ⚠️ Deux défauts voisins trouvés, **non corrigés**
 
-- [ ] **« Retirer du groupe » ne retire pas du groupe** — et l'exemption
-      ci-dessus rend l'exclusion annulable.**
+- [x] **« Retirer du groupe » ne retirait pas du groupe** — corrigé (voir la
+      section suivante).
       `removeUserFromGroup` (`message_supabase_datasource.dart:2045`) ne touche
       que `conversations.participant_ids` et `data.adminIds` ; la ligne
       `group_members` reste, donc la personne **figure toujours dans la liste
@@ -274,9 +274,57 @@ annulée puis en rejouant le cas d'un exclu : `exclu_de_retour = true`, la RPC
 rend l'id de la conversation. Une fois son correctif déployé, toute exclusion
 est donc annulable par l'exclu lui-même, en ouvrant simplement la discussion.
 
-- [ ] Sur appareil, après déploiement : retirer quelqu'un d'un groupe, puis
-      depuis son compte ouvrir la discussion du groupe — il ne doit pas
-      revenir dans la liste des participants.
+### ⬜ L'impasse tranchée : l'exclusion s'enregistre, tout membre ouvre sa discussion
+
+Demande de Salim le 2026-09-09 : « tout membre peut ouvrir les conversations ».
+Les deux agents avaient écrit l'exemption du garde, chacun de son côté, et
+chacun l'avait retirée — adossée à l'**invitation** elle laisse de côté qui a
+rejoint un groupe public ; adossée à l'**appartenance** elle rouvre la porte
+aux exclus. Parce que l'exclusion n'était enregistrée nulle part : elle
+n'existait que comme une absence dans `conversations.participant_ids`, et
+`group_members` continuait d'affirmer le contraire.
+
+Fermé par le bas, côté base : `20260909234500` pose un déclencheur —
+disparaître de `participant_ids` d'une conversation de **groupe**, c'est ne
+plus être membre du groupe. `removeUserFromGroup` fait dès lors ce que son nom
+annonce, **sans un changement côté app** : `message_supabase_datasource.dart`
+est tenu par le worktree `partage-discussion`, et une RPC de retrait aurait dû
+y être appelée. L'exemption de l'autre agent (tout membre réel s'ajoute
+lui-même) est reprise telle quelle dans la même migration, où elle redevient
+sûre.
+
+Vérifié qu'aucune reprise de données n'est nécessaire : les deux seules
+appartenances absentes de leur conversation (« Diaspora Niger — NE » et
+« Testeurs ») sont des membres qui n'ont jamais pu se rattacher, pas des
+exclus.
+
+Banc dédié, 8 étapes, transaction annulée — il échoue bien sur l'état d'avant
+(« ECHEC A : raccrochage encore refuse (42501) ») :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_exclusion_et_ouverture_discussion.sql
+```
+
+À vérifier sur appareil, après déploiement :
+
+- [ ] Un membre simple ouvre la discussion de son groupe (le défaut d'origine,
+      vu sur SM A515F : bandeau rouge 42501).
+- [ ] Retirer quelqu'un d'un groupe : il **disparaît de la liste des membres**
+      de la fiche, et `Membres · n` décroît (c'est nouveau — il y restait).
+- [ ] Depuis le compte retiré, ouvrir la discussion du groupe : il ne revient
+      ni dans les participants, ni dans les membres.
+- [ ] Quitter un groupe volontairement : toujours possible, et le groupe
+      disparaît de l'onglet Messages.
+- [ ] Envoyer des messages dans un groupe : personne n'est retiré au passage
+      (le déclencheur est posé sur `UPDATE OF participant_ids`, un message
+      n'écrit que `data` — couvert par l'étape E du banc, mais jamais vu
+      tourner sur un vrai fil).
+
+⚠️ **Collision possible** : l'autre agent peut relivrer sa propre version de
+`conversations_guard_admin_fields`. Les deux corps sont identiques, un
+`CREATE OR REPLACE` de plus est sans conséquence — mais si sa version revient
+**sans** le déclencheur d'exclusion, l'exclusion redevient annulable. Vérifier
+`git log` avant de conclure.
 Passer le fichier avec `-f` et non en argument : sous cette seconde forme les
 accents du banc le font échouer sur un message tronqué, qui se lit comme un
 vrai échec.
