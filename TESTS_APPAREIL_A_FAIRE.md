@@ -58,9 +58,26 @@ Rien de tout ça n'a été vu sur un écran.
       utilisée » ? Un refus doit laisser l'interrupteur éteint.
 - [ ] **Thème sombre** sur la feuille et sur le bloc de l'onboarding (jetons
       adaptatifs, jamais `AppColors` en dur).
+- [ ] **Position dans une discussion** : ouvrir le sélecteur de position
+      depuis une conversation. La feuille doit porter le texte *discussion*
+      (« participants de la discussion »), jamais celui de la carte. Un refus
+      à l'ouverture doit laisser le bouton « envoyer ma position » reproposer
+      la feuille.
 - [ ] **Lien « Lire la politique de confidentialité »** depuis la feuille
       pendant l'onboarding : `/settings/privacy` est censé échapper aux
       redirections du routeur, à confirmer avant que le profil soit complet.
+
+⚠️ Interrupteur **Podcasts** du back-office désormais inerte, et c'est
+voulu : `FOREGROUND_SERVICE_MEDIA_PLAYBACK` a été retirée du manifeste alors
+que `AudioService` déclare toujours `foregroundServiceType="mediaPlayback"`.
+L'allumer rouvrait `/podcasts` sur un build où la lecture lève une
+`SecurityException` au premier `startForeground` (Android 14+). Il redevient
+actif tout seul quand `kPodcastsSupportesParCeBuild` repasse à `true`, ce que
+`test/core/podcasts_service_premier_plan_test.dart` interdit de faire sans
+rétablir l'autorisation.
+
+- [ ] **Admin › Fonctionnalités** : vérifier que la ligne Podcasts s'affiche
+      bien grisée, avec son explication, et que /podcasts reste inaccessible.
 
 ⚠️ Deux points **hors code**, à faire dans la Play Console avant de renvoyer :
 le formulaire *Data safety* doit déclarer la localisation comme collectée

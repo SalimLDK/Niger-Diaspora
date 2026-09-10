@@ -78,10 +78,29 @@ bool isAudioRoomsEnabled(Ref ref) {
   return ref.watch(featureFlagsProvider).audioRooms;
 }
 
+/// Les podcasts dépendent d'une autorisation que ce build n'a pas.
+///
+/// `AudioService`, la lecture en arrière-plan, déclare
+/// `foregroundServiceType="mediaPlayback"` dans le manifeste — mais
+/// `FOREGROUND_SERVICE_MEDIA_PLAYBACK` en a été retirée le 2026-09-09 : Play
+/// exige une vidéo de démonstration par type de service de premier plan, et la
+/// fonctionnalité était injoignable, donc infilmable.
+///
+/// Le drapeau `podcasts`, lui, est resté basculable d'un clic depuis le
+/// back-office. Sans cette constante, ce clic rouvrait `/podcasts` sur un
+/// build où le premier `startForeground` lève une `SecurityException` sur
+/// Android 14+ (`targetSdk` 36) : une fonctionnalité cassée à distance, sans
+/// renvoi de build, et rien nulle part pour le signaler.
+///
+/// Repasser à `true` **en même temps** que l'autorisation revient au
+/// manifeste, jamais avant. Verrouillé par
+/// `test/core/podcasts_service_premier_plan_test.dart`.
+const bool kPodcastsSupportesParCeBuild = false;
+
 /// Provider to check if podcasts feature is enabled
 @riverpod
 bool isPodcastsEnabled(Ref ref) {
-  return ref.watch(featureFlagsProvider).podcasts;
+  return kPodcastsSupportesParCeBuild && ref.watch(featureFlagsProvider).podcasts;
 }
 
 /// Provider for maintenance message
@@ -119,7 +138,9 @@ class FeatureFlagService {
       // Annuaire, ambassades et fil : toujours actifs (décision produit
       // 2026-08-19), alignés sur les providers ci-dessus.
       AppFeature.businessDirectory => true,
-      AppFeature.podcasts => flags.podcasts,
+      // Le back-office peut allumer `podcasts` ; ce build ne sait pas les
+      // jouer (cf. `kPodcastsSupportesParCeBuild`).
+      AppFeature.podcasts => kPodcastsSupportesParCeBuild && flags.podcasts,
       AppFeature.audioRooms => flags.audioRooms,
       AppFeature.events => flags.events,
       AppFeature.groups => flags.groups,
