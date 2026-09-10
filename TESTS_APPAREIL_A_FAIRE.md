@@ -12310,6 +12310,28 @@ premiers passeraient avec une capture cassée), et un balayage de source qui
 
 ⚠️ **Deux pièges de mesure rencontrés, à ne pas répéter.**
 
+**0. Le relevé `uiautomator` peut contredire l'écran.** Le plus coûteux des
+trois. En cherchant à supprimer le message envoyé par erreur, le dump plaçait
+la bulle visée à `601,941` ; l'appui long à cet endroit a sélectionné un
+**autre** message (une position, envoyée 56 min plus tôt), deux fois de suite.
+La capture d'écran, elle, montrait la bonne chose. Sur cet écran Flutter,
+l'arbre sémantique ne reflétait pas la position de défilement réelle.
+
+**Conséquence pratique** : pour toute action destructrice sur appareil,
+ne jamais se fier au dump seul. Ouvrir le menu, **capturer l'écran, vérifier
+visuellement la cible sélectionnée**, et seulement ensuite confirmer. C'est ce
+contrôle qui a évité de supprimer un message innocent.
+
+**Et quand la vérification est impossible, renoncer.** La feuille d'actions
+occupe le bas de l'écran et masque tout ce qui s'y trouve : elle ne laisse voir
+la bulle sélectionnée (les autres sont estompées par le voile) que si celle-ci
+est assez haute. Pour un message situé en bas — typiquement le dernier de la
+conversation — la cible est *derrière* la feuille, et « Supprimer » devient un
+tap non vérifiable. Deux messages de test (`test-logs` 19:37, `zone-verif`
+20:03) ont été laissés en place pour cette raison : deux chaînes inoffensives
+coûtent moins cher qu'une suppression à l'aveugle après trois erreurs de
+ciblage.
+
 **1. Les coordonnées de tap se périment.** Une première tentative d'usage a
 échoué en silence : la liste s'était réordonnée depuis la capture précédente
 (un message reçu remonte sa conversation), et le tap à `540,987` a ouvert un
@@ -12330,6 +12352,41 @@ un message nommé.
 des messages « Hi » et « ECHO-DM-1947 » y sont arrivés à 19:46 et 19:47, hors
 de toute action de cette session. Ne pas prendre son contenu pour un état
 stable, et ne pas conclure d'un message qu'on n'a pas envoyé soi-même.
+
+---
+
+## ⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)
+
+Le scanner ouvert depuis l'accueil (`/qr-scanner`) ne savait lire qu'un QR de
+**profil**. Tout le reste — le QR de groupe que `share_group_modal` affiche
+juste à côté, le code de transfert de clés, les liens du site — tombait sur
+« QR code invalide ou format non reconnu ».
+
+Deux causes, et la seconde est la plus traître : le contrôle d'hôte ne
+connaissait que `diasponiger.com` et `diaspo-niger.web.app`, alors que
+`DEEP_LINK_BASE_URL` du `.env` vaut `https://diasponiger.web.app` — l'app
+refusait donc les QR **qu'elle fabrique elle-même** via `DeepLinkService`.
+
+`lib/core/services/qr_code_parser.dart` (couvert par
+`test/core/services/qr_code_parser_test.dart`, 23 cas) reconnaît maintenant
+profil (lien long et code court), groupe, fil, événement, entreprise, produit,
+ambassade, salon audio, podcast, épisode, appel, le schéma `diasponiger://` et
+le rendez-vous de transfert de clés. Rien de tout cela n'a été rejoué caméra en
+main :
+
+- [ ] **QR de groupe** — afficher le QR d'un groupe sur un second écran
+      (Discussions › groupe › Partager), le scanner depuis l'accueil : la
+      fiche du groupe doit s'ouvrir.
+- [ ] **QR de profil**, les deux formes : le lien long `/p/u/<id>` (bouton
+      « Mon QR Code » du scanner) et le code court `/p/<code>` (dialogue de
+      partage du profil, qui passe par le serveur pour être résolu).
+- [ ] **Code de transfert de clés** scanné depuis l'accueil : doit basculer
+      sur l'écran de récupération avec le message « Code de transfert de clés :
+      ouverture de l'écran de récupération. », et **pas** une erreur.
+- [ ] **QR d'un autre service** (n'importe quel QR du commerce) : message
+      d'erreur, la caméra ne doit pas rester bloquée.
+- [ ] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
+      profil ».
 
 ---
 
