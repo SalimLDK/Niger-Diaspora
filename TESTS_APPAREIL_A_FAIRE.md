@@ -121,6 +121,78 @@ supabase db query --linked -f supabase/diagnostics/2026-09-09_invitations_groupe
 ```
 
 Sortie attendue : « banc termine ». Tout « ECHEC n » interrompt le banc.
+
+### ⛔ Deuxième temps : l'invité ne pouvait pas ouvrir la discussion
+
+Trouvé en branchant les notifications, **pas signalé** : `join_group_conversation()`
+rattache l'appelant à `conversations.participant_ids` — c'est ce qui fait
+apparaître un groupe rejoint dans l'onglet Messages — mais le garde
+`conversations_guard_admin_fields` (2026-08-14) refuse **toute** modification de
+`participant_ids` par qui n'est pas administrateur du groupe. Un invité qui
+vient d'accepter ne l'est pas.
+
+Mesuré sous identité réelle non privilégiée, en transaction annulée :
+`EXCEPTION 42501`, `participant_ids` inchangé. Le premier test avait conclu
+l'inverse — le compte utilisé est superAdmin plateforme **et** le groupe testé
+était officiel, deux privilèges qu'un invité n'a pas.
+
+Corrigé par `20260909223000_invite_entre_dans_la_discussion.sql` : le garde
+accepte désormais l'entrée volontaire de qui détient une invitation valide,
+miroir du départ volontaire déjà exempté.
+
+- [ ] **Deux téléphones** : accepter une invitation, puis vérifier que le
+      groupe apparaît dans l'onglet **Messages** sans avoir à ouvrir sa fiche,
+      et que la discussion s'ouvre.
+- [ ] Envoyer un message depuis chaque côté : lisible des deux (vrai chemin
+      Sender Key — voir la section « un groupe dont on est le seul membre »).
+
+### ⬜ Notifications de groupe : personne n'était prévenu de rien
+
+Le type `groupInvite` est câblé de bout en bout côté app depuis toujours
+(routage, style, canal Android, clé de préférence `groups` dans `send-push`),
+et un INSERT dans `notifications` déclenche déjà le push. **Aucun code, client
+ou serveur, n'en créait jamais** — ni pour une invitation, ni pour une demande
+d'adhésion, ni pour sa réponse. Trois déclencheurs ajoutés dans la même
+migration.
+
+- [ ] Recevoir la **notification push** d'invitation sur l'autre téléphone,
+      app fermée ; l'appui ouvre la fiche du groupe.
+- [ ] Sur cette fiche, la barre du bas propose **« Accepter » / « Refuser »**
+      et non « Demander à rejoindre » (`_BarreInvitation`,
+      `group_detail_screen.dart`). Accepter fait disparaître la barre.
+- [ ] Couper la bascule « Groupes » dans les réglages de notifications :
+      l'invitation suivante ne doit **pas** arriver en push (elle reste dans
+      la liste in-app).
+- [ ] Demander à rejoindre un groupe privé depuis l'autre compte :
+      l'administrateur reçoit la notification. Approuver : le demandeur reçoit
+      « Adhésion acceptée ». Refuser sur une autre demande : « Adhésion
+      refusée ».
+
+Banc dédié, transaction annulée, 8 étapes :
+
+```bash
+supabase db query --linked -f supabase/diagnostics/2026-09-09_invite_discussion_et_notifications.sql
+```
+
+### ⚠️ Deux défauts voisins trouvés, **non corrigés**
+
+- [ ] **Un membre qui rejoint un groupe PUBLIC** par « Rejoindre » n'a pas
+      d'invitation : son rattachement à la discussion est toujours refusé par
+      le même garde. Même défaut, autre porte. L'échec est avalé
+      (`joinGroup` ignore le `Left` de `findGroupConversationByGroupId`) :
+      la personne rejoint, et le groupe n'apparaît jamais dans Messages.
+- [ ] **« Retirer du groupe » ne retire pas du groupe.**
+      `removeUserFromGroup` (`message_supabase_datasource.dart:2045`) ne touche
+      que `conversations.participant_ids` et `data.adminIds` ; la ligne
+      `group_members` reste, donc la personne **figure toujours dans la liste
+      des membres** et compte dans `member_count`. Aucune policy ne permet à
+      un administrateur de supprimer la ligne d'un autre : il faut une RPC
+      `SECURITY DEFINER` dédiée.
+
+Ces deux-là se tiennent : c'est parce que l'exclusion ne supprime pas
+l'appartenance que l'exemption du garde a dû être adossée à l'invitation
+plutôt qu'au simple fait d'être membre. Élargir l'un sans corriger l'autre
+rendrait à chaque exclu le droit de se remettre dans la discussion.
 Passer le fichier avec `-f` et non en argument : sous cette seconde forme les
 accents du banc le font échouer sur un message tronqué, qui se lit comme un
 vrai échec.
