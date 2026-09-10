@@ -22,6 +22,7 @@ import '../providers/group_provider.dart';
 // import '../../domain/entities/group_pinned_item_entity.dart';
 import '../../../events/presentation/providers/group_next_event_provider.dart';
 import '../../../events/domain/entities/event_entity.dart';
+import '../widgets/invite_members_sheet.dart';
 import '../widgets/share_group_modal.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
@@ -80,12 +81,27 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
       // accès refusé, réseau) plutôt que de spinner indéfiniment sans jamais
       // le signaler à l'utilisateur.
       if (detailState.hasError) {
+        // Deux echecs tres differents arrivaient sous le meme habillage.
+        //
+        // `getGroupById` finit sur `.single()` : quand la RLS ne rend aucune
+        // ligne — groupe prive dont on n'est ni membre, ni cree, ni invite —
+        // PostgREST repond PGRST116, exactement comme pour un groupe
+        // supprime. Ce n'est pas une panne : reessayer ne changera jamais
+        // rien, et « Erreur de chargement » laissait croire le contraire.
+        // Mesure du 2026-09-09 sur lien profond vers un groupe prive.
+        //
+        // On ne dit pas LEQUEL des deux, et ce n'est pas une approximation :
+        // distinguer « prive » de « supprime » confirmerait l'existence d'un
+        // groupe a qui detient son uuid, ce que la migration
+        // 20260909201500 vient precisement de fermer.
+        final introuvable = detailState.error.toString().contains('PGRST116');
         return Scaffold(
           backgroundColor: context.backgroundColor,
           appBar: AppBar(
             leading: IconButton(
               icon: const AppIcon(AppIcon.arrowBack),
-              onPressed: () => context.pop(),
+              onPressed: () =>
+                  context.canPop() ? context.pop() : context.go('/home'),
             ),
           ),
           body: Center(
@@ -101,17 +117,29 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    l10n.loadingError,
+                    introuvable
+                        ? l10n.groupUnavailableOrPrivate
+                        : l10n.loadingError,
                     textAlign: TextAlign.center,
                     style: TextStyle(color: context.textPrimaryColor),
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => ref
-                        .read(groupDetailNotifierProvider.notifier)
-                        .loadGroup(widget.groupId),
-                    child: Text(l10n.retry),
-                  ),
+                  // Pas de « Reessayer » sur un refus definitif : le bouton
+                  // relancerait la meme requete pour le meme resultat.
+                  if (introuvable)
+                    ElevatedButton(
+                      onPressed: () => context.canPop()
+                          ? context.pop()
+                          : context.go('/home'),
+                      child: Text(l10n.back),
+                    )
+                  else
+                    ElevatedButton(
+                      onPressed: () => ref
+                          .read(groupDetailNotifierProvider.notifier)
+                          .loadGroup(widget.groupId),
+                      child: Text(l10n.retry),
+                    ),
                 ],
               ),
             ),
@@ -123,7 +151,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         appBar: AppBar(
           leading: IconButton(
             icon: const AppIcon(AppIcon.arrowBack),
-            onPressed: () => context.pop(),
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
         ),
         body: Center(
@@ -190,6 +219,11 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   group: group,
                   isCreator: isCreator,
                   isAdmin: isAdmin,
+                  // Volontairement PAS `isAdmin` : celui-ci englobe le
+                  // superAdmin plateforme sur un groupe officiel, à qui les
+                  // policies de `group_invites` ne donnent rien — l'entrée
+                  // aurait mené à un refus muet.
+                  canInvite: peutInviterDansGroupe(group, currentUser?.id),
                   onLeave: () => _leaveGroup(group.id),
                 ),
                 const SizedBox(width: 8),
@@ -755,31 +789,73 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
               ),
               // Afficher les autres membres ou un message s'il n'y en a pas
               if (otherMemberIds.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 20,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.group_add,
-                        size: 20,
-                        color: context.textTertiaryColor,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          l10n.noOtherMembers,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: context.textTertiaryColor,
-                            fontStyle: FontStyle.italic,
-                          ),
+                Builder(
+                  builder: (context) {
+                    // Groupe seul avec son administrateur : c'est ici, sous
+                    // « Membres · 1 », qu'on cherche à en ajouter un second.
+                    // La ligne qui constate le vide ouvre donc l'invitation,
+                    // au lieu de renvoyer au menu ⋮.
+                    final peutInviter = peutInviterDansGroupe(
+                      group,
+                      ref.watch(currentUserProvider).valueOrNull?.id,
+                    );
+                    return InkWell(
+                      onTap:
+                          peutInviter
+                              ? () => InviteMembersSheet.show(
+                                context,
+                                group: group,
+                              )
+                              : null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.group_add,
+                              size: 20,
+                              color:
+                                  peutInviter
+                                      ? context.adaptivePrimaryColor
+                                      : context.textTertiaryColor,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                peutInviter
+                                    ? l10n.inviteMember
+                                    : l10n.noOtherMembers,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight:
+                                      peutInviter
+                                          ? FontWeight.w600
+                                          : FontWeight.w400,
+                                  color:
+                                      peutInviter
+                                          ? context.adaptivePrimaryColor
+                                          : context.textTertiaryColor,
+                                  fontStyle:
+                                      peutInviter
+                                          ? FontStyle.normal
+                                          : FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                            if (peutInviter)
+                              Icon(
+                                Icons.chevron_right,
+                                size: 20,
+                                color: context.adaptivePrimaryColor,
+                              ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 )
               else
                 ...otherMemberIds.take(4).map((memberId) {
@@ -1113,12 +1189,14 @@ class _GroupOverflowMenu extends ConsumerWidget {
   final GroupEntity group;
   final bool isCreator;
   final bool isAdmin;
+  final bool canInvite;
   final VoidCallback onLeave;
 
   const _GroupOverflowMenu({
     required this.group,
     required this.isCreator,
     required this.isAdmin,
+    required this.canInvite,
     required this.onLeave,
   });
 
@@ -1144,6 +1222,8 @@ class _GroupOverflowMenu extends ConsumerWidget {
       ),
       onSelected: (value) {
         switch (value) {
+          case 'invite':
+            InviteMembersSheet.show(context, group: group);
           case 'requests':
             context.push('/groups/${group.id}/requests');
           case 'edit':
@@ -1160,6 +1240,21 @@ class _GroupOverflowMenu extends ConsumerWidget {
         }
       },
       itemBuilder: (_) => [
+        if (canInvite)
+          PopupMenuItem(
+            value: 'invite',
+            child: Row(
+              children: [
+                // `group_add`, pas `person_add` : l'entrée voisine
+                // « Demandes d'adhésion » porte déjà celle-ci, et deux
+                // silhouettes identiques dans un même menu ne distinguent
+                // plus « j'invite » de « on me demande ».
+                const Icon(Icons.group_add_outlined, size: 18),
+                const SizedBox(width: 10),
+                Text(l10n.inviteMember),
+              ],
+            ),
+          ),
         if (isAdmin)
           PopupMenuItem(
             value: 'requests',

@@ -4,14 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:livekit_client/livekit_client.dart' as lk;
-import 'package:share_plus/share_plus.dart';
 
+import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/livekit_service.dart';
 import '../../../../core/theme/dn_colors.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/share_options_sheet.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 import '../../domain/entities/audio_room_entity.dart';
 import '../../domain/entities/participant_entity.dart';
 import '../providers/audio_room_provider.dart';
@@ -249,14 +251,39 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
             );
           }
         },
-        onShare: () => SharePlus.instance.share(
-          ShareParams(text: 'Rejoins "${room.title}" sur Diaspo Niger !'),
-        ),
+        onShare: () => _shareRoom(context, room),
         onLeave: () {
           ref.read(audioRoomSessionProvider.notifier).leaveRoom();
           context.pop();
         },
         onEnd: () => _confirmEnd(context),
+      ),
+    );
+  }
+
+  /// Une discussion est une destination de partage comme une autre : avant,
+  /// « Partager » n'ouvrait que la feuille système.
+  void _shareRoom(BuildContext context, AudioRoomEntity room) {
+    final l10n = AppLocalizations.of(context)!;
+    final link = DeepLinkService.instance.generateAudioRoomLink(
+      room.id,
+      roomTitle: room.title,
+      hostName: room.hostName,
+      isLive: room.status == AudioRoomStatus.live,
+    );
+
+    ShareOptionsSheet.show(
+      context,
+      url: link,
+      subject: room.title,
+      externalText: l10n.shareLinkChatMessage(room.title, link),
+      chatContent: ChatShareContent.link(
+        url: link,
+        title: room.title,
+        description: room.hostName,
+        imageUrl: room.coverImageUrl,
+        message: l10n.shareLinkChatMessage(room.title, link),
+        icon: Icons.mic_rounded,
       ),
     );
   }

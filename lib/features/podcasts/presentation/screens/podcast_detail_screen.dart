@@ -9,6 +9,8 @@ import '../../../../core/providers/revenue_cat_provider.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/revenue_cat_service.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../shared/widgets/share_options_sheet.dart';
+import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 import '../../domain/entities/podcast_entity.dart';
 import '../providers/podcast_provider.dart';
 import '../widgets/episode_tile.dart';
@@ -64,14 +66,7 @@ class PodcastDetailScreen extends ConsumerWidget {
                 actions: [
                   IconButton(
                     icon: AppIcon(AppIcon.share, color: context.dn.onSurface2),
-                    onPressed: () {
-                      DeepLinkService.instance.sharePodcast(
-                        podcastId: podcastId,
-                        podcastTitle: podcast.title,
-                        hostName: podcast.hostName,
-                        imageUrl: podcast.coverImageUrl,
-                      );
-                    },
+                    onPressed: () => _sharePodcast(context, podcast),
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -315,6 +310,33 @@ class PodcastDetailScreen extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+
+  /// Une discussion est une destination de partage comme une autre : avant,
+  /// « Partager » n'ouvrait que la feuille système.
+  void _sharePodcast(BuildContext context, PodcastEntity podcast) {
+    final l10n = AppLocalizations.of(context)!;
+    final link = DeepLinkService.instance.generatePodcastLink(
+      podcastId,
+      podcastTitle: podcast.title,
+      hostName: podcast.hostName,
+      imageUrl: podcast.coverImageUrl,
+    );
+
+    ShareOptionsSheet.show(
+      context,
+      url: link,
+      subject: podcast.title,
+      externalText: l10n.shareLinkChatMessage(podcast.title, link),
+      chatContent: ChatShareContent.link(
+        url: link,
+        title: podcast.title,
+        description: podcast.hostName,
+        imageUrl: podcast.coverImageUrl,
+        message: l10n.shareLinkChatMessage(podcast.title, link),
+        icon: Icons.podcasts_rounded,
       ),
     );
   }

@@ -13,6 +13,9 @@ import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../core/services/deep_link_service.dart';
+import '../../../../shared/widgets/share_options_sheet.dart';
+import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -54,16 +57,55 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
     final event = widget.initialEvent ?? eventAsync.valueOrNull;
 
     if (event == null) {
+      // `loadEvent` place bien l'echec dans l'etat (AsyncValue.error), mais
+      // cet ecran ne regardait que `valueOrNull` : un evenement supprime, un
+      // refus de lecture ou une coupure reseau rendaient `null` comme un
+      // chargement en cours, et la roue tournait indefiniment. Mesure du
+      // 2026-09-09 : encore la apres 75 s, sur un lien profond
+      // /events/<id>. Meme garde que `GroupDetailScreen`, qui la porte deja.
+      final aEchoue = eventAsync.hasError;
       return Scaffold(
         backgroundColor: context.backgroundColor,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
+            // Un lien profond ouvre cette route SEULE dans la pile : `pop()`
+            // sur une pile vide laisse un ecran noir.
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/home'),
           ),
         ),
         body: Center(
-          child: CircularProgressIndicator(color: context.adaptivePrimaryColor),
+          child: aEchoue
+              ? Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: context.textSecondaryColor,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        AppLocalizations.of(context)!.loadingError,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: context.textPrimaryColor),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => ref
+                            .read(eventDetailNotifierProvider.notifier)
+                            .loadEvent(widget.eventId),
+                        child: Text(AppLocalizations.of(context)!.retry),
+                      ),
+                    ],
+                  ),
+                )
+              : CircularProgressIndicator(
+                  color: context.adaptivePrimaryColor,
+                ),
         ),
       );
     }
@@ -1079,8 +1121,30 @@ ${event.isOnline && event.onlineLink != null ? '🔗 ${event.onlineLink}' : ''}
 Niger Diaspora
 ''';
 
-    SharePlus.instance.share(
-      ShareParams(text: shareText.trim(), subject: event.title),
+    // Une discussion est une destination de partage comme une autre : avant,
+    // « Partager » n'ouvrait que la feuille système.
+    final link = DeepLinkService.instance.generateEventLink(
+      event.id,
+      eventTitle: event.title,
+      imageUrl: event.posterUrls.isNotEmpty ? event.posterUrls.first : null,
+      date: event.startDate,
+    );
+
+    ShareOptionsSheet.show(
+      context,
+      url: link,
+      subject: event.title,
+      externalText: '${shareText.trim()}\n$link',
+      chatContent: ChatShareContent.event(
+        eventId: event.id,
+        title: event.title,
+        startDate: event.startDate,
+        location: event.location,
+        isOnline: event.isOnline,
+        imageUrl:
+            event.posterUrls.isNotEmpty ? event.posterUrls.first : null,
+        message: '📅 ${event.title}',
+      ),
     );
   }
 }
