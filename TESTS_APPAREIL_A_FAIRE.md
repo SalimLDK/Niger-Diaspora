@@ -250,6 +250,66 @@ Restent à faire :
 
 ---
 
+## ⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)
+
+Trouvé en essayant simplement d'ouvrir « Testeurs » depuis le SM A515F, avec
+le compte **Sim A**, membre simple (Salim L. est le créateur). « Ouvrir la
+discussion » ne fait rien pendant ~4 s, puis un bandeau rouge — et il faut
+capturer à ~1 s pour le voir, sinon on croit à un bouton mort :
+
+```
+Erreur lors de l'ouverture de la discussion — createGroupConversation error:
+ServerException: findGroupConversationByGroupId error:
+PostgrestException(message: Seul un administrateur du groupe peut modifier les
+membres ou les droits admin de cette conversation, code: 42501,
+details: Forbidden, hint: null)
+```
+
+**Deux migrations justes séparément, incompatibles ensemble.**
+
+- `20260720130000` crée `join_group_conversation()`, SECURITY DEFINER, dont le
+  travail est précisément d'ajouter l'appelant à
+  `conversations.participant_ids` quand il a rejoint le groupe **après** la
+  création de la conversation — le cas courant. Elle vérifie d'abord
+  l'appartenance réelle dans `group_members`.
+- `20260814000500` pose ensuite le trigger `conversations_guard_admin_fields`,
+  qui refuse toute UPDATE touchant `participant_ids` ou `adminIds` à qui n'est
+  pas administrateur.
+
+**SECURITY DEFINER contourne les policies RLS, pas les TRIGGERS.** L'UPDATE de
+la RPC déclenche donc la garde, qui la refuse. La fonction écrite pour laisser
+entrer un nouveau membre est bloquée par une garde écrite trois semaines plus
+tard : le groupe devient inouvrable pour **tous ses membres simples**. Seuls
+les administrateurs voyaient encore leur discussion — ce qui explique aussi
+pourquoi le défaut a pu vivre longtemps sans être vu (les deux comptes de test
+étaient créateurs de leurs propres groupes).
+
+Correctif écrit :
+`supabase/migrations/20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql`
+— exemption miroir de celle qui existe déjà pour « quitter le groupe » :
+s'ajouter **soi seul** en queue de `participant_ids`, `adminIds` inchangé, et
+seulement si l'on est un membre réel du groupe. Subtilité prise en compte : le
+trigger identifie l'appelant par `firebase_uid()` alors que la RPC ajoute
+`current_user_id()`, deux fonctions différentes — l'exemption accepte les deux
+identités, l'autorisation réelle venant de `group_members`.
+
+⚠️ **Non déployé** : la migration n'est pas encore passée par `supabase db
+push`. Tant qu'elle ne l'est pas, le défaut reste entier en production.
+
+À vérifier une fois déployée :
+
+- [ ] SM A515F (Sim A, membre simple) : « Ouvrir la discussion » sur
+      « Testeurs » ouvre le fil, sans bandeau rouge.
+- [ ] Le groupe apparaît ensuite dans l'onglet Messages de Sim A (c'est
+      l'ajout à `participant_ids` qui l'y fait entrer).
+- [ ] **Non-régression de la garde** : depuis un compte membre simple, tenter
+      de se promouvoir admin ou d'exclure quelqu'un doit toujours être refusé
+      (c'est ce que le trigger protège à l'origine).
+- [ ] Quitter un groupe en tant que membre simple marche encore (l'exemption
+      symétrique, qu'on n'a fait que déplacer dans la fonction).
+
+---
+
 ## ⛔ Le Pixel s'est retrouvé DÉCONNECTÉ pendant la passe (2026-09-09, 20:39)
 
 À signaler avant tout : le Pixel 10 Pro XL porte le **vrai compte** de Salim
@@ -307,11 +367,23 @@ avec un bouton « Réessayer » qui **échoue à chaque fois** (deux essais, à
 plusieurs secondes d'écart). Donc `GroupMembersScreen` sans `widget.group`
 → `loadGroup(groupId)` → `getGroupById` en échec.
 
-Deux choses à démêler quand on le reprendra :
+**Piste sérieuse trouvée à 20:54, à ne pas confondre avec un vrai bug** :
+le même « Erreur de chargement » est apparu sur l'onglet **Groupes** du
+SM A515F, avec « Mes groupes · 0 » — l'appareil était alors **hors ligne**
+(aucune barre de réseau à l'écran). Un simple « Actualiser » une fois la
+connexion revenue a rendu « 3 rejoints » et les trois groupes. Avant de
+chercher plus loin sur la fiche Membres, **vérifier la connectivité au moment
+exact de l'erreur** (`adb shell dumpsys connectivity | grep 'Active default
+network'`, et un `ping`) : cet écran ne distingue pas « hors ligne » de
+« refusé », il affiche le même message dans les deux cas — ce qui est
+peut-être le vrai défaut à corriger.
 
-- [ ] Pourquoi `getGroupById` échoue là où l'écran affichait le groupe une
+Restent à démêler :
+
+- [ ] Pourquoi `getGroupById` échouait là où l'écran affichait le groupe une
       minute plus tôt (le groupe venait d'être créé — id récent, pas un id
-      hérité Firestore).
+      hérité Firestore) — et si c'était simplement le réseau, faire dire à
+      l'écran « hors ligne » plutôt que « Erreur de chargement ».
 - [ ] La flèche « retour » de cet écran **quitte l'application** au lieu de
       revenir à la fiche du groupe : `context.pop()` sur une pile qui ne
       contient que cette route. Même famille que les écrans de lien profond.
