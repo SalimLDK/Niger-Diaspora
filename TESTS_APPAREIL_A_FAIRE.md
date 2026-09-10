@@ -12199,14 +12199,92 @@ mécanisme de capture voit bien une sortie non protégée (sans lui, les deux
 premiers passeraient avec une capture cassée), et un balayage de source qui
 échoue si un `print(` brut réapparaît dans `lib/`.
 
-- [ ] **Logcat toujours muet après ce changement** : refaire la mesure de
-  l'entrée précédente sur un APK release reconstruit — démarrage à froid puis
-  usage réel, `grep " flutter "` doit rester à zéro hors les 2 lignes du moteur
-  natif au démarrage.
-- [ ] **Le démarrage n'a pas régressé** : c'est le point sensible. `main()` a
-  été restructuré (corps déplacé dans `_demarrer`, exécuté dans une zone).
-  Vérifier que l'app démarre, que la session est restaurée et que la messagerie
-  charge — une erreur de zone se verrait immédiatement au lancement.
+- [x] **Logcat toujours muet après ce changement** — vérifié sur SM A515F le
+  2026-09-09, APK release `e0924e531e7e0b0fcadffef3515121a3` (md5 local = md5
+  `pm path`, pas de flag `DEBUGGABLE`).
+
+      démarrage à froid : 6 291 lignes logcat → 2 lignes flutter (moteur natif)
+      envoi d'un message : 1 417 lignes logcat → 0 ligne flutter
+
+  L'envoi est la mesure qui compte, et elle est **contrôlée** : le message
+  « zone-verif » s'affiche « À l'instant · Envoyé » dans la conversation, et
+  18 lignes de la fenêtre mentionnent l'app/Supabase. L'app a donc chiffré,
+  écrit et livré pendant que logcat ne disait rien.
+- [x] **Le démarrage n'a pas régressé** — vérifié le 2026-09-09. Aucune erreur
+  de zone, aucun `FATAL EXCEPTION` imputable à l'app, accueil rendu session
+  restaurée (« Bonjour, Sim », badge notifications, « La carte · Il y a 10 s »
+  — les services de fond tournent), liste de conversations chargée et
+  déchiffrée.
+
+⚠️ **Deux pièges de mesure rencontrés, à ne pas répéter.**
+
+**0. Le relevé `uiautomator` peut contredire l'écran.** Le plus coûteux des
+trois. En cherchant à supprimer le message envoyé par erreur, le dump plaçait
+la bulle visée à `601,941` ; l'appui long à cet endroit a sélectionné un
+**autre** message (une position, envoyée 56 min plus tôt), deux fois de suite.
+La capture d'écran, elle, montrait la bonne chose. Sur cet écran Flutter,
+l'arbre sémantique ne reflétait pas la position de défilement réelle.
+
+**Conséquence pratique** : pour toute action destructrice sur appareil,
+ne jamais se fier au dump seul. Ouvrir le menu, **capturer l'écran, vérifier
+visuellement la cible sélectionnée**, et seulement ensuite confirmer. C'est ce
+contrôle qui a évité de supprimer un message innocent.
+
+**1. Les coordonnées de tap se périment.** Une première tentative d'usage a
+échoué en silence : la liste s'était réordonnée depuis la capture précédente
+(un message reçu remonte sa conversation), et le tap à `540,987` a ouvert un
+groupe au lieu du 1:1. La suite est partie à l'aveugle — un `KEYCODE_BACK` de
+trop a quitté l'app, un autre tap a **envoyé un lien de partage de groupe** dans
+la vraie conversation à 19:57. Toujours re-dumper l'UI et localiser la cible par
+son libellé avant chaque tap, jamais réutiliser des coordonnées d'un dump
+antérieur.
+
+**2. « Zéro log » ne vaut que si l'app a travaillé.** Cette tentative ratée
+donnait pourtant 0 ligne flutter — un résultat juste, obtenu pour de mauvaises
+raisons. Elle reste exploitable *a posteriori* (1 754 lignes horodatées 19:57
+dans la fenêtre, et l'envoi accidentel a bien eu lieu), mais c'est un coup de
+chance. Exiger une preuve d'activité explicite : ici, l'accusé « Envoyé » sur
+un message nommé.
+
+⚠️ **La conversation « Salim L. » est utilisée par un autre banc de test** —
+des messages « Hi » et « ECHO-DM-1947 » y sont arrivés à 19:46 et 19:47, hors
+de toute action de cette session. Ne pas prendre son contenu pour un état
+stable, et ne pas conclure d'un message qu'on n'a pas envoyé soi-même.
+
+---
+
+## ⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)
+
+Le scanner ouvert depuis l'accueil (`/qr-scanner`) ne savait lire qu'un QR de
+**profil**. Tout le reste — le QR de groupe que `share_group_modal` affiche
+juste à côté, le code de transfert de clés, les liens du site — tombait sur
+« QR code invalide ou format non reconnu ».
+
+Deux causes, et la seconde est la plus traître : le contrôle d'hôte ne
+connaissait que `diasponiger.com` et `diaspo-niger.web.app`, alors que
+`DEEP_LINK_BASE_URL` du `.env` vaut `https://diasponiger.web.app` — l'app
+refusait donc les QR **qu'elle fabrique elle-même** via `DeepLinkService`.
+
+`lib/core/services/qr_code_parser.dart` (couvert par
+`test/core/services/qr_code_parser_test.dart`, 23 cas) reconnaît maintenant
+profil (lien long et code court), groupe, fil, événement, entreprise, produit,
+ambassade, salon audio, podcast, épisode, appel, le schéma `diasponiger://` et
+le rendez-vous de transfert de clés. Rien de tout cela n'a été rejoué caméra en
+main :
+
+- [ ] **QR de groupe** — afficher le QR d'un groupe sur un second écran
+      (Discussions › groupe › Partager), le scanner depuis l'accueil : la
+      fiche du groupe doit s'ouvrir.
+- [ ] **QR de profil**, les deux formes : le lien long `/p/u/<id>` (bouton
+      « Mon QR Code » du scanner) et le code court `/p/<code>` (dialogue de
+      partage du profil, qui passe par le serveur pour être résolu).
+- [ ] **Code de transfert de clés** scanné depuis l'accueil : doit basculer
+      sur l'écran de récupération avec le message « Code de transfert de clés :
+      ouverture de l'écran de récupération. », et **pas** une erreur.
+- [ ] **QR d'un autre service** (n'importe quel QR du commerce) : message
+      d'erreur, la caméra ne doit pas rester bloquée.
+- [ ] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
+      profil ».
 
 ---
 
