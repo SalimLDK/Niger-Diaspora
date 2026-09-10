@@ -114,9 +114,41 @@ l'utilisateur au téléphone.**
            `profile_config_complete` à `false` — **c'est celui-ci qu'il faut**,
            et il ne demande aucune écriture en base.
 
+      ⚠️ **Ne pas terminer l'assistant de profil après la reconnexion.** Sur
+         ce compte, `profile_config_complete` est faux : la connexion en ligne
+         atterrit sur `/profile-config`. Le finir écrirait `true` en base ET en
+         local, et détruirait la condition du test. Tuer l'app là, sans
+         toucher à l'assistant.
       4. mode avion, puis redémarrage forcé de l'app.
-      Attendu **après correctif** : `/home`. Avant correctif : le carrousel de
-      bienvenue. C'est le seul aller-retour qui distingue les deux.
+      Attendu **après correctif** : `/home`.
+      ⚠️ **Avant correctif, l'écran fautif n'est PAS le carrousel de
+      bienvenue, c'est `/profile-config`** — et confondre les deux ferait
+      conclure à tort que « ça ne fait plus le bug ». Raison : `_lireDrapeau`
+      ne mémorise en local que les `true`. À la reconnexion en ligne,
+      `has_given_consent` (vrai en base) est donc mis en cache, alors que
+      `profile_config_complete` et `has_seen_onboarding` (faux en base) ne le
+      sont pas. Hors ligne, seuls ces deux-là repassent par le réseau, et le
+      routeur teste le profil (étape 7) **avant** l'intro (étape 8). C'est
+      donc `/profile-config` vs `/home` qui distingue les deux builds.
+
+✅ **Ce qui a été mesuré le 2026-09-10 à 01:50 sur SM-A515F, et ce que ça ne
+prouve pas.** APK release reconstruit depuis `7c5627c`
+(md5 `a9e547fbfb5c29b00ebe9313bc2643a8`), posé par `install -r`, **md5 de
+`base.apk` sur l'appareil identique au fichier** — c'est cette vérification-là
+qui manquait : les trois APK comparés avant l'install avaient trois md5
+différents pour un même `versionCode=17`, donc **le numéro de version ne
+discrimine rien ici**. Démarrage en ligne → `/home`. Réseau coupé
+(`svc wifi disable` + `svc data disable`, « Active default network: none »),
+`force-stop`, relance → `/home` à nouveau, et toujours `/home` 10 s plus tard
+(donc au-delà de `delaiDeReprise`).
+
+⛔ **Ce résultat ne prouve rien sur `e071491`, et je suis tombé dans le piège
+décrit juste au-dessus.** `install -r` conserve les données : sur « Sim A » le
+drapeau local est vrai, aucun appel réseau n'est émis, le correctif n'est pas
+sollicité. Ce que la campagne établit vraiment se limite à : le build de
+`7c5627c` s'installe et démarre sans régression, en ligne comme hors ligne.
+La case ci-dessous reste donc à faire.
+
 - [ ] **La reprise** : la lecture indéterminée est retentée une fois après 4 s
       (`OnboardingNotifier.delaiDeReprise`). Sur un compte neuf dont la
       première lecture échoue, l'écran de consentement doit apparaître ~4 s
