@@ -58,9 +58,21 @@ class _GroupMembersScreenState extends ConsumerState<GroupMembersScreen> {
     // correspond à l'écran ouvert, sinon on affiche les membres du mauvais
     // groupe.
     final cachedGroup = groupAsync.valueOrNull;
+
+    // Le flux passe devant les deux autres sources : c'est le seul à suivre
+    // les arrivées et les départs pendant que l'écran est ouvert. `group`
+    // reçu par la navigation et la lecture one-shot du notifier sont des
+    // instantanés — cet écran est précisément celui où l'on regarde la liste
+    // au moment où un admin accepte quelqu'un.
+    //
+    // `valueOrNull` et non `value` : en Riverpod 2, `value` RELANCE l'erreur.
+    final liveGroup =
+        ref.watch(groupStreamProvider(widget.groupId)).valueOrNull;
+
     final groupEntity =
-        widget.group ??
-        (cachedGroup?.id == widget.groupId ? cachedGroup : null);
+        liveGroup ??
+        (cachedGroup?.id == widget.groupId ? cachedGroup : null) ??
+        widget.group;
     final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
 
     return Scaffold(

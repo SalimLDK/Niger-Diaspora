@@ -14,6 +14,77 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)
+
+Signalé par Salim : « l'acceptation et exit dans les groupes ne sont pas mis à
+jour automatiquement du côté de tous les users ». Deux causes superposées,
+toutes deux corrigées.
+
+**1. Côté base.** Ni `public.groups` ni `public.group_members` n'étaient dans
+la publication `supabase_realtime` (relevé du 2026-09-09 sur le projet lié).
+Le « stream » de la fiche groupe faisait donc son chargement initial et plus
+jamais rien : le commentaire « Stream provider for real-time group updates »
+décrivait une réactivité qui n'existait pas. Corrigé par
+`20260909210000_realtime_groupes_et_appartenance.sql`, **appliqué en
+production le 2026-09-09** et vérifié (les deux tables figurent maintenant
+dans la publication).
+
+**2. Côté app.** Même publiée, la table `groups` ne bouge pas quand
+l'appartenance change : la liste des membres vit dans `group_members`.
+`getGroupStream` écoute désormais les **deux** tables, chacune déclenchant la
+même relecture. Et les deux écrans concernés préféraient un instantané figé :
+`GroupDetailScreen` faisait `widget.initialGroup ?? streamGroup` (le paramètre
+de navigation gagnait sur tout), `GroupMembersScreen` ne lisait même pas le
+flux. « Mes groupes » ne se chargeait qu'une fois, à la construction du
+notifier : un groupe rejoint sur approbation n'y apparaissait qu'au
+redémarrage.
+
+Fichiers : `group_supabase_datasource.dart`, `group_remote_datasource.dart`,
+`group_repository_impl.dart`, `group_provider.dart`, `group_detail_screen.dart`,
+`group_members_screen.dart`.
+
+Verrouillé côté app par `test/features/groups/membres_temps_reel_test.dart`
+(3 cas) — mais le test remplace le flux par un `StreamController` : **il ne
+prouve rien du transport realtime**, qui est exactement ce qui manquait.
+D'où la liste ci-dessous, qui demande **deux téléphones** (deux comptes
+distincts).
+
+- [ ] **Acceptation d'une demande, écran Membres ouvert** : téléphone A
+      (administrateur) sur la fiche du groupe → Membres. Téléphone B demande à
+      rejoindre. A accepte depuis l'écran des demandes, revient sur Membres :
+      la personne doit y être **sans avoir refermé l'écran**.
+- [ ] **Acceptation vue par un TROISIÈME écran** : garder le téléphone A sur
+      la liste des membres pendant que l'acceptation se fait ailleurs (par
+      exemple depuis l'écran des demandes du même groupe sur l'autre
+      appareil). C'est le cas que la migration débloque : la mise à jour
+      arrive sans qu'aucun code local ne l'ait demandée.
+- [ ] **Départ** : B quitte le groupe. Sur A, resté sur Membres, la ligne
+      disparaît et le compte « Membres · N » se décrémente tout seul. C'est
+      l'événement DELETE — celui qui ne passe que parce que `group_id` fait
+      partie de la clé primaire de `group_members`.
+- [ ] **Exclusion** : A exclut B (appui long sur la ligne). Sur B, l'onglet
+      Groupes doit perdre le groupe **sans redémarrage de l'app**.
+- [ ] **« Mes groupes » à l'acceptation** : B, onglet Groupes ouvert, pendant
+      que A approuve sa demande. Le groupe doit apparaître dans la liste tout
+      seul, **sans spinner qui vide l'écran** (le rafraîchissement réactif est
+      volontairement silencieux).
+- [ ] **Fiche ouverte depuis une liste** : ouvrir la fiche groupe **depuis
+      l'onglet Groupes** (c'est ce chemin qui passe `initialGroup`, et c'est
+      lui qui était figé). Vérifier qu'un renommage ou un changement d'avatar
+      fait depuis l'autre téléphone s'y voit sans refermer.
+- [ ] **Hors ligne** : couper le réseau du téléphone A sur la fiche groupe. La
+      fiche doit garder ce qu'elle affichait (repli sur `initialGroup` /
+      lecture one-shot) et non se vider. Au retour du réseau, vérifier qu'une
+      modification faite entre-temps finit par arriver.
+- [ ] **Quitter et rouvrir vite le même groupe**, plusieurs fois de suite,
+      puis vérifier qu'une modification faite depuis l'autre téléphone arrive
+      toujours. Le flux est `autoDispose` : chaque aller-retour détruit
+      l'abonnement et en recrée un pendant que l'ancien se ferme encore.
+      C'est ce que le suffixe unique de topic realtime protège — sur un topic
+      partagé, le nouveau canal reste muet sans la moindre erreur.
+
+---
+
 ## ⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)
 
 Le partage ne savait sortir de l'app (WhatsApp / Facebook / X / feuille

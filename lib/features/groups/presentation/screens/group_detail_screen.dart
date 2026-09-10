@@ -68,10 +68,29 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     final detailState = ref.watch(groupDetailNotifierProvider);
     final l10n = AppLocalizations.of(context)!;
 
+    // `groupDetailNotifierProvider` est PARTAGÉ (pas une famille par id) : sa
+    // valeur peut appartenir à un groupe visité juste avant, et cet écran ne
+    // le peuple même pas quand `initialGroup` est fourni. Ne l'accepter que
+    // si l'id correspond — même garde que `GroupMembersScreen`.
+    final cachedDetail = detailState.valueOrNull;
+    final detailGroup =
+        cachedDetail?.id == widget.groupId ? cachedDetail : null;
+
+    // Ordre de préférence : le flux d'abord, `initialGroup` en dernier.
+    //
+    // C'était l'inverse (`widget.initialGroup ?? streamGroup`), et
+    // `initialGroup` est un instantané figé au moment de la navigation —
+    // celui de la liste « Mes groupes », par exemple. Tant qu'il était non
+    // nul, il gagnait sur tout : la fiche ouverte depuis une liste n'a jamais
+    // rien montré d'autre que l'état du groupe à l'instant du tap, quoi qu'il
+    // arrive ensuite — ni l'arrivée d'un membre, ni un départ, ni un
+    // renommage. Il reste utile comme premier rendu, avant que le flux n'ait
+    // répondu, et comme repli hors ligne.
     final group = groupStream.when(
-      data: (streamGroup) => widget.initialGroup ?? streamGroup ?? detailState.valueOrNull,
-      loading: () => widget.initialGroup ?? detailState.valueOrNull,
-      error: (_, __) => widget.initialGroup ?? detailState.valueOrNull,
+      data: (streamGroup) =>
+          streamGroup ?? detailGroup ?? widget.initialGroup,
+      loading: () => detailGroup ?? widget.initialGroup,
+      error: (_, __) => detailGroup ?? widget.initialGroup,
     );
 
     if (group == null) {
