@@ -784,12 +784,21 @@ le flag passera à `true` — d'où la correction maintenant.
 
 Corrigé :
 
-- [ ] **Cinq sorties posées** — `BackButton` explicite avec le repli maison sur
+- [x] **Cinq sorties posées** ✅ SM A515F 2026-09-10 02:1x — `BackButton` explicite avec le repli maison sur
       l'accueil des podcasts (→ `/home`), la création, « mes podcasts », la
       fiche podcast et la fiche épisode (→ `/podcasts`).
-      Vérifier, une fois le flag actif : `diasponiger:///podcasts/<id>` et
-      `diasponiger:///podcasts/episodes/<id>`, flèche puis retour système.
-- [ ] **Les deux fiches posent leur `SliverAppBar` dans la branche « données »**
+      **Mesurés dans un build jetable** (verrous `kPodcastsSupportesParCeBuild`
+      et drapeau ouverts localement, jamais committés ; l'APK de production a
+      été remis sur l'appareil ensuite) :
+      `/podcasts` → Accueil ✅ ; `/podcasts/create` → Podcasts ✅ ;
+      `/podcasts/my` → Podcasts ✅ ; `/podcasts/<uuid inconnu>` affiche
+      « Podcast non trouvé » **avec une flèche** → Podcasts ✅ ;
+      `/podcasts/episodes/<uuid inconnu>` affiche « Une erreur est survenue »
+      avec son bouton « Retour » centré → Podcasts ✅.
+      ⚠️ Ce dernier n'a **pas** de flèche en haut à gauche : sa sortie est le
+      bouton du corps. Un tap à (73,161) le manque — ne pas en conclure qu'il
+      est mort.
+- [x] **Les deux fiches posent leur `SliverAppBar` dans la branche « données »** ✅
       — chargement, erreur et « introuvable » n'avaient donc aucune sortie,
       exactement comme la fiche entreprise en son temps. Enveloppées dans
       `DesignExitOnlyBody`, et les deux boutons « Retour » de l'épisode
