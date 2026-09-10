@@ -4777,6 +4777,7 @@
   "keyTransferNotAuthenticated": "Session unavailable. Try again in a moment.",
   "keyTransferNoAck": "The new phone did not confirm. Your keys stay on this device.",
   "keyTransferRetry": "Start again",
+  "qrKeyTransferDetected": "Key transfer code: opening the recovery screen.",
   "keyStateHere": "This device holds your encryption keys.",
   "keyStateAbsent": "This device does not hold your encryption keys.",
   "keyStateAbsentWhy": "So it cannot send them. Start the transfer from the phone that holds them, or restore them here with your passphrase.",

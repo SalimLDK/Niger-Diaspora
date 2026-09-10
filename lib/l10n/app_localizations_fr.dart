@@ -11536,6 +11536,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get keyTransferRetry => 'Recommencer';
 
   @override
+  String get qrKeyTransferDetected =>
+      'Code de transfert de clés : ouverture de l\'écran de récupération.';
+
+  @override
   String get keyStateHere => 'Cet appareil détient vos clés de chiffrement.';
 
   @override
