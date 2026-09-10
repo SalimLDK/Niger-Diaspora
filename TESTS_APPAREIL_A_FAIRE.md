@@ -85,6 +85,88 @@ distincts).
 
 ---
 
+## ⬜ Citations et modifications : plus de texte en clair (2026-09-09)
+
+Deux fuites de la même famille que les cartes de partage, trouvées en
+instrumentant ce chemin. Toutes deux écrivaient du texte utilisateur **en
+clair** dans `messages.data`, à côté d'un `content` chiffré.
+
+**1. Répondre recopiait le message cité en clair.** `replyToMessageData`
+contient le texte **déjà déchiffré** du message auquel on répond : chaque
+réponse en déposait une copie lisible. Une conversation active en laissait donc
+une trace message après message. La citation rejoint le blob `encAnnexes`, dans
+les **cinq** envois qui l'acceptent : texte, média, note vocale, localisation,
+sticker.
+
+**2. Modifier un message annulait son chiffrement.** `editMessage` réécrivait
+`data['content']` en clair tout en laissant `encryptionLevel` annoncer 'e2ee',
+et gardait le texte d'avant dans `editHistory`. Le texte modifié repasse
+maintenant par le chemin de l'envoi (`_encryptContent`), et l'historique ne
+garde plus que la date — rien ne l'affichait.
+
+- [ ] **Répondre, dans les cinq cas** : à un texte, à une photo (avec légende),
+  à une note vocale, à une localisation, à un sticker. La citation doit
+  s'afficher au-dessus de la bulle, chez l'expéditeur **et** chez l'autre.
+- [ ] **La citation survit à un accusé de lecture** : même piège que les
+  cartes ; le flux de mises à jour rend la ligne brute.
+- [ ] **Modifier un message d'un 1:1, puis d'un groupe** : le texte modifié
+  doit s'afficher correctement chez l'autre après rechargement. C'est le point
+  le plus risqué du lot — le rechiffrement d'une modification n'a jamais tourné
+  contre de vraies sessions Signal.
+- [ ] **Modifier un message de « Mes notes »** (aucun destinataire, chemin
+  `selfNote`).
+- [ ] **Rouvrir la conversation après avoir modifié** : côté EXPÉDITEUR, le
+  texte modifié doit rester. Il ne sait pas relire son propre message chiffré
+  (les charges Signal visent les appareils du destinataire) : sa bulle vient du
+  cache, qui est réécrit à la modification. Si le texte d'avant revient, c'est
+  cette réécriture qui a manqué.
+- [ ] **Modifier deux fois de suite** le même message : la deuxième
+  modification doit rester lisible (les charges du format précédent sont
+  purgées avant d'écrire les nouvelles).
+- [ ] **En base** : `select data->>'content' from messages where data ?
+  'editedAt'` ne doit plus rien montrer de lisible, et
+  `data->'editHistory'` ne doit plus contenir de champ `content`.
+
+---
+
+## ⬜ Cartes de partage chiffrées au repos (2026-09-09)
+
+Une carte de partage (post, événement, annonce, aperçu de lien) ne transite pas
+par `content` : elle ne passait donc pas par Signal et partait **en clair**
+dans `messages.data`. Elle voyage désormais dans un blob unique `encAnnexes`,
+chiffré avec la clé dérivée de la conversation — même famille que les aperçus,
+la localisation et les médias.
+
+Les deux formats cohabitent sans migration : un message d'avant garde ses
+champs en clair et se relit tel quel. Un client plus ancien n'affichera pas la
+carte, mais le texte reste lisible.
+
+C'est le chemin le plus silencieux du dépôt : une carte qui n'arrive pas ne
+produit **aucune erreur**, ni à l'écran ni dans logcat.
+
+- [ ] **Aller-retour réel entre deux comptes** : partager un groupe depuis le
+  téléphone A vers un 1:1 et vers un groupe ; vérifier sur le téléphone B que
+  la carte s'affiche avec image et titre, et que le tap ouvre l'écran.
+  (Deux appareils = deux comptes, cf. le rappel de config plus bas.)
+- [ ] **La carte survit à un accusé de lecture** : c'était le piège. Le flux de
+  mises à jour rend la ligne BRUTE ; sans report explicite, la carte
+  disparaissait de la bulle dès que l'autre lisait le message.
+  (`message_provider.dart`, `_listenForMessageUpdates`)
+- [ ] **La carte survit à un redémarrage** (relecture depuis le cache Hive puis
+  depuis le serveur) et à un défilement qui recharge la page de messages.
+- [ ] **Hors ligne au moment de l'envoi** : la clé dérivée vient d'un
+  aller-retour réseau (`crypto-keys`). Vérifier ce que devient un partage
+  envoyé sans réseau, puis à la reconnexion.
+- [ ] **En base, plus rien de lisible** : `select data from messages where
+  data ? 'encAnnexes' limit 1` ne doit montrer ni titre, ni URL, ni nom.
+- [ ] **« Supprimer pour tout le monde » efface aussi la carte** : la ligne ne
+  doit plus porter `encAnnexes` après suppression.
+- [ ] **Mesure du repli** : quelle proportion des blobs est au format dérivé
+  (`v<n>:`) plutôt qu'à la clé globale. Tant que le repli global sert, la
+  confidentialité n'est pas acquise — la clé globale est extractible de l'APK.
+
+---
+
 ## ⚠️ Événements sur Supabase — écrit, PAS branché (2026-09-09)
 
 Décision de Salim : `public.events` fait foi. Le module Événements lisait

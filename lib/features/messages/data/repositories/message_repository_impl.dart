@@ -1397,6 +1397,23 @@ class MessageRepositoryImpl implements MessageRepository {
         newContent: newContent,
         oldContent: oldContent,
       );
+
+      // Depuis que la modification est rechiffrée, l'expéditeur ne sait plus
+      // relire son propre message depuis le serveur : les charges Signal d'un
+      // 1:1 sont destinées aux appareils du DESTINATAIRE, jamais aux siens. Sa
+      // bulle vient du cache, via `_healUndecryptableMessages`. Sans cette
+      // mise à jour, rouvrir la conversation faisait **revenir le texte
+      // d'avant** — le soin réécrivant l'ancien contenu par-dessus le nouveau,
+      // sans la moindre erreur.
+      final cached = cacheService.getCachedMessages(conversationId);
+      final index = cached.indexWhere((m) => m['id'] == messageId);
+      if (index != -1) {
+        final mis = Map<String, dynamic>.from(cached[index]);
+        mis['content'] = newContent;
+        mis['editedAt'] = DateTime.now().toUtc().toIso8601String();
+        await cacheService.cacheMessages(conversationId, [mis]);
+      }
+
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
