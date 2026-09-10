@@ -206,7 +206,38 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
 
 ---
 
-## ⚠️ Événements sur Supabase — provider BASCULÉ, une migration à appliquer (2026-09-09)
+## ✅ Événements sur Supabase — BASCULÉ et vérifié SM A515F (2026-09-09 22:35)
+
+**✅ Vérifié sur SM A515F avec l'APK de 22:21** (md5 `8b3cb4753c`) :
+
+- `…/events/6a5b77cb-…` — un uuid qui n'existe **que** dans Supabase — ouvre
+  « Tabaski 2026 » avec sa date, son lieu, sa description et son organisateur.
+  Le même lien tournait à vide indéfiniment avant la bascule.
+- « Participer » insère bien dans `event_attendees` : plus de 42703.
+
+**⚠️ Deux défauts trouvés en le vérifiant, corrigés mais PAS encore livrés :**
+
+- [ ] **Le compteur de participants ne bougeait pas** (`event_attendees` à 1,
+      `events.attendee_count` à 0). Ma faute dans `20260910010000` : j'ai
+      réécrit le trigger sans `SECURITY DEFINER`. Il tourne donc sous
+      l'identité du participant, et `events_manage_own` réserve l'UPDATE à
+      l'organisateur — la RLS ne fait pas échouer l'UPDATE, elle lui donne
+      **zéro ligne**. Aucune erreur nulle part. C'est la forme d'échec muet
+      la mieux connue du projet, réintroduite par moi.
+      `20260910023000` la remet en DEFINER et recale les compteurs.
+      Vérifier : « Participer » depuis un compte non-organisateur → le
+      nombre de participants augmente à l'écran.
+- [ ] **La notification disait « Un utilisateur participera à … »**
+      (signalé par Salim). `attendEvent` lisait le nom dans **Firestore**
+      (`users/<uid>.displayName`) alors que les comptes vivent sur Supabase :
+      le document n'existe pas, et le repli générique masquait la panne au
+      lieu de la signaler. Lu depuis `public.users.display_name`.
+      Vérifier : participer à l'événement de quelqu'un d'autre → il reçoit
+      « <votre nom> participera à … ».
+
+⚠️ **`supabase db push` à relancer** pour `20260910023000`.
+
+
 
 Décision de Salim : `public.events` fait foi. Le module Événements lisait
 Firestore pendant que le back-office admin écrivait dans Supabase.
