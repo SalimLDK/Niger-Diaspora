@@ -540,20 +540,54 @@ vérifient la **présence** d'une sortie, jamais son **câblage**. Un quatrième
 test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
 `services_screen.dart`, il tombe dessus et sur lui seul.
 
-- [ ] **19 sorties recâblées** sur le repli maison
+- [x] **22 sorties recâblées** ✅ SM A515F 2026-09-10 00:25 (build `3198bfc5…b2ff`) sur le repli maison
       `canPop() ? pop() : go(<parent>)`, avec le parent logique de chaque
-      route et non un `/home` uniforme. À rejouer par lien profond, puis
-      flèche :
-      `diasponiger:///services` (→ accueil),
-      `diasponiger:///groups/<id>` (→ Groupes),
-      `diasponiger:///events/<id>` (→ Événements),
-      `diasponiger:///notifications/settings` (→ Réglages),
-      `diasponiger:///profile/edit` (→ Profil),
-      `diasponiger:///feed/space/hashtags` (→ Mon espace).
-- [ ] **Le retour système quitte encore l'application.** Il ne passe ni par la
-      flèche ni par un `context.pop()` métier : il lui faut un `PopScope` par
-      écran, ou un dispatcher global. Mesuré sur SM A515F le 2026-09-09 :
-      `diasponiger:///services` puis retour système → lanceur.
+      route et non un `/home` uniforme.
+
+      **Deux rejouées à l'intent** : `diasponiger:///services` → accueil, et
+      `diasponiger:///groups/<id>` → **Groupes**, pas l'accueil — c'est bien
+      le parent qui sort, pas le repli uniforme. Les vingt autres sont le
+      même motif, tenu par le garde-fou ; restent à voir à l'œil :
+      `/events/<id>` (→ Événements), `/notifications/settings` (→ Réglages),
+      `/profile/edit` (→ Profil), `/feed/space/hashtags` (→ Mon espace).
+      Trois d'entre elles ne sont venues qu'à la deuxième passe (galerie
+      média, favoris, bandeau hashtag du fil) : leur `IconButton` déclare
+      `onPressed:` **avant** `icon:`, et le détecteur partait de l'icône.
+- [x] **Le retour système ne quitte plus l'application.** ✅ SM A515F 2026-09-10 00:25 Il ne passe ni par
+      la flèche ni par un `context.pop()` métier : il descendait jusqu'à
+      Android, qui fermait l'app. Plutôt qu'un `PopScope` sur chacun des 22
+      écrans, `RetourSystemeVersAccueil` (`lib/core/router/retour_systeme.dart`)
+      rattrape le geste **une fois**, au-dessus du routeur, et seulement
+      quand personne d'autre ne l'a traité : les écrans qui portent déjà un
+      `PopScope` gardent la main.
+
+      ⚠️ **Un `BackButtonDispatcher` seul ne suffit pas** —
+      première version livrée ainsi, 5 tests verts, et le retour quittait
+      toujours l'app sur SM A515F. `android:enableOnBackInvokedCallback` vaut
+      `true` (obligatoire à partir de targetSdk 36) : Android ne route le
+      retour vers Flutter que si le framework s'est **annoncé preneur**, via
+      `SystemNavigator.setFrameworkHandlesBack`. C'est le `Navigator` qui
+      répond, et sur une pile d'une seule route il répond « non ». La
+      réclamation passe par `MaterialApp.onNavigationNotification`.
+
+      Repli `/home` — le geste système n'a pas la précision d'une flèche, et
+      le parent d'un chemin n'est pas toujours une route déclarée. Quitter
+      l'app reste le bon geste sur les cinq onglets et sur le parcours de
+      connexion : la liste est dans le fichier.
+
+      **Mesuré, cinq fois, md5 de l'APK contrôlé avant et après** :
+      `diasponiger:///services` + retour système → accueil ✅ ;
+      même écran + flèche → accueil ✅ ;
+      `diasponiger:///groups/<id>` + flèche → **Groupes** (le parent, pas
+      l'accueil) ✅ ;
+      depuis l'onglet Accueil, retour système → l'app se ferme, comme avant ✅ ;
+      Groupes → une fiche (push interne) + retour système → la liste, **pas**
+      l'accueil ✅.
+- [ ] **Deux écrans masquent leur flèche quand la pile est vide** —
+      `/feed` et `/calls/history` : `if (context.canPop()) …`, choix
+      documenté sur place. Arrivé là par lien profond, il n'y a donc aucune
+      flèche ; c'est le retour système ci-dessus qui sert de sortie.
+      Vérifier que ça suffit à l'usage, ou leur donner une flèche.
 
 ## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
 

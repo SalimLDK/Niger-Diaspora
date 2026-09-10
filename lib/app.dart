@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/router/app_router.dart';
+import 'core/router/retour_systeme.dart';
 import 'core/l10n/locale_provider.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/e2ee/notification_decryption_service.dart';
@@ -22,6 +24,12 @@ class NigerDiasporaApp extends ConsumerStatefulWidget {
 }
 
 class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
+  /// Le retour système est câblé une seule fois : `Router` enregistre son
+  /// rappel sur le dispatcher, et une nouvelle instance à chaque rebuild le
+  /// désabonnerait en silence.
+  GoRouter? _routeurCable;
+  RetourSystemeVersAccueil? _retourSysteme;
+
   @override
   void initState() {
     super.initState();
@@ -144,6 +152,10 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
+    if (!identical(_routeurCable, router)) {
+      _routeurCable = router;
+      _retourSysteme = RetourSystemeVersAccueil(router);
+    }
     final themeMode = ref.watch(themeModeNotifierProvider);
     final themeColor = ref.watch(themeColorNotifierProvider);
     final locale = ref.watch(localeNotifierProvider);
@@ -173,7 +185,17 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
               ? AppTheme.orangeDarkTheme
               : AppTheme.darkTheme,
       themeMode: _getThemeMode(themeMode),
-      routerConfig: router,
+      routerDelegate: router.routerDelegate,
+      routeInformationParser: router.routeInformationParser,
+      routeInformationProvider: router.routeInformationProvider,
+      // `routerConfig:` refuserait un dispatcher à lui : GoRouter crée le
+      // sien en liste d'initialisation, sans moyen de le remplacer.
+      backButtonDispatcher: _retourSysteme,
+      // Indispensable, et pas seulement pour la forme : Android 13+ ne
+      // route le retour vers Flutter que si le framework s'est annoncé
+      // preneur. Sur une pile d'une seule route, le `Navigator` répond
+      // « non » — et le dispatcher ci-dessus ne serait jamais appelé.
+      onNavigationNotification: _retourSysteme!.surNavigation,
       // Le bilan de reprise (maquette 3b) peut survenir sur n'importe quel
       // écran : l'écoute est montée une seule fois, au-dessus du routeur.
       builder: (context, child) =>

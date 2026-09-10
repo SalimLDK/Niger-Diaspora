@@ -238,6 +238,12 @@ void main() {
     //
     // D'où l'invariant : toute sortie de retour porte le repli maison
     // `context.canPop() ? context.pop() : context.go(<parent>)`.
+    //
+    // **On ancre sur le rappel, pas sur l'icône.** La première version de ce
+    // garde partait du marqueur visuel et cherchait le `onPressed:` qui suit —
+    // elle ratait les `IconButton` qui déclarent `onPressed:` **avant**
+    // `icon:`, soit deux écrans de la messagerie. L'ordre des arguments
+    // nommés est libre en Dart ; seul le rappel est un point fixe.
     const exceptions = <String, String>{
       'lib/features/transfers/presentation/screens/transaction_history_screen.dart':
           'la croix ferme la feuille de filtres (showModalBottomSheet), '
@@ -263,13 +269,13 @@ void main() {
           .join('\n');
     }
 
-    // Un rappel de retour tient en peu de caractères ; au-delà on lit le
-    // widget suivant et on fabrique des faux positifs.
-    const distanceRappel = 400;
-    const tailleCorps = 260;
-    final rappel = RegExp(r'on(?:Pressed|Tap)\s*:');
-    final popNu = RegExp(
-      r'context\.pop\(|Navigator\.of\(context\)\.pop\(|Navigator\.pop\(context',
+    // Le marqueur visuel et le repli tiennent tous deux à portée du rappel ;
+    // au-delà on lit le widget voisin et on fabrique des faux positifs.
+    const portee = 300;
+    final rappelPop = RegExp(
+      r'on(?:Pressed|Tap)\s*:\s*(?:\([^)]*\)\s*(?:async\s*)?=>\s*)?'
+      r'(?:context\.pop\(\)|Navigator\.of\(context\)\.pop\(\)|'
+      r'Navigator\.pop\(context\))',
     );
 
     final fichiers = declarations();
@@ -284,22 +290,17 @@ void main() {
       if (!vus.add(rel)) return;
 
       final texte = sansCommentaires(fichier.readAsStringSync());
-      for (final m in sorties.allMatches(texte)) {
-        // La brique du kit porte le repli elle-même ; le `onPressed:` qui
-        // suit appartient au widget d'à côté.
-        if (m.group(0) == 'DesignBackLeading') continue;
-
-        final finZone = (m.start + distanceRappel).clamp(0, texte.length);
-        final r = rappel.firstMatch(texte.substring(m.start, finZone));
-        if (r == null) continue;
-
-        final debut = m.start + r.end;
-        final corps = texte.substring(
-          debut,
-          (debut + tailleCorps).clamp(0, texte.length),
+      for (final m in rappelPop.allMatches(texte)) {
+        final zone = texte.substring(
+          (m.start - portee).clamp(0, texte.length),
+          (m.end + portee).clamp(0, texte.length),
         );
-        if (corps.contains('canPop')) continue;
-        if (!popNu.hasMatch(corps)) continue;
+        // Sans marqueur autour, ce `pop()` ferme un dialogue ou une feuille,
+        // pas la route : ce n'est pas la sortie de l'écran.
+        if (!sorties.hasMatch(zone)) continue;
+        // `if (context.canPop()) …` compte aussi : la sortie est alors
+        // simplement masquée quand il n'y a rien à dépiler.
+        if (zone.contains('canPop')) continue;
 
         final ligne = '\n'.allMatches(texte.substring(0, m.start)).length + 1;
         coupables.add('$rel:$ligne ($chemin)');
