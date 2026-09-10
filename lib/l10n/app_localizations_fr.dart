@@ -15440,7 +15440,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onbMembersBullet1 =>
-      'Position approximative, jamais l\'adresse exacte';
+      'Partage facultatif, que vous coupez quand vous voulez';
 
   @override
   String get onbMembersBullet2 =>
@@ -15494,7 +15494,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get onbLocationSubtitle =>
-      'Réciproque : vous voyez ceux qui partagent';
+      'Vous placer sur la carte et voir les membres proches';
 
   @override
   String get onbLaterWithoutPermissions => 'Plus tard, sans autorisations';
@@ -16260,4 +16260,42 @@ class AppLocalizationsFr extends AppLocalizations {
   String shareLinkChatMessage(String title, String link) {
     return '« $title » sur Diaspo Niger\n$link';
   }
+
+  @override
+  String get locationDisclosureTitle =>
+      'Comment Diaspo Niger utilise votre position';
+
+  @override
+  String get locationDisclosureBody =>
+      'Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer les membres, groupes, commerces et événements proches de vous. Votre position est alors visible par les autres membres de l\'application. Elle n\'est collectée que pendant que vous utilisez Diaspo Niger, et vous pouvez arrêter le partage à tout moment dans Réglages.';
+
+  @override
+  String get locationDisclosureShort =>
+      'Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer ce qui se passe près de vous. Votre position devient visible par les autres membres. Elle n\'est collectée que pendant l\'utilisation de l\'application, et vous pouvez arrêter le partage à tout moment dans Réglages.';
+
+  @override
+  String get locationDisclosureBackgroundTitle =>
+      'Partage de position en continu';
+
+  @override
+  String get locationDisclosureBackgroundBody =>
+      'Le Mode Voyage collecte des données de localisation pour vous garder visible sur la carte des membres, même lorsque l\'application est fermée ou n\'est pas utilisée. Votre position est envoyée toutes les 5 minutes et reste visible par les autres membres de Diaspo Niger. Vous pouvez arrêter le partage à tout moment depuis votre profil.';
+
+  @override
+  String get locationDisclosureAccept => 'Accepter et continuer';
+
+  @override
+  String get locationDisclosureDecline => 'Non, merci';
+
+  @override
+  String get locationDisclosureReadPolicy =>
+      'Lire la politique de confidentialité';
+
+  @override
+  String get travelModeSubtitle =>
+      'Partager ma position même lorsque l\'application est fermée (mise à jour toutes les 5 min)';
+
+  @override
+  String get locationPermissionOpenSettings =>
+      'Autorisation refusée définitivement. Activez-la dans les paramètres du téléphone.';
 }

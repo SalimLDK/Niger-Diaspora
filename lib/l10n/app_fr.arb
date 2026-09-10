@@ -7345,7 +7345,7 @@
   "@onbMembersIllustration": {
     "description": "Legende de l emplacement d illustration 2/5"
   },
-  "onbMembersBullet1": "Position approximative, jamais l'adresse exacte",
+  "onbMembersBullet1": "Partage facultatif, que vous coupez quand vous voulez",
   "@onbMembersBullet1": {
     "description": "Reassurance 2/5"
   },
@@ -7409,7 +7409,7 @@
   "@onbNotificationsSubtitle": {
     "description": "Sous-titre de l autorisation notifications"
   },
-  "onbLocationSubtitle": "Réciproque : vous voyez ceux qui partagent",
+  "onbLocationSubtitle": "Vous placer sur la carte et voir les membres proches",
   "@onbLocationSubtitle": {
     "description": "Sous-titre de l autorisation localisation"
   },
@@ -8216,5 +8216,45 @@
         "type": "String"
       }
     }
+  },
+  "locationDisclosureTitle": "Comment Diaspo Niger utilise votre position",
+  "@locationDisclosureTitle": {
+    "description": "Titre de la divulgation prealable de localisation (Google Play)"
+  },
+  "locationDisclosureBody": "Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer les membres, groupes, commerces et événements proches de vous. Votre position est alors visible par les autres membres de l'application. Elle n'est collectée que pendant que vous utilisez Diaspo Niger, et vous pouvez arrêter le partage à tout moment dans Réglages.",
+  "@locationDisclosureBody": {
+    "description": "Divulgation prealable, collecte au premier plan"
+  },
+  "locationDisclosureShort": "Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer ce qui se passe près de vous. Votre position devient visible par les autres membres. Elle n'est collectée que pendant l'utilisation de l'application, et vous pouvez arrêter le partage à tout moment dans Réglages.",
+  "@locationDisclosureShort": {
+    "description": "Divulgation prealable affichee dans l onboarding, sous les interrupteurs"
+  },
+  "locationDisclosureBackgroundTitle": "Partage de position en continu",
+  "@locationDisclosureBackgroundTitle": {
+    "description": "Titre de la divulgation prealable, collecte en arriere-plan"
+  },
+  "locationDisclosureBackgroundBody": "Le Mode Voyage collecte des données de localisation pour vous garder visible sur la carte des membres, même lorsque l'application est fermée ou n'est pas utilisée. Votre position est envoyée toutes les 5 minutes et reste visible par les autres membres de Diaspo Niger. Vous pouvez arrêter le partage à tout moment depuis votre profil.",
+  "@locationDisclosureBackgroundBody": {
+    "description": "Divulgation prealable, collecte en arriere-plan (Mode Voyage)"
+  },
+  "locationDisclosureAccept": "Accepter et continuer",
+  "@locationDisclosureAccept": {
+    "description": "Action affirmative de la divulgation prealable"
+  },
+  "locationDisclosureDecline": "Non, merci",
+  "@locationDisclosureDecline": {
+    "description": "Refus de la divulgation prealable"
+  },
+  "locationDisclosureReadPolicy": "Lire la politique de confidentialité",
+  "@locationDisclosureReadPolicy": {
+    "description": "Lien vers la politique de confidentialite depuis la divulgation"
+  },
+  "travelModeSubtitle": "Partager ma position même lorsque l'application est fermée (mise à jour toutes les 5 min)",
+  "@travelModeSubtitle": {
+    "description": "Sous-titre de l interrupteur Mode Voyage"
+  },
+  "locationPermissionOpenSettings": "Autorisation refusée définitivement. Activez-la dans les paramètres du téléphone.",
+  "@locationPermissionOpenSettings": {
+    "description": "Message quand la permission de localisation est refusee definitivement"
   }
 }

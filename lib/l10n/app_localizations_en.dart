@@ -15292,7 +15292,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onbMembersBullet1 =>
-      'Approximate location, never the exact address';
+      'Optional sharing, you can switch it off whenever you want';
 
   @override
   String get onbMembersBullet2 => 'You see those who share, and they see you';
@@ -15344,7 +15344,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Messages, invitations, event reminders';
 
   @override
-  String get onbLocationSubtitle => 'Reciprocal: you see those who share';
+  String get onbLocationSubtitle =>
+      'Place you on the map and see nearby members';
 
   @override
   String get onbLaterWithoutPermissions => 'Later, without permissions';
@@ -16107,4 +16108,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String shareLinkChatMessage(String title, String link) {
     return '“$title” on Diaspo Niger\n$link';
   }
+
+  @override
+  String get locationDisclosureTitle => 'How Diaspo Niger uses your location';
+
+  @override
+  String get locationDisclosureBody =>
+      'Diaspo Niger collects location data to place you on the member map and show you members, groups, businesses and events near you. Your position is then visible to other members of the app. It is only collected while you are using Diaspo Niger, and you can stop sharing at any time in Settings.';
+
+  @override
+  String get locationDisclosureShort =>
+      'Diaspo Niger collects location data to place you on the member map and show you what is happening near you. Your position becomes visible to other members. It is only collected while you are using the app, and you can stop sharing at any time in Settings.';
+
+  @override
+  String get locationDisclosureBackgroundTitle => 'Continuous location sharing';
+
+  @override
+  String get locationDisclosureBackgroundBody =>
+      'Travel Mode collects location data to keep you visible on the member map, even when the app is closed or not in use. Your position is sent every 5 minutes and stays visible to other Diaspo Niger members. You can stop sharing at any time from your profile.';
+
+  @override
+  String get locationDisclosureAccept => 'Accept and continue';
+
+  @override
+  String get locationDisclosureDecline => 'No thanks';
+
+  @override
+  String get locationDisclosureReadPolicy => 'Read the privacy policy';
+
+  @override
+  String get travelModeSubtitle =>
+      'Share my location even when the app is closed (updated every 5 min)';
+
+  @override
+  String get locationPermissionOpenSettings =>
+      'Permission permanently denied. Turn it on in your phone settings.';
 }

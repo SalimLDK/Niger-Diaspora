@@ -28403,7 +28403,7 @@ abstract class AppLocalizations {
   /// Reassurance 2/5
   ///
   /// In fr, this message translates to:
-  /// **'Position approximative, jamais l\'adresse exacte'**
+  /// **'Partage facultatif, que vous coupez quand vous voulez'**
   String get onbMembersBullet1;
 
   /// Reassurance 2/5
@@ -28499,7 +28499,7 @@ abstract class AppLocalizations {
   /// Sous-titre de l autorisation localisation
   ///
   /// In fr, this message translates to:
-  /// **'Réciproque : vous voyez ceux qui partagent'**
+  /// **'Vous placer sur la carte et voir les membres proches'**
   String get onbLocationSubtitle;
 
   /// Entrer sans accorder les autorisations
@@ -29713,6 +29713,66 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'« {title} » sur Diaspo Niger\n{link}'**
   String shareLinkChatMessage(String title, String link);
+
+  /// Titre de la divulgation prealable de localisation (Google Play)
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment Diaspo Niger utilise votre position'**
+  String get locationDisclosureTitle;
+
+  /// Divulgation prealable, collecte au premier plan
+  ///
+  /// In fr, this message translates to:
+  /// **'Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer les membres, groupes, commerces et événements proches de vous. Votre position est alors visible par les autres membres de l\'application. Elle n\'est collectée que pendant que vous utilisez Diaspo Niger, et vous pouvez arrêter le partage à tout moment dans Réglages.'**
+  String get locationDisclosureBody;
+
+  /// Divulgation prealable affichee dans l onboarding, sous les interrupteurs
+  ///
+  /// In fr, this message translates to:
+  /// **'Diaspo Niger collecte des données de localisation pour vous placer sur la carte des membres et vous montrer ce qui se passe près de vous. Votre position devient visible par les autres membres. Elle n\'est collectée que pendant l\'utilisation de l\'application, et vous pouvez arrêter le partage à tout moment dans Réglages.'**
+  String get locationDisclosureShort;
+
+  /// Titre de la divulgation prealable, collecte en arriere-plan
+  ///
+  /// In fr, this message translates to:
+  /// **'Partage de position en continu'**
+  String get locationDisclosureBackgroundTitle;
+
+  /// Divulgation prealable, collecte en arriere-plan (Mode Voyage)
+  ///
+  /// In fr, this message translates to:
+  /// **'Le Mode Voyage collecte des données de localisation pour vous garder visible sur la carte des membres, même lorsque l\'application est fermée ou n\'est pas utilisée. Votre position est envoyée toutes les 5 minutes et reste visible par les autres membres de Diaspo Niger. Vous pouvez arrêter le partage à tout moment depuis votre profil.'**
+  String get locationDisclosureBackgroundBody;
+
+  /// Action affirmative de la divulgation prealable
+  ///
+  /// In fr, this message translates to:
+  /// **'Accepter et continuer'**
+  String get locationDisclosureAccept;
+
+  /// Refus de la divulgation prealable
+  ///
+  /// In fr, this message translates to:
+  /// **'Non, merci'**
+  String get locationDisclosureDecline;
+
+  /// Lien vers la politique de confidentialite depuis la divulgation
+  ///
+  /// In fr, this message translates to:
+  /// **'Lire la politique de confidentialité'**
+  String get locationDisclosureReadPolicy;
+
+  /// Sous-titre de l interrupteur Mode Voyage
+  ///
+  /// In fr, this message translates to:
+  /// **'Partager ma position même lorsque l\'application est fermée (mise à jour toutes les 5 min)'**
+  String get travelModeSubtitle;
+
+  /// Message quand la permission de localisation est refusee definitivement
+  ///
+  /// In fr, this message translates to:
+  /// **'Autorisation refusée définitivement. Activez-la dans les paramètres du téléphone.'**
+  String get locationPermissionOpenSettings;
 }
 
 class _AppLocalizationsDelegate
