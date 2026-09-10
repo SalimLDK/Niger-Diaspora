@@ -2,6 +2,7 @@ import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:diaspo_niger/core/services/feature_flag_service.dart';
 import '../../domain/entities/app_settings_entity.dart';
 import '../providers/app_settings_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -508,13 +509,27 @@ class _AdminFeatureFlagsScreenState
           value: _flags.audioRooms,
           onChanged: (v) => _updateFlag(_flags.copyWith(audioRooms: v)),
         ),
+        // Interrupteur inerte tant que le build ne sait pas jouer les
+        // podcasts : `FOREGROUND_SERVICE_MEDIA_PLAYBACK` a été retirée du
+        // manifeste sur demande de Play, alors que le service declare
+        // toujours son type `mediaPlayback`. L'allumer d'ici rouvrait
+        // /podcasts sur un build ou la lecture leve une SecurityException sur
+        // Android 14+. Il redevient actif tout seul le jour ou
+        // `kPodcastsSupportesParCeBuild` repasse a true, avec la permission.
         _buildFeatureToggle(
           title: l10n.podcasts,
-          subtitle: 'Emissions, episodes et enregistrement',
+          subtitle:
+              kPodcastsSupportesParCeBuild
+                  ? 'Emissions, episodes et enregistrement'
+                  : 'Sans effet sur cette version : la lecture en arriere-plan '
+                      'attend une autorisation retiree a la demande de Play',
           icon: Icons.mic_rounded,
           color: AdminColors.actionBlueLight,
           value: _flags.podcasts,
-          onChanged: (v) => _updateFlag(_flags.copyWith(podcasts: v)),
+          onChanged:
+              kPodcastsSupportesParCeBuild
+                  ? (v) => _updateFlag(_flags.copyWith(podcasts: v))
+                  : null,
         ),
       ],
     );

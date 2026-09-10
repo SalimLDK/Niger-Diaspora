@@ -8,6 +8,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/widgets/location_disclosure.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/services/place_search_service.dart';
@@ -143,25 +144,35 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
     _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 16));
   }
 
+  /// Centre la carte sur la personne, en demandant l'autorisation si besoin.
+  ///
+  /// Appelée depuis `initState` : ouvrir la feuille suffisait à déclencher la
+  /// boîte système, sans qu'aucun geste ne dise « utilise ma position ». La
+  /// divulgation passe donc devant, avec le texte propre à ce cas — la
+  /// position part aux seuls participants de la discussion, et seulement à
+  /// l'envoi ; annoncer ici « visible par les autres membres » serait faux.
   Future<void> _getCurrentLocation() async {
     final l10n = AppLocalizations.of(context)!;
     try {
       final permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        final requested = await Geolocator.requestPermission();
-        if (requested == LocationPermission.denied) {
-          setState(() {
-            _isLoading = false;
-            _errorMessage = l10n.locationPermissionDenied;
-          });
-          return;
-        }
-      }
-
       if (permission == LocationPermission.deniedForever) {
         setState(() {
           _isLoading = false;
           _errorMessage = l10n.locationPermissionDeniedForever;
+        });
+        return;
+      }
+
+      if (!mounted) return;
+      final autorise = await demanderLocalisationAvecDivulgation(
+        context,
+        usage: UsageLocalisation.discussion,
+      );
+      if (!mounted) return;
+      if (!autorise) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = l10n.locationPermissionDenied;
         });
         return;
       }
@@ -216,6 +227,15 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
   }
 
   Future<void> _sendCurrentLocation() async {
+    // Deuxième porte : qui a refusé la divulgation à l'ouverture de la feuille
+    // peut toujours vouloir envoyer sa position ensuite — et c'est un geste
+    // plus explicite que le simple fait d'ouvrir la feuille.
+    final autorise = await demanderLocalisationAvecDivulgation(
+      context,
+      usage: UsageLocalisation.discussion,
+    );
+    if (!mounted || !autorise) return;
+
     setState(() => _isSendingCurrentLocation = true);
 
     try {

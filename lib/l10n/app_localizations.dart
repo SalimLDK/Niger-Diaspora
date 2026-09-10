@@ -29773,6 +29773,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Autorisation refusée définitivement. Activez-la dans les paramètres du téléphone.'**
   String get locationPermissionOpenSettings;
+
+  /// Titre de la divulgation prealable, partage dans une discussion
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre position dans cette discussion'**
+  String get locationDisclosureChatTitle;
+
+  /// Divulgation prealable, partage dans une discussion
+  ///
+  /// In fr, this message translates to:
+  /// **'Diaspo Niger lit votre position pour centrer la carte sur vous et vous laisser l\'envoyer dans cette discussion. Elle n\'est partagée qu\'avec les participants de la discussion, et seulement si vous envoyez le message : elle ne rejoint pas la carte des membres.'**
+  String get locationDisclosureChatBody;
 }
 
 class _AppLocalizationsDelegate

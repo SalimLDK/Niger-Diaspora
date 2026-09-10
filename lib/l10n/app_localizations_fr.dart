@@ -16298,4 +16298,12 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get locationPermissionOpenSettings =>
       'Autorisation refusée définitivement. Activez-la dans les paramètres du téléphone.';
+
+  @override
+  String get locationDisclosureChatTitle =>
+      'Votre position dans cette discussion';
+
+  @override
+  String get locationDisclosureChatBody =>
+      'Diaspo Niger lit votre position pour centrer la carte sur vous et vous laisser l\'envoyer dans cette discussion. Elle n\'est partagée qu\'avec les participants de la discussion, et seulement si vous envoyez le message : elle ne rejoint pas la carte des membres.';
 }

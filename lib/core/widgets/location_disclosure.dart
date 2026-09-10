@@ -17,10 +17,13 @@
 /// - il se conclut par une **action affirmative** — un bouton d'acceptation —
 ///   avec un refus possible.
 ///
-/// La variante `arrierePlan` porte la formule attendue mot pour mot pour une
-/// collecte hors premier plan : « même lorsque l'application est fermée ou
-/// n'est pas utilisée ». Le Mode Voyage relève de ce cas : son service publie
-/// une position toutes les 5 minutes tant qu'il tourne.
+/// Le texte suit l'usage, parce que la règle porte sur l'usage : dire « visible
+/// par les autres membres » quand la position part dans une seule discussion
+/// serait faux, et une divulgation fausse ne vaut pas mieux qu'aucune. D'où
+/// [UsageLocalisation], et la formule attendue mot pour mot pour une collecte
+/// hors premier plan — « même lorsque l'application est fermée ou n'est pas
+/// utilisée » — réservée au Mode Voyage, seul à publier une position toutes
+/// les 5 minutes tant que son service tourne.
 library;
 
 import 'package:flutter/material.dart';
@@ -30,6 +33,20 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../theme/adaptive_colors.dart';
 import '../theme/design_kit.dart';
+
+/// Ce à quoi la position va servir, et donc le texte à afficher.
+enum UsageLocalisation {
+  /// Carte des membres et voisinage : la position devient visible par les
+  /// autres membres. Accueil, Carte, onboarding.
+  carte,
+
+  /// Mode Voyage : publication toutes les 5 minutes hors premier plan.
+  arrierePlan,
+
+  /// Position insérée dans un message : partagée avec les seuls participants
+  /// de la discussion, et seulement à l'envoi.
+  discussion,
+}
 
 /// Bloc de divulgation posé **dans** un écran (onboarding 5/5).
 ///
@@ -100,17 +117,16 @@ class LocationDisclosureNotice extends StatelessWidget {
 /// vers le bas, un retour arrière ou le bouton de refus valent refus, et
 /// l'appelant ne doit alors **rien** demander au système.
 ///
-/// [arrierePlan] bascule sur la formule exigée quand la collecte continue hors
-/// premier plan (Mode Voyage).
+/// [usage] choisit le texte : voir [UsageLocalisation].
 Future<bool> afficherDivulgationLocalisation(
   BuildContext context, {
-  bool arrierePlan = false,
+  UsageLocalisation usage = UsageLocalisation.carte,
 }) async {
   final accepte = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => _FeuilleDivulgation(arrierePlan: arrierePlan),
+    builder: (context) => _FeuilleDivulgation(usage: usage),
   );
   return accepte ?? false;
 }
@@ -130,7 +146,10 @@ Future<bool> afficherDivulgationLocalisation(
 /// examinateur pressé.
 ///
 /// Renvoie `true` si la position peut être lue.
-Future<bool> demanderLocalisationAvecDivulgation(BuildContext context) async {
+Future<bool> demanderLocalisationAvecDivulgation(
+  BuildContext context, {
+  UsageLocalisation usage = UsageLocalisation.carte,
+}) async {
   var permission = await Geolocator.checkPermission();
   if (permission == LocationPermission.always ||
       permission == LocationPermission.whileInUse) {
@@ -139,7 +158,7 @@ Future<bool> demanderLocalisationAvecDivulgation(BuildContext context) async {
   if (permission == LocationPermission.deniedForever) return false;
 
   if (!context.mounted) return false;
-  final accepte = await afficherDivulgationLocalisation(context);
+  final accepte = await afficherDivulgationLocalisation(context, usage: usage);
   if (!accepte) return false;
 
   permission = await Geolocator.requestPermission();
@@ -148,21 +167,23 @@ Future<bool> demanderLocalisationAvecDivulgation(BuildContext context) async {
 }
 
 class _FeuilleDivulgation extends StatelessWidget {
-  final bool arrierePlan;
+  final UsageLocalisation usage;
 
-  const _FeuilleDivulgation({required this.arrierePlan});
+  const _FeuilleDivulgation({required this.usage});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final titre =
-        arrierePlan
-            ? l10n.locationDisclosureBackgroundTitle
-            : l10n.locationDisclosureTitle;
-    final corps =
-        arrierePlan
-            ? l10n.locationDisclosureBackgroundBody
-            : l10n.locationDisclosureBody;
+    final titre = switch (usage) {
+      UsageLocalisation.carte => l10n.locationDisclosureTitle,
+      UsageLocalisation.arrierePlan => l10n.locationDisclosureBackgroundTitle,
+      UsageLocalisation.discussion => l10n.locationDisclosureChatTitle,
+    };
+    final corps = switch (usage) {
+      UsageLocalisation.carte => l10n.locationDisclosureBody,
+      UsageLocalisation.arrierePlan => l10n.locationDisclosureBackgroundBody,
+      UsageLocalisation.discussion => l10n.locationDisclosureChatBody,
+    };
 
     return SafeArea(
       top: false,

@@ -100,7 +100,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     if (value) {
       final accepte = await afficherDivulgationLocalisation(
         context,
-        arrierePlan: true,
+        usage: UsageLocalisation.arrierePlan,
       );
       if (!accepte || !mounted) return;
 

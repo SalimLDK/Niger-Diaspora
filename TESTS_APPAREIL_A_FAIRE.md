@@ -58,9 +58,26 @@ Rien de tout ça n'a été vu sur un écran.
       utilisée » ? Un refus doit laisser l'interrupteur éteint.
 - [ ] **Thème sombre** sur la feuille et sur le bloc de l'onboarding (jetons
       adaptatifs, jamais `AppColors` en dur).
+- [ ] **Position dans une discussion** : ouvrir le sélecteur de position
+      depuis une conversation. La feuille doit porter le texte *discussion*
+      (« participants de la discussion »), jamais celui de la carte. Un refus
+      à l'ouverture doit laisser le bouton « envoyer ma position » reproposer
+      la feuille.
 - [ ] **Lien « Lire la politique de confidentialité »** depuis la feuille
       pendant l'onboarding : `/settings/privacy` est censé échapper aux
       redirections du routeur, à confirmer avant que le profil soit complet.
+
+⚠️ Interrupteur **Podcasts** du back-office désormais inerte, et c'est
+voulu : `FOREGROUND_SERVICE_MEDIA_PLAYBACK` a été retirée du manifeste alors
+que `AudioService` déclare toujours `foregroundServiceType="mediaPlayback"`.
+L'allumer rouvrait `/podcasts` sur un build où la lecture lève une
+`SecurityException` au premier `startForeground` (Android 14+). Il redevient
+actif tout seul quand `kPodcastsSupportesParCeBuild` repasse à `true`, ce que
+`test/core/podcasts_service_premier_plan_test.dart` interdit de faire sans
+rétablir l'autorisation.
+
+- [ ] **Admin › Fonctionnalités** : vérifier que la ligne Podcasts s'affiche
+      bien grisée, avec son explication, et que /podcasts reste inaccessible.
 
 ⚠️ Deux points **hors code**, à faire dans la Play Console avant de renvoyer :
 le formulaire *Data safety* doit déclarer la localisation comme collectée
@@ -279,7 +296,7 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
 
 **⚠️ Deux défauts trouvés en le vérifiant, corrigés mais PAS encore livrés :**
 
-- [ ] **Le compteur de participants ne bougeait pas** (`event_attendees` à 1,
+- [x] **Le compteur de participants ne bougeait pas** — ✅ vérifié SM A515F 2026-09-09 23:05 : annulation → 0, réinscription → 1, en base comme à l'écran. (`event_attendees` à 1,
       `events.attendee_count` à 0). Ma faute dans `20260910010000` : j'ai
       réécrit le trigger sans `SECURITY DEFINER`. Il tourne donc sous
       l'identité du participant, et `events_manage_own` réserve l'UPDATE à
@@ -289,7 +306,7 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
       `20260910023000` la remet en DEFINER et recale les compteurs.
       Vérifier : « Participer » depuis un compte non-organisateur → le
       nombre de participants augmente à l'écran.
-- [ ] **La notification disait « Un utilisateur participera à … »**
+- [x] **La notification disait « Un utilisateur participera à … »** — ✅ vérifié : la ligne de 23:05 dit « **Sim A** participera à "Tabaski 2026" », juste au-dessus des deux anciennes en « Un utilisateur » (dont une du 5 août).
       (signalé par Salim). `attendEvent` lisait le nom dans **Firestore**
       (`users/<uid>.displayName`) alors que les comptes vivent sur Supabase :
       le document n'existe pas, et le repli générique masquait la panne au
@@ -297,7 +314,23 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
       Vérifier : participer à l'événement de quelqu'un d'autre → il reçoit
       « <votre nom> participera à … ».
 
-⚠️ **`supabase db push` à relancer** pour `20260910023000`.
+✅ `20260910023000` appliquée. Trigger en `SECURITY DEFINER`, compteurs recalés.
+
+**⚠️ Reste ouvert — un événement peut n'apparaître dans aucun onglet.**
+« À venir » filtre `startDate >= now`, « Passés » filtre `status == 'completed'`.
+Un événement dont la date est passée mais dont personne n'a changé le statut
+tombe entre les deux et devient invisible — c'est le cas de « testeur », et
+c'est ce qui m'a fait croire un moment que la collection Firestore était vide.
+Rien ne fait passer un événement de `upcoming` à `ended` automatiquement.
+
+**⚠️ Lectures Firestore `users` encore vivantes ailleurs**, même famille que
+la notification corrigée ici, non vérifiées : `core/services/session_service.dart`,
+`core/services/e2ee/content_moderation_service.dart`,
+`core/services/e2ee/session_backup_service.dart`,
+`features/admin/.../permission_provider.dart`,
+`features/admin/.../role_management_provider.dart`.
+(`GroupRemoteDataSourceImpl._getUserDisplayName` porte le même motif mais est
+du **code mort** : le provider rend `GroupSupabaseDataSource()`.)
 
 
 
@@ -13563,6 +13596,35 @@ capturer sans rien toucher d'autre.
 
 Reste non vérifié : le scan physique d'un QR, qui demande de présenter un code
 à l'objectif.
+
+---
+
+## ✅ Annuaire d'entreprises branché sur Supabase (2026-09-09)
+
+`/businesses/<uuid>` affichait « Entreprise non trouvée » quel que soit le
+chemin d'accès. Même famille que les événements : le module lisait
+**Firestore** alors que les entreprises vivent dans `public.businesses`.
+
+Trois pièces livrées : `BusinessSupabaseDataSource` (21 méthodes), la table
+`business_boosts` qui manquait, et `increment_business_view_count`.
+
+**Deux fausses pistes écartées, à ne pas refaire :**
+
+1. Les deux lignes étaient `is_active = false` — activées, sans aucun effet :
+   la fiche ne regardait même pas cette table.
+2. L'embed `users(display_name)` échouait en **PGRST200**. Cause :
+   `businesses` n'avait **aucune clé étrangère**, alors que le schéma initial
+   en déclare une. La table venait de l'import Firestore du 2026-04-12, donc
+   le `CREATE TABLE IF NOT EXISTS` du schéma initial n'a rien créé — ni la
+   clé, ni le `DEFAULT TRUE` de `is_active`, ce qui explique aussi le point 1.
+   **Réflexe à garder : une table importée peut avoir traversé un
+   `CREATE TABLE IF NOT EXISTS` sans rien en recevoir.**
+
+- [x] **`/businesses/<uuid>` ouvre la fiche** — vérifié SM A515F, démarrage à
+      froid : « Sonda », Restaurant, contact, Talladje/Niamey.
+
+Non vérifiés faute de données : création d'une entreprise, boost, offres et
+publications d'entreprise, recherche de proximité.
 
 ---
 

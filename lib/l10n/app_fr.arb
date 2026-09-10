@@ -8256,5 +8256,13 @@
   "locationPermissionOpenSettings": "Autorisation refusée définitivement. Activez-la dans les paramètres du téléphone.",
   "@locationPermissionOpenSettings": {
     "description": "Message quand la permission de localisation est refusee definitivement"
+  },
+  "locationDisclosureChatTitle": "Votre position dans cette discussion",
+  "@locationDisclosureChatTitle": {
+    "description": "Titre de la divulgation prealable, partage dans une discussion"
+  },
+  "locationDisclosureChatBody": "Diaspo Niger lit votre position pour centrer la carte sur vous et vous laisser l'envoyer dans cette discussion. Elle n'est partagée qu'avec les participants de la discussion, et seulement si vous envoyez le message : elle ne rejoint pas la carte des membres.",
+  "@locationDisclosureChatBody": {
+    "description": "Divulgation prealable, partage dans une discussion"
   }
 }

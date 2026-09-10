@@ -7081,5 +7081,7 @@
   "locationDisclosureDecline": "No thanks",
   "locationDisclosureReadPolicy": "Read the privacy policy",
   "travelModeSubtitle": "Share my location even when the app is closed (updated every 5 min)",
-  "locationPermissionOpenSettings": "Permission permanently denied. Turn it on in your phone settings."
+  "locationPermissionOpenSettings": "Permission permanently denied. Turn it on in your phone settings.",
+  "locationDisclosureChatTitle": "Your location in this conversation",
+  "locationDisclosureChatBody": "Diaspo Niger reads your location to centre the map on you and let you send it in this conversation. It is only shared with the people in that conversation, and only if you send the message: it does not go to the member map."
 }

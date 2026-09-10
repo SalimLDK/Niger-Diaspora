@@ -16143,4 +16143,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get locationPermissionOpenSettings =>
       'Permission permanently denied. Turn it on in your phone settings.';
+
+  @override
+  String get locationDisclosureChatTitle =>
+      'Your location in this conversation';
+
+  @override
+  String get locationDisclosureChatBody =>
+      'Diaspo Niger reads your location to centre the map on you and let you send it in this conversation. It is only shared with the people in that conversation, and only if you send the message: it does not go to the member map.';
 }

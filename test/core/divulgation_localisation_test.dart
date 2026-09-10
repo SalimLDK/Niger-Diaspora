@@ -26,10 +26,6 @@ void main() {
     'lib/core/services/location_service.dart':
         "le service lui-même, sans BuildContext : c'est l'appelant qui divulgue",
     'lib/core/widgets/location_disclosure.dart': 'la divulgation elle-même',
-    'lib/features/messages/presentation/widgets/location_picker_modal.dart':
-        "envoi explicite d'une position dans une discussion : l'usage est "
-            'exactement celui que la personne vient de demander, cas que la '
-            'règle Google exempte',
     'lib/features/messages/presentation/screens/new_conversation_screen.dart':
         "ne lit la position que si l'autorisation est DÉJÀ accordée "
             '(`checkPermission` en garde, retour anticipé sinon) : cet écran '
@@ -95,6 +91,20 @@ void main() {
         reason: '$cle doit dire que la position est partagée',
       );
     }
+
+    // La variante « discussion » dit l'inverse, et c'est voulu : la position
+    // ne rejoint pas la carte. Une divulgation qui annonce plus que ce que
+    // l'app fait est aussi fautive qu'une qui en annonce moins.
+    final discussion = arb['locationDisclosureChatBody'] as String?;
+    expect(discussion, isNotNull);
+    expect(discussion, contains('participants de la discussion'));
+    expect(
+      discussion,
+      isNot(contains('visible par les autres membres')),
+      reason:
+          'Le partage en discussion ne va pas sur la carte des membres : le '
+          'dire serait faux.',
+    );
 
     // Formule attendue mot pour mot pour une collecte hors premier plan.
     expect(
