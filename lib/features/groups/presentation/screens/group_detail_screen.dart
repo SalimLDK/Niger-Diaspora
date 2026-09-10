@@ -226,7 +226,8 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                   AppIcon.arrowBack,
                   color: context.textPrimaryColor,
                 ),
-                onPressed: () => context.pop(),
+                onPressed:
+                    () => context.canPop() ? context.pop() : context.go('/groups'),
               ),
               // Fiche 9d : l'en-tete ne porte que le partage et un menu ⋮.
               // Elle alignait jusqu'a quatre pastilles muettes (demandes,

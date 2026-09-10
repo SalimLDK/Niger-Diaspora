@@ -227,7 +227,8 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
         title: Text(l10n.groupEditTitle),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/groups'),
         ),
         actions: [
           IconButton(

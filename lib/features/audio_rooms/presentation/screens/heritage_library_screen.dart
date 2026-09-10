@@ -160,7 +160,8 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
       backgroundColor: DNColors.terra,
       leading: IconButton(
         icon: const AppIcon(AppIcon.arrowBack, color: Colors.white),
-        onPressed: () => context.pop(),
+        onPressed:
+            () => context.canPop() ? context.pop() : context.go('/audio-rooms'),
       ),
       actions: [
         IconButton(

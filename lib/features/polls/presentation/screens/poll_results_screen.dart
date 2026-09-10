@@ -29,7 +29,8 @@ class PollResultsScreen extends ConsumerWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const AppIcon(AppIcon.arrowBack, color: _pollAccent),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/messages'),
         ),
         title: const Text('Résultats du sondage'),
       ),

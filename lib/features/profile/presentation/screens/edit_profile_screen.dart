@@ -637,7 +637,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                     size: 24,
                     color: context.textPrimaryColor,
                   ),
-                  onPressed: () => context.pop(),
+                  onPressed:
+                      () => context.canPop() ? context.pop() : context.go('/profile'),
                 ),
                 actions: [
                   IconButton(

@@ -27,7 +27,8 @@ class FollowedHashtagsScreen extends ConsumerWidget {
         elevation: 0,
         leading: IconButton(
           icon: AppIcon(AppIcon.arrowBack, color: tokens.text),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/feed/space'),
         ),
         title: Text(
           l10n.feedFollowedHashtags,

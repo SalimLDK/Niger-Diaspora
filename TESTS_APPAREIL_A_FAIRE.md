@@ -549,6 +549,48 @@ fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
 
 ---
 
+## ⬜ Liens profonds : la flèche retour ne faisait rien (2026-09-09)
+
+Signalé par Salim : « les deep link, pas possible de faire des retours ».
+Suite directe de la section ci-dessous — le lien arrive bien, l'écran
+s'affiche, c'est la **sortie** qui manque.
+
+Mesuré sur SM A515F, `diasponiger:///services`, intent envoyé à chaud :
+
+| Geste | Avant |
+|---|---|
+| flèche de l'en-tête | l'écran ne bouge pas |
+| bouton retour système | **quitte l'application** (retour au lanceur) |
+
+Cause : arrivée par lien profond, la route est **seule dans la pile** — le
+routeur rejoue la destination mise de côté par un `go`, qui remplace la pile
+au lieu de l'empiler. `context.pop()` n'a alors rien à dépiler ; go_router
+14.8.1 lève `GoError('There is nothing to pop')` (`delegate.dart:100`), que
+rien n'attrape et que logcat ne montre pas — Crashlytics remplace
+`FlutterError.onError` (cf. la section « aucune exception Flutter »). En
+navigation interne le défaut est invisible : ces écrans sont toujours atteints
+par `push`, donc il y a quelque chose à dépiler.
+
+Le garde `fleche_retour_test.dart` ne pouvait pas le voir : ses trois tests
+vérifient la **présence** d'une sortie, jamais son **câblage**. Un quatrième
+test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
+`services_screen.dart`, il tombe dessus et sur lui seul.
+
+- [ ] **19 sorties recâblées** sur le repli maison
+      `canPop() ? pop() : go(<parent>)`, avec le parent logique de chaque
+      route et non un `/home` uniforme. À rejouer par lien profond, puis
+      flèche :
+      `diasponiger:///services` (→ accueil),
+      `diasponiger:///groups/<id>` (→ Groupes),
+      `diasponiger:///events/<id>` (→ Événements),
+      `diasponiger:///notifications/settings` (→ Réglages),
+      `diasponiger:///profile/edit` (→ Profil),
+      `diasponiger:///feed/space/hashtags` (→ Mon espace).
+- [ ] **Le retour système quitte encore l'application.** Il ne passe ni par la
+      flèche ni par un `context.pop()` métier : il lui faut un `PopScope` par
+      écran, ou un dispatcher global. Mesuré sur SM A515F le 2026-09-09 :
+      `diasponiger:///services` puis retour système → lanceur.
+
 ## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
 
 Signalé par Salim : « les liens des groupes et autres ne marchent pas ».
@@ -13590,6 +13632,35 @@ capturer sans rien toucher d'autre.
 
 Reste non vérifié : le scan physique d'un QR, qui demande de présenter un code
 à l'objectif.
+
+---
+
+## ✅ Annuaire d'entreprises branché sur Supabase (2026-09-09)
+
+`/businesses/<uuid>` affichait « Entreprise non trouvée » quel que soit le
+chemin d'accès. Même famille que les événements : le module lisait
+**Firestore** alors que les entreprises vivent dans `public.businesses`.
+
+Trois pièces livrées : `BusinessSupabaseDataSource` (21 méthodes), la table
+`business_boosts` qui manquait, et `increment_business_view_count`.
+
+**Deux fausses pistes écartées, à ne pas refaire :**
+
+1. Les deux lignes étaient `is_active = false` — activées, sans aucun effet :
+   la fiche ne regardait même pas cette table.
+2. L'embed `users(display_name)` échouait en **PGRST200**. Cause :
+   `businesses` n'avait **aucune clé étrangère**, alors que le schéma initial
+   en déclare une. La table venait de l'import Firestore du 2026-04-12, donc
+   le `CREATE TABLE IF NOT EXISTS` du schéma initial n'a rien créé — ni la
+   clé, ni le `DEFAULT TRUE` de `is_active`, ce qui explique aussi le point 1.
+   **Réflexe à garder : une table importée peut avoir traversé un
+   `CREATE TABLE IF NOT EXISTS` sans rien en recevoir.**
+
+- [x] **`/businesses/<uuid>` ouvre la fiche** — vérifié SM A515F, démarrage à
+      froid : « Sonda », Restaurant, contact, Talladje/Niamey.
+
+Non vérifiés faute de données : création d'une entreprise, boost, offres et
+publications d'entreprise, recherche de proximité.
 
 ---
 
