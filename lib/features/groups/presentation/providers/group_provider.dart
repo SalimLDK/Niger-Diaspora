@@ -214,11 +214,31 @@ Future<GroupEntity?> groupById(Ref ref, String groupId) async {
 
 @Riverpod(keepAlive: true)
 class MyGroupsNotifier extends _$MyGroupsNotifier {
+  /// Le notifier est `keepAlive`, mais il est reconstruit à chaque changement
+  /// de `currentUserProvider` : l'ancienne instance est alors détruite, et
+  /// une relecture encore en vol y écrirait `state` après coup (erreur
+  /// Riverpod). Le rafraîchissement réactif ci-dessous en déclenche par
+  /// définition à des moments qu'on ne choisit pas.
+  bool _disposed = false;
+
   @override
   AsyncValue<List<GroupEntity>> build() {
+    ref.onDispose(() => _disposed = true);
+
     final user = ref.watch(currentUserProvider).valueOrNull;
     if (user != null) {
       loadMyGroups(user.id);
+
+      // « Mes groupes » ne se chargeait qu'ici, une fois. Un groupe rejoint
+      // parce qu'un admin vient d'approuver la demande, ou quitté depuis un
+      // autre appareil, n'y apparaissait / disparaissait qu'au redémarrage de
+      // l'app : l'écriture est faite par quelqu'un d'autre, aucun code local
+      // ne pouvait invalider quoi que ce soit.
+      final sub = ref
+          .read(groupRepositoryProvider)
+          .watchMyMemberships(user.id)
+          .listen((_) => _refreshQuietly(user.id));
+      ref.onDispose(sub.cancel);
     }
     return const AsyncValue.loading();
   }
@@ -227,11 +247,25 @@ class MyGroupsNotifier extends _$MyGroupsNotifier {
     state = const AsyncValue.loading();
     final repository = ref.read(groupRepositoryProvider);
     final result = await repository.getMyGroups(userId);
+    if (_disposed) return;
     result.fold(
       (failure) =>
           state = AsyncValue.error(failure.message, StackTrace.current),
       (groups) => state = AsyncValue.data(groups),
     );
+  }
+
+  /// Relit la liste **sans** repasser par `AsyncValue.loading()`.
+  ///
+  /// Un rafraîchissement déclenché par le serveur ne doit pas vider l'écran
+  /// que l'utilisateur est en train de lire : le spinner de `loadMyGroups`
+  /// ferait clignoter la liste à chaque arrivée ou départ dans n'importe
+  /// lequel de ses groupes. Un échec est ignoré pour la même raison — la
+  /// liste précédente reste plus utile qu'un écran d'erreur surgi tout seul.
+  Future<void> _refreshQuietly(String userId) async {
+    final result = await ref.read(groupRepositoryProvider).getMyGroups(userId);
+    if (_disposed) return;
+    result.fold((_) {}, (groups) => state = AsyncValue.data(groups));
   }
 
   /// Motif du dernier échec d'écriture, pour que l'écran puisse le dire à
@@ -281,6 +315,14 @@ class MyGroupsNotifier extends _$MyGroupsNotifier {
 }
 
 /// Stream provider for real-time group updates
+// Ce titre a longtemps été un vœu : le flux ne faisait que son chargement
+// initial. `public.groups` n'était pas dans la publication
+// `supabase_realtime`, et l'appartenance affichée par la fiche ne vit de
+// toute façon pas dans `groups` mais dans `group_members`. Les deux sont
+// corrigés — voir `GroupSupabaseDataSource.getGroupStream`.
+//
+// Commentaire simple et non `///` à dessein : riverpod_generator recopie les
+// commentaires de documentation dans le `.g.dart`, qu'on ne régénère pas ici.
 @riverpod
 Stream<GroupEntity?> groupStream(Ref ref, String groupId) {
   final repository = ref.watch(groupRepositoryProvider);

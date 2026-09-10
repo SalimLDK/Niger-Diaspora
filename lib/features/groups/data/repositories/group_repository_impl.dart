@@ -312,6 +312,14 @@ class GroupRepositoryImpl implements GroupRepository {
   }
 
   @override
+  Stream<void> watchMyMemberships(String userId) {
+    // Pas de garde `networkInfo` : l'abonnement realtime se rétablit tout
+    // seul au retour du réseau, alors qu'un flux refusé une fois ici ne
+    // repartirait jamais.
+    return remoteDataSource.watchMyMemberships(userId);
+  }
+
+  @override
   Future<Either<Failure, List<GroupEntity>>> searchGroups(String query) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
