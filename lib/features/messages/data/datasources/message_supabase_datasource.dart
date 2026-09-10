@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
@@ -15,6 +16,29 @@ import '../../../../core/services/supabase_auth_bridge.dart';
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
 import 'message_remote_datasource.dart';
+
+/// Champs de `data` qui portent du contenu utilisateur **sans passer par
+/// `content`** — donc sans passer par Signal : la carte d'un post, d'un
+/// événement, d'une annonce, et l'aperçu d'un lien.
+///
+/// Ils partaient en clair dans `messages.data` : titre, extrait, nom, URL
+/// cible et image de ce qui était partagé. Ils sont désormais regroupés dans
+/// [_kAnnexesChiffrees], chiffré au repos avec la clé dérivée de la
+/// conversation.
+const _kChampsAnnexes = <String>[
+  'postData',
+  'eventData',
+  'productData',
+  'linkPreviewData',
+];
+
+/// Clé du blob chiffré qui remplace les champs de [_kChampsAnnexes].
+///
+/// Un client plus ancien ne la connaît pas : il n'affichera pas la carte, mais
+/// le texte du message reste lisible. Dégradation choisie — les deux formats
+/// cohabitent sans migration, un message d'avant garde ses champs en clair et
+/// se relit tel quel.
+const _kAnnexesChiffrees = 'encAnnexes';
 
 /// Supabase implementation of [MessageRemoteDataSource].
 ///
@@ -178,6 +202,8 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           data['content'] = kEncryptedMessagePlaceholder;
         }
       }
+
+      await _fusionnerAnnexes(data, row['conversation_id'] as String?);
     }
 
     return MessageModel.fromJson({
@@ -189,6 +215,75 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       'createdAt': row['created_at'],
       'deletedForEveryone': row['is_deleted'] ?? false,
     });
+  }
+
+  /// Chiffre les charges annexes d'un message en un seul blob.
+  ///
+  /// Rend la map à fusionner dans `data` : soit vide, soit le seul
+  /// [_kAnnexesChiffrees] — **jamais** les champs en clair. Un chiffrement
+  /// impossible fait donc perdre la carte, pas le message : le contraire
+  /// (retomber en clair) annulerait tout le bénéfice sans rien dire.
+  Future<Map<String, dynamic>> _chiffrerAnnexes(
+    Map<String, Map<String, dynamic>?> annexes,
+    String conversationId,
+  ) async {
+    final presentes = <String, dynamic>{
+      for (final entree in annexes.entries)
+        if (entree.value != null) entree.key: entree.value,
+    };
+    if (presentes.isEmpty) return const {};
+
+    final crypto = _crypto;
+    if (crypto == null) return const {};
+
+    try {
+      return {
+        _kAnnexesChiffrees: await crypto.chiffrerAnnexe(
+          jsonEncode(presentes),
+          conversationId: conversationId,
+        ),
+      };
+    } catch (e) {
+      debugPrint('MessageSupabaseDataSource: annexes non chiffrées ($e)');
+      return const {};
+    }
+  }
+
+  /// Remet les charges annexes déchiffrées dans `data`, à leur place d'origine.
+  ///
+  /// Ne touche pas aux champs déjà présents en clair : un message d'avant la
+  /// bascule les porte tels quels, et c'est lui qui fait foi. Un échec de
+  /// déchiffrement laisse simplement la carte absente — le texte du message,
+  /// lui, a déjà été résolu par le chemin de `content`.
+  Future<void> _fusionnerAnnexes(
+    Map<String, dynamic> data,
+    String? conversationId,
+  ) async {
+    final chiffre = data[_kAnnexesChiffrees];
+    if (chiffre is! String || chiffre.isEmpty) return;
+
+    final crypto = _crypto;
+    if (crypto == null) return;
+
+    try {
+      final clair = await crypto.dechiffrerAnnexe(
+        chiffre,
+        conversationId: conversationId,
+      );
+      final decode = jsonDecode(clair);
+      if (decode is! Map) return;
+
+      for (final champ in _kChampsAnnexes) {
+        final valeur = decode[champ];
+        if (valeur is Map && !data.containsKey(champ)) {
+          data[champ] = Map<String, dynamic>.from(valeur);
+        }
+      }
+    } catch (e) {
+      // Clé indisponible, version inconnue, marqueur d'illisibilité renvoyé à
+      // la place du JSON : aucune de ces situations ne doit coûter le message.
+      debugPrint('MessageSupabaseDataSource: annexes illisibles ($e)');
+    }
   }
 
   /// Encrypt plaintext using Signal Protocol (E2EE mandatory — no AES fallback).
@@ -782,6 +877,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         selfNote: selfNote,
       );
 
+      final annexesChiffrees = await _chiffrerAnnexes({
+        'postData': postData,
+        'eventData': eventData,
+        'productData': productData,
+        'linkPreviewData': linkPreviewData,
+      }, conversationId);
+
       final msgData = <String, dynamic>{
         'senderName': senderName,
         if (senderPhotoUrl != null) 'senderPhotoUrl': senderPhotoUrl,
@@ -796,12 +898,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         if (replyToId != null) 'replyToId': replyToId,
         if (replyToMessageData != null)
           'replyToMessageData': replyToMessageData,
-        if (productData != null) 'productData': productData,
-        if (postData != null) 'postData': postData,
-        if (eventData != null) 'eventData': eventData,
+        ...annexesChiffrees,
         if (sentWhileBlockedBy.isNotEmpty)
           'sentWhileBlockedBy': sentWhileBlockedBy,
-        if (linkPreviewData != null) 'linkPreviewData': linkPreviewData,
         if (isForwarded) 'isForwarded': isForwarded,
         if (mentionedUsers.isNotEmpty) 'mentionedUsers': mentionedUsers,
         if (clientMessageId != null) 'clientMessageId': clientMessageId,
@@ -832,10 +931,17 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         at: now,
       );
 
-      // Always return plaintext to the sender's local state
+      // Always return plaintext to the sender's local state — les charges
+      // annexes comme le contenu : `msgData` ne porte que leur forme chiffrée,
+      // et sans ce rappel l'expéditeur verrait sa propre carte disparaître de
+      // sa bulle jusqu'au prochain chargement.
       return MessageModel.fromJson({
         ...msgData,
         'content': content,
+        if (postData != null) 'postData': postData,
+        if (eventData != null) 'eventData': eventData,
+        if (productData != null) 'productData': productData,
+        if (linkPreviewData != null) 'linkPreviewData': linkPreviewData,
         'id': msgId,
         'senderId': senderId,
         'type': 'text',
@@ -2122,6 +2228,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       data['content'] = '';
       data.remove('fileUrl');
       data.remove('thumbnailUrl');
+      // Une carte de partage survivait à « supprimer pour tout le monde » :
+      // le contenu partait, l'aperçu — titre, extrait, image, URL cible —
+      // restait en base. La forme chiffrée comme les anciennes en clair.
+      data.remove(_kAnnexesChiffrees);
+      for (final champ in _kChampsAnnexes) {
+        data.remove(champ);
+      }
 
       await _supabase
           .from('messages')

@@ -14,6 +14,44 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Cartes de partage chiffrées au repos (2026-09-09)
+
+Une carte de partage (post, événement, annonce, aperçu de lien) ne transite pas
+par `content` : elle ne passait donc pas par Signal et partait **en clair**
+dans `messages.data`. Elle voyage désormais dans un blob unique `encAnnexes`,
+chiffré avec la clé dérivée de la conversation — même famille que les aperçus,
+la localisation et les médias.
+
+Les deux formats cohabitent sans migration : un message d'avant garde ses
+champs en clair et se relit tel quel. Un client plus ancien n'affichera pas la
+carte, mais le texte reste lisible.
+
+C'est le chemin le plus silencieux du dépôt : une carte qui n'arrive pas ne
+produit **aucune erreur**, ni à l'écran ni dans logcat.
+
+- [ ] **Aller-retour réel entre deux comptes** : partager un groupe depuis le
+  téléphone A vers un 1:1 et vers un groupe ; vérifier sur le téléphone B que
+  la carte s'affiche avec image et titre, et que le tap ouvre l'écran.
+  (Deux appareils = deux comptes, cf. le rappel de config plus bas.)
+- [ ] **La carte survit à un accusé de lecture** : c'était le piège. Le flux de
+  mises à jour rend la ligne BRUTE ; sans report explicite, la carte
+  disparaissait de la bulle dès que l'autre lisait le message.
+  (`message_provider.dart`, `_listenForMessageUpdates`)
+- [ ] **La carte survit à un redémarrage** (relecture depuis le cache Hive puis
+  depuis le serveur) et à un défilement qui recharge la page de messages.
+- [ ] **Hors ligne au moment de l'envoi** : la clé dérivée vient d'un
+  aller-retour réseau (`crypto-keys`). Vérifier ce que devient un partage
+  envoyé sans réseau, puis à la reconnexion.
+- [ ] **En base, plus rien de lisible** : `select data from messages where
+  data ? 'encAnnexes' limit 1` ne doit montrer ni titre, ni URL, ni nom.
+- [ ] **« Supprimer pour tout le monde » efface aussi la carte** : la ligne ne
+  doit plus porter `encAnnexes` après suppression.
+- [ ] **Mesure du repli** : quelle proportion des blobs est au format dérivé
+  (`v<n>:`) plutôt qu'à la clé globale. Tant que le repli global sert, la
+  confidentialité n'est pas acquise — la clé globale est extractible de l'APK.
+
+---
+
 ## ⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)
 
 Le partage ne savait sortir de l'app (WhatsApp / Facebook / X / feuille

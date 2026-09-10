@@ -472,10 +472,20 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
                 // les métadonnées mutables portées par l'update (réactions, statut
                 // lu/livré, épinglage, etc.). Les vrais changements de contenu
                 // (suppression pour tous) passent par des chemins dédiés.
+                //
+                // Les charges annexes suivent la même règle depuis qu'elles sont
+                // chiffrées au repos : la ligne brute ne porte que leur blob, que
+                // ce chemin ne déchiffre pas. Sans ce rappel, le premier accusé
+                // de lecture faisait disparaître la carte du post ou du groupe
+                // partagé — sans erreur nulle part.
                 final existing = existingMessages[index];
                 existingMessages[index] = updatedMessage.copyWith(
                   content: existing.content,
                   fileUrl: existing.fileUrl,
+                  postData: existing.postData,
+                  eventData: existing.eventData,
+                  productData: existing.productData,
+                  linkPreviewData: existing.linkPreviewData,
                 );
                 debugPrint(
                   'Message ${updatedMessage.id} read_by updated: ${updatedMessage.readBy}',
