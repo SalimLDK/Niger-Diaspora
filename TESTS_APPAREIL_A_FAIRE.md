@@ -12637,6 +12637,57 @@ committé à 20:12. Avant toute conclusion sur un comportement appareil, compare
 
 ---
 
+## ⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09)
+
+Trouvé en cherchant à vérifier la remontée d'erreurs. Le SDK Crashlytics
+s'initialise bien sur la build release (`Initializing Firebase Crashlytics
+19.4.4` dans logcat) et les non-fatals partent — mais **le plugin Gradle
+n'était déclaré nulle part** dans `android/`. Or `isMinifyEnabled = true` sur
+release : sans lui, aucun fichier de mapping R8 n'est envoyé, et les piles
+d'appel arrivent obfusquées, donc inexploitables. C'est aussi ce plugin qui
+pousse les symboles NDK (le `debugSymbolLevel = "FULL"` existant ne sert que
+pour Play).
+
+Déclaré dans [settings.gradle.kts](android/settings.gradle.kts) et
+[app/build.gradle.kts](android/app/build.gradle.kts).
+
+⚠️ **Le premier build a échoué** : le plugin Crashlytics 3 exige
+`google-services` **4.4.1 minimum**, le projet était en 4.3.15 —
+« Failed to query the value of task
+':app:uploadCrashlyticsMappingFileRelease' property 'appIdFile' ». Monté à
+4.4.2, le build passe. Une montée de `google-services` seule n'aurait servi à
+rien : les deux vont ensemble.
+
+Vérifié après build : `build/app/crashlytics/release/mappingFileId.txt` et
+`com_google_firebase_crashlytics_mappingfileid.xml` injecté dans les
+ressources — c'est cet identifiant qui relie un rapport à son mapping, et il
+n'existait pas avant.
+
+- [x] **L'app démarre toujours** — SM A515F, APK release
+  `ea2db3cdb3c0153e9bc6107a16ce7f61` (md5 local = md5 `pm path`). Firebase et
+  Crashlytics s'initialisent, aucun `FATAL EXCEPTION`, et la zone muette tient
+  (2 lignes flutter, moteur natif). La montée de `google-services` n'a rien
+  cassé au runtime.
+- [ ] **Un non-fatal arrive-t-il vraiment dans la console ?** ⚠️ **Non
+  vérifiable en l'état.** Le seul site qui appelle `LoggerService.e` est
+  `map_screen.dart:760`, dans le `catch` de `_loadNearbyMembers` — lequel
+  exige `_currentPosition != null`. Or le compte de test est en **« Mode privé
+  activé »** : la carte s'arrête sur sa carte d'invitation et ne demande jamais
+  de position. Coupure réseau confirmée (mode avion), l'écran ne bouge pas.
+  Pour déclencher, il faudrait appuyer sur « ACTIVER » — donc **modifier un
+  réglage de confidentialité du compte**, ce qu'une session de test ne doit pas
+  faire sans accord explicite.
+- [ ] **Piles déobfusquées dans la console** : après une remontée réelle,
+  vérifier que la trace est lisible (noms de classes Dart/Java, pas `a.b.c`).
+  C'est le bénéfice concret du plugin, et il ne se voit que côté console.
+
+⚠️ **À savoir sur la portée du branchement Crashlytics** : `LoggerService.e`
+n'a **qu'un seul** site d'appel dans tout `lib/`. Les huit autres usages du
+logger sont des `.w`, volontairement laissés muets. Le branchement ajouté le
+2026-09-09 couvre donc un chemin d'erreur, pas neuf.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.
