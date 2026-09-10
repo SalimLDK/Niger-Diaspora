@@ -1,7 +1,12 @@
 -- Banc des invitations de groupe -- rejoue le parcours reel et les
 -- contournements connus, dans une transaction ANNULEE (rien n'est ecrit).
 --
---   supabase db query --linked "$(cat supabase/diagnostics/2026-09-09_invitations_groupe.sql)"
+--   supabase db query --linked -f supabase/diagnostics/2026-09-09_invitations_groupe.sql
+--
+-- Passer le fichier avec `-f`, PAS en argument via "$(cat …)" : le banc
+-- contient des accents et des barres de cadre, et cette forme le fait echouer
+-- sur un message tronque qui ressemble a un vrai « ECHEC 1 ». Une minute
+-- perdue a croire le correctif casse, le 2026-09-09.
 --
 -- Sortie attendue : la ligne « banc termine ». N'IMPORTE QUEL « ECHEC n » leve
 -- une exception et interrompt tout -- c'est le signal.

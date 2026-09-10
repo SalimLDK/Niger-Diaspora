@@ -73,10 +73,18 @@ qui ne compte plus une invitation refusée).
 Banc rejouable, transaction annulée, rien n'est écrit :
 
 ```bash
-supabase db query --linked "$(cat supabase/diagnostics/2026-09-09_invitations_groupe.sql)"
+supabase db query --linked -f supabase/diagnostics/2026-09-09_invitations_groupe.sql
 ```
 
 Sortie attendue : « banc termine ». Tout « ECHEC n » interrompt le banc.
+Passer le fichier avec `-f` et non en argument : sous cette seconde forme les
+accents du banc le font échouer sur un message tronqué, qui se lit comme un
+vrai échec.
+
+**Appliqué en production le 2026-09-09** (`supabase db push`), banc rejoué
+contre la base réelle : « banc termine ». L'attaque est désormais refusée
+nommément — `new row violates row-level security policy
+"group_invites_insert_gate"`.
 
 ---
 
