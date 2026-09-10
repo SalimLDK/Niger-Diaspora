@@ -353,29 +353,39 @@ les administrateurs voyaient encore leur discussion — ce qui explique aussi
 pourquoi le défaut a pu vivre longtemps sans être vu (les deux comptes de test
 étaient créateurs de leurs propres groupes).
 
-Correctif écrit :
-`supabase/migrations/20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql`
-— exemption miroir de celle qui existe déjà pour « quitter le groupe » :
-s'ajouter **soi seul** en queue de `participant_ids`, `adminIds` inchangé, et
-seulement si l'on est un membre réel du groupe. Subtilité prise en compte : le
-trigger identifie l'appelant par `firebase_uid()` alors que la RPC ajoute
-`current_user_id()`, deux fonctions différentes — l'exemption accepte les deux
-identités, l'autorisation réelle venant de `group_members`.
+**Le correctif appartient à l'autre session** (worktree `inviter-membres`,
+`20260909223000_invite_entre_dans_la_discussion.sql`). J'en avais écrit un —
+`20260909210500`, exemption « un membre réel du groupe peut s'ajouter
+lui-même » — **il était faux et a été retiré** avant tout déploiement.
 
-⚠️ **Non déployé** : la migration n'est pas encore passée par `supabase db
-push`. Tant qu'elle ne l'est pas, le défaut reste entier en production.
+Pourquoi il était faux, et c'est le point à retenir : `removeUserFromGroup`
+(`message_supabase_datasource.dart:2044`) ne retire la personne **que** de
+`conversations.participant_ids` et de `data.adminIds` — **sa ligne
+`group_members` reste**. Une exemption adossée à « est membre du groupe »
+aurait donc rendu à chaque personne exclue le droit de se remettre dans la
+discussion en l'ouvrant : toutes les exclusions annulées en silence, sans
+trace. Aujourd'hui c'est ce garde qui fait tenir l'exclusion — par effet de
+bord, pas par intention. L'autre session adosse son exemption à
+`has_group_invite()`, ce qui ne rouvre pas cette porte.
 
-À vérifier une fois déployée :
+⚠️ **Non déployé au 2026-09-09 21:15** : `supabase db push` échoue avant même
+de commencer — la base a une version `20260909210000` dont le fichier n'est
+poussé nulle part (il vit dans le worktree `groupes-temps-reel`). Tant que
+cette session n'a pas livré son fichier, **personne ne peut déployer quoi que
+ce soit** : `db push` refuse de tourner sur un historique incomplet.
 
-- [ ] SM A515F (Sim A, membre simple) : « Ouvrir la discussion » sur
-      « Testeurs » ouvre le fil, sans bandeau rouge.
+À vérifier une fois le correctif de l'autre session déployé :
+
+- [ ] SM A515F (Sim A, membre simple de « Testeurs ») : « Ouvrir la
+      discussion » ouvre le fil, sans bandeau rouge.
 - [ ] Le groupe apparaît ensuite dans l'onglet Messages de Sim A (c'est
       l'ajout à `participant_ids` qui l'y fait entrer).
 - [ ] **Non-régression de la garde** : depuis un compte membre simple, tenter
-      de se promouvoir admin ou d'exclure quelqu'un doit toujours être refusé
-      (c'est ce que le trigger protège à l'origine).
-- [ ] Quitter un groupe en tant que membre simple marche encore (l'exemption
-      symétrique, qu'on n'a fait que déplacer dans la fonction).
+      de se promouvoir admin ou d'exclure quelqu'un doit toujours être refusé.
+- [ ] **Non-régression de l'exclusion** : exclure quelqu'un, puis depuis SON
+      compte rouvrir la discussion du groupe — il ne doit **pas** y rentrer.
+      C'est précisément ce que mon correctif cassait.
+- [ ] Quitter un groupe en tant que membre simple marche encore.
 
 ---
 
