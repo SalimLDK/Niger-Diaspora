@@ -319,6 +319,92 @@ Restent à faire :
 
 ---
 
+## ⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)
+
+Trouvé en essayant simplement d'ouvrir « Testeurs » depuis le SM A515F, avec
+le compte **Sim A**, membre simple (Salim L. est le créateur). « Ouvrir la
+discussion » ne fait rien pendant ~4 s, puis un bandeau rouge — et il faut
+capturer à ~1 s pour le voir, sinon on croit à un bouton mort :
+
+```
+Erreur lors de l'ouverture de la discussion — createGroupConversation error:
+ServerException: findGroupConversationByGroupId error:
+PostgrestException(message: Seul un administrateur du groupe peut modifier les
+membres ou les droits admin de cette conversation, code: 42501,
+details: Forbidden, hint: null)
+```
+
+**Deux migrations justes séparément, incompatibles ensemble.**
+
+- `20260720130000` crée `join_group_conversation()`, SECURITY DEFINER, dont le
+  travail est précisément d'ajouter l'appelant à
+  `conversations.participant_ids` quand il a rejoint le groupe **après** la
+  création de la conversation — le cas courant. Elle vérifie d'abord
+  l'appartenance réelle dans `group_members`.
+- `20260814000500` pose ensuite le trigger `conversations_guard_admin_fields`,
+  qui refuse toute UPDATE touchant `participant_ids` ou `adminIds` à qui n'est
+  pas administrateur.
+
+**SECURITY DEFINER contourne les policies RLS, pas les TRIGGERS.** L'UPDATE de
+la RPC déclenche donc la garde, qui la refuse. La fonction écrite pour laisser
+entrer un nouveau membre est bloquée par une garde écrite trois semaines plus
+tard : le groupe devient inouvrable pour **tous ses membres simples**. Seuls
+les administrateurs voyaient encore leur discussion — ce qui explique aussi
+pourquoi le défaut a pu vivre longtemps sans être vu (les deux comptes de test
+étaient créateurs de leurs propres groupes).
+
+**Le correctif appartient à l'autre session** (worktree `inviter-membres`,
+`20260909223000_invite_entre_dans_la_discussion.sql`). J'en avais écrit un —
+`20260909210500`, exemption « un membre réel du groupe peut s'ajouter
+lui-même » — **il était faux et a été retiré** avant tout déploiement.
+
+Pourquoi il était faux, et c'est le point à retenir : `removeUserFromGroup`
+(`message_supabase_datasource.dart:2044`) ne retire la personne **que** de
+`conversations.participant_ids` et de `data.adminIds` — **sa ligne
+`group_members` reste**. Une exemption adossée à « est membre du groupe »
+aurait donc rendu à chaque personne exclue le droit de se remettre dans la
+discussion en l'ouvrant : toutes les exclusions annulées en silence, sans
+trace. Aujourd'hui c'est ce garde qui fait tenir l'exclusion — par effet de
+bord, pas par intention. L'autre session adosse son exemption à
+`has_group_invite()`, ce qui ne rouvre pas cette porte.
+
+**La question de fond, à trancher une fois** (demande de Salim le
+2026-09-09 : « tout membre peut ouvrir les conversations »). Adosser
+l'exemption à l'**invitation** ne couvre pas quelqu'un qui a rejoint un
+groupe **public** sans jamais être invité. Adosser à l'**appartenance** rouvre
+la porte aux exclus. Les deux options sont bancales pour la même raison :
+**l'exclusion n'est enregistrée nulle part de durable** — elle n'existe que
+comme une absence dans `conversations.participant_ids`, et `group_members`
+continue d'affirmer le contraire. Tant que `removeUserFromGroup` ne supprime
+pas aussi la ligne `group_members` (ou n'écrit pas un état « exclu »),
+« membre du groupe » restera un critère qu'on ne peut pas utiliser pour
+autoriser quoi que ce soit.
+
+⚠️ `message_supabase_datasource.dart` est **tenu par le worktree
+`partage-discussion`** (modifié, non committé) : ne pas y toucher sans
+coordination.
+
+⚠️ **Non déployé au 2026-09-09 21:15** : `supabase db push` échoue avant même
+de commencer — la base a une version `20260909210000` dont le fichier n'est
+poussé nulle part (il vit dans le worktree `groupes-temps-reel`). Tant que
+cette session n'a pas livré son fichier, **personne ne peut déployer quoi que
+ce soit** : `db push` refuse de tourner sur un historique incomplet.
+
+À vérifier une fois le correctif de l'autre session déployé :
+
+- [ ] SM A515F (Sim A, membre simple de « Testeurs ») : « Ouvrir la
+      discussion » ouvre le fil, sans bandeau rouge.
+- [ ] Le groupe apparaît ensuite dans l'onglet Messages de Sim A (c'est
+      l'ajout à `participant_ids` qui l'y fait entrer).
+- [ ] **Non-régression de la garde** : depuis un compte membre simple, tenter
+      de se promouvoir admin ou d'exclure quelqu'un doit toujours être refusé.
+- [ ] **Non-régression de l'exclusion** : exclure quelqu'un, puis depuis SON
+      compte rouvrir la discussion du groupe — il ne doit **pas** y rentrer.
+      C'est précisément ce que mon correctif cassait.
+- [ ] Quitter un groupe en tant que membre simple marche encore.
+
+---
+
 ## ⛔ Le Pixel s'est retrouvé DÉCONNECTÉ pendant la passe (2026-09-09, 20:39)
 
 À signaler avant tout : le Pixel 10 Pro XL porte le **vrai compte** de Salim
@@ -376,11 +462,23 @@ avec un bouton « Réessayer » qui **échoue à chaque fois** (deux essais, à
 plusieurs secondes d'écart). Donc `GroupMembersScreen` sans `widget.group`
 → `loadGroup(groupId)` → `getGroupById` en échec.
 
-Deux choses à démêler quand on le reprendra :
+**Piste sérieuse trouvée à 20:54, à ne pas confondre avec un vrai bug** :
+le même « Erreur de chargement » est apparu sur l'onglet **Groupes** du
+SM A515F, avec « Mes groupes · 0 » — l'appareil était alors **hors ligne**
+(aucune barre de réseau à l'écran). Un simple « Actualiser » une fois la
+connexion revenue a rendu « 3 rejoints » et les trois groupes. Avant de
+chercher plus loin sur la fiche Membres, **vérifier la connectivité au moment
+exact de l'erreur** (`adb shell dumpsys connectivity | grep 'Active default
+network'`, et un `ping`) : cet écran ne distingue pas « hors ligne » de
+« refusé », il affiche le même message dans les deux cas — ce qui est
+peut-être le vrai défaut à corriger.
 
-- [ ] Pourquoi `getGroupById` échoue là où l'écran affichait le groupe une
+Restent à démêler :
+
+- [ ] Pourquoi `getGroupById` échouait là où l'écran affichait le groupe une
       minute plus tôt (le groupe venait d'être créé — id récent, pas un id
-      hérité Firestore).
+      hérité Firestore) — et si c'était simplement le réseau, faire dire à
+      l'écran « hors ligne » plutôt que « Erreur de chargement ».
 - [ ] La flèche « retour » de cet écran **quitte l'application** au lieu de
       revenir à la fiche du groupe : `context.pop()` sur une pile qui ne
       contient que cette route. Même famille que les écrans de lien profond.
