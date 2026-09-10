@@ -4,14 +4,20 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 
+/// Les lectures rendent `bool?`, et le `null` compte autant que les deux
+/// autres valeurs : il veut dire **indéterminé** — la session n'était pas
+/// lisible, la ligne n'a pas pu être atteinte. À ne jamais confondre avec
+/// `false`, qui veut dire « la base a répondu, et la personne ne l'a pas
+/// fait ». Confondre les deux rejoue tout l'onboarding d'un compte qui l'a
+/// terminé ; voir `OnboardingNotifier`.
 abstract class OnboardingRemoteDataSource {
-  Future<bool> hasSeenOnboarding();
+  Future<bool?> hasSeenOnboarding();
   Future<void> setOnboardingComplete();
-  Future<bool> hasSeenCoachMarks();
+  Future<bool?> hasSeenCoachMarks();
   Future<void> setCoachMarksComplete();
-  Future<bool> hasGivenConsent();
+  Future<bool?> hasGivenConsent();
   Future<void> setConsentGiven();
-  Future<bool> hasCompletedProfileConfig();
+  Future<bool?> hasCompletedProfileConfig();
   Future<void> setProfileConfigComplete();
 }
 
@@ -44,18 +50,31 @@ class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
        _ensureReadableAuth =
            ensureReadableAuth ?? SupabaseAuthBridge.instance.ensureReadableSession;
 
-  Future<bool> _readFlag(String column) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) return false;
-      if (!await _ensureReadableAuth()) return false;
+  /// Lit un drapeau, ou rend `null` si la lecture n'a rien pu établir.
+  ///
+  /// Les deux replis rendaient `false`, c'est-à-dire « jamais vu », et c'est
+  /// exactement ce qu'ils ne savent pas. `ensureReadableSession` en
+  /// particulier abandonne au bout de 3 s **sans** session et laisse la
+  /// synchronisation finir en tâche de fond (voir sa docstring : « mieux vaut
+  /// dégrader que geler l'écran ») — un démarrage à froid sur réseau lent
+  /// dépasse ce budget, et les quatre drapeaux tombaient alors à `false` d'un
+  /// coup, consentement compris.
+  Future<bool?> _readFlag(String column) async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+    if (!await _ensureReadableAuth()) return null;
 
+    try {
       final row = await _supabase
           .from('users')
           .select(column)
           .eq('id', user.uid)
           .maybeSingle();
-      return (row?[column] as bool?) ?? false;
+      // Session valide et ligne absente : RLS laisse chacun voir sa propre
+      // ligne (vérifié en base le 2026-09-10), donc l'absence est réelle et
+      // signe un compte tout neuf. Ici `false` est une réponse, pas un repli.
+      if (row == null) return false;
+      return row[column] as bool?;
     } catch (e) {
       throw ServerException('Erreur lors de la lecture de $column');
     }
@@ -80,19 +99,19 @@ class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
   }
 
   @override
-  Future<bool> hasSeenOnboarding() => _readFlag('has_seen_onboarding');
+  Future<bool?> hasSeenOnboarding() => _readFlag('has_seen_onboarding');
 
   @override
   Future<void> setOnboardingComplete() => _writeFlag('has_seen_onboarding');
 
   @override
-  Future<bool> hasSeenCoachMarks() => _readFlag('has_seen_coach_marks');
+  Future<bool?> hasSeenCoachMarks() => _readFlag('has_seen_coach_marks');
 
   @override
   Future<void> setCoachMarksComplete() => _writeFlag('has_seen_coach_marks');
 
   @override
-  Future<bool> hasGivenConsent() => _readFlag('has_given_consent');
+  Future<bool?> hasGivenConsent() => _readFlag('has_given_consent');
 
   @override
   Future<void> setConsentGiven() async {
@@ -117,7 +136,7 @@ class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
   }
 
   @override
-  Future<bool> hasCompletedProfileConfig() =>
+  Future<bool?> hasCompletedProfileConfig() =>
       _readFlag('profile_config_complete');
 
   @override

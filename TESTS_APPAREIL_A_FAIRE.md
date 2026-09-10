@@ -14,6 +14,66 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)
+
+**Ce qui a été observé.** Le 2026-09-10 sur SM-A515F (`R58N91XBA7B`), compte
+« Sim A », après plusieurs `adb install -r` d'un APK release : l'app a démarré
+sur l'onboarding 1/5 alors que le compte l'avait terminé de longue date.
+
+**Les deux causes ont été départagées, et ce n'était pas la lecture distante.**
+Le routeur teste le consentement (étape 6) et l'assistant de profil (étape 7)
+**avant** l'intro (étape 8) : atterrir sur 1/5 exige donc que ces deux
+drapeaux-là aient été lus à `true`. Et les quatre valeurs vivent ensemble —
+même fichier SharedPreferences côté local, même ligne `public.users` côté
+distant, lues dans la même session à quelques secondes d'intervalle. Aucun
+mode de panne ne produit « consentement vrai, intro faux » : seule la donnée
+le peut. Confirmé en base : `consent_date` de « Sim A » est resté au
+2026-07-16, donc l'écran de consentement **n'a pas été affiché** ce jour-là —
+il l'aurait réécrit. La lecture distante fonctionnait ; c'est
+`has_seen_onboarding` qui valait réellement `false` sur `public.users`,
+reliquat de la bascule Firestore→Supabase du 2026-08-13 (`160d417`) : avant
+cette date l'app écrivait ses drapeaux sur Firestore, la colonne Supabase est
+donc restée à son `DEFAULT false` pour tout compte ayant fini son onboarding
+plus tôt.
+
+**Le défaut corrigé est l'autre, réel mais non déclenché ce jour-là.** Un
+échec de lecture était converti en `false`, c'est-à-dire en « rejoue tout ».
+`SupabaseAuthBridge.ensureReadableSession` rend la main au bout de **3 s sans
+session** en laissant la synchronisation finir en tâche de fond : un démarrage
+à froid sur réseau lent dépasse ce budget et faisait tomber les quatre
+drapeaux ensemble — consentement (réécrit `consent_date`), assistant de profil
+en 4 étapes (**écrit dans le profil, peut renommer le compte**), puis l'intro.
+L'indéterminé est désormais distinct de `false` de bout en bout, et ne
+redescend jamais un drapeau. Verrouillé par
+`test/features/onboarding/lecture_en_echec_test.dart` (21 cas).
+
+À vérifier sur appareil — rien de tout ceci n'est observable par
+`flutter test` :
+
+- [ ] **Compte neuf** : créer un compte et confirmer que consentement,
+      assistant de profil puis les 5 écrans d'intro s'affichent bien dans cet
+      ordre. C'est le cas que le repli optimiste pourrait avaler ; le test
+      « les quatre lectures rendent false » le couvre en unitaire, pas en
+      vrai.
+- [ ] **Compte établi, réseau lent** : brider le réseau (voir la recette
+      « mode avion / hôte injoignable » plus bas), tuer et relancer l'app avec
+      « Sim A ». Attendu : `/home` directement, aucun écran d'onboarding. Avant
+      correctif ce chemin passait par `/consent`.
+- [ ] **La reprise** : la lecture indéterminée est retentée une fois après 4 s
+      (`OnboardingNotifier.delaiDeReprise`). Sur un compte neuf dont la
+      première lecture échoue, l'écran de consentement doit apparaître ~4 s
+      après l'entrée dans l'app, pas jamais.
+- [ ] **Réinstallation** : `adb install -r` conserve les préférences, une
+      désinstallation non. Vérifier qu'après désinstallation + réinstallation,
+      un compte à jour côté serveur ne rejoue **pas** l'onboarding — c'est la
+      moitié serveur du garde-fou.
+
+⚠️ Le drapeau local ne se relit pas depuis ce poste : le build de l'appareil
+est **release**, `run-as` répond « package not debuggable ». Pour départager
+local et distant, passer par `public.users` en base, pas par `shared_prefs/`.
+
+---
+
 ## ⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)
 
 Le travail iOS de `claude/ios-support` — première compilation de la cible,
