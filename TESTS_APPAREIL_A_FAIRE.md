@@ -748,12 +748,11 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       `canPop() ? pop() : go(<parent>)`, avec le parent logique de chaque
       route et non un `/home` uniforme.
 
-      **Deux rejouées à l'intent** : `diasponiger:///services` → accueil, et
-      `diasponiger:///groups/<id>` → **Groupes**, pas l'accueil — c'est bien
-      le parent qui sort, pas le repli uniforme. Les vingt autres sont le
-      même motif, tenu par le garde-fou ; restent à voir à l'œil :
-      `/events/<id>` (→ Événements), `/notifications/settings` (→ Réglages),
-      `/profile/edit` (→ Profil), `/feed/space/hashtags` (→ Mon espace).
+      **Neuf rejouées à l'intent** le 2026-09-10 — voir le tableau de la passe
+      appareil plus bas. Chacune sort sur **son** parent, pas sur un `/home`
+      uniforme. Restent à voir à l'œil : `/events/<id>`, `/polls/<id>/results`,
+      les écrans de création/édition, et les cinq écrans podcasts (bloqués par
+      leur feature-flag).
       Trois d'entre elles ne sont venues qu'à la deuxième passe (galerie
       média, favoris, bandeau hashtag du fil) : leur `IconButton` déclare
       `onPressed:` **avant** `icon:`, et le détecteur partait de l'icône.
@@ -787,7 +786,7 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       depuis l'onglet Accueil, retour système → l'app se ferme, comme avant ✅ ;
       Groupes → une fiche (push interne) + retour système → la liste, **pas**
       l'accueil ✅.
-- [ ] **Deux écrans masquaient leur flèche quand la pile est vide** —
+- [x] **Deux écrans masquaient leur flèche quand la pile est vide** ✅ SM A515F 2026-09-10 01:04 —
       `/feed` et `/calls/history` posaient leur sortie sous
       `if (context.canPop()) …` : elle disparaissait donc exactement dans le
       cas qu'elle devait couvrir. Les deux justifications écrites sur place
@@ -843,6 +842,35 @@ rejoindre » ; aperçu nul → pas de fausse porte.
 - [ ] Redemander deux fois ne doit pas empiler deux demandes.
 
 ---
+### Passe appareil du 2026-09-10 — neuf liens rejoués
+
+SM A515F, build `317a775c…08c6`, md5 contrôlé avant **et** après (l'autre agent
+installe sur le même téléphone). Intents envoyés **à chaud** : à froid, le lien
+retombe sur `/home` par intermittence et la mesure est fausse.
+
+| Lien | Flèche → |
+|---|---|
+| `diasponiger:///services` | Accueil ✅ |
+| `diasponiger:///groups/<id>` | **Groupes** (le parent, pas l'accueil) ✅ |
+| `diasponiger:///feed` | Accueil ✅ *(flèche auparavant masquée)* |
+| `diasponiger:///calls/history` | **Mon profil** ✅ *(flèche auparavant masquée)* |
+| `diasponiger:///search` | Accueil ✅ |
+| `diasponiger:///feed/space/hashtags` | **Mon espace** ✅ |
+| `diasponiger:///notifications/settings` | **Réglages** ✅ |
+| `diasponiger:///groups/map` | **Groupes** ✅ |
+| `diasponiger:///profile/edit` | **Mon profil** ✅ |
+
+Plus les trois mesures du retour système : lien profond → accueil ; onglet
+Accueil → l'app se ferme, comme avant ; navigation interne → la liste, pas
+l'accueil.
+
+⚠️ **Piège de mesure, deux heures perdues avant de le voir** : `uiautomator`
+n'expose **pas** ces `IconButton` d'`AppBar` comme `clickable="true"`. Un
+script qui cherche « le premier nœud cliquable en haut à gauche » tape donc à
+côté — sur la tuile suivante, sur la carte, sur le sélecteur de photo — et
+conclut « la flèche ne marche pas ». Trois des quatre premiers verdicts étaient
+faux pour cette seule raison. La flèche est à **(73, 161)** sur cet appareil ;
+une capture d'écran tranche en dix secondes, un dump XML non.
 
 ## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
 
