@@ -12133,14 +12133,45 @@ mécanisme de capture voit bien une sortie non protégée (sans lui, les deux
 premiers passeraient avec une capture cassée), et un balayage de source qui
 échoue si un `print(` brut réapparaît dans `lib/`.
 
-- [ ] **Logcat toujours muet après ce changement** : refaire la mesure de
-  l'entrée précédente sur un APK release reconstruit — démarrage à froid puis
-  usage réel, `grep " flutter "` doit rester à zéro hors les 2 lignes du moteur
-  natif au démarrage.
-- [ ] **Le démarrage n'a pas régressé** : c'est le point sensible. `main()` a
-  été restructuré (corps déplacé dans `_demarrer`, exécuté dans une zone).
-  Vérifier que l'app démarre, que la session est restaurée et que la messagerie
-  charge — une erreur de zone se verrait immédiatement au lancement.
+- [x] **Logcat toujours muet après ce changement** — vérifié sur SM A515F le
+  2026-09-09, APK release `e0924e531e7e0b0fcadffef3515121a3` (md5 local = md5
+  `pm path`, pas de flag `DEBUGGABLE`).
+
+      démarrage à froid : 6 291 lignes logcat → 2 lignes flutter (moteur natif)
+      envoi d'un message : 1 417 lignes logcat → 0 ligne flutter
+
+  L'envoi est la mesure qui compte, et elle est **contrôlée** : le message
+  « zone-verif » s'affiche « À l'instant · Envoyé » dans la conversation, et
+  18 lignes de la fenêtre mentionnent l'app/Supabase. L'app a donc chiffré,
+  écrit et livré pendant que logcat ne disait rien.
+- [x] **Le démarrage n'a pas régressé** — vérifié le 2026-09-09. Aucune erreur
+  de zone, aucun `FATAL EXCEPTION` imputable à l'app, accueil rendu session
+  restaurée (« Bonjour, Sim », badge notifications, « La carte · Il y a 10 s »
+  — les services de fond tournent), liste de conversations chargée et
+  déchiffrée.
+
+⚠️ **Deux pièges de mesure rencontrés, à ne pas répéter.**
+
+**1. Les coordonnées de tap se périment.** Une première tentative d'usage a
+échoué en silence : la liste s'était réordonnée depuis la capture précédente
+(un message reçu remonte sa conversation), et le tap à `540,987` a ouvert un
+groupe au lieu du 1:1. La suite est partie à l'aveugle — un `KEYCODE_BACK` de
+trop a quitté l'app, un autre tap a **envoyé un lien de partage de groupe** dans
+la vraie conversation à 19:57. Toujours re-dumper l'UI et localiser la cible par
+son libellé avant chaque tap, jamais réutiliser des coordonnées d'un dump
+antérieur.
+
+**2. « Zéro log » ne vaut que si l'app a travaillé.** Cette tentative ratée
+donnait pourtant 0 ligne flutter — un résultat juste, obtenu pour de mauvaises
+raisons. Elle reste exploitable *a posteriori* (1 754 lignes horodatées 19:57
+dans la fenêtre, et l'envoi accidentel a bien eu lieu), mais c'est un coup de
+chance. Exiger une preuve d'activité explicite : ici, l'accusé « Envoyé » sur
+un message nommé.
+
+⚠️ **La conversation « Salim L. » est utilisée par un autre banc de test** —
+des messages « Hi » et « ECHO-DM-1947 » y sont arrivés à 19:46 et 19:47, hors
+de toute action de cette session. Ne pas prendre son contenu pour un état
+stable, et ne pas conclure d'un message qu'on n'a pas envoyé soi-même.
 
 ---
 
