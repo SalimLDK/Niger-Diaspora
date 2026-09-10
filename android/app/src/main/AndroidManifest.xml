@@ -131,6 +131,34 @@
             android:enabled="true"
             />
 
+        <!-- BootReceiver du plugin retiré le 2026-09-09 : il FAIT PLANTER l'app
+             sur Android 15+.
+
+             Le receiver du plugin écoute BOOT_COMPLETED / QUICKBOOT_POWERON /
+             MY_PACKAGE_REPLACED et appelle `startForegroundService()` sur le
+             BackgroundService ci-dessus, dont le type est `location`. Or depuis
+             Android 15, un service de premier plan de type `location` ne peut
+             PAS être démarré depuis BOOT_COMPLETED : le système lève
+             `ForegroundServiceStartNotAllowedException`, non rattrapée par le
+             plugin, et le process meurt — « Diaspo Niger s'arrête
+             systématiquement ».
+
+             Constaté sur Pixel 10 Pro XL (Android 17) le 2026-09-09, deux
+             plantages d'affilée, trace :
+               java.lang.RuntimeException: Unable to start receiver
+                 id.flutter.flutter_background_service.BootReceiver
+               Caused by: ForegroundServiceStartNotAllowedException
+             Le SM A515F (Android 13) n'est pas touché — c'est bien une suite du
+             passage à targetSdk 36.
+
+             Rien n'est perdu : le partage de position continu est démarré par
+             l'app quand l'utilisateur l'active, jamais au démarrage du
+             téléphone, et un redémarrage automatique au boot serait de toute
+             façon refusé par Android 15+ pour ce type de service. -->
+        <receiver
+            android:name="id.flutter.flutter_background_service.BootReceiver"
+            tools:node="remove" />
+
         <!-- PAS de android:showWhenLocked ici — voir MainActivity.setShowWhenLocked().
 
              Le drapeau était posé statiquement dans ce manifeste pour que l'écran

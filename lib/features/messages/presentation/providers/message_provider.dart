@@ -953,6 +953,21 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         participantIds = conversation.participantIds
             .where((id) => id != currentUser.id)
             .toList();
+        // Un groupe dont on est le seul membre — celui qu'on vient de créer,
+        // avant d'inviter qui que ce soit — laissait cette liste VIDE. La
+        // garde « Destinataire manquant » du datasource refusait alors tout
+        // envoi : chaque message repartait en « Non envoyé · Réessayer », sans
+        // un mot sur la cause, sous un état vide qui invite pourtant à
+        // « Soyez le premier à envoyer un message dans ce groupe ! ».
+        // Vérifié sur Pixel 10 Pro XL et SM A515F le 2026-09-09.
+        //
+        // Se remettre soi-même dans la liste suffit : `encryptGroup` chiffre
+        // avec NOTRE Sender Key, et `distributeSenderKeyToGroup` écarte déjà
+        // l'expéditeur de ses destinataires — la distribution ne vise donc
+        // personne, sans rien casser.
+        if (participantIds.isEmpty) {
+          participantIds = [currentUser.id];
+        }
       }
     }
 

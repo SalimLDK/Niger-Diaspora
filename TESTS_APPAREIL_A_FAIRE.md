@@ -88,6 +88,142 @@ nommément — `new row violates row-level security policy
 
 ---
 
+## ⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)
+
+Trouvé en pilotant le **Pixel 10 Pro XL (Android 17)** : après un
+`am force-stop` suivi d'un lancement, Android a affiché la boîte
+« Diaspo Niger s'arrête systématiquement ». Deux `FATAL EXCEPTION` dans le
+tampon `crash`, à 20:01:18 et 20:01:23, même trace :
+
+```
+java.lang.RuntimeException: Unable to start receiver
+  id.flutter.flutter_background_service.BootReceiver
+Caused by: android.app.ForegroundServiceStartNotAllowedException:
+  startForegroundService() not allowed: service
+  com.diasponiger.diasponiger/id.flutter.flutter_background_service.BackgroundService
+```
+
+La ligne système juste avant nomme le déclencheur :
+`BroadcastQueue: … action:android.intent.action.BOOT_COMPLETED`.
+
+**Deux drapeaux, pas un.** `BackgroundLocationService.initialize()` passe bien
+`autoStart: false`, mais le plugin en a un **second**, `autoStartOnBoot`, qui
+vaut `true` par défaut et n'était pas renseigné. Son `BootReceiver` (déclaré
+dans le manifeste du plugin, sur BOOT_COMPLETED / QUICKBOOT_POWERON /
+**MY_PACKAGE_REPLACED**) relance donc le service de premier plan de type
+`location` — ce qu'Android 15+ interdit depuis BOOT_COMPLETED. Le plugin ne
+rattrape pas l'exception : le process meurt.
+
+Portée réelle, plus large que le force-stop qui l'a révélé : le receiver écoute
+aussi `MY_PACKAGE_REPLACED`, donc **chaque mise à jour de l'app** le déclenche,
+et chaque redémarrage du téléphone aussi. Le SM A515F (Android 13) n'est pas
+touché — c'est une suite directe du passage à `targetSdk 36`, à ajouter aux
+comportements Android 16 déjà listés plus bas.
+
+Corrigé des deux côtés : `autoStartOnBoot: false`
+(`lib/core/services/background_location_service.dart`) pour dire l'intention,
+**et** `tools:node="remove"` sur le receiver dans
+`android/app/src/main/AndroidManifest.xml` — parce que le drapeau n'est lu
+qu'après le premier lancement de l'app, ce qui laisse sans lui une fenêtre
+ouverte juste après une mise à jour.
+
+À vérifier sur **Pixel 10 Pro XL** avec le build corrigé :
+
+- [ ] `adb install -r` du nouvel APK **ne fait plus planter** l'app
+      (`MY_PACKAGE_REPLACED`) : `adb logcat -b crash` ne gagne aucune
+      `FATAL EXCEPTION` dans la minute qui suit.
+- [ ] `am force-stop` puis lancement : pas de plantage, pas de boîte
+      « s'arrête systématiquement ».
+- [ ] ⚠️ **Redémarrage réel du téléphone** — le seul chemin qui rejoue
+      vraiment BOOT_COMPLETED (`am broadcast … BOOT_COMPLETED` est refusé au
+      shell : « Permission Denial »). À faire à la main.
+- [ ] Le partage de position continu **démarre toujours** quand on l'active
+      dans l'app (c'est la seule chose que le receiver retiré aurait pu
+      fournir, et il ne la fournissait qu'au boot).
+
+---
+
+## ⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)
+
+Vu sur les **deux** appareils, dans deux groupes différents — donc pas une
+donnée périmée :
+
+- SM A515F, « Groupe de test privé » (1 membre) : `ECHO-A-1944` reste en
+  « Non envoyé · Réessayer », et « Réessayer » échoue pareil, alors que
+  l'appareil est en ligne (ping ok) et qu'un message 1:1 part sans problème à
+  la même minute ;
+- Pixel 10 Pro XL, « Testeurs » (1 membre, créé quelques minutes plus tôt) :
+  `GRP-TEST-1955` échoue exactement de la même façon.
+
+**Cause.** `message_provider.dart` calcule les destinataires d'un groupe en
+retirant l'expéditeur : `participantIds.where((id) => id != currentUser.id)`.
+Dans un groupe où l'on est seul, la liste est **vide** — et
+`_encryptContent` (`message_supabase_datasource.dart:247`) lève alors
+`E2EEException('Destinataire manquant — chiffrement impossible.')`, garde
+écrite pour le cas « 1:1 dont on n'a pas résolu le destinataire ».
+
+Rien ne le dit à l'écran : pas de SnackBar, juste le triangle rouge — et
+l'état vide du fil invite pourtant à « Soyez le premier à envoyer un message
+dans ce groupe ! ». C'est donc le tout premier geste après la création d'un
+groupe qui échoue.
+
+Corrigé en remettant l'expéditeur dans la liste quand elle est vide :
+`encryptGroup` chiffre avec NOTRE Sender Key, et
+`distributeSenderKeyToGroup` écarte déjà l'expéditeur de ses destinataires
+(`sender_key_service.dart:189`), donc la distribution ne vise personne.
+
+À vérifier avec le build corrigé :
+
+- [ ] Créer un groupe, ne pas inviter, envoyer un message : il part
+      (`Envoyé`), et il est toujours là après avoir quitté puis rouvert.
+- [ ] Ajouter un second membre, envoyer : le message est **lisible des deux
+      côtés** (c'est le vrai chemin Sender Key, jamais exercé jusqu'ici — voir
+      la section « écho temps réel » ci-dessus).
+- [ ] Les envois de **médias** en groupe : le provider ne leur passe aucun
+      `participantIds`, à regarder de près (chemin non instruit ici).
+
+---
+
+## ⬜ Le QR d'un groupe est refusé par le scanner — **observation terrain**
+
+Le défaut a été vu **en direct**, sur SM A515F, pendant que Salim scannait
+depuis « Scanner un profil » le QR affiché par « Partager » d'une fiche de
+groupe : « **QR code invalide ou format non reconnu** ». Ce n'était ni la
+caméra ni le QR.
+
+Le correctif est celui de l'autre agent, plus large et testé
+(`QrCodeParser`, 23 cas) : **voir la section « Le scanner de l'accueil lit
+tous les QR du projet » plus bas**, qui porte la liste des vérifications.
+Cette section-ci ne garde que la trace de l'observation, et un point que ce
+correctif ne change pas :
+
+- `DeepLinkService.parseDeepLink` / `DeepLinkType` savaient **déjà** lire huit
+  formes de liens et n'étaient appelés nulle part dans `lib/`. Il y a
+  maintenant deux parseurs de liens dans le projet, dont un mort — à
+  fusionner ou à supprimer, pas à laisser diverger.
+
+---
+
+## ⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)
+
+Vu sur Pixel 10 Pro XL, non corrigé, cause non isolée. L'écran des membres
+s'affichait correctement (« Salim L. — Créateur ») ; après un passage par
+l'accueil et un retour dans l'app, il est passé à « Erreur de chargement »
+avec un bouton « Réessayer » qui **échoue à chaque fois** (deux essais, à
+plusieurs secondes d'écart). Donc `GroupMembersScreen` sans `widget.group`
+→ `loadGroup(groupId)` → `getGroupById` en échec.
+
+Deux choses à démêler quand on le reprendra :
+
+- [ ] Pourquoi `getGroupById` échoue là où l'écran affichait le groupe une
+      minute plus tôt (le groupe venait d'être créé — id récent, pas un id
+      hérité Firestore).
+- [ ] La flèche « retour » de cet écran **quitte l'application** au lieu de
+      revenir à la fiche du groupe : `context.pop()` sur une pile qui ne
+      contient que cette route. Même famille que les écrans de lien profond.
+
+---
+
 ## ⬜ Aucun marqueur technique dans une bulle (2026-09-09)
 
 Constaté sur SM A515F (capture du 2026-09-09, 19:02, groupe « Diaspora
@@ -129,14 +265,24 @@ Fichiers : `lib/core/services/e2ee/undecryptable_placeholders.dart`,
       introuvable », ni le bouton « Récupérer la clé de groupe », ni
       « [Message illisible] » : une ligne grise « Message indisponible sur cet
       appareil » à la place.
-- [ ] **Le vrai test du correctif** : ouvrir une discussion lisible, la
-      quitter, y revenir, faire un pull-to-refresh, remonter d'une page. Le
-      texte doit rester lisible — c'est le chemin où le soin depuis le cache
-      opère. Avant, un message pouvait basculer en marqueur et ne plus jamais
-      revenir.
-- [ ] Envoyer un message dans un groupe et attendre l'écho temps réel : la
-      bulle garde son texte (c'est `reconcileEchoContent`, désormais au
-      courant du troisième marqueur).
+- [x] **Le vrai test du correctif**, moitié faite (SM A515F, 19:46) : le 1:1
+      « Salim L. » ouvert, quitté, rouvert — « Yo », la note vocale, la carte
+      de position, « test-logs » et le message qui venait d'arriver sont tous
+      restés lisibles, aucun marqueur. ⚠️ **Le pull-to-refresh et la remontée
+      d'une page restent à faire** : le glissé lancé depuis le milieu du fil
+      est tombé sur la **carte de position**, qui l'a pris pour un tap et a
+      ouvert Google Maps. Repris depuis la marge gauche (x=90) : **même
+      résultat**, la carte s'ouvre encore — dans ce fil-là, la rangée du
+      message est cliquable sur toute la largeur. La remontée a donc été faite
+      dans « Groupe de test privé » (20:14), fil sans carte : le défilement
+      jusqu'au 30 août marche et les 4 vidéos restent intactes. Reste à
+      refaire sur un fil de **texte** long.
+- [x] Écho temps réel : la bulle garde son texte (SM A515F, 19:47).
+      `ECHO-DM-1947` envoyé dans le 1:1 est passé à `· Reçu` en gardant son
+      texte — `reconcileEchoContent` fait son travail. ⚠️ Fait en **1:1**, pas
+      en groupe : l'envoi de groupe était cassé (voir la section « Un groupe
+      dont on est le seul membre » ci-dessous), donc le chemin Sender Key de
+      `reconcileEchoContent` n'est toujours pas exercé.
 - [ ] Une photo **sans légende** s'affiche normalement — la garde lit la
       LISTE, pas `isUndecryptableContent`, qui tient le vide pour illisible et
       masquerait chaque média sans légende.
@@ -12238,6 +12384,16 @@ ne jamais se fier au dump seul. Ouvrir le menu, **capturer l'écran, vérifier
 visuellement la cible sélectionnée**, et seulement ensuite confirmer. C'est ce
 contrôle qui a évité de supprimer un message innocent.
 
+**Et quand la vérification est impossible, renoncer.** La feuille d'actions
+occupe le bas de l'écran et masque tout ce qui s'y trouve : elle ne laisse voir
+la bulle sélectionnée (les autres sont estompées par le voile) que si celle-ci
+est assez haute. Pour un message situé en bas — typiquement le dernier de la
+conversation — la cible est *derrière* la feuille, et « Supprimer » devient un
+tap non vérifiable. Deux messages de test (`test-logs` 19:37, `zone-verif`
+20:03) ont été laissés en place pour cette raison : deux chaînes inoffensives
+coûtent moins cher qu'une suppression à l'aveugle après trois erreurs de
+ciblage.
+
 **1. Les coordonnées de tap se périment.** Une première tentative d'usage a
 échoué en silence : la liste s'était réordonnée depuis la capture précédente
 (un message reçu remonte sa conversation), et le tap à `540,987` a ouvert un
@@ -12258,6 +12414,12 @@ un message nommé.
 des messages « Hi » et « ECHO-DM-1947 » y sont arrivés à 19:46 et 19:47, hors
 de toute action de cette session. Ne pas prendre son contenu pour un état
 stable, et ne pas conclure d'un message qu'on n'a pas envoyé soi-même.
+
+  Précision, apportée par la session qui les a produits : `ECHO-DM-1947` est
+  un envoi de **test** depuis le SM A515F (vérification de l'écho temps réel,
+  cf. la section sur les marqueurs de bulle) ; « Hi » venait du Pixel. Les
+  deux appareils étaient pilotés en parallèle ce soir-là, l'un par un agent,
+  l'autre à la main — d'où l'avertissement ci-dessus, qui reste valable.
 
 ---
 
