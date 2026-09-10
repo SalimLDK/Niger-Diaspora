@@ -9,6 +9,7 @@ import '../../../../features/messages/presentation/providers/conversation_action
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
+import '../widgets/invite_members_sheet.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class GroupMembersScreen extends ConsumerStatefulWidget {
@@ -74,6 +75,22 @@ class _GroupMembersScreenState extends ConsumerState<GroupMembersScreen> {
           icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          // Gate calqué sur `is_group_admin()`, pas sur le `canModerate`
+          // ci-dessous : celui-ci englobe le superAdmin plateforme d'un groupe
+          // officiel, à qui les policies de `group_invites` ne donnent rien.
+          if (groupEntity != null &&
+              peutInviterDansGroupe(groupEntity, currentUser?.id))
+            IconButton(
+              icon: Icon(
+                Icons.group_add_outlined,
+                color: context.textPrimaryColor,
+              ),
+              tooltip: l10n.inviteMember,
+              onPressed:
+                  () => InviteMembersSheet.show(context, group: groupEntity),
+            ),
+        ],
       ),
       body:
           groupEntity != null

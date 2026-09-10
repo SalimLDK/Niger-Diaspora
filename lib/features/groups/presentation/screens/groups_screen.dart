@@ -1601,7 +1601,7 @@ class _InviteCard extends ConsumerWidget {
   Future<void> _accept(BuildContext context, WidgetRef ref) async {
     final ok = await ref
         .read(groupInviteNotifierProvider.notifier)
-        .acceptInvite(invite.id);
+        .acceptInvite(invite.id, groupId: invite.groupId as String);
     if (ok) {
       ref.invalidate(myGroupsNotifierProvider);
       onAccepted();
