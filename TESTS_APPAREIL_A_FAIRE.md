@@ -80,6 +80,9 @@ Corrigé dans cette livraison :
   n'ouvre la lecture que si `is_active`. Les 2 entreprises en base sont
   `is_active = false` : leurs liens sont donc morts pour tout le monde sauf
   leur propriétaire, et rien dans l'app ne le dit au propriétaire qui partage.
+
+---
+
 ## ⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)
 
 Le partage ne savait sortir de l'app (WhatsApp / Facebook / X / feuille
