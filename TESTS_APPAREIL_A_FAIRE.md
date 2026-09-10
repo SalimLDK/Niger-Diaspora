@@ -14,6 +14,72 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ⬜ Inviter des membres dans un groupe privé (2026-09-09)
+
+Signalé par Salim : « pour les groupes privés j'arrive pas à ajouter d'autres
+membres ». Il n'y arrivait pas parce que **l'app n'offrait nulle part de quoi
+le faire** — `GroupInviteNotifier.inviteUser` existait, le datasource Supabase
+écrivait bien `group_invites`, l'invité voyait l'invitation dans l'onglet
+Groupes et l'acceptation l'inscrivait dans `group_members` : tout le chemin
+était là, sauf l'écran qui l'appelle. Quatre traductions
+(`inviteMember`/`inviteSent`/`inviteAlreadySent`/`inviteError`) attendaient
+depuis le début, sans un seul usage dans le code.
+
+Sur un groupe **public** le manque se contournait — on partage le lien, la
+personne appuie sur « Rejoindre ». Sur un groupe **privé**, le lien ne produit
+qu'une demande d'adhésion à approuver : l'administrateur n'avait donc aucun
+moyen d'aller chercher quelqu'un.
+
+**Ce qui est à vérifier à l'écran** (aucun point ci-dessous n'est couvert par
+`flutter analyze`) :
+
+- [ ] Fiche d'un groupe privé dont on est administrateur : la ligne
+      « Aucun autre membre » devient « Inviter un membre », en couleur d'accent
+      avec un chevron, et ouvre la feuille
+      (`group_detail_screen.dart`, `_buildMembersSection`).
+- [ ] Menu ⋮ de la fiche : l'entrée « Inviter un membre » est présente pour un
+      administrateur, absente pour un simple membre. Son icône
+      (`group_add_outlined`) ne doit pas se confondre avec celle de
+      « Demandes d'adhésion » juste en dessous.
+- [ ] Écran « Membres » : l'icône d'ajout en barre de titre n'apparaît que
+      pour un administrateur (`group_members_screen.dart`).
+- [ ] Feuille elle-même (`invite_members_sheet.dart`) : suggestions à
+      l'ouverture (amis + personnes avec qui on a discuté), recherche par nom
+      au-delà de deux caractères, sélection multiple, « Inviter un membre · 2 »
+      sur le bouton.
+- [ ] **Clavier** : la feuille se recale au-dessus du clavier sans déborder, et
+      la croix d'effacement du champ apparaît dès la première frappe (pas au
+      bout de 350 ms).
+- [ ] **Thème sombre** et **échelle de police à 130 %** sur la feuille.
+- [ ] Une personne déjà invitée s'affiche estompée, « Déjà invité », non
+      sélectionnable — et le reste après avoir fermé puis rouvert la feuille.
+- [ ] **Bout en bout, deux téléphones** : inviter depuis le compte
+      administrateur, puis sur l'autre appareil voir l'invitation dans l'onglet
+      Groupes, l'accepter, et vérifier que le groupe apparaît **aussi dans
+      l'onglet Messages** — c'est ce dernier point qui est nouveau et jamais
+      testé (`acceptInvite` raccroche maintenant la conversation, comme
+      `joinGroup` le faisait déjà de son côté).
+
+**Sécurité fermée au passage — à rejouer après `supabase db push`.** La porte
+d'entrée de `group_members` (20260806210000) laissait une porte latérale :
+`group_invites_own` autorise à INSÉRER une invitation **dont on est soi-même
+le destinataire**, pour n'importe quel groupe. Deux appels d'API suffisaient
+donc pour entrer dans un groupe privé sans y avoir été invité — vérifié le
+2026-09-09 sous une identité réelle, dans une transaction annulée. Fermé par
+`20260909201500_invitations_groupe_porte_laterale.sql` (garde RESTRICTIVE à
+l'INSERT, trigger qui fige `group_id`/`invitee_id`, et `has_group_invite()`
+qui ne compte plus une invitation refusée).
+
+Banc rejouable, transaction annulée, rien n'est écrit :
+
+```bash
+supabase db query --linked "$(cat supabase/diagnostics/2026-09-09_invitations_groupe.sql)"
+```
+
+Sortie attendue : « banc termine ». Tout « ECHEC n » interrompt le banc.
+
+---
+
 ## ⬜ Aucun marqueur technique dans une bulle (2026-09-09)
 
 Constaté sur SM A515F (capture du 2026-09-09, 19:02, groupe « Diaspora
