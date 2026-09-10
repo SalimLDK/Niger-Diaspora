@@ -144,6 +144,14 @@ monte donc **une seule ligne**, par `or` colonne par colonne (jamais une
 affectation sèche) et `coalesce` sur `consent_date` : rejouer la migration ne
 change rien, et aucun drapeau ne peut redescendre.
 
+✅ **Appliquée en base le 2026-09-10** (`supabase db push`), et revérifiée
+après coup : la ligne porte les quatre drapeaux à `true` et
+`consent_date = 2026-08-13 22:29:10.098+00`. Les compteurs de `public.users`
+ont bougé d'exactement un, sur les quatre colonnes à la fois — `has_seen_onboarding`
+8→9, `has_seen_coach_marks` 5→6, `has_given_consent` 9→10,
+`profile_config_complete` 8→9, sur 17 comptes. Rien d'autre n'a bougé. Il ne
+reste donc que la vérification côté téléphone.
+
 ⚠️ **« Sim A » (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), le compte de la section
 ci-dessus, lit aujourd'hui `true` partout** — il a rejoué l'onboarding le
 2026-09-10 (`updated_at` 05:12 UTC). Aucune reprise Firestore ne l'aurait
@@ -155,10 +163,10 @@ l'onboarding refait.
 À vérifier sur appareil :
 
 - [ ] **Le compte repris ne rejoue plus rien** : se connecter avec
-      `czk5UoUclLOFmbRtUIZ5XYLYKo52` après `supabase db push`, sur un
-      téléphone où l'app vient d'être **désinstallée** (le cache local
-      masquerait le résultat). Attendu : `/home` directement, ni consentement,
-      ni assistant de profil, ni les 5 écrans d'intro.
+      `czk5UoUclLOFmbRtUIZ5XYLYKo52` sur un téléphone où l'app vient d'être
+      **désinstallée** (le cache local masquerait le résultat — `adb install -r`
+      ne suffit pas). Attendu : `/home` directement, ni consentement, ni
+      assistant de profil, ni les 5 écrans d'intro.
 - [ ] **Ce compte n'a pas de `display_name`** (`handle = 'diaspo_ne'` et
       `country_code = 'NE'` sont posés, le nom non) : l'assistant de profil a
       tourné le 2026-08-13 sans que tout arrive en base. Monter
