@@ -15342,11 +15342,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get locationReciprocity =>
-      'C\'est donnant-donnant : partagez votre position approximative pour voir les membres proches de vous.';
+      'C\'est donnant-donnant : partagez votre position pour voir les membres proches de vous.';
 
   @override
   String get locationGuarantee1 =>
-      'Position approximative, jamais votre adresse exacte';
+      'Seule votre dernière position est gardée, jamais vos trajets';
 
   @override
   String get locationGuarantee2 => 'Désactivable à tout moment';

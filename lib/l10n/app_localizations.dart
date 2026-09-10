@@ -28235,13 +28235,13 @@ abstract class AppLocalizations {
   /// No description provided for @locationReciprocity.
   ///
   /// In fr, this message translates to:
-  /// **'C\'est donnant-donnant : partagez votre position approximative pour voir les membres proches de vous.'**
+  /// **'C\'est donnant-donnant : partagez votre position pour voir les membres proches de vous.'**
   String get locationReciprocity;
 
   /// No description provided for @locationGuarantee1.
   ///
   /// In fr, this message translates to:
-  /// **'Position approximative, jamais votre adresse exacte'**
+  /// **'Seule votre dernière position est gardée, jamais vos trajets'**
   String get locationGuarantee1;
 
   /// No description provided for @locationGuarantee2.

@@ -26,6 +26,12 @@ class OnboardingPageData {
   /// Puces de réassurance sous la promesse (aucune sur le 1er et le dernier).
   final List<String> bullets;
 
+  /// Proportion du bloc d'illustration. Le dernier écran l'aplatit en
+  /// bandeau : sa divulgation de localisation doit tenir **au-dessus de la
+  /// ligne de flottaison**, et mesurée sur SM-A515F elle passait dessous —
+  /// or c'est cette page que Google photographie en examinant l'app.
+  final double illustrationAspectRatio;
+
   const OnboardingPageData({
     required this.title,
     required this.description,
@@ -33,6 +39,7 @@ class OnboardingPageData {
     required this.illustration,
     this.eyebrow,
     this.bullets = const [],
+    this.illustrationAspectRatio = 1.35,
   });
 }
 
@@ -55,8 +62,9 @@ class OnboardingPage extends StatelessWidget {
           DesignIllustration(
             caption: data.illustrationCaption,
             illustration: data.illustration,
+            aspectRatio: data.illustrationAspectRatio,
           ),
-          const SizedBox(height: 28),
+          SizedBox(height: data.illustrationAspectRatio > 2 ? 18 : 28),
           if (data.eyebrow != null) ...[
             DesignEyebrow(data.eyebrow!),
             const SizedBox(height: 12),
