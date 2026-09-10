@@ -135,6 +135,29 @@ _SimpleNotifier? _cachedAuthNotifier;
 /// `redirect`). Nulle en dehors de cette fenêtre.
 String? _pendingDeepLink;
 
+/// Schéma propre à l'app, déclaré dans `AndroidManifest.xml`.
+const String _schemaMaison = 'diasponiger';
+
+/// Remet `diasponiger://<section>/<id>` sous la forme `/<section>/<id>`.
+///
+/// Rend `null` pour tout ce qui est déjà un chemin — c'est-à-dire la quasi
+/// totalité des passages, y compris les liens `https` que Flutter livre déjà
+/// sous forme de chemin.
+String? _cheminDepuisSchemaMaison(Uri uri) {
+  if (uri.scheme != _schemaMaison) return null;
+
+  // Le schéma maison porte la première section dans l'hôte
+  // (`diasponiger://groups/<id>` → hôte `groups`), d'où la remise à plat.
+  final segments = [
+    if (uri.host.isNotEmpty) uri.host,
+    ...uri.pathSegments,
+  ].where((s) => s.isNotEmpty).toList();
+
+  if (segments.isEmpty) return '/home';
+  final chemin = '/${segments.join('/')}';
+  return uri.hasQuery ? '$chemin?${uri.query}' : chemin;
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
   // Return cached router if it exists to prevent duplicate GlobalKey errors.
   // Re-register all listeners under the new ref so they are properly disposed.
@@ -174,6 +197,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
     ],
     redirect: (context, state) {
+      // Un lien du schéma maison peut arriver ici entier, schéma compris —
+      // c'est le cas au démarrage à froid, où Flutter passe l'URI brute de
+      // l'intent. GoRouter n'a aucune route nommée
+      // « diasponiger://groups/<id> » : sans cette remise à plat, tout lien
+      // `diasponiger://` tombait sur « Page Not Found »
+      // (GoException: no routes for location). Vérifié SM A515F le
+      // 2026-09-09. Le pendant natif est dans `MainActivity.java`, qui traite
+      // le cas « app déjà lancée ».
+      final remisAPlat = _cheminDepuisSchemaMaison(state.uri);
+      if (remisAPlat != null) return remisAPlat;
+
       // Use read() here to avoid rebuilding the provider
       final authState = ref.read(authNotifierProvider);
       final onboardingState = ref.read(onboardingNotifierProvider);
