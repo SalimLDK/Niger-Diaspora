@@ -912,12 +912,20 @@ refusait une heure plus tôt (« Groupe de test privé », 1 membre) :
 
 Restent à faire :
 
-- [ ] Ajouter un second membre, envoyer : le message est **lisible des deux
-      côtés** (c'est le vrai chemin Sender Key vers autrui, jamais exercé —
-      voir la section « écho temps réel » ci-dessus). Bloqué ce soir : le
-      Pixel s'est retrouvé déconnecté (voir la section suivante).
+- [x] **Le vrai chemin Sender Key vers autrui, exercé pour la première fois**
+      (2026-09-09, 22:52-22:54). Groupe « Testeurs », 2 membres. Depuis le
+      SM A515F, compte **Sim A qui n'est pas administrateur** : la discussion
+      s'ouvre (plus de 42501), `SENDERKEY-2253` part et passe à
+      « À l'instant · Reçu ». Sur le Pixel, compte Salim L., la bulle
+      s'affiche **en clair** — « Sim A / SENDERKEY-2253 », 22:52, thème
+      sombre, aucun placeholder. Chiffrement de groupe, aller ET retour, entre
+      deux comptes distincts.
+- [x] Par la même occasion : l'écho temps réel **en groupe**, qui manquait à
+      la section « Aucun marqueur technique dans une bulle » — la bulle a
+      gardé son texte côté expéditeur.
 - [ ] Les envois de **médias** en groupe : le provider ne leur passe aucun
-      `participantIds`, à regarder de près (chemin non instruit ici).
+      `participantIds` — et la légende part en clair, voir la section « La
+      légende d'une photo/vidéo part EN CLAIR » en tête de fichier.
 
 ---
 
@@ -1163,12 +1171,18 @@ peut-être le vrai défaut à corriger.
 - [x] La flèche « retour » de la fiche Membres ne quitte plus l'application :
       `context.canPop() ? context.pop() : context.go('/home')`, le même repli
       que la fiche du groupe juste à côté.
-- [ ] **À voir sur appareil** : mode avion → ouvrir l'onglet Groupes, puis la
-      fiche Membres d'un groupe : « Pas de connexion internet » aux deux
-      endroits, et « Réessayer » qui refonctionne une fois le réseau revenu.
-- [ ] **À voir sur appareil** : arriver sur la fiche Membres par un lien
-      profond (ou relancer l'app dessus), puis toucher la flèche — on doit
-      atterrir sur l'accueil, pas sur le lanceur.
+- [ ] **À voir sur appareil, demande la main de Salim** : couper le réseau est
+      un réglage système. Mode avion → onglet Groupes, puis fiche Membres :
+      « Pas de connexion internet » aux deux endroits, et « Réessayer » qui
+      refonctionne une fois le réseau revenu.
+- [x] **Vérifié SM A515F, 22:57** (build `b38194eb…46f3`) : lien profond
+      direct sur `/groups/<uuid>/members`, app relancée à froid — la fiche
+      s'ouvre seule dans la pile, et la flèche ramène à **l'accueil**
+      (« Bonjour, Sim », `MainActivity` toujours au premier plan). Avant, elle
+      renvoyait au lanceur. Au passage, l'écran affiche bien « Erreur de
+      chargement » et non « Pas de connexion internet » — l'appareil était en
+      ligne et l'uuid bidon : la branche hors ligne ne se déclenche pas à
+      tort.
 - [ ] Reste ouvert : pourquoi `getGroupById` échouait là où l'écran affichait
       le groupe une minute plus tôt. Si c'était le réseau, c'est réglé par
       le message ci-dessus ; sinon la cause est toujours à trouver.
