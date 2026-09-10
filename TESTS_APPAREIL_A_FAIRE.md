@@ -12164,6 +12164,16 @@ ne jamais se fier au dump seul. Ouvrir le menu, **capturer l'écran, vérifier
 visuellement la cible sélectionnée**, et seulement ensuite confirmer. C'est ce
 contrôle qui a évité de supprimer un message innocent.
 
+**Et quand la vérification est impossible, renoncer.** La feuille d'actions
+occupe le bas de l'écran et masque tout ce qui s'y trouve : elle ne laisse voir
+la bulle sélectionnée (les autres sont estompées par le voile) que si celle-ci
+est assez haute. Pour un message situé en bas — typiquement le dernier de la
+conversation — la cible est *derrière* la feuille, et « Supprimer » devient un
+tap non vérifiable. Deux messages de test (`test-logs` 19:37, `zone-verif`
+20:03) ont été laissés en place pour cette raison : deux chaînes inoffensives
+coûtent moins cher qu'une suppression à l'aveugle après trois erreurs de
+ciblage.
+
 **1. Les coordonnées de tap se périment.** Une première tentative d'usage a
 échoué en silence : la liste s'était réordonnée depuis la capture précédente
 (un message reçu remonte sa conversation), et le tap à `540,987` a ouvert un
