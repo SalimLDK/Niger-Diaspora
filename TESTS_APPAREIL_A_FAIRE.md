@@ -421,13 +421,12 @@ identifie l'appelant par `firebase_uid()` là où la RPC ajoute
 `CREATE OR REPLACE FUNCTION` l'aurait remplacée sans conflit git et sans un
 mot.
 
-⚠️ **Rien de tout cela n'est en production au 2026-09-09.** La fonction
-déployée ne porte aucune des deux exemptions (vérifié sur `pg_proc.prosrc`), et
-`db push` est bloqué par une version orpheline dans
-`supabase_migrations.schema_migrations` — `20260909210000`, sans fichier local.
-Non réparé : c'est de l'état partagé au milieu du travail de l'autre agent.
-Donc, aujourd'hui encore, **un invité rejoint le groupe et ne peut pas ouvrir
-sa discussion**.
+✅ **Déployé le 2026-09-09** après avoir débloqué `db push` : la version
+orpheline `20260909210000` avait été poussée en production depuis la branche
+`claude/groupes-temps-reel`, jamais fusionnée — son fichier a été rapatrié
+plutôt que sa ligne effacée. Les trois migrations en attente (deux à moi, une
+sur les événements à un autre agent) sont passées, et les trois bancs rejoués
+contre la base réelle rendent « banc termine ».
 
 - [ ] **Deux téléphones** : accepter une invitation, puis vérifier que le
       groupe apparaît dans l'onglet **Messages** sans avoir à ouvrir sa fiche,
@@ -457,7 +456,9 @@ migration.
       « Adhésion acceptée ». Refuser sur une autre demande : « Adhésion
       refusée ».
 
-Banc dédié, transaction annulée, 8 étapes :
+Banc dédié, transaction annulée (⚠️ son étape A a été retirée : elle exigeait
+qu'un membre sans invitation soit refusé, conception abandonnée depuis, et
+faisait donc échouer le banc sur du code correct) :
 
 ```bash
 supabase db query --linked -f supabase/diagnostics/2026-09-09_invite_discussion_et_notifications.sql

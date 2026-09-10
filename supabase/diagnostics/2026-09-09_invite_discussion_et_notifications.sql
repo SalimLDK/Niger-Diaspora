@@ -29,20 +29,18 @@ VALUES ('2b24986f-08b5-4840-9931-dbe046ffb394',
         'DfSyAWiGuSQfCFpbhp1SVk5eQ8F2', 'member')
 ON CONFLICT (group_id, user_id) DO UPDATE SET role = 'member';
 
--- ═══ A. Membre du groupe mais SANS invitation : toujours refusé ═══
--- C'est ce qui fait tenir l'exclusion : « retirer du groupe » ne supprime pas
--- la ligne group_members, donc un exclu reste membre. Il ne doit pas pouvoir
--- se remettre dans la discussion en l'ouvrant.
+-- ═══ A. (retiree) ═══
+-- Cette etape exigeait qu'un membre SANS invitation soit refuse a la
+-- discussion. C'etait la conception d'un premier correctif, abandonnee : la
+-- version livree (20260909234500) autorise TOUT membre reel a entrer dans la
+-- discussion de son groupe, et fait tenir l'exclusion autrement -- en
+-- supprimant l'appartenance quand on retire quelqu'un des participants.
+--
+-- Laissee telle quelle, l'etape faisait echouer le banc sur du code correct.
+-- Ce qu'elle voulait mesurer -- un exclu ne revient pas -- est teste, dans la
+-- bonne formulation, par
+-- `2026-09-09_exclusion_et_ouverture_discussion.sql` (etapes C et D).
 SET LOCAL ROLE authenticated;
-SET LOCAL request.jwt.claims TO '{"role":"authenticated","sub":"44444444-4444-4444-4444-444444444444","app_metadata":{"firebase_uid":"DfSyAWiGuSQfCFpbhp1SVk5eQ8F2"}}';
-DO $t$
-BEGIN
-  PERFORM public.join_group_conversation('2b24986f-08b5-4840-9931-dbe046ffb394');
-  RAISE EXCEPTION 'ECHEC A : un membre sans invitation a pu raccrocher';
-EXCEPTION WHEN insufficient_privilege THEN
-  INSERT INTO banc VALUES ('A', 'OK membre sans invitation refuse');
-END
-$t$;
 
 -- ═══ B. L'administrateur invite -> une notification part ═══
 SET LOCAL request.jwt.claims TO '{"role":"authenticated","sub":"22222222-2222-2222-2222-222222222222","app_metadata":{"firebase_uid":"vQZE49dTdyRtLwSG6lMIbhAqoFG2"}}';
