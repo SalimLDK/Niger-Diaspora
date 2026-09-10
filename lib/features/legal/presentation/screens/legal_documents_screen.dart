@@ -50,7 +50,8 @@ class _LegalDocumentsScreenState extends State<LegalDocumentsScreen>
         title: Text(l10n.legalDocumentsTitle),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/settings'),
         ),
         bottom: TabBar(
           controller: _tabController,

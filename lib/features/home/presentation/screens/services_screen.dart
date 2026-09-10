@@ -101,7 +101,8 @@ class ServicesScreen extends ConsumerWidget {
         centerTitle: true,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: context.onSurfaceColor),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/home'),
         ),
         titleTextStyle: TextStyle(
           color: context.onSurfaceColor,

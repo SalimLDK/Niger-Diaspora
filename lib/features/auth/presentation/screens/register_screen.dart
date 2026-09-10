@@ -84,13 +84,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
           icon: Icon(Icons.arrow_back, color: context.textPrimaryColor),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/auth/login'),
         ),
       ),
       footer: AuthFooterLink(
         question: l10n.alreadyHaveAccount,
         action: l10n.signIn,
-        onTap: () => context.pop(),
+        onTap:
+            () => context.canPop() ? context.pop() : context.go('/auth/login'),
       ),
       child: Form(
         key: _formKey,

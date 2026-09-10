@@ -240,7 +240,8 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
         title: Text(l10n.groupCreateTitle),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
+          onPressed:
+              () => context.canPop() ? context.pop() : context.go('/groups'),
         ),
       ),
       body: Form(

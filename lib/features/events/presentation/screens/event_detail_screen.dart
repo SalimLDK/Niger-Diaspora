@@ -151,7 +151,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     color: context.textPrimaryColor,
                   ),
                 ),
-                onPressed: () => context.pop(),
+                onPressed:
+                    () => context.canPop() ? context.pop() : context.go('/events'),
               ),
               actions: [
                 if (isOrganizer)

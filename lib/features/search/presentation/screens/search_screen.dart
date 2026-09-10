@@ -140,7 +140,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     Icons.arrow_back,
                     color: context.textPrimaryColor,
                   ),
-                  onPressed: () => context.pop(),
+                  onPressed:
+                      () => context.canPop() ? context.pop() : context.go('/home'),
                 ),
                 Expanded(
                   child: DesignSearchField(

@@ -480,6 +480,48 @@ fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
 
 ---
 
+## ⬜ Liens profonds : la flèche retour ne faisait rien (2026-09-09)
+
+Signalé par Salim : « les deep link, pas possible de faire des retours ».
+Suite directe de la section ci-dessous — le lien arrive bien, l'écran
+s'affiche, c'est la **sortie** qui manque.
+
+Mesuré sur SM A515F, `diasponiger:///services`, intent envoyé à chaud :
+
+| Geste | Avant |
+|---|---|
+| flèche de l'en-tête | l'écran ne bouge pas |
+| bouton retour système | **quitte l'application** (retour au lanceur) |
+
+Cause : arrivée par lien profond, la route est **seule dans la pile** — le
+routeur rejoue la destination mise de côté par un `go`, qui remplace la pile
+au lieu de l'empiler. `context.pop()` n'a alors rien à dépiler ; go_router
+14.8.1 lève `GoError('There is nothing to pop')` (`delegate.dart:100`), que
+rien n'attrape et que logcat ne montre pas — Crashlytics remplace
+`FlutterError.onError` (cf. la section « aucune exception Flutter »). En
+navigation interne le défaut est invisible : ces écrans sont toujours atteints
+par `push`, donc il y a quelque chose à dépiler.
+
+Le garde `fleche_retour_test.dart` ne pouvait pas le voir : ses trois tests
+vérifient la **présence** d'une sortie, jamais son **câblage**. Un quatrième
+test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
+`services_screen.dart`, il tombe dessus et sur lui seul.
+
+- [ ] **19 sorties recâblées** sur le repli maison
+      `canPop() ? pop() : go(<parent>)`, avec le parent logique de chaque
+      route et non un `/home` uniforme. À rejouer par lien profond, puis
+      flèche :
+      `diasponiger:///services` (→ accueil),
+      `diasponiger:///groups/<id>` (→ Groupes),
+      `diasponiger:///events/<id>` (→ Événements),
+      `diasponiger:///notifications/settings` (→ Réglages),
+      `diasponiger:///profile/edit` (→ Profil),
+      `diasponiger:///feed/space/hashtags` (→ Mon espace).
+- [ ] **Le retour système quitte encore l'application.** Il ne passe ni par la
+      flèche ni par un `context.pop()` métier : il lui faut un `PopScope` par
+      écran, ou un dispatcher global. Mesuré sur SM A515F le 2026-09-09 :
+      `diasponiger:///services` puis retour système → lanceur.
+
 ## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
 
 Signalé par Salim : « les liens des groupes et autres ne marchent pas ».

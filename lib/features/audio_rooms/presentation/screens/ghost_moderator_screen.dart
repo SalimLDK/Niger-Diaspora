@@ -143,7 +143,8 @@ class _GhostModeratorScreenState extends ConsumerState<GhostModeratorScreen> {
                 children: [
                   IconButton(
                     icon: const AppIcon(AppIcon.arrowBack, color: DNColors.paper, size: 20),
-                    onPressed: () => context.pop(),
+                    onPressed:
+                        () => context.canPop() ? context.pop() : context.go('/audio-rooms'),
                   ),
                   const SizedBox(width: 4),
                   Column(

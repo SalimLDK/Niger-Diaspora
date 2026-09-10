@@ -220,4 +220,101 @@ void main() {
           'explicite.',
     );
   });
+  test('la sortie de retour retombe sur une route, jamais sur un `pop()` nu', () {
+    // **Quatrième forme**, mesurée sur SM A515F le 2026-09-09 et invisible
+    // aux trois tests ci-dessus : la sortie est bien là, visible, et elle ne
+    // fait rien.
+    //
+    // Les trois premiers gardes vérifient la *présence* d'un contrôle de
+    // sortie ; celui-ci vérifie son *câblage*. Sur une pile d'une seule
+    // route — ce qu'est toujours une route atteinte par lien profond ou par
+    // notification — `context.pop()` n'a rien à dépiler : go_router 14.8.1
+    // lève `GoError('There is nothing to pop')` (`delegate.dart:100`), que
+    // rien n'attrape et que logcat ne montre pas (Crashlytics remplace
+    // `FlutterError.onError`). `diasponiger:///services` puis un appui sur la
+    // flèche : l'écran ne bouge pas. Le commentaire de
+    // `group_members_screen.dart` note l'autre issue observée le même jour,
+    // sur Pixel — la flèche renvoyait au lanceur.
+    //
+    // D'où l'invariant : toute sortie de retour porte le repli maison
+    // `context.canPop() ? context.pop() : context.go(<parent>)`.
+    const exceptions = <String, String>{
+      'lib/features/transfers/presentation/screens/transaction_history_screen.dart':
+          'la croix ferme la feuille de filtres (showModalBottomSheet), '
+              'pas la route : `Navigator.pop` y est le bon geste',
+    };
+
+    /// Retire les `//…` en gardant la longueur, pour que les index restent
+    /// valides. Plusieurs commentaires du dépôt citent le motif fautif en
+    /// exemple — les lire ferait tomber le garde sur des écrans corrigés.
+    String sansCommentaires(String texte) {
+      return texte
+          .split('\n')
+          .map((ligne) {
+            final i = ligne.indexOf('//');
+            if (i < 0) return ligne;
+            final avant = ligne.substring(0, i);
+            if ('"'.allMatches(avant).length.isOdd ||
+                "'".allMatches(avant).length.isOdd) {
+              return ligne;
+            }
+            return avant + ' ' * (ligne.length - i);
+          })
+          .join('\n');
+    }
+
+    // Un rappel de retour tient en peu de caractères ; au-delà on lit le
+    // widget suivant et on fabrique des faux positifs.
+    const distanceRappel = 400;
+    const tailleCorps = 260;
+    final rappel = RegExp(r'on(?:Pressed|Tap)\s*:');
+    final popNu = RegExp(
+      r'context\.pop\(|Navigator\.of\(context\)\.pop\(|Navigator\.pop\(context',
+    );
+
+    final fichiers = declarations();
+    final coupables = <String>[];
+    final vus = <String>{};
+
+    routes().forEach((chemin, classe) {
+      final fichier = fichiers[classe];
+      if (fichier == null) return;
+      final rel = fichier.path.replaceAll('\\', '/');
+      if (exceptions.keys.any(rel.endsWith)) return;
+      if (!vus.add(rel)) return;
+
+      final texte = sansCommentaires(fichier.readAsStringSync());
+      for (final m in sorties.allMatches(texte)) {
+        // La brique du kit porte le repli elle-même ; le `onPressed:` qui
+        // suit appartient au widget d'à côté.
+        if (m.group(0) == 'DesignBackLeading') continue;
+
+        final finZone = (m.start + distanceRappel).clamp(0, texte.length);
+        final r = rappel.firstMatch(texte.substring(m.start, finZone));
+        if (r == null) continue;
+
+        final debut = m.start + r.end;
+        final corps = texte.substring(
+          debut,
+          (debut + tailleCorps).clamp(0, texte.length),
+        );
+        if (corps.contains('canPop')) continue;
+        if (!popNu.hasMatch(corps)) continue;
+
+        final ligne = '\n'.allMatches(texte.substring(0, m.start)).length + 1;
+        coupables.add('$rel:$ligne ($chemin)');
+      }
+    });
+
+    expect(
+      coupables,
+      isEmpty,
+      reason:
+          'Ces sorties sont visibles mais mortes dès que la pile ne contient '
+          "qu'elles — l'entrée par lien profond et par notification. "
+          'Remplacez le `pop()` nu par '
+          '`context.canPop() ? context.pop() : context.go(<parent>)`, avec le '
+          'parent logique de la route, pas un `/home` uniforme.',
+    );
+  });
 }
