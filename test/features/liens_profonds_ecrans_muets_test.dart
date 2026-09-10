@@ -11,6 +11,7 @@ import 'package:diaspo_niger/features/events/domain/entities/event_entity.dart';
 import 'package:diaspo_niger/features/events/presentation/providers/event_provider.dart';
 import 'package:diaspo_niger/features/events/presentation/screens/event_detail_screen.dart';
 import 'package:diaspo_niger/features/groups/domain/entities/group_entity.dart';
+import 'package:diaspo_niger/features/groups/presentation/providers/group_link_preview_provider.dart';
 import 'package:diaspo_niger/features/groups/presentation/providers/group_provider.dart';
 import 'package:diaspo_niger/features/groups/presentation/screens/group_detail_screen.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -164,6 +165,63 @@ void main() {
     expect(find.text('Ce groupe est privé ou n\'existe plus.'), findsOneWidget);
     expect(find.text('Réessayer'), findsNothing);
     expect(find.text('Retour'), findsOneWidget);
+  });
+
+  testWidgets(
+    'Groupe privé atteint par un lien : on peut demander à rejoindre',
+    (tester) async {
+      // La consigne de Salim du 2026-09-10 : le lien ne doit pas être une
+      // impasse. `GroupLinkGate` lit l'aperçu minimal — que la RLS de `groups`
+      // ne donne pas — et propose la porte.
+      await tester.pumpWidget(
+        boot(
+          route: '/groups/g-1',
+          overrides: [
+            groupDetailNotifierProvider.overrideWith(_GroupeRefuse.new),
+            groupStreamProvider(
+              'g-1',
+            ).overrideWith((ref) => Stream<GroupEntity?>.value(null)),
+            groupLinkPreviewProvider('g-1').overrideWith(
+              (ref) async => const GroupLinkPreview(
+                id: 'g-1',
+                name: 'Groupe de test privé',
+                memberCount: 3,
+                isPrivate: true,
+              ),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Groupe de test privé'), findsOneWidget);
+      expect(find.text('Demander à rejoindre'), findsOneWidget);
+      expect(find.text('Réessayer'), findsNothing);
+    },
+  );
+
+  testWidgets("Lien vers un groupe qui n'existe plus : pas de fausse porte", (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      boot(
+        route: '/groups/g-1',
+        overrides: [
+          groupDetailNotifierProvider.overrideWith(_GroupeRefuse.new),
+          groupStreamProvider(
+            'g-1',
+          ).overrideWith((ref) => Stream<GroupEntity?>.value(null)),
+          groupLinkPreviewProvider('g-1').overrideWith((ref) async => null),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Demander à rejoindre'), findsNothing);
+    expect(
+      find.text("Ce groupe est privé ou n'existe plus."),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Vraie panne sur un groupe : « Réessayer » reste offert', (
