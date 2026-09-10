@@ -12495,8 +12495,26 @@ main :
       ouverture de l'écran de récupération. », et **pas** une erreur.
 - [ ] **QR d'un autre service** (n'importe quel QR du commerce) : message
       d'erreur, la caméra ne doit pas rester bloquée.
-- [ ] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
-      profil ».
+- [x] **Titre de l'écran** : « Scanner un QR code » et non plus « Scanner un
+      profil » — vérifié sur SM A515F le 2026-09-09 (capture). C'est aussi la
+      preuve que le build installé porte bien ce code : le titre est le seul
+      changement visible sans scanner quoi que ce soit.
+- [x] **La destination d'un scan de groupe s'ouvre** : lien
+      `https://diasponiger.web.app/groups/<id>` envoyé en intent sur
+      58221FDCQ0085Z → fiche « Diaspora Niger — Cap-Vert » complète, bouton
+      « Rejoindre le groupe ». La moitié « route » de la chaîne est donc
+      prouvée appareil ; il reste la moitié « caméra → parser ».
+- [x] **La caméra s'ouvre** sur l'écran du scanner (`dumpsys media.camera` :
+      CONNECT/DISCONNECT du paquet à chaque entrée/sortie) — ce que la montée
+      `mobile_scanner` 7 mettait en doute. Le rendu reste noir tant que
+      l'objectif ne voit rien d'éclairé : le cadre et le texte d'instruction
+      sont dans le sous-arbre `ColorFiltered(BlendMode.srcOut)`, donc invisibles
+      par construction sur fond noir. Ne pas confondre avec une caméra morte.
+
+**Piège de mesure (2026-09-09)** : le premier symptôme rapporté (« ça ne marche
+pas ») venait d'un APK antérieur au correctif — construit à 19:55, correctif
+committé à 20:12. Avant toute conclusion sur un comportement appareil, comparer
+`lastUpdateTime` (`dumpsys package`) à l'horodatage du commit.
 
 ---
 
