@@ -84,11 +84,20 @@ void main() {
       expect(switches, isNotEmpty);
 
       final locked = switches.where((s) => s.onChanged == null).toList();
-      // Exactement les deux services « toujours actifs » — cette liste ne
-      // doit que suivre les décisions produit, pas grandir par accident.
-      expect(locked, hasLength(2));
-      // Verrouillés sur ACTIF, même si le document serveur dit false.
-      expect(locked.every((s) => s.value), isTrue);
+      // Trois interrupteurs inertes, pour DEUX raisons distinctes, et
+      // c'est la distinction qui compte :
+      //
+      //  - Annuaire et Ambassades sont verrouillés sur ACTIF (leur flag
+      //    n'est plus consulté par l'app depuis le 2026-08-19) ;
+      //  - Podcasts est verrouillé sur ce que dit le serveur, parce que
+      //    ce build ne sait pas les jouer (`kPodcastsSupportesParCeBuild`,
+      //    cf. `2af9327`) — ici le document de test dit `false`.
+      //
+      // Cette liste ne doit que suivre les décisions produit, pas grandir
+      // par accident : d'où le compte exact plutôt qu'un `isNotEmpty`.
+      expect(locked, hasLength(3));
+      expect(locked.where((s) => s.value), hasLength(2));
+      expect(locked.where((s) => !s.value), hasLength(1));
 
       // Le sous-titre explicatif accompagne chacun des deux.
       expect(
@@ -99,7 +108,7 @@ void main() {
       // Tous les autres interrupteurs restent manœuvrables.
       expect(
         switches.where((s) => s.onChanged != null).length,
-        switches.length - 2,
+        switches.length - 3,
       );
     },
   );

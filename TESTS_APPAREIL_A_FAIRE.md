@@ -691,11 +691,19 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       depuis l'onglet Accueil, retour système → l'app se ferme, comme avant ✅ ;
       Groupes → une fiche (push interne) + retour système → la liste, **pas**
       l'accueil ✅.
-- [ ] **Deux écrans masquent leur flèche quand la pile est vide** —
-      `/feed` et `/calls/history` : `if (context.canPop()) …`, choix
-      documenté sur place. Arrivé là par lien profond, il n'y a donc aucune
-      flèche ; c'est le retour système ci-dessus qui sert de sortie.
-      Vérifier que ça suffit à l'usage, ou leur donner une flèche.
+- [ ] **Deux écrans masquaient leur flèche quand la pile est vide** —
+      `/feed` et `/calls/history` posaient leur sortie sous
+      `if (context.canPop()) …` : elle disparaissait donc exactement dans le
+      cas qu'elle devait couvrir. Les deux justifications écrites sur place
+      disaient « on n'y arrive que par un push » ; fausse pour les deux, et
+      spectaculairement pour `/calls/history`, dont le point d'entrée dans le
+      profil est **commenté** (`profile_screen.dart`) — le lien profond et la
+      notification y sont aujourd'hui les seules portes.
+      Flèche désormais toujours visible, repli `/home` pour le fil,
+      `/profile` pour l'historique des appels. Un 5e test tient la forme,
+      vérifié en la réintroduisant sur `feed_screen.dart`.
+      Vérifier : `diasponiger:///feed` et `diasponiger:///calls/history`,
+      flèche présente et qui sort.
 
 ## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
 
