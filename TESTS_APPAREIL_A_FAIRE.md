@@ -881,11 +881,24 @@ autoriser quoi que ce soit.
 `partage-discussion`** (modifié, non committé) : ne pas y toucher sans
 coordination.
 
-⚠️ **Non déployé au 2026-09-09 21:15** : `supabase db push` échoue avant même
-de commencer — la base a une version `20260909210000` dont le fichier n'est
-poussé nulle part (il vit dans le worktree `groupes-temps-reel`). Tant que
-cette session n'a pas livré son fichier, **personne ne peut déployer quoi que
-ce soit** : `db push` refuse de tourner sur un historique incomplet.
+✅ **Déployé** — `supabase db push --dry-run` rend « Remote database is up to
+date » au 2026-09-09 22:07 : B (`20260909223000`) **et** C
+(`20260909234500_exclusion_enregistree_membre_ouvre_sa_discussion.sql`, écrit
+par une autre session) sont en base. C ferme par un déclencheur — disparaître
+de `participant_ids` d'une conversation de groupe supprime la ligne
+`group_members` — donc sans toucher au fichier Dart tenu par
+`partage-discussion`, et sans le travail d'unification décrit plus haut.
+
+À noter pour la prochaine fois : `db push` a un moment refusé de tourner
+parce que la base portait une version (`20260909210000`) dont le fichier
+n'était encore poussé nulle part — il vivait dans le worktree
+`groupes-temps-reel`. **Une migration appliquée en production avant que son
+fichier ne soit livré bloque le déploiement de tout le monde.**
+
+⚠️ **Vérification appareil non faite** : le SM A515F était piloté en parallèle
+par une autre session (il est passé tout seul sur la fiche « Diaspora Niger —
+Cap-Vert »), mes taps sont tombés à côté. Reste donc à ouvrir « Testeurs »
+depuis Sim A pour confirmer de visu.
 
 À vérifier une fois le correctif de l'autre session déployé :
 
