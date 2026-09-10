@@ -826,7 +826,19 @@ administrateur doit approuver.
 Effet de bord utile : l'aperçu est la seule chose qui sache distinguer
 « privé » de « supprimé » — `getGroupById` rend le même PGRST116 pour les deux.
 
-**⚠️ `supabase db push` à relancer** pour `20260910060000`. Tant qu'elle n'est
+**⚠️ L'aperçu était joignable en ANONYME — corrigé par `20260910070000`.**
+`20260910060000` annonçait « réservée à `authenticated` » et faisait
+`REVOKE ALL ... FROM PUBLIC` + `GRANT ... TO authenticated`. Insuffisant :
+Supabase pose un `ALTER DEFAULT PRIVILEGES` qui accorde EXECUTE **nommément**
+à `anon` sur toute nouvelle fonction de `public`, et révoquer `PUBLIC` n'y
+touche pas. Mesuré en production avec la clé publique du `.env` :
+`POST /rest/v1/rpc/group_link_preview` → **200**, nom du groupe privé rendu
+**sans compte**. Prouvé refermé : connecté → le nom, anonyme → 42501.
+
+⚠️ **Réflexe** : après toute fonction SECURITY DEFINER ajoutée ici, relire
+`proacl` — `REVOKE ... FROM PUBLIC` ne dit rien des rôles Supabase.
+
+**⚠️ `supabase db push` à relancer** pour `20260910070000`. Tant qu'elle n'est
 pas passée, l'aperçu échoue et l'écran retombe sur l'ancien message — c'est
 volontaire, mais rien n'est vérifiable sur appareil avant.
 
