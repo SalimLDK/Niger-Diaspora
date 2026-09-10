@@ -30,10 +30,22 @@ trois autres.
    valaient `true` (relevé en base ce jour-là ; `consent_date` est resté au
    2026-07-16, jamais réécrit). Reliquat de la bascule Firestore→Supabase du
    2026-08-13 (`160d417`) : avant cette date l'app écrivait ses drapeaux sur
-   Firestore, la colonne Supabase est donc restée à son `DEFAULT false` pour
-   tout compte ayant fini son onboarding plus tôt. Conséquence en chaîne : la
-   synchronisation vers le local (`if (remoteResult) setComplete(...)`) a
-   recopié consentement et profil, **jamais** l'intro.
+   Firestore, et la colonne Supabase est restée à son `DEFAULT false`.
+   Conséquence en chaîne : la synchronisation vers le local
+   (`if (remoteResult) setComplete(...)`) a recopié consentement et profil,
+   **jamais** l'intro.
+
+   ⚠️ **Ne pas en conclure qu'un backfill Firestore aurait sauvé ce compte** —
+   l'inventaire du 2026-09-10 (migration
+   `20260910071000_reprise_drapeaux_onboarding_firestore.sql`) a mesuré la
+   source au lieu de la supposer : `users/` sur Firestore ne contient plus que
+   **5 documents** pour 17 lignes Supabase, dont **2** portent des drapeaux, et
+   **un seul** compte restait à reprendre. Le document Firestore de « Sim A »
+   date d'*après* la bascule et ne porte aucun drapeau : la fin de son
+   onboarding n'a jamais été enregistrée nulle part côté serveur — c'est
+   précisément ce que disait le message de `160d417`, « seul le drapeau local
+   faisait foi ». Et les 8 comptes encore à `false` n'ont aucun document
+   Firestore : leur `false` n'est pas périmé, il est vrai.
 2. **Ce drapeau-là, et lui seul, repassait donc par le réseau à chaque
    démarrage** — et sa lecture, en échec, valait « jamais vu ».
 
