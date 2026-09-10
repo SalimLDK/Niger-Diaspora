@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
@@ -29,7 +30,11 @@ class StarredMessagesScreen extends ConsumerWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed:
+              () =>
+                  context.canPop()
+                      ? context.pop()
+                      : context.go('/messages/$conversationId'),
           icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
         ),
         // Le titre prend le Playfair du thème : pas de style en dur.
