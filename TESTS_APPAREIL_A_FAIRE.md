@@ -296,7 +296,7 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
 
 **⚠️ Deux défauts trouvés en le vérifiant, corrigés mais PAS encore livrés :**
 
-- [ ] **Le compteur de participants ne bougeait pas** (`event_attendees` à 1,
+- [x] **Le compteur de participants ne bougeait pas** — ✅ vérifié SM A515F 2026-09-09 23:05 : annulation → 0, réinscription → 1, en base comme à l'écran. (`event_attendees` à 1,
       `events.attendee_count` à 0). Ma faute dans `20260910010000` : j'ai
       réécrit le trigger sans `SECURITY DEFINER`. Il tourne donc sous
       l'identité du participant, et `events_manage_own` réserve l'UPDATE à
@@ -306,7 +306,7 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
       `20260910023000` la remet en DEFINER et recale les compteurs.
       Vérifier : « Participer » depuis un compte non-organisateur → le
       nombre de participants augmente à l'écran.
-- [ ] **La notification disait « Un utilisateur participera à … »**
+- [x] **La notification disait « Un utilisateur participera à … »** — ✅ vérifié : la ligne de 23:05 dit « **Sim A** participera à "Tabaski 2026" », juste au-dessus des deux anciennes en « Un utilisateur » (dont une du 5 août).
       (signalé par Salim). `attendEvent` lisait le nom dans **Firestore**
       (`users/<uid>.displayName`) alors que les comptes vivent sur Supabase :
       le document n'existe pas, et le repli générique masquait la panne au
@@ -314,7 +314,23 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
       Vérifier : participer à l'événement de quelqu'un d'autre → il reçoit
       « <votre nom> participera à … ».
 
-⚠️ **`supabase db push` à relancer** pour `20260910023000`.
+✅ `20260910023000` appliquée. Trigger en `SECURITY DEFINER`, compteurs recalés.
+
+**⚠️ Reste ouvert — un événement peut n'apparaître dans aucun onglet.**
+« À venir » filtre `startDate >= now`, « Passés » filtre `status == 'completed'`.
+Un événement dont la date est passée mais dont personne n'a changé le statut
+tombe entre les deux et devient invisible — c'est le cas de « testeur », et
+c'est ce qui m'a fait croire un moment que la collection Firestore était vide.
+Rien ne fait passer un événement de `upcoming` à `ended` automatiquement.
+
+**⚠️ Lectures Firestore `users` encore vivantes ailleurs**, même famille que
+la notification corrigée ici, non vérifiées : `core/services/session_service.dart`,
+`core/services/e2ee/content_moderation_service.dart`,
+`core/services/e2ee/session_backup_service.dart`,
+`features/admin/.../permission_provider.dart`,
+`features/admin/.../role_management_provider.dart`.
+(`GroupRemoteDataSourceImpl._getUserDisplayName` porte le même motif mais est
+du **code mort** : le provider rend `GroupSupabaseDataSource()`.)
 
 
 
@@ -929,12 +945,20 @@ refusait une heure plus tôt (« Groupe de test privé », 1 membre) :
 
 Restent à faire :
 
-- [ ] Ajouter un second membre, envoyer : le message est **lisible des deux
-      côtés** (c'est le vrai chemin Sender Key vers autrui, jamais exercé —
-      voir la section « écho temps réel » ci-dessus). Bloqué ce soir : le
-      Pixel s'est retrouvé déconnecté (voir la section suivante).
+- [x] **Le vrai chemin Sender Key vers autrui, exercé pour la première fois**
+      (2026-09-09, 22:52-22:54). Groupe « Testeurs », 2 membres. Depuis le
+      SM A515F, compte **Sim A qui n'est pas administrateur** : la discussion
+      s'ouvre (plus de 42501), `SENDERKEY-2253` part et passe à
+      « À l'instant · Reçu ». Sur le Pixel, compte Salim L., la bulle
+      s'affiche **en clair** — « Sim A / SENDERKEY-2253 », 22:52, thème
+      sombre, aucun placeholder. Chiffrement de groupe, aller ET retour, entre
+      deux comptes distincts.
+- [x] Par la même occasion : l'écho temps réel **en groupe**, qui manquait à
+      la section « Aucun marqueur technique dans une bulle » — la bulle a
+      gardé son texte côté expéditeur.
 - [ ] Les envois de **médias** en groupe : le provider ne leur passe aucun
-      `participantIds`, à regarder de près (chemin non instruit ici).
+      `participantIds` — et la légende part en clair, voir la section « La
+      légende d'une photo/vidéo part EN CLAIR » en tête de fichier.
 
 ---
 
@@ -1180,12 +1204,18 @@ peut-être le vrai défaut à corriger.
 - [x] La flèche « retour » de la fiche Membres ne quitte plus l'application :
       `context.canPop() ? context.pop() : context.go('/home')`, le même repli
       que la fiche du groupe juste à côté.
-- [ ] **À voir sur appareil** : mode avion → ouvrir l'onglet Groupes, puis la
-      fiche Membres d'un groupe : « Pas de connexion internet » aux deux
-      endroits, et « Réessayer » qui refonctionne une fois le réseau revenu.
-- [ ] **À voir sur appareil** : arriver sur la fiche Membres par un lien
-      profond (ou relancer l'app dessus), puis toucher la flèche — on doit
-      atterrir sur l'accueil, pas sur le lanceur.
+- [ ] **À voir sur appareil, demande la main de Salim** : couper le réseau est
+      un réglage système. Mode avion → onglet Groupes, puis fiche Membres :
+      « Pas de connexion internet » aux deux endroits, et « Réessayer » qui
+      refonctionne une fois le réseau revenu.
+- [x] **Vérifié SM A515F, 22:57** (build `b38194eb…46f3`) : lien profond
+      direct sur `/groups/<uuid>/members`, app relancée à froid — la fiche
+      s'ouvre seule dans la pile, et la flèche ramène à **l'accueil**
+      (« Bonjour, Sim », `MainActivity` toujours au premier plan). Avant, elle
+      renvoyait au lanceur. Au passage, l'écran affiche bien « Erreur de
+      chargement » et non « Pas de connexion internet » — l'appareil était en
+      ligne et l'uuid bidon : la branche hors ligne ne se déclenche pas à
+      tort.
 - [ ] Reste ouvert : pourquoi `getGroupById` échouait là où l'écran affichait
       le groupe une minute plus tôt. Si c'était le réseau, c'est réglé par
       le message ci-dessus ; sinon la cause est toujours à trouver.

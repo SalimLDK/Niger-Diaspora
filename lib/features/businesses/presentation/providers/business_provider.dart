@@ -4,6 +4,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../../core/network/network_info.dart';
 import '../../data/datasources/business_remote_datasource.dart';
+import '../../data/datasources/business_supabase_datasource.dart';
 import '../../data/models/business_post_model.dart';
 import '../../data/repositories/business_repository_impl.dart';
 import '../../domain/entities/business_entity.dart';
@@ -15,9 +16,17 @@ part 'business_provider.g.dart';
 
 // Data sources and repositories
 
+/// Source de l'annuaire : **Supabase**, qui fait foi depuis le 2026-09-09.
+///
+/// Le module lisait Firestore alors que les entreprises vivent dans
+/// `public.businesses` : ouvrir `/businesses/<uuid>` cherchait un document
+/// Firestore absent et affichait « Entreprise non trouvée », quel que soit le
+/// chemin d'acces. Meme famille de defaut que les evenements, corrigee le meme
+/// jour. `BusinessRemoteDataSourceImpl` (Firestore) reste dans l'arbre le temps
+/// que la bascule soit eprouvee sur appareil.
 @riverpod
 BusinessRemoteDataSource businessRemoteDataSource(Ref ref) {
-  return BusinessRemoteDataSourceImpl();
+  return BusinessSupabaseDataSource();
 }
 
 @riverpod
