@@ -96,6 +96,53 @@ produit **aucune erreur**, ni à l'écran ni dans logcat.
 
 ---
 
+## ⚠️ Événements sur Supabase — écrit, PAS branché (2026-09-09)
+
+Décision de Salim : `public.events` fait foi. Le module Événements lisait
+Firestore pendant que le back-office admin écrivait dans Supabase.
+
+Livré dans cette passe :
+
+- `lib/features/events/data/datasources/event_supabase_datasource.dart`
+  (17 méthodes de l'interface, `flutter analyze` propre) ;
+- `supabase/migrations/20260910003000_events_lisibles_par_l_app.sql`, rejouée
+  en transaction annulée contre la production — elle passe.
+
+**Le provider n'est PAS basculé**, et c'est délibéré : trois choses manquent,
+dont deux ne dépendent pas de moi.
+
+1. **La migration n'est pas appliquée.** `supabase db push` est bloqué par une
+   dérive d'historique : « Remote migration versions not found in local
+   migrations directory — `20260909210000` ». Une migration a été appliquée
+   au distant puis renommée localement (le merge du soir montre bien un
+   `delete mode` sur `20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql`).
+   Réparer l'historique est une action partagée, sur un chantier en cours chez
+   quelqu'un d'autre : à faire par celui qui l'a déplacée, avec
+   `supabase migration repair`.
+2. **Personne ne sait ce qu'il y a dans Firestore.** Basculer le provider rend
+   invisibles les événements restés côté Firestore. Impossible de les compter
+   depuis ce poste : `scripts/set_admin.js` s'appuie sur
+   `applicationDefault()` et il n'y a pas d'identifiants gcloud ici — le
+   script reste suspendu. Le plus simple : ouvrir l'onglet Événements de
+   l'app **avant** la bascule et noter ce qui s'affiche, puis recopier.
+3. **Trois écarts comblés par la migration, à revalider après coup** :
+   `price` n'existait pas en base (affiché sur la fiche, saisi à la
+   création) ; `event_attendees` n'était lisible que pour sa propre ligne, donc
+   `attendeeIds.length >= maxAttendees` n'aurait **jamais** annoncé un
+   événement complet ; et l'enum Dart dit `completed` là où la contrainte de
+   base dit `ended` — traduit dans le datasource, pas dans la base.
+
+- [ ] Une fois la migration appliquée et le provider basculé : créer un
+      événement depuis l'app, le retrouver dans le back-office admin, et
+      l'inverse.
+- [ ] Un événement avec `maxAttendees = 1` doit s'afficher **complet** après
+      une inscription (c'est le défaut que la policy élargie corrige).
+- [ ] Un événement passé (`ended` en base) doit apparaître comme terminé, pas
+      comme à venir.
+- [ ] Le prix saisi à la création doit se relire sur la fiche.
+
+---
+
 ## ⚠️ Repli navigateur des liens d'app — prêt, PAS déployé (2026-09-09)
 
 Tout chemin d'app tapé dans un navigateur (ou dans le navigateur intégré de
@@ -167,7 +214,7 @@ fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
 
 - [ ] Accueil → « Inviter un proche » → le lien partagé finit par
       `/telecharger?ref=<uid>`.
-- [ ] Ce lien tapé sur un téléphone **avec** l'app → l'accueil, pas d'erreur.
+- [x] Ce lien tapé sur un téléphone **avec** l'app → l'accueil, pas d'erreur. ✅ SM A515F 2026-09-09 21:42
 - [ ] Un ancien lien `/invite?ref=…` → l'accueil aussi.
 
 ---
@@ -192,7 +239,7 @@ toujours **après**, à l'écran d'arrivée :
 
 Corrigé dans cette livraison :
 
-- [ ] **`/events/<id>` qui échoue affiche enfin quelque chose.**
+- [x] **`/events/<id>` qui échoue affiche enfin quelque chose.** ✅ SM A515F 2026-09-09 21:42
       `EventDetailScreen` ne regardait que `eventAsync.valueOrNull` : un
       événement supprimé, un refus de lecture ou une coupure réseau rendaient
       `null`, exactement comme un chargement en cours — d'où la roue
@@ -200,7 +247,7 @@ Corrigé dans cette livraison :
       qui la portait déjà.
       Vérifier : ouvrir `…/events/<uuid inexistant>` → « Erreur de
       chargement » + « Réessayer », **pas** de roue infinie.
-- [ ] **Groupe privé : ne plus mentir.** `getGroupById` finit sur `.single()`
+- [ ] **Groupe privé : ne plus mentir.** ⚠️ NON REJOUÉ sur appareil : le compte du SM A515F (« Sim A ») est le **créateur** du groupe privé de test, la fiche s'ouvre donc normalement pour lui ; le Pixel, qui portait un compte non-membre, s'est déconnecté pendant les mesures (une seule session par compte). Couvert par test widget seulement. `getGroupById` finit sur `.single()`
       ; la RLS d'un groupe privé rend zéro ligne, donc PGRST116 — le même
       code que pour un groupe supprimé. « Erreur de chargement » + un
       « Réessayer » qui ne peut jamais aboutir. Remplacé par « Ce groupe est
@@ -210,7 +257,7 @@ Corrigé dans cette livraison :
       que `20260909201500` vient de fermer.
       Vérifier : `…/groups/2b24986f-08b5-4840-9931-dbe046ffb394` (groupe
       privé de test) depuis un compte non-membre.
-- [ ] **Flèche retour des deux écrans d'erreur/chargement.** Elles faisaient
+- [x] **Flèche retour des deux écrans d'erreur/chargement.** ✅ SM A515F 2026-09-09 21:43 Elles faisaient
       `context.pop()` : arrivé par lien profond, la route est seule dans la
       pile → écran noir. Repli `canPop ? pop : go('/home')`.
       Vérifier : lien profond → erreur → flèche retour → accueil, pas de noir.
