@@ -127,22 +127,27 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // La maquette n'a pas de flèche — elle suppose un onglet de
-          // navigation. Ici la route est empilée (depuis le profil), donc on
-          // la montre quand, et seulement quand, il y a où revenir.
-          if (context.canPop()) ...[
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => context.pop(),
-              child: Padding(
-                padding: const EdgeInsets.only(right: 12, bottom: 4),
-                child: AppIcon(
-                  AppIcon.arrowBack,
-                  size: 24,
-                  color: context.textPrimaryColor,
-                ),
+          // navigation.
+          //
+          // Elle était posée sous `if (context.canPop())` « puisqu'on arrive
+          // depuis le profil ». Or ce point d'entrée est commenté
+          // (`profile_screen.dart`) : aujourd'hui le lien profond et la
+          // notification sont les SEULES façons d'ouvrir cet écran, et ce sont
+          // exactement les cas où la pile est vide. On la montre toujours.
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap:
+                () =>
+                    context.canPop() ? context.pop() : context.go('/profile'),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12, bottom: 4),
+              child: AppIcon(
+                AppIcon.arrowBack,
+                size: 24,
+                color: context.textPrimaryColor,
               ),
             ),
-          ],
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

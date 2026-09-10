@@ -712,11 +712,19 @@ test tient maintenant l'invariant ; vérifié en réintroduisant le défaut sur
       depuis l'onglet Accueil, retour système → l'app se ferme, comme avant ✅ ;
       Groupes → une fiche (push interne) + retour système → la liste, **pas**
       l'accueil ✅.
-- [ ] **Deux écrans masquent leur flèche quand la pile est vide** —
-      `/feed` et `/calls/history` : `if (context.canPop()) …`, choix
-      documenté sur place. Arrivé là par lien profond, il n'y a donc aucune
-      flèche ; c'est le retour système ci-dessus qui sert de sortie.
-      Vérifier que ça suffit à l'usage, ou leur donner une flèche.
+- [ ] **Deux écrans masquaient leur flèche quand la pile est vide** —
+      `/feed` et `/calls/history` posaient leur sortie sous
+      `if (context.canPop()) …` : elle disparaissait donc exactement dans le
+      cas qu'elle devait couvrir. Les deux justifications écrites sur place
+      disaient « on n'y arrive que par un push » ; fausse pour les deux, et
+      spectaculairement pour `/calls/history`, dont le point d'entrée dans le
+      profil est **commenté** (`profile_screen.dart`) — le lien profond et la
+      notification y sont aujourd'hui les seules portes.
+      Flèche désormais toujours visible, repli `/home` pour le fil,
+      `/profile` pour l'historique des appels. Un 5e test tient la forme,
+      vérifié en la réintroduisant sur `feed_screen.dart`.
+      Vérifier : `diasponiger:///feed` et `diasponiger:///calls/history`,
+      flèche présente et qui sort.
 
 ## ⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)
 
@@ -13841,6 +13849,59 @@ que toucher à une garde du routeur est précisément ce qui a déjà coûté ch
   le Wi-Fi pouvait n'être pas encore rétabli au lancement, donc à confirmer).
 - [ ] **Vérifier le cas du vrai nouveau compte** avant tout correctif : il doit
   continuer à voir l'onboarding.
+
+---
+
+## ⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)
+
+Première lecture réelle de la console. Elle change l'interprétation des
+chiffres, et sort quatre défauts avec leur volume.
+
+**Le taux de plantage ne mesurait pas la stabilité.** « Utilisateurs sans
+plantage » à **80,95 %, en baisse de 19 points** — alarmant en apparence. Sur
+les quatre « plantages » ouverts, **trois étaient de simples pertes de
+réseau** :
+
+| Signalé comme plantage | Ce que c'est |
+|---|---|
+| `google_fonts` — `Failed host lookup: fonts.gstatic.com` | hors ligne, 4 évts / 3 users |
+| `postgrest` — `Failed host lookup: …supabase.co` | hors ligne, 2 évts / 1 user |
+| `ProfileSupabaseDataSource._requireAuth` — « Session Supabase non établie » | 3 évts / 2 users |
+
+Cause : `PlatformDispatcher.onError` ([main.dart](lib/main.dart)) enregistrait
+tout en `fatal: true`. **Corrigé** — une panne réseau part désormais en
+non-fatal, via [classification_erreurs.dart](lib/core/errors/classification_erreurs.dart).
+Les erreurs restent envoyées, seul leur classement change.
+
+⚠️ Le tri se fait sur le **texte** de l'erreur, pas sur son type : `dart:io`
+(donc `SocketException`) n'est pas importable, `web/` étant une cible réelle.
+C'est fragile ; [le test](test/core/errors/classification_erreurs_test.dart)
+fige les libellés **réellement observés en production**, pas des exemples
+inventés. Le cas « Session Supabase non établie » est laissé **fatal**
+sciemment : sa cause profonde est souvent le réseau, mais son libellé ne le dit
+pas, et le reclasser demanderait de décider ce que « fatal » veut dire pour une
+session absente.
+
+**Quatre défauts réels, avec leur volume — aucun corrigé :**
+
+- [ ] **`A RenderFlex overflowed by 100 pixels on the bottom` — 21 occurrences**,
+  de loin le premier non-fatal, 1 utilisateur. Écran inconnu : la pile pointe
+  `main.dart:172` (le `FlutterError.onError`), pas le widget fautif. À isoler.
+- [ ] **`GoError: There is nothing to pop` — 11 occurrences.** Famille déjà
+  documentée ici (écran noir au retour d'un lien profond) : une route de lien
+  profond seule dans la pile.
+- [ ] **`MissingPluginException` sur le canal `com.diasponiger.diaspo_niger/gsm_state`**
+  — 3 occurrences. Un canal de plateforme écouté côté Dart sans implémentation
+  native.
+- [ ] **`ForegroundServiceStartNotAllowedException` — NOUVEAU en 1.2.1**,
+  `flutter_background_service` ne peut plus démarrer. 2 occurrences.
+
+**Et une preuve que le plugin Gradle ajouté ce jour sert bien** : la pile de ce
+dernier s'affiche `d1.a.startForegroundService` / `SourceFile:7` — obfusquée.
+Les piles **Dart** sont lisibles (R8 n'y touche pas), les piles **Android** ne
+l'étaient pas. La prochaine version donnera un vrai nom de classe.
+
+- [ ] **Vérifier après publication** qu'une pile Android arrive déobfusquée.
 
 ---
 
