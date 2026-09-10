@@ -224,11 +224,39 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
     }
   }
 
+  /// Les deux onglets de l'écran Événements PARTITIONNENT, par la date.
+  ///
+  /// Ils filtraient chacun sur `status` — « À venir » exigeait `upcoming`,
+  /// « Passés » exigeait `completed` — et rien ne fait passer un événement de
+  /// l'un à l'autre quand sa date arrive. Un événement dont personne n'avait
+  /// touché le statut tombait donc entre les deux et devenait invisible :
+  /// c'est le cas de « testeur » (2026-08-24, resté `upcoming`), qui m'a fait
+  /// croire un moment que la collection Firestore était vide.
+  ///
+  /// Un brouillon reste hors des deux : la RLS ne le montre qu'à son
+  /// organisateur, et l'y afficher comme un événement ordinaire l'induirait en
+  /// erreur.
+  ///
+  /// Un événement **annulé** va dans « Passés », quelle que soit sa date : il
+  /// n'est plus à venir, et le laisser dans le premier onglet reviendrait à
+  /// proposer d'y participer.
+  /// Vocabulaire **Dart** ici : le cache stocke ce que `_mapEvent` a traduit,
+  /// donc `completed` et non `ended`. Les deux prédicats sont exactement
+  /// complémentaires — c'est ce qui garantit qu'aucun événement ne tombe
+  /// entre les deux onglets.
+  static bool _estPasse(EventModel e, DateTime maintenant) =>
+      e.status == 'cancelled' ||
+      e.status == 'completed' ||
+      e.startDate.isBefore(maintenant);
+
+  static bool _estAVenir(EventModel e, DateTime maintenant) =>
+      !_estPasse(e, maintenant);
+
   @override
   Future<List<EventModel>> getUpcomingEvents() async {
     final now = DateTime.now();
     List<EventModel> repli() => _depuisLeCache()
-        .where((e) => e.startDate.isAfter(now) && e.status == 'upcoming')
+        .where((e) => e.status != 'draft' && _estAVenir(e, now))
         .take(20)
         .toList();
 
@@ -239,8 +267,8 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
           await _supabase
                   .from('events')
                   .select(_select)
-                  .eq('status', 'upcoming')
                   .gte('starts_at', toIsoUtc(now))
+                  .not('status', 'in', '("draft","cancelled")')
                   .order('starts_at')
                   .limit(20)
               as List;
@@ -254,20 +282,28 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
   @override
   Future<List<EventModel>> getPastEvents() async {
+    final now = DateTime.now();
     List<EventModel> repli() => _depuisLeCache()
-        .where((e) => e.status == 'completed')
+        .where((e) => e.status != 'draft' && _estPasse(e, now))
         .take(50)
         .toList();
 
     if (!await _connectivity.isConnected()) return repli();
     try {
       await SupabaseAuthBridge.instance.ensureAuthenticated();
+      // Complément exact de `getUpcomingEvents` : date dépassée **ou**
+      // annulé. `ended` reste accepté sans condition de date — c'est le
+      // vocabulaire de la base pour « terminé », et une donnée saisie à la
+      // main pourrait le porter sans que la date suive.
       final rows =
           await _supabase
                   .from('events')
                   .select(_select)
-                  // `ended` en base, « completed » côté Dart.
-                  .eq('status', 'ended')
+                  .neq('status', 'draft')
+                  .or(
+                    'starts_at.lt.${toIsoUtc(now)},'
+                    'status.eq.cancelled,status.eq.ended',
+                  )
                   .order('starts_at', ascending: false)
                   .limit(50)
               as List;

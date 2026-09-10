@@ -352,12 +352,28 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
 
 ✅ `20260910023000` appliquée. Trigger en `SECURITY DEFINER`, compteurs recalés.
 
-**⚠️ Reste ouvert — un événement peut n'apparaître dans aucun onglet.**
-« À venir » filtre `startDate >= now`, « Passés » filtre `status == 'completed'`.
-Un événement dont la date est passée mais dont personne n'a changé le statut
-tombe entre les deux et devient invisible — c'est le cas de « testeur », et
-c'est ce qui m'a fait croire un moment que la collection Firestore était vide.
-Rien ne fait passer un événement de `upcoming` à `ended` automatiquement.
+**✅ Corrigé — les deux onglets partitionnent désormais par la date.**
+Ils filtraient chacun sur `status` (« À venir » exigeait `upcoming`, « Passés »
+exigeait `completed`) et rien ne fait la transition quand la date arrive : un
+événement dont personne n'avait touché le statut tombait entre les deux. C'est
+le cas de « testeur », et c'est ce qui m'a fait croire un moment que la
+collection Firestore était vide.
+
+`_estAVenir` est littéralement `!_estPasse` : la complémentarité est
+structurelle, elle ne peut plus dériver. Un brouillon reste hors des deux (la
+RLS ne le montre qu'à son organisateur) ; un annulé va dans « Passés » quelle
+que soit sa date.
+
+**Et un annulé se lit enfin comme tel.** Rien ne l'indiquait nulle part : la
+fiche proposait « Participer », et l'inscription aboutissait pour de bon — en
+base et en notification. Ajouté : une pastille rouge « Annulé » à côté du
+badge Gratuit/Payant, et le bouton éteint qui dit « Annulé » au lieu de
+« Complet ».
+
+- [ ] « testeur » (passé, resté `upcoming`) doit apparaître dans « Passés ».
+- [ ] « Tabaski 2026 » (annulé) aussi, avec sa pastille rouge, et son bouton
+      « Annulé » inactif.
+- [ ] Aucun événement ne doit être absent des deux onglets.
 
 **⚠️ Lectures Firestore `users` encore vivantes ailleurs**, même famille que
 la notification corrigée ici, non vérifiées : `core/services/session_service.dart`,
