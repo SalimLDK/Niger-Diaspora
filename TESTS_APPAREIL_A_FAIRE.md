@@ -4855,6 +4855,13 @@ des deux branches muettes s'applique reste donc à trancher (veille du bandeau,
 ou présence de sauvegarde indéterminée). Dans ces deux branches, `initialize()` n'est jamais appelé, donc **aucune
 publication** — et le repli AES s'installe en silence, sans que rien à l'écran
 ne le dise.
+**Le mécanisme de publication, lui, fonctionne** : deux autres comptes ont
+publié un appareil **le 2026-09-11** (20:51 et 20:57 UTC), avec
+`identitySigningKey` et 200 à 400 pré-clés — dont le compte de test dédié. Le
+blocage est donc propre aux deux comptes des téléphones, pas au code de
+publication. Et la **reconnexion de Salim L. sur le Pixel à 18:27**, ce même
+jour, n'a créé **aucune** ligne : son compte n'est donc pas dans la branche
+« aucune sauvegarde » (qui, elle, génère et publie).
 **Pour débloquer** : restaurer les clés sur le SM A515F (phrase secrète, donc
 Salim) ou les transférer par QR, puis vérifier que `e2ee_devices` gagne une
 ligne portant `identitySigningKey` avant de rejouer ce test.
