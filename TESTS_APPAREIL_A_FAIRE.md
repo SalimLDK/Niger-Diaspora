@@ -908,6 +908,9 @@ salons audio.
       fiche. Non vérifiables à la main : l'attente elle-même (il faudrait des
       drapeaux lents), l'échec de lecture (hors ligne sans cache) et
       l'échéance de 8 s — couverts par les tests.
+      Rejouée sur `923ebf6` (APK `5e8b75f0…`), qui ajoute `20e2a99` de l'autre
+      agent — liens mis de côté par une activité neuve, rejoués par
+      `router.go`, donc par la porte : résultats identiques.
 - [ ] **Piège de mesure à retenir** : viser cette fenêtre à la main est
       instable. 22 s après le lancement, l'intent tombe tantôt sur le splash
       (mesure trop tôt), tantôt après le chargement des drapeaux (mesure trop
