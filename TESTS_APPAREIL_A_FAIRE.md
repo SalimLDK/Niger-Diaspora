@@ -836,9 +836,13 @@ verrouillé par `test/core/podcasts_service_premier_plan_test.dart`. La
 décision ci-dessous ne concerne plus que marketplace, transferts, paiements et
 salons audio.
 
-- [ ] Mesurer sur appareil : `diasponiger:///podcasts` envoyé **tôt** (pendant
+- [x] Mesurer sur appareil : `diasponiger:///podcasts` envoyé **tôt** (pendant
       le splash) doit tomber sur l'accueil, et non plus sur l'écran Podcasts.
-      Même piège de visée que ci-dessous.
+      ✅ SM A515F 2026-09-11, build `acebb9f8…` (= `fbc8e7d`, md5 contrôlé avant
+      et après) : accueil à 3, 6, 10, 15, 22 et 30 s après un démarrage à froid.
+      ⚠️ Non-régression, pas preuve : sur l'ancien build aussi, la même série a
+      donné six fois l'accueil — la fenêtre ne s'est pas ouverte. La preuve de
+      la fermeture, ce sont les tests.
 - [x] **Décidé le 2026-09-11 : fermer la fenêtre, sans rouvrir l'ancien
       défaut.** Salim : « corrige ça ». La porte a maintenant **trois**
       issues au lieu de deux (`decisionPorte`,
@@ -858,6 +862,13 @@ salons audio.
       passe par les mêmes providers. Tenu par
       `test/core/router/porte_drapeaux_test.dart` (13 tests, dont un garde
       textuel vérifié en remettant l'ancienne porte : il tombe).
+- [x] **Non-régression du démarrage** ✅ SM A515F 2026-09-11, même build :
+      démarrage à froid → accueil (le splash se libère) ; `/services` envoyé
+      3 s après le lancement → Tous les services (la destination mise de côté
+      se rejoue toujours, étape 10 modifiée) ; `/groups/<id>` à chaud → la
+      fiche. Non vérifiables à la main : l'attente elle-même (il faudrait des
+      drapeaux lents), l'échec de lecture (hors ligne sans cache) et
+      l'échéance de 8 s — couverts par les tests.
 - [ ] **Piège de mesure à retenir** : viser cette fenêtre à la main est
       instable. 22 s après le lancement, l'intent tombe tantôt sur le splash
       (mesure trop tôt), tantôt après le chargement des drapeaux (mesure trop
