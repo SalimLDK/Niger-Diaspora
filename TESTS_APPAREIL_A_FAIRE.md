@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**786 cases à cocher, 479 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
+**787 cases à cocher, 480 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -50,7 +50,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 10 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
-- 7 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
+- 8 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06) · *Chiffrement de bout en bout et clés*
 - 1 · [⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)](#-un-groupe-dont-on-est-le-seul-membre-refuse-tous-les-messages-2026-09-09) · *Groupes*
@@ -219,7 +219,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 103 à faire, 52 faites
 - [3. Groupes](#3-groupes) — 90 à faire, 52 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 50 à faire, 17 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 51 à faire, 18 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
 - [6. Notifications et push](#6-notifications-et-push) — 44 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 35 à faire, 57 faites
@@ -4275,12 +4275,38 @@ garde plus que la date — rien ne l'affichait.
 - [ ] **Répondre, dans les cinq cas** : à un texte, à une photo (avec légende),
   à une note vocale, à une localisation, à un sticker. La citation doit
   s'afficher au-dessus de la bulle, chez l'expéditeur **et** chez l'autre.
-- [ ] **La citation survit à un accusé de lecture** : même piège que les
+- [x] **La citation survit à un accusé de lecture** : même piège que les
   cartes ; le flux de mises à jour rend la ligne brute.
+  **✅ 2026-09-11 17:56-17:58, SM A515F (Sim A) ↔ Pixel (Salim L.), build 18.**
+  `REPONSE-TEXTE-1756` répond à `CLEF-APRES-1745` : la citation s'affiche des
+  **deux** côtés (« Vous » chez l'expéditeur, « Sim A » chez l'autre), et elle
+  est toujours là côté expéditeur après le passage à « Lu ». En base, le
+  message porte `encAnnexes` et **aucun** `replyToMessageData` en clair.
 - [ ] **Modifier un message d'un 1:1, puis d'un groupe** : le texte modifié
   doit s'afficher correctement chez l'autre après rechargement. C'est le point
   le plus risqué du lot — le rechiffrement d'une modification n'a jamais tourné
   contre de vraies sessions Signal.
+  **1:1 ✅ 2026-09-11 18:05, SM A515F (Sim A) → Pixel (Salim L.), build 18.**
+  `REPONSE-TEXTE-1756` modifié en `…-EDIT1` : côté expéditeur la bulle porte
+  le nouveau texte, la mention « modifié » et sa citation ; en base le contenu
+  est **rechiffré** (`v1:ZxxwuxW…`), `editedAt` est posé et `editHistory` ne
+  contient plus que `[{editedAt}]`, sans `content`. Côté Pixel, le nouveau
+  texte apparaît **après être sorti de la conversation et y être revenu** —
+  sur l'écran resté ouvert, seule la mention « modifié » arrivait, le texte
+  restait l'ancien. Reste le cas du **groupe** (⚠️ les sessions Signal ne sont
+  pas en jeu ici : aucun appareil n'a republié ses clés depuis le 2026-08-23,
+  tout est en repli AES/clé dérivée — voir « E2EE réparé : la clé de signature
+  est publiée avec le bundle »).
+- [ ] ⚠️ **L'aperçu de la liste des discussions garde l'ancien texte après une
+  modification** (vu le 2026-09-11 sur le Pixel : la ligne « Sim A » affichait
+  encore `REPONSE-TEXTE-1756` alors que la bulle disait `…-EDIT1`).
+  `lastMessage` n'est pas réécrit par `editMessage` — cohérent avec la liste
+  « pas encore branchés » de « Clés de repli dérivées ».
+- [ ] ⚠️ **« Modifier » est introuvable sans le savoir** : l'entrée n'est ni
+  dans le menu d'appui long ni dans un sous-menu nommé — il faut toucher
+  « Autres actions », **puis faire défiler** la feuille jusqu'en bas (elle
+  vient après Infos du message, Partager, Sélectionner). Trois essais y ont
+  été perdus ici. À rapprocher de la maquette : est-ce voulu ?
 - [ ] **Modifier un message de « Mes notes »** (aucun destinataire, chemin
   `selfNote`).
 - [ ] **Rouvrir la conversation après avoir modifié** : côté EXPÉDITEUR, le
