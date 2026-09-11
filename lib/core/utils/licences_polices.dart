@@ -22,6 +22,17 @@ const List<({String nom, String fichier})> famillesPoliceEmbarquees = [
   (nom: 'Figtree', fichier: 'Figtree'),
 ];
 
+/// Rend un texte de licence affichable : fins de ligne ramenées à `\n`.
+///
+/// La copie de travail qui sert au build peut porter des CRLF — les huit
+/// `LICENCE-*.txt` y ont été écrits ainsi à leur import, sous Windows, le
+/// 2026-09-11 — et l'APK l'embarque telle quelle. `LicenseEntryWithLineBreaks`
+/// découpe sur `\n` et laisse le `\r` : chacun s'affichait comme un carré sur
+/// la page Licences (vu sur SM A515F).
+@visibleForTesting
+String texteLicenceAffichable(String brut) =>
+    brut.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+
 /// Enregistre la licence de chaque famille embarquée.
 ///
 /// Toutes sont sous SIL Open Font License, qui impose que son texte
@@ -39,8 +50,10 @@ const List<({String nom, String fichier})> famillesPoliceEmbarquees = [
 void enregistrerLicencesPolices() {
   LicenseRegistry.addLicense(() async* {
     for (final famille in famillesPoliceEmbarquees) {
-      final texte = await rootBundle.loadString(
-        'assets/google_fonts/LICENCE-${famille.fichier}.txt',
+      final texte = texteLicenceAffichable(
+        await rootBundle.loadString(
+          'assets/google_fonts/LICENCE-${famille.fichier}.txt',
+        ),
       );
       yield LicenseEntryWithLineBreaks(<String>[famille.nom], texte);
     }

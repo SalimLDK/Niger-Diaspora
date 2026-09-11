@@ -35,7 +35,23 @@ void main() {
         contains('SIL OPEN FONT LICENSE'),
         reason: '${entree.packages.join()} : texte vide ou méconnaissable',
       );
+      expect(
+        texte,
+        isNot(contains('\r')),
+        reason: '${entree.packages.join()} : retour chariot résiduel',
+      );
     }
+  });
+
+  test('un texte CRLF est rendu sans retour chariot', () {
+    // Vu sur appareil le 2026-09-11 : chaque \r restant s'affichait comme un
+    // carré. Texte écrit en dur, et non lu sur disque : une copie de travail
+    // en LF ferait passer un test de fichier même sans correctif.
+    const brut = 'SIL OPEN FONT LICENSE\r\nVersion 1.1\r\n\r\nPREAMBLE\r';
+    expect(
+      texteLicenceAffichable(brut),
+      'SIL OPEN FONT LICENSE\nVersion 1.1\n\nPREAMBLE\n',
+    );
   });
 
   test('les Réglages ouvrent bien cette page', () {

@@ -14605,13 +14605,36 @@ en-tête.
 réellement les 8 textes par le chemin qu'emprunte la page — une faute dans un
 nom de `LICENCE-*.txt` et il échoue — et vérifie que les Réglages l'ouvrent.
 
-- [ ] **Sur appareil** : Réglages → « Licences open source » → la page
-  s'ouvre, en-tête avec le nom de l'app et sa version, et la liste contient
-  les 8 familles (Inter, Playfair Display, Roboto Mono, Instrument Serif,
-  Instrument Sans, IBM Plex Mono, Caprasimo, Figtree) ainsi que les paquets.
-- [ ] **Thème sombre** : la page reste lisible. C'est une page Material
-  standard, qui suit le thème de l'app — à vérifier, pas à supposer.
-- [ ] **Retour** : la flèche et le retour système ramènent aux Réglages.
+Vérifié sur **SM A515F** le 2026-09-11, APK release `09932cfe…` (`874aa40`,
+md5 local = md5 `pm path`) :
+
+- [x] **Sur appareil** : Profil → Réglages → « Licences open source », juste
+  sous « Code de conduite », même tuile que ses voisines. La page s'ouvre avec
+  l'en-tête « Diaspo Niger / 1.2.1 (18) / Powered by Flutter ». Liste parcourue
+  entière (338 entrées) : les **8 familles** y sont, une licence chacune, et la
+  fiche Roboto Mono affiche bien le texte OFL.
+- [x] **Thème sombre** : liste et fiche lisibles (texte clair sur fond sombre,
+  en-tête dans la police de l'app). Thème remis sur « Système » après le test.
+- [x] **Retour** : retour système fiche → liste → Réglages, et flèche de l'app
+  liste → Réglages.
+
+⚠️ **Défaut trouvé sur l'appareil, corrigé dans la foulée** : dans les huit
+textes de licence de police, **chaque fin de ligne s'affichait comme un
+carré** (« Version 1.1.▯ This license… »). Les `LICENCE-*.txt` portaient des
+CRLF, **écrits ainsi par mon script d'import** : `write_text` de Python, en
+mode texte sous Windows, transforme chaque saut de ligne en CRLF. Git a stocké
+du LF (une copie fraîche n'en a aucun), mais la copie de travail qui a servi au
+build a gardé les CRLF, et l'APK l'embarque telle quelle ; la page découpe sur
+le saut de ligne et laisse le retour chariot. Mon test ne vérifiait que la
+présence de « SIL OPEN FONT LICENSE » : il ne pouvait pas le voir.
+
+Corrigé au chargement par une fonction pure (`texteLicenceAffichable`), testée
+sur un texte CRLF écrit en dur — un test qui lirait les fichiers passerait sur
+toute copie LF, donc serait aveugle.
+
+- [ ] **Revoir le rendu sans carré** sur une build qui porte ce correctif (la
+  copie de travail du dépôt principal a toujours ses CRLF : c'est justement
+  elle qui prouvera que la normalisation tient).
 
 ---
 
