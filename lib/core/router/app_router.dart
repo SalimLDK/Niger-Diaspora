@@ -345,6 +345,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       // est toujours actif depuis le 2026-08-19, comme le fil et les
       // ambassades — voir feature_flag_service.dart.)
       //
+      // Les podcasts d'abord : ils sont coupés à la COMPILATION, pas par un
+      // drapeau. `kPodcastsSupportesParCeBuild` à false signifie que ce
+      // build ne sait pas les jouer — FOREGROUND_SERVICE_MEDIA_PLAYBACK a
+      // quitté le manifeste, et la première lecture lèverait une
+      // SecurityException sur Android 14+. La réponse ne dépend d'aucune
+      // donnée serveur, elle n'a donc pas à attendre les drapeaux : placé
+      // AVANT la porte ci-dessous, ce test les refuse tout de suite, là où
+      // la porte les ferait attendre sur le splash (jusqu'à 8 s) pour les
+      // refuser ensuite. Avant la porte à trois issues, sans lui,
+      // `/podcasts/*` restait ouvert pendant tout le démarrage à froid
+      // (mesuré sur SM A515F, commit f8c681d).
+      if (!kPodcastsSupportesParCeBuild &&
+          state.matchedLocation.startsWith('/podcasts')) {
+        return '/home';
+      }
+
       // Trois issues, pas deux — voir `decisionPorte`. Laisser passer tant
       // que les drapeaux ne sont pas lus ouvrait ces modules, même
       // désactivés, pendant les premières secondes de chaque lancement
