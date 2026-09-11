@@ -21,6 +21,15 @@ un domaine, de la plus récente à la plus ancienne.
 
 - Une nouvelle entrée se place **en tête de son domaine**, pas en tête du
   fichier.
+- Sous son titre, une entrée qui a des cases ouvertes porte sa priorité :
+  `**Priorité P1** · importance 4/5 — ce que subit l'utilisateur`, suivie de
+  `*Bloqué : …*` si elle ne se fait pas aujourd'hui avec un seul téléphone.
+  **P0** : avant toute nouvelle version — fuite de données, plantage, perte
+  de données, fonction cœur cassée, publication bloquée. **P1** : fonction
+  importante corrigée, jamais vérifiée. **P2** : fonction secondaire ou cas
+  limite. **P3** : confort, cosmétique, fonction en pause. Le sommaire trie
+  sur cette ligne ; une entrée ouverte qui ne l'a pas y apparaît « à
+  classer ».
 - Un renvoi vers une autre entrée la **nomme** (« voir « Titre » ») : « plus
   haut » et « plus bas » cessent d'être vrais dès que l'ordre bouge.
 - Le sommaire est généré. Après avoir ajouté une entrée ou coché des cases :
@@ -30,271 +39,200 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**789 cases à cocher, 475 cochées**, réparties dans 203 entrées.
+**789 cases à cocher, 475 cochées** — 160 entrées sur 203 ont encore des cases ouvertes.
 
-**[1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode)** — 3 à faire, 10 faites
+Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-- 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09)
-- sans case ouverte :
-  - [Comment tester (rappel de la config utilisée précédemment)](#comment-tester-rappel-de-la-config-utilisée-précédemment)
-  - [⛔ Le Pixel s'est retrouvé DÉCONNECTÉ pendant la passe (2026-09-09, 20:39)](#-le-pixel-sest-retrouvé-déconnecté-pendant-la-passe-2026-09-09-2039)
-  - [Second appareil : Pixel 10 Pro XL (2026-09-08)](#second-appareil--pixel-10-pro-xl-2026-09-08)
-  - [⚠️ L'appareil porte une RELEASE depuis le 2026-08-23](#-lappareil-porte-une-release-depuis-le-2026-08-23)
+**P0 — avant toute nouvelle version** (18)
 
-**[2. Messagerie](#2-messagerie)** — 103 à faire, 52 faites
+- 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
+- 2 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 2 · [⚠️ Clés dérivées : premier test appareil (2026-09-07, SM A515F)](#-clés-dérivées--premier-test-appareil-2026-09-07-sm-a515f) · *Chiffrement de bout en bout et clés*
+- 4 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
+- 10 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
+- 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
+- 7 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
+- 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
+- 7 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06) · *Chiffrement de bout en bout et clés*
+- 1 · [⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)](#-un-groupe-dont-on-est-le-seul-membre-refuse-tous-les-messages-2026-09-09) · *Groupes*
+- 2 · [E2EE réparé : la clé de signature est publiée avec le bundle (2026-08-23)](#e2ee-réparé--la-clé-de-signature-est-publiée-avec-le-bundle-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
+- 5 · [🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien](#-appels-1-à-1-mis-en-pause-2026-08-14--répondre-à-un-appel-ne-faisait-rigoureusement-rien) · *Appels*
+- 7 · [⬜ Déconnexion forcée « Connecté ailleurs » — trois trous refermés](#-déconnexion-forcée--connecté-ailleurs---trois-trous-refermés) · *Comptes, session et onboarding* · bloqué
+- 2 · [Doublons Profil / Réglages (2026-08-05)](#doublons-profil--réglages-2026-08-05) · *Accueil, profil et réglages*
+- 3 · [⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)](#-passage-à-targetsdk-36-android-16--exigence-play-2026-09-08) · *Publication et plateformes* · bloqué
+- 5 · [Appels WebRTC](#appels-webrtc) · *Appels* · bloqué
+- 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
+- 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-- 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09)
-- 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09)
-- 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30)
-- 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30)
-- 3 · [Messagerie (hors refonte Fil & Discussion)](#messagerie-hors-refonte-fil--discussion)
-- 1 · [Discussion — heure absente/dupliquée sur les bulles média (2026-08-30)](#discussion--heure-absentedupliquée-sur-les-bulles-média-2026-08-30)
-- 5 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27)
-- 5 · [⬜ Heure et accusé sur tous les messages, bascule supprimée (2026-08-23)](#-heure-et-accusé-sur-tous-les-messages-bascule-supprimée-2026-08-23)
-- 4 · [Fonctionnalité épingle mise en pause (2026-08-14)](#fonctionnalité-épingle-mise-en-pause-2026-08-14)
-- 1 · [Réactions emoji : une par personne et par message (2026-08-13)](#réactions-emoji--une-par-personne-et-par-message-2026-08-13)
-- 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13)
-- 8 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06)
-- 8 · [Discussion — l'horodatage sort de la bulle (fiches 4a/6b, 2026-08-05)](#discussion--lhorodatage-sort-de-la-bulle-fiches-4a6b-2026-08-05)
-- 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05)
-- 1 · [Composeur — l'emoji est sorti du champ, puis y est revenu (2026-08-05)](#composeur--lemoji-est-sorti-du-champ-puis-y-est-revenu-2026-08-05)
-- 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05)
-- 10 · [Panneau stickers / GIF / émojis (fiche 26b, 2026-08-05)](#panneau-stickers--gif--émojis-fiche-26b-2026-08-05)
-- 12 · [Messages épinglés — le bandeau n'était pas temps réel (2026-08-05)](#messages-épinglés--le-bandeau-nétait-pas-temps-réel-2026-08-05)
-- 6 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04)
-- 5 · [Brouillon restauré — le composer restait sur le micro (2026-08-04)](#brouillon-restauré--le-composer-restait-sur-le-micro-2026-08-04)
-- 4 · [Zone de saisie des messages — barre multi-ligne (2026-08-04)](#zone-de-saisie-des-messages--barre-multi-ligne-2026-08-04)
-- sans case ouverte :
-  - [✅ Badge de durée manquant sur les bulles vidéo (2026-08-30)](#-badge-de-durée-manquant-sur-les-bulles-vidéo-2026-08-30)
-  - [Neuf défauts signalés à l'usage — correctifs du 2026-08-22](#neuf-défauts-signalés-à-lusage--correctifs-du-2026-08-22)
-  - [Heure/accusé masqués au tap sur une rafale envoyée (2026-08-14)](#heureaccusé-masqués-au-tap-sur-une-rafale-envoyée-2026-08-14)
-  - [Retour à la ligne des bulles de discussion après l'agrandissement du texte (2026-08-13)](#retour-à-la-ligne-des-bulles-de-discussion-après-lagrandissement-du-texte-2026-08-13)
+**P1 — fonction importante, jamais vérifiée** (40)
 
-**[3. Groupes](#3-groupes)** — 91 à faire, 51 faites
+- 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
+- 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
+- 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
+- 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
+- 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
+- 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
+- 4 · [⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)](#-le-scanner-de-laccueil-lit-tous-les-qr-du-projet-2026-09-09) · *Liens profonds, navigation et QR codes*
+- 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
+- 16 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04) · *Liens profonds, navigation et QR codes*
+- 3 · [Assistant de configuration du profil](#assistant-de-configuration-du-profil) · *Comptes, session et onboarding*
+- 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
+- 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
+- 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
+- 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
+- 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
+- 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
+- 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
+- 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
+- 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
+- 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
+- 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
+- 5 · [Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)](#réponse-rapide-depuis-la-notification-nenvoyait-jamais-rien-2026-08-13) · *Notifications et push* · bloqué
+- 2 · [✅ Repli navigateur des liens d'app — DÉPLOYÉ (2026-09-09 21:5x)](#-repli-navigateur-des-liens-dapp--déployé-2026-09-09-215x) · *Liens profonds, navigation et QR codes*
+- 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
+- 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
+- 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
+- 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
+- 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
+- 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27) · *Backend, sécurité et observabilité*
+- 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
+- 3 · [Messagerie (hors refonte Fil & Discussion)](#messagerie-hors-refonte-fil--discussion) · *Messagerie* · bloqué
+- 5 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
+- 11 · [Groupes — « Découvrir » lisait le mauvais backend (2026-08-06)](#groupes---découvrir--lisait-le-mauvais-backend-2026-08-06) · *Groupes*
+- 6 · [Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06)](#demandes-dadhésion--brancher-supabase-navait-pas-suffi-2026-08-06) · *Groupes* · bloqué
+- 1 · [La porte d'entrée des groupes était grande ouverte (2026-08-06)](#la-porte-dentrée-des-groupes-était-grande-ouverte-2026-08-06) · *Groupes* · bloqué
+- 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
+- 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-- 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10)
-- 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09)
-- 2 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09)
-- 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09)
-- 1 · [⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)](#-un-groupe-dont-on-est-le-seul-membre-refuse-tous-les-messages-2026-09-09)
-- 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09)
-- 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09)
-- 8 · [Le sondage de groupe s'affiche enfin : bulle dans la discussion (2026-08-24)](#le-sondage-de-groupe-saffiche-enfin--bulle-dans-la-discussion-2026-08-24)
-- 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23)
-- 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23)
-- 1 · [Groupes & événements en conversation](#groupes--événements-en-conversation)
-- 1 · [Fiche membres de groupe bloquée / vide (2026-08-13)](#fiche-membres-de-groupe-bloquée--vide-2026-08-13)
-- 11 · [Groupes — « Découvrir » lisait le mauvais backend (2026-08-06)](#groupes---découvrir--lisait-le-mauvais-backend-2026-08-06)
-- 6 · [Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06)](#demandes-dadhésion--brancher-supabase-navait-pas-suffi-2026-08-06)
-- 1 · [La porte d'entrée des groupes était grande ouverte (2026-08-06)](#la-porte-dentrée-des-groupes-était-grande-ouverte-2026-08-06)
-- 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05)
-- sans case ouverte :
-  - [Mentionner quelqu'un par son pseudo dans un groupe (2026-08-23)](#mentionner-quelquun-par-son-pseudo-dans-un-groupe-2026-08-23)
-  - [Le pseudo de mention mangeait les lettres accentuées (2026-08-23)](#le-pseudo-de-mention-mangeait-les-lettres-accentuées-2026-08-23)
-  - [Modération des membres de groupe : trou RLS fermé + bug de départ trouvé (2026-08-14)](#modération-des-membres-de-groupe--trou-rls-fermé--bug-de-départ-trouvé-2026-08-14)
-  - [Supprimer un groupe ne supprimait que la ligne `groups` (2026-08-14)](#supprimer-un-groupe-ne-supprimait-que-la-ligne-groups-2026-08-14)
-  - [Groupes officiels — organisation de la gestion au quotidien (2026-08-13)](#groupes-officiels--organisation-de-la-gestion-au-quotidien-2026-08-13)
+**P2 — fonction secondaire ou cas limite** (56)
 
-**[4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés)** — 52 à faire, 15 faites
+- 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
+- 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
+- 5 · [⬜ Heure et accusé sur tous les messages, bascule supprimée (2026-08-23)](#-heure-et-accusé-sur-tous-les-messages-bascule-supprimée-2026-08-23) · *Messagerie*
+- 8 · [Le sondage de groupe s'affiche enfin : bulle dans la discussion (2026-08-24)](#le-sondage-de-groupe-saffiche-enfin--bulle-dans-la-discussion-2026-08-24) · *Groupes*
+- 4 · [✅ Événements sur Supabase — BASCULÉ et vérifié SM A515F (2026-09-09 22:35)](#-événements-sur-supabase--basculé-et-vérifié-sm-a515f-2026-09-09-2235) · *Ambassades, démarches, carte, entreprises et événements*
+- 9 · [Fiches d'écrans (Claude Design) — reprise écran par écran (2026-08-04)](#fiches-décrans-claude-design--reprise-écran-par-écran-2026-08-04) · *Design, thème, langue et mise en page*
+- 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
+- 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
+- 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 8 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
+- 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
+- 6 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
+- 4 · [Zone de saisie des messages — barre multi-ligne (2026-08-04)](#zone-de-saisie-des-messages--barre-multi-ligne-2026-08-04) · *Messagerie*
+- 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
+- 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
+- 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
+- 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
+- 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
+- 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
+- 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
+- 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
+- 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
+- 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
+- 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
+- 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 3 · [⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)](#-ce-que-dit-vraiment-la-console-crashlytics-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
+- 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
+- 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
+- 8 · [iOS : premier build réussi, sur simulateur (2026-09-01)](#ios--premier-build-réussi-sur-simulateur-2026-09-01) · *Publication et plateformes* · bloqué
+- 23 · [Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`](#passe-pilotée-du-2026-08-04-1525--1605--sm-a515f-apk-debug-54083d6) · *Journaux de passes appareil*
+- 4 · [Fonctionnalité épingle mise en pause (2026-08-14)](#fonctionnalité-épingle-mise-en-pause-2026-08-14) · *Messagerie*
+- 1 · [Réactions emoji : une par personne et par message (2026-08-13)](#réactions-emoji--une-par-personne-et-par-message-2026-08-13) · *Messagerie* · bloqué
+- 8 · [Discussion — l'horodatage sort de la bulle (fiches 4a/6b, 2026-08-05)](#discussion--lhorodatage-sort-de-la-bulle-fiches-4a6b-2026-08-05) · *Messagerie*
+- 10 · [Panneau stickers / GIF / émojis (fiche 26b, 2026-08-05)](#panneau-stickers--gif--émojis-fiche-26b-2026-08-05) · *Messagerie*
+- 1 · [Groupes & événements en conversation](#groupes--événements-en-conversation) · *Groupes*
+- 1 · [Fiche membres de groupe bloquée / vide (2026-08-13)](#fiche-membres-de-groupe-bloquée--vide-2026-08-13) · *Groupes* · bloqué
+- 2 · [⬜ Clé AES de repli : Firebase Functions avait divergé (2026-09-06)](#-clé-aes-de-repli--firebase-functions-avait-divergé-2026-09-06) · *Chiffrement de bout en bout et clés* · bloqué
+- 6 · [E2EE & chiffrement (priorité haute — sécurité)](#e2ee--chiffrement-priorité-haute--sécurité) · *Chiffrement de bout en bout et clés*
+- 1 · [Aperçu de notification en clair (2026-08-13)](#aperçu-de-notification-en-clair-2026-08-13) · *Notifications et push* · bloqué
+- 2 · [✅ Lien profond perdu sur une activité neuve — corrigé, vérifié SM A515F (2026-09-11)](#-lien-profond-perdu-sur-une-activité-neuve--corrigé-vérifié-sm-a515f-2026-09-11) · *Liens profonds, navigation et QR codes* · bloqué
+- 2 · [⬜ « Session Supabase non établie » ne compte plus comme un plantage (2026-09-11)](#--session-supabase-non-établie--ne-compte-plus-comme-un-plantage-2026-09-11) · *Comptes, session et onboarding*
+- 5 · [✅ Annuaire des ambassades : Firestore → Supabase, 32 postes chargés (2026-09-07)](#-annuaire-des-ambassades--firestore--supabase-32-postes-chargés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements* · bloqué
+- 4 · [Position des entreprises : création/édition alimentent enfin latitude/longitude (2026-08-19)](#position-des-entreprises--créationédition-alimentent-enfin-latitudelongitude-2026-08-19) · *Ambassades, démarches, carte, entreprises et événements*
+- 3 · [Flags Salons audio / Podcasts / Fil enfin sérialisés + maintenance sans écrasement (2026-08-19)](#flags-salons-audio--podcasts--fil-enfin-sérialisés--maintenance-sans-écrasement-2026-08-19) · *Accueil, profil et réglages* · bloqué
+- 2 · [Feature flags & accès aux écrans](#feature-flags--accès-aux-écrans) · *Accueil, profil et réglages* · bloqué
+- 7 · [Le « OVERFLOWED BY 190 » de la recherche venait du rail latéral (2026-08-05)](#le--overflowed-by-190--de-la-recherche-venait-du-rail-latéral-2026-08-05) · *Design, thème, langue et mise en page*
+- 8 · [Menus déroulants bornés partout (`isExpanded`, 2026-08-04)](#menus-déroulants-bornés-partout-isexpanded-2026-08-04) · *Design, thème, langue et mise en page*
+- 5 · [Bascule design_v2 → production, famille 3 : boutique, support, transferts, appels (2026-08-03)](#bascule-design_v2--production-famille-3--boutique-support-transferts-appels-2026-08-03) · *Design, thème, langue et mise en page*
+- 2 · [⬜ Les quatre défauts de la console, triés par appareil (2026-09-10)](#-les-quatre-défauts-de-la-console-triés-par-appareil-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
+- 3 · [⬜ Journalisation : deux fuites en release et la garde du LoggerService (2026-09-09)](#-journalisation--deux-fuites-en-release-et-la-garde-du-loggerservice-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 1 · [Liens profonds iOS : la moitié testable est bonne (2026-09-01)](#liens-profonds-ios--la-moitié-testable-est-bonne-2026-09-01) · *Publication et plateformes* · bloqué
+- 4 · [Session du 2026-08-03 (soir) — SM A515F, refonte enfin lancée](#session-du-2026-08-03-soir--sm-a515f-refonte-enfin-lancée) · *Journaux de passes appareil*
+- 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
+- 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-- 7 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09)
-- 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09)
-- 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé)
-- 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08)
-- 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08)
-- 2 · [⚠️ Clés dérivées : premier test appareil (2026-09-07, SM A515F)](#-clés-dérivées--premier-test-appareil-2026-09-07-sm-a515f)
-- 7 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06)
-- 2 · [⬜ Clé AES de repli : Firebase Functions avait divergé (2026-09-06)](#-clé-aes-de-repli--firebase-functions-avait-divergé-2026-09-06)
-- 2 · [E2EE réparé : la clé de signature est publiée avec le bundle (2026-08-23)](#e2ee-réparé--la-clé-de-signature-est-publiée-avec-le-bundle-2026-08-23)
-- 2 · [La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)](#la-signature-de-clé-pré-signée-ne-peut-jamais-vérifier-2026-08-23)
-- 1 · [Le repli AES d'un groupe est désormais signalé (2026-08-23)](#le-repli-aes-dun-groupe-est-désormais-signalé-2026-08-23)
-- 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13)
-- 6 · [E2EE & chiffrement (priorité haute — sécurité)](#e2ee--chiffrement-priorité-haute--sécurité)
-- sans case ouverte :
-  - [Bandeau « Restaurez vos clés » toujours répété malgré la mise en veille du 22/08 (2026-08-25)](#bandeau--restaurez-vos-clés--toujours-répété-malgré-la-mise-en-veille-du-2208-2026-08-25)
-  - [Sender Key : l'envoi fabriquait une clé que personne n'avait — RÉSOLU (2026-08-23)](#sender-key--lenvoi-fabriquait-une-clé-que-personne-navait--résolu-2026-08-23)
-  - [Le message de groupe illisible par son propre expéditeur — CAUSE TROUVÉE (2026-08-23)](#le-message-de-groupe-illisible-par-son-propre-expéditeur--cause-trouvée-2026-08-23)
+**P3 — confort, cosmétique, fonction en pause** (46)
 
-**[5. Appels](#5-appels)** — 19 à faire, 7 faites
+- 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
+- 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
+- 2 · [⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09)](#-plugin-gradle-crashlytics--les-piles-nétaient-pas-déchiffrables-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 1 · [Discussion — heure absente/dupliquée sur les bulles média (2026-08-30)](#discussion--heure-absentedupliquée-sur-les-bulles-média-2026-08-30) · *Messagerie*
+- 5 · [Brouillon restauré — le composer restait sur le micro (2026-08-04)](#brouillon-restauré--le-composer-restait-sur-le-micro-2026-08-04) · *Messagerie*
+- 5 · [✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)](#-quatre-écrans-sans-flèche-de-retour--corrigés-et-vérifiés-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
+- 12 · [Salons audio — monétisation](#salons-audio--monétisation) · *Fil, stories, salons audio et podcasts* · bloqué
+- 4 · [⬜ Teinte des notifications système en vert (2026-09-07)](#-teinte-des-notifications-système-en-vert-2026-09-07) · *Design, thème, langue et mise en page* · bloqué
+- 3 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
+- 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
+- 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
+- 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
+- 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
+- 2 · [La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)](#la-signature-de-clé-pré-signée-ne-peut-jamais-vérifier-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
+- 1 · [La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14)](#la-bulle-dappel-elle-même-napparaissait-jamais-dans-la-conversation-2026-08-14) · *Appels* · bloqué
+- 7 · [Appels 1-à-1 (correctifs du 2026-08-03)](#appels-1-à-1-correctifs-du-2026-08-03) · *Appels* · bloqué
+- 1 · [Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06)](#scroll-des-notifications--mesuré-pas-un-défaut-de-lécran-2026-08-06) · *Notifications et push*
+- 1 · [⚠️ Déconnexion — latence supprimée, à vérifier sur appareil](#-déconnexion--latence-supprimée-à-vérifier-sur-appareil) · *Comptes, session et onboarding*
+- 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
+- 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
+- 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
+- 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
+- 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
+- 1 · [Cartographie des accès `anon` réellement nécessaires (2026-08-13)](#cartographie-des-accès-anon-réellement-nécessaires-2026-08-13) · *Backend, sécurité et observabilité*
+- 4 · [⬜ Site web : page d'accueil refondue sur les captures réelles (2026-09-08)](#-site-web--page-daccueil-refondue-sur-les-captures-réelles-2026-09-08) · *Site web*
+- 3 · [Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)](#passe-nocturne--carte-vérifiée-sur-appareil-2026-08-04-sm-a515f) · *Journaux de passes appareil*
+- 2 · [Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1](#session-appareil-du-2026-08-03--sm-a515f-thème-sombre-font_scale-11) · *Journaux de passes appareil*
+- 1 · [Composeur — l'emoji est sorti du champ, puis y est revenu (2026-08-05)](#composeur--lemoji-est-sorti-du-champ-puis-y-est-revenu-2026-08-05) · *Messagerie*
+- 12 · [Messages épinglés — le bandeau n'était pas temps réel (2026-08-05)](#messages-épinglés--le-bandeau-nétait-pas-temps-réel-2026-08-05) · *Messagerie* · bloqué
+- 1 · [Le repli AES d'un groupe est désormais signalé (2026-08-23)](#le-repli-aes-dun-groupe-est-désormais-signalé-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
+- 1 · [Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour (2026-08-13)](#message-dappel--aperçu-et-badge-non-lu-ne-se-mettaient-jamais-à-jour-2026-08-13) · *Appels* · bloqué
+- 1 · [Notification push — le ciphertext AES sortait en clair dans l'aperçu (2026-08-13)](#notification-push--le-ciphertext-aes-sortait-en-clair-dans-laperçu-2026-08-13) · *Notifications et push* · bloqué
+- 2 · [Écrans de notifications — lot « une seule source » (2026-08-05)](#écrans-de-notifications--lot--une-seule-source--2026-08-05) · *Notifications et push*
+- 1 · [⬜ Une route sous feature-flag est joignable au démarrage (2026-09-10)](#-une-route-sous-feature-flag-est-joignable-au-démarrage-2026-09-10) · *Liens profonds, navigation et QR codes*
+- 6 · [Podcasts — 5 écrans passés au système DN (2026-08-04)](#podcasts--5-écrans-passés-au-système-dn-2026-08-04) · *Fil, stories, salons audio et podcasts* · bloqué
+- 2 · [Salons audio & appels de groupe — indicateur « parle en ce moment »](#salons-audio--appels-de-groupe--indicateur--parle-en-ce-moment-) · *Fil, stories, salons audio et podcasts* · bloqué
+- 3 · [Lecteur de replay — valeurs inventées retirées (2026-08-03)](#lecteur-de-replay--valeurs-inventées-retirées-2026-08-03) · *Fil, stories, salons audio et podcasts* · bloqué
+- 1 · [Lecture audio en arrière-plan (podcasts)](#lecture-audio-en-arrière-plan-podcasts) · *Fil, stories, salons audio et podcasts* · bloqué
+- 1 · [Annuaire, Fil et Ambassades toujours actifs — plus de flag (2026-08-19)](#annuaire-fil-et-ambassades-toujours-actifs--plus-de-flag-2026-08-19) · *Accueil, profil et réglages*
+- 1 · [Profil & Accueil (avant la refonte design)](#profil--accueil-avant-la-refonte-design) · *Accueil, profil et réglages*
+- 4 · [Galerie design_v2 sur appareil (2026-08-03)](#galerie-design_v2-sur-appareil-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
+- 3 · [Accent orange du thème clair — `#E07B39` → `#B85E24` (2026-08-03)](#accent-orange-du-thème-clair--e07b39--b85e24-2026-08-03) · *Design, thème, langue et mise en page*
+- 2 · [Supabase branché sur iOS — deux réserves (2026-09-01)](#supabase-branché-sur-ios--deux-réserves-2026-09-01) · *Publication et plateformes*
+- 2 · [Avertissement Android « pages de 16 Ko » — une seule vraie cause, correctif bloqué en cascade (2026-08-14)](#avertissement-android--pages-de-16-ko---une-seule-vraie-cause-correctif-bloqué-en-cascade-2026-08-14) · *Publication et plateformes*
+- 5 · [⬜ Site web repeint sur la palette ① Organic du guide (2026-09-08)](#-site-web-repeint-sur-la-palette-①-organic-du-guide-2026-09-08) · *Site web*
 
-- 1 · [La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14)](#la-bulle-dappel-elle-même-napparaissait-jamais-dans-la-conversation-2026-08-14)
-- 5 · [🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien](#-appels-1-à-1-mis-en-pause-2026-08-14--répondre-à-un-appel-ne-faisait-rigoureusement-rien)
-- 1 · [Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour (2026-08-13)](#message-dappel--aperçu-et-badge-non-lu-ne-se-mettaient-jamais-à-jour-2026-08-13)
-- 5 · [Appels WebRTC](#appels-webrtc)
-- 7 · [Appels 1-à-1 (correctifs du 2026-08-03)](#appels-1-à-1-correctifs-du-2026-08-03)
-- sans case ouverte :
-  - [Un second appel qui arrive pendant qu'on est déjà en ligne était perdu en silence (2026-08-14)](#un-second-appel-qui-arrive-pendant-quon-est-déjà-en-ligne-était-perdu-en-silence-2026-08-14)
+Par domaine :
 
-**[6. Notifications et push](#6-notifications-et-push)** — 44 à faire, 73 faites
-
-- 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23)
-- 5 · [Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)](#réponse-rapide-depuis-la-notification-nenvoyait-jamais-rien-2026-08-13)
-- 1 · [Notification push — le ciphertext AES sortait en clair dans l'aperçu (2026-08-13)](#notification-push--le-ciphertext-aes-sortait-en-clair-dans-laperçu-2026-08-13)
-- 1 · [Aperçu de notification en clair (2026-08-13)](#aperçu-de-notification-en-clair-2026-08-13)
-- 1 · [Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06)](#scroll-des-notifications--mesuré-pas-un-défaut-de-lécran-2026-08-06)
-- 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05)
-- 2 · [Écrans de notifications — lot « une seule source » (2026-08-05)](#écrans-de-notifications--lot--une-seule-source--2026-08-05)
-- sans case ouverte :
-  - [Notification de message → « Utilisateur », écran bloqué (2026-08-30)](#notification-de-message---utilisateur--écran-bloqué-2026-08-30)
-
-**[7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes)** — 35 à faire, 57 faites
-
-- 2 · [✅ Lien profond perdu sur une activité neuve — corrigé, vérifié SM A515F (2026-09-11)](#-lien-profond-perdu-sur-une-activité-neuve--corrigé-vérifié-sm-a515f-2026-09-11)
-- 1 · [⬜ Une route sous feature-flag est joignable au démarrage (2026-09-10)](#-une-route-sous-feature-flag-est-joignable-au-démarrage-2026-09-10)
-- 2 · [✅ Repli navigateur des liens d'app — DÉPLOYÉ (2026-09-09 21:5x)](#-repli-navigateur-des-liens-dapp--déployé-2026-09-09-215x)
-- 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09)
-- 4 · [⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)](#-le-scanner-de-laccueil-lit-tous-les-qr-du-projet-2026-09-09)
-- 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08)
-- 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08)
-- 5 · [✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)](#-quatre-écrans-sans-flèche-de-retour--corrigés-et-vérifiés-sm-a515f-2026-09-08)
-- 16 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04)
-- sans case ouverte :
-  - [⬜ Podcasts : cinq routes qu'aucun garde ne voyait (2026-09-10)](#-podcasts--cinq-routes-quaucun-garde-ne-voyait-2026-09-10)
-  - [⬜ Liens profonds : la flèche retour ne faisait rien (2026-09-09)](#-liens-profonds--la-flèche-retour-ne-faisait-rien-2026-09-09)
-  - [⬜ Liens profonds : deux écrans muets au bout du lien (2026-09-09)](#-liens-profonds--deux-écrans-muets-au-bout-du-lien-2026-09-09)
-  - [⬜ Le QR d'un groupe est refusé par le scanner — **observation terrain**](#-le-qr-dun-groupe-est-refusé-par-le-scanner--observation-terrain)
-  - [✅ Liens profonds : schéma maison et événements (2026-09-09)](#-liens-profonds--schéma-maison-et-événements-2026-09-09)
-  - [✅ « Mon QR Code » depuis le scanner (2026-09-08)](#--mon-qr-code--depuis-le-scanner-2026-09-08)
-
-**[8. Comptes, session et onboarding](#8-comptes-session-et-onboarding)** — 31 à faire, 6 faites
-
-- 2 · [⬜ « Session Supabase non établie » ne compte plus comme un plantage (2026-09-11)](#--session-supabase-non-établie--ne-compte-plus-comme-un-plantage-2026-09-11)
-- 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10)
-- 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10)
-- 1 · [⚠️ Déconnexion — latence supprimée, à vérifier sur appareil](#-déconnexion--latence-supprimée-à-vérifier-sur-appareil)
-- 7 · [⬜ Déconnexion forcée « Connecté ailleurs » — trois trous refermés](#-déconnexion-forcée--connecté-ailleurs---trois-trous-refermés)
-- 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13)
-- 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06)
-- 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés)
-- 3 · [Assistant de configuration du profil](#assistant-de-configuration-du-profil)
-
-**[9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts)** — 77 à faire, 4 faites
-
-- 6 · [Podcasts — 5 écrans passés au système DN (2026-08-04)](#podcasts--5-écrans-passés-au-système-dn-2026-08-04)
-- 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser)
-- 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive)
-- 12 · [Salons audio — monétisation](#salons-audio--monétisation)
-- 2 · [Salons audio & appels de groupe — indicateur « parle en ce moment »](#salons-audio--appels-de-groupe--indicateur--parle-en-ce-moment-)
-- 3 · [Lecteur de replay — valeurs inventées retirées (2026-08-03)](#lecteur-de-replay--valeurs-inventées-retirées-2026-08-03)
-- 1 · [Lecture audio en arrière-plan (podcasts)](#lecture-audio-en-arrière-plan-podcasts)
-- 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque)
-
-**[10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements)** — 53 à faire, 42 faites
-
-- 4 · [✅ Événements sur Supabase — BASCULÉ et vérifié SM A515F (2026-09-09 22:35)](#-événements-sur-supabase--basculé-et-vérifié-sm-a515f-2026-09-09-2235)
-- 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08)
-- 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08)
-- 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07)
-- 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07)
-- 5 · [✅ Annuaire des ambassades : Firestore → Supabase, 32 postes chargés (2026-09-07)](#-annuaire-des-ambassades--firestore--supabase-32-postes-chargés-2026-09-07)
-- 4 · [Position des entreprises : création/édition alimentent enfin latitude/longitude (2026-08-19)](#position-des-entreprises--créationédition-alimentent-enfin-latitudelongitude-2026-08-19)
-- 4 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13)
-- 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04)
-- sans case ouverte :
-  - [✅ Annuaire d'entreprises branché sur Supabase (2026-09-09)](#-annuaire-dentreprises-branché-sur-supabase-2026-09-09)
-  - [⚠️→✅ La garde d'organisateur refusait l'organisateur (2026-09-08)](#-la-garde-dorganisateur-refusait-lorganisateur-2026-09-08)
-
-**[11. Accueil, profil et réglages](#11-accueil-profil-et-réglages)** — 19 à faire, 24 faites
-
-- 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08)
-- 1 · [Annuaire, Fil et Ambassades toujours actifs — plus de flag (2026-08-19)](#annuaire-fil-et-ambassades-toujours-actifs--plus-de-flag-2026-08-19)
-- 3 · [Flags Salons audio / Podcasts / Fil enfin sérialisés + maintenance sans écrasement (2026-08-19)](#flags-salons-audio--podcasts--fil-enfin-sérialisés--maintenance-sans-écrasement-2026-08-19)
-- 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil)
-- 2 · [Doublons Profil / Réglages (2026-08-05)](#doublons-profil--réglages-2026-08-05)
-- 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03)
-- 2 · [Feature flags & accès aux écrans](#feature-flags--accès-aux-écrans)
-- 1 · [Profil & Accueil (avant la refonte design)](#profil--accueil-avant-la-refonte-design)
-- sans case ouverte :
-  - [⬜ Page « Licences open source » dans les Réglages (2026-09-11)](#-page--licences-open-source--dans-les-réglages-2026-09-11)
-  - [Réglages — ligne « Devise d'affichage » mise en commentaire (2026-09-08)](#réglages--ligne--devise-daffichage--mise-en-commentaire-2026-09-08)
-  - [⬜ Les deux liens « noter l'app » étaient morts (2026-09-01)](#-les-deux-liens--noter-lapp--étaient-morts-2026-09-01)
-  - [Transfert, Boutique, Salons audio et Podcasts retirés de la grille d'accueil (2026-08-30)](#transfert-boutique-salons-audio-et-podcasts-retirés-de-la-grille-daccueil-2026-08-30)
-  - [Transfert et Boutique retirés de « Tous les services » (2026-08-23)](#transfert-et-boutique-retirés-de--tous-les-services--2026-08-23)
-  - [Icônes des tuiles de services agrandies (2026-08-19)](#icônes-des-tuiles-de-services-agrandies-2026-08-19)
-  - [« Tous les services » complété : Fil, Événements, Amis (2026-08-19)](#-tous-les-services--complété--fil-événements-amis-2026-08-19)
-  - [Carte « Pour commencer » : chaque ligne gagne son propre critère (2026-08-14)](#carte--pour-commencer---chaque-ligne-gagne-son-propre-critère-2026-08-14)
-
-**[12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page)** — 121 à faire, 27 faites
-
-- 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11)
-- 4 · [⬜ Teinte des notifications système en vert (2026-09-07)](#-teinte-des-notifications-système-en-vert-2026-09-07)
-- 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07)
-- 3 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07)
-- 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25)
-- 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25)
-- 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25)
-- 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06)
-- 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05)
-- 7 · [Le « OVERFLOWED BY 190 » de la recherche venait du rail latéral (2026-08-05)](#le--overflowed-by-190--de-la-recherche-venait-du-rail-latéral-2026-08-05)
-- 8 · [Menus déroulants bornés partout (`isExpanded`, 2026-08-04)](#menus-déroulants-bornés-partout-isexpanded-2026-08-04)
-- 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04)
-- 9 · [Fiches d'écrans (Claude Design) — reprise écran par écran (2026-08-04)](#fiches-décrans-claude-design--reprise-écran-par-écran-2026-08-04)
-- 4 · [Galerie design_v2 sur appareil (2026-08-03)](#galerie-design_v2-sur-appareil-2026-08-03)
-- 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion)
-- 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03)
-- 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification)
-- 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur)
-- 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03)
-- 3 · [Accent orange du thème clair — `#E07B39` → `#B85E24` (2026-08-03)](#accent-orange-du-thème-clair--e07b39--b85e24-2026-08-03)
-- 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03)
-- 5 · [Bascule design_v2 → production, famille 3 : boutique, support, transferts, appels (2026-08-03)](#bascule-design_v2--production-famille-3--boutique-support-transferts-appels-2026-08-03)
-- 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03)
-- 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03)
-- 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03)
-- sans case ouverte :
-  - [Recoloriage orange/vert de marque (2026-08-14)](#recoloriage-orangevert-de-marque-2026-08-14)
-  - [Paysage — overflow quand le chrome dépasse la hauteur (2026-08-05)](#paysage--overflow-quand-le-chrome-dépasse-la-hauteur-2026-08-05)
-
-**[13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité)** — 47 à faire, 39 faites
-
-- 3 · [⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)](#-ce-que-dit-vraiment-la-console-crashlytics-2026-09-10)
-- 2 · [⬜ Les quatre défauts de la console, triés par appareil (2026-09-10)](#-les-quatre-défauts-de-la-console-triés-par-appareil-2026-09-10)
-- 3 · [⬜ Journalisation : deux fuites en release et la garde du LoggerService (2026-09-09)](#-journalisation--deux-fuites-en-release-et-la-garde-du-loggerservice-2026-09-09)
-- 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09)
-- 2 · [⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09)](#-plugin-gradle-crashlytics--les-piles-nétaient-pas-déchiffrables-2026-09-09)
-- 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27)
-- 1 · [Cartographie des accès `anon` réellement nécessaires (2026-08-13)](#cartographie-des-accès-anon-réellement-nécessaires-2026-08-13)
-- 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05)
-- 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé)
-- 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04)
-- 7 · [Admin (back-office)](#admin-back-office)
-- sans case ouverte :
-  - [⬜ Second verrou : `print` brut et paquets tiers (2026-09-09)](#-second-verrou--print-brut-et-paquets-tiers-2026-09-09)
-  - [⚠️ COLLISION DE MIGRATION — à lire par l'autre agent (2026-08-23)](#-collision-de-migration--à-lire-par-lautre-agent-2026-08-23)
-  - [`MaÃ¯daoua` : l'échange de jeton Firebase corrompait le nom en base (2026-08-23)](#maãdaoua--léchange-de-jeton-firebase-corrompait-le-nom-en-base-2026-08-23)
-
-**[14. Publication et plateformes](#14-publication-et-plateformes)** — 39 à faire, 22 faites
-
-- 10 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09)
-- 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09)
-- 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08)
-- 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08)
-- 3 · [⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)](#-passage-à-targetsdk-36-android-16--exigence-play-2026-09-08)
-- 8 · [iOS : premier build réussi, sur simulateur (2026-09-01)](#ios--premier-build-réussi-sur-simulateur-2026-09-01)
-- 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01)
-- 2 · [Supabase branché sur iOS — deux réserves (2026-09-01)](#supabase-branché-sur-ios--deux-réserves-2026-09-01)
-- 1 · [Liens profonds iOS : la moitié testable est bonne (2026-09-01)](#liens-profonds-ios--la-moitié-testable-est-bonne-2026-09-01)
-- 2 · [Avertissement Android « pages de 16 Ko » — une seule vraie cause, correctif bloqué en cascade (2026-08-14)](#avertissement-android--pages-de-16-ko---une-seule-vraie-cause-correctif-bloqué-en-cascade-2026-08-14)
-- sans case ouverte :
-  - [⬜ Publication Play Store 1.2.1+11 — build release à valider (2026-09-08)](#-publication-play-store-12111--build-release-à-valider-2026-09-08)
-  - [⬜ iOS : signature et conformité export jamais compilées (2026-09-01)](#-ios--signature-et-conformité-export-jamais-compilées-2026-09-01)
-  - [⚠️ Simulateur : lancer DeviceHub AVANT de démarrer l'app (2026-09-01)](#-simulateur--lancer-devicehub-avant-de-démarrer-lapp-2026-09-01)
-
-**[15. Site web](#15-site-web)** — 23 à faire, 0 faites
-
-- 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08)
-- 5 · [⬜ Site web repeint sur la palette ① Organic du guide (2026-09-08)](#-site-web-repeint-sur-la-palette-①-organic-du-guide-2026-09-08)
-- 4 · [⬜ Site web : page d'accueil refondue sur les captures réelles (2026-09-08)](#-site-web--page-daccueil-refondue-sur-les-captures-réelles-2026-09-08)
-- 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08)
-
-**[16. Journaux de passes appareil](#16-journaux-de-passes-appareil)** — 32 à faire, 46 faites
-
-- 23 · [Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`](#passe-pilotée-du-2026-08-04-1525--1605--sm-a515f-apk-debug-54083d6)
-- 3 · [Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)](#passe-nocturne--carte-vérifiée-sur-appareil-2026-08-04-sm-a515f)
-- 4 · [Session du 2026-08-03 (soir) — SM A515F, refonte enfin lancée](#session-du-2026-08-03-soir--sm-a515f-refonte-enfin-lancée)
-- 2 · [Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1](#session-appareil-du-2026-08-03--sm-a515f-thème-sombre-font_scale-11)
-- sans case ouverte :
-  - [Session du 2026-08-03 — SM A515F, build de `118b61e`](#session-du-2026-08-03--sm-a515f-build-de-118b61e)
+- [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
+- [2. Messagerie](#2-messagerie) — 103 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 91 à faire, 51 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 52 à faire, 15 faites
+- [5. Appels](#5-appels) — 19 à faire, 7 faites
+- [6. Notifications et push](#6-notifications-et-push) — 44 à faire, 73 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 35 à faire, 57 faites
+- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 77 à faire, 4 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 53 à faire, 42 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 24 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 121 à faire, 27 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 39 à faire, 22 faites
+- [15. Site web](#15-site-web) — 23 à faire, 0 faites
+- [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
 <!-- sommaire:fin -->
 
@@ -369,6 +307,8 @@ groupe entre deux comptes, QR affiché sur l'un et scanné par l'autre).
 ---
 
 ## ⬜ Compte de test dédié : première connexion (2026-09-09)
+
+**Priorité P0** · importance 4/5 — Un nouvel inscrit — dont les 997 préinscrits notifiés à la publication — reste coincé dans l'enchaînement consentement/profil/intro et n'atteint jamais l'app.
 
 `scripts/creer_compte_test.js` crée — ou réinitialise — un compte Firebase
 Auth séparé du compte personnel (`test.diaspo@example.com`, mot de passe tiré
@@ -530,6 +470,8 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ## ⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)
 
+**Priorité P1** · importance 3/5 — Les discussions privées disparaissent du sélecteur de partage et de transfert dès qu'on tape un nom, et une carte partagée ouvre une page 404 au lieu du groupe ou du profil.
+
 Le partage ne savait sortir de l'app (WhatsApp / Facebook / X / feuille
 système) sauf pour un post du fil, dont la liste de discussions était
 inutilisable pour les 1:1 : un message privé s'y affichait « Messages » avec
@@ -573,6 +515,8 @@ nom/avatar d'une conversation vit désormais dans une seule source
 ---
 
 ## ⬜ Aucun marqueur technique dans une bulle (2026-09-09)
+
+**Priorité P0** · importance 5/5 — Le soin du cache ou la synchro incrémentale réécrit un marqueur par-dessus un message déjà déchiffré : le texte est perdu pour de bon, le serveur ne pouvant plus le redéchiffrer (ratchet Signal / Sender Key).
 
 Constaté sur SM A515F (capture du 2026-09-09, 19:02, groupe « Diaspora
 Niger ») : un fil de groupe affichait trois bulles « *Message chiffré — clé de
@@ -678,6 +622,8 @@ quitter la discussion, y revenir, faire un pull-to-refresh.
 
 ## ✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)
 
+**Priorité P2** · importance 4/5 — Une vidéo choisie dans la galerie — le chemin le plus courant — arrive comme un fichier générique, sans aperçu ni lecteur.
+
 Bug signalé : une vidéo envoyée en conversation s'affichait et se comportait
 comme un fichier générique (`DocumentBubble`), pas comme une vidéo
 (`VideoBubble` avec vignette + bouton lecture). Cause : le callback
@@ -733,6 +679,8 @@ l'écran de connexion, clés E2EE à restaurer).
 ---
 
 ## ✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)
+
+**Priorité P2** · importance 1/5 — Impossible d'annuler l'envoi d'une vidéo lancée par erreur : elle part quand même.
 
 Suite du point précédent : demande produit de retoucher le design pendant
 l'envoi. Avant ce correctif, l'upload d'une vidéo affichait le squelette
@@ -791,6 +739,8 @@ propre sur tout le dépôt.
 
 ## Messagerie (hors refonte Fil & Discussion)
 
+**Priorité P1** · importance 2/5 — Un utilisateur qui a masqué son statut en ligne reste affiché « En ligne » aux autres, contre sa préférence de confidentialité. *Bloqué : deux comptes (statut en ligne, accusé « Reçu »).*
+
 - [ ] **En-tête hero de la liste des messages** (dégradé + puces de filtre, commit `65c1852`) — jamais vu à l'écran, l'APK était cassé (toolchain JDK 17) au moment du commit.
 - [ ] **Accusé de réception « remis »** (`mark_messages_as_delivered`, commit `da21b24`) — bug capturé dans les logs d'un appareil réel puis corrigé côté SQL, jamais revalidé en conditions réelles depuis. Re-vérifié côté base le 2026-08-30 (`supabase db query --linked`, transactions annulées) : signature `(TEXT, TEXT)` unique, `SECURITY DEFINER`, `authenticated` seul autorisé (`anon` refusé), et un message réel du jour a bien `deliveredAt` peuplé pour le destinataire — la RPC tourne en prod. Test isolé (insert jetable + `ROLLBACK`) confirme l'idempotence d'un rappel séquentiel et que `readBy` n'est jamais touché. ⚠️ Trouvé en marge : sur ce même message réel, `deliveredTo` contient le destinataire **en double** dans le tableau JSON brut (probablement `initState` + `didChangeAppLifecycleState(resumed)` de `conversation_screen.dart:193,422` qui appellent `markAsDeliveredProvider.mark()` quasi simultanément à l'ouverture depuis une notification, créant une vraie course réseau) — sans impact visible : `_mergedReceipts` (`message_supabase_datasource.dart:123`) dédoublonne via `Set` à la lecture, donc `message.deliveredTo` et le badge « Reçu »/« Lu » restent corrects côté app. Reste seulement cosmétique en base. Ce qui reste réellement non vérifié : le scénario UI à deux comptes (voir section « Accusés livré/lu séparés »).
 - [ ] **Statut en ligne (Firestore → Supabase)** (commit `b16dc88`) — bug de confidentialité corrigé (préférence `showOnlineStatus` ignorée), jamais vérifié à l'écran.
@@ -798,6 +748,8 @@ propre sur tout le dépôt.
 ---
 
 ## Discussion — heure absente/dupliquée sur les bulles média (2026-08-30)
+
+**Priorité P3** · importance 3/5 — Certaines bulles média restent sans heure visible, sans moyen de la révéler.
 
 Deux défauts distincts sous le même symptôme rapporté (« l'horodatage
 persiste ») :
@@ -860,6 +812,8 @@ qui affichait déjà l'heure). Ce que le test ne peut pas voir :
 
 ## ⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)
 
+**Priorité P1** · importance 2/5 — Les clés ayant quitté l'APK, si gif-proxy n'est pas déployé (un relevé du 2026-09-01 voyait toutes les Edge Functions en 404), GIFs et stickers sont vides pour tous les utilisateurs de la nouvelle version.
+
 `GIPHY_API_KEY` et `TENOR_API_KEY` ne sont plus dans le `.env` embarqué : les
 appels passent par l'Edge Function `gif-proxy`, seule détentrice des clés.
 Fichiers : `supabase/functions/gif-proxy/index.ts`,
@@ -882,6 +836,8 @@ posées en secrets, sinon l'onglet reste vide.
 ---
 
 ## ⬜ Heure et accusé sur tous les messages, bascule supprimée (2026-08-23)
+
+**Priorité P2** · importance 4/5 — Un envoi raté au milieu d'une rafale n'affiche pas son « Réessayer » : le message reste non envoyé sans que l'utilisateur le sache ni puisse le relancer.
 
 [message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)
 `_buildMetaRow` : le regroupement visuel des rafales ne masque plus rien de la
@@ -1083,6 +1039,8 @@ révèle, un second tap la remasque. Les messages reçus ne sont pas concernés.
 
 ## Fonctionnalité épingle mise en pause (2026-08-14)
 
+**Priorité P2** · importance 2/5 — La bascule ÉCO, qui partageait sa ligne avec le bandeau épinglé commenté, a pu disparaître en silence : plus de moyen d'économiser les données sur les médias.
+
 Sur demande, le bouton Épingler/Détacher (menu contextuel d'un message), le
 bandeau épinglé (`GroupPinnedBanner`) et la ligne « Épinglés » de la fiche
 groupe (`_GroupInfoCard`) ont été désactivés — commentés, pas supprimés, pour
@@ -1120,6 +1078,8 @@ retester n'a de sens qu'après réactivation.
 ---
 
 ## Réactions emoji : une par personne et par message (2026-08-13)
+
+**Priorité P2** · importance 2/5 — Le compteur de réactions est faux, ou retirer sa réaction efface celle de quelqu'un d'autre. *Bloqué : deux comptes.*
 
 `MessageEntity.reactions` était une simple `List<String>` sans auteur : le
 compteur affiché était juste le nombre d'emojis posés, mais rien ne
@@ -1210,6 +1170,8 @@ largeur de la bulle n'a jamais été vu en vrai à cette taille de police.
 ---
 
 ## Accusés livré/lu séparés — sheet infos du message (2026-08-13)
+
+**Priorité P1** · importance 3/5 — Un message apparaît « Lu » avant d'avoir été ouvert (dès la réception du push), ou ne passe jamais à « Lu » : l'expéditeur est trompé sur ce que l'autre a vu. *Bloqué : deux comptes.*
 
 `mark_messages_as_delivered` marquait `readBy`/`readAt` en même temps que
 `deliveredTo`/`deliveredAt`, y compris depuis les handlers de notification
@@ -1309,6 +1271,8 @@ Mais rien de tout ça n'est vérifiable **dans l'app** sans deux comptes réels
 ---
 
 ## Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)
+
+**Priorité P2** · importance 3/5 — Un groupe créé sans pays reste invisible dans Découvrir dès que le filtre pays automatique s'applique, donc personne ne le trouve pour le rejoindre ; et une puce vide fait croire à une messagerie vide.
 
 `_buildConversationList` branchait sur `filtered.isEmpty`, c'est-à-dire la
 liste **après** application de la puce de filtre, et rendait alors la fiche 9e :
@@ -1437,6 +1401,8 @@ Reste à voir à l'écran — c'est tout ce que la base ne peut pas prouver :
 
 ## Discussion — l'horodatage sort de la bulle (fiches 4a/6b, 2026-08-05)
 
+**Priorité P2** · importance 2/5 — L'heure devient illisible sur certains fonds de discussion, et le « Réessayer » d'un message en échec passe inaperçu.
+
 L'heure et l'accusé de réception étaient rendus à **sept endroits** : en fin de
 ligne dans le texte, incrustés sur l'image et la vidéo, dans la ligne du
 document, sur la carte de position, sous le lecteur audio, sous le sticker — et
@@ -1482,6 +1448,8 @@ voir :
 
 ## Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)
 
+**Priorité P3** · importance 2/5 — Désagrément mineur : pastille ÉCO mal placée ou absente sur une conversation.
+
 La sous-barre « Médias · ÉCO » sous le bandeau épinglé a disparu : la fiche 6b
 pose la pastille ÉCO **à droite du bandeau**, sur la même ligne. Le raccourci
 « Médias » n'est pas perdu, il est passé dans le menu ⋮ sous le libellé
@@ -1510,6 +1478,8 @@ pose la pastille ÉCO **à droite du bandeau**, sur la même ligne. Le raccourci
 ---
 
 ## Composeur — l'emoji est sorti du champ, puis y est revenu (2026-08-05)
+
+**Priorité P3** · importance 1/5 — Aucun risque nouveau — la pastille emoji autonome testée ici a été abandonnée.
 
 **Décision arrêtée : l'emoji reste DANS la pilule.** L'argument de largeur est
 retenu — en pastille autonome il coûtait 52 dp et faisait tomber la pilule à
@@ -1548,6 +1518,8 @@ désormais quatre commandes : `[ + ] [ champ ] [ 🙂 ] [ micro / envoi ]`.
 ---
 
 ## Composeur — largeur de la pilule et « + » en clair (2026-08-05)
+
+**Priorité P2** · importance 3/5 — « Mes notes » s'ouvre sur un document fantôme et chaque note échoue à l'envoi ; en paysage, le composeur passe sous le clavier.
 
 Deux retours de Salim sur le rendu, traités et vérifiés sur appareil (SM A515F,
 APK `48ede47` puis le suivant, conversation « Salim L. » avec toute sa chrome,
@@ -1642,6 +1614,8 @@ champ à 6 lignes). Mesures au banc sur gabarit A51 (393 dp).
 
 ## Panneau stickers / GIF / émojis (fiche 26b, 2026-08-05)
 
+**Priorité P2** · importance 2/5 — Le panneau émojis défile mal ou cache son pied sous la barre de navigation, et affiche « No Recents » en anglais.
+
 Refonte complète : onglets en **pilules Stickers · GIF · Émojis** (l'ordre est
 inversé par rapport à avant) suivis d'une loupe, **sections à en-tête**
 (RÉCEMMENT UTILISÉS · FAVORIS · un par pack) au lieu des sous-onglets iconiques
@@ -1691,6 +1665,8 @@ Ce que les tests ne voient pas :
 ---
 
 ## Messages épinglés — le bandeau n'était pas temps réel (2026-08-05)
+
+**Priorité P3** · importance 1/5 — Aucun tant que la fonction est désactivée ; à la réactivation, épingles de groupe invisibles pour les autres membres ou dans le désordre. *Bloqué : fonction en pause.*
 
 `group_pinned_items` n'a jamais été ajoutée à la publication
 `supabase_realtime` (contrairement à `messages` et `conversations`, vérifié sur
@@ -1849,6 +1825,8 @@ base, voir la règle du doigt réel dans `project_device_testing`.
 
 ## Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)
 
+**Priorité P2** · importance 3/5 — Il faut deux taps pour taper une recherche : le champ semble ne pas répondre.
+
 Bug constaté sur appareil (SM A515F, build debug, nocturne, reproduit 3 fois) :
 le premier tap sur le champ de recherche ouvrait bien l'en-tête replié (← +
 champ à bordure accent) et le champ **gardait** le focus, mais le clavier ne se
@@ -1892,6 +1870,8 @@ n'est pas observable en test widget. `flutter analyze` propre, c'est tout.
 
 ## Brouillon restauré — le composer restait sur le micro (2026-08-04)
 
+**Priorité P3** · importance 3/5 — Le brouillon restauré semble non envoyable (micro affiché) : l'utilisateur le retape ou l'abandonne.
+
 Bug constaté sur appareil (SM A515F, build debug, conversation « Mes notes ») :
 texte tapé sans envoyer, app quittée par le bouton accueil, puis relancée — le
 brouillon est bien restauré dans le champ, **mais le bouton de droite affiche
@@ -1931,6 +1911,8 @@ aucune frappe). Vérifié rouge sans le correctif, donc non vide de sens ;
 ---
 
 ## Zone de saisie des messages — barre multi-ligne (2026-08-04)
+
+**Priorité P2** · importance 3/5 — La fin d'un brouillon est perdue quand on quitte vite la discussion.
 
 `lib/features/messages/presentation/widgets/message_input.dart`. Le champ
 passait de `maxLines: 1` à `minLines: 1 / maxLines: 6`, plus trois correctifs
@@ -2049,6 +2031,8 @@ Création, invitations, adhésion, membres, modération, sondages et mentions de
 
 ## ⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)
 
+**Priorité P1** · importance 3/5 — Qui reçoit le lien d'un groupe privé tombe sur une impasse ou crée des demandes en double, et l'administrateur ne voit rien arriver. *Bloqué : deux comptes (Sim A est membre des deux groupes privés).*
+
 Consigne de Salim : « pour les groupes privés, celui qui reçoit le lien fait
 une demande d'adhésion au groupe ». Le message honnête livré la veille restait
 une impasse ; il devient une porte.
@@ -2119,6 +2103,8 @@ rejoindre » ; aperçu nul → pas de fausse porte.
 ---
 
 ## ⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)
+
+**Priorité P1** · importance 3/5 — Listes de membres et « Mes groupes » figées jusqu'au redémarrage : un exclu garde le groupe à l'écran, un membre accepté ne le voit pas apparaître. *Bloqué : deux comptes.*
 
 Signalé par Salim : « l'acceptation et exit dans les groupes ne sont pas mis à
 jour automatiquement du côté de tous les users ». Deux causes superposées,
@@ -2191,6 +2177,8 @@ distincts).
 
 ## ⚠️ Lire les groupes SANS session échoue en production (2026-09-09)
 
+**Priorité P0** · importance 5/5 — Tant que la session Supabase n'est pas établie (installation neuve, examinateur Play compris), la liste des groupes, la fiche d'un groupe et les événements affichent une erreur au lieu du contenu.
+
 Trouvé en sondant PostgREST avec la clé publique du `.env` — donc rôle `anon`,
 exactement ce qu'est un client dont la session Supabase n'est pas encore
 établie :
@@ -2229,6 +2217,8 @@ appliquée et son auteur travaille encore dessus. À lui signaler.
 ---
 
 ## ⬜ Inviter des membres dans un groupe privé (2026-09-09)
+
+**Priorité P1** · importance 5/5 — Un administrateur ne peut toujours pas faire entrer quelqu'un dans son groupe privé, ou l'invité accepte sans accéder à la discussion ; si l'exclusion ne tient pas, un membre retiré continue de lire le groupe. *Bloqué : deux comptes (sauf l'interface d'invitation côté admin).*
 
 Signalé par Salim : « pour les groupes privés j'arrive pas à ajouter d'autres
 membres ». Il n'y arrivait pas parce que **l'app n'offrait nulle part de quoi
@@ -2440,6 +2430,8 @@ nommément — `new row violates row-level security policy
 
 ## ⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)
 
+**Priorité P0** · importance 3/5 — Les médias de groupe peuvent échouer à l'envoi faute de destinataires, et leur légende est stockée en clair sur le serveur sous une étiquette « aes » — fuite de texte dans une messagerie annoncée chiffrée.
+
 Vu sur les **deux** appareils, dans deux groupes différents — donc pas une
 donnée périmée :
 
@@ -2502,6 +2494,8 @@ Restent à faire :
 ---
 
 ## ⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)
+
+**Priorité P1** · importance 4/5 — Si la garde ou l'exclusion a régressé, un membre simple s'octroie des droits ou un exclu revient lire la discussion du groupe. *Bloqué : deux comptes pour l'exclusion ; le reste faisable avec Sim A.*
 
 Trouvé en essayant simplement d'ouvrir « Testeurs » depuis le SM A515F, avec
 le compte **Sim A**, membre simple (Salim L. est le créateur). « Ouvrir la
@@ -2629,6 +2623,8 @@ depuis Sim A pour confirmer de visu.
 
 ## ⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)
 
+**Priorité P2** · importance 3/5 — Hors ligne, l'utilisateur lit « Erreur de chargement » sans comprendre que c'est le réseau ; si la cause n'était pas le réseau, la fiche Membres reste inaccessible.
+
 Vu sur Pixel 10 Pro XL, non corrigé, cause non isolée. L'écran des membres
 s'affichait correctement (« Salim L. — Créateur ») ; après un passage par
 l'accueil et un retour dans l'app, il est passé à « Erreur de chargement »
@@ -2677,6 +2673,8 @@ peut-être le vrai défaut à corriger.
 
 ## Le sondage de groupe s'affiche enfin : bulle dans la discussion (2026-08-24)
 
+**Priorité P2** · importance 4/5 — Un sondage publié reste invisible ou figé pour les membres du groupe, qui ne peuvent pas voter.
+
 Créer marchait (correctif RLS de la veille) mais **aucun écran n'affichait les
 sondages de groupe** : `groupPollsProvider` n'était watché nulle part,
 `PollCard` n'était montée que pour les posts du fil, et rien ne créait jamais
@@ -2724,6 +2722,8 @@ c'est un chantier commun position/sticker/sondage, pas propre au sondage.
 
 ## Créer un sondage était impossible pour tout le monde (2026-08-23)
 
+**Priorité P2** · importance 3/5 — Les votes restent à 0 ou le sondage d'un post n'est jamais joint, sans message clair.
+
 `post_poll_options` a le RLS activé et **aucune politique INSERT** : la
 création se fait en deux écritures (la question dans `post_polls`, puis ses
 options), et la seconde était refusée `42501` pour tout le monde, depuis
@@ -2765,6 +2765,8 @@ premier créé après ce correctif est aussi le premier test.
 ---
 
 ## Mentions de groupe : vérifié sur SM A515F (2026-08-23)
+
+**Priorité P2** · importance 3/5 — La mention n'est ni visible ni cliquable, ou insère un identifiant brut au lieu du pseudo.
 
 Build debug installé sur l'appareil, compte `Sim A`, groupe « Diaspora
 Niger — Canada » (3 membres).
@@ -3012,6 +3014,8 @@ réservée au compte plateforme pour un groupe officiel.
 
 ## Groupes & événements en conversation
 
+**Priorité P2** · importance 2/5 — Carte d'événement mal rendue, « Vu par » faux ou groupe du pays jamais rejoint : gêne visible, sans perte de données.
+
 - [ ] **Bulle `EventMessageCard` en conversation + différenciation groupe** (commit `267d7d3`) : visibilité « publier dans le fil » DM/groupe, badge Admin sur les bulles, « Vu par N » sur messages de groupe lus, boutons appel/vidéo de groupe dans l'app bar, auto-adhésion au groupe pays au chargement du profil — aucun sous-élément vérifié sur device.
 - [x] **Alignement des bulles reçues dans une série de groupe — CORRIGÉ ET VÉRIFIÉ SUR APPAREIL** (`message_bubble.dart`, `conversation_screen.dart`, SM A515F, 2026-08-13). Deux défauts distincts trouvés sur le même chemin :
   1. Le padding gauche des messages reçus en groupe passait de 8 (avatar affiché sur le 1er message d'une série) à 16 (pas d'avatar sur les suivants) — saut de 28px, bulles non alignées verticalement dans une même série. Corrigé en réservant toujours la largeur de l'avatar (`SizedBox(width: 28)` en son absence) pour tout message reçu d'un groupe (`groupId` non nul).
@@ -3022,6 +3026,8 @@ réservée au compte plateforme pour un groupe officiel.
 ---
 
 ## Fiche membres de groupe bloquée / vide (2026-08-13)
+
+**Priorité P2** · importance 2/5 — Les membres d'un nouveau pays n'ont pas de groupe officiel et ne rejoignent rien, sans erreur visible. *Bloqué : données absentes (attendre un pays sans groupe officiel).*
 
 Signalé par Salim : « problème sur les infos des membres de groupes ». L'appareil
 était **surpris en flagrant délit** — écran « Membres » figé sur un spinner
@@ -3214,6 +3220,8 @@ une table (`UPDATE`/`DELETE` brut) l'est.
 
 ## Groupes — « Découvrir » lisait le mauvais backend (2026-08-06)
 
+**Priorité P1** · importance 2/5 — Les nouveaux venus ne trouvent pas les groupes par la recherche et ne rejoignent pas celui de leur pays ; au pire une carte déborde en bande rayée.
+
 **Cause trouvée, et ce n'était pas dans `loadGroups()`.** L'onglet annonçait
 « Aucun groupe public » alors que `public.groups` en contient trois
 (`Diaspora Niger — CA`, `Diaspora Niger — Canada`, `teste`, tous
@@ -3353,6 +3361,8 @@ branche doivent avoir des périmètres disjoints.
 ---
 
 ## Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06)
+
+**Priorité P1** · importance 2/5 — Refus inopérants et demandes en double pour l'administrateur ; si les gardes ont régressé, un non-admin traite les demandes et un non-membre lit un groupe privé. *Bloqué : deux comptes (sauf le menu non-admin, faisable avec Sim A).*
 
 `c7f4141` a fait pointer `GroupRequestDataSource` vers Supabase au lieu d'une
 collection Firestore restée vide. La plomberie était juste — 12 méthodes sur
@@ -3514,6 +3524,8 @@ que la lecture d'appartenance ait réussi.
 
 ## La porte d'entrée des groupes était grande ouverte (2026-08-06)
 
+**Priorité P1** · importance 2/5 — Si la garde a cassé l'adhésion, personne ne rejoint plus un groupe public ; si elle a sauté, n'importe qui entre dans un groupe privé dont il connaît l'id. *Bloqué : deux comptes (ou un groupe privé sans Sim A).*
+
 `group_members_own` est une policy `FOR ALL` dont le `USING` vaut
 `firebase_uid() = user_id`, **sans `WITH CHECK` explicite** — la même expression
 sert donc au contrôle d'insertion. Elle vérifie qu'on s'inscrit *soi-même*, et
@@ -3563,6 +3575,8 @@ Deux voisins **non corrigés**, repérés en lisant ces policies :
 ---
 
 ## Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)
+
+**Priorité P1** · importance 3/5 — Un nouvel inscrit voit son profil échouer au premier enregistrement, et une conversation de groupe ouverte depuis une notification s'affiche comme un 1:1 (en-tête « Utilisateur », boutons d'appel).
 
 Les deux premiers constatés sur SM A515F en cherchant à épingler dans un
 groupe, tous deux hors du lot « épingles » ; le troisième trouvé en corrigeant
@@ -4232,6 +4246,8 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ## ⬜ Citations et modifications : plus de texte en clair (2026-09-09)
 
+**Priorité P0** · importance 4/5 — Si le correctif ne tient pas, une réponse ou une modification laisse le texte en clair en base, ou le message modifié devient illisible chez le destinataire et la citation disparaît de la bulle. *Bloqué : deux comptes (côté destinataire).*
+
 Deux fuites de la même famille que les cartes de partage, trouvées en
 instrumentant ce chemin. Toutes deux écrivaient du texte utilisateur **en
 clair** dans `messages.data`, à côté d'un `content` chiffré.
@@ -4276,6 +4292,8 @@ garde plus que la date — rien ne l'affichait.
 
 ## ⬜ Cartes de partage chiffrées au repos (2026-09-09)
 
+**Priorité P1** · importance 4/5 — La carte partagée disparaît de la bulle sans aucune erreur (dès que l'autre lit le message ou après un redémarrage), ou son contenu reste lisible en clair côté serveur. *Bloqué : deux comptes.*
+
 Une carte de partage (post, événement, annonce, aperçu de lien) ne transite pas
 par `content` : elle ne passait donc pas par Signal et partait **en clair**
 dans `messages.data`. Elle voyage désormais dans un blob unique `encAnnexes`,
@@ -4314,6 +4332,8 @@ produit **aucune erreur**, ni à l'écran ni dans logcat.
 
 ## ⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)
 
+**Priorité P0** · importance 4/5 — Aujourd'hui la légende de chaque photo, vidéo ou fichier est stockée en clair sur le serveur alors que l'app l'étiquette chiffrée — y compris dans les conversations qui ont une vraie session Signal. *Bloqué : correctif pas encore écrit.*
+
 Trouvé en vérifiant le point « médias de groupe » laissé ouvert dans « Un groupe dont on est le seul membre refuse TOUS les messages ».
 `sendMediaMessage` (`message_supabase_datasource.dart:1093`) écrit
 `'content': caption ?? ''` **tel quel** dans la ligne `messages`, et pose
@@ -4351,6 +4371,8 @@ l'envoi de médias pour tout le monde.
 ---
 
 ## ⬜ Transfert des clés par QR, sans passphrase (2026-09-08)
+
+**Priorité P1** · importance 3/5 — Un utilisateur qui change de téléphone ne récupère pas ses clés et perd la lecture de tout son historique chiffré, ou tombe sur un plantage en scannant un code expiré ou étranger. *Bloqué : deux téléphones sur le même compte (Pixel déconnecté).*
 
 Reprise des clés d'un téléphone à l'autre sans rien à retenir : l'**ancien**
 affiche un QR, le **neuf** le scanne, et l'export complet du stockage sécurisé
@@ -4444,6 +4466,8 @@ le ratchet en même temps ; c'est ce qui rend l'effacement facultatif.
 
 ## ✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)
 
+**Priorité P3** · importance 2/5 — Le rappel de restauration reste muet pour de bon après une sauvegarde, laissant l'appareil sur le repli AES sans rien pour le signaler.
+
 Deux bandeaux répétaient le même message et un seul savait se taire. Celui de
 `MainShell` se mettait en veille 7 jours sur « Pas maintenant » ; celui posé en
 tête de conversation (`_buildE2eeRestoreBanner`, conversation_screen.dart)
@@ -4504,6 +4528,8 @@ sortie reste Réglages › Sécurité, qui n'a pas bougé.
 
 ## ⚠️ Clés dérivées : premier test appareil (2026-09-07, SM A515F)
 
+**Priorité P0** · importance 5/5 — Si `crypto-keys` renvoie encore une liste vide, tous les messages rechiffrés à la clé dérivée s'affichent « [Message illisible] » pour tout le monde, sans aucune erreur.
+
 Testé sur SM A515F avec un build propre (`flutter clean` obligatoire — un APK
 du 30 août traînait dans `build/` et se serait installé en silence).
 
@@ -4535,6 +4561,8 @@ correctement. **Ne jamais réintroduire ce filtre applicatif.**
 ---
 
 ## ⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)
+
+**Priorité P0** · importance 4/5 — L'envoi échoue dans une conversation neuve ou après réinstallation, un message part en clair hors ligne, ou les anciens messages deviennent illisibles ; les clés d'un compte peuvent survivre à sa déconnexion.
 
 Chantier en cours : remplacer la clé AES globale (constante de l'APK, donc
 lisible par tout utilisateur, donc **aucune confidentialité entre comptes**)
@@ -4601,6 +4629,8 @@ plugins, donc c'est possible, mais non vérifié.
 ---
 
 ## ⬜ Clé AES de repli : Firebase Functions avait divergé (2026-09-06)
+
+**Priorité P2** · importance 2/5 — Aperçu de notification en base64 ou générique, coordonnées de paiement illisibles — mais le chemin Postgres était déjà aligné et les transferts sont désactivés en prod. *Bloqué : deux comptes (réception d'un message AES).*
 
 `functions/.env` portait une valeur de `ENCRYPTION_KEY` différente de celle du
 client (`_sharedKeyString`, `lib/core/services/encryption_service.dart`). Les
@@ -4681,6 +4711,8 @@ l'échec (poussé sur la branche partagée).
 
 ## E2EE réparé : la clé de signature est publiée avec le bundle (2026-08-23)
 
+**Priorité P0** · importance 3/5 — Soit l'app affirme un chiffrement de bout en bout qui n'existe pas (tout passe en repli AES), soit la première vraie session Signal casse en aval (X3DH, ratchet) et rend les messages illisibles chez le destinataire. *Bloqué : deux comptes sur la version à jour.*
+
 Suite de l'entrée « La signature de clé pré-signée ne peut JAMAIS vérifier ».
 
 La signature est produite par une paire **Ed25519 dérivée de la clé privée
@@ -4738,6 +4770,8 @@ le correctif suffit, soit on retire l'affirmation.
 ---
 
 ## La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)
+
+**Priorité P3** · importance 2/5 — Aucun au-delà de l'entrée « E2EE réparé… », dont celle-ci n'est que le constat d'origine. *Bloqué : deux comptes sur la version à jour.*
 
 Le « SECURITY ALERT — Possible MITM attack » du journal n'est ni une clé
 corrompue ni une attaque : **les deux côtés n'utilisent pas la même clé
@@ -4815,6 +4849,8 @@ au cadenas ouvert).
 ---
 
 ## Le repli AES d'un groupe est désormais signalé (2026-08-23)
+
+**Priorité P3** · importance 1/5 — Aucun effet visible nouveau : l'en-tête ne signale plus rien de toute façon, le repli AES d'un groupe reste invisible par choix. *Bloqué : indicateur retiré de l'interface.*
 
 Le trou laissé ouvert par le correctif Sender Key : un groupe pouvait tourner
 en repli AES **indéfiniment, sans que rien ne le dise** — ni l'app, ni un
@@ -5001,6 +5037,8 @@ rend le symptôme invisible, il ne change pas ça.
 
 ## Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)
 
+**Priorité P1** · importance 4/5 — Dès que les vraies sessions Signal / Sender Key tournent, des messages déjà lus redeviennent définitivement illisibles à chaque réouverture de conversation. *Bloqué : deux comptes (messages E2EE reçus).*
+
 Signal (1:1) et Sender Key (groupes) avancent un ratchet à sens unique à
 chaque déchiffrement réussi, sans conserver les clés de message déjà
 consommées. `getMessagesPaginated` re-fetch pourtant le même ciphertext
@@ -5037,6 +5075,8 @@ n'exerce le vrai ratchet Signal ni Supabase.
 ---
 
 ## E2EE & chiffrement (priorité haute — sécurité)
+
+**Priorité P2** · importance 2/5 — Démarrage lent ou premier envoi raté juste après connexion, clés régénérées par-dessus une sauvegarde — la plupart de ces chemins ont toutefois tourné depuis, dans d'autres sessions.
 
 - [ ] **Initialisation de `MessagingE2EEService`** (commit `91ef606`) : elle était appelée nulle part avant ce fix ; l'init démarre (100 puis 50 paires X25519 séquentielles) mais rien ne confirme qu'elle se termine en temps raisonnable sur device réel.
 - [ ] **Garde `isE2EEInitialized` retirée avant l'envoi de texte** (commit `26aeb0d`) — jamais revérifié, le téléphone s'est déconnecté avant le test final.
@@ -5093,6 +5133,8 @@ vide, et que le premier appel n'est pas perturbé au passage.
 
 ## La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14)
 
+**Priorité P3** · importance 2/5 — Mineur : pas de menu sur une bulle d'appel ; le rappel est volontairement coupé. *Bloqué : fonction en pause (appels 1:1).*
+
 Signalé par l'utilisateur : « les bulles des appels ne s'affiche jamais ».
 Le correctif du 2026-08-13 (« Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour ») a réparé l'aperçu de conversation et le
 badge non-lu, mais pas le symptôme racine — même famille de bug que
@@ -5133,6 +5175,8 @@ de tout ça n'exerce un vrai appel WebRTC/coturn ni Supabase.
 ---
 
 ## 🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien
+
+**Priorité P0** · importance 3/5 — Le Mode Voyage ne tourne jamais : la position des voyageurs ne remonte pas, et le service de premier plan « localisation » déclaré à Google n'a plus de fonction visible — le motif de fond des cinq refus Play.
 
 Trouvé en testant à deux appareils réels (SM A515F + émulateur) après un
 signalement « les appels ne passent pas ». Trois bugs empilés, chacun
@@ -5238,6 +5282,8 @@ relivrer — deux téléphones réels, pas d'émulateur, personne d'autre dessus
 
 ## Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour (2026-08-13)
 
+**Priorité P3** · importance 1/5 — Aucun tant que les appels 1:1 sont masqués ; ensuite, un premier appel ne laisserait aucune trace dans la liste des discussions. *Bloqué : fonction en pause (appels 1:1) + deux comptes.*
+
 Même famille de bug que la réponse rapide depuis une notification
 (« Réponse rapide depuis la notification n'envoyait jamais rien »). [call_message_service.dart](lib/core/services/call_message_service.dart)
 écrivait l'aperçu de dernier message dans `conversations.data` avec des clés
@@ -5292,6 +5338,8 @@ Supabase.
 
 ## Appels WebRTC
 
+**Priorité P0** · importance 2/5 — Les appels de groupe restent muets ou ne se connectent jamais en données mobiles : le relais TURN n'a jamais été validé depuis la rotation du 16/07, et la signalisation de groupe a déjà été refusée trois jours en production sans aucune erreur visible. *Bloqué : deux comptes.*
+
 - [ ] **⚠ ORDRE DE DÉPLOIEMENT — règles de signalisation** (`database.rules.json` + `call_remote_datasource.dart`, 2026-08-03) : les règles restreignent désormais `calls/$callId` aux deux participants, en lisant `callerId`/`calleeId` **écrits par l'app** à la création. Déployer les règles **avant** que la nouvelle version de l'app soit installée couperait les appels 1:1 de tout client existant (ses lectures seraient refusées, en silence). Ordre obligatoire : livrer l'app d'abord, laisser le parc se mettre à jour, **puis** `firebase deploy --only database`.
 
   **Mesuré le 2026-08-03, avant tout déploiement** — la contrainte est confirmée, pas théorique : `/calls` contenait **20 nœuds** écrits par des clients, donc les règles en ligne autorisent bien l'écriture aujourd'hui, et les resserrer casserait ces clients. En regard, `/admins`, `/superAdmins`, `/audioRooms` et `/group_calls` étaient **vides** : rien d'autre dans ce fichier n'est urgent (la faille d'escalade RTDB porte sur un nœud inexistant, et la modération fantôme attend de toute façon l'amorçage manuel). Le déploiement a donc été **volontairement reporté**.
@@ -5305,6 +5353,8 @@ Supabase.
 ---
 
 ## Appels 1-à-1 (correctifs du 2026-08-03)
+
+**Priorité P3** · importance 2/5 — Aucun pour l'utilisateur tant que la fonction est masquée. *Bloqué : fonction en pause + deux comptes.*
 
 Tout ce bloc demande **deux comptes sur deux téléphones** : rien n'est vérifiable
 en solo.
@@ -5400,6 +5450,8 @@ inexistante, d'où l'impression de blocage total.
 ---
 
 ## Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)
+
+**Priorité P1** · importance 4/5 — Le tap ajouté sur la bulle peut empêcher d'ouvrir une photo ou de relancer un message en échec ; au mieux, les heures clignotent sur toute la conversation après chaque réaction.
 
 Deux changements distincts, aucun couvert par `flutter test`.
 
@@ -5539,6 +5591,8 @@ l'usage, c'est ce commit-là qu'il faut relire avant de trancher à nouveau.
 
 ## Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)
 
+**Priorité P1** · importance 3/5 — Taper une notification de message n'ouvre pas la conversation ; la réponse rapide, masquée, ne peut rien casser tant qu'elle l'est. *Bloqué : deux comptes (ou message inséré en base).*
+
 Deux bugs cumulés. (1) `currentUserId` dans SharedPreferences — lu par
 [background_reply_service.dart](lib/core/services/background_reply_service.dart)
 et 4 autres endroits de
@@ -5667,6 +5721,8 @@ pas de `ActionBroadcastReceiver`), jamais mis en cause par ce diagnostic.
 
 ## Notification push — le ciphertext AES sortait en clair dans l'aperçu (2026-08-13)
 
+**Priorité P3** · importance 1/5 — D'anciennes notifications de la page in-app affichent du base64 au lieu d'un aperçu. *Bloqué : décision de rétention, pas un test appareil.*
+
 Signalé : « les pushnotifications affiche les messages crypté ».
 
 **Cause.** `message_preview_for_notification` (SQL) ne masquait le contenu que
@@ -5781,6 +5837,8 @@ seul le premier plan (`onMessage` → `_showLocalNotification`) a été exercé.
 
 ## Aperçu de notification en clair (2026-08-13)
 
+**Priorité P2** · importance 2/5 — Une notification de message E2EE affiche « Nouveau message » au lieu du texte ; le serveur, lui, ne voit jamais le clair. *Bloqué : deux comptes.*
+
 Demande de Salim, en suite directe du correctif ci-dessus : « je veux que les
 messages soient en clair » — précisé par lui-même : l'aperçu de notification,
 pas le chiffrement des messages en base (confirmé explicitement avant de
@@ -5860,6 +5918,8 @@ sessions Signal dans un isolate séparé — non fait, hors périmètre.
 
 ## Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06)
 
+**Priorité P3** · importance 2/5 — La dernière notification reste à moitié coupée en bas de liste.
+
 Signalé comme « le scroll a un problème ». Mesuré sur SM A515F avec une sonde
 (deux builds), capture et mesure prises **dans la même frame** :
 
@@ -5904,6 +5964,8 @@ Signalé comme « le scroll a un problème ». Mesuré sur SM A515F avec une son
 ---
 
 ## Push FCM des messages — chaîne serveur rétablie (2026-08-05)
+
+**Priorité P1** · importance 5/5 — Les messages reçus app fermée peuvent ne produire aucune notification, en produire deux, ou ignorer une conversation mutée ou une préférence coupée (aperçu affiché alors qu'il est désactivé). *Bloqué : deux comptes (ou message inséré en base).*
 
 Audit de la base distante : **aucun push n'était envoyé pour un message de
 chat** depuis le passage des messages à Supabase. Deux trous cumulés :
@@ -6270,6 +6332,8 @@ devenus sans objet, sont supprimés.
 
 ## Écrans de notifications — lot « une seule source » (2026-08-05)
 
+**Priorité P3** · importance 1/5 — Invitations, rappels, abonnés et alertes de proximité portent la même pastille verte — purement visuel.
+
 `notification_settings_screen.dart` a rejoint `design_kit.dart` (c'était la
 dernière exception de `reglages_sans_doublon_test.dart`) et l'en-tête de
 `notifications_screen.dart` a gagné un menu ⋯. Le rendu change, `analyze` ne
@@ -6494,6 +6558,8 @@ Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
 
 ## ✅ Lien profond perdu sur une activité neuve — corrigé, vérifié SM A515F (2026-09-11)
 
+**Priorité P2** · importance 2/5 — Sur ces configurations, un lien reçu rouvre l'app sur son dernier écran au lieu de la destination. *Bloqué : appareil Android ≤ 11 ; cas AudioService non reproductible en labo.*
+
 `MainActivity.java`, `lib/core/router/liens_natifs.dart`, `lib/core/router/app_router.dart`.
 
 Le moteur Flutter est mis en cache par `audio_service`. L'embedding ne lit
@@ -6532,6 +6598,8 @@ rien — le défaut réel était celui-ci, reproductible à chaque fois.
 ---
 
 ## ⬜ Une route sous feature-flag est joignable au démarrage (2026-09-10)
+
+**Priorité P3** · importance 1/5 — Aucun pour l'utilisateur ; au pire une mesure appareil mal interprétée.
 
 Trouvé en cherchant à mesurer les écrans podcasts, qu'on croyait injoignables.
 
@@ -6675,6 +6743,8 @@ et 2 sorties conditionnelles — voir l'entrée juste au-dessus.
 
 ## ✅ Repli navigateur des liens d'app — DÉPLOYÉ (2026-09-09 21:5x)
 
+**Priorité P1** · importance 3/5 — Un lien partagé, surtout via WhatsApp, mène à une page qui n'ouvre ni l'app ni le Play Store, et le destinataire décroche.
+
 Tout chemin d'app tapé dans un navigateur (ou dans le navigateur intégré de
 WhatsApp, qui court-circuite les App Links) tombait sur la page d'accueil du
 site, par la règle attrape-tout `**` → `/index.html`.
@@ -6745,6 +6815,8 @@ hérité `com.diasponiger.diaspo_niger`.
 ---
 
 ## ⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)
+
+**Priorité P2** · importance 3/5 — Les invitations envoyées pointent vers une mauvaise page, ou les anciens liens déjà partagés tombent sur un écran d'erreur.
 
 `generateInviteLink()` fabriquait `/invite?ref=<uid>` et **aucune route
 n'existait** pour ce chemin. Mesuré : atterrissage sur l'accueil, `ref` perdu.
@@ -6984,6 +7056,8 @@ correctif ne change pas :
 
 ## ⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)
 
+**Priorité P1** · importance 4/5 — Le scanner refuse les QR que l'app fabrique elle-même (« QR code invalide ») : ajout d'amis, partage de groupe et transfert de clés par QR inaccessibles depuis l'accueil.
+
 Le scanner ouvert depuis l'accueil (`/qr-scanner`) ne savait lire qu'un QR de
 **profil**. Tout le reste — le QR de groupe que `share_group_modal` affiche
 juste à côté, le code de transfert de clés, les liens du site — tombait sur
@@ -7141,6 +7215,8 @@ juste avant de mesurer, et non les supposer.
 
 ## ✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)
 
+**Priorité P1** · importance 4/5 — N'importe quel membre pourrait ouvrir le formulaire d'édition d'un groupe qu'il n'administre pas, par un simple lien.
+
 Même famille que la fiche d'ambassade ci-dessous, mais en plus brutal : là où
 `/embassies/:id` faisait un `!`, ces trois-là transtypaient `state.extra` vers
 un type **non nullable**, donc `TypeError` avant même le montage de l'écran.
@@ -7250,6 +7326,8 @@ ici : les deux portaient le même APK périmé.
 
 ## ✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)
 
+**Priorité P2** · importance 3/5 — Le bouton « détails » de la carte peut encore afficher l'écran rouge « Null check operator » au lieu de la fiche.
+
 `/embassies/:id` ne lisait que `state.extra` et terminait par
 `EmbassyDetailScreen(embassy: embassy!)` — un `!` sur la valeur qu'elle venait
 de tester nulle. `state.extra` étant nul par construction hors navigation
@@ -7302,6 +7380,8 @@ son propre état de chargement et d'introuvable.
 ---
 
 ## ✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)
+
+**Priorité P3** · importance 3/5 — Flèche peu lisible ou difficile à toucher, ou un écran rare sans sortie visible (le geste retour système reste disponible).
 
 Notifications, Annuaire des entreprises, Événements et Ambassades sont
 atteints par `push` depuis l'accueil, mais n'affichaient aucun moyen de
@@ -7474,6 +7554,8 @@ quel : il faut charger l'ambassade par son id.
 ---
 
 ## Feuille de partage fantôme au démarrage (2026-08-04)
+
+**Priorité P1** · importance 4/5 — Une feuille de partage fantôme se rouvre à chaque démarrage, ou le partage depuis une autre app échoue ou s'ouvre en double.
 
 Bug constaté sur appareil (SM A515F) : la feuille « Envoyer à… / Partagé
 depuis une autre app », pastille « 1 texte », se rouvrait par-dessus l'accueil
@@ -7722,6 +7804,8 @@ Connexion, déconnexion, session Supabase, onboarding et assistant de profil, bl
 
 ## ⬜ « Session Supabase non établie » ne compte plus comme un plantage (2026-09-11)
 
+**Priorité P2** · importance 2/5 — Rien de visible si le correctif ne tient pas (faux plantages fatals dans Crashlytics) ; s'il a cassé l'écriture, le statut « En ligne » devient faux.
+
 Dernier plantage **fatal** de la console qui touchait possiblement de vrais
 utilisateurs : `ServerException: Session Supabase non établie –
 reconnectez-vous`, 4 événements, 2 utilisateurs, 1.2.0 et 1.2.1, frame du haut
@@ -7759,6 +7843,8 @@ le correctif, c'est que l'attribution était incomplète.
 ---
 
 ## ⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)
+
+**Priorité P1** · importance 5/5 — Un utilisateur sur réseau lent ou coupé se voit rejouer consentement, assistant de profil (qui peut réécrire son nom) et carrousel d'accueil.
 
 **Ce qui a été observé.** Le 2026-09-10 sur SM-A515F (`R58N91XBA7B`), compte
 « Sim A », après plusieurs `adb install -r` d'un APK release : l'app a démarré
@@ -7967,6 +8053,8 @@ l'onboarding refait.
 
 ## ⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)
 
+**Priorité P1** · importance 3/5 — Un compte connecté qui perd le réseau (métro, avion, zone blanche) est renvoyé sur le carrousel de bienvenue.
+
 Trouvé par accident en coupant le réseau pour déclencher une erreur de carte.
 Le compte était connecté, l'app affichait la carte en mode public. Mode avion
 activé, un rechargement forcé → l'app bascule sur **« Bienvenue sur Diaspo
@@ -8027,6 +8115,8 @@ qu'il faut rejouer pour valider le correctif sur appareil.
 ---
 
 ## ⚠️ Déconnexion — latence supprimée, à vérifier sur appareil
+
+**Priorité P3** · importance 2/5 — Le tap de confirmation peut atterrir sur la boîte « Connecté ailleurs » superposée ; gêne ponctuelle, sans perte.
 
 Appuyer sur **Déconnexion** laissait l'écran figé plusieurs secondes, sans
 aucun retour visuel. Le chemin enchaînait **sept allers-retours réseau en
@@ -8101,6 +8191,8 @@ l'appareil identiques : `5dd681b4…` — le piège de l'APK périmé est écart
 
 ## ⬜ Déconnexion forcée « Connecté ailleurs » — trois trous refermés
 
+**Priorité P0** · importance 3/5 — Après une éjection « Connecté ailleurs », le compte suivant hérite des caches et pièces jointes en clair, et l'appareil continue de recevoir les notifications du compte sorti. *Bloqué : second appareil connecté au même compte.*
+
 Trouvée en mesurant la latence ci-dessus. Cette voie ne faisait que
 `FirebaseAuth.signOut()` + `clearSessionId()`, d'où trois défauts :
 
@@ -8172,6 +8264,8 @@ délégation, repli compris ; vérifié rouge en retirant le branchement).
 
 ## Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)
 
+**Priorité P1** · importance 3/5 — Chaque réinstallation ou changement de téléphone refait passer un utilisateur existant par le consentement et l'assistant de profil.
+
 Repéré en corrigeant « Réglages/Carte — deux interrupteurs de partage de position désynchronisés » : `hasSeenOnboarding`,
 `hasSeenCoachMarks`, `hasGivenConsent`, `hasCompletedProfileConfig`
 (`OnboardingRemoteDataSourceImpl`) lisaient/écrivaient `users/{uid}` sur
@@ -8201,6 +8295,8 @@ vrai cycle désinstall/réinstall :
 ---
 
 ## Blocage, sens inverse — RLS prouvée en base (2026-08-06)
+
+**Priorité P1** · importance 3/5 — Une personne bloquée peut continuer d'écrire à celle qui l'a bloquée, ou rester visible sur la carte et l'accueil.
 
 Le sens « qui m'a bloqué » n'a jamais fonctionné : `blockUser` écrit bien
 `blockedByUserIds` sur la cible, mais dans Firestore, alors que les profils
@@ -8260,6 +8356,8 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 
 ## Sécurité / Comptes connectés
 
+**Priorité P0** · importance 2/5 — Si la bascule d'identité des policies a trop ouvert, un compte lit ou modifie les données privées d'un autre ; si elle a trop fermé, ces actions échouent en silence. *Bloqué : deux comptes (ou simulation JWT en base).*
+
 - [ ] **⚠ E2EE, réactions, sondages, épinglage, patrimoine — débloqués côté base** (migration `20260803180000`, appliquée en production le 2026-08-03) : 34 policies supplémentaires, sur 17 tables absentes du dépôt, étaient restées sur l'ancienne identité. RLS y était **actif sans aucune policy saine** — donc refus total, sans recours. Le plus lourd est l'E2EE : `e2ee_devices`, `e2ee_user_keys`, `e2ee_one_time_prekeys` et `e2ee_sender_key_distributions` refusaient l'enregistrement d'appareil et la publication des clés. À vérifier en priorité sur deux appareils : qu'un **nouvel** appareil s'enregistre, publie ses clés, et qu'une conversation chiffrée s'établit des deux côtés. Puis : réagir à un post, reposter, aimer un commentaire, créer un sondage et voter, épingler un message en conversation, ouvrir la bibliothèque du patrimoine, enregistrer une préférence, mettre quelqu'un en sourdine.
 
   **RLS E2EE vérifié sur la base de production le 2026-08-03** (SM A515F branché, compte `vQZE49dT…`). En simulant la session applicative (`request.jwt.claims` + rôle `authenticated`), dans des transactions annulées : `firebase_uid()` résout bien vers le Firebase UID du compte ; la lecture de `e2ee_devices` et `e2ee_user_keys` fonctionne ; l'insertion d'une prékey **pour soi est acceptée**, et la même insertion **pour autrui est refusée** (`42501: new row violates row-level security policy`). Le correctif est donc concluant dans les deux sens — il autorise sans ouvrir.
@@ -8287,6 +8385,8 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 ---
 
 ## Assistant de configuration du profil
+
+**Priorité P1** · importance 4/5 — Un nouvel utilisateur termine l'assistant sans que son nom ni sa ville soient enregistrés (le compte czk5… en porte la trace) et apparaît sans nom.
 
 - [x] **« Terminer » ne sort pas de l'assistant** (vérifié sur SM A515F le
   2026-08-03, `lib/features/profile/presentation/screens/profile_config_screen.dart:172`).
@@ -8333,6 +8433,8 @@ Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ## Podcasts — 5 écrans passés au système DN (2026-08-04)
 
+**Priorité P3** · importance 1/5 — Aucun aujourd'hui : les écrans ne sont atteignables que par lien profond. *Bloqué : fonction masquée.*
+
 `lib/design_v2/` a été supprimé. Avant de le retirer, cinq écrans podcasts
 y portaient une migration vers le système de couleurs DN qui n'avait jamais
 été rebasculée, et qui n'était visible nulle part (fichiers orphelins, hors
@@ -8367,6 +8469,8 @@ explicitement (fiche podcast ligne 368, statistiques ligne 388).
 
 ## Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)
 
+**Priorité P1** · importance 3/5 — Des gestes et parcours fréquents (répondre en glissant, envoyer plusieurs photos, panneau de la carte, vote sur un sondage) peuvent ne rien faire ou déborder, sans aucune erreur visible.
+
 - [x] **Viewer de stories** (`story_viewer_screen.dart`) : barre de progression segmentée, auto-avance 5s, tap gauche/droite (précédent/suivant), swipe vers le bas pour fermer, enchaînement automatique sur l'auteur suivant du rail. *(2026-08-03, SM A515F : l'image s'affiche, l'en-tête porte avatar / nom / « il y a moins d'une minute » / croix, le minuteur de 5 s tourne et ferme le viewer en fin de rail, et le glissement vers le bas ferme immédiatement. **Tap gauche/droite et enchaînement sur l'auteur suivant restent non vérifiés** : une seule story, un seul auteur — il faut un deuxième compte publiant une story.)*
 - [x] **Création de story** (`story_rail.dart`) : permission caméra (première demande), permission galerie, upload, apparition dans le rail avec l'anneau correct. *(2026-08-03, SM A515F, bout en bout depuis la galerie : sélection → upload → la story apparaît dans le rail, l'avatar « + » cède la place à l'anneau accent, et le viewer la relit. **A d'abord échoué** en `unauthorized` : `storage.rules` n'avait pas de bloc `stories/`, corrigé et déployé (voir le bloc de session en tête de fichier). Aucune permission runtime n'est demandée pour la galerie — l'app passe par le photo picker système, qui n'en exige pas. **Le chemin caméra reste non testé** (permission caméra première demande).)*
 - [x] **Rail de stories** : anneau dégradé (non vues) vs anneau gris (tout vu), avatar "+" quand pas de story active, défilement horizontal. *(2026-08-03, SM A515F : avatar « + » correct sans story, remplacé par l'anneau accent dès qu'une story est active. **L'anneau gris « tout vu » n'est toujours pas distinguable** — ma propre story ne bascule pas en gris après lecture, et il n'y a aucun autre auteur ; défilement horizontal multi-avatars idem. Un débordement de 6 px à `font_scale = 1.1` a été trouvé ici et corrigé.)*
@@ -8395,6 +8499,8 @@ explicitement (fiche podcast ligne 368, statistiques ligne 388).
 
 ## Refonte Fil & Discussion — Priorité moyenne — layout & responsive
 
+**Priorité P2** · importance 3/5 — Ambassades rangées dans la mauvaise zone (la fonction en tête de la fiche Play) et en-tête de carte qui chevauche les commandes Google Maps.
+
 - [ ] **Rail de navigation tablette 86px** (`tablet_navigation_rail.dart`, seuil 700px) : bascule téléphone/tablette, badges non lus.
 - [ ] **Filtres rapides événements** (Près de moi/En ligne/Gratuits) : calcul de distance réel avec ma position.
 - [ ] **En-tête carte unifié** (`map_screen.dart`, §7d) : recherche + bouton calques sur une ligne, chips profession en dessous — zone à risque de chevauchement avec l'overlay Google Maps.
@@ -8409,6 +8515,8 @@ explicitement (fiche podcast ligne 368, statistiques ligne 388).
 ---
 
 ## Salons audio — monétisation
+
+**Priorité P3** · importance 3/5 — Aucun aujourd'hui (module masqué) ; à la réactivation, montants facturés 100 fois trop ou trop peu. *Bloqué : fonction masquée + prestataire de paiement.*
 
 - [ ] **Mention du code PIN conditionnelle** (`buy_ticket_bottom_sheet.dart`, 2026-08-03) : « Code PIN demandé pour confirmer » ne doit apparaître que sous Wave et Mynita, jamais sous Carte bancaire — elle était affichée en pied de feuille quel que soit le moyen choisi. Les lignes de paiement sont maintenant encadrées et cliquables en entier (l'ancien `RadioMenuButton` a été remplacé) : vérifier la zone de tap et le rond de sélection.
 - [ ] **Prix dans la devise réelle du salon** (`buy_ticket_bottom_sheet.dart`, `send_tip_bottom_sheet.dart`, 2026-08-03) : le `€` était codé en dur. Un salon facturé en XOF doit afficher « FCFA » (symbole après le montant) partout : prix du billet, commission, part de l'hôte, montants de don, libellé du bouton.
@@ -8437,6 +8545,8 @@ référence, tout est à vérifier pour la première fois.
 
 ## Salons audio & appels de groupe — indicateur « parle en ce moment »
 
+**Priorité P3** · importance 1/5 — Indicateur de parole absent ou collé — cosmétique. *Bloqué : fonction masquée + deux comptes (cinq pour l'appel de groupe).*
+
 Ce bloc demande **deux comptes sur deux téléphones** : l'anneau ne s'allume que
 sur une voix réellement captée par le SFU.
 
@@ -8447,6 +8557,8 @@ sur une voix réellement captée par le SFU.
 
 ## Lecteur de replay — valeurs inventées retirées (2026-08-03)
 
+**Priorité P3** · importance 1/5 — Aucun aujourd'hui : le lecteur de replay n'est pas atteignable. *Bloqué : fonction masquée.*
+
 - [ ] **Replay sans chapitres** (`replay_player_screen.dart`) : cinq chapitres fictifs (« Introduction », « Actualités », « Diaspora & politique », « Q&R », « Conclusion ») s'affichaient quand l'entité n'en portait aucun, et le tap sautait à `i/5` de la piste. Sur un replay sans chapitre, la ligne « Chapitre n/N » et la pastille « Chapitres » doivent maintenant **disparaître**, et le grand titre afficher le nom du salon. Vérifier aussi le cas inverse : un replay **avec** chapitres réels doit toujours les lister avec leurs horodatages, et le tap sauter au bon endroit.
 - [ ] **Compteur de temps en vidéo** (`replay_player_screen.dart`) : le temps écoulé et la durée totale dérivaient d'un `Duration(hours: 1, minutes: 14)` codé en dur — le compteur n'avait aucun rapport avec le fichier lu. Il vient maintenant du `VideoPlayerController`. Vérifier que la durée affichée correspond à la vraie, et que le compteur **avance** pendant la lecture (un écouteur a dû être ajouté, il n'y en avait aucun).
 - [ ] **Glisser sur la forme d'onde en vidéo** : le geste ne faisait que déplacer le curseur à l'écran, la lecture continuait à sa position d'origine. Il doit maintenant vraiment chercher dans le flux.
@@ -8454,6 +8566,8 @@ sur une voix réellement captée par le SFU.
 ---
 
 ## Lecture audio en arrière-plan (podcasts)
+
+**Priorité P3** · importance 1/5 — Aucun aujourd'hui ; à la réactivation, AudioService lèverait une SecurityException au premier startForeground si son type de service reste déclaré sans l'autorisation. *Bloqué : fonction désactivée dans ce build.*
 
 - [ ] **Câblage `audio_service`** (`MainActivity.java` + `AndroidManifest.xml`,
   2026-08-03) : `MainActivity` étendait `FlutterFragmentActivity` au lieu de
@@ -8471,6 +8585,8 @@ sur une voix réellement captée par le SFU.
 ---
 
 ## Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque
+
+**Priorité P2** · importance 1/5 — Petits défauts d'affichage, le plus sérieux étant un brouillon de publication perdu ou impossible à reprendre.
 
 - [ ] Badge panier boutique (nombre d'articles) + badge icône commandes (commandes vendeur en attente).
 - [ ] Filtre pays fusionné dans la barre de recherche boutique (bouton compact drapeau).
@@ -8506,6 +8622,8 @@ Annuaires, démarches consulaires, carte des membres et des postes, événements
 ---
 
 ## ✅ Événements sur Supabase — BASCULÉ et vérifié SM A515F (2026-09-09 22:35)
+
+**Priorité P2** · importance 4/5 — La création d'événement, passée sur un datasource Supabase neuf, pourrait échouer en silence (RLS), un événement plein resterait ouvert aux inscriptions et le prix saisi disparaîtrait.
 
 **✅ Vérifié sur SM A515F avec l'APK de 22:21** (md5 `8b3cb4753c`) :
 
@@ -8692,6 +8810,8 @@ publications d'entreprise, recherche de proximité.
 
 ## ⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)
 
+**Priorité P2** · importance 3/5 — Les 32 fiches affirmeraient une validation officielle par l'ambassade et un état « Ouvert » qui ne reposent sur rien, ce qui trompe l'usager et reste visible sur la capture 2 de la fiche Play.
+
 `lib/features/embassies/presentation/screens/embassy_detail_screen.dart` :
 la pastille bleue `Icons.verified` collée au nom du poste (en-tête déroulant)
 et le bandeau « **Compte Officiel Vérifié** » en tête de l'onglet *Infos* sont
@@ -8822,6 +8942,8 @@ appareil. Les autres écrans s'en tirent parce qu'ils dégradent en douceur
 
 ## Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)
 
+**Priorité P2** · importance 3/5 — Les postes diplomatiques resteraient invisibles ou mal placés sur la carte, et en anglais les postes sans coordonnées disparaîtraient de l'annuaire alors que le compteur les compte.
+
 Les 32 fiches importées le 2026-09-07 sont arrivées **sans latitude ni
 longitude** : `diplomatie.gouv.ne` ne publie que des adresses postales, dont
 huit sont de simples boîtes postales. Depuis l'import, aucun poste n'a jamais
@@ -8951,6 +9073,8 @@ sur appareil : la recherche de lieu renvoie-t-elle des résultats utilisables ?
 ---
 
 ## ⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)
+
+**Priorité P2** · importance 3/5 — Le back-office ne saurait pas quelle démarche notariée est demandée, l'usager devrait ressaisir son profil, et une course hors ligne intermittente afficherait un écran d'erreur (désormais neutre) au lieu du formulaire.
 
 L'écran de demande administrative (`administrative_request_screen.dart`)
 portait deux tables codées en dur : `_requiredDocuments`, des pièces
@@ -9165,6 +9289,8 @@ vérification le plus direct que la chaîne complète fonctionne.
 
 ## ⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)
 
+**Priorité P1** · importance 5/5 — Après une coupure de quelques minutes, la session pourrait rester anonyme au retour du réseau et bloquer en silence les lectures et écritures Supabase (messagerie comprise) jusqu'au redémarrage, et l'annuaire tournerait sans fin sur un réseau qui ne résout rien.
+
 Trouvés en testant l'écran des démarches sur SM A515F — ils sont dans
 `embassies_supabase_datasource.dart` / `20260907190000_annuaire_postes_diplomatiques.sql`,
 pas dans le catalogue des démarches. **Les deux bloquent le test hors ligne
@@ -9363,6 +9489,8 @@ est corrigé**, `.value` → `.valueOrNull`.
 ---
 
 ## ✅ Annuaire des ambassades : Firestore → Supabase, 32 postes chargés (2026-09-07)
+
+**Priorité P2** · importance 2/5 — Les administrateurs écriraient encore dans une collection Firestore que plus personne ne lit, ou recevraient un faux succès sur un refus RLS : l'annuaire ne pourrait plus être tenu à jour depuis l'app. *Bloqué : compte administrateur.*
 
 L'écran « Ambassades » lisait la collection Firestore `embassies`, **vide
 depuis toujours** : la liste n'a jamais rien affiché. L'annuaire passe sur
@@ -9658,6 +9786,8 @@ Deux découvertes du push, à connaître avant de toucher à cette table :
 
 ## Position des entreprises : création/édition alimentent enfin latitude/longitude (2026-08-19)
 
+**Priorité P2** · importance 2/5 — Les entreprises créées resteraient sans pin sur la carte et l'édition pourrait écraser les compteurs serveur, sur un annuaire aujourd'hui vide donc avec peu d'usagers touchés.
+
 Correctif de la couche « entreprises » morte de la carte (voir l'entrée
 « Pins entreprises » dans « Annuaire, Fil et Ambassades toujours actifs — plus de flag »). Ce qui a changé :
 
@@ -9698,6 +9828,8 @@ Aucune reprise de données à faire : l'annuaire est vide en prod au
 ---
 
 ## Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)
+
+**Priorité P0** · importance 5/5 — Un usager qui a coupé le partage continuerait à publier sa position GPS précise toutes les deux minutes dans la table `users`, lisible via l'API par tout compte connecté si le profil n'est pas privé, en contradiction avec la divulgation de localisation qui vient de faire refuser l'app par Play.
 
 Signalé : « j'arrive pas à localiser certains users ». Diagnostic en base
 (projet Supabase lié `Diapo Niger`) : sur 10 comptes, seuls 2 avaient
@@ -9740,6 +9872,8 @@ inchangé (c'est un filtre d'affichage, pas un consentement).
 ---
 
 ## Carte — délai d'affichage des membres autour (2026-08-04)
+
+**Priorité P1** · importance 4/5 — Le suivi de fond n'alimenterait jamais la carte, et la session Supabase de l'isolate de fond pourrait invalider celle du premier plan, coupant la messagerie des usagers qui partagent leur position.
 
 `map_screen.dart` : trois changements qui ne se voient que sur un vrai GPS et
 un vrai cache d'images, `flutter analyze` n'en dit rien.
@@ -9973,6 +10107,8 @@ Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature 
 
 ## ⬜ Page « Licences open source » dans les Réglages (2026-09-11)
 
+**Priorité P3** · importance 3/5 — Les textes de licence des polices s'affichent parsemés de carrés ; la page reste présente et lisible.
+
 Aucun écran ne menait à `showLicensePage` : ni les licences des polices
 embarquées (`f6e85f4`, OFL) ni celles des paquets (MIT, BSD, Apache…) n'étaient
 visibles dans l'app. Or MIT et BSD demandent en principe que leur notice
@@ -10026,6 +10162,8 @@ toute copie LF, donc serait aveugle.
 ---
 
 ## ✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)
+
+**Priorité P3** · importance 2/5 — Au pire un défaut de contraste ou de gouttière en thème clair — le débordement lui-même est corrigé et vérifié.
 
 Signalé par Salim sur le Pixel 10 Pro XL, jamais vu sur le SM A515F — et pour
 cause : le défaut ne dépend pas du modèle mais de **deux réglages** que ce
@@ -10218,6 +10356,8 @@ Vérifié sur SM A515F le 2026-08-19 (thème sombre, captures dans la session) :
 
 ## Annuaire, Fil et Ambassades toujours actifs — plus de flag (2026-08-19)
 
+**Priorité P3** · importance 1/5 — Les pins entreprises de la carte restent vides — défaut suivi dans l'autre entrée.
+
 Décision produit : ces trois services ne dépendent plus du back-office.
 `isBusinessDirectoryEnabled`, `isEmbassiesEnabled` et `isFeedEnabled`
 renvoient `true` en dur
@@ -10271,6 +10411,8 @@ de ces 3 providers peut être moins fin).
 ---
 
 ## Flags Salons audio / Podcasts / Fil enfin sérialisés + maintenance sans écrasement (2026-08-19)
+
+**Priorité P2** · importance 2/5 — L'admin croit activer ou désactiver une fonction sans que rien ne soit écrit, ou basculer la maintenance réinitialise d'autres fonctions. *Bloqué : back-office : connexion manuelle superAdmin (Salim L.).*
 
 Deux bugs de la même famille que les préférences profil (reconstruction
 partielle) corrigés dans le module admin :
@@ -10372,6 +10514,8 @@ se masque quand les 3 sont accomplies pendant que le profil reste incomplet.
 
 ## Pseudo (@handle) — ligne d'appel sur son propre profil
 
+**Priorité P2** · importance 3/5 — La fonction pseudo reste invisible pour 9 comptes sur 11, ou la ligne d'appel apparaît sur le profil d'autrui ou déborde à côté du nom.
+
 Contexte : la ligne `@handle` disparaît purement et simplement quand le champ
 est vide, et 9 comptes sur 11 en prod n'en ont aucun — rien n'indiquait que
 la fonctionnalité existait. Une ligne d'appel prend désormais la place du
@@ -10397,6 +10541,8 @@ la fonctionnalité existait. Une ligne d'appel prend désormais la place du
 ---
 
 ## Doublons Profil / Réglages (2026-08-05)
+
+**Priorité P0** · importance 3/5 — Si la chaîne déplacée est cassée, l'utilisateur ne peut plus supprimer son compte depuis l'app — exigence de Google Play — ni se déconnecter proprement.
 
 - [ ] **« Actions du compte » a changé d'écran** (`profile_screen.dart`,
   `settings_screen.dart`) — Déconnexion et Supprimer mon compte sont passées du
@@ -10458,12 +10604,16 @@ directement sur la section APPLICATION.
 
 ## Version de l'app et téléphone du support (2026-08-03)
 
+**Priorité P3** · importance 2/5 — Un numéro de version faux ou absent dans l'app ; la ligne support factice ne concerne que les transferts, désactivés.
+
 - [ ] **Numéro de version** (`app_version_service.dart`, nouveau) : « 1.2.0 » était écrit en dur dans Réglages (×2) et Profil. Il est maintenant lu sur le paquet installé via `package_info_plus` (nouvelle dépendance directe, déjà présente en transitive). Vérifier les trois emplacements — Réglages > À propos, la boîte « À propos », et Profil > Aide & à propos — et qu'ils affichent bien `1.2.0 (10)`, build compris. Si la lecture échoue, seul le libellé « Version » doit rester, sans numéro.
 - [ ] **Ligne « Téléphone » du support** (`transaction_detail_screen.dart`) : elle affichait le gabarit « +33 1 XX XX XX XX » et composait `+33100000000` au tap. Elle est désormais masquée tant qu'aucun `supportPhone` n'est configuré dans les réglages — donc **elle ne doit plus apparaître du tout** en l'état. À revérifier si un vrai numéro est renseigné un jour.
 
 ---
 
 ## Feature flags & accès aux écrans
+
+**Priorité P2** · importance 2/5 — Un utilisateur est renvoyé sur l'accueil en ouvrant un module activé, ou l'historique d'appels reste injoignable. *Bloqué : Salons et Podcasts désactivés en prod (back-office superAdmin requis).*
 
 - [ ] **Déblocage des routes gardées par les flags** (`lib/core/router/app_router.dart`,
   `lib/core/services/feature_flag_service.dart`,
@@ -10501,6 +10651,8 @@ directement sur la section APPLICATION.
 
 ## Profil & Accueil (avant la refonte design)
 
+**Priorité P3** · importance 1/5 — Aucun propre : l'écran a été refait depuis, ses défauts éventuels relèvent d'entrées plus récentes.
+
 - [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.
 
 ---
@@ -10512,6 +10664,8 @@ Palette, thème sombre, icônes, polices, débordements, paysage, bascule design
 ---
 
 ## ⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)
+
+**Priorité P3** · importance 4/5 — Hors ligne au premier lancement, la typographie de marque retombe sur la police système et l'erreur continue de polluer Crashlytics — gêne visuelle, aucune fonction perdue. *Bloqué : réinstallation propre (efface les données, déconnecte le compte).*
 
 Crashlytics montrait `Failed host lookup: 'fonts.gstatic.com'` (4 événements,
 3 utilisateurs) : `google_fonts` téléchargeait chaque graisse au premier
@@ -10577,6 +10731,8 @@ désormais cette page — voir « Page « Licences open source » dans les Régl
 
 ## ⬜ Teinte des notifications système en vert (2026-09-07)
 
+**Priorité P3** · importance 3/5 — Icône de notification dans la mauvaise teinte, ou carré blanc si Android retombe sur l'icône du lanceur — défaut purement visuel. *Bloqué : deux comptes (émetteur de notifications).*
+
 La petite icône de la barre d'état (`ic_stat_notification`) est une
 **silhouette blanche sur transparent** — c'est Android qui la colore, avec la
 teinte d'accent. La repeindre revient donc à changer cette teinte, pas le PNG.
@@ -10625,6 +10781,8 @@ groupes…), les deux teintes d'état de l'upload (`#4CAF50` succès /
 
 ## ⬜ Icône du lanceur repeinte en vert (2026-09-07)
 
+**Priorité P3** · importance 4/5 — Icône mal découpée ou délavée sur l'écran d'accueil — première impression de marque dégradée, sans effet fonctionnel.
+
 Suite de l'entrée ci-dessous : sur un vrai téléphone, l'orange qu'on voit en
 premier au lancement n'est pas l'écran Flutter mais **l'écran de lancement du
 système**, qui affiche l'icône du lanceur (vérifié sur SM A515F : ~15 s sur un
@@ -10665,6 +10823,8 @@ or il vaut `#E07B39` alors que `AppColors.primary` vaut `#FA7D00` depuis le
 
 ## ⬜ Écran de démarrage repeint en vert (2026-09-07)
 
+**Priorité P3** · importance 3/5 — Pastille verte terne sur fond sombre, ou accent vert qui déborde sur l'app d'un compte orange — cosmétique.
+
 Demande produit : sur l'écran d'attente `/splash` (le premier écran Flutter
 affiché, `initialLocation` du routeur), la pastille « DN » et le cercle de
 progression passent de l'orange primaire au vert `AppColors.secondary`
@@ -10697,6 +10857,8 @@ app orange — c'est voulu, pas une dérive à corriger.
 
 ## ✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)
 
+**Priorité P2** · importance 3/5 — Dans le thème clair, le plus répandu, les libellés blancs des boutons orange peuvent être difficiles à lire pour tout le monde, et une bascule Vert incomplète mélangerait les deux accents.
+
 Demande produit : `AppColors.primary`/`primaryDark` (orange) `#E05206`/`#9F3E0A`
 → `#FA7D00` unique (`#FC7C00` d'abord appliqué puis corrigé en cours de session),
 `AppColors.secondary`/`secondaryDark` (vert) `#0DB02B`/`#06871D` → `#009600`
@@ -10722,6 +10884,8 @@ accueil, groupes, événements, transferts, annuaire entreprises, ambassades...)
 ---
 
 ## ✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)
+
+**Priorité P3** · importance 2/5 — Combinaison sombre/vert jamais vue : au pire un contraste médiocre — la persistance du thème, elle, est déjà prouvée sur appareil.
 
 Découvert en essayant de vérifier la pastille « DN » en clair/vert sur le
 SM A515F (cf. entrée plus bas sur les illustrations d'onboarding). Réglages →
@@ -10757,6 +10921,8 @@ d'origine) via l'IU avant de rendre la main.
 ---
 
 ## Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)
+
+**Priorité P3** · importance 2/5 — Sigle coupé ou peu lisible sur l'écran de connexion dans une combinaison de thème peu fréquente — cosmétique. *Bloqué : déconnexion requise (écran de connexion).*
 
 Demande de Salim : la pastille de marque affichait un seul « D » à deux
 endroits au lieu de « DN » ; et les 5 écrans d'onboarding n'avaient jamais eu
@@ -10835,6 +11001,8 @@ distinct).
 
 ## Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)
 
+**Priorité P1** · importance 4/5 — Un utilisateur qui veut supprimer son compte peut rester bloqué sur une erreur sans ré-authentification — fonction exigée par Google Play — et un anglophone voit un mélange de langues. *Bloqué : compte jetable (suppression de compte).*
+
 Toute l'application vient d'être branchée sur `l10n` : l'admin (0 fichier sur
 34 utilisait `l10n`), `businesses` (0/40), `embassies`, `transfers`,
 `marketplace`, puis les 19 modules restants, `lib/shared/` et `lib/core/`.
@@ -10896,6 +11064,8 @@ contrôles ne regarde un écran.
 ---
 
 ## Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)
+
+**Priorité P2** · importance 3/5 — En paysage clavier levé, le composeur est rogné et on ne voit plus ce qu'on tape — limité à ceux qui écrivent téléphone tourné.
 
 - [ ] ⛔ **Débordement bas sur l'écran de conversation en PAYSAGE.** Constaté
   **deux fois** sur SM A515F le 2026-08-05, avec deux ampleurs différentes :
@@ -11156,6 +11326,8 @@ corrigé — c'est ce qui aurait fait perdre le plus de temps au prochain lecteu
 
 ## Le « OVERFLOWED BY 190 » de la recherche venait du rail latéral (2026-08-05)
 
+**Priorité P2** · importance 2/5 — En paysage clavier levé, les derniers items du rail latéral deviennent inatteignables ou le contenu est rogné — cas limite du téléphone tourné.
+
 Le bandeau rayé se voit **depuis** l'écran de recherche de la messagerie, mais
 le `RenderFlex` fautif est au-dessus de cet écran dans l'arbre : c'est
 `TabletNavigationRail` (`lib/shared/widgets/tablet_navigation_rail.dart`).
@@ -11236,6 +11408,8 @@ tombait sous 64 dp — non observé, non corrigé.
 
 ## Menus déroulants bornés partout (`isExpanded`, 2026-08-04)
 
+**Priorité P2** · importance 2/5 — Libellé de menu tronqué ou rogné dans des formulaires secondaires (boutique et transferts sous drapeau de fonction) — gêne de lecture, pas de blocage.
+
 Balayage des 16 menus restants, même cause que le champ « Type * » ci-dessous.
 Un seul écran débordait réellement à l'échelle 1.0 ; le reste est du
 durcissement, donc à regarder surtout **à `font_scale` 1.1 et plus**.
@@ -11273,6 +11447,8 @@ le débordement mais la **troncature abusive** — un « … » là où le libel
 
 ## Débordement du champ « Type * » — création d'ambassade (2026-08-04)
 
+**Priorité P3** · importance 2/5 — Formulaire du back-office légèrement rogné, visible des seuls administrateurs. *Bloqué : compte admin.*
+
 Corrigé à l'aveugle (pas d'appareil branché pendant la correction), couvert
 par `test/features/admin/admin_create_embassy_overflow_test.dart`.
 
@@ -11288,6 +11464,8 @@ par `test/features/admin/admin_create_embassy_overflow_test.dart`.
 ---
 
 ## Fiches d'écrans (Claude Design) — reprise écran par écran (2026-08-04)
+
+**Priorité P2** · importance 4/5 — Réglages de notifications ou nom d'appareil qui semblent enregistrés mais ne le sont pas ; la liste d'appareils E2EE peut aussi grossir sans limite, le plafond de 5 n'étant appliqué nulle part (décision en attente, pas un test).
 
 Reprise des écrans sur le document `Fiches d'écrans.dc.html` (17 fiches),
 validées une par une avec Salim avant branchement.
@@ -11429,6 +11607,8 @@ et chaque message destiné au compte doit être chiffré pour **chaque** entrée
 
 ## Galerie design_v2 sur appareil (2026-08-03)
 
+**Priorité P3** · importance 1/5 — Aucun : la galerie de debug n'est plus livrée. *Bloqué : galerie supprimée (lib/design_v2 retiré).*
+
 Premier passage réel sur le SM A515F. Trois choses ont été **vérifiées**,
 et il faut le noter parce que la plupart des points de ce fichier ne l'ont
 jamais été :
@@ -11484,6 +11664,8 @@ v2**, qui ne dépend d'aucun intent — mais demande d'être connecté, et
 ---
 
 ## Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion
+
+**Priorité P2** · importance 4/5 — Le mode données réduites pourrait télécharger les médias quand même et consommer le forfait de ceux qui l'ont activé pour l'éviter ; le reste est visuel. *Bloqué : deux comptes (réception de médias).*
 
 ⚠️ **Distinction à faire avant de tester.** L'essentiel du travail de design
 de cette session vit dans `lib/design_v2/`, **qui n'est câblé à aucune
@@ -11574,6 +11756,8 @@ sont invisibles à `flutter analyze` :
 
 ## Quatrième vague — écrans repris en production (2026-08-03)
 
+**Priorité P1** · importance 3/5 — Un badge qui affiche le chiffrement de bout en bout sur un appel qui ne l'est pas trompe l'utilisateur sur sa confidentialité ; les écrans de récupération des clés peuvent être illisibles de nuit. *Bloqué : deux comptes (appel).*
+
 Contrairement à « Reprise du design (2026-08-03, suite) », **tout ce qui suit est dans
 `lib/features/` et donc exerçable tout de suite**. Aucun de ces écrans n'a
 été vu tourner : les jetons de thème ont été raisonnés, pas observés.
@@ -11659,6 +11843,8 @@ vers le haut.
 
 ## Refonte des maquettes d'authentification
 
+**Priorité P1** · importance 4/5 — Un nouvel inscrit bloqué ou renvoyé en boucle sur une étape de la configuration du profil n'atteint jamais l'app. *Bloqué : compte neuf (déconnexion du compte de test).*
+
 - [x] **Connexion et inscription refaites sur les maquettes** (`auth_scaffold.dart`
   nouveau, `login_screen.dart`, `register_screen.dart`, `auth_button.dart`,
   `assets/icons/icon_google.svg`, 2026-08-03) : vérifié sur le SM A515F, les
@@ -11692,6 +11878,8 @@ vers le haut.
 
 ## Thème sombre — jetons clairs codés en dur
 
+**Priorité P2** · importance 3/5 — Un écran de profil ou la carte peut rester sur fond clair avec du texte clair en mode nuit, donc illisible.
+
 - [x] **Écrans d'authentification en thème sombre** (`login_screen.dart`,
   `register_screen.dart`, `forgot_password_screen.dart`,
   `maintenance_screen.dart`, `splash_screen.dart`, `auth_button.dart`,
@@ -11715,6 +11903,8 @@ vers le haut.
 ---
 
 ## Guide de style — alignement des jetons (2026-08-03)
+
+**Priorité P3** · importance 3/5 — Contours de puces, de cartes ou de bulles trop discrets qui se fondent dans le fond — cosmétique, et une partie des teintes a changé depuis (recolorisation du 2026-08-25).
 
 - [ ] **11 couleurs d'`AppColors` réalignées sur le guide de style**
   (`lib/core/constants/app_colors.dart`) : bordure `#E8DFD4`→`#EFE7DB`,
@@ -11790,6 +11980,8 @@ vers le haut.
 
 ## Accent orange du thème clair — `#E07B39` → `#B85E24` (2026-08-03)
 
+**Priorité P3** · importance 1/5 — Aucun en propre : la teinte #B85E24 qu'elle vérifiait n'est plus en production.
+
 - [ ] **L'orange d'action de toute l'app change de teinte**
   (`lib/core/theme/app_theme.dart`) : les 17 liaisons qui exprimaient l'accent
   orange pointaient sur `AppColors.primary` (`#E07B39`) ; le guide de style
@@ -11840,6 +12032,8 @@ vers le haut.
 
 ## Bascule design_v2 → production, famille 2 : les services (2026-08-03)
 
+**Priorité P2** · importance 3/5 — Écrans de services toujours actifs, jamais vus tourner : débordement, texte illisible de nuit, voire champ inaccessible sous le clavier à la création d'événement.
+
 Onze écrans sont passés de `lib/design_v2/` à `lib/features/` : annuaire
 Business (5), ambassades (4), événements (2). Ils étaient jusqu'ici
 inatteignables autrement que par la galerie `/design-v2` ; ils sont
@@ -11864,6 +12058,8 @@ maintenant **ceux que l'app ouvre pour de bon**. Rien n'a été vu tourner.
 
 ## Bascule design_v2 → production, famille 3 : boutique, support, transferts, appels (2026-08-03)
 
+**Priorité P2** · importance 2/5 — Écrans secondaires jamais vus tourner qui pourraient déborder, ou une frise de transfert trompeuse sur un échec.
+
 Dix écrans de plus dans `lib/features/`, jamais vus tourner :
 
 - [ ] **Boutique** (§12b, §16a, §16b, §16h) : liste, fiche produit, panier.
@@ -11880,6 +12076,8 @@ Dix écrans de plus dans `lib/features/`, jamais vus tourner :
 ---
 
 ## Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)
+
+**Priorité P2** · importance 4/5 — Un geste vocal mal signalé peut faire envoyer une note qu'on voulait annuler ; le reste est de la mise en page sur des écrans très fréquentés mais déjà utilisés au quotidien.
 
 Onze fichiers, dont toute la discussion. C'est le lot le plus visible des
 quatre familles, et **trois écrans y perdent leur en-tête** — c'est voulu,
@@ -11912,6 +12110,8 @@ mais c'est exactement ce qu'il faut regarder en premier :
 
 ## Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)
 
+**Priorité P3** · importance 3/5 — Message « Personne à moins de 50 km » affiché à tort pendant la recherche, ou accents cassés dans un tunnel de transfert sous drapeau de fonction.
+
 - [ ] **Accueil** (§8a) : c'est l'écran d'ouverture de l'app, donc le plus vu
   de tous. Vérifier le squelette de chargement au moment d'« Élargir à
   200 km » — il doit remplacer la carte « Personne à moins de 50 km » pendant
@@ -11942,6 +12142,8 @@ mais c'est exactement ce qu'il faut regarder en premier :
 ---
 
 ## Bascule design_v2 → production : la carte (§7e, 2026-08-03)
+
+**Priorité P1** · importance 2/5 — La carte pourrait ne pas se recharger après un passage en mode liste ou démarrer dans le mauvais mode, et le tri inventer un classement sans position. *Bloqué : compte de test en mode privé (activer le partage demande l'accord de Salim).*
 
 Le §7e entre en production. C'est le lot le plus testable de la session,
 parce qu'il change un **comportement**, pas seulement un habillage :
@@ -11987,6 +12189,8 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 ---
 
 ## ⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)
+
+**Priorité P2** · importance 3/5 — Un écran qui déborde et une flèche retour sans effet (ou écran noir) restent non localisés — observés jusqu'ici sur l'appareil de test seulement. *Bloqué : Pixel déconnecté / nouvelle version publiée.*
 
 Première lecture réelle de la console. Elle change l'interprétation des
 chiffres, et sort quatre défauts avec leur volume.
@@ -12042,6 +12246,8 @@ l'étaient pas. La prochaine version donnera un vrai nom de classe.
 ---
 
 ## ⬜ Les quatre défauts de la console, triés par appareil (2026-09-10)
+
+**Priorité P2** · importance 2/5 — Si c'est un vrai utilisateur, il subit des plantages à l'ouverture d'écrans de paiement ou d'appel, et le taux sans plantage suivi par Play chute. *Bloqué : hors appareil (Crashlytics / Play Console).*
 
 Suite de la lecture de Crashlytics. **Le détail par appareil change les
 priorités** — la liste seule était trompeuse, et je l'avais présentée comme
@@ -12152,6 +12358,8 @@ pour la build 17. Aucune piste restante n'est vérifiable depuis ce poste.
 
 ## ⬜ Journalisation : deux fuites en release et la garde du LoggerService (2026-09-09)
 
+**Priorité P2** · importance 2/5 — Les erreurs de la carte resteraient invisibles en production ; le risque de régression d'appel est faible, seul un log ayant changé. *Bloqué : mode privé du compte de test (carte) et deux comptes (appel).*
+
 `debugPrint` écrit **aussi en release** — la doc du SDK le dit noir sur blanc
 (`packages/flutter/lib/src/foundation/print.dart:37` : « logs to console even
 in release mode », avec la convention de l'entourer d'un `kDebugMode`). Le
@@ -12250,6 +12458,8 @@ déjà celle du `!kDebugMode`.
 ---
 
 ## ⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)
+
+**Priorité P3** · importance 3/5 — Au pire, des traces d'appel (SDP, candidats ICE) restent lisibles par adb sur un APK de production — aucun effet fonctionnel attendu. *Bloqué : deux comptes (appel).*
 
 Suite directe de l'entrée ci-dessus. Après les trois fuites nommées, il restait
 **922 appels actifs dans 115 fichiers**, dont 12 gardés — tous bavards dans
@@ -12432,6 +12642,8 @@ stable, et ne pas conclure d'un message qu'on n'a pas envoyé soi-même.
 
 ## ⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09)
 
+**Priorité P3** · importance 4/5 — Les plantages Android arriveraient obfusqués et resteraient indiagnosticables — confort du développeur, sans effet direct sur l'utilisateur. *Bloqué : mode privé du compte de test / nouvelle version publiée.*
+
 Trouvé en cherchant à vérifier la remontée d'erreurs. Le SDK Crashlytics
 s'initialise bien sur la build release (`Initializing Firebase Crashlytics
 19.4.4` dans logcat) et les non-fatals partent — mais **le plugin Gradle
@@ -12482,6 +12694,8 @@ logger sont des `.w`, volontairement laissés muets. Le branchement ajouté le
 ---
 
 ## ⬜ Configuration distante `app-config` (2026-08-27)
+
+**Priorité P1** · importance 3/5 — Une configuration distante absente ou lente peut retarder chaque démarrage jusqu'à 4 s, ou fournir de mauvaises valeurs à la carte, aux liens profonds et aux salons LiveKit.
 
 L'app va chercher sa configuration publique auprès de l'Edge Function
 `app-config` au démarrage, avec le `.env` embarqué en filet.
@@ -12577,6 +12791,8 @@ par octet est justement ce qu'on veut.
 ---
 
 ## Cartographie des accès `anon` réellement nécessaires (2026-08-13)
+
+**Priorité P3** · importance 2/5 — Un avertissement et une petite fuite mémoire, sans plantage ni effet visible.
 
 Suite à l'audit des RPC (« Accusés livré/lu séparés — sheet infos du message ») : `anon` a INSERT/UPDATE/DELETE/SELECT
 au niveau table sur quasiment tout le schéma public par accident
@@ -12727,6 +12943,8 @@ le routeur.
 ---
 
 ## Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)
+
+**Priorité P0** · importance 2/5 — Soit les règles durcies empêchent tout appel de sonner sans la moindre erreur, soit la production reste permissive et n'importe quel compte connecté peut lire ou remplacer la clé E2EE d'un appel ; s'y ajoute une suppression de compte qui peut laisser des données derrière elle. *Bloqué : deux comptes.*
 
 Relevées en fin de session. Aucune des deux n'a d'effet visible, mais elles
 polluent logcat, et **c'est ce qui rend un vrai refus invisible** — il a fallu
@@ -13230,6 +13448,8 @@ démarrage : l'index composite n'existe pas.
 
 ## Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)
 
+**Priorité P1** · importance 4/5 — Si un chemin de l'app liste encore les objets Storage, la galerie « Médias » d'une conversation est vide ou en erreur ; si la lecture elle-même était touchée, plus aucune image de message ne s'afficherait.
+
 `storage.rules` : `match /messages/{conversationId}/{allPaths=**}` passait
 `allow read: if isAuthenticated()`. Or `read` couvre `get` ET `list` — connaître
 un `conversationId` suffisait donc à énumérer puis télécharger tout le média de
@@ -13257,6 +13477,8 @@ CHIFFREMENT_MEDIAS_PLAN.md.
 ---
 
 ## Fuseau horaire — heures affichées en UTC (2026-08-04)
+
+**Priorité P2** · importance 3/5 — Hors ligne, le fil reste sur des squelettes sans fin au lieu d'afficher le cache, et des heures ou des jours peuvent rester décalés dans les écrans non vérifiés.
 
 Bug constaté sur appareil (SM A515F, `America/Toronto` = UTC-4) : une
 publication créée à 02:01 s'affichait « 06:01 ». Les dates étaient
@@ -13372,6 +13594,8 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 
 ## Admin (back-office)
 
+**Priorité P2** · importance 3/5 — Si la garde ne tient pas, un compte ordinaire peut entrer invisible dans un salon audio ; le reste touche des outils réservés aux administrateurs.
+
 - [ ] **Migration des 18 écrans admin + `admin_app` vers `AdminColors`** — jamais vérifiée à l'écran ; en particulier la couleur bleu d'action (jamais orange) jamais confirmée visuellement.
 - [ ] **Modérateur fantôme — Muet / Exclure / Bloquer** (`ghost_moderator_screen.dart`, ajouté 2026-08-03) : les trois boutons ouvrent une feuille de sélection de participant puis appliquent l'action. Trois choses ne peuvent être vérifiées que sur un salon réel avec deux comptes : que la feuille liste bien les participants visibles (les fantômes doivent en être exclus), que l'action passe réellement les règles RTDB (nécessite `/admins/<uid>: true` dans la Realtime Database — sinon échec silencieux côté règles), et que le SnackBar d'erreur remonte quand ça échoue.
 - [ ] **Ouverture et fermeture de la session fantôme** (`ghost_moderator_screen.dart`, 2026-08-03) : l'écran appelle maintenant `joinAsGhostModerator()` à l'ouverture — auparavant il ne rejoignait jamais le salon, donc `isGhostMode` restait faux, les compteurs affichaient 0 et les trois actions ne trouvaient aucune cible. À vérifier sur un salon réel avec deux comptes : que les compteurs se remplissent, que l'admin **n'apparaît pas** dans la liste des participants côté hôte, que la durée s'incrémente (rafraîchie toutes les 30 s), et surtout qu'en quittant l'écran l'admin est bien retiré du salon (`leaveRoom` n'est appelé que si c'est cet écran qui a ouvert la session — un admin déjà présent dans le salon ne doit pas en être éjecté).
@@ -13389,6 +13613,8 @@ Play Store, exigences Android, build release, iOS.
 ---
 
 ## ⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)
+
+**Priorité P0** · importance 5/5 — Un sixième refus Google Play, l'app restant bloquée hors du Store.
 
 Troisième refus Google Play sur le même terrain, cette fois nommément :
 « Inadequate Prominent Disclosure — The in-app Prominent Disclosure does not
@@ -13527,6 +13753,8 @@ l'implémenter (arrondi avant écriture), pas la réécrire.
 
 ## ⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)
 
+**Priorité P1** · importance 4/5 — Sur Android 15+, « Diaspo Niger s'arrête systématiquement » après chaque redémarrage du téléphone — risque résiduel, le récepteur étant déjà prouvé désenregistré.
+
 Trouvé en pilotant le **Pixel 10 Pro XL (Android 17)** : après un
 `am force-stop` suivi d'un lancement, Android a affiché la boîte
 « Diaspo Niger s'arrête systématiquement ». Deux `FATAL EXCEPTION` dans le
@@ -13589,6 +13817,8 @@ Restent à faire, l'un et l'autre à la main :
 ---
 
 ## ⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)
+
+**Priorité P1** · importance 4/5 — Le scan de QR, dont le transfert de clés E2EE vers un nouveau téléphone, ne décode plus rien après la montée de version majeure.
 
 Le travail iOS de `claude/ios-support` — première compilation de la cible,
 parité native Swift (identifiant d'appareil E2EE, notifications), et
@@ -13681,6 +13911,8 @@ Apple », liens profonds, Supabase — sont plus bas, dans les sections du
 ---
 
 ## ⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)
+
+**Priorité P1** · importance 3/5 — Écran caméra noir ou QR jamais reconnu, voire plantage natif à l'ouverture d'un appel de groupe, sans aucune erreur Dart.
 
 Google Play refuse au dépôt tout AAB qui cible l'API 35+ et embarque un `.so`
 64 bits aligné sur 4 Ko. Sur l'AAB du 2026-09-08, 6 des 8 bibliothèques
@@ -13828,6 +14060,8 @@ la source étant la même, mais ce n'est pas le binaire téléversé.
 
 ## ⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)
 
+**Priorité P0** · importance 3/5 — Sur Android 15+, le champ de saisie, les onglets ou les boutons d'une feuille passent sous la barre de navigation et deviennent inaccessibles. *Bloqué : appareil Android 15+ connecté (Pixel déconnecté).*
+
 Play Console refuse toute mise à jour à partir du **31/10/2026** si l'app ne
 cible pas l'API 36. La 1.2.0 publiée cible 35.
 
@@ -13914,6 +14148,8 @@ notamment conditionne la signature.
 ---
 
 ## iOS : premier build réussi, sur simulateur (2026-09-01)
+
+**Priorité P2** · importance 3/5 — La version iOS partirait avec des fonctions matérielles jamais vues fonctionner (caméra, micro, push, appels), avec un refus App Store probable. *Bloqué : iOS / Mac + iPhone réel + compte Apple Developer.*
 
 La cible iOS n'avait **jamais été compilée**. Elle l'est désormais :
 `flutter build ios --simulator --debug` aboutit, l'app s'installe et démarre
@@ -14007,6 +14243,8 @@ Swift : même comportement avec l'`AppDelegate` d'origine, test A/B fait.
 
 ## « Se connecter avec Apple » ajouté (2026-09-01)
 
+**Priorité P1** · importance 2/5 — Connexion Apple cassée ou compte créé sans nom : rejet App Store assuré, Apple exigeant ce fournisseur dès qu'un tiers (Google) est proposé. *Bloqué : iOS / Mac + compte Apple Developer.*
+
 Apple exige ce fournisseur de toute app en proposant déjà un tiers — Google
 ici — et son absence vaut un rejet à la soumission. Le bouton n'apparaît que
 sur iOS/macOS : sur Android il ouvrirait un parcours web réclamant une
@@ -14034,6 +14272,8 @@ les yeux de l'utilisateur.
 ---
 
 ## Supabase branché sur iOS — deux réserves (2026-09-01)
+
+**Priorité P3** · importance 1/5 — Si les Edge Functions manquaient vraiment, configuration distante et proxy GIF seraient hors service ; sur simulateur, les parcours authentifiés restent intestables.
 
 `SUPABASE_ANON_KEY` renseignée, `***** Supabase init completed *****` dans les
 journaux, et GoRouter route normalement (`/splash` → `/auth/login`). Le
@@ -14075,6 +14315,8 @@ pas propre à `app-config`, et pas propre à iOS non plus.
 
 ## Liens profonds iOS : la moitié testable est bonne (2026-09-01)
 
+**Priorité P2** · importance 2/5 — Sur iPhone, tous les liens partagés s'ouvrent dans Safari au lieu de l'app. *Bloqué : iOS : app signée avec Associated Domains.*
+
 - [x] **Schéma `diasponiger://` reconnu par iOS.** `simctl openurl` déclenche
       bien « Ouvrir dans Diaspo Niger ? » : la déclaration
       `CFBundleURLSchemes` d'`Info.plist` est correcte.
@@ -14099,6 +14341,8 @@ iOS *et* Android. À trancher : implémenter ou retirer.
 ---
 
 ## Avertissement Android « pages de 16 Ko » — une seule vraie cause, correctif bloqué en cascade (2026-08-14)
+
+**Priorité P3** · importance 1/5 — Aucun supplémentaire : l'avertissement ne concernait que les builds debuggables et la bibliothèque fautive est remplacée.
 
 Popup système sur appareil (build **debuggable** uniquement, en français :
 « Cette appli n'est pas compatible avec les pages de 16 Ko ») citant 4
@@ -14158,6 +14402,8 @@ diasponiger.web.app : pages, palette, menu, aperçus de partage.
 
 ## ⬜ Site web entièrement refait sur cahier des charges (2026-09-08)
 
+**Priorité P2** · importance 4/5 — Un visiteur sur téléphone n'arrive pas à la fiche Play depuis la page de téléchargement ou le QR code, au moment même du lancement.
+
 Le site n'est plus la même page avec un autre thème : c'est une landing où
 l'application est le sujet. Sept sections, trois pages nouvelles
 (`/fonctionnalites`, `/a-propos`, `/telecharger`), une feuille de style
@@ -14211,6 +14457,8 @@ bannière de consentement), elle n'a pas été prise ici.
 
 ## ⬜ Site web repeint sur la palette ① Organic du guide (2026-09-08)
 
+**Priorité P3** · importance 1/5 — Cosmétique.
+
 Le « Guide de style » Claude Design assigne explicitement la palette ①
 **Organic** au site web. Le site ne l'a jamais appliquée : il tournait sur un
 fond `#0f0d0a` et un orange `#E97424` qui ne figurent dans **aucune** des cinq
@@ -14252,6 +14500,8 @@ son apparence voulue.
 
 ## ⬜ Site web : page d'accueil refondue sur les captures réelles (2026-09-08)
 
+**Priorité P3** · importance 2/5 — Captures mal recadrées ou texte chevauché sur la page d'accueil — cosmétique.
+
 La page d'accueil vendait une version plus ancienne de l'app : cinq cartes à
 emoji (carte, groupes, événements, messagerie, annuaire), **aucune capture**,
 une citation inventée signée par la plateforme elle-même, et trois chiffres
@@ -14292,6 +14542,8 @@ faire deux fois et le rendu divergeait.
 ---
 
 ## ⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)
+
+**Priorité P2** · importance 5/5 — Sur mobile, la navigation du site n'offre ni téléchargement ni langue, et un lien de post partagé sur WhatsApp retombe sur l'accueil sans aperçu.
 
 `public/` (déployé sur `diasponiger.web.app`). Rien ici n'est couvert par
 `flutter analyze` : c'est du HTML statique, vérifié en local sur un viewport
@@ -14344,6 +14596,8 @@ Comptes rendus de passes complètes, gardés pour leurs cases encore ouvertes et
 ---
 
 ## Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`
+
+**Priorité P2** · importance 3/5 — Le partage entrant et les liens ouverts depuis une autre app pourraient ne rien ouvrir, et hors ligne l'app paraît normale en affichant des correspondants anonymes et des squelettes sans fin ; les autres cases (sauvegarde, bandeau, brouillon, repli hors ligne, boucle du jeton, « CET APPAREIL », restauration des clés) sont soldées dans l'entrée ou ailleurs.
 
 Programme de test exécuté au pilotage `adb` (taps + `dumpsys` + logcat), thème
 clair, `font_scale` 1.1, batterie sur secteur. **Aucune réinstallation** : l'APK
@@ -14789,6 +15043,8 @@ passe d'instrumentation, et la réserve subsisterait.
 
 ## Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)
 
+**Priorité P3** · importance 2/5 — Un panneau d'exploration par ville mal rendu ou un badge vérifié peu contrasté en thème sombre, sans perte de fonction.
+
 Cinq fiches regardées d'affilée en thème sombre, build debug installé sur
 l'appareil de référence.
 
@@ -14842,6 +15098,8 @@ avec son bouton 💬. En-tête, fraîcheur et ligne de membre sont donc vérifi�
 ---
 
 ## Session du 2026-08-03 (soir) — SM A515F, refonte enfin lancée
+
+**Priorité P2** · importance 2/5 — Fermer la feuille des langues pourrait modifier le profil à l'insu de l'usager ; les autres cases (styles de carte désormais présents, débordement du volet, restauration des clés vérifiée le 2026-08-23) sont soldées.
 
 **Première exécution de la refonte sur appareil.** Build `assembleDebug` en
 90 s, installation et lancement sans incident, **zéro exception Flutter**
@@ -15101,6 +15359,8 @@ messagerie, hors-ligne, écrans divers.
 ---
 
 ## Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1
+
+**Priorité P3** · importance 2/5 — Empreinte de clé à peine visible en sombre et quelques libellés tronqués ou sans accents : gêne cosmétique.
 
 Premier passage réel sur téléphone de toute la reprise du design. Le
 téléphone était déjà dans les deux conditions les plus risquées : nuit et

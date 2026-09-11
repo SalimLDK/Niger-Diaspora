@@ -110,9 +110,11 @@ Ne pas attendre la fin de la tâche pour le faire : l'ajouter au fil de
 l'eau, dans le même commit que le changement concerné si possible.
 
 Le fichier est classé par domaine (titres `# N.`) : une nouvelle entrée va
-**en tête de son domaine**, jamais en tête du fichier, et renvoie aux autres
-entrées par leur titre, pas par « plus haut / plus bas ». Après un ajout ou
-des cases cochées, `python tools/index_tests_appareil.py` régénère le sommaire.
+**en tête de son domaine**, jamais en tête du fichier, porte sous son titre sa
+ligne `**Priorité P0…P3** · importance n/5` (barème dans le préambule du
+fichier), et renvoie aux autres entrées par leur titre, pas par « plus haut /
+plus bas ». Après un ajout ou des cases cochées,
+`python tools/index_tests_appareil.py` régénère le sommaire, trié par priorité.
 
 ## Règles RTDB : jamais de déploiement sans le banc
 

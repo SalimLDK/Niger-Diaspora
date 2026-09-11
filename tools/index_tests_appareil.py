@@ -1,8 +1,13 @@
 """Régénère le sommaire de TESTS_APPAREIL_A_FAIRE.md.
 
 Le sommaire vit entre les balises `<!-- sommaire:debut -->` et
-`<!-- sommaire:fin -->`. Il liste, domaine par domaine (titres `# N.`), les
-entrées qui ont encore des cases à cocher, puis celles qui n'en ont plus.
+`<!-- sommaire:fin -->`. Il liste les entrées qui ont encore des cases à
+cocher, par priorité puis par importance, puis le décompte par domaine
+(titres `# N.`).
+
+La priorité d'une entrée est la première ligne de la forme
+`**Priorité P1** · importance 4/5 — raison` sous son titre. Une entrée
+ouverte sans cette ligne apparaît « à classer », en tête.
 
     python tools/index_tests_appareil.py           # réécrit le sommaire
     python tools/index_tests_appareil.py --check   # sort en 1 s'il est périmé
@@ -15,11 +20,19 @@ FICHIER = Path(__file__).resolve().parent.parent / 'TESTS_APPAREIL_A_FAIRE.md'
 DEBUT = '<!-- sommaire:debut -->'
 FIN = '<!-- sommaire:fin -->'
 
+NIVEAUX = {
+    'P0': 'avant toute nouvelle version',
+    'P1': 'fonction importante, jamais vérifiée',
+    'P2': 'fonction secondaire ou cas limite',
+    'P3': 'confort, cosmétique, fonction en pause',
+}
+
 _CLOTURE = re.compile(r'^\s*(```|~~~)')
 _TITRE = re.compile(r'^(#{1,6}) (.+?)\s*$')
 _DOMAINE = re.compile(r'^\d+\. ')
 _OUVERTE = re.compile(r'^\s*[-*] \[ \]')
 _COCHEE = re.compile(r'^\s*[-*] \[[xX]\]')
+_PRIORITE = re.compile(r'^\*\*Priorité (P[0-3])\*\*(?: · importance ([1-5])/5)?')
 
 
 def _ancre(titre, deja_vues):
@@ -60,14 +73,23 @@ def _domaines(lignes):
                 if _DOMAINE.match(titre):
                     domaines.append({'titre': titre, 'ancre': ancre, 'entrees': []})
             elif niveau == 2 and domaines:
-                entree = {'titre': titre, 'ancre': ancre, 'ouvertes': 0, 'cochees': 0}
+                entree = {'titre': titre, 'ancre': ancre, 'ouvertes': 0,
+                          'cochees': 0, 'priorite': None, 'importance': 0,
+                          'domaine': domaines[-1]}
                 domaines[-1]['entrees'].append(entree)
             continue
-        if entree is not None:
-            if _OUVERTE.match(ligne):
-                entree['ouvertes'] += 1
-            elif _COCHEE.match(ligne):
-                entree['cochees'] += 1
+        if entree is None:
+            continue
+        if _OUVERTE.match(ligne):
+            entree['ouvertes'] += 1
+        elif _COCHEE.match(ligne):
+            entree['cochees'] += 1
+        elif entree['priorite'] is None:
+            p = _PRIORITE.match(ligne)
+            if p:
+                entree['priorite'] = p.group(1)
+                entree['importance'] = int(p.group(2) or 0)
+                entree['bloquee'] = '*Bloqué' in ligne
     return domaines
 
 
@@ -78,29 +100,40 @@ def _lien(titre, ancre):
 
 def _sommaire(domaines):
     entrees = [e for d in domaines for e in d['entrees']]
-    ouvertes = sum(e['ouvertes'] for e in entrees)
-    cochees = sum(e['cochees'] for e in entrees)
+    ouvertes = [e for e in entrees if e['ouvertes']]
     out = [
         DEBUT,
         '<!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->',
         '',
-        f'**{ouvertes} cases à cocher, {cochees} cochées**, '
-        f'réparties dans {len(entrees)} entrées.',
+        f'**{sum(e["ouvertes"] for e in entrees)} cases à cocher, '
+        f'{sum(e["cochees"] for e in entrees)} cochées** — {len(ouvertes)} '
+        f'entrées sur {len(entrees)} ont encore des cases ouvertes.',
+        '',
+        'Par priorité, puis par importance (le nombre en tête de ligne est '
+        'celui des cases ouvertes) :',
         '',
     ]
+    groupes = [(None, 'À classer : aucune ligne « Priorité » sous le titre')]
+    groupes += list(NIVEAUX.items())
+    for niveau, libelle in groupes:
+        membres = [e for e in ouvertes if e['priorite'] == niveau]
+        if not membres:
+            continue
+        # Tri stable : importance décroissante, puis ordre du fichier.
+        membres.sort(key=lambda e: -e['importance'])
+        tete = f'**{niveau} — {libelle}**' if niveau else f'**{libelle}**'
+        out += [f'{tete} ({len(membres)})', '']
+        for e in membres:
+            out.append(f'- {e["ouvertes"]} · {_lien(e["titre"], e["ancre"])} '
+                       f'· *{e["domaine"]["titre"].split(". ", 1)[1]}*'
+                       + (' · bloqué' if e.get('bloquee') else ''))
+        out.append('')
+    out += ['Par domaine :', '']
     for d in domaines:
         o = sum(e['ouvertes'] for e in d['entrees'])
         c = sum(e['cochees'] for e in d['entrees'])
-        out += [f'**{_lien(d["titre"], d["ancre"])}** — {o} à faire, {c} faites', '']
-        for e in d['entrees']:
-            if e['ouvertes']:
-                out.append(f'- {e["ouvertes"]} · {_lien(e["titre"], e["ancre"])}')
-        soldees = [e for e in d['entrees'] if not e['ouvertes']]
-        if soldees:
-            out.append('- sans case ouverte :')
-            out += [f'  - {_lien(e["titre"], e["ancre"])}' for e in soldees]
-        out.append('')
-    out.append(FIN)
+        out.append(f'- {_lien(d["titre"], d["ancre"])} — {o} à faire, {c} faites')
+    out += ['', FIN]
     return out
 
 
