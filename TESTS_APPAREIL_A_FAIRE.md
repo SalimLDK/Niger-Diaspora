@@ -279,6 +279,18 @@ Piloter l'appareil, les comptes et téléphones disponibles, les pièges de mesu
 
 ## ⛔ Le Pixel s'est retrouvé DÉCONNECTÉ pendant la passe (2026-09-09, 20:39)
 
+⚠️ **Reproduit le 2026-09-11 à 18:24, et la cause se réduit : un simple arrêt
+forcé suffit.** Le Pixel était connecté (Salim L., build 18 posé à 17:28,
+session intacte pendant une heure de tests). Un `pm revoke` de
+`ACCESS_COARSE_LOCATION` — qui force-stoppe l'app, sans rien installer ni
+vider — l'a ramené sur « Bon retour » au redémarrage suivant. Aucune
+réinstallation, aucun `flutter clean`, aucune désinstallation.
+**Le SM A515F, lui, a encaissé cinq `am force-stop` dans la même heure sans
+jamais perdre sa session.** La différence tient donc au compte ou à son
+stockage sécurisé sur ce téléphone, pas au geste. Conséquence pratique
+inchangée : la reconnexion exige le SSO Google, donc la main de Salim, et tout
+test à deux comptes est suspendu d'ici là.
+
 À signaler avant tout : le Pixel 10 Pro XL porte le **vrai compte** de Salim
 (Salim L., administrateur). Il est ressorti de cette passe sur l'écran
 « Bon retour » — session perdue. La reconnexion passe par le SSO Google, donc
