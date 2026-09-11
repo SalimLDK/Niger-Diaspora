@@ -123,6 +123,7 @@ import '../../features/feed/presentation/screens/reposters_screen.dart';
 import '../../features/feed/domain/entities/post_entity.dart';
 // Calls
 import 'routes/calls_routes.dart';
+import 'liens_natifs.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -1185,8 +1186,12 @@ bool _deepLinkChannelBound = false;
 /// ce relais. Le natif nous passe donc la route par un canal explicite, et on
 /// navigue nous-mêmes.
 ///
-/// Le démarrage à froid n'emprunte PAS ce chemin : l'URI y arrive comme route
-/// initiale, déjà géré par le `redirect` (mise de côté étapes 0 et 10).
+/// Il sert aussi une activité NEUVE qui se rattache à un moteur déjà lancé
+/// (cf. `MainActivity.onCreate`) : le moteur étant mis en cache par
+/// `audio_service`, la route de son intent n'est jamais appliquée comme route
+/// initiale, et le lien était perdu. Au vrai démarrage à froid, en revanche,
+/// l'URI arrive comme route initiale, déjà gérée par le `redirect` (mise de
+/// côté étapes 0 et 10).
 void _bindNativeDeepLinks(GoRouter router) {
   if (_deepLinkChannelBound) return;
   _deepLinkChannelBound = true;
@@ -1203,6 +1208,12 @@ void _bindNativeDeepLinks(GoRouter router) {
     router.go(route);
     return null;
   });
+
+  // Le natif ne peut POUSSER une route que si l'écoute ci-dessus existe déjà.
+  // Un moteur tout juste créé par le service audio peut recevoir l'activité
+  // avant que ce code ait tourné : le natif garde alors la route de côté, et
+  // on la réclame ici.
+  reprendreLienEnAttente(_deepLinkChannel, router.go);
 }
 
 class _SimpleNotifier extends ChangeNotifier {

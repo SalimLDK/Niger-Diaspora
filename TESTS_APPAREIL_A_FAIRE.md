@@ -14,6 +14,45 @@ couvre tout le reste du projet (E2EE, appels, admin, sécurité...).
 
 ---
 
+## ✅ Lien profond perdu sur une activité neuve — corrigé, vérifié SM A515F (2026-09-11)
+
+`MainActivity.java`, `lib/core/router/liens_natifs.dart`, `lib/core/router/app_router.dart`.
+
+Le moteur Flutter est mis en cache par `audio_service`. L'embedding ne lit
+**jamais** la route de l'intent sur un moteur en cache
+(`doInitialFlutterViewRun()` sort dès sa première ligne), `audio_service` ne
+la lit qu'à la création du moteur, et `onNewIntent` ne sert qu'une instance
+existante. Un lien reçu par une activité **neuve** alors que le processus vit
+encore était donc ignoré : l'app se rouvrait sur son dernier écran.
+
+Reproduction de labo : app ouverte, puis
+`am start --activity-clear-task -a android.intent.action.VIEW -d <lien>`.
+
+Vérifié sur SM A515F, APK md5 `e4b41f48fb` (base `7a4c042`) :
+
+- [x] F1 — lien sur activité neuve depuis l'accueil (même pid avant/après) :
+      **fiche du groupe** ouverte. Avant correctif : l'accueil restait affiché.
+      Traces : « activite neuve sur moteur deja lance » → « canal pas encore
+      pret, route gardee » → 16 ms plus tard « route poussee vers Dart ».
+      La mise en attente est donc indispensable : le fragment s'attache par une
+      transaction asynchrone, et le canal n'existe pas encore à la fin de
+      `onCreate`.
+- [x] F2 — lien à chaud (`onNewIntent`) : inchangé.
+- [x] F3 — vrai démarrage à froid (`force-stop` puis lien `/events`) : écran
+      Événements, et **0** trace « moteur deja lance » — pas de double
+      navigation.
+- [ ] Non reproduit en labo : moteur créé par `AudioService` juste avant
+      l'activité (le Dart réclame alors la route par `takePendingLink`).
+      Couvert seulement par `test/core/router/liens_natifs_test.dart`.
+- [ ] Sur un vrai Android ≤ 11 : quitter par le retour, puis taper un lien.
+
+⚠️ Mes deux « pertes au démarrage à froid » des 2026-09-10 (00:55, 01:41)
+étaient **contaminées** : un autre agent menait une campagne sur le même
+téléphone (`b9d4406`) et installait sur le Pixel à 01:40. Elles ne prouvaient
+rien — le défaut réel était celui-ci, reproductible à chaque fois.
+
+---
+
 ## ⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)
 
 **Ce qui a été observé.** Le 2026-09-10 sur SM-A515F (`R58N91XBA7B`), compte
@@ -1021,7 +1060,7 @@ touche pas. Mesuré en production avec la clé publique du `.env` :
 ⚠️ **Deux fois de suite le lien profond s'est perdu au démarrage à froid**
 (2026-09-10, 00:55 et 01:41) : l'app atterrit sur la liste des groupes ou sur
 l'accueil au lieu de la cible. Rejoué à chaud, c'est bon à chaque fois. Le
-repli `_pendingDeepLink` ne rattrape donc pas tout — à creuser, non corrigé.
+repli `_pendingDeepLink` ne rattrape donc pas tout — **faux** : ces deux mesures étaient contaminées par la campagne d'un autre agent ; le vrai défaut, corrigé le 2026-09-11, est décrit plus haut.
 Conséquence pratique pour toute mesure : **laisser l'app démarrer une première
 fois** après une installation avant d'envoyer un lien.
 
