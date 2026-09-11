@@ -109,6 +109,11 @@ permissions runtime (caméra/localisation), le thème sombre, et tout ce que
 Ne pas attendre la fin de la tâche pour le faire : l'ajouter au fil de
 l'eau, dans le même commit que le changement concerné si possible.
 
+Le fichier est classé par domaine (titres `# N.`) : une nouvelle entrée va
+**en tête de son domaine**, jamais en tête du fichier, et renvoie aux autres
+entrées par leur titre, pas par « plus haut / plus bas ». Après un ajout ou
+des cases cochées, `python tools/index_tests_appareil.py` régénère le sommaire.
+
 ## Règles RTDB : jamais de déploiement sans le banc
 
 `firebase deploy --only database` envoie **tout le fichier d'un coup**, et une
