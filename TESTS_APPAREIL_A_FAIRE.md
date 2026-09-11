@@ -826,6 +826,19 @@ C'est ce qui rendait réellement atteignables les cinq écrans podcasts qui
 n'avaient aucune sortie (section précédente) — donc un défaut de sortie sur un
 écran « désactivé » n'est pas théorique.
 
+**Podcasts sortis de la question le 2026-09-11.** Pour eux la fenêtre n'était
+pas qu'un défaut de sortie : ils sont coupés à la **compilation**
+(`kPodcastsSupportesParCeBuild`), et leur première lecture lèverait une
+`SecurityException` sur Android 14+ (`FOREGROUND_SERVICE_MEDIA_PLAYBACK`
+retirée du manifeste). Comme la réponse ne dépend d'aucune donnée serveur, le
+routeur les ferme désormais **avant** la fenêtre, sur la seule constante —
+verrouillé par `test/core/podcasts_service_premier_plan_test.dart`. La
+décision ci-dessous ne concerne plus que marketplace, transferts, paiements et
+salons audio.
+
+- [ ] Mesurer sur appareil : `diasponiger:///podcasts` envoyé **tôt** (pendant
+      le splash) doit tomber sur l'accueil, et non plus sur l'écran Podcasts.
+      Même piège de visée que ci-dessous.
 - [ ] **Décider si la fenêtre doit rester ouverte.** Deux options, aucune
       gratuite : garder le comportement actuel (une poignée de secondes où
       tout est joignable), ou attendre les drapeaux sur ces routes-là
