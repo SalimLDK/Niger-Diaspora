@@ -7,6 +7,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'router_codec.dart';
+import 'porte_drapeaux.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -135,6 +136,9 @@ _SimpleNotifier? _cachedAuthNotifier;
 /// `redirect`). Nulle en dehors de cette fenêtre.
 String? _pendingDeepLink;
 
+/// Borne l'attente d'une destination sous drapeau garée sur le splash.
+final _attenteDrapeaux = AttenteDrapeaux(const Duration(seconds: 8));
+
 /// Schéma propre à l'app, déclaré dans `AndroidManifest.xml`.
 const String _schemaMaison = 'diasponiger';
 
@@ -175,6 +179,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       loadedFeatureFlagsProvider,
       (_, __) => _cachedAuthNotifier!.notify(),
     );
+    ref.listen(
+      drapeauxEnEchecProvider,
+      (_, __) => _cachedAuthNotifier!.notify(),
+    );
     return _cachedRouter!;
   }
 
@@ -184,8 +192,18 @@ final routerProvider = Provider<GoRouter>((ref) {
   ref.listen(authNotifierProvider, (_, __) => authNotifier.notify());
   ref.listen(onboardingNotifierProvider, (_, __) => authNotifier.notify());
   ref.listen(isMaintenanceModeProvider, (_, __) => authNotifier.notify());
-  // Réévalue le gating dès que les flags distants arrivent.
+  // Réévalue le gating dès que les flags distants arrivent…
   ref.listen(loadedFeatureFlagsProvider, (_, __) => authNotifier.notify());
+  // …et dès que leur lecture échoue : une destination garée sur le splash
+  // en attendant les drapeaux doit en repartir, sinon elle y resterait —
+  // `loadedFeatureFlagsProvider` passe de null à null, rien ne bouge.
+  ref.listen(drapeauxEnEchecProvider, (_, __) => authNotifier.notify());
+
+  DecisionPorte porte(String chemin) => decisionPorte(
+    chemin,
+    drapeaux: ref.read(loadedFeatureFlagsProvider),
+    enEchec: ref.read(drapeauxEnEchecProvider) || _attenteDrapeaux.echue,
+  );
 
   _cachedRouter = GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -327,27 +345,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       // est toujours actif depuis le 2026-08-19, comme le fil et les
       // ambassades — voir feature_flag_service.dart.)
       //
-      // `loadedFeatureFlagsProvider` vaut null tant que app_config/settings
-      // n'est pas revenu : on laisse alors passer. Bloquer pendant le
-      // chargement reviendrait à appliquer les valeurs par défaut de
-      // FeatureFlagsEntity (podcasts et salons audio à false) et à renvoyer
-      // ces écrans sur /home à chaque démarrage à froid.
-      final flags = ref.read(loadedFeatureFlagsProvider);
-      if (flags != null) {
-        final phase2Paths = <String, AppFeature>{
-          '/transfers': AppFeature.moneyTransfer,
-          '/marketplace': AppFeature.marketplace,
-          '/podcasts': AppFeature.podcasts,
-          '/payment-accounts': AppFeature.moneyTransfer,
-          '/payment-history': AppFeature.moneyTransfer,
-          '/audio-rooms': AppFeature.audioRooms,
-        };
-        for (final entry in phase2Paths.entries) {
-          if (state.matchedLocation.startsWith(entry.key) &&
-              !FeatureFlagService.isFeatureEnabled(flags, entry.value)) {
-            return '/home';
-          }
-        }
+      // Trois issues, pas deux — voir `decisionPorte`. Laisser passer tant
+      // que les drapeaux ne sont pas lus ouvrait ces modules, même
+      // désactivés, pendant les premières secondes de chaque lancement
+      // (mesuré SM A515F le 2026-09-10) ; refuser dans ce cas renverrait
+      // les modules actifs sur /home à chaque démarrage à froid. On attend
+      // donc, garé sur le splash, que les drapeaux arrivent — ou que leur
+      // lecture échoue, ou que l'attente expire : on refuse alors.
+      switch (porte(state.matchedLocation)) {
+        case DecisionPorte.refuser:
+          return '/home';
+        case DecisionPorte.attendre:
+          // `uri` et non `matchedLocation`, comme à l'étape 0 : les
+          // paramètres de requête font partie de la destination.
+          _pendingDeepLink = state.uri.toString();
+          _attenteDrapeaux.armer(authNotifier.notify);
+          return '/splash';
+        case DecisionPorte.passer:
+          break;
       }
 
       // 9b. Vue « modérateur fantôme » — réservée aux admins.
@@ -372,7 +387,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         // Le lien profond mis de côté à l'étape 0 reprend la main ici. Consommé
         // une seule fois : sans ça, chaque retour sur l'accueil y renverrait.
         final pending = _pendingDeepLink;
+        // Sauf s'il attend les drapeaux (étape 9) : le rejouer maintenant le
+        // renverrait à l'étape 9, qui le regarerait ici — une boucle, que
+        // GoRouter coupe par une exception. Il reste donc garé sur le
+        // splash ; l'arrivée des drapeaux, leur échec ou l'échéance
+        // relancent l'évaluation.
+        if (pending != null &&
+            porte(Uri.parse(pending).path) == DecisionPorte.attendre) {
+          return isSplashRoute ? null : '/splash';
+        }
         _pendingDeepLink = null;
+        _attenteDrapeaux.desarmer();
         return pending ?? '/home';
       }
 

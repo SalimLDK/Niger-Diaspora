@@ -826,12 +826,23 @@ C'est ce qui rendait réellement atteignables les cinq écrans podcasts qui
 n'avaient aucune sortie (section précédente) — donc un défaut de sortie sur un
 écran « désactivé » n'est pas théorique.
 
-- [ ] **Décider si la fenêtre doit rester ouverte.** Deux options, aucune
-      gratuite : garder le comportement actuel (une poignée de secondes où
-      tout est joignable), ou attendre les drapeaux sur ces routes-là
-      seulement — au prix d'un écran d'attente sur un lien profond reçu à
-      froid. À trancher avec Salim ; ne rien changer sans lui, le commentaire
-      du routeur dit que le sens inverse a déjà coûté un défaut.
+- [x] **Décidé le 2026-09-11 : fermer la fenêtre, sans rouvrir l'ancien
+      défaut.** Salim : « corrige ça ». La porte a maintenant **trois**
+      issues au lieu de deux (`decisionPorte`,
+      `lib/core/router/porte_drapeaux.dart`) :
+      drapeaux chargés → on décide ; en cours de chargement → on **attend**,
+      destination garée sur le splash (qui ne navigue jamais seul) ; lecture
+      en échec, ou attente de plus de 8 s → on **refuse** (`/home`).
+      Refuser pendant le chargement — le défaut d'avant — reste impossible :
+      c'est un des tests. Et attendre un échec est impossible aussi : le
+      fournisseur des réglages ne réessaie jamais, d'où
+      `drapeauxEnEchecProvider`, que le routeur écoute — sans lui, une
+      destination garée resterait sur le splash pour toujours
+      (`loadedFeatureFlagsProvider` passe de `null` à `null`, rien ne bouge).
+      Le scanner QR portait une **deuxième copie** de l'ancienne porte ; il
+      passe par les mêmes providers. Tenu par
+      `test/core/router/porte_drapeaux_test.dart` (13 tests, dont un garde
+      textuel vérifié en remettant l'ancienne porte : il tombe).
 - [ ] **Piège de mesure à retenir** : viser cette fenêtre à la main est
       instable. 22 s après le lancement, l'intent tombe tantôt sur le splash
       (mesure trop tôt), tantôt après le chargement des drapeaux (mesure trop

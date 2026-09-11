@@ -112,12 +112,26 @@ String? maintenanceMessage(Ref ref) {
 
 /// Flags tels qu'ils ont *réellement* été chargés depuis `app_config/settings`.
 ///
-/// Vaut `null` tant que le chargement distant n'a pas abouti. Les appelants
-/// qui bloquent un accès (le routeur) doivent laisser passer dans ce cas :
-/// au démarrage à froid, `featureFlagsProvider` renvoie les valeurs par
-/// défaut de [FeatureFlagsEntity], où plusieurs modules sont à `false`.
+/// Vaut `null` tant que le chargement distant n'a pas abouti — **ou s'il a
+/// échoué** : les deux se confondent ici, [drapeauxEnEchecProvider] les
+/// distingue. Un appelant qui bloque un accès ne doit donc ni refuser sur
+/// `null` (au démarrage à froid, `featureFlagsProvider` renvoie les défauts
+/// de [FeatureFlagsEntity], où plusieurs modules sont à `false`), ni
+/// laisser passer : voir `decisionPorte` (`lib/core/router/porte_drapeaux.dart`).
 final loadedFeatureFlagsProvider = Provider<FeatureFlagsEntity?>((ref) {
   return ref.watch(appSettingsNotifierProvider).valueOrNull?.featureFlags;
+});
+
+/// La lecture des drapeaux a échoué, et ne sera pas retentée.
+///
+/// `AppSettingsNotifier.build()` fait un seul `getSettings()` ; son flux
+/// temps réel n'écrit que s'il y a déjà une valeur. Un échec est donc
+/// définitif jusqu'au prochain lancement — c'est ce qui interdit à la porte
+/// des routes sous drapeau d'« attendre » dans ce cas : elle attendrait
+/// pour toujours.
+final drapeauxEnEchecProvider = Provider<bool>((ref) {
+  final reglages = ref.watch(appSettingsNotifierProvider);
+  return reglages.hasError && !reglages.hasValue;
 });
 
 /// Feature flag helper utilisable hors du cycle Riverpod (ex. GoRouter).

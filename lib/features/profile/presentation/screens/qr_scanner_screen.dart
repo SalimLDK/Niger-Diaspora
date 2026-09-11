@@ -188,9 +188,14 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
           // Sans cette garde, le routeur renverrait silencieusement sur
           // /home (redirection des drapeaux phase 2) après un message de
           // succès : un scan qui « marche » et n'ouvre rien.
+          // Drapeaux illisibles : le routeur refuserait aussi (porte des
+          // drapeaux), autant le dire ici plutôt qu'après un « succès ».
+          // En cours de chargement, on part : le routeur attend et tranche.
           final flags = ref.read(loadedFeatureFlagsProvider);
-          if (flags != null &&
-              !FeatureFlagService.isFeatureEnabled(flags, feature)) {
+          final ferme = flags != null
+              ? !FeatureFlagService.isFeatureEnabled(flags, feature)
+              : ref.read(drapeauxEnEchecProvider);
+          if (ferme) {
             _showError(l10n.comingSoonShort);
             return;
           }
