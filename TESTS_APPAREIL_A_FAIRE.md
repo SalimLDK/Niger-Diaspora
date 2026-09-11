@@ -2509,6 +2509,17 @@ Restent à faire :
 - [ ] Les envois de **médias** en groupe : le provider ne leur passe aucun
       `participantIds` — et la légende part en clair, voir la section « La
       légende d'une photo/vidéo part EN CLAIR » en tête de fichier.
+      ⚠️ **Tentative du 2026-09-11, abandonnée faute de fixture sûre.** Une
+      image de test (carré vert 400×400) poussée par `adb` dans `Pictures/`,
+      `Download/` **et** `DCIM/Camera/`, chaque fois indexée par
+      `MEDIA_SCANNER_SCAN_FILE` (vérifié dans MediaStore), **n'apparaît pas**
+      dans la galerie de l'app — analyse des pixels de la capture : aucune
+      vignette de cette couleur. Le sélecteur « Documents », lui, filtre sur
+      le type et ne montre pas les images. Restait à piocher dans les photos
+      personnelles de l'appareil : refusé. **Pour débloquer** : prendre une
+      photo par la caméra de l'app pendant une session où Salim est présent,
+      ou ajouter une image de test à l'APK. À faire en même temps que le
+      correctif de la légende, qui touche le même chemin d'envoi.
 
 ---
 
@@ -4318,6 +4329,9 @@ garde plus que la date — rien ne l'affichait.
 - [ ] ⚠️ **L'aperçu de la liste des discussions garde l'ancien texte après une
   modification** (vu le 2026-09-11 sur le Pixel : la ligne « Sim A » affichait
   encore `REPONSE-TEXTE-1756` alors que la bulle disait `…-EDIT1`).
+  **Confirmé aussi en groupe** le même jour : la ligne « Testeurs » annonçait
+  `GRP-EDIT-1817` quand la bulle portait `…-EDIT`. Ce n'est donc pas propre au
+  1:1.
   `lastMessage` n'est pas réécrit par `editMessage` — cohérent avec la liste
   « pas encore branchés » de « Clés de repli dérivées ».
 - [ ] ⚠️ **« Modifier » est introuvable sans le savoir** : l'entrée n'est ni
