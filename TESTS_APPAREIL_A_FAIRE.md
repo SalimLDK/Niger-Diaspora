@@ -14351,7 +14351,9 @@ sciemment : sa cause profonde est souvent le réseau, mais son libellé ne le di
 pas, et le reclasser demanderait de décider ce que « fatal » veut dire pour une
 session absente.
 
-**Quatre défauts réels, avec leur volume — aucun corrigé :**
+**Quatre défauts réels, avec leur volume.** État au 2026-09-11 : deux
+corrigés (`gsm_state`, `ForegroundServiceStartNotAllowedException`), deux
+ouverts (`RenderFlex`, `GoError`) — détail dans la section suivante.
 
 - [ ] **`A RenderFlex overflowed by 100 pixels on the bottom` — 21 occurrences**,
   de loin le premier non-fatal, 1 utilisateur. Écran inconnu : la pile pointe
@@ -14359,10 +14361,10 @@ session absente.
 - [ ] **`GoError: There is nothing to pop` — 11 occurrences.** Famille déjà
   documentée ici (écran noir au retour d'un lien profond) : une route de lien
   profond seule dans la pile.
-- [ ] **`MissingPluginException` sur le canal `com.diasponiger.diaspo_niger/gsm_state`**
+- [x] **`MissingPluginException` sur le canal `com.diasponiger.diaspo_niger/gsm_state`**
   — 3 occurrences. Un canal de plateforme écouté côté Dart sans implémentation
   native.
-- [ ] **`ForegroundServiceStartNotAllowedException` — NOUVEAU en 1.2.1**,
+- [x] **`ForegroundServiceStartNotAllowedException` — NOUVEAU en 1.2.1**,
   `flutter_background_service` ne peut plus démarrer. 2 occurrences.
 
 **Et une preuve que le plugin Gradle ajouté ce jour sert bien** : la pile de ce
@@ -14408,7 +14410,55 @@ le `BootReceiver` du plugin a été retiré du manifeste le 2026-09-09
 (`tools:node="remove"`) précisément pour ça. Les 2 occurrences sont antérieures
 et disparaîtront à la prochaine publication.
 
-- [ ] **`google_fonts` — le seul qui touche de vrais utilisateurs.** Aucune
+**Confirmé par la pile complète, lue le 2026-09-11.** Le problème 1.2.1 marqué
+« Nouveau » (`d1.a.startForegroundService`) n'est pas un second chemin : c'est
+le même récepteur, obfusqué par R8 — `d1.a.startForegroundService`
+(`ContextCompat`) ← `id.flutter.flutter_background_service.BootReceiver.onReceive`.
+Pixel 10 Pro XL / Android 17, app en arrière-plan, **9 sept. à 20:01** ; le
+retrait du récepteur (`787ae12`) date du même soir à **20:22**. Le plantage
+précède le correctif — c'est très probablement lui qui l'a déclenché.
+
+⚠️ Une première lecture, sans la pile, avait accusé le `WatchdogReceiver` du
+même plugin. C'était faux, et le correctif écrit sur cette base a été retiré
+avant tout commit. Le chemin existe pourtant, **jamais observé** : ce récepteur
+est resté dans le manifeste, relance le service par une alarme quand il a été
+tué — donc depuis l'arrière-plan, refusé sur Android 12+ — et le plugin le
+déclare `exported="true"` sans permission. Pas touché : le désactiver sur
+Android 12+ perdrait les relances qui tombent quand l'app est au premier plan,
+sauf à relancer le service au retour de l'app. C'est une décision, pas un
+correctif évident.
+
+**Sept plantages « Nouveau » en 1.2.1 — très probablement un robot, pas un
+utilisateur.** Stripe (`ChallengeActivity`, `AddressElementActivity`,
+`PollingActivity`, `BacsMandateConfirmationActivity`,
+`CvcRecollectionActivity`), Billing (`ProxyBillingActivity`) et CallKit
+(`TransparentActivity`) : chacune démarrée **sans ses arguments**
+(`Required value was null`, `without args`), un événement chacune, un seul
+utilisateur. Fiche Stripe lue : **OnePlus 8 Pro / Android 11**, build
+**1.2.1 (15)**, **11 sept. à 06:49**, app au premier plan.
+
+Trois raisons de ne pas y voir un parcours réel : les sept activités sont
+toutes **non exportées** dans le manifeste fusionné (aucune autre app ne peut
+les lancer) ; aucun parcours de l'app n'ouvre sept écrans de paiement et
+d'appel à vide en une séance ; et le modèle s'écrit « OnePlus8Pro », à la
+façon du catalogue Firebase Test Lab — celui qu'utilise le **rapport de
+pré-lancement** de Google Play sur chaque build téléversé. Hypothèse, pas
+lecture. Indice de plus : la build 15 est justement celle préparée pour
+Play (`1c7ef18`, 9 sept., retrait de `USE_FULL_SCREEN_INTENT`).
+
+- [ ] **Confirmer** dans Play Console → Tests et publication → Rapport de
+  pré-lancement de la build 15 : les mêmes plantages doivent y figurer.
+- [ ] Si confirmé, le OnePlus 8 Pro qui porte 75 % des erreurs `google_fonts`
+  est probablement ce même robot (un appareil Test Lab au réseau restreint) :
+  le seul défaut « qui touche de vrais utilisateurs » en toucherait moins que
+  prévu. L'embarquement des polices (`f6e85f4`) reste utile hors ligne.
+
+- [x] **`google_fonts` — le seul qui touche de vrais utilisateurs.**
+  ✅ **Appliqué le 2026-09-11** (`f6e85f4`) : 24 variantes embarquées, voir
+  la section « Polices embarquées » plus bas. `allowRuntimeFetching` est
+  volontairement resté à `true`, en filet — c'est un test qui garantit
+  qu'aucune variante ne manque. ⚠️ « Vrais utilisateurs » est à nuancer :
+  voir le robot de pré-lancement ci-dessus. Analyse d'origine, conservée : Aucune
   police n'est embarquée (`pubspec.yaml` n'a pas de section `fonts:`, aucun
   `.ttf` dans `assets/`) et `GoogleFonts.config.allowRuntimeFetching` n'est pas
   réglé : **chaque appareil télécharge les polices depuis `fonts.gstatic.com` au
