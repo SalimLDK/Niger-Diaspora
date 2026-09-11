@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**780 cases à cocher, 487 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
+**779 cases à cocher, 488 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -47,7 +47,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
-- 3 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
+- 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 10 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -225,7 +225,7 @@ Par domaine :
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 35 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 77 à faire, 4 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 52 à faire, 43 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 51 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 121 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
@@ -9981,9 +9981,15 @@ inchangé (c'est un filtre d'affichage, pas un consentement).
   l'ancien code ne faisait pas (seul le calque « Membres » de la carte
   démarrait la publication). Les coordonnées elles-mêmes n'ont pas changé —
   le téléphone n'a pas bougé.
-- [ ] Désactiver « Ma localisation » dans Réglages, app au premier plan :
+- [x] Désactiver « Ma localisation » dans Réglages, app au premier plan :
   vérifier que `location_updated_at` cesse d'avancer (pas de battement de
   cœur résiduel).
+  **✅ 2026-09-11 18:35 → 18:39, SM A515F (Sim A).** Coupure de l'interrupteur
+  à 22:35:49 UTC, dernière publication à 22:34:30 ; **4 min 35 plus tard, à
+  22:39:05, l'horodatage n'avait pas bougé** — alors que le battement est de
+  2 min et que l'app est restée au premier plan tout du long (aucun
+  `force-stop`, ce qui aurait vidé le test de son sens). Sim A est ainsi
+  revenu à son état d'origine (`share_location = false`).
 - [ ] Mettre l'app en arrière-plan puis la ressortir plusieurs fois de suite
   (volet de notifications, `inactive` transitoire) avec le partage désactivé :
   vérifier dans les logs qu'aucune requête profil réseau superflue n'est
