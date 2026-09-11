@@ -14535,6 +14535,9 @@ licences MIT et BSD des paquets demandent en principe que leur notice soit
 reproduite dans la distribution binaire — c'est d'ordinaire le rôle de cette
 page. À trancher.
 
+✅ **Tranché le 2026-09-11** : Réglages → « Licences open source » ouvre
+désormais cette page — voir la section dédiée plus bas.
+
 - [ ] **Hors ligne dès le premier lancement** : installation neuve (ou données
   effacées — ⚠️ ça déconnecte le compte), **mode avion avant** le premier
   lancement → titres en Playfair Display, texte en Inter, aucune police
@@ -14581,6 +14584,34 @@ le correctif, c'est que l'attribution était incomplète.
 - [ ] **Non-régression** : après connexion, le profil affiche toujours
   « En ligne » (c'est `lastLoginAt` qui le nourrit) — sur un compte existant,
   en ligne.
+
+---
+
+## ⬜ Page « Licences open source » dans les Réglages (2026-09-11)
+
+Aucun écran ne menait à `showLicensePage` : ni les licences des polices
+embarquées (`f6e85f4`, OFL) ni celles des paquets (MIT, BSD, Apache…) n'étaient
+visibles dans l'app. Or MIT et BSD demandent en principe que leur notice
+accompagne la distribution binaire — c'est le rôle de cette page.
+
+[settings_screen.dart](lib/features/settings/presentation/screens/settings_screen.dart) :
+nouvelle ligne « Licences open source » après « Code de conduite », avec la
+tuile du kit (`DesignSettingsTile` — règle « Réglages : une seule source »).
+Elle ouvre la page standard de Flutter, qui liste tous les paquets et, depuis
+`f6e85f4`, les 8 familles de police ; la version de l'app est passée en
+en-tête.
+
+[licences_polices_test.dart](test/core/utils/licences_polices_test.dart) charge
+réellement les 8 textes par le chemin qu'emprunte la page — une faute dans un
+nom de `LICENCE-*.txt` et il échoue — et vérifie que les Réglages l'ouvrent.
+
+- [ ] **Sur appareil** : Réglages → « Licences open source » → la page
+  s'ouvre, en-tête avec le nom de l'app et sa version, et la liste contient
+  les 8 familles (Inter, Playfair Display, Roboto Mono, Instrument Serif,
+  Instrument Sans, IBM Plex Mono, Caprasimo, Figtree) ainsi que les paquets.
+- [ ] **Thème sombre** : la page reste lisible. C'est une page Material
+  standard, qui suit le thème de l'app — à vérifier, pas à supposer.
+- [ ] **Retour** : la flèche et le retour système ramènent aux Réglages.
 
 ---
 

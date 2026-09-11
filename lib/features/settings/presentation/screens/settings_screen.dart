@@ -337,6 +337,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         title: l10n.codeOfConduct,
                         onTap: () => context.push('/settings/code-of-conduct'),
                       ),
+                      // Licences des polices embarquées et des paquets (MIT,
+                      // BSD, Apache…) : leur notice doit accompagner l'app.
+                      // Aucun écran n'y menait avant le 2026-09-11.
+                      DesignSettingsTile(
+                        icon: const Icon(Icons.description_outlined),
+                        title: l10n.openSourceLicenses,
+                        onTap: () => showLicensePage(
+                          context: context,
+                          applicationVersion:
+                              ref.read(appVersionProvider).valueOrNull,
+                        ),
+                      ),
                       // Droit à la portabilité (RGPD art. 20).
                       DesignSettingsTile(
                         icon:

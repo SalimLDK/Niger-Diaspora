@@ -29,11 +29,10 @@ const List<({String nom, String fichier})> famillesPoliceEmbarquees = [
 /// qu'elle les embarque. L'obligation est remplie par les fichiers
 /// `LICENCE-*.txt` eux-mêmes, livrés dans l'APK à côté des polices.
 ///
-/// L'enregistrement ici les rend en plus lisibles par `showLicensePage`,
-/// sous le nom de leur famille. ⚠️ Au 2026-09-11, **aucun écran de l'app ne
-/// mène à cette page** : ni ces textes ni ceux des paquets (MIT, BSD, Apache…)
-/// ne sont visibles par l'utilisateur. L'enregistrement est prêt pour le jour
-/// où une entrée « Licences » sera ajoutée aux réglages.
+/// L'enregistrement ici les rend en plus lisibles sur la page ouverte par
+/// Réglages → « Licences open source » (`showLicensePage`), sous le nom de
+/// leur famille, à côté de celles des paquets (MIT, BSD, Apache…). Aucun
+/// écran n'y menait avant le 2026-09-11.
 ///
 /// Le chargement est paresseux : [LicenseRegistry] n'appelle le générateur
 /// qu'à l'ouverture de la page, rien n'est lu au démarrage.

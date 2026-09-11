@@ -962,6 +962,12 @@ abstract class AppLocalizations {
   /// **'À propos'**
   String get about;
 
+  /// No description provided for @openSourceLicenses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Licences open source'**
+  String get openSourceLicenses;
+
   /// No description provided for @version.
   ///
   /// In fr, this message translates to:

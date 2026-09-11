@@ -151,6 +151,7 @@
   "bugReportSent": "Rapport de bug envoyé",
   "feedbackSent": "Merci pour votre avis !",
   "about": "À propos",
+  "openSourceLicenses": "Licences open source",
   "version": "Version",
   "lastUpdate": "Dernière mise à jour",
   "versionInfo": "Version {version} - Dernière mise à jour : {date}",
