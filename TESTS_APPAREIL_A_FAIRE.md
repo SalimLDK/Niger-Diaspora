@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**779 cases à cocher, 488 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
+**778 cases à cocher, 489 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -48,7 +48,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
-- 10 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
+- 9 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
@@ -229,7 +229,7 @@ Par domaine :
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 121 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 38 à faire, 23 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 37 à faire, 24 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -568,6 +568,12 @@ Fichiers : `lib/core/services/e2ee/undecryptable_placeholders.dart`,
       introuvable », ni le bouton « Récupérer la clé de groupe », ni
       « [Message illisible] » : une ligne grise « Message indisponible sur cet
       appareil » à la place.
+      ⚠️ **2026-09-11 18:46 : toujours invérifiable.** « Diaspora Niger —
+      Canada » (3 membres) affiche encore « Aucun message / Soyez le premier à
+      envoyer un message dans ce groupe ! ». Aucun marqueur, donc — mais sur
+      un fil **vide**, ce qui ne prouve rien. Il faudra un message réellement
+      indéchiffrable pour voir la nouvelle bulle (et pour juger sa lisibilité
+      en thème sombre, case plus bas).
 - [x] **Le vrai test du correctif**, moitié faite (SM A515F, 19:46) : le 1:1
       « Salim L. » ouvert, quitté, rouvert — « Yo », la note vocale, la carte
       de position, « test-logs » et le message qui venait d'arriver sont tous
@@ -580,6 +586,15 @@ Fichiers : `lib/core/services/e2ee/undecryptable_placeholders.dart`,
       dans « Groupe de test privé » (20:14), fil sans carte : le défilement
       jusqu'au 30 août marche et les 4 vidéos restent intactes. Reste à
       refaire sur un fil de **texte** long.
+      **✅ Fait le 2026-09-11 18:45, SM A515F, 1:1 « Salim L. »** (fil mixte :
+      textes, note vocale, carte de position, cartes de partage). Geste lancé
+      **depuis la marge gauche (x=60)**, ce qui évite la carte qui captait les
+      glissés précédents : rafraîchissement, puis remontée d'une page. Aucun
+      marqueur n'apparaît — ni « Message indisponible », ni « clé de groupe
+      introuvable », ni « [Message illisible] » — et les bulles déjà lisibles
+      (dont `CLEF-TEST`, `REPONSE-TEXTE…`, la note vocale et la carte) le
+      restent. C'est le chemin qui, avant le correctif, réécrivait un marqueur
+      par-dessus du texte déchiffré.
 - [x] Écho temps réel : la bulle garde son texte (SM A515F, 19:47).
       `ECHO-DM-1947` envoyé dans le 1:1 est passé à `· Reçu` en gardant son
       texte — `reconcileEchoContent` fait son travail. ⚠️ Fait en **1:1**, pas
@@ -13866,9 +13881,23 @@ Reste a voir sur un ecran :
 - [ ] **Appui sur « Commencer » avec Localisation activée** : la feuille
       s'ouvre-t-elle **avant** la boîte système Android ? « Non, merci » doit
       n'ouvrir aucune boîte et laisser entrer dans l'application.
-- [ ] **Parcours de l'examinateur** : passer l'onboarding (« Passer », puis
+- [x] **Parcours de l'examinateur** : passer l'onboarding (« Passer », puis
       « Plus tard, sans autorisations »), puis ouvrir l'Accueil et la Carte —
       la feuille doit apparaître là aussi, avant toute boîte système.
+      **✅ Chemin ACCUEIL vérifié le 2026-09-11 18:47, SM A515F, build 18.**
+      Les deux autorisations de localisation retirées par `adb` (état d'avant
+      relevé pour être rétabli), app relancée à froid sur l'Accueil : c'est la
+      feuille de l'app qui s'ouvre — « Comment Diaspo Niger utilise votre
+      position », texte nommant la **collecte** (« Diaspo Niger collecte des
+      données de localisation pour vous placer sur la carte des membres… »),
+      lien « Lire la politique de confidentialité », « Accepter et continuer »
+      et « Non, merci » — et **aucune boîte système avant elle**. Le chemin
+      Carte avait déjà été vérifié le 2026-09-09.
+      **« Non, merci » tient aussi sa promesse** : aucune boîte Android
+      derrière (vérifié à l'écran et par `topResumedActivity`, qui reste sur
+      l'app et non sur `permissioncontroller`), et l'Accueil s'ouvre
+      normalement, utilisable — c'est très exactement le parcours reproché par
+      l'examinateur.
 - [ ] **Mode Voyage** (profil, section Paramètres) : la feuille porte-t-elle
       bien la phrase « même lorsque l'application est fermée ou n'est pas
       utilisée » ? Un refus doit laisser l'interrupteur éteint.
