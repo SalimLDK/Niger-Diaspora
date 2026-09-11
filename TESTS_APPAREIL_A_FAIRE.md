@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**787 cases à cocher, 480 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
+**783 cases à cocher, 484 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -50,7 +50,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 10 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
-- 8 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
+- 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06) · *Chiffrement de bout en bout et clés*
 - 1 · [⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)](#-un-groupe-dont-on-est-le-seul-membre-refuse-tous-les-messages-2026-09-09) · *Groupes*
@@ -219,7 +219,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 103 à faire, 52 faites
 - [3. Groupes](#3-groupes) — 90 à faire, 52 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 51 à faire, 18 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 47 à faire, 22 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
 - [6. Notifications et push](#6-notifications-et-push) — 44 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 35 à faire, 57 faites
@@ -4307,19 +4307,30 @@ garde plus que la date — rien ne l'affichait.
   « Autres actions », **puis faire défiler** la feuille jusqu'en bas (elle
   vient après Infos du message, Partager, Sélectionner). Trois essais y ont
   été perdus ici. À rapprocher de la maquette : est-ce voulu ?
-- [ ] **Modifier un message de « Mes notes »** (aucun destinataire, chemin
-  `selfNote`).
-- [ ] **Rouvrir la conversation après avoir modifié** : côté EXPÉDITEUR, le
-  texte modifié doit rester. Il ne sait pas relire son propre message chiffré
+- [x] **Modifier un message de « Mes notes »** (aucun destinataire, chemin
+  `selfNote`). **✅ 2026-09-11 18:16, SM A515F.** `NOTE-1811` → `…-EDIT` :
+  bulle « modifié », et en base contenu **rechiffré** `v1:Oag0XsFuP…`,
+  `editedAt` posé, historique à 1 entrée sans `content`. Le chemin
+  `encryptSelfNote` profite donc aussi des clés dérivées.
+- [x] **Rouvrir la conversation après avoir modifié** : côté EXPÉDITEUR, le
+  texte modifié doit rester. **✅ 2026-09-11 18:09** : `am force-stop` puis
+  réouverture par lien profond — la bulle affiche toujours
+  `…-EDIT1-EDIT2`, donc le cache local a bien été réécrit. Il ne sait pas relire son propre message chiffré
   (les charges Signal visent les appareils du destinataire) : sa bulle vient du
   cache, qui est réécrit à la modification. Si le texte d'avant revient, c'est
   cette réécriture qui a manqué.
-- [ ] **Modifier deux fois de suite** le même message : la deuxième
+- [x] **Modifier deux fois de suite** le même message : la deuxième
   modification doit rester lisible (les charges du format précédent sont
   purgées avant d'écrire les nouvelles).
-- [ ] **En base** : `select data->>'content' from messages where data ?
+  **✅ 2026-09-11 18:08** : `…-EDIT1` puis `…-EDIT1-EDIT2` ; contenu rechiffré
+  à chaque fois (`v1:W/IS7Kf…`), `editHistory` à 2 entrées, aucune avec texte,
+  et la bulle reste lisible chez l'expéditeur comme sur le Pixel.
+- [x] **En base** : `select data->>'content' from messages where data ?
   'editedAt'` ne doit plus rien montrer de lisible, et
   `data->'editHistory'` ne doit plus contenir de champ `content`.
+  **✅ 2026-09-11, sur TOUTE la table `messages`** (pas seulement le message de
+  test) : 1 seul message porte `editedAt`, son contenu est au format dérivé
+  `v1:`, 0 contenu lisible, et **0** entrée d'`editHistory` portant `content`.
 
 ---
 
@@ -4799,6 +4810,28 @@ pour ce cas — il est réservé à une vraie signature invalide.
       les deux libellés sont `Flexible` avec ellipsis.
 
 ### Ce qui reste, et qui ne peut pas être vérifié avec un seul téléphone
+
+⛔ **2026-09-11 — mesuré en base : AUCUN des deux téléphones n'a publié
+d'appareil E2EE depuis le 2026-08-23**, donc ce test reste hors d'atteinte,
+et tout le trafic passe en repli (clé dérivée ou clé globale).
+`e2ee_devices` : dernière ligne de Sim A le 2026-08-23 22:43 (la seule qui
+porte `identitySigningKey`), de Salim L. le 2026-08-14 00:09 (sans) ;
+`e2ee_one_time_prekeys` : rien de plus récent ; `e2ee_user_keys.active_devices`
+ne liste que des appareils d'août.
+**Pourquoi** (lecture de `e2ee_backup_coordinator.dart:169-235`) : sans clés
+locales — cas du SM A515F depuis la réinstallation du 2026-09-09 — l'app ne
+génère de nouvelles clés **que si aucune sauvegarde distante n'existe**. Si une
+sauvegarde est présente elle propose de restaurer ; si l'état est indéterminé
+(réseau, permission, quota) elle se tait. ⚠️ **Aucun bandeau de restauration
+n'était visible sur les deux téléphones** le 2026-09-11 — le « Plus tard » du
+Profil appartient à la carte « Compléter mon profil », pas aux clés. Laquelle
+des deux branches muettes s'applique reste donc à trancher (veille du bandeau,
+ou présence de sauvegarde indéterminée). Dans ces deux branches, `initialize()` n'est jamais appelé, donc **aucune
+publication** — et le repli AES s'installe en silence, sans que rien à l'écran
+ne le dise.
+**Pour débloquer** : restaurer les clés sur le SM A515F (phrase secrète, donc
+Salim) ou les transférer par QR, puis vérifier que `e2ee_devices` gagne une
+ligne portant `identitySigningKey` avant de rejouer ce test.
 
 - [ ] **Une vraie session Signal de bout en bout.** Elle demande que les DEUX
       côtés aient republié. Un seul appareil a la nouvelle version : tous les
