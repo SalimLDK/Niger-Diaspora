@@ -5486,6 +5486,32 @@ Supabase.
 
 **Priorité P0** · importance 2/5 — Les appels de groupe restent muets ou ne se connectent jamais en données mobiles : le relais TURN n'a jamais été validé depuis la rotation du 16/07, et la signalisation de groupe a déjà été refusée trois jours en production sans aucune erreur visible. *Bloqué : deux comptes.*
 
+### Premier appel de groupe réel entre les deux téléphones (2026-09-11 18:59)
+
+Appel vocal lancé depuis « Testeurs » (2 membres) sur SM A515F, compte Sim A,
+build 18. Android a d'abord demandé le micro (« Autoriser Diaspo Niger à
+enregistrer de l'audio ? ») — accordé « uniquement cette fois-ci ».
+
+**Ce qui marche, et c'est mesuré côté serveur** (`firebase database:get
+"/group_calls"`) : le nœud d'appel est créé avec `participants/<uid de Sim A>`,
+une `e2ee_key`, et une **signalisation complète adressée au bon destinataire** —
+`signaling/<Sim A>/<Salim L.>` porte l'offre SDP (audio `sendrecv`, vidéo
+`recvonly`) et une trentaine de candidats ICE. La règle RTDB n'a donc **rien
+refusé**, contrairement aux trois jours de refus silencieux d'août.
+
+✅ **Le relais TURN alloue** : parmi les candidats figurent des `typ relay`
+sur `72.62.212.223` (le VPS coturn), avec leurs `raddr` publics. C'est la
+première preuve depuis la rotation de secret du 16/07 que l'allocation
+fonctionne — en wifi ; la validation « 4G/5G sans wifi » reste entière.
+
+⛔ **Mais l'appelé n'a jamais rien vu.** Sur le Pixel (Salim L., app au premier
+plan, écran Réglages), aucun écran d'appel entrant, aucune bannière, et
+`dumpsys notification` ne montre **aucune** notification d'appel — seulement
+l'ancienne notification de message. L'appelant est resté sur « Connexion en
+cours… ». Donc : signalisation écrite, destinataire jamais prévenu. À
+instruire côté `onCallCreated` (push d'appel) **et** côté écoute in-app du
+nœud `group_calls`, puisque l'app de l'appelé était ouverte.
+
 - [ ] **⚠ ORDRE DE DÉPLOIEMENT — règles de signalisation** (`database.rules.json` + `call_remote_datasource.dart`, 2026-08-03) : les règles restreignent désormais `calls/$callId` aux deux participants, en lisant `callerId`/`calleeId` **écrits par l'app** à la création. Déployer les règles **avant** que la nouvelle version de l'app soit installée couperait les appels 1:1 de tout client existant (ses lectures seraient refusées, en silence). Ordre obligatoire : livrer l'app d'abord, laisser le parc se mettre à jour, **puis** `firebase deploy --only database`.
 
   **Mesuré le 2026-08-03, avant tout déploiement** — la contrainte est confirmée, pas théorique : `/calls` contenait **20 nœuds** écrits par des clients, donc les règles en ligne autorisent bien l'écriture aujourd'hui, et les resserrer casserait ces clients. En regard, `/admins`, `/superAdmins`, `/audioRooms` et `/group_calls` étaient **vides** : rien d'autre dans ce fichier n'est urgent (la faille d'escalade RTDB porte sur un nœud inexistant, et la modération fantôme attend de toute façon l'amorçage manuel). Le déploiement a donc été **volontairement reporté**.
