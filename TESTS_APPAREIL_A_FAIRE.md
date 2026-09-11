@@ -30,7 +30,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**790 cases à cocher, 474 cochées**, réparties dans 203 entrées.
+**789 cases à cocher, 475 cochées**, réparties dans 203 entrées.
 
 **[1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode)** — 3 à faire, 10 faites
 
@@ -194,9 +194,8 @@ un domaine, de la plus récente à la plus ancienne.
   - [✅ Annuaire d'entreprises branché sur Supabase (2026-09-09)](#-annuaire-dentreprises-branché-sur-supabase-2026-09-09)
   - [⚠️→✅ La garde d'organisateur refusait l'organisateur (2026-09-08)](#-la-garde-dorganisateur-refusait-lorganisateur-2026-09-08)
 
-**[11. Accueil, profil et réglages](#11-accueil-profil-et-réglages)** — 20 à faire, 23 faites
+**[11. Accueil, profil et réglages](#11-accueil-profil-et-réglages)** — 19 à faire, 24 faites
 
-- 1 · [⬜ Page « Licences open source » dans les Réglages (2026-09-11)](#-page--licences-open-source--dans-les-réglages-2026-09-11)
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08)
 - 1 · [Annuaire, Fil et Ambassades toujours actifs — plus de flag (2026-08-19)](#annuaire-fil-et-ambassades-toujours-actifs--plus-de-flag-2026-08-19)
 - 3 · [Flags Salons audio / Podcasts / Fil enfin sérialisés + maintenance sans écrasement (2026-08-19)](#flags-salons-audio--podcasts--fil-enfin-sérialisés--maintenance-sans-écrasement-2026-08-19)
@@ -206,6 +205,7 @@ un domaine, de la plus récente à la plus ancienne.
 - 2 · [Feature flags & accès aux écrans](#feature-flags--accès-aux-écrans)
 - 1 · [Profil & Accueil (avant la refonte design)](#profil--accueil-avant-la-refonte-design)
 - sans case ouverte :
+  - [⬜ Page « Licences open source » dans les Réglages (2026-09-11)](#-page--licences-open-source--dans-les-réglages-2026-09-11)
   - [Réglages — ligne « Devise d'affichage » mise en commentaire (2026-09-08)](#réglages--ligne--devise-daffichage--mise-en-commentaire-2026-09-08)
   - [⬜ Les deux liens « noter l'app » étaient morts (2026-09-01)](#-les-deux-liens--noter-lapp--étaient-morts-2026-09-01)
   - [Transfert, Boutique, Salons audio et Podcasts retirés de la grille d'accueil (2026-08-30)](#transfert-boutique-salons-audio-et-podcasts-retirés-de-la-grille-daccueil-2026-08-30)
@@ -10016,9 +10016,12 @@ Corrigé au chargement par une fonction pure (`texteLicenceAffichable`), testée
 sur un texte CRLF écrit en dur — un test qui lirait les fichiers passerait sur
 toute copie LF, donc serait aveugle.
 
-- [ ] **Revoir le rendu sans carré** sur une build qui porte ce correctif (la
-  copie de travail du dépôt principal a toujours ses CRLF : c'est justement
-  elle qui prouvera que la normalisation tient).
+- [x] **Rendu sans carré revu** le 2026-09-11 sur SM A515F, APK release
+  `37708518…` (`24a3408`, md5 local = md5 `pm path`). Condition de preuve lue
+  dans l'APK lui-même, et non sur le disque (dont les relevés ont varié) : la
+  licence Roboto Mono **embarquée** contient 93 retours chariot. Fiche Roboto
+  Mono : texte OFL affiché, **aucun carré**, aucun retour chariot dans le texte
+  rendu. La normalisation tient sur une vraie entrée CRLF.
 
 ---
 
