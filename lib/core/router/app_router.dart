@@ -333,6 +333,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       // chargement reviendrait à appliquer les valeurs par défaut de
       // FeatureFlagsEntity (podcasts et salons audio à false) et à renvoyer
       // ces écrans sur /home à chaque démarrage à froid.
+      //
+      // Les podcasts font exception : ils sont coupés à la COMPILATION, pas
+      // par un drapeau. `kPodcastsSupportesParCeBuild` à false signifie que ce
+      // build ne sait pas les jouer — FOREGROUND_SERVICE_MEDIA_PLAYBACK a
+      // quitté le manifeste, et la première lecture lèverait une
+      // SecurityException sur Android 14+. La réponse ne dépend d'aucune
+      // donnée serveur, elle n'a donc pas à attendre les drapeaux : sans ce
+      // test placé AVANT la fenêtre, `/podcasts/*` restait ouvert pendant tout
+      // le démarrage à froid (mesuré sur SM A515F, commit f8c681d).
+      if (!kPodcastsSupportesParCeBuild &&
+          state.matchedLocation.startsWith('/podcasts')) {
+        return '/home';
+      }
+
       final flags = ref.read(loadedFeatureFlagsProvider);
       if (flags != null) {
         final phase2Paths = <String, AppFeature>{

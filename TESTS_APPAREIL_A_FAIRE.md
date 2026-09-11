@@ -865,6 +865,19 @@ C'est ce qui rendait réellement atteignables les cinq écrans podcasts qui
 n'avaient aucune sortie (section précédente) — donc un défaut de sortie sur un
 écran « désactivé » n'est pas théorique.
 
+**Podcasts sortis de la question le 2026-09-11.** Pour eux la fenêtre n'était
+pas qu'un défaut de sortie : ils sont coupés à la **compilation**
+(`kPodcastsSupportesParCeBuild`), et leur première lecture lèverait une
+`SecurityException` sur Android 14+ (`FOREGROUND_SERVICE_MEDIA_PLAYBACK`
+retirée du manifeste). Comme la réponse ne dépend d'aucune donnée serveur, le
+routeur les ferme désormais **avant** la fenêtre, sur la seule constante —
+verrouillé par `test/core/podcasts_service_premier_plan_test.dart`. La
+décision ci-dessous ne concerne plus que marketplace, transferts, paiements et
+salons audio.
+
+- [ ] Mesurer sur appareil : `diasponiger:///podcasts` envoyé **tôt** (pendant
+      le splash) doit tomber sur l'accueil, et non plus sur l'écran Podcasts.
+      Même piège de visée que ci-dessous.
 - [ ] **Décider si la fenêtre doit rester ouverte.** Deux options, aucune
       gratuite : garder le comportement actuel (une poignée de secondes où
       tout est joignable), ou attendre les drapeaux sur ces routes-là
@@ -2095,10 +2108,26 @@ dépôt en Play Console :
       que Play attend), R8 actif — le paquet installé n'a plus le flag
       `DEBUGGABLE`. Posé et lancé, md5 sur l'appareil identique au fichier
       local (`9ee1f712…`).
-- [ ] **Le bundle `.aab`** passe encore : non revérifié depuis la montée d'AGP.
-      C'est lui que vise l'alignement 16 Ko ci-dessous.
-- [ ] **Alignement 16 Ko** toujours bon :
-      `python tools/verifie_alignement_16k.py build/app/outputs/bundle/release/app-release.aab`.
+- [x] **Le bundle `.aab`** passe encore — vérifié le 2026-09-11 :
+      `flutter build appbundle --release` en exit 0, `app-release.aab` de
+      210,7 Mo.
+      ⚠️ Un premier essai, le 2026-09-10, avait échoué sur
+      `:app:mergeReleaseResources` (« merged.dir/values/values.xml — The
+      system cannot find the path specified »). Cause : un démon Gradle de
+      l'autre agent était `BUSY` dans le **même** `build/` au même moment.
+      Même famille que l'APK périmé du 2026-08-13 — un échec pendant un build
+      concurrent ne prouve rien sur la configuration. Rejoué après
+      `rm -rf build`, aucun processus java en cours : il passe.
+      Ce que pèse vraiment le bundle : 126,7 Mo de `BUNDLE-METADATA` (mapping
+      R8, symboles natifs — jamais envoyés aux appareils), 19,4 Mo communs
+      (dex, ressources, assets), et ~21 Mo de natif **par architecture**. Soit
+      **~41 Mo téléchargés par un téléphone arm64** — pas 210, ni les 168 de
+      l'APK local, qui empile trois architectures dont `x86_64` (émulateurs
+      seulement).
+- [x] **Alignement 16 Ko** toujours bon — 2026-09-11, sur ce même bundle :
+      `python tools/verifie_alignement_16k.py build/app/outputs/bundle/release/app-release.aab`
+      → 16 bibliothèques 64 bits examinées, **0 non conforme** (8 ignorées :
+      32 bits ou non ELF64).
 - [ ] **Le `force("com.google.mlkit:barcode-scanning:17.3.0")`** porte la note
       « à retirer quand mobile_scanner sera monté en 6.x/7.x » — c'est fait.
       À réévaluer, sans jamais sauter la vérification ci-dessus.

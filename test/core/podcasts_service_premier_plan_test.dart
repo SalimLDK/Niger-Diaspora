@@ -13,14 +13,25 @@ import 'package:flutter_test/flutter_test.dart';
 /// demande de Play (une vidéo de démonstration est exigée par type, et les
 /// podcasts étaient injoignables donc infilmables).
 ///
-/// Le déséquilibre est tenable **uniquement** parce que rien de livré
-/// n'atteint le lecteur : `kPodcastsSupportesParCeBuild` est à `false`. Ce
-/// n'était pas vrai avant : le drapeau `podcasts` du back-office rouvrait
-/// `/podcasts` d'un clic, à distance, sur un build incapable de jouer quoi
-/// que ce soit.
+/// Le déséquilibre est tenable **uniquement** si rien de livré n'atteint le
+/// lecteur. `kPodcastsSupportesParCeBuild` à `false` ne le garantissait pas à
+/// lui seul, et ce test l'a cru deux fois :
 ///
-/// Ce test empêche les deux moitiés de se désynchroniser à nouveau — dans un
-/// sens comme dans l'autre.
+/// - le drapeau `podcasts` du back-office rouvrait `/podcasts` d'un clic, à
+///   distance, sur un build incapable de jouer quoi que ce soit ;
+/// - puis le routeur sautait toute sa garde tant que les drapeaux n'étaient
+///   pas chargés (`if (flags != null)`) : pendant le démarrage à froid,
+///   `/podcasts/*` s'ouvrait normalement — mesuré sur SM A515F (f8c681d).
+///   Ce test ne regardait que le manifeste, jamais le routeur.
+///
+/// Le lecteur, lui, s'initialise à chaque lancement (le mini-lecteur de
+/// `main_shell.dart` surveille `podcastPlayerProvider`), mais sans passer au
+/// premier plan : c'est la première lecture qui plante, et elle ne peut
+/// partir que d'une route `/podcasts`. Fermer ces routes suffit donc — à
+/// condition de les fermer avant la fenêtre.
+///
+/// Ce test empêche les morceaux de se désynchroniser à nouveau — dans un sens
+/// comme dans l'autre.
 void main() {
   final manifeste =
       File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
@@ -81,6 +92,36 @@ void main() {
       reason:
           'Sans cette autorisation, le Mode Voyage lève une SecurityException '
           'au démarrage du service sur Android 14+.',
+    );
+  });
+
+  test('routeur : les podcasts sont fermés AVANT la fenêtre des drapeaux', () {
+    // La constante est connue à la compilation : la fermeture ne doit pas
+    // attendre `loadedFeatureFlagsProvider`, sinon elle ne s'applique qu'une
+    // fois le démarrage à froid terminé — trop tard pour un lien profond.
+    final routeur = File('lib/core/router/app_router.dart').readAsStringSync();
+    final fenetre = routeur.indexOf('if (flags != null)');
+    final garde = RegExp(
+      r"!kPodcastsSupportesParCeBuild\s*&&\s*"
+      r"state\.matchedLocation\.startsWith\('/podcasts'\)",
+    ).firstMatch(routeur);
+
+    expect(fenetre, isNot(-1), reason: 'Fenêtre des drapeaux introuvable.');
+    expect(
+      garde,
+      isNotNull,
+      reason:
+          'Le routeur doit fermer /podcasts sur la seule constante de '
+          'compilation, sans passer par les drapeaux serveur.',
+    );
+    expect(
+      garde!.start < fenetre,
+      isTrue,
+      reason:
+          'La garde podcasts est DANS ou APRÈS `if (flags != null)` : elle ne '
+          "s'applique qu'une fois les drapeaux chargés, et /podcasts/* "
+          'redevient joignable pendant le démarrage à froid — là où la '
+          'première lecture lève une SecurityException.',
     );
   });
 }
