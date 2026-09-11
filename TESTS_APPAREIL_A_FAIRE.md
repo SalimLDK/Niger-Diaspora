@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**778 cases à cocher, 489 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
+**777 cases à cocher, 490 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -48,7 +48,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
-- 9 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
+- 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
@@ -229,7 +229,7 @@ Par domaine :
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 121 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 37 à faire, 24 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 25 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -13901,8 +13901,18 @@ Reste a voir sur un ecran :
 - [ ] **Mode Voyage** (profil, section Paramètres) : la feuille porte-t-elle
       bien la phrase « même lorsque l'application est fermée ou n'est pas
       utilisée » ? Un refus doit laisser l'interrupteur éteint.
-- [ ] **Thème sombre** sur la feuille et sur le bloc de l'onboarding (jetons
+- [x] **Thème sombre** sur la feuille et sur le bloc de l'onboarding (jetons
       adaptatifs, jamais `AppColors` en dur).
+      **Feuille ✅ 2026-09-11 18:51, SM A515F** basculé en thème sombre
+      (Réglages › Thème › Sombre), autorisations de localisation retirées, et
+      feuille rappelée par Carte › ACTIVER : fond sombre, titre blanc, corps
+      gris clair lisible, lien et bouton « Accepter et continuer » en orange,
+      « Non, merci » en bouton bordé — aucun jeton clair figé. Le texte dit
+      bien les quatre choses exigées : la collecte, la visibilité par les
+      autres membres, la limitation à l'usage de l'app, et l'arrêt possible
+      depuis Réglages. Thème et autorisations rétablis après le test.
+      **Le bloc d'onboarding dans ce thème reste à voir** : il demande
+      l'échappatoire routeur, jamais committée.
 - [ ] **Position dans une discussion** : ouvrir le sélecteur de position
       depuis une conversation. La feuille doit porter le texte *discussion*
       (« participants de la discussion »), jamais celui de la carte. Un refus
