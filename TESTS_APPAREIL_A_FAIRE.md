@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**783 cases à cocher, 484 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
+**782 cases à cocher, 485 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -52,7 +52,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
-- 7 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06) · *Chiffrement de bout en bout et clés*
+- 6 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06) · *Chiffrement de bout en bout et clés*
 - 1 · [⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)](#-un-groupe-dont-on-est-le-seul-membre-refuse-tous-les-messages-2026-09-09) · *Groupes*
 - 2 · [E2EE réparé : la clé de signature est publiée avec le bundle (2026-08-23)](#e2ee-réparé--la-clé-de-signature-est-publiée-avec-le-bundle-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
 - 5 · [🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien](#-appels-1-à-1-mis-en-pause-2026-08-14--répondre-à-un-appel-ne-faisait-rigoureusement-rien) · *Appels*
@@ -219,7 +219,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 103 à faire, 52 faites
 - [3. Groupes](#3-groupes) — 90 à faire, 52 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 47 à faire, 22 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
 - [6. Notifications et push](#6-notifications-et-push) — 44 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 35 à faire, 57 faites
@@ -4293,7 +4293,13 @@ garde plus que la date — rien ne l'affichait.
   contient plus que `[{editedAt}]`, sans `content`. Côté Pixel, le nouveau
   texte apparaît **après être sorti de la conversation et y être revenu** —
   sur l'écran resté ouvert, seule la mention « modifié » arrivait, le texte
-  restait l'ancien. Reste le cas du **groupe** (⚠️ les sessions Signal ne sont
+  restait l'ancien.
+  **Groupe ✅ 2026-09-11 18:20, groupe « Testeurs » (2 membres).**
+  `GRP-EDIT-1817` (parti en `v1:Phea9X0cX…`, bulle « Reçu ») modifié en
+  `…-EDIT` : contenu rechiffré `v1:+sqGspFl8…`, historique à 1 entrée sans
+  texte, et la bulle affiche le nouveau texte **chez Salim L. sur le Pixel**.
+  Le chemin Sender Key encaisse donc aussi une modification.
+  Réserve commune aux deux cas (⚠️ les sessions Signal ne sont
   pas en jeu ici : aucun appareil n'a republié ses clés depuis le 2026-08-23,
   tout est en repli AES/clé dérivée — voir « E2EE réparé : la clé de signature
   est publiée avec le bundle »).
@@ -4669,9 +4675,17 @@ sauvegarde de sessions Signal, la réponse rapide depuis notification.
 - [ ] **Nouvelle conversation.** Démarrer une conversation qui n'existait pas
       au dernier `rafraichir` : la clé doit être demandée à la volée, sans que
       l'envoi échoue.
-- [ ] **Aperçu de notification** après le branchement : le corps doit rester le
+- [x] **Aperçu de notification** après le branchement : le corps doit rester le
       vrai texte (`decrypt_aes_fallback` devra dériver `K_conv`), pas du base64
       ni « Nouveau message ».
+      **✅ 2026-09-11 18:23, Pixel (Salim L.) → SM A515F (Sim A), build 18.**
+      Message envoyé depuis le Pixel, stocké `v1:cQdYIRJlvV5…` — donc chiffré
+      avec la clé dérivée de la conversation, pas la clé globale. Sur le
+      SM A515F, app en arrière-plan, la notification porte
+      `android.title = « Salim L. »` et `android.text = « NOTIF-TEST-1823 »`
+      (relevé par `dumpsys notification --noredact`, canal `msg_debef5f0…`).
+      Le déchiffrement côté Postgres dérive donc bien `K_conv`. Trajet complet
+      Pixel → FCM → appareil en ~1 s.
 - [ ] **Changement de compte** sur le même téléphone : après déconnexion, les
       clés du compte précédent ne doivent plus être lisibles (`vider()`).
 - [ ] **Après le rechiffrement de l'existant** (migration `20260907100000`) :
