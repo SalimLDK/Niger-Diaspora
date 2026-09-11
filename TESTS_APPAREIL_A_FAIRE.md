@@ -39,15 +39,14 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**789 cases à cocher, 475 cochées** — 160 entrées sur 203 ont encore des cases ouvertes.
+**786 cases à cocher, 479 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (18)
+**P0 — avant toute nouvelle version** (17)
 
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
-- 2 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
-- 2 · [⚠️ Clés dérivées : premier test appareil (2026-09-07, SM A515F)](#-clés-dérivées--premier-test-appareil-2026-09-07-sm-a515f) · *Chiffrement de bout en bout et clés*
+- 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
 - 4 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 10 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
@@ -219,15 +218,15 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 103 à faire, 52 faites
-- [3. Groupes](#3-groupes) — 91 à faire, 51 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 52 à faire, 15 faites
+- [3. Groupes](#3-groupes) — 90 à faire, 52 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 50 à faire, 17 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
 - [6. Notifications et push](#6-notifications-et-push) — 44 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 35 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 77 à faire, 4 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 53 à faire, 42 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 24 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 121 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 39 à faire, 22 faites
@@ -2209,8 +2208,16 @@ privés. La visibilité ne bouge pas, l'erreur dure devient un `false`.
 ⚠️ Fichier séparé, pas une retouche de `20260909201500` : celle-là est déjà
 appliquée et son auteur travaille encore dessus. À lui signaler.
 
-- [ ] Après `db push` : démarrage à froid, ouvrir l'onglet Groupes tout de
+- [x] Après `db push` : démarrage à froid, ouvrir l'onglet Groupes tout de
       suite (avant que la session s'établisse) — la liste doit s'afficher.
+      **✅ 2026-09-11 17:37, SM A515F, build 18 (md5 `37708518…`).** Sonde
+      anonyme `GET /rest/v1/groups?select=id,name` avec la clé publique du
+      `.env` → **200, 4 groupes** (les publics), là où elle rendait 401 /
+      42501 : le GRANT est en production. Puis `force-stop` et lien profond
+      `diasponiger:///groups` : « 3 rejoints », liste affichée à 9 s comme à
+      17 s (captures identiques), aucune « Erreur de chargement ». La fenêtre
+      sans session elle-même ne se voit pas à l'écran sur un build release
+      (journaux muets) : c'est la sonde anonyme qui prouve ce chemin.
 - [ ] Un lien profond `/groups/<public>` reçu par quelqu'un qui vient
       d'installer l'app.
 
@@ -4554,9 +4561,27 @@ Corrigé en retirant le filtre : la RLS de `conversations`
 (`participant_ids @> ARRAY[firebase_uid()]`) faisait déjà le travail,
 correctement. **Ne jamais réintroduire ce filtre applicatif.**
 
-- [ ] **À revérifier après redéploiement de `crypto-keys`** : rouvrir la
+- [x] **À revérifier après redéploiement de `crypto-keys`** : rouvrir la
       conversation `debef5f0…`, ses 2 messages rechiffrés doivent s'afficher.
-- [ ] Puis envoyer un message : il doit partir au format `v1:…` en base.
+      **✅ 2026-09-11 17:47, Pixel 10 Pro XL (Salim L.), thème sombre.** Les
+      deux seuls messages `v1:` de la conversation (2026-08-23 04:03 et
+      2026-08-31 02:55 UTC, envoyés par Sim A) s'affichent en clair : la
+      carte d'événement « 📅 testeur » et « test-verif-lu-auto-2026-08-30 ».
+      Aucun « Message indisponible » dans le fil.
+- [x] Puis envoyer un message : il doit partir au format `v1:…` en base.
+      **✅ 2026-09-11, SM A515F (Sim A) → Pixel (Salim L.), build 18.**
+      Cause trouvée d'abord : le correctif de `crypto-keys` (`9b737ea`,
+      2026-09-07 20:13 UTC) n'avait **jamais été déployé**. La version en
+      ligne (v2, déployée à 03:05 UTC le même jour) portait encore
+      `.contains('participant_ids', [user.id])` — vérifié en retéléchargeant
+      le code déployé, pas supposé. Conséquence mesurée en base : depuis le
+      2026-08-31, **0 message au format dérivé**, tout partait à la clé
+      globale, celle que tout porteur de l'APK sait lire.
+      Avant/après : `CLEF-TEST-1741` (21:43 UTC) part à la clé globale ;
+      `crypto-keys` redéployée seule (v3, 21:44 UTC, accord de Salim) ;
+      relance à froid du SM A515F ; `CLEF-APRES-1745` (21:45 UTC) part en
+      `v1:K4Hj…`. Sur le Pixel, **sans redémarrage**, la bulle s'affiche en
+      clair : la clé de conversation manquante est obtenue à la demande.
 
 ---
 
@@ -10553,9 +10578,33 @@ la fonctionnalité existait. Une ligne d'appel prend désormais la place du
   (confirmation finale, invite de mot de passe, réauthentification) a été
   déplacée avec elle. Ne pas tester la suppression sur le compte réel :
   s'arrêter à l'invite de mot de passe.
-- [ ] **L'engrenage de l'en-tête du Profil reste le seul chemin vers Réglages**
+  **2026-09-11, SM A515F (Sim A), build 18 — vu jusqu'au dernier bouton,
+  pas au-delà.** Carte « ACTIONS DU COMPTE » en bas du Profil, bordure rosée,
+  Déconnexion en ambre, Supprimer mon compte en rouge ✅. Réglages se termine
+  sur « Exporter mes données » ✅. Chaîne : « Supprimer le compte — Cette
+  action est irréversible… » → Continuer → « Confirmation finale — tapez
+  SUPPRIMER », bouton « Supprimer définitivement » désactivé tant que le mot
+  n'est pas tapé ✅ ; annulé là. **L'invite de mot de passe n'a pas été
+  atteinte, volontairement** : elle ne vient qu'APRÈS l'effacement des
+  données (case suivante).
+- [ ] ⛔ **La suppression efface les données AVANT la ré-authentification**
+  (`auth_remote_datasource.dart`, `deleteAccount`, trouvé à la lecture le
+  2026-09-11). Étapes 1 à 3 : `users` supprimée, **toute conversation à deux
+  participants supprimée — pour l'autre aussi**, groupes réécrits. Étape 4
+  seulement : `user.delete()`, qui lève `requires-recent-login` sur une
+  session ancienne, d'où l'invite de mot de passe. Annuler cette invite laisse
+  donc un compte Firebase vivant **dont les données ont déjà disparu** ; et
+  « atteindre l'invite de mot de passe » sur un compte, c'est déjà l'avoir
+  vidé. À corriger avant tout test de bout en bout : ré-authentifier d'abord
+  (mot de passe ou Google), n'effacer qu'ensuite. Ne tester que sur
+  `test.diaspo@example.com` (recréable par `scripts/creer_compte_test.js`).
+- [x] **L'engrenage de l'en-tête du Profil reste le seul chemin vers Réglages**
   — les trois raccourcis (Confidentialité, Apparence, Aide) ont disparu.
   Vérifier qu'on atteint toujours chaque section en faisant défiler.
+  **✅ 2026-09-11, SM A515F** : en-tête du Profil = « Partager mon profil » +
+  « Réglages » seulement ; par l'engrenage, toutes les sections défilent
+  jusqu'au bout (qui vous voit, sauvegarde des clés, appareils connectés,
+  thème, langue, aide, à propos « 1.2.1 (18) », légal, licences, export).
 
 - [x] **Profil : un seul filet entre les lignes** (`profile_screen.dart`) —
   chaque séparation en affichait **trois** superposés : `DesignListCard` insère
