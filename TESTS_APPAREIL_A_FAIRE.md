@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**782 cases à cocher, 485 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
+**780 cases à cocher, 487 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -47,7 +47,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
-- 4 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
+- 3 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 10 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -58,7 +58,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien](#-appels-1-à-1-mis-en-pause-2026-08-14--répondre-à-un-appel-ne-faisait-rigoureusement-rien) · *Appels*
 - 7 · [⬜ Déconnexion forcée « Connecté ailleurs » — trois trous refermés](#-déconnexion-forcée--connecté-ailleurs---trois-trous-refermés) · *Comptes, session et onboarding* · bloqué
 - 2 · [Doublons Profil / Réglages (2026-08-05)](#doublons-profil--réglages-2026-08-05) · *Accueil, profil et réglages*
-- 3 · [⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)](#-passage-à-targetsdk-36-android-16--exigence-play-2026-09-08) · *Publication et plateformes* · bloqué
+- 2 · [⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)](#-passage-à-targetsdk-36-android-16--exigence-play-2026-09-08) · *Publication et plateformes* · bloqué
 - 5 · [Appels WebRTC](#appels-webrtc) · *Appels* · bloqué
 - 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
@@ -225,11 +225,11 @@ Par domaine :
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 35 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 77 à faire, 4 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 53 à faire, 42 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 52 à faire, 43 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 121 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 39 à faire, 22 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 38 à faire, 23 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -9971,9 +9971,16 @@ inchangé (c'est un filtre d'affichage, pas un consentement).
 **Rien de ceci n'est vérifiable par `flutter analyze`/`flutter test` seuls**
 (permission GPS réelle, cycle de vie `resumed`/`paused` de l'app) :
 
-- [ ] Activer « Ma localisation » dans Réglages **sans jamais ouvrir la
+- [x] Activer « Ma localisation » dans Réglages **sans jamais ouvrir la
   carte** : vérifier en base que `latitude`/`longitude`/`location_updated_at`
   se peuplent dans les secondes qui suivent (permission GPS déjà accordée).
+  **✅ 2026-09-11 18:34, SM A515F (Sim A), build 18, carte jamais ouverte.**
+  Avant : `share_location = false`, `location_updated_at` figé à 21:06:58 UTC.
+  Bascule de l'interrupteur dans Réglages → dans les 25 s : `share_location =
+  true` et `location_updated_at = 22:34:30 UTC`. C'est exactement ce que
+  l'ancien code ne faisait pas (seul le calque « Membres » de la carte
+  démarrait la publication). Les coordonnées elles-mêmes n'ont pas changé —
+  le téléphone n'a pas bougé.
 - [ ] Désactiver « Ma localisation » dans Réglages, app au premier plan :
   vérifier que `location_updated_at` cesse d'avancer (pas de battement de
   cœur résiduel).
@@ -14216,12 +14223,19 @@ valeur est maintenant épinglée à `36` en dur.
 Ce que ce passage change au comportement Android — à regarder sur appareil,
 `flutter analyze`/`flutter test` n'en voient rien :
 
-- [ ] **Bord à bord (edge-to-edge) imposé, sans dérogation possible.** L'app
+- [x] **Bord à bord (edge-to-edge) imposé, sans dérogation possible.** L'app
       était déjà concernée en ciblant 35 ; en 36 l'échappatoire
       `windowOptOutEdgeToEdgeEnforcement` est ignorée. Revoir les écrans qui
       dessinent jusqu'en bas : barres d'onglets, champ de saisie de
       discussion, feuilles modales — vérifier qu'aucun contenu ne passe sous
       la barre de navigation gestuelle ni sous l'encoche.
+      **✅ 2026-09-11 18:33, Pixel 10 Pro XL (Android 17, build 18, thème
+      sombre, navigation gestuelle).** Les trois surfaces à risque sont
+      au-dessus de la barre de gestes : champ de saisie d'une discussion
+      (avec « + », émojis et micro), feuille de pièces jointes (Caméra,
+      Photos, Documents, Position, Événement) et barre d'onglets de l'accueil.
+      Rien sous l'encoche non plus — l'en-tête commence sous les icônes d'état.
+      Reste à voir en **paysage** et sur une tablette / pliable.
 - [ ] **Verrou d'orientation ignoré sur grand écran.** À partir de 36, sur un
       écran de largeur ≥ 600 dp, `setRequestedOrientation()` ne fait plus
       rien. Seul appelant côté app :
