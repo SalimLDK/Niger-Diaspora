@@ -13933,11 +13933,26 @@ rétablir l'autorisation.
 
 - [ ] **Admin › Fonctionnalités** : vérifier que la ligne Podcasts s'affiche
       bien grisée, avec son explication, et que /podcasts reste inaccessible.
+      ⚠️ **2026-09-11 : écran introuvable depuis l'app.** Sur le Pixel, compte
+      **administrateur** : aucune entrée d'administration dans le Profil ni
+      dans Réglages, et le lien profond `diasponiger:///admin` rend
+      « Page Not Found — no routes for location: /admin ». Le routeur ne
+      connaît que `/admin/embassies`, `/admin/embassies/create` et
+      `/admin/support` ; les écrans Fonctionnalités / tableau de bord vivent
+      dans une coquille séparée (`lib/features/admin/presentation/admin_app.dart`,
+      routes `/dashboard`…) qui n'est branchée nulle part. À trancher : soit
+      la brancher, soit retirer ces écrans de la liste des tests.
 
 ⚠️ Deux points **hors code**, à faire dans la Play Console avant de renvoyer :
 le formulaire *Data safety* doit déclarer la localisation comme collectée
 **et partagée**, et la politique de confidentialité doit la décrire. Le refus
 porte sur l'in-app, mais les trois doivent concorder.
+
+✅ **Texte de la carte revérifié à l'écran le 2026-09-11** (SM A515F, écran
+Carte en mode privé) : les trois promesses affichées sont « Seule votre
+dernière position est gardée, jamais vos trajets », « Désactivable à tout
+moment » et « Invisible pour les comptes que vous bloquez ». La fausse
+« position approximative » n'y est plus.
 
 ⚠️ Reste ouvert : `users.latitude/longitude` stocke la position **exacte**,
 non arrondie, et la carte l'affiche telle quelle. La puce d'onboarding
