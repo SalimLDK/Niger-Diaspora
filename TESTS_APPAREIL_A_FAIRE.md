@@ -14430,6 +14430,67 @@ et disparaîtront à la prochaine publication.
 
 ---
 
+## ⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)
+
+Crashlytics montrait `Failed host lookup: 'fonts.gstatic.com'` (4 événements,
+3 utilisateurs) : `google_fonts` téléchargeait chaque graisse au premier
+affichage. Hors ligne — métro, avion, zone blanche — le texte retombait sur la
+police système.
+
+[assets/google_fonts/](assets/google_fonts/) porte désormais **24 fichiers
+(2,48 Mo)** : Inter, Playfair Display, Roboto Mono, Instrument Sans et Figtree
+en 400–700 ; Instrument Serif en Regular + Italic (ses seules graisses) ; IBM
+Plex Mono et Caprasimo en Regular. Pris aux URL exactes que le paquet appelait
+(`fonts.gstatic.com/s/a/<sha256>.ttf`) et vérifiés contre le sha256 et la
+taille qu'il exige lui-même. Les 8 licences OFL sont jointes
+(`LICENCE-*.txt`) et enregistrées par
+[licences_polices.dart](lib/core/utils/licences_polices.dart).
+
+Deux pièges du paquet, à connaître avant d'ajouter une famille :
+
+- le nom du fichier doit **finir** par `<Famille>-<Variante>`
+  (`Inter-SemiBold.ttf`, `InstrumentSerif-Italic.ttf`). Une faute de nom et il
+  repart sur le réseau **sans rien signaler** ;
+- les polices **variables** ne sont pas reconnues : il faut un fichier statique
+  par graisse.
+
+`allowRuntimeFetching` reste à `true`, en filet : une variante oubliée retombe
+sur le réseau comme avant au lieu de lever. C'est
+[polices_embarquees_test.dart](test/core/polices_embarquees_test.dart) qui
+garantit qu'aucune ne l'est : il interdit le réseau et charge chaque variante
+depuis les assets, puis vérifie que le code n'appelle aucune famille ni aucune
+graisse littérale absente du dossier.
+
+⚠️ **Piège rencontré en le vérifiant — `flutter test` ne reconstruit pas
+`build/unit_test_assets` quand on supprime un fichier d'un dossier d'assets.**
+Contre-épreuve : `Inter-SemiBold.ttf` retiré, le test de chargement **passait
+encore**, sur l'ancienne copie restée dans ce paquet. Une fois
+`build/unit_test_assets` effacé, il tombe exactement sur Inter
+(« allowRuntimeFetching is false but font Inter-SemiBold was not found »). Le
+test est donc discriminant, mais un cache local peut l'aveugler — d'où un
+second test qui vérifie les 24 fichiers **dans le dossier source**. Et le piège
+joue dans les deux sens : un paquet reconstruit pendant l'absence d'un fichier
+le garde absent après sa remise en place. Pour toute contre-épreuve sur des
+assets, effacer `build/unit_test_assets` avant chaque essai.
+
+⚠️ **Découvert en route : aucun écran ne mène à `showLicensePage`.** Ni ces
+licences ni celles des paquets (MIT, BSD, Apache…) ne sont visibles dans
+l'app. L'OFL est satisfaite par les fichiers livrés dans l'APK ; mais les
+licences MIT et BSD des paquets demandent en principe que leur notice soit
+reproduite dans la distribution binaire — c'est d'ordinaire le rôle de cette
+page. À trancher.
+
+- [ ] **Hors ligne dès le premier lancement** : installation neuve (ou données
+  effacées — ⚠️ ça déconnecte le compte), **mode avion avant** le premier
+  lancement → titres en Playfair Display, texte en Inter, aucune police
+  système. Un appareil qui a déjà téléchargé les polices les garde en cache
+  disque : il ne montre **pas** la différence.
+- [ ] **Crashlytics** : plus aucun `Failed host lookup: 'fonts.gstatic.com'`
+  sur la version qui embarque les polices.
+- [ ] **Poids** : +2,5 Mo attendus sur l'APK comme sur le bundle.
+
+---
+
 ## Comment tester (rappel de la config utilisée précédemment)
 
 - Appareil de référence : Samsung SM A515F (Galaxy A51), id `R58N91XBA7B`.

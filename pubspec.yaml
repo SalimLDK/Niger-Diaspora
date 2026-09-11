@@ -251,4 +251,10 @@ flutter:
     # publie ni délai ni tarif. Voir le bloc `source` du JSON avant de
     # les afficher à un usager.
     - assets/data/
+    # Polices embarquées (google_fonts). Sans elles, le premier affichage
+    # de chaque graisse partait chercher le fichier sur fonts.gstatic.com :
+    # hors ligne, texte en police système et `Failed host lookup` dans
+    # Crashlytics. Le paquet regarde les assets AVANT le réseau. Liste et
+    # vérification : test/core/polices_embarquees_test.dart.
+    - assets/google_fonts/
 

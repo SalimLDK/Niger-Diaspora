@@ -14,6 +14,7 @@ import 'firebase_options.dart';
 import 'app.dart';
 import 'core/errors/classification_erreurs.dart';
 import 'core/utils/logs_release.dart';
+import 'core/utils/licences_polices.dart';
 import 'core/constants/app_config.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/cache_service.dart';
@@ -121,6 +122,7 @@ void main() => demarrerSansLogsEnRelease(_demarrer);
 
 Future<void> _demarrer() async {
   WidgetsFlutterBinding.ensureInitialized();
+  enregistrerLicencesPolices();
   tz.initializeTimeZones();
 
   // Load .env file if present (development configuration)
