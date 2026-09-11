@@ -149,6 +149,30 @@ class AuthNotifier extends _$AuthNotifier {
   /// écraser une identité restaurable. Best-effort et non bloquant : en cas
   /// d'échec, les envois retombent sur le repli AES prévu par l'architecture
   /// plutôt que d'empêcher la connexion.
+  /// Met à jour `lastLoginAt`, au mieux.
+  ///
+  /// Appelé juste après la connexion : c'est précisément le moment où
+  /// l'échange de session Supabase peut ne pas être terminé (hors ligne, ou
+  /// premier échange d'un compte neuf, qui échoue toujours — la seconde
+  /// tentative passe). `updateLastLogin` lève alors « Session Supabase non
+  /// établie ». L'appel partait sans `await` ni `catch` : l'exception remontait
+  /// au gestionnaire global, et Crashlytics la comptait comme un plantage
+  /// FATAL (4 événements, 2 utilisateurs, 1.2.0–1.2.1) alors que l'app
+  /// continuait normalement.
+  ///
+  /// Rien d'important n'est perdu : l'horodatage est réécrit à la prochaine
+  /// ouverture de session.
+  void _marquerDerniereConnexion(String userId) {
+    unawaited(
+      ref
+          .read(profileRemoteDataSourceProvider)
+          .updateLastLogin(userId)
+          .catchError(
+            (Object e) => dev.log('lastLoginAt non mis à jour : $e', name: _tag),
+          ),
+    );
+  }
+
   void _initializeE2EE(String userId) {
     ref
         .read(e2eeBackupCoordinatorProvider.notifier)
@@ -268,7 +292,7 @@ class AuthNotifier extends _$AuthNotifier {
         _initializeE2EE(user.id);
 
         // Mettre à jour lastLoginAt pour que l'utilisateur apparaisse en ligne
-        ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
+        _marquerDerniereConnexion(user.id);
 
         // Refresh onboarding status now that user is authenticated
         ref.read(onboardingNotifierProvider.notifier).refresh();
@@ -299,7 +323,7 @@ class AuthNotifier extends _$AuthNotifier {
       state = AuthState.authenticated(user);
       SessionService.instance.initialize(user.id, isNewLogin: true);
       _initializeE2EE(user.id);
-      ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
+      _marquerDerniereConnexion(user.id);
       // Refresh onboarding status now that user is authenticated
       ref.read(onboardingNotifierProvider.notifier).refresh();
     });
@@ -327,7 +351,7 @@ class AuthNotifier extends _$AuthNotifier {
           SessionService.instance.initialize(user.id, isNewLogin: true);
           _initializeE2EE(user.id);
           dev.log('AuthNotifier.signInWithGoogle: SessionService initialise', name: _tag);
-          ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
+          _marquerDerniereConnexion(user.id);
           dev.log('AuthNotifier.signInWithGoogle: lastLogin mis a jour', name: _tag);
           // Refresh onboarding status now that user is authenticated
           ref.read(onboardingNotifierProvider.notifier).refresh();
@@ -358,7 +382,7 @@ class AuthNotifier extends _$AuthNotifier {
           state = AuthState.authenticated(user);
           SessionService.instance.initialize(user.id, isNewLogin: true);
           _initializeE2EE(user.id);
-          ref.read(profileRemoteDataSourceProvider).updateLastLogin(user.id);
+          _marquerDerniereConnexion(user.id);
           ref.read(onboardingNotifierProvider.notifier).refresh();
           dev.log('=== AuthNotifier.signInWithApple: FIN SUCCES ===', name: _tag);
         },

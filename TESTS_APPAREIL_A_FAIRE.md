@@ -14428,8 +14428,8 @@ Android 12+ perdrait les relances qui tombent quand l'app est au premier plan,
 sauf à relancer le service au retour de l'app. C'est une décision, pas un
 correctif évident.
 
-**Sept plantages « Nouveau » en 1.2.1 — très probablement un robot, pas un
-utilisateur.** Stripe (`ChallengeActivity`, `AddressElementActivity`,
+**Sept plantages « Nouveau » en 1.2.1 — origine inconnue ; ce n'est PAS le
+rapport de pré-lancement.** Stripe (`ChallengeActivity`, `AddressElementActivity`,
 `PollingActivity`, `BacsMandateConfirmationActivity`,
 `CvcRecollectionActivity`), Billing (`ProxyBillingActivity`) et CallKit
 (`TransparentActivity`) : chacune démarrée **sans ses arguments**
@@ -14437,28 +14437,33 @@ utilisateur.** Stripe (`ChallengeActivity`, `AddressElementActivity`,
 utilisateur. Fiche Stripe lue : **OnePlus 8 Pro / Android 11**, build
 **1.2.1 (15)**, **11 sept. à 06:49**, app au premier plan.
 
-Trois raisons de ne pas y voir un parcours réel : les sept activités sont
-toutes **non exportées** dans le manifeste fusionné (aucune autre app ne peut
-les lancer) ; aucun parcours de l'app n'ouvre sept écrans de paiement et
-d'appel à vide en une séance ; et le modèle s'écrit « OnePlus8Pro », à la
-façon du catalogue Firebase Test Lab — celui qu'utilise le **rapport de
-pré-lancement** de Google Play sur chaque build téléversé. Hypothèse, pas
-lecture. Indice de plus : la build 15 est justement celle préparée pour
-Play (`1c7ef18`, 9 sept., retrait de `USE_FULL_SCREEN_INTENT`).
+Ce qui est établi : les sept activités sont toutes **non exportées** dans
+le manifeste fusionné — aucune autre app ne peut les lancer, seul le
+processus de l'app (ou un outil privilégié) le peut — et aucun parcours de
+l'app n'ouvre sept écrans de paiement et d'appel à vide en une séance.
 
-- [ ] **Confirmer** dans Play Console → Tests et publication → Rapport de
-  pré-lancement de la build 15 : les mêmes plantages doivent y figurer.
-- [ ] Si confirmé, le OnePlus 8 Pro qui porte 75 % des erreurs `google_fonts`
-  est probablement ce même robot (un appareil Test Lab au réseau restreint) :
-  le seul défaut « qui touche de vrais utilisateurs » en toucherait moins que
-  prévu. L'embarquement des polices (`f6e85f4`) reste utile hors ligne.
+⚠️ **Hypothèse du robot de pré-lancement : réfutée le 2026-09-11.** Elle
+reposait sur le nom de modèle collé « OnePlus8Pro » (style Test Lab) et sur
+la build 15, celle préparée pour Play (`1c7ef18`). Rapport lu dans Play
+Console : la build 15 a été testée sur **un seul appareil virtuel**,
+« Medium Phone (16K page size) », **Android 16** (SDK 36), 1080×2400 — pas
+un OnePlus — et n'a relevé **aucun problème de stabilité**. Même résultat
+pour la build 17. Aucune piste restante n'est vérifiable depuis ce poste.
+
+- [x] **Rapport de pré-lancement de la build 15 lu** (2026-09-11) : 1
+  appareil virtuel Android 16, 0 problème de stabilité. Il n'est pas
+  l'origine des plantages.
+- [ ] **Identifier le OnePlus 8 Pro / Android 11** : il porte ces sept
+  plantages ET 75 % des erreurs `google_fonts`. Testeur de la piste interne,
+  appareil d'un proche, autre outil automatisé ? Tant qu'il n'est pas
+  identifié, le compter comme un **vrai utilisateur**.
 
 - [x] **`google_fonts` — le seul qui touche de vrais utilisateurs.**
   ✅ **Appliqué le 2026-09-11** (`f6e85f4`) : 24 variantes embarquées, voir
   la section « Polices embarquées » plus bas. `allowRuntimeFetching` est
   volontairement resté à `true`, en filet — c'est un test qui garantit
-  qu'aucune variante ne manque. ⚠️ « Vrais utilisateurs » est à nuancer :
-  voir le robot de pré-lancement ci-dessus. Analyse d'origine, conservée : Aucune
+  qu'aucune variante ne manque. Le OnePlus 8 Pro qui porte 75 % de
+  ces erreurs n'est pas identifié — voir plus bas. Analyse d'origine, conservée : Aucune
   police n'est embarquée (`pubspec.yaml` n'a pas de section `fonts:`, aucun
   `.ttf` dans `assets/`) et `GoogleFonts.config.allowRuntimeFetching` n'est pas
   réglé : **chaque appareil télécharge les polices depuis `fonts.gstatic.com` au
@@ -14538,6 +14543,44 @@ page. À trancher.
 - [ ] **Crashlytics** : plus aucun `Failed host lookup: 'fonts.gstatic.com'`
   sur la version qui embarque les polices.
 - [ ] **Poids** : +2,5 Mo attendus sur l'APK comme sur le bundle.
+
+---
+
+## ⬜ « Session Supabase non établie » ne compte plus comme un plantage (2026-09-11)
+
+Dernier plantage **fatal** de la console qui touchait possiblement de vrais
+utilisateurs : `ServerException: Session Supabase non établie –
+reconnectez-vous`, 4 événements, 2 utilisateurs, 1.2.0 et 1.2.1, frame du haut
+`profile_supabase_datasource.dart:99` (`_requireAuth`).
+
+Cause, lue dans le code :
+[auth_provider.dart](lib/features/auth/presentation/providers/auth_provider.dart)
+appelait `updateLastLogin(user.id)` **quatre fois sans `await` ni `catch`** —
+connexion e-mail, Google, Apple, reprise de session — juste après la
+connexion. C'est précisément le moment où l'échange de session Supabase peut
+ne pas être fini (hors ligne ; ou premier échange d'un compte neuf, qui échoue
+toujours, la seconde tentative passe). `_requireAuth()` levait alors, personne
+n'attendait le `Future`, l'exception remontait à `PlatformDispatcher.onError`
+et partait en `fatal: true` — alors que l'app continuait normalement.
+
+Les quatre appels passent désormais par `_marquerDerniereConnexion`, « au
+mieux » avec `catchError`, sur le modèle de `_initializeE2EE` juste à côté. Rien
+d'important n'est perdu : l'horodatage est réécrit à la prochaine ouverture de
+session. Garde-fou :
+[derniere_connexion_au_mieux_test.dart](test/features/auth/derniere_connexion_au_mieux_test.dart)
+— un seul appel à `updateLastLogin` dans le fichier, et il attrape l'échec.
+
+⚠️ Attribution **par le code, pas par la pile** : la fiche Crashlytics de ce
+problème n'a pas été ouverte. Les autres appelants de `_requireAuth` sont des
+écritures déclenchées par l'utilisateur et attendues dans un `try` ; celui-ci
+est le seul lancé à vide. Si le problème réapparaît sur une version qui porte
+le correctif, c'est que l'attribution était incomplète.
+
+- [ ] **Crashlytics** : plus aucun « Session Supabase non établie » sur la
+  version qui embarque le correctif.
+- [ ] **Non-régression** : après connexion, le profil affiche toujours
+  « En ligne » (c'est `lastLoginAt` qui le nourrit) — sur un compte existant,
+  en ligne.
 
 ---
 
