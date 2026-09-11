@@ -2,10 +2,13 @@ package com.diasponiger.diasponiger;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.view.WindowManager;
 
 import com.ryanheise.audioservice.AudioServiceFragmentActivity;
+import com.ryanheise.audioservice.AudioServicePlugin;
 import io.flutter.embedding.engine.FlutterEngine;
+import io.flutter.embedding.engine.FlutterEngineCache;
 import io.flutter.plugin.common.MethodChannel;
 import androidx.annotation.NonNull;
 
@@ -58,6 +61,17 @@ public class MainActivity extends AudioServiceFragmentActivity {
      */
     private FlutterEngine flutterEngine;
 
+    /**
+     * Route d'un lien pas encore remise au routeur Dart.
+     *
+     * Posee quand le canal n'existe pas encore (le fragment Flutter s'attache par
+     * une transaction asynchrone, donc `configureFlutterEngine` peut tourner
+     * APRES `onCreate`), ou quand le Dart n'a pas encore branche son ecoute
+     * (moteur tout juste cree par `AudioService`). Videe des que la remise
+     * aboutit, ou quand le Dart la reclame par `takePendingLink`.
+     */
+    private String routeEnAttente;
+
     @Override
     public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
         super.configureFlutterEngine(flutterEngine);
@@ -87,6 +101,22 @@ public class MainActivity extends AudioServiceFragmentActivity {
         deepLinkChannel =
                 new MethodChannel(
                         flutterEngine.getDartExecutor().getBinaryMessenger(), DEEP_LINK_CHANNEL);
+        // Le Dart reclame ici, en branchant son ecoute, une route qu'on n'a pas
+        // pu lui remettre faute d'ecoute (cf. `remettreRoute`).
+        deepLinkChannel.setMethodCallHandler(
+                (call, result) -> {
+                    if ("takePendingLink".equals(call.method)) {
+                        String route = routeEnAttente;
+                        routeEnAttente = null;
+                        result.success(route);
+                    } else {
+                        result.notImplemented();
+                    }
+                });
+        // Route posee par `onCreate` avant que ce canal n'existe.
+        if (routeEnAttente != null) {
+            remettreRoute(routeEnAttente);
+        }
 
         new MethodChannel(
                         flutterEngine.getDartExecutor().getBinaryMessenger(), LOCKSCREEN_CHANNEL)
@@ -211,6 +241,49 @@ public class MainActivity extends AudioServiceFragmentActivity {
     }
 
     /**
+     * Rejoue le lien d'une activite NEUVE qui se rattache a un moteur deja lance.
+     *
+     * Le moteur est mis en cache par audio_service et survit a l'activite. Deux
+     * consequences, lues dans les sources (Flutter 3.29, audio_service 0.18.19) :
+     * - l'embedding ne lit JAMAIS la route de l'intent sur un moteur en cache :
+     *   `doInitialFlutterViewRun()` sort des sa premiere ligne ("Don't attempt to
+     *   start a FlutterEngine if we're using a cached FlutterEngine") ;
+     * - audio_service ne la lit qu'une fois, a la creation du moteur
+     *   (`AudioServicePlugin.getFlutterEngine`). Si le moteur existe deja - cree
+     *   par une activite precedente, ou par `AudioService` sans intent, donc avec
+     *   la route "/" - la route du nouveau lien est ignoree.
+     *
+     * Et `onNewIntent` n'est appele que sur une instance existante. Le lien etait
+     * donc perdu, l'app se rouvrant sur son dernier ecran. Reproduit sur SM A515F
+     * le 2026-09-11 (lien envoye avec --activity-clear-task) : meme processus
+     * avant et apres, activite neuve affichee en 397 ms, aucune trace
+     * `onNewIntent`, et l'accueil au lieu du groupe.
+     *
+     * Chez un utilisateur : Android 11 et moins (le retour ferme l'activite sans
+     * tuer le processus), la tache balayee des recents pendant que le partage de
+     * position garde le processus au premier plan, ou le service audio demarre
+     * par le systeme avant l'app.
+     *
+     * Le moteur est mesure AVANT `super.onCreate`, qui l'obtient ou le cree : s'il
+     * est cree ici, audio_service a deja pris la route de l'intent, et la rejouer
+     * ferait naviguer deux fois. `savedInstanceState` non nul signale une
+     * recreation (rotation, retour de processus) : l'intent a deja servi.
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        FlutterEngine moteurExistant =
+                FlutterEngineCache.getInstance().get(AudioServicePlugin.getFlutterEngineId());
+        boolean moteurDejaLance =
+                moteurExistant != null && moteurExistant.getDartExecutor().isExecutingDart();
+        super.onCreate(savedInstanceState);
+        if (moteurDejaLance && savedInstanceState == null) {
+            android.util.Log.i(
+                    DEEP_LINK_TAG,
+                    "activite neuve sur moteur deja lance, data=" + getIntent().getDataString());
+            pushRouteFromIntent(getIntent());
+        }
+    }
+    /**
      * Transmet à Flutter les liens reçus alors que l'application tourne déjà.
      *
      * `flutter_deeplinking_enabled` ne couvre que le démarrage : vérifié sur
@@ -272,11 +345,42 @@ public class MainActivity extends AudioServiceFragmentActivity {
         // ne journalise aucune navigation. Le canal de navigation de l'embedding
         // n'aboutit pas dans ce montage (moteur mis en cache par audio_service).
         // Le canal explicite, lui, atterrit dans du code qu'on contrôle.
+        remettreRoute(route.toString());
+    }
+
+    /**
+     * Remet une route au routeur Dart, ou la garde si personne ne peut la recevoir.
+     *
+     * Canal absent (activite pas encore attachee) : gardee, `configureFlutterEngine`
+     * la remettra. Ecoute Dart absente (`notImplemented`) : gardee, le Dart la
+     * reclamera par `takePendingLink` en se branchant. Avant ce correctif, le
+     * premier cas perdait la route en silence ("canal absent, route perdue").
+     */
+    private void remettreRoute(String route) {
+        routeEnAttente = route;
         if (deepLinkChannel == null) {
-            android.util.Log.w(DEEP_LINK_TAG, "canal absent, route perdue : " + route);
+            android.util.Log.i(DEEP_LINK_TAG, "canal pas encore pret, route gardee : " + route);
             return;
         }
         android.util.Log.i(DEEP_LINK_TAG, "route poussee vers Dart : " + route);
-        deepLinkChannel.invokeMethod("onDeepLink", route.toString());
+        deepLinkChannel.invokeMethod(
+                "onDeepLink",
+                route,
+                new MethodChannel.Result() {
+                    @Override
+                    public void success(Object reponse) {
+                        if (route.equals(routeEnAttente)) routeEnAttente = null;
+                    }
+
+                    @Override
+                    public void error(String code, String message, Object details) {
+                        android.util.Log.w(DEEP_LINK_TAG, "remise en erreur, route gardee : " + code);
+                    }
+
+                    @Override
+                    public void notImplemented() {
+                        android.util.Log.i(DEEP_LINK_TAG, "ecoute Dart absente, route gardee : " + route);
+                    }
+                });
     }
 }
