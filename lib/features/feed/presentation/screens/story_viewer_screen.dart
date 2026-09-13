@@ -145,6 +145,14 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
     context.pop();
   }
 
+  /// « expire dans 14 h » / « expire dans 20 min ».
+  static String _resteEnLigne(StoryEntity story) {
+    final reste = story.expiresAt.difference(DateTime.now());
+    if (reste.inMinutes < 1) return 'expire bientôt';
+    if (reste.inHours < 1) return 'expire dans ${reste.inMinutes} min';
+    return 'expire dans ${reste.inHours} h';
+  }
+
   /// Arrête la lecture en cours pour que le prochain rendu reparte du début
   /// du segment affiché (après une suppression, le segment a changé).
   void _resetPlayback() {
@@ -267,6 +275,11 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
           });
 
           return GestureDetector(
+            // Appui long : pause, relâcher : reprise. Sans ça, une story se
+            // refermait avant qu'on ait fini de la regarder, sans aucun moyen
+            // de la retenir (signalé 2026-09-13).
+            onLongPressStart: (_) => _pause(),
+            onLongPressEnd: (_) => _resume(),
             onTapUp: (details) {
               final w = MediaQuery.of(context).size.width;
               if (details.globalPosition.dx < w / 3) {
@@ -282,35 +295,63 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
               fit: StackFit.expand,
               children: [
                 _StoryMedia(story: story, videoController: _videoController),
+                // Voile sombre en haut : la barre blanche et le nom restaient
+                // illisibles sur une photo claire.
+                const Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: 160,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.black54, Colors.transparent],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 SafeArea(
                   child: Column(
                     children: [
                       Padding(
                         padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
-                        child: Row(
-                          children: List.generate(group.stories.length, (i) {
-                            return Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 2,
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(2),
-                                  child: LinearProgressIndicator(
-                                    minHeight: 2.5,
-                                    backgroundColor:
-                                        Colors.white.withValues(alpha: 0.3),
-                                    color: Colors.white,
-                                    value: i < safeIndex
-                                        ? 1
-                                        : i > safeIndex
-                                            ? 0
-                                            : _progressController.value,
+                        // AnimatedBuilder : la barre lisait
+                        // `_progressController.value` pendant un `build` que
+                        // rien ne relançait pour une photo (seule la vidéo
+                        // appelait `setState`). Elle restait vide les 5 s,
+                        // puis la story se fermait : « le minuteur des
+                        // stories n'est pas visible » (2026-09-13).
+                        child: AnimatedBuilder(
+                          animation: _progressController,
+                          builder: (context, _) => Row(
+                            children: List.generate(group.stories.length, (i) {
+                              return Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 2,
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(2),
+                                    child: LinearProgressIndicator(
+                                      minHeight: 3,
+                                      backgroundColor:
+                                          Colors.white.withValues(alpha: 0.35),
+                                      color: Colors.white,
+                                      value: i < safeIndex
+                                          ? 1
+                                          : i > safeIndex
+                                              ? 0
+                                              : _progressController.value,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          }),
+                              );
+                            }),
+                          ),
                         ),
                       ),
                       Padding(
@@ -351,7 +392,11 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
                               ),
                             ),
                             Text(
-                              timeago.format(story.createdAt, locale: 'fr'),
+                              // Mes stories : combien de temps elles restent
+                              // en ligne, pas seulement depuis quand.
+                              isMine
+                                  ? '${timeago.format(story.createdAt, locale: 'fr')} · ${_resteEnLigne(story)}'
+                                  : timeago.format(story.createdAt, locale: 'fr'),
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.8),
                                 fontSize: 12,

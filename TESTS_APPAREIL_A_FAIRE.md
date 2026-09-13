@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**851 cases à cocher, 491 cochées** — 174 entrées sur 218 ont encore des cases ouvertes.
+**855 cases à cocher, 495 cochées** — 175 entrées sur 219 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -64,7 +64,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (47)
+**P1 — fonction importante, jamais vérifiée** (48)
 
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
@@ -79,7 +79,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 16 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04) · *Liens profonds, navigation et QR codes*
 - 3 · [Assistant de configuration du profil](#assistant-de-configuration-du-profil) · *Comptes, session et onboarding*
-- 9 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
+- 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
@@ -94,13 +94,14 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
+- 7 · [⬜ La messagerie sort de l'écran Notifications (2026-09-13)](#-la-messagerie-sort-de-lécran-notifications-2026-09-13) · *Notifications et push*
 - 7 · [⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)](#-notifications-ouvertes-ailleurs-ou-obsolètes--lues-2026-09-12) · *Notifications et push*
 - 5 · [Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)](#réponse-rapide-depuis-la-notification-nenvoyait-jamais-rien-2026-08-13) · *Notifications et push* · bloqué
 - 2 · [✅ Repli navigateur des liens d'app — DÉPLOYÉ (2026-09-09 21:5x)](#-repli-navigateur-des-liens-dapp--déployé-2026-09-09-215x) · *Liens profonds, navigation et QR codes*
 - 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
-- 3 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
+- 2 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
@@ -139,7 +140,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
-- 3 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
+- 2 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
@@ -236,10 +237,10 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 101 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
-- [6. Notifications et push](#6-notifications-et-push) — 51 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 99 à faire, 4 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 96 à faire, 8 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 124 à faire, 27 faites
@@ -571,7 +572,9 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   `tools/polices_emoji_couleur.py`)
 - [ ] **Notification** : Sim réagit à un message de Salim → Salim reçoit
   « Sim · A réagi ❤️ à votre message », app fermée comme ouverte ; le tap
-  ouvre la discussion. Changer d'emoji ne fait pas une 2e ligne dans la cloche.
+  ouvre la discussion. Changer d'emoji ne fait pas une 2e ligne en base
+  (l'écran Notifications ne montre plus les réactions depuis le 2026-09-13 —
+  voir « La messagerie sort de l'écran Notifications »).
   Aucune bannière si la discussion est déjà ouverte, ni si elle est en
   sourdine.
 - [ ] **Mise à jour croisée** : les deux téléphones sur la même discussion,
@@ -5773,6 +5776,40 @@ Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
 
+## ⬜ La messagerie sort de l'écran Notifications (2026-09-13)
+
+**Priorité P1** · importance 3/5 — L'écran Notifications recopiait chaque message reçu : 90 lignes « message » sur 117 en base, le reste noyé dessous, et la cloche comptait deux fois ce que l'onglet Messages compte déjà.
+
+Demandé par Salim. Les lignes `message` et `messageReaction` restent
+écrites en base (c'est leur INSERT qui déclenche le push) : elles sont
+écartées **à la lecture**, dans la requête. Le flux n'est plus `.stream()`
+(un seul filtre possible) mais un canal realtime qui relance la requête
+filtrée. (`notification_supabase_datasource.dart`,
+`kTypesHorsEcranNotifications` dans `notification_entity.dart`)
+
+Filtre vérifié sur la base de production : 117 lignes → 27, les 90 écartées
+sont toutes `message`. Rien à déployer.
+
+- [ ] **Liste** : recevoir un message (compte A → B) puis ouvrir
+  Notifications sur B : aucune ligne de message ; les autres notifications
+  (demandes d'ami, événements, fil) sont là, **pleine page** — plus de liste
+  presque vide sur un compte qui reçoit beaucoup de messages.
+- [ ] **Temps réel** : écran Notifications ouvert sur B, A envoie un message
+  → rien ne bouge ; A envoie une demande d'ami ou commente un post de B → la
+  ligne apparaît sans quitter l'écran.
+- [ ] **Cloche** : la pastille de l'accueil ne monte pas à la réception d'un
+  message (l'onglet Messages, lui, monte), et monte sur une notification
+  d'un autre type.
+- [ ] **Push** : le message reçu app fermée affiche toujours sa bannière, et
+  la toucher ouvre la discussion.
+- [ ] **Tout lire** / **Tout supprimer** (réglages) : n'agissent que sur ce
+  que l'écran montre.
+- [ ] **Reconnexion** : mode avion 30 s sur l'écran Notifications, puis
+  retour → la liste reste affichée et se remet à jour (une notification reçue
+  pendant la coupure apparaît).
+- [ ] **Pagination** : sur un compte à plus de 20 notifications hors
+  messagerie, faire défiler jusqu'en bas charge la suite.
+
 ## ⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)
 
 **Priorité P1** · importance 3/5 — Le compteur de notifications ment : des notifications déjà vues dans la discussion, touchées dans le volet système ou portant sur un contenu supprimé restent « non lues ».
@@ -5786,7 +5823,9 @@ Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000)
 - [ ] **Discussion lue** : recevoir un message (compte A → B), NE PAS ouvrir
   l'écran Notifications, ouvrir la discussion, puis ouvrir Notifications :
   la ligne est en registre « lue ». (`message_supabase_datasource.dart`,
-  RPC `mark_messages_as_read`)
+  RPC `mark_messages_as_read`) — *Depuis le 2026-09-13 la ligne n'est plus
+  à l'écran (voir « La messagerie sort de l'écran Notifications ») : vérifier
+  `is_read` en base.*
 - [ ] **Push touchée** : toucher la notification dans le volet Android,
   revenir, ouvrir Notifications : lue. (`notification_read_sync.dart`)
 - [ ] **Publication ouverte depuis le fil** : une notification de commentaire
@@ -8887,23 +8926,43 @@ Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000)
 - [ ] **Deuxième story** : avec une story active, le « + » de mon avatar reste
   visible ; le toucher publie une autre story. Appui long sur l'avatar : idem.
   (`story_rail.dart`, `story_creation.dart`)
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : le « + » reste bien affiché à côté de « Ma story ». Publier une
+  deuxième story, et l'appui long, NON essayés.
 - [ ] **Échec dit** : refuser la permission photos → message « L'accès aux
   photos est refusé » ; succès → « Story publiée · <audience> ».
-- [ ] **Supprimer** : ma story → ⋮ → « Supprimer cette story » → confirmer :
+- [x] **Supprimer** : ma story → ⋮ → « Supprimer cette story » → confirmer :
   elle disparaît du viewer et du rail ; s'il n'en reste aucune, le viewer se
   ferme. (`story_viewer_screen.dart`)
-- [ ] **Audience à la publication** : feuille de création → « Qui peut voir »
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : menu à trois entrées, dialogue de confirmation, ligne effacée en
+  base, viewer refermé, rail revenu à « Ajouter ».
+- [x] **Audience à la publication** : feuille de création → « Qui peut voir »
   → Amis ; publier ; le viewer affiche « Amis » à côté du nombre de vues.
+  ✅ SM A515F, build `dd38fda`, 2026-09-13, fait avec « Liste restreinte » (vide, donc invisible pour tous) :
+  la feuille reprend le choix, `stories.audience = close` en base, le viewer
+  affiche « Aucune vue · Liste restreinte ».
 - [ ] **Liste restreinte** (deux comptes) : Pixel met Sim dans la liste
   restreinte, publie en « Liste restreinte » : Sim la voit, un autre compte
   non. (`story_privacy_screen.dart`, `/feed/stories/privacy`)
+  ✅ SM A515F, build `dd38fda`, 2026-09-13, un seul compte : l'écran « Mes stories » s'ouvre par lien profond ;
+  ajouter Salim en « masqué » écrit la ligne `hidden` ; l'ajouter ensuite à
+  la liste restreinte le DÉPLACE (une seule ligne, `close`) ; « Retirer »
+  vide les deux listes. Défaut vu et corrigé (`8c3eb5a`) : libellé sur deux
+  lignes. La visibilité côté second compte reste à faire.
 - [ ] **Masquer** (deux comptes) : Pixel masque Sim, publie « Tout le monde » :
   Sim ne la voit pas ; retirer Sim de la liste → elle réapparaît au prochain
   rafraîchissement.
 - [ ] **24 h** : la story du 3 août de Sim A ne s'affiche plus sur SM A515F ;
   une story publiée quitte le rail à H+24 sans relancer l'app.
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : la story du 3 août a disparu (première moitié). Le départ à H+24
+  sans relancer reste à voir.
 - [ ] **Stories des autres** : Pixel publie ; sur SM A515F, tirer le fil vers
   le bas → la story apparaît (sans redémarrer), ou au plus tard 2 min après.
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : la story de Salim (publiée la veille) est visible chez Sim — mais
+  après une installation, donc sans prouver le rafraîchissement à chaud.
+- [ ] **Minuteur** (correctif `8c3eb5a`, pas dans `dd38fda`) : la barre du haut
+  se remplit pendant les 5 s d'une photo ; appui long = pause ; sur ma story,
+  « il y a … · expire dans N h ». Constaté avant correctif : barre vide, sur
+  Pixel (version Play 18) comme sur SM A515F.
 - [ ] **Écran « Mes stories »** : thème sombre, clavier ouvert dans le
   sélecteur de personnes, nom très long, `font_scale` 1.3 (Pixel).
 
@@ -8917,11 +8976,17 @@ Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000)
   choix avec explication ; la puce reprend l'icône et le libellé choisis.
   Idem en édition d'une publication existante.
   (`create_post_screen.dart`)
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : les 4 choix et la puce OK en création. Défaut vu et corrigé
+  (`8c3eb5a`) : la phrase sous le champ restait « publiques ». L'édition
+  n'est pas essayée.
 - [ ] **Amis** (deux comptes) : Pixel publie « Amis » : visible sur SM A515F
   (Sim est ami), avec le pictogramme 👥 dans la ligne de métadonnées ; pas de
   bouton repartager ni partager sur la carte.
 - [ ] **Moi uniquement** : visible seulement sur le Pixel ; Sim ne la voit ni
   dans « Pour toi », ni dans « Récent », ni sur le profil de Salim.
+  ✅ SM A515F, build `dd38fda`, 2026-09-13, inversé (Sim publie) : `visibility = private` en base, cadenas sur
+  la carte, ni repartage ni partage, 0 notification ; la base la refuse à
+  Salim (lecture rejouée sous son identité). Pas vu sur le Pixel lui-même.
 - [ ] **Abonnés** : un compte qui suit Salim sans être son ami la voit ; un
   compte qui ne le suit pas, non.
 - [ ] **Mention** dans une publication « Moi uniquement » : la personne
@@ -8937,9 +9002,13 @@ Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000)
 
 Prérequis : `supabase db push` (20260912201000).
 
-- [ ] **Commentaires d'autrui** : sur « In kwana » (2 commentaires, un de Salim,
+- [x] **Commentaires d'autrui** : sur « In kwana » (2 commentaires, un de Salim,
   un de Sim), le détail en montre bien 2 sur les DEUX téléphones.
   (policy `post_comments_select_visible`)
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : le commentaire de Sim avait été supprimé entre-temps (2026-09-12
+  23:36, hors de ce correctif) ; il reste celui de Salim, que Sim lit
+  désormais — « 1 commentaire(s) », compteur de la carte à 1, conforme à la
+  base.
 - [ ] **Compteur après commentaire** : commenter depuis le détail, revenir au
   fil : le chiffre de la carte a augmenté ; supprimer le commentaire : il
   redescend. (`FeedNotifier.syncCounts`)
@@ -8950,9 +9019,11 @@ Prérequis : `supabase db push` (20260912201000).
 
 **Priorité P2** · importance 3/5 — Chaque suppression depuis le fil renvoyait à l'accueil, obligeant à rouvrir le fil.
 
-- [ ] Fil (ouvert depuis l'accueil) → ⋯ d'une de mes publications → Supprimer
+- [x] Fil (ouvert depuis l'accueil) → ⋯ d'une de mes publications → Supprimer
   → confirmer : le fil reste affiché, la carte disparaît, toast « Publication
   supprimée ». (`post_card.dart`)
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : ouvert par lien profond, « Le fil. » reste affiché, carte partie,
+  ligne effacée en base. Le toast n'a pas été capturé.
 - [ ] Même geste depuis le détail d'une publication : l'écran de détail se
   ferme, on revient au fil.
 - [ ] « Mes publications » : suppression, la liste se met à jour.
