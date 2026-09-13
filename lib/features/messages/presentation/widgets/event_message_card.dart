@@ -57,13 +57,13 @@ class EventMessageCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.event_rounded, size: 18, color: accent),
+                Icon(Icons.event_rounded, size: 20, color: accent),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     'Événement',
                     style: theme.textTheme.labelMedium?.copyWith(
-                      fontSize: 14.5,
+                      fontSize: 16,
                       color: accent,
                       fontWeight: FontWeight.w700,
                     ),
@@ -76,7 +76,7 @@ class EventMessageCard extends StatelessWidget {
             Text(
               title,
               style: theme.textTheme.bodyMedium?.copyWith(
-                fontSize: 17,
+                fontSize: 19,
                 fontWeight: FontWeight.w600,
                 color: palette.title,
               ),
@@ -87,13 +87,13 @@ class EventMessageCard extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(Icons.schedule, size: 15, color: onAccentSurface),
+                  Icon(Icons.schedule, size: 17, color: onAccentSurface),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       dateLabel,
                       style: theme.textTheme.bodySmall
-                          ?.copyWith(fontSize: 14.5, color: onAccentSurface),
+                          ?.copyWith(fontSize: 16, color: onAccentSurface),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -107,12 +107,12 @@ class EventMessageCard extends StatelessWidget {
                   isOnline
                       ? AppIcon(
                           AppIcon.video,
-                          size: 15,
+                          size: 17,
                           color: onAccentSurface,
                         )
                       : Icon(
                           Icons.place_outlined,
-                          size: 15,
+                          size: 17,
                           color: onAccentSurface,
                         ),
                   const SizedBox(width: 4),
@@ -120,7 +120,7 @@ class EventMessageCard extends StatelessWidget {
                     child: Text(
                       placeLabel,
                       style: theme.textTheme.bodySmall
-                          ?.copyWith(fontSize: 14.5, color: onAccentSurface),
+                          ?.copyWith(fontSize: 16, color: onAccentSurface),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -132,7 +132,7 @@ class EventMessageCard extends StatelessWidget {
             Text(
               'Voir l\'événement →',
               style: theme.textTheme.labelMedium?.copyWith(
-                fontSize: 14.5,
+                fontSize: 16,
                 color: accent,
                 fontWeight: FontWeight.w600,
                 decoration: TextDecoration.underline,

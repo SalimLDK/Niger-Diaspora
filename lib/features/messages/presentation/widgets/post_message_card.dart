@@ -70,7 +70,7 @@ class PostMessageCard extends StatelessWidget {
                     children: [
                       Icon(
                         Icons.dynamic_feed_rounded,
-                        size: 18,
+                        size: 20,
                         color: palette.accent,
                       ),
                       const SizedBox(width: 6),
@@ -78,7 +78,7 @@ class PostMessageCard extends StatelessWidget {
                         child: Text(
                           authorName,
                           style: theme.textTheme.labelMedium?.copyWith(
-                            fontSize: 14.5,
+                            fontSize: 16,
                             color: palette.accent,
                             fontWeight: FontWeight.w700,
                           ),
@@ -92,7 +92,7 @@ class PostMessageCard extends StatelessWidget {
                     Text(
                       preview,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        fontSize: 16,
+                        fontSize: 17.5,
                         height: 1.3,
                         color: palette.body,
                       ),
@@ -104,7 +104,7 @@ class PostMessageCard extends StatelessWidget {
                   Text(
                     'Voir la publication →',
                     style: theme.textTheme.labelMedium?.copyWith(
-                      fontSize: 14.5,
+                      fontSize: 16,
                       color: palette.accent,
                       fontWeight: FontWeight.w600,
                       decoration: TextDecoration.underline,
