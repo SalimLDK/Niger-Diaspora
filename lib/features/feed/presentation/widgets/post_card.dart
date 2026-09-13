@@ -70,7 +70,7 @@ class PostCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (repost != null) _RepostBanner(repost: repost!),
-              _PostHeader(post: post, l10n: l10n),
+              _PostHeader(post: post, l10n: l10n, isDetail: isDetail),
               if (post.content.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 RichTextWidget(
@@ -182,8 +182,13 @@ class _RepostBanner extends StatelessWidget {
 class _PostHeader extends ConsumerWidget {
   final PostEntity post;
   final AppLocalizations l10n;
+  final bool isDetail;
 
-  const _PostHeader({required this.post, required this.l10n});
+  const _PostHeader({
+    required this.post,
+    required this.l10n,
+    required this.isDetail,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -252,7 +257,7 @@ class _PostHeader extends ConsumerWidget {
             variant: FollowButtonVariant.text,
           ),
         ],
-        _PostMenu(post: post, l10n: l10n),
+        _PostMenu(post: post, l10n: l10n, isDetail: isDetail),
       ],
     );
   }
@@ -262,7 +267,15 @@ class _PostMenu extends ConsumerWidget {
   final PostEntity post;
   final AppLocalizations l10n;
 
-  const _PostMenu({required this.post, required this.l10n});
+  /// La carte est-elle celle de l'écran de détail ? Seul cet écran se referme
+  /// après une suppression.
+  final bool isDetail;
+
+  const _PostMenu({
+    required this.post,
+    required this.l10n,
+    required this.isDetail,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -299,8 +312,26 @@ class _PostMenu extends ConsumerWidget {
                 ),
           );
           if (confirmed == true && context.mounted) {
-            await ref.read(feedNotifierProvider.notifier).deletePost(post.id);
-            if (context.mounted && context.canPop()) context.pop();
+            final deleted = await ref
+                .read(feedNotifierProvider.notifier)
+                .deletePost(post.id);
+            if (!context.mounted) return;
+            if (!deleted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.deleteError),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              return;
+            }
+            showFeedToast(context, l10n.postDeleted);
+            // Ne refermer que l'écran de détail. Depuis une liste, `pop()`
+            // refermait l'écran qui la porte : le fil, poussé depuis
+            // l'accueil, se fermait et renvoyait à l'accueil après chaque
+            // suppression (constaté 2026-09-12). La carte, elle, disparaît
+            // d'elle-même de la liste.
+            if (isDetail && context.canPop()) context.pop();
           }
         } else if (value == 'bookmark') {
           ref.read(feedNotifierProvider.notifier).toggleBookmark(post.id);

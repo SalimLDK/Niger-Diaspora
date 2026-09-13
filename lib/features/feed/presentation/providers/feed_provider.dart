@@ -544,6 +544,8 @@ class FeedNotifier extends Notifier<FeedState> {
       (_) {
         state = state.copyWith(
           posts: state.posts.where((p) => p.id != postId).toList(),
+          pendingPosts:
+              state.pendingPosts.where((p) => p.id != postId).toList(),
         );
         return true;
       },

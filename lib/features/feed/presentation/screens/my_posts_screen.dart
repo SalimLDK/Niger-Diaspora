@@ -362,8 +362,15 @@ class _MyPostsScreenState extends ConsumerState<MyPostsScreen> {
           ),
     );
     if (confirmed != true || !mounted) return;
-    await ref.read(feedNotifierProvider.notifier).deletePost(post.id);
-    if (mounted) ref.invalidate(myPostsProvider);
+    final deleted =
+        await ref.read(feedNotifierProvider.notifier).deletePost(post.id);
+    if (!mounted) return;
+    ref.invalidate(myPostsProvider);
+    if (!deleted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.deleteError), backgroundColor: Colors.red),
+      );
+    }
   }
 
   /// La maquette supprime le brouillon sans confirmation ; la fiche note
