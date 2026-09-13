@@ -77,6 +77,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   /// and avoid leaking subscriptions.
   final Map<String, RealtimeChannel> _channels = {};
 
+  /// Compteur des suffixes de sujet des flux par discussion : partagé par
+  /// toutes les instances, puisque le client realtime l'est aussi.
+  static int _channelSeq = 0;
+
   RealtimeChannel _channel(String name) {
     return _channels.putIfAbsent(name, () => _supabase.channel(name));
   }
@@ -814,7 +818,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String conversationId,
   }) {
     final controller = StreamController<MessageModel>.broadcast();
-    final channelName = 'msg_updates:$conversationId';
+    // Suffixe unique : rouvrir la discussion recrée ce flux pendant que le
+    // `unsubscribe` de l'ancien (asynchrone) n'a pas fini. Deux canaux de même
+    // sujet se marchent dessus, et c'est le NEUF qui reste muet — les
+    // réactions et accusés de l'autre ne s'affichaient plus jusqu'au retour.
+    final channelName = 'msg_updates:$conversationId:${_channelSeq++}';
     final ch = _channel(channelName);
 
     ch
@@ -850,7 +858,8 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required DateTime afterTimestamp,
   }) {
     final controller = StreamController<List<MessageModel>>.broadcast();
-    final channelName = 'new_msgs:$conversationId';
+    // Même suffixe unique que `msg_updates` (voir getMessageUpdatesStream).
+    final channelName = 'new_msgs:$conversationId:${_channelSeq++}';
     final ch = _channel(channelName);
 
     ch
@@ -2390,25 +2399,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String emoji,
   }) async {
     try {
-      final rows = await _supabase
-          .from('messages')
-          .select('data')
-          .eq('id', messageId)
-          .limit(1);
-      if (rows.isEmpty) return;
-      final data = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
-      // Une réaction par personne : la nouvelle emoji remplace la précédente.
-      final reactions = Map<String, dynamic>.from(
-        data['reactions'] as Map? ?? {},
-      );
-      reactions[userId] = emoji;
-      data['reactions'] = reactions;
-      await _supabase
-          .from('messages')
-          .update({'data': data})
-          .eq('id', messageId);
+      await _setReaction(messageId: messageId, userId: userId, emoji: emoji);
     } catch (e) {
       throw ServerException('addReaction error: $e');
     }
@@ -2421,27 +2412,69 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String userId,
   }) async {
     try {
-      final rows = await _supabase
-          .from('messages')
-          .select('data')
-          .eq('id', messageId)
-          .limit(1);
-      if (rows.isEmpty) return;
-      final data = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
-      final reactions = Map<String, dynamic>.from(
-        data['reactions'] as Map? ?? {},
-      );
-      reactions.remove(userId);
-      data['reactions'] = reactions;
-      await _supabase
-          .from('messages')
-          .update({'data': data})
-          .eq('id', messageId);
+      await _setReaction(messageId: messageId, userId: userId, emoji: null);
     } catch (e) {
       throw ServerException('removeReaction error: $e');
     }
+  }
+
+  /// Pose (`emoji`) ou retire (`null`) la réaction de l'utilisateur courant.
+  ///
+  /// Passe par `set_message_reaction`, qui ne touche que `reactions.<uid>` au
+  /// moment de l'UPDATE et notifie l'auteur. L'ancienne écriture relisait
+  /// `data` en entier puis le réécrivait : un accusé de lecture ou la réaction
+  /// d'un autre membre posés entre les deux étaient écrasés, et aucune
+  /// notification ne partait.
+  Future<void> _setReaction({
+    required String messageId,
+    required String userId,
+    required String? emoji,
+  }) async {
+    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+      throw ServerException('setReaction: not authenticated');
+    }
+    try {
+      await _supabase.rpc(
+        'set_message_reaction',
+        params: {'p_message_id': messageId, 'p_emoji': emoji},
+      );
+    } on PostgrestException catch (e) {
+      // Fonction pas encore déployée : l'ancienne écriture, faute de mieux.
+      if (e.code != 'PGRST202') rethrow;
+      await _setReactionLegacy(
+        messageId: messageId,
+        userId: userId,
+        emoji: emoji,
+      );
+    }
+  }
+
+  /// Repli tant que la migration `20260912220000` n'est pas appliquée.
+  /// À retirer ensuite : c'est l'écriture qui perd des mises à jour.
+  Future<void> _setReactionLegacy({
+    required String messageId,
+    required String userId,
+    required String? emoji,
+  }) async {
+    final rows = await _supabase
+        .from('messages')
+        .select('data')
+        .eq('id', messageId)
+        .limit(1);
+    if (rows.isEmpty) return;
+    final data = Map<String, dynamic>.from(
+      (rows.first['data'] as Map?) ?? {},
+    );
+    final reactions = Map<String, dynamic>.from(
+      data['reactions'] as Map? ?? {},
+    );
+    if (emoji == null) {
+      reactions.remove(userId);
+    } else {
+      reactions[userId] = emoji;
+    }
+    data['reactions'] = reactions;
+    await _supabase.from('messages').update({'data': data}).eq('id', messageId);
   }
 
   @override

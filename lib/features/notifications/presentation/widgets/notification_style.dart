@@ -26,6 +26,7 @@ Color notificationTint(BuildContext context, NotificationType type) {
   switch (type) {
     // Messages et contenu courant : l'accent de l'app.
     case NotificationType.message:
+    case NotificationType.messageReaction:
     case NotificationType.general:
     case NotificationType.newPost:
     case NotificationType.mentioned:
@@ -129,6 +130,8 @@ IconData notificationIcon(NotificationType type) {
       return Icons.gavel_outlined;
     case NotificationType.groupCallInvitation:
       return Icons.groups_outlined;
+    case NotificationType.messageReaction:
+      return Icons.add_reaction_outlined;
   }
 }
 
