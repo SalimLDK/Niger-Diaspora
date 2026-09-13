@@ -1623,6 +1623,13 @@ class NotificationService {
       }
     }
 
+    // Une réaction sur la discussion ouverte se voit déjà sous la bulle.
+    if (type == 'messageReaction' &&
+        data['conversationId'] != null &&
+        data['conversationId'] == _currentOpenConversationId) {
+      return;
+    }
+
     // Volontairement AUCUNE écriture en base ici : la ligne `notifications` est
     // créée côté serveur AVANT le push (c'est son INSERT qui déclenche le
     // trigger -> send-push). Ré-insérer ici créerait un doublon dans la cloche
@@ -1755,6 +1762,7 @@ class NotificationService {
 
       switch (type) {
         case 'message':
+        case 'messageReaction':
           return prefs.getBool('notify_messages') ?? true;
         case 'friendRequest':
         case 'friendRequestAccepted':
@@ -2496,6 +2504,7 @@ class NotificationService {
   (String, String, Importance) _getChannelForType(String? type) {
     switch (type) {
       case 'message':
+      case 'messageReaction':
         return ('messages', 'Messages', Importance.high);
       case 'friendRequest':
       case 'friendRequestAccepted':

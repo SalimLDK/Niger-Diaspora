@@ -86,6 +86,7 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
       switch (type) {
         // Message notifications - use conversationId from data
         case 'message':
+        case 'messageReaction':
           final conversationId = data['conversationId'] as String? ?? targetId;
           route = '/messages/$conversationId';
           break;

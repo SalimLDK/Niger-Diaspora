@@ -306,6 +306,7 @@ class NotificationDetailScreen extends ConsumerWidget {
         context.push('/map');
         break;
       case NotificationType.message:
+      case NotificationType.messageReaction:
         if (notification.targetId != null) {
           context.push('/messages/${notification.targetId}');
         }
@@ -423,6 +424,8 @@ class NotificationDetailScreen extends ConsumerWidget {
         return 'Signalement traité';
       case NotificationType.groupCallInvitation:
         return 'Appel de groupe';
+      case NotificationType.messageReaction:
+        return 'Réaction';
       case NotificationType.general:
         return l10n.notificationsTitle;
     }

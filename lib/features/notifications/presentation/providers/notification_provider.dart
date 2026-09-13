@@ -140,7 +140,9 @@ class UnreadNotificationsCount extends _$UnreadNotificationsCount {
       if (n.isRead) return false;
 
       // Filter message notifications by senderId
-      if (n.type == NotificationType.message && n.senderId != null) {
+      if ((n.type == NotificationType.message ||
+              n.type == NotificationType.messageReaction) &&
+          n.senderId != null) {
         // If I blocked this user, don't count their notifications
         if (blockedUserIds.contains(n.senderId)) return false;
 
