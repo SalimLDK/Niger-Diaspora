@@ -126,6 +126,8 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
         case 'groupJoinRequest':
         case 'groupRequestApproved':
         case 'groupRequestRejected':
+        // Six mois après un changement de pays : le choix se fait sur la fiche.
+        case 'officialGroupLeave':
           final groupId = data['groupId'] as String? ?? targetId;
           route = '/groups/$groupId';
           break;

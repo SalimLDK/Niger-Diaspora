@@ -505,6 +505,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.groupJoinRequest:
       case NotificationType.groupRequestApproved:
       case NotificationType.groupRequestRejected:
+      case NotificationType.officialGroupLeave:
         if (notification.targetId != null) {
           context.push('/groups/${notification.targetId}');
         }

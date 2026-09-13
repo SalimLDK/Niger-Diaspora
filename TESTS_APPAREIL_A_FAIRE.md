@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**836 cases à cocher, 491 cochées** — 171 entrées sur 215 ont encore des cases ouvertes.
+**841 cases à cocher, 491 cochées** — 172 entrées sur 216 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -113,7 +113,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (61)
+**P2 — fonction secondaire ou cas limite** (62)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -130,6 +130,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
 - 6 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
 - 4 · [Zone de saisie des messages — barre multi-ligne (2026-08-04)](#zone-de-saisie-des-messages--barre-multi-ligne-2026-08-04) · *Messagerie*
+- 5 · [⬜ Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé (2026-09-13)](#-quitter-lancien-groupe-officiel--proposé-après-6-mois-jamais-imposé-2026-09-13) · *Groupes* · bloqué
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
@@ -230,7 +231,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 116 à faire, 52 faites
-- [3. Groupes](#3-groupes) — 96 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 101 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
 - [6. Notifications et push](#6-notifications-et-push) — 51 à faire, 73 faites
@@ -2138,6 +2139,55 @@ Création, invitations, adhésion, membres, modération, sondages et mentions de
 
 ---
 
+## ⬜ Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé (2026-09-13)
+
+**Priorité P2** · importance 3/5 — Quelqu'un qui a déménagé est sorti d'un groupe sans l'avoir choisi, ne parvient pas à en sortir, ou la notification n'ouvre pas l'écran du choix. *Bloqué : aucune proposition réelle avant le 2027-03-11 — à provoquer en base (recette ci-dessous).*
+
+Consigne de Salim : quitter l'ancien groupe officiel « après 6 mois, avec
+avertissement et consentement ». Migration
+`20260913050000_depart_groupe_officiel_avec_consentement.sql`, **appliquée en
+production** : changer de pays ne retire rien et note le départ ; la tâche
+`pg_cron` `proposer-departs-groupes-officiels` (9 h UTC) passe, six mois plus
+tard, la ligne à `a_confirmer` et envoie la notification `officialGroupLeave`.
+Seule la carte de la fiche du groupe (`official_group_departure_card.dart`)
+peut faire sortir, via `repondre_depart_groupe_officiel`. Sans réponse, on
+reste. Revenir dans ce pays annule la proposition.
+
+Prouvé en transaction annulée sous les vrais comptes `0D3P…` et `U64H…` :
+changement, retour au pays, resauvegarde sans effet, échéance simulée → 2
+notifications, Quitter (sortie du groupe ET de la discussion, les autres
+participants intacts), Rester, 2e réponse sans effet ; `anon` refusé sur la
+réponse, `authenticated` refusé sur la tâche. Tests :
+`test/features/groups/depart_groupe_officiel_test.dart` (6 widget + 3 garde
+SQL « la tâche ne retire personne »).
+
+Seule proposition en attente aujourd'hui : `0D3P…`, groupe Cap-Vert, le
+2027-03-11. **Recette pour la provoquer sur le compte de test** (envoie une
+vraie notification) :
+
+```sql
+UPDATE departs_groupe_officiel SET proposer_apres = now()
+ WHERE user_id = '<uid du compte>' AND statut = 'en_attente';
+SELECT proposer_departs_groupes_officiels();
+```
+
+(Il faut d'abord que le compte ait changé de pays en étant membre du groupe
+officiel de l'ancien.)
+
+- [ ] Le push « Rester dans « Diaspora Niger — … » ? » arrive ; l'appui ouvre
+      la fiche du groupe, carte « Vous avez changé de pays » visible, date et
+      pays justes.
+- [ ] Même chose depuis la liste des notifications (icône groupe).
+- [ ] « Rester membre » : message, la carte disparaît, toujours membre, et
+      elle ne revient pas au lancement suivant.
+- [ ] « Quitter le groupe » : la confirmation s'ouvre ; « Annuler » ne change
+      rien ; « Quitter » fait sortir, ferme la fiche, le groupe quitte « Mes
+      groupes » et sa discussion n'est plus accessible.
+- [ ] Carte lisible en thème sombre, et boutons sans débordement avec
+      l'échelle de police maximale.
+
+---
+
 ## ⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)
 
 **Priorité P1** · importance 3/5 — Le groupe officiel d'un pays s'appelait « Diaspora Niger — NE », un même pays pouvait en avoir deux (`AO` et « Angola »), et la carte des groupes restait vide.
@@ -2179,9 +2229,9 @@ référentiel SQL, clés de la carte, pliage des accents) et
 - [ ] Nom d'un groupe créé à la main avec « États-Unis » : la pastille de la
       carte affiche « 🇺🇸 États-Unis ».
 
-⚠️ **Non traité, à trancher** : changer de pays ne fait **pas** quitter le
-groupe officiel de l'ancien pays. Le compte `0D3P…` est aujourd'hui membre de
-« — Cap-Vert » et de « — Angola ».
+Changer de pays ne faisait pas quitter le groupe officiel de l'ancien pays
+(`0D3P…` membre de « — Cap-Vert » et de « — Angola ») : tranché par Salim, voir
+« Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé ».
 
 ⚠️ **Pour les autres agents** : deux migrations non livrées datées du
 2026-09-12 (`20260912200000`, `20260912220000`, dans d'autres worktrees) sont

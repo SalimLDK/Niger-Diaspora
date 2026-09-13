@@ -768,6 +768,21 @@
   "leaveGroupTitle": "Leave group",
   "leaveGroupConfirm": "Do you really want to leave this group?",
   "groupLeft": "You have left the group",
+  "officialGroupDepartureTitle": "You changed country",
+  "officialGroupDepartureBody": "Since {date}, your profile no longer shows {country}. You can leave this group or stay: nothing changes without your consent.",
+  "@officialGroupDepartureBody": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "country": {
+        "type": "String"
+      }
+    }
+  },
+  "officialGroupDepartureStay": "Stay a member",
+  "officialGroupDepartureStayed": "You remain a member of this group.",
+  "officialGroupDepartureFailed": "Your choice could not be saved. Please try again.",
   "member": "Member",
   "joinGroup": "Join",
   "shareGroup": "Share group",

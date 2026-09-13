@@ -67,6 +67,10 @@ enum NotificationType {
   groupCallInvitation,
   // Réaction à un de mes messages (`set_message_reaction`).
   messageReaction,
+  // Six mois après un changement de pays : quitter le groupe officiel de
+  // l'ancien pays ou y rester (`proposer_departs_groupes_officiels`). Ouvre la
+  // fiche du groupe, où se fait le choix.
+  officialGroupLeave,
 }
 
 extension NotificationTypeExtension on NotificationType {
@@ -133,6 +137,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'Appel de groupe';
       case NotificationType.messageReaction:
         return 'Réaction';
+      case NotificationType.officialGroupLeave:
+        return 'Groupe de votre ancien pays';
     }
   }
 
@@ -198,6 +204,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'groups';
       case NotificationType.messageReaction:
         return 'add_reaction';
+      case NotificationType.officialGroupLeave:
+        return 'groups';
     }
   }
 }

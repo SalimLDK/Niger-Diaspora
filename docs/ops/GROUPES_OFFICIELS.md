@@ -218,8 +218,28 @@ La base ramène tout code au nom (`pays_canonique`, déclencheur
 `trg_normaliser_pays` sur `users` et `posts`, `groups_country_code_defaut` sur
 `groups`), parce que les APK installés écrivent encore des codes.
 
-⚠️ **Ouvert** : changer de pays ne fait pas quitter le groupe officiel de
-l'ancien pays.
+## Changer de pays : quitter l'ancien groupe, avec consentement (2026-09-13)
+
+Changer de pays ajoute au groupe officiel du nouveau pays mais ne sort pas de
+l'ancien. Décision de Salim : le départ est **proposé six mois après**, avec
+avertissement, et **n'a lieu que si l'utilisateur l'accepte**
+(`20260913050000_depart_groupe_officiel_avec_consentement.sql`).
+
+- `trg_planifier_depart_groupe_officiel` (users) note le départ dans
+  `departs_groupe_officiel` — sans rien retirer. Revenir dans le pays annule.
+  L'owner n'est jamais concerné ; un pays effacé n'est pas un changement.
+- La tâche `pg_cron` `proposer-departs-groupes-officiels` (tous les jours,
+  9 h UTC) passe les échéances à `a_confirmer` et insère une notification
+  `officialGroupLeave`, qui ouvre la fiche du groupe.
+- La carte `OfficialGroupDepartureCard` de la fiche appelle
+  `repondre_depart_groupe_officiel(group, quitter)` : c'est la **seule** voie
+  de sortie, et elle n'agit que sur l'appelant. Sans réponse, on reste.
+
+Piège rencontré : le garde `conversations_guard_admin_fields` refuse toute
+modification des participants sans utilisateur identifié. Un retrait lancé par
+une tâche planifiée échouerait donc. C'est une raison de plus pour que le
+départ se fasse dans la réponse de l'utilisateur, où `leave_group_conversation`
+passe par la branche « un participant se retire lui-même ».
 
 Un nouveau pays n'a donc plus besoin d'étapes manuelles : la RPC
 `get_or_create_official_group` provisionne désormais correctement, avec le
