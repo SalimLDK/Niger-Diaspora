@@ -2060,10 +2060,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     // 20260912200000, ceci couvre la base tant que la migration n'est pas
     // appliquée. Idempotent.
     unawaited(
+      // Sans filtre de type : messages ET réactions (`messageReaction`)
+      // portent `conversationId`, rien d'autre ne le porte.
       NotificationReadSync.markTargetRead(
         conversationId,
         keys: const ['conversationId'],
-        type: 'message',
       ),
     );
 

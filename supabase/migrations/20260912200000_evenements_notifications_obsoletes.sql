@@ -132,7 +132,7 @@ BEGIN
   UPDATE notifications n
   SET is_read = TRUE
   WHERE NOT n.is_read
-    AND n.type = 'message'
+    AND n.type IN ('message', 'messageReaction')
     AND n.data->>'messageId' IN (SELECT o.id FROM messages_supprimes o);
   RETURN NULL;
 EXCEPTION WHEN OTHERS THEN
@@ -286,13 +286,14 @@ BEGIN
       OR NOT (data->'readBy') ? p_user_id
     );
 
-  -- Ajout 2026-09-12 : la discussion est lue, ses notifications aussi.
+  -- Ajout 2026-09-12 : la discussion est lue, ses notifications aussi —
+  -- messages et réactions (`messageReaction`, 20260912220000).
   IF p_user_id = (SELECT public.firebase_uid()) THEN
     UPDATE notifications
     SET is_read = TRUE
     WHERE user_id = p_user_id
       AND NOT is_read
-      AND type = 'message'
+      AND type IN ('message', 'messageReaction')
       AND data->>'conversationId' = p_conversation_id;
   END IF;
 END;
