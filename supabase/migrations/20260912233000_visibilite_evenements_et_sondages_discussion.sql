@@ -153,6 +153,11 @@ AS $$
      WHERE e.id = p_event_id
        AND (
          e.organizer_id = moi.uid
+         -- Le back-office modère tout (policies `events_admin_*` de
+         -- 20260912200000) : un UPDATE/DELETE exige aussi de voir la ligne.
+         -- Appelé ici, dans une fonction SECURITY DEFINER, plutôt que dans la
+         -- policy : `anon` n'a pas à pouvoir exécuter `is_admin()`.
+         OR public.is_admin()
          OR (
            e.status <> 'draft'
            AND (
