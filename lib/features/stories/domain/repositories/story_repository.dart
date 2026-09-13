@@ -16,7 +16,18 @@ abstract class StoryRepository {
     required String mediaUrl,
     required StoryMediaType mediaType,
     int? videoDurationSeconds,
+    StoryAudience audience = StoryAudience.everyone,
   });
+
+  Future<Either<Failure, void>> deleteStory(String storyId);
+
+  Future<Either<Failure, List<StoryListMember>>> getListMembers(String ownerId);
+
+  Future<Either<Failure, void>> setListMember(
+    String ownerId,
+    String memberId,
+    StoryListKind? kind,
+  );
 
   Future<Either<Failure, void>> markViewed(String storyId, String viewerId);
 

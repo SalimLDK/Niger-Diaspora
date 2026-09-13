@@ -43,6 +43,7 @@ import '../../features/profile/domain/entities/profile_entity.dart';
 import '../../features/feed/presentation/screens/mon_espace_screen.dart';
 import '../../features/feed/presentation/screens/followed_hashtags_screen.dart';
 import '../../features/feed/presentation/screens/story_viewer_screen.dart';
+import '../../features/stories/presentation/screens/story_privacy_screen.dart';
 import '../../features/feed/presentation/screens/my_posts_screen.dart';
 import '../../features/feed/presentation/screens/saved_posts_screen.dart';
 import '../../features/feed/presentation/screens/follows_screen.dart';
@@ -1096,6 +1097,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/feed/space/hashtags',
         builder: (context, state) => const FollowedHashtagsScreen(),
+      ),
+      // Confidentialité des stories — doit précéder '/feed/stories/:authorId'
+      // (« privacy » serait sinon pris pour un identifiant d'auteur).
+      GoRoute(
+        path: '/feed/stories/privacy',
+        builder: (context, state) => const StoryPrivacyScreen(),
       ),
       // Viewer de stories — doit précéder '/feed/:postId' (même piège que
       // '/feed/space' : "stories" serait sinon interprété comme un postId).

@@ -12,6 +12,7 @@ import 'package:diaspo_niger/shared/widgets/offline_banner.dart';
 import '../../../../core/constants/ad_config.dart';
 import '../../domain/entities/post_entity.dart';
 import '../../domain/repositories/feed_repository.dart';
+import '../../../stories/presentation/providers/story_provider.dart';
 import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
@@ -336,7 +337,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     }
     final mixedItems = _buildMixedItems(rows);
     final list = RefreshIndicator(
-      onRefresh: () => ref.read(feedNotifierProvider.notifier).refresh(),
+      onRefresh: () {
+        // Le rail de stories se relit avec le fil : sans ça, une story
+        // publiée par quelqu'un d'autre n'apparaissait qu'au redémarrage.
+        ref.invalidate(activeStoriesProvider);
+        return ref.read(feedNotifierProvider.notifier).refresh();
+      },
       child: ListView.builder(
         controller: _scrollController,
         // Réserve basse de 100 px : le FAB flotte au-dessus du dernier post.

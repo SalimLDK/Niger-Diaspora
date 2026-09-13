@@ -17,7 +17,13 @@ class StoryRepositoryImpl implements StoryRepository {
   ) async {
     try {
       final models = await _dataSource.getActiveStories(currentUserId);
-      final entities = models.map((m) => m.toEntity()).toList();
+      // Borne des 24 h réappliquée à la réception : l'horloge du serveur et
+      // celle du téléphone diffèrent, et une story ne doit pas survivre à
+      // l'écran à son expiration.
+      final entities = models
+          .map((m) => m.toEntity())
+          .where((s) => !s.isExpired)
+          .toList();
 
       // Groupe par auteur, plus récent en tête de chaque groupe conservé.
       final byAuthor = <String, List<StoryEntity>>{};
@@ -53,6 +59,7 @@ class StoryRepositoryImpl implements StoryRepository {
     required String mediaUrl,
     required StoryMediaType mediaType,
     int? videoDurationSeconds,
+    StoryAudience audience = StoryAudience.everyone,
   }) async {
     try {
       final model = await _dataSource.createStory(
@@ -62,8 +69,50 @@ class StoryRepositoryImpl implements StoryRepository {
         mediaUrl: mediaUrl,
         mediaType: mediaType == StoryMediaType.video ? 'video' : 'image',
         videoDurationSeconds: videoDurationSeconds,
+        audience: audience,
       );
       return Right(model.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteStory(String storyId) async {
+    try {
+      await _dataSource.deleteStory(storyId);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<StoryListMember>>> getListMembers(
+    String ownerId,
+  ) async {
+    try {
+      return Right(await _dataSource.getListMembers(ownerId));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> setListMember(
+    String ownerId,
+    String memberId,
+    StoryListKind? kind,
+  ) async {
+    try {
+      await _dataSource.setListMember(ownerId, memberId, kind);
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
