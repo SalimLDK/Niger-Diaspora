@@ -251,7 +251,23 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
       throw ServerException('Session Supabase non établie – reconnectez-vous');
     }
-    await _supabase.from('posts').delete().eq('id', postId);
+    // `.select()` rend les lignes réellement supprimées. Une suppression que
+    // la RLS refuse (`posts_manage_own` : l'auteur seul) ne lève rien et
+    // n'efface rien : sans ce contrôle, l'app retirait la carte et annonçait
+    // « supprimée » pendant que la publication restait en base.
+    final List<dynamic> deleted;
+    try {
+      deleted = await _supabase
+          .from('posts')
+          .delete()
+          .eq('id', postId)
+          .select('id');
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
+    }
+    if (deleted.isEmpty) {
+      throw ServerException('Publication non supprimée');
+    }
   }
 
   @override

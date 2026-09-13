@@ -636,8 +636,9 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
           l10n.adminCancelEventMsg,
         );
         if (confirm == true) {
-          await notifier.cancelEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminEventCancelled);
+          final ok = await notifier.cancelEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          if (!mounted) return;
+          _showSnackBar(ok ? l10n.adminEventCancelled : l10n.loadingError);
         }
         break;
       case 'delete':
@@ -646,8 +647,9 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
           l10n.adminDeleteEventMsg,
         );
         if (confirm == true) {
-          await notifier.deleteEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminEventDeleted);
+          final ok = await notifier.deleteEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          if (!mounted) return;
+          _showSnackBar(ok ? l10n.adminEventDeleted : l10n.deleteError);
         }
         break;
     }
