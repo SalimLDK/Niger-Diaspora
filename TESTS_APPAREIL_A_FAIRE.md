@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**780 cases à cocher, 491 cochées** — 160 entrées sur 204 ont encore des cases ouvertes.
+**817 cases à cocher, 491 cochées** — 167 entrées sur 211 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -63,7 +63,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (40)
+**P1 — fonction importante, jamais vérifiée** (45)
 
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
@@ -77,6 +77,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 16 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04) · *Liens profonds, navigation et QR codes*
 - 3 · [Assistant de configuration du profil](#assistant-de-configuration-du-profil) · *Comptes, session et onboarding*
+- 9 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
+- 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
@@ -89,12 +91,15 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
+- 7 · [⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)](#-notifications-ouvertes-ailleurs-ou-obsolètes--lues-2026-09-12) · *Notifications et push*
 - 5 · [Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)](#réponse-rapide-depuis-la-notification-nenvoyait-jamais-rien-2026-08-13) · *Notifications et push* · bloqué
 - 2 · [✅ Repli navigateur des liens d'app — DÉPLOYÉ (2026-09-09 21:5x)](#-repli-navigateur-des-liens-dapp--déployé-2026-09-09-215x) · *Liens profonds, navigation et QR codes*
 - 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
+- 3 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
+- 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
@@ -106,7 +111,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (57)
+**P2 — fonction secondaire ou cas limite** (59)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -127,6 +132,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
+- 3 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
@@ -156,6 +162,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Position des entreprises : création/édition alimentent enfin latitude/longitude (2026-08-19)](#position-des-entreprises--créationédition-alimentent-enfin-latitudelongitude-2026-08-19) · *Ambassades, démarches, carte, entreprises et événements*
 - 3 · [Flags Salons audio / Podcasts / Fil enfin sérialisés + maintenance sans écrasement (2026-08-19)](#flags-salons-audio--podcasts--fil-enfin-sérialisés--maintenance-sans-écrasement-2026-08-19) · *Accueil, profil et réglages* · bloqué
 - 2 · [Feature flags & accès aux écrans](#feature-flags--accès-aux-écrans) · *Accueil, profil et réglages* · bloqué
+- 3 · [⬜ Grand titre d'en-tête : plus de mot coupé (2026-09-12)](#-grand-titre-den-tête--plus-de-mot-coupé-2026-09-12) · *Design, thème, langue et mise en page*
 - 7 · [Le « OVERFLOWED BY 190 » de la recherche venait du rail latéral (2026-08-05)](#le--overflowed-by-190--de-la-recherche-venait-du-rail-latéral-2026-08-05) · *Design, thème, langue et mise en page*
 - 8 · [Menus déroulants bornés partout (`isExpanded`, 2026-08-04)](#menus-déroulants-bornés-partout-isexpanded-2026-08-04) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 3 : boutique, support, transferts, appels (2026-08-03)](#bascule-design_v2--production-famille-3--boutique-support-transferts-appels-2026-08-03) · *Design, thème, langue et mise en page*
@@ -222,13 +229,13 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 90 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
-- [6. Notifications et push](#6-notifications-et-push) — 44 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 51 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 77 à faire, 4 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 51 à faire, 44 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 99 à faire, 4 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 56 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 121 à faire, 27 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 124 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 35 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -5571,6 +5578,34 @@ Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
 
+## ⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)
+
+**Priorité P1** · importance 3/5 — Le compteur de notifications ment : des notifications déjà vues dans la discussion, touchées dans le volet système ou portant sur un contenu supprimé restent « non lues ».
+
+Signalé sur le Pixel. Mesuré en base le même jour : 84 non lues, dont 73
+« message » toutes obsolètes. Voir aussi « Grand titre d'en-tête : plus de
+mot coupé ».
+
+Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000) et `firebase deploy --only functions:mirrorFriendToSupabase` (la partie app marche sans, en repli).
+
+- [ ] **Discussion lue** : recevoir un message (compte A → B), NE PAS ouvrir
+  l'écran Notifications, ouvrir la discussion, puis ouvrir Notifications :
+  la ligne est en registre « lue ». (`message_supabase_datasource.dart`,
+  RPC `mark_messages_as_read`)
+- [ ] **Push touchée** : toucher la notification dans le volet Android,
+  revenir, ouvrir Notifications : lue. (`notification_read_sync.dart`)
+- [ ] **Publication ouverte depuis le fil** : une notification de commentaire
+  sur un post, ouvrir ce post depuis le fil → la notification est lue.
+- [ ] **Demande d'ami acceptée depuis l'écran Amis** : la notification de la
+  demande passe en « lue ».
+- [ ] **Contenu supprimé** : supprimer un événement auquel quelqu'un s'est
+  inscrit → la notification « participation » de l'organisateur est lue.
+- [ ] **Compteur** : le badge « N non lues » de l'en-tête et la puce « Non
+  lues » baissent d'autant, sans rouvrir l'app.
+- [ ] Les 4 demandes d'ami non lues du Pixel (Firestore) restent non lues
+  tant qu'elles ne sont pas traitées — c'est attendu, la base ne peut pas
+  savoir.
+
 ## Notification de message → « Utilisateur », écran bloqué (2026-08-30)
 
 Signalé par Salim : taper une notification de message dans `/notifications`
@@ -8648,6 +8683,85 @@ Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
 
+## ⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)
+
+**Priorité P1** · importance 4/5 — Une story restreinte à une liste ou masquée à quelqu'un lui reste visible si la base n'est pas migrée ; sans le correctif, impossible de publier une deuxième story, d'en retirer une, et sa propre story ne disparaît jamais. *Bloqué : deux comptes pour l'audience (Pixel + SM A515F).*
+
+Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000) et `firebase deploy --only functions:mirrorFriendToSupabase`.
+
+- [ ] **Deuxième story** : avec une story active, le « + » de mon avatar reste
+  visible ; le toucher publie une autre story. Appui long sur l'avatar : idem.
+  (`story_rail.dart`, `story_creation.dart`)
+- [ ] **Échec dit** : refuser la permission photos → message « L'accès aux
+  photos est refusé » ; succès → « Story publiée · <audience> ».
+- [ ] **Supprimer** : ma story → ⋮ → « Supprimer cette story » → confirmer :
+  elle disparaît du viewer et du rail ; s'il n'en reste aucune, le viewer se
+  ferme. (`story_viewer_screen.dart`)
+- [ ] **Audience à la publication** : feuille de création → « Qui peut voir »
+  → Amis ; publier ; le viewer affiche « Amis » à côté du nombre de vues.
+- [ ] **Liste restreinte** (deux comptes) : Pixel met Sim dans la liste
+  restreinte, publie en « Liste restreinte » : Sim la voit, un autre compte
+  non. (`story_privacy_screen.dart`, `/feed/stories/privacy`)
+- [ ] **Masquer** (deux comptes) : Pixel masque Sim, publie « Tout le monde » :
+  Sim ne la voit pas ; retirer Sim de la liste → elle réapparaît au prochain
+  rafraîchissement.
+- [ ] **24 h** : la story du 3 août de Sim A ne s'affiche plus sur SM A515F ;
+  une story publiée quitte le rail à H+24 sans relancer l'app.
+- [ ] **Stories des autres** : Pixel publie ; sur SM A515F, tirer le fil vers
+  le bas → la story apparaît (sans redémarrer), ou au plus tard 2 min après.
+- [ ] **Écran « Mes stories »** : thème sombre, clavier ouvert dans le
+  sélecteur de personnes, nom très long, `font_scale` 1.3 (Pixel).
+
+## ⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)
+
+**Priorité P1** · importance 4/5 — Une publication « Amis » ou « Moi uniquement » serait lue par qui ne devrait pas si la base n'est pas migrée, ou au contraire invisible pour les amis si le miroir des amitiés n'est pas déployé. *Bloqué : deux comptes (Pixel = Salim, SM A515F = Sim, amis dans Firestore).*
+
+Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000) et `firebase deploy --only functions:mirrorFriendToSupabase`.
+
+- [ ] **Feuille d'audience** : Créer une publication → puce « Public » → 4
+  choix avec explication ; la puce reprend l'icône et le libellé choisis.
+  Idem en édition d'une publication existante.
+  (`create_post_screen.dart`)
+- [ ] **Amis** (deux comptes) : Pixel publie « Amis » : visible sur SM A515F
+  (Sim est ami), avec le pictogramme 👥 dans la ligne de métadonnées ; pas de
+  bouton repartager ni partager sur la carte.
+- [ ] **Moi uniquement** : visible seulement sur le Pixel ; Sim ne la voit ni
+  dans « Pour toi », ni dans « Récent », ni sur le profil de Salim.
+- [ ] **Abonnés** : un compte qui suit Salim sans être son ami la voit ; un
+  compte qui ne le suit pas, non.
+- [ ] **Mention** dans une publication « Moi uniquement » : la personne
+  mentionnée ne reçoit AUCUNE notification.
+- [ ] **Onglet Abonnements** : les publications d'un ami apparaissent même si
+  on ne le suit pas.
+- [ ] **Nouvelle amitié** (après déploiement de la fonction) : accepter une
+  demande d'ami, puis publier « Amis » : le nouvel ami la voit.
+
+## ⬜ Compteurs de commentaires et de repartages justes (2026-09-12)
+
+**Priorité P1** · importance 3/5 — Le détail d'une publication n'affiche que ses propres commentaires alors que le compteur en annonce plus, et les chiffres de la liste ne bougent pas après un commentaire.
+
+Prérequis : `supabase db push` (20260912201000).
+
+- [ ] **Commentaires d'autrui** : sur « In kwana » (2 commentaires, un de Salim,
+  un de Sim), le détail en montre bien 2 sur les DEUX téléphones.
+  (policy `post_comments_select_visible`)
+- [ ] **Compteur après commentaire** : commenter depuis le détail, revenir au
+  fil : le chiffre de la carte a augmenté ; supprimer le commentaire : il
+  redescend. (`FeedNotifier.syncCounts`)
+- [ ] **Repartage** : repartager puis annuler : le chiffre revient à sa valeur
+  de départ, jamais -1 ni +2.
+
+## ⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)
+
+**Priorité P2** · importance 3/5 — Chaque suppression depuis le fil renvoyait à l'accueil, obligeant à rouvrir le fil.
+
+- [ ] Fil (ouvert depuis l'accueil) → ⋯ d'une de mes publications → Supprimer
+  → confirmer : le fil reste affiché, la carte disparaît, toast « Publication
+  supprimée ». (`post_card.dart`)
+- [ ] Même geste depuis le détail d'une publication : l'écran de détail se
+  ferme, on revient au fil.
+- [ ] « Mes publications » : suppression, la liste se met à jour.
+
 ## Podcasts — 5 écrans passés au système DN (2026-08-04)
 
 **Priorité P3** · importance 1/5 — Aucun aujourd'hui : les écrans ne sont atteignables que par lien profond. *Bloqué : fonction masquée.*
@@ -8837,6 +8951,28 @@ sur une voix réellement captée par le SFU.
 Annuaires, démarches consulaires, carte des membres et des postes, événements.
 
 ---
+
+## ⬜ Événement supprimé : il disparaît partout (2026-09-12)
+
+**Priorité P1** · importance 3/5 — Un événement annoncé « supprimé » reste affiché à l'accueil et dans les listes, ou n'est en réalité pas supprimé du tout (suppression depuis le back-office).
+
+Prérequis pour le cas admin : `supabase db push` (20260912200000, policies
+`events_admin_*`).
+
+- [ ] **Organisateur** : créer un événement passé ou à venir, le voir à
+  l'accueil, le supprimer depuis sa fiche : retour à la liste, il a disparu
+  d'« À venir », de « Passés » et de l'accueil — sans tirer pour rafraîchir.
+  (`event_provider.dart` `forgetDeletedEvent`)
+- [ ] **Relancer l'app** : il ne revient pas (cache purgé,
+  `CacheService.removeCachedEvent`).
+- [ ] **Back-office** (Pixel, admin) : supprimer un événement dont on n'est
+  pas l'organisateur → il disparaît ; avant la migration → message d'erreur
+  au lieu d'un faux « supprimé ». Annuler un événement : fonctionne (le champ
+  `updated_at` inexistant faisait tout échouer).
+- [ ] **Fiche ouverte par lien profond** puis supprimée : on atterrit sur
+  `/events`, pas sur une fiche vide.
+- [ ] **Supprimé ailleurs** : supprimer sur un téléphone, tirer pour
+  rafraîchir l'accueil de l'autre : l'événement disparaît.
 
 ## ✅ Événements sur Supabase — BASCULÉ et vérifié SM A515F (2026-09-09 22:35)
 
@@ -10916,6 +11052,21 @@ directement sur la section APPLICATION.
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
 
 ---
+
+## ⬜ Grand titre d'en-tête : plus de mot coupé (2026-09-12)
+
+**Priorité P2** · importance 2/5 — Le titre « Notifications » s'affichait coupé au milieu du mot (« Notificatio / ns ») sur Pixel, avec une police système agrandie.
+
+Constaté sur Pixel 10 Pro XL (densité 440, `font_scale` 1.3) le 2026-09-12.
+
+- [ ] **Pixel** : Notifications avec des non lues (« Tout lire » visible) : le
+  titre tient sur une ligne, en taille réduite. (`design_kit.dart`
+  `DesignHeaderTitle`)
+- [ ] **SM A515F** (`font_scale` 1.1) : les 7 en-têtes (Messages, Groupes,
+  Profil, Réglages, Notifications, Annuaire, Mes stories) gardent leur taille
+  30 quand ils tiennent.
+- [ ] Un titre de plusieurs mots (« Annuaire des entreprises ») passe à la
+  ligne entre les mots, jamais au milieu.
 
 ## ⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)
 
