@@ -3,9 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'feed_tokens.dart';
 
-/// Feed typography — Nocturne uses Inter for both heading and body;
-/// Organic uses the display font Caprasimo for headings and Figtree
-/// for body, per each mockup's own `--font-heading`/`--font-body`.
+/// Feed typography — Caprasimo for headings, Figtree for body, in BOTH
+/// themes.
+///
+/// Nocturne utilisait Inter partout (fiche 6a). Depuis le 2026-09-13 le fil
+/// sombre reprend la typographie du clair : sur deux téléphones, l'un en
+/// clair et l'autre en sombre, « Le fil. » n'avait plus la même allure
+/// (voir `FeedTokens`).
 class FeedText {
   FeedText._();
 
@@ -14,19 +18,7 @@ class FeedText {
     double size = 20,
     Color? color,
   }) {
-    final c = color ?? tokens.text;
-    if (tokens.isDark) {
-      // Fiche 6a : « Titre en Inter (pas Caprasimo) 24/500 » avec un
-      // interlettrage de -0.5. Il était à -0.2, donc le titre nocturne
-      // paraissait plus lâche que la maquette.
-      return GoogleFonts.inter(
-        fontSize: size,
-        fontWeight: FontWeight.w500,
-        letterSpacing: -0.5,
-        color: c,
-      );
-    }
-    return GoogleFonts.caprasimo(fontSize: size, color: c);
+    return GoogleFonts.caprasimo(fontSize: size, color: color ?? tokens.text);
   }
 
   static TextStyle body(
@@ -35,10 +27,10 @@ class FeedText {
     FontWeight weight = FontWeight.w400,
     Color? color,
   }) {
-    final c = color ?? tokens.text;
-    if (tokens.isDark) {
-      return GoogleFonts.inter(fontSize: size, fontWeight: weight, color: c);
-    }
-    return GoogleFonts.figtree(fontSize: size, fontWeight: weight, color: c);
+    return GoogleFonts.figtree(
+      fontSize: size,
+      fontWeight: weight,
+      color: color ?? tokens.text,
+    );
   }
 }

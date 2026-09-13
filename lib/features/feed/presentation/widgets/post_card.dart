@@ -495,10 +495,9 @@ class _MediaGridState extends ConsumerState<_MediaGrid> {
       child: Hero(
         tag: '${widget.post.id}_$index',
         child: ClipRRect(
-          // Média : rayon 20 (clair) / 8 (sombre) — cf. handoff tour 4.
-          borderRadius: BorderRadius.circular(
-            FeedTokens.of(context).isDark ? 8 : 20,
-          ),
+          // Média : rayon 20, dans les deux thèmes (le sombre était à 8 —
+          // structure alignée sur le clair le 2026-09-13).
+          borderRadius: BorderRadius.circular(20),
           child: CachedNetworkImage(
             imageUrl: mediaUrls[index],
             height: height,

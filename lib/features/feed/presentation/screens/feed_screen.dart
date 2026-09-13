@@ -473,7 +473,7 @@ class _FeedHeader extends StatelessWidget {
 
     // Titre « Le fil. » : le point prend la couleur d'accent.
     final baseTitle = lang == 'en' ? 'The feed' : l10n.homeServiceFeed;
-    final titleStyle = FeedText.heading(tokens, size: tokens.isDark ? 24 : 26);
+    final titleStyle = FeedText.heading(tokens, size: 26);
 
     return SafeArea(
       bottom: false,
@@ -511,17 +511,22 @@ class _FeedHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    dateLabel.toUpperCase(),
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 10.5,
-                      letterSpacing: 1.05,
-                      fontWeight: FontWeight.w600,
-                      color: overColor,
+                  // Réduit plutôt que tronqué : « DIMANCHE 13 SEPTEMBRE 20… »
+                  // sur Pixel à font_scale 1.3 (2026-09-13).
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      dateLabel.toUpperCase(),
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 10.5,
+                        letterSpacing: 1.05,
+                        fontWeight: FontWeight.w600,
+                        color: overColor,
+                      ),
+                      maxLines: 1,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Text.rich(
