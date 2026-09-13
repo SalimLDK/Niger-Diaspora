@@ -619,6 +619,14 @@ class FeedNotifier extends Notifier<FeedState> {
     );
     final result = await _repo.toggleRepost(postId, userId);
     final nowReposted = result.fold((_) => !isCurrentlyReposted, (v) => v);
+    // L'état réel peut contredire l'optimiste (repartage déjà en base) :
+    // le marqueur suit la base, le compteur est relu.
+    if (nowReposted != !isCurrentlyReposted) {
+      final fixed = Set<String>.from(state.repostedPostIds);
+      nowReposted ? fixed.add(postId) : fixed.remove(postId);
+      state = state.copyWith(repostedPostIds: fixed);
+    }
+    unawaited(syncCounts(postId));
     if (nowReposted && !isCurrentlyReposted) {
       final post = _findPost(postId);
       if (post != null) {
@@ -647,6 +655,7 @@ class FeedNotifier extends Notifier<FeedState> {
     );
     final result = await _repo.repostWithComment(postId, userId, comment);
     final wasNew = result.fold((_) => !wasReposted, (v) => v);
+    unawaited(syncCounts(postId));
     if (wasNew) {
       final post = _findPost(postId);
       if (post != null) {
@@ -672,6 +681,34 @@ class FeedNotifier extends Notifier<FeedState> {
       );
     } catch (_) {}
     await _repo.trackExternalShare(postId);
+  }
+
+  /// Relit les compteurs d'une publication en base et les pose partout où
+  /// elle s'affiche.
+  ///
+  /// Les compteurs du fil n'étaient tenus qu'à l'optimiste : un commentaire
+  /// ajouté ou supprimé depuis le détail ne touchait jamais `commentCount`
+  /// dans la liste, et un repartage déjà présent en base mais absent de
+  /// `repostedPostIds` (enrichissement expiré) comptait +1 là où la base
+  /// retirait la ligne — l'écart se lisait jusqu'au prochain rechargement.
+  /// La base tient désormais ces compteurs par déclencheurs : c'est elle qui
+  /// fait foi.
+  Future<void> syncCounts(String postId) async {
+    final result = await _repo.getPostById(postId);
+    result.fold((_) {}, (fresh) {
+      PostEntity apply(PostEntity p) => p.copyWith(
+            likeCount: fresh.likeCount,
+            commentCount: fresh.commentCount,
+            shareCount: fresh.shareCount,
+          );
+      state = state.copyWith(
+        posts: state.posts.map((p) => p.id == postId ? apply(p) : p).toList(),
+      );
+      final detail = ref.read(postDetailProvider(postId)).post;
+      if (detail != null) {
+        ref.read(postDetailProvider(postId).notifier).setPost(apply(detail));
+      }
+    });
   }
 
   PostEntity? _findPost(String postId) {
@@ -911,6 +948,7 @@ class CommentsNotifier extends FamilyNotifier<CommentsState, String> {
           state = state.copyWith(comments: [...state.comments, created]);
         }
         _notifyOnComment(postId, created);
+        unawaited(ref.read(feedNotifierProvider.notifier).syncCounts(postId));
         return true;
       },
     );
@@ -1006,6 +1044,7 @@ class CommentsNotifier extends FamilyNotifier<CommentsState, String> {
           }
         }
         state = state.copyWith(comments: updated);
+        unawaited(ref.read(feedNotifierProvider.notifier).syncCounts(postId));
         return true;
       },
     );
