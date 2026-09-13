@@ -2436,7 +2436,20 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             EventMessageCard(eventData: eventData, isMe: widget.isMe),
           // Le texte occupe toute la bulle : l'heure et l'accusé de réception
           // sont posés sous la bulle par _buildMetaRow (fiches 4a/6b).
-          _buildRichTextWithLinks(context, widget.message.content),
+          // Sous une carte, le texte généré par le partage (« 📌 Post de… »,
+          // « 📅 Titre ») répétait la carte : il n'est affiché que si
+          // l'utilisateur a écrit autre chose.
+          if (!((postData != null &&
+                  PostMessageCard.isDefaultCaption(
+                    widget.message.content,
+                    postData,
+                  )) ||
+              (eventData != null &&
+                  EventMessageCard.isDefaultCaption(
+                    widget.message.content,
+                    eventData,
+                  ))))
+            _buildRichTextWithLinks(context, widget.message.content),
           // Link preview card
           if (hasLinkPreview)
             LinkPreviewBubble.fromMap(linkPreviewData, isMe: widget.isMe),
