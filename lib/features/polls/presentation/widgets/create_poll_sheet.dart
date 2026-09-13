@@ -122,21 +122,30 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
 
     setState(() => _isSubmitting = true);
 
-    final poll = widget.contextType == PollContextType.group
-        ? await ref.read(pollActionsNotifierProvider.notifier).createGroupPoll(
-              groupId: widget.contextId,
-              question: question,
-              optionLabels: options,
-              allowMultiple: _allowMultiple,
-              endsAt: endsAt,
-            )
-        : await ref.read(pollActionsNotifierProvider.notifier).createPostPoll(
-              postId: widget.contextId,
-              question: question,
-              optionLabels: options,
-              allowMultiple: _allowMultiple,
-              endsAt: endsAt,
-            );
+    final actions = ref.read(pollActionsNotifierProvider.notifier);
+    final poll = switch (widget.contextType) {
+      PollContextType.group => await actions.createGroupPoll(
+          groupId: widget.contextId,
+          question: question,
+          optionLabels: options,
+          allowMultiple: _allowMultiple,
+          endsAt: endsAt,
+        ),
+      PollContextType.conversation => await actions.createConversationPoll(
+          conversationId: widget.contextId,
+          question: question,
+          optionLabels: options,
+          allowMultiple: _allowMultiple,
+          endsAt: endsAt,
+        ),
+      PollContextType.post => await actions.createPostPoll(
+          postId: widget.contextId,
+          question: question,
+          optionLabels: options,
+          allowMultiple: _allowMultiple,
+          endsAt: endsAt,
+        ),
+    };
 
     if (!mounted) return;
     setState(() => _isSubmitting = false);

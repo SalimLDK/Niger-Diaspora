@@ -491,14 +491,22 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
   // ── Écritures ──────────────────────────────────────────────────────────
 
   @override
-  Future<EventModel> createEvent(EventModel event) async {
+  Future<EventModel> createEvent(EventModel event, {String? visibility}) async {
     await SupabaseAuthBridge.instance.ensureAuthenticated();
     try {
-      final row = await _supabase
-          .from('events')
-          .insert(_versLigne(event))
-          .select('id')
-          .single();
+      final ligne = _versLigne(event);
+      if (visibility != null) ligne['visibility'] = visibility;
+
+      Map<String, dynamic> row;
+      try {
+        row = await _supabase.from('events').insert(ligne).select('id').single();
+      } on PostgrestException catch (e) {
+        // Colonne pas encore migrée (PGRST204) : l'événement se crée quand
+        // même, la base dérivera la visibilité de `is_public`.
+        if (visibility == null || e.code != 'PGRST204') rethrow;
+        ligne.remove('visibility');
+        row = await _supabase.from('events').insert(ligne).select('id').single();
+      }
       final id = row['id'] as String;
 
       // L'organisateur compte parmi les participants — c'est ce que faisait
@@ -513,6 +521,29 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
       });
 
       return getEventById(id);
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
+    }
+  }
+
+  @override
+  Future<void> setEventAudience({
+    required String eventId,
+    required String visibility,
+    List<String> groupIds = const [],
+    List<String> userIds = const [],
+  }) async {
+    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    try {
+      await _supabase.rpc(
+        'set_event_audience',
+        params: {
+          'p_event_id': eventId,
+          'p_visibility': visibility,
+          'p_group_ids': groupIds,
+          'p_user_ids': userIds,
+        },
+      );
     } on PostgrestException catch (e) {
       throw ServerException(e.message);
     }

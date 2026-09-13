@@ -90,9 +90,10 @@ class PollModel extends Equatable {
 
   PollEntity toEntity() => PollEntity(
         id: id,
-        contextType: contextType == 'post'
-            ? PollContextType.post
-            : PollContextType.group,
+        contextType: PollContextType.values.firstWhere(
+          (t) => t.name == contextType,
+          orElse: () => PollContextType.group,
+        ),
         contextId: contextId,
         question: question,
         options: options.map((o) => o.toEntity()).toList(),

@@ -39,14 +39,15 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**793 cases à cocher, 491 cochées** — 163 entrées sur 207 ont encore des cases ouvertes.
+**803 cases à cocher, 491 cochées** — 165 entrées sur 209 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (17)
+**P0 — avant toute nouvelle version** (18)
 
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
@@ -107,7 +108,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (59)
+**P2 — fonction secondaire ou cas limite** (60)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -118,6 +119,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 4 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
 - 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
 - 8 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
@@ -221,7 +223,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 116 à faire, 52 faites
+- [2. Messagerie](#2-messagerie) — 119 à faire, 52 faites
 - [3. Groupes](#3-groupes) — 90 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
@@ -229,7 +231,7 @@ Par domaine :
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 77 à faire, 4 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 51 à faire, 44 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 58 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 121 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
@@ -480,6 +482,22 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Sondage dans une discussion privée (2026-09-12)
+
+**Priorité P2** · importance 3/5 — Le « + » du composeur n'offrait « Sondage » que dans les groupes.
+
+*Bloqué : migration `20260912233000` à appliquer ; deux comptes.*
+
+- [ ] **« + » dans une DM** : « Sondage » présent ; créer (question + 2
+  options) → bulle sondage chez les deux ; Sim vote, Salim voit le compte.
+  (`conversation_screen.dart`, `create_poll_sheet.dart`,
+  `poll_supabase_datasource.dart`)
+- [ ] « Mes notes » garde son brouillon de sondage (note texte), et un groupe
+  garde ses permissions « qui peut créer un sondage ».
+- [ ] Avant la migration : message d'erreur explicite, pas d'écran figé.
 
 ---
 
@@ -8909,6 +8927,37 @@ sur une voix réellement captée par le SFU.
 # 10. Ambassades, démarches, carte, entreprises et événements
 
 Annuaires, démarches consulaires, carte des membres et des postes, événements.
+
+---
+
+## ⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)
+
+**Priorité P0** · importance 5/5 — Un événement « visible uniquement par les participants » d'une discussion était lisible par TOUT LE MONDE (policy `events_select` ouverte, aucun filtre `is_public`), et le seul choix était un interrupteur caché sous la catégorie.
+
+*Bloqué : migration `20260912233000_visibilite_evenements_et_sondages_discussion.sql` à appliquer ; deux comptes (Pixel Salim + SM A515F Sim) et un tiers pour « personnes choisies ».*
+
+RLS vérifiée en base dans une transaction annulée (organisateur, participant,
+tiers, anonyme ; invitation, retour à la discussion, ancien client).
+
+- [ ] **Formulaire** (depuis une DM, depuis un groupe, depuis Événements) :
+  « Qui peut voir cet événement ? » juste sous la description ; 4 choix en DM
+  / groupe, 3 hors discussion ; plus d'interrupteur en bas.
+  (`event_audience_picker.dart`, `create_event_screen.dart`)
+- [ ] **Cette discussion** (défaut en DM) : Salim crée dans la DM avec Sim →
+  Sim le voit (bulle + fiche) ; un 3e compte ne le voit ni dans « À venir »
+  ni par lien profond `/events/<id>` (fiche en erreur, pas de chargement
+  infini).
+- [ ] **Mes groupes** : la feuille liste mes groupes, cases à cocher, « Valider
+  (N) » ; un membre d'un groupe choisi voit l'événement dans « À venir ».
+  Publier sans groupe coché → message « Choisissez au moins un groupe ».
+- [ ] **Personnes choisies** : suggestions (amis, discussions) puis recherche
+  à 2 lettres ; la personne invitée reçoit « Invitation à un événement » et le
+  tap ouvre la fiche.
+- [ ] **Tout le monde** : visible dans « À venir » pour tous, et par un
+  visiteur non connecté si le site/les liens le permettent.
+- [ ] **Avant la migration** (APK déjà installé ailleurs) : la création marche
+  toujours ; groupes/personnes → message « n'ont pas pu être enregistrés ».
+- [ ] S'inscrire à un événement qu'on ne voit pas est refusé (tiers).
 
 ---
 

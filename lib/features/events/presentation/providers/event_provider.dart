@@ -5,6 +5,7 @@ import '../../../../core/network/network_info.dart';
 import '../../data/datasources/event_remote_datasource.dart';
 import '../../data/datasources/event_supabase_datasource.dart';
 import '../../data/repositories/event_repository_impl.dart';
+import '../../domain/entities/event_audience.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../domain/repositories/event_repository.dart';
 import 'event_by_id_provider.dart';
@@ -170,9 +171,12 @@ class MyEventsNotifier extends _$MyEventsNotifier {
     );
   }
 
-  Future<EventEntity?> createEvent(EventEntity event) async {
+  Future<EventEntity?> createEvent(
+    EventEntity event, {
+    EventVisibility? visibility,
+  }) async {
     final repository = ref.read(eventRepositoryProvider);
-    final result = await repository.createEvent(event);
+    final result = await repository.createEvent(event, visibility: visibility);
     return result.fold((failure) => null, (created) {
       final currentEvents = state.valueOrNull ?? [];
       state = AsyncValue.data([created, ...currentEvents]);

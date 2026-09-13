@@ -1247,10 +1247,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                         as bool?) ??
                     false))
             : true;
-    // Sondage : dans « Mes notes », on autorise un brouillon de sondage (note
-    // structurée) ; dans un groupe, un vrai sondage votable selon permissions.
+    // Sondage : dans « Mes notes », un brouillon (note structurée) ; dans une
+    // discussion privée, un vrai sondage entre ses participants (ouvert le
+    // 2026-09-12) ; dans un groupe, selon ses permissions.
     final canCreatePoll =
         _isSelfNotes ||
+        !_isGroup ||
         (_isGroup &&
             _effectiveGroupId != null &&
             ((groupData?.permissions.canPostPolls(isAdmin: isConvAdmin)
@@ -1598,7 +1600,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             ? null
                             : _isSelfNotes
                             ? () => _createPollDraft()
-                            : () => _createAndPublishPoll(_effectiveGroupId!),
+                            : _isGroup
+                            ? () => _createAndPublishPoll(
+                              PollContextType.group,
+                              _effectiveGroupId!,
+                            )
+                            : () => _createAndPublishPoll(
+                              PollContextType.conversation,
+                              widget.conversationId,
+                            ),
                     onTyping: () {
                       ref
                           .read(typingIndicatorNotifierProvider.notifier)
@@ -2837,11 +2847,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   ///
   /// Sans cette seconde etape, la ligne de `post_polls` n'etait lue par aucun
   /// ecran : le sondage existait en base et restait invisible partout.
-  Future<void> _createAndPublishPoll(String groupId) async {
+  Future<void> _createAndPublishPoll(
+    PollContextType contextType,
+    String contextId,
+  ) async {
     final poll = await showCreatePollSheet(
       context,
-      contextType: PollContextType.group,
-      contextId: groupId,
+      contextType: contextType,
+      contextId: contextId,
     );
     if (poll == null || !mounted) return;
 

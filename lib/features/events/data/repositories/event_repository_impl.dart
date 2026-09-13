@@ -7,6 +7,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
+import '../../domain/entities/event_audience.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../domain/repositories/event_repository.dart';
 import '../datasources/event_remote_datasource.dart';
@@ -107,14 +108,38 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
-  Future<Either<Failure, EventEntity>> createEvent(EventEntity event) async {
+  Future<Either<Failure, EventEntity>> createEvent(
+    EventEntity event, {
+    EventVisibility? visibility,
+  }) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
       final eventModel = EventModel.fromEntity(event);
-      final created = await remoteDataSource.createEvent(eventModel);
+      final created = await remoteDataSource.createEvent(
+        eventModel,
+        visibility: visibility?.name,
+      );
       return Right(created.toEntity());
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> setEventAudience(
+    String eventId,
+    EventAudience audience,
+  ) async {
+    try {
+      await remoteDataSource.setEventAudience(
+        eventId: eventId,
+        visibility: audience.visibility.name,
+        groupIds: audience.groups.keys.toList(),
+        userIds: audience.people.keys.toList(),
+      );
+      return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     }
