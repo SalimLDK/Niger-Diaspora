@@ -11,6 +11,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/e2ee/message_crypto_service.dart';
 import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
+import '../../../../core/services/notification_read_sync.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 
 import '../models/conversation_model.dart';
@@ -2045,6 +2046,17 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     } catch (e) {
       debugPrint('mark_messages_as_read RPC error: $e');
     }
+
+    // Les notifications de la discussion : la RPC le fait aussi depuis
+    // 20260912200000, ceci couvre la base tant que la migration n'est pas
+    // appliquée. Idempotent.
+    unawaited(
+      NotificationReadSync.markTargetRead(
+        conversationId,
+        keys: const ['conversationId'],
+        type: 'message',
+      ),
+    );
 
     try {
       // Fetch current lastMessageReadBy to append userId

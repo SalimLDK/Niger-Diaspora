@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import '../../../../core/services/notification_read_sync.dart';
 import '../../domain/entities/comment_entity.dart';
 import '../../domain/entities/post_entity.dart';
 import '../providers/feed_provider.dart';
@@ -44,6 +45,17 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
 
   String get _currentUserId =>
       FirebaseAuth.instance.currentUser?.uid ?? '';
+
+  @override
+  void initState() {
+    super.initState();
+    // Publication ouverte — depuis le fil, un lien, n'importe où : ses
+    // notifications (commentaire, mention, nouvelle publication) sont lues.
+    NotificationReadSync.markTargetRead(
+      widget.postId,
+      keys: const ['postId', 'targetId', 'target_id'],
+    );
+  }
 
   @override
   void dispose() {

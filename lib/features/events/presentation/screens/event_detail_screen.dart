@@ -12,6 +12,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/services/notification_read_sync.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../shared/widgets/share_options_sheet.dart';
@@ -40,6 +41,11 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   @override
   void initState() {
     super.initState();
+    // Événement ouvert : ses notifications (rappel, participation) sont lues.
+    NotificationReadSync.markTargetRead(
+      widget.eventId,
+      keys: const ['eventId', 'targetId', 'target_id'],
+    );
     if (widget.initialEvent == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref

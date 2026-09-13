@@ -22,6 +22,7 @@ import 'e2ee/notification_decryption_service.dart';
 import 'background_location_service.dart';
 import 'background_reply_service.dart';
 import 'native_call_service.dart';
+import 'notification_read_sync.dart';
 import '../../l10n/app_localizations.dart';
 import 'preferences_service.dart';
 import 'supabase_auth_bridge.dart';
@@ -2582,6 +2583,9 @@ class NotificationService {
     final targetId = message.data['targetId'] as String? ?? '';
     final data = Map<String, dynamic>.from(message.data);
 
+    // Ouverte depuis le volet système : la notification in-app est lue.
+    unawaited(NotificationReadSync.markPushRead(data));
+
     if (type != null) {
       if (_notificationTapCallback != null) {
         // Callback is set, navigate immediately
@@ -2761,6 +2765,7 @@ class NotificationService {
 
         // Gestion du tap normal (pas d'action spécifique)
         if (actionId == null || actionId.isEmpty) {
+          unawaited(NotificationReadSync.markPushRead(data));
           if (type != null) {
             if (_notificationTapCallback != null) {
               _notificationTapCallback!.call(type, targetId, data);
