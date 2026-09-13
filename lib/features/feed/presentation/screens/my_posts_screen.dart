@@ -15,6 +15,7 @@ import '../widgets/feed_pill_tabs.dart';
 import '../widgets/my_post_card.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 // Provider for user's own posts
 final myPostsProvider =
@@ -628,11 +629,11 @@ class _Header extends StatelessWidget {
                           ),
                         ),
                       )
-                      : Text(
+                      : DesignTitle(
                         l10n.myPostsTitle,
                         style: FeedText.heading(tokens, size: 22),
+                        accent: tokens.accent,
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
             ),
             if (showSearch) ...[

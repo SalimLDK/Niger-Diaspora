@@ -9,6 +9,7 @@ import '../../domain/entities/payment_account_entity.dart';
 import '../providers/payment_account_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AddPaymentAccountScreen extends ConsumerStatefulWidget {
   const AddPaymentAccountScreen({super.key});
@@ -142,7 +143,7 @@ class _AddPaymentAccountScreenState
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/payment-accounts'),
         ),
-        title: Text(l10n.addPaymentAccount)),
+        title: DesignTitle(l10n.addPaymentAccount, size: 22)),
       body: Form(
         key: _formKey,
         child: ListView(

@@ -24,6 +24,7 @@ import '../widgets/feed_toast.dart';
 import '../widgets/mention_text_field.dart';
 import '../widgets/post_card.dart' show postVisibilityIcon, postVisibilityLabel;
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Ce que l'éditeur doit ouvrir à l'arrivée (amorces de l'état vide §5g).
 enum ComposeIntent { blank, photo, poll }
@@ -559,9 +560,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
           child: Text(l10n.cancel, style: TextStyle(color: tokens.accent)),
         ),
         leadingWidth: 88,
-        title: Text(
+        title: DesignTitle(
           _isEditing ? l10n.editPostTitle : l10n.createPost,
           style: FeedText.heading(tokens, size: 16),
+          accent: tokens.accent,
         ),
         centerTitle: true,
         actions: [

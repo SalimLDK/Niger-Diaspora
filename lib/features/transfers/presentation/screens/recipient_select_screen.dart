@@ -9,6 +9,7 @@ import '../providers/transfer_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class RecipientSelectScreen extends ConsumerStatefulWidget {
   const RecipientSelectScreen({super.key});
@@ -44,7 +45,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/transfers'),
         ),
-        title: Text(l10n.transferChooseRecipient),
+        title: DesignTitle(l10n.transferChooseRecipient, size: 22),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_add_outlined),

@@ -7,6 +7,7 @@ import '../../domain/entities/recipient_entity.dart';
 import '../providers/transfer_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AddRecipientScreen extends ConsumerStatefulWidget {
   final RecipientEntity? existingRecipient;
@@ -112,8 +113,9 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/transfers'),
         ),
-        title: Text(
+        title: DesignTitle(
           _isEditing ? l10n.recipientEditTitle : l10n.recipientNewTitle,
+          size: 22,
         ),
         actions: [
           if (_isEditing)

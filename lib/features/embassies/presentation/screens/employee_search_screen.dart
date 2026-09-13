@@ -8,6 +8,7 @@ import '../../data/models/embassy_employee_model.dart';
 import '../../data/datasources/embassy_remote_datasource.dart';
 import '../../domain/entities/embassy_entity.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class EmployeeSearchScreen extends ConsumerStatefulWidget {
   final EmbassyEntity? embassy; // Optional: pre-filter by embassy
@@ -109,10 +110,11 @@ class _EmployeeSearchScreenState extends ConsumerState<EmployeeSearchScreen> {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/embassies'),
         ),
-        title: Text(
+        title: DesignTitle(
           widget.embassy != null
               ? 'Personnel - ${widget.embassy!.name}'
               : l10n.embassySearchTitle,
+          size: 22,
         ),
         backgroundColor: theme.colorScheme.surface,
       ),

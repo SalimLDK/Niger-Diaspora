@@ -12,6 +12,7 @@ import '../widgets/notification_style.dart';
 import '../providers/notification_provider.dart';
 import '../../../../core/services/notification_service.dart';
 import 'dart:convert';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class NotificationDetailScreen extends ConsumerWidget {
   final String notificationId;
@@ -29,7 +30,7 @@ class NotificationDetailScreen extends ConsumerWidget {
         // `notificationDetail` (« Détail de la notification ») était tronqué en
         // « Détail de la notificati… » : l'action ⏰ mange la largeur. Le mot
         // seul suffit — on est déjà dans le détail, la barre le rappelle.
-        title: Text(l10n.notificationsTitle),
+        title: DesignTitle(l10n.notificationsTitle, size: 22),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed:

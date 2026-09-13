@@ -12,6 +12,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/podcast_entity.dart';
 import '../providers/podcast_provider.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Screen for creating a new podcast
 class CreatePodcastScreen extends ConsumerStatefulWidget {
@@ -141,7 +142,7 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
               () =>
                   context.canPop() ? context.pop() : context.go('/podcasts'),
         ),
-        title: Text(
+        title: DesignTitle(
           l10n.createPodcast,
           style: DNText.serif(size: 22, color: dn.onSurface),
         ),

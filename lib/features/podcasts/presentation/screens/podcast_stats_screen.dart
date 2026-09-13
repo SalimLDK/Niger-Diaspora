@@ -11,6 +11,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/podcast_entity.dart';
 import '../../domain/entities/podcast_episode_entity.dart';
 import '../providers/podcast_provider.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// /podcasts/:podcastId/stats — tableau de bord d'un podcast (maquette 4a).
 ///
@@ -43,7 +44,7 @@ class PodcastStatsScreen extends ConsumerWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 0,
-        title: Text(
+        title: DesignTitle(
           l10n.podcastStatsTitle,
           style: DNText.serif(size: 22, color: context.dn.onSurface),
         ),

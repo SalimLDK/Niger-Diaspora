@@ -9,6 +9,7 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Centroides approximatifs des pays de destination les plus courants pour la
 /// diaspora nigerienne. Un pays absent de cette table n'a simplement pas de
@@ -75,7 +76,7 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.groupsByCountry),
+        title: DesignTitle(l10n.groupsByCountry, size: 22),
         leading: IconButton(
           icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
           onPressed:

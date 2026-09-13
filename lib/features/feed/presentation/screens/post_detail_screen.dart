@@ -17,6 +17,7 @@ import '../widgets/mention_text_field.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class PostDetailScreen extends ConsumerStatefulWidget {
   final String postId;
@@ -143,7 +144,11 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/home'),
         ),
-        title: Text(l10n.feedTitle, style: FeedText.heading(tokens, size: 17)),
+        title: DesignTitle(
+          l10n.feedTitle,
+          style: FeedText.heading(tokens, size: 17),
+          accent: tokens.accent,
+        ),
         elevation: 0,
       ),
       body: Column(

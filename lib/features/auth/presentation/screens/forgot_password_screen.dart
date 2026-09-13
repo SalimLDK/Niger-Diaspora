@@ -7,6 +7,7 @@ import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -76,7 +77,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     return Scaffold(
       backgroundColor: context.surfaceVariantColor,
       appBar: AppBar(
-        title: Text(
+        title: DesignTitle(
           'Réinitialisation du mot de passe',
           style: TextStyle(
             color: context.textPrimaryColor,

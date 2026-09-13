@@ -29,31 +29,97 @@ const double kDesignControlHeight = 54;
 
 /// Titre de page : serif gras aligné à gauche, terminé par un point d'accent
 /// terracotta. C'est la signature de toute la série d'écrans.
+///
+/// **Seule source du point** : tout titre d'écran passe par ici, y compris
+/// ceux des familles qui ont leur propre typographie (Fil, salons audio et
+/// podcasts, fiches en Inter) — ils fournissent [style] et gardent leur
+/// police. Le point était recopié à la main dans l'en-tête du Fil et absent
+/// de tout le reste : grand en-tête d'onglet, `AppBar` à `Text` nu, en-têtes
+/// faits main (2026-09-13).
+///
+/// Pas de point sur un nom saisi (groupe, salon, contact) : il signe les
+/// titres d'écran, pas le contenu.
 class DesignTitle extends StatelessWidget {
   final String text;
   final double size;
 
-  const DesignTitle(this.text, {super.key, this.size = 29});
+  /// Typographie d'une autre famille. Sans elle : Playfair gras à [size].
+  final TextStyle? style;
+
+  /// Couleur du point. Par défaut, la couleur d'accent de l'utilisateur.
+  final Color? accent;
+
+  final int? maxLines;
+  final TextAlign? textAlign;
+
+  const DesignTitle(
+    this.text, {
+    super.key,
+    this.size = 29,
+    this.style,
+    this.accent,
+    this.maxLines,
+    this.textAlign,
+  });
+
+  /// Un titre qui finit déjà sur une ponctuation n'en prend pas une seconde
+  /// (« Mot de passe oublié ?. »).
+  static bool prendLePoint(String text) =>
+      !RegExp(r'[.!?…:;]\s*$').hasMatch(text);
+
+  /// Le texte tel qu'il s'affiche, point compris — pour mesurer.
+  static String affiche(String text) => prendLePoint(text) ? '$text.' : text;
 
   @override
   Widget build(BuildContext context) {
-    final base = GoogleFonts.playfairDisplay(
-      fontSize: size,
-      fontWeight: FontWeight.w700,
-      height: 1.15,
-      color: context.textPrimaryColor,
-    );
-    return Text.rich(
-      TextSpan(
-        style: base,
+    final base = style ??
+        GoogleFonts.playfairDisplay(
+          fontSize: size,
+          fontWeight: FontWeight.w700,
+          height: 1.15,
+          color: context.textPrimaryColor,
+        );
+    if (!prendLePoint(text)) {
+      return Text(text, style: base, maxLines: maxLines, textAlign: textAlign);
+    }
+    final point = base.copyWith(color: accent ?? context.adaptivePrimaryColor);
+
+    // Sur une seule ligne, le point vit hors du texte. Une `AppBar` impose
+    // `softWrap: false` + ellipse à son titre : dans un seul `Text.rich`,
+    // l'ellipse tombait avant le point, et tout titre un peu long — ou une
+    // police agrandie dans les réglages du téléphone — le perdait.
+    final uneLigne = maxLines == 1 || !DefaultTextStyle.of(context).softWrap;
+    if (uneLigne) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
         children: [
-          TextSpan(text: text),
-          TextSpan(
-            text: '.',
-            style: base.copyWith(color: context.adaptivePrimaryColor),
+          Flexible(
+            child: Text(
+              text,
+              style: base,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          ExcludeSemantics(
+            child: Text('.', style: point, maxLines: 1, softWrap: false),
           ),
         ],
+      );
+    }
+
+    // Sur plusieurs lignes, le point suit le dernier mot : aucune coupure
+    // n'est permise devant un point, il ne se retrouve jamais seul.
+    return Text.rich(
+      TextSpan(
+        children: [TextSpan(text: text), TextSpan(text: '.', style: point)],
       ),
+      style: base,
+      maxLines: maxLines,
+      textAlign: textAlign,
     );
   }
 }
@@ -1231,7 +1297,8 @@ class DesignHeaderTitle extends StatelessWidget {
         var size = _baseSize;
         if (constraints.maxWidth.isFinite && constraints.maxWidth > 0) {
           var widest = 0.0;
-          for (final word in title.split(RegExp(r'\s+'))) {
+          // Point compris : il colle au dernier mot et doit tenir avec lui.
+          for (final word in DesignTitle.affiche(title).split(RegExp(r'\s+'))) {
             if (word.isEmpty) continue;
             final painter = TextPainter(
               text: TextSpan(text: word, style: style),
@@ -1249,7 +1316,7 @@ class DesignHeaderTitle extends StatelessWidget {
                 .clamp(_minSize, _baseSize);
           }
         }
-        return Text(title, style: style.copyWith(fontSize: size));
+        return DesignTitle(title, style: style.copyWith(fontSize: size));
       },
     );
   }

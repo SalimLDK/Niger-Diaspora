@@ -18,6 +18,7 @@ import '../../../../core/services/analytics_service.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/shared/widgets/dashed_border_painter.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 import '../../../messages/presentation/providers/media_gallery_provider.dart'
     show groupConversationIdProvider;
 import '../../../messages/presentation/providers/message_provider.dart'
@@ -619,7 +620,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             ),
             onPressed: _handleClose,
           ),
-          title: Text(
+          title: DesignTitle(
             'Nouvel événement',
             style: TextStyle(
               fontSize: 18,

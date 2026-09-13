@@ -15,6 +15,7 @@ import '../widgets/podcast_card.dart';
 import '../widgets/episode_tile.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Home screen for podcasts discovery
 class PodcastsHomeScreen extends ConsumerStatefulWidget {
@@ -81,7 +82,7 @@ class _PodcastsHomeScreenState extends ConsumerState<PodcastsHomeScreen>
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            DesignTitle(
               l10n.podcasts,
               style: DNText.serif(size: 22, color: context.dn.onSurface),
             ),

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**846 cases à cocher, 491 cochées** — 173 entrées sur 217 ont encore des cases ouvertes.
+**853 cases à cocher, 491 cochées** — 174 entrées sur 218 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -179,7 +179,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (46)
+**P3 — confort, cosmétique, fonction en pause** (47)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -188,6 +188,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Brouillon restauré — le composer restait sur le micro (2026-08-04)](#brouillon-restauré--le-composer-restait-sur-le-micro-2026-08-04) · *Messagerie*
 - 5 · [✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)](#-quatre-écrans-sans-flèche-de-retour--corrigés-et-vérifiés-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 12 · [Salons audio — monétisation](#salons-audio--monétisation) · *Fil, stories, salons audio et podcasts* · bloqué
+- 7 · [⬜ Point d'accent après chaque titre d'écran (2026-09-13)](#-point-daccent-après-chaque-titre-décran-2026-09-13) · *Design, thème, langue et mise en page*
 - 4 · [⬜ Teinte des notifications système en vert (2026-09-07)](#-teinte-des-notifications-système-en-vert-2026-09-07) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
@@ -241,7 +242,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 99 à faire, 4 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 124 à faire, 27 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 131 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 35 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -11230,6 +11231,33 @@ directement sur la section APPLICATION.
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
 
 ---
+
+## ⬜ Point d'accent après chaque titre d'écran (2026-09-13)
+
+**Priorité P3** · importance 3/5 — Le point terracotta qui signe les titres manquait sur la plupart des écrans (onglets, `AppBar` simples, Fil, salons, podcasts), et disparaissait sous l'ellipse d'un titre long.
+
+Une seule source : `DesignTitle` ([design_kit.dart](lib/core/theme/design_kit.dart)).
+Tests : `test/core/theme/design_title_point_test.dart`. Volontairement **sans
+point** : noms saisis (groupe, salon, contact), back-office (orange interdit),
+barres de sélection et visionneuses média sur fond noir.
+
+- [ ] Les 7 grands en-têtes (Messages, Groupes, Profil, Réglages,
+  Notifications, Annuaire, Mes stories) : point terracotta collé au dernier
+  mot, jamais seul sur une ligne ; « Notifications. » tient toujours sur une
+  ligne au Pixel (`font_scale` 1.3).
+- [ ] Un écran à `AppBar` simple (Amis, Mes commandes, Historique des
+  paiements) : point présent, taille 22.
+- [ ] Titre long dans une `AppBar` (« Personnel - <ambassade> » depuis une
+  fiche ambassade, police agrandie) : « … » **puis** le point, qui reste
+  visible.
+- [ ] Fil (« Le fil. »), Mon espace, Mes publications, Enregistrés, Mon réseau :
+  point à la couleur d'accent du Fil — **violet en thème sombre** (Nocturne),
+  terracotta en clair.
+- [ ] Salons audio, Podcasts, Nouveau podcast, Programmer un salon : point
+  présent, police serif des salons conservée.
+- [ ] Mot de passe oublié, Nouvel événement, Modifier mon profil : taille et
+  graisse propres à ces écrans inchangées, seul le point s'ajoute.
+- [ ] Thème sombre : le point reste lisible sur chaque famille.
 
 ## ⬜ Grand titre d'en-tête : plus de mot coupé (2026-09-12)
 

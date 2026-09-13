@@ -15,6 +15,7 @@ import '../../domain/entities/podcast_episode_entity.dart';
 import '../providers/podcast_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Screen for recording/uploading a podcast episode
 class RecordEpisodeScreen extends ConsumerStatefulWidget {
@@ -503,7 +504,7 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 0,
-        title: Text(
+        title: DesignTitle(
           l10n.podcastsNewEpisodeTitle,
           style: DNText.serif(size: 22, color: context.dn.onSurface),
         ),

@@ -17,6 +17,7 @@ import '../../domain/entities/profile_entity.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/handle_field.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Longueur maximale de la bio (§20a : « 118/160 »). Le compteur et la
 /// limite de saisie lisent la même constante — deux valeurs séparées
@@ -610,7 +611,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 // dans le contenu, en ligne — l'écran commence donc sur un
                 // champ et non sur un tiers de page décoratif.
                 pinned: true,
-                title: Text(
+                title: DesignTitle(
                   AppLocalizations.of(context)!.editProfileTitle,
                   style: TextStyle(
                     fontSize: 17,

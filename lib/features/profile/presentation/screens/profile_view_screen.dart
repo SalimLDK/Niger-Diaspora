@@ -410,7 +410,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
             }
           },
         ),
-        title: Text(l10n.profileTitle),
+        title: DesignTitle(l10n.profileTitle, size: 22),
       ),
       body: Center(
         child: Padding(

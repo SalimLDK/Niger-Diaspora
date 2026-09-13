@@ -14,6 +14,7 @@ import '../widgets/feed_avatar.dart';
 import '../widgets/feed_empty_state.dart';
 import '../widgets/feed_pill_tabs.dart';
 import '../widgets/follow_button.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Écran « Mon réseau » (fiche 5d, route `/profile/follows`).
 ///
@@ -165,11 +166,11 @@ class _Header extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(
+              child: DesignTitle(
                 'Mon réseau',
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: FeedText.heading(tokens, size: 22),
+                accent: tokens.accent,
               ),
             ),
           ],

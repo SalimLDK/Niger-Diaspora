@@ -6,6 +6,7 @@ import '../../domain/entities/group_request_entity.dart';
 import '../providers/group_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class GroupRequestsScreen extends ConsumerWidget {
   final String groupId;
@@ -21,7 +22,7 @@ class GroupRequestsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Demandes d\'adhésion'),
+        title: const DesignTitle('Demandes d\'adhésion', size: 22),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,

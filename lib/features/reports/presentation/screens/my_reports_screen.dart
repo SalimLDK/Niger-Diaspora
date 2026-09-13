@@ -9,6 +9,7 @@ import '../providers/report_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../report_labels.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class MyReportsScreen extends ConsumerWidget {
   const MyReportsScreen({super.key});
@@ -27,7 +28,7 @@ class MyReportsScreen extends ConsumerWidget {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/settings'),
         ),
-        title: Text(l10n.reportMyReports),
+        title: DesignTitle(l10n.reportMyReports, size: 22),
         centerTitle: true,
       ),
       body: reportsAsync.when(

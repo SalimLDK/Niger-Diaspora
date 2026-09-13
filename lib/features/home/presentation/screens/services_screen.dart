@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../widgets/quick_action_card.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class ServicesScreen extends ConsumerWidget {
   const ServicesScreen({super.key});
@@ -95,7 +96,7 @@ class ServicesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.allServices),
+        title: DesignTitle(l10n.allServices, size: 22),
         backgroundColor: context.surfaceColor,
         elevation: 0,
         centerTitle: true,

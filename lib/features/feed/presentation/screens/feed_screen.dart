@@ -23,6 +23,7 @@ import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
 import '../widgets/story_rail.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class FeedScreen extends ConsumerStatefulWidget {
   final String? hashtagFilter;
@@ -200,9 +201,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                               ? context.pop()
                               : context.go('/home'),
                 ),
-                title: Text(
+                title: DesignTitle(
                   l10n.feedTitle,
                   style: FeedText.heading(tokens, size: 20),
+                  accent: tokens.accent,
                 ),
                 centerTitle: true,
                 elevation: 0,
@@ -524,17 +526,10 @@ class _FeedHeader extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
-                  Text.rich(
-                    TextSpan(
-                      style: titleStyle,
-                      children: [
-                        TextSpan(text: baseTitle),
-                        TextSpan(
-                          text: '.',
-                          style: titleStyle.copyWith(color: tokens.accent),
-                        ),
-                      ],
-                    ),
+                  DesignTitle(
+                    baseTitle,
+                    style: titleStyle,
+                    accent: tokens.accent,
                   ),
                 ],
               ),

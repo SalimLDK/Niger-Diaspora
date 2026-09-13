@@ -10,6 +10,7 @@ import '../theme/feed_tokens.dart';
 import '../widgets/feed_avatar.dart';
 import '../widgets/follow_button.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Liste des comptes ayant repartagé une publication donnée
 /// (route `/feed/:postId/reposts`).
@@ -35,7 +36,11 @@ class RepostersScreen extends ConsumerWidget {
               () => context.canPop() ? context.pop() : context.go('/feed'),
         ),
         backgroundColor: tokens.bg,
-        title: Text(l10n.feedRepostsTitle, style: FeedText.heading(tokens, size: 18)),
+        title: DesignTitle(
+          l10n.feedRepostsTitle,
+          style: FeedText.heading(tokens, size: 18),
+          accent: tokens.accent,
+        ),
         elevation: 0,
       ),
       body: repostersAsync.when(

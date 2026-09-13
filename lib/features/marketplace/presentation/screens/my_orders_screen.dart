@@ -12,6 +12,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/order_entity.dart';
 import '../providers/marketplace_provider.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class MyOrdersScreen extends ConsumerStatefulWidget {
   const MyOrdersScreen({super.key});
@@ -52,7 +53,7 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen>
             onPressed:
                 () => context.canPop() ? context.pop() : context.go('/marketplace'),
           ),
-          title: Text(l10n.marketplaceMyOrders)),
+          title: DesignTitle(l10n.marketplaceMyOrders, size: 22)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -63,7 +64,7 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen>
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/marketplace'),
         ),
-        title: Text(l10n.marketplaceMyOrders),
+        title: DesignTitle(l10n.marketplaceMyOrders, size: 22),
         bottom: TabBar(
           controller: _tabController,
           tabs: [

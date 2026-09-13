@@ -14,6 +14,7 @@ import '../../domain/entities/transfer_failure_kind.dart';
 import '../providers/transfer_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class TransactionDetailScreen extends ConsumerWidget {
   final String transactionId;
@@ -36,7 +37,7 @@ class TransactionDetailScreen extends ConsumerWidget {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/transfers'),
         ),
-        title: Text(l10n.transferDetails),
+        title: DesignTitle(l10n.transferDetails, size: 22),
         actions: [
           IconButton(
             icon: const Icon(Icons.share_outlined),

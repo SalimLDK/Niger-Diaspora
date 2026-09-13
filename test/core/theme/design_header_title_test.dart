@@ -9,6 +9,9 @@ import 'package:diaspo_niger/core/theme/design_kit.dart';
 /// Mesuré sur Pixel 10 Pro XL le 2026-09-12 : « Notificatio / ns », parce que
 /// « Tout lire » et ⚙ ne laissent qu'environ 150 dp au titre à `font_scale`
 /// 1.3. Le test rejoue cette largeur et cette échelle.
+///
+/// Depuis le 2026-09-13 le titre porte le point d'accent : il colle au dernier
+/// mot, la mesure le compte.
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   tearDownAll(() => GoogleFonts.config.allowRuntimeFetching = true);
@@ -33,7 +36,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    return tester.widget<Text>(find.text(titre)).style!;
+    return tester.widget<Text>(find.text('$titre.')).style!;
   }
 
   int lignes(String texte, TextStyle style, double largeur, double echelle) {
@@ -55,7 +58,7 @@ void main() {
       echelle: 1.3,
     );
     expect(style.fontSize, lessThan(30));
-    expect(lignes('Notifications', style, 150, 1.3), 1);
+    expect(lignes('Notifications.', style, 150, 1.3), 1);
   });
 
   testWidgets('un titre qui tient garde sa taille', (tester) async {
