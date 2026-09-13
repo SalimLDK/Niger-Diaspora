@@ -4150,6 +4150,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copy => 'Copy';
 
   @override
+  String get selectText => 'Select text';
+
+  @override
+  String get copyAll => 'Copy all';
+
+  @override
+  String get moreReactions => 'More reactions';
+
+  @override
   String get report => 'Report';
 
   @override

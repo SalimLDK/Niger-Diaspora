@@ -65,6 +65,8 @@ enum NotificationType {
   reportResolved,
   // Invitation à un appel de groupe (`group_call_provider`).
   groupCallInvitation,
+  // Réaction à un de mes messages (`set_message_reaction`).
+  messageReaction,
 }
 
 extension NotificationTypeExtension on NotificationType {
@@ -129,6 +131,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'Signalement traité';
       case NotificationType.groupCallInvitation:
         return 'Appel de groupe';
+      case NotificationType.messageReaction:
+        return 'Réaction';
     }
   }
 
@@ -192,6 +196,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'gavel';
       case NotificationType.groupCallInvitation:
         return 'groups';
+      case NotificationType.messageReaction:
+        return 'add_reaction';
     }
   }
 }

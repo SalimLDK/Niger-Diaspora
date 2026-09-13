@@ -22,6 +22,7 @@ import 'e2ee/notification_decryption_service.dart';
 import 'background_location_service.dart';
 import 'background_reply_service.dart';
 import 'native_call_service.dart';
+import 'notification_read_sync.dart';
 import '../../l10n/app_localizations.dart';
 import 'preferences_service.dart';
 import 'supabase_auth_bridge.dart';
@@ -1622,6 +1623,13 @@ class NotificationService {
       }
     }
 
+    // Une réaction sur la discussion ouverte se voit déjà sous la bulle.
+    if (type == 'messageReaction' &&
+        data['conversationId'] != null &&
+        data['conversationId'] == _currentOpenConversationId) {
+      return;
+    }
+
     // Volontairement AUCUNE écriture en base ici : la ligne `notifications` est
     // créée côté serveur AVANT le push (c'est son INSERT qui déclenche le
     // trigger -> send-push). Ré-insérer ici créerait un doublon dans la cloche
@@ -1754,6 +1762,7 @@ class NotificationService {
 
       switch (type) {
         case 'message':
+        case 'messageReaction':
           return prefs.getBool('notify_messages') ?? true;
         case 'friendRequest':
         case 'friendRequestAccepted':
@@ -2495,6 +2504,7 @@ class NotificationService {
   (String, String, Importance) _getChannelForType(String? type) {
     switch (type) {
       case 'message':
+      case 'messageReaction':
         return ('messages', 'Messages', Importance.high);
       case 'friendRequest':
       case 'friendRequestAccepted':
@@ -2581,6 +2591,9 @@ class NotificationService {
     final type = message.data['type'] as String?;
     final targetId = message.data['targetId'] as String? ?? '';
     final data = Map<String, dynamic>.from(message.data);
+
+    // Ouverte depuis le volet système : la notification in-app est lue.
+    unawaited(NotificationReadSync.markPushRead(data));
 
     if (type != null) {
       if (_notificationTapCallback != null) {
@@ -2761,6 +2774,7 @@ class NotificationService {
 
         // Gestion du tap normal (pas d'action spécifique)
         if (actionId == null || actionId.isEmpty) {
+          unawaited(NotificationReadSync.markPushRead(data));
           if (type != null) {
             if (_notificationTapCallback != null) {
               _notificationTapCallback!.call(type, targetId, data);

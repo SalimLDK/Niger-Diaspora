@@ -212,7 +212,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
           final notificationsWithoutBlocked = notifications.where((n) {
             // Filter message notifications by senderId
-            if (n.type == NotificationType.message && n.senderId != null) {
+            if ((n.type == NotificationType.message ||
+                    n.type == NotificationType.messageReaction) &&
+                n.senderId != null) {
               // If I blocked this user, hide their notifications
               if (blockedUserIds.contains(n.senderId)) return false;
 
@@ -493,6 +495,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         context.push('/map');
         break;
       case NotificationType.message:
+      case NotificationType.messageReaction:
         if (notification.targetId != null) {
           context.push('/messages/${notification.targetId}');
         }

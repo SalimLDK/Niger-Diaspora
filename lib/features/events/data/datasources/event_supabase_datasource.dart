@@ -199,6 +199,29 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
     return events;
   }
 
+  /// Oublie les événements du cache qu'une lecture complète n'a pas rendus.
+  ///
+  /// `_cacher` n'écrit que par-dessus : un événement supprimé — par son
+  /// organisateur sur un autre appareil, ou depuis le back-office — restait
+  /// donc dans la boîte, et revenait à l'accueil à chaque ouverture par
+  /// l'affichage « cache d'abord ». On ne purge que si la réponse est
+  /// **complète** (moins de lignes que la limite) et seulement dans le
+  /// périmètre de la requête : un événement passé ne disparaît pas parce que
+  /// la liste « à venir » ne le contient pas.
+  Future<void> _oublierAbsents(
+    List<EventModel> recus, {
+    required bool complet,
+    required bool Function(EventModel) perimetre,
+  }) async {
+    if (!complet) return;
+    final ids = recus.map((e) => e.id).toSet();
+    for (final e in _depuisLeCache()) {
+      if (perimetre(e) && !ids.contains(e.id)) {
+        await _cache.removeCachedEvent(e.id);
+      }
+    }
+  }
+
   List<EventModel> _depuisLeCache() =>
       _cache.getAllCachedEvents().map(EventModel.fromJson).toList();
 
@@ -272,7 +295,13 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
                   .order('starts_at')
                   .limit(20)
               as List;
-      return _cacher(await _modelesDepuis(rows));
+      final events = await _modelesDepuis(rows);
+      await _oublierAbsents(
+        events,
+        complet: rows.length < 20,
+        perimetre: (e) => e.status != 'draft' && _estAVenir(e, now),
+      );
+      return _cacher(events);
     } catch (e) {
       final cached = repli();
       if (cached.isNotEmpty) return cached;
@@ -307,7 +336,13 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
                   .order('starts_at', ascending: false)
                   .limit(50)
               as List;
-      return _cacher(await _modelesDepuis(rows));
+      final events = await _modelesDepuis(rows);
+      await _oublierAbsents(
+        events,
+        complet: rows.length < 50,
+        perimetre: (e) => e.status != 'draft' && _estPasse(e, now),
+      );
+      return _cacher(events);
     } catch (e) {
       final cached = repli();
       if (cached.isNotEmpty) return cached;
@@ -500,15 +535,28 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
   @override
   Future<void> deleteEvent(String eventId) async {
     await SupabaseAuthBridge.instance.ensureAuthenticated();
+    final List<dynamic> supprimes;
     try {
-      await _supabase.from('events').delete().eq('id', eventId);
-      // `CacheService` n'expose aucune suppression unitaire, et y écrire une
-      // carte vide fabriquerait une entrée que `EventModel.fromJson` ne sait
-      // pas relire. Le prochain `getEvents()` vide la boîte (`cacheEvents`
-      // fait `box.clear()`) : l'événement supprimé s'en va avec.
+      // `.select()` rend les lignes réellement effacées. Une suppression que
+      // la RLS refuse ne lève **aucune** erreur : elle efface zéro ligne.
+      // L'écran annonçait alors « Événement supprimé » et l'événement restait
+      // en base — et à l'accueil (2026-09-12).
+      supprimes = await _supabase
+          .from('events')
+          .delete()
+          .eq('id', eventId)
+          .select('id');
     } on PostgrestException catch (e) {
       throw ServerException(e.message);
     }
+    if (supprimes.isEmpty) {
+      throw ServerException(
+        "L'événement n'a pas été supprimé (droits insuffisants ou déjà supprimé)",
+      );
+    }
+    // Le cache d'abord relu par `EventsNotifier` : sans ce retrait,
+    // l'événement réapparaissait au prochain affichage.
+    await _cache.removeCachedEvent(eventId);
   }
 
   @override

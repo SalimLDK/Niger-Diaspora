@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**786 cases à cocher, 491 cochées** — 161 entrées sur 205 ont encore des cases ouvertes.
+**799 cases à cocher, 491 cochées** — 164 entrées sur 208 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -63,12 +63,13 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (41)
+**P1 — fonction importante, jamais vérifiée** (42)
 
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -107,7 +108,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (57)
+**P2 — fonction secondaire ou cas limite** (59)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -118,6 +119,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 4 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
+- 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
 - 8 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
 - 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
 - 6 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
@@ -219,7 +222,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 103 à faire, 52 faites
+- [2. Messagerie](#2-messagerie) — 116 à faire, 52 faites
 - [3. Groupes](#3-groupes) — 96 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
@@ -478,6 +481,77 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)
+
+**Priorité P2** · importance 3/5 — Sur la bulle verte, le nom de l'auteur, « Voir la publication → » et « Voir l'événement → » étaient quasi invisibles (sarcelle et violet sur vert), et le texte « 📌 Post de… » répétait la carte.
+
+Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
+
+- [ ] **Bulle envoyée** : post partagé et événement créé dans la discussion —
+  auteur, titre, « Voir … → » en blanc lisible sur un voile sombre ; plus de
+  ligne « 📌 Post de Salim L. » / « 📅 test » sous la carte.
+  (`shared_card_palette.dart`, `post_message_card.dart`,
+  `event_message_card.dart`)
+- [ ] **Bulle reçue** (côté Sim), thème clair ET sombre : accents à la couleur
+  du thème, lisibles sur bulle blanche et sur bulle `#252119`.
+- [ ] **Texte ajouté par l'utilisateur** sous une carte : toujours affiché.
+- [ ] L'aperçu de la liste des discussions garde « 📌 Salim L. » (inchangé).
+
+---
+
+## ⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)
+
+**Priorité P2** · importance 3/5 — « Copier » n'existait que pour un message texte : ni légende de photo, ni adresse, ni sondage, ni un seul numéro dans un long message.
+
+- [ ] **Appui long sur une photo ou vidéo AVEC légende** → « Copier » présent,
+  colle la légende. Sans légende → pas de « Copier ».
+  (`message_copy_text.dart`, `message_bubble.dart`)
+- [ ] **Position** → « Copier » colle l'adresse puis un lien Google Maps qui
+  s'ouvre depuis une autre app. **Sondage** → la question.
+- [ ] **Autres actions → « Sélectionner le texte »** : feuille avec le texte
+  sélectionnable ; appui long dedans, choisir un numéro ou un lien, menu
+  système Copier ; « Tout copier » ferme et copie tout. Message long : la
+  feuille défile.
+- [ ] **Sélection multiple** : sélectionner 3 messages dont un vocal → icône
+  Copier dans la barre verte ; le collage donne une ligne
+  « [12/09/2026 21:04] Nom : texte » par message texte, dans l'ordre, sans le
+  vocal. Sélection de vocaux seuls → pas d'icône. Barre sur écran étroit
+  (SM A515F, police 1.1) : le titre « N sélectionnés » ne déborde pas avec
+  une icône de plus. (`conversation_screen.dart`)
+
+---
+
+## ⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)
+
+**Priorité P1** · importance 4/5 — Le double tap posait d'office un cœur (noir), une réaction n'envoyait aucune notification et disparaissait parfois chez l'autre.
+
+*Bloqué : la notification et la mise à jour croisée demandent la migration `20260912220000_reaction_atomique_et_notification.sql` appliquée, et deux comptes (Pixel + SM A515F).*
+
+- [ ] **Double tap** sur une bulle (texte, photo, emoji seul) : une barre
+  flottante au-dessus de la bulle avec 👍 ❤️ 😂 🙏 😮 et un « + ». Choisir un
+  emoji le pose ; toucher à côté ferme sans rien poser ; la barre ne sort
+  jamais de l'écran (bulle tout en haut → barre en dessous).
+  (`reaction_picker.dart`, `message_bubble.dart`)
+- [ ] **« + »** (barre du double tap ET feuille d'appui long) : ouvre le
+  sélecteur complet, recherche comprise (le clavier remonte la feuille) ;
+  l'emoji choisi est posé.
+- [ ] **Cœur rouge** : ❤️ rouge sous la bulle, dans la barre, dans le
+  sélecteur, dans une bulle « emoji seul », dans le composeur en tapant, dans
+  l'aperçu de la liste des discussions. Aussi ☀️. Et ⚠ reste un symbole de
+  texte coloré dans les salons audio. (`assets/google_fonts/Inter-*.ttf`,
+  `tools/polices_emoji_couleur.py`)
+- [ ] **Notification** : Sim réagit à un message de Salim → Salim reçoit
+  « Sim · A réagi ❤️ à votre message », app fermée comme ouverte ; le tap
+  ouvre la discussion. Changer d'emoji ne fait pas une 2e ligne dans la cloche.
+  Aucune bannière si la discussion est déjà ouverte, ni si elle est en
+  sourdine.
+- [ ] **Mise à jour croisée** : les deux téléphones sur la même discussion,
+  réagir en rafale d'un côté puis de l'autre, quitter/rouvrir la discussion
+  entre deux : chaque réaction apparaît chez l'autre sans relancer l'app, et
+  l'accusé « Lu » ne disparaît plus. (`message_supabase_datasource.dart`)
 
 ---
 
