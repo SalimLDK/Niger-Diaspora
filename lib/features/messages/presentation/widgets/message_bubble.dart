@@ -24,6 +24,7 @@ import '../../../../core/services/file_download_service.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/message_entity.dart';
+import '../utils/message_copy_text.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/utils/user_color_utils.dart';
 import '../../../reports/domain/entities/report_entity.dart'
@@ -1111,7 +1112,9 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           },
         ),
 
-      if (widget.message.type == MessageType.text)
+      // Texte, légende de photo/vidéo, adresse d'une position, question d'un
+      // sondage : la règle vit dans `messageCopyText`.
+      if (messageCopyText(widget.message) case final texte?)
         ListTile(
           leading: Icon(Icons.copy, color: context.textPrimaryColor),
           title: Text(
@@ -1120,15 +1123,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           ),
           onTap: () {
             Navigator.pop(ctx);
-            Clipboard.setData(ClipboardData(text: widget.message.content));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.messageCopied),
-                backgroundColor: context.adaptivePrimaryColor,
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 1),
-              ),
-            );
+            _copyToClipboard(texte);
           },
         ),
 
@@ -1285,6 +1280,24 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           },
         ),
 
+      // Copier une partie seulement : un numéro, un lien, une phrase. La bulle
+      // n'est pas sélectionnable (l'appui long y ouvre ce menu).
+      if (messageCopyText(widget.message) case final texte?)
+        ListTile(
+          leading: Icon(
+            Icons.text_fields_rounded,
+            color: context.textPrimaryColor,
+          ),
+          title: Text(
+            l10n.selectText,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            _showSelectTextSheet(texte);
+          },
+        ),
+
       if (widget.onSelect != null)
         ListTile(
           leading: AppIcon(
@@ -1346,6 +1359,81 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           },
         ),
     ];
+  }
+
+  void _copyToClipboard(String texte) {
+    Clipboard.setData(ClipboardData(text: texte));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(l10n.messageCopied),
+        backgroundColor: context.adaptivePrimaryColor,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  /// Le texte du message, sélectionnable : appui long ou double tap dedans
+  /// pour choisir un passage, « Tout copier » pour le reste.
+  void _showSelectTextSheet(String texte) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(ctx).size.height * 0.75,
+        ),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          12,
+          20,
+          12 + MediaQuery.of(ctx).padding.bottom,
+        ),
+        decoration: BoxDecoration(
+          color: context.surfaceColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Center(child: SheetHandle()),
+            const SizedBox(height: 12),
+            Text(
+              l10n.selectText,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: context.textPrimaryColor,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Flexible(
+              child: SingleChildScrollView(
+                child: SelectableText(
+                  texte,
+                  style: TextStyle(
+                    fontSize: 17,
+                    height: 1.35,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _copyToClipboard(texte);
+              },
+              icon: const Icon(Icons.copy, size: 18),
+              label: Text(l10n.copyAll),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showMessageInfoSheet(BuildContext context) {

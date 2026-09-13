@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**785 cases à cocher, 491 cochées** — 161 entrées sur 205 ont encore des cases ouvertes.
+**789 cases à cocher, 491 cochées** — 162 entrées sur 206 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -107,7 +107,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (57)
+**P2 — fonction secondaire ou cas limite** (58)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -118,6 +118,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
 - 8 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
 - 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
 - 6 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
@@ -219,7 +220,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 108 à faire, 52 faites
+- [2. Messagerie](#2-messagerie) — 112 à faire, 52 faites
 - [3. Groupes](#3-groupes) — 90 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
@@ -478,6 +479,28 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)
+
+**Priorité P2** · importance 3/5 — « Copier » n'existait que pour un message texte : ni légende de photo, ni adresse, ni sondage, ni un seul numéro dans un long message.
+
+- [ ] **Appui long sur une photo ou vidéo AVEC légende** → « Copier » présent,
+  colle la légende. Sans légende → pas de « Copier ».
+  (`message_copy_text.dart`, `message_bubble.dart`)
+- [ ] **Position** → « Copier » colle l'adresse puis un lien Google Maps qui
+  s'ouvre depuis une autre app. **Sondage** → la question.
+- [ ] **Autres actions → « Sélectionner le texte »** : feuille avec le texte
+  sélectionnable ; appui long dedans, choisir un numéro ou un lien, menu
+  système Copier ; « Tout copier » ferme et copie tout. Message long : la
+  feuille défile.
+- [ ] **Sélection multiple** : sélectionner 3 messages dont un vocal → icône
+  Copier dans la barre verte ; le collage donne une ligne
+  « [12/09/2026 21:04] Nom : texte » par message texte, dans l'ordre, sans le
+  vocal. Sélection de vocaux seuls → pas d'icône. Barre sur écran étroit
+  (SM A515F, police 1.1) : le titre « N sélectionnés » ne déborde pas avec
+  une icône de plus. (`conversation_screen.dart`)
 
 ---
 

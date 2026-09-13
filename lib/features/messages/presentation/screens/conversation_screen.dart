@@ -2,6 +2,7 @@ import 'package:diaspo_niger/core/constants/deleted_account.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +20,7 @@ import '../providers/media_upload_provider.dart';
 import '../widgets/conversation_options_modal.dart';
 import '../widgets/forward_conversation_picker.dart';
 import '../widgets/message_bubble.dart';
+import '../utils/message_copy_text.dart';
 import '../utils/message_grouping.dart';
 import '../widgets/message_input.dart';
 import '../widgets/note_poll_draft_sheet.dart';
@@ -789,6 +791,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   List<MessageEntity> _getSelectedMessages(List<MessageEntity> allMessages) {
     return allMessages.where((m) => _selectedMessageIds.contains(m.id)).toList()
       ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  }
+
+  void _copySelectedMessages(List<MessageEntity> allMessages) {
+    final texte = selectionCopyText(_getSelectedMessages(allMessages));
+    if (texte == null) return;
+    Clipboard.setData(ClipboardData(text: texte));
+    _exitSelectionMode();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.copiedToClipboard),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   Future<void> _forwardSelectedMessages(List<MessageEntity> allMessages) async {
@@ -2555,6 +2571,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                   ? AppLocalizations.of(context)!.deselectAll
                   : AppLocalizations.of(context)!.selectAll,
         ),
+        // Copier la sélection (textes, légendes, positions, sondages).
+        if (selectionCopyText(_getSelectedMessages(allMessages)) != null)
+          IconButton(
+            onPressed: () => _copySelectedMessages(allMessages),
+            icon: const Icon(Icons.copy, color: AppColors.white),
+            tooltip: AppLocalizations.of(context)!.copy,
+          ),
         // Star selected
         IconButton(
           onPressed: () => _starSelectedMessages(allMessages),
