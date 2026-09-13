@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**855 cases à cocher, 495 cochées** — 175 entrées sur 219 ont encore des cases ouvertes.
+**856 cases à cocher, 495 cochées** — 175 entrées sur 219 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -127,7 +127,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
 - 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
-- 4 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
+- 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
 - 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
 - 8 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
 - 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
@@ -233,7 +233,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 119 à faire, 52 faites
+- [2. Messagerie](#2-messagerie) — 120 à faire, 52 faites
 - [3. Groupes](#3-groupes) — 101 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
@@ -525,6 +525,10 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
 - [ ] **Bulle reçue** (côté Sim), thème clair ET sombre : accents à la couleur
   du thème, lisibles sur bulle blanche et sur bulle `#252119`.
 - [ ] **Texte ajouté par l'utilisateur** sous une carte : toujours affiché.
+- [ ] **Taille du texte** (validée par Salim sur aperçu le 2026-09-13) : auteur,
+  en-tête, liens, date et lieu 16 ; extrait du post 17,5 ; titre de l'événement
+  19. Vérifier sur le Pixel et sur le SM A515F (échelle de police 1.1) qu'aucun
+  titre long ne déborde de la bulle.
 - [ ] L'aperçu de la liste des discussions garde « 📌 Salim L. » (inchangé).
 
 ---
