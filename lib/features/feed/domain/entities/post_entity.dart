@@ -3,6 +3,32 @@ import '../../../../core/utils/mention_handle.dart';
 
 enum PostMediaType { none, images, video }
 
+/// Qui peut voir une publication (`posts.visibility`). C'est la base qui
+/// tranche (`peut_voir_publication`, migration 20260912230000) :
+///
+/// - `public`    : tout le monde ;
+/// - `followers` : les personnes qui suivent l'auteur, et ses amis ;
+/// - `friends`   : ses amis seulement ;
+/// - `private`   : l'auteur seul (« Moi uniquement »).
+///
+/// Amis et abonnés sont deux relations distinctes : une amitié est
+/// réciproque et acceptée (`friends`), un abonnement ne l'est pas
+/// (`user_follows`). L'écran de création n'offrait que « Public » : la
+/// colonne était écrite en dur.
+enum PostVisibility {
+  public('public'),
+  followers('followers'),
+  friends('friends'),
+  onlyMe('private');
+
+  const PostVisibility(this.dbValue);
+
+  final String dbValue;
+
+  static PostVisibility fromDb(String? value) => PostVisibility.values
+      .firstWhere((v) => v.dbValue == value, orElse: () => PostVisibility.public);
+}
+
 class MentionedUser extends Equatable {
   final String id;
   final String name;
@@ -87,6 +113,9 @@ class PostEntity extends Equatable {
   final double? longitude;
   final String? locationAddress;
 
+  /// Audience choisie par l'auteur.
+  final PostVisibility visibility;
+
   const PostEntity({
     required this.id,
     required this.authorId,
@@ -111,7 +140,10 @@ class PostEntity extends Equatable {
     this.latitude,
     this.longitude,
     this.locationAddress,
+    this.visibility = PostVisibility.public,
   });
+
+  bool get isPublic => visibility == PostVisibility.public;
 
   bool get hasLocation => latitude != null && longitude != null;
 
@@ -139,6 +171,7 @@ class PostEntity extends Equatable {
     double? latitude,
     double? longitude,
     String? locationAddress,
+    PostVisibility? visibility,
   }) {
     return PostEntity(
       id: id ?? this.id,
@@ -164,6 +197,7 @@ class PostEntity extends Equatable {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       locationAddress: locationAddress ?? this.locationAddress,
+      visibility: visibility ?? this.visibility,
     );
   }
 
@@ -192,5 +226,6 @@ class PostEntity extends Equatable {
     latitude,
     longitude,
     locationAddress,
+    visibility,
   ];
 }

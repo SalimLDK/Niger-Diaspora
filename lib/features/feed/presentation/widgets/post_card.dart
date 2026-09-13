@@ -26,6 +26,23 @@ import 'heart_burst_overlay.dart';
 import 'share_post_sheet.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
+/// Pictogramme d'une audience — partagé avec l'écran de création.
+String postVisibilityIcon(PostVisibility v) => switch (v) {
+      PostVisibility.public => AppIcon.public,
+      PostVisibility.followers => AppIcon.personAdd,
+      PostVisibility.friends => AppIcon.people,
+      PostVisibility.onlyMe => AppIcon.lock,
+    };
+
+/// Libellé d'une audience — partagé avec l'écran de création.
+String postVisibilityLabel(PostVisibility v, AppLocalizations l10n) =>
+    switch (v) {
+      PostVisibility.public => l10n.public,
+      PostVisibility.followers => 'Abonnés',
+      PostVisibility.friends => l10n.friends,
+      PostVisibility.onlyMe => 'Moi uniquement',
+    };
+
 String _formatTimeAgo(DateTime dt, BuildContext context) {
   final locale = Localizations.localeOf(context).languageCode;
   if (locale == 'fr') {
@@ -234,14 +251,31 @@ class _PostHeader extends ConsumerWidget {
                           color: tokens.text,
                         ),
                       ),
-                      Text(
-                        metaLine,
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          color: tokens.mutedText,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              metaLine,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: tokens.mutedText,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (!post.isPublic) ...[
+                            const SizedBox(width: 5),
+                            Tooltip(
+                              message: postVisibilityLabel(post.visibility, l10n),
+                              child: AppIcon(
+                                postVisibilityIcon(post.visibility),
+                                size: 12,
+                                color: tokens.mutedText,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),
@@ -549,7 +583,12 @@ class _ActionBar extends ConsumerWidget {
                   : (post.commentCount > 0 ? '${post.commentCount}' : ''),
               onTap: isDetail ? null : () => context.push('/feed/${post.id}'),
             ),
-            if (!isDetail) ...[
+            // Repartage et partage : publications publiques seulement. Un
+            // repartage n'apparaît qu'aux publications publiques
+            // (`get_feed_reposts`), et partager en discussion recopie texte
+            // et média chez un destinataire qui n'a peut-être pas le droit de
+            // les lire.
+            if (!isDetail && post.isPublic) ...[
               const SizedBox(width: 14),
               _ActionButton(
                 icon: Icon(Icons.repeat_rounded, size: 19, color: repostColor),
@@ -580,7 +619,7 @@ class _ActionBar extends ConsumerWidget {
                 );
               },
             ),
-            if (!isDetail) ...[
+            if (!isDetail && post.isPublic) ...[
               const SizedBox(width: 14),
               _ActionButton(
                 icon: AppIcon(

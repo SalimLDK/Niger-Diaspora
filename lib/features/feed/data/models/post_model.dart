@@ -27,6 +27,9 @@ class PostModel {
   final double? longitude;
   final String? locationAddress;
 
+  /// Valeur de `posts.visibility` (`public` | `friends` | `private`).
+  final String visibility;
+
   const PostModel({
     required this.id,
     required this.authorId,
@@ -51,6 +54,7 @@ class PostModel {
     this.latitude,
     this.longitude,
     this.locationAddress,
+    this.visibility = 'public',
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
@@ -95,6 +99,7 @@ class PostModel {
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       locationAddress: json['locationAddress'] as String?,
+      visibility: json['visibility'] as String? ?? 'public',
     );
   }
   Map<String, dynamic> toJson() => {
@@ -125,6 +130,7 @@ class PostModel {
     if (latitude != null) 'latitude': latitude,
     if (longitude != null) 'longitude': longitude,
     if (locationAddress != null) 'locationAddress': locationAddress,
+    'visibility': visibility,
   };
 
   PostEntity toEntity() => PostEntity(
@@ -162,6 +168,7 @@ class PostModel {
     latitude: latitude,
     longitude: longitude,
     locationAddress: locationAddress,
+    visibility: PostVisibility.fromDb(visibility),
   );
 
   static PostModel fromEntity(PostEntity entity) => PostModel(
@@ -195,6 +202,7 @@ class PostModel {
     latitude: entity.latitude,
     longitude: entity.longitude,
     locationAddress: entity.locationAddress,
+    visibility: entity.visibility.dbValue,
   );
 
   static PostMediaType _parseMediaType(String value) {
