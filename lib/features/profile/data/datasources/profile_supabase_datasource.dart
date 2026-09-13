@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
-import '../../../../core/models/country.dart';
+import '../../../../core/constants/profile_options.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../models/profile_model.dart';
 import 'profile_remote_datasource.dart';
@@ -289,18 +289,18 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
               'bio': profile.bio,
               'profession': profile.profession,
               'city': profile.currentCity,
-              // La colonne attend un code ISO-2. `currentCountry` arrive du
-              // géocodage inverse sous forme de LIBELLÉ (« Canada »), d'où un
-              // mélange `CA`/`Canada` en base qui faisait échouer toutes les
-              // comparaisons d'égalité — notamment le filtre par pays de la
-              // liste des groupes. On normalise, et on ne retient la valeur
-              // brute que si le pays n'est pas reconnu (mieux vaut la garder
-              // que la perdre).
-              'country_code': CountryExtension.toIsoCode(
-                    profile.currentCountry ?? profile.countryCode,
-                  ) ??
-                  profile.currentCountry ??
-                  profile.countryCode,
+              // La colonne porte le NOM du pays (« Canada », « Algérie »),
+              // jamais un code ISO. Elle en mélangeait deux formes : la
+              // conversion vers l'ISO ne connaissait que 28 pays, et un pays
+              // hors de cette liste (« Angola ») repartait en toutes lettres
+              // à côté de `CA` et `NE` — d'où deux groupes officiels possibles
+              // pour un même pays. `canonicalCountry` connaît toute la liste
+              // du sélecteur, et une valeur vide part à `null`, pas à `''`.
+              'country_code': ProfileOptions.canonicalCountry(
+                (profile.currentCountry?.trim().isNotEmpty ?? false)
+                    ? profile.currentCountry
+                    : profile.countryCode,
+              ),
               'current_region': profile.currentRegion,
               'origin_region': profile.originRegion,
               'origin_city': profile.originCity,

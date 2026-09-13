@@ -7790,6 +7790,24 @@ abstract class AppLocalizations {
   /// **'Copier'**
   String get copy;
 
+  /// No description provided for @selectText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionner le texte'**
+  String get selectText;
+
+  /// No description provided for @copyAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout copier'**
+  String get copyAll;
+
+  /// No description provided for @moreReactions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus de réactions'**
+  String get moreReactions;
+
   /// No description provided for @report.
   ///
   /// In fr, this message translates to:

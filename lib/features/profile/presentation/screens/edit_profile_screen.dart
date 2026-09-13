@@ -234,18 +234,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       _selectedCountry = null;
       return;
     }
-    // D'abord chercher par code si disponible
-    if (code != null && code.isNotEmpty) {
-      final foundByCode = ProfileOptions.getCountryByCode(code);
-      if (foundByCode != null) {
-        _selectedCountry = foundByCode;
-        return;
-      }
-    }
-    // Sinon chercher par nom
-    final foundByName = ProfileOptions.getCountryByName(country);
-    if (foundByName != null) {
-      _selectedCountry = foundByName;
+    // `findCountry` reconnaît le nom avec ou sans accents, et l'ancien code
+    // ISO qu'un profil pas encore réenregistré peut encore porter.
+    final found =
+        ProfileOptions.findCountry(code) ?? ProfileOptions.findCountry(country);
+    if (found != null) {
+      _selectedCountry = found;
     } else {
       _selectedCountry = null;
       _customCountryController.text = country;
@@ -423,8 +417,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     return _selectedCountry?.name ?? '';
   }
 
+  /// Malgré son nom (celui du champ `countryCode` du profil), c'est le pays en
+  /// toutes lettres : la base ne porte plus aucun code ISO. Une saisie libre
+  /// qui désigne un pays de la liste (« algerie ») y est ramenée.
   String? _getFinalCountryCode() {
-    return _selectedCountry?.code;
+    return ProfileOptions.canonicalCountry(_getFinalCountry());
   }
 
   String _getFinalOriginCity() {

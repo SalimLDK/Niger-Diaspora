@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**817 cases à cocher, 491 cochées** — 167 entrées sur 211 ont encore des cases ouvertes.
+**836 cases à cocher, 491 cochées** — 171 entrées sur 215 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -63,12 +63,13 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (45)
+**P1 — fonction importante, jamais vérifiée** (47)
 
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -87,6 +88,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
+- 6 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
@@ -111,7 +113,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (59)
+**P2 — fonction secondaire ou cas limite** (61)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -122,6 +124,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 4 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
+- 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
 - 8 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
 - 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
 - 6 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
@@ -225,8 +229,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 103 à faire, 52 faites
-- [3. Groupes](#3-groupes) — 90 à faire, 52 faites
+- [2. Messagerie](#2-messagerie) — 116 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 96 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
 - [6. Notifications et push](#6-notifications-et-push) — 51 à faire, 73 faites
@@ -484,6 +488,77 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)
+
+**Priorité P2** · importance 3/5 — Sur la bulle verte, le nom de l'auteur, « Voir la publication → » et « Voir l'événement → » étaient quasi invisibles (sarcelle et violet sur vert), et le texte « 📌 Post de… » répétait la carte.
+
+Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
+
+- [ ] **Bulle envoyée** : post partagé et événement créé dans la discussion —
+  auteur, titre, « Voir … → » en blanc lisible sur un voile sombre ; plus de
+  ligne « 📌 Post de Salim L. » / « 📅 test » sous la carte.
+  (`shared_card_palette.dart`, `post_message_card.dart`,
+  `event_message_card.dart`)
+- [ ] **Bulle reçue** (côté Sim), thème clair ET sombre : accents à la couleur
+  du thème, lisibles sur bulle blanche et sur bulle `#252119`.
+- [ ] **Texte ajouté par l'utilisateur** sous une carte : toujours affiché.
+- [ ] L'aperçu de la liste des discussions garde « 📌 Salim L. » (inchangé).
+
+---
+
+## ⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)
+
+**Priorité P2** · importance 3/5 — « Copier » n'existait que pour un message texte : ni légende de photo, ni adresse, ni sondage, ni un seul numéro dans un long message.
+
+- [ ] **Appui long sur une photo ou vidéo AVEC légende** → « Copier » présent,
+  colle la légende. Sans légende → pas de « Copier ».
+  (`message_copy_text.dart`, `message_bubble.dart`)
+- [ ] **Position** → « Copier » colle l'adresse puis un lien Google Maps qui
+  s'ouvre depuis une autre app. **Sondage** → la question.
+- [ ] **Autres actions → « Sélectionner le texte »** : feuille avec le texte
+  sélectionnable ; appui long dedans, choisir un numéro ou un lien, menu
+  système Copier ; « Tout copier » ferme et copie tout. Message long : la
+  feuille défile.
+- [ ] **Sélection multiple** : sélectionner 3 messages dont un vocal → icône
+  Copier dans la barre verte ; le collage donne une ligne
+  « [12/09/2026 21:04] Nom : texte » par message texte, dans l'ordre, sans le
+  vocal. Sélection de vocaux seuls → pas d'icône. Barre sur écran étroit
+  (SM A515F, police 1.1) : le titre « N sélectionnés » ne déborde pas avec
+  une icône de plus. (`conversation_screen.dart`)
+
+---
+
+## ⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)
+
+**Priorité P1** · importance 4/5 — Le double tap posait d'office un cœur (noir), une réaction n'envoyait aucune notification et disparaissait parfois chez l'autre.
+
+*Bloqué : la notification et la mise à jour croisée demandent la migration `20260912220000_reaction_atomique_et_notification.sql` appliquée, et deux comptes (Pixel + SM A515F).*
+
+- [ ] **Double tap** sur une bulle (texte, photo, emoji seul) : une barre
+  flottante au-dessus de la bulle avec 👍 ❤️ 😂 🙏 😮 et un « + ». Choisir un
+  emoji le pose ; toucher à côté ferme sans rien poser ; la barre ne sort
+  jamais de l'écran (bulle tout en haut → barre en dessous).
+  (`reaction_picker.dart`, `message_bubble.dart`)
+- [ ] **« + »** (barre du double tap ET feuille d'appui long) : ouvre le
+  sélecteur complet, recherche comprise (le clavier remonte la feuille) ;
+  l'emoji choisi est posé.
+- [ ] **Cœur rouge** : ❤️ rouge sous la bulle, dans la barre, dans le
+  sélecteur, dans une bulle « emoji seul », dans le composeur en tapant, dans
+  l'aperçu de la liste des discussions. Aussi ☀️. Et ⚠ reste un symbole de
+  texte coloré dans les salons audio. (`assets/google_fonts/Inter-*.ttf`,
+  `tools/polices_emoji_couleur.py`)
+- [ ] **Notification** : Sim réagit à un message de Salim → Salim reçoit
+  « Sim · A réagi ❤️ à votre message », app fermée comme ouverte ; le tap
+  ouvre la discussion. Changer d'emoji ne fait pas une 2e ligne dans la cloche.
+  Aucune bannière si la discussion est déjà ouverte, ni si elle est en
+  sourdine.
+- [ ] **Mise à jour croisée** : les deux téléphones sur la même discussion,
+  réagir en rafale d'un côté puis de l'autre, quitter/rouvrir la discussion
+  entre deux : chaque réaction apparaît chez l'autre sans relancer l'app, et
+  l'accusé « Lu » ne disparaît plus. (`message_supabase_datasource.dart`)
 
 ---
 
@@ -2060,6 +2135,58 @@ de conclure quoi que ce soit.
 # 3. Groupes
 
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
+
+---
+
+## ⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)
+
+**Priorité P1** · importance 3/5 — Le groupe officiel d'un pays s'appelait « Diaspora Niger — NE », un même pays pouvait en avoir deux (`AO` et « Angola »), et la carte des groupes restait vide.
+
+Plus aucun code ISO en base (décision de Salim) : `users`, `groups` et `posts`
+portent le nom accentué du pays (« Algérie », « États-Unis »). Migration
+`20260913030000_pays_en_toutes_lettres.sql`, **appliquée en production** et
+relue après coup : 5 groupes officiels renommés (dont « — Niger » et
+« — Algérie »), compteurs de membres justes partout.
+
+- Cause du mélange : `Country.toIsoCode` ne connaissait que 28 pays sur les
+  197 du sélecteur ; « Angola » et « Cap-Vert » repartaient en toutes lettres.
+- Cause du compteur faux : `update_group_member_count` tournait avec les
+  droits de l'appelant, et la RLS de `groups` réduisait l'`UPDATE` d'un membre
+  ordinaire à zéro ligne. Prouvé réparé en transaction annulée sous le compte
+  non-admin `0D3P…` (rejoindre → 2/2).
+- La base ramène elle-même tout code au nom (`pays_canonique`, déclencheurs) :
+  les APK déjà installés continuent d'écrire `CA`, ce qui ne salit plus rien.
+
+Couvert par `test/core/models/pays_en_toutes_lettres_test.dart` (liste app =
+référentiel SQL, clés de la carte, pliage des accents) et
+`pays_defaut_test.dart`. Fichiers : `profile_options.dart`,
+`profile_supabase_datasource.dart`, `profile_provider.dart`,
+`edit_profile_screen.dart`, `groups_screen.dart`, `groups_map_screen.dart`.
+
+- [ ] Profil → changer de pays pour un pays hors des 28 anciens (Angola) :
+      le sélecteur le garde, et « Diaspora Niger — Angola » apparaît dans
+      « Mes groupes », sans second groupe du même pays.
+- [ ] Rouvrir « Modifier le profil » : le pays est pré-sélectionné, accents
+      compris (« Algérie », « Côte d'Ivoire »).
+- [ ] Groupes → Découvrir : puces « 🇳🇪 Niger », « 🇨🇦 Canada »,
+      « 🇩🇿 Algérie », et le filtre posé d'office est le pays du profil.
+- [ ] Carte des groupes : marqueurs Niger, Canada, Algérie présents (aucun
+      avant). Angola et Cap-Vert n'ont pas de centroïde : pas de marqueur,
+      c'est attendu.
+- [ ] Rejoindre puis quitter un groupe public avec un compte non admin : le
+      nombre de membres suit dans la liste. *Bloqué : deux comptes pour le
+      voir côté autre membre.*
+- [ ] Nom d'un groupe créé à la main avec « États-Unis » : la pastille de la
+      carte affiche « 🇺🇸 États-Unis ».
+
+⚠️ **Non traité, à trancher** : changer de pays ne fait **pas** quitter le
+groupe officiel de l'ancien pays. Le compte `0D3P…` est aujourd'hui membre de
+« — Cap-Vert » et de « — Angola ».
+
+⚠️ **Pour les autres agents** : deux migrations non livrées datées du
+2026-09-12 (`20260912200000`, `20260912220000`, dans d'autres worktrees) sont
+désormais antérieures à la dernière appliquée : leur `db push` demandera
+`--include-all`.
 
 ---
 
