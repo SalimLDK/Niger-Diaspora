@@ -9,6 +9,7 @@ import 'package:video_player/video_player.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../stories/domain/entities/story_entity.dart';
 import '../../../stories/presentation/providers/story_provider.dart';
+import '../../../stories/presentation/story_creation.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Viewer plein écran d'un auteur de stories (§4). Barre de progression
@@ -142,6 +143,79 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
       return;
     }
     context.pop();
+  }
+
+  /// Arrête la lecture en cours pour que le prochain rendu reparte du début
+  /// du segment affiché (après une suppression, le segment a changé).
+  void _resetPlayback() {
+    _videoController?.removeListener(_onVideoTick);
+    _videoController?.dispose();
+    _videoController = null;
+    _progressController.stop();
+    _progressController.value = 0;
+    _paused = false;
+  }
+
+  Future<void> _onMenu(String action, StoryEntity story) async {
+    switch (action) {
+      case 'add':
+        await startStoryCreation(context);
+      case 'privacy':
+        await context.push('/feed/stories/privacy');
+      case 'delete':
+        await _deleteStory(story);
+        return; // La lecture repart d'elle-même sur le segment suivant.
+    }
+    if (mounted) _resume();
+  }
+
+  Future<void> _deleteStory(StoryEntity story) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Supprimer cette story ?'),
+        content: const Text(
+          'Elle disparaît tout de suite pour toutes les personnes qui '
+          'pouvaient la voir.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(
+              l10n.delete,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (confirmed != true) {
+      _resume();
+      return;
+    }
+    final messenger = ScaffoldMessenger.of(context);
+    final echec = await ref
+        .read(storyActionsNotifierProvider.notifier)
+        .deleteStory(story.id);
+    if (!mounted) return;
+    if (echec != null) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(echec), backgroundColor: Colors.red),
+      );
+      _resume();
+      return;
+    }
+    messenger.showSnackBar(const SnackBar(content: Text('Story supprimée')));
+    // La liste est relue ; s'il ne reste rien, le viewer se referme de
+    // lui-même (voir `build`). Sinon on repart sur le segment qui a pris la
+    // place de la story supprimée.
+    setState(_resetPlayback);
   }
 
   Future<void> _showViewers(StoryEntity story) async {
@@ -283,6 +357,51 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
                                 fontSize: 12,
                               ),
                             ),
+                            // Mes stories : ajouter, choisir qui voit,
+                            // supprimer. Rien de tout ça n'existait — une
+                            // story publiée ne se retirait plus.
+                            if (isMine)
+                              PopupMenuButton<String>(
+                                icon: const Icon(
+                                  Icons.more_vert,
+                                  color: Colors.white,
+                                ),
+                                onOpened: _pause,
+                                onCanceled: _resume,
+                                onSelected: (a) => _onMenu(a, story),
+                                itemBuilder: (_) => const [
+                                  PopupMenuItem(
+                                    value: 'add',
+                                    child: ListTile(
+                                      leading: Icon(Icons.add_circle_outline),
+                                      title: Text('Ajouter une story'),
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'privacy',
+                                    child: ListTile(
+                                      leading: Icon(Icons.lock_outline),
+                                      title: Text('Qui peut voir mes stories'),
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: ListTile(
+                                      leading: Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.red,
+                                      ),
+                                      title: Text(
+                                        'Supprimer cette story',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             IconButton(
                               icon: const Icon(Icons.close, color: Colors.white),
                               onPressed:
@@ -381,6 +500,15 @@ class _ViewersTap extends StatelessWidget {
             Text(
               l10n.storyViewersCount(story.viewCount),
               style: const TextStyle(color: Colors.white, fontSize: 13),
+            ),
+            // L'audience de CETTE story, pour que l'auteur sache à qui il
+            // l'a montrée sans rouvrir quoi que ce soit.
+            const SizedBox(width: 10),
+            Icon(storyAudienceIcon(story.audience), color: Colors.white70, size: 14),
+            const SizedBox(width: 4),
+            Text(
+              story.audience.label,
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
             ),
           ],
         ),

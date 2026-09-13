@@ -15,6 +15,7 @@ const {
   getUsersForPush,
   createNotification,
   getLocalEventRecipients,
+  setFriendship,
 } = require("./supabase");
 
 admin.initializeApp();
@@ -2537,6 +2538,33 @@ exports.onOrderUpdated = functions.firestore
  * (rayon + préférences) côté base.
  */
 const LOCAL_EVENT_RADIUS_KM = 50;
+
+/**
+ * Miroir des amitiés Firestore vers `public.friends` (Supabase).
+ *
+ * L'audience « Amis » des publications et des stories est tranchée par la
+ * base (`peut_voir_publication` / `peut_voir_story`), qui ne lit pas
+ * Firestore. Chaque document `users/{userId}/friends/{friendId}` créé ou
+ * supprimé est reflété tel quel — une ligne par sens, comme dans Firestore.
+ * La reprise des amitiés existantes est faite par la migration
+ * 20260912230000_audience_publications_et_stories.sql.
+ */
+exports.mirrorFriendToSupabase = functions.firestore
+    .document("users/{userId}/friends/{friendId}")
+    .onWrite(async (change, context) => {
+        const { userId, friendId } = context.params;
+        const present = change.after.exists;
+        // Une mise à jour ré-écrit aussi la ligne (upsert idempotent) : un
+        // miroir manqué une fois se répare à la prochaine écriture.
+        const ok = await setFriendship(userId, friendId, present);
+        if (!ok) {
+            console.error(
+                `mirrorFriendToSupabase: ${userId} -> ${friendId} ` +
+                `(${present ? "ajout" : "retrait"}) non reflété`,
+            );
+        }
+        return null;
+    });
 
 exports.notifyLocalEventCreated = functions.firestore
     .document("events/{eventId}")

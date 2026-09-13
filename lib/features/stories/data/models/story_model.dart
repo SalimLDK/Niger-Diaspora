@@ -14,6 +14,10 @@ class StoryModel {
   final int viewCount;
   final bool isViewedByMe;
 
+  /// Valeur de `stories.audience` (`public` | `followers` | `friends` |
+  /// `close`).
+  final String audience;
+
   const StoryModel({
     required this.id,
     required this.authorId,
@@ -25,6 +29,7 @@ class StoryModel {
     required this.createdAt,
     this.viewCount = 0,
     this.isViewedByMe = false,
+    this.audience = 'public',
   });
 
   factory StoryModel.fromJson(Map<String, dynamic> json) {
@@ -44,6 +49,7 @@ class StoryModel {
       createdAt: parseDate(json['createdAt']),
       viewCount: (json['viewCount'] as num?)?.toInt() ?? 0,
       isViewedByMe: json['isViewedByMe'] as bool? ?? false,
+      audience: json['audience'] as String? ?? 'public',
     );
   }
 
@@ -60,5 +66,6 @@ class StoryModel {
         createdAt: createdAt,
         viewCount: viewCount,
         isViewedByMe: isViewedByMe,
+        audience: StoryAudience.fromDb(audience),
       );
 }

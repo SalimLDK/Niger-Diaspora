@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/services/image_upload_service.dart';
-import '../../../../core/services/video_upload_service.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../stories/domain/entities/story_entity.dart';
 import '../../../stories/presentation/providers/story_provider.dart';
+import '../../../stories/presentation/story_creation.dart';
 import '../theme/feed_tokens.dart';
 
 /// Taille du libellé sous chaque avatar du rail. Partagée avec le calcul de
@@ -33,8 +31,8 @@ TextStyle _labelStyle(FeedTokens tokens) => TextStyle(
     );
 
 /// Rail de stories/actus (§4) — cercles d'avatars en haut du fil, anneau
-/// accent pour les non-vues. Mon avatar en premier, avec « + » si je n'ai
-/// pas de story active. Se replie en barre compacte au défilement
+/// accent pour les non-vues. Mon avatar en premier, avec un « + » pour
+/// publier (même quand j'ai déjà une story active). Se replie en barre compacte au défilement
 /// ([collapsed], piloté par le `ScrollController` de `feed_screen.dart`).
 class StoryRail extends ConsumerWidget {
   final bool collapsed;
@@ -69,7 +67,16 @@ class StoryRail extends ConsumerWidget {
 
     return groupsAsync.when(
       loading: () => SizedBox(height: railHeight),
-      error: (_, __) => const SizedBox.shrink(),
+      // En erreur, le rail disparaissait entièrement — et avec lui le seul
+      // moyen de publier une story. On garde au moins mon avatar.
+      error: (_, __) => SizedBox(
+        height: railHeight,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          children: [_MyStoryAvatar(tokens: tokens, myGroup: null)],
+        ),
+      ),
       data: (groups) {
         // Rien à montrer et personne n'a de story : le rail reste discret
         // (pas de rangée vide qui prend de la place pour rien), sauf pour
@@ -216,166 +223,80 @@ class _MyStoryAvatar extends ConsumerWidget {
 
   const _MyStoryAvatar({required this.tokens, required this.myGroup});
 
-  Future<void> _createStory(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context)!;
-    final choice = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: tokens.bg,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(Icons.photo_camera_outlined, color: tokens.accent),
-              title: Text(l10n.storyTakePhoto),
-              onTap: () => Navigator.pop(context, 'camera'),
-            ),
-            ListTile(
-              leading: Icon(Icons.photo_library_outlined, color: tokens.accent),
-              title: Text(l10n.storyChooseFromGallery),
-              onTap: () => Navigator.pop(context, 'gallery'),
-            ),
-            ListTile(
-              leading: Icon(Icons.videocam_outlined, color: tokens.accent),
-              title: Text(l10n.storyChooseVideo),
-              subtitle: Text(
-                l10n.storyVideoMaxDuration,
-                style: TextStyle(fontSize: 12, color: tokens.mutedText),
-              ),
-              onTap: () => Navigator.pop(context, 'video'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (choice == null || !context.mounted) return;
-
-    if (choice == 'video') {
-      await _createVideoStory(context, ref);
-    } else {
-      await _createPhotoStory(context, ref, choice);
-    }
-  }
-
-  Future<void> _createPhotoStory(
-    BuildContext context,
-    WidgetRef ref,
-    String choice,
-  ) async {
-    final l10n = AppLocalizations.of(context)!;
-    final uploadService = ImageUploadService();
-    final result = choice == 'camera'
-        ? await uploadService.pickImageFromCameraWithResult()
-        : await uploadService.pickImageFromGalleryWithResult();
-    if (!result.isSuccess || result.file == null) return;
-    if (!context.mounted) return;
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-    final url = await uploadService.uploadImage(
-      file: result.file!,
-      type: ImageUploadType.story,
-      id: tempId,
-    );
-    if (url == null) return;
-
-    final profile =
-        ref.read(profileNotifierProvider(user.uid)).valueOrNull;
-    await ref.read(storyActionsNotifierProvider.notifier).createStory(
-          authorId: user.uid,
-          authorName: profile?.displayName ?? user.displayName ?? l10n.you,
-          authorPhotoUrl: profile?.photoUrl ?? user.photoURL,
-          mediaUrl: url,
-          mediaType: StoryMediaType.image,
-        );
-  }
-
-  Future<void> _createVideoStory(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context)!;
-    final videoService = VideoUploadService();
-    final pick = await videoService.pickVideoFromGallery(
-      maxDuration: const Duration(seconds: 30),
-    );
-    if (!pick.isSuccess || pick.file == null) return;
-    if (!context.mounted) return;
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-    final uploadResult = await videoService.uploadStoryVideo(
-      file: pick.file!,
-      storyId: tempId,
-    );
-    if (uploadResult == null) return;
-
-    final profile =
-        ref.read(profileNotifierProvider(user.uid)).valueOrNull;
-    await ref.read(storyActionsNotifierProvider.notifier).createStory(
-          authorId: user.uid,
-          authorName: profile?.displayName ?? user.displayName ?? l10n.you,
-          authorPhotoUrl: profile?.photoUrl ?? user.photoURL,
-          mediaUrl: uploadResult.videoUrl,
-          mediaType: StoryMediaType.video,
-          videoDurationSeconds: uploadResult.durationSeconds,
-        );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final user = FirebaseAuth.instance.currentUser;
     final hasStory = myGroup != null && myGroup!.stories.isNotEmpty;
 
-    return GestureDetector(
-      onTap: hasStory
-          ? () => context.push('/feed/stories/${myGroup!.authorId}')
-          : () => _createStory(context, ref),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 72,
-        child: Column(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                _StoryRing(
+    return SizedBox(
+      width: 72,
+      child: Column(
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Avatar : ouvre mes stories s'il y en a, sinon en crée une.
+              GestureDetector(
+                onTap: hasStory
+                    ? () => context.push('/feed/stories/${myGroup!.authorId}')
+                    : () => startStoryCreation(context),
+                onLongPress: () => startStoryCreation(context),
+                behavior: HitTestBehavior.opaque,
+                child: _StoryRing(
                   tokens: tokens,
                   hasUnviewed: myGroup?.hasUnviewed ?? false,
                   photoUrl: myGroup?.authorPhotoUrl ?? user?.photoURL,
-                  fallbackInitial: (user?.displayName?.trim().isNotEmpty ?? false)
-                      ? user!.displayName!.trim()[0]
-                      : '?',
+                  fallbackInitial:
+                      (user?.displayName?.trim().isNotEmpty ?? false)
+                          ? user!.displayName!.trim()[0]
+                          : '?',
                 ),
-                if (!hasStory)
-                  Positioned(
-                    right: -2,
-                    bottom: -2,
-                    child: Container(
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        color: tokens.accent,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: tokens.bg, width: 2),
+              ),
+              // « + » TOUJOURS là. Il disparaissait dès la première story :
+              // l'avatar ouvrait alors le viewer, et plus rien ne permettait
+              // d'en publier une deuxième (signalé 2026-09-12).
+              Positioned(
+                right: -6,
+                bottom: -6,
+                child: Semantics(
+                  button: true,
+                  label: 'Ajouter une story',
+                  child: GestureDetector(
+                    onTap: () => startStoryCreation(context),
+                    behavior: HitTestBehavior.opaque,
+                    // Zone de 30 px autour d'une pastille de 22 : la pastille
+                    // seule était sous la taille minimale d'une cible tactile.
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: tokens.accent,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: tokens.bg, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.add,
+                          size: 14,
+                          color: Colors.white,
+                        ),
                       ),
-                      child: const Icon(Icons.add, size: 14, color: Colors.white),
                     ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              hasStory ? 'Ma story' : l10n.add,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: _labelStyle(tokens),
-            ),
-          ],
-        ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            hasStory ? 'Ma story' : l10n.add,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _labelStyle(tokens),
+          ),
+        ],
       ),
     );
   }

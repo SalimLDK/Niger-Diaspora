@@ -189,6 +189,38 @@ les groupes.
    groupe**, à prendre et documenter explicitement (ligne `group_members`
    dédiée) — jamais un effet de bord de la création.
 
+## Le pays s'écrit en toutes lettres (2026-09-13)
+
+`groups.country_code` et `users.country_code` portent le **nom accentué**
+du pays (« Canada », « Algérie »), jamais un code ISO, malgré le nom des
+colonnes. La liste de référence est `ProfileOptions.countries` côté app et
+`public.pays` côté base ; un test vérifie qu'elles sont identiques.
+
+Ce qu'on a trouvé en creusant (migration
+`20260913030000_pays_en_toutes_lettres.sql`) :
+
+- **Deux formes du même pays.** La normalisation ISO d'août ne connaissait
+  que 28 pays : `NE`, `CA`, `DZ` voisinaient avec « Angola » et « Cap-Vert ».
+  L'unicité du groupe officiel porte sur ce texte : `AO` et « Angola »
+  auraient donné deux groupes officiels.
+- **« Diaspora Niger — NE ».** La RPC nommait le groupe d'après le pays relu
+  en base, donc le code. Elle prend désormais le nom dans `public.pays`, et
+  refuse un pays inconnu (`P0001`) : une saisie libre n'ouvre plus de groupe
+  officiel.
+- **Le Niger a son groupe officiel.** Décision de Salim : gardé, renommé
+  « Diaspora Niger — Niger ».
+- **`member_count` faux** sur 4 groupes officiels sur 5 et sur « Testeurs » :
+  `update_group_member_count` n'était pas `SECURITY DEFINER`, et
+  `groups_update_admin` réduisait à zéro ligne l'`UPDATE` déclenché par un
+  membre ordinaire. Corrigé et recompté.
+
+La base ramène tout code au nom (`pays_canonique`, déclencheur
+`trg_normaliser_pays` sur `users` et `posts`, `groups_country_code_defaut` sur
+`groups`), parce que les APK installés écrivent encore des codes.
+
+⚠️ **Ouvert** : changer de pays ne fait pas quitter le groupe officiel de
+l'ancien pays.
+
 Un nouveau pays n'a donc plus besoin d'étapes manuelles : la RPC
 `get_or_create_official_group` provisionne désormais correctement, avec le
 bon `creator_id` et le bon `group_members`. Les étapes SQL ci-dessous ne

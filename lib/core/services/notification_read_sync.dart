@@ -65,9 +65,13 @@ class NotificationReadSync {
     String? type,
   }) async {
     final filter = targetFilter(id, keys);
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (filter == null || uid == null) return;
+    if (filter == null) return;
+    // Tout dans le `try`, y compris l'accès à FirebaseAuth : appelée depuis
+    // un `initState`, une exception ici (Firebase pas encore initialisé)
+    // ferait échouer l'ouverture de l'écran pour une simple tenue de compteur.
     try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) return;
       var query = Supabase.instance.client
           .from('notifications')

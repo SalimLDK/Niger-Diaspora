@@ -7,11 +7,13 @@ import 'feed_personalization_provider.dart';
 
 class FeedScorer {
   final Set<String> followingIds;
+  final Set<String> friendIds;
   final String? myCountry;
   final Map<String, int> hashtagWeights;
 
   const FeedScorer({
     required this.followingIds,
+    this.friendIds = const {},
     required this.myCountry,
     required this.hashtagWeights,
   });
@@ -26,8 +28,11 @@ class FeedScorer {
     // HN-style time decay: newer posts rank higher
     final recencyFactor = 1.0 / pow(hoursSince + 2, 1.2);
 
-    final followBoost =
-        followingIds.contains(post.authorId) ? 1.5 : 1.0;
+    // Un ami passe devant un compte simplement suivi : les deux relations ne
+    // se valent pas. Pas de cumul — un ami qu'on suit reste un ami.
+    final followBoost = friendIds.contains(post.authorId)
+        ? 1.8
+        : (followingIds.contains(post.authorId) ? 1.5 : 1.0);
 
     final countryBoost =
         (myCountry != null && myCountry!.isNotEmpty && post.authorCountry == myCountry)
@@ -60,11 +65,13 @@ final feedScorerProvider = FutureProvider<FeedScorer>((ref) async {
     ref.watch(followingIdsProvider.future),
     ref.watch(myCountryProvider.future),
     ref.watch(hashtagWeightsProvider.future),
+    ref.watch(friendIdsProvider.future),
   ]);
 
   return FeedScorer(
     followingIds: results[0] as Set<String>,
     myCountry: results[1] as String?,
     hashtagWeights: results[2] as Map<String, int>,
+    friendIds: results[3] as Set<String>,
   );
 });

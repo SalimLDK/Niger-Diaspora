@@ -40,6 +40,26 @@ final followingIdsProvider = FutureProvider<Set<String>>((ref) async {
   }
 });
 
+/// Mes amis (`public.friends`, miroir des amitiés Firestore). Distinct des
+/// abonnements : une amitié est réciproque et choisie, un abonnement ne l'est
+/// pas — le classement les pondère différemment.
+final friendIdsProvider = FutureProvider<Set<String>>((ref) async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return {};
+  try {
+    final rows = await Supabase.instance.client
+        .from('friends')
+        .select('friend_id')
+        .eq('user_id', uid);
+    return rows
+        .map((r) => r['friend_id'] as String? ?? '')
+        .where((id) => id.isNotEmpty)
+        .toSet();
+  } catch (_) {
+    return {};
+  }
+});
+
 /// Current user's country from their profile.
 final myCountryProvider = FutureProvider<String?>((ref) async {
   final uid = FirebaseAuth.instance.currentUser?.uid;
