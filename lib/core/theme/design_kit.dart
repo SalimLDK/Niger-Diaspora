@@ -1168,15 +1168,7 @@ class DesignScreenHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  title,
-                  style: GoogleFonts.playfairDisplay(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w700,
-                    height: 1.1,
-                    color: context.textPrimaryColor,
-                  ),
-                ),
+                DesignHeaderTitle(title),
                 if (subtitle != null && subtitle!.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
@@ -1199,6 +1191,66 @@ class DesignScreenHeader extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Grand titre serif de [DesignScreenHeader], qui **ne coupe jamais un mot**.
+///
+/// Le titre retournait à la ligne au milieu du mot : « Notificatio / ns » sur
+/// Pixel 10 Pro XL (densité 440, `font_scale` 1.3, 2026-09-12), parce que
+/// « Tout lire » et le bouton ⚙ ne laissent qu'environ 150 dp au titre. Flutter
+/// ne coupe entre deux lettres que quand **un mot seul** dépasse la largeur :
+/// on mesure donc le plus long mot et on réduit la taille juste assez pour
+/// qu'il tienne. Les titres de plusieurs mots continuent de passer à la ligne
+/// entre les mots ; la taille de 30 reste celle de tout titre qui tient.
+class DesignHeaderTitle extends StatelessWidget {
+  final String title;
+
+  const DesignHeaderTitle(this.title, {super.key});
+
+  static const double _baseSize = 30;
+
+  /// En deçà, le titre ne se lit plus comme un titre : mieux vaut alors une
+  /// coupure qu'un texte de corps en serif.
+  static const double _minSize = 18;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = GoogleFonts.playfairDisplay(
+      fontSize: _baseSize,
+      fontWeight: FontWeight.w700,
+      height: 1.1,
+      color: context.textPrimaryColor,
+    );
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        var size = _baseSize;
+        if (constraints.maxWidth.isFinite && constraints.maxWidth > 0) {
+          var widest = 0.0;
+          for (final word in title.split(RegExp(r'\s+'))) {
+            if (word.isEmpty) continue;
+            final painter = TextPainter(
+              text: TextSpan(text: word, style: style),
+              textDirection: direction,
+              textScaler: scaler,
+              maxLines: 1,
+            )..layout();
+            if (painter.width > widest) widest = painter.width;
+            painter.dispose();
+          }
+          if (widest > constraints.maxWidth) {
+            // Arrondi par défaut : un demi-point de trop suffit à recouper.
+            size = (_baseSize * constraints.maxWidth / widest)
+                .floorToDouble()
+                .clamp(_minSize, _baseSize);
+          }
+        }
+        return Text(title, style: style.copyWith(fontSize: size));
+      },
     );
   }
 }
