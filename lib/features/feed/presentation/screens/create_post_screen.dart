@@ -846,11 +846,17 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppIcon(AppIcon.public, size: 14, color: tokens.mutedText),
+                      // Suit l'audience choisie : la phrase restait « publiques »
+                      // même en « Moi uniquement » (vu sur SM A515F, 2026-09-13).
+                      AppIcon(
+                        _visibilityIcon(_visibility),
+                        size: 14,
+                        color: tokens.mutedText,
+                      ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          'Les publications publiques sont visibles par toute la diaspora.',
+                          _visibilityHint(_visibility),
                           style: TextStyle(
                             fontSize: 12,
                             height: 1.4,
