@@ -67,7 +67,29 @@ enum NotificationType {
   groupCallInvitation,
   // Réaction à un de mes messages (`set_message_reaction`).
   messageReaction,
+  // Six mois après un changement de pays : quitter le groupe officiel de
+  // l'ancien pays ou y rester (`proposer_departs_groupes_officiels`). Ouvre la
+  // fiche du groupe, où se fait le choix.
+  officialGroupLeave,
 }
+
+/// Types que l'écran Notifications n'affiche pas, et que la pastille de la
+/// cloche ne compte pas : ils appartiennent à la messagerie, qui a déjà sa
+/// liste et ses compteurs de non-lus. Les recopier ici doublonnait chaque
+/// message reçu — 73 lignes `message` sur 84 non lues, relevé du 2026-09-12.
+///
+/// Les lignes restent **écrites** en base : c'est leur INSERT qui déclenche le
+/// push (`trg_notify_push`), et `mark_messages_as_read` les tient à jour. On
+/// les écarte donc à la **lecture**, dans la requête elle-même — voir
+/// `NotificationSupabaseDataSource.filtreTypesAffiches`. Un filtre posé après
+/// coup sur la liste ne suffirait pas : la limite de 20 porte sur les lignes
+/// brutes, et les 20 plus récentes peuvent toutes être des messages.
+///
+/// Le `name` de chaque valeur est la chaîne exacte stockée dans `type`.
+const kTypesHorsEcranNotifications = {
+  NotificationType.message,
+  NotificationType.messageReaction,
+};
 
 extension NotificationTypeExtension on NotificationType {
   String get label {
@@ -133,6 +155,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'Appel de groupe';
       case NotificationType.messageReaction:
         return 'Réaction';
+      case NotificationType.officialGroupLeave:
+        return 'Groupe de votre ancien pays';
     }
   }
 
@@ -198,6 +222,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'groups';
       case NotificationType.messageReaction:
         return 'add_reaction';
+      case NotificationType.officialGroupLeave:
+        return 'groups';
     }
   }
 }

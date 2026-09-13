@@ -197,7 +197,7 @@ class _SearchField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
       decoration: BoxDecoration(
         color: tokens.surface,
-        borderRadius: BorderRadius.circular(tokens.isDark ? tokens.radiusMd : 14),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
@@ -437,7 +437,7 @@ class _HashtagTile extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: tokens.surface,
                   borderRadius: BorderRadius.circular(
-                    tokens.isDark ? tokens.radiusSm : 12,
+                    12,
                   ),
                 ),
                 alignment: Alignment.center,

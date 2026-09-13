@@ -99,7 +99,7 @@ class _Preview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radius = BorderRadius.circular(
-      tokens.isDark ? tokens.radiusMd : 16,
+      16,
     );
     final url =
         post.mediaType == PostMediaType.video

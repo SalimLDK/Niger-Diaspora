@@ -210,20 +210,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             NotificationType.proximityAlert,
           };
 
+          // Pas de notification de messagerie ici : la requête les écarte
+          // (`kTypesHorsEcranNotifications`), la messagerie a sa propre liste.
           final notificationsWithoutBlocked = notifications.where((n) {
-            // Filter message notifications by senderId
-            if ((n.type == NotificationType.message ||
-                    n.type == NotificationType.messageReaction) &&
-                n.senderId != null) {
-              // If I blocked this user, hide their notifications
-              if (blockedUserIds.contains(n.senderId)) return false;
-
-              // Check if sender blocked me — le test disait « j'ai bloque
-              // l'expediteur », sur un champ toujours vide.
-              if (quiMOntBloque.contains(n.senderId)) return false;
-              return true;
-            }
-
             // Only filter user-related notifications
             if (!userRelatedTypes.contains(n.type)) return true;
             if (n.targetId == null) return true;
@@ -505,6 +494,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.groupJoinRequest:
       case NotificationType.groupRequestApproved:
       case NotificationType.groupRequestRejected:
+      case NotificationType.officialGroupLeave:
         if (notification.targetId != null) {
           context.push('/groups/${notification.targetId}');
         }

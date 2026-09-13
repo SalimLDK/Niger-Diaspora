@@ -1639,6 +1639,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get groupLeft => 'Vous avez quitté le groupe';
 
   @override
+  String get officialGroupDepartureTitle => 'Vous avez changé de pays';
+
+  @override
+  String officialGroupDepartureBody(String date, String country) {
+    return 'Depuis le $date, votre profil n\'indique plus $country. Vous pouvez quitter ce groupe ou y rester : rien ne change sans votre accord.';
+  }
+
+  @override
+  String get officialGroupDepartureStay => 'Rester membre';
+
+  @override
+  String get officialGroupDepartureStayed => 'Vous restez membre de ce groupe.';
+
+  @override
+  String get officialGroupDepartureFailed =>
+      'Votre choix n\'a pas pu être enregistré. Réessayez.';
+
+  @override
   String get member => 'Membre';
 
   @override

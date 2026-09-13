@@ -3032,6 +3032,36 @@ abstract class AppLocalizations {
   /// **'Vous avez quitté le groupe'**
   String get groupLeft;
 
+  /// No description provided for @officialGroupDepartureTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez changé de pays'**
+  String get officialGroupDepartureTitle;
+
+  /// No description provided for @officialGroupDepartureBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Depuis le {date}, votre profil n\'indique plus {country}. Vous pouvez quitter ce groupe ou y rester : rien ne change sans votre accord.'**
+  String officialGroupDepartureBody(String date, String country);
+
+  /// No description provided for @officialGroupDepartureStay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rester membre'**
+  String get officialGroupDepartureStay;
+
+  /// No description provided for @officialGroupDepartureStayed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous restez membre de ce groupe.'**
+  String get officialGroupDepartureStayed;
+
+  /// No description provided for @officialGroupDepartureFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre choix n\'a pas pu être enregistré. Réessayez.'**
+  String get officialGroupDepartureFailed;
+
   /// No description provided for @member.
   ///
   /// In fr, this message translates to:

@@ -139,14 +139,20 @@ class _SegmentOption<T> extends StatelessWidget {
             // débordait du segment, avec le bandeau jaune et noir par-dessus.
             // Le `Row` est en `MainAxisSize.min`, donc rien ne le contraignait.
             Flexible(
-              child: Text(
-                segment.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: fg,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              // Échelle de police bornée à 1,15 pour ce seul libellé :
+              // à font_scale 1.3 (Pixel), « Abonnements » se tronquait en
+              // « Abonnem… » alors que le reste de l'écran grandit normalement.
+              child: MediaQuery.withClampedTextScaling(
+                maxScaleFactor: 1.15,
+                child: Text(
+                  segment.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: fg,
+                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                  ),
                 ),
               ),
             ),

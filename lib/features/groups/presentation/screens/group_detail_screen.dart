@@ -16,6 +16,7 @@ import '../../domain/entities/group_request_entity.dart';
 import 'package:intl/intl.dart';
 import '../providers/group_provider.dart';
 import '../widgets/group_link_gate.dart';
+import '../widgets/official_group_departure_card.dart';
 // `show` obligatoire : `myGroupRequestsProvider` et
 // `groupPendingRequestsProvider` existent en DOUBLE, ici et dans
 // `group_provider.dart` (deux définitions parallèles du même flux). Un
@@ -379,6 +380,24 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                         onOpenDiscussion: () => _startGroupConversation(group),
                       ),
                     ],
+
+                    // Groupe officiel d'un pays quitté depuis six mois : la
+                    // notification `officialGroupLeave` mène ici.
+                    if (isMember && group.isOfficial)
+                      OfficialGroupDepartureCard(
+                        groupId: group.id,
+                        onLeft: () {
+                          AnalyticsService.instance.logEvent(
+                            name: 'leave_official_group_after_move',
+                            parameters: {'group_id': group.id},
+                          );
+                          ref
+                              .read(groupDetailNotifierProvider.notifier)
+                              .loadGroup(group.id);
+                          ref.invalidate(myGroupsNotifierProvider);
+                          if (context.canPop()) context.pop();
+                        },
+                      ),
 
                     if (group.tags.isNotEmpty) ...[
                       const SizedBox(height: 16),

@@ -1771,6 +1771,7 @@ class NotificationService {
         case 'groupJoinRequest':
         case 'groupRequestApproved':
         case 'groupRequestRejected':
+        case 'officialGroupLeave':
           return prefs.getBool('notify_groups') ?? true;
         case 'eventUpdate':
           return prefs.getBool('notify_events') ?? true;
@@ -2180,6 +2181,7 @@ class NotificationService {
       case 'groupRequestApproved':
       case 'groupRequestRejected':
       case 'newMember':
+      case 'officialGroupLeave':
         return '$_groupGroupPrefix$targetId';
       case 'eventUpdate':
       case 'eventReminder':
@@ -2318,6 +2320,7 @@ class NotificationService {
       case 'groupRequestApproved':
       case 'groupRequestRejected':
       case 'newMember':
+      case 'officialGroupLeave':
         return _groupSummaryId;
       case 'eventUpdate':
       case 'eventReminder':
@@ -2363,6 +2366,7 @@ class NotificationService {
       case 'groupRequestApproved':
       case 'groupRequestRejected':
       case 'newMember':
+      case 'officialGroupLeave':
         return ('Groupes', '$count notifications de groupe');
       case 'eventUpdate':
       case 'eventReminder':
@@ -2513,6 +2517,7 @@ class NotificationService {
       case 'groupJoinRequest':
       case 'groupRequestApproved':
       case 'groupRequestRejected':
+      case 'officialGroupLeave':
         return ('groups_channel', 'Groups', Importance.defaultImportance);
       case 'eventUpdate':
         return ('events_channel', 'Events', Importance.defaultImportance);

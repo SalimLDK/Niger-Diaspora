@@ -136,23 +136,11 @@ class UnreadNotificationsCount extends _$UnreadNotificationsCount {
     final quiMOntBloque =
         ref.watch(usersWhoBlockedMeProvider).valueOrNull ?? const <String>{};
 
+    // Les notifications de messagerie n'arrivent plus jusqu'ici : la requête
+    // les écarte (`kTypesHorsEcranNotifications`). La pastille de la cloche ne
+    // compte donc plus un message déjà compté par l'onglet Messages.
     return notifications.where((n) {
       if (n.isRead) return false;
-
-      // Filter message notifications by senderId
-      if ((n.type == NotificationType.message ||
-              n.type == NotificationType.messageReaction) &&
-          n.senderId != null) {
-        // If I blocked this user, don't count their notifications
-        if (blockedUserIds.contains(n.senderId)) return false;
-
-        // Check if sender blocked me. Le test lisait
-        // `senderProfile.blockedByUserIds.contains(moi)`, c'est-a-dire « j'ai
-        // bloque l'expediteur » — le sens deja teste juste au-dessus — sur un
-        // champ que le mapping Supabase laisse toujours vide.
-        if (quiMOntBloque.contains(n.senderId)) return false;
-        return true;
-      }
 
       // Only filter user-related notifications
       if (!userRelatedTypes.contains(n.type)) return true;

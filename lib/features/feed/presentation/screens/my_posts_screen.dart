@@ -415,7 +415,7 @@ class _FirstPostInvitation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = FeedTokens.of(context);
-    final pill = BorderRadius.circular(tokens.isDark ? tokens.radiusMd : 14);
+    final pill = BorderRadius.circular(14);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),

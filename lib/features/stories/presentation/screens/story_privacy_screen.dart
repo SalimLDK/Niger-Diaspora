@@ -88,7 +88,10 @@ class StoryPrivacyScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   _ListSection(
-                    label: 'MASQUER MES STORIES À',
+                    // Libellé court : « MASQUER MES STORIES À » passait sur deux
+                    // lignes et désalignait son bouton « Ajouter » (SM A515F,
+                    // 2026-09-13). L'explication dessous dit le reste.
+                    label: 'MASQUÉES POUR',
                     explication:
                         'Ces personnes ne voient aucune de vos stories, quelle '
                         "que soit l'audience — même « Tout le monde ». Elles "
