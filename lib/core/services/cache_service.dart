@@ -87,6 +87,14 @@ class CacheService {
     await _updateTimestamp(_eventsBox, id);
   }
 
+  /// Retire un événement du cache. Sans elle, un événement supprimé restait
+  /// dans la boîte et revenait à l'écran par l'affichage « cache d'abord »
+  /// d'`EventsNotifier`, ou par le repli hors ligne.
+  Future<void> removeCachedEvent(String id) async {
+    final box = Hive.box<String>(_eventsBox);
+    await box.delete(id);
+  }
+
   Map<String, dynamic>? getCachedEvent(String id) {
     final box = Hive.box<String>(_eventsBox);
     final data = box.get(id);

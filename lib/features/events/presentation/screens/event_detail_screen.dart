@@ -1099,15 +1099,33 @@ Voir plus de d\u00e9tails sur DiaspoNiger
         .read(myEventsNotifierProvider.notifier)
         .deleteEvent(eventId);
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (success && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.eventDeleted)));
-      // Refresh events list
-      ref.read(eventsNotifierProvider.notifier).refresh();
+    if (!success) {
+      // L'échec ne disait rien : le bouton reprenait son état et l'événement
+      // restait affiché, sans qu'on sache pourquoi.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.deleteError),
+          backgroundColor: context.errorColor,
+        ),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.eventDeleted)));
+    // `deleteEvent` a déjà retiré l'événement de toutes les listes
+    // (`forgetDeletedEvent`) ; on relit « À venir » pour la suite.
+    ref.read(eventsNotifierProvider.notifier).refresh();
+    // Ouvert par lien profond, l'écran est seul dans la pile : `pop()` ne
+    // ferait rien et laisserait la fiche d'un événement qui n'existe plus.
+    if (context.canPop()) {
       context.pop();
+    } else {
+      context.go('/events');
     }
   }
 

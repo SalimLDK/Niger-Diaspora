@@ -619,6 +619,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           setState(() => _offlineDismissed = false);
         }
         ref.read(homeStatsNotifierProvider.notifier).refresh();
+        ref.read(eventsNotifierProvider.notifier).refresh();
+        ref.invalidate(recentPastEventProvider);
         _loadData();
       }
     });
@@ -628,6 +630,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: RefreshIndicator(
         onRefresh: () async {
           ref.read(homeStatsNotifierProvider.notifier).refresh();
+          // Les événements n'étaient jamais relus depuis l'accueil : un
+          // événement supprimé ailleurs y restait jusqu'au redémarrage.
+          ref.read(eventsNotifierProvider.notifier).refresh();
+          ref.invalidate(recentPastEventProvider);
           _loadData();
         },
         child: CustomScrollView(
