@@ -10,8 +10,7 @@ class PollRepositoryImpl implements PollRepository {
 
   PollRepositoryImpl({required this.remoteDataSource});
 
-  String _contextTypeValue(PollContextType type) =>
-      type == PollContextType.post ? 'post' : 'group';
+  String _contextTypeValue(PollContextType type) => type.name;
 
   @override
   Future<Either<Failure, PollEntity>> createPoll({

@@ -14,7 +14,18 @@ abstract class EventRemoteDataSource {
   Future<List<EventModel>> getEventsByCategory(String category);
   Future<List<EventModel>> getEventsByGroup(String groupId);
   Future<EventModel> getEventById(String eventId);
-  Future<EventModel> createEvent(EventModel event);
+  /// [visibility] : valeur de `events.visibility` (voir `EventVisibility`),
+  /// posée dès l'insertion pour qu'un événement restreint ne soit jamais
+  /// public, même un instant. `null` = dérivée de `isPublic` par la base.
+  Future<EventModel> createEvent(EventModel event, {String? visibility});
+
+  /// Groupes ou personnes qui voient l'événement en plus de sa discussion.
+  Future<void> setEventAudience({
+    required String eventId,
+    required String visibility,
+    List<String> groupIds = const [],
+    List<String> userIds = const [],
+  });
   Future<EventModel> updateEvent(EventModel event);
   Future<void> deleteEvent(String eventId);
   Future<void> attendEvent(String eventId, String userId);
@@ -253,7 +264,17 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
   }
 
   @override
-  Future<EventModel> createEvent(EventModel event) async {
+  Future<void> setEventAudience({
+    required String eventId,
+    required String visibility,
+    List<String> groupIds = const [],
+    List<String> userIds = const [],
+  }) async {
+    // Firestore n'est plus câblé (voir `eventRemoteDataSource`) : rien à faire.
+  }
+
+  @override
+  Future<EventModel> createEvent(EventModel event, {String? visibility}) async {
     try {
       final data = event.toJson();
       data.remove('id');
