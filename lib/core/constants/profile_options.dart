@@ -44,7 +44,7 @@ class ProfileOptions {
     // Pays prioritaires pour la diaspora nigérienne
     CountryOption('Niger', 'NE', '🇳🇪'),
     CountryOption('France', 'FR', '🇫🇷'),
-    CountryOption('Etats-Unis', 'US', '🇺🇸'),
+    CountryOption('États-Unis', 'US', '🇺🇸'),
     CountryOption('Canada', 'CA', '🇨🇦'),
     CountryOption('Belgique', 'BE', '🇧🇪'),
     CountryOption('Allemagne', 'DE', '🇩🇪'),
@@ -53,9 +53,9 @@ class ProfileOptions {
     CountryOption('Espagne', 'ES', '🇪🇸'),
     CountryOption('Suisse', 'CH', '🇨🇭'),
     CountryOption('Maroc', 'MA', '🇲🇦'),
-    CountryOption('Senegal', 'SN', '🇸🇳'),
-    CountryOption('Cote d\'Ivoire', 'CI', '🇨🇮'),
-    CountryOption('Benin', 'BJ', '🇧🇯'),
+    CountryOption('Sénégal', 'SN', '🇸🇳'),
+    CountryOption('Côte d\'Ivoire', 'CI', '🇨🇮'),
+    CountryOption('Bénin', 'BJ', '🇧🇯'),
     CountryOption('Togo', 'TG', '🇹🇬'),
     CountryOption('Burkina Faso', 'BF', '🇧🇫'),
     CountryOption('Mali', 'ML', '🇲🇱'),
@@ -65,7 +65,7 @@ class ProfileOptions {
 
     // Afrique
     CountryOption('Afrique du Sud', 'ZA', '🇿🇦'),
-    CountryOption('Algerie', 'DZ', '🇩🇿'),
+    CountryOption('Algérie', 'DZ', '🇩🇿'),
     CountryOption('Angola', 'AO', '🇦🇴'),
     CountryOption('Botswana', 'BW', '🇧🇼'),
     CountryOption('Burundi', 'BI', '🇧🇮'),
@@ -75,15 +75,15 @@ class ProfileOptions {
     CountryOption('Congo', 'CG', '🇨🇬'),
     CountryOption('RD Congo', 'CD', '🇨🇩'),
     CountryOption('Djibouti', 'DJ', '🇩🇯'),
-    CountryOption('Egypte', 'EG', '🇪🇬'),
-    CountryOption('Erythree', 'ER', '🇪🇷'),
+    CountryOption('Égypte', 'EG', '🇪🇬'),
+    CountryOption('Érythrée', 'ER', '🇪🇷'),
     CountryOption('Eswatini', 'SZ', '🇸🇿'),
-    CountryOption('Ethiopie', 'ET', '🇪🇹'),
+    CountryOption('Éthiopie', 'ET', '🇪🇹'),
     CountryOption('Gambie', 'GM', '🇬🇲'),
     CountryOption('Ghana', 'GH', '🇬🇭'),
-    CountryOption('Guinee', 'GN', '🇬🇳'),
-    CountryOption('Guinee-Bissau', 'GW', '🇬🇼'),
-    CountryOption('Guinee equatoriale', 'GQ', '🇬🇶'),
+    CountryOption('Guinée', 'GN', '🇬🇳'),
+    CountryOption('Guinée-Bissau', 'GW', '🇬🇼'),
+    CountryOption('Guinée équatoriale', 'GQ', '🇬🇶'),
     CountryOption('Kenya', 'KE', '🇰🇪'),
     CountryOption('Lesotho', 'LS', '🇱🇸'),
     CountryOption('Liberia', 'LR', '🇱🇷'),
@@ -96,7 +96,7 @@ class ProfileOptions {
     CountryOption('Namibie', 'NA', '🇳🇦'),
     CountryOption('Ouganda', 'UG', '🇺🇬'),
     CountryOption('Rwanda', 'RW', '🇷🇼'),
-    CountryOption('Sao Tome-et-Principe', 'ST', '🇸🇹'),
+    CountryOption('Sao Tomé-et-Principe', 'ST', '🇸🇹'),
     CountryOption('Seychelles', 'SC', '🇸🇨'),
     CountryOption('Sierra Leone', 'SL', '🇸🇱'),
     CountryOption('Somalie', 'SO', '🇸🇴'),
@@ -112,15 +112,15 @@ class ProfileOptions {
     CountryOption('Albanie', 'AL', '🇦🇱'),
     CountryOption('Andorre', 'AD', '🇦🇩'),
     CountryOption('Autriche', 'AT', '🇦🇹'),
-    CountryOption('Bielorussie', 'BY', '🇧🇾'),
-    CountryOption('Bosnie-Herzegovine', 'BA', '🇧🇦'),
+    CountryOption('Biélorussie', 'BY', '🇧🇾'),
+    CountryOption('Bosnie-Herzégovine', 'BA', '🇧🇦'),
     CountryOption('Bulgarie', 'BG', '🇧🇬'),
     CountryOption('Chypre', 'CY', '🇨🇾'),
     CountryOption('Croatie', 'HR', '🇭🇷'),
     CountryOption('Danemark', 'DK', '🇩🇰'),
     CountryOption('Estonie', 'EE', '🇪🇪'),
     CountryOption('Finlande', 'FI', '🇫🇮'),
-    CountryOption('Grece', 'GR', '🇬🇷'),
+    CountryOption('Grèce', 'GR', '🇬🇷'),
     CountryOption('Hongrie', 'HU', '🇭🇺'),
     CountryOption('Irlande', 'IE', '🇮🇪'),
     CountryOption('Islande', 'IS', '🇮🇸'),
@@ -129,23 +129,23 @@ class ProfileOptions {
     CountryOption('Liechtenstein', 'LI', '🇱🇮'),
     CountryOption('Lituanie', 'LT', '🇱🇹'),
     CountryOption('Luxembourg', 'LU', '🇱🇺'),
-    CountryOption('Macedoine du Nord', 'MK', '🇲🇰'),
+    CountryOption('Macédoine du Nord', 'MK', '🇲🇰'),
     CountryOption('Malte', 'MT', '🇲🇹'),
     CountryOption('Moldavie', 'MD', '🇲🇩'),
     CountryOption('Monaco', 'MC', '🇲🇨'),
-    CountryOption('Montenegro', 'ME', '🇲🇪'),
-    CountryOption('Norvege', 'NO', '🇳🇴'),
+    CountryOption('Monténégro', 'ME', '🇲🇪'),
+    CountryOption('Norvège', 'NO', '🇳🇴'),
     CountryOption('Pays-Bas', 'NL', '🇳🇱'),
     CountryOption('Pologne', 'PL', '🇵🇱'),
     CountryOption('Portugal', 'PT', '🇵🇹'),
-    CountryOption('Republique tcheque', 'CZ', '🇨🇿'),
+    CountryOption('République tchèque', 'CZ', '🇨🇿'),
     CountryOption('Roumanie', 'RO', '🇷🇴'),
     CountryOption('Russie', 'RU', '🇷🇺'),
     CountryOption('Saint-Marin', 'SM', '🇸🇲'),
     CountryOption('Serbie', 'RS', '🇷🇸'),
     CountryOption('Slovaquie', 'SK', '🇸🇰'),
-    CountryOption('Slovenie', 'SI', '🇸🇮'),
-    CountryOption('Suede', 'SE', '🇸🇪'),
+    CountryOption('Slovénie', 'SI', '🇸🇮'),
+    CountryOption('Suède', 'SE', '🇸🇪'),
     CountryOption('Ukraine', 'UA', '🇺🇦'),
     CountryOption('Vatican', 'VA', '🇻🇦'),
 
@@ -163,27 +163,27 @@ class ProfileOptions {
     CountryOption('El Salvador', 'SV', '🇸🇻'),
     CountryOption('Grenade', 'GD', '🇬🇩'),
     CountryOption('Guatemala', 'GT', '🇬🇹'),
-    CountryOption('Haiti', 'HT', '🇭🇹'),
+    CountryOption('Haïti', 'HT', '🇭🇹'),
     CountryOption('Honduras', 'HN', '🇭🇳'),
-    CountryOption('Jamaique', 'JM', '🇯🇲'),
+    CountryOption('Jamaïque', 'JM', '🇯🇲'),
     CountryOption('Nicaragua', 'NI', '🇳🇮'),
     CountryOption('Panama', 'PA', '🇵🇦'),
-    CountryOption('Republique dominicaine', 'DO', '🇩🇴'),
+    CountryOption('République dominicaine', 'DO', '🇩🇴'),
     CountryOption('Saint-Kitts-et-Nevis', 'KN', '🇰🇳'),
     CountryOption('Sainte-Lucie', 'LC', '🇱🇨'),
     CountryOption('Saint-Vincent-et-les-Grenadines', 'VC', '🇻🇨'),
-    CountryOption('Trinite-et-Tobago', 'TT', '🇹🇹'),
+    CountryOption('Trinité-et-Tobago', 'TT', '🇹🇹'),
 
     // Amerique du Sud
     CountryOption('Argentine', 'AR', '🇦🇷'),
     CountryOption('Bolivie', 'BO', '🇧🇴'),
-    CountryOption('Bresil', 'BR', '🇧🇷'),
+    CountryOption('Brésil', 'BR', '🇧🇷'),
     CountryOption('Chili', 'CL', '🇨🇱'),
     CountryOption('Colombie', 'CO', '🇨🇴'),
-    CountryOption('Equateur', 'EC', '🇪🇨'),
+    CountryOption('Équateur', 'EC', '🇪🇨'),
     CountryOption('Guyana', 'GY', '🇬🇾'),
     CountryOption('Paraguay', 'PY', '🇵🇾'),
-    CountryOption('Perou', 'PE', '🇵🇪'),
+    CountryOption('Pérou', 'PE', '🇵🇪'),
     CountryOption('Suriname', 'SR', '🇸🇷'),
     CountryOption('Uruguay', 'UY', '🇺🇾'),
     CountryOption('Venezuela', 'VE', '🇻🇪'),
@@ -191,37 +191,37 @@ class ProfileOptions {
     // Asie
     CountryOption('Afghanistan', 'AF', '🇦🇫'),
     CountryOption('Arabie saoudite', 'SA', '🇸🇦'),
-    CountryOption('Armenie', 'AM', '🇦🇲'),
-    CountryOption('Azerbaidjan', 'AZ', '🇦🇿'),
-    CountryOption('Bahrein', 'BH', '🇧🇭'),
+    CountryOption('Arménie', 'AM', '🇦🇲'),
+    CountryOption('Azerbaïdjan', 'AZ', '🇦🇿'),
+    CountryOption('Bahreïn', 'BH', '🇧🇭'),
     CountryOption('Bangladesh', 'BD', '🇧🇩'),
     CountryOption('Bhoutan', 'BT', '🇧🇹'),
     CountryOption('Brunei', 'BN', '🇧🇳'),
     CountryOption('Cambodge', 'KH', '🇰🇭'),
     CountryOption('Chine', 'CN', '🇨🇳'),
-    CountryOption('Coree du Nord', 'KP', '🇰🇵'),
-    CountryOption('Coree du Sud', 'KR', '🇰🇷'),
-    CountryOption('Emirats arabes unis', 'AE', '🇦🇪'),
-    CountryOption('Georgie', 'GE', '🇬🇪'),
+    CountryOption('Corée du Nord', 'KP', '🇰🇵'),
+    CountryOption('Corée du Sud', 'KR', '🇰🇷'),
+    CountryOption('Émirats arabes unis', 'AE', '🇦🇪'),
+    CountryOption('Géorgie', 'GE', '🇬🇪'),
     CountryOption('Inde', 'IN', '🇮🇳'),
-    CountryOption('Indonesie', 'ID', '🇮🇩'),
+    CountryOption('Indonésie', 'ID', '🇮🇩'),
     CountryOption('Irak', 'IQ', '🇮🇶'),
     CountryOption('Iran', 'IR', '🇮🇷'),
-    CountryOption('Israel', 'IL', '🇮🇱'),
+    CountryOption('Israël', 'IL', '🇮🇱'),
     CountryOption('Japon', 'JP', '🇯🇵'),
     CountryOption('Jordanie', 'JO', '🇯🇴'),
     CountryOption('Kazakhstan', 'KZ', '🇰🇿'),
     CountryOption('Kirghizistan', 'KG', '🇰🇬'),
-    CountryOption('Koweit', 'KW', '🇰🇼'),
+    CountryOption('Koweït', 'KW', '🇰🇼'),
     CountryOption('Laos', 'LA', '🇱🇦'),
     CountryOption('Liban', 'LB', '🇱🇧'),
     CountryOption('Malaisie', 'MY', '🇲🇾'),
     CountryOption('Maldives', 'MV', '🇲🇻'),
     CountryOption('Mongolie', 'MN', '🇲🇳'),
     CountryOption('Myanmar', 'MM', '🇲🇲'),
-    CountryOption('Nepal', 'NP', '🇳🇵'),
+    CountryOption('Népal', 'NP', '🇳🇵'),
     CountryOption('Oman', 'OM', '🇴🇲'),
-    CountryOption('Ouzbekistan', 'UZ', '🇺🇿'),
+    CountryOption('Ouzbékistan', 'UZ', '🇺🇿'),
     CountryOption('Pakistan', 'PK', '🇵🇰'),
     CountryOption('Palestine', 'PS', '🇵🇸'),
     CountryOption('Philippines', 'PH', '🇵🇭'),
@@ -230,51 +230,63 @@ class ProfileOptions {
     CountryOption('Sri Lanka', 'LK', '🇱🇰'),
     CountryOption('Syrie', 'SY', '🇸🇾'),
     CountryOption('Tadjikistan', 'TJ', '🇹🇯'),
-    CountryOption('Taiwan', 'TW', '🇹🇼'),
-    CountryOption('Thailande', 'TH', '🇹🇭'),
+    CountryOption('Taïwan', 'TW', '🇹🇼'),
+    CountryOption('Thaïlande', 'TH', '🇹🇭'),
     CountryOption('Timor oriental', 'TL', '🇹🇱'),
-    CountryOption('Turkmenistan', 'TM', '🇹🇲'),
+    CountryOption('Turkménistan', 'TM', '🇹🇲'),
     CountryOption('Turquie', 'TR', '🇹🇷'),
     CountryOption('Vietnam', 'VN', '🇻🇳'),
-    CountryOption('Yemen', 'YE', '🇾🇪'),
+    CountryOption('Yémen', 'YE', '🇾🇪'),
 
     // Oceanie
     CountryOption('Australie', 'AU', '🇦🇺'),
     CountryOption('Fidji', 'FJ', '🇫🇯'),
     CountryOption('Kiribati', 'KI', '🇰🇮'),
-    CountryOption('Iles Marshall', 'MH', '🇲🇭'),
-    CountryOption('Micronesie', 'FM', '🇫🇲'),
+    CountryOption('Îles Marshall', 'MH', '🇲🇭'),
+    CountryOption('Micronésie', 'FM', '🇫🇲'),
     CountryOption('Nauru', 'NR', '🇳🇷'),
-    CountryOption('Nouvelle-Zelande', 'NZ', '🇳🇿'),
+    CountryOption('Nouvelle-Zélande', 'NZ', '🇳🇿'),
     CountryOption('Palaos', 'PW', '🇵🇼'),
-    CountryOption('Papouasie-Nouvelle-Guinee', 'PG', '🇵🇬'),
-    CountryOption('Salomon', 'SB', '🇸🇧'),
+    CountryOption('Papouasie-Nouvelle-Guinée', 'PG', '🇵🇬'),
+    CountryOption('Îles Salomon', 'SB', '🇸🇧'),
     CountryOption('Samoa', 'WS', '🇼🇸'),
     CountryOption('Tonga', 'TO', '🇹🇴'),
     CountryOption('Tuvalu', 'TV', '🇹🇻'),
     CountryOption('Vanuatu', 'VU', '🇻🇺'),
   ];
 
-  /// Obtenir un pays par son nom
-  static CountryOption? getCountryByName(String name) {
-    try {
-      return countries.firstWhere(
-        (c) => c.name.toLowerCase() == name.toLowerCase(),
-      );
-    } catch (_) {
-      return null;
+  /// Le pays désigné par [value], quelle que soit la façon dont il est écrit :
+  /// nom avec ou sans accents (« Algerie » = « Algérie »), casse quelconque,
+  /// ou **ancien code ISO-2** (« CA »).
+  ///
+  /// Les codes ne sont reconnus qu'en lecture, pour reprendre ce que la base
+  /// et les versions précédentes de l'app ont écrit : on n'en écrit plus
+  /// aucun. `null` si le pays n'est pas dans [countries].
+  static CountryOption? findCountry(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    final plie = foldCountryName(value);
+    for (final c in countries) {
+      if (foldCountryName(c.name) == plie) return c;
     }
+    final code = value.trim().toUpperCase();
+    for (final c in countries) {
+      if (c.code == code) return c;
+    }
+    return null;
   }
 
-  /// Obtenir un pays par son code
-  static CountryOption? getCountryByCode(String code) {
-    try {
-      return countries.firstWhere(
-        (c) => c.code.toLowerCase() == code.toLowerCase(),
-      );
-    } catch (_) {
-      return null;
-    }
+  /// La forme qu'on écrit en base : le nom de [countries] quand le pays est
+  /// reconnu, sinon la saisie telle quelle (mieux vaut la garder que la
+  /// perdre), `null` si elle est vide.
+  ///
+  /// Toute écriture d'une colonne `country_code` passe par ici. La base le
+  /// refait de son côté (`pays_canonique`) pour les versions de l'app déjà
+  /// installées, qui écrivent encore des codes.
+  static String? canonicalCountry(String? value) {
+    final trouve = findCountry(value);
+    if (trouve != null) return trouve.name;
+    final brut = value?.trim();
+    return (brut == null || brut.isEmpty) ? null : brut;
   }
 
   /// Regions du Niger avec leurs principales villes
@@ -365,32 +377,42 @@ class ProfileOptions {
   }
 }
 
-/// Correspondance code ISO → pays.
+/// Rabat un nom de pays sur une forme comparable : minuscules, sans accents,
+/// tirets et apostrophes ramenés à des espaces.
 ///
-/// Les groupes et les profils stockent tous deux le **code ISO**
-/// (`users.country_code`, `groups.country_code`) : c'est donc lui qui sert aux
-/// comparaisons. Mais un code brut (« NE », « FR ») n'a aucun sens à l'écran —
-/// d'où ces helpers, à utiliser pour l'affichage uniquement.
-extension CountryCodeLookup on ProfileOptions {
-  static CountryOption? byCode(String? code) {
-    if (code == null || code.isEmpty) return null;
-    final upper = code.toUpperCase();
-    for (final country in ProfileOptions.countries) {
-      if (country.code == upper) return country;
-    }
-    return null;
-  }
+/// La base applique exactement la même règle (`plier_nom_de_pays`) : si l'une
+/// change, l'autre doit suivre, sinon l'app et la base cessent de reconnaître
+/// les mêmes pays.
+String foldCountryName(String s) => s
+    .toLowerCase()
+    .replaceAll(RegExp('[àáâãäå]'), 'a')
+    .replaceAll(RegExp('[èéêë]'), 'e')
+    .replaceAll(RegExp('[ìíîï]'), 'i')
+    .replaceAll(RegExp('[òóôõö]'), 'o')
+    .replaceAll(RegExp('[ùúûü]'), 'u')
+    .replaceAll('ç', 'c')
+    .replaceAll(RegExp("[’'`\\-]"), ' ')
+    .replaceAll(RegExp(r'\s+'), ' ')
+    .trim();
 
-  /// Libellé affichable pour un code ISO : « 🇳🇪 Niger ».
-  /// Retombe sur le code lui-même si le pays n'est pas répertorié, plutôt que
-  /// d'afficher du vide.
-  static String labelForCode(String? code) =>
-      byCode(code)?.displayName ?? (code ?? '');
-}
+/// Libellé affichable d'un pays : « 🇳🇪 Niger ».
+///
+/// `users.country_code` et `groups.country_code` portent le **nom** du pays
+/// (malgré le nom de la colonne), et plus aucun code ISO depuis le
+/// 2026-09-13. Le drapeau vient de [ProfileOptions.findCountry], qui reconnaît
+/// aussi les anciennes valeurs. Un pays inconnu s'affiche tel quel, sans
+/// drapeau, plutôt que de disparaître.
+String countryDisplayLabel(String? country) =>
+    ProfileOptions.findCountry(country)?.displayName ?? (country ?? '');
 
 /// Classe représentant un pays avec son drapeau
 class CountryOption {
+  /// Le nom, tel qu'il s'écrit en base et à l'écran.
   final String name;
+
+  /// Code ISO-2, **jamais écrit en base** : il ne sert qu'à reconnaître les
+  /// anciennes valeurs (voir [ProfileOptions.findCountry]) et d'identité à
+  /// la liste déroulante.
   final String code;
   final String flag;
 

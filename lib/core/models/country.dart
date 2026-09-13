@@ -1,4 +1,5 @@
-/// Code ISO-2 retenu quand aucun pays n'est déclaré : le Niger.
+/// Pays retenu quand aucun n'est déclaré : le Niger, écrit en toutes lettres
+/// comme tout pays en base.
 ///
 /// Un groupe sans `country_code` **disparaissait de « Découvrir »** dès qu'un
 /// filtre pays était actif — et l'écran en pose un tout seul au premier
@@ -6,10 +7,10 @@
 /// demandé. Le groupe n'était donc pas « non filtré », il était invisible, et
 /// rien à l'écran ne le disait.
 ///
-/// Vaut `Country.niger.code`, qui n'est pas une constante (getter
-/// d'extension) et ne peut donc pas servir de valeur par défaut. Les deux sont
-/// verrouillés ensemble par `test/core/models/pays_defaut_test.dart`.
-const String kDefaultCountryCode = 'NE';
+/// Doit rester un nom de `ProfileOptions.countries`, et égal au défaut de la
+/// base (`groups_country_code_defaut`) : verrouillé par
+/// `test/core/models/pays_defaut_test.dart`.
+const String kDefaultCountry = 'Niger';
 
 /// Regions for grouping countries
 enum Region {
@@ -390,16 +391,6 @@ extension CountryExtension on Country {
 
     return null;
   }
-
-  /// Code ISO-2 pour une valeur écrite dans n'importe laquelle des trois
-  /// formes ci-dessus ; `null` si le pays n'est pas reconnu.
-  ///
-  /// À utiliser avant toute écriture dans une colonne `country_code` : elles
-  /// contenaient un mélange de codes et de libellés (`CA` à côté de `Canada`,
-  /// `NE` à côté de `Niger`), si bien que les comparaisons d'égalité
-  /// échouaient silencieusement — le filtre par pays de la liste des groupes
-  /// ne retenait alors qu'une partie des groupes du pays visé.
-  static String? toIsoCode(String? value) => fromString(value)?.code;
 }
 
 /// Helper to get countries by region

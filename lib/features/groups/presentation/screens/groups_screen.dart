@@ -102,16 +102,18 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     profileAsync.whenData((profile) {
       final availableCountries = ref.read(availableGroupCountriesProvider);
 
-      if (profile?.currentCountry != null &&
-          profile!.currentCountry!.isNotEmpty &&
-          availableCountries.contains(profile.currentCountry)) {
+      // Ramené à son nom : un profil pas encore réenregistré porte encore un
+      // code ISO (« CA »), qu'aucun groupe ne porte plus.
+      final paysDuProfil =
+          ProfileOptions.canonicalCountry(profile?.currentCountry);
+      if (paysDuProfil != null && availableCountries.contains(paysDuProfil)) {
         // Utiliser le pays du profil s'il existe dans les groupes disponibles
-        setState(() => _selectedCountry = profile.currentCountry);
-      } else if (availableCountries.contains(kDefaultCountryCode)) {
+        setState(() => _selectedCountry = paysDuProfil);
+      } else if (availableCountries.contains(kDefaultCountry)) {
         // Sinon, utiliser le Niger par défaut s'il existe dans les groupes.
-        // Le code ISO, pas le nom : `availableGroupCountriesProvider` dérive de
-        // `groups.country_code`. Avec 'Niger', ce repli ne se déclenchait jamais.
-        setState(() => _selectedCountry = kDefaultCountryCode);
+        // `availableGroupCountriesProvider` dérive de `groups.country_code`,
+        // qui porte le pays en toutes lettres.
+        setState(() => _selectedCountry = kDefaultCountry);
       }
       // Si Niger n'existe pas non plus, on laisse sur "Tous" (null)
     });
@@ -765,9 +767,8 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                     (country) => Padding(
                       padding: const EdgeInsets.only(left: 8),
                       child: _GeoFilterChip(
-                        // `country` est un code ISO : on compare dessus, mais
-                        // on affiche le nom (sinon l'utilisateur lit « NE »).
-                        label: CountryCodeLookup.labelForCode(country),
+                        // `country` est le nom du pays : on y ajoute le drapeau.
+                        label: countryDisplayLabel(country),
                         isSelected: _selectedCountry == country,
                         onTap: () => setState(() => _selectedCountry = country),
                       ),
@@ -1039,18 +1040,13 @@ class _GroupCard extends ConsumerWidget {
                               // largeur de la carte.
                               Flexible(
                                 child: Text(
-                                  // `country` est un code ISO en base : la
-                                  // pastille affichait « CA » et « NE » là où
-                                  // les puces de filtre, juste au-dessus,
-                                  // écrivent « 🇨🇦 Canada » et « 🇳🇪 Niger ».
-                                  // Deux graphies pour la même donnée dans le
-                                  // même écran. `location` (saisie libre) est
-                                  // affichée telle quelle.
+                                  // Même graphie que les puces de filtre,
+                                  // juste au-dessus : « 🇨🇦 Canada ».
+                                  // `location` (saisie libre) est affichée
+                                  // telle quelle.
                                   group.location?.trim().isNotEmpty ?? false
                                       ? group.location!
-                                      : CountryCodeLookup.labelForCode(
-                                        group.country,
-                                      ),
+                                      : countryDisplayLabel(group.country),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(

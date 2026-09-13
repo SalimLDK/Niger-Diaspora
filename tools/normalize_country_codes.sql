@@ -1,3 +1,9 @@
+-- ⛔ OBSOLÈTE — NE PAS EXÉCUTER. Depuis le 2026-09-13, `country_code` porte le
+-- NOM du pays, plus jamais un code ISO (migration
+-- 20260913030000_pays_en_toutes_lettres.sql). Ce script ramènerait 39 pays à
+-- l'ISO et recréerait exactement le mélange qu'elle a soldé. Gardé pour
+-- l'historique uniquement.
+--
 -- Normalise `country_code` vers l'ISO-2, sur `users` et `groups`.
 --
 -- POURQUOI

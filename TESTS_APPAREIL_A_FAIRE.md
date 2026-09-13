@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**780 cases à cocher, 491 cochées** — 160 entrées sur 204 ont encore des cases ouvertes.
+**786 cases à cocher, 491 cochées** — 161 entrées sur 205 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -63,7 +63,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (40)
+**P1 — fonction importante, jamais vérifiée** (41)
 
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
@@ -85,6 +85,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
+- 6 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
@@ -219,7 +220,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 103 à faire, 52 faites
-- [3. Groupes](#3-groupes) — 90 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 96 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
 - [6. Notifications et push](#6-notifications-et-push) — 44 à faire, 73 faites
@@ -2053,6 +2054,58 @@ de conclure quoi que ce soit.
 # 3. Groupes
 
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
+
+---
+
+## ⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)
+
+**Priorité P1** · importance 3/5 — Le groupe officiel d'un pays s'appelait « Diaspora Niger — NE », un même pays pouvait en avoir deux (`AO` et « Angola »), et la carte des groupes restait vide.
+
+Plus aucun code ISO en base (décision de Salim) : `users`, `groups` et `posts`
+portent le nom accentué du pays (« Algérie », « États-Unis »). Migration
+`20260913030000_pays_en_toutes_lettres.sql`, **appliquée en production** et
+relue après coup : 5 groupes officiels renommés (dont « — Niger » et
+« — Algérie »), compteurs de membres justes partout.
+
+- Cause du mélange : `Country.toIsoCode` ne connaissait que 28 pays sur les
+  197 du sélecteur ; « Angola » et « Cap-Vert » repartaient en toutes lettres.
+- Cause du compteur faux : `update_group_member_count` tournait avec les
+  droits de l'appelant, et la RLS de `groups` réduisait l'`UPDATE` d'un membre
+  ordinaire à zéro ligne. Prouvé réparé en transaction annulée sous le compte
+  non-admin `0D3P…` (rejoindre → 2/2).
+- La base ramène elle-même tout code au nom (`pays_canonique`, déclencheurs) :
+  les APK déjà installés continuent d'écrire `CA`, ce qui ne salit plus rien.
+
+Couvert par `test/core/models/pays_en_toutes_lettres_test.dart` (liste app =
+référentiel SQL, clés de la carte, pliage des accents) et
+`pays_defaut_test.dart`. Fichiers : `profile_options.dart`,
+`profile_supabase_datasource.dart`, `profile_provider.dart`,
+`edit_profile_screen.dart`, `groups_screen.dart`, `groups_map_screen.dart`.
+
+- [ ] Profil → changer de pays pour un pays hors des 28 anciens (Angola) :
+      le sélecteur le garde, et « Diaspora Niger — Angola » apparaît dans
+      « Mes groupes », sans second groupe du même pays.
+- [ ] Rouvrir « Modifier le profil » : le pays est pré-sélectionné, accents
+      compris (« Algérie », « Côte d'Ivoire »).
+- [ ] Groupes → Découvrir : puces « 🇳🇪 Niger », « 🇨🇦 Canada »,
+      « 🇩🇿 Algérie », et le filtre posé d'office est le pays du profil.
+- [ ] Carte des groupes : marqueurs Niger, Canada, Algérie présents (aucun
+      avant). Angola et Cap-Vert n'ont pas de centroïde : pas de marqueur,
+      c'est attendu.
+- [ ] Rejoindre puis quitter un groupe public avec un compte non admin : le
+      nombre de membres suit dans la liste. *Bloqué : deux comptes pour le
+      voir côté autre membre.*
+- [ ] Nom d'un groupe créé à la main avec « États-Unis » : la pastille de la
+      carte affiche « 🇺🇸 États-Unis ».
+
+⚠️ **Non traité, à trancher** : changer de pays ne fait **pas** quitter le
+groupe officiel de l'ancien pays. Le compte `0D3P…` est aujourd'hui membre de
+« — Cap-Vert » et de « — Angola ».
+
+⚠️ **Pour les autres agents** : deux migrations non livrées datées du
+2026-09-12 (`20260912200000`, `20260912220000`, dans d'autres worktrees) sont
+désormais antérieures à la dernière appliquée : leur `db push` demandera
+`--include-all`.
 
 ---
 

@@ -1,9 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:diaspo_niger/core/models/country.dart';
 
-/// Garde-fou sur la normalisation des pays en ISO-2.
+/// Reconnaissance d'un pays de l'énumération `Country` (marketplace) écrit
+/// sous l'une de ses formes.
 ///
-/// Les colonnes `users.country_code` et `groups.country_code` mélangeaient
+/// Historique : ces tests gardaient la normalisation vers l'ISO-2, abandonnée
+/// le 2026-09-13 au profit des noms en toutes lettres. À l'origine,
+/// les colonnes `users.country_code` et `groups.country_code` mélangeaient
 /// codes et libellés — `CA` à côté de `Canada`, `NE` à côté de `Niger` — parce
 /// que deux écrans y écrivaient un libellé : le profil (issu du géocodage
 /// inverse) et la création de groupe (sa liste `_hostCountries` codée en dur).
@@ -63,33 +66,9 @@ void main() {
     });
   });
 
-  group('CountryExtension.toIsoCode', () {
-    test('convertit le libellé en code — le cas qui salissait la base', () {
-      expect(CountryExtension.toIsoCode('Niger'), 'NE');
-      expect(CountryExtension.toIsoCode('Canada'), 'CA');
-      expect(CountryExtension.toIsoCode('États-Unis'), 'US');
-    });
-
-    test('est idempotent : un code déjà ISO ressort inchangé', () {
-      expect(CountryExtension.toIsoCode('NE'), 'NE');
-      expect(CountryExtension.toIsoCode('CA'), 'CA');
-    });
-
-    test('rend null sur un pays non reconnu, pour que l\'appelant garde la '
-        'valeur brute plutôt que de la perdre', () {
-      expect(CountryExtension.toIsoCode('Atlantide'), isNull);
-      expect(CountryExtension.toIsoCode(null), isNull);
-    });
-
-    test('chaque pays connu a un code à deux lettres, sauf le fourre-tout', () {
-      for (final c in Country.values) {
-        if (c == Country.other) continue;
-        expect(c.code.length, 2, reason: 'code ISO-2 attendu pour ${c.name}');
-        // Et il doit se reconnaître lui-même, dans les trois écritures.
-        expect(CountryExtension.toIsoCode(c.code), c.code);
-        expect(CountryExtension.toIsoCode(c.label), c.code);
-        expect(CountryExtension.toIsoCode(c.name), c.code);
-      }
-    });
-  });
+  // `CountryExtension.toIsoCode` a disparu le 2026-09-13 : plus aucune
+  // colonne ne porte de code ISO. Il ne connaissait que ces 28 pays, et tout
+  // pays du sélecteur hors de la liste repartait en toutes lettres à côté des
+  // codes. La forme écrite en base est désormais
+  // `ProfileOptions.canonicalCountry` — voir `pays_en_toutes_lettres_test.dart`.
 }
