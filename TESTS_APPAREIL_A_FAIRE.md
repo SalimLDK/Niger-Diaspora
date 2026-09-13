@@ -2195,6 +2195,32 @@ SELECT proposer_departs_groupes_officiels();
 (Il faut d'abord que le compte ait changé de pays en étant membre du groupe
 officiel de l'ancien.)
 
+**Passe prévue sur SM A515F, compte « Sim A » (choix de Salim, 2026-09-13),
+mise en attente à sa demande avant toute écriture.** L'APK qui contient la
+fonctionnalité est **déjà posé** : versionCode 19, build du commit `79e2cc9`,
+md5 `6826b957e1d533b091f8f89fd1fdc016`, installé par `install -r` à 12:13,
+session « Sim » conservée (« Bonjour, Sim » à la relance). Revérifier le md5
+avant de commencer : un autre agent a pu réinstaller entre-temps.
+
+État de départ de Sim A (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), à restaurer à la fin :
+pays **vide**, membre de « Diaspora Niger — Canada » (member), « Testeurs »
+(member), « Groupe de test prive » (admin). Notifications autorisées.
+
+1. Profil → Modifier : pays **Canada**, enregistrer (pays vide → Canada : aucun
+   départ noté, c'est attendu). Puis pays **Niger**, enregistrer : un départ
+   Canada `en_attente` doit apparaître en base, Sim A reste membre de Canada
+   et rejoint « — Niger ». Ne pas choisir un pays sans groupe officiel : la
+   sauvegarde en créerait un en production.
+2. Appliquer la recette SQL ci-dessus avec l'uid de Sim A → push attendu.
+3. Cases 1 à 3 ci-dessous (dont « Rester membre »).
+4. Pour « Quitter » : nouvelle proposition par Niger → Canada → Niger, recette
+   SQL, puis case 4.
+5. Remise en état : rejoindre « — Canada » depuis Découvrir, quitter « — Niger »
+   par son menu. ⚠️ L'écran de profil n'a **pas d'option « aucun pays »** :
+   revenir au pays vide exige un `UPDATE users SET country_code = NULL` en
+   base (le classificateur a déjà refusé ce genre d'écriture sur une ligne de
+   compte, cf mémoire appareil) — sinon laisser Sim A en Niger et le dire.
+
 - [ ] Le push « Rester dans « Diaspora Niger — … » ? » arrive ; l'appui ouvre
       la fiche du groupe, carte « Vous avez changé de pays » visible, date et
       pays justes.
