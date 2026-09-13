@@ -94,6 +94,24 @@ abstract final class QrCodeParser {
     return _targetFor(segments);
   }
 
+  /// Route GoRouter d'un lien du projet lu **dans l'app** (texte d'un message,
+  /// carte d'aperçu), ou `null` s'il faut le laisser au navigateur.
+  ///
+  /// Un lien Diaspo Niger tapé dans une discussion partait vers Android
+  /// (`launchUrl`), qui le renvoyait à l'app par App Links : boîte « Ouvrir ce
+  /// lien ? » inutile, puis `router.go` à l'arrivée — la discussion disparaissait
+  /// de la pile, et le retour menait au parent de l'écran, pas à elle.
+  ///
+  /// Le texte d'un message porte souvent le lien sans schéma
+  /// (`diasponiger.com/groups/…`) : on le complète comme le fait l'ouverture.
+  /// Un code court de profil (`/p/<code>`) n'a pas de route : `null`.
+  static String? routeInterne(String lien) {
+    var valeur = lien.trim();
+    if (valeur.isEmpty || valeur.startsWith(keyTransferPrefix)) return null;
+    if (!valeur.contains('://')) valeur = 'https://$valeur';
+    return parse(valeur)?.routePath;
+  }
+
   /// Segments du chemin, uniquement si l'URI est bien celle du projet.
   ///
   /// Le schéma maison porte le premier segment dans l'hôte

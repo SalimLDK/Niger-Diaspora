@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
+import '../../../../core/services/qr_code_parser.dart';
 import '../../../../core/utils/mention_handle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -2814,6 +2815,15 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   Future<void> _handleLinkTap(_LinkMatch match) async {
     switch (match.type) {
       case _LinkType.url:
+        // Un lien de l'app s'ouvre dans l'app, empilé sur la discussion. La
+        // boîte de confirmation protège d'un site tiers, pas de nos propres
+        // écrans — et par `launchUrl`, Android renvoyait le lien à l'app, dont
+        // le `router.go` effaçait la discussion de la pile.
+        final route = QrCodeParser.routeInterne(match.text);
+        if (route != null) {
+          if (mounted) context.push(route);
+          break;
+        }
         final confirmed = await _showUrlConfirmDialog(match.text);
         if (confirmed == true) {
           await _openFile(match.text);

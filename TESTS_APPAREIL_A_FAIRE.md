@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**776 cases à cocher, 491 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
+**780 cases à cocher, 491 cochées** — 160 entrées sur 204 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -106,7 +106,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (56)
+**P2 — fonction secondaire ou cas limite** (57)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -124,6 +124,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
@@ -222,7 +223,7 @@ Par domaine :
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
 - [6. Notifications et push](#6-notifications-et-push) — 44 à faire, 73 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 35 à faire, 57 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 77 à faire, 4 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 51 à faire, 44 faites
@@ -6725,6 +6726,50 @@ notifications d'un groupe une par une.
 # 7. Liens profonds, navigation et QR codes
 
 Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
+
+---
+
+## ⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)
+
+**Priorité P2** · importance 3/5 — Taper un lien du projet dans un message affichait « Ouvrir ce lien ? », passait par Android, et la discussion disparaissait : le retour menait ailleurs.
+
+`lib/core/services/qr_code_parser.dart` (`routeInterne`),
+`lib/features/messages/presentation/widgets/link_preview_bubble.dart`,
+`lib/features/messages/presentation/widgets/message_bubble.dart`.
+
+Signalé par Salim : « corrige les liens profonds ». **Mesuré d'abord, sur
+SM A515F, build installé versionCode 18** (compte Sim A) : `pm get-app-links`
+→ `verified` sur les deux domaines, et **sept liens `https://diasponiger.com/…`
+rejoués à froid (`force-stop` puis intent), tous sur le bon écran** — groupe
+public, groupe privé (Sim A membre), publication, événement, entreprise,
+ambassade, profil. Les liens venus de l'extérieur ne sont donc pas en cause.
+Ce qu'un utilisateur de la version du Play Store (versionCode 9, 1.1.1)
+subit reste vrai tant que la 18 n'est pas publiée : aucun des correctifs de
+cette section n'y est.
+
+Le défaut trouvé est **dans** l'app, là où aucune passe à l'intent ne regarde :
+
+- la carte d'aperçu (`LinkPreviewBubble`) lisait les liens avec
+  `DeepLinkService.parseDeepLink`, qui ignorait `/feed/`, `/embassies/`,
+  `www.` et `diasponiger://` — ces liens repartaient vers Android ;
+- le texte d'un message ne reconnaissait **aucun** lien du projet : boîte
+  « Ouvrir ce lien ? », puis `launchUrl`, puis retour dans l'app par App Links
+  et `router.go` — qui remplace la pile.
+
+Corrigé : un seul lecteur, celui du scanner (`QrCodeParser`), et
+`context.push` sur la discussion. Le parseur de `DeepLinkService`, que
+« Le QR d'un groupe est refusé par le scanner » signalait déjà comme doublon
+à fusionner, est supprimé. Tenu par `test/core/services/liens_dans_l_app_test.dart`
+(chaque lien généré par l'app se relit en route ; garde textuel vérifié en
+retirant la branche : il tombe).
+
+- [ ] Dans une discussion, taper un lien `https://diasponiger.web.app/feed/<id>`
+      écrit en texte : la publication s'ouvre **sans** boîte de confirmation,
+      et la flèche ramène **à la discussion**.
+- [ ] Même chose avec un lien sans schéma (`diasponiger.com/groups/<id>`).
+- [ ] Un lien vers un site tiers garde sa boîte « Ouvrir ce lien ? ».
+- [ ] Carte « groupe » partagée dans une discussion : toujours la fiche, retour
+      à la discussion (non-régression).
 
 ---
 
