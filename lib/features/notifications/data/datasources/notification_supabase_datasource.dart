@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
+import '../../domain/entities/notification_entity.dart';
 import '../models/notification_model.dart';
 import 'notification_remote_datasource.dart';
 
@@ -90,6 +93,158 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
     return rows.map(_safeFromRow).whereType<NotificationModel>().toList();
   }
 
+  /// Filtre PostgREST (`or=`) qui écarte les [kTypesHorsEcranNotifications].
+  ///
+  /// `type.is.null` est gardé explicitement : `NOT IN` rend NULL sur une
+  /// valeur nulle, la ligne serait donc écartée — alors que [fromRow] l'affiche
+  /// en `general`.
+  @visibleForTesting
+  static final String filtreTypesAffiches =
+      'type.is.null,type.not.in.'
+      '(${kTypesHorsEcranNotifications.map((t) => t.name).join(',')})';
+
+  /// Le même critère que [filtreTypesAffiches], sur la valeur brute d'une
+  /// ligne reçue par le canal temps réel.
+  @visibleForTesting
+  static bool typeAffiche(Object? type) =>
+      type == null ||
+      !kTypesHorsEcranNotifications.any((t) => t.name == type.toString());
+
+  /// Dit si un changement reçu du canal peut modifier la liste affichée.
+  ///
+  /// - **Insertion** : seulement si son type est affiché. L'arrivée d'un
+  ///   message ne coûte ainsi ni requête ni reconstruction de l'écran.
+  /// - **Mise à jour** : type affiché, ou ligne déjà à l'écran (qui en sort).
+  /// - **Suppression** : l'ancien enregistrement ne porte que la clé primaire
+  ///   (pas de `REPLICA IDENTITY FULL`), et Realtime ne sait pas filtrer les
+  ///   suppressions — on reçoit celles des autres. Seul critère fiable : la
+  ///   ligne était-elle à l'écran ?
+  @visibleForTesting
+  static bool changementPertinent(
+    PostgresChangeEvent evenement,
+    Map<String, dynamic> nouveau,
+    Map<String, dynamic> ancien,
+    Set<String> idsAffiches,
+  ) {
+    switch (evenement) {
+      case PostgresChangeEvent.insert:
+        return typeAffiche(nouveau['type']);
+      case PostgresChangeEvent.update:
+        return typeAffiche(nouveau['type']) ||
+            idsAffiches.contains(nouveau['id']?.toString());
+      case PostgresChangeEvent.delete:
+        return idsAffiches.contains(ancien['id']?.toString());
+      case PostgresChangeEvent.all:
+        return false;
+    }
+  }
+
+  PostgrestFilterBuilder<PostgrestList> _selectAffichees(String userId) {
+    return _supabase
+        .from('notifications')
+        .select()
+        .eq('user_id', userId)
+        .or(filtreTypesAffiches);
+  }
+
+  /// Liste affichable, rechargée à chaque changement qui peut la modifier.
+  ///
+  /// Ce n'est plus `.stream()` : il n'accepte **qu'un** filtre, déjà pris par
+  /// `user_id`, et sa limite porte sur les lignes brutes. Les messages étant
+  /// écartés de l'écran, les 20 lignes les plus récentes pouvaient toutes en
+  /// être : liste vide, et rien à faire défiler pour déclencher la pagination.
+  ///
+  /// Le canal écoute donc la table, et la requête filtrée fait foi. Les
+  /// erreurs remontent dans le flux, où la boucle de [getNotifications] les
+  /// traite comme avant.
+  Stream<List<NotificationModel>> _fluxAffiches(String userId, int limit) {
+    late final StreamController<List<NotificationModel>> controller;
+    RealtimeChannel? canal;
+    var idsAffiches = <String>{};
+    var annule = false;
+    var dejaAbonne = false;
+    var enCours = false;
+    var aRefaire = false;
+
+    Future<void> recharger() async {
+      // Des changements arrivés pendant une requête n'en relancent qu'une.
+      if (enCours) {
+        aRefaire = true;
+        return;
+      }
+      enCours = true;
+      try {
+        do {
+          aRefaire = false;
+          final rows = await _selectAffichees(userId)
+              .order('created_at', ascending: false)
+              .limit(limit);
+          if (annule) return;
+          final models = _mapRows(rows);
+          idsAffiches = models.map((m) => m.id).toSet();
+          controller.add(models);
+        } while (aRefaire && !annule);
+      } catch (e, st) {
+        if (!annule) controller.addError(e, st);
+      } finally {
+        enCours = false;
+      }
+    }
+
+    controller = StreamController<List<NotificationModel>>(
+      onListen: () {
+        canal = _supabase
+            .channel(
+              'notifications-affichees:$userId:'
+              '${DateTime.now().microsecondsSinceEpoch}',
+            )
+            .onPostgresChanges(
+              event: PostgresChangeEvent.all,
+              schema: 'public',
+              table: 'notifications',
+              filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq,
+                column: 'user_id',
+                value: userId,
+              ),
+              callback: (payload) {
+                if (annule) return;
+                if (changementPertinent(
+                  payload.eventType,
+                  payload.newRecord,
+                  payload.oldRecord,
+                  idsAffiches,
+                )) {
+                  unawaited(recharger());
+                }
+              },
+            )
+            .subscribe((status, [error]) {
+              if (annule) return;
+              switch (status) {
+                case RealtimeSubscribeStatus.subscribed:
+                  // Une reconnexion a pu laisser passer des changements.
+                  if (dejaAbonne) unawaited(recharger());
+                  dejaAbonne = true;
+                case RealtimeSubscribeStatus.closed:
+                case RealtimeSubscribeStatus.timedOut:
+                case RealtimeSubscribeStatus.channelError:
+                  controller.addError(
+                    StateError('canal notifications : $status ${error ?? ''}'),
+                  );
+              }
+            });
+        unawaited(recharger());
+      },
+      onCancel: () async {
+        annule = true;
+        final c = canal;
+        if (c != null) await _supabase.removeChannel(c);
+      },
+    );
+    return controller.stream;
+  }
+
   /// Flux temps réel des notifications.
   ///
   /// Deux causes distinctes du « erreur de chargement » intermittent sont
@@ -116,16 +271,9 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
       try {
         await SupabaseAuthBridge.instance.ensureReadableSession();
 
-        final stream = _supabase
-            .from('notifications')
-            .stream(primaryKey: ['id'])
-            .eq('user_id', userId)
-            .order('created_at', ascending: false)
-            .limit(limit);
-
-        await for (final rows in stream) {
+        await for (final models in _fluxAffiches(userId, limit)) {
           failures = 0;
-          lastKnown = _mapRows(rows);
+          lastKnown = models;
           yield lastKnown;
         }
         return; // Flux clos normalement (provider détruit).
@@ -151,10 +299,7 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
     DateTime? startAfter,
   }) async {
     try {
-      var query = _supabase
-          .from('notifications')
-          .select()
-          .eq('user_id', userId);
+      var query = _selectAffichees(userId);
 
       if (startAfter != null) {
         query = query.lt('created_at', startAfter.toUtc().toIso8601String());
@@ -172,10 +317,7 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
   @override
   Future<int> getUnreadCount(String userId) async {
     try {
-      final response = await _supabase
-          .from('notifications')
-          .select()
-          .eq('user_id', userId)
+      final response = await _selectAffichees(userId)
           .eq('is_read', false)
           .count(CountOption.exact);
       return response.count;
@@ -197,6 +339,8 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
     }
   }
 
+  /// « Tout lire » ne touche que ce que l'écran montre : une notification de
+  /// message reste non lue tant que le message ne l'est pas.
   @override
   Future<void> markAllAsRead(String userId) async {
     try {
@@ -205,7 +349,8 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
           .from('notifications')
           .update({'is_read': true})
           .eq('user_id', userId)
-          .eq('is_read', false);
+          .eq('is_read', false)
+          .or(filtreTypesAffiches);
     } catch (e) {
       throw ServerException(e.toString());
     }
@@ -224,6 +369,8 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
     }
   }
 
+  /// Même périmètre que [markAllAsRead] : les lignes de messagerie, que
+  /// l'écran ne montre pas, ne sont pas supprimées dans le dos de la personne.
   @override
   Future<void> deleteAllNotifications(String userId) async {
     try {
@@ -231,7 +378,8 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
       await _supabase
           .from('notifications')
           .delete()
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .or(filtreTypesAffiches);
     } catch (e) {
       throw ServerException(e.toString());
     }

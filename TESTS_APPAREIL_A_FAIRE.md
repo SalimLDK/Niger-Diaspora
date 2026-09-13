@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**846 cases à cocher, 491 cochées** — 173 entrées sur 217 ont encore des cases ouvertes.
+**853 cases à cocher, 491 cochées** — 174 entrées sur 218 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -64,7 +64,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (47)
+**P1 — fonction importante, jamais vérifiée** (48)
 
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
@@ -94,6 +94,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
+- 7 · [⬜ La messagerie sort de l'écran Notifications (2026-09-13)](#-la-messagerie-sort-de-lécran-notifications-2026-09-13) · *Notifications et push*
 - 7 · [⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)](#-notifications-ouvertes-ailleurs-ou-obsolètes--lues-2026-09-12) · *Notifications et push*
 - 5 · [Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)](#réponse-rapide-depuis-la-notification-nenvoyait-jamais-rien-2026-08-13) · *Notifications et push* · bloqué
 - 2 · [✅ Repli navigateur des liens d'app — DÉPLOYÉ (2026-09-09 21:5x)](#-repli-navigateur-des-liens-dapp--déployé-2026-09-09-215x) · *Liens profonds, navigation et QR codes*
@@ -235,7 +236,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 96 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
-- [6. Notifications et push](#6-notifications-et-push) — 51 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 99 à faire, 4 faites
@@ -570,7 +571,9 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   `tools/polices_emoji_couleur.py`)
 - [ ] **Notification** : Sim réagit à un message de Salim → Salim reçoit
   « Sim · A réagi ❤️ à votre message », app fermée comme ouverte ; le tap
-  ouvre la discussion. Changer d'emoji ne fait pas une 2e ligne dans la cloche.
+  ouvre la discussion. Changer d'emoji ne fait pas une 2e ligne en base
+  (l'écran Notifications ne montre plus les réactions depuis le 2026-09-13 —
+  voir « La messagerie sort de l'écran Notifications »).
   Aucune bannière si la discussion est déjà ouverte, ni si elle est en
   sourdine.
 - [ ] **Mise à jour croisée** : les deux téléphones sur la même discussion,
@@ -5723,6 +5726,40 @@ Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
 
+## ⬜ La messagerie sort de l'écran Notifications (2026-09-13)
+
+**Priorité P1** · importance 3/5 — L'écran Notifications recopiait chaque message reçu : 90 lignes « message » sur 117 en base, le reste noyé dessous, et la cloche comptait deux fois ce que l'onglet Messages compte déjà.
+
+Demandé par Salim. Les lignes `message` et `messageReaction` restent
+écrites en base (c'est leur INSERT qui déclenche le push) : elles sont
+écartées **à la lecture**, dans la requête. Le flux n'est plus `.stream()`
+(un seul filtre possible) mais un canal realtime qui relance la requête
+filtrée. (`notification_supabase_datasource.dart`,
+`kTypesHorsEcranNotifications` dans `notification_entity.dart`)
+
+Filtre vérifié sur la base de production : 117 lignes → 27, les 90 écartées
+sont toutes `message`. Rien à déployer.
+
+- [ ] **Liste** : recevoir un message (compte A → B) puis ouvrir
+  Notifications sur B : aucune ligne de message ; les autres notifications
+  (demandes d'ami, événements, fil) sont là, **pleine page** — plus de liste
+  presque vide sur un compte qui reçoit beaucoup de messages.
+- [ ] **Temps réel** : écran Notifications ouvert sur B, A envoie un message
+  → rien ne bouge ; A envoie une demande d'ami ou commente un post de B → la
+  ligne apparaît sans quitter l'écran.
+- [ ] **Cloche** : la pastille de l'accueil ne monte pas à la réception d'un
+  message (l'onglet Messages, lui, monte), et monte sur une notification
+  d'un autre type.
+- [ ] **Push** : le message reçu app fermée affiche toujours sa bannière, et
+  la toucher ouvre la discussion.
+- [ ] **Tout lire** / **Tout supprimer** (réglages) : n'agissent que sur ce
+  que l'écran montre.
+- [ ] **Reconnexion** : mode avion 30 s sur l'écran Notifications, puis
+  retour → la liste reste affichée et se remet à jour (une notification reçue
+  pendant la coupure apparaît).
+- [ ] **Pagination** : sur un compte à plus de 20 notifications hors
+  messagerie, faire défiler jusqu'en bas charge la suite.
+
 ## ⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)
 
 **Priorité P1** · importance 3/5 — Le compteur de notifications ment : des notifications déjà vues dans la discussion, touchées dans le volet système ou portant sur un contenu supprimé restent « non lues ».
@@ -5736,7 +5773,9 @@ Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000)
 - [ ] **Discussion lue** : recevoir un message (compte A → B), NE PAS ouvrir
   l'écran Notifications, ouvrir la discussion, puis ouvrir Notifications :
   la ligne est en registre « lue ». (`message_supabase_datasource.dart`,
-  RPC `mark_messages_as_read`)
+  RPC `mark_messages_as_read`) — *Depuis le 2026-09-13 la ligne n'est plus
+  à l'écran (voir « La messagerie sort de l'écran Notifications ») : vérifier
+  `is_read` en base.*
 - [ ] **Push touchée** : toucher la notification dans le volet Android,
   revenir, ouvrir Notifications : lue. (`notification_read_sync.dart`)
 - [ ] **Publication ouverte depuis le fil** : une notification de commentaire
