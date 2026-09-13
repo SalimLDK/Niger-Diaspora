@@ -4206,6 +4206,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get copy => 'Copier';
 
   @override
+  String get selectText => 'Sélectionner le texte';
+
+  @override
+  String get copyAll => 'Tout copier';
+
+  @override
+  String get moreReactions => 'Plus de réactions';
+
+  @override
   String get report => 'Signaler';
 
   @override

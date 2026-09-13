@@ -48,6 +48,7 @@ import '../widgets/event_message_card.dart';
 import '../widgets/product_message_card.dart';
 import '../widgets/location_message_bubble.dart';
 import 'poll_message_bubble.dart';
+import 'reaction_picker.dart';
 import '../../../stickers/presentation/widgets/sticker_bubble.dart';
 
 /// Position of a message in a group of consecutive messages from the same sender
@@ -169,8 +170,9 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   double _swipeOffset = 0;
   bool _isSwipingToReply = false;
 
-  // Reactions popup
-  bool _showReactionsPopup = false;
+  /// Bulle elle-même (hors marges et méta) : la barre de réactions du double
+  /// tap se pose au-dessus d'elle.
+  final GlobalKey _bubbleKey = GlobalKey();
 
   /// Révélateur « Autres actions » de la feuille (§27a).
   bool _moreOptionsOpen = false;
@@ -181,15 +183,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   // Local file path for expired media (null = not downloaded or not yet checked)
   String? _cachedLocalPath;
   bool _localPathChecked = false;
-
-  static const List<String> _quickReactions = [
-    '❤️',
-    '👍',
-    '😂',
-    '😮',
-    '😢',
-    '🙏',
-  ];
 
   // L'horodatage n'a plus de couleur propre : il est sorti de la bulle et se
   // lit sur le fond de la conversation, comme celui des messages reçus.
@@ -363,6 +356,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Build emoji-only content without bubble
   Widget _buildEmojiOnlyContent(BuildContext context) {
     return GestureDetector(
+      key: _bubbleKey,
       onLongPress: _onLongPress,
       onDoubleTap: _onDoubleTap,
       child: Column(
@@ -603,14 +597,11 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                                 ? CrossAxisAlignment.end
                                 : CrossAxisAlignment.start,
                         children: [
-                          // Reactions popup
-                          if (_showReactionsPopup)
-                            _buildReactionsPopup(context),
-
                           // Check if this is an emoji-only text message (no bubble)
                           _isEmojiOnlyTextMessage()
                               ? _buildEmojiOnlyContent(context)
                               : GestureDetector(
+                                key: _bubbleKey,
                                 onLongPress: _onLongPress,
                                 onDoubleTap: _onDoubleTap,
                                 child: ClipRRect(
@@ -842,40 +833,28 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   }
 
 
-  /// Rangée de réactions rapides de la feuille d'actions (§27a).
-  ///
-  /// L'émoji que l'utilisateur courant a déjà posé est mis en avant.
-  Widget _buildQuickReactions(BuildContext sheetContext) {
-    const emojis = ['\u{1F44D}', '\u{2764}\u{FE0F}', '\u{1F602}',
-        '\u{1F64F}', '\u{1F62E}'];
-    final myReaction = widget.currentUserId != null
-        ? widget.message.myReaction(widget.currentUserId!)
-        : null;
+  /// Réaction déjà posée par l'utilisateur courant, s'il y en a une.
+  String? get _myReaction => widget.currentUserId != null
+      ? widget.message.myReaction(widget.currentUserId!)
+      : null;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        for (final emoji in emojis)
-          _QuickReactionButton(
-            emoji: emoji,
-            selected: emoji == myReaction,
-            onTap: () {
-              Navigator.pop(sheetContext);
-              HapticFeedback.lightImpact();
-              widget.onReact?.call(widget.message, emoji);
-            },
-          ),
-        // Ouvre le sélecteur complet.
-        _QuickReactionButton(
-          icon: Icons.add,
-          onTap: () {
-            Navigator.pop(sheetContext);
-            setState(() {
-              _showReactionsPopup = true;
-            });
-          },
-        ),
-      ],
+  /// Rangée de réactions rapides de la feuille d'actions (§27a) : les cinq
+  /// de [kQuickReactions], le « + » ouvre le sélecteur complet.
+  Widget _buildQuickReactions(BuildContext sheetContext) {
+    return QuickReactionRow(
+      selected: _myReaction,
+      onPick: (emoji) {
+        Navigator.pop(sheetContext);
+        HapticFeedback.lightImpact();
+        widget.onReact?.call(widget.message, emoji);
+      },
+      onMore: () async {
+        Navigator.pop(sheetContext);
+        final emoji = await showFullReactionPicker(context);
+        if (emoji != null && mounted) {
+          widget.onReact?.call(widget.message, emoji);
+        }
+      },
     );
   }
 
@@ -886,52 +865,23 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     _showOptionsModal(context);
   }
 
-  void _onDoubleTap() {
-    // debugPrint('👆 Double-tap detected on message: ${widget.message.id}');
-    if (widget.onReact != null) {
-      HapticFeedback.lightImpact();
-      // debugPrint('❤️ Calling onReact with heart emoji');
-      widget.onReact?.call(widget.message, '❤️');
-    } else {
-      // debugPrint('⚠️ onReact callback is null!');
-    }
-  }
+  /// Double tap : la barre des cinq réactions et son « + », posée sur la
+  /// bulle — plus de cœur imposé d'office.
+  Future<void> _onDoubleTap() async {
+    if (widget.onReact == null) return;
+    final box =
+        (_bubbleKey.currentContext ?? context).findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return;
+    final anchor = box.localToGlobal(Offset.zero) & box.size;
 
-  Widget _buildReactionsPopup(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children:
-            _quickReactions.map((emoji) {
-              return GestureDetector(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  widget.onReact?.call(widget.message, emoji);
-                  setState(() {
-                    _showReactionsPopup = false;
-                  });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text(emoji, style: const TextStyle(fontSize: 24)),
-                ),
-              );
-            }).toList(),
-      ),
+    final emoji = await showReactionBar(
+      context,
+      anchor: anchor,
+      selected: _myReaction,
     );
+    if (emoji != null && mounted) {
+      widget.onReact?.call(widget.message, emoji);
+    }
   }
 
   /// Chips de réaction, posés sur la même ligne que l'heure (fiche 6b).
@@ -2935,49 +2885,4 @@ class _LinkMatch {
     required this.text,
     required this.type,
   });
-}
-
-
-/// Pastille ronde de la rangée de réactions rapides (§27a). Aplat sable au
-/// repos, cerclée d'accent quand la réaction est déjà posée.
-class _QuickReactionButton extends StatelessWidget {
-  final String? emoji;
-  final IconData? icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _QuickReactionButton({
-    this.emoji,
-    this.icon,
-    this.selected = false,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: selected
-          ? context.adaptivePrimaryColor.withValues(alpha: 0.14)
-          : context.surfaceVariantColor,
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Container(
-          width: 44,
-          height: 44,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: selected
-                ? Border.all(color: context.adaptivePrimaryColor, width: 1.6)
-                : null,
-          ),
-          child: icon != null
-              ? Icon(icon, size: 20, color: context.textSecondaryColor)
-              : Text(emoji!, style: const TextStyle(fontSize: 21)),
-        ),
-      ),
-    );
-  }
 }
