@@ -1832,6 +1832,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get changePhoto => 'Changer la photo';
 
   @override
+  String get cropPhotoTitle => 'Cadrer la photo';
+
+  @override
+  String get cropPhotoHint =>
+      'Déplacez la photo, pincez pour zoomer. Seul le carré sera gardé.';
+
+  @override
+  String get cropPhotoFailed =>
+      'Recadrage impossible. Réessayez ou choisissez une autre photo.';
+
+  @override
   String get basicInfo => 'Informations de base';
 
   @override

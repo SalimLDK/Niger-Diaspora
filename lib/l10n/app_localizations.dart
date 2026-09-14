@@ -3374,6 +3374,24 @@ abstract class AppLocalizations {
   /// **'Changer la photo'**
   String get changePhoto;
 
+  /// No description provided for @cropPhotoTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cadrer la photo'**
+  String get cropPhotoTitle;
+
+  /// No description provided for @cropPhotoHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déplacez la photo, pincez pour zoomer. Seul le carré sera gardé.'**
+  String get cropPhotoHint;
+
+  /// No description provided for @cropPhotoFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recadrage impossible. Réessayez ou choisissez une autre photo.'**
+  String get cropPhotoFailed;
+
   /// No description provided for @basicInfo.
   ///
   /// In fr, this message translates to:
