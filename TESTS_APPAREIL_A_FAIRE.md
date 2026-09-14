@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1022 cases à cocher, 552 cochées** — 207 entrées sur 251 ont encore des cases ouvertes.
+**1034 cases à cocher, 552 cochées** — 209 entrées sur 253 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (64)
+**P1 — fonction importante, jamais vérifiée** (65)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -77,6 +77,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
 - 5 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
@@ -209,7 +210,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (50)
+**P3 — confort, cosmétique, fonction en pause** (51)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -235,6 +236,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
+- 4 · [⬜ Les pastilles d'accent dans le même ordre qu'aux Réglages (2026-09-14)](#-les-pastilles-daccent-dans-le-même-ordre-quaux-réglages-2026-09-14) · *Design, thème, langue et mise en page*
 - 5 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
 - 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
@@ -265,7 +267,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 175 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 183 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -275,7 +277,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 121 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 44 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 146 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 57 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -524,6 +526,40 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Trois entrées nommaient une personne et retombaient sur le sélecteur générique, identique au bouton « Nouvelle conversation » : la tuile « écrivez à … » de la messagerie vide (qui porte pourtant une flèche d'envoi), un résultat de recherche « personnes », et le bouton « Contacter » d'une fiche entreprise. Il fallait re-chercher à la main la personne qu'on venait de toucher du doigt.
+
+La route `/messages/new` construisait `const NewConversationScreen()` — un
+écran sans paramètre, qui ne lisait ni `?userId=` ni `state.extra`. Le
+destinataire était donc bien construit par les appelants, puis jeté en silence
+par le routeur ([app_router.dart](lib/core/router/app_router.dart)). L'écran
+accepte maintenant un destinataire et, quand il en reçoit un, se comporte en
+relais : il ouvre la discussion et **se remplace** par elle
+([new_conversation_screen.dart](lib/features/messages/presentation/screens/new_conversation_screen.dart)).
+
+- [ ] **Tuile « écrivez à … »** (messagerie vide) : le tap ouvre directement
+  la discussion avec cette personne — pas le sélecteur. L'en-tête porte son
+  nom et sa photo dès la première frame, sans libellé de repli.
+- [ ] **Résultat de recherche « personnes »** : même comportement.
+- [ ] **« Contacter » sur une fiche entreprise** : ouvre la discussion avec le
+  propriétaire. C'est le seul appelant qui passait par `extra` et non par
+  l'URL — à vérifier séparément, il emprunte l'autre branche du code.
+- [ ] **Retour depuis la discussion ainsi ouverte** : ramène à la liste des
+  messages, **pas** au sélecteur (c'est un `pushReplacement`). Vérifier aussi
+  le retour système Android, pas seulement la flèche.
+- [ ] **Discussion déjà existante** avec cette personne : on retombe dessus
+  avec son historique, aucun doublon créé. À refaire deux fois de suite.
+- [ ] **« Nouvelle conversation » et le crayon de l'en-tête** : inchangés, ils
+  ouvrent toujours le sélecteur générique. C'est la garde symétrique.
+- [ ] **Échec d'ouverture** (mode avion) : le sélecteur reprend la main avec
+  l'erreur — pas d'écran bloqué sur le rond de chargement. Le repli vaut
+  exactement le comportement d'avant le correctif.
+- [ ] **Lien profond `/messages/new?userId=<id>`, pile vide** : la flèche du
+  relais ramène à `/messages` et non dans le vide (voir « Pile vide » au § 7).
 
 ---
 
@@ -12891,6 +12927,26 @@ Palette, thème sombre, icônes, polices, débordements, paysage, bascule design
 
 ---
 
+## ⬜ Les pastilles d'accent dans le même ordre qu'aux Réglages (2026-09-14)
+
+**Priorité P3** · importance 2/5 — Le même réglage était présenté dans deux ordres opposés : Orange puis Vert à l'étape 4/4 de la configuration du profil, Vert puis Orange dans les Réglages. L'onboarding s'aligne sur les Réglages ([profile_config_screen.dart](lib/features/profile/presentation/screens/profile_config_screen.dart)).
+
+- [ ] **Configuration du profil, étape 4/4** : Vert en première position,
+  Orange en seconde.
+- [ ] **Réglages → thème** : l'ordre y est identique, les deux écrans se
+  lisent pareil.
+- [ ] **La sélection suit toujours la bonne pastille** : toucher Orange
+  sélectionne Orange (c'est la régression qu'un échange de positions invite —
+  les `isSelected` ont bougé avec leur widget, à confirmer à l'œil).
+- [ ] **Les trois vignettes Clair / Sombre / AUTO** affichent une barre
+  **orange** quel que soit l'accent choisi : observé sur Pixel le 2026-09-14
+  avec un compte en Vert. Les valeurs sont écrites en dur
+  (`AppColors.primaryDark` / `primaryLight`) et ne suivent pas l'accent —
+  juger si c'est voulu (la vignette illustre clair/sombre) ou si elle doit
+  porter l'accent du compte. **Non corrigé.**
+
+---
+
 ## ⬜ Une couleur par service dans les deux grilles (2026-09-14)
 
 **Priorité P3** · importance 2/5 — Les tuiles de service se partageaient trois valeurs : le Fil et les Amis avaient **exactement** la même couleur, l'Annuaire une variante d'orange indiscernable du Fil, et sur l'accueil l'Annuaire était colorié avec `colorScheme.onPrimaryContainer` — un jeton de *texte*, presque noir. L'indigo des Ambassades tombait à 2,3:1 sur l'aplat sombre de sa tuile.
@@ -16107,6 +16163,16 @@ prévenir.
       avec un compte dont les clés ne sont pas sauvegardées ET la clé serveur
       posée, c'est le bandeau des clés qui doit s'afficher ; une fois traité,
       celui de la mise à jour doit prendre sa place **sans relancer l'app**.
+
+      La **décision** est désormais tenue hors de l'écran : `bandeauAPoser()`
+      ([bandeaux_shell.dart](lib/core/shell/bandeaux_shell.dart)) est une
+      fonction pure, et le banc la boucle sur **toutes** les valeurs de
+      `E2EEBackupPrompt` — une valeur ajoutée plus tard ne pourra pas tomber en
+      silence du côté de la mise à jour. Il vérifie aussi que la notice écartée
+      revient, et que les deux types se comparent par valeur (sans quoi le
+      bandeau clignoterait à chaque rebuild).
+      Ce qui reste à l'appareil : que l'enchaînement se produise **vraiment**,
+      avec de vrais coordinateurs et un vrai `ScaffoldMessenger`.
 - [ ] **Rendu du bandeau** : le **débordement** n'est plus une question ouverte
       — `test/core/shell/bandeaux_shell_test.dart` rend les deux bandeaux du
       shell (mise à jour **et** E2EE, qui porte trois actions) sur 411, 360 et

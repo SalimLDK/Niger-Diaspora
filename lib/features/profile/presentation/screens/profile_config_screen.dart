@@ -900,8 +900,19 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           const SizedBox(height: 24),
 
           DesignFieldLabel(l10n.setupAccentColor),
+          // Vert en premier, comme dans les Réglages
+          // (`settings_screen.dart`, `_buildThemeColorOption`) : les deux
+          // écrans règlent la même chose, ils ne peuvent pas la présenter
+          // dans deux ordres différents.
           Row(
             children: [
+              _AccentSwatch(
+                color: AppColors.secondary,
+                label: l10n.greenColor,
+                isSelected: _selectedThemeColor == AppThemeColor.green,
+                onTap: () => _selectThemeColor(AppThemeColor.green),
+              ),
+              const SizedBox(width: 18),
               _AccentSwatch(
                 // La pastille est l'aperçu de l'accent choisi : elle doit
                 // porter la valeur que le thème rendra réellement, soit
@@ -911,13 +922,6 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                 label: l10n.orangeColor,
                 isSelected: _selectedThemeColor == AppThemeColor.orange,
                 onTap: () => _selectThemeColor(AppThemeColor.orange),
-              ),
-              const SizedBox(width: 18),
-              _AccentSwatch(
-                color: AppColors.secondary,
-                label: l10n.greenColor,
-                isSelected: _selectedThemeColor == AppThemeColor.green,
-                onTap: () => _selectThemeColor(AppThemeColor.green),
               ),
             ],
           ),

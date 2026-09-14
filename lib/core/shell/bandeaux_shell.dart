@@ -17,6 +17,28 @@ import '../services/mise_a_jour_service.dart';
 /// Elles ne décident rien : `MainShell` reste seul à arbitrer lequel des deux
 /// s'affiche, et seul à détenir les notifiers. Ici, que des callbacks.
 
+/// Lequel des deux bandeaux `MainShell` doit poser. `null` = aucun.
+///
+/// **La sécurité passe avant la mise à jour**, et ce n'est pas un arbitrage
+/// esthétique : des clés non sauvegardées font perdre des messages pour de
+/// bon, une version en retard ne fait rien perdre du tout. Une notice de mise
+/// à jour ne doit donc jamais pouvoir masquer le rappel E2EE — c'est
+/// exactement ce que la mise en commun du canal rendait possible, puisque
+/// `ScaffoldMessenger` n'affiche qu'un `MaterialBanner` à la fois et que
+/// `clearMaterialBanners()` vide aussi la file.
+///
+/// Rien ne se perd pour autant : la fonction est rappelée à chaque changement
+/// d'état, donc la notice écartée reprend sa place dès que le rappel E2EE est
+/// traité.
+///
+/// Renvoie un `E2EEBackupPrompt` ou une [NoticeMiseAJour] ; l'appelant dédoublonne
+/// dessus, les deux types se comparant par valeur.
+Object? bandeauAPoser({
+  required E2EEBackupPrompt e2ee,
+  required NoticeMiseAJour? maj,
+}) =>
+    e2ee != E2EEBackupPrompt.none ? e2ee : maj;
+
 /// Bandeau invitant à sauvegarder ou restaurer les clés E2EE.
 MaterialBanner bandeauE2EE({
   required AppLocalizations l10n,
