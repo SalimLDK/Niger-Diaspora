@@ -35,6 +35,18 @@ class PendingMessage {
   final DateTime createdAt;
   final int retryCount;
 
+  /// Le message complet, tel qu'il doit repartir : `MessageModel.toJson()`.
+  ///
+  /// Les champs ci-dessus ne décrivent qu'un texte nu — ni réponse citée, ni
+  /// carte de publication ou d'événement, ni mention — et [type] était même
+  /// codé « text » en dur au moment d'enfiler. Renvoyer depuis eux aurait
+  /// dégradé le message au passage. Le renvoi reconstruit donc l'entité depuis
+  /// ce blob et la confie à `retryFailedMessage`, qui sait traiter chaque type.
+  ///
+  /// Nul pour les entrées écrites par les versions précédentes : elles
+  /// retombent sur les champs plats, à défaut de mieux.
+  final String? messageJson;
+
   PendingMessage({
     String? id,
     required this.conversationId,
@@ -46,6 +58,7 @@ class PendingMessage {
     this.filePath,
     DateTime? createdAt,
     this.retryCount = 0,
+    this.messageJson,
   }) : id = id ?? const Uuid().v4(),
        createdAt = createdAt ?? DateTime.now();
 
@@ -60,6 +73,7 @@ class PendingMessage {
     'filePath': filePath,
     'createdAt': createdAt.toUtc().toIso8601String(),
     'retryCount': retryCount,
+    if (messageJson != null) 'messageJson': messageJson,
   };
 
   factory PendingMessage.fromJson(Map<String, dynamic> json) => PendingMessage(
@@ -73,6 +87,7 @@ class PendingMessage {
     filePath: json['filePath'],
     createdAt: DateTime.parse(json['createdAt']).toLocal(),
     retryCount: json['retryCount'] ?? 0,
+    messageJson: json['messageJson'] as String?,
   );
 
   PendingMessage copyWith({int? retryCount}) => PendingMessage(
@@ -86,6 +101,7 @@ class PendingMessage {
     filePath: filePath,
     createdAt: createdAt,
     retryCount: retryCount ?? this.retryCount,
+    messageJson: messageJson,
   );
 }
 

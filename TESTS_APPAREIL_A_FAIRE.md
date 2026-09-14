@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**915 cases à cocher, 512 cochées** — 186 entrées sur 230 ont encore des cases ouvertes.
+**924 cases à cocher, 512 cochées** — 187 entrées sur 231 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (19)
+**P0 — avant toute nouvelle version** (20)
 
+- 9 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
@@ -244,7 +245,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 138 à faire, 60 faites
+- [2. Messagerie](#2-messagerie) — 147 à faire, 60 faites
 - [3. Groupes](#3-groupes) — 115 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -503,6 +504,43 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Un message écrit hors ligne partait dans Hive et **y restait pour toujours** : `processQueue()` n'était appelé de nulle part. Jamais envoyé, jamais purgé, jamais compté — et disparu de l'écran.
+
+*Bloqué : deux comptes, et de quoi couper le réseau.*
+
+`OfflineQueueService` était complet mais orphelin : `processQueue`,
+`cleanOldMessages`, `pendingMessagesCountProvider` et
+`messageFailureStreamProvider` n'avaient **aucun appelant**. Seul `enqueue`
+était branché, sur l'envoi de texte hors ligne.
+
+- [ ] **Écrire un message hors ligne**, quitter l'écran, y revenir : il est
+      toujours là, marqué en échec, avec « Renvoyer ».
+      (`message_provider.dart`, `_avecMessagesJamaisPartis`)
+- [ ] **Rétablir le réseau sans rien toucher** : il part seul, et la ligne de
+      la liste se met à jour. (`RenvoiMessagesEnAttente`, tenu en vie par
+      `app.dart`)
+- [ ] **Tuer l'app entre les deux**, puis la rouvrir en ligne : il part au
+      démarrage — le renvoi ne dépend pas d'une transition de connectivité.
+- [ ] **Une réponse citée et une carte de publication** écrites hors ligne
+      repartent **entières**. Les champs plats de `PendingMessage` les
+      perdaient, et codaient le type « text » en dur.
+- [ ] **Une photo écrite hors ligne** repart avec son image. Si Android a
+      purgé le fichier temporaire entre-temps, le message reste affiché en
+      échec plutôt que de repartir vide.
+- [ ] **Pas de doublon** : un message marqué en échec par le délai de 30 s
+      dont l'écho serveur arrive en retard ne doit PAS être renvoyé une
+      seconde fois. (`oublierMessageEnAttente` sur l'écho)
+- [ ] **Message de plus de 24 h** : il ne repart pas tout seul, il attend
+      « Renvoyer ». (`kFenetreRenvoiAutomatique`)
+- [ ] **Échec en ligne** (et non hors ligne) : couper le réseau juste après
+      l'appui sur envoyer. Même traitement — gardé, renvoyable.
+- [ ] **La file ne gonfle pas** : après une série d'envois réussis, vérifier
+      qu'il ne reste rien en attente.
 
 ---
 
