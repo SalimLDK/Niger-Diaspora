@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**970 cases à cocher, 548 cochées** — 197 entrées sur 241 ont encore des cases ouvertes.
+**977 cases à cocher, 548 cochées** — 198 entrées sur 242 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -66,7 +66,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (58)
+**P1 — fonction importante, jamais vérifiée** (59)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -88,6 +88,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 16 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04) · *Liens profonds, navigation et QR codes*
 - 3 · [Assistant de configuration du profil](#assistant-de-configuration-du-profil) · *Comptes, session et onboarding*
+- 7 · [⬜ Définition des photos envoyées : plafond levé, double encodage supprimé (2026-09-14)](#-définition-des-photos-envoyées--plafond-levé-double-encodage-supprimé-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
@@ -262,7 +263,7 @@ Par domaine :
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 108 à faire, 11 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 115 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 34 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
@@ -9834,6 +9835,42 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
+
+## ⬜ Définition des photos envoyées : plafond levé, double encodage supprimé (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Toute photo publiée sortait à 768 px de petit côté et traversait deux compressions JPEG à 85 : floue dès qu'un écran de 1080 px l'affiche pleine largeur.
+
+Le sélecteur bornait à 1024 px puis ré-encodait à 85, et `uploadImage()`
+ré-encodait une seconde fois à 85 en ramenant le petit côté à 800
+(`image_upload_service.dart`). La sélection est désormais une étape
+quasi transparente (2048 px, qualité 95) et la seule qualité livrée est celle
+de la compression finale : petit côté 1080, qualité 88.
+
+⚠ Le réglage distant `app_config/settings.mediaLimits` porte encore
+1024 / 85 / 800 et **écrasait** le code : `setConfig()` ne descend plus sous le
+plancher du code. Tant que le document Firestore n'est pas mis à jour, c'est ce
+plancher qui s'applique — le vérifier fait partie du test.
+
+- [ ] **Publier une photo depuis le fil** (`create_post_screen.dart`), la
+  rouvrir en plein écran et zoomer : le grain doit être nettement moindre
+  qu'avant. Comparer avec une publication antérieure au correctif.
+- [ ] **Photo portrait** : c'est le cas qui souffrait le plus (768 px de large
+  rééchantillonnés vers 1080). Vérifier aussi qu'elle n'est pas rognée à
+  l'excès dans la carte du fil — l'image unique y est affichée sur une bande
+  de 205 px de haut, indépendamment du correctif.
+- [ ] **Capture d'écran ou affiche avec du texte** publiée comme photo : le
+  texte doit rester lisible (c'est le contenu que le JPEG maltraite le plus).
+- [ ] **Affiche d'événement portrait** (`create_event_screen.dart`) : la boîte
+  était 1920×1080, donc une affiche portrait sortait à 810 px de large ; elle
+  est maintenant carrée à 2048.
+- [ ] **Avatar** changé depuis le Profil, puis vu en grand sur la fiche de
+  profil (et non en vignette de 40 px, où rien ne se voit).
+- [ ] **Photo d'entreprise, de produit, de groupe, de story, pochette de
+  podcast** : mêmes chemins d'envoi, une vérification rapide sur chacun.
+- [ ] **Poids et lenteur** : une photo pèse maintenant ~3 à 5 fois plus.
+  Envoyer une publication en 3G/Edge et regarder si le temps d'envoi reste
+  acceptable depuis Niamey — c'est le compromis à valider, pas seulement la
+  netteté.
 
 ## ⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)
 

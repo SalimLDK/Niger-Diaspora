@@ -49,9 +49,10 @@ class _CreatePodcastScreenState extends ConsumerState<CreatePodcastScreen> {
     final picker = ImagePicker();
     final image = await picker.pickImage(
       source: ImageSource.gallery,
-      maxWidth: 1000,
-      maxHeight: 1000,
-      imageQuality: 85,
+      // Pas de compression derrière : c'est la qualité livrée.
+      maxWidth: 2048,
+      maxHeight: 2048,
+      imageQuality: 88,
     );
 
     if (image != null) {

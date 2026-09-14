@@ -218,9 +218,12 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
       }
 
       final images = await _imagePicker.pickMultiImage(
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
+        // Envoyée telle quelle (aucune compression derrière) : c'est donc
+        // la qualité livrée. Une boîte carrée, sinon une affiche portrait
+        // se retrouvait bornée à 810 px de large par le 1080 de hauteur.
+        maxWidth: 2048,
+        maxHeight: 2048,
+        imageQuality: 88,
       );
 
       if (images.isNotEmpty) {

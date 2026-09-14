@@ -446,11 +446,11 @@ class MediaLimitsModel {
   final int maxAudioDurationSeconds;
 
   MediaLimitsModel({
-    this.imageMaxWidth = 1024,
-    this.imageMaxHeight = 1024,
-    this.imageQuality = 85,
+    this.imageMaxWidth = 2048,
+    this.imageMaxHeight = 2048,
+    this.imageQuality = 88,
     this.maxImagesPerUpload = 5,
-    this.minWidthForCompression = 800,
+    this.minWidthForCompression = 1080,
     this.messageMaxChars = 2000,
     this.messageCharCountThreshold = 200,
     this.maxImageSizeMb = 10,
@@ -461,11 +461,11 @@ class MediaLimitsModel {
 
   factory MediaLimitsModel.fromJson(Map<String, dynamic> json) =>
       MediaLimitsModel(
-        imageMaxWidth: json['imageMaxWidth'] as int? ?? 1024,
-        imageMaxHeight: json['imageMaxHeight'] as int? ?? 1024,
-        imageQuality: json['imageQuality'] as int? ?? 85,
+        imageMaxWidth: json['imageMaxWidth'] as int? ?? 2048,
+        imageMaxHeight: json['imageMaxHeight'] as int? ?? 2048,
+        imageQuality: json['imageQuality'] as int? ?? 88,
         maxImagesPerUpload: json['maxImagesPerUpload'] as int? ?? 5,
-        minWidthForCompression: json['minWidthForCompression'] as int? ?? 800,
+        minWidthForCompression: json['minWidthForCompression'] as int? ?? 1080,
         messageMaxChars: json['messageMaxChars'] as int? ?? 2000,
         messageCharCountThreshold:
             json['messageCharCountThreshold'] as int? ?? 200,

@@ -7,6 +7,7 @@ import '../providers/app_settings_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/core/services/image_upload_service.dart';
 
 class AdminSettingsScreen extends ConsumerStatefulWidget {
   const AdminSettingsScreen({super.key});
@@ -1350,6 +1351,10 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
   static const _textPrimary = AdminColors.text;
   static const _textSecondary = AdminColors.text2;
 
+  /// Plancher appliqué par [ImageUploadService.setConfig] : le formulaire
+  /// refuse ce que l'envoi ignorerait.
+  static const _plancherImages = ImageUploadConfig();
+
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _imageMaxWidthController;
   late TextEditingController _imageQualityController;
@@ -1445,10 +1450,14 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
               icon: Icons.image_rounded,
               color: AdminColors.actionBlueLight,
               children: [
+                // `min` : en dessous du plancher de ImageUploadConfig, la
+                // valeur serait enregistrée puis ignorée à l'envoi — un
+                // réglage muet. Mieux vaut la refuser ici.
                 _buildIntField(
                   controller: _imageMaxWidthController,
                   label: l10n.adminMaxDimension,
                   hint: l10n.adminImagesDimensionHint,
+                  min: _plancherImages.maxWidth,
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -1457,8 +1466,9 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
                       child: _buildIntField(
                         controller: _imageQualityController,
                         label: l10n.adminCompressionQuality,
-                        hint: '1-100',
+                        hint: '${_plancherImages.quality}-100',
                         max: 100,
+                        min: _plancherImages.quality,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -1584,6 +1594,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
     required String label,
     String? hint,
     int? max,
+    int? min,
   }) {
     return TextFormField(
       controller: controller,
@@ -1616,6 +1627,7 @@ class _MediaLimitsTabState extends ConsumerState<_MediaLimitsTab> {
         final num = int.tryParse(v);
         if (num == null || num <= 0) return l10n.quantityInvalidError;
         if (max != null && num > max) return 'Max: $max';
+        if (min != null && num < min) return 'Min: $min';
         return null;
       },
     );
