@@ -1200,9 +1200,17 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Sans ce garde, l'en-tête affichait « Utilisateur » (repli final de
     // `displayName`) pendant cette fenêtre, avant de corriger tout seul —
     // lu par Salim comme un défaut, pas comme un chargement.
+    //
+    // `otherUser == null` en tête : dès qu'on tient un profil — y compris le
+    // dernier connu, servi depuis le cache disque — il n'y a plus rien à
+    // attendre, et c'est son nom qu'il faut afficher. Sans cette clause, une
+    // discussion ouverte hors ligne restait sur « Conversation » alors que le
+    // nom était là : le flux de la conversation, lui, n'avait pas de valeur,
+    // et ce seul fait suffisait à déclarer l'identité « en chargement ».
     final identityLoading =
         !_isGroup &&
         !_isSelfNotes &&
+        otherUser == null &&
         (!conversationAsync.hasValue ||
             (_effectiveOtherUserId != null &&
                 !(otherUserAsync?.hasValue ?? false)));

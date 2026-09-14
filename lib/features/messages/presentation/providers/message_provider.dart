@@ -103,9 +103,28 @@ final conversationsProvider = StreamProvider<List<ConversationEntity>>((ref) asy
 /// Plier l'échec en `null` faisait dire « Conversation supprimée » à l'écran
 /// sur une simple coupure. Tant que l'erreur était avalée en amont, ça ne se
 /// voyait pas ; maintenant qu'elle arrive, la distinction compte.
-final conversationStreamProvider = StreamProvider.family<ConversationEntity?, String>((ref, conversationId) {
-  return ref
-      .watch(messageRepositoryProvider)
+final conversationStreamProvider = StreamProvider.family<ConversationEntity?, String>((ref, conversationId) async* {
+  final depot = ref.watch(messageRepositoryProvider);
+
+  // La conversation déjà en cache part la première, comme pour la liste.
+  // Sans elle, un écran ouvert hors ligne ne sait même pas QUI est en face :
+  // `_effectiveOtherUserId` se déduit de la conversation quand l'écran est
+  // atteint sans `state.extra` (lien profond, notification), donc aucun profil
+  // n'était demandé et l'en-tête gardait son repli — cache du profil ou pas.
+  ConversationEntity? connue;
+  final enCache = depot.getCachedConversations().fold(
+    (_) => const <ConversationEntity>[],
+    (liste) => liste,
+  );
+  for (final c in enCache) {
+    if (c.id == conversationId) {
+      connue = c;
+      break;
+    }
+  }
+  if (connue != null) yield connue;
+
+  yield* depot
       .getConversationStream(conversationId)
       .map(
         (either) => either.fold(

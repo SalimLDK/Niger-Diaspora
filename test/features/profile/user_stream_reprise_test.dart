@@ -30,6 +30,11 @@ class _DepotQuiEchouePuisRepond implements ProfileRepository {
   /// Nombre d'abonnements demandés au repository.
   int abonnements = 0;
 
+  /// Rien en cache : c'est la lecture réseau qu'on observe ici.
+  @override
+  Either<Failure, ProfileEntity?> getCachedProfile(String userId) =>
+      const Right(null);
+
   @override
   Stream<Either<Failure, ProfileEntity>> getUserStream(String userId) {
     abonnements++;
@@ -53,9 +58,35 @@ class _DepotMuet implements ProfileRepository {
   int abonnements = 0;
 
   @override
+  Either<Failure, ProfileEntity?> getCachedProfile(String userId) =>
+      const Right(null);
+
+  @override
   Stream<Either<Failure, ProfileEntity>> getUserStream(String userId) {
     abonnements++;
     return const Stream<Either<Failure, ProfileEntity>>.empty();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Le cas du démarrage à froid hors ligne : rien à lire, mais un profil déjà
+/// connu sur le disque.
+class _DepotHorsLigneAvecCache implements ProfileRepository {
+  _DepotHorsLigneAvecCache(this.connu);
+
+  final ProfileEntity connu;
+
+  @override
+  Either<Failure, ProfileEntity?> getCachedProfile(String userId) =>
+      Right(connu);
+
+  @override
+  Stream<Either<Failure, ProfileEntity>> getUserStream(String userId) {
+    return Stream.value(
+      Left<Failure, ProfileEntity>(ServerFailure('hors ligne')),
+    );
   }
 
   @override
@@ -94,6 +125,26 @@ void main() {
       async.flushMicrotasks();
 
       expect(depot.abonnements, 2);
+      expect(
+        container.read(userStreamProvider(userId)).valueOrNull?.displayName,
+        'Salim L.',
+      );
+    });
+  });
+
+  test('hors ligne, le dernier profil connu s\'affiche au lieu du repli', () {
+    fakeAsync((async) {
+      final depot = _DepotHorsLigneAvecCache(profilDeBase());
+      final container = ProviderContainer(
+        overrides: [profileRepositoryProvider.overrideWithValue(depot)],
+      );
+      addTearDown(container.dispose);
+
+      container.listen(userStreamProvider(userId), (_, __) {});
+      async.flushMicrotasks();
+
+      // Le nom est là sans qu'aucune lecture réseau n'ait abouti : c'est ce qui
+      // évite « Conversation » / « Utilisateur » au démarrage à froid.
       expect(
         container.read(userStreamProvider(userId)).valueOrNull?.displayName,
         'Salim L.',
