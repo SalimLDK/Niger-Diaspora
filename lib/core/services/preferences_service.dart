@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utils/date_parsing.dart';
+
 /// Centralized service for managing all app preferences using SharedPreferences.
 /// Provides type-safe access to all settings and preferences.
 class PreferencesService {
@@ -148,6 +150,16 @@ class PreferencesService {
   // Followed Hashtags (§5a "Mon espace" — suivi local, aucun modèle serveur)
   static const String _keyFollowedHashtags = 'followed_hashtags';
 
+  // Avis sur le store (AppReviewService). Trois compteurs, aucune donnée
+  // personnelle : ils servent uniquement à décider quand proposer le
+  // dialogue natif Play Store / App Store, et à ne plus le proposer une fois
+  // que la personne est allée sur la fiche d'elle-même.
+  static const String _keyReviewOuvertures = 'review_ouvertures';
+  static const String _keyReviewPremiereOuverture = 'review_premiere_ouverture';
+  static const String _keyReviewDerniereInvitation =
+      'review_derniere_invitation';
+  static const String _keyReviewFicheOuverte = 'review_fiche_ouverte';
+
   // Voice Notes — local "listened" state driving the unheard dot
   static const String _keyPlayedVoiceNotes = 'played_voice_notes';
   // Cap the list so it can't grow without bound; keep the most recent ids.
@@ -179,6 +191,36 @@ class PreferencesService {
   String? get appVersion => prefs.getString(_keyAppVersion);
   Future<void> setAppVersion(String version) =>
       prefs.setString(_keyAppVersion, version);
+
+  // ============================
+  // AVIS SUR LE STORE
+  // ============================
+
+  int get reviewOuvertures => prefs.getInt(_keyReviewOuvertures) ?? 0;
+  Future<void> setReviewOuvertures(int n) =>
+      prefs.setInt(_keyReviewOuvertures, n);
+
+  DateTime? get reviewPremiereOuverture =>
+      _dateOuNull(_keyReviewPremiereOuverture);
+  Future<void> setReviewPremiereOuverture(DateTime d) =>
+      prefs.setString(_keyReviewPremiereOuverture, toIsoUtc(d));
+
+  DateTime? get reviewDerniereInvitation =>
+      _dateOuNull(_keyReviewDerniereInvitation);
+  Future<void> setReviewDerniereInvitation(DateTime d) =>
+      prefs.setString(_keyReviewDerniereInvitation, toIsoUtc(d));
+
+  bool get reviewFicheOuverte => prefs.getBool(_keyReviewFicheOuverte) ?? false;
+  Future<void> setReviewFicheOuverte() =>
+      prefs.setBool(_keyReviewFicheOuverte, true);
+
+  /// Une date stockée illisible (écriture interrompue, migration ratée) doit
+  /// se lire comme « jamais », pas faire planter le démarrage.
+  DateTime? _dateOuNull(String cle) {
+    final brut = prefs.getString(cle);
+    if (brut == null || brut.isEmpty) return null;
+    return DateTime.tryParse(brut)?.toLocal();
+  }
 
   // ============================
   // APP SETTINGS

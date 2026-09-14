@@ -10,6 +10,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
+import '../../../../core/services/app_review_service.dart';
 import '../../../../core/services/location_service.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../core/services/feature_flag_service.dart';
@@ -103,6 +104,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
       _checkAndShowCoachMarks();
+      _inviterANoterLApp();
     });
   }
 
@@ -152,6 +154,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } catch (e) {
       // Ignorer les erreurs silencieusement pour le rafraîchissement automatique
     }
+  }
+
+  /// Propose le dialogue natif « noter l'app », si le moment s'y prête.
+  ///
+  /// L'Accueil est l'onglet d'arrivée (`/home`, première branche du shell) :
+  /// tout le monde y passe, et il n'annonce ni erreur ni attente — c'est le
+  /// moment le moins mauvais pour demander.
+  /// `AppReviewService` tranche sur l'ancienneté et le nombre d'ouvertures ;
+  /// ici on ne garde que ce qui dépend de l'écran.
+  void _inviterANoterLApp() {
+    // Jamais par-dessus le tutoriel : deux surcouches empilées au premier
+    // démarrage, et un quota Google brûlé pour un dialogue que personne n'a
+    // vu. Quiconque n'a pas fini les coach marks n'a de toute façon pas les
+    // huit ouvertures requises.
+    if (!ref.read(onboardingNotifierProvider).hasSeenCoachMarks) return;
+
+    // Laisser l'Accueil se poser : le dialogue natif arrive par-dessus l'app,
+    // et surgir sur un écran encore en squelette se lit comme un incident.
+    // La politique est consultée *après* l'attente, pas avant : le compteur
+    // de cette ouverture-ci monte dans le lot différé de `main()`, qui peut
+    // n'avoir pas encore tourné au premier rendu de l'Accueil.
+    Future.delayed(const Duration(seconds: 4), () {
+      if (!mounted) return;
+      // Un lien profond ou une notification a poussé un écran entre-temps :
+      // le dialogue s'afficherait par-dessus lui.
+      if (ModalRoute.of(context)?.isCurrent != true) return;
+      unawaited(AppReviewService.instance.inviterSiLeMomentSyPrete());
+    });
   }
 
   void _checkAndShowCoachMarks() {
