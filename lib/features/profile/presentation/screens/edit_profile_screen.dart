@@ -17,6 +17,7 @@ import '../../domain/entities/profile_entity.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/handle_field.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Longueur maximale de la bio (§20a : « 118/160 »). Le compteur et la
 /// limite de saisie lisent la même constante — deux valeurs séparées
@@ -234,18 +235,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       _selectedCountry = null;
       return;
     }
-    // D'abord chercher par code si disponible
-    if (code != null && code.isNotEmpty) {
-      final foundByCode = ProfileOptions.getCountryByCode(code);
-      if (foundByCode != null) {
-        _selectedCountry = foundByCode;
-        return;
-      }
-    }
-    // Sinon chercher par nom
-    final foundByName = ProfileOptions.getCountryByName(country);
-    if (foundByName != null) {
-      _selectedCountry = foundByName;
+    // `findCountry` reconnaît le nom avec ou sans accents, et l'ancien code
+    // ISO qu'un profil pas encore réenregistré peut encore porter.
+    final found =
+        ProfileOptions.findCountry(code) ?? ProfileOptions.findCountry(country);
+    if (found != null) {
+      _selectedCountry = found;
     } else {
       _selectedCountry = null;
       _customCountryController.text = country;
@@ -423,8 +418,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     return _selectedCountry?.name ?? '';
   }
 
+  /// Malgré son nom (celui du champ `countryCode` du profil), c'est le pays en
+  /// toutes lettres : la base ne porte plus aucun code ISO. Une saisie libre
+  /// qui désigne un pays de la liste (« algerie ») y est ramenée.
   String? _getFinalCountryCode() {
-    return _selectedCountry?.code;
+    return ProfileOptions.canonicalCountry(_getFinalCountry());
   }
 
   String _getFinalOriginCity() {
@@ -613,7 +611,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 // dans le contenu, en ligne — l'écran commence donc sur un
                 // champ et non sur un tiers de page décoratif.
                 pinned: true,
-                title: Text(
+                title: DesignTitle(
                   AppLocalizations.of(context)!.editProfileTitle,
                   style: TextStyle(
                     fontSize: 17,

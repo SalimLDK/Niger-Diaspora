@@ -86,6 +86,7 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
       switch (type) {
         // Message notifications - use conversationId from data
         case 'message':
+        case 'messageReaction':
           final conversationId = data['conversationId'] as String? ?? targetId;
           route = '/messages/$conversationId';
           break;
@@ -125,6 +126,8 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
         case 'groupJoinRequest':
         case 'groupRequestApproved':
         case 'groupRequestRejected':
+        // Six mois après un changement de pays : le choix se fait sur la fiche.
+        case 'officialGroupLeave':
           final groupId = data['groupId'] as String? ?? targetId;
           route = '/groups/$groupId';
           break;

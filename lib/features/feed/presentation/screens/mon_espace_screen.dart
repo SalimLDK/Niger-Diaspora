@@ -12,6 +12,7 @@ import '../theme/feed_tokens.dart';
 import 'my_posts_screen.dart' show userPostsCountProvider;
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'saved_posts_screen.dart' show bookmarkedPostsCountProvider;
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Hub « Mon espace » (fiche 5a) — point d'entrée = avatar de l'en-tête du fil.
 ///
@@ -122,11 +123,11 @@ class _Header extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(
+              child: DesignTitle(
                 'Mon espace',
                 style: FeedText.heading(tokens, size: 22),
+                accent: tokens.accent,
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

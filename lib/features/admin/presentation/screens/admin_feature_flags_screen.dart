@@ -6,6 +6,7 @@ import 'package:diaspo_niger/core/services/feature_flag_service.dart';
 import '../../domain/entities/app_settings_entity.dart';
 import '../providers/app_settings_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminFeatureFlagsScreen extends ConsumerStatefulWidget {
   const AdminFeatureFlagsScreen({super.key});
@@ -132,12 +133,13 @@ class _AdminFeatureFlagsScreenState
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
+        title: DesignTitle(
           l10n.adminFeatureFlags,
           style: TextStyle(
             color: _textPrimary,
             fontWeight: FontWeight.bold,
           ),
+          accent: AdminColors.titleDot,
         ),
         actions: [
           if (_hasChanges)

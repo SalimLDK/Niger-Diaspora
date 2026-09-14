@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/admin_provider.dart';
 import '../../../businesses/domain/entities/business_entity.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminBusinessesScreen extends ConsumerStatefulWidget {
   const AdminBusinessesScreen({super.key});
@@ -61,13 +62,14 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            const DesignTitle(
               'Gestion des Commerces',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
+              accent: AdminColors.titleDot,
             ),
             IconButton(
               icon: const AppIcon(AppIcon.refresh, color: _textSecondary),

@@ -29,31 +29,109 @@ const double kDesignControlHeight = 54;
 
 /// Titre de page : serif gras aligné à gauche, terminé par un point d'accent
 /// terracotta. C'est la signature de toute la série d'écrans.
+///
+/// **Seule source du point** : tout titre d'écran passe par ici, y compris
+/// ceux des familles qui ont leur propre typographie (Fil, salons audio et
+/// podcasts, fiches en Inter) — ils fournissent [style] et gardent leur
+/// police. Le point était recopié à la main dans l'en-tête du Fil et absent
+/// de tout le reste : grand en-tête d'onglet, `AppBar` à `Text` nu, en-têtes
+/// faits main (2026-09-13).
+///
+/// Pas de point sur un nom saisi (groupe, salon, contact) : il signe les
+/// titres d'écran, pas le contenu. Dans le back-office, il reste terracotta
+/// (`AdminColors.titleDot`), seule exception à « pas d'orange dans l'admin ».
 class DesignTitle extends StatelessWidget {
   final String text;
   final double size;
 
-  const DesignTitle(this.text, {super.key, this.size = 29});
+  /// Typographie d'une autre famille. Sans elle : Playfair gras à [size].
+  final TextStyle? style;
+
+  /// Couleur du point. Par défaut, la couleur d'accent de l'utilisateur.
+  final Color? accent;
+
+  final int? maxLines;
+  final TextAlign? textAlign;
+
+  const DesignTitle(
+    this.text, {
+    super.key,
+    this.size = 29,
+    this.style,
+    this.accent,
+    this.maxLines,
+    this.textAlign,
+  });
+
+  /// Garde la typographie ambiante — celle de l'`AppBar` qui l'accueille,
+  /// Playfair dans l'app, Inter dans le back-office : seul le point s'ajoute.
+  const DesignTitle.ambiant(
+    this.text, {
+    super.key,
+    this.accent,
+    this.maxLines,
+    this.textAlign,
+  })  : size = 29,
+        style = const TextStyle();
+
+  /// Un titre qui finit déjà sur une ponctuation n'en prend pas une seconde
+  /// (« Mot de passe oublié ?. »).
+  static bool prendLePoint(String text) =>
+      !RegExp(r'[.!?…:;]\s*$').hasMatch(text);
+
+  /// Le texte tel qu'il s'affiche, point compris — pour mesurer.
+  static String affiche(String text) => prendLePoint(text) ? '$text.' : text;
 
   @override
   Widget build(BuildContext context) {
-    final base = GoogleFonts.playfairDisplay(
-      fontSize: size,
-      fontWeight: FontWeight.w700,
-      height: 1.15,
-      color: context.textPrimaryColor,
-    );
-    return Text.rich(
-      TextSpan(
-        style: base,
+    final base = style ??
+        GoogleFonts.playfairDisplay(
+          fontSize: size,
+          fontWeight: FontWeight.w700,
+          height: 1.15,
+          color: context.textPrimaryColor,
+        );
+    if (!prendLePoint(text)) {
+      return Text(text, style: base, maxLines: maxLines, textAlign: textAlign);
+    }
+    final point = base.copyWith(color: accent ?? context.adaptivePrimaryColor);
+
+    // Sur une seule ligne, le point vit hors du texte. Une `AppBar` impose
+    // `softWrap: false` + ellipse à son titre : dans un seul `Text.rich`,
+    // l'ellipse tombait avant le point, et tout titre un peu long — ou une
+    // police agrandie dans les réglages du téléphone — le perdait.
+    final uneLigne = maxLines == 1 || !DefaultTextStyle.of(context).softWrap;
+    if (uneLigne) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
         children: [
-          TextSpan(text: text),
-          TextSpan(
-            text: '.',
-            style: base.copyWith(color: context.adaptivePrimaryColor),
+          Flexible(
+            child: Text(
+              text,
+              style: base,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          ExcludeSemantics(
+            child: Text('.', style: point, maxLines: 1, softWrap: false),
           ),
         ],
+      );
+    }
+
+    // Sur plusieurs lignes, le point suit le dernier mot : aucune coupure
+    // n'est permise devant un point, il ne se retrouve jamais seul.
+    return Text.rich(
+      TextSpan(
+        children: [TextSpan(text: text), TextSpan(text: '.', style: point)],
       ),
+      style: base,
+      maxLines: maxLines,
+      textAlign: textAlign,
     );
   }
 }
@@ -1168,15 +1246,7 @@ class DesignScreenHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  title,
-                  style: GoogleFonts.playfairDisplay(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w700,
-                    height: 1.1,
-                    color: context.textPrimaryColor,
-                  ),
-                ),
+                DesignHeaderTitle(title),
                 if (subtitle != null && subtitle!.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
@@ -1199,6 +1269,67 @@ class DesignScreenHeader extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+/// Grand titre serif de [DesignScreenHeader], qui **ne coupe jamais un mot**.
+///
+/// Le titre retournait à la ligne au milieu du mot : « Notificatio / ns » sur
+/// Pixel 10 Pro XL (densité 440, `font_scale` 1.3, 2026-09-12), parce que
+/// « Tout lire » et le bouton ⚙ ne laissent qu'environ 150 dp au titre. Flutter
+/// ne coupe entre deux lettres que quand **un mot seul** dépasse la largeur :
+/// on mesure donc le plus long mot et on réduit la taille juste assez pour
+/// qu'il tienne. Les titres de plusieurs mots continuent de passer à la ligne
+/// entre les mots ; la taille de 30 reste celle de tout titre qui tient.
+class DesignHeaderTitle extends StatelessWidget {
+  final String title;
+
+  const DesignHeaderTitle(this.title, {super.key});
+
+  static const double _baseSize = 30;
+
+  /// En deçà, le titre ne se lit plus comme un titre : mieux vaut alors une
+  /// coupure qu'un texte de corps en serif.
+  static const double _minSize = 18;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = GoogleFonts.playfairDisplay(
+      fontSize: _baseSize,
+      fontWeight: FontWeight.w700,
+      height: 1.1,
+      color: context.textPrimaryColor,
+    );
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        var size = _baseSize;
+        if (constraints.maxWidth.isFinite && constraints.maxWidth > 0) {
+          var widest = 0.0;
+          // Point compris : il colle au dernier mot et doit tenir avec lui.
+          for (final word in DesignTitle.affiche(title).split(RegExp(r'\s+'))) {
+            if (word.isEmpty) continue;
+            final painter = TextPainter(
+              text: TextSpan(text: word, style: style),
+              textDirection: direction,
+              textScaler: scaler,
+              maxLines: 1,
+            )..layout();
+            if (painter.width > widest) widest = painter.width;
+            painter.dispose();
+          }
+          if (widest > constraints.maxWidth) {
+            // Arrondi par défaut : un demi-point de trop suffit à recouper.
+            size = (_baseSize * constraints.maxWidth / widest)
+                .floorToDouble()
+                .clamp(_minSize, _baseSize);
+          }
+        }
+        return DesignTitle(title, style: style.copyWith(fontSize: size));
+      },
     );
   }
 }

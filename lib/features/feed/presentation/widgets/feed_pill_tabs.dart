@@ -25,7 +25,7 @@ class FeedPillTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(tokens.isDark ? tokens.radiusMd : 13);
+    final radius = BorderRadius.circular(13);
     return Row(
       children: [
         for (var i = 0; i < labels.length; i++) ...[

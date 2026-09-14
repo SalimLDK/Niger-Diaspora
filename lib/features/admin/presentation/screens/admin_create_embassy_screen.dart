@@ -7,6 +7,7 @@ import '../../../embassies/data/models/embassy_model.dart';
 import '../../../embassies/presentation/providers/embassies_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminCreateEmbassyScreen extends ConsumerStatefulWidget {
   const AdminCreateEmbassyScreen({super.key});
@@ -189,7 +190,10 @@ class _AdminCreateEmbassyScreenState
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/admin/embassies'),
         ),
-        title: Text(l10n.adminCreateEmbassy),
+        title: DesignTitle.ambiant(
+          l10n.adminCreateEmbassy,
+          accent: AdminColors.titleDot,
+        ),
         backgroundColor: theme.colorScheme.surface,
       ),
       body: Form(

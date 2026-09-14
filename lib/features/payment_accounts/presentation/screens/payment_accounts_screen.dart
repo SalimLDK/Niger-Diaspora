@@ -11,6 +11,7 @@ import '../providers/payment_account_provider.dart';
 import '../widgets/payment_account_card.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class PaymentAccountsScreen extends ConsumerWidget {
   const PaymentAccountsScreen({super.key});
@@ -31,7 +32,7 @@ class PaymentAccountsScreen extends ConsumerWidget {
             onPressed:
                 () => context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: Text(l10n.paymentAccounts)),
+          title: DesignTitle(l10n.paymentAccounts, size: 22)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -44,7 +45,7 @@ class PaymentAccountsScreen extends ConsumerWidget {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/home'),
         ),
-        title: Text(l10n.paymentAccounts),
+        title: DesignTitle(l10n.paymentAccounts, size: 22),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/payment-accounts/add'),

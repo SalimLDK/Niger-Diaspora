@@ -13,6 +13,7 @@ import '../../domain/entities/recipient_entity.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Screen to add a friend as a recipient for money transfers
 class FriendRecipientSelectScreen extends ConsumerStatefulWidget {
@@ -49,7 +50,7 @@ class _FriendRecipientSelectScreenState
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/transfers'),
         ),
-        title: Text(l10n.transferAddRecipient)),
+        title: DesignTitle(l10n.transferAddRecipient, size: 22)),
       body: Column(
         children: [
           _buildSearchBar(),

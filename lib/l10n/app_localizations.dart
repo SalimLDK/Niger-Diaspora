@@ -3032,6 +3032,36 @@ abstract class AppLocalizations {
   /// **'Vous avez quitté le groupe'**
   String get groupLeft;
 
+  /// No description provided for @officialGroupDepartureTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez changé de pays'**
+  String get officialGroupDepartureTitle;
+
+  /// No description provided for @officialGroupDepartureBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Depuis le {date}, votre profil n\'indique plus {country}. Vous pouvez quitter ce groupe ou y rester : rien ne change sans votre accord.'**
+  String officialGroupDepartureBody(String date, String country);
+
+  /// No description provided for @officialGroupDepartureStay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rester membre'**
+  String get officialGroupDepartureStay;
+
+  /// No description provided for @officialGroupDepartureStayed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous restez membre de ce groupe.'**
+  String get officialGroupDepartureStayed;
+
+  /// No description provided for @officialGroupDepartureFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre choix n\'a pas pu être enregistré. Réessayez.'**
+  String get officialGroupDepartureFailed;
+
   /// No description provided for @member.
   ///
   /// In fr, this message translates to:
@@ -3379,6 +3409,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ville actuelle'**
   String get currentCity;
+
+  /// No description provided for @cityFieldHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chercher une ville'**
+  String get cityFieldHint;
+
+  /// No description provided for @cityDataCredit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Liste des villes : GeoNames (CC BY 4.0)'**
+  String get cityDataCredit;
+
+  /// No description provided for @cityTypeToSearch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tapez les premières lettres de votre ville'**
+  String get cityTypeToSearch;
+
+  /// No description provided for @cityNoResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune ville de la liste ne correspond'**
+  String get cityNoResult;
+
+  /// No description provided for @citySearchFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recherche impossible pour le moment'**
+  String get citySearchFailed;
 
   /// No description provided for @originCity.
   ///
@@ -7789,6 +7849,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Copier'**
   String get copy;
+
+  /// No description provided for @selectText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sélectionner le texte'**
+  String get selectText;
+
+  /// No description provided for @copyAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout copier'**
+  String get copyAll;
+
+  /// No description provided for @moreReactions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus de réactions'**
+  String get moreReactions;
 
   /// No description provided for @report.
   ///

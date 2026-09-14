@@ -9,6 +9,7 @@ import '../theme/feed_tokens.dart';
 import '../widgets/feed_empty_state.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Liste des publications que l'utilisateur courant a repartagées
 /// (route `/profile/reposts`). Jumeau de [SavedPostsScreen].
@@ -32,7 +33,11 @@ class RepostsScreen extends ConsumerWidget {
               () => context.canPop() ? context.pop() : context.go('/profile'),
         ),
         backgroundColor: tokens.bg,
-        title: Text(l10n.repostsTitle, style: FeedText.heading(tokens, size: 18)),
+        title: DesignTitle(
+          l10n.repostsTitle,
+          style: FeedText.heading(tokens, size: 18),
+          accent: tokens.accent,
+        ),
         elevation: 0,
       ),
       body: postsAsync.when(

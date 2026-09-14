@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminReportsScreen extends ConsumerStatefulWidget {
   const AdminReportsScreen({super.key});
@@ -377,13 +378,14 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            DesignTitle(
               l10n.adminReportsManagement,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
+              accent: AdminColors.titleDot,
             ),
             const SizedBox(height: 4),
             Text(

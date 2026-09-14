@@ -12,6 +12,7 @@ import 'package:diaspo_niger/shared/widgets/offline_banner.dart';
 import '../../../../core/constants/ad_config.dart';
 import '../../domain/entities/post_entity.dart';
 import '../../domain/repositories/feed_repository.dart';
+import '../../../stories/presentation/providers/story_provider.dart';
 import '../providers/feed_provider.dart';
 import '../theme/feed_text.dart';
 import '../theme/feed_tokens.dart';
@@ -22,6 +23,7 @@ import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
 import '../widgets/story_rail.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class FeedScreen extends ConsumerStatefulWidget {
   final String? hashtagFilter;
@@ -199,9 +201,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                               ? context.pop()
                               : context.go('/home'),
                 ),
-                title: Text(
+                title: DesignTitle(
                   l10n.feedTitle,
                   style: FeedText.heading(tokens, size: 20),
+                  accent: tokens.accent,
                 ),
                 centerTitle: true,
                 elevation: 0,
@@ -336,7 +339,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     }
     final mixedItems = _buildMixedItems(rows);
     final list = RefreshIndicator(
-      onRefresh: () => ref.read(feedNotifierProvider.notifier).refresh(),
+      onRefresh: () {
+        // Le rail de stories se relit avec le fil : sans ça, une story
+        // publiée par quelqu'un d'autre n'apparaissait qu'au redémarrage.
+        ref.invalidate(activeStoriesProvider);
+        return ref.read(feedNotifierProvider.notifier).refresh();
+      },
       child: ListView.builder(
         controller: _scrollController,
         // Réserve basse de 100 px : le FAB flotte au-dessus du dernier post.
@@ -467,7 +475,7 @@ class _FeedHeader extends StatelessWidget {
 
     // Titre « Le fil. » : le point prend la couleur d'accent.
     final baseTitle = lang == 'en' ? 'The feed' : l10n.homeServiceFeed;
-    final titleStyle = FeedText.heading(tokens, size: tokens.isDark ? 24 : 26);
+    final titleStyle = FeedText.heading(tokens, size: 26);
 
     return SafeArea(
       bottom: false,
@@ -505,30 +513,28 @@ class _FeedHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    dateLabel.toUpperCase(),
-                    style: TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 10.5,
-                      letterSpacing: 1.05,
-                      fontWeight: FontWeight.w600,
-                      color: overColor,
+                  // Réduit plutôt que tronqué : « DIMANCHE 13 SEPTEMBRE 20… »
+                  // sur Pixel à font_scale 1.3 (2026-09-13).
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      dateLabel.toUpperCase(),
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 10.5,
+                        letterSpacing: 1.05,
+                        fontWeight: FontWeight.w600,
+                        color: overColor,
+                      ),
+                      maxLines: 1,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
-                  Text.rich(
-                    TextSpan(
-                      style: titleStyle,
-                      children: [
-                        TextSpan(text: baseTitle),
-                        TextSpan(
-                          text: '.',
-                          style: titleStyle.copyWith(color: tokens.accent),
-                        ),
-                      ],
-                    ),
+                  DesignTitle(
+                    baseTitle,
+                    style: titleStyle,
+                    accent: tokens.accent,
                   ),
                 ],
               ),

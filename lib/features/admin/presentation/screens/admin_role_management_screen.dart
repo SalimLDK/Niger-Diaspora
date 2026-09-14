@@ -7,6 +7,7 @@ import '../../domain/constants/role_permissions.dart';
 import '../providers/role_management_provider.dart';
 import 'admin_create_admin_screen.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminRoleManagementScreen extends ConsumerStatefulWidget {
   const AdminRoleManagementScreen({super.key});
@@ -62,13 +63,14 @@ class _AdminRoleManagementScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              DesignTitle(
                 l10n.adminRoleManagementTitle,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: AdminColors.text,
                 ),
+                accent: AdminColors.titleDot,
               ),
               Text(
                 l10n.adminRoleManagementSubtitle,

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import '../../../../core/services/notification_read_sync.dart';
 import '../../domain/entities/comment_entity.dart';
 import '../../domain/entities/post_entity.dart';
 import '../providers/feed_provider.dart';
@@ -16,6 +17,7 @@ import '../widgets/mention_text_field.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class PostDetailScreen extends ConsumerStatefulWidget {
   final String postId;
@@ -44,6 +46,17 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
 
   String get _currentUserId =>
       FirebaseAuth.instance.currentUser?.uid ?? '';
+
+  @override
+  void initState() {
+    super.initState();
+    // Publication ouverte — depuis le fil, un lien, n'importe où : ses
+    // notifications (commentaire, mention, nouvelle publication) sont lues.
+    NotificationReadSync.markTargetRead(
+      widget.postId,
+      keys: const ['postId', 'targetId', 'target_id'],
+    );
+  }
 
   @override
   void dispose() {
@@ -131,7 +144,11 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/home'),
         ),
-        title: Text(l10n.feedTitle, style: FeedText.heading(tokens, size: 17)),
+        title: DesignTitle(
+          l10n.feedTitle,
+          style: FeedText.heading(tokens, size: 17),
+          accent: tokens.accent,
+        ),
         elevation: 0,
       ),
       body: Column(

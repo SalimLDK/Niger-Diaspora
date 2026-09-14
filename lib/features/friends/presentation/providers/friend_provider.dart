@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../../core/services/notification_read_sync.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
 import '../../data/datasources/friend_remote_datasource.dart';
@@ -161,6 +162,7 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
       },
       (_) {
         state = const AsyncValue.data(null);
+        _markRequestNotificationRead(senderId);
         // Stream providers auto-update from Firestore, no invalidation needed
         return true;
       },
@@ -180,9 +182,21 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
       },
       (_) {
         state = const AsyncValue.data(null);
+        _markRequestNotificationRead(senderId);
         // Stream providers auto-update from Firestore, no invalidation needed
         return true;
       },
+    );
+  }
+
+  /// Demande traitée — depuis l'écran Amis comme depuis la notification :
+  /// la notification « demande d'ami » n'appelle plus d'action.
+  void _markRequestNotificationRead(String? senderId) {
+    if (senderId == null || senderId.isEmpty) return;
+    NotificationReadSync.markTargetRead(
+      senderId,
+      keys: const ['senderId', 'sender_id', 'actor_id', 'targetId', 'target_id'],
+      type: 'friendRequest',
     );
   }
 

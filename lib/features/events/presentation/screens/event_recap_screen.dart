@@ -9,6 +9,7 @@ import '../providers/event_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class EventRecapScreen extends ConsumerStatefulWidget {
   final EventEntity event;
@@ -182,8 +183,9 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(
+        title: DesignTitle(
           _isEditing ? l10n.eventEditRecap : l10n.eventCreateRecap,
+          size: 22,
         ),
         leading: IconButton(
           icon: const Icon(Icons.close),

@@ -10,10 +10,12 @@ import '../../../../core/utils/toast_utils.dart';
 import '../../../../core/services/image_upload_service.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
+import '../../../../core/constants/profile_options.dart';
 import '../../../../core/models/country.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class CreateGroupScreen extends ConsumerStatefulWidget {
   /// Nom pré-rempli, venant du « Créer « X » » de la recherche sans résultat.
@@ -91,8 +93,10 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
     profileAsync.whenData((profile) {
       if (profile?.currentCountry != null &&
           profile!.currentCountry!.isNotEmpty) {
-        // Vérifier si le pays du profil est dans notre liste
-        final userCountry = profile.currentCountry!;
+        // Vérifier si le pays du profil est dans notre liste. Ramené à son nom
+        // d'abord : un profil pas encore réenregistré porte encore « CA ».
+        final userCountry =
+            ProfileOptions.canonicalCountry(profile.currentCountry)!;
         if (_hostCountries.contains(userCountry)) {
           setState(() => _selectedCountry = userCountry);
         } else {
@@ -181,18 +185,16 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       adminIds: [currentUser.id],
       memberIds: [currentUser.id],
       createdAt: DateTime.now(),
-      // `_hostCountries` est une liste de LIBELLÉS français ('Niger',
-      // 'Canada', …) et cette valeur part telle quelle dans
-      // `groups.country_code`, qui attend un code ISO-2. D'où le mélange
-      // `CA`/`Canada`, `NE`/`Niger` constaté en base, et un filtre par pays qui
-      // ne retenait qu'une partie des groupes. On normalise ici — l'affichage
-      // continue de montrer les libellés.
+      // `groups.country_code` porte le pays en toutes lettres, sous la forme
+      // de `ProfileOptions.countries` — c'est sur elle que se comparent le
+      // filtre par pays et le groupe officiel. `_hostCountries` l'écrit déjà
+      // ainsi ; `canonicalCountry` garantit qu'une divergence d'accent ne
+      // ferait pas un second pays.
       // Sans pays choisi, le groupe partait avec `country_code` nul et
       // disparaissait de « Découvrir » dès qu'un filtre pays était actif.
       // Défaut : le Niger.
-      country: CountryExtension.toIsoCode(_selectedCountry) ??
-          _selectedCountry ??
-          kDefaultCountryCode,
+      country: ProfileOptions.canonicalCountry(_selectedCountry) ??
+          kDefaultCountry,
       originRegion: _selectedOriginRegion,
     );
 
@@ -237,7 +239,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.groupCreateTitle),
+        title: DesignTitle(l10n.groupCreateTitle, size: 22),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed:

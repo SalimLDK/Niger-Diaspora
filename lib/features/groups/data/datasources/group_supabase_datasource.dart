@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/constants/profile_options.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/models/country.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
@@ -448,10 +449,9 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
       // pays serait invisible dans « Découvrir » dès qu'un filtre pays est
       // actif, et l'écran en pose un tout seul. Le défaut est aussi posé côté
       // base (`insert_group`, et le `DEFAULT` de la colonne) pour les écrivains
-      // qui ne passeraient pas par ici.
-      'p_country_code': group.country?.trim().isNotEmpty == true
-          ? group.country
-          : kDefaultCountryCode,
+      // qui ne passeraient pas par ici. Le pays part en toutes lettres.
+      'p_country_code':
+          ProfileOptions.canonicalCountry(group.country) ?? kDefaultCountry,
       'p_origin_region': group.originRegion,
     },) as Map<String, dynamic>?;
 

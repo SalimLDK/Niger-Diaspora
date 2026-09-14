@@ -22,6 +22,7 @@ import '../widgets/buy_ticket_bottom_sheet.dart';
 import '../widgets/timezone_display_widget.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// /audio-rooms — Live + Programmés list with Sahel design.
 class AudioRoomsListScreen extends ConsumerStatefulWidget {
@@ -143,8 +144,10 @@ class _ArHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(AppLocalizations.of(context)!.audioRoomsTitle,
-                    style: DNText.serif(size: 20, color: dn.onSurface),),
+                DesignTitle(
+                  AppLocalizations.of(context)!.audioRoomsTitle,
+                  style: DNText.serif(size: 20, color: dn.onSurface),
+                ),
                 // La répartition direct/programmés est plus utile que le
                 // total combiné, qui ne disait pas ce qui est écoutable tout
                 // de suite.

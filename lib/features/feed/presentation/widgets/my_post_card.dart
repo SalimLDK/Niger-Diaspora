@@ -167,7 +167,7 @@ class _Thumbnail extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(
-        tokens.isDark ? tokens.radiusSm : _thumbRadiusLight,
+        _thumbRadiusLight,
       ),
       child: CachedNetworkImage(
         imageUrl: url,
@@ -327,7 +327,7 @@ class _DraftAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(tokens.isDark ? tokens.radiusSm : 11);
+    final radius = BorderRadius.circular(11);
     return InkWell(
       borderRadius: radius,
       onTap: onTap,

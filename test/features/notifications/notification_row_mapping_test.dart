@@ -87,6 +87,12 @@ void main() {
         dataSource.fromRow(row(type: 'groupCallInvitation')).toEntity().type,
         NotificationType.groupCallInvitation,
       );
+      // Écrit par `set_message_reaction` : sans sa valeur d'énumération, la
+      // notification retombait sur `general` et un appui n'ouvrait rien.
+      expect(
+        dataSource.fromRow(row(type: 'messageReaction')).toEntity().type,
+        NotificationType.messageReaction,
+      );
     });
 
     test('un type inconnu reste general, sans lever', () {

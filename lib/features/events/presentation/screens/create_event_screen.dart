@@ -8,14 +8,17 @@ import 'dart:io';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
+import '../../domain/entities/event_audience.dart';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
+import '../widgets/event_audience_picker.dart';
 import '../../../home/presentation/providers/home_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/shared/widgets/dashed_border_painter.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 import '../../../messages/presentation/providers/media_gallery_provider.dart'
     show groupConversationIdProvider;
 import '../../../messages/presentation/providers/message_provider.dart'
@@ -60,9 +63,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   TimeOfDay? _endTime;
   bool _isOnline = false;
   bool _isLoading = false;
-  // Groupe uniquement : publier aussi l'event dans le fil public (écran
-  // Événements global), en plus de la visibilité par défaut aux membres.
-  bool _publishToFeed = false;
+  /// Qui voit l'événement. Posé dès l'insertion (`events.visibility`) et
+  /// appliqué par la RLS ; groupes et personnes s'ajoutent juste après.
+  late EventAudience _audience = EventAudience.parDefaut(
+    depuisUneDiscussion: widget.groupId != null || widget.conversationId != null,
+  );
   final List<XFile> _selectedPosters = [];
   final _imagePicker = ImagePicker();
 
@@ -251,6 +256,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
   Future<void> _createEvent() async {
     if (!_formKey.currentState!.validate()) return;
+    final erreurAudience = _audience.erreur;
+    if (erreurAudience != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(erreurAudience)),
+      );
+      return;
+    }
 
     // `await …future` et non `read(...).valueOrNull` : StreamProvider
     // autoDispose que cet écran ne regarde pas, la lecture rendait `null` au
@@ -327,20 +339,26 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       groupId: widget.groupId,
       groupName: widget.groupName,
       conversationId: widget.conversationId,
-      // Événement créé depuis une discussion (DM ou groupe) : privé par défaut
-      // (participants du DM / membres du groupe) ; la case "publier dans le fil"
-      // l'expose aussi à l'écran Événements global. Standalone : géré côté
-      // requêtes/RLS.
-      isPublic: (widget.groupId != null || widget.conversationId != null)
-          ? _publishToFeed
-          : false,
+      // Lu par les clients qui ne connaissent pas encore `visibility` ; la
+      // base le resynchronise de toute façon sur la visibilité réelle.
+      isPublic: _audience.visibility == EventVisibility.public,
       createdAt: DateTime.now(),
     );
 
     final created = await ref
         .read(myEventsNotifierProvider.notifier)
-        .createEvent(event);
+        .createEvent(event, visibility: _audience.visibility);
     final success = created != null;
+
+    // Groupes ou personnes choisis : l'événement est déjà restreint à sa
+    // discussion (ou à son organisateur), on ouvre maintenant aux destinataires.
+    var audienceEnregistree = true;
+    if (success && _audience.aDesDestinataires) {
+      final resultat = await ref
+          .read(eventRepositoryProvider)
+          .setEventAudience(created.id, _audience);
+      audienceEnregistree = resultat.isRight();
+    }
 
     if (success && _selectedPosters.isNotEmpty) {
       // Upload posters if event was created successfully
@@ -368,8 +386,16 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(successMessage),
-          backgroundColor: context.adaptiveSecondaryColor,
+          content: Text(
+            audienceEnregistree
+                ? successMessage
+                : "Événement créé, mais les groupes ou personnes choisis "
+                    "n'ont pas pu être enregistrés. Il reste visible par sa "
+                    "discussion uniquement.",
+          ),
+          backgroundColor:
+              audienceEnregistree ? context.adaptiveSecondaryColor : null,
+          duration: Duration(seconds: audienceEnregistree ? 3 : 6),
         ),
       );
       // Refresh events list
@@ -594,7 +620,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             ),
             onPressed: _handleClose,
           ),
-          title: Text(
+          title: DesignTitle(
             'Nouvel événement',
             style: TextStyle(
               fontSize: 18,
@@ -661,6 +687,18 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                   if (value.trim().length < 20) return l10n.descriptionTooShort;
                   return null;
                 },
+              ),
+              const SizedBox(height: 14),
+
+              // Visibilité en haut, pas sous la catégorie : c'est la question
+              // qu'on se pose avant de remplir l'adresse ou le prix.
+              _buildLabel('Qui peut voir cet événement ?'),
+              const SizedBox(height: 7),
+              EventAudiencePicker(
+                audience: _audience,
+                depuisUneDiscussion: fromDiscussion,
+                depuisUnGroupe: widget.groupId != null,
+                onChanged: (a) => setState(() => _audience = a),
               ),
               const SizedBox(height: 14),
 
@@ -930,23 +968,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 ),
               ),
 
-              // Visibilité : uniquement quand l'événement naît d'une
-              // discussion. La fiche montre ici « Prévenir mes groupes », qui
-              // diffuserait dans plusieurs groupes — voir ECRANS_FICHES.md.
-              if (fromDiscussion) ...[
-                const SizedBox(height: 14),
-                _buildToggleCard(
-                  title: 'Publier dans le fil public',
-                  subtitle:
-                      _publishToFeed
-                          ? 'Visible par tout le monde dans Événements, en plus de la discussion.'
-                          : (widget.groupId != null
-                              ? 'Visible uniquement par les membres du groupe.'
-                              : 'Visible uniquement par les participants de la conversation.'),
-                  value: _publishToFeed,
-                  onChanged: (v) => setState(() => _publishToFeed = v),
-                ),
-              ],
             ],
           ),
         ),
@@ -1141,55 +1162,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             color: active ? context.backgroundColor : context.textSecondaryColor,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildToggleCard({
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: context.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: context.borderColor),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimaryColor,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: context.textTertiaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: Colors.white,
-            activeTrackColor: context.successColor,
-          ),
-        ],
       ),
     );
   }

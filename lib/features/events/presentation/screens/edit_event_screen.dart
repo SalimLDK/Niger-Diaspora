@@ -10,6 +10,7 @@ import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class EditEventScreen extends ConsumerStatefulWidget {
   final EventEntity event;
@@ -375,7 +376,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.editEvent),
+        title: DesignTitle(l10n.editEvent, size: 22),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed:

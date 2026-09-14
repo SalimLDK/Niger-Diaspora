@@ -10,6 +10,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/payment_history_item.dart';
 import '../providers/payment_history_provider.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class PaymentHistoryScreen extends ConsumerWidget {
   const PaymentHistoryScreen({super.key});
@@ -30,7 +31,7 @@ class PaymentHistoryScreen extends ConsumerWidget {
             onPressed:
                 () => context.canPop() ? context.pop() : context.go('/home'),
           ),
-          title: Text(l10n.paymentHistory)),
+          title: DesignTitle(l10n.paymentHistory, size: 22)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -43,7 +44,7 @@ class PaymentHistoryScreen extends ConsumerWidget {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/home'),
         ),
-        title: Text(l10n.paymentHistory),
+        title: DesignTitle(l10n.paymentHistory, size: 22),
       ),
       body: Column(
         children: [

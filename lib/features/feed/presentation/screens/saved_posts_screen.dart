@@ -13,6 +13,7 @@ import '../widgets/feed_empty_state.dart';
 import '../widgets/post_card_skeleton.dart';
 import '../widgets/saved_post_card.dart';
 import '../widgets/share_post_sheet.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 // Provider for bookmarked posts count
 final bookmarkedPostsCountProvider =
@@ -306,11 +307,11 @@ class _Header extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(
+              child: DesignTitle(
                 l10n.audioRoomHeritageSaved,
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: FeedText.heading(tokens, size: 22),
+                accent: tokens.accent,
               ),
             ),
             // Pas de « 0 » pendant le chargement : le compteur n'apparaît

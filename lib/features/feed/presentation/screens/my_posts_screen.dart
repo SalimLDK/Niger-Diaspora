@@ -15,6 +15,7 @@ import '../widgets/feed_pill_tabs.dart';
 import '../widgets/my_post_card.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 // Provider for user's own posts
 final myPostsProvider =
@@ -362,8 +363,15 @@ class _MyPostsScreenState extends ConsumerState<MyPostsScreen> {
           ),
     );
     if (confirmed != true || !mounted) return;
-    await ref.read(feedNotifierProvider.notifier).deletePost(post.id);
-    if (mounted) ref.invalidate(myPostsProvider);
+    final deleted =
+        await ref.read(feedNotifierProvider.notifier).deletePost(post.id);
+    if (!mounted) return;
+    ref.invalidate(myPostsProvider);
+    if (!deleted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.deleteError), backgroundColor: Colors.red),
+      );
+    }
   }
 
   /// La maquette supprime le brouillon sans confirmation ; la fiche note
@@ -407,7 +415,7 @@ class _FirstPostInvitation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = FeedTokens.of(context);
-    final pill = BorderRadius.circular(tokens.isDark ? tokens.radiusMd : 14);
+    final pill = BorderRadius.circular(14);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
@@ -621,11 +629,11 @@ class _Header extends StatelessWidget {
                           ),
                         ),
                       )
-                      : Text(
+                      : DesignTitle(
                         l10n.myPostsTitle,
                         style: FeedText.heading(tokens, size: 22),
+                        accent: tokens.accent,
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
             ),
             if (showSearch) ...[

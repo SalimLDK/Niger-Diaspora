@@ -2,6 +2,7 @@ import 'package:diaspo_niger/core/constants/deleted_account.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +20,7 @@ import '../providers/media_upload_provider.dart';
 import '../widgets/conversation_options_modal.dart';
 import '../widgets/forward_conversation_picker.dart';
 import '../widgets/message_bubble.dart';
+import '../utils/message_copy_text.dart';
 import '../utils/message_grouping.dart';
 import '../widgets/message_input.dart';
 import '../widgets/note_poll_draft_sheet.dart';
@@ -791,6 +793,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
 
+  void _copySelectedMessages(List<MessageEntity> allMessages) {
+    final texte = selectionCopyText(_getSelectedMessages(allMessages));
+    if (texte == null) return;
+    Clipboard.setData(ClipboardData(text: texte));
+    _exitSelectionMode();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.copiedToClipboard),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
   Future<void> _forwardSelectedMessages(List<MessageEntity> allMessages) async {
     final selected = _getSelectedMessages(allMessages);
     if (selected.isEmpty) return;
@@ -1231,10 +1247,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                         as bool?) ??
                     false))
             : true;
-    // Sondage : dans « Mes notes », on autorise un brouillon de sondage (note
-    // structurée) ; dans un groupe, un vrai sondage votable selon permissions.
+    // Sondage : dans « Mes notes », un brouillon (note structurée) ; dans une
+    // discussion privée, un vrai sondage entre ses participants (ouvert le
+    // 2026-09-12) ; dans un groupe, selon ses permissions.
     final canCreatePoll =
         _isSelfNotes ||
+        !_isGroup ||
         (_isGroup &&
             _effectiveGroupId != null &&
             ((groupData?.permissions.canPostPolls(isAdmin: isConvAdmin)
@@ -1582,7 +1600,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             ? null
                             : _isSelfNotes
                             ? () => _createPollDraft()
-                            : () => _createAndPublishPoll(_effectiveGroupId!),
+                            : _isGroup
+                            ? () => _createAndPublishPoll(
+                              PollContextType.group,
+                              _effectiveGroupId!,
+                            )
+                            : () => _createAndPublishPoll(
+                              PollContextType.conversation,
+                              widget.conversationId,
+                            ),
                     onTyping: () {
                       ref
                           .read(typingIndicatorNotifierProvider.notifier)
@@ -2555,6 +2581,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                   ? AppLocalizations.of(context)!.deselectAll
                   : AppLocalizations.of(context)!.selectAll,
         ),
+        // Copier la sélection (textes, légendes, positions, sondages).
+        if (selectionCopyText(_getSelectedMessages(allMessages)) != null)
+          IconButton(
+            onPressed: () => _copySelectedMessages(allMessages),
+            icon: const Icon(Icons.copy, color: AppColors.white),
+            tooltip: AppLocalizations.of(context)!.copy,
+          ),
         // Star selected
         IconButton(
           onPressed: () => _starSelectedMessages(allMessages),
@@ -2814,11 +2847,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   ///
   /// Sans cette seconde etape, la ligne de `post_polls` n'etait lue par aucun
   /// ecran : le sondage existait en base et restait invisible partout.
-  Future<void> _createAndPublishPoll(String groupId) async {
+  Future<void> _createAndPublishPoll(
+    PollContextType contextType,
+    String contextId,
+  ) async {
     final poll = await showCreatePollSheet(
       context,
-      contextType: PollContextType.group,
-      contextId: groupId,
+      contextType: contextType,
+      contextId: contextId,
     );
     if (poll == null || !mounted) return;
 

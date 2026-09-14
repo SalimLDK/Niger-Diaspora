@@ -5,6 +5,7 @@ import '../../../events/domain/entities/event_entity.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminModerationScreen extends ConsumerStatefulWidget {
   const AdminModerationScreen({super.key});
@@ -120,13 +121,14 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            DesignTitle(
               l10n.adminContentModeration,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
+              accent: AdminColors.titleDot,
             ),
             SizedBox(height: 4),
             Text(
@@ -636,8 +638,9 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
           l10n.adminCancelEventMsg,
         );
         if (confirm == true) {
-          await notifier.cancelEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminEventCancelled);
+          final ok = await notifier.cancelEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          if (!mounted) return;
+          _showSnackBar(ok ? l10n.adminEventCancelled : l10n.loadingError);
         }
         break;
       case 'delete':
@@ -646,8 +649,9 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
           l10n.adminDeleteEventMsg,
         );
         if (confirm == true) {
-          await notifier.deleteEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminEventDeleted);
+          final ok = await notifier.deleteEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          if (!mounted) return;
+          _showSnackBar(ok ? l10n.adminEventDeleted : l10n.deleteError);
         }
         break;
     }

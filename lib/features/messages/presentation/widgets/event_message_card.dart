@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
+import 'shared_card_palette.dart';
+
 /// Carte affichée dans une bulle de message pour un événement créé depuis
 /// une discussion ou un groupe.
 /// eventData structure: {eventId, title, startDate, location, isOnline}
@@ -16,6 +18,13 @@ class EventMessageCard extends StatelessWidget {
     required this.eventData,
     required this.isMe,
   });
+
+  /// Le texte posé tout seul sous la carte (« 📅 Titre ») : utile à l'aperçu
+  /// de la liste et aux notifications, redondant dans la bulle.
+  static bool isDefaultCaption(String content, Map<String, dynamic> eventData) {
+    final titre = eventData['title'] as String? ?? '';
+    return content.trim() == '📅 $titre';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,38 +42,30 @@ class EventMessageCard extends StatelessWidget {
         : null;
     final placeLabel = isOnline ? 'En ligne' : location;
 
-    const accent = Colors.deepPurple;
-    final onAccentSurface = isMe ? Colors.white70 : null;
+    final palette = SharedCardPalette.of(context, isMe: isMe);
+    final accent = palette.accent;
+    final onAccentSurface = palette.body;
 
     return GestureDetector(
       onTap: eventId != null ? () => context.push('/events/$eventId') : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: isMe
-              ? Colors.white.withValues(alpha: 0.15)
-              : theme.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isMe
-                ? Colors.white.withValues(alpha: 0.3)
-                : theme.dividerColor,
-          ),
-        ),
+        decoration: palette.decoration,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.event_rounded, size: 14, color: accent),
-                const SizedBox(width: 4),
+                Icon(Icons.event_rounded, size: 20, color: accent),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    '📅 Événement',
-                    style: theme.textTheme.labelSmall?.copyWith(
+                    'Événement',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontSize: 16,
                       color: accent,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -75,8 +76,9 @@ class EventMessageCard extends StatelessWidget {
             Text(
               title,
               style: theme.textTheme.bodyMedium?.copyWith(
+                fontSize: 19,
                 fontWeight: FontWeight.w600,
-                color: isMe ? Colors.white : null,
+                color: palette.title,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -85,13 +87,13 @@ class EventMessageCard extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(Icons.schedule, size: 12, color: onAccentSurface),
+                  Icon(Icons.schedule, size: 17, color: onAccentSurface),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       dateLabel,
                       style: theme.textTheme.bodySmall
-                          ?.copyWith(color: onAccentSurface),
+                          ?.copyWith(fontSize: 16, color: onAccentSurface),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -105,12 +107,12 @@ class EventMessageCard extends StatelessWidget {
                   isOnline
                       ? AppIcon(
                           AppIcon.video,
-                          size: 12,
+                          size: 17,
                           color: onAccentSurface,
                         )
                       : Icon(
                           Icons.place_outlined,
-                          size: 12,
+                          size: 17,
                           color: onAccentSurface,
                         ),
                   const SizedBox(width: 4),
@@ -118,7 +120,7 @@ class EventMessageCard extends StatelessWidget {
                     child: Text(
                       placeLabel,
                       style: theme.textTheme.bodySmall
-                          ?.copyWith(color: onAccentSurface),
+                          ?.copyWith(fontSize: 16, color: onAccentSurface),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -126,12 +128,15 @@ class EventMessageCard extends StatelessWidget {
                 ],
               ),
             ],
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
               'Voir l\'événement →',
-              style: theme.textTheme.labelSmall?.copyWith(
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontSize: 16,
                 color: accent,
+                fontWeight: FontWeight.w600,
                 decoration: TextDecoration.underline,
+                decorationColor: accent,
               ),
             ),
           ],

@@ -7,6 +7,7 @@ import '../../domain/enums/admin_enums.dart';
 import '../../domain/constants/role_permissions.dart';
 import '../providers/role_management_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminCreateAdminScreen extends ConsumerStatefulWidget {
   const AdminCreateAdminScreen({super.key});
@@ -47,12 +48,13 @@ class _AdminCreateAdminScreenState
           icon: const AppIcon(AppIcon.arrowBack, color: AdminColors.text),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: const DesignTitle(
           'Créer un administrateur',
           style: TextStyle(
             color: AdminColors.text,
             fontWeight: FontWeight.w600,
           ),
+          accent: AdminColors.titleDot,
         ),
       ),
       body: SingleChildScrollView(

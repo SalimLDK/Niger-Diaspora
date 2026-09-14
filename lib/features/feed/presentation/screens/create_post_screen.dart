@@ -22,7 +22,9 @@ import '../widgets/feed_avatar.dart';
 import '../widgets/hashtag_highlighting_controller.dart';
 import '../widgets/feed_toast.dart';
 import '../widgets/mention_text_field.dart';
+import '../widgets/post_card.dart' show postVisibilityIcon, postVisibilityLabel;
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Ce que l'éditeur doit ouvrir à l'arrivée (amorces de l'état vide §5g).
 enum ComposeIntent { blank, photo, poll }
@@ -105,6 +107,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
   List<String> _hashtags = [];
   bool _isPublishing = false;
 
+  /// Audience de la publication (Public / Amis / Moi uniquement).
+  PostVisibility _visibility = PostVisibility.public;
+
   /// Passe à `true` juste avant de quitter l'écran après une publication
   /// réussie : évite de re-sauvegarder le texte publié comme brouillon dans
   /// `dispose()`.
@@ -144,6 +149,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
       _mentionedGroups = List.of(post.mentionedGroups);
       _hashtags = List.of(post.hashtags);
       _existingMediaUrls.addAll(post.mediaUrls);
+      _visibility = post.visibility;
       _draftId = '';
     } else {
       // Nouvelle publication : reprend le brouillon demandé s'il y en a un
@@ -348,6 +354,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
         mentionedUsers: _mentionedUsers,
         mentionedGroups: _mentionedGroups,
         hashtags: hashtags,
+        visibility: _visibility,
         updatedAt: DateTime.now(),
       );
       success = await ref.read(feedNotifierProvider.notifier).updatePost(post);
@@ -399,6 +406,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
         latitude: _locationDraft?.latitude,
         longitude: _locationDraft?.longitude,
         locationAddress: _locationDraft?.address,
+        visibility: _visibility,
       );
       final created =
           await ref.read(feedNotifierProvider.notifier).createPost(post);
@@ -446,18 +454,22 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
     }
   }
 
-  /// Feuille d'audience : les publications sont toujours publiques (aucune
-  /// portée privée au modèle), la feuille explique donc la conséquence.
-  void _showAudienceSheet(BuildContext context, FeedTokens tokens) {
-    showModalBottomSheet<void>(
+  /// Feuille d'audience : Public, Amis, Moi uniquement.
+  ///
+  /// Elle n'affichait que « Public » avec une phrase d'explication : la
+  /// colonne `posts.visibility` était écrite en dur à `public`, alors que la
+  /// policy `posts_select` savait déjà réserver une publication aux amis ou à
+  /// son auteur. C'est la base qui filtre, pas l'app.
+  Future<void> _showAudienceSheet(BuildContext context, FeedTokens tokens) async {
+    final choice = await showModalBottomSheet<PostVisibility>(
       context: context,
       backgroundColor: tokens.bg,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
       ),
-      builder: (_) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,37 +484,63 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  AppIcon(AppIcon.public, size: 20, color: tokens.accent),
-                  const SizedBox(width: 10),
-                  Text(
-                    l10n.public,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 16, 8, 8),
+                child: Text(
+                  'Qui peut voir cette publication ?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: tokens.text,
+                  ),
+                ),
+              ),
+              for (final v in PostVisibility.values)
+                ListTile(
+                  leading: AppIcon(
+                    _visibilityIcon(v),
+                    size: 20,
+                    color: v == _visibility ? tokens.accent : tokens.mutedText,
+                  ),
+                  title: Text(
+                    _visibilityLabel(v),
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       color: tokens.text,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Cette publication sera visible par toute la diaspora sur '
-                'Diaspo Niger.',
-                style: TextStyle(
-                  fontSize: 13.5,
-                  height: 1.5,
-                  color: tokens.mutedText,
+                  subtitle: Text(
+                    _visibilityHint(v),
+                    style: TextStyle(fontSize: 12.5, color: tokens.mutedText),
+                  ),
+                  trailing: v == _visibility
+                      ? Icon(Icons.check_rounded, color: tokens.accent)
+                      : null,
+                  onTap: () => Navigator.pop(sheetContext, v),
                 ),
-              ),
             ],
           ),
         ),
       ),
     );
+    if (choice != null && mounted) setState(() => _visibility = choice);
   }
+
+  String _visibilityIcon(PostVisibility v) => postVisibilityIcon(v);
+
+  String _visibilityLabel(PostVisibility v) => postVisibilityLabel(v, l10n);
+
+  String _visibilityHint(PostVisibility v) => switch (v) {
+        PostVisibility.public =>
+          'Toute la diaspora sur Diaspo Niger ; vos abonnés sont prévenus.',
+        PostVisibility.followers =>
+          'Les personnes qui vous suivent, et vos amis. Vos abonnés sont '
+              'prévenus. Ni repartage ni partage.',
+        PostVisibility.friends =>
+          'Seulement vos amis. Ni repartage ni partage.',
+        PostVisibility.onlyMe =>
+          "Vous seul. Personne n'est prévenu, pas même une personne mentionnée.",
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -522,9 +560,10 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
           child: Text(l10n.cancel, style: TextStyle(color: tokens.accent)),
         ),
         leadingWidth: 88,
-        title: Text(
+        title: DesignTitle(
           _isEditing ? l10n.editPostTitle : l10n.createPost,
           style: FeedText.heading(tokens, size: 16),
+          accent: tokens.accent,
         ),
         centerTitle: true,
         actions: [
@@ -576,9 +615,8 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
                             ),
                           ),
                           const SizedBox(height: 2),
-                          // Puce d'audience : icône + « Public » + chevron.
-                          // Les posts sont toujours publics ; le tap explique
-                          // la portée (aucune audience privée au modèle).
+                          // Puce d'audience : icône + libellé + chevron ; le
+                          // tap ouvre le choix de l'audience.
                           GestureDetector(
                             onTap: () => _showAudienceSheet(context, tokens),
                             child: Container(
@@ -594,13 +632,13 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   AppIcon(
-                                    AppIcon.public,
+                                    _visibilityIcon(_visibility),
                                     size: 13,
                                     color: tokens.tagNeutralFg,
                                   ),
                                   const SizedBox(width: 5),
                                   Text(
-                                    l10n.public,
+                                    _visibilityLabel(_visibility),
                                     style: TextStyle(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w600,
@@ -810,11 +848,17 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppIcon(AppIcon.public, size: 14, color: tokens.mutedText),
+                      // Suit l'audience choisie : la phrase restait « publiques »
+                      // même en « Moi uniquement » (vu sur SM A515F, 2026-09-13).
+                      AppIcon(
+                        _visibilityIcon(_visibility),
+                        size: 14,
+                        color: tokens.mutedText,
+                      ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          'Les publications publiques sont visibles par toute la diaspora.',
+                          _visibilityHint(_visibility),
                           style: TextStyle(
                             fontSize: 12,
                             height: 1.4,

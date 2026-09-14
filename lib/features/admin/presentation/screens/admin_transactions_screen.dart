@@ -4,6 +4,7 @@ import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../transfers/domain/entities/transaction_entity.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminTransactionsScreen extends ConsumerStatefulWidget {
   const AdminTransactionsScreen({super.key});
@@ -137,13 +138,14 @@ class _AdminTransactionsScreenState
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            DesignTitle(
               l10n.adminTransferMonitoringTitle,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
+              accent: AdminColors.titleDot,
             ),
             const SizedBox(height: 4),
             Text(

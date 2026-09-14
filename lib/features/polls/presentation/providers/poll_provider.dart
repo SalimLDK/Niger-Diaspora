@@ -89,6 +89,40 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
     );
   }
 
+  /// Sondage d'une discussion privée — mirror de [createGroupPoll]. Seuls
+  /// ses participants le lisent et y votent (RLS, migration 20260912233000).
+  Future<PollEntity?> createConversationPoll({
+    required String conversationId,
+    required String question,
+    required List<String> optionLabels,
+    bool allowMultiple = false,
+    DateTime? endsAt,
+  }) async {
+    final userId = ref.read(currentUserProvider).valueOrNull?.id;
+    state = const AsyncValue.loading();
+
+    final result = await ref.read(pollRepositoryProvider).createPoll(
+          contextType: PollContextType.conversation,
+          contextId: conversationId,
+          question: question,
+          optionLabels: optionLabels,
+          allowMultiple: allowMultiple,
+          endsAt: endsAt,
+          userId: userId,
+        );
+
+    return result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+        return null;
+      },
+      (poll) {
+        state = const AsyncValue.data(null);
+        return poll;
+      },
+    );
+  }
+
   /// Sondage sur un post du fil — mirror de [createGroupPoll]. Le post doit
   /// déjà exister (contrairement à un groupe, son id n'est connu qu'après
   /// publication : voir `create_post_screen.dart`).

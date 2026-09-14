@@ -13,6 +13,7 @@ import '../providers/heritage_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Screen for browsing the cultural heritage library
 class HeritageLibraryScreen extends ConsumerStatefulWidget {
@@ -100,7 +101,7 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
 
     if (!isEnabled) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.heritageLibraryTitle)),
+        appBar: AppBar(title: DesignTitle(l10n.heritageLibraryTitle, size: 22)),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),

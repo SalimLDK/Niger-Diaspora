@@ -17,8 +17,12 @@ Map<String, dynamic> _mapPoll(
 
   return {
     'id': row['id'],
-    'contextType': row['post_id'] != null ? 'post' : 'group',
-    'contextId': row['post_id'] ?? row['group_id'],
+    'contextType': row['post_id'] != null
+        ? 'post'
+        : row['group_id'] != null
+            ? 'group'
+            : 'conversation',
+    'contextId': row['post_id'] ?? row['group_id'] ?? row['conversation_id'],
     'question': row['question'],
     'options': sortedOptions
         .map((o) => {
@@ -73,7 +77,8 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
         .insert({
           if (contextType == 'post') 'post_id': contextId,
           if (contextType == 'group') 'group_id': contextId,
-          if (contextType == 'group') 'created_by': userId,
+          if (contextType == 'conversation') 'conversation_id': contextId,
+          if (contextType != 'post') 'created_by': userId,
           'question': question,
           'allow_multiple': allowMultiple,
           'ends_at': endsAt?.toUtc().toIso8601String(),
@@ -139,7 +144,11 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
     String contextId, {
     String? currentUserId,
   }) async {
-    final column = contextType == 'post' ? 'post_id' : 'group_id';
+    final column = switch (contextType) {
+      'post' => 'post_id',
+      'conversation' => 'conversation_id',
+      _ => 'group_id',
+    };
     final pollsData = await _supabase
         .from('post_polls')
         .select('*, creator:users!created_by(display_name), post_poll_options(*)')

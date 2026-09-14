@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminNotificationsScreen extends ConsumerStatefulWidget {
   const AdminNotificationsScreen({super.key});
@@ -136,13 +137,14 @@ class _AdminNotificationsScreenState
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            DesignTitle(
               l10n.adminGlobalNotifications,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
+              accent: AdminColors.titleDot,
             ),
             SizedBox(height: 4),
             Text(

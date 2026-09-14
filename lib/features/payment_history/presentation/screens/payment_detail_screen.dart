@@ -9,6 +9,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/payment_history_item.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class PaymentDetailScreen extends ConsumerWidget {
   final PaymentHistoryItem item;
@@ -32,7 +33,7 @@ class PaymentDetailScreen extends ConsumerWidget {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/payment-history'),
         ),
-        title: Text(l10n.transactionDetail),
+        title: DesignTitle(l10n.transactionDetail, size: 22),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),

@@ -1639,6 +1639,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get groupLeft => 'Vous avez quitté le groupe';
 
   @override
+  String get officialGroupDepartureTitle => 'Vous avez changé de pays';
+
+  @override
+  String officialGroupDepartureBody(String date, String country) {
+    return 'Depuis le $date, votre profil n\'indique plus $country. Vous pouvez quitter ce groupe ou y rester : rien ne change sans votre accord.';
+  }
+
+  @override
+  String get officialGroupDepartureStay => 'Rester membre';
+
+  @override
+  String get officialGroupDepartureStayed => 'Vous restez membre de ce groupe.';
+
+  @override
+  String get officialGroupDepartureFailed =>
+      'Votre choix n\'a pas pu être enregistré. Réessayez.';
+
+  @override
   String get member => 'Membre';
 
   @override
@@ -1830,6 +1848,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get currentCity => 'Ville actuelle';
+
+  @override
+  String get cityFieldHint => 'Chercher une ville';
+
+  @override
+  String get cityDataCredit => 'Liste des villes : GeoNames (CC BY 4.0)';
+
+  @override
+  String get cityTypeToSearch => 'Tapez les premières lettres de votre ville';
+
+  @override
+  String get cityNoResult => 'Aucune ville de la liste ne correspond';
+
+  @override
+  String get citySearchFailed => 'Recherche impossible pour le moment';
 
   @override
   String get originCity => 'Ville d\'origine au Niger';
@@ -4204,6 +4237,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get copy => 'Copier';
+
+  @override
+  String get selectText => 'Sélectionner le texte';
+
+  @override
+  String get copyAll => 'Tout copier';
+
+  @override
+  String get moreReactions => 'Plus de réactions';
 
   @override
   String get report => 'Signaler';

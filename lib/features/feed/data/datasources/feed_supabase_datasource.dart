@@ -71,6 +71,7 @@ Map<String, dynamic> _mapPost(Map<String, dynamic> row) {
     'latitude': (row['latitude'] as num?)?.toDouble(),
     'longitude': (row['longitude'] as num?)?.toDouble(),
     'locationAddress': row['location_address'],
+    'visibility': row['visibility'] ?? 'public',
   };
 }
 
@@ -134,7 +135,11 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
     String? hashtagFilter,
     FeedMode mode = FeedMode.forYou,
   }) async {
-    var query = _supabase.from('posts').select().eq('visibility', 'public');
+    // Pas de filtre `visibility = public` : la policy `posts_select` rend déjà
+    // exactement ce que l'appelant a le droit de lire (public, ses propres
+    // publications, celles de ses amis). Le filtre en dur cachait les
+    // publications « Amis » à leurs destinataires, et les siennes à l'auteur.
+    var query = _supabase.from('posts').select();
 
     if (hashtagFilter != null) {
       // Recherche dans le tableau JSONB hashtags
@@ -142,11 +147,14 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
     }
 
     if (mode == FeedMode.following) {
-      final followingIds = await getFollowingIds();
-      if (followingIds.isEmpty) {
+      // « Abonnements » : les personnes que je suis ET mes amis. Ce sont deux
+      // relations distinctes (`user_follows` / `friends`), et un ami qu'on ne
+      // « suit » pas n'apparaissait nulle part dans cet onglet.
+      final authorIds = {...await getFollowingIds(), ...await getFriendIds()};
+      if (authorIds.isEmpty) {
         return const PaginatedPostModels(posts: [], hasMore: false);
       }
-      query = query.inFilter('author_id', followingIds.toList());
+      query = query.inFilter('author_id', authorIds.toList());
     }
 
     final data = await query
@@ -206,7 +214,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
           'content': post.content,
           'media': media,
           'media_type': post.mediaType,
-          'visibility': 'public',
+          'visibility': post.visibility,
           'hashtags': post.hashtags,
           'mentioned_users': post.mentionedUsers,
           'mentioned_groups': post.mentionedGroups,
@@ -237,6 +245,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
           'hashtags': post.hashtags,
           'mentioned_users': post.mentionedUsers,
           'mentioned_groups': post.mentionedGroups,
+          'visibility': post.visibility,
           'is_edited': true,
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         })
@@ -251,7 +260,23 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
       throw ServerException('Session Supabase non établie – reconnectez-vous');
     }
-    await _supabase.from('posts').delete().eq('id', postId);
+    // `.select()` rend les lignes réellement supprimées. Une suppression que
+    // la RLS refuse (`posts_manage_own` : l'auteur seul) ne lève rien et
+    // n'efface rien : sans ce contrôle, l'app retirait la carte et annonçait
+    // « supprimée » pendant que la publication restait en base.
+    final List<dynamic> deleted;
+    try {
+      deleted = await _supabase
+          .from('posts')
+          .delete()
+          .eq('id', postId)
+          .select('id');
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
+    }
+    if (deleted.isEmpty) {
+      throw ServerException('Publication non supprimée');
+    }
   }
 
   @override
@@ -263,6 +288,24 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
         .order('created_at', ascending: false)
         .limit(50);
     return (data as List).map((r) => PostModel.fromJson(_mapPost(r))).toList();
+  }
+
+  /// Mes amis, lus dans `public.friends` — le miroir des amitiés Firestore
+  /// (Cloud Function `mirrorFriendToSupabase`), c'est-à-dire la même source
+  /// que celle qui décide des audiences « Amis ». Vide en cas d'échec : le fil
+  /// retombe alors sur les seuls abonnements.
+  Future<Set<String>> getFriendIds() async {
+    final uid = _currentUserId;
+    if (uid == null) return {};
+    try {
+      final data = await _supabase
+          .from('friends')
+          .select('friend_id')
+          .eq('user_id', uid);
+      return (data as List).map((r) => r['friend_id'] as String).toSet();
+    } catch (_) {
+      return {};
+    }
   }
 
   @override
@@ -769,7 +812,13 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
       table: 'posts',
       callback: (payload) {
         final row = payload.newRecord;
-        if (row['visibility'] != 'public') return;
+        // Publique, ou la sienne : une publication « Amis » d'autrui arrive au
+        // prochain rechargement, par la requête soumise à la RLS, plutôt que
+        // de dépendre ici de la façon dont le canal applique la RLS.
+        if (row['visibility'] != 'public' &&
+            row['author_id'] != _currentUserId) {
+          return;
+        }
         try {
           controller.add(PostModel.fromJson(_mapPost(row)));
         } catch (_) {}

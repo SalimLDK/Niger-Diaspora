@@ -6,6 +6,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../settings/presentation/screens/code_of_conduct_screen.dart';
 import '../../../settings/presentation/screens/privacy_policy_screen.dart';
 import '../../../settings/presentation/screens/terms_screen.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Les 3 documents légaux, présentés en onglets d'un même écran (§26c) au
 /// lieu de 3 écrans séparés sans lien entre eux.
@@ -47,7 +48,7 @@ class _LegalDocumentsScreenState extends State<LegalDocumentsScreen>
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.legalDocumentsTitle),
+        title: DesignTitle(l10n.legalDocumentsTitle, size: 22),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed:

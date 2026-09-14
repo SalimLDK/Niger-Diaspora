@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/constants/profile_options.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/services/location_publisher_service.dart';
@@ -146,15 +147,22 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
 
   /// Rattache l'utilisateur au groupe officiel de son pays (cree s'il n'existe
   /// pas encore). Echec silencieux : ce n'est qu'un enrichissement auxiliaire.
+  ///
+  /// Seul un pays de la liste du sélecteur ouvre un groupe officiel : une
+  /// saisie libre (« Autre ») n'en crée pas. Le nom du groupe vient du pays
+  /// en toutes lettres — il reprenait `currentCountry`, qui relu depuis la
+  /// base valait le code ISO, d'où « Diaspora Niger — NE ».
   Future<void> _joinOfficialCountryGroup(ProfileEntity profile) async {
-    final countryCode = profile.countryCode;
-    if (countryCode == null || countryCode.isEmpty) return;
+    final pays = ProfileOptions.findCountry(
+      profile.countryCode ?? profile.currentCountry,
+    )?.name;
+    if (pays == null) return;
 
     try {
       final groupRepository = _ref.read(groupRepositoryProvider);
       final groupResult = await groupRepository.ensureOfficialGroup(
-        countryCode: countryCode,
-        countryName: profile.currentCountry ?? countryCode,
+        countryCode: pays,
+        countryName: pays,
       );
       await groupResult.fold((failure) async {}, (group) async {
         await groupRepository.joinGroup(group.id, profile.id);

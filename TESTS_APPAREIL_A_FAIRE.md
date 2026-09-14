@@ -39,14 +39,15 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**776 cases à cocher, 491 cochées** — 159 entrées sur 203 ont encore des cases ouvertes.
+**871 cases à cocher, 496 cochées** — 178 entrées sur 222 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (17)
+**P0 — avant toute nouvelle version** (18)
 
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
@@ -63,12 +64,13 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (40)
+**P1 — fonction importante, jamais vérifiée** (48)
 
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -77,6 +79,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 16 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04) · *Liens profonds, navigation et QR codes*
 - 3 · [Assistant de configuration du profil](#assistant-de-configuration-du-profil) · *Comptes, session et onboarding*
+- 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
+- 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
@@ -85,16 +89,21 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
+- 6 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
+- 7 · [⬜ La messagerie sort de l'écran Notifications (2026-09-13)](#-la-messagerie-sort-de-lécran-notifications-2026-09-13) · *Notifications et push*
+- 7 · [⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)](#-notifications-ouvertes-ailleurs-ou-obsolètes--lues-2026-09-12) · *Notifications et push*
 - 5 · [Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)](#réponse-rapide-depuis-la-notification-nenvoyait-jamais-rien-2026-08-13) · *Notifications et push* · bloqué
 - 2 · [✅ Repli navigateur des liens d'app — DÉPLOYÉ (2026-09-09 21:5x)](#-repli-navigateur-des-liens-dapp--déployé-2026-09-09-215x) · *Liens profonds, navigation et QR codes*
 - 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
+- 2 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
+- 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
@@ -106,7 +115,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (56)
+**P2 — fonction secondaire ou cas limite** (64)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -117,19 +126,26 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
+- 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
+- 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
 - 8 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
 - 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
 - 6 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
 - 4 · [Zone de saisie des messages — barre multi-ligne (2026-08-04)](#zone-de-saisie-des-messages--barre-multi-ligne-2026-08-04) · *Messagerie*
+- 5 · [⬜ Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé (2026-09-13)](#-quitter-lancien-groupe-officiel--proposé-après-6-mois-jamais-imposé-2026-09-13) · *Groupes* · bloqué
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
+- 2 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 4 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
 - 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
@@ -155,6 +171,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Position des entreprises : création/édition alimentent enfin latitude/longitude (2026-08-19)](#position-des-entreprises--créationédition-alimentent-enfin-latitudelongitude-2026-08-19) · *Ambassades, démarches, carte, entreprises et événements*
 - 3 · [Flags Salons audio / Podcasts / Fil enfin sérialisés + maintenance sans écrasement (2026-08-19)](#flags-salons-audio--podcasts--fil-enfin-sérialisés--maintenance-sans-écrasement-2026-08-19) · *Accueil, profil et réglages* · bloqué
 - 2 · [Feature flags & accès aux écrans](#feature-flags--accès-aux-écrans) · *Accueil, profil et réglages* · bloqué
+- 3 · [⬜ Grand titre d'en-tête : plus de mot coupé (2026-09-12)](#-grand-titre-den-tête--plus-de-mot-coupé-2026-09-12) · *Design, thème, langue et mise en page*
 - 7 · [Le « OVERFLOWED BY 190 » de la recherche venait du rail latéral (2026-08-05)](#le--overflowed-by-190--de-la-recherche-venait-du-rail-latéral-2026-08-05) · *Design, thème, langue et mise en page*
 - 8 · [Menus déroulants bornés partout (`isExpanded`, 2026-08-04)](#menus-déroulants-bornés-partout-isexpanded-2026-08-04) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 3 : boutique, support, transferts, appels (2026-08-03)](#bascule-design_v2--production-famille-3--boutique-support-transferts-appels-2026-08-03) · *Design, thème, langue et mise en page*
@@ -165,7 +182,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (46)
+**P3 — confort, cosmétique, fonction en pause** (48)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -174,6 +191,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Brouillon restauré — le composer restait sur le micro (2026-08-04)](#brouillon-restauré--le-composer-restait-sur-le-micro-2026-08-04) · *Messagerie*
 - 5 · [✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)](#-quatre-écrans-sans-flèche-de-retour--corrigés-et-vérifiés-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 12 · [Salons audio — monétisation](#salons-audio--monétisation) · *Fil, stories, salons audio et podcasts* · bloqué
+- 9 · [⬜ Point d'accent après chaque titre d'écran (2026-09-13)](#-point-daccent-après-chaque-titre-décran-2026-09-13) · *Design, thème, langue et mise en page*
 - 4 · [⬜ Teinte des notifications système en vert (2026-09-07)](#-teinte-des-notifications-système-en-vert-2026-09-07) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
@@ -186,6 +204,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Appels 1-à-1 (correctifs du 2026-08-03)](#appels-1-à-1-correctifs-du-2026-08-03) · *Appels* · bloqué
 - 1 · [Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06)](#scroll-des-notifications--mesuré-pas-un-défaut-de-lécran-2026-08-06) · *Notifications et push*
 - 1 · [⚠️ Déconnexion — latence supprimée, à vérifier sur appareil](#-déconnexion--latence-supprimée-à-vérifier-sur-appareil) · *Comptes, session et onboarding*
+- 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
@@ -217,17 +236,17 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 103 à faire, 52 faites
-- [3. Groupes](#3-groupes) — 90 à faire, 52 faites
+- [2. Messagerie](#2-messagerie) — 120 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 101 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
-- [6. Notifications et push](#6-notifications-et-push) — 44 à faire, 73 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 35 à faire, 57 faites
+- [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 77 à faire, 4 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 51 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 121 à faire, 27 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 23 à faire, 25 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 133 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 35 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -476,6 +495,99 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Sondage dans une discussion privée (2026-09-12)
+
+**Priorité P2** · importance 3/5 — Le « + » du composeur n'offrait « Sondage » que dans les groupes.
+
+*Bloqué : migration `20260912233000` à appliquer ; deux comptes.*
+
+- [ ] **« + » dans une DM** : « Sondage » présent ; créer (question + 2
+  options) → bulle sondage chez les deux ; Sim vote, Salim voit le compte.
+  (`conversation_screen.dart`, `create_poll_sheet.dart`,
+  `poll_supabase_datasource.dart`)
+- [ ] « Mes notes » garde son brouillon de sondage (note texte), et un groupe
+  garde ses permissions « qui peut créer un sondage ».
+- [ ] Avant la migration : message d'erreur explicite, pas d'écran figé.
+
+---
+
+## ⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)
+
+**Priorité P2** · importance 3/5 — Sur la bulle verte, le nom de l'auteur, « Voir la publication → » et « Voir l'événement → » étaient quasi invisibles (sarcelle et violet sur vert), et le texte « 📌 Post de… » répétait la carte.
+
+Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
+
+- [ ] **Bulle envoyée** : post partagé et événement créé dans la discussion —
+  auteur, titre, « Voir … → » en blanc lisible sur un voile sombre ; plus de
+  ligne « 📌 Post de Salim L. » / « 📅 test » sous la carte.
+  (`shared_card_palette.dart`, `post_message_card.dart`,
+  `event_message_card.dart`)
+- [ ] **Bulle reçue** (côté Sim), thème clair ET sombre : accents à la couleur
+  du thème, lisibles sur bulle blanche et sur bulle `#252119`.
+- [ ] **Texte ajouté par l'utilisateur** sous une carte : toujours affiché.
+- [ ] **Taille du texte** (validée par Salim sur aperçu le 2026-09-13) : auteur,
+  en-tête, liens, date et lieu 16 ; extrait du post 17,5 ; titre de l'événement
+  19. Vérifier sur le Pixel et sur le SM A515F (échelle de police 1.1) qu'aucun
+  titre long ne déborde de la bulle.
+- [ ] L'aperçu de la liste des discussions garde « 📌 Salim L. » (inchangé).
+
+---
+
+## ⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)
+
+**Priorité P2** · importance 3/5 — « Copier » n'existait que pour un message texte : ni légende de photo, ni adresse, ni sondage, ni un seul numéro dans un long message.
+
+- [ ] **Appui long sur une photo ou vidéo AVEC légende** → « Copier » présent,
+  colle la légende. Sans légende → pas de « Copier ».
+  (`message_copy_text.dart`, `message_bubble.dart`)
+- [ ] **Position** → « Copier » colle l'adresse puis un lien Google Maps qui
+  s'ouvre depuis une autre app. **Sondage** → la question.
+- [ ] **Autres actions → « Sélectionner le texte »** : feuille avec le texte
+  sélectionnable ; appui long dedans, choisir un numéro ou un lien, menu
+  système Copier ; « Tout copier » ferme et copie tout. Message long : la
+  feuille défile.
+- [ ] **Sélection multiple** : sélectionner 3 messages dont un vocal → icône
+  Copier dans la barre verte ; le collage donne une ligne
+  « [12/09/2026 21:04] Nom : texte » par message texte, dans l'ordre, sans le
+  vocal. Sélection de vocaux seuls → pas d'icône. Barre sur écran étroit
+  (SM A515F, police 1.1) : le titre « N sélectionnés » ne déborde pas avec
+  une icône de plus. (`conversation_screen.dart`)
+
+---
+
+## ⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)
+
+**Priorité P1** · importance 4/5 — Le double tap posait d'office un cœur (noir), une réaction n'envoyait aucune notification et disparaissait parfois chez l'autre.
+
+*Bloqué : la notification et la mise à jour croisée demandent la migration `20260912220000_reaction_atomique_et_notification.sql` appliquée, et deux comptes (Pixel + SM A515F).*
+
+- [ ] **Double tap** sur une bulle (texte, photo, emoji seul) : une barre
+  flottante au-dessus de la bulle avec 👍 ❤️ 😂 🙏 😮 et un « + ». Choisir un
+  emoji le pose ; toucher à côté ferme sans rien poser ; la barre ne sort
+  jamais de l'écran (bulle tout en haut → barre en dessous).
+  (`reaction_picker.dart`, `message_bubble.dart`)
+- [ ] **« + »** (barre du double tap ET feuille d'appui long) : ouvre le
+  sélecteur complet, recherche comprise (le clavier remonte la feuille) ;
+  l'emoji choisi est posé.
+- [ ] **Cœur rouge** : ❤️ rouge sous la bulle, dans la barre, dans le
+  sélecteur, dans une bulle « emoji seul », dans le composeur en tapant, dans
+  l'aperçu de la liste des discussions. Aussi ☀️. Et ⚠ reste un symbole de
+  texte coloré dans les salons audio. (`assets/google_fonts/Inter-*.ttf`,
+  `tools/polices_emoji_couleur.py`)
+- [ ] **Notification** : Sim réagit à un message de Salim → Salim reçoit
+  « Sim · A réagi ❤️ à votre message », app fermée comme ouverte ; le tap
+  ouvre la discussion. Changer d'emoji ne fait pas une 2e ligne en base
+  (l'écran Notifications ne montre plus les réactions depuis le 2026-09-13 —
+  voir « La messagerie sort de l'écran Notifications »).
+  Aucune bannière si la discussion est déjà ouverte, ni si elle est en
+  sourdine.
+- [ ] **Mise à jour croisée** : les deux téléphones sur la même discussion,
+  réagir en rafale d'un côté puis de l'autre, quitter/rouvrir la discussion
+  entre deux : chaque réaction apparaît chez l'autre sans relancer l'app, et
+  l'accusé « Lu » ne disparaît plus. (`message_supabase_datasource.dart`)
 
 ---
 
@@ -2052,6 +2164,133 @@ de conclure quoi que ce soit.
 # 3. Groupes
 
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
+
+---
+
+## ⬜ Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé (2026-09-13)
+
+**Priorité P2** · importance 3/5 — Quelqu'un qui a déménagé est sorti d'un groupe sans l'avoir choisi, ne parvient pas à en sortir, ou la notification n'ouvre pas l'écran du choix. *Bloqué : aucune proposition réelle avant le 2027-03-11 — à provoquer en base (recette ci-dessous).*
+
+Consigne de Salim : quitter l'ancien groupe officiel « après 6 mois, avec
+avertissement et consentement ». Migration
+`20260913050000_depart_groupe_officiel_avec_consentement.sql`, **appliquée en
+production** : changer de pays ne retire rien et note le départ ; la tâche
+`pg_cron` `proposer-departs-groupes-officiels` (9 h UTC) passe, six mois plus
+tard, la ligne à `a_confirmer` et envoie la notification `officialGroupLeave`.
+Seule la carte de la fiche du groupe (`official_group_departure_card.dart`)
+peut faire sortir, via `repondre_depart_groupe_officiel`. Sans réponse, on
+reste. Revenir dans ce pays annule la proposition.
+
+Prouvé en transaction annulée sous les vrais comptes `0D3P…` et `U64H…` :
+changement, retour au pays, resauvegarde sans effet, échéance simulée → 2
+notifications, Quitter (sortie du groupe ET de la discussion, les autres
+participants intacts), Rester, 2e réponse sans effet ; `anon` refusé sur la
+réponse, `authenticated` refusé sur la tâche. Tests :
+`test/features/groups/depart_groupe_officiel_test.dart` (6 widget + 3 garde
+SQL « la tâche ne retire personne »).
+
+Seule proposition en attente aujourd'hui : `0D3P…`, groupe Cap-Vert, le
+2027-03-11. **Recette pour la provoquer sur le compte de test** (envoie une
+vraie notification) :
+
+```sql
+UPDATE departs_groupe_officiel SET proposer_apres = now()
+ WHERE user_id = '<uid du compte>' AND statut = 'en_attente';
+SELECT proposer_departs_groupes_officiels();
+```
+
+(Il faut d'abord que le compte ait changé de pays en étant membre du groupe
+officiel de l'ancien.)
+
+**Passe prévue sur SM A515F, compte « Sim A » (choix de Salim, 2026-09-13),
+mise en attente à sa demande avant toute écriture.** L'APK qui contient la
+fonctionnalité est **déjà posé** : versionCode 19, build du commit `79e2cc9`,
+md5 `6826b957e1d533b091f8f89fd1fdc016`, installé par `install -r` à 12:13,
+session « Sim » conservée (« Bonjour, Sim » à la relance). Revérifier le md5
+avant de commencer : un autre agent a pu réinstaller entre-temps.
+
+État de départ de Sim A (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), à restaurer à la fin :
+pays **vide**, membre de « Diaspora Niger — Canada » (member), « Testeurs »
+(member), « Groupe de test prive » (admin). Notifications autorisées.
+
+1. Profil → Modifier : pays **Canada**, enregistrer (pays vide → Canada : aucun
+   départ noté, c'est attendu). Puis pays **Niger**, enregistrer : un départ
+   Canada `en_attente` doit apparaître en base, Sim A reste membre de Canada
+   et rejoint « — Niger ». Ne pas choisir un pays sans groupe officiel : la
+   sauvegarde en créerait un en production.
+2. Appliquer la recette SQL ci-dessus avec l'uid de Sim A → push attendu.
+3. Cases 1 à 3 ci-dessous (dont « Rester membre »).
+4. Pour « Quitter » : nouvelle proposition par Niger → Canada → Niger, recette
+   SQL, puis case 4.
+5. Remise en état : rejoindre « — Canada » depuis Découvrir, quitter « — Niger »
+   par son menu. ⚠️ L'écran de profil n'a **pas d'option « aucun pays »** :
+   revenir au pays vide exige un `UPDATE users SET country_code = NULL` en
+   base (le classificateur a déjà refusé ce genre d'écriture sur une ligne de
+   compte, cf mémoire appareil) — sinon laisser Sim A en Niger et le dire.
+
+- [ ] Le push « Rester dans « Diaspora Niger — … » ? » arrive ; l'appui ouvre
+      la fiche du groupe, carte « Vous avez changé de pays » visible, date et
+      pays justes.
+- [ ] Même chose depuis la liste des notifications (icône groupe).
+- [ ] « Rester membre » : message, la carte disparaît, toujours membre, et
+      elle ne revient pas au lancement suivant.
+- [ ] « Quitter le groupe » : la confirmation s'ouvre ; « Annuler » ne change
+      rien ; « Quitter » fait sortir, ferme la fiche, le groupe quitte « Mes
+      groupes » et sa discussion n'est plus accessible.
+- [ ] Carte lisible en thème sombre, et boutons sans débordement avec
+      l'échelle de police maximale.
+
+---
+
+## ⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)
+
+**Priorité P1** · importance 3/5 — Le groupe officiel d'un pays s'appelait « Diaspora Niger — NE », un même pays pouvait en avoir deux (`AO` et « Angola »), et la carte des groupes restait vide.
+
+Plus aucun code ISO en base (décision de Salim) : `users`, `groups` et `posts`
+portent le nom accentué du pays (« Algérie », « États-Unis »). Migration
+`20260913030000_pays_en_toutes_lettres.sql`, **appliquée en production** et
+relue après coup : 5 groupes officiels renommés (dont « — Niger » et
+« — Algérie »), compteurs de membres justes partout.
+
+- Cause du mélange : `Country.toIsoCode` ne connaissait que 28 pays sur les
+  197 du sélecteur ; « Angola » et « Cap-Vert » repartaient en toutes lettres.
+- Cause du compteur faux : `update_group_member_count` tournait avec les
+  droits de l'appelant, et la RLS de `groups` réduisait l'`UPDATE` d'un membre
+  ordinaire à zéro ligne. Prouvé réparé en transaction annulée sous le compte
+  non-admin `0D3P…` (rejoindre → 2/2).
+- La base ramène elle-même tout code au nom (`pays_canonique`, déclencheurs) :
+  les APK déjà installés continuent d'écrire `CA`, ce qui ne salit plus rien.
+
+Couvert par `test/core/models/pays_en_toutes_lettres_test.dart` (liste app =
+référentiel SQL, clés de la carte, pliage des accents) et
+`pays_defaut_test.dart`. Fichiers : `profile_options.dart`,
+`profile_supabase_datasource.dart`, `profile_provider.dart`,
+`edit_profile_screen.dart`, `groups_screen.dart`, `groups_map_screen.dart`.
+
+- [ ] Profil → changer de pays pour un pays hors des 28 anciens (Angola) :
+      le sélecteur le garde, et « Diaspora Niger — Angola » apparaît dans
+      « Mes groupes », sans second groupe du même pays.
+- [ ] Rouvrir « Modifier le profil » : le pays est pré-sélectionné, accents
+      compris (« Algérie », « Côte d'Ivoire »).
+- [ ] Groupes → Découvrir : puces « 🇳🇪 Niger », « 🇨🇦 Canada »,
+      « 🇩🇿 Algérie », et le filtre posé d'office est le pays du profil.
+- [ ] Carte des groupes : marqueurs Niger, Canada, Algérie présents (aucun
+      avant). Angola et Cap-Vert n'ont pas de centroïde : pas de marqueur,
+      c'est attendu.
+- [ ] Rejoindre puis quitter un groupe public avec un compte non admin : le
+      nombre de membres suit dans la liste. *Bloqué : deux comptes pour le
+      voir côté autre membre.*
+- [ ] Nom d'un groupe créé à la main avec « États-Unis » : la pastille de la
+      carte affiche « 🇺🇸 États-Unis ».
+
+Changer de pays ne faisait pas quitter le groupe officiel de l'ancien pays
+(`0D3P…` membre de « — Cap-Vert » et de « — Angola ») : tranché par Salim, voir
+« Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé ».
+
+⚠️ **Pour les autres agents** : deux migrations non livrées datées du
+2026-09-12 (`20260912200000`, `20260912220000`, dans d'autres worktrees) sont
+désormais antérieures à la dernière appliquée : leur `db push` demandera
+`--include-all`.
 
 ---
 
@@ -5584,6 +5823,70 @@ Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
 
+## ⬜ La messagerie sort de l'écran Notifications (2026-09-13)
+
+**Priorité P1** · importance 3/5 — L'écran Notifications recopiait chaque message reçu : 90 lignes « message » sur 117 en base, le reste noyé dessous, et la cloche comptait deux fois ce que l'onglet Messages compte déjà.
+
+Demandé par Salim. Les lignes `message` et `messageReaction` restent
+écrites en base (c'est leur INSERT qui déclenche le push) : elles sont
+écartées **à la lecture**, dans la requête. Le flux n'est plus `.stream()`
+(un seul filtre possible) mais un canal realtime qui relance la requête
+filtrée. (`notification_supabase_datasource.dart`,
+`kTypesHorsEcranNotifications` dans `notification_entity.dart`)
+
+Filtre vérifié sur la base de production : 117 lignes → 27, les 90 écartées
+sont toutes `message`. Rien à déployer.
+
+- [ ] **Liste** : recevoir un message (compte A → B) puis ouvrir
+  Notifications sur B : aucune ligne de message ; les autres notifications
+  (demandes d'ami, événements, fil) sont là, **pleine page** — plus de liste
+  presque vide sur un compte qui reçoit beaucoup de messages.
+- [ ] **Temps réel** : écran Notifications ouvert sur B, A envoie un message
+  → rien ne bouge ; A envoie une demande d'ami ou commente un post de B → la
+  ligne apparaît sans quitter l'écran.
+- [ ] **Cloche** : la pastille de l'accueil ne monte pas à la réception d'un
+  message (l'onglet Messages, lui, monte), et monte sur une notification
+  d'un autre type.
+- [ ] **Push** : le message reçu app fermée affiche toujours sa bannière, et
+  la toucher ouvre la discussion.
+- [ ] **Tout lire** / **Tout supprimer** (réglages) : n'agissent que sur ce
+  que l'écran montre.
+- [ ] **Reconnexion** : mode avion 30 s sur l'écran Notifications, puis
+  retour → la liste reste affichée et se remet à jour (une notification reçue
+  pendant la coupure apparaît).
+- [ ] **Pagination** : sur un compte à plus de 20 notifications hors
+  messagerie, faire défiler jusqu'en bas charge la suite.
+
+## ⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)
+
+**Priorité P1** · importance 3/5 — Le compteur de notifications ment : des notifications déjà vues dans la discussion, touchées dans le volet système ou portant sur un contenu supprimé restent « non lues ».
+
+Signalé sur le Pixel. Mesuré en base le même jour : 84 non lues, dont 73
+« message » toutes obsolètes. Voir aussi « Grand titre d'en-tête : plus de
+mot coupé ».
+
+Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000) et `firebase deploy --only functions:mirrorFriendToSupabase` (la partie app marche sans, en repli).
+
+- [ ] **Discussion lue** : recevoir un message (compte A → B), NE PAS ouvrir
+  l'écran Notifications, ouvrir la discussion, puis ouvrir Notifications :
+  la ligne est en registre « lue ». (`message_supabase_datasource.dart`,
+  RPC `mark_messages_as_read`) — *Depuis le 2026-09-13 la ligne n'est plus
+  à l'écran (voir « La messagerie sort de l'écran Notifications ») : vérifier
+  `is_read` en base.*
+- [ ] **Push touchée** : toucher la notification dans le volet Android,
+  revenir, ouvrir Notifications : lue. (`notification_read_sync.dart`)
+- [ ] **Publication ouverte depuis le fil** : une notification de commentaire
+  sur un post, ouvrir ce post depuis le fil → la notification est lue.
+- [ ] **Demande d'ami acceptée depuis l'écran Amis** : la notification de la
+  demande passe en « lue ».
+- [ ] **Contenu supprimé** : supprimer un événement auquel quelqu'un s'est
+  inscrit → la notification « participation » de l'organisateur est lue.
+- [ ] **Compteur** : le badge « N non lues » de l'en-tête et la puce « Non
+  lues » baissent d'autant, sans rouvrir l'app.
+- [ ] Les 4 demandes d'ami non lues du Pixel (Firestore) restent non lues
+  tant qu'elles ne sont pas traitées — c'est attendu, la base ne peut pas
+  savoir.
+
 ## Notification de message → « Utilisateur », écran bloqué (2026-08-30)
 
 Signalé par Salim : taper une notification de message dans `/notifications`
@@ -6739,6 +7042,50 @@ notifications d'un groupe une par une.
 # 7. Liens profonds, navigation et QR codes
 
 Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
+
+---
+
+## ⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)
+
+**Priorité P2** · importance 3/5 — Taper un lien du projet dans un message affichait « Ouvrir ce lien ? », passait par Android, et la discussion disparaissait : le retour menait ailleurs.
+
+`lib/core/services/qr_code_parser.dart` (`routeInterne`),
+`lib/features/messages/presentation/widgets/link_preview_bubble.dart`,
+`lib/features/messages/presentation/widgets/message_bubble.dart`.
+
+Signalé par Salim : « corrige les liens profonds ». **Mesuré d'abord, sur
+SM A515F, build installé versionCode 18** (compte Sim A) : `pm get-app-links`
+→ `verified` sur les deux domaines, et **sept liens `https://diasponiger.com/…`
+rejoués à froid (`force-stop` puis intent), tous sur le bon écran** — groupe
+public, groupe privé (Sim A membre), publication, événement, entreprise,
+ambassade, profil. Les liens venus de l'extérieur ne sont donc pas en cause.
+Ce qu'un utilisateur de la version du Play Store (versionCode 9, 1.1.1)
+subit reste vrai tant que la 18 n'est pas publiée : aucun des correctifs de
+cette section n'y est.
+
+Le défaut trouvé est **dans** l'app, là où aucune passe à l'intent ne regarde :
+
+- la carte d'aperçu (`LinkPreviewBubble`) lisait les liens avec
+  `DeepLinkService.parseDeepLink`, qui ignorait `/feed/`, `/embassies/`,
+  `www.` et `diasponiger://` — ces liens repartaient vers Android ;
+- le texte d'un message ne reconnaissait **aucun** lien du projet : boîte
+  « Ouvrir ce lien ? », puis `launchUrl`, puis retour dans l'app par App Links
+  et `router.go` — qui remplace la pile.
+
+Corrigé : un seul lecteur, celui du scanner (`QrCodeParser`), et
+`context.push` sur la discussion. Le parseur de `DeepLinkService`, que
+« Le QR d'un groupe est refusé par le scanner » signalait déjà comme doublon
+à fusionner, est supprimé. Tenu par `test/core/services/liens_dans_l_app_test.dart`
+(chaque lien généré par l'app se relit en route ; garde textuel vérifié en
+retirant la branche : il tombe).
+
+- [ ] Dans une discussion, taper un lien `https://diasponiger.web.app/feed/<id>`
+      écrit en texte : la publication s'ouvre **sans** boîte de confirmation,
+      et la flèche ramène **à la discussion**.
+- [ ] Même chose avec un lien sans schéma (`diasponiger.com/groups/<id>`).
+- [ ] Un lien vers un site tiers garde sa boîte « Ouvrir ce lien ? ».
+- [ ] Carte « groupe » partagée dans une discussion : toujours la fiche, retour
+      à la discussion (non-régression).
 
 ---
 
@@ -8617,6 +8964,136 @@ Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
 
+## ⬜ Fil sombre : même structure que le fil clair (2026-09-13)
+
+**Priorité P3** · importance 2/5 — En thème sombre, le fil n'avait pas la même mise en page qu'en clair (titre, onglets, cartes, bouton d'écriture) : deux téléphones affichaient deux fils différents.
+
+Signalé par Salim : « la version du fil sur le Pixel et sur le SM ne matche pas ».
+Cause : le Pixel est en thème sombre, et le thème sombre avait sa propre
+structure. Commit `3833fbe` (`feed_tokens.dart`, `feed_text.dart`,
+`feed_segmented_control.dart`, `feed_screen.dart`).
+
+- [x] **SM A515F, thème Sombre choisi dans Réglages** (build `88e12b8`, md5
+  `96e704a5…`) : titre serif « Le fil. » avec point d'accent, onglet actif
+  plein, carte arrondie, « Suivre » en texte, bouton d'écriture plein —
+  identique au clair, seules les couleurs changent. Thème remis sur « Système »
+  après la capture. (2026-09-13 21:44)
+- [ ] **Pixel** (`font_scale` 1.3) : « Abonnements » n'est plus tronqué et la
+  date du fil tient sur sa ligne. *Bloqué : le Pixel porte la version Play Store.*
+- [ ] Autres écrans du fil en sombre : Mes abonnements, Mes publications,
+  Enregistrés — rayons et pastilles comme en clair.
+
+## ⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)
+
+**Priorité P1** · importance 4/5 — Une story restreinte à une liste ou masquée à quelqu'un lui reste visible si la base n'est pas migrée ; sans le correctif, impossible de publier une deuxième story, d'en retirer une, et sa propre story ne disparaît jamais. *Bloqué : deux comptes pour l'audience (Pixel + SM A515F).*
+
+Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000) et `firebase deploy --only functions:mirrorFriendToSupabase`.
+
+- [ ] **Deuxième story** : avec une story active, le « + » de mon avatar reste
+  visible ; le toucher publie une autre story. Appui long sur l'avatar : idem.
+  (`story_rail.dart`, `story_creation.dart`)
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : le « + » reste bien affiché à côté de « Ma story ». Publier une
+  deuxième story, et l'appui long, NON essayés.
+- [ ] **Échec dit** : refuser la permission photos → message « L'accès aux
+  photos est refusé » ; succès → « Story publiée · <audience> ».
+- [x] **Supprimer** : ma story → ⋮ → « Supprimer cette story » → confirmer :
+  elle disparaît du viewer et du rail ; s'il n'en reste aucune, le viewer se
+  ferme. (`story_viewer_screen.dart`)
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : menu à trois entrées, dialogue de confirmation, ligne effacée en
+  base, viewer refermé, rail revenu à « Ajouter ».
+- [x] **Audience à la publication** : feuille de création → « Qui peut voir »
+  → Amis ; publier ; le viewer affiche « Amis » à côté du nombre de vues.
+  ✅ SM A515F, build `dd38fda`, 2026-09-13, fait avec « Liste restreinte » (vide, donc invisible pour tous) :
+  la feuille reprend le choix, `stories.audience = close` en base, le viewer
+  affiche « Aucune vue · Liste restreinte ».
+- [ ] **Liste restreinte** (deux comptes) : Pixel met Sim dans la liste
+  restreinte, publie en « Liste restreinte » : Sim la voit, un autre compte
+  non. (`story_privacy_screen.dart`, `/feed/stories/privacy`)
+  ✅ SM A515F, build `dd38fda`, 2026-09-13, un seul compte : l'écran « Mes stories » s'ouvre par lien profond ;
+  ajouter Salim en « masqué » écrit la ligne `hidden` ; l'ajouter ensuite à
+  la liste restreinte le DÉPLACE (une seule ligne, `close`) ; « Retirer »
+  vide les deux listes. Défaut vu et corrigé (`8c3eb5a`) : libellé sur deux
+  lignes. La visibilité côté second compte reste à faire.
+- [ ] **Masquer** (deux comptes) : Pixel masque Sim, publie « Tout le monde » :
+  Sim ne la voit pas ; retirer Sim de la liste → elle réapparaît au prochain
+  rafraîchissement.
+- [ ] **24 h** : la story du 3 août de Sim A ne s'affiche plus sur SM A515F ;
+  une story publiée quitte le rail à H+24 sans relancer l'app.
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : la story du 3 août a disparu (première moitié). Le départ à H+24
+  sans relancer reste à voir.
+- [ ] **Stories des autres** : Pixel publie ; sur SM A515F, tirer le fil vers
+  le bas → la story apparaît (sans redémarrer), ou au plus tard 2 min après.
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : la story de Salim (publiée la veille) est visible chez Sim — mais
+  après une installation, donc sans prouver le rafraîchissement à chaud.
+- [ ] **Minuteur** (correctif `8c3eb5a`, pas dans `dd38fda`) : la barre du haut
+  se remplit pendant les 5 s d'une photo ; appui long = pause ; sur ma story,
+  « il y a … · expire dans N h ». Constaté avant correctif : barre vide, sur
+  Pixel (version Play 18) comme sur SM A515F.
+- [ ] **Écran « Mes stories »** : thème sombre, clavier ouvert dans le
+  sélecteur de personnes, nom très long, `font_scale` 1.3 (Pixel).
+
+## ⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)
+
+**Priorité P1** · importance 4/5 — Une publication « Amis » ou « Moi uniquement » serait lue par qui ne devrait pas si la base n'est pas migrée, ou au contraire invisible pour les amis si le miroir des amitiés n'est pas déployé. *Bloqué : deux comptes (Pixel = Salim, SM A515F = Sim, amis dans Firestore).*
+
+Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000) et `firebase deploy --only functions:mirrorFriendToSupabase`.
+
+- [ ] **Feuille d'audience** : Créer une publication → puce « Public » → 4
+  choix avec explication ; la puce reprend l'icône et le libellé choisis.
+  Idem en édition d'une publication existante.
+  (`create_post_screen.dart`)
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : les 4 choix et la puce OK en création. Défaut vu et corrigé
+  (`8c3eb5a`) : la phrase sous le champ restait « publiques ». L'édition
+  n'est pas essayée.
+- [ ] **Amis** (deux comptes) : Pixel publie « Amis » : visible sur SM A515F
+  (Sim est ami), avec le pictogramme 👥 dans la ligne de métadonnées ; pas de
+  bouton repartager ni partager sur la carte.
+- [ ] **Moi uniquement** : visible seulement sur le Pixel ; Sim ne la voit ni
+  dans « Pour toi », ni dans « Récent », ni sur le profil de Salim.
+  ✅ SM A515F, build `dd38fda`, 2026-09-13, inversé (Sim publie) : `visibility = private` en base, cadenas sur
+  la carte, ni repartage ni partage, 0 notification ; la base la refuse à
+  Salim (lecture rejouée sous son identité). Pas vu sur le Pixel lui-même.
+- [ ] **Abonnés** : un compte qui suit Salim sans être son ami la voit ; un
+  compte qui ne le suit pas, non.
+- [ ] **Mention** dans une publication « Moi uniquement » : la personne
+  mentionnée ne reçoit AUCUNE notification.
+- [ ] **Onglet Abonnements** : les publications d'un ami apparaissent même si
+  on ne le suit pas.
+- [ ] **Nouvelle amitié** (après déploiement de la fonction) : accepter une
+  demande d'ami, puis publier « Amis » : le nouvel ami la voit.
+
+## ⬜ Compteurs de commentaires et de repartages justes (2026-09-12)
+
+**Priorité P1** · importance 3/5 — Le détail d'une publication n'affiche que ses propres commentaires alors que le compteur en annonce plus, et les chiffres de la liste ne bougent pas après un commentaire.
+
+Prérequis : `supabase db push` (20260912201000).
+
+- [x] **Commentaires d'autrui** : sur « In kwana » (2 commentaires, un de Salim,
+  un de Sim), le détail en montre bien 2 sur les DEUX téléphones.
+  (policy `post_comments_select_visible`)
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : le commentaire de Sim avait été supprimé entre-temps (2026-09-12
+  23:36, hors de ce correctif) ; il reste celui de Salim, que Sim lit
+  désormais — « 1 commentaire(s) », compteur de la carte à 1, conforme à la
+  base.
+- [ ] **Compteur après commentaire** : commenter depuis le détail, revenir au
+  fil : le chiffre de la carte a augmenté ; supprimer le commentaire : il
+  redescend. (`FeedNotifier.syncCounts`)
+- [ ] **Repartage** : repartager puis annuler : le chiffre revient à sa valeur
+  de départ, jamais -1 ni +2.
+
+## ⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)
+
+**Priorité P2** · importance 3/5 — Chaque suppression depuis le fil renvoyait à l'accueil, obligeant à rouvrir le fil.
+
+- [x] Fil (ouvert depuis l'accueil) → ⋯ d'une de mes publications → Supprimer
+  → confirmer : le fil reste affiché, la carte disparaît, toast « Publication
+  supprimée ». (`post_card.dart`)
+  ✅ SM A515F, build `dd38fda`, 2026-09-13 : ouvert par lien profond, « Le fil. » reste affiché, carte partie,
+  ligne effacée en base. Le toast n'a pas été capturé.
+- [ ] Même geste depuis le détail d'une publication : l'écran de détail se
+  ferme, on revient au fil.
+- [ ] « Mes publications » : suppression, la liste se met à jour.
+
 ## Podcasts — 5 écrans passés au système DN (2026-08-04)
 
 **Priorité P3** · importance 1/5 — Aucun aujourd'hui : les écrans ne sont atteignables que par lien profond. *Bloqué : fonction masquée.*
@@ -8804,6 +9281,61 @@ sur une voix réellement captée par le SFU.
 # 10. Ambassades, démarches, carte, entreprises et événements
 
 Annuaires, démarches consulaires, carte des membres et des postes, événements.
+
+---
+
+## ⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)
+
+**Priorité P0** · importance 5/5 — Un événement « visible uniquement par les participants » d'une discussion était lisible par TOUT LE MONDE (policy `events_select` ouverte, aucun filtre `is_public`), et le seul choix était un interrupteur caché sous la catégorie.
+
+*Bloqué : migration `20260912233000_visibilite_evenements_et_sondages_discussion.sql` à appliquer ; deux comptes (Pixel Salim + SM A515F Sim) et un tiers pour « personnes choisies ».*
+
+RLS vérifiée en base dans une transaction annulée (organisateur, participant,
+tiers, anonyme ; invitation, retour à la discussion, ancien client).
+
+- [ ] **Formulaire** (depuis une DM, depuis un groupe, depuis Événements) :
+  « Qui peut voir cet événement ? » juste sous la description ; 4 choix en DM
+  / groupe, 3 hors discussion ; plus d'interrupteur en bas.
+  (`event_audience_picker.dart`, `create_event_screen.dart`)
+- [ ] **Cette discussion** (défaut en DM) : Salim crée dans la DM avec Sim →
+  Sim le voit (bulle + fiche) ; un 3e compte ne le voit ni dans « À venir »
+  ni par lien profond `/events/<id>` (fiche en erreur, pas de chargement
+  infini).
+- [ ] **Mes groupes** : la feuille liste mes groupes, cases à cocher, « Valider
+  (N) » ; un membre d'un groupe choisi voit l'événement dans « À venir ».
+  Publier sans groupe coché → message « Choisissez au moins un groupe ».
+- [ ] **Personnes choisies** : suggestions (amis, discussions) puis recherche
+  à 2 lettres ; la personne invitée reçoit « Invitation à un événement » et le
+  tap ouvre la fiche.
+- [ ] **Tout le monde** : visible dans « À venir » pour tous, et par un
+  visiteur non connecté si le site/les liens le permettent.
+- [ ] **Avant la migration** (APK déjà installé ailleurs) : la création marche
+  toujours ; groupes/personnes → message « n'ont pas pu être enregistrés ».
+- [ ] S'inscrire à un événement qu'on ne voit pas est refusé (tiers).
+
+---
+
+## ⬜ Événement supprimé : il disparaît partout (2026-09-12)
+
+**Priorité P1** · importance 3/5 — Un événement annoncé « supprimé » reste affiché à l'accueil et dans les listes, ou n'est en réalité pas supprimé du tout (suppression depuis le back-office).
+
+Prérequis pour le cas admin : `supabase db push` (20260912200000, policies
+`events_admin_*`).
+
+- [ ] **Organisateur** : créer un événement passé ou à venir, le voir à
+  l'accueil, le supprimer depuis sa fiche : retour à la liste, il a disparu
+  d'« À venir », de « Passés » et de l'accueil — sans tirer pour rafraîchir.
+  (`event_provider.dart` `forgetDeletedEvent`)
+- [ ] **Relancer l'app** : il ne revient pas (cache purgé,
+  `CacheService.removeCachedEvent`).
+- [ ] **Back-office** (Pixel, admin) : supprimer un événement dont on n'est
+  pas l'organisateur → il disparaît ; avant la migration → message d'erreur
+  au lieu d'un faux « supprimé ». Annuler un événement : fonctionne (le champ
+  `updated_at` inexistant faisait tout échouer).
+- [ ] **Fiche ouverte par lien profond** puis supprimée : on atterrit sur
+  `/events`, pas sur une fiche vide.
+- [ ] **Supprimé ailleurs** : supprimer sur un téléphone, tirer pour
+  rafraîchir l'accueil de l'autre : l'événement disparaît.
 
 ---
 
@@ -10304,6 +10836,47 @@ Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature 
 
 ---
 
+## ⬜ Champ ville : recherche dans le référentiel (2026-09-13)
+
+**Priorité P2** · importance 3/5 — Le champ ville reste un champ de texte nu tant que le profil n'est pas câblé ; la mention de licence, elle, est due dès maintenant.
+*Bloqué : le champ n'est encore posé sur aucun écran — le câblage du profil (`users.ville_id`) est l'étape suivante.*
+
+Le champ ville du profil est un `CustomTextField` nu. Relevé en base le
+2026-09-13 sur les neuf profils qui portent une ville : « Niamey » ×3 et
+« niamey » ×1, « Arewa » (un département), « Almoustapha » (un prénom) et
+l'adresse e-mail du compte de test. Ouvrir des groupes de ville là-dessus
+referait le problème des pays, en pire.
+
+D'où le référentiel `public.villes` (33 880 villes, GeoNames `cities15000`
+pour le monde et le fichier `NE` filtré sur les 48 villes de
+`ProfileOptions.nigerRegions` pour le Niger), et
+[ville_search_field.dart](lib/shared/widgets/ville_search_field.dart), qui
+retient une **ligne** du référentiel et non la chaîne saisie — retoucher le
+texte défait le choix.
+
+[ville_search_field_test.dart](test/shared/ville_search_field_test.dart) tient
+les quatre règles au banc (proposition bornée au pays, choix d'une ligne,
+choix défait à la frappe, échec de recherche sans écran rouge). Ce que le banc
+ne peut pas voir :
+
+- [ ] **Sur appareil** : « À propos » (Profil → Réglages → À propos) affiche
+  « Liste des villes : GeoNames (CC BY 4.0) » sous « Tous droits réservés ».
+  C'est une obligation de la licence CC BY, pas un ornement. Vérifier aussi en
+  **thème sombre** (le texte utilise `textTertiaryColor`, pas un jeton clair
+  figé) et en anglais.
+- [ ] **Sur appareil, après câblage du profil** : la liste de suggestions
+  s'ouvre sous le champ sans pousser le clavier par-dessus (voir
+  « Débordement clavier » du domaine Design) et se ferme à la perte du focus.
+- [ ] **Sur appareil, après câblage du profil** : taper « mont » avec le pays
+  Canada propose Montréal en premier ; avec le pays Niger, ne le propose pas.
+  Une ville choisie affiche la pastille verte, une ville retapée à la main la
+  perd.
+- [ ] **Sur appareil, réseau coupé** : la ligne « Recherche impossible pour le
+  moment » remplace la liste, et le champ reste saisissable — le texte libre
+  doit continuer de partir dans `city`.
+
+---
+
 ## ⬜ Page « Licences open source » dans les Réglages (2026-09-11)
 
 **Priorité P3** · importance 3/5 — Les textes de licence des polices s'affichent parsemés de carrés ; la page reste présente et lisible.
@@ -10885,6 +11458,58 @@ directement sur la section APPLICATION.
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
 
 ---
+
+## ⬜ Point d'accent après chaque titre d'écran (2026-09-13)
+
+**Priorité P3** · importance 3/5 — Le point terracotta qui signe les titres manquait sur la plupart des écrans (onglets, `AppBar` simples, Fil, salons, podcasts), et disparaissait sous l'ellipse d'un titre long.
+
+Une seule source : `DesignTitle` ([design_kit.dart](lib/core/theme/design_kit.dart)).
+Tests : `test/core/theme/design_title_point_test.dart`. Volontairement **sans
+point** : noms saisis (groupe, salon, contact, sujet de ticket), barres de
+sélection et visionneuses média sur fond noir. Le back-office l'a depuis le
+2026-09-13, en **terracotta** comme l'app (`AdminColors.titleDot`) : seule
+exception à « pas d'orange dans l'admin », l'action y reste bleue.
+
+- [ ] Les 7 grands en-têtes (Messages, Groupes, Profil, Réglages,
+  Notifications, Annuaire, Mes stories) : point terracotta collé au dernier
+  mot, jamais seul sur une ligne ; « Notifications. » tient toujours sur une
+  ligne au Pixel (`font_scale` 1.3).
+- [ ] Un écran à `AppBar` simple (Amis, Mes commandes, Historique des
+  paiements) : point présent, taille 22.
+- [ ] Titre long dans une `AppBar` (« Personnel - <ambassade> » depuis une
+  fiche ambassade, police agrandie) : « … » **puis** le point, qui reste
+  visible.
+- [ ] Fil (« Le fil. »), Mon espace, Mes publications, Enregistrés, Mon réseau :
+  point à la couleur d'accent du Fil — **violet en thème sombre** (Nocturne),
+  terracotta en clair.
+- [ ] Salons audio, Podcasts, Nouveau podcast, Programmer un salon : point
+  présent, police serif des salons conservée.
+- [ ] Mot de passe oublié, Nouvel événement, Modifier mon profil : taille et
+  graisse propres à ces écrans inchangées, seul le point s'ajoute.
+- [ ] Thème sombre : le point reste lisible sur chaque famille.
+- [ ] **Back-office web** (`lib/features/admin/main.dart`) : connexion, puis
+  les en-têtes de page (Tableau de bord, Utilisateurs, Signalements,
+  Modération, Transferts, Audit…) et les barres Paramètres, Feature flags,
+  Créer un administrateur : point **terracotta** (le même orange que dans
+  l'app), police Inter inchangée ; boutons et onglets toujours bleus.
+- [ ] Depuis l'app, `/admin/embassies/create` et `/admin/support` : point
+  terracotta dans la typographie de l'app (Playfair), lisible aussi en thème
+  sombre.
+
+## ⬜ Grand titre d'en-tête : plus de mot coupé (2026-09-12)
+
+**Priorité P2** · importance 2/5 — Le titre « Notifications » s'affichait coupé au milieu du mot (« Notificatio / ns ») sur Pixel, avec une police système agrandie.
+
+Constaté sur Pixel 10 Pro XL (densité 440, `font_scale` 1.3) le 2026-09-12.
+
+- [ ] **Pixel** : Notifications avec des non lues (« Tout lire » visible) : le
+  titre tient sur une ligne, en taille réduite. (`design_kit.dart`
+  `DesignHeaderTitle`)
+- [ ] **SM A515F** (`font_scale` 1.1) : les 7 en-têtes (Messages, Groupes,
+  Profil, Réglages, Notifications, Annuaire, Mes stories) gardent leur taille
+  30 quand ils tiennent.
+- [ ] Un titre de plusieurs mots (« Annuaire des entreprises ») passe à la
+  ligne entre les mots, jamais au milieu.
 
 ## ⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)
 

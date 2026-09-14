@@ -21,6 +21,7 @@ import 'admin_feature_flags_screen.dart';
 import 'admin_audit_screen.dart';
 import 'admin_role_management_screen.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Définition d'une destination de navigation avec sa permission requise
 class _NavDestination {
@@ -615,13 +616,14 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            DesignTitle(
               title,
               style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
+              accent: AdminColors.titleDot,
             ),
             const SizedBox(height: 4),
             Text(

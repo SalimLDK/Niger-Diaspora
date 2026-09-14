@@ -206,7 +206,8 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
         handle: _handle,
         profession: _selectedProfession,
         currentCountry: _selectedCountry?.name,
-        countryCode: _selectedCountry?.code,
+        // Le nom, pas le code ISO : la base n'en porte plus aucun.
+        countryCode: _selectedCountry?.name,
         currentCity: _selectedCityController.text.trim(),
         originRegion:
             _selectedOriginRegion == 'Autre' ? null : _selectedOriginRegion,

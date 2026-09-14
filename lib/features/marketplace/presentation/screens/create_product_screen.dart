@@ -16,6 +16,7 @@ import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class CreateProductScreen extends ConsumerStatefulWidget {
   final ProductEntity? product; // For editing
@@ -538,7 +539,10 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? l10n.editProductScreenTitle : l10n.sellProductScreenTitle),
+        title: DesignTitle(
+          _isEditing ? l10n.editProductScreenTitle : l10n.sellProductScreenTitle,
+          size: 22,
+        ),
       ),
       body: Form(
         key: _formKey,

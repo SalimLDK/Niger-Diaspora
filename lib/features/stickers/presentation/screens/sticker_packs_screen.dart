@@ -8,6 +8,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/sticker_pack_entity.dart';
 import '../providers/sticker_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Screen for browsing and managing sticker packs
 class StickerPacksScreen extends ConsumerWidget {
@@ -22,7 +23,7 @@ class StickerPacksScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.stickerPacks),
+        title: DesignTitle(l10n.stickerPacks, size: 22),
         actions: [
           IconButton(
             icon: AppIcon(AppIcon.add, color: context.textSecondaryColor),
@@ -493,7 +494,7 @@ class _CreateStickerPackScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.createStickerPack),
+        title: DesignTitle(l10n.createStickerPack, size: 22),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

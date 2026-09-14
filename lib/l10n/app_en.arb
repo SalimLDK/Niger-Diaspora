@@ -768,6 +768,21 @@
   "leaveGroupTitle": "Leave group",
   "leaveGroupConfirm": "Do you really want to leave this group?",
   "groupLeft": "You have left the group",
+  "officialGroupDepartureTitle": "You changed country",
+  "officialGroupDepartureBody": "Since {date}, your profile no longer shows {country}. You can leave this group or stay: nothing changes without your consent.",
+  "@officialGroupDepartureBody": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "country": {
+        "type": "String"
+      }
+    }
+  },
+  "officialGroupDepartureStay": "Stay a member",
+  "officialGroupDepartureStayed": "You remain a member of this group.",
+  "officialGroupDepartureFailed": "Your choice could not be saved. Please try again.",
   "member": "Member",
   "joinGroup": "Join",
   "shareGroup": "Share group",
@@ -863,6 +878,11 @@
   "phone": "Phone",
   "location": "Location",
   "currentCity": "Current city",
+  "cityFieldHint": "Search for a city",
+  "cityDataCredit": "City list: GeoNames (CC BY 4.0)",
+  "cityTypeToSearch": "Type the first letters of your city",
+  "cityNoResult": "No city in the list matches",
+  "citySearchFailed": "Search unavailable right now",
   "originCity": "City of origin in Niger",
   "interests": "Interests",
   "spokenLanguages": "Spoken languages",
@@ -1891,6 +1911,9 @@
   "reply": "Reply",
   "react": "React",
   "copy": "Copy",
+  "selectText": "Select text",
+  "copyAll": "Copy all",
+  "moreReactions": "More reactions",
   "report": "Report",
   "transferSendMoney": "Send money",
   "transferReset": "Reset",

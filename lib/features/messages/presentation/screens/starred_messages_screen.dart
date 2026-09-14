@@ -9,6 +9,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class StarredMessagesScreen extends ConsumerWidget {
   final String conversationId;
@@ -38,7 +39,10 @@ class StarredMessagesScreen extends ConsumerWidget {
           icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
         ),
         // Le titre prend le Playfair du thème : pas de style en dur.
-        title: Text(AppLocalizations.of(context)!.starredMessages),
+        title: DesignTitle(
+          AppLocalizations.of(context)!.starredMessages,
+          size: 22,
+        ),
       ),
       body: starredAsync.when(
         loading:

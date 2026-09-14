@@ -12,6 +12,7 @@ import '../../domain/entities/poll_entity.dart';
 import '../providers/poll_provider.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 const _pollAccent = Color(0xFF6B5CE0);
 
@@ -32,7 +33,7 @@ class PollResultsScreen extends ConsumerWidget {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/messages'),
         ),
-        title: const Text('Résultats du sondage'),
+        title: const DesignTitle('Résultats du sondage', size: 22),
       ),
       body: pollAsync.when(
         loading: () => const LoadingIndicator(),

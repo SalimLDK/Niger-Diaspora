@@ -13,6 +13,8 @@ import '../../../businesses/data/models/business_model.dart';
 import '../../../businesses/domain/entities/business_entity.dart';
 import '../../../events/data/models/event_model.dart';
 import '../../../events/domain/entities/event_entity.dart';
+import '../../../events/presentation/providers/event_provider.dart';
+import '../../../../core/services/cache_service.dart';
 import '../../../groups/data/models/group_model.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import '../../../marketplace/data/models/product_model.dart';
@@ -748,7 +750,21 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
     String? adminName,
   }) async {
     try {
-      await _supabase.from('events').delete().eq('id', eventId);
+      // Sans `.select()`, un refus RLS efface zéro ligne sans erreur, et
+      // l'écran annonçait « Événement supprimé » pendant que l'événement
+      // restait en base et à l'accueil. La policy admin vient de
+      // `20260912200000_evenements_notifications_obsoletes.sql`.
+      final deleted = await _supabase
+          .from('events')
+          .delete()
+          .eq('id', eventId)
+          .select('id');
+      if ((deleted as List).isEmpty) {
+        state = state.copyWith(error: 'Événement non supprimé');
+        return false;
+      }
+      await CacheService.instance.removeCachedEvent(eventId);
+      forgetDeletedEvent(ref, eventId);
 
       await AdminAuditHelper.log(
         adminId: adminId,
@@ -772,13 +788,17 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
     String? adminName,
   }) async {
     try {
-      await _supabase
+      // Pas de `updated_at` : la table `events` n'a pas cette colonne, et la
+      // nommer faisait échouer toute l'annulation (PGRST204).
+      final updated = await _supabase
           .from('events')
-          .update({
-            'status': 'cancelled',
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', eventId);
+          .update({'status': 'cancelled'})
+          .eq('id', eventId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(error: 'Événement non annulé');
+        return false;
+      }
 
       await AdminAuditHelper.log(
         adminId: adminId,

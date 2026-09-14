@@ -244,7 +244,92 @@ async function getLocalEventRecipients(lat, lng, radiusKm = 50) {
   return Array.isArray(rows) ? rows.map((r) => r.id).filter(Boolean) : [];
 }
 
+/**
+ * Reflète une amitié Firestore dans `public.friends`.
+ *
+ * Les amitiés vivent dans Firestore (`users/{uid}/friends/{friendId}`), mais
+ * c'est Postgres qui décide qui lit une publication ou une story « Amis »
+ * (`peut_voir_publication`, `peut_voir_story`, migration 20260912230000). Sans
+ * miroir, la table `friends` restait vide et une audience « Amis » ne
+ * laissait passer personne.
+ *
+ * Le miroir est tenu ICI, côté serveur, et pas par l'app : un client qui
+ * écrirait lui-même dans `friends` pourrait se déclarer ami de n'importe qui
+ * et lire ses publications réservées.
+ *
+ * @param {string} userId   propriétaire de la liste (l'auteur, pour la RLS)
+ * @param {string} friendId l'ami
+ * @param {boolean} present vrai = l'amitié existe, faux = retirée
+ * @returns {Promise<boolean>} vrai si Supabase a accepté l'écriture
+ */
+async function setFriendship(userId, friendId, present) {
+  if (!isConfigured()) {
+    console.error("Supabase non configuré : amitié non reflétée");
+    return false;
+  }
+  if (!userId || !friendId || userId === friendId) return false;
+
+  const filtre = `user_id=eq.${encodeURIComponent(userId)}` +
+    `&friend_id=eq.${encodeURIComponent(friendId)}`;
+
+  if (!present) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/friends?${filtre}`, {
+      method: "DELETE",
+      headers: authHeaders({ Prefer: "return=minimal" }),
+    });
+    if (!res.ok) {
+      console.error(`Supabase friends DELETE ${res.status}: ${await res.text()}`);
+      return false;
+    }
+    return true;
+  }
+
+  // Nom et photo de l'ami, dénormalisés comme le fait la table.
+  let friendName = null;
+  let friendPhoto = null;
+  const u = await fetch(
+    `${SUPABASE_URL}/rest/v1/users?select=display_name,avatar_url` +
+      `&id=eq.${encodeURIComponent(friendId)}`,
+    { headers: authHeaders() },
+  );
+  if (u.ok) {
+    const rows = await u.json();
+    if (Array.isArray(rows) && rows.length > 0) {
+      friendName = rows[0].display_name ?? null;
+      friendPhoto = rows[0].avatar_url ?? null;
+    } else {
+      // Clé étrangère vers users : un compte absent de Supabase ferait
+      // échouer l'insertion. On le dit plutôt que de laisser un 409 muet.
+      console.warn(`setFriendship : ${friendId} absent de public.users`);
+      return false;
+    }
+  }
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/friends?on_conflict=user_id,friend_id`,
+    {
+      method: "POST",
+      headers: authHeaders({
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates,return=minimal",
+      }),
+      body: JSON.stringify({
+        user_id: userId,
+        friend_id: friendId,
+        friend_name: friendName,
+        friend_photo_url: friendPhoto,
+      }),
+    },
+  );
+  if (!res.ok) {
+    console.error(`Supabase friends UPSERT ${res.status}: ${await res.text()}`);
+    return false;
+  }
+  return true;
+}
+
 module.exports = {
+  setFriendship,
   getFcmTokens,
   removeFcmTokens,
   getConversation,

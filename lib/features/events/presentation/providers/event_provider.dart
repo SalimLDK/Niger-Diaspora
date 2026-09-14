@@ -5,8 +5,11 @@ import '../../../../core/network/network_info.dart';
 import '../../data/datasources/event_remote_datasource.dart';
 import '../../data/datasources/event_supabase_datasource.dart';
 import '../../data/repositories/event_repository_impl.dart';
+import '../../domain/entities/event_audience.dart';
 import '../../domain/entities/event_entity.dart';
 import '../../domain/repositories/event_repository.dart';
+import 'event_by_id_provider.dart';
+import 'group_next_event_provider.dart';
 
 part 'event_provider.g.dart';
 
@@ -100,6 +103,13 @@ class EventsNotifier extends _$EventsNotifier {
   Future<void> refresh() async {
     await loadUpcomingEvents();
   }
+
+  /// Retire tout de suite un événement supprimé, sans attendre le réseau.
+  void forget(String eventId) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    state = AsyncValue.data(current.where((e) => e.id != eventId).toList());
+  }
 }
 
 @riverpod
@@ -161,9 +171,12 @@ class MyEventsNotifier extends _$MyEventsNotifier {
     );
   }
 
-  Future<EventEntity?> createEvent(EventEntity event) async {
+  Future<EventEntity?> createEvent(
+    EventEntity event, {
+    EventVisibility? visibility,
+  }) async {
     final repository = ref.read(eventRepositoryProvider);
-    final result = await repository.createEvent(event);
+    final result = await repository.createEvent(event, visibility: visibility);
     return result.fold((failure) => null, (created) {
       final currentEvents = state.valueOrNull ?? [];
       state = AsyncValue.data([created, ...currentEvents]);
@@ -179,6 +192,7 @@ class MyEventsNotifier extends _$MyEventsNotifier {
       state = AsyncValue.data(
         currentEvents.where((e) => e.id != eventId).toList(),
       );
+      forgetDeletedEvent(ref, eventId);
       return true;
     });
   }
@@ -194,6 +208,26 @@ class MyEventsNotifier extends _$MyEventsNotifier {
       return true;
     });
   }
+}
+
+/// Tout ce qui affiche un événement doit l'oublier quand il est supprimé.
+///
+/// Seul `MyEventsNotifier` retirait l'événement de sa liste. L'écran de
+/// détail rafraîchissait en plus « À venir », mais pas « Passés », ni la carte
+/// « événement passé récent » de l'accueil (`recentPastEventProvider`, jamais
+/// invalidé) : l'événement supprimé y restait jusqu'au redémarrage.
+void forgetDeletedEvent(Ref ref, String eventId) {
+  // `exists` : ne pas construire une liste que personne n'a encore ouverte —
+  // elle partirait charger le réseau pour rien.
+  if (ref.exists(eventsNotifierProvider)) {
+    ref.read(eventsNotifierProvider.notifier).forget(eventId);
+  }
+  if (ref.exists(pastEventsNotifierProvider)) {
+    ref.read(pastEventsNotifierProvider.notifier).forget(eventId);
+  }
+  ref.invalidate(recentPastEventProvider);
+  ref.invalidate(eventByIdProvider(eventId));
+  ref.invalidate(groupNextEventProvider);
 }
 
 @Riverpod(keepAlive: true)
@@ -231,5 +265,11 @@ class PastEventsNotifier extends _$PastEventsNotifier {
 
   Future<void> refresh() async {
     await loadPastEvents();
+  }
+
+  void forget(String eventId) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    state = AsyncValue.data(current.where((e) => e.id != eventId).toList());
   }
 }

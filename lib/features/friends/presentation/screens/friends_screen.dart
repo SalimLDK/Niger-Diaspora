@@ -9,6 +9,7 @@ import '../providers/friend_provider.dart';
 import '../widgets/friend_list_item.dart';
 import '../widgets/friend_request_item.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});
@@ -45,7 +46,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen>
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/home'),
         ),
-        title: Text(l10n.friendsTitle),
+        title: DesignTitle(l10n.friendsTitle, size: 22),
         bottom: TabBar(
           controller: _tabController,
           labelColor: context.adaptivePrimaryColor,

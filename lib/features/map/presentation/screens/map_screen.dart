@@ -41,6 +41,7 @@ import '../widgets/map_legend.dart';
 import '../widgets/map_search_bar.dart';
 import '../../../../core/widgets/location_disclosure.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -3525,7 +3526,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.mapTitle),
+        title: DesignTitle(l10n.mapTitle, size: 22),
         actions: [
           // (Bascules de couches deplacees vers le bouton calques de l'en-tete -- refonte 7d.)
           // Bouton de sélection du rayon

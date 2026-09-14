@@ -12,6 +12,7 @@ import '../widgets/notification_style.dart';
 import '../providers/notification_provider.dart';
 import '../../../../core/services/notification_service.dart';
 import 'dart:convert';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class NotificationDetailScreen extends ConsumerWidget {
   final String notificationId;
@@ -29,7 +30,7 @@ class NotificationDetailScreen extends ConsumerWidget {
         // `notificationDetail` (« Détail de la notification ») était tronqué en
         // « Détail de la notificati… » : l'action ⏰ mange la largeur. Le mot
         // seul suffit — on est déjà dans le détail, la barre le rappelle.
-        title: Text(l10n.notificationsTitle),
+        title: DesignTitle(l10n.notificationsTitle, size: 22),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed:
@@ -306,6 +307,7 @@ class NotificationDetailScreen extends ConsumerWidget {
         context.push('/map');
         break;
       case NotificationType.message:
+      case NotificationType.messageReaction:
         if (notification.targetId != null) {
           context.push('/messages/${notification.targetId}');
         }
@@ -315,6 +317,7 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.groupJoinRequest:
       case NotificationType.groupRequestApproved:
       case NotificationType.groupRequestRejected:
+      case NotificationType.officialGroupLeave:
         if (notification.targetId != null) {
           context.push('/groups/${notification.targetId}');
         }
@@ -376,6 +379,8 @@ class NotificationDetailScreen extends ConsumerWidget {
         return 'Adhésion acceptée';
       case NotificationType.groupRequestRejected:
         return 'Adhésion refusée';
+      case NotificationType.officialGroupLeave:
+        return 'Groupe de votre ancien pays';
       case NotificationType.newMember:
         return 'Nouveau membre';
       case NotificationType.eventReminder:
@@ -423,6 +428,8 @@ class NotificationDetailScreen extends ConsumerWidget {
         return 'Signalement traité';
       case NotificationType.groupCallInvitation:
         return 'Appel de groupe';
+      case NotificationType.messageReaction:
+        return 'Réaction';
       case NotificationType.general:
         return l10n.notificationsTitle;
     }

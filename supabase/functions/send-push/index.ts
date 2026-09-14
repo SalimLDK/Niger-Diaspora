@@ -117,6 +117,7 @@ async function getAccessToken(sa: ServiceAccount): Promise<string> {
 function prefKeyFor(type: string): string | null {
   switch (type) {
     case 'message':
+    case 'messageReaction':
       return 'messages'
     case 'friendRequest':
     case 'friendRequestAccepted':
@@ -169,7 +170,7 @@ function prefKeyFor(type: string): string | null {
 // Mappe un type de notification vers un canal Android (créés côté app dans
 // notification_service.dart). Repli sûr : general_channel.
 function channelFor(type: string): string {
-  if (type === 'message') return 'messages'
+  if (type === 'message' || type === 'messageReaction') return 'messages'
   if (type.startsWith('order')) return 'orders_channel'
   if (type.startsWith('event') || type === 'localEvent') return 'events_channel'
   if (type.startsWith('audioRoom')) return 'audio_rooms_reminders_channel'

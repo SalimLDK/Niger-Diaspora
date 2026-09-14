@@ -9,6 +9,7 @@ import '../../domain/entities/podcast_entity.dart';
 import '../providers/podcast_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Screen showing user's created podcasts (creator dashboard)
 class MyPodcastsScreen extends ConsumerWidget {
@@ -33,7 +34,7 @@ class MyPodcastsScreen extends ConsumerWidget {
               () =>
                   context.canPop() ? context.pop() : context.go('/podcasts'),
         ),
-        title: Text(
+        title: DesignTitle(
           l10n.myPodcasts,
           style: DNText.serif(size: 22, color: context.dn.onSurface),
         ),

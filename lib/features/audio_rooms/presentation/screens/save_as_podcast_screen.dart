@@ -7,6 +7,7 @@ import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
 import '../../../../l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// /audio-rooms/:roomId/podcast — save a recorded room as a podcast episode.
 class SaveAsPodcastScreen extends ConsumerStatefulWidget {
@@ -81,8 +82,10 @@ class _SaveAsPodcastScreenState extends ConsumerState<SaveAsPodcastScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.saveAsPodcastTitle,
-                style: DNText.serif(size: 16, color: dn.onSurface),),
+            DesignTitle(
+              l10n.saveAsPodcastTitle,
+              style: DNText.serif(size: 16, color: dn.onSurface),
+            ),
             Text(l10n.saveAsPodcastSubtitle,
                 style: DNText.mono(size: 9, color: dn.onSurface3),),
           ],

@@ -774,6 +774,21 @@
   "leaveGroupTitle": "Quitter le groupe",
   "leaveGroupConfirm": "Voulez-vous vraiment quitter ce groupe ?",
   "groupLeft": "Vous avez quitté le groupe",
+  "officialGroupDepartureTitle": "Vous avez changé de pays",
+  "officialGroupDepartureBody": "Depuis le {date}, votre profil n'indique plus {country}. Vous pouvez quitter ce groupe ou y rester : rien ne change sans votre accord.",
+  "@officialGroupDepartureBody": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "country": {
+        "type": "String"
+      }
+    }
+  },
+  "officialGroupDepartureStay": "Rester membre",
+  "officialGroupDepartureStayed": "Vous restez membre de ce groupe.",
+  "officialGroupDepartureFailed": "Votre choix n'a pas pu être enregistré. Réessayez.",
   "member": "Membre",
   "joinGroup": "Rejoindre",
   "shareGroup": "Partager le groupe",
@@ -869,6 +884,11 @@
   "phone": "Téléphone",
   "location": "Position",
   "currentCity": "Ville actuelle",
+  "cityFieldHint": "Chercher une ville",
+  "cityDataCredit": "Liste des villes : GeoNames (CC BY 4.0)",
+  "cityTypeToSearch": "Tapez les premières lettres de votre ville",
+  "cityNoResult": "Aucune ville de la liste ne correspond",
+  "citySearchFailed": "Recherche impossible pour le moment",
   "originCity": "Ville d'origine au Niger",
   "interests": "Centres d'intérêt",
   "spokenLanguages": "Langues parlées",
@@ -1903,6 +1923,9 @@
   "reply": "Répondre",
   "react": "Réagir",
   "copy": "Copier",
+  "selectText": "Sélectionner le texte",
+  "copyAll": "Tout copier",
+  "moreReactions": "Plus de réactions",
   "report": "Signaler",
   "transferSendMoney": "Envoyer de l'argent",
   "transferReset": "Réinitialiser",

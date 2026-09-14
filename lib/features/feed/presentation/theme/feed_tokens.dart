@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 
 /// Feed design tokens, transcribed from the Claude Design "Feed Prototype"
-/// mockups: [nocturne] (dark — indigo accent, tight radii) and [organic]
-/// (light — terracotta accent, generous rounded radii). Mirrors the
-/// feature-scoped token pattern already used by Audio Rooms (`DNColors`).
+/// mockups: [nocturne] (dark — indigo accent) and [organic] (light —
+/// terracotta accent). Mirrors the feature-scoped token pattern already used
+/// by Audio Rooms (`DNColors`).
+///
+/// **Depuis le 2026-09-13, les deux thèmes partagent la même structure** —
+/// celle d'Organic : rayons généreux, espacements, onglet actif plein, FAB
+/// plein, titres Caprasimo et corps Figtree (voir `FeedText`). Seules les
+/// couleurs diffèrent. Nocturne suivait la fiche 6a (rayons 8, Inter partout,
+/// onglet et FAB en contour) : sur deux téléphones côte à côte, l'un en clair
+/// et l'autre en sombre, le fil ne se ressemblait plus, et Salim a tranché
+/// pour la version claire.
 ///
 /// Usage: `final tokens = FeedTokens.of(context);`
 @immutable
@@ -164,32 +172,38 @@ class FeedTokens {
     tagAccent2Fg: Color(0xFFF5F4FF),
     tagNeutralBg: Color(0xFF3F424D),
     tagNeutralFg: Color(0xFFF3F5FE),
-    space1: 2.8,
-    space2: 5.6,
-    space3: 8.4,
-    space4: 11.2,
-    space6: 16.8,
-    space8: 22.4,
-    radiusSm: 4,
-    radiusMd: 8,
-    radiusLg: 14,
-    cardRadius: 8,
-    listCardRadius: 8,
-    statCardRadius: 8,
-    iconTileRadius: 8,
-    compactCardRadius: 8,
+    // Structure identique à [organic] (2026-09-13) : espacements et rayons.
+    space1: 4.4,
+    space2: 8.8,
+    space3: 13.2,
+    space4: 17.6,
+    space6: 26.4,
+    space8: 35.2,
+    radiusSm: 8,
+    radiusMd: 16,
+    radiusLg: 28,
+    cardRadius: 32,
+    listCardRadius: 22,
+    statCardRadius: 18,
+    iconTileRadius: 11,
+    compactCardRadius: 24,
     overline: Color(0xFFC08A5A),
-    // Fiche 6a : « FAB creux contour #9184D9 sur fond #161826 ». Le fond était
-    // transparent et un anneau gris pit 1 px l'entourait (repris d'une ombre
-    // du prototype), ce qui donnait un bouton terne au lieu d'un contour net.
-    // Aucune ombre : le guide de style l'interdit en nocturne.
-    fabBg: Color(0xFF161826),
-    fabFg: Color(0xFF9184D9),
-    fabBorder: Color(0xFF9184D9),
-    fabShadow: [],
-    segmentActiveBg: Colors.transparent,
-    segmentActiveFg: Color(0xFF9184D9),
-    segmentActiveBorder: Color(0xFF9184D9),
+    // FAB et onglet actif PLEINS, comme en clair, dans l'accent indigo. Ombre
+    // plus sombre et plus diffuse qu'en clair : sur fond #161826 celle
+    // d'Organic ne se verrait pas.
+    fabBg: Color(0xFF9184D9),
+    fabFg: Color(0xFF161826),
+    fabBorder: null,
+    fabShadow: [
+      BoxShadow(
+        color: Color(0x66000000),
+        blurRadius: 28,
+        offset: Offset(0, 10),
+      ),
+    ],
+    segmentActiveBg: Color(0xFF9184D9),
+    segmentActiveFg: Color(0xFF161826),
+    segmentActiveBorder: null,
     textStrong: Color(0xFFE9E9ED),
     actionLabel: Color(0xFFC3C6D4),
     actionMuted: Color(0xFF9397AB),

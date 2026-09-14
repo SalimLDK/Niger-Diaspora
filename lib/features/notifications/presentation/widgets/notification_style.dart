@@ -26,6 +26,7 @@ Color notificationTint(BuildContext context, NotificationType type) {
   switch (type) {
     // Messages et contenu courant : l'accent de l'app.
     case NotificationType.message:
+    case NotificationType.messageReaction:
     case NotificationType.general:
     case NotificationType.newPost:
     case NotificationType.mentioned:
@@ -39,6 +40,7 @@ Color notificationTint(BuildContext context, NotificationType type) {
     case NotificationType.groupJoinRequest:
     case NotificationType.groupRequestApproved:
     case NotificationType.newMember:
+    case NotificationType.officialGroupLeave:
     case NotificationType.eventReminder:
     case NotificationType.eventUpdate:
     case NotificationType.eventAttendance:
@@ -81,6 +83,7 @@ IconData notificationIcon(NotificationType type) {
     case NotificationType.groupJoinRequest:
       return Icons.group_add_outlined;
     case NotificationType.newMember:
+    case NotificationType.officialGroupLeave:
       return Icons.groups_outlined;
     case NotificationType.groupRequestApproved:
       return Icons.check_circle_outline;
@@ -129,6 +132,8 @@ IconData notificationIcon(NotificationType type) {
       return Icons.gavel_outlined;
     case NotificationType.groupCallInvitation:
       return Icons.groups_outlined;
+    case NotificationType.messageReaction:
+      return Icons.add_reaction_outlined;
   }
 }
 

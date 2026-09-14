@@ -2,9 +2,78 @@ import 'package:equatable/equatable.dart';
 
 enum StoryMediaType { image, video }
 
-/// Une story individuelle (§4, rail « À la une »). MVP : un seul média,
-/// expiration 24h, pas de réactions.
+/// Qui peut voir une story (`stories.audience`). C'est la base qui tranche
+/// (`peut_voir_story`, migration 20260912230000) ; la liste « masqué »
+/// ([StoryListKind.hidden]) et les blocages priment sur l'audience.
+enum StoryAudience {
+  /// Tout le monde.
+  everyone('public'),
+
+  /// Les personnes qui me suivent, et mes amis.
+  followers('followers'),
+
+  /// Mes amis seulement.
+  friends('friends'),
+
+  /// La liste restreinte ([StoryListKind.close]) seulement.
+  closeList('close');
+
+  const StoryAudience(this.dbValue);
+
+  final String dbValue;
+
+  static StoryAudience fromDb(String? value) => StoryAudience.values
+      .firstWhere((a) => a.dbValue == value, orElse: () => StoryAudience.everyone);
+
+  String get label => switch (this) {
+        StoryAudience.everyone => 'Tout le monde',
+        StoryAudience.followers => 'Abonnés et amis',
+        StoryAudience.friends => 'Amis',
+        StoryAudience.closeList => 'Liste restreinte',
+      };
+}
+
+/// Les deux listes qu'un auteur tient sur ses stories.
+enum StoryListKind {
+  /// « Liste restreinte » : les seules personnes qui voient une story publiée
+  /// pour [StoryAudience.closeList].
+  close('close'),
+
+  /// « Masquer ma story à » : ces personnes ne voient aucune story, quelle que
+  /// soit l'audience — même « Tout le monde ».
+  hidden('hidden');
+
+  const StoryListKind(this.dbValue);
+
+  final String dbValue;
+
+  static StoryListKind? fromDb(String? value) {
+    for (final k in StoryListKind.values) {
+      if (k.dbValue == value) return k;
+    }
+    return null;
+  }
+}
+
+/// Une personne rangée dans l'une des listes de l'auteur. Une personne est
+/// dans une liste au plus (clé `(owner_id, member_id)` en base).
+class StoryListMember extends Equatable {
+  final String memberId;
+  final StoryListKind kind;
+
+  const StoryListMember({required this.memberId, required this.kind});
+
+  @override
+  List<Object?> get props => [memberId, kind];
+}
+
+/// Une story individuelle (§4, rail « À la une ») : un média, visible 24 h.
 class StoryEntity extends Equatable {
+  /// Durée de vie d'une story. La base applique la même borne
+  /// (`stories_select`) ; l'app la réapplique pour qu'une story expire à
+  /// l'écran sans attendre le prochain chargement.
+  static const Duration lifetime = Duration(hours: 24);
+
   final String id;
   final String authorId;
   final String authorName;
@@ -15,6 +84,7 @@ class StoryEntity extends Equatable {
   final DateTime createdAt;
   final int viewCount;
   final bool isViewedByMe;
+  final StoryAudience audience;
 
   const StoryEntity({
     required this.id,
@@ -27,10 +97,12 @@ class StoryEntity extends Equatable {
     required this.createdAt,
     this.viewCount = 0,
     this.isViewedByMe = false,
+    this.audience = StoryAudience.everyone,
   });
 
-  bool get isExpired =>
-      DateTime.now().difference(createdAt) > const Duration(hours: 24);
+  DateTime get expiresAt => createdAt.add(lifetime);
+
+  bool get isExpired => !DateTime.now().isBefore(expiresAt);
 
   @override
   List<Object?> get props => [
@@ -44,6 +116,7 @@ class StoryEntity extends Equatable {
         createdAt,
         viewCount,
         isViewedByMe,
+        audience,
       ];
 }
 

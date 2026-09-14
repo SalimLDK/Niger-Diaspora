@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:diaspo_niger/core/constants/profile_options.dart';
 import 'package:diaspo_niger/core/models/country.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,26 +8,17 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// `_applyFilters` (`groups_screen.dart`) filtre sur
 /// `g.country == _selectedCountry`, et `_loadDefaultCountryFilter` pose un
-/// filtre pays **tout seul** au premier affichage — celui du profil, ou `NE` à
-/// défaut. Un groupe à `country_code` nul est donc écarté de « Découvrir »
-/// sans que l'utilisateur ait rien demandé, et rien à l'écran ne le dit.
-/// Un groupe était dans ce cas en base le 2026-08-06.
+/// filtre pays **tout seul** au premier affichage — celui du profil, ou le
+/// Niger à défaut. Un groupe à `country_code` nul est donc écarté de
+/// « Découvrir » sans que l'utilisateur ait rien demandé, et rien à l'écran ne
+/// le dit. Un groupe était dans ce cas en base le 2026-08-06.
 ///
-/// Décision : le pays par défaut est le Niger.
+/// Décision : le pays par défaut est le Niger — en toutes lettres depuis le
+/// 2026-09-13, comme tout pays en base.
 void main() {
-  test('le défaut vaut bien le code du Niger', () {
-    // `Country.niger.code` est un getter d'extension, donc pas une constante :
-    // il ne peut pas servir de valeur par défaut. Les deux sont donc écrits
-    // séparément, et c'est ce test qui interdit qu'ils divergent.
-    expect(kDefaultCountryCode, Country.niger.code);
-    expect(kDefaultCountryCode, 'NE');
-  });
-
-  test('le défaut est un code ISO-2, pas un libellé', () {
-    // Le mélange `Canada`/`CA` en base venait exactement de là.
-    expect(kDefaultCountryCode.length, 2);
-    expect(kDefaultCountryCode, kDefaultCountryCode.toUpperCase());
-    expect(CountryExtension.toIsoCode('Niger'), kDefaultCountryCode);
+  test('le défaut est le Niger, écrit comme dans la liste des pays', () {
+    expect(kDefaultCountry, 'Niger');
+    expect(ProfileOptions.canonicalCountry(kDefaultCountry), kDefaultCountry);
   });
 
   group('le défaut est posé sur les deux chemins de création', () {
@@ -40,7 +32,7 @@ void main() {
       final source = lire(
         'lib/features/groups/data/datasources/group_supabase_datasource.dart',
       );
-      expect(source, contains('kDefaultCountryCode'));
+      expect(source, contains('kDefaultCountry'));
       expect(
         source,
         isNot(contains("'p_country_code': group.country,")),
@@ -52,7 +44,7 @@ void main() {
       final source = lire(
         'lib/features/groups/presentation/screens/create_group_screen.dart',
       );
-      expect(source, contains('kDefaultCountryCode'));
+      expect(source, contains('kDefaultCountry'));
     });
   });
 
@@ -63,26 +55,21 @@ void main() {
     final source = File(
       'lib/features/groups/presentation/screens/groups_screen.dart',
     ).readAsStringSync();
-    expect(
-      RegExp(r"""(?<!kDefaultCountryCode)['"]NE['"]""").hasMatch(source),
-      isFalse,
-      reason: 'utiliser `kDefaultCountryCode`',
-    );
-    expect(source, contains('kDefaultCountryCode'));
+    expect(RegExp(r"""['"](NE|Niger)['"]""").hasMatch(source), isFalse,
+        reason: 'utiliser `kDefaultCountry`');
+    expect(source, contains('kDefaultCountry'));
   });
 
-  test('la migration qui reprend l\'existant est versionnée', () {
-    // Elle n'a PAS pu être appliquée depuis cette session : l'écriture en base
-    // a été refusée par le garde-fou de permissions. Tant qu'elle n'est pas
-    // passée, le groupe déjà nul reste invisible — le côté app ne couvre que
-    // les créations à venir.
-    final migration = File(
-      'supabase/migrations/20260806170000_groups_country_code_defaut_ne.sql',
-    );
-    expect(migration.existsSync(), isTrue);
-    final sql = migration.readAsStringSync();
-    expect(sql, contains('SET country_code = \'NE\''));
-    expect(sql, contains('SET DEFAULT \'NE\''));
-    expect(sql, contains('trg_groups_country_code_defaut'));
+  test('la base pose le même défaut', () {
+    // Le `DEFAULT` de la colonne et le déclencheur couvrent les écrivains qui
+    // ne passent pas par l'app. Ils valaient 'NE' (20260806170000).
+    final sql = File(
+      'supabase/migrations/20260913030000_pays_en_toutes_lettres.sql',
+    ).readAsStringSync();
+    expect(sql, contains("SET DEFAULT '$kDefaultCountry'"));
+    expect(sql, contains('groups_country_code_defaut'));
+    // Dernier repli du COALESCE du déclencheur. `\r?` : le dépôt est extrait
+    // en CRLF sur ce poste.
+    expect(RegExp("'$kDefaultCountry'\\r?\\n\\s*\\);").hasMatch(sql), isTrue);
   });
 }

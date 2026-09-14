@@ -9,23 +9,29 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Centroides approximatifs des pays de destination les plus courants pour la
 /// diaspora nigerienne. Un pays absent de cette table n'a simplement pas de
 /// marqueur sur la carte (pas de crash, pas de geocodage distant a chaque appel).
-const Map<String, LatLng> _countryCentroids = {
+///
+/// Clés = noms de `ProfileOptions.countries`, la forme que porte
+/// `groups.country_code`. Tant que la colonne portait des codes ISO, aucun
+/// groupe ne trouvait sa clé et la carte restait vide sans rien signaler.
+/// Verrouillé par `test/core/models/pays_en_toutes_lettres_test.dart`.
+const Map<String, LatLng> countryCentroids = {
   'Niger': LatLng(17.6078, 8.0817),
   'Nigeria': LatLng(9.0820, 8.6753),
-  'Benin': LatLng(9.3077, 2.3158),
+  'Bénin': LatLng(9.3077, 2.3158),
   'Burkina Faso': LatLng(12.2383, -1.5616),
   'Mali': LatLng(17.5707, -3.9962),
   'Tchad': LatLng(15.4542, 18.7322),
-  'Senegal': LatLng(14.4974, -14.4524),
-  'Cote d\'Ivoire': LatLng(7.5400, -5.5471),
+  'Sénégal': LatLng(14.4974, -14.4524),
+  'Côte d\'Ivoire': LatLng(7.5400, -5.5471),
   'Maroc': LatLng(31.7917, -7.0926),
-  'Algerie': LatLng(28.0339, 1.6596),
+  'Algérie': LatLng(28.0339, 1.6596),
   'Tunisie': LatLng(33.8869, 9.5375),
-  'Egypte': LatLng(26.8206, 30.8025),
+  'Égypte': LatLng(26.8206, 30.8025),
   'Ghana': LatLng(7.9465, -1.0232),
   'Togo': LatLng(8.6195, 0.8248),
   'Cameroun': LatLng(7.3697, 12.3547),
@@ -37,11 +43,11 @@ const Map<String, LatLng> _countryCentroids = {
   'Royaume-Uni': LatLng(55.3781, -3.4360),
   'Suisse': LatLng(46.8182, 8.2275),
   'Pays-Bas': LatLng(52.1326, 5.2913),
-  'Suede': LatLng(60.1282, 18.6435),
-  'Etats-Unis': LatLng(37.0902, -95.7129),
+  'Suède': LatLng(60.1282, 18.6435),
+  'États-Unis': LatLng(37.0902, -95.7129),
   'Canada': LatLng(56.1304, -106.3468),
   'Arabie saoudite': LatLng(23.8859, 45.0792),
-  'Emirats arabes unis': LatLng(23.4241, 53.8478),
+  'Émirats arabes unis': LatLng(23.4241, 53.8478),
   'Qatar': LatLng(25.3548, 51.1839),
   'Chine': LatLng(35.8617, 104.1954),
   'Inde': LatLng(20.5937, 78.9629),
@@ -70,7 +76,7 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: Text(l10n.groupsByCountry),
+        title: DesignTitle(l10n.groupsByCountry, size: 22),
         leading: IconButton(
           icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
           onPressed:
@@ -91,7 +97,7 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
 
           final markers = <Marker>{};
           for (final entry in byCountry.entries) {
-            final centroid = _countryCentroids[entry.key];
+            final centroid = countryCentroids[entry.key];
             if (centroid == null) continue;
             markers.add(
               Marker(

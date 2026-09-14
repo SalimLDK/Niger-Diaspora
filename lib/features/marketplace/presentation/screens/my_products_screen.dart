@@ -7,6 +7,7 @@ import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 import '../widgets/product_card.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class MyProductsScreen extends ConsumerWidget {
   const MyProductsScreen({super.key});
@@ -27,7 +28,7 @@ class MyProductsScreen extends ConsumerWidget {
             onPressed:
                 () => context.canPop() ? context.pop() : context.go('/marketplace'),
           ),
-          title: Text(l10n.myProducts)),
+          title: DesignTitle(l10n.myProducts, size: 22)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -40,7 +41,7 @@ class MyProductsScreen extends ConsumerWidget {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/marketplace'),
         ),
-        title: Text(l10n.myProducts),
+        title: DesignTitle(l10n.myProducts, size: 22),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

@@ -9,6 +9,7 @@ import '../../domain/entities/payout_entity.dart';
 import '../providers/monetization_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Screen for creators to view their earnings and request payouts.
 class CreatorEarningsScreen extends ConsumerStatefulWidget {
@@ -52,7 +53,7 @@ class _CreatorEarningsScreenState extends ConsumerState<CreatorEarningsScreen> {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/audio-rooms'),
         ),
-        title: Text(l10n.creatorEarningsTitle),
+        title: DesignTitle(l10n.creatorEarningsTitle, size: 22),
         actions: [
           IconButton(
             icon: AppIcon(AppIcon.refresh, color: theme.iconTheme.color!),

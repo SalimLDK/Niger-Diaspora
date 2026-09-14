@@ -6,6 +6,7 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/business_entity.dart';
 import '../providers/business_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// §19c « Mes entreprises » — écran propriétaire.
 ///
@@ -28,7 +29,7 @@ class MyBusinessesScreen extends ConsumerWidget {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/businesses'),
         ),
-        title: const Text('Mes entreprises')),
+        title: const DesignTitle('Mes entreprises', size: 22)),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/businesses/create'),

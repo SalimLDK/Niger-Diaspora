@@ -1,7 +1,9 @@
 import 'package:equatable/equatable.dart';
 
 /// Contexte dans lequel un poll est publié (post du feed ou groupe).
-enum PollContextType { post, group }
+/// `conversation` : sondage d'une discussion privée (2026-09-12), lu et voté
+/// par ses seuls participants — voir la migration 20260912233000.
+enum PollContextType { post, group, conversation }
 
 class PollOptionEntity extends Equatable {
   final String id;

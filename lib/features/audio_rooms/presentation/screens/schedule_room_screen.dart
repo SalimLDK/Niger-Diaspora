@@ -13,6 +13,7 @@ import '../../../../core/utils/locale_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../providers/audio_room_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// /audio-rooms/schedule — custom monthly calendar + multi-timezone display.
 class ScheduleRoomScreen extends ConsumerStatefulWidget {
@@ -111,8 +112,10 @@ class _ScheduleRoomScreenState extends ConsumerState<ScheduleRoomScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AppLocalizations.of(context)!.scheduleRoomTitle,
-                style: DNText.serif(size: 18, color: dn.onSurface),),
+            DesignTitle(
+              AppLocalizations.of(context)!.scheduleRoomTitle,
+              style: DNText.serif(size: 18, color: dn.onSurface),
+            ),
             Text(AppLocalizations.of(context)!.scheduleRoomMultiTimezone,
                 style: DNText.mono(size: 9, color: dn.onSurface3),),
           ],

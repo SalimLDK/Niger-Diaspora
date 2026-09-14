@@ -26,6 +26,23 @@ import 'heart_burst_overlay.dart';
 import 'share_post_sheet.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
+/// Pictogramme d'une audience — partagé avec l'écran de création.
+String postVisibilityIcon(PostVisibility v) => switch (v) {
+      PostVisibility.public => AppIcon.public,
+      PostVisibility.followers => AppIcon.personAdd,
+      PostVisibility.friends => AppIcon.people,
+      PostVisibility.onlyMe => AppIcon.lock,
+    };
+
+/// Libellé d'une audience — partagé avec l'écran de création.
+String postVisibilityLabel(PostVisibility v, AppLocalizations l10n) =>
+    switch (v) {
+      PostVisibility.public => l10n.public,
+      PostVisibility.followers => 'Abonnés',
+      PostVisibility.friends => l10n.friends,
+      PostVisibility.onlyMe => 'Moi uniquement',
+    };
+
 String _formatTimeAgo(DateTime dt, BuildContext context) {
   final locale = Localizations.localeOf(context).languageCode;
   if (locale == 'fr') {
@@ -70,7 +87,7 @@ class PostCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (repost != null) _RepostBanner(repost: repost!),
-              _PostHeader(post: post, l10n: l10n),
+              _PostHeader(post: post, l10n: l10n, isDetail: isDetail),
               if (post.content.isNotEmpty) ...[
                 const SizedBox(height: 10),
                 RichTextWidget(
@@ -182,8 +199,13 @@ class _RepostBanner extends StatelessWidget {
 class _PostHeader extends ConsumerWidget {
   final PostEntity post;
   final AppLocalizations l10n;
+  final bool isDetail;
 
-  const _PostHeader({required this.post, required this.l10n});
+  const _PostHeader({
+    required this.post,
+    required this.l10n,
+    required this.isDetail,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -229,14 +251,31 @@ class _PostHeader extends ConsumerWidget {
                           color: tokens.text,
                         ),
                       ),
-                      Text(
-                        metaLine,
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          color: tokens.mutedText,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              metaLine,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: tokens.mutedText,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (!post.isPublic) ...[
+                            const SizedBox(width: 5),
+                            Tooltip(
+                              message: postVisibilityLabel(post.visibility, l10n),
+                              child: AppIcon(
+                                postVisibilityIcon(post.visibility),
+                                size: 12,
+                                color: tokens.mutedText,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),
@@ -252,7 +291,7 @@ class _PostHeader extends ConsumerWidget {
             variant: FollowButtonVariant.text,
           ),
         ],
-        _PostMenu(post: post, l10n: l10n),
+        _PostMenu(post: post, l10n: l10n, isDetail: isDetail),
       ],
     );
   }
@@ -262,7 +301,15 @@ class _PostMenu extends ConsumerWidget {
   final PostEntity post;
   final AppLocalizations l10n;
 
-  const _PostMenu({required this.post, required this.l10n});
+  /// La carte est-elle celle de l'écran de détail ? Seul cet écran se referme
+  /// après une suppression.
+  final bool isDetail;
+
+  const _PostMenu({
+    required this.post,
+    required this.l10n,
+    required this.isDetail,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -299,8 +346,26 @@ class _PostMenu extends ConsumerWidget {
                 ),
           );
           if (confirmed == true && context.mounted) {
-            await ref.read(feedNotifierProvider.notifier).deletePost(post.id);
-            if (context.mounted && context.canPop()) context.pop();
+            final deleted = await ref
+                .read(feedNotifierProvider.notifier)
+                .deletePost(post.id);
+            if (!context.mounted) return;
+            if (!deleted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(l10n.deleteError),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              return;
+            }
+            showFeedToast(context, l10n.postDeleted);
+            // Ne refermer que l'écran de détail. Depuis une liste, `pop()`
+            // refermait l'écran qui la porte : le fil, poussé depuis
+            // l'accueil, se fermait et renvoyait à l'accueil après chaque
+            // suppression (constaté 2026-09-12). La carte, elle, disparaît
+            // d'elle-même de la liste.
+            if (isDetail && context.canPop()) context.pop();
           }
         } else if (value == 'bookmark') {
           ref.read(feedNotifierProvider.notifier).toggleBookmark(post.id);
@@ -430,10 +495,9 @@ class _MediaGridState extends ConsumerState<_MediaGrid> {
       child: Hero(
         tag: '${widget.post.id}_$index',
         child: ClipRRect(
-          // Média : rayon 20 (clair) / 8 (sombre) — cf. handoff tour 4.
-          borderRadius: BorderRadius.circular(
-            FeedTokens.of(context).isDark ? 8 : 20,
-          ),
+          // Média : rayon 20, dans les deux thèmes (le sombre était à 8 —
+          // structure alignée sur le clair le 2026-09-13).
+          borderRadius: BorderRadius.circular(20),
           child: CachedNetworkImage(
             imageUrl: mediaUrls[index],
             height: height,
@@ -518,7 +582,12 @@ class _ActionBar extends ConsumerWidget {
                   : (post.commentCount > 0 ? '${post.commentCount}' : ''),
               onTap: isDetail ? null : () => context.push('/feed/${post.id}'),
             ),
-            if (!isDetail) ...[
+            // Repartage et partage : publications publiques seulement. Un
+            // repartage n'apparaît qu'aux publications publiques
+            // (`get_feed_reposts`), et partager en discussion recopie texte
+            // et média chez un destinataire qui n'a peut-être pas le droit de
+            // les lire.
+            if (!isDetail && post.isPublic) ...[
               const SizedBox(width: 14),
               _ActionButton(
                 icon: Icon(Icons.repeat_rounded, size: 19, color: repostColor),
@@ -549,7 +618,7 @@ class _ActionBar extends ConsumerWidget {
                 );
               },
             ),
-            if (!isDetail) ...[
+            if (!isDetail && post.isPublic) ...[
               const SizedBox(width: 14),
               _ActionButton(
                 icon: AppIcon(

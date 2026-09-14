@@ -1620,6 +1620,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get groupLeft => 'You have left the group';
 
   @override
+  String get officialGroupDepartureTitle => 'You changed country';
+
+  @override
+  String officialGroupDepartureBody(String date, String country) {
+    return 'Since $date, your profile no longer shows $country. You can leave this group or stay: nothing changes without your consent.';
+  }
+
+  @override
+  String get officialGroupDepartureStay => 'Stay a member';
+
+  @override
+  String get officialGroupDepartureStayed =>
+      'You remain a member of this group.';
+
+  @override
+  String get officialGroupDepartureFailed =>
+      'Your choice could not be saved. Please try again.';
+
+  @override
   String get member => 'Member';
 
   @override
@@ -1809,6 +1828,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get currentCity => 'Current city';
+
+  @override
+  String get cityFieldHint => 'Search for a city';
+
+  @override
+  String get cityDataCredit => 'City list: GeoNames (CC BY 4.0)';
+
+  @override
+  String get cityTypeToSearch => 'Type the first letters of your city';
+
+  @override
+  String get cityNoResult => 'No city in the list matches';
+
+  @override
+  String get citySearchFailed => 'Search unavailable right now';
 
   @override
   String get originCity => 'City of origin in Niger';
@@ -4148,6 +4182,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copy => 'Copy';
+
+  @override
+  String get selectText => 'Select text';
+
+  @override
+  String get copyAll => 'Copy all';
+
+  @override
+  String get moreReactions => 'More reactions';
 
   @override
   String get report => 'Report';

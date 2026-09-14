@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/services/deep_link_service.dart';
+import '../../../../core/services/qr_code_parser.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
@@ -224,10 +224,14 @@ class LinkPreviewBubble extends StatelessWidget {
   /// Un lien Diaspo Niger partagé dans une discussion (groupe, profil,
   /// événement…) doit ouvrir l'écran correspondant, pas le navigateur : le
   /// site web ne rend pas ces pages, l'utilisateur y tombait sur un 404.
+  ///
+  /// Même lecture que le scanner QR (`QrCodeParser`) : l'ancien parseur de
+  /// `DeepLinkService` ignorait `/feed/`, `/embassies/`, `www.` et le schéma
+  /// `diasponiger://`, qui repartaient donc vers Android.
   Future<void> _open(BuildContext context, String url) async {
-    final info = DeepLinkService.instance.parseDeepLink(url);
-    if (info != null) {
-      context.push(info.routePath);
+    final route = QrCodeParser.routeInterne(url);
+    if (route != null) {
+      context.push(route);
       return;
     }
 

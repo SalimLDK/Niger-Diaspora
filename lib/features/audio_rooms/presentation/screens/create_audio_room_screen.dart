@@ -10,6 +10,7 @@ import '../../domain/entities/audio_room_entity.dart';
 import '../../domain/monetization_rates.dart';
 import '../providers/audio_room_provider.dart';
 import '../widgets/content_pickers.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// /audio-rooms/create — full room creation form.
 class CreateAudioRoomScreen extends ConsumerStatefulWidget {
@@ -462,7 +463,10 @@ class _ArHeader extends StatelessWidget implements PreferredSizeWidget {
       titleSpacing: 4,
       // Le sous-titre « configuration complète » décrivait le formulaire, pas
       // ce qu'on est en train de faire — il est retiré.
-      title: Text(title, style: DNText.serif(size: 18, color: dn.onSurface)),
+      title: DesignTitle(
+        title,
+        style: DNText.serif(size: 18, color: dn.onSurface),
+      ),
       // Croix de fermeture : la flèche de retour par défaut ne dit pas qu'on
       // abandonne une création en cours.
       leading: IconButton(
