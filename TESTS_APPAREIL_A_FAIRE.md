@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1019 cases à cocher, 552 cochées** — 206 entrées sur 250 ont encore des cases ouvertes.
+**1027 cases à cocher, 552 cochées** — 207 entrées sur 251 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (63)
+**P1 — fonction importante, jamais vérifiée** (64)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -77,6 +77,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
 - 5 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
@@ -264,7 +265,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 175 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 183 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -523,6 +524,40 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Trois entrées nommaient une personne et retombaient sur le sélecteur générique, identique au bouton « Nouvelle conversation » : la tuile « écrivez à … » de la messagerie vide (qui porte pourtant une flèche d'envoi), un résultat de recherche « personnes », et le bouton « Contacter » d'une fiche entreprise. Il fallait re-chercher à la main la personne qu'on venait de toucher du doigt.
+
+La route `/messages/new` construisait `const NewConversationScreen()` — un
+écran sans paramètre, qui ne lisait ni `?userId=` ni `state.extra`. Le
+destinataire était donc bien construit par les appelants, puis jeté en silence
+par le routeur ([app_router.dart](lib/core/router/app_router.dart)). L'écran
+accepte maintenant un destinataire et, quand il en reçoit un, se comporte en
+relais : il ouvre la discussion et **se remplace** par elle
+([new_conversation_screen.dart](lib/features/messages/presentation/screens/new_conversation_screen.dart)).
+
+- [ ] **Tuile « écrivez à … »** (messagerie vide) : le tap ouvre directement
+  la discussion avec cette personne — pas le sélecteur. L'en-tête porte son
+  nom et sa photo dès la première frame, sans libellé de repli.
+- [ ] **Résultat de recherche « personnes »** : même comportement.
+- [ ] **« Contacter » sur une fiche entreprise** : ouvre la discussion avec le
+  propriétaire. C'est le seul appelant qui passait par `extra` et non par
+  l'URL — à vérifier séparément, il emprunte l'autre branche du code.
+- [ ] **Retour depuis la discussion ainsi ouverte** : ramène à la liste des
+  messages, **pas** au sélecteur (c'est un `pushReplacement`). Vérifier aussi
+  le retour système Android, pas seulement la flèche.
+- [ ] **Discussion déjà existante** avec cette personne : on retombe dessus
+  avec son historique, aucun doublon créé. À refaire deux fois de suite.
+- [ ] **« Nouvelle conversation » et le crayon de l'en-tête** : inchangés, ils
+  ouvrent toujours le sélecteur générique. C'est la garde symétrique.
+- [ ] **Échec d'ouverture** (mode avion) : le sélecteur reprend la main avec
+  l'erreur — pas d'écran bloqué sur le rond de chargement. Le repli vaut
+  exactement le comportement d'avant le correctif.
+- [ ] **Lien profond `/messages/new?userId=<id>`, pile vide** : la flèche du
+  relais ramène à `/messages` et non dans le vide (voir « Pile vide » au § 7).
 
 ---
 
