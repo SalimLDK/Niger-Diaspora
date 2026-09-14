@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**892 cases à cocher, 503 cochées** — 182 entrées sur 226 ont encore des cases ouvertes.
+**891 cases à cocher, 504 cochées** — 182 entrées sur 226 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -61,7 +61,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [Doublons Profil / Réglages (2026-08-05)](#doublons-profil--réglages-2026-08-05) · *Accueil, profil et réglages*
 - 2 · [⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)](#-passage-à-targetsdk-36-android-16--exigence-play-2026-09-08) · *Publication et plateformes* · bloqué
 - 5 · [Appels WebRTC](#appels-webrtc) · *Appels* · bloqué
-- 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
+- 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
 **P1 — fonction importante, jamais vérifiée** (51)
@@ -246,7 +246,7 @@ Par domaine :
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
-- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
+- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 30 à faire, 28 faites
@@ -8974,7 +8974,23 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 
   Correctif suggéré, non implémenté : faire comparer `checkAndRefillOneTimePreKeys` au compte **serveur** (ou publier inconditionnellement si le serveur est à zéro) plutôt qu'au seul compteur local — sinon le parc installé ne se rattrapera jamais.
 - [ ] **Identité des policies RLS réparée** (migration `20260803170000`, 2026-08-03) : 48 policies comparaient `current_user_id()` (identifiant Supabase Auth) à des colonnes contenant des Firebase UID — mesuré en production, **0 correspondance sur 1247 comptes**. Tout ce qui est « à moi » était donc refusé en silence, les échecs étant avalés par des `catch { debugPrint }`. Après `supabase db push`, vérifier sur un compte réel que ces actions **fonctionnent enfin** : modifier son profil, s'abonner à un podcast, suivre quelqu'un, mettre un post en favori, publier une story et y réagir, ouvrir un ticket de support, signaler un contenu, consulter son historique de transactions. Vérifier aussi qu'un profil passé en privé redevient visible à son propriétaire.
-- [ ] **Non-régression après la bascule d'identité** (même migration) : le risque miroir est d'ouvrir trop. Avec **deux** comptes, vérifier qu'on ne voit toujours pas les données de l'autre — ses favoris, ses tickets, ses transactions, son profil privé — et qu'on ne peut pas modifier son profil ni ses podcasts.
+- [x] **Non-régression après la bascule d'identité**
+      **✅ Prouvé en base le 2026-09-14, sans appareil** (identité de Sim A
+      simulée par `request.jwt.claims` + `SET LOCAL ROLE authenticated`,
+      chaque essai dans une transaction annulée — sans quoi `db query
+      --linked` se connecte en `postgres` et contourne la RLS).
+      **Lecture** : la base contient 9 conversations et 88 messages ;
+      Sim A n'en voit que **5 et 58** — donc 4 conversations et 30 messages
+      lui restent invisibles, et le témoin positif tient (il voit bien les
+      siens, ce n'est pas un refus général). Les 37 profils lui sont
+      visibles, ce qui est voulu : un profil non privé est public.
+      **Écriture** : modifier le profil de Salim L. → **0 ligne** ;
+      modifier le sien → **1 ligne** (témoin) ; insérer un message dans une
+      conversation dont il n'est pas membre → **refusé, 42501**.
+      ⚠️ **Ce que ça ne prouve pas** : tickets, transactions, abonnements
+      podcast et stickers favoris sont **vides** pour ce compte (0 ligne
+      côté `postgres`), donc un « 0 vu » n'y voudrait rien dire. Ces
+      tables-là restent à vérifier quand elles auront des données. (même migration) : le risque miroir est d'ouvrir trop. Avec **deux** comptes, vérifier qu'on ne voit toujours pas les données de l'autre — ses favoris, ses tickets, ses transactions, son profil privé — et qu'on ne peut pas modifier son profil ni ses podcasts.
 - [ ] **Appareils connectés (#10) migrés vers Supabase `e2ee_devices`** (commit `267d7d3`) — la liste « s'affiche enfin » côté code, jamais confirmé à l'écran.
 - [ ] **Flux caméra/galerie/éditeur + permissions manifest** (`WRITE_EXTERNAL_STORAGE`/`READ_MEDIA_IMAGES`/`VIDEO`, réintroduites après une perte accidentelle, commit `9ea9b45`) — jamais revalidées par un flux caméra/galerie réel.
 
