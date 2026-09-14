@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**951 cases à cocher, 535 cochées** — 193 entrées sur 237 ont encore des cases ouvertes.
+**945 cases à cocher, 545 cochées** — 193 entrées sur 237 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -74,7 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 12 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
+- 6 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
@@ -251,7 +251,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 167 à faire, 65 faites
+- [2. Messagerie](#2-messagerie) — 161 à faire, 75 faites
 - [3. Groupes](#3-groupes) — 108 à faire, 61 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -557,37 +557,54 @@ sondage « jamais voté » et sans auteur. Et `post_poll_votes` n'est lisible qu
 par l'auteur de la ligne — la lecture des votants réussissait à vide.
 Voir « Sondage dans une discussion privée » pour le parcours de création.
 
-- [ ] **Voter dans une bulle de sondage** (DM et groupe) : la carte bascule
+- [x] **Voter dans une bulle de sondage** (DM et groupe) : la carte bascule
       aussitôt sur les pourcentages, l'option choisie reste encadrée, et le
       nom de l'auteur s'affiche en en-tête. (`poll_supabase_datasource.dart`,
       `poll_card.dart`)
-- [ ] **Quitter l'écran et revenir** : le vote est toujours marqué comme le
+- [x] **Quitter l'écran et revenir** : le vote est toujours marqué comme le
       sien. C'est ce qui ne tenait pas.
-- [ ] **« Modifier mon vote »** : la sélection se rouvre sur son propre choix ;
+- [x] **« Modifier mon vote »** : la sélection se rouvre sur son propre choix ;
       en choisir un autre le remplace (l'ancien compteur retombe) ;
       tout décocher affiche « Retirer mon vote » et remet le total à zéro.
 - [ ] **Sondage à choix multiple** : plusieurs cases, total = nombre de voix.
 - [ ] **Sondage terminé** : « Sondage terminé » dans la ligne d'info, plus
       aucune façon de voter ni de se corriger.
-- [ ] **Écran de résultats d'un sondage normal** : le badge « Votre choix »
+- [x] **Écran de résultats d'un sondage normal** : le badge « Votre choix »
       apparaît, et les votants sont listés sous chaque option, pour tous ceux
       qui voient le sondage. (`poll_results_screen.dart`, RPC
       `poll_option_voters`) — plus de « Aucun vote pour le moment » sous une
       option qui en a.
-- [ ] **Créer un sondage anonyme** (la bascule est éteinte par défaut) :
-      aucune liste de votants nulle part, pas même pour son auteur, et la
-      phrase du bas le dit. (`create_poll_sheet.dart`, `is_anonymous`)
+- [x] **Sondage anonyme** : vérifié SM A515F sur un vrai sondage anonyme du
+      groupe Testeurs — la bulle dit « Vote anonyme », l'écran de résultats
+      n'affiche aucun votant et porte « Sondage anonyme : personne ne voit qui
+      a voté quoi », alors que le sondage a 2 voix. En base, sous l'identité du
+      lecteur : `poll_option_voters` rend 0 ligne pour l'anonyme et 2 pour le
+      sondage normal du même groupe.
+- [ ] **Créer** un sondage anonyme depuis la feuille (la bascule est éteinte
+      par défaut) : c'est la seule moitié non rejouée à la main.
 - [ ] **La notice sous la question** : « Vote public : votre nom sera
       visible », ou « Vote anonyme » — lisible AVANT de choisir, dans la
-      bulle comme dans le fil.
-- [ ] **Un sondage créé avant cette version** reste non anonyme (défaut
+      bulle comme dans le fil. *Les trois sondages du groupe Testeurs l'ont
+      affichée correctement à froid le 2026-09-14 (deux « Vote public », un
+      « Vote anonyme ») ; les absences vues pendant la passe venaient de taps
+      à l'estime qui regardaient un autre écran.*
+- [x] **Un sondage créé avant cette version** reste non anonyme (défaut
       `FALSE`) : sa notice dit bien « vote public ».
-- [ ] **Deux téléphones en même temps** : le vote de l'un fait bouger le
+- [x] **Deux téléphones en même temps** : le vote de l'un fait bouger le
       compteur chez l'autre sans quitter l'écran (temps réel).
-- [ ] **Thème sombre et échelle de police 1.1** : le pied de carte
-      (« N votes · Sondage terminé » + les boutons) passe à la ligne au lieu de
-      déborder — il est passé en `Wrap`.
-- [ ] **Avant la migration** : voter fonctionne toujours (repli sur l'ancien
+- [x] **Échelle de police 1.3** : le pied de carte ne déborde pas, il passe
+      à la ligne (vérifié SM A515F). Mais les deux boutons se retrouvent l'un
+      sous l'autre avec « 2 votes » centré entre eux : c'est laid, et ça
+      empire avec la police. À reprendre.
+- [x] **Thème sombre** : carte vérifiée SM A515F — fond sombre, notice
+      lisible en gris, option choisie encadrée en violet, pied sur une ligne.
+- [ ] **Thème sombre** : la feuille de création et l'écran de résultats.
+- [ ] **Pied de carte sur une bulle reçue** (plus étroite qu'une bulle
+      envoyée) : « Modifier mon vote » et « Voir les résultats » passent l'un
+      sous l'autre et « N votes » se retrouve centré entre les deux. Rien ne
+      déborde, même à l'échelle 1.3, mais ça se lit mal. (`poll_card.dart`,
+      le `Wrap` du pied)
+- [x] **Avant la migration** : voter fonctionne toujours (repli sur l'ancien
       chemin), mais la liste des votants reste vide.
 
 ---
