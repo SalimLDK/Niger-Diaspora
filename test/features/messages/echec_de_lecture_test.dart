@@ -49,6 +49,39 @@ class _FauxReseau implements NetworkInfo {
 }
 
 class _DepotQuiEchoue implements MessageRepository {
+  /// Rien en cache : sans ça, le provider servirait la copie locale et
+  /// l'erreur ne serait jamais observée.
+  @override
+  Either<Failure, List<ConversationEntity>> getCachedConversations() =>
+      const Right(<ConversationEntity>[]);
+
+  @override
+  Stream<Either<Failure, ConversationEntity?>> getConversationStream(
+    String conversationId,
+  ) {
+    return Stream.value(
+      Left<Failure, ConversationEntity?>(ServerFailure('hors ligne')),
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Le cas du démarrage à froid hors ligne : la lecture réseau échoue, mais la
+/// conversation est déjà sur le disque.
+class _DepotAvecCache implements MessageRepository {
+  @override
+  Either<Failure, List<ConversationEntity>> getCachedConversations() => Right([
+    ConversationEntity(
+      id: 'c1',
+      type: ConversationType.individual,
+      participantIds: const ['moi', 'lautre'],
+      createdAt: DateTime(2026, 1, 1),
+      createdBy: 'moi',
+    ),
+  ]);
+
   @override
   Stream<Either<Failure, ConversationEntity?>> getConversationStream(
     String conversationId,
@@ -99,5 +132,23 @@ void main() {
     expect(etat.hasError, isTrue);
     // Le piège : `null` ici, c'est « conversation supprimée » à l'écran.
     expect(etat.hasValue, isFalse);
+  });
+
+  test('hors ligne, la conversation en cache est servie avant le réseau', () async {
+    final container = ProviderContainer(
+      overrides: [
+        messageRepositoryProvider.overrideWithValue(_DepotAvecCache()),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    container.listen(conversationStreamProvider('c1'), (_, __) {},
+        fireImmediately: true);
+    await Future<void>.delayed(Duration.zero);
+
+    // Sans elle, l'écran ne sait pas qui est en face : l'identifiant de
+    // l'autre participant se déduit de la conversation.
+    final etat = container.read(conversationStreamProvider('c1'));
+    expect(etat.valueOrNull?.id, 'c1');
   });
 }

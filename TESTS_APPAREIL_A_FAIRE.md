@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**915 cases à cocher, 511 cochées** — 186 entrées sur 230 ont encore des cases ouvertes.
+**915 cases à cocher, 512 cochées** — 186 entrées sur 230 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -244,7 +244,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 138 à faire, 59 faites
+- [2. Messagerie](#2-messagerie) — 138 à faire, 60 faites
 - [3. Groupes](#3-groupes) — 115 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -652,6 +652,32 @@ réellement supprimé) reste une donnée, pas une panne, donc aucune reprise
 dessus. Deux tests neufs :
 `test/features/profile/user_stream_reprise_test.dart`.
 
+**Deuxième moitié, le 2026-09-14** : afficher le nom **pendant** la coupure, et
+pas seulement au retour du réseau. Trois manques se cachaient derrière le repli.
+
+- La boîte Hive `profiles_cache` existait depuis toujours, mais **aucun profil
+  n'y était écrit** : le seul cache de profils vivait en mémoire, donc rien ne
+  survivait à un démarrage à froid. `_memoriser()` écrit désormais les deux
+  ([profile_supabase_datasource.dart](lib/features/profile/data/datasources/profile_supabase_datasource.dart:487)),
+  et `getCachedProfile` retombe sur le disque.
+- `userStreamProvider` n'allait pas chercher ce dernier profil connu avant sa
+  lecture réseau : il part maintenant en premier (stale-while-revalidate).
+- Et surtout, `identityLoading` déclarait l'identité « en chargement » dès que
+  **le flux de la conversation** n'avait pas de valeur — le nom était en cache,
+  l'écran refusait de l'afficher pour une raison qui n'avait rien à voir avec
+  lui. `otherUser == null` passe en tête de la condition
+  ([conversation_screen.dart:1199](lib/features/messages/presentation/screens/conversation_screen.dart:1199)).
+
+`conversationStreamProvider` sert en plus la conversation en cache avant le
+réseau : sans elle, un écran atteint sans `state.extra` (lien profond,
+notification) ne sait même pas **qui** est en face — l'identifiant de l'autre
+participant s'en déduit — et le cache de profil ne sert alors à rien.
+
+- [x] **Hors ligne, dès l'ouverture** : l'en-tête affiche « Salim L. » et son
+      avatar « SL » sans attendre le réseau, et la liste des discussions ne
+      montre plus « Utilisateur ». Vérifié SM A515F le 2026-09-14 (release md5
+      `83a6ec4e…`) ; au retour du réseau, « En ligne » et la pastille de
+      présence s'ajoutent.
 - [x] **Après correction** : les quatre étapes rejouées sur la release du
       correctif (md5 `103379e7…`) — hors ligne l'en-tête affiche toujours son
       repli, puis **se remplit tout seul 20 s après le retour du réseau**
