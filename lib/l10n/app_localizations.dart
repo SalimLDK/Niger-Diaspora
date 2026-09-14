@@ -4274,6 +4274,24 @@ abstract class AppLocalizations {
   /// **'Notez-nous sur le store'**
   String get rateUsOnStore;
 
+  /// No description provided for @rateApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noter l\'application'**
+  String get rateApp;
+
+  /// No description provided for @rateAppSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre avis compte, et il aide l\'app à se faire connaître'**
+  String get rateAppSubtitle;
+
+  /// No description provided for @rateAppUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir la fiche du store sur cet appareil'**
+  String get rateAppUnavailable;
+
   /// No description provided for @deleteAccountTitle.
   ///
   /// In fr, this message translates to:

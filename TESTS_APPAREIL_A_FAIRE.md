@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**953 cases à cocher, 537 cochées** — 194 entrées sur 238 ont encore des cases ouvertes.
+**959 cases à cocher, 537 cochées** — 195 entrées sur 239 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -126,7 +126,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (67)
+**P2 — fonction secondaire ou cas limite** (68)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -158,6 +158,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
 - 4 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
@@ -261,7 +262,7 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 108 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 34 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 34 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
@@ -11724,6 +11725,56 @@ attendre le sondage.
 # 11. Accueil, profil et réglages
 
 Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature flags d'écrans.
+
+---
+
+## ⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Le dialogue natif d'avis ne dit jamais s'il s'est affiché : aucun banc, aucun journal ne peut distinguer « montré » de « avalé par le quota ».
+
+*Bloqué pour le dialogue natif : demande une installation **venue de Play**
+(piste de test interne), un compte neuf, et huit ouvertures étalées sur plus
+de trois jours. Un APK latéral ne le montrera jamais, même en release.*
+
+Le paquet `in_app_review` entre dans le projet
+([app_review_service.dart](lib/core/services/app_review_service.dart)), avec
+deux chemins volontairement distincts :
+
+- **le bouton** des Réglages ouvre la **fiche du store**, jamais le dialogue
+  natif — Google demande expressément de ne pas câbler un bouton « Noter »
+  sur `requestReview()`, que le quota peut avaler : l'utilisateur voit alors
+  un bouton mort ;
+- **l'invitation automatique** part du Fil
+  ([home_screen.dart](lib/features/home/presentation/screens/home_screen.dart)),
+  après huit ouvertures, trois jours d'ancienneté, et une seule fois par
+  trimestre.
+
+[app_review_service_test.dart](test/core/services/app_review_service_test.dart)
+tient les seuils, le recalage d'une horloge menteuse, et le point qui compte :
+un `requestReview()` muet ne doit pas relancer la demande à **chaque**
+ouverture. Ce que le banc ne peut pas voir :
+
+- [ ] **La tuile est là** : Réglages → « Application », étoile, entre
+      « Aide & FAQ » et « À propos », en clair **et** en sombre.
+      (`settings_screen.dart`)
+- [ ] **L'appui ouvre l'application Play Store** sur la fiche Diaspo Niger, pas
+      un navigateur ni « élément introuvable ». La fiche est bien publiée :
+      vérifié en ligne le 2026-09-14 (Mirai Tech., 10+ téléchargements).
+- [ ] **Sans Play Store** (ou Play désactivé) : le bandeau
+      « Impossible d'ouvrir la fiche du store… » s'affiche. Le bouton ne doit
+      jamais rester muet.
+- [ ] **iOS** : `https://apps.apple.com/app/id6807607258` répondait
+      « The page you're looking for can't be found » le 2026-09-14 — la fiche
+      n'est pas publiée. Le bouton mènera là tant que ce n'est pas le cas
+      (voir « iOS : signature et conformité export jamais compilées » au § 14).
+- [ ] **L'invitation ne s'empile pas** : jamais par-dessus les coach marks du
+      premier démarrage, ni par-dessus un écran poussé par un lien profond ou
+      une notification pendant les quatre secondes d'attente.
+- [ ] **Le compteur tient au redémarrage** : huit ouvertures cumulées, pas
+      huit d'affilée dans la même session. `adb shell run-as` sur les clés
+      `review_*` de `SharedPreferences` permet de le lire sans attendre.
+
+---
 
 ---
 

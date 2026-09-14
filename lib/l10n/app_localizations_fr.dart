@@ -2316,6 +2316,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get rateUsOnStore => 'Notez-nous sur le store';
 
   @override
+  String get rateApp => 'Noter l\'application';
+
+  @override
+  String get rateAppSubtitle =>
+      'Votre avis compte, et il aide l\'app à se faire connaître';
+
+  @override
+  String get rateAppUnavailable =>
+      'Impossible d\'ouvrir la fiche du store sur cet appareil';
+
+  @override
   String get deleteAccountTitle => 'Supprimer le compte';
 
   @override
