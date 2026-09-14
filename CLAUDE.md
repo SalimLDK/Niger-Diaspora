@@ -20,12 +20,21 @@ git worktree add -b claude/<sujet> .claude/worktrees/<sujet> HEAD
 W=.claude/worktrees/<sujet>
 cp .env "$W/"                                  # ignorés par git, requis
 cp functions/.env "$W/functions/"
+mkdir -p "$W/supabase/.temp" && cp supabase/.temp/* "$W/supabase/.temp/"
 cp android/key.properties "$W/android/"        # uniquement pour un build release
 cp android/app/diaspo-niger-release.jks "$W/android/app/"
 ```
 
 Sans le `.env` copié, toute commande Flutter échoue sur l'asset manquant.
 Compter ~4 min au premier `flutter analyze` (résolution des paquets).
+
+`supabase/.temp/` porte le lien vers le projet distant (ignoré par git,
+`.gitignore:80`). Sans lui, toute commande `--linked` — `db query`, `db push`,
+`migration list` — échoue sur « Cannot find project ref. Have you run supabase
+link? ». **Copier le dossier entier, pas seulement `project-ref`** : avec ce
+seul fichier, l'erreur change sans que rien ne marche mieux, en « IPv6 is not
+supported on your current network » — c'est `pooler-url` qui manque, et
+l'invite à relancer `supabase link` est trompeuse, le lien n'ayant rien perdu.
 
 Les deux derniers ne servent qu'à `flutter build apk --release`, mais leur
 absence ne se voit qu'**au tout dernier moment** : `signingConfigs.release` lit
