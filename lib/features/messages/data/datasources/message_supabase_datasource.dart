@@ -611,6 +611,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   Stream<List<ConversationModel>> getConversations(String userId) {
     final controller = StreamController<List<ConversationModel>>.broadcast();
 
+    // Écran ouvert hors ligne : la lecture initiale échoue et rien ne la
+    // retente. Le rejoint du canal, au retour du réseau, devient sa première
+    // occasion de charger — voir [rattrapageAuRejoint].
+    var echecInitial = false;
+
     Future<void> fetch() async {
       try {
         // Session non confirmée (fenêtre `_startFromLocalSession`,
@@ -632,7 +637,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         if (!controller.isClosed) {
           controller.add(rows.map(_convFromRow).toList());
         }
+        echecInitial = false;
       } catch (e) {
+        echecInitial = true;
         if (!controller.isClosed) {
           controller.addError(ServerException('getConversations error: $e'));
         }
@@ -651,7 +658,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           table: 'conversations',
           callback: (_) => fetch(),
         )
-        .subscribe(rattrapageAuRejoint(fetch, etiquette: 'conversations'));
+        .subscribe(
+          rattrapageAuRejoint(
+            fetch,
+            lectureInitialeEnEchec: () => echecInitial,
+            etiquette: 'conversations',
+          ),
+        );
 
     controller.onCancel = () {
       ch.unsubscribe();
@@ -665,6 +678,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   Stream<ConversationModel?> getConversationStream(String conversationId) {
     final controller = StreamController<ConversationModel?>.broadcast();
 
+    // Même raison que dans `getConversations` : discussion ouverte hors ligne.
+    var echecInitial = false;
+
     Future<void> fetch() async {
       try {
         final rows = await _supabase
@@ -675,7 +691,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         if (!controller.isClosed) {
           controller.add(rows.isEmpty ? null : _convFromRow(rows.first));
         }
+        echecInitial = false;
       } catch (e) {
+        echecInitial = true;
         if (!controller.isClosed) controller.addError(e);
       }
     }
@@ -695,7 +713,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           ),
           callback: (_) => fetch(),
         )
-        .subscribe(rattrapageAuRejoint(fetch, etiquette: 'conversation'));
+        .subscribe(
+          rattrapageAuRejoint(
+            fetch,
+            lectureInitialeEnEchec: () => echecInitial,
+            etiquette: 'conversation',
+          ),
+        );
 
     controller.onCancel = () {
       ch.unsubscribe();
@@ -770,6 +794,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   Stream<List<ConversationModel>> getMessageRequests(String userId) {
     final controller = StreamController<List<ConversationModel>>.broadcast();
 
+    // Même raison que dans `getConversations` : écran ouvert hors ligne.
+    var echecInitial = false;
+
     Future<void> fetch() async {
       try {
         final rows = await _supabase
@@ -789,7 +816,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
                 .toList();
 
         if (!controller.isClosed) controller.add(requests);
+        echecInitial = false;
       } catch (e) {
+        echecInitial = true;
         if (!controller.isClosed) {
           controller.addError(ServerException('getMessageRequests error: $e'));
         }
@@ -806,7 +835,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           table: 'conversations',
           callback: (_) => fetch(),
         )
-        .subscribe(rattrapageAuRejoint(fetch, etiquette: 'demandes'));
+        .subscribe(
+          rattrapageAuRejoint(
+            fetch,
+            lectureInitialeEnEchec: () => echecInitial,
+            etiquette: 'demandes',
+          ),
+        );
 
     controller.onCancel = () {
       ch.unsubscribe();

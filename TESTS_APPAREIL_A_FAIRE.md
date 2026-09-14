@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**892 cases à cocher, 503 cochées** — 182 entrées sur 226 ont encore des cases ouvertes.
+**892 cases à cocher, 504 cochées** — 182 entrées sur 226 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -240,7 +240,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 129 à faire, 54 faites
+- [2. Messagerie](#2-messagerie) — 129 à faire, 55 faites
 - [3. Groupes](#3-groupes) — 101 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
@@ -511,10 +511,21 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 Ne se teste **que** sur appareil : la coupure de socket, la mise en veille
 Android et la suspension des timers n'existent pas sous `flutter test`.
 
-- [ ] **Liste des discussions** : Sim écrit pendant que le téléphone de Salim
-      est en mode avion ; rétablir le réseau → la ligne remonte et le compteur
-      de non-lus apparaît, **sans** tiré-pour-rafraîchir.
+- [x] **Liste des discussions** : un correspondant écrit pendant que le
+      téléphone est hors ligne ; rétablir le réseau → la ligne remonte et le
+      compteur de non-lus apparaît, **sans** tiré-pour-rafraîchir.
+      Vérifié SM A515F le 2026-09-14, rôles inversés (Salim écrit, Sim est
+      hors ligne), coupure de 45 s, écran jamais touché :
+      03:34 en ligne « …-LIGNE-1 · 03:28 · 1 » → 03:35 hors ligne, inchangée
+      → réseau rétabli 03:35:46 → **03:36, 15 s après : « …-LIGNE-2 · 03:34 ·
+      2 »**. Le logcat ne porte aucun événement FCM après la reconnexion (le
+      seul est à 03:34:24, avant) : ce n'est pas un push qui a rafraîchi.
       (`message_supabase_datasource.dart`, `realtime_rattrapage.dart`)
+- [ ] **Écran ouvert alors que l'appareil est DÉJÀ hors ligne**, puis retour
+      du réseau : la liste se remplit seule. C'est le trou trouvé pendant la
+      passe du 2026-09-14 — la lecture initiale échouait, rien ne la
+      retentait, et le premier `subscribed` était sauté comme « déjà lu ».
+      Corrigé par `lectureInitialeEnEchec`, **jamais revérifié sur appareil**.
 - [ ] **Discussion ouverte** : même scénario, écran de discussion affiché à
       l'écran → les messages manqués s'insèrent dans l'ordre, **sans doublon**
       (la déduplication par id de `MessageNotifier` doit les absorber).
@@ -528,6 +539,15 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
       timers Android sont suspendus — puis retour au premier plan : tout
       revient sans redémarrer l'app. (`supabase_auth_bridge.dart`,
       `surveillerLeCycleDeVie`)
+
+      ⚠️ **Un premier essai du 2026-09-14 a échoué et n'est pas concluant.**
+      Coupure de 3 h 15 (00:17 → 03:30), app au premier plan : une minute
+      après le retour du réseau, la liste était toujours figée sur son état
+      d'avant. Mais l'essai est pollué — quelqu'un a navigué sur le téléphone
+      pendant la coupure, ce qui a pu recréer le flux hors ligne (le cas
+      ci-dessus, corrigé depuis). À refaire sans toucher l'appareil, et en
+      distinguant les deux causes : session expirée, ou flux recréé hors
+      ligne.
 - [ ] **Pas de tempête de requêtes** : basculer Wi-Fi ↔ données plusieurs fois
       de suite ne doit pas relancer une relecture par seconde (`adb logcat`,
       lignes « realtime: rejoint … → rattrapage »).

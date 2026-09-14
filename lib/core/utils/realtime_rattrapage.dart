@@ -18,20 +18,31 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// lecture initiale, la relancer ne ferait que doubler la requête au
 /// démarrage. Seuls les rejoints suivants déclenchent [relire].
 ///
+/// ⚠️ **Sauf si cette lecture initiale a échoué.** Un écran ouvert alors que
+/// l'appareil est déjà hors ligne n'a rien pu charger, et le premier `subscribed`
+/// — qui n'arrive qu'au retour du réseau — est alors sa première occasion
+/// d'afficher quoi que ce soit. Sans [lectureInitialeEnEchec], il restait sur
+/// son erreur jusqu'à ce que l'utilisateur tire pour rafraîchir. L'appelant
+/// signale l'échec ; on ne relit pas sur « pas encore terminée », sinon la
+/// requête serait doublée à chaque démarrage.
+///
 /// À passer directement à `subscribe()` :
 ///
 /// ```dart
-/// canal.onPostgresChanges(...).subscribe(rattrapageAuRejoint(fetch));
+/// canal.onPostgresChanges(...).subscribe(
+///   rattrapageAuRejoint(fetch, lectureInitialeEnEchec: () => echecInitial),
+/// );
 /// ```
 void Function(RealtimeSubscribeStatus, Object?) rattrapageAuRejoint(
   void Function() relire, {
+  bool Function()? lectureInitialeEnEchec,
   String? etiquette,
 }) {
   var dejaRejoint = false;
   return (status, error) {
     switch (status) {
       case RealtimeSubscribeStatus.subscribed:
-        if (dejaRejoint) {
+        if (dejaRejoint || (lectureInitialeEnEchec?.call() ?? false)) {
           if (etiquette != null) {
             debugPrint('realtime: rejoint « $etiquette » → rattrapage');
           }
