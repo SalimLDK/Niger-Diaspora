@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**948 cases à cocher, 530 cochées** — 192 entrées sur 236 ont encore des cases ouvertes.
+**951 cases à cocher, 535 cochées** — 193 entrées sur 237 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 **P1 — fonction importante, jamais vérifiée** (57)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
-- 7 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
+- 4 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
@@ -195,7 +195,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (49)
+**P3 — confort, cosmétique, fonction en pause** (50)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -210,6 +210,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 6 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
 - 2 · [La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)](#la-signature-de-clé-pré-signée-ne-peut-jamais-vérifier-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
@@ -250,8 +251,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 161 à faire, 65 faites
-- [3. Groupes](#3-groupes) — 111 à faire, 57 faites
+- [2. Messagerie](#2-messagerie) — 167 à faire, 65 faites
+- [3. Groupes](#3-groupes) — 108 à faire, 61 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
@@ -259,7 +260,7 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 110 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 33 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
@@ -509,6 +510,38 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)
+
+**Priorité P3** · importance 2/5 — Les huit tuiles du « + » se partageaient **deux** valeurs : l'accent du compte pour les médias, le secondaire pour le contenu interactif. Caméra, Galerie, Vidéos, Audio et Document sortaient donc du même orange, seul le libellé les distinguait — et sur un compte en thème Vert, les huit tombaient dans deux verts voisins.
+
+Source unique : `AttachmentAccents`
+([attachment_accents.dart](lib/features/messages/presentation/theme/attachment_accents.dart)),
+lue par les **deux** surfaces du « + ». Même démarche que « Une couleur par
+service dans les deux grilles », avec le même prune pour l'événement des deux
+côtés. Contrastes calculés sur l'aplat à 12 % : ≥ 3,3:1 en clair sauf la
+galerie (2,3:1, l'orange était déjà ainsi) et l'audio (2,0:1), ≥ 5,4:1 en
+nocturne.
+
+- [ ] **Appui simple sur le « + »** (panneau ancré, grille 3×2) : six teintes
+  distinctes — Caméra teal, Galerie orange, Document bleu, Position
+  terracotta, Sondage vert feuille, Événement prune.
+- [ ] **Appui long sur le « + »** (ancien sheet complet) : une pièce jointe y
+  porte la **même** couleur que dans le panneau. S'y ajoutent Vidéos (vert
+  Niger) et Audio (or).
+- [ ] **Tuile Audio en thème clair** : c'est la plus pâle de toutes (l'or sur
+  son propre aplat). Juger à l'œil si elle tient, ou s'il lui faut un or plus
+  foncé en clair.
+- [ ] **Thème sombre** : les huit icônes restent lisibles sur leur aplat à
+  12 %.
+- [ ] **Compte en thème Orange puis Vert** : les tuiles ne suivent plus
+  l'accent du compte. Le « + » lui-même, lui, le suit toujours — vérifier que
+  le panneau ne jure pas avec la pastille qui l'ouvre.
+- [ ] **Groupe et 1:1** : Position, Sondage et Événement sont conditionnels
+  (`onSendLocation`, `onCreatePoll`, `onCreateEvent`). La grille reste régulière
+  quand il n'y a que trois ou quatre tuiles.
 
 ---
 
@@ -2665,14 +2698,14 @@ SELECT public.get_or_create_ville_group(
 - [ ] **Sur appareil, profil invisible** : se mettre invisible, provoquer
   l'ouverture d'un groupe pour sa ville, et vérifier qu'**aucune**
   notification n'arrive.
-- [ ] **Sur appareil** : la carte des groupes (Groupes → carte) montre une
+- [x] **Sur appareil** : la carte des groupes (Groupes → carte) montre une
   épingle par VILLE en plus des épingles de pays, au bon endroit, et le
   panneau du bas porte le nom de la ville.
-- [ ] **Sur appareil** : « Diaspora Niger — Angola » et « — Cap-Vert »
+- [x] **Sur appareil** : « Diaspora Niger — Angola » et « — Cap-Vert »
   apparaissent enfin sur la carte. Leurs pays n'étaient dans aucun des 32
   centroïdes écrits en dur : les deux groupes existaient et n'étaient
   simplement jamais dessinés, sans le moindre message.
-- [ ] **Sur appareil** : les 32 pays qui ont un centroïde n'ont pas bougé
+- [x] **Sur appareil** : les 32 pays qui ont un centroïde n'ont pas bougé
   (Niger, France, Canada…) — le repli par la plus grande ville ne sert que
   là où il n'y avait rien.
 - [x] **Sur appareil, fiche « Diaspora Niger — Niger »** : une section
@@ -2690,10 +2723,24 @@ SELECT public.get_or_create_ville_group(
   Découvrir montre les groupes, pas une liste vide. Le filtre de ville ne
   filtre rien tant qu'il ne sait pas où sont les groupes (vérifié au banc,
   mais c'est le timing réel qui compte).
-- [ ] **Sur appareil** : la carte montre « Diaspora Niger — Niamey » à
+- [x] **Sur appareil** : la carte montre « Diaspora Niger — Niamey » à
   Niamey, et « — Niger » à sa place habituelle — deux épingles distinctes,
   pas une seule. C'est le cas où ville et pays coexistent au même endroit du
   monde, celui qui risque de les superposer.
+
+  Vu le 2026-09-14 : l'épingle de Niamey porte l'infobulle « Niamey ·
+  1 groupe » et ouvre un panneau titré « Niamey » avec « Diaspora Niger —
+  Niamey · 2 membres · Officiel ». Cap-Vert apparaît dans l'Atlantique et
+  Angola au sud — les deux qui n'étaient jamais dessinées. Algérie, Niger et
+  Nigeria restent à leur centroïde habituel.
+
+⚠️ **Trouvé en y allant : `/groups/map` n'est atteignable par AUCUN écran.**
+La route existe dans `app_router.dart`, mais rien ne la pousse — j'ai dû
+passer par un lien profond (`diasponiger://groups/map`). Toute cette carte,
+centroïdes compris, est donc du code que personne ne voit depuis l'app.
+- [ ] **À décider** : lui donner une entrée (un bouton sur l'écran Groupes),
+  ou la retirer. Voir « Feature flags » du domaine Design pour le précédent
+  d'un écran rendu invisible par le routeur.
 
 ### Vérifié sur SM A515F le 2026-09-14 (APK release `703f4eda…`, `ddb6dfa`)
 
@@ -11682,11 +11729,13 @@ les quatre règles au banc (proposition bornée au pays, choix d'une ligne,
 choix défait à la frappe, échec de recherche sans écran rouge). Ce que le banc
 ne peut pas voir :
 
-- [ ] **Sur appareil** : « À propos » (Profil → Réglages → À propos) affiche
+- [x] **Sur appareil** : « À propos » (Profil → Réglages → À propos) affiche
   « Liste des villes : GeoNames (CC BY 4.0) » sous « Tous droits réservés ».
-  C'est une obligation de la licence CC BY, pas un ornement. Vérifier aussi en
-  **thème sombre** (le texte utilise `textTertiaryColor`, pas un jeton clair
-  figé) et en anglais.
+  C'est une obligation de la licence CC BY, pas un ornement. Vu le 2026-09-14
+  en **clair ET en sombre** : le dialogue prend bien le fond sombre, et la
+  mention reste lisible — `textTertiaryColor`, pas un jeton clair figé. Thème
+  relevé (« Système ») et remis à l'identique après.
+- [ ] **En anglais** : la même mention, `cityDataCredit` étant traduite.
 Le champ est désormais posé sur **Modifier le profil**
 ([edit_profile_screen.dart](lib/features/profile/presentation/screens/edit_profile_screen.dart)),
 et `users.ville_id` fait l'aller-retour. Sept cas de cohérence ville ↔ pays

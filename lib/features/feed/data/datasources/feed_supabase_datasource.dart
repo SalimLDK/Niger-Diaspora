@@ -204,7 +204,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   @override
   Future<PostModel> createPost(PostModel post) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final media = _buildMediaJson(post);
     final data = await _supabase
@@ -235,7 +235,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   @override
   Future<PostModel> updatePost(PostModel post) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final media = _buildMediaJson(post);
     final data = await _supabase
@@ -260,7 +260,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   @override
   Future<void> deletePost(String postId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     // `.select()` rend les lignes réellement supprimées. Une suppression que
     // la RLS refuse (`posts_manage_own` : l'auteur seul) ne lève rien et
@@ -328,7 +328,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   @override
   Future<void> toggleLike(String postId, String userId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final existing = await _supabase
         .from('post_likes')
@@ -408,7 +408,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   @override
   Future<CommentModel> addComment(String postId, CommentModel comment) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final data = await _supabase
         .from('post_comments')
@@ -433,7 +433,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   @override
   Future<void> deleteComment(String postId, String commentId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     await _supabase.from('post_comments').delete().eq('id', commentId);
     await _supabase.rpc(
@@ -445,7 +445,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   @override
   Future<void> toggleCommentLike(String commentId, String userId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final existing = await _supabase
         .from('post_comment_likes')
@@ -497,7 +497,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   @override
   Future<void> toggleFollow(String targetUserId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final uid = _currentUserId;
     if (uid == null) return;
@@ -583,7 +583,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   @override
   Future<void> toggleBookmark(String postId, String userId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final existing = await _supabase
         .from('post_bookmarks')
@@ -646,7 +646,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   @override
   Future<bool> toggleRepost(String postId, String userId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final existing = await _supabase
         .from('post_reposts')
@@ -686,7 +686,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
     String comment,
   ) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final existing = await _supabase
         .from('post_reposts')
@@ -720,7 +720,7 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   @override
   Future<void> incrementExternalShare(String postId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     await _supabase.rpc(
       'increment_post_external_share',

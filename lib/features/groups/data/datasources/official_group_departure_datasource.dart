@@ -74,7 +74,7 @@ class OfficialGroupDepartureDataSource {
   /// dans ce pays entre-temps).
   Future<String?> answer(String groupId, {required bool leave}) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final result = await _supabase.rpc(
       'repondre_depart_groupe_officiel',

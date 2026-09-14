@@ -66,7 +66,7 @@ void main() {
       // absente. Laissée fatale, sciemment.
       expect(
         estPanneReseau(
-          'ServerException: Session Supabase non établie – reconnectez-vous',
+          'ServerException: Session non établie – reconnectez-vous',
         ),
         isFalse,
       );

@@ -118,7 +118,7 @@ class VillesService {
     // rendrait une liste vide, et le champ paraîtrait simplement ne rien
     // connaître.
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase indisponible.');
+      throw ServerException('Session indisponible.');
     }
     try {
       final dynamic brut = await _client.rpc(
@@ -144,7 +144,7 @@ class VillesService {
     double rayonKm = 50,
   }) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase indisponible.');
+      throw ServerException('Session indisponible.');
     }
     try {
       final dynamic brut = await _client.rpc(

@@ -15,6 +15,7 @@ import '../../../../core/services/permission_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../theme/attachment_accents.dart';
 import '../widgets/location_picker_modal.dart';
 import '../screens/camera_capture_screen.dart';
 import '../screens/gallery_picker_screen.dart';
@@ -684,7 +685,7 @@ class _MessageInputState extends State<MessageInput>
                     _AttachmentOption(
                       icon: Icons.camera_alt,
                       label: l10n.cameraSection,
-                      color: context.adaptiveSecondaryColor,
+                      color: AttachmentAccents.camera.of(context),
                       onTap: () {
                         Navigator.pop(context);
                         _openCamera();
@@ -693,7 +694,7 @@ class _MessageInputState extends State<MessageInput>
                     _AttachmentOption(
                       icon: Icons.photo_library,
                       label: l10n.photosLabel,
-                      color: context.adaptivePrimaryColor,
+                      color: AttachmentAccents.gallery.of(context),
                       onTap: () {
                         Navigator.pop(context);
                         _pickFromGalleryUnified();
@@ -702,7 +703,7 @@ class _MessageInputState extends State<MessageInput>
                     _AttachmentOption(
                       icon: Icons.video_library,
                       label: l10n.videosLabel,
-                      color: context.adaptivePrimaryColor,
+                      color: AttachmentAccents.video.of(context),
                       onTap: () {
                         Navigator.pop(context);
                         _pickVideo();
@@ -718,7 +719,7 @@ class _MessageInputState extends State<MessageInput>
                     _AttachmentOption(
                       icon: Icons.audiotrack,
                       label: l10n.audioLabel,
-                      color: context.adaptivePrimaryColor,
+                      color: AttachmentAccents.audio.of(context),
                       onTap: () {
                         Navigator.pop(context);
                         _pickAudio();
@@ -727,7 +728,7 @@ class _MessageInputState extends State<MessageInput>
                     _AttachmentOption(
                       icon: Icons.insert_drive_file,
                       label: l10n.documentsLabel,
-                      color: context.adaptivePrimaryColor,
+                      color: AttachmentAccents.document.of(context),
                       onTap: () {
                         Navigator.pop(context);
                         _pickFile();
@@ -746,7 +747,7 @@ class _MessageInputState extends State<MessageInput>
                         _AttachmentOption(
                           icon: Icons.event,
                           label: l10n.eventLabel,
-                          color: context.adaptiveSecondaryColor,
+                          color: AttachmentAccents.event.of(context),
                           onTap: () {
                             Navigator.pop(context);
                             widget.onCreateEvent!();
@@ -756,7 +757,7 @@ class _MessageInputState extends State<MessageInput>
                         _AttachmentOption(
                           icon: Icons.poll,
                           label: l10n.pollLabel,
-                          color: context.adaptiveSecondaryColor,
+                          color: AttachmentAccents.poll.of(context),
                           onTap: () {
                             Navigator.pop(context);
                             widget.onCreatePoll!();
@@ -803,7 +804,7 @@ class _MessageInputState extends State<MessageInput>
                       _AttachmentOption(
                         icon: Icons.location_on,
                         label: l10n.positionLabel,
-                        color: context.adaptiveSecondaryColor,
+                        color: AttachmentAccents.location.of(context),
                         onTap: () {
                           Navigator.pop(context);
                           _showLocationPicker();
@@ -1332,7 +1333,7 @@ class _MessageInputState extends State<MessageInput>
       _buildAttachTile(
         icon: Icons.photo_camera,
         label: l10n.cameraSection,
-        color: context.adaptivePrimaryColor,
+        color: AttachmentAccents.camera.of(context),
         onTap: () {
           _toggleAttachPanel();
           _openCamera();
@@ -1341,7 +1342,7 @@ class _MessageInputState extends State<MessageInput>
       _buildAttachTile(
         icon: Icons.photo_library,
         label: l10n.photosLabel,
-        color: context.adaptivePrimaryColor,
+        color: AttachmentAccents.gallery.of(context),
         onTap: () {
           _toggleAttachPanel();
           _pickFromGalleryUnified();
@@ -1350,7 +1351,7 @@ class _MessageInputState extends State<MessageInput>
       _buildAttachTile(
         icon: Icons.description,
         label: l10n.documentsLabel,
-        color: context.adaptivePrimaryColor,
+        color: AttachmentAccents.document.of(context),
         onTap: () {
           _toggleAttachPanel();
           _pickFile();
@@ -1360,7 +1361,7 @@ class _MessageInputState extends State<MessageInput>
         _buildAttachTile(
           icon: Icons.location_on,
           label: l10n.positionLabel,
-          color: context.adaptiveSecondaryColor,
+          color: AttachmentAccents.location.of(context),
           onTap: () {
             _toggleAttachPanel();
             _showLocationPicker();
@@ -1370,7 +1371,7 @@ class _MessageInputState extends State<MessageInput>
         _buildAttachTile(
           icon: Icons.poll,
           label: l10n.pollLabel,
-          color: context.adaptiveSecondaryColor,
+          color: AttachmentAccents.poll.of(context),
           onTap: () {
             _toggleAttachPanel();
             widget.onCreatePoll!();
@@ -1380,7 +1381,7 @@ class _MessageInputState extends State<MessageInput>
         _buildAttachTile(
           icon: Icons.event,
           label: l10n.eventLabel,
-          color: context.adaptiveSecondaryColor,
+          color: AttachmentAccents.event.of(context),
           onTap: () {
             _toggleAttachPanel();
             widget.onCreateEvent!();

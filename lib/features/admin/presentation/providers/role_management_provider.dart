@@ -228,7 +228,7 @@ class RoleManagementNotifier extends _$RoleManagementNotifier {
     try {
       // Toute écriture Supabase exige une session valide (RLS bloque l'anon).
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        failures.add('Supabase (session absente)');
+        failures.add('Base de données (session absente)');
       } else {
         await Supabase.instance.client.from('users').update({
           'is_admin': isAdmin,
