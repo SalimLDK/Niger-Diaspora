@@ -1,4 +1,4 @@
-﻿import '../models/poll_model.dart';
+import '../models/poll_model.dart';
 
 abstract class PollRemoteDataSource {
   Future<PollModel> createPoll({
@@ -19,11 +19,16 @@ abstract class PollRemoteDataSource {
     String? currentUserId,
   });
 
-  Stream<PollModel?> getPollStream(String pollId);
+  /// Flux du sondage. [currentUserId] n'est pas decoratif : sans lui le flux
+  /// rend un sondage ou personne n'a jamais vote — voir le doc-comment de
+  /// l'implementation Supabase.
+  Stream<PollModel?> getPollStream(String pollId, {String? currentUserId});
 
   Future<void> vote(String pollId, List<String> optionIds, {String? userId});
 
-  Future<List<Map<String, dynamic>>> getOptionVoters(String pollId, String optionId);
+  /// Votants de chaque option, indexes par `optionId`. Un seul aller-retour
+  /// pour tout le sondage — l'ecran de resultats en faisait un par option.
+  Future<Map<String, List<Map<String, dynamic>>>> getPollVoters(String pollId);
 
   Future<void> deletePoll(String pollId);
 }

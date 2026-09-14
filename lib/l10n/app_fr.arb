@@ -8315,5 +8315,126 @@
   "locationDisclosureChatBody": "Diaspo Niger lit votre position pour centrer la carte sur vous et vous laisser l'envoyer dans cette discussion. Elle n'est partagée qu'avec les participants de la discussion, et seulement si vous envoyez le message : elle ne rejoint pas la carte des membres.",
   "@locationDisclosureChatBody": {
     "description": "Divulgation prealable, partage dans une discussion"
+  },
+
+  "pollCreateTitle": "Créer un sondage",
+  "@pollCreateTitle": {
+    "description": "Titre de la feuille de creation d un sondage"
+  },
+  "pollQuestionLabel": "Question",
+  "@pollQuestionLabel": {
+    "description": "Champ question du sondage"
+  },
+  "pollOptionNumbered": "Option {index}",
+  "@pollOptionNumbered": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "pollAddOption": "Ajouter une option",
+  "@pollAddOption": {
+    "description": "Bouton d ajout d une reponse"
+  },
+  "pollMultipleChoiceSubtitle": "Plusieurs réponses possibles pour chaque votant",
+  "@pollMultipleChoiceSubtitle": {
+    "description": "Sous-titre de la bascule choix multiple"
+  },
+  "pollDurationLabel": "Durée du sondage",
+  "@pollDurationLabel": {
+    "description": "Titre du groupe de puces de duree"
+  },
+  "pollDuration24h": "24 h",
+  "@pollDuration24h": {
+    "description": "Puce de duree : un jour"
+  },
+  "pollDuration3Days": "3 jours",
+  "@pollDuration3Days": {
+    "description": "Puce de duree : trois jours"
+  },
+  "pollDurationUnlimited": "Illimité",
+  "@pollDurationUnlimited": {
+    "description": "Puce de duree : pas de fin"
+  },
+  "pollPublishAction": "Publier le sondage",
+  "@pollPublishAction": {
+    "description": "Bouton de validation de la feuille"
+  },
+  "pollNeedQuestionAndTwoOptions": "Ajoutez une question et au moins 2 options",
+  "@pollNeedQuestionAndTwoOptions": {
+    "description": "Refus de validation d un sondage incomplet"
+  },
+  "pollCreateFailed": "Impossible de créer le sondage",
+  "@pollCreateFailed": {
+    "description": "Echec de creation, sans cause connue"
+  },
+  "pollCreateFailedWithCause": "Impossible de créer le sondage : {cause}",
+  "@pollCreateFailedWithCause": {
+    "placeholders": {
+      "cause": {
+        "type": "String"
+      }
+    }
+  },
+  "pollVotesCount": "{count, plural, =0{Aucun vote} =1{1 vote} other{{count} votes}}",
+  "@pollVotesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollVotesTotal": "{count, plural, =0{Aucun vote} =1{1 vote au total} other{{count} votes au total}}",
+  "@pollVotesTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollResultsTitle": "Résultats du sondage",
+  "@pollResultsTitle": {
+    "description": "Titre de l ecran de resultats"
+  },
+  "pollMyChoice": "Votre choix",
+  "@pollMyChoice": {
+    "description": "Badge sur l option pour laquelle on a vote"
+  },
+  "pollNoVoteYet": "Aucun vote pour le moment",
+  "@pollNoVoteYet": {
+    "description": "Option sans aucune voix"
+  },
+  "pollNotFound": "Sondage introuvable",
+  "@pollNotFound": {
+    "description": "Le sondage n existe plus ou n est pas lisible"
+  },
+  "pollDeleted": "Sondage supprimé",
+  "@pollDeleted": {
+    "description": "Bulle dont le sondage a ete supprime"
+  },
+  "pollVotersVisibleToAuthor": "Seul l’auteur du sondage voit qui a voté quoi.",
+  "@pollVotersVisibleToAuthor": {
+    "description": "Dit la regle de confidentialite reellement appliquee"
+  },
+  "pollChangeVote": "Modifier mon vote",
+  "@pollChangeVote": {
+    "description": "Rouvre le vote apres avoir vote"
+  },
+  "pollWithdrawVote": "Retirer mon vote",
+  "@pollWithdrawVote": {
+    "description": "Supprime son vote sans en poser un autre"
+  },
+  "pollVoteFailed": "Impossible d’enregistrer votre vote",
+  "@pollVoteFailed": {
+    "description": "Echec du vote"
+  },
+  "pollBubbleFailed": "Le sondage est créé, mais sa publication dans la discussion a échoué.",
+  "@pollBubbleFailed": {
+    "description": "Le sondage existe mais aucune bulle ne le montre"
+  },
+  "pollClosedToVotes": "Sondage terminé",
+  "@pollClosedToVotes": {
+    "description": "Le sondage a depasse sa date de fin"
   }
 }

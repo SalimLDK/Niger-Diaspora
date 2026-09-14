@@ -1,9 +1,12 @@
-﻿import 'package:dartz/dartz.dart';
+import 'dart:async';
+
+import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/poll_entity.dart';
 import '../../domain/repositories/poll_repository.dart';
 import '../datasources/poll_remote_datasource.dart';
+import '../models/poll_model.dart';
 
 class PollRepositoryImpl implements PollRepository {
   final PollRemoteDataSource remoteDataSource;
@@ -77,12 +80,24 @@ class PollRepositoryImpl implements PollRepository {
   }
 
   @override
-  Stream<Either<Failure, PollEntity?>> getPollStream(String pollId) {
-    return remoteDataSource.getPollStream(pollId).map((poll) {
-      return Right<Failure, PollEntity?>(poll?.toEntity());
-    }).handleError((e) {
-      return Left<Failure, PollEntity?>(ServerFailure(e.toString()));
-    });
+  Stream<Either<Failure, PollEntity?>> getPollStream(
+    String pollId, {
+    String? currentUserId,
+  }) {
+    // `handleError` qui se contente de *retourner* une valeur ne la publie
+    // pas : l'erreur etait avalee, et l'ecran de resultats tournait
+    // indefiniment sur son indicateur de chargement. Un transformateur la
+    // convertit en emission `Left`, que l'appelant peut distinguer d'un
+    // sondage supprime (`Right(null)`).
+    return remoteDataSource.getPollStream(pollId, currentUserId: currentUserId).transform(
+          StreamTransformer<PollModel?, Either<Failure, PollEntity?>>.fromHandlers(
+            handleData: (poll, sink) =>
+                sink.add(Right<Failure, PollEntity?>(poll?.toEntity())),
+            handleError: (error, stackTrace, sink) => sink.add(
+              Left<Failure, PollEntity?>(ServerFailure(error.toString())),
+            ),
+          ),
+        );
   }
 
   @override
@@ -102,21 +117,23 @@ class PollRepositoryImpl implements PollRepository {
   }
 
   @override
-  Future<Either<Failure, List<PollVoterEntity>>> getOptionVoters(
+  Future<Either<Failure, Map<String, List<PollVoterEntity>>>> getPollVoters(
     String pollId,
-    String optionId,
   ) async {
     try {
-      final rows = await remoteDataSource.getOptionVoters(pollId, optionId);
-      final voters = rows.map((row) {
-        final voter = row['voter'] as Map<String, dynamic>?;
-        return PollVoterEntity(
-          userId: row['user_id'] as String,
-          name: voter?['display_name'] as String?,
-          photoUrl: voter?['avatar_url'] as String?,
-        );
-      }).toList();
-      return Right(voters);
+      final parOption = await remoteDataSource.getPollVoters(pollId);
+      return Right(parOption.map(
+        (optionId, rows) => MapEntry(
+          optionId,
+          rows
+              .map((row) => PollVoterEntity(
+                    userId: row['user_id'] as String? ?? '',
+                    name: row['display_name'] as String?,
+                    photoUrl: row['avatar_url'] as String?,
+                  ))
+              .toList(),
+        ),
+      ));
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {

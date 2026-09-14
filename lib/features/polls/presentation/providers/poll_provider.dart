@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/poll_supabase_datasource.dart';
@@ -36,13 +36,35 @@ final postPollsProvider =
   return result.fold((failure) => throw failure.message, (polls) => polls);
 });
 
-/// Detail d'un sondage en temps reel (mise a jour live des votes)
+/// Detail d'un sondage en temps reel (mise a jour live des votes).
+///
+/// `currentUserId` est observe, pas lu une fois : au premier affichage il est
+/// souvent encore null, et sans re-souscription le sondage resterait « jamais
+/// vote » pour son propre lecteur.
 final pollStreamProvider =
     StreamProvider.family<PollEntity?, String>((ref, pollId) {
   final repository = ref.watch(pollRepositoryProvider);
-  return repository.getPollStream(pollId).map(
-        (either) => either.fold((failure) => null, (poll) => poll),
+  final userId = ref.watch(currentUserProvider).valueOrNull?.id;
+  return repository.getPollStream(pollId, currentUserId: userId).map(
+        // Une panne de lecture n'est pas une suppression : elle part en
+        // erreur, l'ecran garde alors la question envoyee en repli au lieu
+        // d'annoncer « Sondage supprime ».
+        (either) => either.fold(
+          (failure) => throw failure.message,
+          (poll) => poll,
+        ),
       );
+});
+
+/// Votants de chaque option, indexes par identifiant d'option.
+///
+/// Vide pour qui n'est pas l'auteur du sondage : la base ne rend les noms
+/// qu'a lui (`poll_option_voters`). Invalide apres chaque vote — sans quoi
+/// l'ecran de resultats gardait la liste du premier affichage.
+final pollVotersProvider = FutureProvider.family<
+    Map<String, List<PollVoterEntity>>, String>((ref, pollId) async {
+  final result = await ref.watch(pollRepositoryProvider).getPollVoters(pollId);
+  return result.fold((failure) => const {}, (voters) => voters);
 });
 
 final pollActionsNotifierProvider =
@@ -159,6 +181,7 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
     );
   }
 
+  /// Enregistre le vote. [optionIds] vide = retrait du vote.
   Future<bool> vote(
     String pollId,
     List<String> optionIds, {
@@ -185,19 +208,21 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
         // invalidation, le votant devait quitter l'ecran pour voir son propre
         // vote compte (le realtime sert les AUTRES membres).
         ref.invalidate(pollStreamProvider(pollId));
+        ref.invalidate(pollVotersProvider(pollId));
         return true;
       },
     );
   }
 
-  Future<List<PollVoterEntity>> getOptionVoters(
-    String pollId,
-    String optionId,
-  ) async {
-    final result =
-        await ref.read(pollRepositoryProvider).getOptionVoters(pollId, optionId);
-    return result.fold((failure) => [], (voters) => voters);
-  }
+  /// Retire son vote sans en poser un autre. La policy DELETE
+  /// « Users can retract their own vote » existait depuis le debut sans que
+  /// rien dans l'app ne puisse l'emprunter.
+  Future<bool> withdrawVote(
+    String pollId, {
+    String? groupId,
+    String? postId,
+  }) =>
+      vote(pollId, const [], groupId: groupId, postId: postId);
 
   Future<bool> deletePoll(
     String pollId, {
