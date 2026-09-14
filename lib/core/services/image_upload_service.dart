@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -66,19 +67,67 @@ class ImagePickResult {
 
 /// Configuration for image uploads - can be set from admin settings
 class ImageUploadConfig {
+  /// Boîte englobante demandée au sélecteur natif. C'est un
+  /// redimensionnement fait **avant** le décodage complet, le seul étage sûr
+  /// en mémoire : `flutter_image_compress` décode l'image entière en
+  /// ARGB_8888 (48 Mpx = 192 Mo, hors budget d'un téléphone d'entrée de
+  /// gamme), alors que le sélecteur sous-échantillonne.
   final int maxWidth;
   final int maxHeight;
+
+  /// Qualité du ré-encodage **intermédiaire** du sélecteur. Volontairement
+  /// quasi transparente : c'est [quality] qui décide de la qualité livrée.
+  /// Deux encodages JPEG à 85 se cumulaient et c'est ce qui rendait les
+  /// photos pâteuses.
+  final int pickQuality;
+
+  /// Qualité du seul encodage qui compte, celui du fichier envoyé.
   final int quality;
+
   final int maxImagesPerUpload;
+
+  /// Petit côté de l'image livrée. `flutter_image_compress` contraint le
+  /// **petit** côté — `scale = max(1, min(w/minWidth, h/minHeight))` — donc
+  /// à 1080 une photo 4:3 sort en 1440×1080, et une portrait affichée pleine
+  /// largeur tombe au 1:1 sur un écran de 1080 px. À 800, elle sortait à
+  /// 768 px de large : rééchantillonnée vers le haut à l'affichage.
   final int minWidthForCompression;
 
   const ImageUploadConfig({
-    this.maxWidth = 1024,
-    this.maxHeight = 1024,
-    this.quality = 85,
+    this.maxWidth = 2048,
+    this.maxHeight = 2048,
+    this.pickQuality = 95,
+    this.quality = 88,
     this.maxImagesPerUpload = 5,
-    this.minWidthForCompression = 800,
+    this.minWidthForCompression = 1080,
   });
+
+  /// La même configuration, remontée au plancher du code sur tout ce qui
+  /// touche à la définition.
+  ///
+  /// Le réglage distant peut **relever** la qualité, jamais la descendre :
+  /// `app_config/settings.mediaLimits` porte encore les valeurs de l'époque
+  /// où le pipeline encodait deux fois à 85 (1024 / 85 / 800), et appliquées
+  /// telles quelles elles livrent une photo de 768 px de petit côté — floue
+  /// dès qu'un écran de 1080 px l'affiche pleine largeur. Constaté le
+  /// 2026-09-14.
+  ///
+  /// [maxImagesPerUpload] n'est pas une mesure de qualité : il reste à la
+  /// main de l'admin, dans les deux sens.
+  ImageUploadConfig auMoinsLePlancher() {
+    const plancher = ImageUploadConfig();
+    return ImageUploadConfig(
+      maxWidth: math.max(maxWidth, plancher.maxWidth),
+      maxHeight: math.max(maxHeight, plancher.maxHeight),
+      pickQuality: math.max(pickQuality, plancher.pickQuality),
+      quality: math.max(quality, plancher.quality),
+      maxImagesPerUpload: maxImagesPerUpload,
+      minWidthForCompression: math.max(
+        minWidthForCompression,
+        plancher.minWidthForCompression,
+      ),
+    );
+  }
 }
 
 class ImageUploadService {
@@ -93,8 +142,11 @@ class ImageUploadService {
   ImageUploadConfig _config = const ImageUploadConfig();
 
   /// Update configuration from admin settings
+  ///
+  /// Le réglage distant ne descend pas sous le plancher du code : voir
+  /// [ImageUploadConfig.auMoinsLePlancher].
   void setConfig(ImageUploadConfig config) {
-    _config = config;
+    _config = config.auMoinsLePlancher();
   }
 
   /// Get current configuration
@@ -111,7 +163,7 @@ class ImageUploadService {
         source: ImageSource.gallery,
         maxWidth: (maxWidth ?? _config.maxWidth).toDouble(),
         maxHeight: (maxHeight ?? _config.maxHeight).toDouble(),
-        imageQuality: _config.quality,
+        imageQuality: _config.pickQuality,
       );
 
       if (pickedFile == null) return ImagePickResult.cancelled();
@@ -163,7 +215,7 @@ class ImageUploadService {
         source: ImageSource.camera,
         maxWidth: (maxWidth ?? _config.maxWidth).toDouble(),
         maxHeight: (maxHeight ?? _config.maxHeight).toDouble(),
-        imageQuality: _config.quality,
+        imageQuality: _config.pickQuality,
       );
 
       if (pickedFile == null) return ImagePickResult.cancelled();
@@ -198,7 +250,7 @@ class ImageUploadService {
       final List<XFile> pickedFiles = await _picker.pickMultiImage(
         maxWidth: _config.maxWidth.toDouble(),
         maxHeight: _config.maxHeight.toDouble(),
-        imageQuality: _config.quality,
+        imageQuality: _config.pickQuality,
       );
 
       if (pickedFiles.isEmpty) return ImagePickResult.cancelled();
