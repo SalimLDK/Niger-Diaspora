@@ -8,6 +8,7 @@ import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
+import '../providers/lieux_des_groupes_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
@@ -89,30 +90,62 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
         ),
         error: (_, __) => Center(child: Text(l10n.groupsLoadFailed)),
         data: (groups) {
-          final byCountry = <String, List<GroupEntity>>{};
+          // Un marqueur par LIEU, pas par groupe : un pays, ou une ville
+          // depuis que les groupes de ville existent. `lieux` vient de la
+          // base ; tant qu'il n'est pas chargé (ou s'il échoue), la carte se
+          // comporte exactement comme avant, sur ses centroïdes.
+          final lieux = ref.watch(lieuxDesGroupesProvider).valueOrNull ?? const {};
+
+          final parLieu = <String, List<GroupEntity>>{};
+          final libelles = <String, String>{};
+          final positions = <String, LatLng>{};
+
           for (final g in groups) {
-            if (g.country == null || g.country!.isEmpty) continue;
-            byCountry.putIfAbsent(g.country!, () => []).add(g);
+            final lieu = lieux[g.id];
+            final pays = g.country;
+
+            String cle;
+            String libelle;
+            LatLng? position;
+
+            if (lieu != null && lieu.estUneVille) {
+              cle = 'ville:${lieu.groupId}';
+              libelle = lieu.villeNom ?? g.name;
+              position = LatLng(lieu.latitude, lieu.longitude);
+            } else {
+              if (pays == null || pays.isEmpty) continue;
+              cle = 'pays:$pays';
+              libelle = pays;
+              // Le centroïde du pays reste prioritaire : la carte ne bouge pas
+              // pour les 32 pays qui en ont un. Les 165 autres étaient
+              // simplement absents ; ils prennent la plus grande ville du pays.
+              position = countryCentroids[pays] ??
+                  (lieu == null ? null : LatLng(lieu.latitude, lieu.longitude));
+            }
+            if (position == null) continue;
+
+            parLieu.putIfAbsent(cle, () => []).add(g);
+            libelles[cle] = libelle;
+            positions[cle] = position;
           }
 
           final markers = <Marker>{};
-          for (final entry in byCountry.entries) {
-            final centroid = countryCentroids[entry.key];
-            if (centroid == null) continue;
+          for (final entry in parLieu.entries) {
+            final libelle = libelles[entry.key]!;
             markers.add(
               Marker(
                 markerId: MarkerId(entry.key),
-                position: centroid,
+                position: positions[entry.key]!,
                 icon: BitmapDescriptor.defaultMarkerWithHue(
                   entry.value.any((g) => g.isOfficial)
                       ? BitmapDescriptor.hueOrange
                       : BitmapDescriptor.hueAzure,
                 ),
                 infoWindow: InfoWindow(
-                  title: entry.key,
+                  title: libelle,
                   snippet: '${entry.value.length} groupe${entry.value.length > 1 ? 's' : ''}',
                 ),
-                onTap: () => _showCountryGroupsSheet(context, entry.key, entry.value),
+                onTap: () => _showLieuGroupsSheet(context, libelle, entry.value),
               ),
             );
           }
@@ -131,9 +164,9 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
     );
   }
 
-  void _showCountryGroupsSheet(
+  void _showLieuGroupsSheet(
     BuildContext context,
-    String country,
+    String lieu,
     List<GroupEntity> groups,
   ) {
     showModalBottomSheet(
@@ -154,7 +187,7 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
             const SheetHandle(),
             const SizedBox(height: 16),
             Text(
-              country,
+              lieu,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

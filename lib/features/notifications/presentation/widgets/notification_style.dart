@@ -41,6 +41,7 @@ Color notificationTint(BuildContext context, NotificationType type) {
     case NotificationType.groupRequestApproved:
     case NotificationType.newMember:
     case NotificationType.officialGroupLeave:
+    case NotificationType.cityGroupInvite:
     case NotificationType.eventReminder:
     case NotificationType.eventUpdate:
     case NotificationType.eventAttendance:
@@ -84,6 +85,7 @@ IconData notificationIcon(NotificationType type) {
       return Icons.group_add_outlined;
     case NotificationType.newMember:
     case NotificationType.officialGroupLeave:
+    case NotificationType.cityGroupInvite:
       return Icons.groups_outlined;
     case NotificationType.groupRequestApproved:
       return Icons.check_circle_outline;

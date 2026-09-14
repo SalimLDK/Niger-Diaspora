@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**891 cases à cocher, 504 cochées** — 182 entrées sur 226 ont encore des cases ouvertes.
+**897 cases à cocher, 504 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -64,7 +64,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (51)
+**P1 — fonction importante, jamais vérifiée** (52)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
@@ -73,6 +73,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
+- 6 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -241,7 +242,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 129 à faire, 54 faites
-- [3. Groupes](#3-groupes) — 101 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 107 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
@@ -2227,6 +2228,51 @@ de conclure quoi que ce soit.
 # 3. Groupes
 
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
+
+---
+
+## ⬜ Groupes officiels de ville (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Un groupe ouvert au mauvais endroit, une invitation envoyée à qui s'est mis invisible, ou une épingle de carte qui ne mène nulle part.
+*Bloqué en partie : aucune ville n'atteint trois profils visibles aujourd'hui — la création est à provoquer en base (recette ci-dessous).*
+
+« Diaspora Niger — Montréal ». Trois profils visibles dans une ville
+l'ouvrent ; chacun reçoit une notification `cityGroupInvite` et **rien n'est
+ajouté d'office**. Laval et Longueuil mènent au groupe de Montréal
+(`pole_id`). Un profil invisible n'est ni compté ni invité.
+
+Le verrou levé au passage : l'index d'unicité de production portait sur le
+pays seul, et aurait refusé le tout premier groupe de ville. Onze cas sont
+vérifiés en base, transaction annulée — ce qui suit ne l'est pas.
+
+Pour provoquer une création sans attendre trois vrais profils :
+
+```sql
+-- Trois profils visibles dans une même ville suffisent ; le déclencheur
+-- s'occupe du reste. Sinon, à la main :
+SELECT public.ouvrir_groupe_de_ville(
+  (SELECT id FROM public.villes WHERE nom = 'Niamey' AND pays = 'Niger'));
+```
+
+- [ ] **Sur appareil** : la notification « Rejoindre « Diaspora Niger —
+  Niamey » ? » arrive, porte l'icône et la couleur des groupes, et son appui
+  ouvre la **fiche du groupe** — pas la liste des notifications.
+- [ ] **Sur appareil** : sur cette fiche, « Rejoindre » fonctionne et le
+  compteur de membres suit. Ne rien faire ne doit rien changer : personne
+  n'est ajouté sans son geste.
+- [ ] **Sur appareil, profil invisible** : se mettre invisible, provoquer
+  l'ouverture d'un groupe pour sa ville, et vérifier qu'**aucune**
+  notification n'arrive.
+- [ ] **Sur appareil** : la carte des groupes (Groupes → carte) montre une
+  épingle par VILLE en plus des épingles de pays, au bon endroit, et le
+  panneau du bas porte le nom de la ville.
+- [ ] **Sur appareil** : « Diaspora Niger — Angola » et « — Cap-Vert »
+  apparaissent enfin sur la carte. Leurs pays n'étaient dans aucun des 32
+  centroïdes écrits en dur : les deux groupes existaient et n'étaient
+  simplement jamais dessinés, sans le moindre message.
+- [ ] **Sur appareil** : les 32 pays qui ont un centroïde n'ont pas bougé
+  (Niger, France, Canada…) — le repli par la plus grande ville ne sert que
+  là où il n'y avait rien.
 
 ---
 
