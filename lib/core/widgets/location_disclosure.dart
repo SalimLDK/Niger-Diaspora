@@ -46,6 +46,15 @@ enum UsageLocalisation {
   /// Position insérée dans un message : partagée avec les seuls participants
   /// de la discussion, et seulement à l'envoi.
   discussion,
+
+  /// Champ ville du profil : la position est lue une fois, sur l'appareil,
+  /// pour proposer une ville de la liste. Les coordonnées ne sont ni
+  /// enregistrées ni partagées — seul le NOM de la ville, si la personne
+  /// l'accepte, part dans son profil. C'est le seul usage qui ne publie rien,
+  /// et son texte doit le dire : une divulgation qui promet moins que la
+  /// vérité vaut mieux qu'une qui promet plus, mais aucune des deux n'est
+  /// juste.
+  champVille,
 }
 
 /// Bloc de divulgation posé **dans** un écran (onboarding 5/5).
@@ -178,11 +187,13 @@ class _FeuilleDivulgation extends StatelessWidget {
       UsageLocalisation.carte => l10n.locationDisclosureTitle,
       UsageLocalisation.arrierePlan => l10n.locationDisclosureBackgroundTitle,
       UsageLocalisation.discussion => l10n.locationDisclosureChatTitle,
+      UsageLocalisation.champVille => l10n.locationDisclosureCityTitle,
     };
     final corps = switch (usage) {
       UsageLocalisation.carte => l10n.locationDisclosureBody,
       UsageLocalisation.arrierePlan => l10n.locationDisclosureBackgroundBody,
       UsageLocalisation.discussion => l10n.locationDisclosureChatBody,
+      UsageLocalisation.champVille => l10n.locationDisclosureCityBody,
     };
 
     return SafeArea(

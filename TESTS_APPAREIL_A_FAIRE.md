@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**893 cases à cocher, 496 cochées** — 182 entrées sur 226 ont encore des cases ouvertes.
+**898 cases à cocher, 496 cochées** — 182 entrées sur 226 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -49,7 +49,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
-- 7 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
+- 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
@@ -64,7 +64,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (50)
+**P1 — fonction importante, jamais vérifiée** (51)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
@@ -84,6 +84,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
+- 8 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
@@ -117,7 +118,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (66)
+**P2 — fonction secondaire ou cas limite** (65)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -148,7 +149,6 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 6 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
-- 4 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
 - 5 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
@@ -249,10 +249,10 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 29 à faire, 25 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 33 à faire, 25 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 138 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 35 à faire, 26 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -10921,8 +10921,7 @@ Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature 
 
 ## ⬜ Champ ville : recherche dans le référentiel (2026-09-13)
 
-**Priorité P2** · importance 3/5 — Le champ ville reste un champ de texte nu tant que le profil n'est pas câblé ; la mention de licence, elle, est due dès maintenant.
-*Bloqué : le champ n'est encore posé sur aucun écran — le câblage du profil (`users.ville_id`) est l'étape suivante.*
+**Priorité P1** · importance 4/5 — Le champ ville du profil, refait : ce qu'il retient décide des groupes de ville à venir, et il lit maintenant la position de l'appareil.
 
 Le champ ville du profil est un `CustomTextField` nu. Relevé en base le
 2026-09-13 sur les neuf profils qui portent une ville : « Niamey » ×3 et
@@ -10947,13 +10946,33 @@ ne peut pas voir :
   C'est une obligation de la licence CC BY, pas un ornement. Vérifier aussi en
   **thème sombre** (le texte utilise `textTertiaryColor`, pas un jeton clair
   figé) et en anglais.
-- [ ] **Sur appareil, après câblage du profil** : la liste de suggestions
-  s'ouvre sous le champ sans pousser le clavier par-dessus (voir
-  « Débordement clavier » du domaine Design) et se ferme à la perte du focus.
-- [ ] **Sur appareil, après câblage du profil** : taper « mont » avec le pays
-  Canada propose Montréal en premier ; avec le pays Niger, ne le propose pas.
-  Une ville choisie affiche la pastille verte, une ville retapée à la main la
-  perd.
+Le champ est désormais posé sur **Modifier le profil**
+([edit_profile_screen.dart](lib/features/profile/presentation/screens/edit_profile_screen.dart)),
+et `users.ville_id` fait l'aller-retour. Sept cas de cohérence ville ↔ pays
+sont vérifiés en base, pas ici.
+
+- [ ] **Sur appareil** : la liste de suggestions s'ouvre sous le champ sans
+  passer sous le clavier (voir « Débordement clavier » du domaine Design) et
+  se ferme à la perte du focus. Le champ est en bas d'un formulaire long :
+  c'est le cas où la liste risque de sortir de l'écran.
+- [ ] **Sur appareil** : taper « mont » avec le pays Canada propose Montréal
+  en premier ; avec le pays Niger, ne le propose pas. Une ville choisie
+  affiche la pastille verte, une ville retapée à la main la perd.
+- [ ] **Sur appareil** : changer de pays dans la liste déroulante vide le
+  champ ville et éteint la pastille, immédiatement — pas seulement après
+  enregistrement.
+- [ ] **Sur appareil, puis en base** : enregistrer avec une ville choisie, et
+  vérifier que `users.ville_id` ET `users.city` sont posés ; enregistrer avec
+  un texte libre (« Almoustapha ») et vérifier que `ville_id` est nul et que
+  le texte a survécu. Le déclencheur écrase `city` avec le nom officiel dès
+  qu'une ville est retenue : le champ doit le refléter au rechargement.
+- [ ] **Sur appareil** : « Utiliser ma position » ouvre la feuille de
+  divulgation **avant** la boîte système (voir « Divulgation préalable de la
+  localisation » du domaine Publication), et le texte est bien celui du champ
+  ville — « ni enregistrées ni partagées », pas celui de la carte. Accepter
+  propose « Vous êtes à … ? » ; « Non » referme sans rien écrire.
+- [ ] **Sur appareil, hors d'une ville connue** : « Aucune ville de la liste à
+  proximité » s'affiche au lieu d'une proposition fausse.
 - [ ] **Sur appareil, réseau coupé** : la ligne « Recherche impossible pour le
   moment » remplace la liste, et le champ reste saisissable — le texte libre
   doit continuer de partir dans `city`.
@@ -14590,6 +14609,29 @@ Accueil (`_loadData`), Carte (`_getCurrentLocation`), et le Mode Voyage du
 profil — celui-ci avec la variante « même lorsque l'application est fermée ou
 n'est pas utilisée », exigée parce que son service publie une position toutes
 les 5 minutes hors premier plan.
+
+**Cinquième chemin depuis le 2026-09-13** : « Utiliser ma position » dans le
+champ ville du profil
+([ville_search_field.dart](lib/shared/widgets/ville_search_field.dart)), avec
+une variante de texte à lui, `UsageLocalisation.champVille`. C'est le seul
+usage qui ne publie rien — la position est lue une fois, sur l'appareil, pour
+proposer une ville de la liste ; seul le NOM de la ville part dans le profil.
+Le texte le dit et ne promet pas la carte des membres, qui ne la reçoit pas.
+Précision demandée : `LocationAccuracy.low`, une ville se trouvant au
+kilomètre près.
+
+Le garde-fou a été élargi du même coup : il ne cherchait que
+`Geolocator.requestPermission` et les méthodes de `LocationService`, alors que
+`Geolocator.getCurrentPosition` demande l'autorisation tout seul quand elle
+manque — trois fichiers l'appellent ainsi. La liste d'exceptions gagne
+`background_location_service.dart` (un service sans `BuildContext`, comme
+`location_service.dart`) : elle grandit d'une ligne parce que le filet
+s'élargit, pas parce qu'un cas est excusé.
+
+- [ ] **Déclaration Play à revoir avant le prochain envoi** : la fiche
+  « Sécurité des données » décrit les usages de la position déclarés jusqu'ici.
+  Ce cinquième usage ne collecte ni ne partage rien de plus — mais c'est à
+  vérifier sur la fiche, pas à supposer, après cinq refus.
 
 Vérifié par `test/core/divulgation_localisation_test.dart` (structure + texte).
 Rien de tout ça n'a été vu sur un écran.

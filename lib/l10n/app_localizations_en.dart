@@ -1830,6 +1830,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currentCity => 'Current city';
 
   @override
+  String get locationDisclosureCityTitle => 'Find your city';
+
+  @override
+  String get locationDisclosureCityBody =>
+      'Diaspo Niger reads your location once, on this device, to suggest the nearest city in its list. Your coordinates are neither stored nor shared: only the city name goes into your profile, and only if you accept it. This does not place you on the members map.';
+
+  @override
+  String get cityUseMyLocation => 'Use my location';
+
+  @override
+  String cityNearbyQuestion(String ville) {
+    return 'Are you in $ville?';
+  }
+
+  @override
+  String get cityNearbyConfirm => 'Yes, that\'s my city';
+
+  @override
+  String get cityLocationFailed => 'Location unavailable';
+
+  @override
+  String get cityNoneNearby => 'No city from the list nearby';
+
+  @override
   String get cityFieldHint => 'Search for a city';
 
   @override

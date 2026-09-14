@@ -30,6 +30,7 @@ mixin _$ProfileModel {
   String? get bio => throw _privateConstructorUsedError;
   String? get profession => throw _privateConstructorUsedError;
   String? get currentCity => throw _privateConstructorUsedError;
+  int? get villeId => throw _privateConstructorUsedError;
   String? get currentCountry => throw _privateConstructorUsedError;
   String? get currentRegion => throw _privateConstructorUsedError;
   String? get countryCode => throw _privateConstructorUsedError;
@@ -87,6 +88,7 @@ abstract class $ProfileModelCopyWith<$Res> {
     String? bio,
     String? profession,
     String? currentCity,
+    int? villeId,
     String? currentCountry,
     String? currentRegion,
     String? countryCode,
@@ -139,6 +141,7 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
     Object? bio = freezed,
     Object? profession = freezed,
     Object? currentCity = freezed,
+    Object? villeId = freezed,
     Object? currentCountry = freezed,
     Object? currentRegion = freezed,
     Object? countryCode = freezed,
@@ -212,6 +215,11 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
                     ? _value.currentCity
                     : currentCity // ignore: cast_nullable_to_non_nullable
                         as String?,
+            villeId:
+                freezed == villeId
+                    ? _value.villeId
+                    : villeId // ignore: cast_nullable_to_non_nullable
+                        as int?,
             currentCountry:
                 freezed == currentCountry
                     ? _value.currentCountry
@@ -362,6 +370,7 @@ abstract class _$$ProfileModelImplCopyWith<$Res>
     String? bio,
     String? profession,
     String? currentCity,
+    int? villeId,
     String? currentCountry,
     String? currentRegion,
     String? countryCode,
@@ -413,6 +422,7 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
     Object? bio = freezed,
     Object? profession = freezed,
     Object? currentCity = freezed,
+    Object? villeId = freezed,
     Object? currentCountry = freezed,
     Object? currentRegion = freezed,
     Object? countryCode = freezed,
@@ -486,6 +496,11 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
                 ? _value.currentCity
                 : currentCity // ignore: cast_nullable_to_non_nullable
                     as String?,
+        villeId:
+            freezed == villeId
+                ? _value.villeId
+                : villeId // ignore: cast_nullable_to_non_nullable
+                    as int?,
         currentCountry:
             freezed == currentCountry
                 ? _value.currentCountry
@@ -629,6 +644,7 @@ class _$ProfileModelImpl extends _ProfileModel {
     this.bio,
     this.profession,
     this.currentCity,
+    this.villeId,
     this.currentCountry,
     this.currentRegion,
     this.countryCode,
@@ -681,6 +697,8 @@ class _$ProfileModelImpl extends _ProfileModel {
   final String? profession;
   @override
   final String? currentCity;
+  @override
+  final int? villeId;
   @override
   final String? currentCountry;
   @override
@@ -776,7 +794,7 @@ class _$ProfileModelImpl extends _ProfileModel {
 
   @override
   String toString() {
-    return 'ProfileModel(id: $id, email: $email, displayName: $displayName, handle: $handle, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
+    return 'ProfileModel(id: $id, email: $email, displayName: $displayName, handle: $handle, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, villeId: $villeId, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
   }
 
   @override
@@ -798,6 +816,7 @@ class _$ProfileModelImpl extends _ProfileModel {
                 other.profession == profession) &&
             (identical(other.currentCity, currentCity) ||
                 other.currentCity == currentCity) &&
+            (identical(other.villeId, villeId) || other.villeId == villeId) &&
             (identical(other.currentCountry, currentCountry) ||
                 other.currentCountry == currentCountry) &&
             (identical(other.currentRegion, currentRegion) ||
@@ -868,6 +887,7 @@ class _$ProfileModelImpl extends _ProfileModel {
     bio,
     profession,
     currentCity,
+    villeId,
     currentCountry,
     currentRegion,
     countryCode,
@@ -920,6 +940,7 @@ abstract class _ProfileModel extends ProfileModel {
     final String? bio,
     final String? profession,
     final String? currentCity,
+    final int? villeId,
     final String? currentCountry,
     final String? currentRegion,
     final String? countryCode,
@@ -969,6 +990,8 @@ abstract class _ProfileModel extends ProfileModel {
   String? get profession;
   @override
   String? get currentCity;
+  @override
+  int? get villeId;
   @override
   String? get currentCountry;
   @override

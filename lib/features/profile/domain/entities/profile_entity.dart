@@ -15,6 +15,10 @@ class ProfileEntity with _$ProfileEntity {
     String? bio,
     String? profession,
     String? currentCity,
+    /// Ligne de `public.villes` que le profil désigne. `null` = « Autre
+    /// ville » : `currentCity` reste du texte libre, et aucun groupe de
+    /// ville ne s'ouvre. La base tient la cohérence avec le pays.
+    int? villeId,
     String? currentCountry,
     String? currentRegion,
     String? countryCode,

@@ -3410,6 +3410,48 @@ abstract class AppLocalizations {
   /// **'Ville actuelle'**
   String get currentCity;
 
+  /// No description provided for @locationDisclosureCityTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trouver votre ville'**
+  String get locationDisclosureCityTitle;
+
+  /// No description provided for @locationDisclosureCityBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Diaspo Niger lit votre position une seule fois, sur cet appareil, pour vous proposer la ville la plus proche dans sa liste. Vos coordonnées ne sont ni enregistrées ni partagées : seul le nom de la ville part dans votre profil, et seulement si vous l\'acceptez. Cela ne vous place pas sur la carte des membres.'**
+  String get locationDisclosureCityBody;
+
+  /// No description provided for @cityUseMyLocation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utiliser ma position'**
+  String get cityUseMyLocation;
+
+  /// No description provided for @cityNearbyQuestion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous êtes à {ville} ?'**
+  String cityNearbyQuestion(String ville);
+
+  /// No description provided for @cityNearbyConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Oui, c\'est ma ville'**
+  String get cityNearbyConfirm;
+
+  /// No description provided for @cityLocationFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Position indisponible'**
+  String get cityLocationFailed;
+
+  /// No description provided for @cityNoneNearby.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune ville de la liste à proximité'**
+  String get cityNoneNearby;
+
   /// No description provided for @cityFieldHint.
   ///
   /// In fr, this message translates to:
