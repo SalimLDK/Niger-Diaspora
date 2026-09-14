@@ -1830,6 +1830,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currentCity => 'Current city';
 
   @override
+  String get cityFieldHint => 'Search for a city';
+
+  @override
+  String get cityDataCredit => 'City list: GeoNames (CC BY 4.0)';
+
+  @override
+  String get cityTypeToSearch => 'Type the first letters of your city';
+
+  @override
+  String get cityNoResult => 'No city in the list matches';
+
+  @override
+  String get citySearchFailed => 'Search unavailable right now';
+
+  @override
   String get originCity => 'City of origin in Niger';
 
   @override
