@@ -874,8 +874,15 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     /// Postgres ne rejoue pas les INSERT manqués : sans ça, les messages
     /// arrivés pendant une coupure de quelques secondes n'apparaissaient
     /// jamais dans la discussion ouverte, même après le retour du réseau.
-    /// Les doublons ne sont pas un risque — `MessageNotifier` écarte déjà
-    /// tout message dont l'id est présent.
+    ///
+    /// La borne avance avec ce qui est relu, et pas seulement avec ce qui
+    /// arrive en temps réel. Ce n'est pas qu'une économie de requête : ce
+    /// chemin **déchiffre**, et pour Signal un second déchiffrement du même
+    /// message échoue — le Double Ratchet a consommé sa clé au premier. Deux
+    /// reconnexions d'affilée sans message entre elles rapporteraient donc un
+    /// illisible ; `reconcileEchoContent` sauve le texte déjà déchiffré, mais
+    /// pas les charges annexes (carte de post, d'événement). Une ligne n'est
+    /// relue qu'une fois.
     Future<void> rattraper() async {
       try {
         final rows = await _supabase
@@ -883,11 +890,19 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
             .select()
             .eq('conversation_id', conversationId)
             .gt('created_at', toIsoUtc(dernierVu))
-            .order('created_at');
+            .order('created_at')
+            // Borne de sûreté : ce chemin déchiffre message par message.
+            // Un retard de plus de cent messages dans une discussion restée
+            // ouverte n'arrive pas — et s'il arrivait, c'est la pagination de
+            // `getMessages` qui doit le rattraper, pas ce flux.
+            .limit(100);
         if (rows.isEmpty || controller.isClosed) return;
         final messages = <MessageModel>[];
         for (final row in rows) {
-          messages.add(await _msgFromRowAsync(row));
+          final msg = await _msgFromRowAsync(row);
+          final cree = msg.createdAt;
+          if (cree != null && cree.isAfter(dernierVu)) dernierVu = cree;
+          messages.add(msg);
         }
         if (!controller.isClosed && messages.isNotEmpty) {
           controller.add(messages);
