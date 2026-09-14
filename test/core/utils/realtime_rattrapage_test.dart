@@ -66,6 +66,64 @@ void main() {
       expect(relectures, 0);
     });
 
+    test(
+      'lecture initiale en échec : le premier rejoint charge, lui',
+      () {
+        // Écran ouvert alors que l'appareil est déjà hors ligne : la lecture
+        // initiale a échoué et rien ne la retente. Le premier `subscribed`
+        // n'arrive qu'au retour du réseau — c'est la première occasion
+        // d'afficher quoi que ce soit, pas un doublon.
+        var relectures = 0;
+        var enEchec = true;
+        final rappel = rattrapageAuRejoint(
+          () => relectures++,
+          lectureInitialeEnEchec: () => enEchec,
+        );
+
+        rappel(RealtimeSubscribeStatus.subscribed, null);
+
+        expect(relectures, 1);
+      },
+    );
+
+    test(
+      'lecture initiale réussie : le premier rejoint ne double pas la requête',
+      () {
+        var relectures = 0;
+        final rappel = rattrapageAuRejoint(
+          () => relectures++,
+          lectureInitialeEnEchec: () => false,
+        );
+
+        rappel(RealtimeSubscribeStatus.subscribed, null);
+
+        expect(relectures, 0);
+      },
+    );
+
+    test(
+      'lecture initiale encore en vol : on ne relit pas — elle finira seule',
+      () {
+        // Le prédicat dit « en échec », pas « pas encore faite » : un `fetch`
+        // plus lent que l'abonnement ne doit pas déclencher une seconde
+        // requête à chaque démarrage.
+        var relectures = 0;
+        var enEchec = false; // rien n'a encore échoué
+        final rappel = rattrapageAuRejoint(
+          () => relectures++,
+          lectureInitialeEnEchec: () => enEchec,
+        );
+
+        rappel(RealtimeSubscribeStatus.subscribed, null);
+        expect(relectures, 0);
+
+        // …et une coupure plus tard rattrape quand même.
+        rappel(RealtimeSubscribeStatus.channelError, 'réseau');
+        rappel(RealtimeSubscribeStatus.subscribed, null);
+        expect(relectures, 1);
+      },
+    );
+
     test('deux canaux gardent leur compte séparément', () {
       var a = 0;
       var b = 0;

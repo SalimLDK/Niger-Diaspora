@@ -77,39 +77,73 @@ final conversationsProvider = StreamProvider<List<ConversationEntity>>((ref) asy
   }
 
   // 2. Yield from live stream (Network/Live)
+  //
+  // L'échec est propagé, pas plié en liste vide : une panne de lecture ferait
+  // sinon disparaître les discussions déjà affichées (le cache rendu juste
+  // au-dessus), ce qui se lit comme une perte de données. En erreur,
+  // `AsyncValue` garde la dernière liste connue et l'écran continue de
+  // l'afficher (`skipError` dans `messages_screen.dart`).
   yield* repository
       .getConversations(currentUser.id)
       .map(
-        (either) => either.fold(
-          (failure) => <ConversationEntity>[],
-          (conversations) => conversations,
-        ),
+        (either) =>
+            either.fold((failure) => throw failure, (conversations) => conversations),
       );
 });
 
 /// Stream d'une conversation specifique
-final conversationStreamProvider = StreamProvider.family<ConversationEntity?, String>((ref, conversationId) {
-  return ref
-      .watch(messageRepositoryProvider)
+///
+/// Sémantique de la valeur émise, calquée sur `userStreamProvider` :
+///   - ConversationEntity → conversation chargée
+///   - null               → conversation RÉELLEMENT absente (le flux a rendu
+///                          `Right(null)`) → « Conversation supprimée »
+///   - AsyncError         → panne de lecture (réseau, RLS, session) → surtout
+///                          PAS « supprimée »
+///
+/// Plier l'échec en `null` faisait dire « Conversation supprimée » à l'écran
+/// sur une simple coupure. Tant que l'erreur était avalée en amont, ça ne se
+/// voyait pas ; maintenant qu'elle arrive, la distinction compte.
+final conversationStreamProvider = StreamProvider.family<ConversationEntity?, String>((ref, conversationId) async* {
+  final depot = ref.watch(messageRepositoryProvider);
+
+  // La conversation déjà en cache part la première, comme pour la liste.
+  // Sans elle, un écran ouvert hors ligne ne sait même pas QUI est en face :
+  // `_effectiveOtherUserId` se déduit de la conversation quand l'écran est
+  // atteint sans `state.extra` (lien profond, notification), donc aucun profil
+  // n'était demandé et l'en-tête gardait son repli — cache du profil ou pas.
+  ConversationEntity? connue;
+  final enCache = depot.getCachedConversations().fold(
+    (_) => const <ConversationEntity>[],
+    (liste) => liste,
+  );
+  for (final c in enCache) {
+    if (c.id == conversationId) {
+      connue = c;
+      break;
+    }
+  }
+  if (connue != null) yield connue;
+
+  yield* depot
       .getConversationStream(conversationId)
       .map(
         (either) => either.fold(
-          (failure) => null,
+          (failure) => throw failure,
           (conversation) => conversation,
         ),
       );
 });
 
 /// Stream des messages d'une conversation
+///
+/// Même règle : une panne est une erreur, pas une conversation vide.
 final messagesProvider = StreamProvider.family<List<MessageEntity>, String>((ref, conversationId) {
   return ref
       .watch(messageRepositoryProvider)
       .getMessages(conversationId)
       .map(
-        (either) => either.fold(
-          (failure) => <MessageEntity>[],
-          (messages) => messages,
-        ),
+        (either) =>
+            either.fold((failure) => throw failure, (messages) => messages),
       );
 });
 
@@ -145,12 +179,48 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   DateTime? _filterAfterDate;
   final Map<String, Timer> _optimisticTimeouts = {};
 
+  /// La lecture réseau initiale a abouti au moins une fois.
+  ///
+  /// Tant qu'elle n'a pas abouti, l'écran vit sur le cache **et n'a aucun
+  /// abonnement temps réel** : `_loadNetworkData` sort avant de les poser.
+  /// Une discussion ouverte hors ligne restait donc figée pour toujours — le
+  /// retour du réseau n'y changeait rien, puisqu'il n'y avait rien pour
+  /// l'écouter. C'est ce drapeau qui autorise les relances ci-dessous.
+  bool _lectureReseauAboutie = false;
+
+  /// Relances programmées, annulées à la disposition du notifier.
+  final List<Timer> _relances = [];
+
   PaginatedMessagesNotifier(this._ref, this.conversationId)
       : super(const MessagePaginationState(isLoadingInitial: true)) {
     // Load cache synchronously for instant display
     _loadCacheSync();
     // Then load network data in background
     Future.microtask(() => _loadNetworkData());
+
+    // Retour du réseau : la discussion ouverte hors ligne n'a jamais chargé.
+    _ref.listen(connectivityNotifierProvider, (_, connecte) {
+      if (connecte == true && !_lectureReseauAboutie && mounted) {
+        unawaited(_loadNetworkData());
+      }
+    });
+  }
+
+  /// Reprogramme la lecture initiale après un échec.
+  ///
+  /// Le retour du réseau ne couvre pas tout : au démarrage à froid la
+  /// connectivité est déjà là, mais la session Supabase, elle, n'est pas
+  /// encore établie — la lecture échoue alors sans qu'aucun événement ne
+  /// vienne ensuite la relancer. Deux essais espacés suffisent ; au-delà,
+  /// c'est à l'utilisateur de revenir sur l'écran.
+  void _programmerRelance() {
+    if (_relances.length >= 2) return;
+    final delai = Duration(seconds: _relances.isEmpty ? 4 : 10);
+    _relances.add(
+      Timer(delai, () {
+        if (!_lectureReseauAboutie && mounted) unawaited(_loadNetworkData());
+      }),
+    );
   }
 
   /// Fire-and-forget: prepare E2EE sessions and Sender Keys for this conversation.
@@ -240,6 +310,9 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
 
     final isOffline = !_ref.read(connectivityNotifierProvider);
     if (isOffline) {
+      // On sort sans poser les écouteurs temps réel : c'est voulu, ils ne
+      // pourraient pas s'abonner. Mais l'écran ne doit pas rester ainsi — le
+      // `_ref.listen` du constructeur repassera ici au retour du réseau.
       if (state.messages.isEmpty) {
         state = state.copyWith(isOffline: true, isLoadingInitial: false);
       }
@@ -266,14 +339,21 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
 
     result.fold(
       (failure) {
+        // Cache non vide : on le garde plutôt que d'afficher une erreur
+        // par-dessus une discussion lisible. Mais sans relance, l'écran
+        // restait muet **et sans abonnement** — aucune erreur, aucun message
+        // nouveau, rien. La session Supabase pas encore établie au démarrage
+        // à froid tombe exactement ici.
         if (state.messages.isEmpty) {
           state = MessagePaginationState(
             error: failure.message,
             isOffline: true,
           );
         }
+        _programmerRelance();
       },
       (paginatedMessages) {
+        _lectureReseauAboutie = true;
         state = MessagePaginationState(
           messages: _withPendingLocalMessages(paginatedMessages.messages),
           hasMore: paginatedMessages.hasMore,
@@ -322,6 +402,10 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
       timer.cancel();
     }
     _optimisticTimeouts.clear();
+    for (final relance in _relances) {
+      relance.cancel();
+    }
+    _relances.clear();
     super.dispose();
   }
 
