@@ -82,3 +82,46 @@ final RegExp _uuid = RegExp(
 );
 
 bool _estUuid(String valeur) => _uuid.hasMatch(valeur);
+
+/// Villes ayant un groupe dans [pays] — la seconde marche du filtre Découvrir.
+///
+/// Tirée des lieux que la base rend pour la carte plutôt que d'une colonne de
+/// plus sur `GroupEntity` : c'est la même question (« où est ce groupe ? ») et
+/// il n'y a pas de raison d'y répondre deux fois.
+///
+/// Rend une liste vide tant que [lieux] n'est pas chargé : la rangée de villes
+/// n'apparaît donc pas avant de savoir quoi y mettre, plutôt que d'apparaître
+/// vide puis de sauter.
+List<String> villesDuPays(
+  List<GroupEntity> groupes,
+  String? pays,
+  Map<String, LieuDeGroupe>? lieux,
+) {
+  if (pays == null || lieux == null || lieux.isEmpty) return const [];
+  final noms = <String>{};
+  for (final g in groupes) {
+    if (g.country != pays) continue;
+    final lieu = lieux[g.id];
+    if (lieu != null && lieu.estUneVille && lieu.villeNom != null) {
+      noms.add(lieu.villeNom!);
+    }
+  }
+  return noms.toList()..sort();
+}
+
+/// Ne garde que les groupes de [ville].
+///
+/// **Tant que [lieux] n'est pas chargé, ne filtre rien.** Un filtre qui répond
+/// « aucun groupe » parce qu'il ne sait pas encore où ils sont vide l'onglet
+/// le temps d'un aller-retour, sans rien dire — et cet écran a déjà eu trois
+/// causes indistinguables d'écran blanc.
+List<GroupEntity> filtrerParVille(
+  List<GroupEntity> groupes,
+  String? ville,
+  Map<String, LieuDeGroupe>? lieux,
+) {
+  if (ville == null || lieux == null || lieux.isEmpty) return groupes;
+  return groupes
+      .where((g) => lieux[g.id]?.villeNom == ville)
+      .toList(growable: false);
+}

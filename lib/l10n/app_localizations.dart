@@ -3464,6 +3464,12 @@ abstract class AppLocalizations {
   /// **'Depuis le {date}, votre profil n\'indique plus {city}. Vous pouvez quitter ce groupe ou y rester : rien ne change sans votre accord.'**
   String officialGroupDepartureCityBody(String date, String city);
 
+  /// No description provided for @hostCity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ville'**
+  String get hostCity;
+
   /// No description provided for @cityFieldHint.
   ///
   /// In fr, this message translates to:
