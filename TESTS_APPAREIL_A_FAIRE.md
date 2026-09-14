@@ -14192,9 +14192,11 @@ elle-même n'a donc jamais été observée en marche.
 
 - [ ] Sur SM A515F, APK installé à la main : ouvrir le panier marketplace et
       lancer le paiement — le dialogue « Accès restreint » doit apparaître.
-- [ ] Sur ce dialogue, « Ouvrir Play Store » doit ouvrir l'application Play
-      Store sur la fiche `com.diasponiger.diasponiger` — pas un navigateur,
-      pas une page « application introuvable ».
+- [ ] Sur ce dialogue, « Ouvrir Play Store » doit amener sur la fiche
+      `com.diasponiger.diasponiger`, et non sur une page « application
+      introuvable ». Ce chemin ouvre l'URL `https` (et non `market://`) :
+      l'app Play Store est l'issue attendue, un navigateur reste un repli
+      acceptable — noter laquelle des deux s'est ouverte.
 - [ ] « Compris » ferme le dialogue sans rien ouvrir.
 - [ ] Même parcours depuis l'envoi d'argent (destinataire choisi, montant
       saisi, puis valider).
