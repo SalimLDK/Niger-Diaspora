@@ -16507,4 +16507,12 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get pollVotersHidden =>
       'Sondage anonyme : personne ne voit qui a voté quoi.';
+
+  @override
+  String updateAvailableMessage(String version) {
+    return 'Diaspo Niger $version est disponible. Mettez à jour pour profiter des derniers correctifs.';
+  }
+
+  @override
+  String get updateAvailableAction => 'Mettre à jour';
 }

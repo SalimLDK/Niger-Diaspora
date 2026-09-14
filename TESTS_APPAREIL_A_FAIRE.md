@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**953 cases à cocher, 537 cochées** — 194 entrées sur 238 ont encore des cases ouvertes.
+**960 cases à cocher, 537 cochées** — 195 entrées sur 239 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -66,7 +66,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (57)
+**P1 — fonction importante, jamais vérifiée** (58)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 4 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -117,6 +117,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27) · *Backend, sécurité et observabilité*
+- 7 · [⬜ Notice « une nouvelle version est disponible » (2026-09-14)](#-notice--une-nouvelle-version-est-disponible--2026-09-14) · *Publication et plateformes*
 - 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
 - 3 · [Messagerie (hors refonte Fil & Discussion)](#messagerie-hors-refonte-fil--discussion) · *Messagerie* · bloqué
 - 5 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
@@ -264,7 +265,7 @@ Par domaine :
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 43 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -15473,6 +15474,54 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 # 14. Publication et plateformes
 
 Play Store, exigences Android, build release, iOS.
+
+---
+
+## ⬜ Notice « une nouvelle version est disponible » (2026-09-14)
+
+**Priorité P1** · importance 3/5 — Le bandeau de mise à jour partage désormais
+son canal avec le rappel de sauvegarde des clés E2EE : une erreur d'arbitrage
+ferait taire le second, et des messages deviendraient illisibles au changement
+d'appareil.
+
+Bandeau non bloquant en tête d'application quand une version plus récente
+existe sur le store. La version disponible vient du serveur — clé
+`DERNIERE_VERSION_APP` de l'Edge Function `app-config`, au format de la ligne
+`version:` de `pubspec.yaml` (`1.3.0+20`) — parce qu'un APK ne peut pas savoir
+qu'il en existe un plus récent que lui.
+Décision et silences tenus par `test/core/services/mise_a_jour_service_test.dart`
+(22 cas).
+
+**Le secret n'est pas posé en production** : tant qu'il ne l'est pas, le
+bandeau ne peut pas apparaître, et rien de ce qui suit n'est observable.
+
+- [ ] **Poser la clé, puis voir le bandeau** :
+      `supabase secrets set DERNIERE_VERSION_APP=1.9.9+99` (jamais
+      `--env-file`, qui remplacerait tous les secrets du projet), relancer
+      l'app à froid — le bandeau doit apparaître en tête. Remettre la vraie
+      valeur, ou retirer la clé, juste après.
+- [ ] **« Pas maintenant » tient** : écarter, tuer l'app, relancer — le
+      bandeau ne doit pas revenir. Puis passer le secret à une version
+      supérieure : il doit reparler.
+- [ ] **« Mettre à jour » ouvre la bonne fiche** : Play Store sur
+      `com.diasponiger.diasponiger`, et non une page « application
+      introuvable » (les deux liens du projet ont déjà été faux).
+- [ ] **Revenir du store sans installer** : le bandeau doit pouvoir
+      reparaître au démarrage suivant — contrairement à « Pas maintenant »,
+      partir vers le store n'écarte pas la version.
+- [ ] **Le rappel E2EE passe devant** ([main_shell.dart](lib/core/shell/main_shell.dart)) :
+      avec un compte dont les clés ne sont pas sauvegardées ET la clé serveur
+      posée, c'est le bandeau des clés qui doit s'afficher ; une fois traité,
+      celui de la mise à jour doit prendre sa place **sans relancer l'app**.
+- [ ] **Rendu du bandeau** : thème sombre, échelle de police augmentée, petit
+      écran — un `MaterialBanner` à deux actions déborde vite.
+- [ ] **Hors ligne au démarrage** : aucune notice, aucun blocage du premier
+      écran (`RemoteConfigService` sert alors son cache, ou rien).
+
+Une notice qui s'affiche à tort est pire qu'une notice absente : elle envoie
+sur le store chercher une mise à jour qui n'existe pas, et recommence à chaque
+démarrage. D'où la règle tenue par le banc — toute version illisible, absente
+ou non postérieure se tait.
 
 ---
 

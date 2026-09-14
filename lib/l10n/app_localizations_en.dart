@@ -16353,4 +16353,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pollVotersHidden =>
       'Anonymous poll: nobody can see who voted for what.';
+
+  @override
+  String updateAvailableMessage(String version) {
+    return 'Diaspo Niger $version is available. Update to get the latest fixes.';
+  }
+
+  @override
+  String get updateAvailableAction => 'Update';
 }

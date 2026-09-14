@@ -131,7 +131,16 @@ class SupportService {
   }
 
   /// Open store for rating
-  Future<bool> openStoreForReview() async {
+  ///
+  /// Conservé pour les appelants qui invitent à noter l'app ; la notice de
+  /// mise à jour passe par [openStore], qui ne prétend rien sur le motif.
+  Future<bool> openStoreForReview() => openStore();
+
+  /// Ouvre la fiche de l'app sur le store de la plateforme.
+  ///
+  /// Renvoie false si rien n'a pu être ouvert — aucun appelant ne doit
+  /// afficher « c'est fait » sans regarder.
+  Future<bool> openStore() async {
     final String url = Platform.isIOS ? appStoreUrl : playStoreUrl;
     final uri = Uri.parse(url);
 

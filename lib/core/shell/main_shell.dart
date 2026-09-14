@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,7 +13,9 @@ import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/bottom_navigation.dart';
 import '../../shared/widgets/tablet_navigation_rail.dart';
 import '../services/e2ee/e2ee_backup_coordinator.dart';
+import '../services/mise_a_jour_service.dart';
 import '../services/shared_media_service.dart';
+import '../services/support_service.dart';
 import '../utils/toast_utils.dart';
 
 /// Même seuil que `feed_screen.dart` (tour 4b) : au-delà, le fil affiche déjà
@@ -29,9 +33,14 @@ class MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<MainShell> {
-  /// Dernier prompt E2EE affiché, pour ne pas ré-afficher le même bandeau à
-  /// chaque rebuild.
-  E2EEBackupPrompt? _e2eePromptShown;
+  /// Ce que le bandeau haut affiche actuellement, pour ne pas le reposer
+  /// identique à chaque rebuild. `null` = aucun bandeau.
+  ///
+  /// Une seule variable pour les deux sources, et volontairement :
+  /// `ScaffoldMessenger` n'affiche qu'un `MaterialBanner` à la fois et
+  /// `clearMaterialBanners()` vide aussi la file d'attente — deux appelants
+  /// indépendants se seraient effacés l'un l'autre selon l'ordre d'arrivée.
+  Object? _bandeauAffiche;
 
   @override
   void initState() {
@@ -39,9 +48,13 @@ class _MainShellState extends ConsumerState<MainShell> {
     // Handle shares received while the app was closed.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkInitialSharedMedia();
-      // Le coordinateur peut avoir déjà décidé avant que ce shell soit monté :
-      // ref.listen ne rejoue pas l'état courant, on le lit donc une fois ici.
-      _handleE2EEPrompt(ref.read(e2eeBackupCoordinatorProvider));
+      // Les coordinateurs peuvent avoir déjà décidé avant que ce shell soit
+      // monté : ref.listen ne rejoue pas l'état courant, on le lit donc une
+      // fois ici.
+      _rafraichitBandeau();
+      // La vérification de version, elle, n'a personne pour la déclencher :
+      // elle n'est accrochée ni à la connexion ni à une navigation.
+      unawaited(ref.read(coordinateurMiseAJourProvider.notifier).verifie());
     });
   }
 
@@ -80,10 +93,14 @@ class _MainShellState extends ConsumerState<MainShell> {
       },
     );
 
-    // Bandeau de sauvegarde/restauration des clés E2EE.
+    // Les deux sources du bandeau haut passent par le même point d'entrée.
     ref.listen<E2EEBackupPrompt>(
       e2eeBackupCoordinatorProvider,
-      (_, next) => _handleE2EEPrompt(next),
+      (_, __) => _rafraichitBandeau(),
+    );
+    ref.listen<NoticeMiseAJour?>(
+      coordinateurMiseAJourProvider,
+      (_, __) => _rafraichitBandeau(),
     );
 
     final isWide = MediaQuery.of(context).size.width >= _kTabletBreakpoint;
@@ -158,56 +175,111 @@ class _MainShellState extends ConsumerState<MainShell> {
     );
   }
 
-  /// Affiche (ou masque) le bandeau invitant à sauvegarder ou restaurer les clés
-  /// E2EE, selon la décision du coordinateur. Non bloquant.
-  void _handleE2EEPrompt(E2EEBackupPrompt prompt) {
+  /// Repose le bandeau haut d'après l'état des deux sources qui peuvent en
+  /// réclamer un. Non bloquant dans les deux cas.
+  ///
+  /// La sécurité passe avant la mise à jour : des clés non sauvegardées font
+  /// perdre des messages, une version en retard non. Si le rappel E2EE est
+  /// traité alors qu'une notice de mise à jour attend, celle-ci prend sa place
+  /// — l'état des deux est relu à chaque passage.
+  void _rafraichitBandeau() {
     if (!mounted) return;
-    if (prompt == _e2eePromptShown) return;
-    _e2eePromptShown = prompt;
+
+    final e2ee = ref.read(e2eeBackupCoordinatorProvider);
+    final maj = ref.read(coordinateurMiseAJourProvider);
+    final Object? demande = e2ee != E2EEBackupPrompt.none ? e2ee : maj;
+
+    if (demande == _bandeauAffiche) return;
+    _bandeauAffiche = demande;
 
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearMaterialBanners();
-    if (prompt == E2EEBackupPrompt.none) return;
+    if (demande == null) return;
 
     final l10n = AppLocalizations.of(context)!;
+    messenger.showMaterialBanner(
+      demande is E2EEBackupPrompt
+          ? _bandeauE2EE(messenger, l10n, demande)
+          : _bandeauMiseAJour(messenger, l10n, demande as NoticeMiseAJour),
+    );
+  }
+
+  /// Bandeau invitant à sauvegarder ou restaurer les clés E2EE.
+  MaterialBanner _bandeauE2EE(
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+    E2EEBackupPrompt prompt,
+  ) {
     final isRestore = prompt == E2EEBackupPrompt.needsRestore;
 
-    messenger.showMaterialBanner(
-      MaterialBanner(
-        content: Text(
-          isRestore ? l10n.e2eeRestoreNudgeMessage : l10n.e2eeBackupNudgeMessage,
-        ),
-        leading: const Icon(Icons.lock_outline),
-        actions: [
-          // Sortie définitive : « Pas maintenant » ne met en veille que 7 jours,
-          // et `needsRestore` reste vrai tant que la restauration n'a pas eu
-          // lieu — le bandeau revenait donc indéfiniment.
-          TextButton(
-            onPressed: () {
-              messenger.hideCurrentMaterialBanner();
-              ref.read(e2eeBackupCoordinatorProvider.notifier).dismissForever();
-            },
-            child: Text(l10n.e2eeNudgeMuteAction),
-          ),
-          TextButton(
-            onPressed: () {
-              messenger.hideCurrentMaterialBanner();
-              ref.read(e2eeBackupCoordinatorProvider.notifier).acknowledge();
-            },
-            child: Text(l10n.notNow),
-          ),
-          TextButton(
-            onPressed: () {
-              messenger.hideCurrentMaterialBanner();
-              ref.read(e2eeBackupCoordinatorProvider.notifier).acknowledge();
-              context.push('/settings/security/backup');
-            },
-            child: Text(
-              isRestore ? l10n.e2eeRestoreNudgeAction : l10n.e2eeBackupNudgeAction,
-            ),
-          ),
-        ],
+    return MaterialBanner(
+      content: Text(
+        isRestore ? l10n.e2eeRestoreNudgeMessage : l10n.e2eeBackupNudgeMessage,
       ),
+      leading: const Icon(Icons.lock_outline),
+      actions: [
+        // Sortie définitive : « Pas maintenant » ne met en veille que 7 jours,
+        // et `needsRestore` reste vrai tant que la restauration n'a pas eu
+        // lieu — le bandeau revenait donc indéfiniment.
+        TextButton(
+          onPressed: () {
+            messenger.hideCurrentMaterialBanner();
+            ref.read(e2eeBackupCoordinatorProvider.notifier).dismissForever();
+          },
+          child: Text(l10n.e2eeNudgeMuteAction),
+        ),
+        TextButton(
+          onPressed: () {
+            messenger.hideCurrentMaterialBanner();
+            ref.read(e2eeBackupCoordinatorProvider.notifier).acknowledge();
+          },
+          child: Text(l10n.notNow),
+        ),
+        TextButton(
+          onPressed: () {
+            messenger.hideCurrentMaterialBanner();
+            ref.read(e2eeBackupCoordinatorProvider.notifier).acknowledge();
+            context.push('/settings/security/backup');
+          },
+          child: Text(
+            isRestore ? l10n.e2eeRestoreNudgeAction : l10n.e2eeBackupNudgeAction,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Bandeau « une nouvelle version est disponible ».
+  ///
+  /// Deux actions seulement, et aucune n'est définitive : « Pas maintenant »
+  /// ne tait que cette version-là, et la version suivante reparlera.
+  MaterialBanner _bandeauMiseAJour(
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+    NoticeMiseAJour notice,
+  ) {
+    return MaterialBanner(
+      content: Text(l10n.updateAvailableMessage(notice.versionPubliee)),
+      leading: const Icon(Icons.system_update_outlined),
+      actions: [
+        TextButton(
+          onPressed: () {
+            messenger.hideCurrentMaterialBanner();
+            ref.read(coordinateurMiseAJourProvider.notifier).ecarte();
+          },
+          child: Text(l10n.notNow),
+        ),
+        TextButton(
+          onPressed: () {
+            messenger.hideCurrentMaterialBanner();
+            // `ouvre()` et non `ecarte()` : partir vers le store ne prouve pas
+            // que la mise à jour a été installée.
+            ref.read(coordinateurMiseAJourProvider.notifier).ouvre();
+            unawaited(ref.read(supportServiceProvider).openStore());
+          },
+          child: Text(l10n.updateAvailableAction),
+        ),
+      ],
     );
   }
 

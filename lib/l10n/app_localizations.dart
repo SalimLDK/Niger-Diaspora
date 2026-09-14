@@ -30115,6 +30115,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Sondage anonyme : personne ne voit qui a voté quoi.'**
   String get pollVotersHidden;
+
+  /// Bandeau non bloquant affiche quand une version plus recente existe sur le store
+  ///
+  /// In fr, this message translates to:
+  /// **'Diaspo Niger {version} est disponible. Mettez à jour pour profiter des derniers correctifs.'**
+  String updateAvailableMessage(String version);
+
+  /// Action du bandeau de mise a jour : ouvre la fiche du store
+  ///
+  /// In fr, this message translates to:
+  /// **'Mettre à jour'**
+  String get updateAvailableAction;
 }
 
 class _AppLocalizationsDelegate
