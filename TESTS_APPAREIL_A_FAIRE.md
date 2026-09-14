@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**905 cases à cocher, 507 cochées** — 184 entrées sur 228 ont encore des cases ouvertes.
+**904 cases à cocher, 508 cochées** — 184 entrées sur 228 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -72,7 +72,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 2 · [⚠️ L'identité du correspondant ne revient plus après une coupure (2026-09-14)](#-lidentité-du-correspondant-ne-revient-plus-après-une-coupure-2026-09-14) · *Messagerie*
+- 1 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
@@ -242,7 +242,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 131 à faire, 55 faites
+- [2. Messagerie](#2-messagerie) — 130 à faire, 56 faites
 - [3. Groupes](#3-groupes) — 112 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -504,18 +504,18 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
-## ⚠️ L'identité du correspondant ne revient plus après une coupure (2026-09-14)
+## ✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)
 
-**Priorité P1** · importance 4/5 — Un profil dont la lecture échoue pendant une coupure reste en échec pour toute la vie de l'app : l'en-tête d'une discussion affiche « Conversation » et un avatar « C » à la place du nom, et ni le retour du réseau ni un aller-retour hors de l'écran ne le corrigent. Seul un redémarrage.
+**Priorité P1** · importance 4/5 — Un profil dont la lecture échouait pendant une coupure restait en échec pour toute la vie de l'app : l'en-tête d'une discussion affichait « Conversation » et un avatar « C » à la place du nom, et ni le retour du réseau ni un aller-retour hors de l'écran ne le corrigeaient. Seul un redémarrage.
 
 *Bloqué : rien — se rejoue seul avec le mode avion.*
 
-Mesuré deux fois sur SM A515F le 2026-09-14, sur deux releases construites et
-installées dans la foulée (md5 de l'APK installé vérifié identique à celui du
-build à chaque fois) : d'abord sur `719ca77`, puis sur la fusion qui contient
-« fix(temps réel) : un écran ouvert hors ligne charge au retour du réseau »
-(`5dddc47`). **Résultat identique dans les deux cas.** Le parcours reproduit ce
-que montrait l'écran à 03:32 :
+**Le défaut, mesuré deux fois** sur SM A515F le 2026-09-14, sur deux releases
+construites et installées dans la foulée (md5 de l'APK installé vérifié
+identique à celui du build à chaque fois) : d'abord sur `719ca77`, puis sur la
+fusion qui contient `5dddc47` (« un écran ouvert hors ligne charge au retour du
+réseau »). Résultat identique dans les deux cas, et identique à ce que montrait
+l'écran à 03:32 :
 
 1. mode avion, `am force-stop`, relancer l'app, ouvrir la DM depuis la liste →
    en-tête **« Conversation »**, avatar **« C »**, pas de « En ligne », aucune
@@ -525,7 +525,7 @@ que montrait l'écran à 03:32 :
 3. sortir de l'écran, y revenir : toujours « Conversation ».
 4. `am force-stop` puis relance : « Salim L. » et « En ligne » reviennent.
 
-**Pourquoi `5dddc47` ne l'attrape pas.** Ce correctif branche
+**Pourquoi `5dddc47` ne l'attrapait pas.** Ce correctif branche
 `lectureInitialeEnEchec` sur les trois flux qui font leur propre lecture
 initiale — discussions, discussion courante, demandes de message. Le nom de
 l'en-tête ne vient d'aucun des trois : il vient du profil de l'interlocuteur,
@@ -534,22 +534,10 @@ et `getUserStream`
 n'a pas de `rattrapageAuRejoint` — son `await _ensureReadableAuth()` échoue
 d'entrée hors ligne, avant même le `.stream()`.
 
-**Pourquoi l'échec colle.** `userStreamProvider`
+**Pourquoi l'échec collait.** `userStreamProvider`
 ([profile_provider.dart:330](lib/features/profile/presentation/providers/profile_provider.dart:330))
 est un `StreamProvider.family` **sans `autoDispose`** : l'instance qui a échoué
-hors ligne est conservée pour toute la vie de l'app, et rien ne la réabonne.
-Deux autres pièces rendent l'échec muet :
-
-- [conversation_screen.dart:1199](lib/features/messages/presentation/screens/conversation_screen.dart:1199) —
-  `identityLoading` teste `!hasValue` ; un `AsyncError` n'ayant pas de valeur,
-  **erreur et chargement sont indiscernables**, et l'écran reste sur son texte
-  d'attente au lieu d'un état d'erreur avec réessai ;
-- [message_repository_impl.dart:178](lib/features/messages/data/repositories/message_repository_impl.dart:178) —
-  `.handleError((error) { return Left(ServerFailure(...)); })` : Dart **ignore
-  la valeur de retour** de `handleError`, le `Left` n'est donc jamais émis,
-  l'erreur est avalée et le flux reste sans événement — ni bandeau, ni réessai.
-  Trois flux sont écrits ainsi dans ce fichier : liste des discussions (l. 130),
-  discussion (l. 178), messages (l. 220).
+hors ligne est conservée pour toute la vie de l'app, et rien ne la réabonnait.
 
 **D'où vient le mot « Conversation ».** Ce n'est pas un libellé de chargement :
 la liste passe `'name': c.name ?? 'Conversation'`
@@ -560,17 +548,37 @@ profond, notification), le même écran affiche « Chargement... ». L'avatar «
 n'est que l'initiale de ce repli — pas celle d'un contact. Pour la variante
 liste, voir « Nom et avatar du correspondant dans la liste des discussions ».
 
-**Correctif proposé, non appliqué** : distinguer l'erreur de l'attente dans
-`identityLoading` (un `hasError` doit donner un état réessayable, pas un texte
-d'attente), cesser d'avaler l'erreur dans les trois `.handleError`
-(`StreamTransformer` qui pousse le `Left` dans le sink), et réabonner le profil
-au retour du réseau — poser `autoDispose` sur `userStreamProvider` ne suffit
-pas, l'écran restant monté pendant toute la panne.
+**Corrigé le 2026-09-14** dans `_profilAvecReprise` (même fichier) : le flux se
+rebranche tant qu'il reste en échec — immédiatement au retour de la
+connectivité, et par paliers (3 s, 6 s, 12 s… plafonnés à une minute) parce
+qu'un **VPN persistant fait mentir `connectivity_plus`** : l'appareil se dit
+connecté alors qu'il n'a plus de DNS, et c'est exactement le cas qui a produit
+la capture d'origine. Les paliers ne courent que sur un flux en échec et
+repartent de zéro dès qu'un profil arrive ; un `NotFoundFailure` (compte
+réellement supprimé) reste une donnée, pas une panne, donc aucune reprise
+dessus. Deux tests neufs :
+`test/features/profile/user_stream_reprise_test.dart`.
 
-- [ ] **Après correction** : rejouer les quatre étapes ci-dessus — l'en-tête
-      doit se remplir seul au retour du réseau, sans redémarrer l'app.
+- [x] **Après correction** : les quatre étapes rejouées sur la release du
+      correctif (md5 `103379e7…`) — hors ligne l'en-tête affiche toujours son
+      repli, puis **se remplit tout seul 20 s après le retour du réseau**
+      (« Salim L. », « En ligne », pastille de présence), sans quitter l'écran
+      ni redémarrer l'app. Vérifié SM A515F le 2026-09-14.
 - [ ] **Compte réellement supprimé** : vérifier que ce cas affiche toujours
       « Utilisateur » et non un état d'erreur réessayable.
+
+**Pas touché, volontairement.** Les trois `.handleError` de
+[message_repository_impl.dart:130](lib/features/messages/data/repositories/message_repository_impl.dart:130)
+(puis l. 178 et l. 220) avalent toujours leur erreur : Dart ignore la valeur de
+retour de `handleError`, donc le `Left` qu'ils construisent n'est jamais émis.
+Les faire parler change ce que voit l'utilisateur hors ligne, et chaque chemin a
+sa régression — plié en `null`, l'écran lit « Conversation supprimée » ; plié en
+erreur, `hasLoadError` **remplace le composeur**
+([conversation_screen.dart:1524](lib/features/messages/presentation/screens/conversation_screen.dart:1524)),
+donc plus moyen d'écrire hors ligne ; et côté liste,
+[messages_screen.dart:330](lib/features/messages/presentation/screens/messages_screen.dart:330)
+fait `conversationsAsync.value!`, qui relance l'erreur en Riverpod 2. À traiter
+dans une passe à part, avec sa propre vérification appareil.
 
 ---
 
@@ -650,7 +658,7 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
       remplie seule au retour du réseau (« Salim L. » et son avatar à +75 s) :
       c'est la seconde moitié de l'exigence qui tient, pas la première, donc la
       case reste ouverte. L'en-tête d'une discussion, lui, ne se rattrape pas —
-      voir « ⚠️ L'identité du correspondant ne revient plus après une
+      voir « ✅ L'identité du correspondant revient seule après une
       coupure ».
 - [x] **« Mes notes »** (fil à participant unique) : titre correct — vérifié
       SM A515F le 2026-09-13. L'absence de requête de profil sur identifiant
