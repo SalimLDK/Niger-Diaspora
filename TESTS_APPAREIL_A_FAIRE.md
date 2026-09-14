@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**934 cases à cocher, 516 cochées** — 189 entrées sur 233 ont encore des cases ouvertes.
+**936 cases à cocher, 518 cochées** — 189 entrées sur 233 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -75,7 +75,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
-- 2 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
+- 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
@@ -247,7 +247,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 148 à faire, 61 faites
+- [2. Messagerie](#2-messagerie) — 150 à faire, 63 faites
 - [3. Groupes](#3-groupes) — 115 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -721,12 +721,43 @@ participant s'en déduit — et le cache de profil ne sert alors à rien.
       donc comme identité en attente
       ([conversation_screen.dart:1199](lib/features/messages/presentation/screens/conversation_screen.dart:1199)).
       Vérifié SM A515F le 2026-09-14 (release md5 `9641765b…`).
-- [ ] **La fenêtre elle-même** : hors ligne, cette restauration de session prend
-      **une à deux minutes** (mesuré : « Chargement… » à +22 s et +52 s, nom à
-      +2 min), pendant lesquelles l'app martèle App Check toutes les secondes
-      (`Unable to resolve host firebaseappcheck.googleapis.com` dans logcat).
-      Le nom finit par arriver, mais l'attente est longue pour quelqu'un qui
-      ouvre une notification dans le métro. À instruire à part.
+- [x] **La fenêtre elle-même** — instruite le 2026-09-14, et refermée par les
+      deux bouts. La cause : `authStateChanges`
+      ([auth_remote_datasource.dart:574](lib/features/auth/data/datasources/auth_remote_datasource.dart:574))
+      enchaînait en `asyncMap` **trois appels distants** — pont
+      Firebase→Supabase, upsert, lecture de la ligne `users` — et n'émettait
+      rien tant qu'ils n'avaient pas rendu la main. Hors ligne, ils mettent une
+      à deux minutes à échouer : l'app n'avait aucun compte courant pendant tout
+      ce temps, alors que Firebase tient l'utilisateur en mémoire dès son
+      initialisation. L'identité locale part maintenant en première émission,
+      l'enrichissement distant suit — et un échec ne termine plus le flux.
+      ⚠️ Analysé et couvert par les tests, mais **son effet propre n'a pas été
+      isolé sur appareil** : le semis ci-dessous masque désormais le symptôme.
+- [x] **Le nom dès la première image**, sans passer par « Chargement… » : un
+      flux n'émet jamais dans l'image du premier rendu, donc même avec tout en
+      cache l'en-tête affichait son repli. `_semerIdentiteConnue()`
+      ([conversation_screen.dart:189](lib/features/messages/presentation/screens/conversation_screen.dart:189))
+      lit à l'ouverture trois sources locales et **synchrones** — uid Firebase,
+      conversation en cache, profil en cache — et les pose comme valeurs de
+      départ. Mesuré par rafale de captures (25 en 25 s) sur SM A515F le
+      2026-09-14, lien profond en mode avion, release md5 `4b37b3c2…` : trois
+      états seulement — écran de lancement, écran blanc, puis **« Salim L. »**.
+      Aucune image ne montre « Chargement… ».
+- [ ] **Groupe et « Mes notes » par lien profond** : le semis lit aussi la
+      nature du fil dans la conversation en cache (nom et image d'un groupe,
+      « Mes notes » par différence avec le compte courant). Écrit, analysé,
+      **pas mesuré** : il faudrait l'identifiant d'une conversation de groupe,
+      que rien n'expose depuis l'appareil — logcat n'en montre aucun en release
+      et la base n'est pas liée sur ce poste.
+- [ ] **Notification d'une discussion jamais ouverte** : le push porte déjà
+      `senderName`, `senderPhotoUrl`, `senderId` et `conversationType` ;
+      [app.dart:92](lib/app.dart:92) les passe en `extra` au moment de
+      naviguer, faute de quoi aucun cache local ne peut renseigner un fil
+      inconnu. Demande deux comptes et un vrai push pour être vérifié.
+- [ ] **Lien profond brut vers une discussion inconnue, hors ligne** : mesuré
+      le 2026-09-14 — « Chargement… » et le bandeau « Mode hors ligne », qui
+      restent. C'est le cas où aucune source n'existe : ni cache, ni réseau, ni
+      `extra`. Vérifier qu'il se remplit bien au retour du réseau.
 - [x] **Hors ligne, dès l'ouverture** : l'en-tête affiche « Salim L. » et son
       avatar « SL » sans attendre le réseau, et la liste des discussions ne
       montre plus « Utilisateur ». Vérifié SM A515F le 2026-09-14 (release md5
