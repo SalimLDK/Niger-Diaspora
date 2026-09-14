@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1034 cases à cocher, 552 cochées** — 209 entrées sur 253 ont encore des cases ouvertes.
+**1037 cases à cocher, 552 cochées** — 210 entrées sur 254 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (65)
+**P1 — fonction importante, jamais vérifiée** (66)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -103,6 +103,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
+- 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
@@ -278,7 +279,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 44 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 146 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 57 à faire, 40 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 60 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -14574,6 +14575,40 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+
+## ⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Aucun refus de permission n'atteignait Crashlytics : c'est pour ça qu'accepter une demande d'ami est resté impossible des mois. Chaque échec montré à l'usager y part désormais en non-fatal.
+
+`FlutterError.onError` et `PlatformDispatcher.onError` ne voient que les
+erreurs **non** rattrapées. Un `PERMISSION_DENIED` Firestore ou un `42501` de
+la RLS, eux, sont attrapés : ils deviennent un `ServerFailure`, puis un
+`bool false`. Ils ne quittaient jamais le téléphone.
+
+Le branchement est posé sur `messageErreurUsager` — le seul endroit du projet
+qui sait qu'on est en train de dire à quelqu'un que ça a raté, et par lequel
+passent déjà 48 sites. Une indirection (`brancherObservateurEchec`) garde ce
+fichier **pur** : il est lu par des tests sans Firebase, et `web/` est une
+cible réelle. L'implémentation vit dans `journal_echecs.dart`, branchée une
+fois depuis `main.dart`.
+
+Deux précautions, testées : le message est **caviardé** (uid, uuid, e-mail,
+JWT, sous-domaine du projet) parce que PostgREST met l'URL complète dans ses
+messages et Firebase le chemin du document ; et une même panne ne part
+**qu'une fois par 5 minutes**, sinon un écran en erreur hors ligne inonderait
+la console — `messageErreurUsager` est aussi appelé depuis des `build`.
+
+⚠️ **Ce que ça ne verra pas** : un succès qui n'a rien fait. Un `UPDATE`
+PostgREST qui ne matche aucune ligne rend 200. Ceux-là restent l'affaire de
+« Balayage des invariants de données ».
+
+- [ ] **Vérifier l'arrivée** : couper le réseau, ouvrir un écran qui charge,
+  puis consulter la console Crashlytics — un non-fatal `echec_affiche` avec
+  la clé `famille_echec = reseau`.
+- [ ] **Vérifier le caviardage sur un vrai message** : la fiche Crashlytics ne
+  doit contenir ni uid, ni uuid, ni le sous-domaine Supabase.
+- [ ] **Vérifier le volume** après 24 h : si une famille domine, c'est une
+  fonctionnalité cassée, pas du bruit — c'est exactement ce qu'on cherche.
 
 ## ⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)
 
