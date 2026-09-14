@@ -823,14 +823,23 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
     /// Pas de filtre de visibilité à la main, contrairement au rappel
     /// temps réel : la policy `posts_select` rend déjà exactement ce que
     /// l'appelant a le droit de lire.
+    ///
+    /// Bornée aux plus récentes : une app laissée de côté une semaine
+    /// rapporterait sinon tout ce qui a été publié depuis, d'un coup, dans
+    /// une pastille qui n'est qu'une amorce. Au-delà, c'est le rechargement
+    /// de la page qui fait foi.
     Future<void> rattraper() async {
       try {
         final rows = await _supabase
             .from('posts')
             .select()
             .gt('created_at', toIsoUtc(dernierVu))
-            .order('created_at');
-        for (final row in (rows as List)) {
+            .order('created_at', ascending: false)
+            .limit(30);
+        // Remises dans l'ordre chronologique : la pastille empile en tête,
+        // donc émettre de la plus ancienne à la plus récente laisse la plus
+        // récente au sommet — comme le chemin temps réel.
+        for (final row in (rows as List).reversed) {
           final post = PostModel.fromJson(_mapPost(row as Map<String, dynamic>));
           if (post.createdAt.isAfter(dernierVu)) dernierVu = post.createdAt;
           if (!controller.isClosed) controller.add(post);

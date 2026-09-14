@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**904 cases à cocher, 496 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
+**898 cases à cocher, 503 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -71,7 +71,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 5 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
+- 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 6 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
@@ -149,9 +149,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 6 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
+- 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
-- 5 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
+- 4 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
 - 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
@@ -241,7 +241,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 131 à faire, 52 faites
+- [2. Messagerie](#2-messagerie) — 129 à faire, 54 faites
 - [3. Groupes](#3-groupes) — 107 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
@@ -250,8 +250,8 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 33 à faire, 25 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 138 à faire, 27 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 30 à faire, 28 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -541,17 +541,21 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
 
 *Bloqué : deux comptes, dont un au profil privé.*
 
-- [ ] **Démarrage à froid**, app tuée puis relancée directement sur l'onglet
+- [x] **Démarrage à froid**, app tuée puis relancée directement sur l'onglet
       Discussions : aucune ligne ne montre « Utilisateur » — ni au premier
-      rendu, ni après une seconde. (`profile_supabase_datasource.dart`,
+      rendu, ni après une seconde. Vérifié SM A515F le 2026-09-13
+      (`force-stop` puis `am start` : la ligne « Salim L. » et son avatar à
+      initiales sont corrects d'emblée). (`profile_supabase_datasource.dart`,
       `conversation_item.dart`)
 - [ ] **Profil privé** en face : le nom et la photo s'affichent quand même
       dans la liste (l'amitié/la discussion n'est pas un accès au profil, mais
       le nom doit rester lisible).
 - [ ] **Mode avion au lancement** puis retour réseau : la ligne se remplit
       seule, sans afficher « Utilisateur » entre-temps.
-- [ ] **« Mes notes »** (fil à participant unique) : titre correct, et aucune
-      requête de profil sur un identifiant vide.
+- [x] **« Mes notes »** (fil à participant unique) : titre correct — vérifié
+      SM A515F le 2026-09-13. L'absence de requête de profil sur identifiant
+      vide, elle, ne se voit pas à l'écran : elle tient à la garde
+      `otherUserId.isNotEmpty`.
 - [ ] **Compte réellement supprimé**, s'il y en a un sous la main : là,
       « Utilisateur » est le bon affichage — la correction ne doit pas l'avoir
       masqué.
@@ -10947,19 +10951,22 @@ Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature 
 
 *Bloqué : deux comptes partageant au moins deux groupes, dont un sans aucun message.*
 
-- [ ] **Profil ouvert depuis une discussion** : la section liste les groupes
-      partagés — photo, nom, effectif réel.
+- [x] **Profil ouvert depuis une discussion** : la section liste les groupes
+      partagés — photo, nom, effectif réel. Vérifié SM A515F le 2026-09-13 :
+      profil de Salim L. ouvert depuis l'en-tête de la discussion, puis
+      « 3 groupes en commun » et ses trois lignes.
       (`profile_view_screen.dart`)
-- [ ] **Appui sur une ligne** : ouvre la discussion du groupe, avec son nom et
-      sa photo dans l'en-tête.
+- [x] **Appui sur une ligne** : ouvre la discussion du groupe, avec son nom et
+      sa photo dans l'en-tête. Vérifié le 2026-09-13 sur « Testeurs ».
 - [ ] **Groupe sans aucun message** (sa conversation n'existe pas encore) :
       l'appui ouvre la **fiche** du groupe, pas un écran vide.
 - [ ] **Plus de quatre groupes partagés** : « Voir tout » déplie la liste sur
       place ; la bio et les médias restent atteignables.
 - [ ] **Aucun groupe en commun**, et **personne bloquée** : la section est
       absente dans les deux cas.
-- [ ] **Effectif** : le nombre affiché est celui de `group_members`, pas
-      « 0 membre » (voir « Fiche membres » au § 3 pour l'historique).
+- [x] **Effectif** : le nombre affiché est celui de `group_members`, pas
+      « 0 membre » (voir « Fiche membres » au § 3 pour l'historique). Vérifié
+      le 2026-09-13 : 3, 2 et 2 membres, conformes à la base.
 
 ---
 
@@ -11611,12 +11618,16 @@ Palette, thème sombre, icônes, polices, débordements, paysage, bascule design
 
 **Priorité P2** · importance 3/5 — Trois écrans dessinaient la marque chacun à leur façon : écran de démarrage en vert sans serif, page de connexion en Playfair sur l'accent du compte — donc **orange** pour qui a choisi le thème Orange —, gabarit d'illustration du design kit sur ce même accent à un autre rayon. On touchait une icône verte au lanceur pour tomber sur un sigle orange.
 
-- [ ] **Enchaînement lanceur → démarrage → connexion** (app déconnectée) :
-      même vert, même lettrage, même arrondi aux trois étapes.
-      (`design_kit.dart` — `DesignBrandMark`, `splash_screen.dart`,
-      `auth_scaffold.dart`)
-- [ ] **Compte en thème Orange** : le sigle reste vert (c'est l'accent des
-      boutons et des liens qui est orange, pas la marque).
+- [x] **Écran de démarrage** : vert `#009600`, sigle en Playfair, halo —
+      vérifié SM A515F le 2026-09-13. (`design_kit.dart` —
+      `DesignBrandMark`, `splash_screen.dart`)
+- [x] **Compte en thème Orange** : le sigle reste vert. Vérifié dans le pire
+      cas — le compte du SM A515F **est** en thème Orange (boutons et onglets
+      orange à l'écran), et c'est lui qui produisait le sigle orange.
+- [ ] **Page de connexion**, app déconnectée : même vert, même lettrage,
+      même arrondi que l'écran de démarrage. Pas vu — l'appareil était
+      connecté, et s'en déconnecter coûterait la session de test.
+      (`auth_scaffold.dart`)
 - [ ] **Thème sombre** : le vert et le blanc du sigle tiennent sur le fond
       sombre — la couleur est fixe, elle ne suit plus `onPrimaryColor`.
 - [ ] **Échelle de police à 1,3** : le « DN » ne déborde pas de son carré
