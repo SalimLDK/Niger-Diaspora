@@ -158,8 +158,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   /// Propose le dialogue natif « noter l'app », si le moment s'y prête.
   ///
-  /// Le Fil est le seul écran par lequel tout le monde passe, et il n'annonce
-  /// ni erreur ni attente — c'est le moment le moins mauvais pour demander.
+  /// L'Accueil est l'onglet d'arrivée (`/home`, première branche du shell) :
+  /// tout le monde y passe, et il n'annonce ni erreur ni attente — c'est le
+  /// moment le moins mauvais pour demander.
   /// `AppReviewService` tranche sur l'ancienneté et le nombre d'ouvertures ;
   /// ici on ne garde que ce qui dépend de l'écran.
   void _inviterANoterLApp() {
@@ -169,11 +170,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     // huit ouvertures requises.
     if (!ref.read(onboardingNotifierProvider).hasSeenCoachMarks) return;
 
-    // Laisser le Fil se poser : le dialogue natif arrive par-dessus l'app,
+    // Laisser l'Accueil se poser : le dialogue natif arrive par-dessus l'app,
     // et surgir sur un écran encore en squelette se lit comme un incident.
     // La politique est consultée *après* l'attente, pas avant : le compteur
     // de cette ouverture-ci monte dans le lot différé de `main()`, qui peut
-    // n'avoir pas encore tourné au premier rendu du Fil.
+    // n'avoir pas encore tourné au premier rendu de l'Accueil.
     Future.delayed(const Duration(seconds: 4), () {
       if (!mounted) return;
       // Un lien profond ou une notification a poussé un écran entre-temps :

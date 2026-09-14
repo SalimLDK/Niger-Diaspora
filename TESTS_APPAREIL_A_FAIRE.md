@@ -11780,7 +11780,7 @@ deux chemins volontairement distincts :
   natif — Google demande expressément de ne pas câbler un bouton « Noter »
   sur `requestReview()`, que le quota peut avaler : l'utilisateur voit alors
   un bouton mort ;
-- **l'invitation automatique** part du Fil
+- **l'invitation automatique** part de l'écran d'Accueil
   ([home_screen.dart](lib/features/home/presentation/screens/home_screen.dart)),
   après huit ouvertures, trois jours d'ancienneté, et une seule fois par
   trimestre.

@@ -277,9 +277,10 @@ Future<void> _initServicesSecondaires() async {
   // Deux écritures dans SharedPreferences, instantanées, et rien n'en dépend
   // — mais elles passent devant Maps et Stripe, qui prennent plusieurs
   // secondes sur un démarrage à froid. Derrière eux, le compteur montait
-  // après que le Fil ait déjà consulté la politique d'invitation.
+  // après que l'Accueil ait déjà consulté la politique d'invitation.
   // C'est le seul endroit traversé à chaque démarrage, quel que soit l'écran
-  // d'arrivée (lien profond, push, reprise) ; l'invitation, elle, part du Fil.
+  // d'arrivée (lien profond, push, reprise) ; l'invitation, elle, part de
+  // l'écran d'Accueil.
   await tenter(
     "compteur d'avis",
     AppReviewService.instance.enregistrerOuverture,
