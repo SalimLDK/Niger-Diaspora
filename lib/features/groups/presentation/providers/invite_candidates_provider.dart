@@ -16,7 +16,11 @@ class InviteCandidate {
   });
 
   final String id;
+
+  /// Vide quand le profil n'a pas de nom, ou n'a pas pu être lu. L'écran y
+  /// substitue `l10n.userDefault` — cf. `EligibleParticipant.displayName`.
   final String displayName;
+
   final String? photoUrl;
 
   /// Ligne secondaire de la tuile (profession). Absente des suggestions, que
@@ -88,9 +92,7 @@ final inviteSearchProvider =
       if (p.id != me?.id && !blockedIds.contains(p.id))
         InviteCandidate(
           id: p.id,
-          displayName: (p.displayName ?? '').trim().isEmpty
-              ? 'Utilisateur'
-              : p.displayName!.trim(),
+          displayName: (p.displayName ?? '').trim(),
           photoUrl: p.photoUrl,
           subtitle: p.profession,
         ),
