@@ -25,6 +25,7 @@ import 'core/services/stripe_service.dart';
 import 'core/services/background_location_service.dart';
 import 'core/services/location_publisher_service.dart';
 import 'core/services/online_status_service.dart';
+import 'core/services/supabase_auth_bridge.dart';
 import 'core/services/crypto/derived_key_store.dart';
 import 'core/services/encryption_service.dart';
 
@@ -298,6 +299,13 @@ Future<void> _initServicesSecondaires() async {
   }
 
   await tenter('statut en ligne', OnlineStatusService.instance.initialize);
+  // Session Supabase rebranchée au retour au premier plan : sans ça, une app
+  // laissée en veille revient avec un JWT périmé et des canaux temps réel
+  // muets — plus rien ne s'actualise tout seul.
+  await tenter(
+    'reprise de session au premier plan',
+    () async => SupabaseAuthBridge.instance.surveillerLeCycleDeVie(),
+  );
   await tenter(
     'Performance Monitoring',
     () => FirebasePerformance.instance.setPerformanceCollectionEnabled(true),

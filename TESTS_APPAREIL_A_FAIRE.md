@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**867 cases à cocher, 496 cochées** — 177 entrées sur 221 ont encore des cases ouvertes.
+**873 cases à cocher, 496 cochées** — 178 entrées sur 222 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -64,8 +64,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (48)
+**P1 — fonction importante, jamais vérifiée** (49)
 
+- 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
@@ -235,7 +236,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 120 à faire, 52 faites
+- [2. Messagerie](#2-messagerie) — 126 à faire, 52 faites
 - [3. Groupes](#3-groupes) — 101 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
@@ -494,6 +495,38 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)
+
+**Priorité P1** · importance 5/5 — Messages, notifications et fil cessaient de s'actualiser seuls : les canaux se re-rejoignaient bien après une coupure, mais Postgres ne rejoue pas les événements manqués et rien n'allait les relire. Aucune erreur à l'écran — simplement plus rien n'arrivait.
+
+*Bloqué : deux comptes, et de quoi couper le réseau (mode avion).*
+
+Ne se teste **que** sur appareil : la coupure de socket, la mise en veille
+Android et la suspension des timers n'existent pas sous `flutter test`.
+
+- [ ] **Liste des discussions** : Sim écrit pendant que le téléphone de Salim
+      est en mode avion ; rétablir le réseau → la ligne remonte et le compteur
+      de non-lus apparaît, **sans** tiré-pour-rafraîchir.
+      (`message_supabase_datasource.dart`, `realtime_rattrapage.dart`)
+- [ ] **Discussion ouverte** : même scénario, écran de discussion affiché à
+      l'écran → les messages manqués s'insèrent dans l'ordre, **sans doublon**
+      (la déduplication par id de `MessageNotifier` doit les absorber).
+- [ ] **Fil** : Sim publie pendant la coupure → au retour, la pastille
+      « nouvelles publications » apparaît toute seule.
+      (`feed_supabase_datasource.dart`)
+- [ ] **Notifications** : déjà rattrapées avant cette session ; vérifier que
+      rien n'a régressé.
+- [ ] **Veille longue** (le cas qui a motivé l'observateur de cycle de vie) :
+      app en arrière-plan **plus d'une heure** — le JWT Supabase expire et les
+      timers Android sont suspendus — puis retour au premier plan : tout
+      revient sans redémarrer l'app. (`supabase_auth_bridge.dart`,
+      `surveillerLeCycleDeVie`)
+- [ ] **Pas de tempête de requêtes** : basculer Wi-Fi ↔ données plusieurs fois
+      de suite ne doit pas relancer une relecture par seconde (`adb logcat`,
+      lignes « realtime: rejoint … → rattrapage »).
 
 ---
 

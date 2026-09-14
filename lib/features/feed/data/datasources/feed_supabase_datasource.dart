@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../../../core/utils/date_parsing.dart';
+import '../../../../core/utils/realtime_rattrapage.dart';
 import '../../domain/repositories/feed_repository.dart';
 import '../models/comment_model.dart';
 import '../models/post_model.dart';
@@ -806,6 +808,38 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
   Stream<PostModel> watchNewPosts() {
     final controller = StreamController<PostModel>();
     final channel = _supabase.channel('feed_posts_insert');
+
+    // Borne du rattrapage. Démarre à l'ouverture du flux : tout ce qui
+    // précède est déjà dans la page chargée par `loadInitial`.
+    var dernierVu = DateTime.now();
+
+    /// Relit les publications parues pendant que le canal était coupé.
+    ///
+    /// Le fil ne se réactualisait plus tout seul après un retour d'arrière-
+    /// plan ou un changement de réseau : le canal se rejoint bien, mais
+    /// Postgres ne rejoue pas les INSERT manqués, et rien ici n'allait les
+    /// chercher. Le fil restait figé jusqu'à un tiré-pour-rafraîchir.
+    ///
+    /// Pas de filtre de visibilité à la main, contrairement au rappel
+    /// temps réel : la policy `posts_select` rend déjà exactement ce que
+    /// l'appelant a le droit de lire.
+    Future<void> rattraper() async {
+      try {
+        final rows = await _supabase
+            .from('posts')
+            .select()
+            .gt('created_at', toIsoUtc(dernierVu))
+            .order('created_at');
+        for (final row in (rows as List)) {
+          final post = PostModel.fromJson(_mapPost(row as Map<String, dynamic>));
+          if (post.createdAt.isAfter(dernierVu)) dernierVu = post.createdAt;
+          if (!controller.isClosed) controller.add(post);
+        }
+      } catch (e) {
+        debugPrint('rattrapage feed_posts_insert : $e');
+      }
+    }
+
     channel.onPostgresChanges(
       event: PostgresChangeEvent.insert,
       schema: 'public',
@@ -820,10 +854,12 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
           return;
         }
         try {
-          controller.add(PostModel.fromJson(_mapPost(row)));
+          final post = PostModel.fromJson(_mapPost(row));
+          if (post.createdAt.isAfter(dernierVu)) dernierVu = post.createdAt;
+          controller.add(post);
         } catch (_) {}
       },
-    ).subscribe();
+    ).subscribe(rattrapageAuRejoint(rattraper, etiquette: 'fil'));
     controller.onCancel = () {
       _supabase.removeChannel(channel);
       controller.close();

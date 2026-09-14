@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'connectivity_service.dart';
@@ -201,6 +201,29 @@ class SupabaseAuthBridge {
     });
   }
 
+  /// Observateur du cycle de vie, posé une seule fois par [surveillerLeCycleDeVie].
+  _ObservateurDeReprise? _observateur;
+
+  /// Rebranche la session au retour au premier plan.
+  ///
+  /// Le renouvellement proactif repose sur un `Timer` (voir [_scheduleRenewal])
+  /// et Android suspend les timers d'une app en arrière-plan : revenir dessus
+  /// après une longue veille retrouve un JWT périmé. Les canaux realtime se
+  /// re-rejoignent alors avec ce jeton mort — aucune erreur à l'écran, mais
+  /// plus rien n'arrive, ni message, ni notification, ni publication. Et
+  /// l'écoute du réseau ne rattrape pas ce cas : la connectivité, elle, n'a
+  /// jamais changé.
+  ///
+  /// Appelé depuis `main` plutôt que du constructeur, pour la même raison que
+  /// [_ecouterRetourReseau] : le binding Flutter n'existe pas sous
+  /// `flutter test`, et le pont est instancié par des tests unitaires.
+  void surveillerLeCycleDeVie() {
+    if (_observateur != null) return;
+    final observateur = _ObservateurDeReprise(reprendreApresRetourReseau);
+    WidgetsBinding.instance.addObserver(observateur);
+    _observateur = observateur;
+  }
+
   /// Le réseau est revenu, ou l'app repasse au premier plan : on redonne
   /// une chance immédiate sans attendre la fin du repos.
   void reprendreApresRetourReseau() {
@@ -292,5 +315,22 @@ class SupabaseAuthBridge {
       debugPrint('SupabaseAuthBridge.ensureReadableSession: $e');
     }
     return hasValidSession;
+  }
+}
+
+/// Relaie le retour au premier plan au pont.
+///
+/// Une classe dédiée plutôt que `with WidgetsBindingObserver` sur le pont :
+/// le pont est un singleton instancié par des tests sans binding, et hériter
+/// de l'observateur ferait porter à sa seule déclaration une dépendance au
+/// framework de widgets.
+class _ObservateurDeReprise extends WidgetsBindingObserver {
+  _ObservateurDeReprise(this._auRetour);
+
+  final void Function() _auRetour;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _auRetour();
   }
 }

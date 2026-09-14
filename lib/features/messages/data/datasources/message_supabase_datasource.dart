@@ -13,6 +13,8 @@ import '../../../../core/services/e2ee/message_crypto_service.dart';
 import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../../../core/services/notification_read_sync.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
+import '../../../../core/utils/date_parsing.dart';
+import '../../../../core/utils/realtime_rattrapage.dart';
 
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
@@ -649,7 +651,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           table: 'conversations',
           callback: (_) => fetch(),
         )
-        .subscribe();
+        .subscribe(rattrapageAuRejoint(fetch, etiquette: 'conversations'));
 
     controller.onCancel = () {
       ch.unsubscribe();
@@ -693,7 +695,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           ),
           callback: (_) => fetch(),
         )
-        .subscribe();
+        .subscribe(rattrapageAuRejoint(fetch, etiquette: 'conversation'));
 
     controller.onCancel = () {
       ch.unsubscribe();
@@ -804,7 +806,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           table: 'conversations',
           callback: (_) => fetch(),
         )
-        .subscribe();
+        .subscribe(rattrapageAuRejoint(fetch, etiquette: 'demandes'));
 
     controller.onCancel = () {
       ch.unsubscribe();
@@ -863,6 +865,38 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     final channelName = 'new_msgs:$conversationId:${_channelSeq++}';
     final ch = _channel(channelName);
 
+    // Borne du rattrapage : avance avec les messages reçus, pour ne pas
+    // relire toute la discussion à chaque reconnexion.
+    var dernierVu = afterTimestamp;
+
+    /// Relit les messages postés pendant que le canal était coupé.
+    ///
+    /// Postgres ne rejoue pas les INSERT manqués : sans ça, les messages
+    /// arrivés pendant une coupure de quelques secondes n'apparaissaient
+    /// jamais dans la discussion ouverte, même après le retour du réseau.
+    /// Les doublons ne sont pas un risque — `MessageNotifier` écarte déjà
+    /// tout message dont l'id est présent.
+    Future<void> rattraper() async {
+      try {
+        final rows = await _supabase
+            .from('messages')
+            .select()
+            .eq('conversation_id', conversationId)
+            .gt('created_at', toIsoUtc(dernierVu))
+            .order('created_at');
+        if (rows.isEmpty || controller.isClosed) return;
+        final messages = <MessageModel>[];
+        for (final row in rows) {
+          messages.add(await _msgFromRowAsync(row));
+        }
+        if (!controller.isClosed && messages.isNotEmpty) {
+          controller.add(messages);
+        }
+      } catch (e) {
+        debugPrint('rattrapage new_msgs $conversationId : $e');
+      }
+    }
+
     ch
         .onPostgresChanges(
           event: PostgresChangeEvent.insert,
@@ -879,12 +913,17 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
               final msg = await _msgFromRowAsync(newRecord);
               if (msg.createdAt != null &&
                   msg.createdAt!.isAfter(afterTimestamp)) {
+                if (msg.createdAt!.isAfter(dernierVu)) {
+                  dernierVu = msg.createdAt!;
+                }
                 if (!controller.isClosed) controller.add([msg]);
               }
             }
           },
         )
-        .subscribe();
+        .subscribe(
+          rattrapageAuRejoint(rattraper, etiquette: 'messages'),
+        );
 
     controller.onCancel = () {
       ch.unsubscribe();
