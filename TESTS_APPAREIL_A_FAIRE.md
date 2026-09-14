@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1016 cases à cocher, 552 cochées** — 205 entrées sur 249 ont encore des cases ouvertes.
+**1019 cases à cocher, 552 cochées** — 206 entrées sur 250 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (22)
+**P0 — avant toute nouvelle version** (23)
 
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
@@ -53,6 +53,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
+- 3 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -272,7 +273,7 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 121 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 41 à faire, 34 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 44 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 54 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
@@ -12074,6 +12075,45 @@ attendre le sondage.
 Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature flags d'écrans.
 
 ---
+
+## ⬜ 🔴 Bloquer un utilisateur ne bloque rien (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Bloquer quelqu'un n'écrit rien, nulle part : ni dans Firestore, ni dans le miroir Supabase dont dépendent les policies. L'écran affiche la personne comme bloquée sans qu'elle le soit. *Bloqué : deux comptes.*
+
+Trouvé en cherchant les autres occurrences du défaut qui cassait l'acceptation
+d'une demande d'ami — voir « Accepter une demande d'ami : « Erreur de
+chargement » ». Même fichier de causes, **jamais corrigé** :
+`blocked_users_datasource.dart`, `blockUser` et `unblockUser`.
+
+Le lot y contient **deux** écritures condamnées, chacune suffisante à le faire
+échouer en entier :
+
+1. `batch.update(users/{moi}, {'blockedUserIds': …})` — un `update` sur un
+   document **absent** échoue en `NOT_FOUND`, indépendamment des règles. Or les
+   documents `users` Firestore ne sont plus créés depuis la migration vers
+   Supabase.
+2. `batch.set(users/{cible}, {'blockedByUserIds': …}, merge)` — création du
+   document d'autrui, refusée par `users/{userId}`.
+
+Et `_refleterDansSupabase` est appelé **après** `batch.commit()` : quand le lot
+lève, le miroir n'est jamais écrit. Les policies RLS qui lisent
+`public.blocked_users` ne voient donc rien non plus. Le blocage est sans effet
+de bout en bout.
+
+Ni `blockedUserIds` ni `blockedByUserIds` n'ont de lecteur côté app : le
+`blockedUsersProvider` lit la sous-collection `blocked_users`, et
+`usersWhoBlockedMe` passe par Supabase. Le correctif est le même qu'aux amis —
+retirer les deux écritures de profil — plus l'appel du miroir **avant** ou
+indépendamment du lot.
+
+Non corrigé à ce jour : trouvé en fin de session, hors du lot livré.
+
+- [ ] **Bloquer** depuis la fiche de profil : la personne apparaît dans
+  Réglages → Utilisateurs bloqués, et **en base** — `users/{moi}/blocked_users`
+  côté Firestore **et** une ligne dans `public.blocked_users`.
+- [ ] **Ses publications disparaissent** du fil (c'est la policy Supabase qui
+  tranche, donc le miroir doit être écrit).
+- [ ] **Débloquer** : les deux disparaissent, des deux bases.
 
 ## ⬜ Photo de profil : on choisit son cadrage (2026-09-14)
 
