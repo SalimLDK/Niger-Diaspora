@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../feed/presentation/theme/feed_tokens.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../../../shared/widgets/error_view.dart';
@@ -70,15 +69,12 @@ class _PollResultsBody extends ConsumerWidget {
             .map((o) => o.voteCount)
             .reduce((a, b) => a > b ? a : b);
 
-    // La base ne rend les votants qu'à l'auteur du sondage
-    // (`poll_option_voters`) : inutile de demander pour les autres, et
-    // surtout inutile de leur montrer une liste vide qui se lirait comme
-    // « personne n'a voté ».
-    final myId = ref.watch(currentUserProvider).valueOrNull?.id;
-    final jeSuisLAuteur = myId != null && poll.createdBy == myId;
-    final voters = jeSuisLAuteur
-        ? ref.watch(pollVotersProvider(poll.id))
-        : const AsyncValue<Map<String, List<PollVoterEntity>>>.data({});
+    // Un sondage anonyme ne rend ses votants à personne, pas même à son
+    // auteur : inutile de demander, et surtout inutile d'afficher une liste
+    // vide qui se lirait comme « personne n'a voté ».
+    final voters = poll.isAnonymous
+        ? const AsyncValue<Map<String, List<PollVoterEntity>>>.data({})
+        : ref.watch(pollVotersProvider(poll.id));
 
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -114,7 +110,7 @@ class _PollResultsBody extends ConsumerWidget {
             tokens: tokens,
             isWinner: poll.totalVotes > 0 && option.voteCount == maxVotes,
             isMyChoice: poll.votedOptionIds.contains(option.id),
-            showVoters: jeSuisLAuteur,
+            showVoters: !poll.isAnonymous,
             voters: voters,
           ),
         const SizedBox(height: 4),
@@ -124,7 +120,9 @@ class _PollResultsBody extends ConsumerWidget {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                l10n.pollVotersVisibleToAuthor,
+                poll.isAnonymous
+                    ? l10n.pollVotersHidden
+                    : l10n.pollVotersVisibleToAll,
                 style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
               ),
             ),

@@ -106,6 +106,18 @@ void main() {
       expect(actions.votes.single, isEmpty);
     });
 
+    testWidgets('la regle de confidentialite se lit avant de voter',
+        (tester) async {
+      // Le choix est fait une fois pour toutes a la creation ; le votant doit
+      // le savoir sous la question, pas sur l'ecran de resultats.
+      await _pump(tester, _sondage());
+      expect(find.text('Vote public : votre nom sera visible'), findsOneWidget);
+
+      await _pump(tester, _sondage(isAnonymous: true));
+      expect(find.text('Vote anonyme'), findsOneWidget);
+      expect(find.text('Vote public : votre nom sera visible'), findsNothing);
+    });
+
     testWidgets('changer d avis envoie la nouvelle option', (tester) async {
       final actions = await _pump(tester, _sondage(votedOptionIds: ['o1']));
 
@@ -124,6 +136,7 @@ void main() {
 PollEntity _sondage({
   List<String> votedOptionIds = const [],
   DateTime? endsAt,
+  bool isAnonymous = false,
 }) {
   return PollEntity(
     id: 'p1',
@@ -135,6 +148,7 @@ PollEntity _sondage({
       PollOptionEntity(id: 'o2', label: 'Non', voteCount: 1),
     ],
     totalVotes: 3,
+    isAnonymous: isAnonymous,
     createdBy: 'u1',
     createdByName: 'Sim A',
     endsAt: endsAt,
@@ -209,6 +223,7 @@ class _SourceEspion implements PollRemoteDataSource {
     required String question,
     required List<String> optionLabels,
     required bool allowMultiple,
+    required bool isAnonymous,
     DateTime? endsAt,
     String? userId,
   }) =>

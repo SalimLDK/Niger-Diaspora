@@ -16475,10 +16475,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pollDeleted => 'Sondage supprimé';
 
   @override
-  String get pollVotersVisibleToAuthor =>
-      'Seul l’auteur du sondage voit qui a voté quoi.';
-
-  @override
   String get pollChangeVote => 'Modifier mon vote';
 
   @override
@@ -16493,4 +16489,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pollClosedToVotes => 'Sondage terminé';
+
+  @override
+  String get pollAnonymous => 'Sondage anonyme';
+
+  @override
+  String get pollAnonymousSubtitle =>
+      'Personne ne verra qui a voté quoi, pas même vous';
+
+  @override
+  String get pollVotesArePublic => 'Vote public : votre nom sera visible';
+
+  @override
+  String get pollVotesAreAnonymous => 'Vote anonyme';
+
+  @override
+  String get pollVotersVisibleToAll =>
+      'Les votes ne sont pas anonymes : chacun voit qui a voté quoi.';
+
+  @override
+  String get pollVotersHidden =>
+      'Sondage anonyme : personne ne voit qui a voté quoi.';
 }

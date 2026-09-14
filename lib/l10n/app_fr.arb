@@ -8414,10 +8414,6 @@
   "@pollDeleted": {
     "description": "Bulle dont le sondage a ete supprime"
   },
-  "pollVotersVisibleToAuthor": "Seul l’auteur du sondage voit qui a voté quoi.",
-  "@pollVotersVisibleToAuthor": {
-    "description": "Dit la regle de confidentialite reellement appliquee"
-  },
   "pollChangeVote": "Modifier mon vote",
   "@pollChangeVote": {
     "description": "Rouvre le vote apres avoir vote"
@@ -8437,5 +8433,30 @@
   "pollClosedToVotes": "Sondage terminé",
   "@pollClosedToVotes": {
     "description": "Le sondage a depasse sa date de fin"
+  },
+
+  "pollAnonymous": "Sondage anonyme",
+  "@pollAnonymous": {
+    "description": "Bascule d anonymat, a la creation"
+  },
+  "pollAnonymousSubtitle": "Personne ne verra qui a voté quoi, pas même vous",
+  "@pollAnonymousSubtitle": {
+    "description": "Ce que l anonymat change vraiment"
+  },
+  "pollVotesArePublic": "Vote public : votre nom sera visible",
+  "@pollVotesArePublic": {
+    "description": "Notice lue par le votant avant de choisir"
+  },
+  "pollVotesAreAnonymous": "Vote anonyme",
+  "@pollVotesAreAnonymous": {
+    "description": "Notice lue par le votant avant de choisir"
+  },
+  "pollVotersVisibleToAll": "Les votes ne sont pas anonymes : chacun voit qui a voté quoi.",
+  "@pollVotersVisibleToAll": {
+    "description": "Regle affichee sous les resultats"
+  },
+  "pollVotersHidden": "Sondage anonyme : personne ne voit qui a voté quoi.",
+  "@pollVotersHidden": {
+    "description": "Regle affichee sous les resultats"
   }
 }

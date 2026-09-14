@@ -152,7 +152,14 @@ class _PollCardState extends ConsumerState<PollCard> {
               color: context.textPrimaryColor,
             ),
           ),
-          const SizedBox(height: 12),
+          // La regle de confidentialite se lit AVANT de choisir, pas sur
+          // l'ecran de resultats ou il est trop tard.
+          const SizedBox(height: 4),
+          Text(
+            poll.isAnonymous ? l10n.pollVotesAreAnonymous : l10n.pollVotesArePublic,
+            style: TextStyle(fontSize: 11.5, color: context.textTertiaryColor),
+          ),
+          const SizedBox(height: 10),
           ...poll.options.map((option) {
             final isSelected = showResults
                 ? poll.votedOptionIds.contains(option.id)

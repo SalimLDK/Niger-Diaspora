@@ -7185,10 +7185,16 @@
   "pollNoVoteYet": "No vote yet",
   "pollNotFound": "Poll not found",
   "pollDeleted": "Poll deleted",
-  "pollVotersVisibleToAuthor": "Only the poll author can see who voted for what.",
   "pollChangeVote": "Change my vote",
   "pollWithdrawVote": "Withdraw my vote",
   "pollVoteFailed": "Could not record your vote",
   "pollBubbleFailed": "The poll was created, but posting it to the conversation failed.",
-  "pollClosedToVotes": "Poll closed"
+  "pollClosedToVotes": "Poll closed",
+
+  "pollAnonymous": "Anonymous poll",
+  "pollAnonymousSubtitle": "Nobody will see who voted for what, not even you",
+  "pollVotesArePublic": "Public vote: your name will be visible",
+  "pollVotesAreAnonymous": "Anonymous vote",
+  "pollVotersVisibleToAll": "Votes are not anonymous: everyone can see who voted for what.",
+  "pollVotersHidden": "Anonymous poll: nobody can see who voted for what."
 }

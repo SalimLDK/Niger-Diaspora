@@ -58,8 +58,8 @@ final pollStreamProvider =
 
 /// Votants de chaque option, indexes par identifiant d'option.
 ///
-/// Vide pour qui n'est pas l'auteur du sondage : la base ne rend les noms
-/// qu'a lui (`poll_option_voters`). Invalide apres chaque vote — sans quoi
+/// Vide pour un sondage anonyme : `poll_option_voters` ne rend alors rien a
+/// personne, pas meme a son auteur. Invalide apres chaque vote — sans quoi
 /// l'ecran de resultats gardait la liste du premier affichage.
 final pollVotersProvider = FutureProvider.family<
     Map<String, List<PollVoterEntity>>, String>((ref, pollId) async {
@@ -83,6 +83,7 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
     required String question,
     required List<String> optionLabels,
     bool allowMultiple = false,
+    bool isAnonymous = false,
     DateTime? endsAt,
   }) async {
     final userId = ref.read(currentUserProvider).valueOrNull?.id;
@@ -94,6 +95,7 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
           question: question,
           optionLabels: optionLabels,
           allowMultiple: allowMultiple,
+          isAnonymous: isAnonymous,
           endsAt: endsAt,
           userId: userId,
         );
@@ -118,6 +120,7 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
     required String question,
     required List<String> optionLabels,
     bool allowMultiple = false,
+    bool isAnonymous = false,
     DateTime? endsAt,
   }) async {
     final userId = ref.read(currentUserProvider).valueOrNull?.id;
@@ -129,6 +132,7 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
           question: question,
           optionLabels: optionLabels,
           allowMultiple: allowMultiple,
+          isAnonymous: isAnonymous,
           endsAt: endsAt,
           userId: userId,
         );
@@ -153,6 +157,7 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
     required String question,
     required List<String> optionLabels,
     bool allowMultiple = false,
+    bool isAnonymous = false,
     DateTime? endsAt,
   }) async {
     final userId = ref.read(currentUserProvider).valueOrNull?.id;
@@ -164,6 +169,7 @@ class PollActionsNotifier extends Notifier<AsyncValue<void>> {
           question: question,
           optionLabels: optionLabels,
           allowMultiple: allowMultiple,
+          isAnonymous: isAnonymous,
           endsAt: endsAt,
           userId: userId,
         );

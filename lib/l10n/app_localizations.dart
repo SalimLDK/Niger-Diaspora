@@ -30056,12 +30056,6 @@ abstract class AppLocalizations {
   /// **'Sondage supprimé'**
   String get pollDeleted;
 
-  /// Dit la regle de confidentialite reellement appliquee
-  ///
-  /// In fr, this message translates to:
-  /// **'Seul l’auteur du sondage voit qui a voté quoi.'**
-  String get pollVotersVisibleToAuthor;
-
   /// Rouvre le vote apres avoir vote
   ///
   /// In fr, this message translates to:
@@ -30091,6 +30085,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Sondage terminé'**
   String get pollClosedToVotes;
+
+  /// Bascule d anonymat, a la creation
+  ///
+  /// In fr, this message translates to:
+  /// **'Sondage anonyme'**
+  String get pollAnonymous;
+
+  /// Ce que l anonymat change vraiment
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne ne verra qui a voté quoi, pas même vous'**
+  String get pollAnonymousSubtitle;
+
+  /// Notice lue par le votant avant de choisir
+  ///
+  /// In fr, this message translates to:
+  /// **'Vote public : votre nom sera visible'**
+  String get pollVotesArePublic;
+
+  /// Notice lue par le votant avant de choisir
+  ///
+  /// In fr, this message translates to:
+  /// **'Vote anonyme'**
+  String get pollVotesAreAnonymous;
+
+  /// Regle affichee sous les resultats
+  ///
+  /// In fr, this message translates to:
+  /// **'Les votes ne sont pas anonymes : chacun voit qui a voté quoi.'**
+  String get pollVotersVisibleToAll;
+
+  /// Regle affichee sous les resultats
+  ///
+  /// In fr, this message translates to:
+  /// **'Sondage anonyme : personne ne voit qui a voté quoi.'**
+  String get pollVotersHidden;
 }
 
 class _AppLocalizationsDelegate

@@ -209,6 +209,19 @@ class AppColors {
   /// Fond pastel de l'or (guide, « Or clair »).
   static const Color goldBackground = Color(0xFFF7EBD6);
 
+  /// Or assombri, pour le **thème clair uniquement**.
+  ///
+  /// [gold] est une teinte claire : posée en icône sur un aplat de sa propre
+  /// teinte à 12 % (voir les accents teintés plus bas), elle tombe à 2,05:1 et
+  /// se délave — c'était la tuile la plus pâle du panneau « + ». Cette
+  /// valeur-ci monte à 3,85:1, du même ordre que le bleu et le vert feuille
+  /// des tuiles voisines. En nocturne, [gold] ressort déjà à 6,45:1 sur fond
+  /// sombre : ne pas y substituer celle-ci.
+  ///
+  /// Réservé à ce rôle : les aplats et les textes en or du guide gardent
+  /// [gold] et [goldBackground].
+  static const Color goldDeep = Color(0xFFA26C1A);
+
   /// Teinte des notifications systeme : Android colore avec elle la petite
   /// icone de la barre d'etat (qui n'est qu'une silhouette blanche, son propre
   /// PNG n'a pas de couleur) et le filet du bandeau dans le volet.
@@ -225,6 +238,32 @@ class AppColors {
   /// distincte de [primary] : la teinte des notifications ne suit plus
   /// l'orange de l'app, ne pas la "corriger" vers [primary].
   static const Color notificationAccent = Color(0xFF009600);
+
+  // ============================================
+  // ACCENTS TEINTÉS (icône sur aplat de sa propre teinte)
+  // ============================================
+  //
+  // Les tuiles à pictogramme — grilles de services, panneau « + » de la
+  // discussion — posent l'icône en pleine teinte sur un aplat de cette même
+  // teinte à 10–15 %. Deux valeurs y manquaient : une variante nocturne pour
+  // le teal d'identité, que le guide laisse en valeur unique, et une teinte
+  // froide de plus une fois tous les rôles du guide placés.
+
+  /// Teal d'identité éclairci pour le nocturne. [identity] y plafonne à
+  /// ~2,5:1 sur son propre aplat sombre. Réservé à cet usage : partout
+  /// ailleurs, le teal reste à valeur unique dans les deux thèmes.
+  static const Color identityBright = Color(0xFF58A9A3);
+
+  /// Prune — **hors guide**. Aucun rôle du guide ne restait libre pour les
+  /// événements une fois l'orange, le teal, le bleu et le vert placés :
+  /// l'or, dernier candidat, tombe à 2,1:1 sur son propre aplat en thème
+  /// clair. Une seule valeur pour les deux endroits qui montrent un
+  /// événement — tuile de service et pièce jointe.
+  static const Color prune = Color(0xFF6B4FA8);
+
+  /// Prune éclairci pour le nocturne.
+  static const Color pruneBright = Color(0xFFA992E6);
+
 
   // ============================================
   // BASE COLORS

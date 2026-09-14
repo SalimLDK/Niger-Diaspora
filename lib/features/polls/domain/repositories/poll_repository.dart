@@ -9,6 +9,7 @@ abstract class PollRepository {
     required String question,
     required List<String> optionLabels,
     bool allowMultiple,
+    bool isAnonymous,
     DateTime? endsAt,
     String? userId,
   });
@@ -37,8 +38,8 @@ abstract class PollRepository {
     String? userId,
   });
 
-  /// Votants de chaque option, indexes par identifiant d'option. La base ne
-  /// les rend qu'a l'auteur du sondage : la liste est vide pour les autres.
+  /// Votants de chaque option, indexes par identifiant d'option. Vide pour un
+  /// sondage anonyme — la base ne les rend alors a personne.
   Future<Either<Failure, Map<String, List<PollVoterEntity>>>> getPollVoters(
     String pollId,
   );

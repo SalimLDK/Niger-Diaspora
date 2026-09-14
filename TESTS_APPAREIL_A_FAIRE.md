@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**943 cases à cocher, 535 cochées** — 192 entrées sur 236 ont encore des cases ouvertes.
+**953 cases à cocher, 537 cochées** — 194 entrées sur 238 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -74,7 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 10 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
+- 12 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
@@ -111,7 +111,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
-- 7 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
+- 6 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
@@ -126,7 +126,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (66)
+**P2 — fonction secondaire ou cas limite** (67)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -148,10 +148,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 4 · [⬜ Filtre hashtag : corrigé en code, jamais rejoué sur un téléphone (2026-09-14)](#-filtre-hashtag--corrigé-en-code-jamais-rejoué-sur-un-téléphone-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
-- 5 · [⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)](#-compteurs-de-mon-espace-et-du-profil--ils-suivent-enfin-2026-09-14) · *Fil, stories, salons audio et podcasts*
+- 4 · [⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)](#-compteurs-de-mon-espace-et-du-profil--ils-suivent-enfin-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
@@ -195,7 +196,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (49)
+**P3 — confort, cosmétique, fonction en pause** (50)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -210,6 +211,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
 - 2 · [La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)](#la-signature-de-clé-pré-signée-ne-peut-jamais-vérifier-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
@@ -250,14 +252,14 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 159 à faire, 65 faites
+- [2. Messagerie](#2-messagerie) — 168 à faire, 65 faites
 - [3. Groupes](#3-groupes) — 108 à faire, 61 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 41 à faire, 60 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 110 à faire, 9 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 108 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
@@ -512,6 +514,42 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)
+
+**Priorité P3** · importance 2/5 — Les huit tuiles du « + » se partageaient **deux** valeurs : l'accent du compte pour les médias, le secondaire pour le contenu interactif. Caméra, Galerie, Vidéos, Audio et Document sortaient donc du même orange, seul le libellé les distinguait — et sur un compte en thème Vert, les huit tombaient dans deux verts voisins.
+
+Source unique : `AttachmentAccents`
+([attachment_accents.dart](lib/features/messages/presentation/theme/attachment_accents.dart)),
+lue par les **deux** surfaces du « + ». Même démarche que « Une couleur par
+service dans les deux grilles », avec le même prune pour l'événement des deux
+côtés. Contrastes calculés sur l'aplat à 12 % : ≥ 3,3:1 en clair sauf la
+galerie (2,3:1, l'orange était déjà ainsi), ≥ 5,4:1 en nocturne. L'audio,
+d'abord à 2,0:1, a reçu un or assombri pour le thème clair (3,85:1).
+
+- [ ] **Appui simple sur le « + »** (panneau ancré, grille 3×2) : six teintes
+  distinctes — Caméra teal, Galerie orange, Document bleu, Position
+  terracotta, Sondage vert feuille, Événement prune.
+- [ ] **Appui long sur le « + »** (ancien sheet complet) : une pièce jointe y
+  porte la **même** couleur que dans le panneau. S'y ajoutent Vidéos (vert
+  Niger) et Audio (or).
+- [ ] **Tuile Audio en thème clair** : l'or du guide s'y délavait (2,05:1 sur
+  son propre aplat), il est assombri à `#A26C1A` — 3,85:1, du même ordre que
+  le bleu du document. Vérifier qu'il se lit encore comme un **or** et pas
+  comme un brun, et qu'il ne jure pas avec l'orange de la galerie, deux tuiles
+  plus loin. Le nocturne garde l'or du guide.
+- [ ] **Salons audio**, si la tuile est réactivée un jour : elle porte le même
+  or assombri (voir « Une couleur par service dans les deux grilles »).
+- [ ] **Thème sombre** : les huit icônes restent lisibles sur leur aplat à
+  12 %.
+- [ ] **Compte en thème Orange puis Vert** : les tuiles ne suivent plus
+  l'accent du compte. Le « + » lui-même, lui, le suit toujours — vérifier que
+  le panneau ne jure pas avec la pastille qui l'ouvre.
+- [ ] **Groupe et 1:1** : Position, Sondage et Événement sont conditionnels
+  (`onSendLocation`, `onCreatePoll`, `onCreateEvent`). La grille reste régulière
+  quand il n'y a que trois ou quatre tuiles.
+
+---
+
 ## ⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)
 
 **Priorité P1** · importance 4/5 — Après avoir voté dans une bulle de sondage, la carte restait en mode vote : pas de pourcentages, choix non marqué, seul le total bougeait. Et la liste des votants était vide pour tout le monde, l'auteur compris.
@@ -536,12 +574,19 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 - [ ] **Sondage à choix multiple** : plusieurs cases, total = nombre de voix.
 - [ ] **Sondage terminé** : « Sondage terminé » dans la ligne d'info, plus
       aucune façon de voter ni de se corriger.
-- [ ] **Écran de résultats, côté auteur du sondage** : le badge « Votre choix »
-      apparaît, et les votants sont listés sous chaque option.
-      (`poll_results_screen.dart`, RPC `poll_option_voters`)
-- [ ] **Le même écran côté non-auteur** : pas de liste de votants du tout, et
-      la phrase du bas dit bien que seul l'auteur les voit — plus de
-      « Aucun vote pour le moment » sous une option qui en a.
+- [ ] **Écran de résultats d'un sondage normal** : le badge « Votre choix »
+      apparaît, et les votants sont listés sous chaque option, pour tous ceux
+      qui voient le sondage. (`poll_results_screen.dart`, RPC
+      `poll_option_voters`) — plus de « Aucun vote pour le moment » sous une
+      option qui en a.
+- [ ] **Créer un sondage anonyme** (la bascule est éteinte par défaut) :
+      aucune liste de votants nulle part, pas même pour son auteur, et la
+      phrase du bas le dit. (`create_poll_sheet.dart`, `is_anonymous`)
+- [ ] **La notice sous la question** : « Vote public : votre nom sera
+      visible », ou « Vote anonyme » — lisible AVANT de choisir, dans la
+      bulle comme dans le fil.
+- [ ] **Un sondage créé avant cette version** reste non anonyme (défaut
+      `FALSE`) : sa notice dit bien « vote public ».
 - [ ] **Deux téléphones en même temps** : le vote de l'un fait bouger le
       compteur chez l'autre sans quitter l'écran (temps réel).
 - [ ] **Thème sombre et échelle de police 1.1** : le pied de carte
@@ -7738,6 +7783,45 @@ Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
 
 ---
 
+## ⬜ Filtre hashtag : corrigé en code, jamais rejoué sur un téléphone (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Ouvrir un hashtag alors que le fil est déjà à l'écran annonçait le filtre mais montrait le fil non filtré ; et le filtre ne se levait jamais, donc revenir au fil général le laissait filtré.
+
+Mesuré sur SM A515F le 2026-09-14 (build release `e5cb916c…`) :
+`am start -a android.intent.action.VIEW -d "diasponiger://feed?hashtag=zzzaucunresultat"`
+alors que le fil est ouvert affiche la bannière `# zzzaucunresultat` **et** la
+seule publication du compte, qui ne porte aucun hashtag.
+
+**Corrigé le 2026-09-14** (`feed_provider.dart`, `feed_screen.dart`), couvert
+par `test/features/feed/feed_filtre_hashtag_test.dart` — neutraliser le
+correctif fait tomber le test sur `Expected: null, Actual: 'niamey'`. **Rien
+n'a pu être rejoué sur l'appareil** : l'autre session réinstallait toutes les
+quelques minutes (`lastUpdateTime` 14:35, 14:46, 14:47), donc l'APK sur le
+téléphone n'était déjà plus celui qu'on voulait mesurer.
+
+Diagnostic : Android livre l'intention à l'instance en cours (« intent has been
+delivered to currently running top-most instance ») et go_router réutilise
+l'état de `FeedScreen` — même type de widget, pas de clé. `initState` ne rejoue
+donc pas, et c'est lui qui appelle `loadInitial(hashtagFilter:)`. Résultat :
+la bannière lit `widget.hashtagFilter` (à jour) pendant que la liste lit l'état
+du notifier (resté sans filtre). Piste : un `didUpdateWidget` qui recharge
+quand `widget.hashtagFilter` change. Rien à voir avec le tiré-pour-rafraîchir
+ni avec la pastille (voir « Fil : tirer pour rafraîchir partout, et pastille
+« N nouvelles publications » »).
+
+- [ ] **Depuis un fil déjà ouvert** : toucher un hashtag dans une publication,
+  puis un autre — la liste doit changer à chaque fois, pas seulement la
+  bannière.
+- [ ] **Hashtag sans résultat** : la liste se vide et l'état « aucune
+  publication » s'affiche — et c'est là qu'il faut tirer vers le bas, pour
+  cocher enfin le fil vide de « Fil : tirer pour rafraîchir partout, et
+  pastille « N nouvelles publications » ».
+- [ ] **Quitter le hashtag** : revenir en arrière rend le fil général **sans
+  bannière ni filtre**. C'est la moitié la plus grave du défaut : le filtre
+  était indelébile une fois posé.
+- [ ] **Depuis l'app fermée** (démarrage à froid) : le même lien filtre bien,
+  puisque l'écran est monté pour de bon — à confirmer.
+
 ## ✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)
 
 **Priorité P1** · importance 4/5 — Un lien du schéma maison ouvert alors que l'app n'est pas lancée tombait sur « Page Not Found ». Les QR codes du projet passent tous par ce schéma.
@@ -9732,13 +9816,21 @@ rédaction, donc personne ne les relâche ; et le compteur de partages de la
 carte n'était jamais relu après un partage externe. Couvert en test par
 `feed_compteurs_rafraichis_test.dart` — qui ne dit rien de ce qui s'affiche.
 
-- [ ] **Abonnés / Abonnements** (deux comptes) : suivre le second compte depuis
+- [x] **Abonnés / Abonnements** (deux comptes) : suivre le second compte depuis
   une carte du fil, ouvrir Mon espace → « Abonnements » a augmenté de 1 **sans
   redémarrer l'app** ; ne plus suivre → il redescend. C'est le cas qui ne
   marchait pas.
+  ✅ SM A515F, build release `e5cb916c…`, 2026-09-14 11:16 : 0 → 1 après
+  « Suivre » sur la carte de Salim, 1 → 0 après « Ne plus suivre », l'app
+  n'ayant été redémarrée à aucun moment. Compte rendu à son état d'origine.
 - [ ] **Onglet « Abonnements » du fil** juste après avoir suivi quelqu'un : ses
   publications y apparaissent (la liste des comptes suivis était, elle aussi,
   figée jusqu'au redémarrage).
+  ⚠ 2026-09-14 : vu fonctionner sur SM A515F, mais **ça ne prouve pas le
+  correctif** — cet onglet appelle `getFollowingIds()` sur la source de
+  données, pas le provider invalidé. Ce qui reste à vérifier, c'est le tri
+  « Pour vous » (le scoreur) et les repartages injectés, qui eux lisent le
+  provider.
 - [ ] **Publications** : publier depuis le fil, revenir à Mon espace → le
   chiffre a augmenté ; supprimer la publication → il redescend. Même contrôle
   sur l'écran Profil, ligne « Mes publications ».
@@ -9759,13 +9851,19 @@ auteurs, entrée/sortie animées). Couvert en test par
 `feed_sondage_nouvelles_publications_test.dart` et `new_posts_pill_test.dart`,
 qui ne disent rien du rendu ni du geste.
 
-- [ ] **Tirer vers le bas sur un fil court** (filtrer par ville pour n'avoir
+- [x] **Tirer vers le bas sur un fil court** (filtrer par ville pour n'avoir
   qu'une ou deux publications) : l'indicateur circulaire apparaît et le fil se
   recharge. C'est le cas qui ne marchait pas — la liste ne débordait pas, donc
   il n'y avait rien à tirer.
+  ✅ SM A515F, build release `e5cb916c…`, 2026-09-14 11:15 : l'indicateur circulaire orange apparaît sur un fil d'**une seule** publication et le fil se recharge. C'est exactement le cas qui ne marchait pas.
 - [ ] **Tirer sur un fil vide** (compte neuf, ou filtre sans résultat) et
   **sur l'écran d'échec** (mode avion, puis « Réessayer » ignoré) : même geste,
   même rechargement.
+  ⚠ 2026-09-14 : le fil vide n'a pas pu être atteint avec le compte de test.
+  Le filtre hashtag, qui devrait le produire, ne filtre rien — voir
+  « Filtre hashtag par lien profond : la bannière s'affiche, la liste ne bouge
+  pas ». L'écran d'échec, lui, demande de couper le réseau (réglage système,
+  à faire par Salim).
 - [ ] **Pastille** : publier depuis le second téléphone ; sur le premier, la
   pastille descend en haut du fil avec l'avatar de l'auteur, sans déplacer la
   lecture en cours ; la toucher pose la publication en tête et remonte le fil.
