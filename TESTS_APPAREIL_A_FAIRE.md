@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**933 cases à cocher, 518 cochées** — 189 entrées sur 233 ont encore des cases ouvertes.
+**931 cases à cocher, 526 cochées** — 190 entrées sur 234 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 **P1 — fonction importante, jamais vérifiée** (56)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
-- 11 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
+- 9 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
@@ -90,7 +90,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
-- 11 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
+- 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
@@ -125,7 +125,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (65)
+**P2 — fonction secondaire ou cas limite** (66)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -150,6 +150,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
+- 5 · [⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)](#-compteurs-de-mon-espace-et-du-profil--ils-suivent-enfin-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
@@ -248,15 +249,15 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 147 à faire, 63 faites
-- [3. Groupes](#3-groupes) — 115 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 113 à faire, 55 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 41 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 105 à faire, 9 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 110 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 33 à faire, 28 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 33 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
@@ -2567,13 +2568,13 @@ SELECT public.get_or_create_ville_group(
   (SELECT id FROM public.villes WHERE nom = 'Dosso' AND pays = 'Niger'));
 ```
 
-- [ ] **Sur appareil, sur l'un des quatre comptes invités** : la notification
+- [x] **Sur appareil, sur l'un des quatre comptes invités** : la notification
   « Rejoindre « Diaspora Niger — Niamey » ? » est bien arrivée, porte l'icône
   et la couleur des groupes, et son appui ouvre la **fiche du groupe** — pas
   la liste des notifications. C'est le chemin que l'analyseur a forcé à
   compléter dans cinq `switch` : sans eux la notification arrivait et
   n'ouvrait rien.
-- [ ] **Sur appareil** : sur cette fiche, « Rejoindre » fonctionne et le
+- [x] **Sur appareil** : sur cette fiche, « Rejoindre » fonctionne et le
   compteur de membres suit. Ne rien faire ne doit rien changer : le groupe
   doit rester à **1 membre** tant que personne n'a appuyé — c'est vérifiable
   en base à tout moment.
@@ -2599,7 +2600,7 @@ SELECT public.get_or_create_ville_group(
   la fiche du groupe de Niamey. Sur la fiche de « — Niamey » comme sur celle
   du Canada (aucun groupe de ville), la section doit être **absente** — pas
   vide, absente.
-- [ ] **Sur appareil, onglet Découvrir** : choisir un pays fait apparaître
+- [x] **Sur appareil, onglet Découvrir** : choisir un pays fait apparaître
   une rangée « Ville » sous celle des pays ; choisir « Niger » puis
   « Niamey » ne laisse que le groupe de Niamey. Revenir à « Tous » sur le
   pays fait disparaître la rangée. Changer de pays doit remettre la ville à
@@ -2613,6 +2614,66 @@ SELECT public.get_or_create_ville_group(
   Niamey, et « — Niger » à sa place habituelle — deux épingles distinctes,
   pas une seule. C'est le cas où ville et pays coexistent au même endroit du
   monde, celui qui risque de les superposer.
+
+### Vérifié sur SM A515F le 2026-09-14 (APK release `703f4eda…`, `ddb6dfa`)
+
+Compte **Sim A**, qui se trouvait être le profil « Montréal » sans pays laissé
+de côté par la reprise — donc le cas le plus délicat du plan, joué en vrai.
+Les quatre comptes réellement invités appartiennent à d'autres personnes : je
+ne m'y suis pas connecté.
+
+Le parcours a produit l'invitation lui-même, sans donnée fabriquée : donner
+Niamey à Sim A en a fait le cinquième profil de la ville.
+
+- Champ ville : « Montréal » **sans pastille** (aucune ville retenue),
+  suggestions affichées **au-dessus du clavier**, « Montréal, Quebec » choisi
+  → pastille verte, et `users.country_code` passe à `Canada` **par le geste de
+  l'usager**. La pastille survit à un rechargement de l'écran : `ville_id` fait
+  bien l'aller-retour.
+- Changer le pays pour Niger **vide le champ immédiatement** et rallume
+  « Utiliser ma position ». « Nia » sous Niger ne propose que Niamey.
+- Enregistrement : `city=Niamey`, `country_code=Niger`, `ville_id=Niamey`.
+- **Invitation** : le push « Rejoindre « Diaspora Niger — Niamey » ? » arrive,
+  et son appui ouvre **la fiche du groupe** — 1 membre, bouton « Rejoindre ».
+  Rien n'est imposé. C'est le chemin des cinq `switch`, jamais vu jusque-là.
+- **Départ consenti (étape 4)** : passer du Canada au Niger a programmé la
+  sortie de « — Canada » au 2027-03-14, sans toucher au reste.
+- **Filtre Découvrir** : choisir « Niger » fait apparaître la rangée « Ville »
+  avec « Niamey ».
+- **« Utiliser ma position »** : position lue, proposition « Vous êtes à
+  Montréal-Nord, Quebec ? ». Cohérent — Montréal-Nord a Montréal pour pôle,
+  donc mène au groupe de Montréal. La feuille de divulgation ne s'affiche
+  pas, et c'est voulu : la permission COARSE était déjà accordée, le système
+  n'allait pas reposer la question. Permissions relevées avant et **remises à
+  l'identique** (COARSE accordée, FINE refusée).
+- Un échec de recherche s'est produit une fois : « Recherche impossible pour
+  le moment » s'est affiché **et le champ s'est rétabli à la frappe
+  suivante** — le comportement voulu, observé pour de vrai.
+
+⚠️ **Deux choses trouvées, dont une non élucidée.**
+
+1. **« Niamey, Niamey », « Zinder, Zinder »** dans les suggestions : au Niger
+   la région porte le nom de son chef-lieu. Corrigé — la région se tait quand
+   elle ne distingue rien (`Ville.libelle`, `test/core/ville_libelle_test.dart`).
+   Reste que GeoNames ne donne les régions qu'en **ASCII** : « Montréal,
+   Quebec » s'affiche sans accent. Pas corrigé, la source n'a pas mieux.
+2. **L'onglet Découvrir reste sur ses cartes squelettes**, sur ce compte, y
+   compris après relance à froid — `allGroupsAsync.isLoading ||
+   myGroupsAsync.isLoading` ne retombe jamais, et « Mes groupes · 0 » alors que
+   Sim A est bien membre de « — Canada » en base. **Je ne l'attribue pas** :
+   la branche squelette s'exécute AVANT tout mon code de filtre, et ma rangée
+   « Ville » s'est affichée correctement (donc les groupes SONT chargés, avec
+   une valeur précédente sous un `isLoading` persistant). Sur le Pixel (build
+   antérieur, autre compte, 3 groupes) l'onglet s'affiche normalement — deux
+   variables changent à la fois, le contrôle ne tranche pas.
+   - [ ] **À élucider** : reproduire sur un compte à 1 seul groupe, et
+     regarder si `loadMyGroups` se termine (`if (_disposed) return;` laisse
+     l'état en `loading` pour toujours si la notifier meurt en vol).
+
+Pas encore vu : la mention GeoNames dans « À propos », la carte, le thème
+sombre. La feuille de divulgation du champ ville n'a pas pu être rejouée —
+`USER_FIXED` est posé sur les deux permissions et adb ne le retire pas.
+
 
 ---
 
@@ -9531,6 +9592,33 @@ Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
 
+## ⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Les chiffres affichés étaient ceux du démarrage de l'app : suivre quelqu'un, publier, enregistrer une publication ne les bougeait pas.
+
+Trois causes distinctes (`feed_provider.dart`, `follow_button.dart`) : les
+compteurs d'abonnés/abonnements n'étaient invalidés **par personne** et ne sont
+pas `autoDispose` ; les compteurs de publications et de favoris sont
+`autoDispose` mais l'écran qui les affiche reste monté sous l'écran de
+rédaction, donc personne ne les relâche ; et le compteur de partages de la
+carte n'était jamais relu après un partage externe. Couvert en test par
+`feed_compteurs_rafraichis_test.dart` — qui ne dit rien de ce qui s'affiche.
+
+- [ ] **Abonnés / Abonnements** (deux comptes) : suivre le second compte depuis
+  une carte du fil, ouvrir Mon espace → « Abonnements » a augmenté de 1 **sans
+  redémarrer l'app** ; ne plus suivre → il redescend. C'est le cas qui ne
+  marchait pas.
+- [ ] **Onglet « Abonnements » du fil** juste après avoir suivi quelqu'un : ses
+  publications y apparaissent (la liste des comptes suivis était, elle aussi,
+  figée jusqu'au redémarrage).
+- [ ] **Publications** : publier depuis le fil, revenir à Mon espace → le
+  chiffre a augmenté ; supprimer la publication → il redescend. Même contrôle
+  sur l'écran Profil, ligne « Mes publications ».
+- [ ] **Enregistrés** : toucher le marque-page d'une publication → le chiffre de
+  Mon espace et la ligne « Publications enregistrées » du Profil suivent.
+- [ ] **Partages** : partager une publication vers WhatsApp → le compteur de
+  partages de la carte s'incrémente sans recharger le fil.
+
 ## ⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)
 
 **Priorité P1** · importance 3/5 — Le fil pouvait rester figé sans que rien ne le signale : la pastille ne dépendait que du canal temps réel, et le geste de rafraîchissement ne partait pas sur un fil court, vide ou en erreur.
@@ -11501,13 +11589,13 @@ sont vérifiés en base, pas ici.
   passer sous le clavier (voir « Débordement clavier » du domaine Design) et
   se ferme à la perte du focus. Le champ est en bas d'un formulaire long :
   c'est le cas où la liste risque de sortir de l'écran.
-- [ ] **Sur appareil** : taper « mont » avec le pays Canada propose Montréal
+- [x] **Sur appareil** : taper « mont » avec le pays Canada propose Montréal
   en premier ; avec le pays Niger, ne le propose pas. Une ville choisie
   affiche la pastille verte, une ville retapée à la main la perd.
-- [ ] **Sur appareil** : changer de pays dans la liste déroulante vide le
+- [x] **Sur appareil** : changer de pays dans la liste déroulante vide le
   champ ville et éteint la pastille, immédiatement — pas seulement après
   enregistrement.
-- [ ] **Sur appareil, puis en base** : enregistrer avec une ville choisie, et
+- [x] **Sur appareil, puis en base** : enregistrer avec une ville choisie, et
   vérifier que `users.ville_id` ET `users.city` sont posés ; enregistrer avec
   un texte libre (« Almoustapha ») et vérifier que `ville_id` est nul et que
   le texte a survécu. Le déclencheur écrase `city` avec le nom officiel dès
@@ -11519,7 +11607,7 @@ sont vérifiés en base, pas ici.
   propose « Vous êtes à … ? » ; « Non » referme sans rien écrire.
 - [ ] **Sur appareil, hors d'une ville connue** : « Aucune ville de la liste à
   proximité » s'affiche au lieu d'une proposition fausse.
-- [ ] **Sur appareil, réseau coupé** : la ligne « Recherche impossible pour le
+- [x] **Sur appareil, réseau coupé** : la ligne « Recherche impossible pour le
   moment » remplace la liste, et le champ reste saisissable — le texte libre
   doit continuer de partir dans `city`.
 
@@ -11535,7 +11623,7 @@ le relier changerait aussi son pays. Décision : à proposer, pas à imposer.
   « Niamey » avec la pastille verte (une ville retenue), et le champ n'est
   plus du texte nu. Le compte qui avait écrit « niamey » en minuscules doit
   afficher « Niamey ».
-- [ ] **Sur appareil, le compte « Montréal »** : le champ montre toujours
+- [x] **Sur appareil, le compte « Montréal »** : le champ montre toujours
   « Montréal » SANS pastille. Ouvrir le champ doit proposer « Montréal,
   Québec » ; le choisir doit poser le Canada comme pays. C'est le seul
   chemin par lequel ce profil change de pays — vérifier qu'il ne l'a pas fait
