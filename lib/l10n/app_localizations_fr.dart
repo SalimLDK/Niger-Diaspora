@@ -1882,6 +1882,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get hostCity => 'Ville';
+
+  @override
   String get cityFieldHint => 'Chercher une ville';
 
   @override

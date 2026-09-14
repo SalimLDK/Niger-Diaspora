@@ -910,6 +910,7 @@
       }
     }
   },
+  "hostCity": "Ville",
   "cityFieldHint": "Chercher une ville",
   "cityDataCredit": "Liste des villes : GeoNames (CC BY 4.0)",
   "cityTypeToSearch": "Tapez les premières lettres de votre ville",

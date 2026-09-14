@@ -14,6 +14,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
+import '../providers/lieux_des_groupes_provider.dart';
 import '../../../messages/presentation/providers/media_gallery_provider.dart';
 import '../providers/group_request_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
@@ -72,6 +73,11 @@ enum _GroupsTab { mine, discover }
 class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   GroupCategory? _selectedCategory;
   String? _selectedCountry;
+
+  /// Seconde marche du filtre : une ville DANS le pays choisi. Remise à zéro
+  /// dès que le pays change — « Montréal » sous « Algérie » ne filtrerait
+  /// rien, et un écran vide sans cause visible est le pire des résultats.
+  String? _selectedVille;
   String? _selectedRegion;
   _GroupsTab _tab = _GroupsTab.mine;
 
@@ -136,6 +142,14 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     if (_selectedCountry != null) {
       filtered = filtered.where((g) => g.country == _selectedCountry).toList();
     }
+
+    // Les lieux viennent de la base (`coordonnees_des_groupes`) : `GroupEntity`
+    // ne porte pas `ville_id`.
+    filtered = filtrerParVille(
+      filtered,
+      _selectedVille,
+      ref.watch(lieuxDesGroupesProvider).valueOrNull,
+    );
 
     if (_selectedRegion != null) {
       filtered = filtered.where((g) => g.originRegion == _selectedRegion).toList();
@@ -718,6 +732,14 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final countries = ref.watch(availableGroupCountriesProvider);
     final regions = ref.watch(availableGroupRegionsProvider);
+    final villes = villesDuPays(
+      <GroupEntity>[
+        ...?ref.watch(groupsNotifierProvider).valueOrNull,
+        ...?ref.watch(myGroupsNotifierProvider).valueOrNull,
+      ],
+      _selectedCountry,
+      ref.watch(lieuxDesGroupesProvider).valueOrNull,
+    );
 
     // Ne rien afficher si aucun filtre disponible
     if (countries.isEmpty && regions.isEmpty) {
@@ -761,7 +783,10 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                   _GeoFilterChip(
                     label: l10n.all,
                     isSelected: _selectedCountry == null,
-                    onTap: () => setState(() => _selectedCountry = null),
+                    onTap: () => setState(() {
+                      _selectedCountry = null;
+                      _selectedVille = null;
+                    }),
                   ),
                   ...countries.map(
                     (country) => Padding(
@@ -770,7 +795,63 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                         // `country` est le nom du pays : on y ajoute le drapeau.
                         label: countryDisplayLabel(country),
                         isSelected: _selectedCountry == country,
-                        onTap: () => setState(() => _selectedCountry = country),
+                        onTap: () => setState(() {
+                          _selectedCountry = country;
+                          _selectedVille = null;
+                        }),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          // Filtres par ville, DANS le pays choisi. La rangée n'apparaît que
+          // s'il y a un pays ET des groupes de ville dedans : proposer une
+          // marche qui ne mène nulle part vaut moins que ne rien proposer.
+          if (villes.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(left: 20, bottom: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.location_city_outlined,
+                    size: 14,
+                    color: context.textTertiaryColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    l10n.hostCity,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: context.textTertiaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 36,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.horizontalPadding,
+                ),
+                children: [
+                  _GeoFilterChip(
+                    label: l10n.all,
+                    isSelected: _selectedVille == null,
+                    onTap: () => setState(() => _selectedVille = null),
+                  ),
+                  ...villes.map(
+                    (ville) => Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: _GeoFilterChip(
+                        label: ville,
+                        isSelected: _selectedVille == ville,
+                        onTap: () => setState(() => _selectedVille = ville),
                       ),
                     ),
                   ),

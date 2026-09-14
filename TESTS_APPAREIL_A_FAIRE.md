@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**904 cases à cocher, 508 cochées** — 184 entrées sur 228 ont encore des cases ouvertes.
+**906 cases à cocher, 508 cochées** — 184 entrées sur 228 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -67,7 +67,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 **P1 — fonction importante, jamais vérifiée** (53)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
-- 8 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
+- 10 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
@@ -243,7 +243,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 130 à faire, 56 faites
-- [3. Groupes](#3-groupes) — 112 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 114 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
@@ -2404,6 +2404,16 @@ SELECT public.get_or_create_ville_group(
 - [ ] **Sur appareil** : les 32 pays qui ont un centroïde n'ont pas bougé
   (Niger, France, Canada…) — le repli par la plus grande ville ne sert que
   là où il n'y avait rien.
+- [ ] **Sur appareil, onglet Découvrir** : choisir un pays fait apparaître
+  une rangée « Ville » sous celle des pays ; choisir « Niger » puis
+  « Niamey » ne laisse que le groupe de Niamey. Revenir à « Tous » sur le
+  pays fait disparaître la rangée. Changer de pays doit remettre la ville à
+  zéro — sinon « Niamey » sous « Canada » vide l'onglet sans rien dire, et
+  cet écran a déjà eu trois causes indistinguables d'écran blanc.
+- [ ] **Sur appareil, réseau lent** : pendant le chargement, l'onglet
+  Découvrir montre les groupes, pas une liste vide. Le filtre de ville ne
+  filtre rien tant qu'il ne sait pas où sont les groupes (vérifié au banc,
+  mais c'est le timing réel qui compte).
 - [ ] **Sur appareil** : la carte montre « Diaspora Niger — Niamey » à
   Niamey, et « — Niger » à sa place habituelle — deux épingles distinctes,
   pas une seule. C'est le cas où ville et pays coexistent au même endroit du
