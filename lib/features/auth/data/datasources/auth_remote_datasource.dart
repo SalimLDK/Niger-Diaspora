@@ -640,7 +640,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     try {
       final ok = await SupabaseAuthBridge.instance.ensureAuthenticated();
       if (!ok) {
-        throw Exception('Supabase session introuvable');
+        throw Exception('Session introuvable');
       }
       await _supabase.from('users').upsert({
         'id': user.uid,

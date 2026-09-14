@@ -143,7 +143,7 @@ class StorySupabaseDataSource implements StoryRemoteDataSource {
     required StoryAudience audience,
   }) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     Map<String, dynamic> ligne({required bool avecAudience}) => {
           'author_id': authorId,
@@ -194,7 +194,7 @@ class StorySupabaseDataSource implements StoryRemoteDataSource {
   @override
   Future<void> deleteStory(String storyId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final List<dynamic> supprimees;
     try {
@@ -325,7 +325,7 @@ class StorySupabaseDataSource implements StoryRemoteDataSource {
     StoryListKind? kind,
   ) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     try {
       if (kind == null) {

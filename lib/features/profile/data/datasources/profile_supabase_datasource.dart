@@ -98,7 +98,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   /// dans l'UI alors que rien n'a persisté.
   Future<void> _requireAuth() async {
     if (!await _ensureAuth()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
   }
 
@@ -113,7 +113,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     // cache-first + repli silencieux sur `_fetchAndRefresh` — cette exception
     // rejoint le chemin d'erreur existant, pas un nouveau.
     if (!await _ensureReadableAuth()) {
-      throw ServerException('Session Supabase non établie – réessayez');
+      throw ServerException('Session non établie – réessayez');
     }
     final data =
         await _supabase.from('users').select().eq('id', userId).maybeSingle();
@@ -172,7 +172,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     // qui laisse l'affichage précédent intact.
     final connu = _cache[userId];
     if (connu != null) return connu;
-    throw ServerException('Session Supabase non établie – réessayez');
+    throw ServerException('Session non établie – réessayez');
   }
 
   @override
@@ -208,7 +208,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     // Session non confirmée (fenêtre `_startFromLocalSession`) : voir
     // getProfile ci-dessus pour le contexte complet.
     if (!await _ensureReadableAuth()) {
-      throw ServerException('Session Supabase non établie – réessayez');
+      throw ServerException('Session non établie – réessayez');
     }
     final delta = radiusKm / 111.0;
     final data = await _supabase

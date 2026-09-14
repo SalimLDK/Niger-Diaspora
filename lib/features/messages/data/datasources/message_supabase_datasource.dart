@@ -1025,7 +1025,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     try {
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
         throw ServerException(
-          'Session Supabase non établie – reconnectez-vous',
+          'Session non établie – reconnectez-vous',
         );
       }
       final row =
@@ -1283,7 +1283,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   }) async {
     try {
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        throw ServerException('Supabase session introuvable');
+        throw ServerException('Session introuvable');
       }
 
       final fileName = audioFile.path.split(RegExp(r'[/\\]')).last;
@@ -1665,7 +1665,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   }) async {
     try {
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        throw ServerException('Supabase session introuvable');
+        throw ServerException('Session introuvable');
       }
 
       final existing = await findIndividualConversation(
@@ -1711,7 +1711,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   }) async {
     try {
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        throw ServerException('Supabase session introuvable');
+        throw ServerException('Session introuvable');
       }
 
       // Cherche la conversation dont l'utilisateur est le SEUL participant.
@@ -1795,7 +1795,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   }) async {
     try {
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        throw ServerException('Supabase session introuvable');
+        throw ServerException('Session introuvable');
       }
 
       // Priority 1: find by groupId
@@ -1855,7 +1855,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   }) async {
     try {
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        throw ServerException('Supabase session introuvable');
+        throw ServerException('Session introuvable');
       }
 
       final existing = await findIndividualConversation(
@@ -1985,7 +1985,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     try {
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
         throw ServerException(
-          'Session Supabase non établie – reconnectez-vous',
+          'Session non établie – reconnectez-vous',
         );
       }
       // `join_group_conversation` compare `group_members.group_id` (UUID) à
@@ -2738,7 +2738,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     // cache par-dessus la discussion réelle (`cacheMessages`), et l'écran
     // affiche une discussion vide. Même piège que `users_select` côté profil.
     if (!await _ensureReadableAuth()) {
-      throw ServerException('Session Supabase non établie – réessayez');
+      throw ServerException('Session non établie – réessayez');
     }
     try {
       // Build filter query — cursor filter must precede order/limit

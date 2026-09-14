@@ -87,7 +87,7 @@ class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
         throw ServerException('Utilisateur non connecte');
       }
       if (!await _ensureAuth()) {
-        throw ServerException('Session Supabase non etablie');
+        throw ServerException('Session non etablie');
       }
 
       await _supabase.from('users').update({column: true}).eq('id', user.uid);
@@ -121,7 +121,7 @@ class OnboardingRemoteDataSourceImpl implements OnboardingRemoteDataSource {
         throw ServerException('Utilisateur non connecte');
       }
       if (!await _ensureAuth()) {
-        throw ServerException('Session Supabase non etablie');
+        throw ServerException('Session non etablie');
       }
 
       await _supabase.from('users').update({
