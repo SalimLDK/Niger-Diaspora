@@ -10,14 +10,11 @@ import 'adaptive_colors.dart';
 /// en nocturne, sur l'aplat comme sur la surface — d'où la paire plutôt
 /// qu'une valeur unique. Les rôles que le guide de style décline déjà
 /// (`info`/`infoDark`…) sont repris tels quels ; ceux qu'il laisse en valeur
-/// unique sont éclaircis ici quand le contraste l'exige, jamais ailleurs.
+/// unique reçoivent ici la variante que le contraste exige — un teal éclairci
+/// pour le nocturne, un or assombri pour le clair — et nulle part ailleurs.
 @immutable
 class TintedAccent {
   const TintedAccent({required this.light, required this.dark});
-
-  /// Même valeur dans les deux thèmes — le cas de l'or, que le guide donne
-  /// déjà assez clair pour le nocturne.
-  const TintedAccent.unique(Color value) : light = value, dark = value;
 
   final Color light;
   final Color dark;

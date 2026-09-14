@@ -47,8 +47,13 @@ class AttachmentAccents {
     dark: AppColors.secondaryLight,
   );
 
-  /// Audio — or du guide (« Or — audio / notes »).
-  static const audio = TintedAccent.unique(AppColors.gold);
+  /// Audio — or du guide (« Or — audio / notes »), assombri en clair : l'or
+  /// nominal se délavait sur son propre aplat (2,05:1), c'était la tuile la
+  /// plus pâle des huit. Le nocturne garde l'or du guide, qui y ressort déjà.
+  static const audio = TintedAccent(
+    light: AppColors.goldDeep,
+    dark: AppColors.gold,
+  );
 
   /// Document — bleu « officiel / vérifié » du guide.
   static const document = TintedAccent(
