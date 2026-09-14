@@ -268,6 +268,11 @@ class _SharePostSheetState extends ConsumerState<SharePostSheet> {
             const Divider(height: 1),
             Expanded(
               child: conversationsAsync.when(
+                // Une panne de lecture n'efface pas la liste déjà connue (le
+                // flux sert le cache avant le réseau) : l'erreur ne s'affiche
+                // que si rien n'est jamais arrivé. Même règle que la liste des
+                // discussions.
+                skipError: true,
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (_, __) => Center(child: Text(l10n.feedError)),
                 data: (conversations) {

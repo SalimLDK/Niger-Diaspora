@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**906 cases à cocher, 508 cochées** — 184 entrées sur 228 ont encore des cases ouvertes.
+**908 cases à cocher, 511 cochées** — 185 entrées sur 229 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -64,7 +64,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (53)
+**P1 — fonction importante, jamais vérifiée** (54)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 10 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -72,6 +72,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 1 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
@@ -242,7 +243,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 130 à faire, 56 faites
+- [2. Messagerie](#2-messagerie) — 132 à faire, 59 faites
 - [3. Groupes](#3-groupes) — 114 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -504,6 +505,61 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Les trois flux de `MessageRepositoryImpl` avalaient leurs erreurs : plus aucun événement, donc rond de chargement sans fin sur la liste, aucun bandeau, aucun réessai, et l'export d'une discussion qui attend pour toujours.
+
+*Bloqué : rien — se rejoue avec le mode avion.*
+
+**Le défaut.** Les trois flux se terminaient par
+`.handleError((error) { return Left(ServerFailure(...)); })`. Dart **ignore la
+valeur de retour** de `handleError` : ce `Left` n'était jamais émis. Mesuré hors
+ligne sur SM A515F le 2026-09-14 — liste des discussions sur un rond de
+chargement sans fin, sans erreur ni moyen de réessayer. Et
+`conversationStreamProvider(...).future`, que lit l'export d'une discussion,
+n'aurait jamais rendu la main.
+
+Le réparer seul ne suffisait pas : il fallait décider ce que l'échec **devient**,
+et trois chemins de l'UI le lisaient de travers.
+
+- `conversationStreamProvider` pliait l'échec en `null` — ce que l'écran lit
+  comme « Conversation supprimée ». Une coupure aurait annoncé une suppression.
+- `conversationsProvider` le pliait en **liste vide**, par-dessus le cache
+  qu'il venait de servir : les discussions déjà affichées auraient disparu.
+- `hasLoadError` **remplaçait le composeur** par un texte rouge : plus moyen
+  d'écrire hors ligne, alors que le message part en file d'attente.
+- Et [messages_screen.dart:330](lib/features/messages/presentation/screens/messages_screen.dart:330)
+  lisait `conversationsAsync.value!` : en Riverpod 2, `.value` **relance
+  l'erreur** — écran rouge à la première panne, sous un `hasValue` pourtant vrai.
+
+**Corrigé le 2026-09-14**, cinq fichiers : `_echecEmis<T>()`
+(`StreamTransformer.fromHandlers`, l'idiome déjà utilisé par
+`ProfileRepositoryImpl`) remplace les trois `.handleError` ; les trois providers
+propagent l'échec en erreur au lieu de le déguiser en `null` ou en liste vide ;
+`hasLoadError` ne vaut plus que si la conversation est inconnue et pose un
+liseré **au-dessus** du composeur au lieu de le remplacer ; la liste et la
+feuille de partage prennent `skipError: true`, pour qu'une panne n'efface jamais
+ce qui est déjà à l'écran. Deux tests neufs :
+`test/features/messages/echec_de_lecture_test.dart`.
+
+- [x] **Hors ligne, démarrage à froid** : la liste s'affiche depuis le cache —
+      ni rond de chargement sans fin, ni « aucune discussion », ni écran
+      d'erreur. Vérifié SM A515F le 2026-09-14 (release md5 `77bdcfd0…`).
+- [x] **Discussion ouverte hors ligne** : messages en place, liseré « Erreur de
+      chargement » au-dessus du composeur, **composeur utilisable** (texte saisi,
+      clavier, bouton d'envoi présent), et aucune mention de suppression.
+      Vérifié SM A515F le 2026-09-14.
+- [x] **Retour du réseau** : l'en-tête se remplit (+30 s) et le liseré disparaît
+      (+70 s), sans quitter l'écran. Vérifié SM A515F le 2026-09-14.
+- [ ] **Panne persistante** (et non une simple coupure) : sur un refus RLS qui
+      dure, vérifier que la liste finit bien par montrer son état d'erreur —
+      `skipError` ne doit masquer une panne que tant qu'il reste quelque chose à
+      afficher.
+- [ ] **Export d'une discussion** hors ligne (`conversation_options_modal`) :
+      doit échouer proprement avec son message, et non rester à tourner.
+
+---
+
 ## ✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)
 
 **Priorité P1** · importance 4/5 — Un profil dont la lecture échouait pendant une coupure restait en échec pour toute la vie de l'app : l'en-tête d'une discussion affichait « Conversation » et un avatar « C » à la place du nom, et ni le retour du réseau ni un aller-retour hors de l'écran ne le corrigeaient. Seul un redémarrage.
@@ -567,19 +623,9 @@ dessus. Deux tests neufs :
 - [ ] **Compte réellement supprimé** : vérifier que ce cas affiche toujours
       « Utilisateur » et non un état d'erreur réessayable.
 
-**Pas touché, volontairement.** Les trois `.handleError` de
-[message_repository_impl.dart:130](lib/features/messages/data/repositories/message_repository_impl.dart:130)
-(puis l. 178 et l. 220) avalent toujours leur erreur : Dart ignore la valeur de
-retour de `handleError`, donc le `Left` qu'ils construisent n'est jamais émis.
-Les faire parler change ce que voit l'utilisateur hors ligne, et chaque chemin a
-sa régression — plié en `null`, l'écran lit « Conversation supprimée » ; plié en
-erreur, `hasLoadError` **remplace le composeur**
-([conversation_screen.dart:1524](lib/features/messages/presentation/screens/conversation_screen.dart:1524)),
-donc plus moyen d'écrire hors ligne ; et côté liste,
-[messages_screen.dart:330](lib/features/messages/presentation/screens/messages_screen.dart:330)
-fait `conversationsAsync.value!`, qui relance l'erreur en Riverpod 2. À traiter
-dans une passe à part, avec sa propre vérification appareil.
-
+**Les trois `.handleError` qui avalaient leur erreur** ont été traités dans
+la foulée — voir « ✅ Un échec de lecture en messagerie se voit, sans effacer
+l'écran », en tête de ce domaine.
 ---
 
 ## ⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)

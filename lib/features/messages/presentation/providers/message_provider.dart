@@ -77,39 +77,54 @@ final conversationsProvider = StreamProvider<List<ConversationEntity>>((ref) asy
   }
 
   // 2. Yield from live stream (Network/Live)
+  //
+  // L'échec est propagé, pas plié en liste vide : une panne de lecture ferait
+  // sinon disparaître les discussions déjà affichées (le cache rendu juste
+  // au-dessus), ce qui se lit comme une perte de données. En erreur,
+  // `AsyncValue` garde la dernière liste connue et l'écran continue de
+  // l'afficher (`skipError` dans `messages_screen.dart`).
   yield* repository
       .getConversations(currentUser.id)
       .map(
-        (either) => either.fold(
-          (failure) => <ConversationEntity>[],
-          (conversations) => conversations,
-        ),
+        (either) =>
+            either.fold((failure) => throw failure, (conversations) => conversations),
       );
 });
 
 /// Stream d'une conversation specifique
+///
+/// Sémantique de la valeur émise, calquée sur `userStreamProvider` :
+///   - ConversationEntity → conversation chargée
+///   - null               → conversation RÉELLEMENT absente (le flux a rendu
+///                          `Right(null)`) → « Conversation supprimée »
+///   - AsyncError         → panne de lecture (réseau, RLS, session) → surtout
+///                          PAS « supprimée »
+///
+/// Plier l'échec en `null` faisait dire « Conversation supprimée » à l'écran
+/// sur une simple coupure. Tant que l'erreur était avalée en amont, ça ne se
+/// voyait pas ; maintenant qu'elle arrive, la distinction compte.
 final conversationStreamProvider = StreamProvider.family<ConversationEntity?, String>((ref, conversationId) {
   return ref
       .watch(messageRepositoryProvider)
       .getConversationStream(conversationId)
       .map(
         (either) => either.fold(
-          (failure) => null,
+          (failure) => throw failure,
           (conversation) => conversation,
         ),
       );
 });
 
 /// Stream des messages d'une conversation
+///
+/// Même règle : une panne est une erreur, pas une conversation vide.
 final messagesProvider = StreamProvider.family<List<MessageEntity>, String>((ref, conversationId) {
   return ref
       .watch(messageRepositoryProvider)
       .getMessages(conversationId)
       .map(
-        (either) => either.fold(
-          (failure) => <MessageEntity>[],
-          (messages) => messages,
-        ),
+        (either) =>
+            either.fold((failure) => throw failure, (messages) => messages),
       );
 });
 
