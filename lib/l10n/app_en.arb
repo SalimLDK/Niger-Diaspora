@@ -905,6 +905,7 @@
     }
   },
   "hostCity": "City",
+  "groupsOnMap": "Groups on the map",
   "cityFieldHint": "Search for a city",
   "cityDataCredit": "City list: GeoNames (CC BY 4.0)",
   "cityTypeToSearch": "Type the first letters of your city",

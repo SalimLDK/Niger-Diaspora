@@ -1885,6 +1885,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get hostCity => 'Ville';
 
   @override
+  String get groupsOnMap => 'Groupes sur la carte';
+
+  @override
   String get cityFieldHint => 'Chercher une ville';
 
   @override

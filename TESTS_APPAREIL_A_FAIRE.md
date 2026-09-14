@@ -2694,13 +2694,27 @@ SELECT public.get_or_create_ville_group(
   Angola au sud — les deux qui n'étaient jamais dessinées. Algérie, Niger et
   Nigeria restent à leur centroïde habituel.
 
-⚠️ **Trouvé en y allant : `/groups/map` n'est atteignable par AUCUN écran.**
-La route existe dans `app_router.dart`, mais rien ne la pousse — j'ai dû
-passer par un lien profond (`diasponiger://groups/map`). Toute cette carte,
-centroïdes compris, est donc du code que personne ne voit depuis l'app.
-- [ ] **À décider** : lui donner une entrée (un bouton sur l'écran Groupes),
-  ou la retirer. Voir « Feature flags » du domaine Design pour le précédent
-  d'un écran rendu invisible par le routeur.
+⚠️ **Trouvé en y allant : `/groups/map` n'était atteignable par AUCUN
+écran.** La route existait dans `app_router.dart`, mais rien ne la poussait —
+il a fallu un lien profond (`diasponiger://groups/map`). Toute cette carte,
+centroïdes compris, était du code que personne ne voyait depuis l'app.
+
+**Entrée donnée le 2026-09-14** : une troisième action carrée dans l'en-tête
+de l'écran Groupes, entre la recherche et « Créer ». Le titre de l'écran
+passe de « Groupes par pays » à « Groupes sur la carte » — il portait
+« par pays », ce n'est plus vrai depuis qu'il y a des épingles de ville.
+
+L'en-tête porte donc trois actions à côté d'un grand titre serif : c'est sa
+configuration la plus chargée, et la famille de débordements que ce projet
+paie régulièrement. Le titre est dans un `Expanded`, donc il se replie au
+lieu de pousser — vérifié au banc
+(`test/core/theme/entete_trois_actions_test.dart`) à 320 / 360 / 411 dp et
+aux échelles 1,0 / 1,1 / 1,3, neuf combinaisons.
+
+- [ ] **Sur appareil** : les trois actions tiennent sur une ligne sans rogner
+  le titre « Groupes », et l'icône de carte ouvre bien la carte. À regarder
+  aussi avec l'échelle de police du téléphone augmentée — c'est là que le
+  banc ne remplace pas l'œil.
 
 ### Vérifié sur SM A515F le 2026-09-14 (APK release `703f4eda…`, `ddb6dfa`)
 

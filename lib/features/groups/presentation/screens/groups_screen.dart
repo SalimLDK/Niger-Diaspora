@@ -366,6 +366,15 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                         tooltip: l10n.searchGroup,
                         onPressed: () => context.push('/groups/search'),
                       ),
+                      // La carte des groupes existait depuis longtemps sans
+                      // qu'aucun écran n'y mène : seule une route
+                      // (`/groups/map`) la rendait atteignable, donc un lien
+                      // profond. Relevé le 2026-09-14 en allant l'y vérifier.
+                      DesignSquareAction(
+                        icon: Icons.map_outlined,
+                        tooltip: l10n.groupsOnMap,
+                        onPressed: () => context.push('/groups/map'),
+                      ),
                       DesignSquareAction(
                         icon: Icons.add,
                         filled: true,

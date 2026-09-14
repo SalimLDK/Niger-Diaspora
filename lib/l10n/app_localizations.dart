@@ -3470,6 +3470,12 @@ abstract class AppLocalizations {
   /// **'Ville'**
   String get hostCity;
 
+  /// No description provided for @groupsOnMap.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes sur la carte'**
+  String get groupsOnMap;
+
   /// No description provided for @cityFieldHint.
   ///
   /// In fr, this message translates to:

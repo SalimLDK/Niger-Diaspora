@@ -1865,6 +1865,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hostCity => 'City';
 
   @override
+  String get groupsOnMap => 'Groups on the map';
+
+  @override
   String get cityFieldHint => 'Search for a city';
 
   @override

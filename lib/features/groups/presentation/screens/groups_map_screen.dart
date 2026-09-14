@@ -55,9 +55,12 @@ const Map<String, LatLng> countryCentroids = {
   'Turquie': LatLng(38.9637, 35.2433),
 };
 
-/// Vue carte des groupes regroupes par pays (un marqueur par pays ayant au
-/// moins un groupe). Ecran distinct de la carte des membres (map_screen.dart)
-/// pour ne pas alourdir/risquer sa logique existante.
+/// Vue carte des groupes : un marqueur par LIEU — un pays, ou une ville
+/// depuis que les groupes de ville existent. Ecran distinct de la carte des
+/// membres (map_screen.dart) pour ne pas alourdir/risquer sa logique
+/// existante.
+///
+/// Le titre ne dit plus « par pays » : il l'était, il ne l'est plus.
 class GroupsMapScreen extends ConsumerStatefulWidget {
   const GroupsMapScreen({super.key});
 
@@ -77,7 +80,7 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
-        title: DesignTitle(l10n.groupsByCountry, size: 22),
+        title: DesignTitle(l10n.groupsOnMap, size: 22),
         leading: IconButton(
           icon: AppIcon(AppIcon.arrowBack, color: context.textPrimaryColor),
           onPressed:
