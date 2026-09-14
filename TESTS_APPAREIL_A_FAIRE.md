@@ -5504,6 +5504,20 @@ sur `72.62.212.223` (le VPS coturn), avec leurs `raddr` publics. C'est la
 première preuve depuis la rotation de secret du 16/07 que l'allocation
 fonctionne — en wifi ; la validation « 4G/5G sans wifi » reste entière.
 
+⛔ **L'écran d'appel n'offre aucun moyen de raccrocher tant qu'il « connecte ».**
+Capture à l'appui : fond noir, une roue, « Connexion en cours… », et **rien
+d'autre** — pas de bouton rouge, pas de croix, aucun contrôle. L'appelant ne
+peut sortir que par le geste système, et le nœud reste alors ouvert côté
+serveur avec lui en participant. À traiter en même temps que le point
+suivant : un appel qui ne joint personne doit pouvoir être abandonné.
+
+⛔ **Et l'appel reste ouvert indéfiniment.** Relevé le **2026-09-13 à 23:21**,
+soit deux jours après : `/group_calls/5NSEJFNAccicDNJjvOPw/participants`
+contient toujours Sim A avec son `joinedAt` du 2026-09-11. Ni la sortie par le
+geste système, ni l'`am force-stop` qui a suivi, ni aucun ménage côté serveur
+(`cleanupStaleGroupCalls`) ne l'ont refermé. Un appel abandonné reste donc
+« en cours » pour qui lit ce nœud.
+
 ⛔ **Mais l'appelé n'a jamais rien vu.** Sur le Pixel (Salim L., app au premier
 plan, écran Réglages), aucun écran d'appel entrant, aucune bannière, et
 `dumpsys notification` ne montre **aucune** notification d'appel — seulement
