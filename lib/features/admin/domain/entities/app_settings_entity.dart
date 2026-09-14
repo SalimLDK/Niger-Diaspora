@@ -343,12 +343,15 @@ class MediaLimitsEntity extends Equatable {
   final int maxDocumentSizeMb;
   final int maxAudioDurationSeconds;
 
+  // Ces quatre-là doivent rester alignés sur le plancher de
+  // `ImageUploadConfig` : le service ne descend plus en dessous, une valeur
+  // plus basse ici ne serait jamais appliquée.
   const MediaLimitsEntity({
-    this.imageMaxWidth = 1024,
-    this.imageMaxHeight = 1024,
-    this.imageQuality = 85,
+    this.imageMaxWidth = 2048,
+    this.imageMaxHeight = 2048,
+    this.imageQuality = 88,
     this.maxImagesPerUpload = 5,
-    this.minWidthForCompression = 800,
+    this.minWidthForCompression = 1080,
     this.messageMaxChars = 2000,
     this.messageCharCountThreshold = 200,
     this.maxImageSizeMb = 10,

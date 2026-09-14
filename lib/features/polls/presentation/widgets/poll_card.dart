@@ -248,28 +248,53 @@ class _PollCardState extends ConsumerState<PollCard> {
             );
           }),
           const SizedBox(height: 4),
-          // Pied de carte en `Wrap` : a grande echelle de police, la rangee
-          // « N votes … Voir les resultats » debordait sans marge de manoeuvre.
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 8,
-            children: [
-              Text(
-                poll.isExpired
-                    ? '${l10n.pollVotesCount(poll.totalVotes)} · ${l10n.pollClosedToVotes}'
-                    : l10n.pollVotesCount(poll.totalVotes),
-                style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
-              ),
-              Wrap(
-                alignment: WrapAlignment.end,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: _actions(),
-              ),
-            ],
-          ),
+          _pied(context),
         ],
       ),
+    );
+  }
+
+  /// Pied de carte : le compte de voix, et les actions.
+  ///
+  /// Une seule action tient sur la ligne du compte — c'est le cas courant
+  /// (« Voter », ou « Voir les resultats »). Deux actions passent sur leur
+  /// propre ligne, alignees a droite : sur une bulle RECUE, plus etroite
+  /// qu'une bulle envoyee, elles ne tenaient pas a cote du compte, et un
+  /// `Wrap` unique les empilait en laissant « N votes » centre entre les
+  /// deux — verifie sur SM A515F le 2026-09-14. Rien ne deborde dans aucun
+  /// des deux cas, l'echelle de police comprise.
+  Widget _pied(BuildContext context) {
+    final poll = widget.poll;
+    final actions = _actions();
+    final compte = Text(
+      poll.isExpired
+          ? '${l10n.pollVotesCount(poll.totalVotes)} · ${l10n.pollClosedToVotes}'
+          : l10n.pollVotesCount(poll.totalVotes),
+      style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+    );
+
+    if (actions.length <= 1) {
+      return Row(
+        children: [
+          Expanded(child: compte),
+          if (actions.isNotEmpty) actions.single,
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        compte,
+        Align(
+          alignment: Alignment.centerRight,
+          child: Wrap(
+            alignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: actions,
+          ),
+        ),
+      ],
     );
   }
 
