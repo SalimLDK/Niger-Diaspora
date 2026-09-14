@@ -294,13 +294,26 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   /// Hors du `build` : la lire par `ref.watch` reconstruirait le sélecteur à
   /// chaque image et écraserait ce que l'organisateur vient de choisir.
   Future<void> _chargerAudience() async {
-    final audience =
-        await ref.read(eventAudienceProvider(widget.event.id).future);
-    if (!mounted) return;
-    setState(() {
-      _audience = audience;
-      _audienceInitiale = audience;
-    });
+    // Une lecture qui échoue laisse `_audience` à null, donc le sélecteur
+    // masqué et `_audienceAChange` faux : l'écran de modification reste
+    // entièrement utilisable pour le reste, et l'enregistrement ne touchera
+    // pas à l'audience. Mieux vaut ne pas la montrer que la montrer fausse.
+    //
+    // Le cas n'est pas théorique : la construction du datasource affirme
+    // `Supabase.instance` initialisé, ce qui n'est pas vrai dans un test de
+    // widget — `lien_profond_edition_test.dart` monte cet écran pour vérifier
+    // sa garde d'autorisation, sans Supabase.
+    try {
+      final audience =
+          await ref.read(eventAudienceProvider(widget.event.id).future);
+      if (!mounted) return;
+      setState(() {
+        _audience = audience;
+        _audienceInitiale = audience;
+      });
+    } catch (_) {
+      // Rien à dire à l'usager : il n'a rien demandé, et le reste marche.
+    }
   }
 
   /// Vrai si l'organisateur a touché à l'audience.
