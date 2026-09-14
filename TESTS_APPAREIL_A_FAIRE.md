@@ -4659,6 +4659,17 @@ maintenant par le chemin de l'envoi (`_encryptContent`), et l'historique ne
 garde plus que la date — rien ne l'affichait.
 
 - [ ] **Répondre, dans les cinq cas** : à un texte, à une photo (avec légende),
+  **Localisation : composition et citation vues le 2026-09-14, mais envoi
+  NON confirmé — mesure écartée.** Sur SM A515F (build 19), l'appui long sur
+  la carte « 3010 Boul Lévesque E » propose bien « Répondre », et la bulle
+  composée affiche la citation attendue : « Vous — 📍 Position » au-dessus du
+  texte. Mais le message est resté en « Envoi… » et **n'est jamais arrivé en
+  base** ; au rechargement du fil il avait disparu. ⚠️ Pendant cette fenêtre,
+  **un autre agent pilotait le même téléphone** (Galerie active, événements
+  clavier vers l'app dans les journaux) : impossible de distinguer un défaut
+  d'envoi d'une interférence. À refaire sur un appareil libre — c'est la
+  règle de ce fichier, une mesure prise à deux pilotes se jette.
+  Restent donc : photo avec légende, note vocale, sticker.
   à une note vocale, à une localisation, à un sticker. La citation doit
   s'afficher au-dessus de la bulle, chez l'expéditeur **et** chez l'autre.
 - [x] **La citation survit à un accusé de lecture** : même piège que les
