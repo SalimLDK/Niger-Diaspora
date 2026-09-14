@@ -25,6 +25,20 @@ abstract class ProfileRemoteDataSource {
   );
   Future<List<ProfileModel>> getProfilesByCountry(String country);
   Future<List<ProfileModel>> searchProfiles(String query);
+
+  /// Les profils de [ids], en une requête au lieu d'une par identifiant.
+  ///
+  /// Pour les listes qui n'ont que des identifiants sous la main — les
+  /// participants d'une conversation, les candidats à une invitation. Le
+  /// pendant unitaire, [getUserStream], est un flux temps réel dont la
+  /// `family` n'est pas `autoDispose` : vingt lignes, ce sont vingt
+  /// abonnements ouverts pour le reste de la session.
+  ///
+  /// Les identifiants introuvables sont simplement absents du résultat — un
+  /// compte supprimé comme un profil privé (`users_select` ne rend les lignes
+  /// que si `NOT is_private`). L'appelant décide quoi afficher à la place.
+  Future<List<ProfileModel>> getProfilesByIds(List<String> ids);
+
   Stream<ProfileModel> getUserStream(String userId);
   Future<void> updateLastLogin(String userId);
   Future<void> updateOnlineStatus(

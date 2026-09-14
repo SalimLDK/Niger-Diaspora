@@ -28,6 +28,15 @@ import '../providers/invite_candidates_provider.dart';
 bool peutInviterDansGroupe(GroupEntity group, String? userId) =>
     userId != null && group.adminIds.contains(userId);
 
+/// Le nom à afficher pour [candidat].
+///
+/// `InviteCandidate.displayName` est **vide** quand le profil n'a pas pu être
+/// résolu — compte supprimé, profil privé, ou liste construite hors ligne. Le
+/// repli est localisé ici plutôt que figé dans le provider : lui seul sait
+/// distinguer « pas de nom » d'un vrai nom, et seul l'écran a la locale.
+String nomCandidat(InviteCandidate candidat, AppLocalizations l10n) =>
+    candidat.displayName.isEmpty ? l10n.userDefault : candidat.displayName;
+
 /// Feuille « Inviter des membres » : la seule façon, dans l'app, de faire
 /// entrer quelqu'un dans un groupe privé.
 ///
@@ -120,18 +129,23 @@ class _InviteMembersSheetState extends ConsumerState<InviteMembersSheet> {
     final envoyes = <String>{};
     final echoues = <String>[];
     for (final candidat in _selected.values) {
+      // Le repli est posé ici, pas dans le provider : c'est l'écran qui a la
+      // locale. `inviteeName` part en base et sert à nommer l'invitation dans
+      // la liste de l'invitant — y écrire une chaîne vide lui laisserait une
+      // ligne muette.
+      final nom = nomCandidat(candidat, l10n);
       final ok = await notifier.inviteUser(
         groupId: widget.group.id,
         groupName: widget.group.name,
         groupImageUrl: widget.group.imageUrl,
         inviteeId: candidat.id,
-        inviteeName: candidat.displayName,
+        inviteeName: nom,
         inviteePhotoUrl: candidat.photoUrl,
       );
       if (ok) {
         envoyes.add(candidat.id);
       } else {
-        echoues.add(candidat.displayName);
+        echoues.add(nom);
       }
     }
 
@@ -436,7 +450,7 @@ class _TuileCandidat extends StatelessWidget {
                   : Icon(Icons.person, color: context.adaptivePrimaryColor),
         ),
         title: Text(
-          candidat.displayName,
+          nomCandidat(candidat, l10n),
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontSize: 14.5,

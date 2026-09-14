@@ -199,6 +199,49 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .toList();
   }
 
+  /// Taille d'un lot d'identifiants par requête.
+  ///
+  /// PostgREST passe le filtre dans l'URL (`id=in.(…)`) : les identifiants
+  /// hérités de Firebase font 28 caractères, donc 100 tiennent en ~3 ko, loin
+  /// des limites d'un serveur HTTP. Au-delà, le filtre finirait par être
+  /// tronqué — et une URL tronquée ne rend pas une erreur, elle rend d'autres
+  /// lignes.
+  static const int _tailleLotIds = 100;
+
+  @override
+  Future<List<ProfileModel>> getProfilesByIds(List<String> ids) async {
+    final uniques = <String>{
+      for (final id in ids)
+        if (id.trim().isNotEmpty) id,
+    }.toList();
+    if (uniques.isEmpty) return const [];
+
+    // Même garde que [getProfile] : sans session établie, `users_select` vaut
+    // pour le rôle `public` et la lecture **réussit** en ne rendant aucune
+    // ligne. Tous les profils passeraient alors pour introuvables.
+    if (!await _ensureReadableAuth()) {
+      throw ServerException('Session non établie – réessayez');
+    }
+
+    final profils = <ProfileModel>[];
+    for (var debut = 0; debut < uniques.length; debut += _tailleLotIds) {
+      final reste = debut + _tailleLotIds;
+      final fin = reste < uniques.length ? reste : uniques.length;
+      final data = await _supabase
+          .from('users')
+          .select()
+          .inFilter('id', uniques.sublist(debut, fin));
+      for (final row in data as List) {
+        final profil = ProfileModel.fromJson(
+          _mapProfile(row as Map<String, dynamic>),
+        );
+        _memoriser(profil);
+        profils.add(profil);
+      }
+    }
+    return profils;
+  }
+
   @override
   Future<List<ProfileModel>> getNearbyProfiles(
     double latitude,

@@ -3,12 +3,22 @@
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 
 /// Represents a user eligible to be added to a call
 class EligibleParticipant {
   final String id;
+
+  /// Vide quand le profil n'a pas pu être résolu — compte supprimé, profil
+  /// privé, ou lecture hors ligne.
+  ///
+  /// Volontairement une chaîne vide plutôt qu'un « Utilisateur » en dur : un
+  /// repli écrit ici serait du français figé dans un provider, et surtout il
+  /// deviendrait indiscernable d'un vrai nom au moment d'écrire l'invitation.
+  /// C'est à l'écran, qui a la locale, de le remplacer par `l10n.userDefault`.
   final String displayName;
+
   final String? photoUrl;
   final bool isFriend;
 
@@ -80,38 +90,81 @@ final eligibleParticipantsProvider = FutureProvider.family<
     }
   }
 
-  // Add conversation participants (if not already added as friends)
+  // Add conversation participants (if not already added as friends).
+  //
+  // Leur nom ne peut PAS venir de la conversation, et c'est ce que faisait le
+  // code d'avant : il lisait `conversation.name` quand la conversation était
+  // individuelle, et se rabattait sur « Utilisateur » sinon.
+  //
+  // Les deux branches tombaient sur le repli, toujours :
+  //   - une conversation individuelle n'a **pas** de nom.
+  //     `createIndividualConversation` insère `type`, `participant_ids`,
+  //     `created_by` et `data{unreadCount, requestStatus}` — jamais de `name`
+  //     ni d'image. Le reste de l'app l'a toujours su : `conversation_item`
+  //     résout le correspondant par `userStreamProvider`, pas par le nom de la
+  //     conversation ;
+  //   - une conversation de **groupe** n'entrait même pas dans la branche,
+  //     alors que la boucle offre chacun de ses participants. Un fil de
+  //     21 personnes rendait donc 20 lignes anonymes d'un coup.
+  //
+  // Résultat mesuré sur SM A515F le 2026-09-14 : la feuille « Inviter un
+  // membre » n'affichait que des « Utilisateur » à avatar gris, alors que la
+  // recherche du même écran — qui passe par `searchProfiles` — nommait tout le
+  // monde correctement.
+  final aResoudre = <String>[];
   for (final conversation in conversations) {
     for (final participantId in conversation.participantIds) {
       if (!excludeSet.contains(participantId) &&
           !participantsMap.containsKey(participantId)) {
-        // For conversation participants who are not friends, we need to fetch
-        // their info from profile. For now, use conversation name if individual.
-        String displayName = 'Utilisateur';
-        String? photoUrl;
-
-        if (conversation.isIndividual &&
-            conversation.participantIds.length == 2) {
-          // Use conversation name/image for the other participant
-          displayName = conversation.name ?? 'Utilisateur';
-          photoUrl = conversation.imageUrl;
-        }
-
         participantsMap[participantId] = EligibleParticipant(
           id: participantId,
-          displayName: displayName,
-          photoUrl: photoUrl,
+          displayName: '',
+          photoUrl: null,
           isFriend: false,
         );
+        aResoudre.add(participantId);
       }
     }
   }
 
-  // Sort: friends first, then by name
+  // Une seule requête pour toute la liste, jamais un `userStreamProvider` par
+  // ligne : ce dernier est un flux temps réel dont la `family` n'est pas
+  // `autoDispose`, donc ouvert pour le reste de la session — vingt lignes,
+  // vingt abonnements, depuis une feuille qu'on referme aussitôt.
+  if (aResoudre.isNotEmpty) {
+    try {
+      final profils = await ref
+          .watch(profileRemoteDataSourceProvider)
+          .getProfilesByIds(aResoudre);
+      for (final profil in profils) {
+        final nom = (profil.displayName ?? '').trim();
+        participantsMap[profil.id] = EligibleParticipant(
+          id: profil.id,
+          displayName: nom,
+          photoUrl: profil.photoUrl,
+          isFriend: false,
+        );
+      }
+    } catch (_) {
+      // Hors ligne, ou session pas encore établie. Une liste de gens sans nom
+      // reste utilisable — on y reconnaît au moins les amis, nommés par leur
+      // copie locale. La faire échouer en entier remplacerait la feuille par
+      // « Erreur de chargement », ce qui est strictement pire que le défaut
+      // qu'on corrige ici.
+    }
+  }
+
+  // Sort: friends first, then by name.
+  //
+  // Les sans-nom ferment la marche au lieu de l'ouvrir : une chaîne vide
+  // remonte en tête d'un tri alphabétique, et ce sont justement les lignes sur
+  // lesquelles on ne peut rien décider.
   final result = participantsMap.values.toList()
     ..sort((a, b) {
-      if (a.isFriend && !b.isFriend) return -1;
-      if (!a.isFriend && b.isFriend) return 1;
+      if (a.isFriend != b.isFriend) return a.isFriend ? -1 : 1;
+      final aAnonyme = a.displayName.isEmpty;
+      final bAnonyme = b.displayName.isEmpty;
+      if (aAnonyme != bAnonyme) return aAnonyme ? 1 : -1;
       return a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase());
     });
 
