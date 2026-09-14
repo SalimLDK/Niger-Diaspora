@@ -85,8 +85,28 @@ service cloud.firestore {
       // `resource` existe toujours, et le `diff` ne peut plus planter.
 
       // Creation de son propre profil, sans se donner de role admin.
-      allow create: if isOwner(userId)
-        && !request.resource.data.keys().hasAny(['isAdmin', 'adminRole']);
+      //
+      // La seconde branche existe pour les APK deja installes : leur lot
+      // d'acceptation d'une demande d'ami fait un `set(merge)` sur le profil de
+      // L'AUTRE, ce qui est une CREATION quand ce document n'existe pas — et
+      // plus rien ne cree les documents `users` Firestore depuis la migration
+      // vers Supabase. Le lot etant atomique, ce seul refus annulait les trois
+      // autres ecritures : l'usager lisait « Erreur de chargement », rien ne
+      // bougeait en base. Le client ne fait plus cette ecriture (`friendIds`
+      // n'etait lu par personne) ; cette branche ne sert qu'aux versions
+      // anterieures, et pourra etre retiree quand elles auront disparu.
+      //
+      // Strictement bornee, et volontairement plus etroite que la regle
+      // d'`update` juste en dessous : le document cree ne peut contenir QUE
+      // `friendIds`, et ce tableau ne peut contenir QUE l'uid de l'appelant.
+      // Aucun autre champ — donc jamais `isAdmin` ni `adminRole`.
+      // Couvert par tools/rules_tests/acceptation_ami.mjs.
+      allow create: if (isOwner(userId)
+          && !request.resource.data.keys().hasAny(['isAdmin', 'adminRole']))
+        || (isAuthenticated()
+          && request.resource.data.keys().hasOnly(['friendIds'])
+          && request.resource.data.keys().hasAll(['friendIds'])
+          && request.resource.data.friendIds.toSet().hasOnly([request.auth.uid]));
 
       allow delete: if isOwner(userId);
 

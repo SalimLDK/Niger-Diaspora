@@ -164,21 +164,24 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
         'addedAt': FieldValue.serverTimestamp(),
       });
 
-      // Update friend counts (use set with merge to create document if it doesn't exist)
-      final senderRef = _firestore
-          .collection(FirebaseCollections.users)
-          .doc(senderId);
-      batch.set(senderRef, {
-        'friendIds': FieldValue.arrayUnion([receiverId]),
-      }, SetOptions(merge: true));
-
-      final receiverRef = _firestore
-          .collection(FirebaseCollections.users)
-          .doc(receiverId);
-      batch.set(receiverRef, {
-        'friendIds': FieldValue.arrayUnion([senderId]),
-      }, SetOptions(merge: true));
-
+      // Le tableau `friendIds` des deux profils N'EST PLUS ÉCRIT ICI, et le
+      // lot se limite aux trois documents ci-dessus.
+      //
+      // Il n'était lu par personne : la liste d'amis de l'app vient de la
+      // sous-collection `friends` (`getFriends`, `areFriends`), l'audience
+      // « Amis » du fil vient de `public.friends` côté Supabase — que
+      // `mirrorFriendToSupabase` alimente à partir de cette même
+      // sous-collection, pas du tableau. Seul le nettoyage de suppression de
+      // compte le balayait encore, en Admin SDK, pour les données d'avant.
+      //
+      // Et il faisait échouer TOUTE l'acceptation. `set(merge)` sur un
+      // document absent est une CRÉATION, et `users/{autrui}` n'autorise la
+      // création qu'à son propriétaire — à raison. Or plus rien ne crée les
+      // documents `users` Firestore depuis la migration vers Supabase : ils
+      // sont absents pour la quasi-totalité des comptes. Le lot étant
+      // atomique, ce seul refus annulait les trois autres écritures, et
+      // l'usager lisait « Erreur de chargement » sans que rien ne bouge.
+      // Mesuré par `tools/rules_tests/acceptation_ami.mjs`, bloc 2.
       await batch.commit();
 
       // Create a conversation between the new friends
@@ -400,21 +403,11 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
           .doc(userId);
       batch.delete(friendFriendRef);
 
-      // Update friendIds arrays (use set with merge to create document if it doesn't exist)
-      final userRef = _firestore
-          .collection(FirebaseCollections.users)
-          .doc(userId);
-      batch.set(userRef, {
-        'friendIds': FieldValue.arrayRemove([friendId]),
-      }, SetOptions(merge: true));
-
-      final friendRef = _firestore
-          .collection(FirebaseCollections.users)
-          .doc(friendId);
-      batch.set(friendRef, {
-        'friendIds': FieldValue.arrayRemove([userId]),
-      }, SetOptions(merge: true));
-
+      // `friendIds` n'est plus écrit ici non plus — même raison qu'à
+      // l'acceptation, et même panne : `set(merge)` sur le profil de l'ami,
+      // absent, est une création que `users/{autrui}` refuse, et le lot étant
+      // atomique, retirer un ami échouait en entier. Les deux suppressions
+      // ci-dessus sont ce que l'app lit, et ce que le miroir Supabase suit.
       await batch.commit();
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la suppression');

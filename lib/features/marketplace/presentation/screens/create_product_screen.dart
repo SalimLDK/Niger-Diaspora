@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/services/image_upload_provider.dart';
@@ -201,13 +200,15 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
   }
 
   Future<void> _pickImages() async {
-    final picker = ImagePicker();
-    final images = await picker.pickMultiImage();
+    // Passer par le service plutôt que par un ImagePicker nu : il borne la
+    // sélection **avant** décodage. Sans borne, une photo de 48 Mpx arrivait
+    // entière à la compression, qui la décode en ARGB_8888 — 192 Mo.
+    final result = await ref
+        .read(imageUploadServiceProvider)
+        .pickMultipleImagesWithResult();
 
-    if (images.isNotEmpty) {
-      setState(() {
-        _newImages.addAll(images.map((x) => File(x.path)));
-      });
+    if (result.files.isNotEmpty) {
+      setState(() => _newImages.addAll(result.files));
     }
   }
 

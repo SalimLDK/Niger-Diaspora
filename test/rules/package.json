@@ -1,0 +1,10 @@
+{
+  "name": "diaspo-niger-regles-firestore",
+  "private": true,
+  "type": "commonjs",
+  "description": "Dependances du banc des regles Firestore (tools/rules_tests/*.mjs). Le dossier node_modules etait deja installe ici mais ce fichier manquait : l'installation n'etait pas rejouable. Lancer `npm install` ici avant le banc.",
+  "dependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "firebase": "^10.14.1"
+  }
+}

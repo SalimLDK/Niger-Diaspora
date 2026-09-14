@@ -8,6 +8,7 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../../groups/presentation/providers/common_groups_provider.dart';
 import '../../domain/entities/friend_request_entity.dart';
 import '../providers/friend_provider.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class FriendRequestItem extends ConsumerWidget {
@@ -83,11 +84,12 @@ class FriendRequestItem extends ConsumerWidget {
                                   request.id,
                                   senderId: request.senderId,
                                 );
-                                if (context.mounted && success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(l10n.friendRequestDeclined),
-                                    ),
+                                if (context.mounted) {
+                                  _annoncer(
+                                    context,
+                                    ref,
+                                    success,
+                                    l10n.friendRequestDeclined,
                                   );
                                 }
                               },
@@ -105,11 +107,12 @@ class FriendRequestItem extends ConsumerWidget {
                                   request.id,
                                   senderId: request.senderId,
                                 );
-                                if (context.mounted && success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(l10n.friendRequestAccepted),
-                                    ),
+                                if (context.mounted) {
+                                  _annoncer(
+                                    context,
+                                    ref,
+                                    success,
+                                    l10n.friendRequestAccepted,
                                   );
                                 }
                               },
@@ -130,11 +133,12 @@ class FriendRequestItem extends ConsumerWidget {
                               request.id,
                               receiverId: request.receiverId,
                             );
-                            if (context.mounted && success) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(l10n.friendRequestCancelled),
-                                ),
+                            if (context.mounted) {
+                              _annoncer(
+                                context,
+                                ref,
+                                success,
+                                l10n.friendRequestCancelled,
                               );
                             }
                           },
@@ -147,6 +151,33 @@ class FriendRequestItem extends ConsumerWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Dit l'issue de l'action, succès **comme** échec.
+  ///
+  /// Les trois boutons de cette carte n'affichaient un message que sur succès.
+  /// Un refus de permission Firestore se lisait donc comme un tap qui n'avait
+  /// pas pris : le bouton reprenait son état, la carte restait là, à
+  /// l'identique. C'est exactement ce qui avait caché pendant des mois le fait
+  /// qu'accepter une demande d'ami était impossible — l'écran Notifications a
+  /// été corrigé le 2026-08-05, celui-ci ne l'avait pas été.
+  ///
+  /// Le texte de l'échec passe par [messageErreurUsager] : le message brut
+  /// d'un `ServerFailure` porte le chemin du document Firestore, il n'est
+  /// jamais montrable.
+  void _annoncer(
+    BuildContext context,
+    WidgetRef ref,
+    bool succes,
+    String messageSucces,
+  ) {
+    final erreur = ref.read(friendRequestNotifierProvider).error;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(succes ? messageSucces : messageErreurUsager(erreur)),
+        backgroundColor: succes ? null : context.errorColor,
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import 'app_review_service.dart';
 import 'play_integrity_service.dart';
 
 /// Niveaux de sécurité requis pour différentes opérations
@@ -209,6 +210,18 @@ class SecurityGateService {
 
     if (!context.mounted) return false;
 
+    // `denied()` déclare `verdict` optionnel. Aucun de ses quatre chemins ne le
+    // laisse nul aujourd'hui, mais un `!` ici ferait tomber le dialogue au lieu
+    // d'afficher le refus — sur le panier et sur l'envoi d'argent. Et sans
+    // verdict on ignore si le motif est la licence Play : on ne propose donc
+    // pas le store plutôt que de donner un conseil inventé.
+    final verdict = result.verdict;
+    final needsPlayStore = verdict != null && !verdict.isPlayLicensed;
+
+    // Capturé avant le dialogue : le bouton ouvre le store après un `await`,
+    // et `context` peut avoir disparu d'ici là.
+    final messenger = ScaffoldMessenger.of(context);
+
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -218,7 +231,7 @@ class SecurityGateService {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(customMessage ?? result.denialReason ?? 'Accès non autorisé'),
-            if (!result.verdict!.isPlayLicensed) ...[
+            if (needsPlayStore) ...[
               const SizedBox(height: 16),
               const Text(
                 'Pour accéder à cette fonctionnalité, veuillez installer '
@@ -233,11 +246,27 @@ class SecurityGateService {
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('Compris'),
           ),
-          if (!result.verdict!.isPlayLicensed)
+          if (needsPlayStore)
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(ctx).pop();
-                _openPlayStore();
+                // `ouvrirLaFicheSansAvis` et non `ouvrirLaFicheDuStore` :
+                // celle-ci ouvre la page d'avis et marque la fiche comme
+                // ouverte, ce qui couperait l'invitation automatique pour un
+                // avis que personne n'a déposé. Ici on demande une
+                // installation, pas une note. Même choix qu'à la notice de
+                // mise à jour ([main_shell.dart]).
+                final ouvert =
+                    await AppReviewService.instance.ouvrirLaFicheSansAvis();
+                // Sans ce retour, un échec d'ouverture redonne exactement le
+                // symptôme qu'on corrige ici : un bouton qui ne fait rien.
+                if (!ouvert) {
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Impossible d\'ouvrir la fiche du store.'),
+                    ),
+                  );
+                }
               },
               child: const Text('Ouvrir Play Store'),
             ),
@@ -246,10 +275,5 @@ class SecurityGateService {
     );
 
     return false;
-  }
-
-  void _openPlayStore() {
-    // Utiliser url_launcher pour ouvrir le Play Store
-    // launchUrl(Uri.parse('https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger'));
   }
 }

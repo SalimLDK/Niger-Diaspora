@@ -86,9 +86,11 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
   Future<void> _pickImages() async {
     final picker = ImagePicker();
     final images = await picker.pickMultiImage(
-      maxWidth: 1024,
-      maxHeight: 1024,
-      imageQuality: 80,
+      // Étape intermédiaire : ImageUploadService ré-encode ensuite à sa
+      // qualité de livraison. Deux passes serrées se cumulent.
+      maxWidth: 2048,
+      maxHeight: 2048,
+      imageQuality: 95,
     );
 
     if (images.isNotEmpty) {
