@@ -29,6 +29,29 @@ import 'package:diaspo_niger/features/feed/presentation/providers/feed_provider.
 /// Le volet 2 n'est pas testé par une attente réelle de 10 s : on vérifie le
 /// volet 1, qui est ce que l'utilisateur voit, et qui suffit à faire
 /// disparaître les squelettes.
+/// Une exception que le dépôt ne traduit pas : il n'attrape que
+/// `ServerException` et `NetworkException`. C'est le cas réel d'une requête
+/// refusée par PostgREST.
+class _RepoQuiLeve implements FeedRepository {
+  @override
+  Future<Either<Failure, PaginatedPosts>> getFeedPaginated({
+    int limit = 20,
+    int offset = 0,
+    String? hashtagFilter,
+    FeedMode mode = FeedMode.forYou,
+  }) async =>
+      throw StateError('PostgrestException: malformed array literal');
+
+  @override
+  Stream<PostEntity> watchNewPosts() => const Stream.empty();
+
+  @override
+  Stream<PostEntity> watchPostUpdates({String? postId}) => const Stream.empty();
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _RepoQuiPend implements FeedRepository {
   /// Ne se complète jamais : simule un socket qui pend (mode avion, portail
   /// captif) plutôt qu'une erreur franche.
@@ -171,4 +194,27 @@ void main() {
     expect(relu.isUtc, isFalse, reason: 'normalisé en local à la lecture');
     expect(relu, DateTime.utc(2026, 8, 4, 6, 1).toLocal());
   });
+
+  test(
+    'une exception inattendue n\'enferme pas le fil dans ses squelettes',
+    () async {
+      // Mesuré sur SM A515F le 2026-09-14 : un filtre hashtag rendait 400
+      // (`cs.{x}` sur une colonne jsonb), l'exception s'échappait de
+      // `loadInitial` — qui n'attrapait que `TimeoutException` — et l'écran
+      // restait sur ses squelettes **pour toujours**, sans message ni bouton.
+      final container = ProviderContainer(
+        overrides: [feedRepositoryProvider.overrideWithValue(_RepoQuiLeve())],
+      );
+      addTearDown(container.dispose);
+
+      container.read(feedNotifierProvider);
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+
+      final state = container.read(feedNotifierProvider);
+      expect(state.isLoading, isFalse,
+          reason: 'le fil montre ses squelettes tant que isLoading est vrai');
+      expect(state.failure, isNotNull,
+          reason: 'un échec classé permet d\'afficher un message et un bouton');
+    },
+  );
 }
