@@ -1850,6 +1850,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get currentCity => 'Ville actuelle';
 
   @override
+  String get cityFieldHint => 'Chercher une ville';
+
+  @override
+  String get cityDataCredit => 'Liste des villes : GeoNames (CC BY 4.0)';
+
+  @override
+  String get cityTypeToSearch => 'Tapez les premières lettres de votre ville';
+
+  @override
+  String get cityNoResult => 'Aucune ville de la liste ne correspond';
+
+  @override
+  String get citySearchFailed => 'Recherche impossible pour le moment';
+
+  @override
   String get originCity => 'Ville d\'origine au Niger';
 
   @override

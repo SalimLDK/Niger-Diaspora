@@ -984,6 +984,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 8),
+                // Obligation de la licence CC BY 4.0 de GeoNames, d'où vient
+                // le référentiel `public.villes` (tools/import_villes_geonames.mjs).
+                Text(
+                  l10n.cityDataCredit,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: context.textTertiaryColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ],
             ),
             actions: [

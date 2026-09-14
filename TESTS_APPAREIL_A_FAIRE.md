@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**878 cases à cocher, 496 cochées** — 179 entrées sur 223 ont encore des cases ouvertes.
+**882 cases à cocher, 496 cochées** — 180 entrées sur 224 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -117,7 +117,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (63)
+**P2 — fonction secondaire ou cas limite** (64)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -147,6 +147,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 4 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
 - 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
@@ -246,7 +247,7 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 23 à faire, 25 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 133 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 35 à faire, 26 faites
@@ -5799,6 +5800,20 @@ sur `72.62.212.223` (le VPS coturn), avec leurs `raddr` publics. C'est la
 première preuve depuis la rotation de secret du 16/07 que l'allocation
 fonctionne — en wifi ; la validation « 4G/5G sans wifi » reste entière.
 
+⛔ **L'écran d'appel n'offre aucun moyen de raccrocher tant qu'il « connecte ».**
+Capture à l'appui : fond noir, une roue, « Connexion en cours… », et **rien
+d'autre** — pas de bouton rouge, pas de croix, aucun contrôle. L'appelant ne
+peut sortir que par le geste système, et le nœud reste alors ouvert côté
+serveur avec lui en participant. À traiter en même temps que le point
+suivant : un appel qui ne joint personne doit pouvoir être abandonné.
+
+⛔ **Et l'appel reste ouvert indéfiniment.** Relevé le **2026-09-13 à 23:21**,
+soit deux jours après : `/group_calls/5NSEJFNAccicDNJjvOPw/participants`
+contient toujours Sim A avec son `joinedAt` du 2026-09-11. Ni la sortie par le
+geste système, ni l'`am force-stop` qui a suivi, ni aucun ménage côté serveur
+(`cleanupStaleGroupCalls`) ne l'ont refermé. Un appel abandonné reste donc
+« en cours » pour qui lit ce nœud.
+
 ⛔ **Mais l'appelé n'a jamais rien vu.** Sur le Pixel (Salim L., app au premier
 plan, écran Réglages), aucun écran d'appel entrant, aucune bannière, et
 `dumpsys notification` ne montre **aucune** notification d'appel — seulement
@@ -10875,6 +10890,47 @@ attendre le sondage.
 # 11. Accueil, profil et réglages
 
 Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature flags d'écrans.
+
+---
+
+## ⬜ Champ ville : recherche dans le référentiel (2026-09-13)
+
+**Priorité P2** · importance 3/5 — Le champ ville reste un champ de texte nu tant que le profil n'est pas câblé ; la mention de licence, elle, est due dès maintenant.
+*Bloqué : le champ n'est encore posé sur aucun écran — le câblage du profil (`users.ville_id`) est l'étape suivante.*
+
+Le champ ville du profil est un `CustomTextField` nu. Relevé en base le
+2026-09-13 sur les neuf profils qui portent une ville : « Niamey » ×3 et
+« niamey » ×1, « Arewa » (un département), « Almoustapha » (un prénom) et
+l'adresse e-mail du compte de test. Ouvrir des groupes de ville là-dessus
+referait le problème des pays, en pire.
+
+D'où le référentiel `public.villes` (33 880 villes, GeoNames `cities15000`
+pour le monde et le fichier `NE` filtré sur les 48 villes de
+`ProfileOptions.nigerRegions` pour le Niger), et
+[ville_search_field.dart](lib/shared/widgets/ville_search_field.dart), qui
+retient une **ligne** du référentiel et non la chaîne saisie — retoucher le
+texte défait le choix.
+
+[ville_search_field_test.dart](test/shared/ville_search_field_test.dart) tient
+les quatre règles au banc (proposition bornée au pays, choix d'une ligne,
+choix défait à la frappe, échec de recherche sans écran rouge). Ce que le banc
+ne peut pas voir :
+
+- [ ] **Sur appareil** : « À propos » (Profil → Réglages → À propos) affiche
+  « Liste des villes : GeoNames (CC BY 4.0) » sous « Tous droits réservés ».
+  C'est une obligation de la licence CC BY, pas un ornement. Vérifier aussi en
+  **thème sombre** (le texte utilise `textTertiaryColor`, pas un jeton clair
+  figé) et en anglais.
+- [ ] **Sur appareil, après câblage du profil** : la liste de suggestions
+  s'ouvre sous le champ sans pousser le clavier par-dessus (voir
+  « Débordement clavier » du domaine Design) et se ferme à la perte du focus.
+- [ ] **Sur appareil, après câblage du profil** : taper « mont » avec le pays
+  Canada propose Montréal en premier ; avec le pays Niger, ne le propose pas.
+  Une ville choisie affiche la pastille verte, une ville retapée à la main la
+  perd.
+- [ ] **Sur appareil, réseau coupé** : la ligne « Recherche impossible pour le
+  moment » remplace la liste, et le champ reste saisissable — le texte libre
+  doit continuer de partir dans `city`.
 
 ---
 

@@ -3410,6 +3410,36 @@ abstract class AppLocalizations {
   /// **'Ville actuelle'**
   String get currentCity;
 
+  /// No description provided for @cityFieldHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chercher une ville'**
+  String get cityFieldHint;
+
+  /// No description provided for @cityDataCredit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Liste des villes : GeoNames (CC BY 4.0)'**
+  String get cityDataCredit;
+
+  /// No description provided for @cityTypeToSearch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tapez les premières lettres de votre ville'**
+  String get cityTypeToSearch;
+
+  /// No description provided for @cityNoResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune ville de la liste ne correspond'**
+  String get cityNoResult;
+
+  /// No description provided for @citySearchFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recherche impossible pour le moment'**
+  String get citySearchFailed;
+
   /// No description provided for @originCity.
   ///
   /// In fr, this message translates to:
