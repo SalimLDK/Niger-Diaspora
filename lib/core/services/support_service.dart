@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../features/admin/domain/entities/app_settings_entity.dart';
 import '../../features/admin/presentation/providers/app_settings_provider.dart';
+import 'app_review_service.dart';
 
 part 'support_service.g.dart';
 
@@ -24,16 +26,6 @@ class SupportService {
   static const String defaultBugsEmail = 'bugs@diasponiger.com';
   static const String defaultFeedbackEmail = 'feedback@diasponiger.com';
   static const String defaultModerationEmail = 'moderation@diasponiger.com';
-
-  // Les deux liens etaient faux et menaient a une page « app introuvable ».
-  // `com.diasponiger.app` n'a jamais existe : l'`applicationId` reel est
-  // `com.diasponiger.diasponiger` (android/app/build.gradle.kts). Et
-  // `id123456789` etait un identifiant invente ; le vrai, attribue le
-  // 2026-09-01 a la creation de la fiche, est `6807607258`.
-  static const String playStoreUrl =
-      'https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger';
-  static const String appStoreUrl =
-      'https://apps.apple.com/app/id6807607258';
 
   SupportService({SystemUrlsEntity? urls})
       : urls = urls ?? const SystemUrlsEntity();
@@ -130,30 +122,14 @@ class SupportService {
     );
   }
 
-  /// Open store for rating
+  /// Ouvre la fiche du store pour y laisser un avis.
   ///
-  /// Conservé pour les appelants qui invitent à noter l'app ; la notice de
-  /// mise à jour passe par [openStore], qui ne prétend rien sur le motif.
-  Future<bool> openStoreForReview() => openStore();
-
-  /// Ouvre la fiche de l'app sur le store de la plateforme.
-  ///
-  /// Renvoie false si rien n'a pu être ouvert — aucun appelant ne doit
-  /// afficher « c'est fait » sans regarder.
-  Future<bool> openStore() async {
-    final String url = Platform.isIOS ? appStoreUrl : playStoreUrl;
-    final uri = Uri.parse(url);
-
-    try {
-      if (await canLaunchUrl(uri)) {
-        return await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
-      return false;
-    } catch (e) {
-      debugPrint('Error opening store: $e');
-      return false;
-    }
-  }
+  /// Simple relais : les liens des deux stores et le repli navigateur vivent
+  /// dans `AppReviewService`, qui sert aussi l'entrée « Noter l'application »
+  /// des Réglages et l'invitation automatique. Deux chemins vers le store,
+  /// un seul code — les URL avaient déjà été fausses une fois.
+  Future<bool> openStoreForReview() =>
+      AppReviewService.instance.ouvrirLaFicheDuStore();
 
   String _encodeQueryParameters(Map<String, String> params) {
     return params.entries

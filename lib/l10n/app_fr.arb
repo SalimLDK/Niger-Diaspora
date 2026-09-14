@@ -911,6 +911,7 @@
     }
   },
   "hostCity": "Ville",
+  "groupsOnMap": "Groupes sur la carte",
   "cityFieldHint": "Chercher une ville",
   "cityDataCredit": "Liste des villes : GeoNames (CC BY 4.0)",
   "cityTypeToSearch": "Tapez les premières lettres de votre ville",
@@ -1114,6 +1115,9 @@
   "supportEmail": "support@diasponiger.com",
   "helpUsImprove": "Aidez-nous à améliorer l'app",
   "rateUsOnStore": "Notez-nous sur le store",
+  "rateApp": "Noter l'application",
+  "rateAppSubtitle": "Votre avis compte, et il aide l'app à se faire connaître",
+  "rateAppUnavailable": "Impossible d'ouvrir la fiche du store sur cet appareil",
   "deleteAccountTitle": "Supprimer le compte",
   "filterUnread": "Non lus",
   "filterFriends": "Amis",

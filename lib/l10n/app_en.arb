@@ -905,6 +905,7 @@
     }
   },
   "hostCity": "City",
+  "groupsOnMap": "Groups on the map",
   "cityFieldHint": "Search for a city",
   "cityDataCredit": "City list: GeoNames (CC BY 4.0)",
   "cityTypeToSearch": "Type the first letters of your city",
@@ -1102,6 +1103,9 @@
   "supportEmail": "support@diasponiger.com",
   "helpUsImprove": "Help us improve the app",
   "rateUsOnStore": "Rate us on the store",
+  "rateApp": "Rate the app",
+  "rateAppSubtitle": "Your review counts, and it helps people find the app",
+  "rateAppUnavailable": "Can't open the store listing on this device",
   "deleteAccountTitle": "Delete account",
   "filterUnread": "Unread",
   "filterFriends": "Friends",

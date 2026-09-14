@@ -15,6 +15,7 @@ import '../../../profile/presentation/providers/profile_preferences_provider.dar
 import '../../../profile/presentation/providers/online_status_provider.dart';
 import '../providers/notification_preferences_provider.dart';
 import '../../../../core/services/preferences_service.dart';
+import '../../../../core/services/app_review_service.dart';
 import '../../../../core/services/support_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
@@ -312,6 +313,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         icon: const Icon(Icons.support_agent_outlined),
                         title: l10n.helpFaq,
                         onTap: () => _showHelpSupport(l10n),
+                      ),
+                      // Chemin explicite vers la fiche du store. L'entrée
+                      // existait déjà, mais enfouie sous l'accordéon de la
+                      // feuille « Aide & FAQ » : personne ne la voyait.
+                      DesignSettingsTile(
+                        icon: const Icon(Icons.star_outline),
+                        title: l10n.rateApp,
+                        subtitle: l10n.rateAppSubtitle,
+                        onTap: _noterLApplication,
                       ),
                       DesignSettingsTile(
                         icon: const Icon(Icons.info_outline),
@@ -784,6 +794,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     } finally {
       if (mounted) setState(() => _isExportingData = false);
+    }
+  }
+
+  /// Ouvre la fiche du store, sur sa page d'avis.
+  ///
+  /// Volontairement pas le dialogue natif : il est contingenté par Google et
+  /// ne dit jamais s'il s'est affiché — câblé sur un bouton, il donne un
+  /// bouton mort. Le dialogue natif reste au chemin automatique
+  /// (`AppReviewService.inviterSiLeMomentSyPrete`).
+  Future<void> _noterLApplication() async {
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+
+    final ouvert = await AppReviewService.instance.ouvrirLaFicheDuStore();
+    if (!ouvert && mounted) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.rateAppUnavailable)));
     }
   }
 

@@ -3470,6 +3470,12 @@ abstract class AppLocalizations {
   /// **'Ville'**
   String get hostCity;
 
+  /// No description provided for @groupsOnMap.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes sur la carte'**
+  String get groupsOnMap;
+
   /// No description provided for @cityFieldHint.
   ///
   /// In fr, this message translates to:
@@ -4273,6 +4279,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Notez-nous sur le store'**
   String get rateUsOnStore;
+
+  /// No description provided for @rateApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noter l\'application'**
+  String get rateApp;
+
+  /// No description provided for @rateAppSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre avis compte, et il aide l\'app à se faire connaître'**
+  String get rateAppSubtitle;
+
+  /// No description provided for @rateAppUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir la fiche du store sur cet appareil'**
+  String get rateAppUnavailable;
 
   /// No description provided for @deleteAccountTitle.
   ///

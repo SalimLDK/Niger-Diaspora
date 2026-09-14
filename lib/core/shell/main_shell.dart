@@ -12,10 +12,10 @@ import '../../features/podcasts/presentation/widgets/podcast_mini_player.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/bottom_navigation.dart';
 import '../../shared/widgets/tablet_navigation_rail.dart';
+import '../services/app_review_service.dart';
 import '../services/e2ee/e2ee_backup_coordinator.dart';
 import '../services/mise_a_jour_service.dart';
 import '../services/shared_media_service.dart';
-import '../services/support_service.dart';
 import '../utils/toast_utils.dart';
 
 /// Même seuil que `feed_screen.dart` (tour 4b) : au-delà, le fil affiche déjà
@@ -275,7 +275,9 @@ class _MainShellState extends ConsumerState<MainShell> {
             // `ouvre()` et non `ecarte()` : partir vers le store ne prouve pas
             // que la mise à jour a été installée.
             ref.read(coordinateurMiseAJourProvider.notifier).ouvre();
-            unawaited(ref.read(supportServiceProvider).openStore());
+            // `ouvrirLaFicheSansAvis` et non `ouvrirLaFicheDuStore` : la
+            // seconde marquerait un avis en cours de dépôt.
+            unawaited(AppReviewService.instance.ouvrirLaFicheSansAvis());
           },
           child: Text(l10n.updateAvailableAction),
         ),

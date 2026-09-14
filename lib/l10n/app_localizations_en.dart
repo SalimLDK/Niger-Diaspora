@@ -1865,6 +1865,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hostCity => 'City';
 
   @override
+  String get groupsOnMap => 'Groups on the map';
+
+  @override
   String get cityFieldHint => 'Search for a city';
 
   @override
@@ -2290,6 +2293,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rateUsOnStore => 'Rate us on the store';
+
+  @override
+  String get rateApp => 'Rate the app';
+
+  @override
+  String get rateAppSubtitle =>
+      'Your review counts, and it helps people find the app';
+
+  @override
+  String get rateAppUnavailable =>
+      'Can\'t open the store listing on this device';
 
   @override
   String get deleteAccountTitle => 'Delete account';
