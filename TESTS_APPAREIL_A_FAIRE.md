@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**953 cases à cocher, 537 cochées** — 194 entrées sur 238 ont encore des cases ouvertes.
+**955 cases à cocher, 538 cochées** — 194 entrées sur 238 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 **P1 — fonction importante, jamais vérifiée** (57)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
-- 4 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
+- 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
@@ -253,7 +253,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 168 à faire, 65 faites
-- [3. Groupes](#3-groupes) — 108 à faire, 61 faites
+- [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
@@ -2745,7 +2745,10 @@ il a fallu un lien profond (`diasponiger://groups/map`). Toute cette carte,
 centroïdes compris, était du code que personne ne voyait depuis l'app.
 
 **Entrée donnée le 2026-09-14** : une troisième action carrée dans l'en-tête
-de l'écran Groupes, entre la recherche et « Créer ». Le titre de l'écran
+de l'écran Groupes, entre la recherche et « Créer ». Un **globe**
+(`Icons.public`) et pas une carte pliée : celle-ci est déjà l'onglet
+« Carte » de la barre du bas, qui mène à la carte des MEMBRES — deux cartes
+différentes sous un seul pictogramme, à deux centimètres l'une de l'autre. Le titre de l'écran
 passe de « Groupes par pays » à « Groupes sur la carte » — il portait
 « par pays », ce n'est plus vrai depuis qu'il y a des épingles de ville.
 
@@ -2756,10 +2759,18 @@ lieu de pousser — vérifié au banc
 (`test/core/theme/entete_trois_actions_test.dart`) à 320 / 360 / 411 dp et
 aux échelles 1,0 / 1,1 / 1,3, neuf combinaisons.
 
-- [ ] **Sur appareil** : les trois actions tiennent sur une ligne sans rogner
-  le titre « Groupes », et l'icône de carte ouvre bien la carte. À regarder
-  aussi avec l'échelle de police du téléphone augmentée — c'est là que le
-  banc ne remplace pas l'œil.
+- [x] **Sur appareil** : les trois actions tiennent sur une ligne sans rogner
+  le titre « Groupes » ni le sous-titre. Vu le 2026-09-14 (première version,
+  avec la carte pliée ; le globe ne change pas l'encombrement).
+- [ ] **Sur appareil** : l'icône **globe** se distingue bien de l'onglet
+  « Carte » du bas, et son appui ouvre la carte des groupes. L'appui depuis
+  l'en-tête n'a PAS été confirmé : les taps automatisés tombaient sur les
+  éléments voisins (deux conversations ouvertes par erreur), et j'ai préféré
+  m'arrêter. L'arbre d'accessibilité donne bien
+  `content-desc="Groupes sur la carte"`, cliquable, aux bonnes bornes.
+- [ ] **Sur appareil, échelle de police augmentée** : les trois actions
+  tiennent toujours. Le banc couvre 1,0 / 1,1 / 1,3, mais c'est là que l'œil
+  ne se remplace pas.
 
 ### Vérifié sur SM A515F le 2026-09-14 (APK release `703f4eda…`, `ddb6dfa`)
 

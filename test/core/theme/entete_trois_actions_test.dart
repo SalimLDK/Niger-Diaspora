@@ -38,7 +38,7 @@ void main() {
                 onPressed: () {},
               ),
               DesignSquareAction(
-                icon: Icons.map_outlined,
+                icon: Icons.public,
                 tooltip: 'Groupes sur la carte',
                 onPressed: () {},
               ),
