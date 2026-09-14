@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**951 cases à cocher, 535 cochées** — 193 entrées sur 237 ont encore des cases ouvertes.
+**952 cases à cocher, 535 cochées** — 193 entrées sur 237 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -210,7 +210,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
-- 6 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
+- 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
 - 2 · [La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)](#la-signature-de-clé-pré-signée-ne-peut-jamais-vérifier-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
@@ -251,7 +251,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 167 à faire, 65 faites
+- [2. Messagerie](#2-messagerie) — 168 à faire, 65 faites
 - [3. Groupes](#3-groupes) — 108 à faire, 61 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -522,8 +522,8 @@ Source unique : `AttachmentAccents`
 lue par les **deux** surfaces du « + ». Même démarche que « Une couleur par
 service dans les deux grilles », avec le même prune pour l'événement des deux
 côtés. Contrastes calculés sur l'aplat à 12 % : ≥ 3,3:1 en clair sauf la
-galerie (2,3:1, l'orange était déjà ainsi) et l'audio (2,0:1), ≥ 5,4:1 en
-nocturne.
+galerie (2,3:1, l'orange était déjà ainsi), ≥ 5,4:1 en nocturne. L'audio,
+d'abord à 2,0:1, a reçu un or assombri pour le thème clair (3,85:1).
 
 - [ ] **Appui simple sur le « + »** (panneau ancré, grille 3×2) : six teintes
   distinctes — Caméra teal, Galerie orange, Document bleu, Position
@@ -531,9 +531,13 @@ nocturne.
 - [ ] **Appui long sur le « + »** (ancien sheet complet) : une pièce jointe y
   porte la **même** couleur que dans le panneau. S'y ajoutent Vidéos (vert
   Niger) et Audio (or).
-- [ ] **Tuile Audio en thème clair** : c'est la plus pâle de toutes (l'or sur
-  son propre aplat). Juger à l'œil si elle tient, ou s'il lui faut un or plus
-  foncé en clair.
+- [ ] **Tuile Audio en thème clair** : l'or du guide s'y délavait (2,05:1 sur
+  son propre aplat), il est assombri à `#A26C1A` — 3,85:1, du même ordre que
+  le bleu du document. Vérifier qu'il se lit encore comme un **or** et pas
+  comme un brun, et qu'il ne jure pas avec l'orange de la galerie, deux tuiles
+  plus loin. Le nocturne garde l'or du guide.
+- [ ] **Salons audio**, si la tuile est réactivée un jour : elle porte le même
+  or assombri (voir « Une couleur par service dans les deux grilles »).
 - [ ] **Thème sombre** : les huit icônes restent lisibles sur leur aplat à
   12 %.
 - [ ] **Compte en thème Orange puis Vert** : les tuiles ne suivent plus

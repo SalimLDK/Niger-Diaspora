@@ -60,8 +60,9 @@ class ServiceAccents {
   //
   // Ils portent déjà leur accent pour que la réactivation d'une tuile ne
   // reparte pas d'une couleur partagée. Si les quatre reviennent d'un coup,
-  // arbitrer l'ambre des podcasts contre l'or des salons audio : ce sont les
-  // deux seules teintes voisines de la liste.
+  // arbitrer l'ambre des podcasts contre l'or des salons audio : voisins au
+  // départ, ils le sont devenus plus encore depuis que l'or est assombri en
+  // thème clair.
 
   /// Transferts — vert feuille de la palette ④, distinct du vert Niger.
   static const transfers = TintedAccent(
@@ -75,8 +76,12 @@ class ServiceAccents {
     dark: DNColors.terraBright,
   );
 
-  /// Salons audio — or du guide (« Or — audio / notes »).
-  static const audioRooms = TintedAccent.unique(AppColors.gold);
+  /// Salons audio — or du guide (« Or — audio / notes »), assombri en clair
+  /// comme la pièce jointe Audio, pour la même raison de lisibilité.
+  static const audioRooms = TintedAccent(
+    light: AppColors.goldDeep,
+    dark: AppColors.gold,
+  );
 
   /// Podcasts — ambre.
   static const podcasts = TintedAccent(

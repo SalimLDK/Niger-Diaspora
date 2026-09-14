@@ -209,6 +209,19 @@ class AppColors {
   /// Fond pastel de l'or (guide, « Or clair »).
   static const Color goldBackground = Color(0xFFF7EBD6);
 
+  /// Or assombri, pour le **thème clair uniquement**.
+  ///
+  /// [gold] est une teinte claire : posée en icône sur un aplat de sa propre
+  /// teinte à 12 % (voir les accents teintés plus bas), elle tombe à 2,05:1 et
+  /// se délave — c'était la tuile la plus pâle du panneau « + ». Cette
+  /// valeur-ci monte à 3,85:1, du même ordre que le bleu et le vert feuille
+  /// des tuiles voisines. En nocturne, [gold] ressort déjà à 6,45:1 sur fond
+  /// sombre : ne pas y substituer celle-ci.
+  ///
+  /// Réservé à ce rôle : les aplats et les textes en or du guide gardent
+  /// [gold] et [goldBackground].
+  static const Color goldDeep = Color(0xFFA26C1A);
+
   /// Teinte des notifications systeme : Android colore avec elle la petite
   /// icone de la barre d'etat (qui n'est qu'une silhouette blanche, son propre
   /// PNG n'a pas de couleur) et le filet du bandeau dans le volet.
