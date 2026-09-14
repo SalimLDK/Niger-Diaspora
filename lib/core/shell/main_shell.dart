@@ -186,9 +186,10 @@ class _MainShellState extends ConsumerState<MainShell> {
   void _rafraichitBandeau() {
     if (!mounted) return;
 
-    final e2ee = ref.read(e2eeBackupCoordinatorProvider);
-    final maj = ref.read(coordinateurMiseAJourProvider);
-    final Object? demande = e2ee != E2EEBackupPrompt.none ? e2ee : maj;
+    final demande = bandeauAPoser(
+      e2ee: ref.read(e2eeBackupCoordinatorProvider),
+      maj: ref.read(coordinateurMiseAJourProvider),
+    );
 
     if (demande == _bandeauAffiche) return;
     _bandeauAffiche = demande;

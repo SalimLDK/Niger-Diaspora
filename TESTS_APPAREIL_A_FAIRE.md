@@ -16013,6 +16013,16 @@ prévenir.
       avec un compte dont les clés ne sont pas sauvegardées ET la clé serveur
       posée, c'est le bandeau des clés qui doit s'afficher ; une fois traité,
       celui de la mise à jour doit prendre sa place **sans relancer l'app**.
+
+      La **décision** est désormais tenue hors de l'écran : `bandeauAPoser()`
+      ([bandeaux_shell.dart](lib/core/shell/bandeaux_shell.dart)) est une
+      fonction pure, et le banc la boucle sur **toutes** les valeurs de
+      `E2EEBackupPrompt` — une valeur ajoutée plus tard ne pourra pas tomber en
+      silence du côté de la mise à jour. Il vérifie aussi que la notice écartée
+      revient, et que les deux types se comparent par valeur (sans quoi le
+      bandeau clignoterait à chaque rebuild).
+      Ce qui reste à l'appareil : que l'enchaînement se produise **vraiment**,
+      avec de vrais coordinateurs et un vrai `ScaffoldMessenger`.
 - [ ] **Rendu du bandeau** : le **débordement** n'est plus une question ouverte
       — `test/core/shell/bandeaux_shell_test.dart` rend les deux bandeaux du
       shell (mise à jour **et** E2EE, qui porte trois actions) sur 411, 360 et
