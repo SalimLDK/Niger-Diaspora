@@ -404,9 +404,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                                 : null,
                         image:
                             photoUrl != null
+                                // `contain` et non `cover` : depuis le
+                                // recadrage au choix (PhotoCropScreen) une
+                                // photo neuve est carrée et remplit le cadre
+                                // pareil, tandis qu'une ancienne, rectangulaire,
+                                // se montre entière au lieu d'être coupée.
                                 ? DecorationImage(
                                   image: NetworkImage(photoUrl),
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                 )
                                 : null,
                       ),

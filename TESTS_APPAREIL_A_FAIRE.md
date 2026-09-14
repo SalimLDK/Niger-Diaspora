@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**990 cases à cocher, 549 cochées** — 200 entrées sur 244 ont encore des cases ouvertes.
+**1003 cases à cocher, 549 cochées** — 202 entrées sur 246 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -66,7 +66,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (60)
+**P1 — fonction importante, jamais vérifiée** (62)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -89,10 +89,12 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 16 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04) · *Liens profonds, navigation et QR codes*
 - 3 · [Assistant de configuration du profil](#assistant-de-configuration-du-profil) · *Comptes, session et onboarding*
+- 6 · [⬜ Une image seule prend la forme de la photo, plus une bande de 205 px (2026-09-14)](#-une-image-seule-prend-la-forme-de-la-photo-plus-une-bande-de-205-px-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 7 · [⬜ Définition des photos envoyées : plafond levé, double encodage supprimé (2026-09-14)](#-définition-des-photos-envoyées--plafond-levé-double-encodage-supprimé-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
+- 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
@@ -265,9 +267,9 @@ Par domaine :
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 115 à faire, 11 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 121 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 34 à faire, 34 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 41 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 54 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 43 à faire, 26 faites
@@ -9898,6 +9900,30 @@ Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
 
+## ⬜ Une image seule prend la forme de la photo, plus une bande de 205 px (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Une photo portrait publiée dans le fil perdait la moitié de sa hauteur, coupée au centre sans que rien ne le signale.
+
+`post_card.dart` posait l'image unique dans une bande de 205 px de haut en
+`BoxFit.cover`. Le cadre suit maintenant le ratio réel de la photo, borné
+entre 4:5 (portrait) et 1,91:1 (paysage) — `post_image_frame.dart`. Couvert
+par `post_image_frame_test.dart`, qui ne vérifie que le calcul des bornes.
+
+- [ ] **Publier une photo portrait**, la voir dans le fil : elle n'est plus
+  coupée au centre. C'est le cas qui ne marchait pas.
+- [ ] **Photo très haute** (capture d'écran de téléphone, 9:16) : bornée à
+  4:5, donc encore un peu rognée — vérifier que ça reste acceptable et que la
+  carte ne mange pas tout l'écran.
+- [ ] **Panorama** : borné à 1,91:1, pas réduit à un filet.
+- [ ] **Saut de mise en page** : le cadre vaut 4:3 tant que la photo n'est pas
+  décodée, puis prend sa vraie forme. En descendant un fil neuf, regarder si
+  le saut gêne la lecture — c'est le compromis de ce correctif. En remontant,
+  il ne doit plus se produire (les formes déjà vues sont retenues).
+- [ ] **Deux à quatre images** : la grille carrée n'a pas changé, vérifier
+  qu'elle n'a pas bougé pour autant.
+- [ ] **Thème sombre** : le rayon de 20 et le fond de carte suivent le
+  nouveau cadre.
+
 ## ⬜ Définition des photos envoyées : plafond levé, double encodage supprimé (2026-09-14)
 
 **Priorité P1** · importance 4/5 — Toute photo publiée sortait à 768 px de petit côté et traversait deux compressions JPEG à 85 : floue dès qu'un écran de 1080 px l'affiche pleine largeur.
@@ -11881,6 +11907,39 @@ attendre le sondage.
 Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature flags d'écrans.
 
 ---
+
+## ⬜ Photo de profil : on choisit son cadrage (2026-09-14)
+
+**Priorité P1** · importance 4/5 — L'avatar est un carré : la photo choisie était rognée en son centre, et personne ne décidait de ce qui restait — un portrait y perdait le haut du crâne ou le menton.
+
+Nouvel écran `photo_crop_screen.dart` entre le choix de la photo et l'envoi :
+on déplace, on pince pour zoomer, seul le carré part. Branché sur les deux
+chemins (`edit_profile_screen.dart` et `profile_config_screen.dart`). Les deux
+grands avatars de 76 px passent en `BoxFit.contain` : une photo d'avant ce
+correctif, donc rectangulaire, se montre entière plutôt que coupée. Couvert par
+`photo_crop_screen_test.dart`, qui ne vérifie que le calcul du découpage.
+
+- [ ] **Changer la photo depuis le Profil** (appareil photo *et* galerie) :
+  l'écran de cadrage s'ouvre, le geste de déplacement suit le doigt, le
+  pincement zoome, et on ne peut pas faire sortir le cadre de la photo.
+- [ ] **Ce qu'on voit est ce qu'on garde** : cadrer sur un détail précis
+  (un visage en haut de la photo), valider, et retrouver **ce** cadrage sur
+  l'avatar du profil, du fil et d'une discussion.
+- [ ] **Renoncer** : la croix referme l'écran sans rien changer à la photo
+  actuelle.
+- [ ] **Photo en portrait très haut** (9:16) : elle tient entière dans le
+  cadre au départ ? Le calcul part d'un « cover », donc elle le remplit —
+  vérifier qu'on peut dézoomer jusqu'à la voir entière si besoin (aujourd'hui
+  `minScale` vaut 1, donc **non** : c'est peut-être à revoir sur pièce).
+- [ ] **Lenteur** : sur le SM A515F, le découpage tourne dans un isolate mais
+  décode une image de 2048 px — mesurer le temps entre « valider » et le
+  retour à l'écran de profil.
+- [ ] **Ancienne photo, non carrée** : ouvrir le profil d'un compte qui n'a
+  pas changé sa photo — elle s'affiche entière, avec des bandes sur les côtés.
+  Juger si le rendu tient (c'est le choix fait le 2026-09-14) ou s'il vaut
+  mieux inviter à recadrer.
+- [ ] **Vignettes de liste** (fil, discussions, membres) : elles restent en
+  `cover` — vérifier que ça ne jure pas avec le profil.
 
 ## ⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)
 
