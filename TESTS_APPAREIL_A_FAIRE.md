@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**902 cases à cocher, 507 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
+**903 cases à cocher, 507 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -67,13 +67,13 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 **P1 — fonction importante, jamais vérifiée** (52)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
+- 8 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
-- 7 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -242,7 +242,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 129 à faire, 55 faites
-- [3. Groupes](#3-groupes) — 111 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 112 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
@@ -2253,8 +2253,7 @@ Création, invitations, adhésion, membres, modération, sondages et mentions de
 
 ## ⬜ Groupes officiels de ville (2026-09-14)
 
-**Priorité P1** · importance 4/5 — Un groupe ouvert au mauvais endroit, une invitation envoyée à qui s'est mis invisible, ou une épingle de carte qui ne mène nulle part.
-*Bloqué en partie : aucune ville n'atteint trois profils visibles aujourd'hui — la création est à provoquer en base (recette ci-dessous).*
+**Priorité P1** · importance 5/5 — Quatre invitations sont parties à de vraies personnes le 2026-09-14 : si l'appui n'ouvre rien, ou si quelqu'un se retrouve membre sans l'avoir demandé, c'est déjà arrivé à quelqu'un. (P1 et non P0 : rien n'est *su* cassé — les cinq `switch` sont exhaustifs et le décodage du type est au banc. Ce qui manque, c'est la vérification sur un écran.)
 
 « Diaspora Niger — Montréal ». Trois profils visibles dans une ville
 l'ouvrent ; chacun reçoit une notification `cityGroupInvite` et **rien n'est
@@ -2265,21 +2264,45 @@ Le verrou levé au passage : l'index d'unicité de production portait sur le
 pays seul, et aurait refusé le tout premier groupe de ville. Onze cas sont
 vérifiés en base, transaction annulée — ce qui suit ne l'est pas.
 
-Pour provoquer une création sans attendre trois vrais profils :
+**C'EST EN PRODUCTION DEPUIS LE 2026-09-14.** « Diaspora Niger — Niamey » est
+le premier groupe de ville ouvert, sur demande de Salim
+(`ouvrir_groupes_de_ville_en_retard()`, après relecture des données reprises).
+Relevé juste après :
+
+| | |
+|---|---|
+| le groupe | officiel, public, pays `Niger`, **1 membre** — le compte plateforme, en owner |
+| invitations | **4 envoyées** : `1X5F6RKl…`, `6d7Ho9pN…`, `Hyt7iaHj…`, `iNqgb0jy…` |
+| titre reçu | « Rejoindre « Diaspora Niger — Niamey » ? » |
+| sur la carte | épingle de **ville**, 13.514 / 2.110 — pas le centroïde du Niger |
+
+Les trois premières cases ci-dessous ne se provoquent donc plus : elles se
+vérifient sur ces notifications-là, déjà dans les téléphones. Pour une
+deuxième ville, s'il en faut une :
 
 ```sql
--- Trois profils visibles dans une même ville suffisent ; le déclencheur
--- s'occupe du reste. Sinon, à la main :
-SELECT public.ouvrir_groupe_de_ville(
-  (SELECT id FROM public.villes WHERE nom = 'Niamey' AND pays = 'Niger'));
+-- `ouvrir_groupe_de_ville` APPLIQUE le seuil : sur une ville qui n'a pas
+-- trois profils visibles elle ne fait rien et rend NULL. Pour forcer un
+-- groupe de banc, c'est la création qu'il faut appeler — elle n'invite
+-- personne, il n'y a personne à inviter.
+SELECT public.get_or_create_ville_group(
+  (SELECT id FROM public.villes WHERE nom = 'Dosso' AND pays = 'Niger'));
 ```
 
-- [ ] **Sur appareil** : la notification « Rejoindre « Diaspora Niger —
-  Niamey » ? » arrive, porte l'icône et la couleur des groupes, et son appui
-  ouvre la **fiche du groupe** — pas la liste des notifications.
+- [ ] **Sur appareil, sur l'un des quatre comptes invités** : la notification
+  « Rejoindre « Diaspora Niger — Niamey » ? » est bien arrivée, porte l'icône
+  et la couleur des groupes, et son appui ouvre la **fiche du groupe** — pas
+  la liste des notifications. C'est le chemin que l'analyseur a forcé à
+  compléter dans cinq `switch` : sans eux la notification arrivait et
+  n'ouvrait rien.
 - [ ] **Sur appareil** : sur cette fiche, « Rejoindre » fonctionne et le
-  compteur de membres suit. Ne rien faire ne doit rien changer : personne
-  n'est ajouté sans son geste.
+  compteur de membres suit. Ne rien faire ne doit rien changer : le groupe
+  doit rester à **1 membre** tant que personne n'a appuyé — c'est vérifiable
+  en base à tout moment.
+- [ ] **En base, après quelques jours** : le balayage quotidien de 9 h 30
+  repasse sur Niamey sans redoubler ni le groupe ni les invitations
+  (`SELECT count(*) FROM notifications WHERE type = 'cityGroupInvite'` doit
+  rester à 4 tant qu'aucun cinquième profil n'arrive).
 - [ ] **Sur appareil, profil invisible** : se mettre invisible, provoquer
   l'ouverture d'un groupe pour sa ville, et vérifier qu'**aucune**
   notification n'arrive.
@@ -2293,12 +2316,10 @@ SELECT public.ouvrir_groupe_de_ville(
 - [ ] **Sur appareil** : les 32 pays qui ont un centroïde n'ont pas bougé
   (Niger, France, Canada…) — le repli par la plus grande ville ne sert que
   là où il n'y avait rien.
-- [ ] **Le premier vrai groupe de ville : Niamey.** La reprise du
-  2026-09-14 y a relié quatre profils visibles, soit plus que le seuil. La
-  migration a volontairement neutralisé l'ouverture automatique pour que les
-  données soient relues d'abord ; le balayage quotidien (9 h 30) l'ouvrira et
-  enverra quatre invitations. Vérifier sur appareil qu'elles arrivent, qu'elles
-  mènent à la fiche, et que personne n'est membre sans avoir appuyé.
+- [ ] **Sur appareil** : la carte montre « Diaspora Niger — Niamey » à
+  Niamey, et « — Niger » à sa place habituelle — deux épingles distinctes,
+  pas une seule. C'est le cas où ville et pays coexistent au même endroit du
+  monde, celui qui risque de les superposer.
 
 ---
 
