@@ -255,6 +255,12 @@ class _PhotoCropScreenState extends State<PhotoCropScreen> {
               // Zéro : le cadre ne peut jamais sortir de la photo, donc le
               // recadrage ne contient jamais de vide.
               boundaryMargin: EdgeInsets.zero,
+              // 1 et pas moins : le carré reste toujours plein. Un portrait
+              // 9:16 ne tient donc pas entier — l'utilisateur choisit
+              // seulement quelle part garder. Arbitré le 2026-09-14, comme le
+              // font WhatsApp et Instagram pour une photo de profil ; l'autre
+              // voie demandait de cuire un fond (flou ou aplat) dans le
+              // fichier envoyé, définitivement.
               minScale: 1,
               maxScale: 6,
               child: SizedBox(
