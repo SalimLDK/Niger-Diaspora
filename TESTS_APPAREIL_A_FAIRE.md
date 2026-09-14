@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**895 cases à cocher, 506 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
+**902 cases à cocher, 506 cochées** — 184 entrées sur 228 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -64,7 +64,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (52)
+**P1 — fonction importante, jamais vérifiée** (53)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
@@ -105,6 +105,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
+- 7 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
@@ -248,7 +249,7 @@ Par domaine :
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 105 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 30 à faire, 28 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
@@ -9114,6 +9115,41 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
+
+## ⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)
+
+**Priorité P1** · importance 3/5 — Le fil pouvait rester figé sans que rien ne le signale : la pastille ne dépendait que du canal temps réel, et le geste de rafraîchissement ne partait pas sur un fil court, vide ou en erreur.
+
+Trois changements, aucun vu sur un téléphone (`feed_screen.dart`,
+`feed_provider.dart`, `new_posts_pill.dart`, `feed_error_state.dart`) :
+un sondage toutes les 60 s qui alimente la pastille, le tiré-pour-rafraîchir
+rendu possible dans tous les états, et la pastille redessinée (avatars des
+auteurs, entrée/sortie animées). Couvert en test par
+`feed_sondage_nouvelles_publications_test.dart` et `new_posts_pill_test.dart`,
+qui ne disent rien du rendu ni du geste.
+
+- [ ] **Tirer vers le bas sur un fil court** (filtrer par ville pour n'avoir
+  qu'une ou deux publications) : l'indicateur circulaire apparaît et le fil se
+  recharge. C'est le cas qui ne marchait pas — la liste ne débordait pas, donc
+  il n'y avait rien à tirer.
+- [ ] **Tirer sur un fil vide** (compte neuf, ou filtre sans résultat) et
+  **sur l'écran d'échec** (mode avion, puis « Réessayer » ignoré) : même geste,
+  même rechargement.
+- [ ] **Pastille** : publier depuis le second téléphone ; sur le premier, la
+  pastille descend en haut du fil avec l'avatar de l'auteur, sans déplacer la
+  lecture en cours ; la toucher pose la publication en tête et remonte le fil.
+- [ ] **Sans temps réel** : couper le Wi-Fi/les données une minute, publier
+  depuis l'autre téléphone, revenir : la pastille doit finir par apparaître
+  dans la minute qui suit le retour du réseau (c'est le sondage, pas le canal).
+- [ ] **Publication d'un ami** (audience « Amis », deux comptes amis) : elle
+  arrive par le sondage alors que le canal temps réel l'écarte volontairement.
+- [ ] **Pas de sondage en arrière-plan** : passer sur l'onglet Messages ou
+  mettre l'app en arrière-plan, attendre trois minutes, revenir — vérifier
+  dans les journaux (`adb logcat`) qu'aucune requête de fil n'est partie
+  entre-temps, et qu'une seule part au retour.
+- [ ] **Thème sombre et `font_scale` 1.3** : la pastille reste lisible sur le
+  fond sombre et son texte ne déborde pas du galet (voir « Fil sombre : même
+  structure que le fil clair »).
 
 ## ⬜ Fil sombre : même structure que le fil clair (2026-09-13)
 
