@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**932 cases à cocher, 524 cochées** — 190 entrées sur 234 ont encore des cases ouvertes.
+**933 cases à cocher, 526 cochées** — 191 entrées sur 235 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -110,7 +110,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
-- 7 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
+- 6 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
@@ -125,7 +125,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (66)
+**P2 — fonction secondaire ou cas limite** (67)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -147,10 +147,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 3 · [⚠️ Filtre hashtag par lien profond : la bannière s'affiche, la liste ne bouge pas (2026-09-14)](#-filtre-hashtag-par-lien-profond--la-bannière-saffiche-la-liste-ne-bouge-pas-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
-- 5 · [⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)](#-compteurs-de-mon-espace-et-du-profil--ils-suivent-enfin-2026-09-14) · *Fil, stories, salons audio et podcasts*
+- 4 · [⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)](#-compteurs-de-mon-espace-et-du-profil--ils-suivent-enfin-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
@@ -253,9 +254,9 @@ Par domaine :
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 41 à faire, 60 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 44 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 110 à faire, 9 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 108 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 33 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
@@ -7583,6 +7584,34 @@ Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
 
 ---
 
+## ⚠️ Filtre hashtag par lien profond : la bannière s'affiche, la liste ne bouge pas (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Ouvrir un hashtag alors que le fil est déjà à l'écran annonce le filtre mais montre le fil non filtré : l'utilisateur lit des publications qui n'ont rien à voir avec le hashtag demandé.
+
+Mesuré sur SM A515F le 2026-09-14 (build release `e5cb916c…`) :
+`am start -a android.intent.action.VIEW -d "diasponiger://feed?hashtag=zzzaucunresultat"`
+alors que le fil est ouvert affiche la bannière `# zzzaucunresultat` **et** la
+seule publication du compte, qui ne porte aucun hashtag.
+
+Diagnostic : Android livre l'intention à l'instance en cours (« intent has been
+delivered to currently running top-most instance ») et go_router réutilise
+l'état de `FeedScreen` — même type de widget, pas de clé. `initState` ne rejoue
+donc pas, et c'est lui qui appelle `loadInitial(hashtagFilter:)`. Résultat :
+la bannière lit `widget.hashtagFilter` (à jour) pendant que la liste lit l'état
+du notifier (resté sans filtre). Piste : un `didUpdateWidget` qui recharge
+quand `widget.hashtagFilter` change. Rien à voir avec le tiré-pour-rafraîchir
+ni avec la pastille (voir « Fil : tirer pour rafraîchir partout, et pastille
+« N nouvelles publications » »).
+
+- [ ] **Depuis un fil déjà ouvert** : toucher un hashtag dans une publication,
+  puis un autre — la liste doit changer à chaque fois, pas seulement la
+  bannière.
+- [ ] **Hashtag sans résultat** : la liste se vide et l'état « aucune
+  publication » s'affiche (c'est aussi ce qui permettrait de tester le
+  tiré-pour-rafraîchir sur un fil vide).
+- [ ] **Depuis l'app fermée** (démarrage à froid) : le même lien filtre bien,
+  puisque l'écran est monté pour de bon — à confirmer.
+
 ## ✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)
 
 **Priorité P1** · importance 4/5 — Un lien du schéma maison ouvert alors que l'app n'est pas lancée tombait sur « Page Not Found ». Les QR codes du projet passent tous par ce schéma.
@@ -9577,13 +9606,21 @@ rédaction, donc personne ne les relâche ; et le compteur de partages de la
 carte n'était jamais relu après un partage externe. Couvert en test par
 `feed_compteurs_rafraichis_test.dart` — qui ne dit rien de ce qui s'affiche.
 
-- [ ] **Abonnés / Abonnements** (deux comptes) : suivre le second compte depuis
+- [x] **Abonnés / Abonnements** (deux comptes) : suivre le second compte depuis
   une carte du fil, ouvrir Mon espace → « Abonnements » a augmenté de 1 **sans
   redémarrer l'app** ; ne plus suivre → il redescend. C'est le cas qui ne
   marchait pas.
+  ✅ SM A515F, build release `e5cb916c…`, 2026-09-14 11:16 : 0 → 1 après
+  « Suivre » sur la carte de Salim, 1 → 0 après « Ne plus suivre », l'app
+  n'ayant été redémarrée à aucun moment. Compte rendu à son état d'origine.
 - [ ] **Onglet « Abonnements » du fil** juste après avoir suivi quelqu'un : ses
   publications y apparaissent (la liste des comptes suivis était, elle aussi,
   figée jusqu'au redémarrage).
+  ⚠ 2026-09-14 : vu fonctionner sur SM A515F, mais **ça ne prouve pas le
+  correctif** — cet onglet appelle `getFollowingIds()` sur la source de
+  données, pas le provider invalidé. Ce qui reste à vérifier, c'est le tri
+  « Pour vous » (le scoreur) et les repartages injectés, qui eux lisent le
+  provider.
 - [ ] **Publications** : publier depuis le fil, revenir à Mon espace → le
   chiffre a augmenté ; supprimer la publication → il redescend. Même contrôle
   sur l'écran Profil, ligne « Mes publications ».
@@ -9604,13 +9641,19 @@ auteurs, entrée/sortie animées). Couvert en test par
 `feed_sondage_nouvelles_publications_test.dart` et `new_posts_pill_test.dart`,
 qui ne disent rien du rendu ni du geste.
 
-- [ ] **Tirer vers le bas sur un fil court** (filtrer par ville pour n'avoir
+- [x] **Tirer vers le bas sur un fil court** (filtrer par ville pour n'avoir
   qu'une ou deux publications) : l'indicateur circulaire apparaît et le fil se
   recharge. C'est le cas qui ne marchait pas — la liste ne débordait pas, donc
   il n'y avait rien à tirer.
+  ✅ SM A515F, build release `e5cb916c…`, 2026-09-14 11:15 : l'indicateur circulaire orange apparaît sur un fil d'**une seule** publication et le fil se recharge. C'est exactement le cas qui ne marchait pas.
 - [ ] **Tirer sur un fil vide** (compte neuf, ou filtre sans résultat) et
   **sur l'écran d'échec** (mode avion, puis « Réessayer » ignoré) : même geste,
   même rechargement.
+  ⚠ 2026-09-14 : le fil vide n'a pas pu être atteint avec le compte de test.
+  Le filtre hashtag, qui devrait le produire, ne filtre rien — voir
+  « Filtre hashtag par lien profond : la bannière s'affiche, la liste ne bouge
+  pas ». L'écran d'échec, lui, demande de couper le réseau (réglage système,
+  à faire par Salim).
 - [ ] **Pastille** : publier depuis le second téléphone ; sur le premier, la
   pastille descend en haut du fil avec l'avatar de l'auteur, sans déplacer la
   lecture en cours ; la toucher pose la publication en tête et remonte le fil.
