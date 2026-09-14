@@ -9,6 +9,7 @@ import '../providers/friend_provider.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class FriendListItem extends ConsumerWidget {
@@ -187,10 +188,24 @@ class FriendListItem extends ConsumerWidget {
                   final success = await ref
                       .read(friendRequestNotifierProvider.notifier)
                       .removeFriend(friend.id);
-                  if (context.mounted && success) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text(l10n.friendRemoved)));
+                  // Dire l'échec **aussi**. `removeFriend` rend `false` sans
+                  // lever : n'annoncer que le succès faisait lire un refus de
+                  // permission comme un tap qui n'avait pas pris. Son lot
+                  // écrivait le profil `users` de l'ami — donc échouait en
+                  // entier dès que ce document n'existait pas.
+                  if (context.mounted) {
+                    final erreur =
+                        ref.read(friendRequestNotifierProvider).error;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          success
+                              ? l10n.friendRemoved
+                              : messageErreurUsager(erreur),
+                        ),
+                        backgroundColor: success ? null : context.errorColor,
+                      ),
+                    );
                   }
                 },
                 style: TextButton.styleFrom(foregroundColor: Colors.red),

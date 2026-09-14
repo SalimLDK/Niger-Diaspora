@@ -232,7 +232,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     WidgetRef ref,
     bool succes,
     String messageSucces, {
-    Color couleurSucces = AppColors.error,
+    Color? couleurSucces = AppColors.error,
   }) {
     final erreur = ref.read(friendRequestNotifierProvider).error;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -1254,13 +1254,13 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                       receiverId: widget.userId,
                                     );
 
-                                if (context.mounted && success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        l10n.profileRequestCancelled,
-                                      ),
-                                    ),
+                                if (context.mounted) {
+                                  _annoncerReponseAmi(
+                                    context,
+                                    ref,
+                                    success,
+                                    l10n.profileRequestCancelled,
+                                    couleurSucces: null,
                                   );
                                 }
                               } on StateError {
