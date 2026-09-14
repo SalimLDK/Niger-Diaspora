@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**934 cases à cocher, 526 cochées** — 190 entrées sur 234 ont encore des cases ouvertes.
+**946 cases à cocher, 530 cochées** — 192 entrées sur 236 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (20)
 
-- 9 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
+- 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
@@ -66,14 +66,15 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (56)
+**P1 — fonction importante, jamais vérifiée** (57)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
-- 9 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
+- 7 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 10 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
@@ -194,7 +195,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (48)
+**P3 — confort, cosmétique, fonction en pause** (49)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -219,6 +220,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
+- 5 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
 - 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
@@ -248,8 +250,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 150 à faire, 63 faites
-- [3. Groupes](#3-groupes) — 113 à faire, 55 faites
+- [2. Messagerie](#2-messagerie) — 159 à faire, 65 faites
+- [3. Groupes](#3-groupes) — 111 à faire, 57 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
@@ -258,7 +260,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 110 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 33 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -510,6 +512,46 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Après avoir voté dans une bulle de sondage, la carte restait en mode vote : pas de pourcentages, choix non marqué, seul le total bougeait. Et la liste des votants était vide pour tout le monde, l'auteur compris.
+
+*Bloqué : deux comptes, et la migration `20260914160000` à appliquer.*
+
+Deux causes, l'une dans l'app, l'autre en base. Le flux du sondage
+(`.stream()`) ne sait ni joindre ni lire une autre table : il rendait donc un
+sondage « jamais voté » et sans auteur. Et `post_poll_votes` n'est lisible que
+par l'auteur de la ligne — la lecture des votants réussissait à vide.
+Voir « Sondage dans une discussion privée » pour le parcours de création.
+
+- [ ] **Voter dans une bulle de sondage** (DM et groupe) : la carte bascule
+      aussitôt sur les pourcentages, l'option choisie reste encadrée, et le
+      nom de l'auteur s'affiche en en-tête. (`poll_supabase_datasource.dart`,
+      `poll_card.dart`)
+- [ ] **Quitter l'écran et revenir** : le vote est toujours marqué comme le
+      sien. C'est ce qui ne tenait pas.
+- [ ] **« Modifier mon vote »** : la sélection se rouvre sur son propre choix ;
+      en choisir un autre le remplace (l'ancien compteur retombe) ;
+      tout décocher affiche « Retirer mon vote » et remet le total à zéro.
+- [ ] **Sondage à choix multiple** : plusieurs cases, total = nombre de voix.
+- [ ] **Sondage terminé** : « Sondage terminé » dans la ligne d'info, plus
+      aucune façon de voter ni de se corriger.
+- [ ] **Écran de résultats, côté auteur du sondage** : le badge « Votre choix »
+      apparaît, et les votants sont listés sous chaque option.
+      (`poll_results_screen.dart`, RPC `poll_option_voters`)
+- [ ] **Le même écran côté non-auteur** : pas de liste de votants du tout, et
+      la phrase du bas dit bien que seul l'auteur les voit — plus de
+      « Aucun vote pour le moment » sous une option qui en a.
+- [ ] **Deux téléphones en même temps** : le vote de l'un fait bouger le
+      compteur chez l'autre sans quitter l'écran (temps réel).
+- [ ] **Thème sombre et échelle de police 1.1** : le pied de carte
+      (« N votes · Sondage terminé » + les boutons) passe à la ligne au lieu de
+      déborder — il est passé en `Wrap`.
+- [ ] **Avant la migration** : voter fonctionne toujours (repli sur l'ancien
+      chemin), mais la liste des votants reste vide.
+
+---
+
 ## ⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)
 
 **Priorité P0** · importance 5/5 — Un message écrit hors ligne partait dans Hive et **y restait pour toujours** : `processQueue()` n'était appelé de nulle part. Jamais envoyé, jamais purgé, jamais compté — et disparu de l'écran.
@@ -521,12 +563,39 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 `messageFailureStreamProvider` n'avaient **aucun appelant**. Seul `enqueue`
 était branché, sur l'envoi de texte hors ligne.
 
-- [ ] **Écrire un message hors ligne**, quitter l'écran, y revenir : il est
-      toujours là, marqué en échec, avec « Renvoyer ».
+- [x] **Écrire un message hors ligne**, quitter l'écran, y revenir : il est
+      toujours là, marqué en échec, avec « Renvoyer ». Vérifié SM A515F le
+      2026-09-14 : `FILE-ATTENTE-2` écrit radios coupées, écran quitté 18 s
+      (au-delà des 5 s de grâce de l'`autoDispose`), toujours présent au
+      retour — « ⚠ Non envoyé · Réessayer ».
       (`message_provider.dart`, `_avecMessagesJamaisPartis`)
+- [x] **Renvoi manuel** : l'appui sur « Réessayer » envoie le message et la
+      bulle passe à « Reçu ». Vérifié le 2026-09-14, une seule ligne en base,
+      **aucun doublon**.
 - [ ] **Rétablir le réseau sans rien toucher** : il part seul, et la ligne de
       la liste se met à jour. (`RenvoiMessagesEnAttente`, tenu en vie par
       `app.dart`)
+
+      ⛔ **A ÉCHOUÉ au premier essai (2026-09-14), correctif posé, non
+      revérifié.** Une minute après le retour du réseau, rien n'était parti.
+      La cause n'est pas le renvoi mais son **déclencheur** :
+      `ConnectivityService.isConnected` vaut `!results.contains(none)`, et
+      `connectivity_plus` liste `vpn` tant que le tunnel est debout. Le
+      SM A515F porte un VPN permanent : couper les deux radios laisse donc
+      l'app **se croire en ligne**, aucune transition `false → true` n'est
+      émise au retour, et le déclencheur ne part jamais. Même illusion avec un
+      portail captif. Ajout d'un battement de 60 s qui ne demande rien à
+      personne (`RenvoiMessagesEnAttente.intervalleDeControle`) — c'est lui
+      qu'il faut vérifier.
+
+      ⚠️ **Et ça condamne la méthode de test elle-même** : `svc wifi disable`
+      + `svc data disable` ne rend pas l'app hors ligne **à ses propres yeux**
+      tant que le VPN tient. Pour éprouver un chemin qui dépend de
+      `connectivityNotifierProvider`, il faut le **mode avion** (qui, lui,
+      couche le tunnel) — ou couper le VPN d'abord. Ce détour explique aussi
+      pourquoi les points ci-dessus ont réussi : le message n'est jamais passé
+      par la branche « hors ligne », il a pris le chemin normal, a échoué, et
+      c'est l'accroche sur l'échec qui l'a sauvé.
 - [ ] **Tuer l'app entre les deux**, puis la rouvrir en ligne : il part au
       démarrage — le renvoi ne dépend pas d'une transition de connectivité.
 - [ ] **Une réponse citée et une carte de publication** écrites hors ligne
@@ -2599,9 +2668,9 @@ SELECT public.get_or_create_ville_group(
 - [ ] **Sur appareil** : les 32 pays qui ont un centroïde n'ont pas bougé
   (Niger, France, Canada…) — le repli par la plus grande ville ne sert que
   là où il n'y avait rien.
-- [ ] **Sur appareil, fiche « Diaspora Niger — Niger »** : une section
-  « Ville · 1 » liste « Niamey · 1 », au-dessus des membres, et l'appui ouvre
-  la fiche du groupe de Niamey. Sur la fiche de « — Niamey » comme sur celle
+- [x] **Sur appareil, fiche « Diaspora Niger — Niger »** : une section
+  « Ville » liste « Niamey · 2 » (2 depuis que Sim A a rejoint), au-dessus des
+  membres. Vérifié le 2026-09-14 ; l'appui sur la puce reste à essayer. Sur la fiche de « — Niamey » comme sur celle
   du Canada (aucun groupe de ville), la section doit être **absente** — pas
   vide, absente.
 - [x] **Sur appareil, onglet Découvrir** : choisir un pays fait apparaître
@@ -2661,18 +2730,45 @@ Niamey à Sim A en a fait le cinquième profil de la ville.
    elle ne distingue rien (`Ville.libelle`, `test/core/ville_libelle_test.dart`).
    Reste que GeoNames ne donne les régions qu'en **ASCII** : « Montréal,
    Quebec » s'affiche sans accent. Pas corrigé, la source n'a pas mieux.
-2. **L'onglet Découvrir reste sur ses cartes squelettes**, sur ce compte, y
-   compris après relance à froid — `allGroupsAsync.isLoading ||
-   myGroupsAsync.isLoading` ne retombe jamais, et « Mes groupes · 0 » alors que
-   Sim A est bien membre de « — Canada » en base. **Je ne l'attribue pas** :
-   la branche squelette s'exécute AVANT tout mon code de filtre, et ma rangée
-   « Ville » s'est affichée correctement (donc les groupes SONT chargés, avec
-   une valeur précédente sous un `isLoading` persistant). Sur le Pixel (build
-   antérieur, autre compte, 3 groupes) l'onglet s'affiche normalement — deux
-   variables changent à la fois, le contrôle ne tranche pas.
-   - [ ] **À élucider** : reproduire sur un compte à 1 seul groupe, et
-     regarder si `loadMyGroups` se termine (`if (_disposed) return;` laisse
-     l'état en `loading` pour toujours si la notifier meurt en vol).
+2. **L'onglet Découvrir restait sur ses cartes squelettes**, et « Mes
+   groupes · 0 » alors que le compte était membre de deux groupes. **Élucidé
+   et corrigé** — c'était antérieur à ce travail :
+
+   `MyGroupsNotifier.build()` posait `ref.onDispose(() => _disposed = true)`
+   sans jamais remettre le drapeau à `false`. Or `onDispose` se déclenche à
+   chaque **recalcul** du fournisseur, pas seulement à sa destruction, et pour
+   un `Notifier` c'est la MÊME instance qui est réutilisée. Comme `build()`
+   observe `currentUserProvider` — un flux : une fois sans utilisateur, une
+   fois avec — le drapeau passait à `true` sur un notifier bien vivant dès la
+   deuxième exécution. `loadMyGroups` se terminait, tombait sur
+   `if (_disposed) return;` et **n'écrivait jamais son résultat**. Ni elle ni
+   `_refreshQuietly` : rejoindre un groupe sous les yeux de l'écran ne le
+   débloquait pas non plus.
+
+   Rien dans les journaux — l'état ne devient jamais une erreur, il reste « en
+   chargement » pour toujours. Et c'est une **course** : un compte dont
+   l'authentification est déjà résolue quand l'écran demande la liste ne
+   déclenche qu'un seul `build()` et ne voit rien. D'où l'écart entre les deux
+   téléphones.
+
+   Reproduit au banc (`mes_groupes_reconstruction_test.dart`) avant d'être
+   corrigé — le banc échoue sur l'ancien code.
+
+   `onboarding_provider.dart` porte le même motif mais **n'observe rien** :
+   son `build()` ne s'exécute qu'une fois, il n'est pas touché. Laissé tel
+   quel — c'est le fournisseur qui garde le routeur, on n'y touche pas sans
+   reproduction.
+   - [x] **Sur appareil** : « Mes groupes » liste bien les groupes du compte,
+     et l'onglet Découvrir affiche des groupes au lieu de squelettes — y
+     compris en allant sur l'onglet Groupes **tout de suite** après le
+     lancement, avant que l'authentification ait fini de se résoudre. C'est ce
+     timing-là qui déclenchait la panne.
+
+     Vérifié sur SM A515F le 2026-09-14, APK release `f71e242b…` (`417398e`),
+     onglet Groupes ouvert **7 s après le lancement** — le timing même qui
+     cassait : « 5 rejoints » et la liste s'affiche, Découvrir montre
+     « Suggéré pour toi » puis de vraies cartes. Avant le correctif, au même
+     endroit : « 0 rejoint » et quatre squelettes.
 
 Pas encore vu : la mention GeoNames dans « À propos », la carte, le thème
 sombre. La feuille de divulgation du champ ville n'a pas pu être rejouée —
@@ -12216,6 +12312,32 @@ directement sur la section APPLICATION.
 # 12. Design, thème, langue et mise en page
 
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
+
+---
+
+## ⬜ Une couleur par service dans les deux grilles (2026-09-14)
+
+**Priorité P3** · importance 2/5 — Les tuiles de service se partageaient trois valeurs : le Fil et les Amis avaient **exactement** la même couleur, l'Annuaire une variante d'orange indiscernable du Fil, et sur l'accueil l'Annuaire était colorié avec `colorScheme.onPrimaryContainer` — un jeton de *texte*, presque noir. L'indigo des Ambassades tombait à 2,3:1 sur l'aplat sombre de sa tuile.
+
+Une seule source désormais : `ServiceAccents`
+([service_accents.dart](lib/features/home/presentation/theme/service_accents.dart)),
+lue par « Tous les services » et par la grille de l'accueil. Contrastes
+calculés (icône sur son propre aplat) : ≥ 3,4:1 en clair sauf le Fil à 2,4:1
+(l'orange était déjà ainsi), ≥ 5,1:1 en nocturne.
+
+- [ ] **« Tous les services »** : cinq tuiles, cinq teintes distinctes — Fil
+  orange, Annuaire teal, Ambassades bleu, Événements prune, Amis vert. Aucune
+  paire voisine ne se ressemble.
+- [ ] **Grille de l'accueil** : le Fil, l'Annuaire et les Ambassades y portent
+  la **même** couleur que dans « Tous les services » (c'est la régression la
+  plus probable : deux écrans, une seule liste).
+- [ ] **Thème sombre** : les cinq icônes restent lisibles sur leur aplat à
+  15 % — en particulier le bleu des Ambassades, qui était le cas le pire.
+- [ ] **Compte en thème Orange** : les tuiles ne bougent plus avec l'accent du
+  compte (elles ne lisent plus `adaptivePrimaryColor`). Vérifier que le résultat
+  reste cohérent avec le reste de l'écran, boutons compris.
+- [ ] Le prune des Événements est la seule teinte hors guide de style : juger
+  à l'œil si elle tient à côté du bleu des Ambassades, sa voisine de rangée.
 
 ---
 

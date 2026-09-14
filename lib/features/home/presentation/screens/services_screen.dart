@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/services/feature_flag_service.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../theme/service_accents.dart';
 import '../widgets/quick_action_card.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
@@ -21,7 +21,7 @@ class ServicesScreen extends ConsumerWidget {
       _ServiceItem(
         icon: Icons.dynamic_feed_rounded,
         label: l10n.homeServiceFeed,
-        color: context.adaptivePrimaryColor,
+        color: ServiceAccents.feed.of(context),
         route: '/feed',
       ),
       // Transfert et Boutique masqués de la grille « Tous les services »
@@ -34,14 +34,14 @@ class ServicesScreen extends ConsumerWidget {
       //   _ServiceItem(
       //     icon: Icons.send_rounded,
       //     label: l10n.serviceTransfer,
-      //     color: AppColors.primary,
+      //     color: ServiceAccents.transfers.of(context),
       //     route: '/transfers',
       //   ),
       // if (ref.watch(isMarketplaceEnabledProvider))
       //   _ServiceItem(
       //     icon: Icons.storefront_rounded,
       //     label: l10n.serviceMarketplace,
-      //     color: context.adaptiveSecondaryColor,
+      //     color: ServiceAccents.marketplace.of(context),
       //     route: '/marketplace',
       //   ),
       // Annuaire et ambassades : toujours présents, comme le Fil (décision
@@ -49,13 +49,13 @@ class ServicesScreen extends ConsumerWidget {
       _ServiceItem(
         icon: Icons.business_rounded,
         label: l10n.homeDirectory,
-        color: AppColors.primaryDark,
+        color: ServiceAccents.directory.of(context),
         route: '/businesses',
       ),
       _ServiceItem(
         icon: Icons.account_balance,
         label: l10n.embassies,
-        color: Colors.indigo,
+        color: ServiceAccents.embassies.of(context),
         route: '/embassies',
       ),
       // Absents de la grille alors que les modules sont livrés : sans ces deux
@@ -65,14 +65,14 @@ class ServicesScreen extends ConsumerWidget {
       //   _ServiceItem(
       //     icon: Icons.podcasts_rounded,
       //     label: 'Salons audio',
-      //     color: context.adaptivePrimaryColor,
+      //     color: ServiceAccents.audioRooms.of(context),
       //     route: '/audio-rooms',
       //   ),
       // if (ref.watch(isPodcastsEnabledProvider))
       //   _ServiceItem(
       //     icon: Icons.mic_rounded,
       //     label: l10n.podcasts,
-      //     color: context.adaptiveSecondaryColor,
+      //     color: ServiceAccents.podcasts.of(context),
       //     route: '/podcasts',
       //   ),
       // Événements et Amis manquaient : le module événements a un flag et une
@@ -82,13 +82,13 @@ class ServicesScreen extends ConsumerWidget {
         _ServiceItem(
           icon: Icons.event_rounded,
           label: l10n.eventsTitle,
-          color: Colors.teal,
+          color: ServiceAccents.events.of(context),
           route: '/events',
         ),
       _ServiceItem(
         icon: Icons.people_alt_rounded,
         label: l10n.friends,
-        color: context.adaptivePrimaryColor,
+        color: ServiceAccents.friends.of(context),
         route: '/friends',
       ),
     ];

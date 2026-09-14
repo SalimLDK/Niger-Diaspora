@@ -2356,7 +2356,7 @@ MessageEntity? messageEnAttenteVersEntite(PendingMessage attente) {
   );
 }
 
-/// Renvoie tout seul, au retour du réseau, les messages jamais partis.
+/// Renvoie tout seul les messages jamais partis.
 ///
 /// Tenu en vie par un `ref.watch` dans `app.dart` : sans lui Riverpod ne le
 /// construirait jamais, et la file resterait pleine — c'est exactement ce qui
@@ -2369,8 +2369,13 @@ MessageEntity? messageEnAttenteVersEntite(PendingMessage attente) {
 class RenvoiMessagesEnAttente {
   RenvoiMessagesEnAttente(this._ref);
 
+  /// Intervalle du filet de sécurité. Voir [_battement] : c'est lui qui fait
+  /// le travail quand le signal de connectivité ment.
+  static const Duration intervalleDeControle = Duration(seconds: 60);
+
   final Ref _ref;
   ProviderSubscription<bool>? _abonnement;
+  Timer? _battement;
   bool _enCours = false;
 
   void demarrer() {
@@ -2380,6 +2385,23 @@ class RenvoiMessagesEnAttente {
         if (apres == true && avant != true) unawaited(renvoyerCeQuiPeutPartir());
       },
     );
+
+    // ⚠️ **Le retour du réseau ne suffit pas comme déclencheur**, et c'est
+    // vérifié : `ConnectivityService.isConnected` vaut
+    // `!results.contains(none)`, or `connectivity_plus` liste `vpn` tant que
+    // le tunnel est debout. Sur le SM A515F, qui porte un VPN permanent,
+    // couper les deux radios laisse donc l'app **se croire en ligne** : aucune
+    // transition `false → true` n'est émise au retour, et ce qui attendait
+    // n'est jamais reparti (mesuré le 2026-09-14). La même illusion vaut pour
+    // un portail captif ou une connexion qui répond sans router.
+    //
+    // D'où ce battement, qui ne demande rien à personne : il relit la file et
+    // sort immédiatement si elle est vide, ce qui est le cas ordinaire.
+    _battement = Timer.periodic(
+      intervalleDeControle,
+      (_) => unawaited(renvoyerCeQuiPeutPartir()),
+    );
+
     // Un démarrage d'app en ligne n'émet aucune transition : la file laissée
     // par la session précédente doit partir quand même.
     unawaited(renvoyerCeQuiPeutPartir());
@@ -2388,6 +2410,8 @@ class RenvoiMessagesEnAttente {
   void arreter() {
     _abonnement?.close();
     _abonnement = null;
+    _battement?.cancel();
+    _battement = null;
   }
 
   /// Tente un envoi pour chaque message en attente encore éligible.
@@ -2402,6 +2426,7 @@ class RenvoiMessagesEnAttente {
       final file = _ref.read(offlineQueueServiceProvider);
       await file.init();
       final enAttente = file.getQueue();
+      // Cas ordinaire : rien n'attend, le battement ne coûte qu'une lecture.
       if (enAttente.isEmpty) return;
 
       const fenetre = kFenetreRenvoiAutomatique;

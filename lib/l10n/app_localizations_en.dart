@@ -16232,4 +16232,108 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get locationDisclosureChatBody =>
       'Diaspo Niger reads your location to centre the map on you and let you send it in this conversation. It is only shared with the people in that conversation, and only if you send the message: it does not go to the member map.';
+
+  @override
+  String get pollCreateTitle => 'Create a poll';
+
+  @override
+  String get pollQuestionLabel => 'Question';
+
+  @override
+  String pollOptionNumbered(int index) {
+    return 'Option $index';
+  }
+
+  @override
+  String get pollAddOption => 'Add an option';
+
+  @override
+  String get pollMultipleChoiceSubtitle =>
+      'Each voter can pick several answers';
+
+  @override
+  String get pollDurationLabel => 'Poll duration';
+
+  @override
+  String get pollDuration24h => '24h';
+
+  @override
+  String get pollDuration3Days => '3 days';
+
+  @override
+  String get pollDurationUnlimited => 'Unlimited';
+
+  @override
+  String get pollPublishAction => 'Publish poll';
+
+  @override
+  String get pollNeedQuestionAndTwoOptions =>
+      'Add a question and at least 2 options';
+
+  @override
+  String get pollCreateFailed => 'Could not create the poll';
+
+  @override
+  String pollCreateFailedWithCause(String cause) {
+    return 'Could not create the poll: $cause';
+  }
+
+  @override
+  String pollVotesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count votes',
+      one: '1 vote',
+      zero: 'No vote',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pollVotesTotal(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count votes in total',
+      one: '1 vote in total',
+      zero: 'No vote',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pollResultsTitle => 'Poll results';
+
+  @override
+  String get pollMyChoice => 'Your choice';
+
+  @override
+  String get pollNoVoteYet => 'No vote yet';
+
+  @override
+  String get pollNotFound => 'Poll not found';
+
+  @override
+  String get pollDeleted => 'Poll deleted';
+
+  @override
+  String get pollVotersVisibleToAuthor =>
+      'Only the poll author can see who voted for what.';
+
+  @override
+  String get pollChangeVote => 'Change my vote';
+
+  @override
+  String get pollWithdrawVote => 'Withdraw my vote';
+
+  @override
+  String get pollVoteFailed => 'Could not record your vote';
+
+  @override
+  String get pollBubbleFailed =>
+      'The poll was created, but posting it to the conversation failed.';
+
+  @override
+  String get pollClosedToVotes => 'Poll closed';
 }
