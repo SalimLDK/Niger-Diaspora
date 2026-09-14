@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -18,6 +20,7 @@ import '../../domain/entities/profile_entity.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/handle_field.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/shared/widgets/photo_crop_screen.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Longueur maximale de la bio (§20a : « 118/160 »). Le compteur et la
@@ -385,28 +388,33 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       imageQuality: 95,
     );
 
-    if (image != null) {
-      final authState = ref.read(authNotifierProvider);
-      authState.maybeWhen(
-        authenticated: (user) async {
-          setState(() => _isLoading = true);
-          final url = await ref
-              .read(profileNotifierProvider(user.id).notifier)
-              .uploadPhoto(image.path);
-          if (url != null) {
-            setState(() {
-              _photoUrl = url;
-              _pendingPhotoDelete =
-                  false; // Réinitialiser le flag car nouvelle photo
-              _isLoading = false;
-            });
-          } else {
-            setState(() => _isLoading = false);
-          }
-        },
-        orElse: () {},
-      );
-    }
+    if (image == null || !mounted) return;
+
+    // Cadrer avant d'envoyer : l'avatar est un carré, et sans cette étape
+    // c'est le centre de la photo qui décidait de ce qu'on voit.
+    final recadree = await PhotoCropScreen.show(context, File(image.path));
+    if (recadree == null) return;
+
+    final authState = ref.read(authNotifierProvider);
+    authState.maybeWhen(
+      authenticated: (user) async {
+        setState(() => _isLoading = true);
+        final url = await ref
+            .read(profileNotifierProvider(user.id).notifier)
+            .uploadPhoto(recadree.path);
+        if (url != null) {
+          setState(() {
+            _photoUrl = url;
+            _pendingPhotoDelete =
+                false; // Réinitialiser le flag car nouvelle photo
+            _isLoading = false;
+          });
+        } else {
+          setState(() => _isLoading = false);
+        }
+      },
+      orElse: () {},
+    );
   }
 
   /// Ce qu'on montre d'une liste de puces : tout si elle est dépliée, sinon

@@ -1812,6 +1812,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changePhoto => 'Change photo';
 
   @override
+  String get cropPhotoTitle => 'Crop photo';
+
+  @override
+  String get cropPhotoHint =>
+      'Drag the photo, pinch to zoom. Only the square is kept.';
+
+  @override
+  String get cropPhotoFailed =>
+      'Cropping failed. Try again or pick another photo.';
+
+  @override
   String get basicInfo => 'Basic information';
 
   @override
