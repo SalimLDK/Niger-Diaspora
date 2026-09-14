@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**876 cases à cocher, 496 cochées** — 178 entrées sur 222 ont encore des cases ouvertes.
+**887 cases à cocher, 496 cochées** — 180 entrées sur 224 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -64,12 +64,14 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (49)
+**P1 — fonction importante, jamais vérifiée** (51)
 
+- 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 5 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -236,7 +238,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 120 à faire, 52 faites
+- [2. Messagerie](#2-messagerie) — 131 à faire, 52 faites
 - [3. Groupes](#3-groupes) — 101 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 19 à faire, 7 faites
@@ -495,6 +497,61 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)
+
+**Priorité P1** · importance 5/5 — Messages, notifications et fil cessaient de s'actualiser seuls : les canaux se re-rejoignaient bien après une coupure, mais Postgres ne rejoue pas les événements manqués et rien n'allait les relire. Aucune erreur à l'écran — simplement plus rien n'arrivait.
+
+*Bloqué : deux comptes, et de quoi couper le réseau (mode avion).*
+
+Ne se teste **que** sur appareil : la coupure de socket, la mise en veille
+Android et la suspension des timers n'existent pas sous `flutter test`.
+
+- [ ] **Liste des discussions** : Sim écrit pendant que le téléphone de Salim
+      est en mode avion ; rétablir le réseau → la ligne remonte et le compteur
+      de non-lus apparaît, **sans** tiré-pour-rafraîchir.
+      (`message_supabase_datasource.dart`, `realtime_rattrapage.dart`)
+- [ ] **Discussion ouverte** : même scénario, écran de discussion affiché à
+      l'écran → les messages manqués s'insèrent dans l'ordre, **sans doublon**
+      (la déduplication par id de `MessageNotifier` doit les absorber).
+- [ ] **Fil** : Sim publie pendant la coupure → au retour, la pastille
+      « nouvelles publications » apparaît toute seule.
+      (`feed_supabase_datasource.dart`)
+- [ ] **Notifications** : déjà rattrapées avant cette session ; vérifier que
+      rien n'a régressé.
+- [ ] **Veille longue** (le cas qui a motivé l'observateur de cycle de vie) :
+      app en arrière-plan **plus d'une heure** — le JWT Supabase expire et les
+      timers Android sont suspendus — puis retour au premier plan : tout
+      revient sans redémarrer l'app. (`supabase_auth_bridge.dart`,
+      `surveillerLeCycleDeVie`)
+- [ ] **Pas de tempête de requêtes** : basculer Wi-Fi ↔ données plusieurs fois
+      de suite ne doit pas relancer une relecture par seconde (`adb logcat`,
+      lignes « realtime: rejoint … → rattrapage »).
+
+---
+
+## ⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)
+
+**Priorité P1** · importance 4/5 — Les lignes affichaient par intermittence « Utilisateur » et un avatar à initiale à la place du correspondant : le flux de profil partait avant que la session Supabase soit établie, la policy `users_select` (rôle `public`) ne renvoyait alors **aucune ligne** pour un profil privé, et cette absence était lue comme « compte supprimé ».
+
+*Bloqué : deux comptes, dont un au profil privé.*
+
+- [ ] **Démarrage à froid**, app tuée puis relancée directement sur l'onglet
+      Discussions : aucune ligne ne montre « Utilisateur » — ni au premier
+      rendu, ni après une seconde. (`profile_supabase_datasource.dart`,
+      `conversation_item.dart`)
+- [ ] **Profil privé** en face : le nom et la photo s'affichent quand même
+      dans la liste (l'amitié/la discussion n'est pas un accès au profil, mais
+      le nom doit rester lisible).
+- [ ] **Mode avion au lancement** puis retour réseau : la ligne se remplit
+      seule, sans afficher « Utilisateur » entre-temps.
+- [ ] **« Mes notes »** (fil à participant unique) : titre correct, et aucune
+      requête de profil sur un identifiant vide.
+- [ ] **Compte réellement supprimé**, s'il y en a un sous la main : là,
+      « Utilisateur » est le bon affichage — la correction ne doit pas l'avoir
+      masqué.
 
 ---
 

@@ -108,9 +108,13 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
       if (blockedUserIds.contains(otherUserId)) {
         isBlocked = true;
       }
-      // Watch profile once and reuse (avoid duplicate provider calls)
-      final otherProfileAsync = ref.watch(userStreamProvider(otherUserId));
-      otherProfile = otherProfileAsync.valueOrNull;
+      // Watch profile once and reuse (avoid duplicate provider calls).
+      // L'identifiant est vide sur un fil « Mes notes » (un seul participant) :
+      // ouvrir un flux dessus interroge `users` sur `id = ''`, ne renvoie
+      // jamais rien, et coûte une relecture de confirmation à chaque fois.
+      if (otherUserId.isNotEmpty) {
+        otherProfile = ref.watch(userStreamProvider(otherUserId)).valueOrNull;
+      }
       // They blocked me — le test disait en réalité « j'ai bloqué l'autre »,
       // et lisait un champ toujours vide.
       final quiMOntBloque =
