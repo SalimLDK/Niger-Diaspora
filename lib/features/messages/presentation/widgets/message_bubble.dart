@@ -419,8 +419,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
     // Selection mode: wrap with tap-to-select and show checkbox
     if (widget.isSelectionMode) {
+      // L'appui long coche lui aussi : c'est le geste qui a ouvert le mode,
+      // le refaire sur le message suivant doit l'ajouter, pas rouvrir un
+      // menu par-dessus la barre de sélection.
       return GestureDetector(
         onTap: () => widget.onSelect?.call(widget.message),
+        onLongPress: () => widget.onSelect?.call(widget.message),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           color:
@@ -449,7 +453,19 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   ),
                 ),
               ),
-              Expanded(child: _buildMainContent(context, isDeleted)),
+              // En sélection, le contenu ne reçoit plus aucun pointeur : il
+              // garde sinon TOUS ses gestes, et le plus profond gagne le tap.
+              // Toucher un sondage votait au lieu de cocher — et de la même
+              // façon une image s'ouvrait, un lien partait au navigateur, un
+              // envoi échoué se relançait, un double-appui posait une
+              // réaction, un glissement passait en réponse. Le tap remonte
+              // maintenant au `GestureDetector` ci-dessus, partout sur la
+              // ligne.
+              Expanded(
+                child: AbsorbPointer(
+                  child: _buildMainContent(context, isDeleted),
+                ),
+              ),
             ],
           ),
         ),
