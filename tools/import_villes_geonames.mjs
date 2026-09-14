@@ -82,7 +82,7 @@ const NIGER_PAR_ID = {
 };
 
 const ALIAS_MAX = 12; // au-delà, on stocke du bruit
-const LOT_SQL = 1000; // lignes par appel à `supabase db query`
+const LOT_SQL = 500; // lignes par appel à `supabase db query` (~65 Ko)
 
 // Exonymes français, par `<nom plié>|<code ISO>`. Le nom plié est celui de
 // `plier_nom_de_pays` (minuscules, sans accent, apostrophes et traits d'union
@@ -174,17 +174,33 @@ function citerTableau(valeurs) {
   return `ARRAY[${valeurs.map(citer).join(',')}]::text[]`;
 }
 
+// `supabase db query` passe par l'API de gestion, en HTTPS. Sur une longue
+// série de lots, elle lâche de temps en temps — « remote error: tls: bad
+// record MAC » au 1er lot de l'import du 2026-09-13, alors qu'un lot de
+// 300 Ko passe sans broncher : c'est le transport, pas le volume. On réessaie
+// ces échecs-là, jamais une erreur SQL (qui échouerait quatre fois de suite).
+const TRANSPORT = /tls|remote error|EOF|timeout|timed out|connection|reset|50[234]|i\/o/i;
+
 /** `supabase db query --linked`, SQL sur l'entrée standard. */
-function sql(requete, { silencieux = false } = {}) {
-  const r = spawnSync('supabase', ['db', 'query', '--linked'], {
-    input: requete,
-    encoding: 'utf8',
-    shell: process.platform === 'win32',
-    maxBuffer: 64 * 1024 * 1024,
-  });
-  if (r.error) throw r.error;
-  if (r.status !== 0) {
-    throw new Error(`supabase db query a échoué (${r.status}) :\n${r.stderr || r.stdout}`);
+function sql(requete, { silencieux = false, essais = 4 } = {}) {
+  let r;
+  for (let n = 1; n <= essais; n++) {
+    r = spawnSync('supabase', ['db', 'query', '--linked'], {
+      input: requete,
+      encoding: 'utf8',
+      shell: process.platform === 'win32',
+      maxBuffer: 64 * 1024 * 1024,
+    });
+    if (r.error) throw r.error;
+    if (r.status === 0) break;
+    const message = r.stderr || r.stdout || '';
+    if (n === essais || !TRANSPORT.test(message)) {
+      throw new Error(`supabase db query a échoué (${r.status}) :\n${message}`);
+    }
+    const attente = 2000 * 2 ** (n - 1);
+    process.stderr.write(`\n  transport en échec, reprise dans ${attente / 1000} s…\n`);
+    // Attente synchrone : le script est séquentiel de bout en bout.
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, attente);
   }
   if (silencieux) return null;
   const debut = r.stdout.indexOf('{');
