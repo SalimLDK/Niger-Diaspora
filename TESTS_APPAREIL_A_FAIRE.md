@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**895 cases à cocher, 506 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
+**897 cases à cocher, 506 cochées** — 184 entrées sur 228 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -64,13 +64,14 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (52)
+**P1 — fonction importante, jamais vérifiée** (53)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 2 · [⚠️ L'identité du correspondant ne revient plus après une coupure (2026-09-14)](#-lidentité-du-correspondant-ne-revient-plus-après-une-coupure-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 6 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -241,7 +242,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 129 à faire, 54 faites
+- [2. Messagerie](#2-messagerie) — 131 à faire, 54 faites
 - [3. Groupes](#3-groupes) — 107 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -503,6 +504,64 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⚠️ L'identité du correspondant ne revient plus après une coupure (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Un profil dont la lecture échoue pendant une coupure reste en échec pour toute la vie de l'app : l'en-tête d'une discussion affiche « Conversation » et un avatar « C » à la place du nom, et ni le retour du réseau ni un aller-retour hors de l'écran ne le corrigent. Seul un redémarrage.
+
+*Bloqué : rien — se rejoue seul avec le mode avion.*
+
+Mesuré sur SM A515F le 2026-09-14, sur une release construite le jour même
+(`flutter build apk --release` puis `adb install -r`, md5 de l'APK installé
+vérifié identique à celui du build). Le parcours reproduit à l'identique ce que
+montrait l'écran à 03:32 :
+
+1. mode avion, `am force-stop`, relancer l'app, ouvrir la DM depuis la liste →
+   en-tête **« Conversation »**, avatar **« C »**, pas de « En ligne », aucune
+   erreur, aucun réessai. Les messages, eux, sont là (cache local).
+2. réseau rendu (`cmd connectivity airplane-mode disable`, ping OK) : à
+   **+35 s puis +95 s**, l'en-tête est toujours « Conversation ».
+3. sortir de l'écran, y revenir : toujours « Conversation ».
+4. `am force-stop` puis relance : « Salim L. » et « En ligne » reviennent.
+
+**Pourquoi l'échec colle.** `userStreamProvider`
+([profile_provider.dart:330](lib/features/profile/presentation/providers/profile_provider.dart:330))
+est un `StreamProvider.family` **sans `autoDispose`** : l'instance qui a échoué
+hors ligne est conservée pour toute la vie de l'app, et rien ne la réabonne.
+Deux autres pièces rendent l'échec muet :
+
+- [conversation_screen.dart:1200](lib/features/messages/presentation/screens/conversation_screen.dart:1200) —
+  `identityLoading` teste `!hasValue` ; un `AsyncError` n'ayant pas de valeur,
+  **erreur et chargement sont indiscernables**, et l'écran reste sur son texte
+  d'attente au lieu d'un état d'erreur avec réessai ;
+- [message_repository_impl.dart:178](lib/features/messages/data/repositories/message_repository_impl.dart:178) —
+  `.handleError((error) { return Left(ServerFailure(...)); })` : Dart **ignore
+  la valeur de retour** de `handleError`, le `Left` n'est donc jamais émis,
+  l'erreur est avalée et le provider reste en `AsyncLoading` — ni bandeau, ni
+  réessai.
+
+**D'où vient le mot « Conversation ».** Ce n'est pas un libellé de chargement :
+la liste passe `'name': c.name ?? 'Conversation'`
+([messages_screen.dart:639](lib/features/messages/presentation/screens/messages_screen.dart:639)
+et [:1039](lib/features/messages/presentation/screens/messages_screen.dart:1039)),
+et une discussion privée n'a jamais de `name`. Ouvert sans `state.extra` (lien
+profond, notification), le même écran affiche « Chargement... ». L'avatar « C »
+n'est que l'initiale de ce repli — pas celle d'un contact. Pour la variante
+liste, voir « Nom et avatar du correspondant dans la liste des discussions ».
+
+**Correctif proposé, non appliqué** : distinguer l'erreur de l'attente dans
+`identityLoading` (un `hasError` doit donner un état réessayable, pas un texte
+d'attente), cesser d'avaler l'erreur dans `getConversationStream`
+(`StreamTransformer` plutôt que `handleError`), et réabonner le profil au
+retour du réseau — poser `autoDispose` sur `userStreamProvider` ne suffit pas,
+l'écran restant monté pendant toute la panne.
+
+- [ ] **Après correction** : rejouer les quatre étapes ci-dessus — l'en-tête
+      doit se remplir seul au retour du réseau, sans redémarrer l'app.
+- [ ] **Compte réellement supprimé** : vérifier que ce cas affiche toujours
+      « Utilisateur » et non un état d'erreur réessayable.
+
+---
+
 ## ⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)
 
 **Priorité P1** · importance 5/5 — Messages, notifications et fil cessaient de s'actualiser seuls : les canaux se re-rejoignaient bien après une coupure, mais Postgres ne rejoue pas les événements manqués et rien n'allait les relire. Aucune erreur à l'écran — simplement plus rien n'arrivait.
@@ -552,6 +611,15 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
       le nom doit rester lisible).
 - [ ] **Mode avion au lancement** puis retour réseau : la ligne se remplit
       seule, sans afficher « Utilisateur » entre-temps.
+      Mesuré deux fois le 2026-09-14 (SM A515F, release du jour), deux
+      résultats : la liste s'est peinte depuis le cache en affichant
+      **« Utilisateur »**, puis, au second essai, est restée sur un **rond de
+      chargement sans fin** — ni liste, ni erreur. Dans les deux cas elle s'est
+      remplie seule au retour du réseau (« Salim L. » et son avatar à +75 s) :
+      c'est la seconde moitié de l'exigence qui tient, pas la première, donc la
+      case reste ouverte. L'en-tête d'une discussion, lui, ne se rattrape pas —
+      voir « ⚠️ L'identité du correspondant ne revient plus après une
+      coupure ».
 - [x] **« Mes notes »** (fil à participant unique) : titre correct — vérifié
       SM A515F le 2026-09-13. L'absence de requête de profil sur identifiant
       vide, elle, ne se voit pas à l'écran : elle tient à la garde
