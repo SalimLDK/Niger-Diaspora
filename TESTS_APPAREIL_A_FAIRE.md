@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**945 cases à cocher, 545 cochées** — 193 entrées sur 237 ont encore des cases ouvertes.
+**962 cases à cocher, 548 cochées** — 196 entrées sur 240 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -66,10 +66,10 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (57)
+**P1 — fonction importante, jamais vérifiée** (58)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
-- 4 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
+- 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
@@ -111,12 +111,13 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
-- 7 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
+- 6 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27) · *Backend, sécurité et observabilité*
+- 7 · [⬜ Notice « une nouvelle version est disponible » (2026-09-14)](#-notice--une-nouvelle-version-est-disponible--2026-09-14) · *Publication et plateformes*
 - 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
 - 3 · [Messagerie (hors refonte Fil & Discussion)](#messagerie-hors-refonte-fil--discussion) · *Messagerie* · bloqué
 - 5 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
@@ -126,7 +127,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (66)
+**P2 — fonction secondaire ou cas limite** (68)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -148,15 +149,17 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 4 · [⬜ Filtre hashtag : corrigé en code, jamais rejoué sur un téléphone (2026-09-14)](#-filtre-hashtag--corrigé-en-code-jamais-rejoué-sur-un-téléphone-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
-- 5 · [⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)](#-compteurs-de-mon-espace-et-du-profil--ils-suivent-enfin-2026-09-14) · *Fil, stories, salons audio et podcasts*
+- 4 · [⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)](#-compteurs-de-mon-espace-et-du-profil--ils-suivent-enfin-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
 - 4 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
@@ -210,7 +213,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
-- 6 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
+- 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
 - 2 · [La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)](#la-signature-de-clé-pré-signée-ne-peut-jamais-vérifier-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
@@ -251,19 +254,19 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 161 à faire, 75 faites
-- [3. Groupes](#3-groupes) — 108 à faire, 61 faites
+- [2. Messagerie](#2-messagerie) — 162 à faire, 75 faites
+- [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 41 à faire, 60 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 110 à faire, 9 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 108 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 34 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 34 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 43 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -522,8 +525,8 @@ Source unique : `AttachmentAccents`
 lue par les **deux** surfaces du « + ». Même démarche que « Une couleur par
 service dans les deux grilles », avec le même prune pour l'événement des deux
 côtés. Contrastes calculés sur l'aplat à 12 % : ≥ 3,3:1 en clair sauf la
-galerie (2,3:1, l'orange était déjà ainsi) et l'audio (2,0:1), ≥ 5,4:1 en
-nocturne.
+galerie (2,3:1, l'orange était déjà ainsi), ≥ 5,4:1 en nocturne. L'audio,
+d'abord à 2,0:1, a reçu un or assombri pour le thème clair (3,85:1).
 
 - [ ] **Appui simple sur le « + »** (panneau ancré, grille 3×2) : six teintes
   distinctes — Caméra teal, Galerie orange, Document bleu, Position
@@ -531,9 +534,13 @@ nocturne.
 - [ ] **Appui long sur le « + »** (ancien sheet complet) : une pièce jointe y
   porte la **même** couleur que dans le panneau. S'y ajoutent Vidéos (vert
   Niger) et Audio (or).
-- [ ] **Tuile Audio en thème clair** : c'est la plus pâle de toutes (l'or sur
-  son propre aplat). Juger à l'œil si elle tient, ou s'il lui faut un or plus
-  foncé en clair.
+- [ ] **Tuile Audio en thème clair** : l'or du guide s'y délavait (2,05:1 sur
+  son propre aplat), il est assombri à `#A26C1A` — 3,85:1, du même ordre que
+  le bleu du document. Vérifier qu'il se lit encore comme un **or** et pas
+  comme un brun, et qu'il ne jure pas avec l'orange de la galerie, deux tuiles
+  plus loin. Le nocturne garde l'or du guide.
+- [ ] **Salons audio**, si la tuile est réactivée un jour : elle porte le même
+  or assombri (voir « Une couleur par service dans les deux grilles »).
 - [ ] **Thème sombre** : les huit icônes restent lisibles sur leur aplat à
   12 %.
 - [ ] **Compte en thème Orange puis Vert** : les tuiles ne suivent plus
@@ -2751,13 +2758,38 @@ SELECT public.get_or_create_ville_group(
   Angola au sud — les deux qui n'étaient jamais dessinées. Algérie, Niger et
   Nigeria restent à leur centroïde habituel.
 
-⚠️ **Trouvé en y allant : `/groups/map` n'est atteignable par AUCUN écran.**
-La route existe dans `app_router.dart`, mais rien ne la pousse — j'ai dû
-passer par un lien profond (`diasponiger://groups/map`). Toute cette carte,
-centroïdes compris, est donc du code que personne ne voit depuis l'app.
-- [ ] **À décider** : lui donner une entrée (un bouton sur l'écran Groupes),
-  ou la retirer. Voir « Feature flags » du domaine Design pour le précédent
-  d'un écran rendu invisible par le routeur.
+⚠️ **Trouvé en y allant : `/groups/map` n'était atteignable par AUCUN
+écran.** La route existait dans `app_router.dart`, mais rien ne la poussait —
+il a fallu un lien profond (`diasponiger://groups/map`). Toute cette carte,
+centroïdes compris, était du code que personne ne voyait depuis l'app.
+
+**Entrée donnée le 2026-09-14** : une troisième action carrée dans l'en-tête
+de l'écran Groupes, entre la recherche et « Créer ». Un **globe**
+(`Icons.public`) et pas une carte pliée : celle-ci est déjà l'onglet
+« Carte » de la barre du bas, qui mène à la carte des MEMBRES — deux cartes
+différentes sous un seul pictogramme, à deux centimètres l'une de l'autre. Le titre de l'écran
+passe de « Groupes par pays » à « Groupes sur la carte » — il portait
+« par pays », ce n'est plus vrai depuis qu'il y a des épingles de ville.
+
+L'en-tête porte donc trois actions à côté d'un grand titre serif : c'est sa
+configuration la plus chargée, et la famille de débordements que ce projet
+paie régulièrement. Le titre est dans un `Expanded`, donc il se replie au
+lieu de pousser — vérifié au banc
+(`test/core/theme/entete_trois_actions_test.dart`) à 320 / 360 / 411 dp et
+aux échelles 1,0 / 1,1 / 1,3, neuf combinaisons.
+
+- [x] **Sur appareil** : les trois actions tiennent sur une ligne sans rogner
+  le titre « Groupes » ni le sous-titre. Vu le 2026-09-14 (première version,
+  avec la carte pliée ; le globe ne change pas l'encombrement).
+- [ ] **Sur appareil** : l'icône **globe** se distingue bien de l'onglet
+  « Carte » du bas, et son appui ouvre la carte des groupes. L'appui depuis
+  l'en-tête n'a PAS été confirmé : les taps automatisés tombaient sur les
+  éléments voisins (deux conversations ouvertes par erreur), et j'ai préféré
+  m'arrêter. L'arbre d'accessibilité donne bien
+  `content-desc="Groupes sur la carte"`, cliquable, aux bonnes bornes.
+- [ ] **Sur appareil, échelle de police augmentée** : les trois actions
+  tiennent toujours. Le banc couvre 1,0 / 1,1 / 1,3, mais c'est là que l'œil
+  ne se remplace pas.
 
 ### Vérifié sur SM A515F le 2026-09-14 (APK release `703f4eda…`, `ddb6dfa`)
 
@@ -7781,6 +7813,45 @@ Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
 
 ---
 
+## ⬜ Filtre hashtag : corrigé en code, jamais rejoué sur un téléphone (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Ouvrir un hashtag alors que le fil est déjà à l'écran annonçait le filtre mais montrait le fil non filtré ; et le filtre ne se levait jamais, donc revenir au fil général le laissait filtré.
+
+Mesuré sur SM A515F le 2026-09-14 (build release `e5cb916c…`) :
+`am start -a android.intent.action.VIEW -d "diasponiger://feed?hashtag=zzzaucunresultat"`
+alors que le fil est ouvert affiche la bannière `# zzzaucunresultat` **et** la
+seule publication du compte, qui ne porte aucun hashtag.
+
+**Corrigé le 2026-09-14** (`feed_provider.dart`, `feed_screen.dart`), couvert
+par `test/features/feed/feed_filtre_hashtag_test.dart` — neutraliser le
+correctif fait tomber le test sur `Expected: null, Actual: 'niamey'`. **Rien
+n'a pu être rejoué sur l'appareil** : l'autre session réinstallait toutes les
+quelques minutes (`lastUpdateTime` 14:35, 14:46, 14:47), donc l'APK sur le
+téléphone n'était déjà plus celui qu'on voulait mesurer.
+
+Diagnostic : Android livre l'intention à l'instance en cours (« intent has been
+delivered to currently running top-most instance ») et go_router réutilise
+l'état de `FeedScreen` — même type de widget, pas de clé. `initState` ne rejoue
+donc pas, et c'est lui qui appelle `loadInitial(hashtagFilter:)`. Résultat :
+la bannière lit `widget.hashtagFilter` (à jour) pendant que la liste lit l'état
+du notifier (resté sans filtre). Piste : un `didUpdateWidget` qui recharge
+quand `widget.hashtagFilter` change. Rien à voir avec le tiré-pour-rafraîchir
+ni avec la pastille (voir « Fil : tirer pour rafraîchir partout, et pastille
+« N nouvelles publications » »).
+
+- [ ] **Depuis un fil déjà ouvert** : toucher un hashtag dans une publication,
+  puis un autre — la liste doit changer à chaque fois, pas seulement la
+  bannière.
+- [ ] **Hashtag sans résultat** : la liste se vide et l'état « aucune
+  publication » s'affiche — et c'est là qu'il faut tirer vers le bas, pour
+  cocher enfin le fil vide de « Fil : tirer pour rafraîchir partout, et
+  pastille « N nouvelles publications » ».
+- [ ] **Quitter le hashtag** : revenir en arrière rend le fil général **sans
+  bannière ni filtre**. C'est la moitié la plus grave du défaut : le filtre
+  était indelébile une fois posé.
+- [ ] **Depuis l'app fermée** (démarrage à froid) : le même lien filtre bien,
+  puisque l'écran est monté pour de bon — à confirmer.
+
 ## ✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)
 
 **Priorité P1** · importance 4/5 — Un lien du schéma maison ouvert alors que l'app n'est pas lancée tombait sur « Page Not Found ». Les QR codes du projet passent tous par ce schéma.
@@ -9775,13 +9846,21 @@ rédaction, donc personne ne les relâche ; et le compteur de partages de la
 carte n'était jamais relu après un partage externe. Couvert en test par
 `feed_compteurs_rafraichis_test.dart` — qui ne dit rien de ce qui s'affiche.
 
-- [ ] **Abonnés / Abonnements** (deux comptes) : suivre le second compte depuis
+- [x] **Abonnés / Abonnements** (deux comptes) : suivre le second compte depuis
   une carte du fil, ouvrir Mon espace → « Abonnements » a augmenté de 1 **sans
   redémarrer l'app** ; ne plus suivre → il redescend. C'est le cas qui ne
   marchait pas.
+  ✅ SM A515F, build release `e5cb916c…`, 2026-09-14 11:16 : 0 → 1 après
+  « Suivre » sur la carte de Salim, 1 → 0 après « Ne plus suivre », l'app
+  n'ayant été redémarrée à aucun moment. Compte rendu à son état d'origine.
 - [ ] **Onglet « Abonnements » du fil** juste après avoir suivi quelqu'un : ses
   publications y apparaissent (la liste des comptes suivis était, elle aussi,
   figée jusqu'au redémarrage).
+  ⚠ 2026-09-14 : vu fonctionner sur SM A515F, mais **ça ne prouve pas le
+  correctif** — cet onglet appelle `getFollowingIds()` sur la source de
+  données, pas le provider invalidé. Ce qui reste à vérifier, c'est le tri
+  « Pour vous » (le scoreur) et les repartages injectés, qui eux lisent le
+  provider.
 - [ ] **Publications** : publier depuis le fil, revenir à Mon espace → le
   chiffre a augmenté ; supprimer la publication → il redescend. Même contrôle
   sur l'écran Profil, ligne « Mes publications ».
@@ -9802,13 +9881,19 @@ auteurs, entrée/sortie animées). Couvert en test par
 `feed_sondage_nouvelles_publications_test.dart` et `new_posts_pill_test.dart`,
 qui ne disent rien du rendu ni du geste.
 
-- [ ] **Tirer vers le bas sur un fil court** (filtrer par ville pour n'avoir
+- [x] **Tirer vers le bas sur un fil court** (filtrer par ville pour n'avoir
   qu'une ou deux publications) : l'indicateur circulaire apparaît et le fil se
   recharge. C'est le cas qui ne marchait pas — la liste ne débordait pas, donc
   il n'y avait rien à tirer.
+  ✅ SM A515F, build release `e5cb916c…`, 2026-09-14 11:15 : l'indicateur circulaire orange apparaît sur un fil d'**une seule** publication et le fil se recharge. C'est exactement le cas qui ne marchait pas.
 - [ ] **Tirer sur un fil vide** (compte neuf, ou filtre sans résultat) et
   **sur l'écran d'échec** (mode avion, puis « Réessayer » ignoré) : même geste,
   même rechargement.
+  ⚠ 2026-09-14 : le fil vide n'a pas pu être atteint avec le compte de test.
+  Le filtre hashtag, qui devrait le produire, ne filtre rien — voir
+  « Filtre hashtag par lien profond : la bannière s'affiche, la liste ne bouge
+  pas ». L'écran d'échec, lui, demande de couper le réseau (réglage système,
+  à faire par Salim).
 - [ ] **Pastille** : publier depuis le second téléphone ; sur le premier, la
   pastille descend en haut du fil avec l'avatar de l'auteur, sans déplacer la
   lecture en cours ; la toucher pose la publication en tête et remonte le fil.
@@ -11694,6 +11779,56 @@ attendre le sondage.
 # 11. Accueil, profil et réglages
 
 Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature flags d'écrans.
+
+---
+
+## ⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Le dialogue natif d'avis ne dit jamais s'il s'est affiché : aucun banc, aucun journal ne peut distinguer « montré » de « avalé par le quota ».
+
+*Bloqué pour le dialogue natif : demande une installation **venue de Play**
+(piste de test interne), un compte neuf, et huit ouvertures étalées sur plus
+de trois jours. Un APK latéral ne le montrera jamais, même en release.*
+
+Le paquet `in_app_review` entre dans le projet
+([app_review_service.dart](lib/core/services/app_review_service.dart)), avec
+deux chemins volontairement distincts :
+
+- **le bouton** des Réglages ouvre la **fiche du store**, jamais le dialogue
+  natif — Google demande expressément de ne pas câbler un bouton « Noter »
+  sur `requestReview()`, que le quota peut avaler : l'utilisateur voit alors
+  un bouton mort ;
+- **l'invitation automatique** part de l'écran d'Accueil
+  ([home_screen.dart](lib/features/home/presentation/screens/home_screen.dart)),
+  après huit ouvertures, trois jours d'ancienneté, et une seule fois par
+  trimestre.
+
+[app_review_service_test.dart](test/core/services/app_review_service_test.dart)
+tient les seuils, le recalage d'une horloge menteuse, et le point qui compte :
+un `requestReview()` muet ne doit pas relancer la demande à **chaque**
+ouverture. Ce que le banc ne peut pas voir :
+
+- [ ] **La tuile est là** : Réglages → « Application », étoile, entre
+      « Aide & FAQ » et « À propos », en clair **et** en sombre.
+      (`settings_screen.dart`)
+- [ ] **L'appui ouvre l'application Play Store** sur la fiche Diaspo Niger, pas
+      un navigateur ni « élément introuvable ». La fiche est bien publiée :
+      vérifié en ligne le 2026-09-14 (Mirai Tech., 10+ téléchargements).
+- [ ] **Sans Play Store** (ou Play désactivé) : le bandeau
+      « Impossible d'ouvrir la fiche du store… » s'affiche. Le bouton ne doit
+      jamais rester muet.
+- [ ] **iOS** : `https://apps.apple.com/app/id6807607258` répondait
+      « The page you're looking for can't be found » le 2026-09-14 — la fiche
+      n'est pas publiée. Le bouton mènera là tant que ce n'est pas le cas
+      (voir « iOS : signature et conformité export jamais compilées » au § 14).
+- [ ] **L'invitation ne s'empile pas** : jamais par-dessus les coach marks du
+      premier démarrage, ni par-dessus un écran poussé par un lien profond ou
+      une notification pendant les quatre secondes d'attente.
+- [ ] **Le compteur tient au redémarrage** : huit ouvertures cumulées, pas
+      huit d'affilée dans la même session. `adb shell run-as` sur les clés
+      `review_*` de `SharedPreferences` permet de le lire sans attendre.
+
+---
 
 ---
 
@@ -15443,6 +15578,54 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 # 14. Publication et plateformes
 
 Play Store, exigences Android, build release, iOS.
+
+---
+
+## ⬜ Notice « une nouvelle version est disponible » (2026-09-14)
+
+**Priorité P1** · importance 3/5 — Le bandeau de mise à jour partage désormais
+son canal avec le rappel de sauvegarde des clés E2EE : une erreur d'arbitrage
+ferait taire le second, et des messages deviendraient illisibles au changement
+d'appareil.
+
+Bandeau non bloquant en tête d'application quand une version plus récente
+existe sur le store. La version disponible vient du serveur — clé
+`DERNIERE_VERSION_APP` de l'Edge Function `app-config`, au format de la ligne
+`version:` de `pubspec.yaml` (`1.3.0+20`) — parce qu'un APK ne peut pas savoir
+qu'il en existe un plus récent que lui.
+Décision et silences tenus par `test/core/services/mise_a_jour_service_test.dart`
+(22 cas).
+
+**Le secret n'est pas posé en production** : tant qu'il ne l'est pas, le
+bandeau ne peut pas apparaître, et rien de ce qui suit n'est observable.
+
+- [ ] **Poser la clé, puis voir le bandeau** :
+      `supabase secrets set DERNIERE_VERSION_APP=1.9.9+99` (jamais
+      `--env-file`, qui remplacerait tous les secrets du projet), relancer
+      l'app à froid — le bandeau doit apparaître en tête. Remettre la vraie
+      valeur, ou retirer la clé, juste après.
+- [ ] **« Pas maintenant » tient** : écarter, tuer l'app, relancer — le
+      bandeau ne doit pas revenir. Puis passer le secret à une version
+      supérieure : il doit reparler.
+- [ ] **« Mettre à jour » ouvre la bonne fiche** : Play Store sur
+      `com.diasponiger.diasponiger`, et non une page « application
+      introuvable » (les deux liens du projet ont déjà été faux).
+- [ ] **Revenir du store sans installer** : le bandeau doit pouvoir
+      reparaître au démarrage suivant — contrairement à « Pas maintenant »,
+      partir vers le store n'écarte pas la version.
+- [ ] **Le rappel E2EE passe devant** ([main_shell.dart](lib/core/shell/main_shell.dart)) :
+      avec un compte dont les clés ne sont pas sauvegardées ET la clé serveur
+      posée, c'est le bandeau des clés qui doit s'afficher ; une fois traité,
+      celui de la mise à jour doit prendre sa place **sans relancer l'app**.
+- [ ] **Rendu du bandeau** : thème sombre, échelle de police augmentée, petit
+      écran — un `MaterialBanner` à deux actions déborde vite.
+- [ ] **Hors ligne au démarrage** : aucune notice, aucun blocage du premier
+      écran (`RemoteConfigService` sert alors son cache, ou rien).
+
+Une notice qui s'affiche à tort est pire qu'une notice absente : elle envoie
+sur le store chercher une mise à jour qui n'existe pas, et recommence à chaque
+démarrage. D'où la règle tenue par le banc — toute version illisible, absente
+ou non postérieure se tait.
 
 ---
 

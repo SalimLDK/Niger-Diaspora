@@ -93,6 +93,10 @@ class FeedState {
     int? lastOffset,
     String? error,
     String? hashtagFilter,
+    /// `copyWith(hashtagFilter: null)` ne peut pas distinguer « laisse-le » de
+    /// « enlève-le » : ce drapeau dit le second. Sans lui, un filtre posé ne
+    /// se levait jamais.
+    bool effaceHashtagFilter = false,
     FeedMode? mode,
     Set<String>? likedPostIds,
     Set<String>? bookmarkedPostIds,
@@ -110,7 +114,8 @@ class FeedState {
       hasMore: hasMore ?? this.hasMore,
       lastOffset: lastOffset ?? this.lastOffset,
       error: error,
-      hashtagFilter: hashtagFilter ?? this.hashtagFilter,
+      hashtagFilter:
+          effaceHashtagFilter ? null : (hashtagFilter ?? this.hashtagFilter),
       mode: mode ?? this.mode,
       likedPostIds: likedPostIds ?? this.likedPostIds,
       bookmarkedPostIds: bookmarkedPostIds ?? this.bookmarkedPostIds,
@@ -295,6 +300,30 @@ class FeedNotifier extends Notifier<FeedState> {
   /// Plafond de la file d'attente. La pastille n'est qu'une amorce : elle
   /// annonce qu'il y a du nouveau, pas un chiffre exhaustif.
   static const _maxEnAttente = 50;
+
+  /// Pose le filtre hashtag, ou le lève quand [hashtag] est nul, puis
+  /// recharge le fil.
+  ///
+  /// Distincte de [loadInitial] parce qu'il faut pouvoir **lever** le filtre :
+  /// `loadInitial(hashtagFilter: null)` garde l'ancien (`?? state.hashtagFilter`)
+  /// et `copyWith` ne savait pas écrire un `null`. Le notifier étant partagé
+  /// par le fil général et le fil d'un hashtag, un filtre posé une fois ne se
+  /// levait plus : revenir du hashtag laissait le fil général filtré, sous une
+  /// bannière que l'utilisateur n'avait pas demandée.
+  Future<void> setHashtagFilter(String? hashtag) async {
+    if (state.hashtagFilter == hashtag) return;
+    state = state.copyWith(
+      hashtagFilter: hashtag,
+      effaceHashtagFilter: hashtag == null,
+      // Les publications affichées sont celles de l'ancien filtre : les garder
+      // ferait lire, sous la nouvelle bannière, le contenu de la précédente.
+      posts: const [],
+      pendingPosts: const [],
+      lastOffset: 0,
+      hasMore: true,
+    );
+    await loadInitial();
+  }
 
   Future<void> setMode(FeedMode mode) async {
     if (state.mode == mode) return;

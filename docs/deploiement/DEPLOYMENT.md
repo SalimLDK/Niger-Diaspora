@@ -289,6 +289,23 @@ flutter build appbundle --release --dart-define=PRODUCTION=true --dart-define=ST
 # Play Console → Production → Nouvelle release → Upload AAB
 ```
 
+**Une fois la release réellement en ligne**, publier son numéro : c'est ce qui
+déclenche le bandeau « une nouvelle version est disponible » dans les
+installations plus anciennes ([mise_a_jour_service.dart](../../lib/core/services/mise_a_jour_service.dart)).
+
+```bash
+supabase secrets set DERNIERE_VERSION_APP=1.2.1+15   # la valeur de pubspec.yaml, telle quelle
+```
+
+Trois choses à ne pas se tromper :
+
+- **Jamais `secrets set --env-file`** : il remplacerait *tous* les secrets du
+  projet par le contenu du fichier.
+- **Après la mise en ligne, pas avant** — la poser trop tôt envoie les gens sur
+  une fiche store qui n'a pas encore la nouvelle version.
+- **Clé absente = aucun bandeau.** C'est l'état par défaut et il est
+  silencieux : rien n'avertira qu'on a oublié cette étape.
+
 Archiver les binaires et notes de chaque release dans `releases/<version>/`.
 
 ---
