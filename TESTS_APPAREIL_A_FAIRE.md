@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**927 cases à cocher, 524 cochées** — 189 entrées sur 233 ont encore des cases ouvertes.
+**934 cases à cocher, 526 cochées** — 190 entrées sur 234 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -75,7 +75,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
-- 2 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
+- 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
@@ -125,7 +125,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (65)
+**P2 — fonction secondaire ou cas limite** (66)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -150,6 +150,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
+- 5 · [⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)](#-compteurs-de-mon-espace-et-du-profil--ils-suivent-enfin-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
@@ -247,14 +248,14 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 148 à faire, 61 faites
+- [2. Messagerie](#2-messagerie) — 150 à faire, 63 faites
 - [3. Groupes](#3-groupes) — 113 à faire, 55 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 41 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 105 à faire, 9 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 110 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 33 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
@@ -721,12 +722,43 @@ participant s'en déduit — et le cache de profil ne sert alors à rien.
       donc comme identité en attente
       ([conversation_screen.dart:1199](lib/features/messages/presentation/screens/conversation_screen.dart:1199)).
       Vérifié SM A515F le 2026-09-14 (release md5 `9641765b…`).
-- [ ] **La fenêtre elle-même** : hors ligne, cette restauration de session prend
-      **une à deux minutes** (mesuré : « Chargement… » à +22 s et +52 s, nom à
-      +2 min), pendant lesquelles l'app martèle App Check toutes les secondes
-      (`Unable to resolve host firebaseappcheck.googleapis.com` dans logcat).
-      Le nom finit par arriver, mais l'attente est longue pour quelqu'un qui
-      ouvre une notification dans le métro. À instruire à part.
+- [x] **La fenêtre elle-même** — instruite le 2026-09-14, et refermée par les
+      deux bouts. La cause : `authStateChanges`
+      ([auth_remote_datasource.dart:574](lib/features/auth/data/datasources/auth_remote_datasource.dart:574))
+      enchaînait en `asyncMap` **trois appels distants** — pont
+      Firebase→Supabase, upsert, lecture de la ligne `users` — et n'émettait
+      rien tant qu'ils n'avaient pas rendu la main. Hors ligne, ils mettent une
+      à deux minutes à échouer : l'app n'avait aucun compte courant pendant tout
+      ce temps, alors que Firebase tient l'utilisateur en mémoire dès son
+      initialisation. L'identité locale part maintenant en première émission,
+      l'enrichissement distant suit — et un échec ne termine plus le flux.
+      ⚠️ Analysé et couvert par les tests, mais **son effet propre n'a pas été
+      isolé sur appareil** : le semis ci-dessous masque désormais le symptôme.
+- [x] **Le nom dès la première image**, sans passer par « Chargement… » : un
+      flux n'émet jamais dans l'image du premier rendu, donc même avec tout en
+      cache l'en-tête affichait son repli. `_semerIdentiteConnue()`
+      ([conversation_screen.dart:189](lib/features/messages/presentation/screens/conversation_screen.dart:189))
+      lit à l'ouverture trois sources locales et **synchrones** — uid Firebase,
+      conversation en cache, profil en cache — et les pose comme valeurs de
+      départ. Mesuré par rafale de captures (25 en 25 s) sur SM A515F le
+      2026-09-14, lien profond en mode avion, release md5 `4b37b3c2…` : trois
+      états seulement — écran de lancement, écran blanc, puis **« Salim L. »**.
+      Aucune image ne montre « Chargement… ».
+- [ ] **Groupe et « Mes notes » par lien profond** : le semis lit aussi la
+      nature du fil dans la conversation en cache (nom et image d'un groupe,
+      « Mes notes » par différence avec le compte courant). Écrit, analysé,
+      **pas mesuré** : il faudrait l'identifiant d'une conversation de groupe,
+      que rien n'expose depuis l'appareil — logcat n'en montre aucun en release
+      et la base n'est pas liée sur ce poste.
+- [ ] **Notification d'une discussion jamais ouverte** : le push porte déjà
+      `senderName`, `senderPhotoUrl`, `senderId` et `conversationType` ;
+      [app.dart:92](lib/app.dart:92) les passe en `extra` au moment de
+      naviguer, faute de quoi aucun cache local ne peut renseigner un fil
+      inconnu. Demande deux comptes et un vrai push pour être vérifié.
+- [ ] **Lien profond brut vers une discussion inconnue, hors ligne** : mesuré
+      le 2026-09-14 — « Chargement… » et le bandeau « Mode hors ligne », qui
+      restent. C'est le cas où aucune source n'existe : ni cache, ni réseau, ni
+      `extra`. Vérifier qu'il se remplit bien au retour du réseau.
 - [x] **Hors ligne, dès l'ouverture** : l'en-tête affiche « Salim L. » et son
       avatar « SL » sans attendre le réseau, et la liste des discussions ne
       montre plus « Utilisateur ». Vérifié SM A515F le 2026-09-14 (release md5
@@ -9584,6 +9616,33 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
+
+## ⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Les chiffres affichés étaient ceux du démarrage de l'app : suivre quelqu'un, publier, enregistrer une publication ne les bougeait pas.
+
+Trois causes distinctes (`feed_provider.dart`, `follow_button.dart`) : les
+compteurs d'abonnés/abonnements n'étaient invalidés **par personne** et ne sont
+pas `autoDispose` ; les compteurs de publications et de favoris sont
+`autoDispose` mais l'écran qui les affiche reste monté sous l'écran de
+rédaction, donc personne ne les relâche ; et le compteur de partages de la
+carte n'était jamais relu après un partage externe. Couvert en test par
+`feed_compteurs_rafraichis_test.dart` — qui ne dit rien de ce qui s'affiche.
+
+- [ ] **Abonnés / Abonnements** (deux comptes) : suivre le second compte depuis
+  une carte du fil, ouvrir Mon espace → « Abonnements » a augmenté de 1 **sans
+  redémarrer l'app** ; ne plus suivre → il redescend. C'est le cas qui ne
+  marchait pas.
+- [ ] **Onglet « Abonnements » du fil** juste après avoir suivi quelqu'un : ses
+  publications y apparaissent (la liste des comptes suivis était, elle aussi,
+  figée jusqu'au redémarrage).
+- [ ] **Publications** : publier depuis le fil, revenir à Mon espace → le
+  chiffre a augmenté ; supprimer la publication → il redescend. Même contrôle
+  sur l'écran Profil, ligne « Mes publications ».
+- [ ] **Enregistrés** : toucher le marque-page d'une publication → le chiffre de
+  Mon espace et la ligne « Publications enregistrées » du Profil suivent.
+- [ ] **Partages** : partager une publication vers WhatsApp → le compteur de
+  partages de la carte s'incrémente sans recharger le fil.
 
 ## ⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)
 

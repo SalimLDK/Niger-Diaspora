@@ -45,8 +45,9 @@ class FollowButton extends ConsumerWidget {
           final tokens = FeedTokens.of(context);
           return InkWell(
             onTap: () async {
-              await ref.read(feedRepositoryProvider).toggleFollow(targetUserId);
-              ref.invalidate(isFollowingProvider(targetUserId));
+              await ref
+                  .read(feedNotifierProvider.notifier)
+                  .toggleFollow(targetUserId);
             },
             borderRadius: BorderRadius.circular(8),
             child: Padding(
@@ -74,8 +75,9 @@ class FollowButton extends ConsumerWidget {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () async {
-            await ref.read(feedRepositoryProvider).toggleFollow(targetUserId);
-            ref.invalidate(isFollowingProvider(targetUserId));
+            await ref
+                .read(feedNotifierProvider.notifier)
+                .toggleFollow(targetUserId);
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),

@@ -13,10 +13,8 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
 import '../../../events/presentation/providers/event_provider.dart';
-import '../../../feed/presentation/screens/my_posts_screen.dart'
-    show userPostsCountProvider;
-import '../../../feed/presentation/screens/saved_posts_screen.dart'
-    show bookmarkedPostsCountProvider;
+import '../../../feed/presentation/providers/feed_provider.dart'
+    show userPostsCountProvider, bookmarkedPostsCountProvider;
 import '../providers/profile_provider.dart';
 import '../widgets/share_profile_modal.dart';
 import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';

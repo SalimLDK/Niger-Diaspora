@@ -83,6 +83,7 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
     try {
       final router = ref.read(routerProvider);
       String route;
+      Map<String, dynamic>? extra;
 
       switch (type) {
         // Message notifications - use conversationId from data
@@ -90,6 +91,31 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
         case 'messageReaction':
           final conversationId = data['conversationId'] as String? ?? targetId;
           route = '/messages/$conversationId';
+          // Ce que la notification sait déjà, passé en raccourci d'affichage.
+          //
+          // L'écran sème son en-tête depuis les caches locaux, mais une
+          // discussion **jamais ouverte sur cet appareil** n'y est pas : sans
+          // ces valeurs, elle s'ouvrait sur « Chargement… » jusqu'à la réponse
+          // du réseau — et indéfiniment hors ligne. Le push, lui, porte déjà le
+          // nom et la photo de l'expéditeur.
+          //
+          // Raccourci d'affichage, jamais source de vérité :
+          // `ConversationScreen` réconcilie tout avec la conversation chargée
+          // (`_syncConversationIdentity`).
+          final estGroupe = (data['conversationType'] as String?) == 'group';
+          extra = <String, dynamic>{
+            'name':
+                estGroupe
+                    ? data['conversationTitle'] as String?
+                    : (data['senderName'] as String? ??
+                        data['conversationTitle'] as String?),
+            'imageUrl':
+                estGroupe
+                    ? data['conversationPhotoUrl'] as String?
+                    : data['senderPhotoUrl'] as String?,
+            'isGroup': estGroupe,
+            'otherUserId': estGroupe ? null : data['senderId'] as String?,
+          };
           break;
 
         // Friend notifications - go to profile
@@ -148,7 +174,7 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
       }
 
       // debugPrint('Pushing route: $route');
-      router.push(route);
+      router.push(route, extra: extra);
     } catch (e, stackTrace) {
       // Silently ignore navigation errors - notification navigation is best-effort
       debugPrint('Error navigating to notification: $e\n$stackTrace');

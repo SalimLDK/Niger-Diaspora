@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,25 +15,6 @@ import '../widgets/my_post_card.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
-
-// Provider for user's own posts
-final myPostsProvider =
-    FutureProvider.autoDispose<List<PostEntity>>((ref) async {
-  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-  if (currentUserId == null) return const [];
-  final repo = ref.read(feedRepositoryProvider);
-  final result = await repo.getUserPosts(currentUserId);
-  return result.fold((_) => const [], (posts) => posts);
-});
-
-final userPostsCountProvider =
-    FutureProvider.autoDispose<int>((ref) async {
-  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-  if (currentUserId == null) return 0;
-  final repo = ref.read(feedRepositoryProvider);
-  final result = await repo.getUserPosts(currentUserId);
-  return result.fold((_) => 0, (posts) => posts.length);
-});
 
 class MyPostsScreen extends ConsumerStatefulWidget {
   /// Onglet ouvert à l'arrivée : 0 = Publications, 1 = Repartages. « Mes
