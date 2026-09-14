@@ -25,7 +25,18 @@ class PollCard extends ConsumerStatefulWidget {
   final String? groupId;
   final String? postId;
 
-  const PollCard({super.key, required this.poll, this.groupId, this.postId});
+  /// Rayons imposes par le contenant. Dans une bulle de discussion, ce sont
+  /// ceux de la bulle : sans eux, son coin de queue (arrondi a 6) depassait
+  /// de la carte (arrondie a 16) et laissait voir le fond de la bulle.
+  final BorderRadiusGeometry? borderRadius;
+
+  const PollCard({
+    super.key,
+    required this.poll,
+    this.groupId,
+    this.postId,
+    this.borderRadius,
+  });
 
   @override
   ConsumerState<PollCard> createState() => _PollCardState();
@@ -117,7 +128,9 @@ class _PollCardState extends ConsumerState<PollCard> {
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: context.cardDecoration,
+      decoration: widget.borderRadius == null
+          ? context.cardDecoration
+          : context.cardDecoration.copyWith(borderRadius: widget.borderRadius),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
