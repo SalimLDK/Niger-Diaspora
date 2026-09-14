@@ -39,12 +39,14 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**900 cases à cocher, 516 cochées** — 184 entrées sur 228 ont encore des cases ouvertes.
+**927 cases à cocher, 524 cochées** — 189 entrées sur 233 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (18)
+**P0 — avant toute nouvelle version** (20)
 
+- 9 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
+- 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
@@ -64,7 +66,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (53)
+**P1 — fonction importante, jamais vérifiée** (56)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 9 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -72,13 +74,15 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 1 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
+- 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
+- 2 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
+- 2 · [✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)](#-lien-diasponiger-au-démarrage-à-froid--corrigé-vérifié-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)](#-le-scanner-de-laccueil-lit-tous-les-qr-du-projet-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 16 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04) · *Liens profonds, navigation et QR codes*
@@ -106,6 +110,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
+- 7 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
@@ -242,14 +247,14 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 130 à faire, 56 faites
+- [2. Messagerie](#2-messagerie) — 148 à faire, 61 faites
 - [3. Groupes](#3-groupes) — 113 à faire, 55 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 41 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 105 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 33 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
@@ -504,6 +509,134 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Un message écrit hors ligne partait dans Hive et **y restait pour toujours** : `processQueue()` n'était appelé de nulle part. Jamais envoyé, jamais purgé, jamais compté — et disparu de l'écran.
+
+*Bloqué : deux comptes, et de quoi couper le réseau.*
+
+`OfflineQueueService` était complet mais orphelin : `processQueue`,
+`cleanOldMessages`, `pendingMessagesCountProvider` et
+`messageFailureStreamProvider` n'avaient **aucun appelant**. Seul `enqueue`
+était branché, sur l'envoi de texte hors ligne.
+
+- [ ] **Écrire un message hors ligne**, quitter l'écran, y revenir : il est
+      toujours là, marqué en échec, avec « Renvoyer ».
+      (`message_provider.dart`, `_avecMessagesJamaisPartis`)
+- [ ] **Rétablir le réseau sans rien toucher** : il part seul, et la ligne de
+      la liste se met à jour. (`RenvoiMessagesEnAttente`, tenu en vie par
+      `app.dart`)
+- [ ] **Tuer l'app entre les deux**, puis la rouvrir en ligne : il part au
+      démarrage — le renvoi ne dépend pas d'une transition de connectivité.
+- [ ] **Une réponse citée et une carte de publication** écrites hors ligne
+      repartent **entières**. Les champs plats de `PendingMessage` les
+      perdaient, et codaient le type « text » en dur.
+- [ ] **Une photo écrite hors ligne** repart avec son image. Si Android a
+      purgé le fichier temporaire entre-temps, le message reste affiché en
+      échec plutôt que de repartir vide.
+- [ ] **Pas de doublon** : un message marqué en échec par le délai de 30 s
+      dont l'écho serveur arrive en retard ne doit PAS être renvoyé une
+      seconde fois. (`oublierMessageEnAttente` sur l'écho)
+- [ ] **Message de plus de 24 h** : il ne repart pas tout seul, il attend
+      « Renvoyer ». (`kFenetreRenvoiAutomatique`)
+- [ ] **Échec en ligne** (et non hors ligne) : couper le réseau juste après
+      l'appui sur envoyer. Même traitement — gardé, renvoyable.
+- [ ] **La file ne gonfle pas** : après une série d'envois réussis, vérifier
+      qu'il ne reste rien en attente.
+
+---
+
+## ⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Trois chemins laissaient l'écran de discussion sur sa copie locale sans plus rien écouter, dont un qui **écrase le cache** avec du vide.
+
+*Bloqué : deux comptes, et de quoi couper le réseau.*
+
+Trouvé en essayant de tester le rattrapage en discussion ouverte, et c'est ce
+qui empêchait ce test d'aboutir : `_loadNetworkData()` sortait avant de poser
+les abonnements temps réel, donc le rattrapage ne pouvait pas exister.
+
+- [ ] **Discussion ouverte PENDANT que l'appareil est hors ligne**, puis retour
+      du réseau : les messages arrivés entre-temps s'affichent seuls. Avant, la
+      sortie anticipée sur `isOffline` ne posait **aucun écouteur** et rien ne
+      la relançait — l'écran restait figé jusqu'à ce qu'on ressorte et rentre.
+      (`message_provider.dart`, `_loadNetworkData`)
+- [ ] **Démarrage à froid directement dans une discussion** (notification, lien
+      profond, restauration de route) : la discussion se remplit. La session
+      Supabase n'est pas encore établie à cet instant, et `messages_select`
+      étant de rôle `public`, la lecture **réussissait à vide** — le repository
+      mettait ce vide en cache par-dessus la vraie discussion.
+      (`message_supabase_datasource.dart`, garde `_ensureReadableAuth`)
+- [ ] **Vérifier qu'aucune discussion n'a été vidée** par ce chemin avant le
+      correctif : ouvrir les discussions anciennes et confirmer que l'historique
+      est là. Le cache est local, donc le dégât éventuel est sur l'appareil,
+      pas en base.
+- [ ] **Lecture réseau en échec avec un cache non vide** (réseau très dégradé) :
+      l'écran garde la discussion lisible, et une relance finit par aboutir —
+      deux essais, à 4 s puis 10 s.
+- [ ] **Pas de relance en boucle** : rester hors ligne plusieurs minutes sur
+      une discussion ne doit pas produire une requête toutes les secondes
+      (`adb logcat`, ou compteur de requêtes côté Supabase).
+- [ ] **« Vider la discussion »** continue de fonctionner : une discussion
+      réellement vidée doit rester vide, la garde ne doit pas la repeupler.
+
+---
+
+## ✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Les trois flux de `MessageRepositoryImpl` avalaient leurs erreurs : plus aucun événement, donc rond de chargement sans fin sur la liste, aucun bandeau, aucun réessai, et l'export d'une discussion qui attend pour toujours.
+
+*Bloqué : rien — se rejoue avec le mode avion.*
+
+**Le défaut.** Les trois flux se terminaient par
+`.handleError((error) { return Left(ServerFailure(...)); })`. Dart **ignore la
+valeur de retour** de `handleError` : ce `Left` n'était jamais émis. Mesuré hors
+ligne sur SM A515F le 2026-09-14 — liste des discussions sur un rond de
+chargement sans fin, sans erreur ni moyen de réessayer. Et
+`conversationStreamProvider(...).future`, que lit l'export d'une discussion,
+n'aurait jamais rendu la main.
+
+Le réparer seul ne suffisait pas : il fallait décider ce que l'échec **devient**,
+et trois chemins de l'UI le lisaient de travers.
+
+- `conversationStreamProvider` pliait l'échec en `null` — ce que l'écran lit
+  comme « Conversation supprimée ». Une coupure aurait annoncé une suppression.
+- `conversationsProvider` le pliait en **liste vide**, par-dessus le cache
+  qu'il venait de servir : les discussions déjà affichées auraient disparu.
+- `hasLoadError` **remplaçait le composeur** par un texte rouge : plus moyen
+  d'écrire hors ligne, alors que le message part en file d'attente.
+- Et [messages_screen.dart:330](lib/features/messages/presentation/screens/messages_screen.dart:330)
+  lisait `conversationsAsync.value!` : en Riverpod 2, `.value` **relance
+  l'erreur** — écran rouge à la première panne, sous un `hasValue` pourtant vrai.
+
+**Corrigé le 2026-09-14**, cinq fichiers : `_echecEmis<T>()`
+(`StreamTransformer.fromHandlers`, l'idiome déjà utilisé par
+`ProfileRepositoryImpl`) remplace les trois `.handleError` ; les trois providers
+propagent l'échec en erreur au lieu de le déguiser en `null` ou en liste vide ;
+`hasLoadError` ne vaut plus que si la conversation est inconnue et pose un
+liseré **au-dessus** du composeur au lieu de le remplacer ; la liste et la
+feuille de partage prennent `skipError: true`, pour qu'une panne n'efface jamais
+ce qui est déjà à l'écran. Deux tests neufs :
+`test/features/messages/echec_de_lecture_test.dart`.
+
+- [x] **Hors ligne, démarrage à froid** : la liste s'affiche depuis le cache —
+      ni rond de chargement sans fin, ni « aucune discussion », ni écran
+      d'erreur. Vérifié SM A515F le 2026-09-14 (release md5 `77bdcfd0…`).
+- [x] **Discussion ouverte hors ligne** : messages en place, liseré « Erreur de
+      chargement » au-dessus du composeur, **composeur utilisable** (texte saisi,
+      clavier, bouton d'envoi présent), et aucune mention de suppression.
+      Vérifié SM A515F le 2026-09-14.
+- [x] **Retour du réseau** : l'en-tête se remplit (+30 s) et le liseré disparaît
+      (+70 s), sans quitter l'écran. Vérifié SM A515F le 2026-09-14.
+- [ ] **Panne persistante** (et non une simple coupure) : sur un refus RLS qui
+      dure, vérifier que la liste finit bien par montrer son état d'erreur —
+      `skipError` ne doit masquer une panne que tant qu'il reste quelque chose à
+      afficher.
+- [ ] **Export d'une discussion** hors ligne (`conversation_options_modal`) :
+      doit échouer proprement avec son message, et non rester à tourner.
+
+---
+
 ## ✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)
 
 **Priorité P1** · importance 4/5 — Un profil dont la lecture échouait pendant une coupure restait en échec pour toute la vie de l'app : l'en-tête d'une discussion affichait « Conversation » et un avatar « C » à la place du nom, et ni le retour du réseau ni un aller-retour hors de l'écran ne le corrigeaient. Seul un redémarrage.
@@ -559,6 +692,46 @@ réellement supprimé) reste une donnée, pas une panne, donc aucune reprise
 dessus. Deux tests neufs :
 `test/features/profile/user_stream_reprise_test.dart`.
 
+**Deuxième moitié, le 2026-09-14** : afficher le nom **pendant** la coupure, et
+pas seulement au retour du réseau. Trois manques se cachaient derrière le repli.
+
+- La boîte Hive `profiles_cache` existait depuis toujours, mais **aucun profil
+  n'y était écrit** : le seul cache de profils vivait en mémoire, donc rien ne
+  survivait à un démarrage à froid. `_memoriser()` écrit désormais les deux
+  ([profile_supabase_datasource.dart](lib/features/profile/data/datasources/profile_supabase_datasource.dart:487)),
+  et `getCachedProfile` retombe sur le disque.
+- `userStreamProvider` n'allait pas chercher ce dernier profil connu avant sa
+  lecture réseau : il part maintenant en premier (stale-while-revalidate).
+- Et surtout, `identityLoading` déclarait l'identité « en chargement » dès que
+  **le flux de la conversation** n'avait pas de valeur — le nom était en cache,
+  l'écran refusait de l'afficher pour une raison qui n'avait rien à voir avec
+  lui. `otherUser == null` passe en tête de la condition
+  ([conversation_screen.dart:1199](lib/features/messages/presentation/screens/conversation_screen.dart:1199)).
+
+`conversationStreamProvider` sert en plus la conversation en cache avant le
+réseau : sans elle, un écran atteint sans `state.extra` (lien profond,
+notification) ne sait même pas **qui** est en face — l'identifiant de l'autre
+participant s'en déduit — et le cache de profil ne sert alors à rien.
+
+- [x] **Par lien profond, hors ligne** : plus de « Utilisateur » pendant que la
+      session se restaure — l'en-tête reste sur « Chargement… » puis affiche
+      « Salim L. ». L'interlocuteur se déduit de la conversation **par
+      différence avec le compte courant** : tant que la session n'est pas
+      restaurée, il n'y a personne à nommer, et `currentUser == null` compte
+      donc comme identité en attente
+      ([conversation_screen.dart:1199](lib/features/messages/presentation/screens/conversation_screen.dart:1199)).
+      Vérifié SM A515F le 2026-09-14 (release md5 `9641765b…`).
+- [ ] **La fenêtre elle-même** : hors ligne, cette restauration de session prend
+      **une à deux minutes** (mesuré : « Chargement… » à +22 s et +52 s, nom à
+      +2 min), pendant lesquelles l'app martèle App Check toutes les secondes
+      (`Unable to resolve host firebaseappcheck.googleapis.com` dans logcat).
+      Le nom finit par arriver, mais l'attente est longue pour quelqu'un qui
+      ouvre une notification dans le métro. À instruire à part.
+- [x] **Hors ligne, dès l'ouverture** : l'en-tête affiche « Salim L. » et son
+      avatar « SL » sans attendre le réseau, et la liste des discussions ne
+      montre plus « Utilisateur ». Vérifié SM A515F le 2026-09-14 (release md5
+      `83a6ec4e…`) ; au retour du réseau, « En ligne » et la pastille de
+      présence s'ajoutent.
 - [x] **Après correction** : les quatre étapes rejouées sur la release du
       correctif (md5 `103379e7…`) — hors ligne l'en-tête affiche toujours son
       repli, puis **se remplit tout seul 20 s après le retour du réseau**
@@ -567,19 +740,9 @@ dessus. Deux tests neufs :
 - [ ] **Compte réellement supprimé** : vérifier que ce cas affiche toujours
       « Utilisateur » et non un état d'erreur réessayable.
 
-**Pas touché, volontairement.** Les trois `.handleError` de
-[message_repository_impl.dart:130](lib/features/messages/data/repositories/message_repository_impl.dart:130)
-(puis l. 178 et l. 220) avalent toujours leur erreur : Dart ignore la valeur de
-retour de `handleError`, donc le `Left` qu'ils construisent n'est jamais émis.
-Les faire parler change ce que voit l'utilisateur hors ligne, et chaque chemin a
-sa régression — plié en `null`, l'écran lit « Conversation supprimée » ; plié en
-erreur, `hasLoadError` **remplace le composeur**
-([conversation_screen.dart:1524](lib/features/messages/presentation/screens/conversation_screen.dart:1524)),
-donc plus moyen d'écrire hors ligne ; et côté liste,
-[messages_screen.dart:330](lib/features/messages/presentation/screens/messages_screen.dart:330)
-fait `conversationsAsync.value!`, qui relance l'erreur en Riverpod 2. À traiter
-dans une passe à part, avec sa propre vérification appareil.
-
+**Les trois `.handleError` qui avalaient leur erreur** ont été traités dans
+la foulée — voir « ✅ Un échec de lecture en messagerie se voit, sans effacer
+l'écran », en tête de ce domaine.
 ---
 
 ## ⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)
@@ -7419,6 +7582,53 @@ Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
 
 ---
 
+## ✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Un lien du schéma maison ouvert alors que l'app n'est pas lancée tombait sur « Page Not Found ». Les QR codes du projet passent tous par ce schéma.
+
+*Bloqué : rien — `adb shell am start -a android.intent.action.VIEW -d …`.*
+
+**Le défaut, mesuré le 2026-09-14** (mode avion comme en ligne) :
+
+```
+GoException: no routes for location: /debef5f0-2fa0-4775-b1ed-85a4d6411102
+```
+
+La section a disparu. Dans `diasponiger://messages/<id>` elle est l'**hôte** de
+l'URI, pas le début du chemin. Au démarrage à froid, c'est
+`AudioServicePlugin.getFlutterEngine` qui fixe la route initiale ; il demande
+d'abord `activity.getInitialRoute()`, et la version de `FlutterFragmentActivity`
+ne rend que `data.getPath()` — l'hôte est jeté là, avant que quiconque côté Dart
+puisse le voir. La remise à plat de `app_router.dart` ne pouvait donc rien
+rattraper : elle recevait déjà `/<id>`.
+
+Les deux autres chemins allaient bien, ce qui rendait le défaut invisible en
+test : `onNewIntent` (app lancée) et `onCreate` sur moteur déjà lancé passent
+par `pushRouteFromIntent`, qui recolle l'hôte depuis le 2026-09-09. Et un lien
+`https` n'est pas concerné — son chemin est complet.
+
+**Corrigé** dans
+[MainActivity.java](android/app/src/main/java/com/diasponiger/diasponiger/MainActivity.java:332) :
+`getInitialRoute()` rend la route remise à plat, et la construction vit
+désormais dans `routeDepuisIntent()`, partagée avec `pushRouteFromIntent`.
+⚠️ `getInitialRoute()` est **déprécié** dans cet embedding (javac le signale
+depuis ce correctif) mais reste le point d'entrée qu'`audio_service` interroge :
+à revérifier à chaque montée de Flutter ou d'`audio_service`.
+
+- [x] **`diasponiger://messages/<id>`, app pas lancée, hors ligne** : ouvre la
+      discussion. Vérifié SM A515F le 2026-09-14 (release md5 `9641765b…`).
+- [x] **Le même, en ligne** : ouvre la discussion, nom et « En ligne » en
+      place à +40 s. Vérifié SM A515F le 2026-09-14.
+- [x] **`https://diasponiger.web.app/messages/<id>` à froid** : inchangé, ouvre
+      la discussion (non-régression). Vérifié SM A515F le 2026-09-14.
+- [ ] **Les autres sections à froid** (`groups`, `profile`, `events`, `posts`) :
+      un seul identifiant a été essayé, celui d'une discussion.
+- [ ] **Moteur en cache sans activité** (app balayée des récents pendant que le
+      service audio tourne) : le lien doit encore arriver — c'est le chemin
+      `onCreate` + `pushRouteFromIntent`, non rejoué depuis ce correctif.
+
+---
+
 ## ⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)
 
 **Priorité P2** · importance 3/5 — Taper un lien du projet dans un message affichait « Ouvrir ce lien ? », passait par Android, et la discussion disparaissait : le retour menait ailleurs.
@@ -9353,6 +9563,41 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
+
+## ⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)
+
+**Priorité P1** · importance 3/5 — Le fil pouvait rester figé sans que rien ne le signale : la pastille ne dépendait que du canal temps réel, et le geste de rafraîchissement ne partait pas sur un fil court, vide ou en erreur.
+
+Trois changements, aucun vu sur un téléphone (`feed_screen.dart`,
+`feed_provider.dart`, `new_posts_pill.dart`, `feed_error_state.dart`) :
+un sondage toutes les 60 s qui alimente la pastille, le tiré-pour-rafraîchir
+rendu possible dans tous les états, et la pastille redessinée (avatars des
+auteurs, entrée/sortie animées). Couvert en test par
+`feed_sondage_nouvelles_publications_test.dart` et `new_posts_pill_test.dart`,
+qui ne disent rien du rendu ni du geste.
+
+- [ ] **Tirer vers le bas sur un fil court** (filtrer par ville pour n'avoir
+  qu'une ou deux publications) : l'indicateur circulaire apparaît et le fil se
+  recharge. C'est le cas qui ne marchait pas — la liste ne débordait pas, donc
+  il n'y avait rien à tirer.
+- [ ] **Tirer sur un fil vide** (compte neuf, ou filtre sans résultat) et
+  **sur l'écran d'échec** (mode avion, puis « Réessayer » ignoré) : même geste,
+  même rechargement.
+- [ ] **Pastille** : publier depuis le second téléphone ; sur le premier, la
+  pastille descend en haut du fil avec l'avatar de l'auteur, sans déplacer la
+  lecture en cours ; la toucher pose la publication en tête et remonte le fil.
+- [ ] **Sans temps réel** : couper le Wi-Fi/les données une minute, publier
+  depuis l'autre téléphone, revenir : la pastille doit finir par apparaître
+  dans la minute qui suit le retour du réseau (c'est le sondage, pas le canal).
+- [ ] **Publication d'un ami** (audience « Amis », deux comptes amis) : elle
+  arrive par le sondage alors que le canal temps réel l'écarte volontairement.
+- [ ] **Pas de sondage en arrière-plan** : passer sur l'onglet Messages ou
+  mettre l'app en arrière-plan, attendre trois minutes, revenir — vérifier
+  dans les journaux (`adb logcat`) qu'aucune requête de fil n'est partie
+  entre-temps, et qu'une seule part au retour.
+- [ ] **Thème sombre et `font_scale` 1.3** : la pastille reste lisible sur le
+  fond sombre et son texte ne déborde pas du galet (voir « Fil sombre : même
+  structure que le fil clair »).
 
 ## ⬜ Fil sombre : même structure que le fil clair (2026-09-13)
 

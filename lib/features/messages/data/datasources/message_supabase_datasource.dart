@@ -2731,6 +2731,15 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     dynamic lastMessageKey,
     DateTime? filterAfterDate,
   }) async {
+    // Garde obligatoire, et la conséquence de son absence est une perte de
+    // données, pas seulement un écran vide : `messages_select` vaut pour le
+    // rôle `public`, donc une lecture sans session **réussit** en ne renvoyant
+    // aucune ligne. Le repository prend ce vide pour la vérité, le met en
+    // cache par-dessus la discussion réelle (`cacheMessages`), et l'écran
+    // affiche une discussion vide. Même piège que `users_select` côté profil.
+    if (!await _ensureReadableAuth()) {
+      throw ServerException('Session Supabase non établie – réessayez');
+    }
     try {
       // Build filter query — cursor filter must precede order/limit
       final baseQuery = _supabase

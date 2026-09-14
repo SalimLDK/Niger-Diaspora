@@ -450,6 +450,17 @@ Stream<ProfileEntity?> _profilAvecReprise(Ref ref, String userId) {
     sortie.close();
   });
 
+  // Le dernier profil connu part **avant** toute lecture réseau (mémoire de la
+  // session, sinon copie disque). Sans lui, un écran ouvert pendant une
+  // coupure n'a rien à afficher tant que la lecture n'a pas abouti — et un
+  // démarrage à froid hors ligne n'aboutit jamais : la liste des discussions
+  // montrait « Utilisateur » et l'en-tête d'une DM son repli « Conversation ».
+  // La lecture réseau le remplace dès qu'elle rend quelque chose.
+  final connu = depot
+      .getCachedProfile(userId)
+      .fold((_) => null, (profil) => profil);
+  if (connu != null) sortie.add(connu);
+
   brancher();
   return sortie.stream;
 }

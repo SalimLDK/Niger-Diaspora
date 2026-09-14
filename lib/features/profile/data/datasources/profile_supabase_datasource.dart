@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/constants/profile_options.dart';
+import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../models/profile_model.dart';
 import 'profile_remote_datasource.dart';
@@ -118,7 +119,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         await _supabase.from('users').select().eq('id', userId).maybeSingle();
     if (data == null) throw ServerException('Profile not found: $userId');
     final profile = ProfileModel.fromJson(_mapProfile(data));
-    _cache[userId] = profile;
+    _memoriser(profile);
     return profile;
   }
 
@@ -141,7 +142,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .asyncMap((rows) async {
           if (rows.isEmpty) return await _profilAbsent(userId);
           final profile = ProfileModel.fromJson(_mapProfile(rows.first));
-          _cache[userId] = profile;
+          _memoriser(profile);
           return profile;
         });
   }
@@ -161,7 +162,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
           await _supabase.from('users').select().eq('id', userId).maybeSingle();
       if (data != null) {
         final profile = ProfileModel.fromJson(_mapProfile(data));
-        _cache[userId] = profile;
+        _memoriser(profile);
         return profile;
       }
       throw NotFoundException('User $userId not found');
@@ -294,7 +295,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
             if (row['latitude'] == null || row['longitude'] == null) return;
             try {
               final profile = ProfileModel.fromJson(_mapProfile(row));
-              _cache[profile.id] = profile;
+              _memoriser(profile);
               controller.add(profile);
             } catch (_) {
               // Ligne inattendue : on ignore plutôt que de casser le flux.
@@ -458,7 +459,42 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   }
 
   @override
-  ProfileModel? getCachedProfile(String userId) => _cache[userId];
+  ProfileModel? getCachedProfile(String userId) {
+    final enMemoire = _cache[userId];
+    if (enMemoire != null) return enMemoire;
+    try {
+      final json = CacheService.instance.getCachedProfile(userId);
+      if (json == null) return null;
+      final profile = ProfileModel.fromJson(json);
+      _cache[userId] = profile;
+      return profile;
+    } catch (_) {
+      // Boîte Hive absente (test unitaire) ou JSON d'une version antérieure :
+      // pas de profil connu, ce que l'appelant sait déjà traiter.
+      return null;
+    }
+  }
+
+  /// Mémorise un profil lu : en mémoire pour la session, **et sur disque** pour
+  /// les suivantes.
+  ///
+  /// La copie disque manquait. La boîte Hive `profiles_cache` existait déjà,
+  /// mais aucun profil n'y était écrit — si bien qu'un démarrage à froid hors
+  /// ligne n'avait aucun nom à afficher : la liste des discussions montrait
+  /// « Utilisateur » et l'en-tête d'une discussion son repli « Conversation »
+  /// (avatar « C ») jusqu'au retour du réseau. Mesuré sur SM A515F le
+  /// 2026-09-14.
+  void _memoriser(ProfileModel profile) {
+    _cache[profile.id] = profile;
+    try {
+      unawaited(
+        CacheService.instance.cacheProfile(profile.id, profile.toJson()),
+      );
+    } catch (_) {
+      // Cache disque indisponible : la copie mémoire suffit à la session en
+      // cours, et le profil sera relu au prochain démarrage.
+    }
+  }
 
   @override
   Future<bool> isHandleAvailable(String handle, {String? excludeUserId}) async {
