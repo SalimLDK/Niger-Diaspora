@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**968 cases à cocher, 548 cochées** — 197 entrées sur 241 ont encore des cases ouvertes.
+**970 cases à cocher, 548 cochées** — 197 entrées sur 241 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -167,7 +167,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
 - 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
-- 6 · [Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)](#le-bouton--ouvrir-play-store--de-la-garde-play-integrity-ne-faisait-rien-2026-09-14) · *Backend, sécurité et observabilité*
+- 8 · [Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)](#le-bouton--ouvrir-play-store--de-la-garde-play-integrity-ne-faisait-rien-2026-09-14) · *Backend, sécurité et observabilité*
 - 3 · [⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)](#-ce-que-dit-vraiment-la-console-crashlytics-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
@@ -266,7 +266,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 34 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 52 à faire, 40 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 54 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 43 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -14158,10 +14158,17 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 
 `SecurityGateService._openPlayStore()` avait un corps entièrement commenté :
 le tap fermait le dialogue et n'ouvrait rien. La méthode est supprimée, et le
-bouton appelle `SupportService.openStoreForReview()`, qui ouvre la bonne fiche
-par plateforme (`Platform.isIOS ? appStoreUrl : playStoreUrl`) en
+bouton appelle `AppReviewService.ouvrirLaFicheSansAvis()`, qui ouvre la bonne
+fiche par plateforme (`Platform.isIOS ? appStoreUrl : playStoreUrl`) en
 `LaunchMode.externalApplication` — les mêmes constantes que celles corrigées
 dans « Les deux liens « noter l'app » étaient morts ».
+
+**Et non `ouvrirLaFicheDuStore()`** : celle-ci ouvre la *page d'avis*
+(`?action=write-review` sur iOS) et marque la fiche comme ouverte. Ici on
+demande une installation, pas une note — et marquer couperait l'invitation
+automatique pour un avis que personne n'a déposé. Même choix qu'à la notice de
+mise à jour. Si l'ouverture échoue, un message le dit, sans quoi le bouton
+retomberait exactement dans le symptôme corrigé ici.
 
 Contrairement à ce qu'un `grep` laissait croire, le dialogue n'est pas mort :
 [checkAndShowDialog](lib/core/services/security_gate_service.dart) a deux
@@ -14197,6 +14204,11 @@ elle-même n'a donc jamais été observée en marche.
       Store » est le cas attendu ; « Impossible de vérifier la sécurité »
       signifie que la Cloud Function d'intégrité a échoué — autre sujet, à
       consigner séparément.
+- [ ] La fiche doit s'ouvrir sur la page normale, **pas** sur le formulaire
+      d'avis, et l'invitation automatique « noter l'app » doit rester
+      disponible ensuite : ce passage ne doit pas la consommer.
+- [ ] Couper le réseau puis retenter « Ouvrir Play Store » : un message doit
+      apparaître. Rien du tout signifierait que le retour d'échec est ignoré.
 
 ---
 

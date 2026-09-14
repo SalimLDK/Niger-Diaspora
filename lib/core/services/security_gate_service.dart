@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import 'app_review_service.dart';
 import 'play_integrity_service.dart';
-import 'support_service.dart';
 
 /// Niveaux de sécurité requis pour différentes opérations
 enum SecurityLevel {
@@ -218,6 +218,10 @@ class SecurityGateService {
     final verdict = result.verdict;
     final needsPlayStore = verdict != null && !verdict.isPlayLicensed;
 
+    // Capturé avant le dialogue : le bouton ouvre le store après un `await`,
+    // et `context` peut avoir disparu d'ici là.
+    final messenger = ScaffoldMessenger.of(context);
+
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -246,7 +250,23 @@ class SecurityGateService {
             TextButton(
               onPressed: () async {
                 Navigator.of(ctx).pop();
-                await SupportService().openStoreForReview();
+                // `ouvrirLaFicheSansAvis` et non `ouvrirLaFicheDuStore` :
+                // celle-ci ouvre la page d'avis et marque la fiche comme
+                // ouverte, ce qui couperait l'invitation automatique pour un
+                // avis que personne n'a déposé. Ici on demande une
+                // installation, pas une note. Même choix qu'à la notice de
+                // mise à jour ([main_shell.dart]).
+                final ouvert =
+                    await AppReviewService.instance.ouvrirLaFicheSansAvis();
+                // Sans ce retour, un échec d'ouverture redonne exactement le
+                // symptôme qu'on corrige ici : un bouton qui ne fait rien.
+                if (!ouvert) {
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Impossible d\'ouvrir la fiche du store.'),
+                    ),
+                  );
+                }
               },
               child: const Text('Ouvrir Play Store'),
             ),
