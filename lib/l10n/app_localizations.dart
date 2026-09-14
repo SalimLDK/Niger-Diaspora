@@ -3452,6 +3452,18 @@ abstract class AppLocalizations {
   /// **'Aucune ville de la liste à proximité'**
   String get cityNoneNearby;
 
+  /// No description provided for @officialGroupDepartureCityTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez changé de ville'**
+  String get officialGroupDepartureCityTitle;
+
+  /// No description provided for @officialGroupDepartureCityBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Depuis le {date}, votre profil n\'indique plus {city}. Vous pouvez quitter ce groupe ou y rester : rien ne change sans votre accord.'**
+  String officialGroupDepartureCityBody(String date, String city);
+
   /// No description provided for @cityFieldHint.
   ///
   /// In fr, this message translates to:

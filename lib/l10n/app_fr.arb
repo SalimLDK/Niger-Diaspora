@@ -898,6 +898,18 @@
   "cityNearbyConfirm": "Oui, c'est ma ville",
   "cityLocationFailed": "Position indisponible",
   "cityNoneNearby": "Aucune ville de la liste à proximité",
+  "officialGroupDepartureCityTitle": "Vous avez changé de ville",
+  "officialGroupDepartureCityBody": "Depuis le {date}, votre profil n'indique plus {city}. Vous pouvez quitter ce groupe ou y rester : rien ne change sans votre accord.",
+  "@officialGroupDepartureCityBody": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "city": {
+        "type": "String"
+      }
+    }
+  },
   "cityFieldHint": "Chercher une ville",
   "cityDataCredit": "Liste des villes : GeoNames (CC BY 4.0)",
   "cityTypeToSearch": "Tapez les premières lettres de votre ville",

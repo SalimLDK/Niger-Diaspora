@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**892 cases à cocher, 504 cochées** — 182 entrées sur 226 ont encore des cases ouvertes.
+**902 cases à cocher, 507 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -60,11 +60,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Déconnexion forcée « Connecté ailleurs » — trois trous refermés](#-déconnexion-forcée--connecté-ailleurs---trois-trous-refermés) · *Comptes, session et onboarding* · bloqué
 - 2 · [Doublons Profil / Réglages (2026-08-05)](#doublons-profil--réglages-2026-08-05) · *Accueil, profil et réglages*
 - 2 · [⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)](#-passage-à-targetsdk-36-android-16--exigence-play-2026-09-08) · *Publication et plateformes* · bloqué
-- 5 · [Appels WebRTC](#appels-webrtc) · *Appels* · bloqué
-- 5 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
-- 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
+- 4 · [Appels WebRTC](#appels-webrtc) · *Appels* · bloqué
+- 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
+- 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (51)
+**P1 — fonction importante, jamais vérifiée** (52)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
@@ -73,6 +73,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
+- 7 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -84,7 +85,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
-- 8 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
+- 11 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
@@ -92,7 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
-- 6 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
+- 9 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
@@ -241,17 +242,17 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 129 à faire, 55 faites
-- [3. Groupes](#3-groupes) — 101 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 111 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
-- [5. Appels](#5-appels) — 19 à faire, 7 faites
+- [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
-- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
+- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 30 à faire, 28 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 33 à faire, 28 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -2250,6 +2251,57 @@ Création, invitations, adhésion, membres, modération, sondages et mentions de
 
 ---
 
+## ⬜ Groupes officiels de ville (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Un groupe ouvert au mauvais endroit, une invitation envoyée à qui s'est mis invisible, ou une épingle de carte qui ne mène nulle part.
+*Bloqué en partie : aucune ville n'atteint trois profils visibles aujourd'hui — la création est à provoquer en base (recette ci-dessous).*
+
+« Diaspora Niger — Montréal ». Trois profils visibles dans une ville
+l'ouvrent ; chacun reçoit une notification `cityGroupInvite` et **rien n'est
+ajouté d'office**. Laval et Longueuil mènent au groupe de Montréal
+(`pole_id`). Un profil invisible n'est ni compté ni invité.
+
+Le verrou levé au passage : l'index d'unicité de production portait sur le
+pays seul, et aurait refusé le tout premier groupe de ville. Onze cas sont
+vérifiés en base, transaction annulée — ce qui suit ne l'est pas.
+
+Pour provoquer une création sans attendre trois vrais profils :
+
+```sql
+-- Trois profils visibles dans une même ville suffisent ; le déclencheur
+-- s'occupe du reste. Sinon, à la main :
+SELECT public.ouvrir_groupe_de_ville(
+  (SELECT id FROM public.villes WHERE nom = 'Niamey' AND pays = 'Niger'));
+```
+
+- [ ] **Sur appareil** : la notification « Rejoindre « Diaspora Niger —
+  Niamey » ? » arrive, porte l'icône et la couleur des groupes, et son appui
+  ouvre la **fiche du groupe** — pas la liste des notifications.
+- [ ] **Sur appareil** : sur cette fiche, « Rejoindre » fonctionne et le
+  compteur de membres suit. Ne rien faire ne doit rien changer : personne
+  n'est ajouté sans son geste.
+- [ ] **Sur appareil, profil invisible** : se mettre invisible, provoquer
+  l'ouverture d'un groupe pour sa ville, et vérifier qu'**aucune**
+  notification n'arrive.
+- [ ] **Sur appareil** : la carte des groupes (Groupes → carte) montre une
+  épingle par VILLE en plus des épingles de pays, au bon endroit, et le
+  panneau du bas porte le nom de la ville.
+- [ ] **Sur appareil** : « Diaspora Niger — Angola » et « — Cap-Vert »
+  apparaissent enfin sur la carte. Leurs pays n'étaient dans aucun des 32
+  centroïdes écrits en dur : les deux groupes existaient et n'étaient
+  simplement jamais dessinés, sans le moindre message.
+- [ ] **Sur appareil** : les 32 pays qui ont un centroïde n'ont pas bougé
+  (Niger, France, Canada…) — le repli par la plus grande ville ne sert que
+  là où il n'y avait rien.
+- [ ] **Le premier vrai groupe de ville : Niamey.** La reprise du
+  2026-09-14 y a relié quatre profils visibles, soit plus que le seuil. La
+  migration a volontairement neutralisé l'ouverture automatique pour que les
+  données soient relues d'abord ; le balayage quotidien (9 h 30) l'ouvrira et
+  enverra quatre invitations. Vérifier sur appareil qu'elles arrivent, qu'elles
+  mènent à la fiche, et que personne n'est membre sans avoir appuyé.
+
+---
+
 ## ⬜ Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé (2026-09-13)
 
 **Priorité P2** · importance 3/5 — Quelqu'un qui a déménagé est sorti d'un groupe sans l'avoir choisi, ne parvient pas à en sortir, ou la notification n'ouvre pas l'écran du choix. *Bloqué : aucune proposition réelle avant le 2027-03-11 — à provoquer en base (recette ci-dessous).*
@@ -2374,6 +2426,35 @@ Changer de pays ne faisait pas quitter le groupe officiel de l'ancien pays
 2026-09-12 (`20260912200000`, `20260912220000`, dans d'autres worktrees) sont
 désormais antérieures à la dernière appliquée : leur `db push` demandera
 `--include-all`.
+
+**Étendu aux groupes de ville le 2026-09-14.** Déménager de Montréal à
+Toronto propose de quitter « — Montréal » à six mois, sans toucher au groupe
+du Canada. Trois défauts que l'arrivée des groupes de ville révélait ont été
+corrigés avant livraison, dont un qui aurait rendu la fonction muette : la
+garde « revenu dans le pays » annulait les départs dont le groupe porte le
+pays du profil — et un groupe de ville porte le pays de sa ville. Le départ
+de Montréal s'annulait donc au premier enregistrement de profil venu,
+l'usager étant toujours au Canada. Sept cas rejoués en base, transaction
+annulée.
+
+Pour provoquer une proposition sans attendre six mois :
+
+```sql
+UPDATE public.departs_groupe_officiel
+   SET proposer_apres = now() - interval '1 day'
+ WHERE user_id = '<uid>' AND statut = 'en_attente';
+SELECT public.proposer_departs_groupes_officiels();
+```
+
+- [ ] **Sur appareil** : après un changement de ville et la proposition
+  provoquée, la fiche du groupe de l'ancienne ville affiche « Vous avez
+  changé de **ville** » et nomme la **ville** quittée — pas « changé de pays »
+  ni le nom du pays, qui seraient l'un et l'autre faux puisque l'usager n'a
+  pas quitté le pays.
+- [ ] **Sur appareil** : le groupe du PAYS n'affiche aucune carte de départ
+  dans ce cas.
+- [ ] **Sur appareil** : revenir à l'ancienne ville fait disparaître la carte
+  sans rien demander.
 
 ---
 
@@ -4633,6 +4714,17 @@ maintenant par le chemin de l'envoi (`_encryptContent`), et l'historique ne
 garde plus que la date — rien ne l'affichait.
 
 - [ ] **Répondre, dans les cinq cas** : à un texte, à une photo (avec légende),
+  **Localisation : composition et citation vues le 2026-09-14, mais envoi
+  NON confirmé — mesure écartée.** Sur SM A515F (build 19), l'appui long sur
+  la carte « 3010 Boul Lévesque E » propose bien « Répondre », et la bulle
+  composée affiche la citation attendue : « Vous — 📍 Position » au-dessus du
+  texte. Mais le message est resté en « Envoi… » et **n'est jamais arrivé en
+  base** ; au rechargement du fil il avait disparu. ⚠️ Pendant cette fenêtre,
+  **un autre agent pilotait le même téléphone** (Galerie active, événements
+  clavier vers l'app dans les journaux) : impossible de distinguer un défaut
+  d'envoi d'une interférence. À refaire sur un appareil libre — c'est la
+  règle de ce fichier, une mesure prise à deux pilotes se jette.
+  Restent donc : photo avec légende, note vocale, sticker.
   à une note vocale, à une localisation, à un sticker. La citation doit
   s'afficher au-dessus de la bulle, chez l'expéditeur **et** chez l'autre.
 - [x] **La citation survit à un accusé de lecture** : même piège que les
@@ -5854,7 +5946,22 @@ nœud `group_calls`, puisque l'app de l'appelé était ouverte.
 
   ⚠ Contrepartie assumée pendant l'attente : les règles actuellement en ligne laissent tout compte connecté lire et écrire la signalisation de n'importe quel appel dont il connaît l'identifiant. Plus la sortie de l'app tarde, plus cette fenêtre reste ouverte.
 - [ ] **Appel 1:1 après restriction** (2026-08-03) : un appel complet entre deux comptes doit fonctionner à l'identique — sonnerie, décroché, audio des deux côtés, passage en vidéo, raccrochage. C'est le test de non-régression du changement de règles ; tout échec se manifestera par une signalisation muette (l'appelé ne voit jamais l'offre) plutôt que par une erreur explicite.
-- [ ] **Étanchéité de la signalisation** (2026-08-03) : avec un **troisième** compte, vérifier qu'il ne peut ni lire ni écrire le nœud d'un appel auquel il ne participe pas. Se teste depuis la console Firebase (simulateur de règles) avec l'UID du tiers sur `calls/<id>` — doit refuser lecture et écriture.
+- [x] **Étanchéité de la signalisation** (2026-08-03) : avec un **troisième** compte, vérifier qu'il ne peut ni lire ni écrire le nœud d'un appel auquel il ne participe pas. Se teste depuis la console Firebase (simulateur de règles) avec l'UID du tiers sur `calls/<id>` — doit refuser lecture et écriture.
+      **✅ Mesuré le 2026-09-14 par le banc, sans appareil.**
+      `firebase emulators:start --only database` puis
+      `node tools/rules_tests/signalisation_appels.mjs` : « un tiers lit la
+      signalisation de A vers B » → **refusé (401)** ; « un ANONYME pose la
+      clé absente » → refusé ; « un TIERS remplace la clé existante » →
+      refusé ; « un TIERS lit la clé » → refusé. Verdict du banc :
+      **parcours nominal INTACT, étanchéité fermée**.
+      **Et ça vaut pour la production** : `database:get "/.settings/rules"`
+      comparé au fichier du dépôt donne **88 règles de chaque côté, zéro
+      écart** — l'émulateur a donc chargé exactement les règles déployées.
+      ⚠️ Le banc signale en revanche **« client périmé : CASSÉ »** : un APK
+      antérieur au 2026-08-06 écoute `participants` avant de s'y inscrire et
+      mourrait en silence. Sans conséquence aujourd'hui (les deux téléphones
+      portent les builds 18 et 19, et l'app n'est pas publiée), mais à
+      garder en tête avant toute ouverture au public.
 - [ ] **Appel de groupe après restriction** (2026-08-03) : entrer dans un appel de groupe écrit d'abord `participants/<uid>` (autorisé pour soi-même) puis lit le reste — vérifier que rejoindre, voir les autres arriver et repartir, et l'audio de bout en bout fonctionnent toujours. La signalisation est maintenant limitée aux couples émetteur/destinataire dont on fait partie, et `hostId`/`status`/`mode` restent lisibles avant d'avoir rejoint.
 - [ ] **Relais TURN coturn en production** — à valider par un vrai appel en 4G/5G **sans wifi** (cas NAT symétrique, celui que TURN est censé résoudre) ; vérifier aussi que `grep -ci allocation` augmente dans les logs coturn pendant l'appel. Jamais confirmé depuis la rotation de secret du 16/07.
 
@@ -8994,7 +9101,23 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 
   Correctif suggéré, non implémenté : faire comparer `checkAndRefillOneTimePreKeys` au compte **serveur** (ou publier inconditionnellement si le serveur est à zéro) plutôt qu'au seul compteur local — sinon le parc installé ne se rattrapera jamais.
 - [ ] **Identité des policies RLS réparée** (migration `20260803170000`, 2026-08-03) : 48 policies comparaient `current_user_id()` (identifiant Supabase Auth) à des colonnes contenant des Firebase UID — mesuré en production, **0 correspondance sur 1247 comptes**. Tout ce qui est « à moi » était donc refusé en silence, les échecs étant avalés par des `catch { debugPrint }`. Après `supabase db push`, vérifier sur un compte réel que ces actions **fonctionnent enfin** : modifier son profil, s'abonner à un podcast, suivre quelqu'un, mettre un post en favori, publier une story et y réagir, ouvrir un ticket de support, signaler un contenu, consulter son historique de transactions. Vérifier aussi qu'un profil passé en privé redevient visible à son propriétaire.
-- [ ] **Non-régression après la bascule d'identité** (même migration) : le risque miroir est d'ouvrir trop. Avec **deux** comptes, vérifier qu'on ne voit toujours pas les données de l'autre — ses favoris, ses tickets, ses transactions, son profil privé — et qu'on ne peut pas modifier son profil ni ses podcasts.
+- [x] **Non-régression après la bascule d'identité**
+      **✅ Prouvé en base le 2026-09-14, sans appareil** (identité de Sim A
+      simulée par `request.jwt.claims` + `SET LOCAL ROLE authenticated`,
+      chaque essai dans une transaction annulée — sans quoi `db query
+      --linked` se connecte en `postgres` et contourne la RLS).
+      **Lecture** : la base contient 9 conversations et 88 messages ;
+      Sim A n'en voit que **5 et 58** — donc 4 conversations et 30 messages
+      lui restent invisibles, et le témoin positif tient (il voit bien les
+      siens, ce n'est pas un refus général). Les 37 profils lui sont
+      visibles, ce qui est voulu : un profil non privé est public.
+      **Écriture** : modifier le profil de Salim L. → **0 ligne** ;
+      modifier le sien → **1 ligne** (témoin) ; insérer un message dans une
+      conversation dont il n'est pas membre → **refusé, 42501**.
+      ⚠️ **Ce que ça ne prouve pas** : tickets, transactions, abonnements
+      podcast et stickers favoris sont **vides** pour ce compte (0 ligne
+      côté `postgres`), donc un « 0 vu » n'y voudrait rien dire. Ces
+      tables-là restent à vérifier quand elles auront des données. (même migration) : le risque miroir est d'ouvrir trop. Avec **deux** comptes, vérifier qu'on ne voit toujours pas les données de l'autre — ses favoris, ses tickets, ses transactions, son profil privé — et qu'on ne peut pas modifier son profil ni ses podcasts.
 - [ ] **Appareils connectés (#10) migrés vers Supabase `e2ee_devices`** (commit `267d7d3`) — la liste « s'affiche enfin » côté code, jamais confirmé à l'écran.
 - [ ] **Flux caméra/galerie/éditeur + permissions manifest** (`WRITE_EXTERNAL_STORAGE`/`READ_MEDIA_IMAGES`/`VIDEO`, réintroduites après une perte accidentelle, commit `9ea9b45`) — jamais revalidées par un flux caméra/galerie réel.
 
@@ -11003,6 +11126,26 @@ sont vérifiés en base, pas ici.
 - [ ] **Sur appareil, réseau coupé** : la ligne « Recherche impossible pour le
   moment » remplace la liste, et le champ reste saisissable — le texte libre
   doit continuer de partir dans `city`.
+
+**Reprise de l'existant, faite le 2026-09-14** (`20260914150000`). Neuf des
+treize profils qui portaient une ville sont reliés au référentiel : Niamey ×4
+(dont un écrit « niamey », désormais normalisé par le déclencheur), Bouza,
+Dosso, Magaria, Kaduna, Djelfa. Quatre restent du texte libre, et c'est
+exact : « Almoustapha » (un prénom), « Arewa » (un département), l'adresse du
+compte de test, et « Montréal » — dont le profil n'a pas de pays, si bien que
+le relier changerait aussi son pays. Décision : à proposer, pas à imposer.
+
+- [ ] **Sur appareil, l'un des comptes de Niamey** : le profil affiche
+  « Niamey » avec la pastille verte (une ville retenue), et le champ n'est
+  plus du texte nu. Le compte qui avait écrit « niamey » en minuscules doit
+  afficher « Niamey ».
+- [ ] **Sur appareil, le compte « Montréal »** : le champ montre toujours
+  « Montréal » SANS pastille. Ouvrir le champ doit proposer « Montréal,
+  Québec » ; le choisir doit poser le Canada comme pays. C'est le seul
+  chemin par lequel ce profil change de pays — vérifier qu'il ne l'a pas fait
+  tout seul.
+- [ ] **Sur appareil, les comptes « Almoustapha » et « Arewa »** : le texte
+  est intact, sans pastille, et l'enregistrement du profil ne l'efface pas.
 
 ---
 
@@ -14133,6 +14276,8 @@ supplémentaire** à créer.
 
 ### 🔴 `database.rules.json` est en avance de 27 changements sur la production
 
+✅ **Dérive résorbée — vérifié le 2026-09-14** : `database:get "/.settings/rules"` et le fichier du dépôt donnent 88 règles chacun, **zéro écart**. Ce qui est déployé est donc exactement ce que le dépôt décrit.
+
 Relevé le 2026-08-06 en voulant déployer le simple index ci-dessus. Les règles
 en ligne se lisent avec :
 
@@ -14345,7 +14490,11 @@ anonyme est fermé.
   banc mesure un arbre vide — huit faux échecs avant de s'en apercevoir) ; et
   un candidat ICE partiel est refusé par le `.validate`, pas par le droit
   d'accès — ne pas confondre les deux en lisant un 401.
-- [ ] 🔴 **L'étanchéité de la signalisation reste donc OUVERTE.** Tout compte
+- [x] 🔴 **L'étanchéité de la signalisation est FERMÉE** — mesurée le
+      2026-09-14 (voir « Appels WebRTC », même date : banc des règles passé,
+      et règles de production identiques au fichier du dépôt, 88 contre 88,
+      zéro écart). Le constat d'ouverture ci-dessous datait des règles
+      permissives d'août ; il ne vaut plus. Texte d'origine conservé : Tout compte
   connecté peut lire et écrire la signalisation de n'importe quel appel dont il
   connaît l'identifiant. Le test le constate explicitement (deux lignes
   attendues « autorisé »), et **ces deux lignes échoueront le jour où ce sera

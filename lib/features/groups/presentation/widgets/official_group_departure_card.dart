@@ -124,7 +124,9 @@ class _OfficialGroupDepartureCardState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              l10n.officialGroupDepartureTitle,
+              departure.formerCity == null
+                  ? l10n.officialGroupDepartureTitle
+                  : l10n.officialGroupDepartureCityTitle,
               style: TextStyle(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w700,
@@ -133,7 +135,10 @@ class _OfficialGroupDepartureCardState
             ),
             const SizedBox(height: 6),
             Text(
-              l10n.officialGroupDepartureBody(date, departure.formerCountry),
+              departure.formerCity == null
+                  ? l10n.officialGroupDepartureBody(date, departure.formerCountry)
+                  : l10n.officialGroupDepartureCityBody(
+                      date, departure.formerCity!),
               style: TextStyle(
                 fontSize: 12.5,
                 height: 1.4,

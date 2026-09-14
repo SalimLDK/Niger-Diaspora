@@ -71,6 +71,10 @@ enum NotificationType {
   // l'ancien pays ou y rester (`proposer_departs_groupes_officiels`). Ouvre la
   // fiche du groupe, où se fait le choix.
   officialGroupLeave,
+  // Trois profils d'une même ville : invitation à rejoindre son groupe
+  // officiel (`ouvrir_groupe_de_ville`). Rien n'est ajouté d'office — la
+  // fiche du groupe porte le choix.
+  cityGroupInvite,
 }
 
 /// Types que l'écran Notifications n'affiche pas, et que la pastille de la
@@ -157,6 +161,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'Réaction';
       case NotificationType.officialGroupLeave:
         return 'Groupe de votre ancien pays';
+      case NotificationType.cityGroupInvite:
+        return 'Groupe de votre ville';
     }
   }
 
@@ -223,6 +229,8 @@ extension NotificationTypeExtension on NotificationType {
       case NotificationType.messageReaction:
         return 'add_reaction';
       case NotificationType.officialGroupLeave:
+        return 'groups';
+      case NotificationType.cityGroupInvite:
         return 'groups';
     }
   }
