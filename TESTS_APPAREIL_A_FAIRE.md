@@ -6687,11 +6687,14 @@ absent. Après : les deux passent, et six garde-fous restent refusés.
 `test/features/friends/acceptation_demande_ami_test.dart` fige la liste des
 documents que le lot a le droit de toucher (il échoue sur l'ancien code).
 
-**Règles Firestore : à déployer** — `firestore.rules` gagne une exception de
-création strictement bornée (`friendIds` seul, contenant le seul uid de
-l'appelant) pour que les **APK déjà installés** soient réparés sans
-mise à jour. Sans ce déploiement, seul un nouveau build est corrigé. Le
-fichier était par ailleurs identique à la production, relu le 2026-09-14.
+**Règles Firestore déployées le 2026-09-14** (`firebase deploy --only
+firestore:rules`, compilation OK, banc passé avant). `firestore.rules` gagne
+une exception de création strictement bornée (`friendIds` seul, contenant le
+seul uid de l'appelant, donc jamais `isAdmin`/`adminRole`) pour que les **APK
+déjà installés** soient réparés sans mise à jour. Production relue par l'API
+`firebaserules` juste après : **identique au fichier versionné**. Elle l'était
+déjà avant — le « NON DEPLOYE » du commit `4bbc208` était faux, le
+déploiement avait eu lieu 4 minutes plus tard.
 
 - [ ] **Accepter depuis l'écran Notifications**, compte expéditeur **sans**
   document `users` Firestore : « Demande acceptée », et en base
