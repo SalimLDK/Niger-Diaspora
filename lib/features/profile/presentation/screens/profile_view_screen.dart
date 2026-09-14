@@ -759,9 +759,13 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                               clipBehavior: Clip.antiAlias,
                               child:
                                   profile.photoUrl != null
+                                      // `contain` : une photo d'avant le
+                                      // recadrage au choix n'est pas carrée,
+                                      // autant la montrer entière (voir
+                                      // PhotoCropScreen).
                                       ? Image.network(
                                         profile.photoUrl!,
-                                        fit: BoxFit.cover,
+                                        fit: BoxFit.contain,
                                         errorBuilder:
                                             (_, __, ___) =>
                                                 _buildProfileInitials(

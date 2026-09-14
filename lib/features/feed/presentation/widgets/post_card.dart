@@ -23,6 +23,7 @@ import 'follow_button.dart';
 import 'feed_toast.dart';
 import 'feed_video_player.dart';
 import 'heart_burst_overlay.dart';
+import 'post_image_frame.dart';
 import 'share_post_sheet.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
@@ -459,7 +460,12 @@ class _MediaGridState extends ConsumerState<_MediaGrid> {
       alignment: Alignment.center,
       children: [
         if (mediaUrls.length == 1)
-          _image(mediaUrls, 0, height: 205, width: double.infinity)
+          // Le cadre prend la forme de la photo : une bande de hauteur fixe
+          // rognait la moitié d'un portrait (voir PostImageFrame).
+          PostImageFrame(
+            url: mediaUrls.first,
+            child: _image(mediaUrls, 0, width: double.infinity),
+          )
         else
           GridView.count(
             crossAxisCount: 2,
