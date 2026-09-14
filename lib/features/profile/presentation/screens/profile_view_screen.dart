@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:diaspo_niger/core/constants/deleted_account.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
@@ -14,6 +15,7 @@ import '../../../messages/presentation/widgets/media_gallery_grid.dart';
 import '../../domain/entities/profile_entity.dart';
 import '../providers/profile_provider.dart';
 import '../providers/online_status_provider.dart';
+import '../../../groups/domain/entities/group_entity.dart';
 import '../../../groups/presentation/providers/common_groups_provider.dart';
 import '../widgets/online_status_indicator.dart';
 import 'package:geolocator/geolocator.dart';
@@ -455,43 +457,98 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     );
   }
 
-  /// Compteur « groupes en commun » (§10c). Masqué s'il n'y en a pas.
+  /// Au-delà de ce nombre, la liste est repliée derrière « Voir tout » : une
+  /// personne avec qui on partage quinze groupes ne doit pas repousser la bio
+  /// et les médias hors de l'écran.
+  static const int _groupesEnCommunReplies = 4;
+
+  bool _tousLesGroupesEnCommun = false;
+
+  /// « Groupes en commun » (§10c) : lesquels, et l'entrée dans la discussion
+  /// de chacun.
+  ///
+  /// C'était une pastille compteur inerte — « 3 groupes en commun » sans dire
+  /// lesquels ni permettre d'y aller. Masqué s'il n'y en a pas.
   Widget _buildCommonGroups(BuildContext context, String userId) {
     final common = ref.watch(commonGroupsProvider(userId)).valueOrNull ?? [];
     if (common.isEmpty) return const SizedBox.shrink();
-    final label = AppLocalizations.of(
-      context,
-    )!.profileCommonGroups(common.length);
+    final l10n = AppLocalizations.of(context)!;
+    final replie =
+        !_tousLesGroupesEnCommun && common.length > _groupesEnCommunReplies;
+    final visibles =
+        replie ? common.take(_groupesEnCommunReplies).toList() : common;
+
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: context.adaptiveSecondaryColor.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
               AppIcon(
                 AppIcon.groups,
                 size: 16,
                 color: context.adaptiveSecondaryColor,
               ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: context.adaptiveSecondaryColor,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.profileCommonGroups(common.length),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: context.adaptiveSecondaryColor,
+                  ),
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 8),
+          DesignListCard(
+            dividerIndent: 68,
+            children: [
+              for (final group in visibles)
+                _CommonGroupRow(
+                  group: group,
+                  onTap: () => _openGroupChat(group),
+                ),
+              if (replie)
+                _VoirTousLesGroupes(
+                  label: l10n.seeAll,
+                  onTap: () =>
+                      setState(() => _tousLesGroupesEnCommun = true),
+                ),
+            ],
+          ),
+        ],
       ),
+    );
+  }
+
+  /// Entre dans la discussion du groupe.
+  ///
+  /// Même règle que la carte de groupe de l'écran Groupes : la conversation
+  /// d'un groupe n'existe qu'à partir du premier message. Tant qu'elle
+  /// manque, on ouvre la fiche du groupe plutôt que de laisser la ligne sans
+  /// effet.
+  Future<void> _openGroupChat(GroupEntity group) async {
+    final conversationId = await ref.read(
+      groupConversationIdProvider(group.id).future,
+    );
+    if (!mounted) return;
+    if (conversationId == null || conversationId.isEmpty) {
+      context.push('/groups/${group.id}', extra: group);
+      return;
+    }
+    context.push(
+      '/messages/$conversationId',
+      extra: {
+        'name': group.name,
+        'imageUrl': group.imageUrl,
+        'isGroup': true,
+        'groupId': group.id,
+        'otherUserId': null,
+      },
     );
   }
 
@@ -1449,5 +1506,162 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                 ),
       ), // Close PopScope child (Scaffold)
     ); // Close PopScope
+  }
+}
+
+/// Ligne d'un groupe en commun : photo, nom, effectif, et l'entrée dans la
+/// discussion.
+///
+/// Pas [DesignSettingsTile] : sa pastille de 42 impose un dégradé teinté à
+/// l'accent, qui écraserait la photo du groupe. Le filet entre deux lignes
+/// reste posé par [DesignListCard], jamais à la main.
+class _CommonGroupRow extends StatelessWidget {
+  final GroupEntity group;
+  final VoidCallback onTap;
+
+  const _CommonGroupRow({required this.group, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              _GroupAvatar(group: group),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      group.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.members(group.memberIds.length),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: context.textTertiaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: context.textTertiaryColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Photo du groupe, ou son initiale sur un aplat d'accent.
+class _GroupAvatar extends StatelessWidget {
+  final GroupEntity group;
+
+  const _GroupAvatar({required this.group});
+
+  @override
+  Widget build(BuildContext context) {
+    final photo = group.imageUrl;
+    final repli = _initiale(context);
+    if (photo == null || photo.isEmpty) return repli;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: CachedNetworkImage(
+        imageUrl: photo,
+        width: 40,
+        height: 40,
+        fit: BoxFit.cover,
+        placeholder: (_, __) => repli,
+        errorWidget: (_, __, ___) => repli,
+      ),
+    );
+  }
+
+  Widget _initiale(BuildContext context) {
+    final accent = context.adaptiveSecondaryColor;
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      alignment: Alignment.center,
+      child: group.name.isEmpty
+          ? AppIcon(AppIcon.groups, size: 18, color: accent)
+          : Text(
+              group.name.characters.first.toUpperCase(),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: accent,
+              ),
+            ),
+    );
+  }
+}
+
+/// Dernière ligne quand la liste est repliée : déplie tout sur place, plutôt
+/// que d'ouvrir un écran pour quelques noms.
+class _VoirTousLesGroupes extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _VoirTousLesGroupes({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: context.adaptiveSecondaryColor,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(
+                Icons.expand_more,
+                size: 18,
+                color: context.adaptiveSecondaryColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

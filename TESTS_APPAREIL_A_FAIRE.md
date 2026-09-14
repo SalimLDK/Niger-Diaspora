@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**887 cases à cocher, 496 cochées** — 181 entrées sur 225 ont encore des cases ouvertes.
+**893 cases à cocher, 496 cochées** — 182 entrées sur 226 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -117,7 +117,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (65)
+**P2 — fonction secondaire ou cas limite** (66)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -147,6 +147,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 4 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
 - 5 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
@@ -248,7 +249,7 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 23 à faire, 25 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 29 à faire, 25 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 138 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 35 à faire, 26 faites
@@ -10891,6 +10892,30 @@ attendre le sondage.
 # 11. Accueil, profil et réglages
 
 Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature flags d'écrans.
+
+---
+
+## ⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)
+
+**Priorité P2** · importance 3/5 — Le profil d'une autre personne n'affichait qu'une pastille « 3 groupes en commun », inerte : ni lesquels, ni comment y aller.
+
+*Bloqué : deux comptes partageant au moins deux groupes, dont un sans aucun message.*
+
+- [ ] **Profil ouvert depuis une discussion** : la section liste les groupes
+      partagés — photo, nom, effectif réel.
+      (`profile_view_screen.dart`)
+- [ ] **Appui sur une ligne** : ouvre la discussion du groupe, avec son nom et
+      sa photo dans l'en-tête.
+- [ ] **Groupe sans aucun message** (sa conversation n'existe pas encore) :
+      l'appui ouvre la **fiche** du groupe, pas un écran vide.
+- [ ] **Plus de quatre groupes partagés** : « Voir tout » déplie la liste sur
+      place ; la bio et les médias restent atteignables.
+- [ ] **Aucun groupe en commun**, et **personne bloquée** : la section est
+      absente dans les deux cas.
+- [ ] **Effectif** : le nombre affiché est celui de `group_members`, pas
+      « 0 membre » (voir « Fiche membres » au § 3 pour l'historique).
+
+---
 
 ---
 
