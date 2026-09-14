@@ -3,6 +3,7 @@ import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../shared/widgets/loading_indicator.dart';
@@ -1194,12 +1195,20 @@ class _FriendRequestActionsState extends ConsumerState<_FriendRequestActions> {
     // restait là, à l'identique. Un refus de permission Firestore se lisait
     // donc comme un tap qui n'avait pas pris. C'est ce qui a caché pendant des
     // mois le fait qu'accepter une demande d'ami était impossible.
+    //
+    // Il disait ensuite « Erreur de chargement », qui ne distingue pas un
+    // réseau coupé d'un refus de droits — or la conduite à tenir n'est pas la
+    // même, et rien n'est en train de « charger ». [messageErreurUsager]
+    // tranche entre les deux sans montrer le message brut, qui porte le chemin
+    // du document Firestore.
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           ok
               ? (accept ? l10n.requestAccepted : l10n.requestDeclined)
-              : l10n.loadingError,
+              : messageErreurUsager(
+                ref.read(friendRequestNotifierProvider).error,
+              ),
         ),
         backgroundColor: ok ? null : context.errorColor,
       ),

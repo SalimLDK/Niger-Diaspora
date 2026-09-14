@@ -39,18 +39,21 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**954 cases à cocher, 537 cochées** — 194 entrées sur 238 ont encore des cases ouvertes.
+**1043 cases à cocher, 556 cochées** — 210 entrées sur 254 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (20)
+**P0 — avant toute nouvelle version** (23)
 
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
+- 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -66,20 +69,23 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (57)
+**P1 — fonction importante, jamais vérifiée** (66)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
-- 4 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
+- 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 12 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
+- 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
+- 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
+- 5 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
@@ -88,12 +94,17 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 16 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04) · *Liens profonds, navigation et QR codes*
 - 3 · [Assistant de configuration du profil](#assistant-de-configuration-du-profil) · *Comptes, session et onboarding*
+- 6 · [⬜ Une image seule prend la forme de la photo, plus une bande de 205 px (2026-09-14)](#-une-image-seule-prend-la-forme-de-la-photo-plus-une-bande-de-205-px-2026-09-14) · *Fil, stories, salons audio et podcasts*
+- 7 · [⬜ Définition des photos envoyées : plafond levé, double encodage supprimé (2026-09-14)](#-définition-des-photos-envoyées--plafond-levé-double-encodage-supprimé-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
+- 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
+- 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
+- 3 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
@@ -117,6 +128,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27) · *Backend, sécurité et observabilité*
+- 5 · [⬜ Notice « une nouvelle version est disponible » (2026-09-14)](#-notice--une-nouvelle-version-est-disponible--2026-09-14) · *Publication et plateformes*
 - 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
 - 3 · [Messagerie (hors refonte Fil & Discussion)](#messagerie-hors-refonte-fil--discussion) · *Messagerie* · bloqué
 - 5 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
@@ -126,7 +138,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (67)
+**P2 — fonction secondaire ou cas limite** (71)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -137,6 +149,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
 - 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
@@ -158,13 +171,16 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
+- 7 · [⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)](#-létape--thème--dit-enfin-la-vérité-sur-laccent-2026-09-14) · *Design, thème, langue et mise en page*
 - 4 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
 - 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 8 · [Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)](#le-bouton--ouvrir-play-store--de-la-garde-play-integrity-ne-faisait-rien-2026-09-14) · *Backend, sécurité et observabilité*
 - 3 · [⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)](#-ce-que-dit-vraiment-la-console-crashlytics-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
@@ -252,19 +268,19 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 168 à faire, 65 faites
-- [3. Groupes](#3-groupes) — 108 à faire, 61 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
+- [2. Messagerie](#2-messagerie) — 183 à faire, 77 faites
+- [3. Groupes](#3-groupes) — 109 à faire, 62 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 108 à faire, 11 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 121 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 60 à faire, 44 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -514,6 +530,100 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Trois entrées nommaient une personne et retombaient sur le sélecteur générique, identique au bouton « Nouvelle conversation » : la tuile « écrivez à … » de la messagerie vide (qui porte pourtant une flèche d'envoi), un résultat de recherche « personnes », et le bouton « Contacter » d'une fiche entreprise. Il fallait re-chercher à la main la personne qu'on venait de toucher du doigt.
+
+La route `/messages/new` construisait `const NewConversationScreen()` — un
+écran sans paramètre, qui ne lisait ni `?userId=` ni `state.extra`. Le
+destinataire était donc bien construit par les appelants, puis jeté en silence
+par le routeur ([app_router.dart](lib/core/router/app_router.dart)). L'écran
+accepte maintenant un destinataire et, quand il en reçoit un, se comporte en
+relais : il ouvre la discussion et **se remplace** par elle
+([new_conversation_screen.dart](lib/features/messages/presentation/screens/new_conversation_screen.dart)).
+
+- [ ] **Tuile « écrivez à … »** (messagerie vide) : le tap ouvre directement
+  la discussion avec cette personne — pas le sélecteur. L'en-tête porte son
+  nom et sa photo dès la première frame, sans libellé de repli.
+- [ ] **Résultat de recherche « personnes »** : même comportement.
+- [ ] **« Contacter » sur une fiche entreprise** : ouvre la discussion avec le
+  propriétaire. C'est le seul appelant qui passait par `extra` et non par
+  l'URL — à vérifier séparément, il emprunte l'autre branche du code.
+- [ ] **Retour depuis la discussion ainsi ouverte** : ramène à la liste des
+  messages, **pas** au sélecteur (c'est un `pushReplacement`). Vérifier aussi
+  le retour système Android, pas seulement la flèche.
+- [ ] **Discussion déjà existante** avec cette personne : on retombe dessus
+  avec son historique, aucun doublon créé. À refaire deux fois de suite.
+- [ ] **« Nouvelle conversation » et le crayon de l'en-tête** : inchangés, ils
+  ouvrent toujours le sélecteur générique. C'est la garde symétrique.
+- [ ] **Échec d'ouverture** (mode avion) : le sélecteur reprend la main avec
+  l'erreur — pas d'écran bloqué sur le rond de chargement. Le repli vaut
+  exactement le comportement d'avant le correctif.
+- [ ] **Lien profond `/messages/new?userId=<id>`, pile vide** : la flèche du
+  relais ramène à `/messages` et non dans le vide (voir « Pile vide » au § 7).
+
+---
+
+## ⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Le mode sélection enveloppait le message dans un `GestureDetector`, mais le contenu gardait tous ses gestes en dessous. Pour un tap, c'est le gestionnaire **le plus profond** qui gagne : toucher un sondage votait au lieu de cocher. Même cause pour l'image (visionneuse), l'aperçu de lien (navigateur), l'envoi échoué (relance), le double-appui (réaction) et le glissement (réponse) — un vote parti par erreur ne se reprend pas d'un geste.
+
+Le contenu passe sous `AbsorbPointer` tant que le mode est ouvert
+([message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)) :
+plus aucun pointeur ne l'atteint, le geste remonte au parent. L'appui long y
+coche désormais aussi, au lieu d'ouvrir une feuille d'actions par-dessus la
+barre de sélection. Le défaut est **préexistant** — il devient seulement plus
+atteignable depuis « Sélectionner » sorti de « Autres actions ». Couvert par
+`test/features/messages/mode_selection_gestes_test.dart` (les trois cas
+tombent sans le correctif, vérifié).
+
+- [ ] **Sondage en sélection** : toucher une option coche la ligne, aucun
+  vote ne part. Vérifier ensuite **dans le sondage lui-même** (sortir du mode,
+  rouvrir) qu'aucune voix n'a été enregistrée.
+- [ ] **Image, vidéo, aperçu de lien en sélection** : le tap coche, la
+  visionneuse ne s'ouvre pas, le navigateur non plus.
+- [ ] **Note vocale en sélection** : le tap coche, la lecture ne démarre pas.
+- [ ] **Message en échec d'envoi, en sélection** : le tap coche, il ne
+  relance pas l'envoi.
+- [ ] **Double-appui en sélection** : aucune réaction ne se pose.
+- [ ] **Glissement horizontal en sélection** : ne passe pas en réponse.
+- [ ] **Défilement de la liste en sélection** : toujours fluide — l'absorption
+  ne doit pas gêner le `ListView`, qui est au-dessus et non dedans.
+- [ ] **Appui long sur un deuxième message en sélection** : il s'ajoute à la
+  sélection, sans rouvrir le menu d'actions.
+- [ ] **Sortie du mode** : une fois la sélection vidée, le sondage redevient
+  votable et l'image réouvrable. C'est la garde symétrique du banc.
+
+---
+
+## ⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Le menu d'appui long montrait cinq entrées et rangeait le reste derrière « Autres actions ». « Sélectionner » y était — et c'est le **seul** chemin vers la sélection multiple : un simple appui sur une bulle ne coche rien tant que le mode n'est pas entré. La conversation savait pourtant déjà tout faire une fois dedans (barre de compte, tout cocher, copier / transférer / supprimer la sélection) : la fonction était complète, sans porte d'entrée trouvable.
+
+L'entrée rejoint la liste visible, juste avant le filet de « Supprimer »
+([message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)).
+Couvert par `test/features/messages/menu_appui_long_selectionner_test.dart`.
+
+- [ ] **Appui long sur un message texte** : « Sélectionner » se lit au premier
+  écran, sans déplier « Autres actions ». Le toucher ferme la feuille et fait
+  apparaître la barre « 1 sélectionné ».
+- [ ] **Appui long sur un sondage** : même menu. La carte de vote ne doit pas
+  avaler le geste — ses options sont tactiles, c'est le cas qui pouvait
+  échouer.
+- [ ] **La liste tient sans défiler** sur le SM A515F avec les six entrées
+  (Répondre, Copier, Transférer, Épingler, Sélectionner, Supprimer) plus la
+  rangée de réactions. À l'échelle de police 1,3, vérifier qu'« Autres
+  actions » reste atteignable.
+- [ ] **En mode sélection, taper une option de sondage** coche le message
+  au lieu de voter — corrigé depuis, voir « En sélection, la bulle ne fait
+  plus que cocher ».
+- [ ] **Onde d'appui sur les entrées du menu** : la feuille passe de
+  `Container` à `Material`, les `ListTile` peignaient leur onde derrière un
+  fond opaque. Vérifier qu'un appui laisse maintenant une trace visible, en
+  clair **et** en sombre, et que les coins arrondis du haut n'ont pas bougé.
+
+---
+
 ## ⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)
 
 **Priorité P3** · importance 2/5 — Les huit tuiles du « + » se partageaient **deux** valeurs : l'accent du compte pour les médias, le secondaire pour le contenu interactif. Caméra, Galerie, Vidéos, Audio et Document sortaient donc du même orange, seul le libellé les distinguait — et sur un compte en thème Vert, les huit tombaient dans deux verts voisins.
@@ -562,37 +672,58 @@ sondage « jamais voté » et sans auteur. Et `post_poll_votes` n'est lisible qu
 par l'auteur de la ligne — la lecture des votants réussissait à vide.
 Voir « Sondage dans une discussion privée » pour le parcours de création.
 
-- [ ] **Voter dans une bulle de sondage** (DM et groupe) : la carte bascule
+- [x] **Voter dans une bulle de sondage** (DM et groupe) : la carte bascule
       aussitôt sur les pourcentages, l'option choisie reste encadrée, et le
       nom de l'auteur s'affiche en en-tête. (`poll_supabase_datasource.dart`,
       `poll_card.dart`)
-- [ ] **Quitter l'écran et revenir** : le vote est toujours marqué comme le
+- [x] **Quitter l'écran et revenir** : le vote est toujours marqué comme le
       sien. C'est ce qui ne tenait pas.
-- [ ] **« Modifier mon vote »** : la sélection se rouvre sur son propre choix ;
+- [x] **« Modifier mon vote »** : la sélection se rouvre sur son propre choix ;
       en choisir un autre le remplace (l'ancien compteur retombe) ;
       tout décocher affiche « Retirer mon vote » et remet le total à zéro.
 - [ ] **Sondage à choix multiple** : plusieurs cases, total = nombre de voix.
 - [ ] **Sondage terminé** : « Sondage terminé » dans la ligne d'info, plus
       aucune façon de voter ni de se corriger.
-- [ ] **Écran de résultats d'un sondage normal** : le badge « Votre choix »
+- [x] **Écran de résultats d'un sondage normal** : le badge « Votre choix »
       apparaît, et les votants sont listés sous chaque option, pour tous ceux
       qui voient le sondage. (`poll_results_screen.dart`, RPC
       `poll_option_voters`) — plus de « Aucun vote pour le moment » sous une
       option qui en a.
-- [ ] **Créer un sondage anonyme** (la bascule est éteinte par défaut) :
-      aucune liste de votants nulle part, pas même pour son auteur, et la
-      phrase du bas le dit. (`create_poll_sheet.dart`, `is_anonymous`)
+- [x] **Sondage anonyme** : vérifié SM A515F sur un vrai sondage anonyme du
+      groupe Testeurs — la bulle dit « Vote anonyme », l'écran de résultats
+      n'affiche aucun votant et porte « Sondage anonyme : personne ne voit qui
+      a voté quoi », alors que le sondage a 2 voix. En base, sous l'identité du
+      lecteur : `poll_option_voters` rend 0 ligne pour l'anonyme et 2 pour le
+      sondage normal du même groupe.
+- [ ] **Créer** un sondage anonyme depuis la feuille (la bascule est éteinte
+      par défaut) : c'est la seule moitié non rejouée à la main.
 - [ ] **La notice sous la question** : « Vote public : votre nom sera
       visible », ou « Vote anonyme » — lisible AVANT de choisir, dans la
-      bulle comme dans le fil.
-- [ ] **Un sondage créé avant cette version** reste non anonyme (défaut
+      bulle comme dans le fil. *Les trois sondages du groupe Testeurs l'ont
+      affichée correctement à froid le 2026-09-14 (deux « Vote public », un
+      « Vote anonyme ») ; les absences vues pendant la passe venaient de taps
+      à l'estime qui regardaient un autre écran.*
+- [x] **Un sondage créé avant cette version** reste non anonyme (défaut
       `FALSE`) : sa notice dit bien « vote public ».
-- [ ] **Deux téléphones en même temps** : le vote de l'un fait bouger le
+- [x] **Deux téléphones en même temps** : le vote de l'un fait bouger le
       compteur chez l'autre sans quitter l'écran (temps réel).
-- [ ] **Thème sombre et échelle de police 1.1** : le pied de carte
-      (« N votes · Sondage terminé » + les boutons) passe à la ligne au lieu de
-      déborder — il est passé en `Wrap`.
-- [ ] **Avant la migration** : voter fonctionne toujours (repli sur l'ancien
+- [x] **Échelle de police 1.3** : le pied de carte ne déborde pas, il passe
+      à la ligne (vérifié SM A515F). Mais les deux boutons se retrouvent l'un
+      sous l'autre avec « 2 votes » centré entre eux : c'est laid, et ça
+      empire avec la police. À reprendre.
+- [x] **Thème sombre** : carte vérifiée SM A515F — fond sombre, notice
+      lisible en gris, option choisie encadrée en violet, pied sur une ligne.
+- [ ] **Thème sombre** : la feuille de création et l'écran de résultats.
+- [x] **Coin de queue de la bulle envoyée** : plus de triangle vert sous la
+      carte — elle reprend les rayons de la bulle. Vérifié SM A515F sur les
+      deux bulles envoyées et sans régression sur la bulle reçue.
+      (`message_bubble.dart` passe `_getBorderRadius()`)
+- [x] **Pied de carte sur une bulle reçue** (plus étroite qu'une bulle
+      envoyée) : corrigé et revérifié SM A515F — « 2 votes » garde sa ligne,
+      les deux actions sont alignées à droite dessous, aux échelles 1.0 et
+      1.3, sans un seul avertissement de débordement dans logcat.
+      (`poll_card.dart`, `_pied`)
+- [x] **Avant la migration** : voter fonctionne toujours (repli sur l'ancien
       chemin), mais la liste des votants reste vide.
 
 ---
@@ -2739,13 +2870,38 @@ SELECT public.get_or_create_ville_group(
   Angola au sud — les deux qui n'étaient jamais dessinées. Algérie, Niger et
   Nigeria restent à leur centroïde habituel.
 
-⚠️ **Trouvé en y allant : `/groups/map` n'est atteignable par AUCUN écran.**
-La route existe dans `app_router.dart`, mais rien ne la pousse — j'ai dû
-passer par un lien profond (`diasponiger://groups/map`). Toute cette carte,
-centroïdes compris, est donc du code que personne ne voit depuis l'app.
-- [ ] **À décider** : lui donner une entrée (un bouton sur l'écran Groupes),
-  ou la retirer. Voir « Feature flags » du domaine Design pour le précédent
-  d'un écran rendu invisible par le routeur.
+⚠️ **Trouvé en y allant : `/groups/map` n'était atteignable par AUCUN
+écran.** La route existait dans `app_router.dart`, mais rien ne la poussait —
+il a fallu un lien profond (`diasponiger://groups/map`). Toute cette carte,
+centroïdes compris, était du code que personne ne voyait depuis l'app.
+
+**Entrée donnée le 2026-09-14** : une troisième action carrée dans l'en-tête
+de l'écran Groupes, entre la recherche et « Créer ». Un **globe**
+(`Icons.public`) et pas une carte pliée : celle-ci est déjà l'onglet
+« Carte » de la barre du bas, qui mène à la carte des MEMBRES — deux cartes
+différentes sous un seul pictogramme, à deux centimètres l'une de l'autre. Le titre de l'écran
+passe de « Groupes par pays » à « Groupes sur la carte » — il portait
+« par pays », ce n'est plus vrai depuis qu'il y a des épingles de ville.
+
+L'en-tête porte donc trois actions à côté d'un grand titre serif : c'est sa
+configuration la plus chargée, et la famille de débordements que ce projet
+paie régulièrement. Le titre est dans un `Expanded`, donc il se replie au
+lieu de pousser — vérifié au banc
+(`test/core/theme/entete_trois_actions_test.dart`) à 320 / 360 / 411 dp et
+aux échelles 1,0 / 1,1 / 1,3, neuf combinaisons.
+
+- [x] **Sur appareil** : les trois actions tiennent sur une ligne sans rogner
+  le titre « Groupes » ni le sous-titre. Vu le 2026-09-14 (première version,
+  avec la carte pliée ; le globe ne change pas l'encombrement).
+- [ ] **Sur appareil** : l'icône **globe** se distingue bien de l'onglet
+  « Carte » du bas, et son appui ouvre la carte des groupes. L'appui depuis
+  l'en-tête n'a PAS été confirmé : les taps automatisés tombaient sur les
+  éléments voisins (deux conversations ouvertes par erreur), et j'ai préféré
+  m'arrêter. L'arbre d'accessibilité donne bien
+  `content-desc="Groupes sur la carte"`, cliquable, aux bonnes bornes.
+- [ ] **Sur appareil, échelle de police augmentée** : les trois actions
+  tiennent toujours. Le banc couvre 1,0 / 1,1 / 1,3, mais c'est là que l'œil
+  ne se remplace pas.
 
 ### Vérifié sur SM A515F le 2026-09-14 (APK release `703f4eda…`, `ddb6dfa`)
 
@@ -5226,6 +5382,109 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
+## ⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Le chiffrement de bout en bout était mort en production : mesuré, **aucun** message ne passait par Signal, tout partait en repli AES. *Bloqué : deux comptes (le destinataire doit publier ses clés depuis SON appareil).*
+
+Relevé en base le 2026-09-14 : **0 message `encryptionLevel = 'e2ee'`** — 89 en
+`aes`, 10 en `null`, sur 2026-08-15 → 2026-09-14. Dont **75 en conversation à
+2+ participants** (70 `individual`, 20 `group`), donc pas un artefact du
+self-chat, où `aes` est correct.
+
+Rien ne clochait dans les données, et c'est ce qui l'a caché un mois : 35/35
+comptes `e2ee_enabled` avec `active_devices` non vide, 44 appareils, 4085
+prékeys, écriture le jour même, identifiants concordants (21/21), RLS
+permissive en lecture.
+
+La cause tenait à une dissymétrie d'une ligne dans
+`lib/core/services/e2ee/key_manager_service.dart` : la garde de session
+couvrait les trois **écritures** depuis le 2026-07-17 et **aucune lecture**.
+Les policies étant réservées au rôle `authenticated`, un client encore `anon`
+— la fenêtre du démarrage — lit zéro ligne **sans erreur**. `getActiveDevices`
+rendait donc une liste vide, indiscernable de « ce compte n'a pas de clés » :
+X3DH n'était pas tenté, l'envoi retombait en AES.
+
+Corrigé : garde sur les quatre lectures (`getActiveDevices`,
+`fetchPreKeyBundle`, `fetchAllPreKeyBundles`,
+`_countPublishedOneTimePreKeys`) avec la variante **bornée**
+`ensureReadableSession()` — le chemin d'envoi ne doit pas geler — et sur
+l'écriture `rotateSignedPreKey` avec `ensureAuthenticated()`. Verrouillé par
+`test/core/services/e2ee/acces_supabase_garde_test.dart`, qui refuse tout
+nouvel accès Supabase non gardé dans ce fichier.
+
+**À vérifier sur appareil** — rien de tout cela n'est prouvé hors base :
+
+- [ ] **Deux comptes, deux téléphones** : s'envoyer un message texte, puis
+      vérifier en base que le message porte `encryptionLevel = 'e2ee'` et non
+      `'aes'`. C'est LE test : c'est exactement ce qui ne s'est jamais produit
+      depuis le 2026-08-15.
+- [ ] **Premier envoi après lancement à froid**, dans les secondes qui suivent
+      l'ouverture — c'est la fenêtre où la session Supabase n'est pas encore
+      établie, donc celle que le correctif vise. Un `'aes'` ici signifie que la
+      borne de 3 s est trop courte sur ce réseau, pas que la garde manque.
+- [ ] **Envoi hors ligne** : doit continuer de partir en repli AES sans
+      blocage ni attente perceptible. La garde bornée ne doit jamais retarder
+      l'envoi — si l'interface fige ~3 s avant que la bulle apparaisse, la
+      borne est mal placée.
+- [ ] **Groupe** : les messages resteront en `aes` tant que les Sender Keys ne
+      sont pas distribuées (`e2ee_sender_key_distributions` est vide en prod,
+      voir « Distribution des Sender Keys : jamais rien en base »). Vérifier
+      seulement qu'ils partent toujours.
+- [ ] **4 comptes sur 35** ont un appareil actif sans `identitySigningKey` et
+      resteront en AES par refus explicite : leurs 7 appareils datent d'avant
+      le 2026-08-20. Vérifier qu'un de ces comptes republie bien sa clé de
+      signature au lancement (self-healing de `_ensurePublishedToSupabase`).
+
+---
+
+## ⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Tout message de groupe retombe en repli AES, sans que rien ne le signale. *Bloqué : deux comptes dans un même groupe.*
+
+`e2ee_sender_key_distributions` était **vide (0 ligne)** en production, alors
+que 20 messages de groupe en repli AES y sont passés. Ce n'est **pas** un
+défaut indépendant : `distributeSenderKey` chiffre la distribution via une
+session 1:1, donc via `fetchPreKeyBundle` — celui-là même qui rendait `null`
+sous `anon`. `encryptMessage` rendait donc `null`, et l'`upsert` de la ligne 154
+n'était **jamais atteint**. Voir « Signal remis en service : la garde de
+session sur les lectures de clés ».
+
+Les policies de la table, elles, sont correctes et ont été vérifiées en prod :
+`sender_id = firebase_uid()` à l'insertion, `recipient_id = firebase_uid()` en
+lecture et suppression. Rien à corriger de ce côté.
+
+Corrigé dans `lib/core/services/e2ee/sender_key_service.dart` : garde bornée
+sur `distributeSenderKey` (écriture, mais avec repli AES, donc bornée) et sur
+`fetchPendingDistributions` — cette dernière était la plus vicieuse des deux,
+puisqu'un relevé vide fait conclure « aucune distribution en attente » et
+laisse les messages des autres illisibles.
+
+**Ce qui reste fragile, et n'est pas corrigé :**
+
+`distributeSenderKeyToGroup` n'accepte la clé que si **chaque** membre l'a
+reçue — délibéré, un message qu'une partie du groupe ne peut pas lire serait
+pire. Mais sur un groupe de 17 personnes, cela demande 16 sessions 1:1
+établies d'un coup, et un seul membre sans `identitySigningKey` (4 comptes sur
+35) suffit à maintenir tout le groupe en AES, indéfiniment.
+
+- [ ] Ouvrir un groupe à deux comptes, envoyer un message, puis vérifier
+      qu'une ligne apparaît dans `e2ee_sender_key_distributions` — elle
+      disparaît après traitement par le destinataire, donc regarder vite, ou
+      côté destinataire avant qu'il n'ouvre le groupe.
+- [ ] Vérifier que le message de groupe porte alors `encryptionLevel = 'e2ee'`.
+- [ ] **Groupe à plus de deux membres** dont un compte ancien (appareil
+      enregistré avant le 2026-08-20) : vérifier si le groupe reste en AES, et
+      si le compte rendu de distribution le dit à l'utilisateur au lieu de se
+      taire.
+- [ ] **Redistribution avant traitement** : la table n'a **aucune policy
+      UPDATE**, or l'écriture est un `upsert` sur
+      `(group_id, sender_id, recipient_id)`. Tant que le destinataire n'a pas
+      consommé la ligne, une seconde distribution tombe sur le chemin UPDATE
+      et devrait être refusée (42501). Non reproduit — à provoquer en laissant
+      un destinataire hors ligne pendant deux envois.
+
+---
+
 ## ⬜ Citations et modifications : plus de texte en clair (2026-09-09)
 
 **Priorité P0** · importance 4/5 — Si le correctif ne tient pas, une réponse ou une modification laisse le texte en clair en base, ou le message modifié devient illisible chez le destinataire et la citation disparaît de la bulle. *Bloqué : deux comptes (côté destinataire).*
@@ -6546,6 +6805,63 @@ en solo.
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
+
+## ⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Accepter une demande d'ami échoue en production pour la quasi-totalité des comptes : le lot est refusé en entier, rien ne bouge en base, et l'usager lit « Erreur de chargement ». *Bloqué : deux comptes, dont un qui n'a jamais eu de document `users` Firestore.*
+
+Signalé par Salim. C'est la **deuxième fois** que ce chemin casse au même
+endroit — voir « Écrans de notifications — lot « une seule source » », qui
+porte la passe du 2026-08-05 et le premier correctif.
+
+**Cause.** Le lot de `acceptFriendRequest` touchait cinq documents, dont le
+profil `users` de **l'autre** personne, en `set(merge)` sur `friendIds`. Un
+`set(merge)` sur un document absent est une **création**, et
+`users/{userId}` ne l'autorise qu'à son propriétaire — à raison. Or plus rien
+ne crée les documents `users` Firestore depuis la migration vers Supabase :
+ils sont absents pour presque tous les comptes. Le lot étant atomique, ce
+seul refus annulait les quatre autres écritures. `removeFriend` avait la même
+faille. Le correctif du 2026-08-05 avait traité la création de **son propre**
+document, pas celle du document d'autrui.
+
+`friendIds` n'était lu par personne : la liste d'amis vient de la
+sous-collection `friends`, l'audience « Amis » du fil vient de
+`public.friends` que `mirrorFriendToSupabase` alimente depuis cette même
+sous-collection. Les deux écritures sont donc supprimées.
+(`friend_remote_datasource.dart`)
+
+**Mesuré, pas supposé** : `tools/rules_tests/acceptation_ami.mjs` rejoue le
+lot sur l'émulateur Firestore avec les règles du dépôt, profil de
+l'expéditeur présent **et** absent. Avant correctif : REFUSÉ quand il est
+absent. Après : les deux passent, et six garde-fous restent refusés.
+`test/features/friends/acceptation_demande_ami_test.dart` fige la liste des
+documents que le lot a le droit de toucher (il échoue sur l'ancien code).
+
+**Règles Firestore déployées le 2026-09-14** (`firebase deploy --only
+firestore:rules`, compilation OK, banc passé avant). `firestore.rules` gagne
+une exception de création strictement bornée (`friendIds` seul, contenant le
+seul uid de l'appelant, donc jamais `isAdmin`/`adminRole`) pour que les **APK
+déjà installés** soient réparés sans mise à jour. Production relue par l'API
+`firebaserules` juste après : **identique au fichier versionné**. Elle l'était
+déjà avant — le « NON DEPLOYE » du commit `4bbc208` était faux, le
+déploiement avait eu lieu 4 minutes plus tard.
+
+- [ ] **Accepter depuis l'écran Notifications**, compte expéditeur **sans**
+  document `users` Firestore : « Demande acceptée », et en base
+  `status: accepted` + les deux sous-collections `friends` créées.
+- [ ] **Accepter depuis l'écran Amis** (onglet « Reçues ») : même résultat.
+  Cet écran n'affichait **rien** en cas d'échec — ni sur « Accepter », ni sur
+  « Refuser », ni sur « Annuler » ; il affiche désormais une erreur rouge.
+- [ ] **Accepter depuis la fiche de profil** : même résultat. Le message
+  d'échec y rendait l'exception brute (chemin du document Firestore et uid) ;
+  il passe par `messageErreurUsager`.
+- [ ] **Retirer un ami** : les deux entrées disparaissent des deux côtés.
+- [ ] **Message d'échec** : couper le réseau et accepter → « Connexion
+  indisponible… », pas « Erreur de chargement » (qui ne distinguait pas un
+  réseau coupé d'un refus de droits).
+- [ ] **Audience « Amis » après coup** : la nouvelle amitié arrive bien dans
+  `public.friends` (miroir), donc une publication « Amis » devient visible —
+  voir « Publications : audience Public / Abonnés / Amis / Moi uniquement ».
 
 ## ⬜ La messagerie sort de l'écran Notifications (2026-09-13)
 
@@ -9790,6 +10106,66 @@ Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
 
+## ⬜ Une image seule prend la forme de la photo, plus une bande de 205 px (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Une photo portrait publiée dans le fil perdait la moitié de sa hauteur, coupée au centre sans que rien ne le signale.
+
+`post_card.dart` posait l'image unique dans une bande de 205 px de haut en
+`BoxFit.cover`. Le cadre suit maintenant le ratio réel de la photo, borné
+entre 4:5 (portrait) et 1,91:1 (paysage) — `post_image_frame.dart`. Couvert
+par `post_image_frame_test.dart`, qui ne vérifie que le calcul des bornes.
+
+- [ ] **Publier une photo portrait**, la voir dans le fil : elle n'est plus
+  coupée au centre. C'est le cas qui ne marchait pas.
+- [ ] **Photo très haute** (capture d'écran de téléphone, 9:16) : bornée à
+  4:5, donc encore un peu rognée — vérifier que ça reste acceptable et que la
+  carte ne mange pas tout l'écran.
+- [ ] **Panorama** : borné à 1,91:1, pas réduit à un filet.
+- [ ] **Saut de mise en page** : le cadre vaut 4:3 tant que la photo n'est pas
+  décodée, puis prend sa vraie forme. En descendant un fil neuf, regarder si
+  le saut gêne la lecture — c'est le compromis de ce correctif. En remontant,
+  il ne doit plus se produire (les formes déjà vues sont retenues).
+- [ ] **Deux à quatre images** : la grille carrée n'a pas changé, vérifier
+  qu'elle n'a pas bougé pour autant.
+- [ ] **Thème sombre** : le rayon de 20 et le fond de carte suivent le
+  nouveau cadre.
+
+## ⬜ Définition des photos envoyées : plafond levé, double encodage supprimé (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Toute photo publiée sortait à 768 px de petit côté et traversait deux compressions JPEG à 85 : floue dès qu'un écran de 1080 px l'affiche pleine largeur.
+
+Le sélecteur bornait à 1024 px puis ré-encodait à 85, et `uploadImage()`
+ré-encodait une seconde fois à 85 en ramenant le petit côté à 800
+(`image_upload_service.dart`). La sélection est désormais une étape
+quasi transparente (2048 px, qualité 95) et la seule qualité livrée est celle
+de la compression finale : petit côté 1080, qualité 88.
+
+⚠ Le réglage distant `app_config/settings.mediaLimits` porte encore
+1024 / 85 / 800 et **écrasait** le code : `setConfig()` ne descend plus sous le
+plancher du code. Tant que le document Firestore n'est pas mis à jour, c'est ce
+plancher qui s'applique — le vérifier fait partie du test.
+
+- [ ] **Publier une photo depuis le fil** (`create_post_screen.dart`), la
+  rouvrir en plein écran et zoomer : le grain doit être nettement moindre
+  qu'avant. Comparer avec une publication antérieure au correctif.
+- [ ] **Photo portrait** : c'est le cas qui souffrait le plus (768 px de large
+  rééchantillonnés vers 1080). Vérifier aussi qu'elle n'est pas rognée à
+  l'excès dans la carte du fil — l'image unique y est affichée sur une bande
+  de 205 px de haut, indépendamment du correctif.
+- [ ] **Capture d'écran ou affiche avec du texte** publiée comme photo : le
+  texte doit rester lisible (c'est le contenu que le JPEG maltraite le plus).
+- [ ] **Affiche d'événement portrait** (`create_event_screen.dart`) : la boîte
+  était 1920×1080, donc une affiche portrait sortait à 810 px de large ; elle
+  est maintenant carrée à 2048.
+- [ ] **Avatar** changé depuis le Profil, puis vu en grand sur la fiche de
+  profil (et non en vignette de 40 px, où rien ne se voit).
+- [ ] **Photo d'entreprise, de produit, de groupe, de story, pochette de
+  podcast** : mêmes chemins d'envoi, une vérification rapide sur chacun.
+- [ ] **Poids et lenteur** : une photo pèse maintenant ~3 à 5 fois plus.
+  Envoyer une publication en 3G/Edge et regarder si le temps d'envoi reste
+  acceptable depuis Niamey — c'est le compromis à valider, pas seulement la
+  netteté.
+
 ## ⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)
 
 **Priorité P2** · importance 3/5 — Les chiffres affichés étaient ceux du démarrage de l'app : suivre quelqu'un, publier, enregistrer une publication ne les bougeait pas.
@@ -11743,6 +12119,184 @@ Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature 
 
 ---
 
+## ⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Bloquer quelqu'un n'écrivait rien, nulle part : ni dans Firestore, ni dans le miroir Supabase dont dépendent les policies. L'écran affichait la personne comme bloquée sans qu'elle le soit. Corrigé le 2026-09-14, **jamais vérifié sur appareil**. *Bloqué : deux comptes.*
+
+Trouvé en cherchant les autres occurrences du défaut qui cassait l'acceptation
+d'une demande d'ami — voir « Accepter une demande d'ami : « Erreur de
+chargement » ». Même fichier de causes :
+`blocked_users_datasource.dart`, `blockUser` et `unblockUser`.
+
+**Cause.** Le lot contenait **deux** écritures condamnées, chacune suffisante
+à le faire échouer en entier :
+
+1. `batch.update(users/{moi}, {'blockedUserIds': …})` — sur un document
+   **absent**, et plus rien ne crée les documents `users` Firestore depuis la
+   migration vers Supabase ;
+2. `batch.set(users/{cible}, {'blockedByUserIds': …}, merge)` — création du
+   document d'autrui, refusée par `users/{userId}`.
+
+Et `_refleterDansSupabase` était appelé **après** `batch.commit()` : le lot
+levant toujours, le miroir n'était jamais écrit. Les policies RLS qui lisent
+`public.blocked_users` ne voyaient donc rien non plus. Le blocage était sans
+effet de bout en bout.
+
+**Confirmé par la donnée.** Le balayage d'invariants du 2026-09-14
+(`tools/invariants_donnees.py`, voir « Balayage des invariants de données ») a
+trouvé **0 ligne dans `public.blocked_users`** sur 47 comptes en base. Personne
+n'a jamais réussi à bloquer qui que ce soit.
+
+**Correctif.** Les deux écritures de profil sont retirées — aucune n'était
+lue : la liste des bloqués vient de la sous-collection `blocked_users`
+(`blockedUsersProvider`), le sens inverse passe par Supabase
+(`usersWhoBlockedMe`), et `functions/index.js` ne balaie ces tableaux qu'au
+nettoyage de suppression de compte, en Admin SDK. Il ne reste qu'une écriture
+Firestore, dans sa propre sous-collection : plus de lot du tout. Le miroir
+Supabase est maintenant tenté **quoi qu'il arrive** à Firestore, et son échec
+n'est plus avalé par un `debugPrint` — un blocage à moitié posé se dit.
+
+**Mesuré, pas supposé.** `tools/rules_tests/blocage_utilisateur.mjs` rejoue le
+lot sur l'émulateur Firestore avec les règles du dépôt, profil de la cible
+présent **et** absent. Le nouveau parcours passe dans les quatre cas ; l'ancien
+lot est refusé dans trois cas sur quatre, et ne passe que lorsque **les deux**
+profils existent — ce qui ne décrit presque aucun compte.
+
+Le banc corrige au passage une supposition de départ : on attendait un
+`NOT_FOUND` de l'`update` sur le profil absent. Ce n'est pas ce que voit
+l'usager. La règle `allow update` de `users/{userId}` appelle
+`diff(resource.data)`, nul sur un document absent — « Null value error », donc
+`PERMISSION_DENIED` avant d'atteindre le document. Le `NOT_FOUND` n'apparaît
+que règles désactivées (le banc le montre aussi). **Les deux causes rendaient
+donc le même code d'erreur, et aucune retouche des règles n'en aurait sauvé
+une seule** : il fallait retirer les écritures.
+
+`test/features/settings/blocage_utilisateur_test.dart` fige les documents que
+le blocage a le droit de toucher, et l'indépendance des deux moitiés. Sur
+l'ancien code il échoue sur 3 de ses 5 cas, avec le
+`ServerException: Some requested document was not found.` attendu.
+
+**Règles Firestore : rien à déployer.** La seule modification de
+`firestore.rules` est un commentaire — l'exception d'`update` sur
+`blockedByUserIds` n'est plus empruntée par le client et est laissée pour les
+APK déjà installés, sans profit d'ailleurs : leur lot bute un cran plus tôt,
+sur l'`update` de leur propre profil. Production relue le 2026-09-14 par l'API
+`firebaserules` (ruleset `b2645946`, déployé à 20:11 UTC) : **identique au
+fichier versionné hors commentaires**, 955 lignes utiles de part et d'autre.
+
+**Écrans.** Les trois appels au blocage annonçaient déjà l'échec. Le
+quatrième, la case « bloquer aussi » de `report_content_modal.dart`, jetait le
+résultat : le blocage pouvait échouer sous un « Merci pour votre signalement »
+vert. Il dit maintenant que le signalement est parti mais que le blocage n'a
+pas suivi. Au passage, `business_reviews_screen.dart` sort de la liste
+d'exceptions de `test/core/errors/echec_muet_test.dart` — il avait **deux**
+branches muettes (suppression d'un avis, réponse du gérant), pas la seule que
+sa note d'exception décrivait.
+
+*Deux appareils étaient connectés pendant la session, mais rien n'a pu être
+coché : les APK installés sont antérieurs à ce correctif, et les points
+ci-dessous demandent un second compte.*
+
+- [ ] **Bloquer** depuis la fiche de profil : la personne apparaît dans
+  Réglages → Utilisateurs bloqués, et **en base** — `users/{moi}/blocked_users`
+  côté Firestore **et** une ligne dans `public.blocked_users`.
+- [ ] **Ses publications disparaissent** du fil (c'est la policy Supabase qui
+  tranche, donc le miroir doit être écrit).
+- [ ] **Débloquer** : les deux disparaissent, des deux bases.
+- [ ] **Bloquer depuis un signalement** (case « bloquer aussi ») : la ligne
+  arrive dans les deux bases, et un échec du blocage seul se dit à l'écran
+  sans faire croire que le signalement a échoué.
+- [ ] **Miroir en échec** : couper le réseau juste après avoir bloqué — le
+  message d'erreur doit apparaître, et rebloquer une fois le réseau revenu
+  doit aboutir (les deux écritures sont idempotentes).
+- [ ] **Avis d'un commerce** (`business_reviews_screen.dart`) : supprimer son
+  avis et répondre en tant que gérant annoncent maintenant l'échec autant que
+  le succès — vérifier qu'un refus affiche bien un bandeau rouge.
+
+## ⬜ Photo de profil : on choisit son cadrage (2026-09-14)
+
+**Priorité P1** · importance 4/5 — L'avatar est un carré : la photo choisie était rognée en son centre, et personne ne décidait de ce qui restait — un portrait y perdait le haut du crâne ou le menton.
+
+Nouvel écran `photo_crop_screen.dart` entre le choix de la photo et l'envoi :
+on déplace, on pince pour zoomer, seul le carré part. Branché sur les deux
+chemins (`edit_profile_screen.dart` et `profile_config_screen.dart`). Les deux
+grands avatars de 76 px passent en `BoxFit.contain` : une photo d'avant ce
+correctif, donc rectangulaire, se montre entière plutôt que coupée. Couvert par
+`photo_crop_screen_test.dart`, qui ne vérifie que le calcul du découpage.
+
+- [ ] **Changer la photo depuis le Profil** (appareil photo *et* galerie) :
+  l'écran de cadrage s'ouvre, le geste de déplacement suit le doigt, le
+  pincement zoome, et on ne peut pas faire sortir le cadre de la photo.
+- [ ] **Ce qu'on voit est ce qu'on garde** : cadrer sur un détail précis
+  (un visage en haut de la photo), valider, et retrouver **ce** cadrage sur
+  l'avatar du profil, du fil et d'une discussion.
+- [ ] **Renoncer** : la croix referme l'écran sans rien changer à la photo
+  actuelle.
+- [ ] **Photo en portrait très haut** (9:16) : elle remplit le cadre et ne
+  peut pas être dézoomée sous le carré — arbitré le 2026-09-14, ce n'est pas
+  un défaut. Ce qui se vérifie ici, c'est qu'on atteint **toute** la photo en
+  la faisant glisser : le haut comme le bas doivent pouvoir venir dans le
+  cadre.
+- [ ] **Lenteur** : sur le SM A515F, le découpage tourne dans un isolate mais
+  décode une image de 2048 px — mesurer le temps entre « valider » et le
+  retour à l'écran de profil.
+- [ ] **Ancienne photo, non carrée** : ouvrir le profil d'un compte qui n'a
+  pas changé sa photo — elle s'affiche entière, avec des bandes sur les côtés.
+  Juger si le rendu tient (c'est le choix fait le 2026-09-14) ou s'il vaut
+  mieux inviter à recadrer.
+- [ ] **Vignettes de liste** (fil, discussions, membres) : elles restent en
+  `cover` — vérifier que ça ne jure pas avec le profil.
+
+## ⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Le dialogue natif d'avis ne dit jamais s'il s'est affiché : aucun banc, aucun journal ne peut distinguer « montré » de « avalé par le quota ».
+
+*Bloqué pour le dialogue natif : demande une installation **venue de Play**
+(piste de test interne), un compte neuf, et huit ouvertures étalées sur plus
+de trois jours. Un APK latéral ne le montrera jamais, même en release.*
+
+Le paquet `in_app_review` entre dans le projet
+([app_review_service.dart](lib/core/services/app_review_service.dart)), avec
+deux chemins volontairement distincts :
+
+- **le bouton** des Réglages ouvre la **fiche du store**, jamais le dialogue
+  natif — Google demande expressément de ne pas câbler un bouton « Noter »
+  sur `requestReview()`, que le quota peut avaler : l'utilisateur voit alors
+  un bouton mort ;
+- **l'invitation automatique** part de l'écran d'Accueil
+  ([home_screen.dart](lib/features/home/presentation/screens/home_screen.dart)),
+  après huit ouvertures, trois jours d'ancienneté, et une seule fois par
+  trimestre.
+
+[app_review_service_test.dart](test/core/services/app_review_service_test.dart)
+tient les seuils, le recalage d'une horloge menteuse, et le point qui compte :
+un `requestReview()` muet ne doit pas relancer la demande à **chaque**
+ouverture. Ce que le banc ne peut pas voir :
+
+- [ ] **La tuile est là** : Réglages → « Application », étoile, entre
+      « Aide & FAQ » et « À propos », en clair **et** en sombre.
+      (`settings_screen.dart`)
+- [ ] **L'appui ouvre l'application Play Store** sur la fiche Diaspo Niger, pas
+      un navigateur ni « élément introuvable ». La fiche est bien publiée :
+      vérifié en ligne le 2026-09-14 (Mirai Tech., 10+ téléchargements).
+- [ ] **Sans Play Store** (ou Play désactivé) : le bandeau
+      « Impossible d'ouvrir la fiche du store… » s'affiche. Le bouton ne doit
+      jamais rester muet.
+- [ ] **iOS** : `https://apps.apple.com/app/id6807607258` répondait
+      « The page you're looking for can't be found » le 2026-09-14 — la fiche
+      n'est pas publiée. Le bouton mènera là tant que ce n'est pas le cas
+      (voir « iOS : signature et conformité export jamais compilées » au § 14).
+- [ ] **L'invitation ne s'empile pas** : jamais par-dessus les coach marks du
+      premier démarrage, ni par-dessus un écran poussé par un lien profond ou
+      une notification pendant les quatre secondes d'attente.
+- [ ] **Le compteur tient au redémarrage** : huit ouvertures cumulées, pas
+      huit d'affilée dans la même session. `adb shell run-as` sur les clés
+      `review_*` de `SharedPreferences` permet de le lire sans attendre.
+
+---
+
+---
+
 ## ⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)
 
 **Priorité P2** · importance 3/5 — Le profil d'une autre personne n'affichait qu'une pastille « 3 groupes en commun », inerte : ni lesquels, ni comment y aller.
@@ -12431,6 +12985,45 @@ directement sur la section APPLICATION.
 # 12. Design, thème, langue et mise en page
 
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
+
+---
+
+## ⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Deux défauts au même endroit, étape 4/4 de la configuration du profil ([profile_config_screen.dart](lib/features/profile/presentation/screens/profile_config_screen.dart)).
+
+**L'ordre des pastilles.** Le même réglage était présenté dans deux ordres
+opposés : Orange puis Vert ici, Vert puis Orange dans les Réglages.
+L'onboarding s'aligne sur les Réglages.
+
+**Les vignettes mentaient sur l'accent.** Les trois aperçus Clair / Sombre /
+AUTO peignaient leur barre avec la paire **orange**, quel que soit l'accent
+choisi — observé sur Pixel le 2026-09-14, trois vignettes oranges juste
+au-dessus de la pastille verte qu'on venait de toucher. La vignette lit
+maintenant l'accent au provider et reprend le `colorScheme.primary` du thème
+qu'elle représente. C'est le défaut que `950024b` nommait — « un aperçu qui
+ment sur ce qu'il propose » — corrigé alors sur la seule moitié clair/sombre.
+Couvert par `test/features/profile/apercu_theme_accent_test.dart` (tombe sans
+le correctif, vérifié).
+
+- [ ] **Configuration du profil, étape 4/4** : Vert en première position,
+  Orange en seconde.
+- [ ] **Réglages → thème** : l'ordre y est identique, les deux écrans se
+  lisent pareil.
+- [ ] **La sélection suit toujours la bonne pastille** : toucher Orange
+  sélectionne Orange (c'est la régression qu'un échange de positions invite —
+  les `isSelected` ont bougé avec leur widget, à confirmer à l'œil).
+- [ ] **Compte en Vert** : les trois vignettes portent une barre **verte**.
+  C'est le cas qui a révélé le défaut.
+- [ ] **Compte en Orange** : elles portent une barre orange — la correction ne
+  doit pas avoir inversé le mensonge.
+- [ ] **Au tap sur une pastille**, les trois vignettes se repeignent
+  **immédiatement**, sans quitter ni rouvrir l'étape (elles lisent le
+  provider, que `_selectThemeColor` écrit aussitôt).
+- [ ] **Vignette AUTO** : ses deux moitiés, claire et sombre, portent chacune
+  la bonne nuance de l'accent — `secondary` / `secondaryLight` en Vert,
+  `primaryDark` / `primaryLight` en Orange. C'est la seule qui montre les
+  deux à la fois, donc la seule où un mélange se verrait.
 
 ---
 
@@ -14062,6 +14655,186 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 
 ---
 
+## ⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Aucun refus de permission n'atteignait Crashlytics : c'est pour ça qu'accepter une demande d'ami est resté impossible des mois. Chaque échec montré à l'usager y part désormais en non-fatal.
+
+`FlutterError.onError` et `PlatformDispatcher.onError` ne voient que les
+erreurs **non** rattrapées. Un `PERMISSION_DENIED` Firestore ou un `42501` de
+la RLS, eux, sont attrapés : ils deviennent un `ServerFailure`, puis un
+`bool false`. Ils ne quittaient jamais le téléphone.
+
+Le branchement est posé sur `messageErreurUsager` — le seul endroit du projet
+qui sait qu'on est en train de dire à quelqu'un que ça a raté, et par lequel
+passent déjà 48 sites. Une indirection (`brancherObservateurEchec`) garde ce
+fichier **pur** : il est lu par des tests sans Firebase, et `web/` est une
+cible réelle. L'implémentation vit dans `journal_echecs.dart`, branchée une
+fois depuis `main.dart`.
+
+Deux précautions, testées : le message est **caviardé** (uid, uuid, e-mail,
+JWT, sous-domaine du projet) parce que PostgREST met l'URL complète dans ses
+messages et Firebase le chemin du document ; et une même panne ne part
+**qu'une fois par 5 minutes**, sinon un écran en erreur hors ligne inonderait
+la console — `messageErreurUsager` est aussi appelé depuis des `build`.
+
+⚠️ **Ce que ça ne verra pas** : un succès qui n'a rien fait. Un `UPDATE`
+PostgREST qui ne matche aucune ligne rend 200. Ceux-là restent l'affaire de
+« Balayage des invariants de données ».
+
+- [ ] **Vérifier l'arrivée** : couper le réseau, ouvrir un écran qui charge,
+  puis consulter la console Crashlytics — un non-fatal `echec_affiche` avec
+  la clé `famille_echec = reseau`.
+- [ ] **Vérifier le caviardage sur un vrai message** : la fiche Crashlytics ne
+  doit contenir ni uid, ni uuid, ni le sous-domaine Supabase.
+- [ ] **Vérifier le volume** après 24 h : si une famille domine, c'est une
+  fonctionnalité cassée, pas du bruit — c'est exactement ce qu'on cherche.
+
+## ⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Deux écritures n'ont pas eu lieu, sans erreur nulle part : deux amitiés à sens unique (une personne ne voit pas les publications « Amis » de deux autres) et un événement restreint à un ensemble vide (visible de personne). *Bloqué pour la réparation : décision de Salim, ce sont des écritures en production.*
+
+`tools/invariants_donnees.py` — la contrepartie Supabase du banc de règles.
+Côté Firestore on rejoue l'écriture pour voir si elle passe ; côté Supabase
+**l'écriture ne dit rien** (un `UPDATE` qui ne matche aucune ligne rend 200,
+une lecture refusée par la RLS réussit à vide), donc on vérifie la **forme de
+la donnée**. Le script découvre le schéma réel avant de composer ses questions
+— plusieurs tables n'existent dans aucune migration — et sépare les
+**conditions** (doivent valoir 0) des **mesures** (à lire, jamais un verdict).
+
+```bash
+python tools/invariants_donnees.py
+```
+
+Passe du 2026-09-14, 47 comptes en base :
+
+- 🔴 **2 amitiés à sens unique** sur 8 lignes. Même `user_id` des deux côtés,
+  créées le 2026-09-13 — le jour de la reprise. `est_ami_de(auteur, lecteur)`
+  exige `friends.user_id = auteur` : ce compte **ne voit pas** les publications
+  « Amis » des deux autres, et eux voient les siennes. Les trois comptes
+  existent bien dans `public.users`, donc le garde « absent de public.users »
+  de `setFriendship` n'est pas en cause. Origine exacte non tranchée : il
+  faudrait lire les sous-collections Firestore, ce que le classificateur de
+  permissions a refusé.
+- 🔴 **1 événement `visibility = 'people'` avec 0 ligne d'audience**, créé le
+  2026-09-14 (1 inscrit, l'organisateur). `createEvent` écrit `visibility` sur
+  la ligne, puis `setEventAudience` est un **appel séparé** : PostgREST n'a
+  aucune atomicité entre deux appels, donc l'événement reste restreint à un
+  ensemble vide si le second ne part pas, échoue, ou part avec une liste vide.
+  La RPC `set_event_audience`, elle, est saine (`SECURITY DEFINER`, exceptions
+  explicites) — le trou est entre les deux appels, pas dedans.
+- **0 ligne dans `blocked_users`** — confirme par la donnée ce que la lecture
+  du code disait : voir « 🔴 Bloquer un utilisateur ne bloque rien —
+  corrigé », corrigé le 2026-09-14, après ce balayage.
+- **5 comptes sans `auth_mappings`** (sur 47) : le pont Firebase→Supabase n'a
+  jamais abouti pour eux. Toute écriture part en `anon`, toute lecture réussit
+  à vide au lieu d'échouer.
+- **Dérive de schéma relevée au passage** : `event_attendees.status` est
+  déclaré par `20260522223150_initial_schema.sql` mais **absent de la base**.
+  L'invariant qui en dépend est sauté, en le disant.
+- Sains : groupes (membres, créateur, `member_count`), sondages sans option,
+  stories « amis proches », `like_count` et `comment_count` du fil.
+
+- [x] **🔴 Les 2 amitiés étaient des RESTES, et sont supprimées.** Firestore
+  tranchait : les deux comptes d'en face ont **0 ami**, les entrées datent de
+  février et avril, et les 8 documents Firestore correspondaient exactement aux
+  8 lignes Postgres — le miroir était fidèle, le défaut était dans la source.
+  Or seuls deux chemins écrivent cette sous-collection : le lot d'acceptation,
+  **atomique depuis le premier commit** (2025-12-31), donc incapable de
+  n'écrire qu'un côté ; et la suppression de compte, qui efface le miroir
+  détenu par les autres — nettoyage **ajouté après coup**, dont le commentaire
+  décrit précisément ce résidu. Compléter aurait fabriqué un lien que personne
+  n'a exprimé. Les deux documents Firestore supprimés le 2026-09-14 (accord de
+  Salim) : 6 documents restants, soit 3 amitiés réciproques.
+- [x] **`mirrorFriendToSupabase` vu tourner sur une vraie amitié** — ce qui
+  n'avait jamais été observé. Les 2 lignes Postgres sont parties seules après
+  la suppression Firestore : 8 → 6, et l'invariant est à 0.
+- [x] **🔴 Événement à audience vide — cause trouvée, corrigée en base.** Le
+  formulaire valide bien (`_audience.erreur`, ligne 262) : la cause était dans
+  la RPC. `set_event_audience` **filtre en silence** (`u.id = ANY(p_user_ids)
+  AND u.id <> v_uid`), et quand il ne restait personne elle écrivait quand même
+  `events.visibility` et rendait `VOID` — un **succès qui n'a rien fait**.
+  L'organisateur est un compte de **12 minutes** (créé 04:49, événement 05:01),
+  sans aucun ami ni discussion, donc avec un sélecteur vide.
+  `20260914203000_audience_evenement_jamais_vide.sql` fait lever la RPC quand
+  une demande « groups »/« people » aboutit à une audience vide — la fonction
+  étant une seule transaction, la levée annule aussi ses `DELETE`, donc une
+  audience existante n'est jamais perdue par une tentative ratée. Déployée et
+  relue : garde présent, `anon` absent de l'ACL.
+- [x] **Le message d'échec disait faux** : « il reste visible par sa discussion
+  uniquement » alors qu'un événement créé **hors** discussion n'est visible de
+  personne — exactement le cas trouvé. Corrigé (`_messageAudienceRatee`).
+- [ ] **Événement restreint sans invités** : créer un « Personnes choisies »,
+  choisir quelqu'un, puis tout décocher et valider — le formulaire doit
+  refuser. Puis vérifier qu'un échec d'audience affiche bien le message rouge
+  « personne d'autre que vous ne le voit ».
+- [ ] **L'événement fautif de production** (`fea8bc43…`, organisateur
+  `mz4JJ8Fh…`) est **toujours invisible** : la correction empêche les suivants,
+  elle ne répare pas celui-là. Décider — le supprimer, ou le passer en public.
+- [ ] **Relancer le balayage après chaque lot** qui touche une écriture en
+  deux temps, et y ajouter l'invariant correspondant.
+
+## Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Un utilisateur bloqué au paiement du panier ou à l'envoi d'argent se voyait proposer « Ouvrir Play Store » ; le bouton était inerte. Invisible pour qui installe depuis Play — mais c'est exactement le cas d'un APK posé à la main, donc de nos propres tests.
+
+`SecurityGateService._openPlayStore()` avait un corps entièrement commenté :
+le tap fermait le dialogue et n'ouvrait rien. La méthode est supprimée, et le
+bouton appelle `AppReviewService.ouvrirLaFicheSansAvis()`, qui ouvre la bonne
+fiche par plateforme (`Platform.isIOS ? appStoreUrl : playStoreUrl`) en
+`LaunchMode.externalApplication` — les mêmes constantes que celles corrigées
+dans « Les deux liens « noter l'app » étaient morts ».
+
+**Et non `ouvrirLaFicheDuStore()`** : celle-ci ouvre la *page d'avis*
+(`?action=write-review` sur iOS) et marque la fiche comme ouverte. Ici on
+demande une installation, pas une note — et marquer couperait l'invitation
+automatique pour un avis que personne n'a déposé. Même choix qu'à la notice de
+mise à jour. Si l'ouverture échoue, un message le dit, sans quoi le bouton
+retomberait exactement dans le symptôme corrigé ici.
+
+Contrairement à ce qu'un `grep` laissait croire, le dialogue n'est pas mort :
+[checkAndShowDialog](lib/core/services/security_gate_service.dart) a deux
+appelants, tous deux sur des flux d'argent —
+[cart_screen.dart](lib/features/marketplace/presentation/screens/cart_screen.dart)
+(paiement du panier) et
+[send_money_screen.dart](lib/features/transfers/presentation/screens/send_money_screen.dart)
+(envoi d'argent). Le nom cherché, `showSecurityDialog`, n'existe nulle part
+dans le dépôt : le supprimer aurait retiré la garde Play Integrity des deux.
+
+Au passage, `result.verdict!` était déréférencé deux fois sans garde alors que
+`denied()` déclare `verdict` optionnel. Aucun de ses quatre chemins ne le
+laisse nul aujourd'hui, donc rien ne plantait — le `!` est remplacé par un
+test, et sans verdict le dialogue ne propose plus le store plutôt que
+d'affirmer un motif qu'il ignore.
+
+**Rien de tout ceci ne se vérifie hors appareil** : `flutter analyze` est
+propre, et Play Integrity ne rend un verdict que sur un vrai téléphone. Play
+Integrity n'était mentionné nulle part dans ce fichier jusqu'ici — la garde
+elle-même n'a donc jamais été observée en marche.
+
+- [ ] Sur SM A515F, APK installé à la main : ouvrir le panier marketplace et
+      lancer le paiement — le dialogue « Accès restreint » doit apparaître.
+- [ ] Sur ce dialogue, « Ouvrir Play Store » doit amener sur la fiche
+      `com.diasponiger.diasponiger`, et non sur une page « application
+      introuvable ». Ce chemin ouvre l'URL `https` (et non `market://`) :
+      l'app Play Store est l'issue attendue, un navigateur reste un repli
+      acceptable — noter laquelle des deux s'est ouverte.
+- [ ] « Compris » ferme le dialogue sans rien ouvrir.
+- [ ] Même parcours depuis l'envoi d'argent (destinataire choisi, montant
+      saisi, puis valider).
+- [ ] Au retour du Play Store, l'app reprend sur l'écran quitté : pas de
+      second dialogue, pas d'écran noir.
+- [ ] Noter le motif affiché. « nécessite l'installation depuis Google Play
+      Store » est le cas attendu ; « Impossible de vérifier la sécurité »
+      signifie que la Cloud Function d'intégrité a échoué — autre sujet, à
+      consigner séparément.
+- [ ] La fiche doit s'ouvrir sur la page normale, **pas** sur le formulaire
+      d'avis, et l'invitation automatique « noter l'app » doit rester
+      disponible ensuite : ce passage ne doit pas la consommer.
+- [ ] Couper le réseau puis retenter « Ouvrir Play Store » : un message doit
+      apparaître. Rien du tout signifierait que le retour d'échec est ignoré.
+
+---
+
 ## ⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)
 
 **Priorité P2** · importance 3/5 — Un écran qui déborde et une flèche retour sans effet (ou écran noir) restent non localisés — observés jusqu'ici sur l'appareil de test seulement. *Bloqué : Pixel déconnecté / nouvelle version publiée.*
@@ -15489,6 +16262,87 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 # 14. Publication et plateformes
 
 Play Store, exigences Android, build release, iOS.
+
+---
+
+## ⬜ Notice « une nouvelle version est disponible » (2026-09-14)
+
+**Priorité P1** · importance 3/5 — Le bandeau de mise à jour partage désormais
+son canal avec le rappel de sauvegarde des clés E2EE : une erreur d'arbitrage
+ferait taire le second, et des messages deviendraient illisibles au changement
+d'appareil.
+
+Bandeau non bloquant en tête d'application quand une version plus récente
+existe sur le store. La version disponible vient du serveur — clé
+`DERNIERE_VERSION_APP` de l'Edge Function `app-config`, au format de la ligne
+`version:` de `pubspec.yaml` (`1.3.0+20`) — parce qu'un APK ne peut pas savoir
+qu'il en existe un plus récent que lui.
+Décision et silences tenus par `test/core/services/mise_a_jour_service_test.dart`
+(22 cas).
+
+**Secret posé en production le 2026-09-14** à `1.2.1+19`, soit la valeur de
+`pubspec.yaml` — donc **égale** à la version installée, et la comparaison exige
+un strict supérieur : en régime normal le bandeau ne s'affiche pas, et c'est
+correct. Il faudra le monter à chaque mise en ligne (`DEPLOYMENT.md` § 10).
+
+⚠️ L'Edge Function `app-config` **n'avait jamais été déployée** : l'appel
+rendait 404 et `RemoteConfigService` retombait en silence sur le `.env`.
+Déployée le 2026-09-14 (9 clés servies), après avoir vérifié par comparaison
+de SHA-256 que les 8 clés préexistantes étaient identiques au `.env` — sans
+quoi le déploiement aurait changé Maps, LiveKit et les liens profonds sans
+prévenir.
+
+- [x] **Poser la clé, puis voir le bandeau** : vu sur SM-A515F le 2026-09-14
+      avec `1.9.9+99`. Le bandeau affiche **« Diaspo Niger 1.9.9 »** — le nom
+      seul, sans le `+99`, comme voulu.
+- [x] **« Pas maintenant » tient** : écarté, `am force-stop`, relance à
+      froid — le bandeau n'est pas revenu. Secret passé ensuite à `2.0.0+100` :
+      il a reparlé, en « 2.0.0 ». Les deux moitiés vérifiées.
+- [ ] **« Mettre à jour » ouvre la bonne fiche** : Play Store sur
+      `com.diasponiger.diasponiger`, et non une page « application
+      introuvable » (les deux liens du projet ont déjà été faux).
+- [ ] **Revenir du store sans installer** : le bandeau doit pouvoir
+      reparaître au démarrage suivant — contrairement à « Pas maintenant »,
+      partir vers le store n'écarte pas la version.
+- [ ] **Le rappel E2EE passe devant** ([main_shell.dart](lib/core/shell/main_shell.dart)) :
+      avec un compte dont les clés ne sont pas sauvegardées ET la clé serveur
+      posée, c'est le bandeau des clés qui doit s'afficher ; une fois traité,
+      celui de la mise à jour doit prendre sa place **sans relancer l'app**.
+
+      La **décision** est désormais tenue hors de l'écran : `bandeauAPoser()`
+      ([bandeaux_shell.dart](lib/core/shell/bandeaux_shell.dart)) est une
+      fonction pure, et le banc la boucle sur **toutes** les valeurs de
+      `E2EEBackupPrompt` — une valeur ajoutée plus tard ne pourra pas tomber en
+      silence du côté de la mise à jour. Il vérifie aussi que la notice écartée
+      revient, et que les deux types se comparent par valeur (sans quoi le
+      bandeau clignoterait à chaque rebuild).
+      Ce qui reste à l'appareil : que l'enchaînement se produise **vraiment**,
+      avec de vrais coordinateurs et un vrai `ScaffoldMessenger`.
+- [ ] **Rendu du bandeau** : le **débordement** n'est plus une question ouverte
+      — `test/core/shell/bandeaux_shell_test.dart` rend les deux bandeaux du
+      shell (mise à jour **et** E2EE, qui porte trois actions) sur 411, 360 et
+      320 dp de large, aux échelles de police 1,0 / 1,3 / 1,6 / 2,0, en clair
+      et en sombre : 51 cas, aucun débordement. Reste à juger **à l'œil** ce
+      qu'un banc ne voit pas : contraste et couleurs du bandeau en thème
+      sombre sur un vrai écran.
+
+      Ce qui a été corrigé en chemin, mesuré à 411 dp : le message portait une
+      seconde phrase (« Mettez à jour pour profiter des derniers correctifs »)
+      qui disait ce que le bouton dit déjà et le poussait à **224 dp**, un
+      quart de la hauteur du SM-A515F. Une seule phrase : **164 dp**. Les
+      62 dp restants tiennent à `MaterialBanner`, qui ne met l'action sur la
+      ligne du contenu qu'avec **une seule** action — et retirer « Pas
+      maintenant » rendrait le bandeau inécartable.
+
+      Vu **par-dessus une discussion** : il vit dans `MainShell`, donc il
+      s'affiche sur n'importe quel onglet, sous la barre de la conversation.
+- [ ] **Hors ligne au démarrage** : aucune notice, aucun blocage du premier
+      écran (`RemoteConfigService` sert alors son cache, ou rien).
+
+Une notice qui s'affiche à tort est pire qu'une notice absente : elle envoie
+sur le store chercher une mise à jour qui n'existe pas, et recommence à chaque
+démarrage. D'où la règle tenue par le banc — toute version illisible, absente
+ou non postérieure se tait.
 
 ---
 

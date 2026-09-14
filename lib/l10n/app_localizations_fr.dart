@@ -1832,6 +1832,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get changePhoto => 'Changer la photo';
 
   @override
+  String get cropPhotoTitle => 'Cadrer la photo';
+
+  @override
+  String get cropPhotoHint =>
+      'Déplacez la photo, pincez pour zoomer. Seul le carré sera gardé.';
+
+  @override
+  String get cropPhotoFailed =>
+      'Recadrage impossible. Réessayez ou choisissez une autre photo.';
+
+  @override
   String get basicInfo => 'Informations de base';
 
   @override
@@ -1883,6 +1894,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get hostCity => 'Ville';
+
+  @override
+  String get groupsOnMap => 'Groupes sur la carte';
 
   @override
   String get cityFieldHint => 'Chercher une ville';
@@ -2314,6 +2328,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get rateUsOnStore => 'Notez-nous sur le store';
+
+  @override
+  String get rateApp => 'Noter l\'application';
+
+  @override
+  String get rateAppSubtitle =>
+      'Votre avis compte, et il aide l\'app à se faire connaître';
+
+  @override
+  String get rateAppUnavailable =>
+      'Impossible d\'ouvrir la fiche du store sur cet appareil';
 
   @override
   String get deleteAccountTitle => 'Supprimer le compte';
@@ -16507,4 +16532,12 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get pollVotersHidden =>
       'Sondage anonyme : personne ne voit qui a voté quoi.';
+
+  @override
+  String updateAvailableMessage(String version) {
+    return 'Diaspo Niger $version est disponible.';
+  }
+
+  @override
+  String get updateAvailableAction => 'Mettre à jour';
 }

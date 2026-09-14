@@ -20,12 +20,21 @@ git worktree add -b claude/<sujet> .claude/worktrees/<sujet> HEAD
 W=.claude/worktrees/<sujet>
 cp .env "$W/"                                  # ignorés par git, requis
 cp functions/.env "$W/functions/"
+mkdir -p "$W/supabase/.temp" && cp supabase/.temp/* "$W/supabase/.temp/"
 cp android/key.properties "$W/android/"        # uniquement pour un build release
 cp android/app/diaspo-niger-release.jks "$W/android/app/"
 ```
 
 Sans le `.env` copié, toute commande Flutter échoue sur l'asset manquant.
 Compter ~4 min au premier `flutter analyze` (résolution des paquets).
+
+`supabase/.temp/` porte le lien vers le projet distant (ignoré par git,
+`.gitignore:80`). Sans lui, toute commande `--linked` — `db query`, `db push`,
+`migration list` — échoue sur « Cannot find project ref. Have you run supabase
+link? ». **Copier le dossier entier, pas seulement `project-ref`** : avec ce
+seul fichier, l'erreur change sans que rien ne marche mieux, en « IPv6 is not
+supported on your current network » — c'est `pooler-url` qui manque, et
+l'invite à relancer `supabase link` est trompeuse, le lien n'ayant rien perdu.
 
 Les deux derniers ne servent qu'à `flutter build apk --release`, mais leur
 absence ne se voit qu'**au tout dernier moment** : `signingConfigs.release` lit
@@ -167,6 +176,45 @@ Ce que la violation a coûté le 2026-08-06, en une journée :
   par tous tant que `group_calls/$callId` est à `auth != null`.
 - **`.validate` remonte.** Écrire `$toId/offer` fait évaluer le `.validate` de
   `$toId`. Poser la contrainte au bon niveau, sur l'enfant réellement écrit.
+
+## Règles Firestore : le banc aussi, et un piège de `set(merge)`
+
+Même discipline que pour RTDB, avec son propre banc :
+
+```bash
+firebase emulators:start --only firestore --project diaspo-niger
+cd test/rules && npm install     # une seule fois
+node tools/rules_tests/acceptation_ami.mjs
+```
+
+Lire ce qui tourne avant de toucher au fichier vaut ici aussi : l'API
+`firebaserules` rend les règles réellement déployées (le compte de service du
+dépôt a `firebase.readonly`, mais **pas** `firebaserules.rulesets.test` — la
+simulation passe donc par l'émulateur, pas par l'API).
+
+**Le piège qui a coûté deux pannes au même endroit.** `set(..., SetOptions(
+merge: true))` n'est pas une méthode : c'est un `create` quand le document est
+absent, un `update` quand il existe. Une règle qui autorise l'un sans l'autre
+donne une fonction qui marche avec certains comptes et pas avec d'autres.
+
+Et un lot (`WriteBatch`) est **atomique** : un seul refus annule tout le reste.
+Un lot qui touche le document de quelqu'un d'autre met donc toute la
+fonctionnalité à la merci de la règle la plus stricte qu'il croise.
+
+Ce que ça a coûté :
+
+- 2026-08-05 : `users/{userId}` couvrait create+update+delete dans un seul
+  `allow write` appelant `diff(resource.data)` sans garde. Sur une création,
+  `resource` est nul : la règle **plantait** au lieu de renvoyer `false`.
+  Personne ne pouvait créer son propre document `users`.
+- 2026-09-14 : la création du document **d'autrui** restait refusée, et le lot
+  d'acceptation d'une demande d'ami en contenait une (`friendIds`). Accepter
+  était impossible dès que l'expéditeur n'avait pas de document `users` — donc
+  presque toujours, plus rien n'en créant depuis la migration vers Supabase.
+
+Dans les deux cas l'échec était **muet ou illisible** : « Erreur de
+chargement », ou rien du tout. Un écran qui n'affiche un message que sur succès
+transforme un refus de permission en « le tap n'a pas pris ».
 
 ## Réglages : une seule source
 

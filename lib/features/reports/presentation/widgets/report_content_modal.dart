@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/errors/message_erreur.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
@@ -230,27 +231,45 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
         );
 
     // Bloquer aussi l'auteur si demandé (§27c).
+    //
+    // Le résultat était jeté : la case « bloquer aussi » pouvait échouer sans
+    // rien dire, sous un « Merci pour votre signalement » vert. C'est le même
+    // silence que celui décrit par `test/core/errors/echec_muet_test.dart`, à
+    // travers la porte que son motif ne sait pas voir — un `bool` simplement
+    // ignoré. Le signalement, lui, a bien abouti : on le dit, et on dit aussi
+    // que le blocage n'a pas suivi.
+    var blocageEchoue = false;
     if (success && _alsoBlock && widget.reportedUserId != null) {
-      await ref
-          .read(blockUserNotifierProvider.notifier)
-          .blockUser(
-            targetUserId: widget.reportedUserId!,
-            targetDisplayName: widget.targetName ?? l10n.user,
-          );
+      blocageEchoue =
+          !await ref
+              .read(blockUserNotifierProvider.notifier)
+              .blockUser(
+                targetUserId: widget.reportedUserId!,
+                targetDisplayName: widget.targetName ?? l10n.user,
+              );
     }
 
     if (mounted) {
       setState(() => _isLoading = false);
       Navigator.pop(context, success);
 
+      final String message;
+      if (!success) {
+        message = 'Erreur lors de l\'envoi du signalement';
+      } else if (blocageEchoue) {
+        message = messageErreurContextuel(
+          'Signalement envoyé, mais le blocage a échoué',
+          ref.read(blockUserNotifierProvider).error,
+        );
+      } else {
+        message = l10n.reportSentThanks;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            success
-                ? l10n.reportSentThanks
-                : 'Erreur lors de l\'envoi du signalement',
-          ),
-          backgroundColor: success ? Colors.green : Colors.red,
+          content: Text(message),
+          backgroundColor:
+              success && !blocageEchoue ? Colors.green : Colors.red,
         ),
       );
     }

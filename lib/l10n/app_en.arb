@@ -872,6 +872,9 @@
   "profileUpdated": "Profile updated",
   "profileUpdatedSuccess": "Profile updated successfully",
   "changePhoto": "Change photo",
+  "cropPhotoTitle": "Crop photo",
+  "cropPhotoHint": "Drag the photo, pinch to zoom. Only the square is kept.",
+  "cropPhotoFailed": "Cropping failed. Try again or pick another photo.",
   "basicInfo": "Basic information",
   "fullName": "Full name",
   "enterYourName": "Please enter your name",
@@ -905,6 +908,7 @@
     }
   },
   "hostCity": "City",
+  "groupsOnMap": "Groups on the map",
   "cityFieldHint": "Search for a city",
   "cityDataCredit": "City list: GeoNames (CC BY 4.0)",
   "cityTypeToSearch": "Type the first letters of your city",
@@ -1102,6 +1106,9 @@
   "supportEmail": "support@diasponiger.com",
   "helpUsImprove": "Help us improve the app",
   "rateUsOnStore": "Rate us on the store",
+  "rateApp": "Rate the app",
+  "rateAppSubtitle": "Your review counts, and it helps people find the app",
+  "rateAppUnavailable": "Can't open the store listing on this device",
   "deleteAccountTitle": "Delete account",
   "filterUnread": "Unread",
   "filterFriends": "Friends",
@@ -7195,5 +7202,7 @@
   "pollVotesArePublic": "Public vote: your name will be visible",
   "pollVotesAreAnonymous": "Anonymous vote",
   "pollVotersVisibleToAll": "Votes are not anonymous: everyone can see who voted for what.",
-  "pollVotersHidden": "Anonymous poll: nobody can see who voted for what."
+  "pollVotersHidden": "Anonymous poll: nobody can see who voted for what.",
+  "updateAvailableMessage": "Diaspo Niger {version} is available.",
+  "updateAvailableAction": "Update"
 }

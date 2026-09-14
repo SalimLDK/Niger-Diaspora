@@ -23,6 +23,20 @@ const CLES_PUBLIQUES = [
   'LIVEKIT_SERVER_URL',
   'STRIPE_MERCHANT_IDENTIFIER',
   'IOS_BUNDLE_ID',
+  // Version disponible sur les stores, au format de la ligne `version:` de
+  // pubspec.yaml (`1.3.0+20`). Publique par construction : la fiche Play et
+  // celle de l'App Store l'affichent toutes deux. Elle est ici, et pas dans
+  // l'APK, parce qu'un APK ne peut pas savoir qu'il en existe un plus recent
+  // que lui -- c'est ce qui alimente la notice de mise a jour
+  // (lib/core/services/mise_a_jour_service.dart).
+  //
+  // Se publie clé par clé, a chaque release :
+  //   supabase secrets set DERNIERE_VERSION_APP=1.3.0+20
+  // Jamais `secrets set --env-file`, qui remplacerait tous les secrets du
+  // projet par le contenu du fichier.
+  //
+  // Absente aujourd'hui : tant qu'elle n'est pas posee, l'app se tait.
+  'DERNIERE_VERSION_APP',
 ] as const
 
 // Volontairement absent de la liste : les FIREBASE_*. `lib/firebase_options.dart`

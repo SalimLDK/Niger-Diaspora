@@ -3374,6 +3374,24 @@ abstract class AppLocalizations {
   /// **'Changer la photo'**
   String get changePhoto;
 
+  /// No description provided for @cropPhotoTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cadrer la photo'**
+  String get cropPhotoTitle;
+
+  /// No description provided for @cropPhotoHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déplacez la photo, pincez pour zoomer. Seul le carré sera gardé.'**
+  String get cropPhotoHint;
+
+  /// No description provided for @cropPhotoFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recadrage impossible. Réessayez ou choisissez une autre photo.'**
+  String get cropPhotoFailed;
+
   /// No description provided for @basicInfo.
   ///
   /// In fr, this message translates to:
@@ -3469,6 +3487,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Ville'**
   String get hostCity;
+
+  /// No description provided for @groupsOnMap.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes sur la carte'**
+  String get groupsOnMap;
 
   /// No description provided for @cityFieldHint.
   ///
@@ -4273,6 +4297,24 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Notez-nous sur le store'**
   String get rateUsOnStore;
+
+  /// No description provided for @rateApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noter l\'application'**
+  String get rateApp;
+
+  /// No description provided for @rateAppSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre avis compte, et il aide l\'app à se faire connaître'**
+  String get rateAppSubtitle;
+
+  /// No description provided for @rateAppUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir la fiche du store sur cet appareil'**
+  String get rateAppUnavailable;
 
   /// No description provided for @deleteAccountTitle.
   ///
@@ -30115,6 +30157,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Sondage anonyme : personne ne voit qui a voté quoi.'**
   String get pollVotersHidden;
+
+  /// Bandeau non bloquant affiche quand une version plus recente existe sur le store. Une seule phrase, volontairement : la consigne « mettez a jour » est deja sur le bouton, et une seconde phrase faisait passer le bandeau a deux lignes (un sixieme de l'ecran sur SM-A515F)
+  ///
+  /// In fr, this message translates to:
+  /// **'Diaspo Niger {version} est disponible.'**
+  String updateAvailableMessage(String version);
+
+  /// Action du bandeau de mise a jour : ouvre la fiche du store
+  ///
+  /// In fr, this message translates to:
+  /// **'Mettre à jour'**
+  String get updateAvailableAction;
 }
 
 class _AppLocalizationsDelegate

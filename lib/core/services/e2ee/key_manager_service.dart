@@ -437,8 +437,46 @@ class KeyManagerService {
 
   /// Returns all active device IDs registered for [userId].
   /// Used by [MessageCryptoService] to encrypt for every device.
+  ///
+  /// La garde d'authentification n'est pas décorative, et son absence ici a
+  /// coûté tout le chiffrement Signal pendant un mois. Les policies des tables
+  /// E2EE sont réservées au rôle `authenticated` : un client encore `anon` —
+  /// la fenêtre du démarrage, avant que le pont de session Supabase soit
+  /// établi — lit **zéro ligne sans la moindre erreur**. Le résultat vide
+  /// devenait alors indiscernable de « ce compte n'a jamais publié ses clés » :
+  /// [MessageCryptoService.recipientHasKeys] rendait `false`, X3DH n'était même
+  /// pas tenté, et l'envoi retombait en AES.
+  ///
+  /// Mesuré en production le 2026-09-14 : **aucun** message `encryptionLevel =
+  /// 'e2ee'` en base, alors que les 35 comptes avaient tous leurs clés
+  /// publiées et lisibles. Les écritures, elles, étaient gardées depuis le
+  /// 2026-07-17 — d'où des tables impeccables pendant que plus rien ne
+  /// chiffrait.
+  ///
+  /// La garde n'est pas qu'un test : elle ÉTABLIT la session quand elle
+  /// manque. C'est elle qui répare le cas courant, pas le refus.
+  ///
+  /// Variante BORNÉE ([SupabaseAuthBridge.ensureReadableSession], 3 s) et non
+  /// [SupabaseAuthBridge.ensureAuthenticated] : on est sur le chemin d'envoi
+  /// d'un message, déjà sous un délai X3DH de 10 s côté datasource. Une attente
+  /// non bornée y ferait patienter l'utilisateur pour obtenir, au mieux, du
+  /// Signal — alors que le repli AES est précisément là pour ne jamais le
+  /// retarder. Dégrader vite vaut mieux que geler. Les trois autres lectures de
+  /// ce fichier suivent la même règle ; seules les ÉCRITURES exigent la
+  /// variante non bornée, parce qu'elles n'ont pas de repli.
   Future<List<String>> getActiveDevices(String userId) async {
     try {
+      if (!await SupabaseAuthBridge.instance.ensureReadableSession()) {
+        // On ne lève pas : l'envoi ne doit jamais être bloqué par l'absence de
+        // Signal — le repli AES existe pour ça. Mais on le dit AUTREMENT que
+        // « pas de clés », sinon le diagnostic reste faux et le défaut
+        // redevient invisible.
+        debugPrint(
+          'KeyManagerService: session non prête — appareils de $userId '
+          'indéterminés (≠ « aucune clé publiée »)',
+        );
+        return [];
+      }
       final row = await _supabase
           .from('e2ee_user_keys')
           .select('active_devices')
@@ -457,6 +495,17 @@ class KeyManagerService {
     int? deviceId,
   }) async {
     try {
+      // Même garde que [getActiveDevices], et pour la même raison : sans
+      // session, les lectures qui suivent rendent vide sans erreur, et
+      // l'absence de bundle se confond avec « destinataire sans clés ».
+      if (!await SupabaseAuthBridge.instance.ensureReadableSession()) {
+        debugPrint(
+          'KeyManagerService: session non prête — bundle de $recipientId '
+          'inaccessible (≠ « aucune clé publiée »)',
+        );
+        return null;
+      }
+
       // 1. Get active devices
       final userRow = await _supabase
           .from('e2ee_user_keys')
@@ -533,6 +582,14 @@ class KeyManagerService {
     final bundles = <E2EEPreKeyBundle>[];
 
     try {
+      if (!await SupabaseAuthBridge.instance.ensureReadableSession()) {
+        debugPrint(
+          'KeyManagerService: session non prête — bundles de $recipientId '
+          'indéterminés (≠ « aucune clé publiée »)',
+        );
+        return bundles;
+      }
+
       final userRow = await _supabase
           .from('e2ee_user_keys')
           .select('active_devices')
@@ -577,7 +634,17 @@ class KeyManagerService {
   }
 
   /// Effectue la rotation de la Signed Pre-Key
+  ///
+  /// Lève si la session n'est pas établie, comme les autres écritures : sans
+  /// garde, l'`update` n'affecterait AUCUNE ligne (RLS) sans lever, la clé
+  /// tournerait en local seulement, et le serveur resterait indéfiniment sur
+  /// l'ancienne. L'appelant ([MessagingE2EEService], maintenance en tâche de
+  /// fond) enveloppe déjà l'appel dans un `try`.
   Future<void> rotateSignedPreKey(String userId) async {
+    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+      throw StateError('Session non établie — rotation différée');
+    }
+
     final identityKeyPair = await _storage.getIdentityKeyPair(userId);
     if (identityKeyPair == null) {
       throw StateError('No identity key pair found');
@@ -641,6 +708,18 @@ class KeyManagerService {
     try {
       final deviceId = await _storage.getDeviceId(userId);
       if (deviceId == null) return null;
+
+      // Sans session, la lecture rend une liste VIDE sans erreur : on
+      // compterait 0 prékey publiée et on déclencherait un rechargement
+      // inutile. `null` — le contrat annoncé ci-dessus pour « compte non
+      // établi » — est la seule réponse honnête.
+      if (!await SupabaseAuthBridge.instance.ensureReadableSession()) {
+        debugPrint(
+          'KeyManagerService: session non prête — comptage des prékeys '
+          'indéterminé (≠ « 0 publiée »)',
+        );
+        return null;
+      }
 
       final rows = await _supabase
           .from('e2ee_one_time_prekeys')

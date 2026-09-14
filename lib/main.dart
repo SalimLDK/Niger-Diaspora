@@ -13,9 +13,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 import 'core/errors/classification_erreurs.dart';
+import 'core/errors/journal_echecs.dart';
 import 'core/utils/logs_release.dart';
 import 'core/utils/licences_polices.dart';
 import 'core/constants/app_config.dart';
+import 'core/services/app_review_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/google_maps_service.dart';
@@ -214,6 +216,14 @@ Future<void> _demarrer() async {
     return true;
   };
 
+  // Les deux gestionnaires ci-dessus ne voient que les erreurs NON rattrapees.
+  // Un refus de permission Firestore ou un 42501 de la RLS, eux, sont
+  // attrapes : ils deviennent un `ServerFailure`, puis un `bool false`, et ne
+  // quittaient jamais le telephone. C'est ce qui a cache pendant des mois le
+  // fait qu'accepter une demande d'ami etait impossible. Desormais, chaque
+  // echec **montre a l'usager** part aussi en non-fatal.
+  installerJournalEchecs();
+
   // Activate Firebase App Check
   // Android: Debug mode uses DebugProvider, Release uses PlayIntegrity
   // iOS: Debug mode uses DebugProvider, Release uses AppAttest
@@ -272,6 +282,18 @@ Future<void> _initServicesSecondaires() async {
       debugPrint('main: initialisation « $nom » échouée: $e');
     }
   }
+
+  // Deux écritures dans SharedPreferences, instantanées, et rien n'en dépend
+  // — mais elles passent devant Maps et Stripe, qui prennent plusieurs
+  // secondes sur un démarrage à froid. Derrière eux, le compteur montait
+  // après que l'Accueil ait déjà consulté la politique d'invitation.
+  // C'est le seul endroit traversé à chaque démarrage, quel que soit l'écran
+  // d'arrivée (lien profond, push, reprise) ; l'invitation, elle, part de
+  // l'écran d'Accueil.
+  await tenter(
+    "compteur d'avis",
+    AppReviewService.instance.enregistrerOuverture,
+  );
 
   // En premier du lot : le rendu de la carte a besoin de ce réglage avant
   // qu'un écran carte s'affiche, ce qui demande au moins une navigation.

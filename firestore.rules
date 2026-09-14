@@ -85,14 +85,47 @@ service cloud.firestore {
       // `resource` existe toujours, et le `diff` ne peut plus planter.
 
       // Creation de son propre profil, sans se donner de role admin.
-      allow create: if isOwner(userId)
-        && !request.resource.data.keys().hasAny(['isAdmin', 'adminRole']);
+      //
+      // La seconde branche existe pour les APK deja installes : leur lot
+      // d'acceptation d'une demande d'ami fait un `set(merge)` sur le profil de
+      // L'AUTRE, ce qui est une CREATION quand ce document n'existe pas — et
+      // plus rien ne cree les documents `users` Firestore depuis la migration
+      // vers Supabase. Le lot etant atomique, ce seul refus annulait les trois
+      // autres ecritures : l'usager lisait « Erreur de chargement », rien ne
+      // bougeait en base. Le client ne fait plus cette ecriture (`friendIds`
+      // n'etait lu par personne) ; cette branche ne sert qu'aux versions
+      // anterieures, et pourra etre retiree quand elles auront disparu.
+      //
+      // Strictement bornee, et volontairement plus etroite que la regle
+      // d'`update` juste en dessous : le document cree ne peut contenir QUE
+      // `friendIds`, et ce tableau ne peut contenir QUE l'uid de l'appelant.
+      // Aucun autre champ — donc jamais `isAdmin` ni `adminRole`.
+      // Couvert par tools/rules_tests/acceptation_ami.mjs.
+      allow create: if (isOwner(userId)
+          && !request.resource.data.keys().hasAny(['isAdmin', 'adminRole']))
+        || (isAuthenticated()
+          && request.resource.data.keys().hasOnly(['friendIds'])
+          && request.resource.data.keys().hasAll(['friendIds'])
+          && request.resource.data.friendIds.toSet().hasOnly([request.auth.uid]));
 
       allow delete: if isOwner(userId);
 
       // Exception: allow updating friendIds array when accepting/removing a friend request
       // Exception: allow updating blockedByUserIds when being blocked/unblocked
       // Security: block users from modifying their own admin fields
+      //
+      // L'exception `blockedByUserIds` n'est PLUS EMPRUNTEE PAR LE CLIENT
+      // depuis le 2026-09-14 : `blockUser`/`unblockUser` n'ecrivent plus les
+      // profils du tout. Le sens inverse — « qui m'a bloque » — passe par
+      // `public.blocked_users` cote Supabase (`usersWhoBlockedMe`) ; ce
+      // tableau-ci n'est lu nulle part, `profile_supabase_datasource` le code
+      // meme en dur a vide.
+      //
+      // Elle est laissee en place pour les APK DEJA INSTALLES, et retiree
+      // sans profit : leur lot bute de toute facon un cran plus tot, sur
+      // l'`update` de LEUR PROPRE profil, absent depuis la migration vers
+      // Supabase. Mesure et garde-fous dans
+      // tools/rules_tests/blocage_utilisateur.mjs (blocs 3 et 5).
       allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'adminRole'])) || (
         isAuthenticated() &&
         (

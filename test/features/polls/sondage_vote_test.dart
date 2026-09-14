@@ -118,6 +118,63 @@ void main() {
       expect(find.text('Vote public : votre nom sera visible'), findsNothing);
     });
 
+    testWidgets('deux actions : le compte garde sa ligne, elles prennent la leur',
+        (tester) async {
+      // Sur une bulle RECUE (320 dp, plus etroite qu'une bulle envoyee), les
+      // deux boutons ne tiennent pas a cote du compte. Un `Wrap` unique les
+      // empilait en laissant « N votes » centre entre les deux — vu sur
+      // SM A515F le 2026-09-14.
+      await _pump(tester, _sondage(votedOptionIds: ['o1']), largeur: 320);
+
+      final compte = tester.getRect(find.text('3 votes'));
+      final modifier = tester.getRect(find.text('Modifier mon vote'));
+      final resultats = tester.getRect(find.text('Voir les résultats'));
+
+      expect(compte.bottom, lessThanOrEqualTo(modifier.top));
+      expect(compte.bottom, lessThanOrEqualTo(resultats.top));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('une seule action reste sur la ligne du compte', (tester) async {
+      await _pump(tester, _sondage(), largeur: 320);
+
+      final compte = tester.getRect(find.text('3 votes'));
+      final action = tester.getRect(find.text('Voir les résultats'));
+      expect(compte.top, lessThan(action.bottom));
+      expect(action.top, lessThan(compte.bottom));
+    });
+
+    testWidgets('bulle etroite a grande echelle de police : rien ne deborde',
+        (tester) async {
+      await _pump(
+        tester,
+        _sondage(votedOptionIds: ['o1']),
+        largeur: 320,
+        echellePolice: 1.3,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('la carte epouse les rayons que la bulle lui donne',
+        (tester) async {
+      // Sans ca, le coin de queue de la bulle (arrondi a 6) depassait de la
+      // carte (arrondie a 16) : sur une bulle envoyee, un triangle vert.
+      const rayon = BorderRadius.only(
+        topLeft: Radius.circular(18),
+        topRight: Radius.circular(18),
+        bottomLeft: Radius.circular(18),
+        bottomRight: Radius.circular(6),
+      );
+      await _pump(tester, _sondage(), rayon: rayon);
+
+      final conteneur = tester.widget<Container>(
+        find
+            .descendant(of: find.byType(PollCard), matching: find.byType(Container))
+            .first,
+      );
+      expect((conteneur.decoration as BoxDecoration).borderRadius, rayon);
+    });
+
     testWidgets('changer d avis envoie la nouvelle option', (tester) async {
       final actions = await _pump(tester, _sondage(votedOptionIds: ['o1']));
 
@@ -156,8 +213,22 @@ PollEntity _sondage({
   );
 }
 
-Future<_ActionsEspion> _pump(WidgetTester tester, PollEntity poll) async {
+Future<_ActionsEspion> _pump(
+  WidgetTester tester,
+  PollEntity poll, {
+  double? largeur,
+  double echellePolice = 1.0,
+  BorderRadiusGeometry? rayon,
+}) async {
   final actions = _ActionsEspion();
+  Widget carte = PollCard(poll: poll, borderRadius: rayon);
+  if (largeur != null) {
+    // La bulle de discussion contraint la carte a 320 dp.
+    carte = Align(
+      alignment: Alignment.topLeft,
+      child: SizedBox(width: largeur, child: carte),
+    );
+  }
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -167,7 +238,10 @@ Future<_ActionsEspion> _pump(WidgetTester tester, PollEntity poll) async {
         locale: const Locale('fr'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: PollCard(poll: poll)),
+        home: MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(echellePolice)),
+          child: Scaffold(body: carte),
+        ),
       ),
     ),
   );

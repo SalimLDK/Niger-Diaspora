@@ -218,9 +218,12 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   Future<void> _pickPosters() async {
     try {
       final images = await _imagePicker.pickMultiImage(
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
+        // Envoyée telle quelle (aucune compression derrière) : c'est donc
+        // la qualité livrée. Une boîte carrée, sinon une affiche portrait
+        // se retrouvait bornée à 810 px de large par le 1080 de hauteur.
+        maxWidth: 2048,
+        maxHeight: 2048,
+        imageQuality: 88,
       );
 
       if (images.isNotEmpty) {
@@ -387,14 +390,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            audienceEnregistree
-                ? successMessage
-                : "Événement créé, mais les groupes ou personnes choisis "
-                    "n'ont pas pu être enregistrés. Il reste visible par sa "
-                    "discussion uniquement.",
+            audienceEnregistree ? successMessage : _messageAudienceRatee(),
           ),
-          backgroundColor:
-              audienceEnregistree ? context.adaptiveSecondaryColor : null,
+          backgroundColor: audienceEnregistree
+              ? context.adaptiveSecondaryColor
+              : context.errorColor,
           duration: Duration(seconds: audienceEnregistree ? 3 : 6),
         ),
       );
@@ -413,6 +413,29 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   /// Poste la bulle événement dans la discussion d'origine : la conversation
   /// DM directement, ou le chat du groupe (résolu via son id) pour un event
   /// de groupe. Ne bloque pas la création si l'envoi échoue (best-effort).
+  /// Ce qu'on dit quand l'audience n'a pas pu être enregistrée.
+  ///
+  /// Le message annonçait « il reste visible par sa discussion uniquement ».
+  /// C'est faux pour un événement créé hors discussion : il n'est alors
+  /// visible de **personne**, organisateur mis à part. C'est exactement l'état
+  /// trouvé en production le 2026-09-14 — un événement `visibility = 'people'`
+  /// sans aucune ligne d'audience, créé hors discussion et hors groupe.
+  ///
+  /// Depuis `20260914203000`, `set_event_audience` **lève** plutôt que de
+  /// réussir dans le vide quand son filtrage ne laisse personne. On passe donc
+  /// ici plus souvent qu'avant, et il faut dire la vérité : sans invités, un
+  /// événement restreint est un événement caché.
+  String _messageAudienceRatee() {
+    final aUneDiscussion =
+        widget.conversationId != null || widget.groupId != null;
+    return aUneDiscussion
+        ? "Événement créé, mais les groupes ou personnes choisis n'ont pas pu "
+            "être enregistrés. Il reste visible par sa discussion uniquement."
+        : "Événement créé, mais les invités n'ont pas pu être enregistrés : "
+            "personne d'autre que vous ne le voit. Modifiez-le pour choisir "
+            "à nouveau les invités.";
+  }
+
   Future<void> _postEventBubble(EventEntity created) async {
     String? targetConversationId = widget.conversationId;
     if (targetConversationId == null && widget.groupId != null) {
