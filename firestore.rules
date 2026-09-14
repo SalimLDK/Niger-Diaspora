@@ -113,6 +113,19 @@ service cloud.firestore {
       // Exception: allow updating friendIds array when accepting/removing a friend request
       // Exception: allow updating blockedByUserIds when being blocked/unblocked
       // Security: block users from modifying their own admin fields
+      //
+      // L'exception `blockedByUserIds` n'est PLUS EMPRUNTEE PAR LE CLIENT
+      // depuis le 2026-09-14 : `blockUser`/`unblockUser` n'ecrivent plus les
+      // profils du tout. Le sens inverse — « qui m'a bloque » — passe par
+      // `public.blocked_users` cote Supabase (`usersWhoBlockedMe`) ; ce
+      // tableau-ci n'est lu nulle part, `profile_supabase_datasource` le code
+      // meme en dur a vide.
+      //
+      // Elle est laissee en place pour les APK DEJA INSTALLES, et retiree
+      // sans profit : leur lot bute de toute facon un cran plus tot, sur
+      // l'`update` de LEUR PROPRE profil, absent depuis la migration vers
+      // Supabase. Mesure et garde-fous dans
+      // tools/rules_tests/blocage_utilisateur.mjs (blocs 3 et 5).
       allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'adminRole'])) || (
         isAuthenticated() &&
         (

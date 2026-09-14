@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/errors/message_erreur.dart';
 import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,6 +44,28 @@ class BusinessReviewsScreen extends ConsumerWidget {
     );
   }
 
+  /// Annonce le résultat, succès **comme** échec.
+  ///
+  /// Les deux appelants n'affichaient que le succès : un refus de droits s'y
+  /// lisait comme un tap qui n'avait pas pris — le motif décrit par
+  /// `test/core/errors/echec_muet_test.dart`, dont cet écran était l'une des
+  /// deux exceptions. `messageErreurUsager` classe la panne sans divulguer le
+  /// message brut, qui porte l'identifiant du projet et celui du compte.
+  void _annoncer(
+    BuildContext context,
+    WidgetRef ref,
+    bool succes,
+    String messageSucces,
+  ) {
+    final erreur = ref.read(reviewActionsNotifierProvider).error;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(succes ? messageSucces : messageErreurUsager(erreur)),
+        backgroundColor: succes ? null : context.errorColor,
+      ),
+    );
+  }
+
   void _confirmDelete(BuildContext context, WidgetRef ref, ReviewEntity review) {
     final l10n = AppLocalizations.of(context)!;
     showDialog(
@@ -61,10 +84,8 @@ class BusinessReviewsScreen extends ConsumerWidget {
               final success = await ref
                   .read(reviewActionsNotifierProvider.notifier)
                   .deleteReview(review.id, businessId);
-              if (context.mounted && success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.reviewDeleted)),
-                );
+              if (context.mounted) {
+                _annoncer(context, ref, success, l10n.reviewDeleted);
               }
             },
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
@@ -109,13 +130,12 @@ class BusinessReviewsScreen extends ConsumerWidget {
               final ok = await ref
                   .read(reviewActionsNotifierProvider.notifier)
                   .updateReview(updated);
-              if (ok && context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      text.isEmpty ? 'Réponse supprimée' : 'Réponse publiée',
-                    ),
-                  ),
+              if (context.mounted) {
+                _annoncer(
+                  context,
+                  ref,
+                  ok,
+                  text.isEmpty ? 'Réponse supprimée' : 'Réponse publiée',
                 );
               }
             },
