@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**897 cases à cocher, 504 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
+**895 cases à cocher, 506 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -60,9 +60,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Déconnexion forcée « Connecté ailleurs » — trois trous refermés](#-déconnexion-forcée--connecté-ailleurs---trois-trous-refermés) · *Comptes, session et onboarding* · bloqué
 - 2 · [Doublons Profil / Réglages (2026-08-05)](#doublons-profil--réglages-2026-08-05) · *Accueil, profil et réglages*
 - 2 · [⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)](#-passage-à-targetsdk-36-android-16--exigence-play-2026-09-08) · *Publication et plateformes* · bloqué
-- 5 · [Appels WebRTC](#appels-webrtc) · *Appels* · bloqué
+- 4 · [Appels WebRTC](#appels-webrtc) · *Appels* · bloqué
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
-- 14 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
+- 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
 **P1 — fonction importante, jamais vérifiée** (52)
 
@@ -244,7 +244,7 @@ Par domaine :
 - [2. Messagerie](#2-messagerie) — 129 à faire, 54 faites
 - [3. Groupes](#3-groupes) — 107 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
-- [5. Appels](#5-appels) — 19 à faire, 7 faites
+- [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
@@ -252,7 +252,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 30 à faire, 28 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -5880,7 +5880,22 @@ nœud `group_calls`, puisque l'app de l'appelé était ouverte.
 
   ⚠ Contrepartie assumée pendant l'attente : les règles actuellement en ligne laissent tout compte connecté lire et écrire la signalisation de n'importe quel appel dont il connaît l'identifiant. Plus la sortie de l'app tarde, plus cette fenêtre reste ouverte.
 - [ ] **Appel 1:1 après restriction** (2026-08-03) : un appel complet entre deux comptes doit fonctionner à l'identique — sonnerie, décroché, audio des deux côtés, passage en vidéo, raccrochage. C'est le test de non-régression du changement de règles ; tout échec se manifestera par une signalisation muette (l'appelé ne voit jamais l'offre) plutôt que par une erreur explicite.
-- [ ] **Étanchéité de la signalisation** (2026-08-03) : avec un **troisième** compte, vérifier qu'il ne peut ni lire ni écrire le nœud d'un appel auquel il ne participe pas. Se teste depuis la console Firebase (simulateur de règles) avec l'UID du tiers sur `calls/<id>` — doit refuser lecture et écriture.
+- [x] **Étanchéité de la signalisation** (2026-08-03) : avec un **troisième** compte, vérifier qu'il ne peut ni lire ni écrire le nœud d'un appel auquel il ne participe pas. Se teste depuis la console Firebase (simulateur de règles) avec l'UID du tiers sur `calls/<id>` — doit refuser lecture et écriture.
+      **✅ Mesuré le 2026-09-14 par le banc, sans appareil.**
+      `firebase emulators:start --only database` puis
+      `node tools/rules_tests/signalisation_appels.mjs` : « un tiers lit la
+      signalisation de A vers B » → **refusé (401)** ; « un ANONYME pose la
+      clé absente » → refusé ; « un TIERS remplace la clé existante » →
+      refusé ; « un TIERS lit la clé » → refusé. Verdict du banc :
+      **parcours nominal INTACT, étanchéité fermée**.
+      **Et ça vaut pour la production** : `database:get "/.settings/rules"`
+      comparé au fichier du dépôt donne **88 règles de chaque côté, zéro
+      écart** — l'émulateur a donc chargé exactement les règles déployées.
+      ⚠️ Le banc signale en revanche **« client périmé : CASSÉ »** : un APK
+      antérieur au 2026-08-06 écoute `participants` avant de s'y inscrire et
+      mourrait en silence. Sans conséquence aujourd'hui (les deux téléphones
+      portent les builds 18 et 19, et l'app n'est pas publiée), mais à
+      garder en tête avant toute ouverture au public.
 - [ ] **Appel de groupe après restriction** (2026-08-03) : entrer dans un appel de groupe écrit d'abord `participants/<uid>` (autorisé pour soi-même) puis lit le reste — vérifier que rejoindre, voir les autres arriver et repartir, et l'audio de bout en bout fonctionnent toujours. La signalisation est maintenant limitée aux couples émetteur/destinataire dont on fait partie, et `hostId`/`status`/`mode` restent lisibles avant d'avoir rejoint.
 - [ ] **Relais TURN coturn en production** — à valider par un vrai appel en 4G/5G **sans wifi** (cas NAT symétrique, celui que TURN est censé résoudre) ; vérifier aussi que `grep -ci allocation` augmente dans les logs coturn pendant l'appel. Jamais confirmé depuis la rotation de secret du 16/07.
 
@@ -14175,6 +14190,8 @@ supplémentaire** à créer.
 
 ### 🔴 `database.rules.json` est en avance de 27 changements sur la production
 
+✅ **Dérive résorbée — vérifié le 2026-09-14** : `database:get "/.settings/rules"` et le fichier du dépôt donnent 88 règles chacun, **zéro écart**. Ce qui est déployé est donc exactement ce que le dépôt décrit.
+
 Relevé le 2026-08-06 en voulant déployer le simple index ci-dessus. Les règles
 en ligne se lisent avec :
 
@@ -14387,7 +14404,11 @@ anonyme est fermé.
   banc mesure un arbre vide — huit faux échecs avant de s'en apercevoir) ; et
   un candidat ICE partiel est refusé par le `.validate`, pas par le droit
   d'accès — ne pas confondre les deux en lisant un 401.
-- [ ] 🔴 **L'étanchéité de la signalisation reste donc OUVERTE.** Tout compte
+- [x] 🔴 **L'étanchéité de la signalisation est FERMÉE** — mesurée le
+      2026-09-14 (voir « Appels WebRTC », même date : banc des règles passé,
+      et règles de production identiques au fichier du dépôt, 88 contre 88,
+      zéro écart). Le constat d'ouverture ci-dessous datait des règles
+      permissives d'août ; il ne vaut plus. Texte d'origine conservé : Tout compte
   connecté peut lire et écrire la signalisation de n'importe quel appel dont il
   connaît l'identifiant. Le test le constate explicitement (deux lignes
   attendues « autorisé »), et **ces deux lignes échoueront le jour où ce sera
