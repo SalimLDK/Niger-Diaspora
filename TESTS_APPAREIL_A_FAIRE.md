@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**934 cases à cocher, 526 cochées** — 190 entrées sur 234 ont encore des cases ouvertes.
+**932 cases à cocher, 528 cochées** — 190 entrées sur 234 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 **P1 — fonction importante, jamais vérifiée** (56)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
-- 9 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
+- 7 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
@@ -249,7 +249,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 150 à faire, 63 faites
-- [3. Groupes](#3-groupes) — 113 à faire, 55 faites
+- [3. Groupes](#3-groupes) — 111 à faire, 57 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
@@ -2599,9 +2599,9 @@ SELECT public.get_or_create_ville_group(
 - [ ] **Sur appareil** : les 32 pays qui ont un centroïde n'ont pas bougé
   (Niger, France, Canada…) — le repli par la plus grande ville ne sert que
   là où il n'y avait rien.
-- [ ] **Sur appareil, fiche « Diaspora Niger — Niger »** : une section
-  « Ville · 1 » liste « Niamey · 1 », au-dessus des membres, et l'appui ouvre
-  la fiche du groupe de Niamey. Sur la fiche de « — Niamey » comme sur celle
+- [x] **Sur appareil, fiche « Diaspora Niger — Niger »** : une section
+  « Ville » liste « Niamey · 2 » (2 depuis que Sim A a rejoint), au-dessus des
+  membres. Vérifié le 2026-09-14 ; l'appui sur la puce reste à essayer. Sur la fiche de « — Niamey » comme sur celle
   du Canada (aucun groupe de ville), la section doit être **absente** — pas
   vide, absente.
 - [x] **Sur appareil, onglet Découvrir** : choisir un pays fait apparaître
@@ -2689,11 +2689,17 @@ Niamey à Sim A en a fait le cinquième profil de la ville.
    son `build()` ne s'exécute qu'une fois, il n'est pas touché. Laissé tel
    quel — c'est le fournisseur qui garde le routeur, on n'y touche pas sans
    reproduction.
-   - [ ] **Sur appareil** : « Mes groupes » liste bien les groupes du compte,
+   - [x] **Sur appareil** : « Mes groupes » liste bien les groupes du compte,
      et l'onglet Découvrir affiche des groupes au lieu de squelettes — y
      compris en allant sur l'onglet Groupes **tout de suite** après le
      lancement, avant que l'authentification ait fini de se résoudre. C'est ce
      timing-là qui déclenchait la panne.
+
+     Vérifié sur SM A515F le 2026-09-14, APK release `f71e242b…` (`417398e`),
+     onglet Groupes ouvert **7 s après le lancement** — le timing même qui
+     cassait : « 5 rejoints » et la liste s'affiche, Découvrir montre
+     « Suggéré pour toi » puis de vraies cartes. Avant le correctif, au même
+     endroit : « 0 rejoint » et quatre squelettes.
 
 Pas encore vu : la mention GeoNames dans « À propos », la carte, le thème
 sombre. La feuille de divulgation du champ ville n'a pas pu être rejouée —
