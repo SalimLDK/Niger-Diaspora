@@ -47,10 +47,37 @@ class Ville {
     );
   }
 
-  /// « Montréal » ou « Montréal, Québec » — la région lève l'ambiguïté entre
-  /// deux homonymes d'un même pays, dont la liste en compte (deux Springfield
-  /// aux États-Unis).
-  String get libelle => region == null || region!.isEmpty ? nom : '$nom, $region';
+  /// « Montréal, Quebec » — la région lève l'ambiguïté entre deux homonymes
+  /// d'un même pays, dont la liste en compte (quatre Springfield aux
+  /// États-Unis).
+  ///
+  /// Elle est tue quand elle ne distingue rien. Vu sur appareil le
+  /// 2026-09-14 : « Niamey, Niamey » et « Zinder, Zinder » — au Niger la
+  /// région porte le nom de son chef-lieu, donc la moitié du pays s'affichait
+  /// en double. La comparaison ignore casse et accents, sans quoi
+  /// « Québec » (ville) et « Quebec » (région, que GeoNames ne donne qu'en
+  /// ASCII) passeraient pour deux noms différents.
+  String get libelle {
+    final r = region;
+    if (r == null || r.isEmpty || _plier(r) == _plier(nom)) return nom;
+    return '$nom, $r';
+  }
+
+  /// Minuscules sans accents — assez pour comparer deux noms de lieu.
+  static String _plier(String texte) {
+    const accents = 'ÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÇàáâãäåèéêëìíîïòóôõöùúûüç';
+    const plats = 'AAAAAAEEEEIIIIOOOOOUUUUCaaaaaaeeeeiiiiooooouuuuc';
+    // Parcours par unité de code plutôt que par `characters` : le paquet
+    // n'est pas une dépendance déclarée, et les lettres accentuées de cette
+    // table tiennent toutes sur une seule unité.
+    final out = StringBuffer();
+    for (var i = 0; i < texte.length; i++) {
+      final c = texte[i];
+      final j = accents.indexOf(c);
+      out.write(j >= 0 ? plats[j] : c);
+    }
+    return out.toString().toLowerCase().trim();
+  }
 
   @override
   bool operator ==(Object other) => other is Ville && other.id == id;
