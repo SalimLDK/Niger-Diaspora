@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1031 cases à cocher, 552 cochées** — 208 entrées sur 252 ont encore des cases ouvertes.
+**1034 cases à cocher, 552 cochées** — 208 entrées sur 252 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -136,7 +136,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (70)
+**P2 — fonction secondaire ou cas limite** (71)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -172,6 +172,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
+- 7 · [⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)](#-létape--thème--dit-enfin-la-vérité-sur-laccent-2026-09-14) · *Design, thème, langue et mise en page*
 - 4 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
@@ -209,7 +210,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (51)
+**P3 — confort, cosmétique, fonction en pause** (50)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -235,7 +236,6 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
-- 4 · [⬜ Les pastilles d'accent dans le même ordre qu'aux Réglages (2026-09-14)](#-les-pastilles-daccent-dans-le-même-ordre-quaux-réglages-2026-09-14) · *Design, thème, langue et mise en page*
 - 5 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
 - 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
@@ -276,7 +276,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 121 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 44 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 146 à faire, 29 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 54 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -12926,9 +12926,23 @@ Palette, thème sombre, icônes, polices, débordements, paysage, bascule design
 
 ---
 
-## ⬜ Les pastilles d'accent dans le même ordre qu'aux Réglages (2026-09-14)
+## ⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)
 
-**Priorité P3** · importance 2/5 — Le même réglage était présenté dans deux ordres opposés : Orange puis Vert à l'étape 4/4 de la configuration du profil, Vert puis Orange dans les Réglages. L'onboarding s'aligne sur les Réglages ([profile_config_screen.dart](lib/features/profile/presentation/screens/profile_config_screen.dart)).
+**Priorité P2** · importance 3/5 — Deux défauts au même endroit, étape 4/4 de la configuration du profil ([profile_config_screen.dart](lib/features/profile/presentation/screens/profile_config_screen.dart)).
+
+**L'ordre des pastilles.** Le même réglage était présenté dans deux ordres
+opposés : Orange puis Vert ici, Vert puis Orange dans les Réglages.
+L'onboarding s'aligne sur les Réglages.
+
+**Les vignettes mentaient sur l'accent.** Les trois aperçus Clair / Sombre /
+AUTO peignaient leur barre avec la paire **orange**, quel que soit l'accent
+choisi — observé sur Pixel le 2026-09-14, trois vignettes oranges juste
+au-dessus de la pastille verte qu'on venait de toucher. La vignette lit
+maintenant l'accent au provider et reprend le `colorScheme.primary` du thème
+qu'elle représente. C'est le défaut que `950024b` nommait — « un aperçu qui
+ment sur ce qu'il propose » — corrigé alors sur la seule moitié clair/sombre.
+Couvert par `test/features/profile/apercu_theme_accent_test.dart` (tombe sans
+le correctif, vérifié).
 
 - [ ] **Configuration du profil, étape 4/4** : Vert en première position,
   Orange en seconde.
@@ -12937,12 +12951,17 @@ Palette, thème sombre, icônes, polices, débordements, paysage, bascule design
 - [ ] **La sélection suit toujours la bonne pastille** : toucher Orange
   sélectionne Orange (c'est la régression qu'un échange de positions invite —
   les `isSelected` ont bougé avec leur widget, à confirmer à l'œil).
-- [ ] **Les trois vignettes Clair / Sombre / AUTO** affichent une barre
-  **orange** quel que soit l'accent choisi : observé sur Pixel le 2026-09-14
-  avec un compte en Vert. Les valeurs sont écrites en dur
-  (`AppColors.primaryDark` / `primaryLight`) et ne suivent pas l'accent —
-  juger si c'est voulu (la vignette illustre clair/sombre) ou si elle doit
-  porter l'accent du compte. **Non corrigé.**
+- [ ] **Compte en Vert** : les trois vignettes portent une barre **verte**.
+  C'est le cas qui a révélé le défaut.
+- [ ] **Compte en Orange** : elles portent une barre orange — la correction ne
+  doit pas avoir inversé le mensonge.
+- [ ] **Au tap sur une pastille**, les trois vignettes se repeignent
+  **immédiatement**, sans quitter ni rouvrir l'étape (elles lisent le
+  provider, que `_selectThemeColor` écrit aussitôt).
+- [ ] **Vignette AUTO** : ses deux moitiés, claire et sombre, portent chacune
+  la bonne nuance de l'accent — `secondary` / `secondaryLight` en Vert,
+  `primaryDark` / `primaryLight` en Orange. C'est la seule qui montre les
+  deux à la fois, donc la seule où un mélange se verrait.
 
 ---
 
