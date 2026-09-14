@@ -93,7 +93,7 @@ void main() {
   });
 
   testWidgets(
-      "back-office : typographie de l'AppBar gardée, point au bleu d'action",
+      "back-office : typographie de l'AppBar gardée, point terracotta",
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -110,7 +110,7 @@ void main() {
           appBar: AppBar(
             title: const DesignTitle.ambiant(
               'Tickets',
-              accent: AdminColors.actionBlue,
+              accent: AdminColors.titleDot,
             ),
           ),
         ),
@@ -128,7 +128,7 @@ void main() {
     expect(rendu('Tickets').fontSize, 21);
     expect(rendu('Tickets').color, AdminColors.text);
     expect(rendu('.').fontFamily, 'Inter');
-    expect(rendu('.').color, AdminColors.actionBlue);
+    expect(rendu('.').color, AdminColors.titleDot);
   });
 
   testWidgets('une autre famille garde sa police et prend la couleur du point',

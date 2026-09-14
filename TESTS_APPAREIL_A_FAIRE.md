@@ -11411,7 +11411,8 @@ Une seule source : `DesignTitle` ([design_kit.dart](lib/core/theme/design_kit.da
 Tests : `test/core/theme/design_title_point_test.dart`. Volontairement **sans
 point** : noms saisis (groupe, salon, contact, sujet de ticket), barres de
 sélection et visionneuses média sur fond noir. Le back-office l'a depuis le
-2026-09-13, au **bleu d'action** (l'orange y est interdit).
+2026-09-13, en **terracotta** comme l'app (`AdminColors.titleDot`) : seule
+exception à « pas d'orange dans l'admin », l'action y reste bleue.
 
 - [ ] Les 7 grands en-têtes (Messages, Groupes, Profil, Réglages,
   Notifications, Annuaire, Mes stories) : point terracotta collé au dernier
@@ -11433,10 +11434,11 @@ sélection et visionneuses média sur fond noir. Le back-office l'a depuis le
 - [ ] **Back-office web** (`lib/features/admin/main.dart`) : connexion, puis
   les en-têtes de page (Tableau de bord, Utilisateurs, Signalements,
   Modération, Transferts, Audit…) et les barres Paramètres, Feature flags,
-  Créer un administrateur : point **bleu**, jamais orange, police Inter
-  inchangée.
-- [ ] Depuis l'app, `/admin/embassies/create` et `/admin/support` : point bleu
-  dans la typographie de l'app (Playfair), lisible aussi en thème sombre.
+  Créer un administrateur : point **terracotta** (le même orange que dans
+  l'app), police Inter inchangée ; boutons et onglets toujours bleus.
+- [ ] Depuis l'app, `/admin/embassies/create` et `/admin/support` : point
+  terracotta dans la typographie de l'app (Playfair), lisible aussi en thème
+  sombre.
 
 ## ⬜ Grand titre d'en-tête : plus de mot coupé (2026-09-12)
 

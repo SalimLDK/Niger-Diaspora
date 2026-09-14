@@ -125,7 +125,7 @@ class UnauthorizedScreen extends StatelessWidget {
       appBar: AppBar(
         title: const DesignTitle.ambiant(
           'Accès refusé',
-          accent: AdminColors.actionBlue,
+          accent: AdminColors.titleDot,
         ),
       ),
       body: Center(

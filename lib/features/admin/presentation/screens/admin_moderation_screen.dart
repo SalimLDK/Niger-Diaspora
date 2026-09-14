@@ -128,7 +128,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
-              accent: AdminColors.actionBlue,
+              accent: AdminColors.titleDot,
             ),
             SizedBox(height: 4),
             Text(

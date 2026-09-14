@@ -623,7 +623,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
-              accent: AdminColors.actionBlue,
+              accent: AdminColors.titleDot,
             ),
             const SizedBox(height: 4),
             Text(

@@ -70,7 +70,7 @@ class _AdminRoleManagementScreenState
                   fontWeight: FontWeight.bold,
                   color: AdminColors.text,
                 ),
-                accent: AdminColors.actionBlue,
+                accent: AdminColors.titleDot,
               ),
               Text(
                 l10n.adminRoleManagementSubtitle,

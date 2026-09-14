@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../constants/app_colors.dart';
+
 /// Back-office admin palette — « grille d'outil ».
 ///
 /// Écrans d'administration (tableau de bord, gestion des utilisateurs, audit,
@@ -11,6 +13,9 @@ import 'package:flutter/material.dart';
 /// (`AppColors.primaryDark` en clair) est réservé à l'app grand public — le
 /// back-office utilise le **bleu d'action** [actionBlue] pour l'action
 /// principale et l'état actif, jamais l'orange.
+///
+/// **Une seule exception** : [titleDot], le point qui termine les titres
+/// d'écran, garde le terracotta de la marque (décision produit 2026-09-13).
 ///
 /// Usage : `AdminColors.actionBlue` etc.
 class AdminColors {
@@ -80,6 +85,15 @@ class AdminColors {
 
   /// Fond bleu léger (lignes/puces d'information).
   static const actionBlueBg = Color(0xFFEFF6FF);
+
+  // ============================================
+  // POINT DES TITRES — seule touche d'orange du back-office
+  // ============================================
+
+  /// Point d'accent des titres d'écran : le même terracotta que dans l'app
+  /// (couleur principale du thème orange), pour que la signature soit la
+  /// même partout. Réservé à ce point — l'action reste en [actionBlue].
+  static const titleDot = AppColors.primaryDark;
 
   // ============================================
   // STATUTS — texte foncé / texte accentué / fond

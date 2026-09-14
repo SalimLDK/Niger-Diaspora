@@ -145,7 +145,7 @@ class _AdminTransactionsScreenState
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
-              accent: AdminColors.actionBlue,
+              accent: AdminColors.titleDot,
             ),
             const SizedBox(height: 4),
             Text(

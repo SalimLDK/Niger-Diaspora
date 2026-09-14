@@ -69,7 +69,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
-              accent: AdminColors.actionBlue,
+              accent: AdminColors.titleDot,
             ),
             IconButton(
               icon: const AppIcon(AppIcon.refresh, color: _textSecondary),

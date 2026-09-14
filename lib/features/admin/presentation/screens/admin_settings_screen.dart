@@ -66,7 +66,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
             color: _textPrimary,
             fontWeight: FontWeight.bold,
           ),
-          accent: AdminColors.actionBlue,
+          accent: AdminColors.titleDot,
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),

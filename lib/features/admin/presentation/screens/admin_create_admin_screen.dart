@@ -54,7 +54,7 @@ class _AdminCreateAdminScreenState
             color: AdminColors.text,
             fontWeight: FontWeight.w600,
           ),
-          accent: AdminColors.actionBlue,
+          accent: AdminColors.titleDot,
         ),
       ),
       body: SingleChildScrollView(

@@ -145,7 +145,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
-                accent: AdminColors.actionBlue,
+                accent: AdminColors.titleDot,
               ),
               const SizedBox(height: 8),
               Text(

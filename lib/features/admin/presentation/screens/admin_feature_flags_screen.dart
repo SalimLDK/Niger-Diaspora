@@ -139,7 +139,7 @@ class _AdminFeatureFlagsScreenState
             color: _textPrimary,
             fontWeight: FontWeight.bold,
           ),
-          accent: AdminColors.actionBlue,
+          accent: AdminColors.titleDot,
         ),
         actions: [
           if (_hasChanges)

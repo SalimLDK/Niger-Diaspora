@@ -38,8 +38,8 @@ const double kDesignControlHeight = 54;
 /// faits main (2026-09-13).
 ///
 /// Pas de point sur un nom saisi (groupe, salon, contact) : il signe les
-/// titres d'écran, pas le contenu. Dans le back-office, il est au bleu
-/// d'action (`AdminColors.actionBlue`) : l'orange y est interdit.
+/// titres d'écran, pas le contenu. Dans le back-office, il reste terracotta
+/// (`AdminColors.titleDot`), seule exception à « pas d'orange dans l'admin ».
 class DesignTitle extends StatelessWidget {
   final String text;
   final double size;

@@ -118,7 +118,7 @@ class _AdminUsersManagementScreenState
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
-              accent: AdminColors.actionBlue,
+              accent: AdminColors.titleDot,
             ),
             SizedBox(height: 4),
             Text(

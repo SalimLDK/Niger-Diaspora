@@ -38,7 +38,7 @@ class _AdminSupportScreenState extends ConsumerState<AdminSupportScreen> {
         ),
         title: DesignTitle.ambiant(
           l10n.supportTickets,
-          accent: AdminColors.actionBlue,
+          accent: AdminColors.titleDot,
         )),
       body: Column(
         children: [

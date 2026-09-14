@@ -192,7 +192,7 @@ class _AdminCreateEmbassyScreenState
         ),
         title: DesignTitle.ambiant(
           l10n.adminCreateEmbassy,
-          accent: AdminColors.actionBlue,
+          accent: AdminColors.titleDot,
         ),
         backgroundColor: theme.colorScheme.surface,
       ),
