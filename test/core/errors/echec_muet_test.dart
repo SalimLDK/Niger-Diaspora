@@ -46,9 +46,13 @@ void main() {
     'lib/features/messages/presentation/screens/conversation_screen.dart':
         'garde un `_scrollToBottom()`, pas un message : il n\'y a rien à '
             'annoncer quand l\'envoi échoue ici, la bulle porte déjà son état.',
-    'lib/features/businesses/presentation/screens/business_reviews_screen.dart':
-        'signalement d\'un avis — à traiter, mais hors du lot « amis » qui a '
-            'motivé ce garde-fou.',
+    // `business_reviews_screen.dart` est sorti de cette liste le 2026-09-14,
+    // en passant sur le blocage — il avait DEUX branches muettes, pas la
+    // seule que la note d'exception décrivait : la suppression d'un avis
+    // (attrapée par le motif) et la réponse du gérant, écrite `ok &&
+    // context.mounted`, que le motif ne voit pas. Les deux passent maintenant
+    // par un `_annoncer` local. Le signalement d'un avis, lui, annonçait déjà
+    // les deux cas : la note était périmée.
   };
 
   test('aucune action n\'annonce seulement son succès', () {
