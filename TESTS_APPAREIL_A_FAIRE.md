@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**898 cases à cocher, 506 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
+**902 cases à cocher, 506 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -73,7 +73,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
-- 6 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
+- 7 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -85,7 +85,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
-- 8 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
+- 11 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
@@ -242,7 +242,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 129 à faire, 54 faites
-- [3. Groupes](#3-groupes) — 110 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 111 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
@@ -250,7 +250,7 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 30 à faire, 28 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 33 à faire, 28 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
@@ -2273,6 +2273,12 @@ SELECT public.ouvrir_groupe_de_ville(
 - [ ] **Sur appareil** : les 32 pays qui ont un centroïde n'ont pas bougé
   (Niger, France, Canada…) — le repli par la plus grande ville ne sert que
   là où il n'y avait rien.
+- [ ] **Le premier vrai groupe de ville : Niamey.** La reprise du
+  2026-09-14 y a relié quatre profils visibles, soit plus que le seuil. La
+  migration a volontairement neutralisé l'ouverture automatique pour que les
+  données soient relues d'abord ; le balayage quotidien (9 h 30) l'ouvrira et
+  enverra quatre invitations. Vérifier sur appareil qu'elles arrivent, qu'elles
+  mènent à la fiche, et que personne n'est membre sans avoir appuyé.
 
 ---
 
@@ -11100,6 +11106,26 @@ sont vérifiés en base, pas ici.
 - [ ] **Sur appareil, réseau coupé** : la ligne « Recherche impossible pour le
   moment » remplace la liste, et le champ reste saisissable — le texte libre
   doit continuer de partir dans `city`.
+
+**Reprise de l'existant, faite le 2026-09-14** (`20260914150000`). Neuf des
+treize profils qui portaient une ville sont reliés au référentiel : Niamey ×4
+(dont un écrit « niamey », désormais normalisé par le déclencheur), Bouza,
+Dosso, Magaria, Kaduna, Djelfa. Quatre restent du texte libre, et c'est
+exact : « Almoustapha » (un prénom), « Arewa » (un département), l'adresse du
+compte de test, et « Montréal » — dont le profil n'a pas de pays, si bien que
+le relier changerait aussi son pays. Décision : à proposer, pas à imposer.
+
+- [ ] **Sur appareil, l'un des comptes de Niamey** : le profil affiche
+  « Niamey » avec la pastille verte (une ville retenue), et le champ n'est
+  plus du texte nu. Le compte qui avait écrit « niamey » en minuscules doit
+  afficher « Niamey ».
+- [ ] **Sur appareil, le compte « Montréal »** : le champ montre toujours
+  « Montréal » SANS pastille. Ouvrir le champ doit proposer « Montréal,
+  Québec » ; le choisir doit poser le Canada comme pays. C'est le seul
+  chemin par lequel ce profil change de pays — vérifier qu'il ne l'a pas fait
+  tout seul.
+- [ ] **Sur appareil, les comptes « Almoustapha » et « Arewa »** : le texte
+  est intact, sans pastille, et l'enregistrement du profil ne l'efface pas.
 
 ---
 
