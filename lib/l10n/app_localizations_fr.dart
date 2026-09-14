@@ -16386,4 +16386,125 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get locationDisclosureChatBody =>
       'Diaspo Niger lit votre position pour centrer la carte sur vous et vous laisser l\'envoyer dans cette discussion. Elle n\'est partagée qu\'avec les participants de la discussion, et seulement si vous envoyez le message : elle ne rejoint pas la carte des membres.';
+
+  @override
+  String get pollCreateTitle => 'Créer un sondage';
+
+  @override
+  String get pollQuestionLabel => 'Question';
+
+  @override
+  String pollOptionNumbered(int index) {
+    return 'Option $index';
+  }
+
+  @override
+  String get pollAddOption => 'Ajouter une option';
+
+  @override
+  String get pollMultipleChoiceSubtitle =>
+      'Plusieurs réponses possibles pour chaque votant';
+
+  @override
+  String get pollDurationLabel => 'Durée du sondage';
+
+  @override
+  String get pollDuration24h => '24 h';
+
+  @override
+  String get pollDuration3Days => '3 jours';
+
+  @override
+  String get pollDurationUnlimited => 'Illimité';
+
+  @override
+  String get pollPublishAction => 'Publier le sondage';
+
+  @override
+  String get pollNeedQuestionAndTwoOptions =>
+      'Ajoutez une question et au moins 2 options';
+
+  @override
+  String get pollCreateFailed => 'Impossible de créer le sondage';
+
+  @override
+  String pollCreateFailedWithCause(String cause) {
+    return 'Impossible de créer le sondage : $cause';
+  }
+
+  @override
+  String pollVotesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count votes',
+      one: '1 vote',
+      zero: 'Aucun vote',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pollVotesTotal(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count votes au total',
+      one: '1 vote au total',
+      zero: 'Aucun vote',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get pollResultsTitle => 'Résultats du sondage';
+
+  @override
+  String get pollMyChoice => 'Votre choix';
+
+  @override
+  String get pollNoVoteYet => 'Aucun vote pour le moment';
+
+  @override
+  String get pollNotFound => 'Sondage introuvable';
+
+  @override
+  String get pollDeleted => 'Sondage supprimé';
+
+  @override
+  String get pollChangeVote => 'Modifier mon vote';
+
+  @override
+  String get pollWithdrawVote => 'Retirer mon vote';
+
+  @override
+  String get pollVoteFailed => 'Impossible d’enregistrer votre vote';
+
+  @override
+  String get pollBubbleFailed =>
+      'Le sondage est créé, mais sa publication dans la discussion a échoué.';
+
+  @override
+  String get pollClosedToVotes => 'Sondage terminé';
+
+  @override
+  String get pollAnonymous => 'Sondage anonyme';
+
+  @override
+  String get pollAnonymousSubtitle =>
+      'Personne ne verra qui a voté quoi, pas même vous';
+
+  @override
+  String get pollVotesArePublic => 'Vote public : votre nom sera visible';
+
+  @override
+  String get pollVotesAreAnonymous => 'Vote anonyme';
+
+  @override
+  String get pollVotersVisibleToAll =>
+      'Les votes ne sont pas anonymes : chacun voit qui a voté quoi.';
+
+  @override
+  String get pollVotersHidden =>
+      'Sondage anonyme : personne ne voit qui a voté quoi.';
 }

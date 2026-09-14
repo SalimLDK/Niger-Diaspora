@@ -322,7 +322,7 @@ class KeyManagerService {
   Future<void> _publishKeysToSupabase(String userId) async {
     // Toute écriture Supabase exige une session valide (RLS bloque l'anon).
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw StateError('Session Supabase non établie — publication différée');
+      throw StateError('Session non établie — publication différée');
     }
 
     final identityKeyPair = await _storage.getIdentityKeyPair(userId);
@@ -401,7 +401,7 @@ class KeyManagerService {
   ) async {
     // Garde d'auth : appelé aussi hors _publishKeysToSupabase (refill OTP).
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw StateError('Session Supabase non établie — OTP non publiées');
+      throw StateError('Session non établie — OTP non publiées');
     }
     // Supprimer les anciennes clés pour cet appareil
     await _supabase

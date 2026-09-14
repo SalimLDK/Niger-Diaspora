@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../polls/presentation/providers/poll_provider.dart';
 import '../../../polls/presentation/widgets/poll_card.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Bulle « sondage » d'une conversation.
 ///
@@ -28,13 +29,14 @@ class PollMessageBubble extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final pollAsync = ref.watch(pollStreamProvider(pollId));
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 320),
       child: pollAsync.when(
         data: (poll) => poll == null
-            ? _placeholder(context, 'Sondage supprimé')
+            ? _placeholder(context, l10n.pollDeleted)
             : PollCard(poll: poll, groupId: groupId),
         loading: () => _placeholder(context, fallbackQuestion),
         error: (_, __) => _placeholder(context, fallbackQuestion),

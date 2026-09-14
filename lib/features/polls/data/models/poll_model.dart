@@ -1,4 +1,4 @@
-﻿import 'package:equatable/equatable.dart';
+import 'package:equatable/equatable.dart';
 import '../../domain/entities/poll_entity.dart';
 
 class PollOptionModel extends Equatable {
@@ -37,6 +37,7 @@ class PollModel extends Equatable {
   final String question;
   final List<PollOptionModel> options;
   final bool allowMultiple;
+  final bool isAnonymous;
   final DateTime? endsAt;
   final int totalVotes;
   final String? createdBy;
@@ -51,6 +52,7 @@ class PollModel extends Equatable {
     required this.question,
     this.options = const [],
     this.allowMultiple = false,
+    this.isAnonymous = false,
     this.endsAt,
     this.totalVotes = 0,
     this.createdBy,
@@ -76,6 +78,7 @@ class PollModel extends Equatable {
           .map((e) => PollOptionModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       allowMultiple: json['allowMultiple'] as bool? ?? false,
+      isAnonymous: json['isAnonymous'] as bool? ?? false,
       endsAt: _parseDateTime(json['endsAt']),
       totalVotes: json['totalVotes'] as int? ?? 0,
       createdBy: json['createdBy'] as String?,
@@ -98,6 +101,7 @@ class PollModel extends Equatable {
         question: question,
         options: options.map((o) => o.toEntity()).toList(),
         allowMultiple: allowMultiple,
+        isAnonymous: isAnonymous,
         endsAt: endsAt,
         totalVotes: totalVotes,
         createdBy: createdBy,
@@ -114,6 +118,7 @@ class PollModel extends Equatable {
         question,
         options,
         allowMultiple,
+        isAnonymous,
         endsAt,
         totalVotes,
         createdBy,

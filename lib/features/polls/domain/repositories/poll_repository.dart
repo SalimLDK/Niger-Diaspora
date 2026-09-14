@@ -1,4 +1,4 @@
-﻿import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/poll_entity.dart';
 
@@ -9,6 +9,7 @@ abstract class PollRepository {
     required String question,
     required List<String> optionLabels,
     bool allowMultiple,
+    bool isAnonymous,
     DateTime? endsAt,
     String? userId,
   });
@@ -24,7 +25,12 @@ abstract class PollRepository {
     String? currentUserId,
   });
 
-  Stream<Either<Failure, PollEntity?>> getPollStream(String pollId);
+  /// Flux du sondage. Sans [currentUserId] le sondage arrive « jamais vote »
+  /// quel que soit le lecteur — voir l'implementation Supabase.
+  Stream<Either<Failure, PollEntity?>> getPollStream(
+    String pollId, {
+    String? currentUserId,
+  });
 
   Future<Either<Failure, void>> vote(
     String pollId,
@@ -32,9 +38,10 @@ abstract class PollRepository {
     String? userId,
   });
 
-  Future<Either<Failure, List<PollVoterEntity>>> getOptionVoters(
+  /// Votants de chaque option, indexes par identifiant d'option. Vide pour un
+  /// sondage anonyme — la base ne les rend alors a personne.
+  Future<Either<Failure, Map<String, List<PollVoterEntity>>>> getPollVoters(
     String pollId,
-    String optionId,
   );
 
   Future<Either<Failure, void>> deletePoll(String pollId);

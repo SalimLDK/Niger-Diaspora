@@ -10,11 +10,10 @@ import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_indicator.dart';
 import '../../domain/entities/poll_entity.dart';
 import '../providers/poll_provider.dart';
+import '../theme/poll_tokens.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
-
-const _pollAccent = Color(0xFF6B5CE0);
 
 class PollResultsScreen extends ConsumerWidget {
   final String pollId;
@@ -23,17 +22,18 @@ class PollResultsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final pollAsync = ref.watch(pollStreamProvider(pollId));
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const AppIcon(AppIcon.arrowBack, color: _pollAccent),
+          icon: const AppIcon(AppIcon.arrowBack, color: kPollAccent),
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/messages'),
         ),
-        title: const DesignTitle('Résultats du sondage', size: 22),
+        title: DesignTitle(l10n.pollResultsTitle, size: 22),
       ),
       body: pollAsync.when(
         loading: () => const LoadingIndicator(),
@@ -44,7 +44,7 @@ class PollResultsScreen extends ConsumerWidget {
         ),
         data: (poll) {
           if (poll == null) {
-            return const ErrorView(message: 'Sondage introuvable');
+            return ErrorView(message: l10n.pollNotFound);
           }
           return _PollResultsBody(poll: poll);
         },
@@ -60,6 +60,7 @@ class _PollResultsBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final tokens = FeedTokens.of(context);
     // L'option gagnante = celle qui a le plus de voix (dès qu'un vote existe).
     final maxVotes = poll.options.isEmpty
@@ -68,12 +69,19 @@ class _PollResultsBody extends ConsumerWidget {
             .map((o) => o.voteCount)
             .reduce((a, b) => a > b ? a : b);
 
+    // Un sondage anonyme ne rend ses votants à personne, pas même à son
+    // auteur : inutile de demander, et surtout inutile d'afficher une liste
+    // vide qui se lirait comme « personne n'a voté ».
+    final voters = poll.isAnonymous
+        ? const AsyncValue<Map<String, List<PollVoterEntity>>>.data({})
+        : ref.watch(pollVotersProvider(poll.id));
+
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
         Row(
           children: [
-            const AppIcon(AppIcon.poll, size: 20, color: _pollAccent),
+            const AppIcon(AppIcon.poll, size: 20, color: kPollAccent),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -89,7 +97,9 @@ class _PollResultsBody extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          '${poll.totalVotes} vote${poll.totalVotes > 1 ? 's' : ''} au total',
+          poll.isExpired
+              ? '${l10n.pollVotesTotal(poll.totalVotes)} · ${l10n.pollClosedToVotes}'
+              : l10n.pollVotesTotal(poll.totalVotes),
           style: TextStyle(fontSize: 13, color: context.textTertiaryColor),
         ),
         const SizedBox(height: 20),
@@ -100,6 +110,8 @@ class _PollResultsBody extends ConsumerWidget {
             tokens: tokens,
             isWinner: poll.totalVotes > 0 && option.voteCount == maxVotes,
             isMyChoice: poll.votedOptionIds.contains(option.id),
+            showVoters: !poll.isAnonymous,
+            voters: voters,
           ),
         const SizedBox(height: 4),
         Row(
@@ -108,7 +120,9 @@ class _PollResultsBody extends ConsumerWidget {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                'Les votes sont visibles par l\'auteur du sondage.',
+                poll.isAnonymous
+                    ? l10n.pollVotersHidden
+                    : l10n.pollVotersVisibleToAll,
                 style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
               ),
             ),
@@ -119,12 +133,14 @@ class _PollResultsBody extends ConsumerWidget {
   }
 }
 
-class _OptionResultCard extends ConsumerWidget {
+class _OptionResultCard extends StatelessWidget {
   final PollEntity poll;
   final PollOptionEntity option;
   final FeedTokens tokens;
   final bool isWinner;
   final bool isMyChoice;
+  final bool showVoters;
+  final AsyncValue<Map<String, List<PollVoterEntity>>> voters;
 
   const _OptionResultCard({
     required this.poll,
@@ -132,15 +148,14 @@ class _OptionResultCard extends ConsumerWidget {
     required this.tokens,
     required this.isWinner,
     required this.isMyChoice,
+    required this.showVoters,
+    required this.voters,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final percentage = poll.percentageFor(option);
-    final votersAsync = ref.watch(
-      _optionVotersProvider((pollId: poll.id, optionId: option.id)),
-    );
 
     // Carte de base ; l'option gagnante est encadrée 1,5 px en accent2 (#7A8A5E).
     final baseDecoration = context.cardDecoration;
@@ -177,7 +192,7 @@ class _OptionResultCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
-                    'Votre choix',
+                    l10n.pollMyChoice,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -210,52 +225,55 @@ class _OptionResultCard extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          votersAsync.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2),
+          if (showVoters) ...[
+            const SizedBox(height: 12),
+            voters.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
               ),
-            ),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (voters) {
-              if (voters.isEmpty) {
-                return Text(
-                  'Aucun vote pour le moment',
-                  style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
-                );
-              }
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: voters.map((voter) {
-                  return Chip(
-                    avatar: CircleAvatar(
-                      backgroundImage: voter.photoUrl != null
-                          ? CachedNetworkImageProvider(voter.photoUrl!)
-                          : null,
-                      child: voter.photoUrl == null
-                          ? const AppIcon(AppIcon.person, color: _pollAccent, size: 14)
-                          : null,
+              error: (_, __) => const SizedBox.shrink(),
+              data: (parOption) {
+                final liste = parOption[option.id] ?? const <PollVoterEntity>[];
+                if (liste.isEmpty) {
+                  return Text(
+                    l10n.pollNoVoteYet,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.textTertiaryColor,
                     ),
-                    label: Text(voter.name ?? l10n.user),
                   );
-                }).toList(),
-              );
-            },
-          ),
+                }
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: liste.map((voter) {
+                    return Chip(
+                      avatar: CircleAvatar(
+                        backgroundImage: voter.photoUrl != null
+                            ? CachedNetworkImageProvider(voter.photoUrl!)
+                            : null,
+                        child: voter.photoUrl == null
+                            ? const AppIcon(
+                                AppIcon.person,
+                                color: kPollAccent,
+                                size: 14,
+                              )
+                            : null,
+                      ),
+                      label: Text(voter.name ?? l10n.user),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ],
         ],
       ),
     );
   }
 }
-
-final _optionVotersProvider = FutureProvider.family<
-    List<PollVoterEntity>, ({String pollId, String optionId})>((ref, args) async {
-  return ref
-      .read(pollActionsNotifierProvider.notifier)
-      .getOptionVoters(args.pollId, args.optionId);
-});

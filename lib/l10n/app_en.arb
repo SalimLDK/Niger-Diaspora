@@ -7134,5 +7134,66 @@
   "travelModeSubtitle": "Share my location even when the app is closed (updated every 5 min)",
   "locationPermissionOpenSettings": "Permission permanently denied. Turn it on in your phone settings.",
   "locationDisclosureChatTitle": "Your location in this conversation",
-  "locationDisclosureChatBody": "Diaspo Niger reads your location to centre the map on you and let you send it in this conversation. It is only shared with the people in that conversation, and only if you send the message: it does not go to the member map."
+  "locationDisclosureChatBody": "Diaspo Niger reads your location to centre the map on you and let you send it in this conversation. It is only shared with the people in that conversation, and only if you send the message: it does not go to the member map.",
+
+  "pollCreateTitle": "Create a poll",
+  "pollQuestionLabel": "Question",
+  "pollOptionNumbered": "Option {index}",
+  "@pollOptionNumbered": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "pollAddOption": "Add an option",
+  "pollMultipleChoiceSubtitle": "Each voter can pick several answers",
+  "pollDurationLabel": "Poll duration",
+  "pollDuration24h": "24h",
+  "pollDuration3Days": "3 days",
+  "pollDurationUnlimited": "Unlimited",
+  "pollPublishAction": "Publish poll",
+  "pollNeedQuestionAndTwoOptions": "Add a question and at least 2 options",
+  "pollCreateFailed": "Could not create the poll",
+  "pollCreateFailedWithCause": "Could not create the poll: {cause}",
+  "@pollCreateFailedWithCause": {
+    "placeholders": {
+      "cause": {
+        "type": "String"
+      }
+    }
+  },
+  "pollVotesCount": "{count, plural, =0{No vote} =1{1 vote} other{{count} votes}}",
+  "@pollVotesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollVotesTotal": "{count, plural, =0{No vote} =1{1 vote in total} other{{count} votes in total}}",
+  "@pollVotesTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pollResultsTitle": "Poll results",
+  "pollMyChoice": "Your choice",
+  "pollNoVoteYet": "No vote yet",
+  "pollNotFound": "Poll not found",
+  "pollDeleted": "Poll deleted",
+  "pollChangeVote": "Change my vote",
+  "pollWithdrawVote": "Withdraw my vote",
+  "pollVoteFailed": "Could not record your vote",
+  "pollBubbleFailed": "The poll was created, but posting it to the conversation failed.",
+  "pollClosedToVotes": "Poll closed",
+
+  "pollAnonymous": "Anonymous poll",
+  "pollAnonymousSubtitle": "Nobody will see who voted for what, not even you",
+  "pollVotesArePublic": "Public vote: your name will be visible",
+  "pollVotesAreAnonymous": "Anonymous vote",
+  "pollVotersVisibleToAll": "Votes are not anonymous: everyone can see who voted for what.",
+  "pollVotersHidden": "Anonymous poll: nobody can see who voted for what."
 }

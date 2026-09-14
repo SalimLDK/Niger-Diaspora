@@ -35,12 +35,14 @@ class _PollDraft {
   final String question;
   final List<String> optionLabels;
   final bool allowMultiple;
+  final bool isAnonymous;
   final DateTime? endsAt;
 
   const _PollDraft({
     required this.question,
     required this.optionLabels,
     required this.allowMultiple,
+    required this.isAnonymous,
     this.endsAt,
   });
 }
@@ -259,7 +261,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
       context,
       contextType: PollContextType.post,
       contextId: '', // ignoré : onDraft intercepte la soumission
-      onDraft: (question, options, allowMultiple, endsAt) {
+      onDraft: (question, options, allowMultiple, isAnonymous, endsAt) {
         setState(() {
           _selectedFiles.clear();
           _selectedVideo = null;
@@ -268,6 +270,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
             question: question,
             optionLabels: options,
             allowMultiple: allowMultiple,
+            isAnonymous: isAnonymous,
             endsAt: endsAt,
           );
         });
@@ -421,6 +424,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
               question: _pollDraft!.question,
               optionLabels: _pollDraft!.optionLabels,
               allowMultiple: _pollDraft!.allowMultiple,
+              isAnonymous: _pollDraft!.isAnonymous,
               endsAt: _pollDraft!.endsAt,
             );
       }

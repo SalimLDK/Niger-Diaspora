@@ -29929,6 +29929,192 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Diaspo Niger lit votre position pour centrer la carte sur vous et vous laisser l\'envoyer dans cette discussion. Elle n\'est partagée qu\'avec les participants de la discussion, et seulement si vous envoyez le message : elle ne rejoint pas la carte des membres.'**
   String get locationDisclosureChatBody;
+
+  /// Titre de la feuille de creation d un sondage
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer un sondage'**
+  String get pollCreateTitle;
+
+  /// Champ question du sondage
+  ///
+  /// In fr, this message translates to:
+  /// **'Question'**
+  String get pollQuestionLabel;
+
+  /// No description provided for @pollOptionNumbered.
+  ///
+  /// In fr, this message translates to:
+  /// **'Option {index}'**
+  String pollOptionNumbered(int index);
+
+  /// Bouton d ajout d une reponse
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une option'**
+  String get pollAddOption;
+
+  /// Sous-titre de la bascule choix multiple
+  ///
+  /// In fr, this message translates to:
+  /// **'Plusieurs réponses possibles pour chaque votant'**
+  String get pollMultipleChoiceSubtitle;
+
+  /// Titre du groupe de puces de duree
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée du sondage'**
+  String get pollDurationLabel;
+
+  /// Puce de duree : un jour
+  ///
+  /// In fr, this message translates to:
+  /// **'24 h'**
+  String get pollDuration24h;
+
+  /// Puce de duree : trois jours
+  ///
+  /// In fr, this message translates to:
+  /// **'3 jours'**
+  String get pollDuration3Days;
+
+  /// Puce de duree : pas de fin
+  ///
+  /// In fr, this message translates to:
+  /// **'Illimité'**
+  String get pollDurationUnlimited;
+
+  /// Bouton de validation de la feuille
+  ///
+  /// In fr, this message translates to:
+  /// **'Publier le sondage'**
+  String get pollPublishAction;
+
+  /// Refus de validation d un sondage incomplet
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez une question et au moins 2 options'**
+  String get pollNeedQuestionAndTwoOptions;
+
+  /// Echec de creation, sans cause connue
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de créer le sondage'**
+  String get pollCreateFailed;
+
+  /// No description provided for @pollCreateFailedWithCause.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de créer le sondage : {cause}'**
+  String pollCreateFailedWithCause(String cause);
+
+  /// No description provided for @pollVotesCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucun vote} =1{1 vote} other{{count} votes}}'**
+  String pollVotesCount(int count);
+
+  /// No description provided for @pollVotesTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucun vote} =1{1 vote au total} other{{count} votes au total}}'**
+  String pollVotesTotal(int count);
+
+  /// Titre de l ecran de resultats
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultats du sondage'**
+  String get pollResultsTitle;
+
+  /// Badge sur l option pour laquelle on a vote
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre choix'**
+  String get pollMyChoice;
+
+  /// Option sans aucune voix
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun vote pour le moment'**
+  String get pollNoVoteYet;
+
+  /// Le sondage n existe plus ou n est pas lisible
+  ///
+  /// In fr, this message translates to:
+  /// **'Sondage introuvable'**
+  String get pollNotFound;
+
+  /// Bulle dont le sondage a ete supprime
+  ///
+  /// In fr, this message translates to:
+  /// **'Sondage supprimé'**
+  String get pollDeleted;
+
+  /// Rouvre le vote apres avoir vote
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier mon vote'**
+  String get pollChangeVote;
+
+  /// Supprime son vote sans en poser un autre
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer mon vote'**
+  String get pollWithdrawVote;
+
+  /// Echec du vote
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d’enregistrer votre vote'**
+  String get pollVoteFailed;
+
+  /// Le sondage existe mais aucune bulle ne le montre
+  ///
+  /// In fr, this message translates to:
+  /// **'Le sondage est créé, mais sa publication dans la discussion a échoué.'**
+  String get pollBubbleFailed;
+
+  /// Le sondage a depasse sa date de fin
+  ///
+  /// In fr, this message translates to:
+  /// **'Sondage terminé'**
+  String get pollClosedToVotes;
+
+  /// Bascule d anonymat, a la creation
+  ///
+  /// In fr, this message translates to:
+  /// **'Sondage anonyme'**
+  String get pollAnonymous;
+
+  /// Ce que l anonymat change vraiment
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne ne verra qui a voté quoi, pas même vous'**
+  String get pollAnonymousSubtitle;
+
+  /// Notice lue par le votant avant de choisir
+  ///
+  /// In fr, this message translates to:
+  /// **'Vote public : votre nom sera visible'**
+  String get pollVotesArePublic;
+
+  /// Notice lue par le votant avant de choisir
+  ///
+  /// In fr, this message translates to:
+  /// **'Vote anonyme'**
+  String get pollVotesAreAnonymous;
+
+  /// Regle affichee sous les resultats
+  ///
+  /// In fr, this message translates to:
+  /// **'Les votes ne sont pas anonymes : chacun voit qui a voté quoi.'**
+  String get pollVotersVisibleToAll;
+
+  /// Regle affichee sous les resultats
+  ///
+  /// In fr, this message translates to:
+  /// **'Sondage anonyme : personne ne voit qui a voté quoi.'**
+  String get pollVotersHidden;
 }
 
 class _AppLocalizationsDelegate

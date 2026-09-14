@@ -433,7 +433,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
   @override
   Future<GroupModel> createGroup(GroupModel group) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
 
     final row = await _supabase.rpc('insert_group', params: {
@@ -614,7 +614,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
   }) async {
     assert(conversationId != null);
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final row = await _supabase
         .from('group_pinned_items')
@@ -636,7 +636,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     required String countryName,
   }) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final row = await _supabase.rpc(
       'get_or_create_official_group',
@@ -650,7 +650,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   Future<void> unpinItem(String pinnedItemId) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     await _supabase.from('group_pinned_items').delete().eq('id', pinnedItemId);
   }

@@ -6,9 +6,8 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/poll_entity.dart';
 import '../providers/poll_provider.dart';
+import '../theme/poll_tokens.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
-
-const _pollAccent = Color(0xFF6B5CE0);
 
 /// Callback de brouillon : reçoit les champs du sondage composé sans les
 /// soumettre au repository (cas d'un nouveau post, dont l'id n'existe pas
@@ -17,6 +16,7 @@ typedef PollDraftCallback = void Function(
   String question,
   List<String> optionLabels,
   bool allowMultiple,
+  bool isAnonymous,
   DateTime? endsAt,
 );
 
@@ -70,6 +70,10 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
     TextEditingController(),
   ];
   bool _allowMultiple = false;
+
+  /// Faux par defaut : sans anonymat, chacun voit qui a vote quoi — c'est ce
+  /// que la notice annonce au votant sous la question.
+  bool _isAnonymous = false;
   Duration? _duration = const Duration(days: 3);
   bool _isSubmitting = false;
 
@@ -103,9 +107,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
 
     if (question.isEmpty || options.length < 2) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ajoutez une question et au moins 2 options'),
-        ),
+        SnackBar(content: Text(l10n.pollNeedQuestionAndTwoOptions)),
       );
       return;
     }
@@ -115,7 +117,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
     // Mode brouillon (nouveau post, id pas encore connu) : renvoie les
     // champs à l'appelant sans toucher au repository.
     if (widget.onDraft != null) {
-      widget.onDraft!(question, options, _allowMultiple, endsAt);
+      widget.onDraft!(question, options, _allowMultiple, _isAnonymous, endsAt);
       Navigator.pop(context);
       return;
     }
@@ -129,6 +131,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
           question: question,
           optionLabels: options,
           allowMultiple: _allowMultiple,
+          isAnonymous: _isAnonymous,
           endsAt: endsAt,
         ),
       PollContextType.conversation => await actions.createConversationPoll(
@@ -136,6 +139,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
           question: question,
           optionLabels: options,
           allowMultiple: _allowMultiple,
+          isAnonymous: _isAnonymous,
           endsAt: endsAt,
         ),
       PollContextType.post => await actions.createPostPoll(
@@ -143,6 +147,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
           question: question,
           optionLabels: options,
           allowMultiple: _allowMultiple,
+          isAnonymous: _isAnonymous,
           endsAt: endsAt,
         ),
     };
@@ -161,8 +166,8 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
         SnackBar(
           content: Text(
             cause == null || cause.isEmpty
-                ? 'Impossible de créer le sondage'
-                : 'Impossible de créer le sondage : $cause',
+                ? l10n.pollCreateFailed
+                : l10n.pollCreateFailedWithCause(cause),
           ),
           duration: const Duration(seconds: 6),
         ),
@@ -191,10 +196,10 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  const AppIcon(AppIcon.poll, size: 20, color: _pollAccent),
+                  const AppIcon(AppIcon.poll, size: 20, color: kPollAccent),
                   const SizedBox(width: 8),
                   Text(
-                    'Créer un sondage',
+                    l10n.pollCreateTitle,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -207,9 +212,10 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
               TextField(
                 controller: _questionController,
                 maxLength: 200,
-                decoration: const InputDecoration(
-                  labelText: 'Question',
-                  border: OutlineInputBorder(),
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  labelText: l10n.pollQuestionLabel,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 12),
@@ -222,8 +228,9 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
                         child: TextField(
                           controller: _optionControllers[i],
                           maxLength: 100,
+                          textCapitalization: TextCapitalization.sentences,
                           decoration: InputDecoration(
-                            labelText: 'Option ${i + 1}',
+                            labelText: l10n.pollOptionNumbered(i + 1),
                             border: const OutlineInputBorder(),
                             counterText: '',
                           ),
@@ -240,20 +247,46 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
               if (_optionControllers.length < 6)
                 TextButton.icon(
                   onPressed: _addOption,
-                  icon: const AppIcon(AppIcon.add, color: _pollAccent),
-                  label: const Text('Ajouter une option'),
+                  icon: const AppIcon(AppIcon.add, color: kPollAccent),
+                  label: Text(l10n.pollAddOption),
                 ),
               const SizedBox(height: 8),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: Text(l10n.pollMultipleChoice),
-                subtitle: const Text('Les membres peuvent voter pour plusieurs options'),
+                subtitle: Text(l10n.pollMultipleChoiceSubtitle),
                 value: _allowMultiple,
                 onChanged: (v) => setState(() => _allowMultiple = v),
               ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.pollAnonymous),
+                subtitle: Text(l10n.pollAnonymousSubtitle),
+                value: _isAnonymous,
+                onChanged: (v) => setState(() => _isAnonymous = v),
+              ),
+              // Le choix se prend une fois pour toutes a la creation : la
+              // notice dit donc ici ce que le votant lira sous la question.
+              Row(
+                children: [
+                  AppIcon(AppIcon.info, size: 14, color: context.textTertiaryColor),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      _isAnonymous
+                          ? l10n.pollVotersHidden
+                          : l10n.pollVotersVisibleToAll,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.textTertiaryColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               Text(
-                'Durée du sondage',
+                l10n.pollDurationLabel,
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -264,10 +297,10 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
               Wrap(
                 spacing: 8,
                 children: [
-                  _durationChip('24h', const Duration(hours: 24)),
-                  _durationChip('3 jours', const Duration(days: 3)),
+                  _durationChip(l10n.pollDuration24h, const Duration(hours: 24)),
+                  _durationChip(l10n.pollDuration3Days, const Duration(days: 3)),
                   _durationChip(l10n.days7, const Duration(days: 7)),
-                  _durationChip('Illimité', null),
+                  _durationChip(l10n.pollDurationUnlimited, null),
                 ],
               ),
               const SizedBox(height: 20),
@@ -281,7 +314,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Publier le sondage'),
+                      : Text(l10n.pollPublishAction),
                 ),
               ),
               const SizedBox(height: 12),
@@ -298,7 +331,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => setState(() => _duration = duration),
-      selectedColor: _pollAccent.withValues(alpha: 0.15),
+      selectedColor: kPollAccent.withValues(alpha: 0.15),
     );
   }
 }

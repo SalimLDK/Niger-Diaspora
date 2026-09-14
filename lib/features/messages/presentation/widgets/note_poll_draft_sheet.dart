@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
+import '../../../polls/presentation/theme/poll_tokens.dart';
 
-const _pollAccent = Color(0xFF6B5CE0);
 
 /// Ouvre le sheet de composition d'un « brouillon de sondage » pour « Mes notes ».
 ///
@@ -105,7 +105,7 @@ class _NotePollDraftSheetState extends State<NotePollDraftSheet> {
                 ),
                 Row(
                   children: [
-                    const Icon(Icons.poll_outlined, color: _pollAccent),
+                    const Icon(Icons.poll_outlined, color: kPollAccent),
                     const SizedBox(width: 8),
                     Text(
                       'Brouillon de sondage',
@@ -190,10 +190,10 @@ class _NotePollDraftSheetState extends State<NotePollDraftSheet> {
                 if (_optionControllers.length < 6)
                   TextButton.icon(
                     onPressed: _addOption,
-                    icon: const Icon(Icons.add, size: 18, color: _pollAccent),
+                    icon: const Icon(Icons.add, size: 18, color: kPollAccent),
                     label: const Text(
                       'Ajouter une option',
-                      style: TextStyle(color: _pollAccent),
+                      style: TextStyle(color: kPollAccent),
                     ),
                   ),
                 const SizedBox(height: 12),
@@ -204,7 +204,7 @@ class _NotePollDraftSheetState extends State<NotePollDraftSheet> {
                         ? () => Navigator.pop(context, _buildDraft())
                         : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _pollAccent,
+                      backgroundColor: kPollAccent,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(

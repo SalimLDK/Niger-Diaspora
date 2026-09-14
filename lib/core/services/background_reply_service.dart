@@ -159,10 +159,10 @@ class BackgroundReplyService {
       }
 
       if (!await _initializeSupabaseForIsolate()) {
-        throw StateError('Supabase indisponible dans cet isolate');
+        throw StateError('Base de données indisponible dans cet isolate');
       }
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        throw StateError('Session Supabase non établie');
+        throw StateError('Session non établie');
       }
 
       prefs = await SharedPreferences.getInstance();
