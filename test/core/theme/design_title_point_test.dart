@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Le point d'accent après chaque titre d'écran (2026-09-13).
@@ -89,6 +90,45 @@ void main() {
     );
     expect(find.text('Mot de passe oublié ?'), findsOneWidget);
     expect(find.textContaining('?.'), findsNothing);
+  });
+
+  testWidgets(
+      "back-office : typographie de l'AppBar gardée, point au bleu d'action",
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(
+          appBarTheme: const AppBarTheme(
+            titleTextStyle: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 21,
+              color: AdminColors.text,
+            ),
+          ),
+        ),
+        home: Scaffold(
+          appBar: AppBar(
+            title: const DesignTitle.ambiant(
+              'Tickets',
+              accent: AdminColors.actionBlue,
+            ),
+          ),
+        ),
+      ),
+    );
+    TextStyle rendu(String texte) => tester
+        .renderObject<RenderParagraph>(find.descendant(
+          of: find.text(texte),
+          matching: find.byType(RichText),
+        ))
+        .text
+        .style!;
+
+    expect(rendu('Tickets').fontFamily, 'Inter');
+    expect(rendu('Tickets').fontSize, 21);
+    expect(rendu('Tickets').color, AdminColors.text);
+    expect(rendu('.').fontFamily, 'Inter');
+    expect(rendu('.').color, AdminColors.actionBlue);
   });
 
   testWidgets('une autre famille garde sa police et prend la couleur du point',

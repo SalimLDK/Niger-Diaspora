@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminAuditScreen extends ConsumerStatefulWidget {
   const AdminAuditScreen({super.key});
@@ -74,13 +75,14 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            const DesignTitle(
               'Historique d\'Audit',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
+              accent: AdminColors.actionBlue,
             ),
             const SizedBox(height: 4),
             Text(

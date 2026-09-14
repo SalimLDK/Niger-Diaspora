@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminLoginScreen extends ConsumerStatefulWidget {
   const AdminLoginScreen({super.key});
@@ -139,11 +140,12 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              Text(
+              DesignTitle(
                 l10n.adminPanelTitle,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
+                accent: AdminColors.actionBlue,
               ),
               const SizedBox(height: 8),
               Text(

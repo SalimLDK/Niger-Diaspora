@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**863 cases à cocher, 495 cochées** — 176 entrées sur 220 ont encore des cases ouvertes.
+**865 cases à cocher, 495 cochées** — 176 entrées sur 220 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -190,7 +190,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Brouillon restauré — le composer restait sur le micro (2026-08-04)](#brouillon-restauré--le-composer-restait-sur-le-micro-2026-08-04) · *Messagerie*
 - 5 · [✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)](#-quatre-écrans-sans-flèche-de-retour--corrigés-et-vérifiés-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 12 · [Salons audio — monétisation](#salons-audio--monétisation) · *Fil, stories, salons audio et podcasts* · bloqué
-- 7 · [⬜ Point d'accent après chaque titre d'écran (2026-09-13)](#-point-daccent-après-chaque-titre-décran-2026-09-13) · *Design, thème, langue et mise en page*
+- 9 · [⬜ Point d'accent après chaque titre d'écran (2026-09-13)](#-point-daccent-après-chaque-titre-décran-2026-09-13) · *Design, thème, langue et mise en page*
 - 4 · [⬜ Teinte des notifications système en vert (2026-09-07)](#-teinte-des-notifications-système-en-vert-2026-09-07) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
@@ -244,7 +244,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 96 à faire, 8 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 131 à faire, 27 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 133 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 35 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -11389,8 +11389,9 @@ Palette, thème sombre, icônes, polices, débordements, paysage, bascule design
 
 Une seule source : `DesignTitle` ([design_kit.dart](lib/core/theme/design_kit.dart)).
 Tests : `test/core/theme/design_title_point_test.dart`. Volontairement **sans
-point** : noms saisis (groupe, salon, contact), back-office (orange interdit),
-barres de sélection et visionneuses média sur fond noir.
+point** : noms saisis (groupe, salon, contact, sujet de ticket), barres de
+sélection et visionneuses média sur fond noir. Le back-office l'a depuis le
+2026-09-13, au **bleu d'action** (l'orange y est interdit).
 
 - [ ] Les 7 grands en-têtes (Messages, Groupes, Profil, Réglages,
   Notifications, Annuaire, Mes stories) : point terracotta collé au dernier
@@ -11409,6 +11410,13 @@ barres de sélection et visionneuses média sur fond noir.
 - [ ] Mot de passe oublié, Nouvel événement, Modifier mon profil : taille et
   graisse propres à ces écrans inchangées, seul le point s'ajoute.
 - [ ] Thème sombre : le point reste lisible sur chaque famille.
+- [ ] **Back-office web** (`lib/features/admin/main.dart`) : connexion, puis
+  les en-têtes de page (Tableau de bord, Utilisateurs, Signalements,
+  Modération, Transferts, Audit…) et les barres Paramètres, Feature flags,
+  Créer un administrateur : point **bleu**, jamais orange, police Inter
+  inchangée.
+- [ ] Depuis l'app, `/admin/embassies/create` et `/admin/support` : point bleu
+  dans la typographie de l'app (Playfair), lisible aussi en thème sombre.
 
 ## ⬜ Grand titre d'en-tête : plus de mot coupé (2026-09-12)
 

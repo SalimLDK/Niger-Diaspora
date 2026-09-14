@@ -5,6 +5,7 @@ import '../../../marketplace/domain/entities/product_entity.dart';
 import '../providers/admin_provider.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminMarketplaceScreen extends ConsumerStatefulWidget {
   const AdminMarketplaceScreen({super.key});
@@ -132,13 +133,14 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
         const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            DesignTitle(
               'Gestion Marketplace',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
+              accent: AdminColors.actionBlue,
             ),
             SizedBox(height: 4),
             Text(

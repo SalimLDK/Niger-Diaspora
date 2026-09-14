@@ -6,6 +6,7 @@ import '../../domain/entities/app_settings_entity.dart';
 import '../providers/app_settings_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminSettingsScreen extends ConsumerStatefulWidget {
   const AdminSettingsScreen({super.key});
@@ -59,12 +60,13 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
+        title: DesignTitle(
           l10n.adminConfigurationAppTitle,
           style: TextStyle(
             color: _textPrimary,
             fontWeight: FontWeight.bold,
           ),
+          accent: AdminColors.actionBlue,
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),

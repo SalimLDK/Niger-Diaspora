@@ -38,7 +38,8 @@ const double kDesignControlHeight = 54;
 /// faits main (2026-09-13).
 ///
 /// Pas de point sur un nom saisi (groupe, salon, contact) : il signe les
-/// titres d'écran, pas le contenu.
+/// titres d'écran, pas le contenu. Dans le back-office, il est au bleu
+/// d'action (`AdminColors.actionBlue`) : l'orange y est interdit.
 class DesignTitle extends StatelessWidget {
   final String text;
   final double size;
@@ -61,6 +62,17 @@ class DesignTitle extends StatelessWidget {
     this.maxLines,
     this.textAlign,
   });
+
+  /// Garde la typographie ambiante — celle de l'`AppBar` qui l'accueille,
+  /// Playfair dans l'app, Inter dans le back-office : seul le point s'ajoute.
+  const DesignTitle.ambiant(
+    this.text, {
+    super.key,
+    this.accent,
+    this.maxLines,
+    this.textAlign,
+  })  : size = 29,
+        style = const TextStyle();
 
   /// Un titre qui finit déjà sur une ponctuation n'en prend pas une seconde
   /// (« Mot de passe oublié ?. »).

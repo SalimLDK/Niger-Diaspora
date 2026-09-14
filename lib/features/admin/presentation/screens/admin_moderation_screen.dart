@@ -5,6 +5,7 @@ import '../../../events/domain/entities/event_entity.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminModerationScreen extends ConsumerStatefulWidget {
   const AdminModerationScreen({super.key});
@@ -120,13 +121,14 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            DesignTitle(
               l10n.adminContentModeration,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
               ),
+              accent: AdminColors.actionBlue,
             ),
             SizedBox(height: 4),
             Text(

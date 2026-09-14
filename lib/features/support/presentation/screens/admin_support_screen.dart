@@ -8,6 +8,8 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/support_ticket_entity.dart';
 import '../providers/support_ticket_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 
 class AdminSupportScreen extends ConsumerStatefulWidget {
   const AdminSupportScreen({super.key});
@@ -34,7 +36,10 @@ class _AdminSupportScreenState extends ConsumerState<AdminSupportScreen> {
           onPressed:
               () => context.canPop() ? context.pop() : context.go('/admin/support'),
         ),
-        title: Text(l10n.supportTickets)),
+        title: DesignTitle.ambiant(
+          l10n.supportTickets,
+          accent: AdminColors.actionBlue,
+        )),
       body: Column(
         children: [
           // Status filter chips

@@ -6,6 +6,8 @@ import '../../domain/enums/admin_enums.dart';
 import '../../domain/constants/role_permissions.dart';
 import '../providers/permission_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/core/theme/admin_colors.dart';
 
 /// Widget qui protège son contenu selon les permissions de l'utilisateur.
 ///
@@ -121,7 +123,10 @@ class UnauthorizedScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Accès refusé'),
+        title: const DesignTitle.ambiant(
+          'Accès refusé',
+          accent: AdminColors.actionBlue,
+        ),
       ),
       body: Center(
         child: Column(
