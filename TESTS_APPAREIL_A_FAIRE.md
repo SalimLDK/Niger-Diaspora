@@ -11982,10 +11982,11 @@ correctif, donc rectangulaire, se montre entière plutôt que coupée. Couvert p
   l'avatar du profil, du fil et d'une discussion.
 - [ ] **Renoncer** : la croix referme l'écran sans rien changer à la photo
   actuelle.
-- [ ] **Photo en portrait très haut** (9:16) : elle tient entière dans le
-  cadre au départ ? Le calcul part d'un « cover », donc elle le remplit —
-  vérifier qu'on peut dézoomer jusqu'à la voir entière si besoin (aujourd'hui
-  `minScale` vaut 1, donc **non** : c'est peut-être à revoir sur pièce).
+- [ ] **Photo en portrait très haut** (9:16) : elle remplit le cadre et ne
+  peut pas être dézoomée sous le carré — arbitré le 2026-09-14, ce n'est pas
+  un défaut. Ce qui se vérifie ici, c'est qu'on atteint **toute** la photo en
+  la faisant glisser : le haut comme le bas doivent pouvoir venir dans le
+  cadre.
 - [ ] **Lenteur** : sur le SM A515F, le découpage tourne dans un isolate mais
   décode une image de 2048 px — mesurer le temps entre « valider » et le
   retour à l'écran de profil.
