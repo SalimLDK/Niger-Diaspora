@@ -2629,18 +2629,39 @@ Niamey à Sim A en a fait le cinquième profil de la ville.
    elle ne distingue rien (`Ville.libelle`, `test/core/ville_libelle_test.dart`).
    Reste que GeoNames ne donne les régions qu'en **ASCII** : « Montréal,
    Quebec » s'affiche sans accent. Pas corrigé, la source n'a pas mieux.
-2. **L'onglet Découvrir reste sur ses cartes squelettes**, sur ce compte, y
-   compris après relance à froid — `allGroupsAsync.isLoading ||
-   myGroupsAsync.isLoading` ne retombe jamais, et « Mes groupes · 0 » alors que
-   Sim A est bien membre de « — Canada » en base. **Je ne l'attribue pas** :
-   la branche squelette s'exécute AVANT tout mon code de filtre, et ma rangée
-   « Ville » s'est affichée correctement (donc les groupes SONT chargés, avec
-   une valeur précédente sous un `isLoading` persistant). Sur le Pixel (build
-   antérieur, autre compte, 3 groupes) l'onglet s'affiche normalement — deux
-   variables changent à la fois, le contrôle ne tranche pas.
-   - [ ] **À élucider** : reproduire sur un compte à 1 seul groupe, et
-     regarder si `loadMyGroups` se termine (`if (_disposed) return;` laisse
-     l'état en `loading` pour toujours si la notifier meurt en vol).
+2. **L'onglet Découvrir restait sur ses cartes squelettes**, et « Mes
+   groupes · 0 » alors que le compte était membre de deux groupes. **Élucidé
+   et corrigé** — c'était antérieur à ce travail :
+
+   `MyGroupsNotifier.build()` posait `ref.onDispose(() => _disposed = true)`
+   sans jamais remettre le drapeau à `false`. Or `onDispose` se déclenche à
+   chaque **recalcul** du fournisseur, pas seulement à sa destruction, et pour
+   un `Notifier` c'est la MÊME instance qui est réutilisée. Comme `build()`
+   observe `currentUserProvider` — un flux : une fois sans utilisateur, une
+   fois avec — le drapeau passait à `true` sur un notifier bien vivant dès la
+   deuxième exécution. `loadMyGroups` se terminait, tombait sur
+   `if (_disposed) return;` et **n'écrivait jamais son résultat**. Ni elle ni
+   `_refreshQuietly` : rejoindre un groupe sous les yeux de l'écran ne le
+   débloquait pas non plus.
+
+   Rien dans les journaux — l'état ne devient jamais une erreur, il reste « en
+   chargement » pour toujours. Et c'est une **course** : un compte dont
+   l'authentification est déjà résolue quand l'écran demande la liste ne
+   déclenche qu'un seul `build()` et ne voit rien. D'où l'écart entre les deux
+   téléphones.
+
+   Reproduit au banc (`mes_groupes_reconstruction_test.dart`) avant d'être
+   corrigé — le banc échoue sur l'ancien code.
+
+   `onboarding_provider.dart` porte le même motif mais **n'observe rien** :
+   son `build()` ne s'exécute qu'une fois, il n'est pas touché. Laissé tel
+   quel — c'est le fournisseur qui garde le routeur, on n'y touche pas sans
+   reproduction.
+   - [ ] **Sur appareil** : « Mes groupes » liste bien les groupes du compte,
+     et l'onglet Découvrir affiche des groupes au lieu de squelettes — y
+     compris en allant sur l'onglet Groupes **tout de suite** après le
+     lancement, avant que l'authentification ait fini de se résoudre. C'est ce
+     timing-là qui déclenchait la panne.
 
 Pas encore vu : la mention GeoNames dans « À propos », la carte, le thème
 sombre. La feuille de divulgation du champ ville n'a pas pu être rejouée —
