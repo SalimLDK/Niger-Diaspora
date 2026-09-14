@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**959 cases à cocher, 537 cochées** — 195 entrées sur 239 ont encore des cases ouvertes.
+**961 cases à cocher, 538 cochées** — 195 entrées sur 239 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 **P1 — fonction importante, jamais vérifiée** (57)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
-- 4 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
+- 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
@@ -148,7 +148,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
-- 3 · [⚠️ Filtre hashtag par lien profond : la bannière s'affiche, la liste ne bouge pas (2026-09-14)](#-filtre-hashtag-par-lien-profond--la-bannière-saffiche-la-liste-ne-bouge-pas-2026-09-14) · *Liens profonds, navigation et QR codes*
+- 4 · [⬜ Filtre hashtag : corrigé en code, jamais rejoué sur un téléphone (2026-09-14)](#-filtre-hashtag--corrigé-en-code-jamais-rejoué-sur-un-téléphone-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
@@ -254,11 +254,11 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 168 à faire, 65 faites
-- [3. Groupes](#3-groupes) — 108 à faire, 61 faites
+- [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 44 à faire, 60 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 108 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
@@ -2740,13 +2740,38 @@ SELECT public.get_or_create_ville_group(
   Angola au sud — les deux qui n'étaient jamais dessinées. Algérie, Niger et
   Nigeria restent à leur centroïde habituel.
 
-⚠️ **Trouvé en y allant : `/groups/map` n'est atteignable par AUCUN écran.**
-La route existe dans `app_router.dart`, mais rien ne la pousse — j'ai dû
-passer par un lien profond (`diasponiger://groups/map`). Toute cette carte,
-centroïdes compris, est donc du code que personne ne voit depuis l'app.
-- [ ] **À décider** : lui donner une entrée (un bouton sur l'écran Groupes),
-  ou la retirer. Voir « Feature flags » du domaine Design pour le précédent
-  d'un écran rendu invisible par le routeur.
+⚠️ **Trouvé en y allant : `/groups/map` n'était atteignable par AUCUN
+écran.** La route existait dans `app_router.dart`, mais rien ne la poussait —
+il a fallu un lien profond (`diasponiger://groups/map`). Toute cette carte,
+centroïdes compris, était du code que personne ne voyait depuis l'app.
+
+**Entrée donnée le 2026-09-14** : une troisième action carrée dans l'en-tête
+de l'écran Groupes, entre la recherche et « Créer ». Un **globe**
+(`Icons.public`) et pas une carte pliée : celle-ci est déjà l'onglet
+« Carte » de la barre du bas, qui mène à la carte des MEMBRES — deux cartes
+différentes sous un seul pictogramme, à deux centimètres l'une de l'autre. Le titre de l'écran
+passe de « Groupes par pays » à « Groupes sur la carte » — il portait
+« par pays », ce n'est plus vrai depuis qu'il y a des épingles de ville.
+
+L'en-tête porte donc trois actions à côté d'un grand titre serif : c'est sa
+configuration la plus chargée, et la famille de débordements que ce projet
+paie régulièrement. Le titre est dans un `Expanded`, donc il se replie au
+lieu de pousser — vérifié au banc
+(`test/core/theme/entete_trois_actions_test.dart`) à 320 / 360 / 411 dp et
+aux échelles 1,0 / 1,1 / 1,3, neuf combinaisons.
+
+- [x] **Sur appareil** : les trois actions tiennent sur une ligne sans rogner
+  le titre « Groupes » ni le sous-titre. Vu le 2026-09-14 (première version,
+  avec la carte pliée ; le globe ne change pas l'encombrement).
+- [ ] **Sur appareil** : l'icône **globe** se distingue bien de l'onglet
+  « Carte » du bas, et son appui ouvre la carte des groupes. L'appui depuis
+  l'en-tête n'a PAS été confirmé : les taps automatisés tombaient sur les
+  éléments voisins (deux conversations ouvertes par erreur), et j'ai préféré
+  m'arrêter. L'arbre d'accessibilité donne bien
+  `content-desc="Groupes sur la carte"`, cliquable, aux bonnes bornes.
+- [ ] **Sur appareil, échelle de police augmentée** : les trois actions
+  tiennent toujours. Le banc couvre 1,0 / 1,1 / 1,3, mais c'est là que l'œil
+  ne se remplace pas.
 
 ### Vérifié sur SM A515F le 2026-09-14 (APK release `703f4eda…`, `ddb6dfa`)
 
@@ -7770,14 +7795,21 @@ Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
 
 ---
 
-## ⚠️ Filtre hashtag par lien profond : la bannière s'affiche, la liste ne bouge pas (2026-09-14)
+## ⬜ Filtre hashtag : corrigé en code, jamais rejoué sur un téléphone (2026-09-14)
 
-**Priorité P2** · importance 3/5 — Ouvrir un hashtag alors que le fil est déjà à l'écran annonce le filtre mais montre le fil non filtré : l'utilisateur lit des publications qui n'ont rien à voir avec le hashtag demandé.
+**Priorité P2** · importance 3/5 — Ouvrir un hashtag alors que le fil est déjà à l'écran annonçait le filtre mais montrait le fil non filtré ; et le filtre ne se levait jamais, donc revenir au fil général le laissait filtré.
 
 Mesuré sur SM A515F le 2026-09-14 (build release `e5cb916c…`) :
 `am start -a android.intent.action.VIEW -d "diasponiger://feed?hashtag=zzzaucunresultat"`
 alors que le fil est ouvert affiche la bannière `# zzzaucunresultat` **et** la
 seule publication du compte, qui ne porte aucun hashtag.
+
+**Corrigé le 2026-09-14** (`feed_provider.dart`, `feed_screen.dart`), couvert
+par `test/features/feed/feed_filtre_hashtag_test.dart` — neutraliser le
+correctif fait tomber le test sur `Expected: null, Actual: 'niamey'`. **Rien
+n'a pu être rejoué sur l'appareil** : l'autre session réinstallait toutes les
+quelques minutes (`lastUpdateTime` 14:35, 14:46, 14:47), donc l'APK sur le
+téléphone n'était déjà plus celui qu'on voulait mesurer.
 
 Diagnostic : Android livre l'intention à l'instance en cours (« intent has been
 delivered to currently running top-most instance ») et go_router réutilise
@@ -7793,8 +7825,12 @@ ni avec la pastille (voir « Fil : tirer pour rafraîchir partout, et pastille
   puis un autre — la liste doit changer à chaque fois, pas seulement la
   bannière.
 - [ ] **Hashtag sans résultat** : la liste se vide et l'état « aucune
-  publication » s'affiche (c'est aussi ce qui permettrait de tester le
-  tiré-pour-rafraîchir sur un fil vide).
+  publication » s'affiche — et c'est là qu'il faut tirer vers le bas, pour
+  cocher enfin le fil vide de « Fil : tirer pour rafraîchir partout, et
+  pastille « N nouvelles publications » ».
+- [ ] **Quitter le hashtag** : revenir en arrière rend le fil général **sans
+  bannière ni filtre**. C'est la moitié la plus grave du défaut : le filtre
+  était indelébile une fois posé.
 - [ ] **Depuis l'app fermée** (démarrage à froid) : le même lien filtre bien,
   puisque l'écran est monté pour de bon — à confirmer.
 

@@ -88,13 +88,38 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
     );
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addObserver(this);
-    if (widget.hashtagFilter != null) {
-      Future.microtask(() {
+  }
+
+  @override
+  void didUpdateWidget(FeedScreen old) {
+    super.didUpdateWidget(old);
+    // Un lien profond vers un hashtag, ouvert alors que le fil est déjà à
+    // l'écran, n'est pas un nouvel écran : Android livre l'intention à
+    // l'instance en cours et go_router réutilise cet État. `initState` ne
+    // rejoue donc pas — la bannière affichait le nouveau hashtag pendant que
+    // la liste restait celle d'avant.
+    if (old.hashtagFilter != widget.hashtagFilter) _appliqueFiltre();
+  }
+
+  /// Fait porter au fil le filtre de *cet* écran.
+  ///
+  /// Le filtre vit dans un notifier partagé par le fil général et le fil d'un
+  /// hashtag : chaque écran doit donc réaffirmer le sien, y compris l'absence
+  /// de filtre. Reporté à la boucle suivante parce que les deux appelants
+  /// (`didUpdateWidget`, `didChangeDependencies`) s'exécutent pendant la
+  /// construction de l'arbre, où l'on ne peut pas modifier un provider.
+  void _appliqueFiltre() {
+    Future.microtask(() {
+      if (!mounted) return;
+      if (ref.read(feedNotifierProvider).hashtagFilter == widget.hashtagFilter) {
+        return;
+      }
+      unawaited(
         ref
             .read(feedNotifierProvider.notifier)
-            .loadInitial(hashtagFilter: widget.hashtagFilter);
-      });
-    }
+            .setHashtagFilter(widget.hashtagFilter),
+      );
+    });
   }
 
   @override
@@ -126,6 +151,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
     if (visible == _visible) return;
     _visible = visible;
     if (visible) {
+      // De retour à l'écran : le fil d'un hashtag a pu être empilé par-dessus
+      // et poser son filtre sur le notifier partagé. Le dépiler ne prévient
+      // personne — c'est ici qu'on redevient maître de son propre filtre.
+      _appliqueFiltre();
       _relanceSondage(immediat: true);
     } else {
       _sondage?.cancel();
@@ -246,7 +275,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final feedState = ref.watch(feedNotifierProvider);
-    final filter = feedState.hashtagFilter ?? widget.hashtagFilter;
+    // Le filtre de cet écran, pas celui du notifier : celui du notifier peut
+    // être encore celui de l'écran qu'on vient de quitter, le temps que
+    // `_appliqueFiltre` passe.
+    final filter = widget.hashtagFilter;
     final reposts =
         ref.watch(feedRepostsProvider).valueOrNull ?? const <RepostFeedEntry>[];
     final tokens = FeedTokens.of(context);
@@ -422,7 +454,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
     // Les repartages des comptes suivis n'enrichissent que les fils chronologiques
     // (following / recent) et hors filtre hashtag — on ne perturbe pas le tri forYou.
     final useReposts =
-        state.mode != FeedMode.forYou && state.hashtagFilter == null;
+        state.mode != FeedMode.forYou && widget.hashtagFilter == null;
     var rows =
         useReposts
             ? _mergeRows(state.posts, reposts)
@@ -510,7 +542,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
     // La pastille reste montée même vide : c'est elle qui joue son entrée et
     // sa sortie. La construire à la demande la ferait apparaître d'un coup.
     final pending =
-        state.hashtagFilter == null ? state.pendingPosts : const <PostEntity>[];
+        widget.hashtagFilter == null ? state.pendingPosts : const <PostEntity>[];
 
     return Stack(
       children: [
