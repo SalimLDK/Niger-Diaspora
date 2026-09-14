@@ -318,6 +318,7 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.groupRequestApproved:
       case NotificationType.groupRequestRejected:
       case NotificationType.officialGroupLeave:
+      case NotificationType.cityGroupInvite:
         if (notification.targetId != null) {
           context.push('/groups/${notification.targetId}');
         }
@@ -381,6 +382,8 @@ class NotificationDetailScreen extends ConsumerWidget {
         return 'Adhésion refusée';
       case NotificationType.officialGroupLeave:
         return 'Groupe de votre ancien pays';
+      case NotificationType.cityGroupInvite:
+        return 'Groupe de votre ville';
       case NotificationType.newMember:
         return 'Nouveau membre';
       case NotificationType.eventReminder:

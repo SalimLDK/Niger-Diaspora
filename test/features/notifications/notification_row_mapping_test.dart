@@ -93,6 +93,29 @@ void main() {
         dataSource.fromRow(row(type: 'messageReaction')).toEntity().type,
         NotificationType.messageReaction,
       );
+      // Écrits par `ouvrir_groupe_de_ville` et
+      // `proposer_departs_groupes_officiels`. Les deux mènent à la fiche d'un
+      // groupe : sans leur valeur d'énumération, l'invitation à rejoindre le
+      // groupe de sa ville n'ouvrirait rien du tout.
+      expect(
+        dataSource.fromRow(row(type: 'cityGroupInvite')).toEntity().type,
+        NotificationType.cityGroupInvite,
+      );
+      expect(
+        dataSource.fromRow(row(type: 'officialGroupLeave')).toEntity().type,
+        NotificationType.officialGroupLeave,
+      );
+    });
+
+    test("l'invitation de ville porte le groupe à ouvrir", () {
+      final notif = dataSource
+          .fromRow(row(
+            type: 'cityGroupInvite',
+            data: const {'groupId': 'g-42', 'targetId': 'g-42'},
+          ))
+          .toEntity();
+      expect(notif.type, NotificationType.cityGroupInvite);
+      expect(notif.targetId, 'g-42');
     });
 
     test('un type inconnu reste general, sans lever', () {
