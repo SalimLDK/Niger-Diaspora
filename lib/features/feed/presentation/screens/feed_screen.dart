@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -19,6 +20,7 @@ import '../theme/feed_tokens.dart';
 import '../widgets/ad_slot.dart';
 import '../widgets/feed_error_state.dart';
 import '../widgets/feed_segmented_control.dart';
+import '../widgets/new_posts_pill.dart';
 import '../widgets/post_card.dart';
 import '../widgets/post_card_skeleton.dart';
 import '../widgets/story_rail.dart';
@@ -46,10 +48,22 @@ class _RepostItem {
   final RepostFeedEntry entry;
 }
 
-class _FeedScreenState extends ConsumerState<FeedScreen> {
+class _FeedScreenState extends ConsumerState<FeedScreen>
+    with WidgetsBindingObserver {
   final _scrollController = ScrollController();
   final _random = Random();
   late final List<int> _adIntervals;
+
+  /// Cadence à laquelle on va voir s'il y a du nouveau. Assez lent pour ne pas
+  /// peser sur le forfait de données, assez vif pour qu'un fil ouvert ne
+  /// paraisse pas mort. Le temps réel, lui, reste immédiat quand il marche.
+  static const _cadenceSondage = Duration(seconds: 60);
+
+  Timer? _sondage;
+
+  /// Dernier état connu de la visibilité de l'écran, pour ne relancer la
+  /// minuterie que quand il change.
+  bool _visible = false;
 
   /// Filtre géographique actif (ville de l'auteur). `null` = toutes.
   ///
@@ -73,6 +87,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           ),
     );
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addObserver(this);
     if (widget.hashtagFilter != null) {
       Future.microtask(() {
         ref
@@ -83,7 +98,63 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Le fil vit dans une branche d'`IndexedStack` : passer aux Messages ne
+    // démonte pas cet écran, il reste là, invisible. `TickerMode` est
+    // justement ce que go_router coupe pour la branche inactive — c'est donc
+    // lui qui dit « on me regarde », et il évite d'interroger le réseau
+    // toutes les minutes depuis un onglet qu'on ne voit pas.
+    _majVisibilite(TickerMode.valuesOf(context).enabled);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Au retour d'arrière-plan, tout de suite : c'est le moment où le fil
+      // a le plus de retard, et où le canal temps réel a pu être coupé.
+      _relanceSondage(immediat: true);
+    } else {
+      _sondage?.cancel();
+      _sondage = null;
+    }
+  }
+
+  void _majVisibilite(bool visible) {
+    if (visible == _visible) return;
+    _visible = visible;
+    if (visible) {
+      _relanceSondage(immediat: true);
+    } else {
+      _sondage?.cancel();
+      _sondage = null;
+    }
+  }
+
+  /// (Re)démarre la minuterie du sondage. [immediat] déclenche une
+  /// vérification sans attendre le premier tour — le notifier a son propre
+  /// intervalle minimal, un retour d'onglet répété ne mitraille donc rien.
+  void _relanceSondage({bool immediat = false}) {
+    _sondage?.cancel();
+    if (!_visible) return;
+    if (immediat) _verifieNouveautes(force: true);
+    _sondage = Timer.periodic(_cadenceSondage, (_) => _verifieNouveautes());
+  }
+
+  void _verifieNouveautes({bool force = false}) {
+    if (!mounted) return;
+    // Sous filtre hashtag l'écran n'affiche pas la pastille : rien à sonder.
+    if (widget.hashtagFilter != null) return;
+    unawaited(
+      ref.read(feedNotifierProvider.notifier).checkForNewPosts(force: force),
+    );
+  }
+
+  @override
   void dispose() {
+    _sondage?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     super.dispose();
   }
@@ -305,21 +376,43 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     // Les quatre échecs de la maquette 2b, chacun avec son message et son
     // action — au lieu du même « Impossible de charger » + « Réessayer ».
     if (state.error != null && state.posts.isEmpty) {
-      return FeedErrorState(
-        failure: state.failure ?? FeedFailure.unknown,
-        onRetry: () => ref.read(feedNotifierProvider.notifier).refresh(),
+      // Tirer pour rafraîchir marche ici aussi : le bouton « Réessayer » ne
+      // doit pas être la seule porte de sortie, c'est le geste que tout le
+      // monde tente d'abord.
+      return RefreshIndicator(
+        onRefresh: _rafraichir,
+        child: FeedErrorState(
+          failure: state.failure ?? FeedFailure.unknown,
+          onRetry: () => ref.read(feedNotifierProvider.notifier).refresh(),
+        ),
       );
     }
 
     if (state.posts.isEmpty) {
-      return Center(
-        child: Text(
-          l10n.feedEmpty,
-          textAlign: TextAlign.center,
-          style: FeedText.body(
-            tokens,
-            size: 13.5,
-            color: tokens.mutedText,
+      return RefreshIndicator(
+        onRefresh: _rafraichir,
+        // Le texte est court : sans hauteur minimale ni physique « toujours
+        // défilable », il n'y a rien à tirer et le geste ne déclenche rien.
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    l10n.feedEmpty,
+                    textAlign: TextAlign.center,
+                    style: FeedText.body(
+                      tokens,
+                      size: 13.5,
+                      color: tokens.mutedText,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       );
@@ -339,14 +432,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     }
     final mixedItems = _buildMixedItems(rows);
     final list = RefreshIndicator(
-      onRefresh: () {
-        // Le rail de stories se relit avec le fil : sans ça, une story
-        // publiée par quelqu'un d'autre n'apparaissait qu'au redémarrage.
-        ref.invalidate(activeStoriesProvider);
-        return ref.read(feedNotifierProvider.notifier).refresh();
-      },
+      onRefresh: _rafraichir,
       child: ListView.builder(
         controller: _scrollController,
+        // Un fil qui tient dans l'écran (filtre ville, peu de publications)
+        // ne déborde pas : sans cette physique, il n'y a rien à tirer et le
+        // geste de rafraîchissement ne part jamais.
+        physics: const AlwaysScrollableScrollPhysics(),
         // Réserve basse de 100 px : le FAB flotte au-dessus du dernier post.
         padding: const EdgeInsets.only(top: 8, bottom: 100),
         itemCount: mixedItems.length + (state.isLoadingMore ? 1 : 0),
@@ -414,9 +506,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       content = list;
     }
 
-    final showPill =
-        state.pendingPosts.isNotEmpty && state.hashtagFilter == null;
-    if (!showPill) return content;
+    // La pastille reste montée même vide : c'est elle qui joue son entrée et
+    // sa sortie. La construire à la demande la ferait apparaître d'un coup.
+    final pending =
+        state.hashtagFilter == null ? state.pendingPosts : const <PostEntity>[];
 
     return Stack(
       children: [
@@ -426,18 +519,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           left: 0,
           right: 0,
           child: Center(
-            child: ActionChip(
-              backgroundColor: tokens.accent,
-              avatar: Icon(
-                Icons.arrow_upward_rounded,
-                size: 16,
-                color: tokens.onAccent,
-              ),
-              label: Text(
-                l10n.feedNewPostsPill(state.pendingPosts.length),
-                style: FeedText.body(tokens, color: tokens.onAccent),
-              ),
-              onPressed: () {
+            child: NewPostsPill(
+              posts: pending,
+              label: l10n.feedNewPostsPill(pending.length),
+              onTap: () {
                 ref.read(feedNotifierProvider.notifier).showPendingPosts();
                 if (_scrollController.hasClients) {
                   _scrollController.animateTo(
@@ -452,6 +537,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         ),
       ],
     );
+  }
+
+  /// Rechargement complet du fil, partagé par tous les tirés-pour-rafraîchir.
+  Future<void> _rafraichir() {
+    // Le rail de stories se relit avec le fil : sans ça, une story publiée
+    // par quelqu'un d'autre n'apparaissait qu'au redémarrage.
+    ref.invalidate(activeStoriesProvider);
+    return ref.read(feedNotifierProvider.notifier).refresh();
   }
 }
 

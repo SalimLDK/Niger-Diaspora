@@ -215,6 +215,87 @@ class FeedNotifier extends Notifier<FeedState> {
     );
   }
 
+  /// Va voir s'il est paru quelque chose depuis la page affichée, et le met
+  /// en attente derrière la pastille — sans toucher à ce qui est à l'écran.
+  ///
+  /// Double le temps réel plutôt que de le remplacer. Le canal Postgres tombe
+  /// en silence (websocket coupé, canal jamais rejoint, réseau qui filtre) et
+  /// le fil restait alors figé jusqu'au tiré-pour-rafraîchir, sans que rien
+  /// ne le signale. Ce sondage rapporte en plus ce que le canal écarte
+  /// volontairement : une publication « Amis » d'autrui, que le rappel
+  /// temps réel filtre faute de pouvoir se fier à la RLS du canal, alors que
+  /// cette requête-ci passe par `posts_select` et rend exactement le droit
+  /// de lecture de l'appelant.
+  ///
+  /// [force] saute l'intervalle minimal (retour d'arrière-plan).
+  Future<void> checkForNewPosts({bool force = false}) async {
+    // Fil vide ou en cours de chargement : c'est `loadInitial` qui a la main,
+    // et sa page ferait passer tout le fil pour du nouveau.
+    if (state.isLoading || state.posts.isEmpty) return;
+    // Même périmètre que le rappel temps réel : sous filtre hashtag l'écran
+    // n'affiche pas la pastille, la file s'y remplirait sans jamais se vider.
+    if (state.hashtagFilter != null) return;
+    if (!ref.read(connectivityNotifierProvider)) return;
+
+    final maintenant = DateTime.now();
+    if (!force &&
+        _dernierSondage != null &&
+        maintenant.difference(_dernierSondage!) < _intervalleSondageMin) {
+      return;
+    }
+    _dernierSondage = maintenant;
+
+    final PaginatedPosts? page;
+    try {
+      final result = await _repo
+          .getFeedPaginated(
+            limit: _sondagePageSize,
+            hashtagFilter: state.hashtagFilter,
+            mode: state.mode,
+          )
+          .timeout(_networkTimeout);
+      page = result.fold((_) => null, (p) => p);
+    } catch (_) {
+      // Un sondage qui échoue ne dit rien à l'utilisateur : le fil affiché
+      // reste valable, et le suivant retentera.
+      return;
+    }
+    if (page == null || page.posts.isEmpty) return;
+
+    // Identité seule : une publication absente de la page chargée *et* de la
+    // file d'attente est nouvelle pour cet écran. Comparer les dates ferait
+    // manquer la publication d'un ami parue avant une publication publique
+    // déjà affichée.
+    final connus = {
+      ...state.posts.map((p) => p.id),
+      ...state.pendingPosts.map((p) => p.id),
+    };
+    final nouveaux =
+        page.posts.where((p) => !connus.contains(p.id)).toList();
+    if (nouveaux.isEmpty) return;
+
+    final fusion = [...nouveaux, ...state.pendingPosts]
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    state = state.copyWith(
+      pendingPosts: fusion.take(_maxEnAttente).toList(),
+    );
+  }
+
+  /// Horodatage du dernier sondage, pour ne pas relancer une requête à
+  /// chaque retour sur l'onglet.
+  DateTime? _dernierSondage;
+
+  /// Intervalle minimal entre deux sondages, quelle que soit leur origine.
+  static const _intervalleSondageMin = Duration(seconds: 25);
+
+  /// Le sondage ne lit que le haut du fil : au-delà, ce n'est plus une
+  /// pastille qu'il faut mais un rechargement.
+  static const _sondagePageSize = 20;
+
+  /// Plafond de la file d'attente. La pastille n'est qu'une amorce : elle
+  /// annonce qu'il y a du nouveau, pas un chiffre exhaustif.
+  static const _maxEnAttente = 50;
+
   Future<void> setMode(FeedMode mode) async {
     if (state.mode == mode) return;
     state = state.copyWith(mode: mode, posts: [], lastOffset: 0, hasMore: true);
