@@ -39,16 +39,17 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**968 cases à cocher, 538 cochées** — 196 entrées sur 240 ont encore des cases ouvertes.
+**975 cases à cocher, 538 cochées** — 198 entrées sur 242 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (20)
+**P0 — avant toute nouvelle version** (21)
 
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
@@ -66,7 +67,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (58)
+**P1 — fonction importante, jamais vérifiée** (59)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -80,6 +81,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 2 · [⬜ Distribution des Sender Keys : jamais rien en base (2026-09-14)](#-distribution-des-sender-keys--jamais-rien-en-base-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
@@ -256,7 +258,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 168 à faire, 65 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 53 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
@@ -5250,6 +5252,84 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Le chiffrement de bout en bout était mort en production : mesuré, **aucun** message ne passait par Signal, tout partait en repli AES. *Bloqué : deux comptes (le destinataire doit publier ses clés depuis SON appareil).*
+
+Relevé en base le 2026-09-14 : **0 message `encryptionLevel = 'e2ee'`** — 89 en
+`aes`, 10 en `null`, sur 2026-08-15 → 2026-09-14. Dont **75 en conversation à
+2+ participants** (70 `individual`, 20 `group`), donc pas un artefact du
+self-chat, où `aes` est correct.
+
+Rien ne clochait dans les données, et c'est ce qui l'a caché un mois : 35/35
+comptes `e2ee_enabled` avec `active_devices` non vide, 44 appareils, 4085
+prékeys, écriture le jour même, identifiants concordants (21/21), RLS
+permissive en lecture.
+
+La cause tenait à une dissymétrie d'une ligne dans
+`lib/core/services/e2ee/key_manager_service.dart` : la garde de session
+couvrait les trois **écritures** depuis le 2026-07-17 et **aucune lecture**.
+Les policies étant réservées au rôle `authenticated`, un client encore `anon`
+— la fenêtre du démarrage — lit zéro ligne **sans erreur**. `getActiveDevices`
+rendait donc une liste vide, indiscernable de « ce compte n'a pas de clés » :
+X3DH n'était pas tenté, l'envoi retombait en AES.
+
+Corrigé : garde sur les quatre lectures (`getActiveDevices`,
+`fetchPreKeyBundle`, `fetchAllPreKeyBundles`,
+`_countPublishedOneTimePreKeys`) avec la variante **bornée**
+`ensureReadableSession()` — le chemin d'envoi ne doit pas geler — et sur
+l'écriture `rotateSignedPreKey` avec `ensureAuthenticated()`. Verrouillé par
+`test/core/services/e2ee/acces_supabase_garde_test.dart`, qui refuse tout
+nouvel accès Supabase non gardé dans ce fichier.
+
+**À vérifier sur appareil** — rien de tout cela n'est prouvé hors base :
+
+- [ ] **Deux comptes, deux téléphones** : s'envoyer un message texte, puis
+      vérifier en base que le message porte `encryptionLevel = 'e2ee'` et non
+      `'aes'`. C'est LE test : c'est exactement ce qui ne s'est jamais produit
+      depuis le 2026-08-15.
+- [ ] **Premier envoi après lancement à froid**, dans les secondes qui suivent
+      l'ouverture — c'est la fenêtre où la session Supabase n'est pas encore
+      établie, donc celle que le correctif vise. Un `'aes'` ici signifie que la
+      borne de 3 s est trop courte sur ce réseau, pas que la garde manque.
+- [ ] **Envoi hors ligne** : doit continuer de partir en repli AES sans
+      blocage ni attente perceptible. La garde bornée ne doit jamais retarder
+      l'envoi — si l'interface fige ~3 s avant que la bulle apparaisse, la
+      borne est mal placée.
+- [ ] **Groupe** : les messages resteront en `aes` tant que les Sender Keys ne
+      sont pas distribuées (`e2ee_sender_key_distributions` est vide en prod,
+      voir « Distribution des Sender Keys : jamais rien en base »). Vérifier
+      seulement qu'ils partent toujours.
+- [ ] **4 comptes sur 35** ont un appareil actif sans `identitySigningKey` et
+      resteront en AES par refus explicite : leurs 7 appareils datent d'avant
+      le 2026-08-20. Vérifier qu'un de ces comptes republie bien sa clé de
+      signature au lancement (self-healing de `_ensurePublishedToSupabase`).
+
+---
+
+## ⬜ Distribution des Sender Keys : jamais rien en base (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Tout message de groupe retombe en repli AES, sans que rien ne le signale. *Bloqué : deux comptes dans un même groupe.*
+
+`e2ee_sender_key_distributions` est **vide (0 ligne)** en production, alors que
+20 messages de groupe en repli AES y sont passés. `distributeGroupSenderKey`
+n'écrit donc jamais — ou son écriture est refusée en silence, la policy
+d'insertion étant elle aussi réservée à `authenticated` (même famille que
+« Signal remis en service : la garde de session sur les lectures de clés »,
+mais ce chemin n'a pas été audité).
+
+Non diagnostiqué : la garde de session posée sur les lectures de clés ne
+couvre pas ce chemin, qui vit dans `sender_key_service`.
+
+- [ ] Ouvrir un groupe à deux comptes, envoyer un message, puis vérifier
+      qu'une ligne apparaît dans `e2ee_sender_key_distributions`.
+- [ ] Si rien n'apparaît, relever le journal autour de
+      `distributeGroupSenderKey` — la méthode rend `null` quand la
+      distribution n'a pas pu être tentée, et l'appelant est censé le dire à
+      l'utilisateur au lieu de laisser le groupe retomber en AES en silence.
 
 ---
 
