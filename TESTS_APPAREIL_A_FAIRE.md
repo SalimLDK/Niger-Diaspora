@@ -15900,11 +15900,23 @@ prévenir.
       avec un compte dont les clés ne sont pas sauvegardées ET la clé serveur
       posée, c'est le bandeau des clés qui doit s'afficher ; une fois traité,
       celui de la mise à jour doit prendre sa place **sans relancer l'app**.
-- [ ] **Rendu du bandeau** : reste à voir en **thème sombre** et à **échelle de
-      police augmentée**. En clair, échelle par défaut, SM-A515F : correct, mais
-      il occupe environ un sixième de la hauteur (message sur deux lignes, puis
-      une rangée d'actions) et pousse tout le contenu vers le bas.
-      Vu aussi **par-dessus une discussion** — il vit dans `MainShell`, donc il
+- [ ] **Rendu du bandeau** : le **débordement** n'est plus une question ouverte
+      — `test/core/shell/bandeaux_shell_test.dart` rend les deux bandeaux du
+      shell (mise à jour **et** E2EE, qui porte trois actions) sur 411, 360 et
+      320 dp de large, aux échelles de police 1,0 / 1,3 / 1,6 / 2,0, en clair
+      et en sombre : 51 cas, aucun débordement. Reste à juger **à l'œil** ce
+      qu'un banc ne voit pas : contraste et couleurs du bandeau en thème
+      sombre sur un vrai écran.
+
+      Ce qui a été corrigé en chemin, mesuré à 411 dp : le message portait une
+      seconde phrase (« Mettez à jour pour profiter des derniers correctifs »)
+      qui disait ce que le bouton dit déjà et le poussait à **224 dp**, un
+      quart de la hauteur du SM-A515F. Une seule phrase : **164 dp**. Les
+      62 dp restants tiennent à `MaterialBanner`, qui ne met l'action sur la
+      ligne du contenu qu'avec **une seule** action — et retirer « Pas
+      maintenant » rendrait le bandeau inécartable.
+
+      Vu **par-dessus une discussion** : il vit dans `MainShell`, donc il
       s'affiche sur n'importe quel onglet, sous la barre de la conversation.
 - [ ] **Hors ligne au démarrage** : aucune notice, aucun blocage du premier
       écran (`RemoteConfigService` sert alors son cache, ou rien).

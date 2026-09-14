@@ -16535,7 +16535,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String updateAvailableMessage(String version) {
-    return 'Diaspo Niger $version est disponible. Mettez à jour pour profiter des derniers correctifs.';
+    return 'Diaspo Niger $version est disponible.';
   }
 
   @override

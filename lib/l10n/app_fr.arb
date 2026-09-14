@@ -8465,9 +8465,9 @@
   "@pollVotersHidden": {
     "description": "Regle affichee sous les resultats"
   },
-  "updateAvailableMessage": "Diaspo Niger {version} est disponible. Mettez à jour pour profiter des derniers correctifs.",
+  "updateAvailableMessage": "Diaspo Niger {version} est disponible.",
   "@updateAvailableMessage": {
-    "description": "Bandeau non bloquant affiche quand une version plus recente existe sur le store",
+    "description": "Bandeau non bloquant affiche quand une version plus recente existe sur le store. Une seule phrase, volontairement : la consigne « mettez a jour » est deja sur le bouton, et une seconde phrase faisait passer le bandeau a deux lignes (un sixieme de l'ecran sur SM-A515F)",
     "placeholders": {
       "version": {
         "type": "String"
