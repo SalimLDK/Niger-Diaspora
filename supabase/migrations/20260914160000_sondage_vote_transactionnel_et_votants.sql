@@ -27,8 +27,10 @@
 -- pour le moment » sous des options qui en avaient. La requête réussissait à
 -- vide — la 7e forme d'échec muet, celle qui ne laisse aucune trace.
 --
--- `poll_option_voters` rend la liste, au seul auteur du sondage : exactement
--- ce que la phrase affichée promet, ni plus ni moins.
+-- `poll_option_voters` rend la liste à ceux qui voient le sondage — sauf si
+-- son auteur l'a coché anonyme à la création (`is_anonymous`, faux par
+-- défaut), auquel cas personne ne l'obtient, lui compris. Le votant lit la
+-- règle sous la question avant de choisir.
 --
 -- Les deux fonctions sont SECURITY DEFINER : elles contournent la RLS, donc
 -- elles refont elles-mêmes le contrôle d'accès qu'elle aurait fait.
@@ -156,7 +158,14 @@ CREATE POLICY post_poll_votes_pas_apres_la_fin ON public.post_poll_votes
   ));
 
 
--- ── Les votants, pour l'auteur du sondage ───────────────────────────────────
+-- ── Anonyme ou non, au choix de qui crée le sondage ───────────────────────
+-- Par défaut non : c'est le comportement que l'écran décrivait déjà, et les
+-- sondages existants n'ont jamais promis l'anonymat à leurs votants.
+ALTER TABLE public.post_polls
+  ADD COLUMN IF NOT EXISTS is_anonymous BOOLEAN NOT NULL DEFAULT FALSE;
+
+
+-- ── Les votants, quand le sondage n'est pas anonyme ───────────────────────────
 CREATE OR REPLACE FUNCTION public.poll_option_voters(p_poll_id UUID)
 RETURNS TABLE (
   option_id    UUID,
@@ -179,14 +188,13 @@ AS $$
      AND EXISTS (
            SELECT 1
              FROM post_polls p
-             LEFT JOIN posts po ON po.id = p.post_id
             WHERE p.id = p_poll_id
-              AND public.firebase_uid() IS NOT NULL
-              AND public.firebase_uid() <> ''
-              -- L'auteur du sondage, et lui seul : c'est la phrase que
-              -- l'écran de résultats affiche déjà sous les options.
-              AND (p.created_by = public.firebase_uid()
-                   OR po.author_id = public.firebase_uid())
+              -- Anonyme : personne, pas même l'auteur du sondage. Sinon,
+              -- ceux qui peuvent voir le sondage — même ensemble que ceux
+              -- qui peuvent y voter, et c'est ce que la notice annonce au
+              -- votant avant qu'il ne choisisse.
+              AND NOT p.is_anonymous
+              AND public.peut_voter_au_sondage(p_poll_id)
          )
    ORDER BY v.created_at;
 $$;

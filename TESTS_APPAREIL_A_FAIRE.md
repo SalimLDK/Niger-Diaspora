@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**946 cases à cocher, 530 cochées** — 192 entrées sur 236 ont encore des cases ouvertes.
+**948 cases à cocher, 530 cochées** — 192 entrées sur 236 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -74,7 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 10 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
+- 12 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
@@ -250,7 +250,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 159 à faire, 65 faites
+- [2. Messagerie](#2-messagerie) — 161 à faire, 65 faites
 - [3. Groupes](#3-groupes) — 111 à faire, 57 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -536,12 +536,19 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 - [ ] **Sondage à choix multiple** : plusieurs cases, total = nombre de voix.
 - [ ] **Sondage terminé** : « Sondage terminé » dans la ligne d'info, plus
       aucune façon de voter ni de se corriger.
-- [ ] **Écran de résultats, côté auteur du sondage** : le badge « Votre choix »
-      apparaît, et les votants sont listés sous chaque option.
-      (`poll_results_screen.dart`, RPC `poll_option_voters`)
-- [ ] **Le même écran côté non-auteur** : pas de liste de votants du tout, et
-      la phrase du bas dit bien que seul l'auteur les voit — plus de
-      « Aucun vote pour le moment » sous une option qui en a.
+- [ ] **Écran de résultats d'un sondage normal** : le badge « Votre choix »
+      apparaît, et les votants sont listés sous chaque option, pour tous ceux
+      qui voient le sondage. (`poll_results_screen.dart`, RPC
+      `poll_option_voters`) — plus de « Aucun vote pour le moment » sous une
+      option qui en a.
+- [ ] **Créer un sondage anonyme** (la bascule est éteinte par défaut) :
+      aucune liste de votants nulle part, pas même pour son auteur, et la
+      phrase du bas le dit. (`create_poll_sheet.dart`, `is_anonymous`)
+- [ ] **La notice sous la question** : « Vote public : votre nom sera
+      visible », ou « Vote anonyme » — lisible AVANT de choisir, dans la
+      bulle comme dans le fil.
+- [ ] **Un sondage créé avant cette version** reste non anonyme (défaut
+      `FALSE`) : sa notice dit bien « vote public ».
 - [ ] **Deux téléphones en même temps** : le vote de l'un fait bouger le
       compteur chez l'autre sans quitter l'écran (temps réel).
 - [ ] **Thème sombre et échelle de police 1.1** : le pied de carte

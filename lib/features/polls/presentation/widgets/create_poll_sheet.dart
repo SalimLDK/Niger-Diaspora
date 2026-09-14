@@ -16,6 +16,7 @@ typedef PollDraftCallback = void Function(
   String question,
   List<String> optionLabels,
   bool allowMultiple,
+  bool isAnonymous,
   DateTime? endsAt,
 );
 
@@ -69,6 +70,10 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
     TextEditingController(),
   ];
   bool _allowMultiple = false;
+
+  /// Faux par defaut : sans anonymat, chacun voit qui a vote quoi — c'est ce
+  /// que la notice annonce au votant sous la question.
+  bool _isAnonymous = false;
   Duration? _duration = const Duration(days: 3);
   bool _isSubmitting = false;
 
@@ -112,7 +117,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
     // Mode brouillon (nouveau post, id pas encore connu) : renvoie les
     // champs à l'appelant sans toucher au repository.
     if (widget.onDraft != null) {
-      widget.onDraft!(question, options, _allowMultiple, endsAt);
+      widget.onDraft!(question, options, _allowMultiple, _isAnonymous, endsAt);
       Navigator.pop(context);
       return;
     }
@@ -126,6 +131,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
           question: question,
           optionLabels: options,
           allowMultiple: _allowMultiple,
+          isAnonymous: _isAnonymous,
           endsAt: endsAt,
         ),
       PollContextType.conversation => await actions.createConversationPoll(
@@ -133,6 +139,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
           question: question,
           optionLabels: options,
           allowMultiple: _allowMultiple,
+          isAnonymous: _isAnonymous,
           endsAt: endsAt,
         ),
       PollContextType.post => await actions.createPostPoll(
@@ -140,6 +147,7 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
           question: question,
           optionLabels: options,
           allowMultiple: _allowMultiple,
+          isAnonymous: _isAnonymous,
           endsAt: endsAt,
         ),
     };
@@ -249,6 +257,32 @@ class _CreatePollSheetState extends ConsumerState<CreatePollSheet> {
                 subtitle: Text(l10n.pollMultipleChoiceSubtitle),
                 value: _allowMultiple,
                 onChanged: (v) => setState(() => _allowMultiple = v),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.pollAnonymous),
+                subtitle: Text(l10n.pollAnonymousSubtitle),
+                value: _isAnonymous,
+                onChanged: (v) => setState(() => _isAnonymous = v),
+              ),
+              // Le choix se prend une fois pour toutes a la creation : la
+              // notice dit donc ici ce que le votant lira sous la question.
+              Row(
+                children: [
+                  AppIcon(AppIcon.info, size: 14, color: context.textTertiaryColor),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      _isAnonymous
+                          ? l10n.pollVotersHidden
+                          : l10n.pollVotersVisibleToAll,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.textTertiaryColor,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               Text(

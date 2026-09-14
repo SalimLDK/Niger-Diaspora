@@ -34,6 +34,7 @@ Map<String, dynamic> _mapPoll(
             })
         .toList(),
     'allowMultiple': row['allow_multiple'] ?? false,
+    'isAnonymous': row['is_anonymous'] ?? false,
     'endsAt': row['ends_at'],
     'totalVotes': row['total_votes'] ?? 0,
     'createdBy': row['created_by'],
@@ -75,6 +76,7 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
     required String question,
     required List<String> optionLabels,
     required bool allowMultiple,
+    required bool isAnonymous,
     DateTime? endsAt,
     String? userId,
   }) async {
@@ -95,6 +97,7 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
           'created_by': userId,
           'question': question,
           'allow_multiple': allowMultiple,
+          'is_anonymous': isAnonymous,
           'ends_at': endsAt?.toUtc().toIso8601String(),
         })
         .select()
@@ -347,7 +350,8 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
   /// sondage. L'ecran de resultats affichait donc « Aucun vote pour le
   /// moment » sous des options qui en avaient — un echec muet, la requete
   /// reussissant a vide. `poll_option_voters` (SECURITY DEFINER) rend la
-  /// liste au seul auteur du sondage, ce que l'ecran promet deja.
+  /// liste a ceux qui voient le sondage, et personne du tout s'il a ete cree
+  /// anonyme.
   @override
   Future<Map<String, List<Map<String, dynamic>>>> getPollVoters(
     String pollId,

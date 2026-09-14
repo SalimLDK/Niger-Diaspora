@@ -7,6 +7,7 @@ abstract class PollRemoteDataSource {
     required String question,
     required List<String> optionLabels,
     required bool allowMultiple,
+    required bool isAnonymous,
     DateTime? endsAt,
     String? userId,
   });

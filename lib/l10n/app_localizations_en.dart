@@ -16318,10 +16318,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pollDeleted => 'Poll deleted';
 
   @override
-  String get pollVotersVisibleToAuthor =>
-      'Only the poll author can see who voted for what.';
-
-  @override
   String get pollChangeVote => 'Change my vote';
 
   @override
@@ -16336,4 +16332,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pollClosedToVotes => 'Poll closed';
+
+  @override
+  String get pollAnonymous => 'Anonymous poll';
+
+  @override
+  String get pollAnonymousSubtitle =>
+      'Nobody will see who voted for what, not even you';
+
+  @override
+  String get pollVotesArePublic => 'Public vote: your name will be visible';
+
+  @override
+  String get pollVotesAreAnonymous => 'Anonymous vote';
+
+  @override
+  String get pollVotersVisibleToAll =>
+      'Votes are not anonymous: everyone can see who voted for what.';
+
+  @override
+  String get pollVotersHidden =>
+      'Anonymous poll: nobody can see who voted for what.';
 }

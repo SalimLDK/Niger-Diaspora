@@ -22,6 +22,7 @@ class PollRepositoryImpl implements PollRepository {
     required String question,
     required List<String> optionLabels,
     bool allowMultiple = false,
+    bool isAnonymous = false,
     DateTime? endsAt,
     String? userId,
   }) async {
@@ -32,6 +33,7 @@ class PollRepositoryImpl implements PollRepository {
         question: question,
         optionLabels: optionLabels,
         allowMultiple: allowMultiple,
+        isAnonymous: isAnonymous,
         endsAt: endsAt,
         userId: userId,
       );

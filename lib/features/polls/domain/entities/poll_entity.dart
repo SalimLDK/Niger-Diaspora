@@ -36,6 +36,11 @@ class PollEntity extends Equatable {
   final String question;
   final List<PollOptionEntity> options;
   final bool allowMultiple;
+
+  /// Anonyme : personne ne voit qui a vote quoi, pas meme l'auteur du
+  /// sondage. Faux par defaut — c'est ce que l'ecran a toujours decrit, et
+  /// les sondages deja crees n'ont jamais promis l'anonymat.
+  final bool isAnonymous;
   final DateTime? endsAt;
   final int totalVotes;
   final String? createdBy;
@@ -50,6 +55,7 @@ class PollEntity extends Equatable {
     required this.question,
     this.options = const [],
     this.allowMultiple = false,
+    this.isAnonymous = false,
     this.endsAt,
     this.totalVotes = 0,
     this.createdBy,
@@ -76,6 +82,7 @@ class PollEntity extends Equatable {
     String? question,
     List<PollOptionEntity>? options,
     bool? allowMultiple,
+    bool? isAnonymous,
     DateTime? endsAt,
     int? totalVotes,
     String? createdBy,
@@ -90,6 +97,7 @@ class PollEntity extends Equatable {
       question: question ?? this.question,
       options: options ?? this.options,
       allowMultiple: allowMultiple ?? this.allowMultiple,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
       endsAt: endsAt ?? this.endsAt,
       totalVotes: totalVotes ?? this.totalVotes,
       createdBy: createdBy ?? this.createdBy,
@@ -107,6 +115,7 @@ class PollEntity extends Equatable {
         question,
         options,
         allowMultiple,
+        isAnonymous,
         endsAt,
         totalVotes,
         createdBy,
