@@ -27,6 +27,11 @@ mixin _$ProfileEntity {
   String? get bio => throw _privateConstructorUsedError;
   String? get profession => throw _privateConstructorUsedError;
   String? get currentCity => throw _privateConstructorUsedError;
+
+  /// Ligne de `public.villes` que le profil désigne. `null` = « Autre
+  /// ville » : `currentCity` reste du texte libre, et aucun groupe de
+  /// ville ne s'ouvre. La base tient la cohérence avec le pays.
+  int? get villeId => throw _privateConstructorUsedError;
   String? get currentCountry => throw _privateConstructorUsedError;
   String? get currentRegion => throw _privateConstructorUsedError;
   String? get countryCode => throw _privateConstructorUsedError;
@@ -78,6 +83,7 @@ abstract class $ProfileEntityCopyWith<$Res> {
     String? bio,
     String? profession,
     String? currentCity,
+    int? villeId,
     String? currentCountry,
     String? currentRegion,
     String? countryCode,
@@ -131,6 +137,7 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
     Object? bio = freezed,
     Object? profession = freezed,
     Object? currentCity = freezed,
+    Object? villeId = freezed,
     Object? currentCountry = freezed,
     Object? currentRegion = freezed,
     Object? countryCode = freezed,
@@ -205,6 +212,11 @@ class _$ProfileEntityCopyWithImpl<$Res, $Val extends ProfileEntity>
                     ? _value.currentCity
                     : currentCity // ignore: cast_nullable_to_non_nullable
                         as String?,
+            villeId:
+                freezed == villeId
+                    ? _value.villeId
+                    : villeId // ignore: cast_nullable_to_non_nullable
+                        as int?,
             currentCountry:
                 freezed == currentCountry
                     ? _value.currentCountry
@@ -360,6 +372,7 @@ abstract class _$$ProfileEntityImplCopyWith<$Res>
     String? bio,
     String? profession,
     String? currentCity,
+    int? villeId,
     String? currentCountry,
     String? currentRegion,
     String? countryCode,
@@ -412,6 +425,7 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
     Object? bio = freezed,
     Object? profession = freezed,
     Object? currentCity = freezed,
+    Object? villeId = freezed,
     Object? currentCountry = freezed,
     Object? currentRegion = freezed,
     Object? countryCode = freezed,
@@ -486,6 +500,11 @@ class __$$ProfileEntityImplCopyWithImpl<$Res>
                 ? _value.currentCity
                 : currentCity // ignore: cast_nullable_to_non_nullable
                     as String?,
+        villeId:
+            freezed == villeId
+                ? _value.villeId
+                : villeId // ignore: cast_nullable_to_non_nullable
+                    as int?,
         currentCountry:
             freezed == currentCountry
                 ? _value.currentCountry
@@ -634,6 +653,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     this.bio,
     this.profession,
     this.currentCity,
+    this.villeId,
     this.currentCountry,
     this.currentRegion,
     this.countryCode,
@@ -684,6 +704,12 @@ class _$ProfileEntityImpl implements _ProfileEntity {
   final String? profession;
   @override
   final String? currentCity;
+
+  /// Ligne de `public.villes` que le profil désigne. `null` = « Autre
+  /// ville » : `currentCity` reste du texte libre, et aucun groupe de
+  /// ville ne s'ouvre. La base tient la cohérence avec le pays.
+  @override
+  final int? villeId;
   @override
   final String? currentCountry;
   @override
@@ -778,7 +804,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
 
   @override
   String toString() {
-    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, handle: $handle, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, isVerified: $isVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
+    return 'ProfileEntity(id: $id, email: $email, displayName: $displayName, handle: $handle, photoUrl: $photoUrl, phoneNumber: $phoneNumber, bio: $bio, profession: $profession, currentCity: $currentCity, villeId: $villeId, currentCountry: $currentCountry, currentRegion: $currentRegion, countryCode: $countryCode, originRegion: $originRegion, originCity: $originCity, latitude: $latitude, longitude: $longitude, isVisible: $isVisible, notificationsEnabled: $notificationsEnabled, shareLocation: $shareLocation, phoneVisibility: $phoneVisibility, isPhoneVerified: $isPhoneVerified, isVerified: $isVerified, interests: $interests, skills: $skills, languages: $languages, connectionsCount: $connectionsCount, groupsCount: $groupsCount, eventsCount: $eventsCount, createdAt: $createdAt, lastLoginAt: $lastLoginAt, isOnline: $isOnline, lastSeen: $lastSeen, showOnlineStatus: $showOnlineStatus, locationUpdatedAt: $locationUpdatedAt, blockedByUserIds: $blockedByUserIds)';
   }
 
   @override
@@ -800,6 +826,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
                 other.profession == profession) &&
             (identical(other.currentCity, currentCity) ||
                 other.currentCity == currentCity) &&
+            (identical(other.villeId, villeId) || other.villeId == villeId) &&
             (identical(other.currentCountry, currentCountry) ||
                 other.currentCountry == currentCountry) &&
             (identical(other.currentRegion, currentRegion) ||
@@ -871,6 +898,7 @@ class _$ProfileEntityImpl implements _ProfileEntity {
     bio,
     profession,
     currentCity,
+    villeId,
     currentCountry,
     currentRegion,
     countryCode,
@@ -919,6 +947,7 @@ abstract class _ProfileEntity implements ProfileEntity {
     final String? bio,
     final String? profession,
     final String? currentCity,
+    final int? villeId,
     final String? currentCountry,
     final String? currentRegion,
     final String? countryCode,
@@ -965,6 +994,12 @@ abstract class _ProfileEntity implements ProfileEntity {
   String? get profession;
   @override
   String? get currentCity;
+
+  /// Ligne de `public.villes` que le profil désigne. `null` = « Autre
+  /// ville » : `currentCity` reste du texte libre, et aucun groupe de
+  /// ville ne s'ouvre. La base tient la cohérence avec le pays.
+  @override
+  int? get villeId;
   @override
   String? get currentCountry;
   @override

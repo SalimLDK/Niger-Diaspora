@@ -26,6 +26,9 @@ void main() {
     'lib/core/services/location_service.dart':
         "le service lui-même, sans BuildContext : c'est l'appelant qui divulgue",
     'lib/core/widgets/location_disclosure.dart': 'la divulgation elle-même',
+    'lib/core/services/background_location_service.dart':
+        'le service du Mode Voyage, sans BuildContext : son interrupteur '
+            'divulgue (variante « arrierePlan ») avant de le démarrer',
     'lib/features/messages/presentation/screens/new_conversation_screen.dart':
         "ne lit la position que si l'autorisation est DÉJÀ accordée "
             '(`checkPermission` en garde, retour anticipé sinon) : cet écran '
@@ -37,6 +40,7 @@ void main() {
   /// lui-même quand elle manque.
   final appelsSensibles = RegExp(
     r'Geolocator\.requestPermission\(|'
+    r'Geolocator\.getCurrentPosition\(|'
     r'LocationService\.instance\.getCurrentPosition\(|'
     r'LocationService\.instance\.requestLocationPermission\(',
   );
@@ -104,6 +108,27 @@ void main() {
       reason:
           'Le partage en discussion ne va pas sur la carte des membres : le '
           'dire serait faux.',
+    );
+
+    // La variante « champ ville » ne publie RIEN : la position est lue une
+    // fois, sur l'appareil, et seul le nom de la ville part dans le profil.
+    // Son texte doit le dire — et surtout ne pas promettre la carte des
+    // membres, qui ne la reçoit pas.
+    final ville = arb['locationDisclosureCityBody'] as String?;
+    expect(ville, isNotNull, reason: 'clé locationDisclosureCityBody absente');
+    expect(ville, contains('lit votre position'));
+    expect(
+      ville,
+      contains('ni enregistrées ni partagées'),
+      reason: 'le seul usage qui ne publie rien doit le dire',
+    );
+    expect(
+      ville,
+      isNot(contains('visible par les autres membres')),
+      reason:
+          'Le champ ville ne place personne sur la carte : annoncer le '
+          'contraire serait une divulgation fausse, aussi fautive '
+          "qu'une absente.",
     );
 
     // Formule attendue mot pour mot pour une collecte hors premier plan.

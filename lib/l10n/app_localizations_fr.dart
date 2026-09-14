@@ -1850,6 +1850,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String get currentCity => 'Ville actuelle';
 
   @override
+  String get locationDisclosureCityTitle => 'Trouver votre ville';
+
+  @override
+  String get locationDisclosureCityBody =>
+      'Diaspo Niger lit votre position une seule fois, sur cet appareil, pour vous proposer la ville la plus proche dans sa liste. Vos coordonnées ne sont ni enregistrées ni partagées : seul le nom de la ville part dans votre profil, et seulement si vous l\'acceptez. Cela ne vous place pas sur la carte des membres.';
+
+  @override
+  String get cityUseMyLocation => 'Utiliser ma position';
+
+  @override
+  String cityNearbyQuestion(String ville) {
+    return 'Vous êtes à $ville ?';
+  }
+
+  @override
+  String get cityNearbyConfirm => 'Oui, c\'est ma ville';
+
+  @override
+  String get cityLocationFailed => 'Position indisponible';
+
+  @override
+  String get cityNoneNearby => 'Aucune ville de la liste à proximité';
+
+  @override
   String get cityFieldHint => 'Chercher une ville';
 
   @override

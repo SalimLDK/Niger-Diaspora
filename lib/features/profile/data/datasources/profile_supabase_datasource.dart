@@ -17,6 +17,7 @@ Map<String, dynamic> _mapProfile(Map<String, dynamic> row) => {
   'bio': row['bio'],
   'profession': row['profession'],
   'currentCity': row['city'],
+  'villeId': row['ville_id'],
   'currentCountry': row['country_code'],
   'currentRegion': row['current_region'],
   'countryCode': row['country_code'],
@@ -289,6 +290,12 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
               'bio': profile.bio,
               'profession': profile.profession,
               'city': profile.currentCity,
+              // La ligne du référentiel que le profil désigne. `null` =
+              // « Autre ville » : `city` reste du texte libre, sans groupe de
+              // ville. La cohérence avec `country_code` est tenue par
+              // `trg_ville_coherente_avec_pays`, pas ici — une version déjà
+              // installée continuerait d'écrire un couple incohérent.
+              'ville_id': profile.villeId,
               // La colonne porte le NOM du pays (« Canada », « Algérie »),
               // jamais un code ISO. Elle en mélangeait deux formes : la
               // conversion vers l'ISO ne connaissait que 28 pays, et un pays

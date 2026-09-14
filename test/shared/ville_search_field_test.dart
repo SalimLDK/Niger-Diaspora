@@ -84,7 +84,7 @@ void main() {
             builder: (context, setState) => VilleSearchField(
               controller: controller,
               pays: pays,
-              villeChoisie: retenue,
+              villeChoisieId: retenue?.id,
               onVilleChoisie: (v) => setState(() => retenue = v),
             ),
           ),

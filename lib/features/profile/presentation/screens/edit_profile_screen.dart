@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
+import '../../../../shared/widgets/ville_search_field.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
@@ -90,6 +91,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
 
   // Pays et ville actuelle
   CountryOption? _selectedCountry;
+
+  /// Ligne de `public.villes` que le profil désigne, quand il en désigne une.
+  /// `null` = « Autre ville » : le texte du champ part seul dans `city`, et
+  /// aucun groupe de ville ne s'ouvrira.
+  int? _villeId;
 
   // Origine au Niger
   String? _selectedOriginRegion;
@@ -175,6 +181,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           _bioController.text = existingProfile.bio ?? '';
           _completePhoneNumber = existingProfile.phoneNumber ?? '';
           _currentCityController.text = existingProfile.currentCity ?? '';
+          _villeId = existingProfile.villeId;
           _isVisible = existingProfile.isVisible;
           _phoneVisibility = _normaliserVisibilite(
             existingProfile.phoneVisibility,
@@ -471,6 +478,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           bio: _bioController.text.trim(),
           profession: _getFinalProfession(),
           currentCity: _currentCityController.text.trim(),
+          villeId: _villeId,
           currentCountry: _getFinalCountry(),
           countryCode: _getFinalCountryCode(),
           originRegion:
@@ -561,6 +569,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
             _bioController.text = profile.bio ?? '';
             _completePhoneNumber = profile.phoneNumber ?? '';
             _currentCityController.text = profile.currentCity ?? '';
+            _villeId = profile.villeId;
 
             // Charger les sélections
             _loadProfessionFromProfile(profile.profession);
@@ -832,6 +841,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                               setState(() {
                                 _selectedCountry = value;
                                 _customCountryController.clear();
+                                // La ville retenue était dans le pays d'avant.
+                                // `trg_ville_coherente_avec_pays` l'effacerait
+                                // de toute façon : l'écran le montre tout de
+                                // suite, au lieu de laisser croire qu'elle a
+                                // survécu au changement.
+                                if (_villeId != null) {
+                                  _villeId = null;
+                                  _currentCityController.clear();
+                                }
                               });
                             },
                           ),
@@ -843,10 +861,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                             ),
                           ],
                           const SizedBox(height: 16),
-                          CustomTextField(
+                          VilleSearchField(
                             controller: _currentCityController,
                             focusNode: _cityFocus,
-                            label: l10n.currentCity,
+                            villeChoisieId: _villeId,
+                            pays: _getFinalCountry().isEmpty
+                                ? null
+                                : _getFinalCountry(),
+                            autoriserLocalisation: true,
+                            onVilleChoisie: (ville) =>
+                                setState(() => _villeId = ville?.id),
                           ),
                           const SizedBox(height: 16),
 

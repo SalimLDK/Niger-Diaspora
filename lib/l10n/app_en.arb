@@ -878,6 +878,20 @@
   "phone": "Phone",
   "location": "Location",
   "currentCity": "Current city",
+  "locationDisclosureCityTitle": "Find your city",
+  "locationDisclosureCityBody": "Diaspo Niger reads your location once, on this device, to suggest the nearest city in its list. Your coordinates are neither stored nor shared: only the city name goes into your profile, and only if you accept it. This does not place you on the members map.",
+  "cityUseMyLocation": "Use my location",
+  "cityNearbyQuestion": "Are you in {ville}?",
+  "@cityNearbyQuestion": {
+    "placeholders": {
+      "ville": {
+        "type": "String"
+      }
+    }
+  },
+  "cityNearbyConfirm": "Yes, that's my city",
+  "cityLocationFailed": "Location unavailable",
+  "cityNoneNearby": "No city from the list nearby",
   "cityFieldHint": "Search for a city",
   "cityDataCredit": "City list: GeoNames (CC BY 4.0)",
   "cityTypeToSearch": "Type the first letters of your city",
