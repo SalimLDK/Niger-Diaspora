@@ -6,6 +6,7 @@ import 'package:cryptography/cryptography.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../supabase_auth_bridge.dart';
 import 'messaging_e2ee_service.dart';
 import 'models/e2ee_models.dart';
 import 'secure_key_storage.dart';
@@ -151,6 +152,21 @@ class SenderKeyService {
     }
 
     if (encrypted != null) {
+      // Écriture, mais garde BORNÉE malgré tout — contrairement aux
+      // publications de clés, qui n'ont aucun repli et prennent donc
+      // `ensureAuthenticated()`. Ici on est sur le chemin d'envoi d'un message
+      // de groupe, déjà sous un délai de 10 s côté datasource, et l'échec a un
+      // repli prévu : `false` laisse le groupe en AES. Faire patienter
+      // l'utilisateur sans borne pour, au mieux, gagner du Signal serait le
+      // mauvais échange.
+      if (!await SupabaseAuthBridge.instance.ensureReadableSession()) {
+        debugPrint(
+          'SenderKeyService: session non prête — Sender Key NON distribuée '
+          'à $recipientId (≠ « pas de session Signal »)',
+        );
+        return false;
+      }
+
       await _supabase.from('e2ee_sender_key_distributions').upsert({
         'group_id': groupId,
         'sender_id': userId,
@@ -468,6 +484,19 @@ class SenderKeyService {
     if (userId == null) return;
 
     try {
+      // Sans session, la policy `recipient_id = firebase_uid()` ne peut pas
+      // s'évaluer : la lecture rend zéro ligne SANS erreur, et l'ouverture du
+      // groupe conclut « aucune Sender Key en attente » alors qu'il y en a.
+      // Le symptôme est alors le pire possible — les messages des autres
+      // restent illisibles — sans que rien ne le signale.
+      if (!await SupabaseAuthBridge.instance.ensureReadableSession()) {
+        debugPrint(
+          'SenderKeyService: session non prête — distributions en attente '
+          'pour $groupId non relevées (≠ « aucune en attente »)',
+        );
+        return;
+      }
+
       final rows = await _supabase
           .from('e2ee_sender_key_distributions')
           .select()

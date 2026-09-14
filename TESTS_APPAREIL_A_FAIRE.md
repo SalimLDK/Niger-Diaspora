@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**975 cases à cocher, 538 cochées** — 198 entrées sur 242 ont encore des cases ouvertes.
+**977 cases à cocher, 538 cochées** — 198 entrées sur 242 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -81,7 +81,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
-- 2 · [⬜ Distribution des Sender Keys : jamais rien en base (2026-09-14)](#-distribution-des-sender-keys--jamais-rien-en-base-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
+- 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
@@ -258,7 +258,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 168 à faire, 65 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 53 à faire, 23 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
@@ -5310,26 +5310,51 @@ nouvel accès Supabase non gardé dans ce fichier.
 
 ---
 
-## ⬜ Distribution des Sender Keys : jamais rien en base (2026-09-14)
+## ⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)
 
 **Priorité P1** · importance 4/5 — Tout message de groupe retombe en repli AES, sans que rien ne le signale. *Bloqué : deux comptes dans un même groupe.*
 
-`e2ee_sender_key_distributions` est **vide (0 ligne)** en production, alors que
-20 messages de groupe en repli AES y sont passés. `distributeGroupSenderKey`
-n'écrit donc jamais — ou son écriture est refusée en silence, la policy
-d'insertion étant elle aussi réservée à `authenticated` (même famille que
-« Signal remis en service : la garde de session sur les lectures de clés »,
-mais ce chemin n'a pas été audité).
+`e2ee_sender_key_distributions` était **vide (0 ligne)** en production, alors
+que 20 messages de groupe en repli AES y sont passés. Ce n'est **pas** un
+défaut indépendant : `distributeSenderKey` chiffre la distribution via une
+session 1:1, donc via `fetchPreKeyBundle` — celui-là même qui rendait `null`
+sous `anon`. `encryptMessage` rendait donc `null`, et l'`upsert` de la ligne 154
+n'était **jamais atteint**. Voir « Signal remis en service : la garde de
+session sur les lectures de clés ».
 
-Non diagnostiqué : la garde de session posée sur les lectures de clés ne
-couvre pas ce chemin, qui vit dans `sender_key_service`.
+Les policies de la table, elles, sont correctes et ont été vérifiées en prod :
+`sender_id = firebase_uid()` à l'insertion, `recipient_id = firebase_uid()` en
+lecture et suppression. Rien à corriger de ce côté.
+
+Corrigé dans `lib/core/services/e2ee/sender_key_service.dart` : garde bornée
+sur `distributeSenderKey` (écriture, mais avec repli AES, donc bornée) et sur
+`fetchPendingDistributions` — cette dernière était la plus vicieuse des deux,
+puisqu'un relevé vide fait conclure « aucune distribution en attente » et
+laisse les messages des autres illisibles.
+
+**Ce qui reste fragile, et n'est pas corrigé :**
+
+`distributeSenderKeyToGroup` n'accepte la clé que si **chaque** membre l'a
+reçue — délibéré, un message qu'une partie du groupe ne peut pas lire serait
+pire. Mais sur un groupe de 17 personnes, cela demande 16 sessions 1:1
+établies d'un coup, et un seul membre sans `identitySigningKey` (4 comptes sur
+35) suffit à maintenir tout le groupe en AES, indéfiniment.
 
 - [ ] Ouvrir un groupe à deux comptes, envoyer un message, puis vérifier
-      qu'une ligne apparaît dans `e2ee_sender_key_distributions`.
-- [ ] Si rien n'apparaît, relever le journal autour de
-      `distributeGroupSenderKey` — la méthode rend `null` quand la
-      distribution n'a pas pu être tentée, et l'appelant est censé le dire à
-      l'utilisateur au lieu de laisser le groupe retomber en AES en silence.
+      qu'une ligne apparaît dans `e2ee_sender_key_distributions` — elle
+      disparaît après traitement par le destinataire, donc regarder vite, ou
+      côté destinataire avant qu'il n'ouvre le groupe.
+- [ ] Vérifier que le message de groupe porte alors `encryptionLevel = 'e2ee'`.
+- [ ] **Groupe à plus de deux membres** dont un compte ancien (appareil
+      enregistré avant le 2026-08-20) : vérifier si le groupe reste en AES, et
+      si le compte rendu de distribution le dit à l'utilisateur au lieu de se
+      taire.
+- [ ] **Redistribution avant traitement** : la table n'a **aucune policy
+      UPDATE**, or l'écriture est un `upsert` sur
+      `(group_id, sender_id, recipient_id)`. Tant que le destinataire n'a pas
+      consommé la ligne, une seconde distribution tombe sur le chemin UPDATE
+      et devrait être refusée (42501). Non reproduit — à provoquer en laissant
+      un destinataire hors ligne pendant deux envois.
 
 ---
 
