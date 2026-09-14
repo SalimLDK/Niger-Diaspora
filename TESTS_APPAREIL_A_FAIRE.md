@@ -10234,11 +10234,13 @@ qui ne disent rien du rendu ni du geste.
   dans la minute qui suit le retour du réseau (c'est le sondage, pas le canal).
 - [ ] **Publication d'un ami** (audience « Amis », deux comptes amis) : elle
   arrive par le sondage alors que le canal temps réel l'écarte volontairement.
-  ⚠ **Vérifier d'abord que les deux comptes sont encore amis.** Le 2026-09-14,
-  une autre session a supprimé deux amitiés à sens unique de `public.friends`
-  (8 → 6 lignes). Si Sim ↔ Salim en faisait partie, ce test montrerait un fil
-  sans la publication et ferait conclure à une régression du sondage, alors que
-  c'est le jeu de données qui a bougé.
+  Le 2026-09-14, une autre session a supprimé deux amitiés à sens unique de
+  `public.friends` (8 → 6 lignes). **Sim n'en fait pas partie** : d'après cette
+  session, les deux lignes retirées portaient `user_id` = Salim, côtés manquants
+  `DgHD6guY…` et `zr1SjYSQ…`, et ce qui reste (6 lignes) forme trois amitiés
+  complètes. Ce test n'est donc pas affecté — mais l'information vient d'un
+  tiers, pas d'une lecture faite ici : si le fil ne montre pas la publication,
+  vérifier l'amitié en base **avant** de conclure à une régression du sondage.
 - [ ] **Pas de sondage en arrière-plan** : passer sur l'onglet Messages ou
   mettre l'app en arrière-plan, attendre trois minutes, revenir — vérifier
   dans les journaux (`adb logcat`) qu'aucune requête de fil n'est partie
