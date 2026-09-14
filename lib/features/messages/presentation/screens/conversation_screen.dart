@@ -1145,7 +1145,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // s'affichait « Ce groupe a été supprimé », le composeur disparaissait, et
     // rien ne permettait de réessayer.
     final isDeleted = conversationAsync.hasValue && conversation == null;
-    final hasLoadError = conversationAsync.hasError;
+    // Une panne de lecture ne compte que si l'écran n'a rien d'autre à
+    // montrer : une conversation déjà connue reste affichée (`AsyncError`
+    // garde la dernière valeur). Et elle ne remplace plus le composeur — hors
+    // ligne on doit pouvoir écrire, le message part en file d'attente.
+    final hasLoadError = conversationAsync.hasError && conversation == null;
 
     // Check if this is a pending request from current user (hide read/delivered status)
     final isPendingRequestFromMe =
@@ -1520,9 +1524,32 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                   ),
                 ),
 
+                // Panne de lecture et rien de connu sur la discussion : on le
+                // dit, au-dessus du composeur et sans le remplacer. Le texte
+                // disparaît de lui-même dès que la lecture repasse.
+                if (hasLoadError)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    color: context.surfaceColor,
+                    width: double.infinity,
+                    child: Text(
+                      l10n.loadingError,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color:
+                            context.isDarkMode
+                                ? AppColors.errorDark
+                                : AppColors.error,
+                      ),
+                    ),
+                  ),
+
                 // Input or Blocked/Deleted Message
                 if (isDeleted ||
-                    hasLoadError ||
                     (otherUser != null &&
                         otherUser.displayName == DeletedAccount.storedName))
                   Container(
@@ -1532,9 +1559,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     child: Text(
                       // « Ce groupe a été supprimé » s'affichait aussi sur un
                       // tête-à-tête et sur « Mes notes », qui n'en sont pas.
-                      hasLoadError
-                          ? l10n.loadingError
-                          : isDeleted
+                      isDeleted
                           ? (widget.isGroup
                               ? l10n.thisGroupWasDeleted
                               : l10n.conversationDeleted)

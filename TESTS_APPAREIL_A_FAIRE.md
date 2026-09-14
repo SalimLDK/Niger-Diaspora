@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**908 cases à cocher, 507 cochées** — 184 entrées sur 228 ont encore des cases ouvertes.
+**915 cases à cocher, 511 cochées** — 186 entrées sur 230 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -65,16 +65,18 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (52)
+**P1 — fonction importante, jamais vérifiée** (54)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
+- 11 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
+- 1 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
-- 7 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -242,8 +244,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 135 à faire, 55 faites
-- [3. Groupes](#3-groupes) — 111 à faire, 52 faites
+- [2. Messagerie](#2-messagerie) — 138 à faire, 59 faites
+- [3. Groupes](#3-groupes) — 115 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
@@ -540,6 +542,129 @@ les abonnements temps réel, donc le rattrapage ne pouvait pas exister.
 
 ---
 
+## ✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Les trois flux de `MessageRepositoryImpl` avalaient leurs erreurs : plus aucun événement, donc rond de chargement sans fin sur la liste, aucun bandeau, aucun réessai, et l'export d'une discussion qui attend pour toujours.
+
+*Bloqué : rien — se rejoue avec le mode avion.*
+
+**Le défaut.** Les trois flux se terminaient par
+`.handleError((error) { return Left(ServerFailure(...)); })`. Dart **ignore la
+valeur de retour** de `handleError` : ce `Left` n'était jamais émis. Mesuré hors
+ligne sur SM A515F le 2026-09-14 — liste des discussions sur un rond de
+chargement sans fin, sans erreur ni moyen de réessayer. Et
+`conversationStreamProvider(...).future`, que lit l'export d'une discussion,
+n'aurait jamais rendu la main.
+
+Le réparer seul ne suffisait pas : il fallait décider ce que l'échec **devient**,
+et trois chemins de l'UI le lisaient de travers.
+
+- `conversationStreamProvider` pliait l'échec en `null` — ce que l'écran lit
+  comme « Conversation supprimée ». Une coupure aurait annoncé une suppression.
+- `conversationsProvider` le pliait en **liste vide**, par-dessus le cache
+  qu'il venait de servir : les discussions déjà affichées auraient disparu.
+- `hasLoadError` **remplaçait le composeur** par un texte rouge : plus moyen
+  d'écrire hors ligne, alors que le message part en file d'attente.
+- Et [messages_screen.dart:330](lib/features/messages/presentation/screens/messages_screen.dart:330)
+  lisait `conversationsAsync.value!` : en Riverpod 2, `.value` **relance
+  l'erreur** — écran rouge à la première panne, sous un `hasValue` pourtant vrai.
+
+**Corrigé le 2026-09-14**, cinq fichiers : `_echecEmis<T>()`
+(`StreamTransformer.fromHandlers`, l'idiome déjà utilisé par
+`ProfileRepositoryImpl`) remplace les trois `.handleError` ; les trois providers
+propagent l'échec en erreur au lieu de le déguiser en `null` ou en liste vide ;
+`hasLoadError` ne vaut plus que si la conversation est inconnue et pose un
+liseré **au-dessus** du composeur au lieu de le remplacer ; la liste et la
+feuille de partage prennent `skipError: true`, pour qu'une panne n'efface jamais
+ce qui est déjà à l'écran. Deux tests neufs :
+`test/features/messages/echec_de_lecture_test.dart`.
+
+- [x] **Hors ligne, démarrage à froid** : la liste s'affiche depuis le cache —
+      ni rond de chargement sans fin, ni « aucune discussion », ni écran
+      d'erreur. Vérifié SM A515F le 2026-09-14 (release md5 `77bdcfd0…`).
+- [x] **Discussion ouverte hors ligne** : messages en place, liseré « Erreur de
+      chargement » au-dessus du composeur, **composeur utilisable** (texte saisi,
+      clavier, bouton d'envoi présent), et aucune mention de suppression.
+      Vérifié SM A515F le 2026-09-14.
+- [x] **Retour du réseau** : l'en-tête se remplit (+30 s) et le liseré disparaît
+      (+70 s), sans quitter l'écran. Vérifié SM A515F le 2026-09-14.
+- [ ] **Panne persistante** (et non une simple coupure) : sur un refus RLS qui
+      dure, vérifier que la liste finit bien par montrer son état d'erreur —
+      `skipError` ne doit masquer une panne que tant qu'il reste quelque chose à
+      afficher.
+- [ ] **Export d'une discussion** hors ligne (`conversation_options_modal`) :
+      doit échouer proprement avec son message, et non rester à tourner.
+
+---
+
+## ✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Un profil dont la lecture échouait pendant une coupure restait en échec pour toute la vie de l'app : l'en-tête d'une discussion affichait « Conversation » et un avatar « C » à la place du nom, et ni le retour du réseau ni un aller-retour hors de l'écran ne le corrigeaient. Seul un redémarrage.
+
+*Bloqué : rien — se rejoue seul avec le mode avion.*
+
+**Le défaut, mesuré deux fois** sur SM A515F le 2026-09-14, sur deux releases
+construites et installées dans la foulée (md5 de l'APK installé vérifié
+identique à celui du build à chaque fois) : d'abord sur `719ca77`, puis sur la
+fusion qui contient `5dddc47` (« un écran ouvert hors ligne charge au retour du
+réseau »). Résultat identique dans les deux cas, et identique à ce que montrait
+l'écran à 03:32 :
+
+1. mode avion, `am force-stop`, relancer l'app, ouvrir la DM depuis la liste →
+   en-tête **« Conversation »**, avatar **« C »**, pas de « En ligne », aucune
+   erreur, aucun réessai. Les messages, eux, sont là (cache local).
+2. réseau rendu (`cmd connectivity airplane-mode disable`, ping OK) : à
+   **+45 s puis +105 s**, l'en-tête est toujours « Conversation ».
+3. sortir de l'écran, y revenir : toujours « Conversation ».
+4. `am force-stop` puis relance : « Salim L. » et « En ligne » reviennent.
+
+**Pourquoi `5dddc47` ne l'attrapait pas.** Ce correctif branche
+`lectureInitialeEnEchec` sur les trois flux qui font leur propre lecture
+initiale — discussions, discussion courante, demandes de message. Le nom de
+l'en-tête ne vient d'aucun des trois : il vient du profil de l'interlocuteur,
+et `getUserStream`
+([profile_supabase_datasource.dart:126](lib/features/profile/data/datasources/profile_supabase_datasource.dart:126))
+n'a pas de `rattrapageAuRejoint` — son `await _ensureReadableAuth()` échoue
+d'entrée hors ligne, avant même le `.stream()`.
+
+**Pourquoi l'échec collait.** `userStreamProvider`
+([profile_provider.dart:330](lib/features/profile/presentation/providers/profile_provider.dart:330))
+est un `StreamProvider.family` **sans `autoDispose`** : l'instance qui a échoué
+hors ligne est conservée pour toute la vie de l'app, et rien ne la réabonnait.
+
+**D'où vient le mot « Conversation ».** Ce n'est pas un libellé de chargement :
+la liste passe `'name': c.name ?? 'Conversation'`
+([messages_screen.dart:639](lib/features/messages/presentation/screens/messages_screen.dart:639)
+et [:1039](lib/features/messages/presentation/screens/messages_screen.dart:1039)),
+et une discussion privée n'a jamais de `name`. Ouvert sans `state.extra` (lien
+profond, notification), le même écran affiche « Chargement... ». L'avatar « C »
+n'est que l'initiale de ce repli — pas celle d'un contact. Pour la variante
+liste, voir « Nom et avatar du correspondant dans la liste des discussions ».
+
+**Corrigé le 2026-09-14** dans `_profilAvecReprise` (même fichier) : le flux se
+rebranche tant qu'il reste en échec — immédiatement au retour de la
+connectivité, et par paliers (3 s, 6 s, 12 s… plafonnés à une minute) parce
+qu'un **VPN persistant fait mentir `connectivity_plus`** : l'appareil se dit
+connecté alors qu'il n'a plus de DNS, et c'est exactement le cas qui a produit
+la capture d'origine. Les paliers ne courent que sur un flux en échec et
+repartent de zéro dès qu'un profil arrive ; un `NotFoundFailure` (compte
+réellement supprimé) reste une donnée, pas une panne, donc aucune reprise
+dessus. Deux tests neufs :
+`test/features/profile/user_stream_reprise_test.dart`.
+
+- [x] **Après correction** : les quatre étapes rejouées sur la release du
+      correctif (md5 `103379e7…`) — hors ligne l'en-tête affiche toujours son
+      repli, puis **se remplit tout seul 20 s après le retour du réseau**
+      (« Salim L. », « En ligne », pastille de présence), sans quitter l'écran
+      ni redémarrer l'app. Vérifié SM A515F le 2026-09-14.
+- [ ] **Compte réellement supprimé** : vérifier que ce cas affiche toujours
+      « Utilisateur » et non un état d'erreur réessayable.
+
+**Les trois `.handleError` qui avalaient leur erreur** ont été traités dans
+la foulée — voir « ✅ Un échec de lecture en messagerie se voit, sans effacer
+l'écran », en tête de ce domaine.
+---
+
 ## ⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)
 
 **Priorité P1** · importance 5/5 — Messages, notifications et fil cessaient de s'actualiser seuls : les canaux se re-rejoignaient bien après une coupure, mais Postgres ne rejoue pas les événements manqués et rien n'allait les relire. Aucune erreur à l'écran — simplement plus rien n'arrivait.
@@ -609,6 +734,15 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
       le nom doit rester lisible).
 - [ ] **Mode avion au lancement** puis retour réseau : la ligne se remplit
       seule, sans afficher « Utilisateur » entre-temps.
+      Mesuré deux fois le 2026-09-14 (SM A515F, release du jour), deux
+      résultats : la liste s'est peinte depuis le cache en affichant
+      **« Utilisateur »**, puis, au second essai, est restée sur un **rond de
+      chargement sans fin** — ni liste, ni erreur. Dans les deux cas elle s'est
+      remplie seule au retour du réseau (« Salim L. » et son avatar à +75 s) :
+      c'est la seconde moitié de l'exigence qui tient, pas la première, donc la
+      case reste ouverte. L'en-tête d'une discussion, lui, ne se rattrape pas —
+      voir « ✅ L'identité du correspondant revient seule après une
+      coupure ».
 - [x] **« Mes notes »** (fil à participant unique) : titre correct — vérifié
       SM A515F le 2026-09-13. L'absence de requête de profil sur identifiant
       vide, elle, ne se voit pas à l'écran : elle tient à la garde
@@ -2290,8 +2424,7 @@ Création, invitations, adhésion, membres, modération, sondages et mentions de
 
 ## ⬜ Groupes officiels de ville (2026-09-14)
 
-**Priorité P1** · importance 4/5 — Un groupe ouvert au mauvais endroit, une invitation envoyée à qui s'est mis invisible, ou une épingle de carte qui ne mène nulle part.
-*Bloqué en partie : aucune ville n'atteint trois profils visibles aujourd'hui — la création est à provoquer en base (recette ci-dessous).*
+**Priorité P1** · importance 5/5 — Quatre invitations sont parties à de vraies personnes le 2026-09-14 : si l'appui n'ouvre rien, ou si quelqu'un se retrouve membre sans l'avoir demandé, c'est déjà arrivé à quelqu'un. (P1 et non P0 : rien n'est *su* cassé — les cinq `switch` sont exhaustifs et le décodage du type est au banc. Ce qui manque, c'est la vérification sur un écran.)
 
 « Diaspora Niger — Montréal ». Trois profils visibles dans une ville
 l'ouvrent ; chacun reçoit une notification `cityGroupInvite` et **rien n'est
@@ -2302,21 +2435,45 @@ Le verrou levé au passage : l'index d'unicité de production portait sur le
 pays seul, et aurait refusé le tout premier groupe de ville. Onze cas sont
 vérifiés en base, transaction annulée — ce qui suit ne l'est pas.
 
-Pour provoquer une création sans attendre trois vrais profils :
+**C'EST EN PRODUCTION DEPUIS LE 2026-09-14.** « Diaspora Niger — Niamey » est
+le premier groupe de ville ouvert, sur demande de Salim
+(`ouvrir_groupes_de_ville_en_retard()`, après relecture des données reprises).
+Relevé juste après :
+
+| | |
+|---|---|
+| le groupe | officiel, public, pays `Niger`, **1 membre** — le compte plateforme, en owner |
+| invitations | **4 envoyées** : `1X5F6RKl…`, `6d7Ho9pN…`, `Hyt7iaHj…`, `iNqgb0jy…` |
+| titre reçu | « Rejoindre « Diaspora Niger — Niamey » ? » |
+| sur la carte | épingle de **ville**, 13.514 / 2.110 — pas le centroïde du Niger |
+
+Les trois premières cases ci-dessous ne se provoquent donc plus : elles se
+vérifient sur ces notifications-là, déjà dans les téléphones. Pour une
+deuxième ville, s'il en faut une :
 
 ```sql
--- Trois profils visibles dans une même ville suffisent ; le déclencheur
--- s'occupe du reste. Sinon, à la main :
-SELECT public.ouvrir_groupe_de_ville(
-  (SELECT id FROM public.villes WHERE nom = 'Niamey' AND pays = 'Niger'));
+-- `ouvrir_groupe_de_ville` APPLIQUE le seuil : sur une ville qui n'a pas
+-- trois profils visibles elle ne fait rien et rend NULL. Pour forcer un
+-- groupe de banc, c'est la création qu'il faut appeler — elle n'invite
+-- personne, il n'y a personne à inviter.
+SELECT public.get_or_create_ville_group(
+  (SELECT id FROM public.villes WHERE nom = 'Dosso' AND pays = 'Niger'));
 ```
 
-- [ ] **Sur appareil** : la notification « Rejoindre « Diaspora Niger —
-  Niamey » ? » arrive, porte l'icône et la couleur des groupes, et son appui
-  ouvre la **fiche du groupe** — pas la liste des notifications.
+- [ ] **Sur appareil, sur l'un des quatre comptes invités** : la notification
+  « Rejoindre « Diaspora Niger — Niamey » ? » est bien arrivée, porte l'icône
+  et la couleur des groupes, et son appui ouvre la **fiche du groupe** — pas
+  la liste des notifications. C'est le chemin que l'analyseur a forcé à
+  compléter dans cinq `switch` : sans eux la notification arrivait et
+  n'ouvrait rien.
 - [ ] **Sur appareil** : sur cette fiche, « Rejoindre » fonctionne et le
-  compteur de membres suit. Ne rien faire ne doit rien changer : personne
-  n'est ajouté sans son geste.
+  compteur de membres suit. Ne rien faire ne doit rien changer : le groupe
+  doit rester à **1 membre** tant que personne n'a appuyé — c'est vérifiable
+  en base à tout moment.
+- [ ] **En base, après quelques jours** : le balayage quotidien de 9 h 30
+  repasse sur Niamey sans redoubler ni le groupe ni les invitations
+  (`SELECT count(*) FROM notifications WHERE type = 'cityGroupInvite'` doit
+  rester à 4 tant qu'aucun cinquième profil n'arrive).
 - [ ] **Sur appareil, profil invisible** : se mettre invisible, provoquer
   l'ouverture d'un groupe pour sa ville, et vérifier qu'**aucune**
   notification n'arrive.
@@ -2330,12 +2487,25 @@ SELECT public.ouvrir_groupe_de_ville(
 - [ ] **Sur appareil** : les 32 pays qui ont un centroïde n'ont pas bougé
   (Niger, France, Canada…) — le repli par la plus grande ville ne sert que
   là où il n'y avait rien.
-- [ ] **Le premier vrai groupe de ville : Niamey.** La reprise du
-  2026-09-14 y a relié quatre profils visibles, soit plus que le seuil. La
-  migration a volontairement neutralisé l'ouverture automatique pour que les
-  données soient relues d'abord ; le balayage quotidien (9 h 30) l'ouvrira et
-  enverra quatre invitations. Vérifier sur appareil qu'elles arrivent, qu'elles
-  mènent à la fiche, et que personne n'est membre sans avoir appuyé.
+- [ ] **Sur appareil, fiche « Diaspora Niger — Niger »** : une section
+  « Ville · 1 » liste « Niamey · 1 », au-dessus des membres, et l'appui ouvre
+  la fiche du groupe de Niamey. Sur la fiche de « — Niamey » comme sur celle
+  du Canada (aucun groupe de ville), la section doit être **absente** — pas
+  vide, absente.
+- [ ] **Sur appareil, onglet Découvrir** : choisir un pays fait apparaître
+  une rangée « Ville » sous celle des pays ; choisir « Niger » puis
+  « Niamey » ne laisse que le groupe de Niamey. Revenir à « Tous » sur le
+  pays fait disparaître la rangée. Changer de pays doit remettre la ville à
+  zéro — sinon « Niamey » sous « Canada » vide l'onglet sans rien dire, et
+  cet écran a déjà eu trois causes indistinguables d'écran blanc.
+- [ ] **Sur appareil, réseau lent** : pendant le chargement, l'onglet
+  Découvrir montre les groupes, pas une liste vide. Le filtre de ville ne
+  filtre rien tant qu'il ne sait pas où sont les groupes (vérifié au banc,
+  mais c'est le timing réel qui compte).
+- [ ] **Sur appareil** : la carte montre « Diaspora Niger — Niamey » à
+  Niamey, et « — Niger » à sa place habituelle — deux épingles distinctes,
+  pas une seule. C'est le cas où ville et pays coexistent au même endroit du
+  monde, celui qui risque de les superposer.
 
 ---
 

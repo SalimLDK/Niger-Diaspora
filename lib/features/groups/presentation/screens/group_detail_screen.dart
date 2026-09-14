@@ -15,6 +15,7 @@ import '../../domain/entities/group_entity.dart';
 import '../../domain/entities/group_request_entity.dart';
 import 'package:intl/intl.dart';
 import '../providers/group_provider.dart';
+import '../providers/villes_du_groupe_pays_provider.dart';
 import '../widgets/group_link_gate.dart';
 import '../widgets/official_group_departure_card.dart';
 // `show` obligatoire : `myGroupRequestsProvider` et
@@ -438,6 +439,11 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
 
                     if (isMember) const SizedBox(height: 24),
 
+                    // Les villes de ce pays, s'il y en a. La section
+                    // s'efface d'elle-même sur un groupe de ville : la
+                    // fonction SQL n'y rend rien.
+                    _buildVillesSection(context, group, l10n),
+
                     // Membres du groupe
                     _buildMembersSection(context, group, l10n),
 
@@ -768,6 +774,65 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
       groupImageUrl: group.imageUrl,
       groupId: group.id,
       category: group.category,
+    );
+  }
+
+  /// « Montréal · 12, Toronto · 5 » sur la fiche d'un groupe de pays.
+  ///
+  /// Rien n'est stocké : le rattachement se déduit à la lecture (même pays,
+  /// `ville_id` nul du côté parent). Une erreur ou un chargement n'affiche
+  /// rien plutôt qu'un trou — ce n'est pas le contenu principal de la fiche.
+  Widget _buildVillesSection(
+    BuildContext context,
+    GroupEntity group,
+    AppLocalizations l10n,
+  ) {
+    final villes = ref.watch(villesDuGroupePaysProvider(group.id)).valueOrNull;
+    if (villes == null || villes.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${l10n.hostCity} · ${villes.length}',
+          style: TextStyle(
+            fontSize: 15.5,
+            fontWeight: FontWeight.w700,
+            color: context.textPrimaryColor,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final ville in villes)
+              InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () => context.push('/groups/${ville.groupId}'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.surfaceVariantColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: context.borderColor),
+                  ),
+                  child: Text(
+                    '${ville.nom} · ${ville.memberCount}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 24),
+      ],
     );
   }
 

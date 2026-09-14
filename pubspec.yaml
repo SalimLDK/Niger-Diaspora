@@ -201,6 +201,9 @@ dev_dependencies:
   # Testing
   mockito: ^5.4.4
   fake_cloud_firestore: ^3.0.3
+  # Déjà présent en transitif via flutter_test ; déclaré pour pouvoir l'importer
+  # directement (reprise par paliers du flux de profil, sans attendre en vrai).
+  fake_async: ^1.3.3
 
   # App Icons
   flutter_launcher_icons: ^0.14.3
