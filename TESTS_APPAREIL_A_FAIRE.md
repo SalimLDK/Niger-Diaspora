@@ -510,18 +510,29 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 *Bloqué : rien — se rejoue seul avec le mode avion.*
 
-Mesuré sur SM A515F le 2026-09-14, sur une release construite le jour même
-(`flutter build apk --release` puis `adb install -r`, md5 de l'APK installé
-vérifié identique à celui du build). Le parcours reproduit à l'identique ce que
-montrait l'écran à 03:32 :
+Mesuré deux fois sur SM A515F le 2026-09-14, sur deux releases construites et
+installées dans la foulée (md5 de l'APK installé vérifié identique à celui du
+build à chaque fois) : d'abord sur `719ca77`, puis sur la fusion qui contient
+« fix(temps réel) : un écran ouvert hors ligne charge au retour du réseau »
+(`5dddc47`). **Résultat identique dans les deux cas.** Le parcours reproduit ce
+que montrait l'écran à 03:32 :
 
 1. mode avion, `am force-stop`, relancer l'app, ouvrir la DM depuis la liste →
    en-tête **« Conversation »**, avatar **« C »**, pas de « En ligne », aucune
    erreur, aucun réessai. Les messages, eux, sont là (cache local).
 2. réseau rendu (`cmd connectivity airplane-mode disable`, ping OK) : à
-   **+35 s puis +95 s**, l'en-tête est toujours « Conversation ».
+   **+45 s puis +105 s**, l'en-tête est toujours « Conversation ».
 3. sortir de l'écran, y revenir : toujours « Conversation ».
 4. `am force-stop` puis relance : « Salim L. » et « En ligne » reviennent.
+
+**Pourquoi `5dddc47` ne l'attrape pas.** Ce correctif branche
+`lectureInitialeEnEchec` sur les trois flux qui font leur propre lecture
+initiale — discussions, discussion courante, demandes de message. Le nom de
+l'en-tête ne vient d'aucun des trois : il vient du profil de l'interlocuteur,
+et `getUserStream`
+([profile_supabase_datasource.dart:126](lib/features/profile/data/datasources/profile_supabase_datasource.dart:126))
+n'a pas de `rattrapageAuRejoint` — son `await _ensureReadableAuth()` échoue
+d'entrée hors ligne, avant même le `.stream()`.
 
 **Pourquoi l'échec colle.** `userStreamProvider`
 ([profile_provider.dart:330](lib/features/profile/presentation/providers/profile_provider.dart:330))
@@ -529,15 +540,16 @@ est un `StreamProvider.family` **sans `autoDispose`** : l'instance qui a échou�
 hors ligne est conservée pour toute la vie de l'app, et rien ne la réabonne.
 Deux autres pièces rendent l'échec muet :
 
-- [conversation_screen.dart:1200](lib/features/messages/presentation/screens/conversation_screen.dart:1200) —
+- [conversation_screen.dart:1199](lib/features/messages/presentation/screens/conversation_screen.dart:1199) —
   `identityLoading` teste `!hasValue` ; un `AsyncError` n'ayant pas de valeur,
   **erreur et chargement sont indiscernables**, et l'écran reste sur son texte
   d'attente au lieu d'un état d'erreur avec réessai ;
 - [message_repository_impl.dart:178](lib/features/messages/data/repositories/message_repository_impl.dart:178) —
   `.handleError((error) { return Left(ServerFailure(...)); })` : Dart **ignore
   la valeur de retour** de `handleError`, le `Left` n'est donc jamais émis,
-  l'erreur est avalée et le provider reste en `AsyncLoading` — ni bandeau, ni
-  réessai.
+  l'erreur est avalée et le flux reste sans événement — ni bandeau, ni réessai.
+  Trois flux sont écrits ainsi dans ce fichier : liste des discussions (l. 130),
+  discussion (l. 178), messages (l. 220).
 
 **D'où vient le mot « Conversation ».** Ce n'est pas un libellé de chargement :
 la liste passe `'name': c.name ?? 'Conversation'`
@@ -550,10 +562,10 @@ liste, voir « Nom et avatar du correspondant dans la liste des discussions ».
 
 **Correctif proposé, non appliqué** : distinguer l'erreur de l'attente dans
 `identityLoading` (un `hasError` doit donner un état réessayable, pas un texte
-d'attente), cesser d'avaler l'erreur dans `getConversationStream`
-(`StreamTransformer` plutôt que `handleError`), et réabonner le profil au
-retour du réseau — poser `autoDispose` sur `userStreamProvider` ne suffit pas,
-l'écran restant monté pendant toute la panne.
+d'attente), cesser d'avaler l'erreur dans les trois `.handleError`
+(`StreamTransformer` qui pousse le `Left` dans le sink), et réabonner le profil
+au retour du réseau — poser `autoDispose` sur `userStreamProvider` ne suffit
+pas, l'écran restant monté pendant toute la panne.
 
 - [ ] **Après correction** : rejouer les quatre étapes ci-dessus — l'en-tête
       doit se remplir seul au retour du réseau, sans redémarrer l'app.
