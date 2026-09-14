@@ -309,23 +309,56 @@ public class MainActivity extends AudioServiceFragmentActivity {
         pushRouteFromIntent(intent);
     }
 
-    private void pushRouteFromIntent(Intent intent) {
-        if (!Intent.ACTION_VIEW.equals(intent.getAction())) return;
+    /**
+     * Route initiale d'un demarrage a FROID, moteur compris.
+     *
+     * `AudioServicePlugin.getFlutterEngine` demande cette route a l'activite
+     * avant de retomber sur son propre calcul, qui ne garde que le chemin
+     * (`data.getPath()`) - exactement comme `FlutterFragmentActivity`. Pour un
+     * schema maison, la SECTION vit dans l'hote : `diasponiger://messages/<id>`
+     * arrivait donc a GoRouter sous la forme `/<id>`, et l'app affichait
+     * « Page Not Found — GoException: no routes for location ». Mesure sur
+     * SM A515F le 2026-09-14, mode avion comme en ligne.
+     *
+     * La remise a plat cote Dart (`_cheminDepuisSchemaMaison`) ne pouvait rien y
+     * faire : elle ne voit jamais le schema, l'hote ayant deja ete jete ici.
+     *
+     * Ne concerne que le demarrage a froid : `onNewIntent` (app lancee) et
+     * `onCreate` sur moteur deja lance passent par `pushRouteFromIntent`, qui
+     * recolle l'hote depuis 2026-09-09. Les liens https ne changent pas - leur
+     * hote est le domaine, et `routeDepuisIntent` ne le recolle pas.
+     */
+    @Override
+    public String getInitialRoute() {
+        String route = routeDepuisIntent(getIntent());
+        if (route != null) {
+            android.util.Log.i(DEEP_LINK_TAG, "route initiale (demarrage a froid) : " + route);
+            return route;
+        }
+        return super.getInitialRoute();
+    }
+
+    /**
+     * La route que porte un intent VIEW, ou null s'il n'en porte pas.
+     *
+     * Un schéma maison (diasponiger://groups/<id>) porte la SECTION dans
+     * l'hôte et l'identifiant dans le chemin. Ne garder que le chemin
+     * pousserait « /<id> », une route qui n'existe pas : l'app tombe sur
+     * « Page Not Found ». On recolle donc l'hôte devant.
+     *
+     * Pour un lien https, l'hôte est le domaine et ne doit surtout pas être
+     * recollé : d'où le test sur le schéma. Vérifié SM A515F le 2026-09-09.
+     */
+    private String routeDepuisIntent(Intent intent) {
+        if (intent == null) return null;
+        if (!Intent.ACTION_VIEW.equals(intent.getAction())) return null;
         Uri data = intent.getData();
-        if (data == null) return;
+        if (data == null) return null;
 
         String path = data.getPath();
         String host = data.getHost();
         String scheme = data.getScheme();
 
-        // Un schéma maison (diasponiger://groups/<id>) porte la SECTION dans
-        // l'hôte et l'identifiant dans le chemin. Ne garder que le chemin
-        // poussait « /<id> », une route qui n'existe pas : l'app tombait sur
-        // « Page Not Found ». On recolle donc l'hôte devant.
-        //
-        // Pour un lien https, l'hôte est le domaine et ne doit surtout pas
-        // être recollé : d'où le test sur le schéma.
-        // Vérifié SM A515F le 2026-09-09.
         boolean schemaMaison = scheme != null && !scheme.startsWith("http");
 
         StringBuilder route = new StringBuilder();
@@ -333,9 +366,15 @@ public class MainActivity extends AudioServiceFragmentActivity {
             route.append('/').append(host);
         }
         if (path != null) route.append(path);
-        if (route.length() == 0) return;
+        if (route.length() == 0) return null;
         if (data.getQuery() != null) route.append('?').append(data.getQuery());
         if (data.getFragment() != null) route.append('#').append(data.getFragment());
+        return route.toString();
+    }
+
+    private void pushRouteFromIntent(Intent intent) {
+        String route = routeDepuisIntent(intent);
+        if (route == null) return;
 
         // On remet la route au routeur Dart par un canal explicite, et NON par
         // `getNavigationChannel().pushRouteInformation(...)`.
@@ -345,7 +384,7 @@ public class MainActivity extends AudioServiceFragmentActivity {
         // ne journalise aucune navigation. Le canal de navigation de l'embedding
         // n'aboutit pas dans ce montage (moteur mis en cache par audio_service).
         // Le canal explicite, lui, atterrit dans du code qu'on contrôle.
-        remettreRoute(route.toString());
+        remettreRoute(route);
     }
 
     /**

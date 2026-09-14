@@ -100,6 +100,10 @@ class _FeedErrorStateState extends State<FeedErrorState> {
     };
 
     return SingleChildScrollView(
+      // L'écran d'échec tient dans la page : sans physique « toujours
+      // défilable », le tiré-pour-rafraîchir posé au-dessus n'aurait rien
+      // à quoi s'accrocher.
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
       child: Column(
         mainAxisSize: MainAxisSize.min,

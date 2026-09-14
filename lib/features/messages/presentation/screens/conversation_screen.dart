@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/locale_helper.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
@@ -163,6 +164,18 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   bool _isSelfNotesFromConversation = false;
   String? _otherUserIdFromConversation;
 
+  /// Profil de l'interlocuteur tel que l'appareil le connaissait à l'ouverture.
+  ///
+  /// Sert de valeur de départ à l'en-tête, le temps que le flux de profil rende
+  /// la sienne. Voir [_semerIdentiteConnue].
+  dynamic _profilConnuAuDemarrage;
+
+  /// La conversation telle que le cache local la connaissait à l'ouverture.
+  ///
+  /// Même rôle pour un groupe : son nom et son image sont dans la conversation,
+  /// pas dans un profil. Voir [_semerIdentiteConnue].
+  ConversationEntity? _conversationConnueAuDemarrage;
+
   bool get _isGroup => widget.isGroup || _isGroupFromConversation;
   String? get _effectiveGroupId => widget.groupId ?? _groupIdFromConversation;
   bool get _isSelfNotes => widget.isSelfNotes || _isSelfNotesFromConversation;
@@ -174,10 +187,72 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   bool _unreadMentionsCleared = false;
   bool _privateGroupFilterRequested = false;
 
+  /// Pose, **dès la première image**, ce que l'appareil sait déjà de
+  /// l'interlocuteur : son identifiant, puis son profil.
+  ///
+  /// Les trois sources sont locales et synchrones — l'uid Firebase (tenu en
+  /// mémoire dès l'initialisation, sans réseau), la conversation en cache et le
+  /// profil en cache. Les providers, eux, ne peuvent pas répondre à temps : un
+  /// flux n'émet jamais dans la même image que le premier rendu. L'en-tête
+  /// passait donc par « Chargement… » alors que le nom était déjà sur le
+  /// disque — d'autant plus visible hors ligne, où la suite ne vient jamais.
+  ///
+  /// Ne sème rien pour un groupe ou « Mes notes » : ils n'ont pas
+  /// d'interlocuteur. Et rien non plus si le compte courant est inconnu — sans
+  /// lui, « l'autre participant » ne se calcule pas.
+  void _semerIdentiteConnue() {
+    final moi = FirebaseAuth.instance.currentUser?.uid;
+
+    // 1. La conversation, telle que le cache local la connaît. Elle porte le
+    //    nom et l'image d'un groupe, et la liste des participants d'un DM.
+    final connues = ref
+        .read(messageRepositoryProvider)
+        .getCachedConversations()
+        .fold((_) => const <ConversationEntity>[], (liste) => liste);
+    for (final conversation in connues) {
+      if (conversation.id == widget.conversationId) {
+        _conversationConnueAuDemarrage = conversation;
+        break;
+      }
+    }
+    final connue = _conversationConnueAuDemarrage;
+
+    // 2. Sa nature. « Mes notes » se décide par différence avec le compte
+    //    courant, comme l'interlocuteur : sans lui, on ne tranche pas.
+    if (connue != null) {
+      if (connue.isGroup) {
+        _isGroupFromConversation = true;
+        _groupIdFromConversation = connue.groupId;
+      } else if (moi != null && connue.isSelfNotesFor(moi)) {
+        _isSelfNotesFromConversation = true;
+      }
+    }
+
+    // 3. L'interlocuteur d'un tête-à-tête, puis son profil.
+    if (_isGroup || _isSelfNotes) return;
+
+    var autreId = widget.otherUserId;
+    if (autreId == null && connue != null && moi != null) {
+      final autre = connue.getOtherParticipantId(moi);
+      if (autre.isNotEmpty) {
+        autreId = autre;
+        _otherUserIdFromConversation = autre;
+      }
+    }
+    if (autreId == null) return;
+
+    _profilConnuAuDemarrage = ref
+        .read(profileRepositoryProvider)
+        .getCachedProfile(autreId)
+        .fold((_) => null, (profil) => profil);
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    _semerIdentiteConnue();
 
     _scrollController.addListener(_onScroll);
 
@@ -1122,7 +1197,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final conversationAsync = ref.watch(
       conversationStreamProvider(widget.conversationId),
     );
-    final conversation = conversationAsync.valueOrNull;
+    // Même raison que pour le profil : le flux n'émet pas dans la première
+    // image. Sans ce repli, l'en-tête d'un groupe affichait « Groupe » et le
+    // fil personnel un nom d'utilisateur, le temps d'un aller-retour.
+    final conversation =
+        conversationAsync.valueOrNull ?? _conversationConnueAuDemarrage;
 
     // Réconcilie isGroup/groupId/isSelfNotes avec la donnée : indispensable
     // quand l'écran est atteint sans `state.extra` (lien profond, notification).
@@ -1145,7 +1224,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // s'affichait « Ce groupe a été supprimé », le composeur disparaissait, et
     // rien ne permettait de réessayer.
     final isDeleted = conversationAsync.hasValue && conversation == null;
-    final hasLoadError = conversationAsync.hasError;
+    // Une panne de lecture ne compte que si l'écran n'a rien d'autre à
+    // montrer : une conversation déjà connue reste affichée (`AsyncError`
+    // garde la dernière valeur). Et elle ne remplace plus le composeur — hors
+    // ligne on doit pouvoir écrire, le message part en file d'attente.
+    final hasLoadError = conversationAsync.hasError && conversation == null;
 
     // Check if this is a pending request from current user (hide read/delivered status)
     final isPendingRequestFromMe =
@@ -1187,7 +1270,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       otherUserAsync = ref.watch(userStreamProvider(_effectiveOtherUserId!));
     }
 
-    final otherUser = otherUserAsync?.valueOrNull;
+    // Le profil semé à l'ouverture tient lieu de valeur tant que le flux n'a
+    // rien rendu : un flux n'émet jamais dans la même image que le premier
+    // rendu, si bien que l'en-tête passait par « Chargement… » même avec le
+    // nom déjà sur le disque. Voir [_semerIdentiteConnue].
+    final otherUser = otherUserAsync?.valueOrNull ?? _profilConnuAuDemarrage;
 
     // Vrai tant qu'on n'a pas encore de quoi nommer l'interlocuteur : par
     // lien profond/notification, `widget.conversationName` est nul, et il
@@ -1196,10 +1283,27 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Sans ce garde, l'en-tête affichait « Utilisateur » (repli final de
     // `displayName`) pendant cette fenêtre, avant de corriger tout seul —
     // lu par Salim comme un défaut, pas comme un chargement.
+    //
+    // `otherUser == null` en tête : dès qu'on tient un profil — y compris le
+    // dernier connu, servi depuis le cache disque — il n'y a plus rien à
+    // attendre, et c'est son nom qu'il faut afficher. Sans cette clause, une
+    // discussion ouverte hors ligne restait sur « Conversation » alors que le
+    // nom était là : le flux de la conversation, lui, n'avait pas de valeur,
+    // et ce seul fait suffisait à déclarer l'identité « en chargement ».
+    //
+    // `currentUser == null` compte aussi : l'interlocuteur se déduit de la
+    // conversation **par différence** avec le compte courant, donc tant que la
+    // session n'est pas restaurée il n'y a personne à nommer. Hors ligne, cette
+    // fenêtre dure plusieurs dizaines de secondes, et sans cette clause
+    // l'en-tête affichait « Utilisateur » pendant tout ce temps — le repli
+    // final, celui qui se lit comme un défaut — avant de se corriger tout seul.
+    // Mesuré par lien profond, mode avion, le 2026-09-14.
     final identityLoading =
         !_isGroup &&
         !_isSelfNotes &&
+        otherUser == null &&
         (!conversationAsync.hasValue ||
+            currentUser == null ||
             (_effectiveOtherUserId != null &&
                 !(otherUserAsync?.hasValue ?? false)));
 
@@ -1520,9 +1624,32 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                   ),
                 ),
 
+                // Panne de lecture et rien de connu sur la discussion : on le
+                // dit, au-dessus du composeur et sans le remplacer. Le texte
+                // disparaît de lui-même dès que la lecture repasse.
+                if (hasLoadError)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    color: context.surfaceColor,
+                    width: double.infinity,
+                    child: Text(
+                      l10n.loadingError,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color:
+                            context.isDarkMode
+                                ? AppColors.errorDark
+                                : AppColors.error,
+                      ),
+                    ),
+                  ),
+
                 // Input or Blocked/Deleted Message
                 if (isDeleted ||
-                    hasLoadError ||
                     (otherUser != null &&
                         otherUser.displayName == DeletedAccount.storedName))
                   Container(
@@ -1532,9 +1659,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     child: Text(
                       // « Ce groupe a été supprimé » s'affichait aussi sur un
                       // tête-à-tête et sur « Mes notes », qui n'en sont pas.
-                      hasLoadError
-                          ? l10n.loadingError
-                          : isDeleted
+                      isDeleted
                           ? (widget.isGroup
                               ? l10n.thisGroupWasDeleted
                               : l10n.conversationDeleted)

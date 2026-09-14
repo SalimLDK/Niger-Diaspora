@@ -1854,6 +1854,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cityNoneNearby => 'No city from the list nearby';
 
   @override
+  String get officialGroupDepartureCityTitle => 'You changed city';
+
+  @override
+  String officialGroupDepartureCityBody(String date, String city) {
+    return 'Since $date, your profile no longer shows $city. You can leave this group or stay: nothing changes without your say-so.';
+  }
+
+  @override
+  String get hostCity => 'City';
+
+  @override
   String get cityFieldHint => 'Search for a city';
 
   @override

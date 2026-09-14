@@ -326,8 +326,14 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     // Messagerie réellement vide (fiche 9e) : ni recherche ni puces de filtre
     // — il n'y a rien à chercher ni à filtrer — et l'entrée « Archives »
     // disparaît de l'en-tête, qui annonce simplement « Aucune conversation ».
+    //
+    // `valueOrNull` et non `value` : en Riverpod 2, `value` **relance
+    // l'erreur** dès que le flux en porte une — une simple coupure faisait
+    // alors un écran rouge ici, sous un `hasValue` pourtant vrai (l'erreur
+    // garde la dernière liste connue).
     final isEmptyInbox =
-        conversationsAsync.hasValue && conversationsAsync.value!.isEmpty;
+        conversationsAsync.hasValue &&
+        (conversationsAsync.valueOrNull?.isEmpty ?? false);
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
@@ -437,6 +443,11 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               child: conversationsAsync.when(
                 skipLoadingOnRefresh: true,
                 skipLoadingOnReload: true,
+                // Une panne n'efface pas ce qui est déjà à l'écran : l'état
+                // d'erreur ne s'affiche que si aucune liste n'a jamais été
+                // reçue. Sinon la liste (cache compris) reste en place, et se
+                // remplit d'elle-même au retour du réseau.
+                skipError: true,
                 data: (conversations) {
                   final currentUserId = currentUser?.id ?? '';
 

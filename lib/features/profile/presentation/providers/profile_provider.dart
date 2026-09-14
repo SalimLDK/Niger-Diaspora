@@ -1,7 +1,11 @@
+import 'dart:async';
+
+import 'package:dartz/dartz.dart' show Either;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/services/connectivity_service.dart';
 import '../../../../core/services/location_publisher_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../data/datasources/profile_remote_datasource.dart';
@@ -327,19 +331,136 @@ class SearchProfilesNotifier
 ///                      l'UI peut afficher « Profil supprimé »
 ///   - AsyncError     → erreur transitoire (réseau, RLS, session non établie) →
 ///                      l'UI affiche un état d'erreur/réessayer, jamais « supprimé »
+///
+/// Le flux est **rebranché tant qu'il reste en échec** — voir
+/// [_profilAvecReprise].
 final userStreamProvider = StreamProvider.family<ProfileEntity?, String>((
   ref,
   userId,
 ) {
-  return ref
-      .watch(profileRepositoryProvider)
-      .getUserStream(userId)
-      .map(
-        (either) => either.fold((failure) {
-          // Seul un profil réellement absent devient null (= supprimé).
-          if (failure is NotFoundFailure) return null;
-          // Toute autre erreur est propagée comme erreur du stream.
-          throw failure;
-        }, (profile) => profile),
-      );
+  return _profilAvecReprise(ref, userId);
 });
+
+/// Premier palier de reprise, et plafond : 3 s, 6 s, 12 s… puis une minute.
+const _premierPalier = Duration(seconds: 3);
+const _dernierPalier = Duration(minutes: 1);
+
+/// Le flux de profil, rebranché tant qu'il reste en échec.
+///
+/// `StreamProvider.family` n'est pas `autoDispose` : l'instance créée pendant
+/// une coupure vit aussi longtemps que l'app. Son flux, lui, **meurt sur la
+/// première erreur** — `getUserStream` échoue dès `_ensureReadableAuth`, avant
+/// même d'atteindre le `.stream()` ; le repository rend un `Left(ServerFailure)`
+/// puis termine. Sans réabonnement, plus rien ne le relance.
+///
+/// Mesuré sur SM A515F le 2026-09-14 : une discussion ouverte hors ligne gardait
+/// son en-tête de repli (« Conversation », avatar « C ») **même réseau revenu**,
+/// à +45 s comme à +105 s, et même après être sorti de l'écran et y être revenu
+/// — seul un redémarrage de l'app rétablissait le nom. Le rattrapage au rejoint
+/// des canaux realtime ne couvre pas ce flux-ci : il n'a pas de canal à lui.
+///
+/// Deux déclencheurs, parce qu'aucun ne suffit seul :
+///   - le retour de la connectivité, immédiat — mais **un VPN persistant fait
+///     mentir `connectivity_plus`** : l'appareil se dit connecté alors qu'il n'a
+///     plus de DNS, et c'est exactement le cas qui a mené à cette mesure ;
+///   - des paliers, qui rattrapent ce cas-là. Ils repartent de zéro dès qu'un
+///     profil arrive, et ne courent que sur un flux en échec.
+Stream<ProfileEntity?> _profilAvecReprise(Ref ref, String userId) {
+  final depot = ref.watch(profileRepositoryProvider);
+  final sortie = StreamController<ProfileEntity?>();
+
+  StreamSubscription<Either<Failure, ProfileEntity>>? source;
+  StreamSubscription<bool>? reseau;
+  Timer? palier;
+  var attente = _premierPalier;
+  var enEchec = false;
+  var ferme = false;
+  late void Function() brancher;
+
+  void programmerReprise() {
+    if (ferme || palier != null) return;
+    palier = Timer(attente, () {
+      palier = null;
+      brancher();
+    });
+    final suivant = attente * 2;
+    attente = suivant > _dernierPalier ? _dernierPalier : suivant;
+  }
+
+  brancher = () {
+    if (ferme) return;
+    source?.cancel();
+    source = depot
+        .getUserStream(userId)
+        .listen(
+          (resultat) => resultat.fold(
+            (echec) {
+              // Seul un profil réellement absent devient null (= supprimé) :
+              // c'est une donnée, pas une panne, donc pas de reprise.
+              if (echec is NotFoundFailure) {
+                enEchec = false;
+                attente = _premierPalier;
+                sortie.add(null);
+                return;
+              }
+              // Toute autre erreur est propagée comme erreur du stream.
+              enEchec = true;
+              sortie.addError(echec);
+            },
+            (profil) {
+              enEchec = false;
+              attente = _premierPalier;
+              sortie.add(profil);
+            },
+          ),
+          onError: (Object erreur, StackTrace trace) {
+            enEchec = true;
+            sortie.addError(erreur, trace);
+          },
+          // Un flux de profil ne se termine pas de lui-même : s'il se termine,
+          // c'est qu'il a rendu la main — erreur transitoire rendue en `Left`,
+          // ou abonnement realtime perdu. C'est là qu'on reprend.
+          onDone: programmerReprise,
+        );
+  };
+
+  try {
+    reseau = ConnectivityService.instance.onConnectivityChanged.listen(
+      (enLigne) {
+        if (!enLigne || !enEchec) return;
+        palier?.cancel();
+        palier = null;
+        attente = _premierPalier;
+        brancher();
+      },
+      // Une panne du plugin de connectivité ne doit pas emporter le profil avec
+      // elle : les paliers suffisent à rattraper.
+      onError: (Object _) {},
+    );
+  } catch (_) {
+    // Pas de plugin de connectivité sous la main (test unitaire sans binding,
+    // plateforme sans implémentation) : on s'en remet aux paliers.
+  }
+
+  ref.onDispose(() {
+    ferme = true;
+    palier?.cancel();
+    source?.cancel();
+    reseau?.cancel();
+    sortie.close();
+  });
+
+  // Le dernier profil connu part **avant** toute lecture réseau (mémoire de la
+  // session, sinon copie disque). Sans lui, un écran ouvert pendant une
+  // coupure n'a rien à afficher tant que la lecture n'a pas abouti — et un
+  // démarrage à froid hors ligne n'aboutit jamais : la liste des discussions
+  // montrait « Utilisateur » et l'en-tête d'une DM son repli « Conversation ».
+  // La lecture réseau le remplace dès qu'elle rend quelque chose.
+  final connu = depot
+      .getCachedProfile(userId)
+      .fold((_) => null, (profil) => profil);
+  if (connu != null) sortie.add(connu);
+
+  brancher();
+  return sortie.stream;
+}

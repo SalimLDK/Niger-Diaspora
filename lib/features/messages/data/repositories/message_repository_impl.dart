@@ -108,7 +108,7 @@ class MessageRepositoryImpl implements MessageRepository {
   ) {
     return remoteDataSource
         .getConversations(userId)
-        .map((conversations) {
+        .map<Either<Failure, List<ConversationEntity>>>((conversations) {
           // Filter out deleted conversations
           final filteredConversations =
               conversations.where((c) {
@@ -127,11 +127,7 @@ class MessageRepositoryImpl implements MessageRepository {
             ),
           );
         })
-        .handleError((error) {
-          return Left<Failure, List<ConversationEntity>>(
-            ServerFailure(error.toString()),
-          );
-        });
+        .transform(_echecEmis<List<ConversationEntity>>());
   }
 
   @override
@@ -169,17 +165,13 @@ class MessageRepositoryImpl implements MessageRepository {
   ) {
     return remoteDataSource
         .getConversationStream(conversationId)
-        .map((model) {
+        .map<Either<Failure, ConversationEntity?>>((model) {
           if (model == null) {
             return const Right<Failure, ConversationEntity?>(null);
           }
           return Right<Failure, ConversationEntity?>(model.toEntity());
         })
-        .handleError((error) {
-          return Left<Failure, ConversationEntity?>(
-            ServerFailure(error.toString()),
-          );
-        });
+        .transform(_echecEmis<ConversationEntity?>());
   }
 
   @override
@@ -212,16 +204,12 @@ class MessageRepositoryImpl implements MessageRepository {
   ) {
     return remoteDataSource
         .getMessages(conversationId)
-        .map((messages) {
+        .map<Either<Failure, List<MessageEntity>>>((messages) {
           return Right<Failure, List<MessageEntity>>(
             messages.map((m) => m.toEntity()).toList(),
           );
         })
-        .handleError((error) {
-          return Left<Failure, List<MessageEntity>>(
-            ServerFailure(error.toString()),
-          );
-        });
+        .transform(_echecEmis<List<MessageEntity>>());
   }
 
   @override
@@ -1586,4 +1574,31 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(ServerFailure('Erreur lors de la creation de la demande: $e'));
     }
   }
+}
+
+/// Transforme une erreur de flux en `Left(ServerFailure)` **réellement émis**.
+///
+/// Les trois flux de ce fichier (liste des discussions, discussion, messages)
+/// se terminaient par :
+///
+/// ```dart
+/// .handleError((error) { return Left(ServerFailure(error.toString())); });
+/// ```
+///
+/// `Stream.handleError` **ignore la valeur de retour** de son callback : ce
+/// `Left` n'a jamais été émis. L'erreur était donc purement avalée — aucun
+/// événement, le provider restait en chargement pour toujours (rond de
+/// chargement sans fin sur la liste, mesuré hors ligne le 2026-09-14), ni
+/// bandeau ni réessai, et `conversationStreamProvider(...).future` — que lit
+/// l'export d'une discussion — attendait indéfiniment.
+///
+/// `StreamTransformer.fromHandlers` pousse dans le sink : c'est déjà l'idiome
+/// de `ProfileRepositoryImpl.getUserStream`.
+StreamTransformer<Either<Failure, T>, Either<Failure, T>> _echecEmis<T>() {
+  return StreamTransformer<Either<Failure, T>, Either<Failure, T>>.fromHandlers(
+    handleData: (donnee, sink) => sink.add(donnee),
+    handleError: (erreur, trace, sink) {
+      sink.add(Left<Failure, T>(ServerFailure(erreur.toString())));
+    },
+  );
 }
