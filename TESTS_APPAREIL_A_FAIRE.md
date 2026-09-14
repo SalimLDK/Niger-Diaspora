@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**863 cases à cocher, 495 cochées** — 176 entrées sur 220 ont encore des cases ouvertes.
+**865 cases à cocher, 496 cochées** — 177 entrées sur 221 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -181,7 +181,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (47)
+**P3 — confort, cosmétique, fonction en pause** (48)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -203,6 +203,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Appels 1-à-1 (correctifs du 2026-08-03)](#appels-1-à-1-correctifs-du-2026-08-03) · *Appels* · bloqué
 - 1 · [Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06)](#scroll-des-notifications--mesuré-pas-un-défaut-de-lécran-2026-08-06) · *Notifications et push*
 - 1 · [⚠️ Déconnexion — latence supprimée, à vérifier sur appareil](#-déconnexion--latence-supprimée-à-vérifier-sur-appareil) · *Comptes, session et onboarding*
+- 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
@@ -241,7 +242,7 @@ Par domaine :
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 31 à faire, 6 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 96 à faire, 8 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 19 à faire, 25 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 131 à faire, 27 faites
@@ -8947,6 +8948,25 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
+
+## ⬜ Fil sombre : même structure que le fil clair (2026-09-13)
+
+**Priorité P3** · importance 2/5 — En thème sombre, le fil n'avait pas la même mise en page qu'en clair (titre, onglets, cartes, bouton d'écriture) : deux téléphones affichaient deux fils différents.
+
+Signalé par Salim : « la version du fil sur le Pixel et sur le SM ne matche pas ».
+Cause : le Pixel est en thème sombre, et le thème sombre avait sa propre
+structure. Commit `3833fbe` (`feed_tokens.dart`, `feed_text.dart`,
+`feed_segmented_control.dart`, `feed_screen.dart`).
+
+- [x] **SM A515F, thème Sombre choisi dans Réglages** (build `88e12b8`, md5
+  `96e704a5…`) : titre serif « Le fil. » avec point d'accent, onglet actif
+  plein, carte arrondie, « Suivre » en texte, bouton d'écriture plein —
+  identique au clair, seules les couleurs changent. Thème remis sur « Système »
+  après la capture. (2026-09-13 21:44)
+- [ ] **Pixel** (`font_scale` 1.3) : « Abonnements » n'est plus tronqué et la
+  date du fil tient sur sa ligne. *Bloqué : le Pixel porte la version Play Store.*
+- [ ] Autres écrans du fil en sombre : Mes abonnements, Mes publications,
+  Enregistrés — rayons et pastilles comme en clair.
 
 ## ⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)
 
