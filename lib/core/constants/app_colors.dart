@@ -227,6 +227,32 @@ class AppColors {
   static const Color notificationAccent = Color(0xFF009600);
 
   // ============================================
+  // ACCENTS TEINTÉS (icône sur aplat de sa propre teinte)
+  // ============================================
+  //
+  // Les tuiles à pictogramme — grilles de services, panneau « + » de la
+  // discussion — posent l'icône en pleine teinte sur un aplat de cette même
+  // teinte à 10–15 %. Deux valeurs y manquaient : une variante nocturne pour
+  // le teal d'identité, que le guide laisse en valeur unique, et une teinte
+  // froide de plus une fois tous les rôles du guide placés.
+
+  /// Teal d'identité éclairci pour le nocturne. [identity] y plafonne à
+  /// ~2,5:1 sur son propre aplat sombre. Réservé à cet usage : partout
+  /// ailleurs, le teal reste à valeur unique dans les deux thèmes.
+  static const Color identityBright = Color(0xFF58A9A3);
+
+  /// Prune — **hors guide**. Aucun rôle du guide ne restait libre pour les
+  /// événements une fois l'orange, le teal, le bleu et le vert placés :
+  /// l'or, dernier candidat, tombe à 2,1:1 sur son propre aplat en thème
+  /// clair. Une seule valeur pour les deux endroits qui montrent un
+  /// événement — tuile de service et pièce jointe.
+  static const Color prune = Color(0xFF6B4FA8);
+
+  /// Prune éclairci pour le nocturne.
+  static const Color pruneBright = Color(0xFFA992E6);
+
+
+  // ============================================
   // BASE COLORS
   // ============================================
 

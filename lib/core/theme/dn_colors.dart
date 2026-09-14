@@ -27,6 +27,13 @@ class DNColors {
   static const mark = Color(0xFFF6EF5A);
   static const danger = Color(0xFFC23E2D);
 
+  // Éclaircies pour le nocturne, hors écrans audio : `TintedAccent` pose
+  // l'icône en pleine teinte sur un aplat de la même teinte à 12–15 %, où le
+  // terracotta et le vert feuille d'origine tombent sous 3:1. Les écrans de
+  // salon et de podcast, eux, gardent [terra] et [leaf] tels quels.
+  static const terraBright = Color(0xFFE08A6B);
+  static const leafBright = Color(0xFF9DBE72);
+
   // Sombre audio — écrans de salon/podcast en mode sombre.
   static const darkBg = Color(0xFF12100E);
   static const darkSurface = Color(0xFF1F1B17);

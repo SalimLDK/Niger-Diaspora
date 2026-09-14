@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**946 cases à cocher, 530 cochées** — 192 entrées sur 236 ont encore des cases ouvertes.
+**952 cases à cocher, 530 cochées** — 193 entrées sur 237 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -195,7 +195,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (49)
+**P3 — confort, cosmétique, fonction en pause** (50)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -210,6 +210,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 6 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
 - 2 · [La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)](#la-signature-de-clé-pré-signée-ne-peut-jamais-vérifier-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
@@ -250,7 +251,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 159 à faire, 65 faites
+- [2. Messagerie](#2-messagerie) — 165 à faire, 65 faites
 - [3. Groupes](#3-groupes) — 111 à faire, 57 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -509,6 +510,38 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)
+
+**Priorité P3** · importance 2/5 — Les huit tuiles du « + » se partageaient **deux** valeurs : l'accent du compte pour les médias, le secondaire pour le contenu interactif. Caméra, Galerie, Vidéos, Audio et Document sortaient donc du même orange, seul le libellé les distinguait — et sur un compte en thème Vert, les huit tombaient dans deux verts voisins.
+
+Source unique : `AttachmentAccents`
+([attachment_accents.dart](lib/features/messages/presentation/theme/attachment_accents.dart)),
+lue par les **deux** surfaces du « + ». Même démarche que « Une couleur par
+service dans les deux grilles », avec le même prune pour l'événement des deux
+côtés. Contrastes calculés sur l'aplat à 12 % : ≥ 3,3:1 en clair sauf la
+galerie (2,3:1, l'orange était déjà ainsi) et l'audio (2,0:1), ≥ 5,4:1 en
+nocturne.
+
+- [ ] **Appui simple sur le « + »** (panneau ancré, grille 3×2) : six teintes
+  distinctes — Caméra teal, Galerie orange, Document bleu, Position
+  terracotta, Sondage vert feuille, Événement prune.
+- [ ] **Appui long sur le « + »** (ancien sheet complet) : une pièce jointe y
+  porte la **même** couleur que dans le panneau. S'y ajoutent Vidéos (vert
+  Niger) et Audio (or).
+- [ ] **Tuile Audio en thème clair** : c'est la plus pâle de toutes (l'or sur
+  son propre aplat). Juger à l'œil si elle tient, ou s'il lui faut un or plus
+  foncé en clair.
+- [ ] **Thème sombre** : les huit icônes restent lisibles sur leur aplat à
+  12 %.
+- [ ] **Compte en thème Orange puis Vert** : les tuiles ne suivent plus
+  l'accent du compte. Le « + » lui-même, lui, le suit toujours — vérifier que
+  le panneau ne jure pas avec la pastille qui l'ouvre.
+- [ ] **Groupe et 1:1** : Position, Sondage et Événement sont conditionnels
+  (`onSendLocation`, `onCreatePoll`, `onCreateEvent`). La grille reste régulière
+  quand il n'y a que trois ou quatre tuiles.
 
 ---
 
