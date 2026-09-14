@@ -183,7 +183,7 @@ class EmbassiesSupabaseDataSource implements EmbassiesDataSource {
     // Sans session valide, le RLS refuse en anon et l'UPDATE ne touche aucune
     // ligne — sans lever d'erreur côté client.
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase indisponible.');
+      throw ServerException('Session indisponible.');
     }
 
     final patch = <String, dynamic>{
@@ -217,7 +217,7 @@ class EmbassiesSupabaseDataSource implements EmbassiesDataSource {
   @override
   Future<String> createEmbassy(EmbassyModel embassy) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase indisponible.');
+      throw ServerException('Session indisponible.');
     }
 
     try {

@@ -7,9 +7,8 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/poll_entity.dart';
 import '../providers/poll_provider.dart';
+import '../theme/poll_tokens.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
-
-const _pollAccent = Color(0xFF6B5CE0);
 
 String _formatTimeAgo(DateTime dt, BuildContext context) {
   final locale = Localizations.localeOf(context).languageCode;
@@ -38,8 +37,17 @@ class _PollCardState extends ConsumerState<PollCard> {
   final Set<String> _selected = {};
   bool _isVoting = false;
 
+  /// Vrai quand on a rouvert la selection pour changer d'avis. Le sondage
+  /// reste modifiable tant qu'il n'est pas termine : la policy DELETE
+  /// « Users can retract their own vote » existe en base depuis le debut.
+  bool _editing = false;
+
+  /// Les resultats remplacent les cases a cocher : sondage termine, ou deja
+  /// vote sans avoir demande a se corriger.
+  bool get _showResults =>
+      widget.poll.isExpired || (widget.poll.hasVoted && !_editing);
+
   Future<void> _submitVote() async {
-    if (_selected.isEmpty) return;
     setState(() => _isVoting = true);
     final success = await ref.read(pollActionsNotifierProvider.notifier).vote(
           widget.poll.id,
@@ -48,22 +56,56 @@ class _PollCardState extends ConsumerState<PollCard> {
           postId: widget.postId,
         );
     if (!mounted) return;
-    setState(() => _isVoting = false);
-    if (success) {
-      setState(() => _selected.clear());
+    setState(() {
+      _isVoting = false;
+      if (success) {
+        _selected.clear();
+        _editing = false;
+      }
+    });
+    if (!success) {
+      // Meme regle que la feuille de creation : la cause remontee par le
+      // notifier vaut mieux qu'un message generique, qui a deja masque des
+      // mois durant un refus RLS.
+      final cause = ref.read(pollActionsNotifierProvider).error?.toString();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            cause == null || cause.isEmpty
+                ? l10n.pollVoteFailed
+                : '${l10n.pollVoteFailed} : $cause',
+          ),
+          duration: const Duration(seconds: 6),
+        ),
+      );
     }
+  }
+
+  void _startEditing() {
+    setState(() {
+      _editing = true;
+      _selected
+        ..clear()
+        ..addAll(widget.poll.votedOptionIds);
+    });
+  }
+
+  void _cancelEditing() {
+    setState(() {
+      _editing = false;
+      _selected.clear();
+    });
   }
 
   void _toggleOption(String optionId) {
     setState(() {
-      if (widget.poll.allowMultiple) {
-        _selected.contains(optionId)
-            ? _selected.remove(optionId)
-            : _selected.add(optionId);
+      if (_selected.contains(optionId)) {
+        // Deselectionner reste possible en choix unique : c'est ce qui permet
+        // de retirer son vote sans en poser un autre.
+        _selected.remove(optionId);
       } else {
-        _selected
-          ..clear()
-          ..add(optionId);
+        if (!widget.poll.allowMultiple) _selected.clear();
+        _selected.add(optionId);
       }
     });
   }
@@ -71,7 +113,7 @@ class _PollCardState extends ConsumerState<PollCard> {
   @override
   Widget build(BuildContext context) {
     final poll = widget.poll;
-    final showResults = !poll.canVote;
+    final showResults = _showResults;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -81,11 +123,12 @@ class _PollCardState extends ConsumerState<PollCard> {
         children: [
           Row(
             children: [
-              const AppIcon(AppIcon.poll, size: 18, color: _pollAccent),
+              const AppIcon(AppIcon.poll, size: 18, color: kPollAccent),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   poll.createdByName ?? '',
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -111,8 +154,9 @@ class _PollCardState extends ConsumerState<PollCard> {
           ),
           const SizedBox(height: 12),
           ...poll.options.map((option) {
-            final isSelected = _selected.contains(option.id) ||
-                poll.votedOptionIds.contains(option.id);
+            final isSelected = showResults
+                ? poll.votedOptionIds.contains(option.id)
+                : _selected.contains(option.id);
             final percentage = poll.percentageFor(option);
 
             return Padding(
@@ -131,7 +175,7 @@ class _PollCardState extends ConsumerState<PollCard> {
                           widthFactor: percentage.clamp(0, 1),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: _pollAccent.withValues(alpha: 0.12),
+                              color: kPollAccent.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
@@ -145,10 +189,8 @@ class _PollCardState extends ConsumerState<PollCard> {
                       ),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: isSelected && !showResults
-                              ? _pollAccent
-                              : context.borderColor,
-                          width: isSelected && !showResults ? 1.6 : 1,
+                          color: isSelected ? kPollAccent : context.borderColor,
+                          width: isSelected ? 1.6 : 1,
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -166,6 +208,7 @@ class _PollCardState extends ConsumerState<PollCard> {
                               ),
                             ),
                           ),
+                          const SizedBox(width: 8),
                           if (showResults)
                             Text(
                               '${(percentage * 100).round()}%',
@@ -175,21 +218,19 @@ class _PollCardState extends ConsumerState<PollCard> {
                                 color: context.textSecondaryColor,
                               ),
                             )
-                          else if (isSelected)
-                            Icon(
-                              widget.poll.allowMultiple
-                                  ? Icons.check_box
-                                  : Icons.radio_button_checked,
-                              size: 18,
-                              color: _pollAccent,
-                            )
                           else
                             Icon(
-                              widget.poll.allowMultiple
-                                  ? Icons.check_box_outline_blank
-                                  : Icons.radio_button_unchecked,
+                              poll.allowMultiple
+                                  ? (isSelected
+                                      ? Icons.check_box
+                                      : Icons.check_box_outline_blank)
+                                  : (isSelected
+                                      ? Icons.radio_button_checked
+                                      : Icons.radio_button_unchecked),
                               size: 18,
-                              color: context.textTertiaryColor,
+                              color: isSelected
+                                  ? kPollAccent
+                                  : context.textTertiaryColor,
                             ),
                         ],
                       ),
@@ -200,40 +241,77 @@ class _PollCardState extends ConsumerState<PollCard> {
             );
           }),
           const SizedBox(height: 4),
-          Row(
+          // Pied de carte en `Wrap` : a grande echelle de police, la rangee
+          // « N votes … Voir les resultats » debordait sans marge de manoeuvre.
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
             children: [
               Text(
-                '${poll.totalVotes} vote${poll.totalVotes > 1 ? 's' : ''}',
+                poll.isExpired
+                    ? '${l10n.pollVotesCount(poll.totalVotes)} · ${l10n.pollClosedToVotes}'
+                    : l10n.pollVotesCount(poll.totalVotes),
                 style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
               ),
-              if (poll.isExpired) ...[
-                const Text(' · '),
-                Text(
-                  l10n.completed,
-                  style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
-                ),
-              ],
-              const Spacer(),
-              if (_selected.isNotEmpty && !showResults)
-                TextButton(
-                  onPressed: _isVoting ? null : _submitVote,
-                  child: _isVoting
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(l10n.pollVoteAction),
-                )
-              else
-                TextButton(
-                  onPressed: () => context.push('/polls/${poll.id}/results'),
-                  child: Text(l10n.pollViewResults),
-                ),
+              Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: _actions(),
+              ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  List<Widget> _actions() {
+    final poll = widget.poll;
+
+    if (_isVoting) {
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ];
+    }
+
+    if (!_showResults) {
+      return [
+        if (_editing)
+          TextButton(onPressed: _cancelEditing, child: Text(l10n.cancel)),
+        // En correction, une selection vide est un retrait de vote — c'est le
+        // seul chemin vers la policy « Users can retract their own vote ».
+        if (_editing || _selected.isNotEmpty)
+          TextButton(
+            onPressed: _submitVote,
+            child: Text(
+              _editing && _selected.isEmpty
+                  ? l10n.pollWithdrawVote
+                  : l10n.pollVoteAction,
+            ),
+          )
+        else
+          TextButton(
+            onPressed: () => context.push('/polls/${poll.id}/results'),
+            child: Text(l10n.pollViewResults),
+          ),
+      ];
+    }
+
+    return [
+      if (!poll.isExpired && poll.hasVoted)
+        TextButton(onPressed: _startEditing, child: Text(l10n.pollChangeVote)),
+      TextButton(
+        onPressed: () => context.push('/polls/${poll.id}/results'),
+        child: Text(l10n.pollViewResults),
+      ),
+    ];
   }
 }

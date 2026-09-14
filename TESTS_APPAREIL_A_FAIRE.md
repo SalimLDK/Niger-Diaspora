@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**933 cases à cocher, 535 cochées** — 191 entrées sur 235 ont encore des cases ouvertes.
+**943 cases à cocher, 535 cochées** — 192 entrées sur 236 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -66,7 +66,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (56)
+**P1 — fonction importante, jamais vérifiée** (57)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 4 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -74,6 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 10 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
@@ -249,7 +250,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 149 à faire, 65 faites
+- [2. Messagerie](#2-messagerie) — 159 à faire, 65 faites
 - [3. Groupes](#3-groupes) — 108 à faire, 61 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -508,6 +509,46 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Après avoir voté dans une bulle de sondage, la carte restait en mode vote : pas de pourcentages, choix non marqué, seul le total bougeait. Et la liste des votants était vide pour tout le monde, l'auteur compris.
+
+*Bloqué : deux comptes, et la migration `20260914160000` à appliquer.*
+
+Deux causes, l'une dans l'app, l'autre en base. Le flux du sondage
+(`.stream()`) ne sait ni joindre ni lire une autre table : il rendait donc un
+sondage « jamais voté » et sans auteur. Et `post_poll_votes` n'est lisible que
+par l'auteur de la ligne — la lecture des votants réussissait à vide.
+Voir « Sondage dans une discussion privée » pour le parcours de création.
+
+- [ ] **Voter dans une bulle de sondage** (DM et groupe) : la carte bascule
+      aussitôt sur les pourcentages, l'option choisie reste encadrée, et le
+      nom de l'auteur s'affiche en en-tête. (`poll_supabase_datasource.dart`,
+      `poll_card.dart`)
+- [ ] **Quitter l'écran et revenir** : le vote est toujours marqué comme le
+      sien. C'est ce qui ne tenait pas.
+- [ ] **« Modifier mon vote »** : la sélection se rouvre sur son propre choix ;
+      en choisir un autre le remplace (l'ancien compteur retombe) ;
+      tout décocher affiche « Retirer mon vote » et remet le total à zéro.
+- [ ] **Sondage à choix multiple** : plusieurs cases, total = nombre de voix.
+- [ ] **Sondage terminé** : « Sondage terminé » dans la ligne d'info, plus
+      aucune façon de voter ni de se corriger.
+- [ ] **Écran de résultats, côté auteur du sondage** : le badge « Votre choix »
+      apparaît, et les votants sont listés sous chaque option.
+      (`poll_results_screen.dart`, RPC `poll_option_voters`)
+- [ ] **Le même écran côté non-auteur** : pas de liste de votants du tout, et
+      la phrase du bas dit bien que seul l'auteur les voit — plus de
+      « Aucun vote pour le moment » sous une option qui en a.
+- [ ] **Deux téléphones en même temps** : le vote de l'un fait bouger le
+      compteur chez l'autre sans quitter l'écran (temps réel).
+- [ ] **Thème sombre et échelle de police 1.1** : le pied de carte
+      (« N votes · Sondage terminé » + les boutons) passe à la ligne au lieu de
+      déborder — il est passé en `Wrap`.
+- [ ] **Avant la migration** : voter fonctionne toujours (repli sur l'ancien
+      chemin), mais la liste des votants reste vide.
 
 ---
 

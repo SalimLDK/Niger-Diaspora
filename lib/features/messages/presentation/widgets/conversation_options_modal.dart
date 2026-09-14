@@ -16,8 +16,8 @@ import '../providers/conversation_actions_provider.dart';
 import '../providers/message_provider.dart';
 import 'auto_delete_settings_sheet.dart';
 import 'mute_duration_sheet.dart';
+import '../../../polls/presentation/theme/poll_tokens.dart';
 
-const _pollAccent = Color(0xFF6B5CE0);
 
 class ConversationOptionsModal extends ConsumerStatefulWidget {
   final String conversationId;
@@ -535,8 +535,8 @@ class _ConversationOptionsModalState
               ),
             if (widget.isGroup && widget.groupId != null && widget.canPostPolls)
               _buildOption(
-                iconWidget: const AppIcon(AppIcon.poll, size: 20, color: _pollAccent),
-                title: 'Créer un sondage',
+                iconWidget: const AppIcon(AppIcon.poll, size: 20, color: kPollAccent),
+                title: l10n.pollCreateTitle,
                 onTap: () async {
                   final navigator = Navigator.of(context);
                   final groupId = widget.groupId!;

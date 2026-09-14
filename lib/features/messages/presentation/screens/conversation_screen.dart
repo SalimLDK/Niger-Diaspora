@@ -2982,22 +2982,34 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       contextId: contextId,
     );
     if (poll == null || !mounted) return;
+    await _publishPollBubble(poll.id, poll.question);
+  }
 
+  /// Publie (ou republie) la bulle d'un sondage deja cree.
+  ///
+  /// « Reessayez » renvoyait vers la feuille de creation, qui aurait cree un
+  /// SECOND sondage en laissant le premier invisible — une ligne de
+  /// `post_polls` qu'aucun ecran ne lit. L'action rejoue donc l'envoi de la
+  /// bulle, avec le meme identifiant.
+  Future<void> _publishPollBubble(String pollId, String question) async {
     final published = await ref
         .read(sendMessageProvider.notifier)
         .sendPoll(
           conversationId: widget.conversationId,
-          pollId: poll.id,
-          question: poll.question,
+          pollId: pollId,
+          question: question,
         );
 
     if (!mounted || published) return;
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          "Le sondage est créé, mais sa publication dans la discussion a "
-          "échoué. Réessayez.",
+      SnackBar(
+        content: Text(l10n.pollBubbleFailed),
+        action: SnackBarAction(
+          label: l10n.retry,
+          onPressed: () => _publishPollBubble(pollId, question),
         ),
+        duration: const Duration(seconds: 8),
       ),
     );
   }

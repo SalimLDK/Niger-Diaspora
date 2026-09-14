@@ -1281,7 +1281,7 @@ class WebRTCService {
           _signalingTimeout,
           onTimeout: () {
             throw TimeoutException(
-              'Firebase write timeout',
+              'Écriture expirée',
               _signalingTimeout,
             );
           },
@@ -1299,7 +1299,7 @@ class WebRTCService {
       }
     }
 
-    throw lastException ?? Exception('Firebase write failed after $maxRetries attempts');
+    throw lastException ?? Exception('Écriture refusée après $maxRetries tentatives');
   }
 
   /// Send ICE candidate to Firebase (fire-and-forget with single retry)
