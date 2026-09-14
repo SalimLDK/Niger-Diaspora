@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**882 cases à cocher, 496 cochées** — 180 entrées sur 224 ont encore des cases ouvertes.
+**887 cases à cocher, 496 cochées** — 181 entrées sur 225 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -117,7 +117,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (64)
+**P2 — fonction secondaire ou cas limite** (65)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -149,6 +149,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 4 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
+- 5 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
 - 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
@@ -248,7 +249,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 98 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 23 à faire, 25 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 133 à faire, 27 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 138 à faire, 27 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 47 à faire, 39 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 35 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -11513,6 +11514,27 @@ directement sur la section APPLICATION.
 # 12. Design, thème, langue et mise en page
 
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
+
+---
+
+## ⬜ Le sigle DN est le même partout (2026-09-13)
+
+**Priorité P2** · importance 3/5 — Trois écrans dessinaient la marque chacun à leur façon : écran de démarrage en vert sans serif, page de connexion en Playfair sur l'accent du compte — donc **orange** pour qui a choisi le thème Orange —, gabarit d'illustration du design kit sur ce même accent à un autre rayon. On touchait une icône verte au lanceur pour tomber sur un sigle orange.
+
+- [ ] **Enchaînement lanceur → démarrage → connexion** (app déconnectée) :
+      même vert, même lettrage, même arrondi aux trois étapes.
+      (`design_kit.dart` — `DesignBrandMark`, `splash_screen.dart`,
+      `auth_scaffold.dart`)
+- [ ] **Compte en thème Orange** : le sigle reste vert (c'est l'accent des
+      boutons et des liens qui est orange, pas la marque).
+- [ ] **Thème sombre** : le vert et le blanc du sigle tiennent sur le fond
+      sombre — la couleur est fixe, elle ne suit plus `onPrimaryColor`.
+- [ ] **Échelle de police à 1,3** : le « DN » ne déborde pas de son carré
+      (le corps est proportionnel au côté, pas à la taille système).
+- [ ] **Gabarit d'illustration** (onboarding, écrans à illustration) : la
+      pastille 62 est bien centrée dans son bloc rayé.
+
+---
 
 ---
 

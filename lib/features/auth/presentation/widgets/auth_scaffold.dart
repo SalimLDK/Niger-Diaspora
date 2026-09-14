@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
@@ -73,35 +72,20 @@ class AuthScaffold extends StatelessWidget {
   }
 }
 
-/// Pastille de marque : carré arrondi terracotta portant le sigle « DN »,
-/// aligné à gauche (les maquettes ont abandonné le gros logo centré).
+/// Pastille de marque des écrans d'authentification : la marque de l'app,
+/// alignée à gauche (les maquettes ont abandonné le gros logo centré).
+///
+/// Simple cadrage de [DesignBrandMark] — le sigle, sa couleur et sa forme
+/// n'existent qu'à un seul endroit. Le carré était ici terracotta, ou vert,
+/// ou orange selon le thème du compte : voir la docstring de [DesignBrandMark].
 class AuthBrandMark extends StatelessWidget {
   const AuthBrandMark({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        width: 46,
-        height: 46,
-        decoration: BoxDecoration(
-          color: context.adaptivePrimaryColor,
-          borderRadius: BorderRadius.circular(kAuthRadius),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          'DN',
-          style: GoogleFonts.playfairDisplay(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: context.onPrimaryColor,
-            height: 1,
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const Align(
+        alignment: Alignment.centerLeft,
+        child: DesignBrandMark(size: 46),
+      );
 }
 
 /// Titre de page : serif gras aligné à gauche, terminé par un point d'accent.

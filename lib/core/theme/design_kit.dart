@@ -40,6 +40,71 @@ const double kDesignControlHeight = 54;
 /// Pas de point sur un nom saisi (groupe, salon, contact) : il signe les
 /// titres d'écran, pas le contenu. Dans le back-office, il reste terracotta
 /// (`AdminColors.titleDot`), seule exception à « pas d'orange dans l'admin ».
+/// Sigle « DN » sur son carré arrondi vert — la marque de l'app.
+///
+/// **Source unique.** Trois écrans le redessinaient chacun à sa façon, et
+/// aucun ne ressemblait aux deux autres : l'écran de démarrage en dégradé vert
+/// et sans serif gras, la page de connexion en Playfair sur l'accent du thème,
+/// le gabarit d'illustration de ce fichier en Playfair sur ce même accent mais
+/// d'une autre taille de coin. On ouvrait l'app sur un sigle et on arrivait
+/// sur un autre.
+///
+/// **Le vert est fixe.** Jamais `adaptivePrimaryColor` : l'accent suit le
+/// thème du compte — vert par défaut, orange pour qui a choisi le thème
+/// Orange — si bien que la marque changeait de couleur d'un compte à l'autre.
+/// Or l'icône du lanceur, la teinte des notifications et le manifeste web sont
+/// fixés au vert `#009600` depuis le 2026-09-07, sur demande produit
+/// (`android/app/src/main/res/values/colors.xml`) : on touchait une icône
+/// verte pour tomber sur un sigle orange.
+///
+/// [AppColors.secondary] plutôt que le dégradé de l'écran de démarrage :
+/// `secondary` et `secondaryDark` valent la même valeur depuis le 2026-08-25,
+/// le dégradé était déjà plat.
+class DesignBrandMark extends StatelessWidget {
+  /// Côté du carré. Le rayon et le corps du sigle en découlent, pour que la
+  /// marque soit la même à 46 dp qu'à 120.
+  final double size;
+
+  /// Halo vert sous la pastille, pour la version centrée de l'écran de
+  /// démarrage. Hors de là, la marque est posée à plat.
+  final bool withGlow;
+
+  const DesignBrandMark({super.key, this.size = 46, this.withGlow = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: AppColors.secondary,
+        borderRadius: BorderRadius.circular(size * 0.26),
+        boxShadow: withGlow
+            ? [
+                BoxShadow(
+                  color: AppColors.secondary.withValues(alpha: 0.3),
+                  blurRadius: size / 6,
+                  offset: Offset(0, size / 12),
+                ),
+              ]
+            : null,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        'DN',
+        style: GoogleFonts.playfairDisplay(
+          fontSize: size * 0.37,
+          fontWeight: FontWeight.w700,
+          // Fixe, comme le fond : `onPrimaryColor` suit le thème du compte et
+          // vire au sombre sur certains, illisible sur ce vert.
+          color: AppColors.textInverse,
+          height: 1,
+        ),
+      ),
+    );
+  }
+}
+
 class DesignTitle extends StatelessWidget {
   final String text;
   final double size;
@@ -246,24 +311,7 @@ class DesignIllustration extends StatelessWidget {
                 if (illustration != null)
                   illustration!
                 else if (brandMark)
-                  Container(
-                    width: 62,
-                    height: 62,
-                    decoration: BoxDecoration(
-                      color: accent,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'DN',
-                      style: GoogleFonts.playfairDisplay(
-                        fontSize: 21,
-                        fontWeight: FontWeight.w700,
-                        color: context.onPrimaryColor,
-                        height: 1,
-                      ),
-                    ),
-                  )
+                  const DesignBrandMark(size: 62)
                 else
                   Icon(
                     icon ?? Icons.image_outlined,
