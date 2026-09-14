@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1047 cases à cocher, 552 cochées** — 211 entrées sur 255 ont encore des cases ouvertes.
+**1047 cases à cocher, 556 cochées** — 211 entrées sur 255 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -280,7 +280,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 60 à faire, 40 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 60 à faire, 44 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -14785,12 +14785,42 @@ Passe du 2026-09-14, 47 comptes en base :
 - Sains : groupes (membres, créateur, `member_count`), sondages sans option,
   stories « amis proches », `like_count` et `comment_count` du fil.
 
-- [ ] **Réparer les 2 amitiés** (écriture en production, à décider) : soit
-  compléter le côté manquant, soit supprimer les lignes orphelines. Vérifier
-  d'abord l'état Firestore, qui reste la source.
-- [ ] **Événement à audience vide** : reproduire — créer un événement
-  « Personnes choisies » sans choisir personne, et voir si le formulaire le
-  laisse passer. Puis décider si la validation va dans l'écran ou dans la RPC.
+- [x] **🔴 Les 2 amitiés étaient des RESTES, et sont supprimées.** Firestore
+  tranchait : les deux comptes d'en face ont **0 ami**, les entrées datent de
+  février et avril, et les 8 documents Firestore correspondaient exactement aux
+  8 lignes Postgres — le miroir était fidèle, le défaut était dans la source.
+  Or seuls deux chemins écrivent cette sous-collection : le lot d'acceptation,
+  **atomique depuis le premier commit** (2025-12-31), donc incapable de
+  n'écrire qu'un côté ; et la suppression de compte, qui efface le miroir
+  détenu par les autres — nettoyage **ajouté après coup**, dont le commentaire
+  décrit précisément ce résidu. Compléter aurait fabriqué un lien que personne
+  n'a exprimé. Les deux documents Firestore supprimés le 2026-09-14 (accord de
+  Salim) : 6 documents restants, soit 3 amitiés réciproques.
+- [x] **`mirrorFriendToSupabase` vu tourner sur une vraie amitié** — ce qui
+  n'avait jamais été observé. Les 2 lignes Postgres sont parties seules après
+  la suppression Firestore : 8 → 6, et l'invariant est à 0.
+- [x] **🔴 Événement à audience vide — cause trouvée, corrigée en base.** Le
+  formulaire valide bien (`_audience.erreur`, ligne 262) : la cause était dans
+  la RPC. `set_event_audience` **filtre en silence** (`u.id = ANY(p_user_ids)
+  AND u.id <> v_uid`), et quand il ne restait personne elle écrivait quand même
+  `events.visibility` et rendait `VOID` — un **succès qui n'a rien fait**.
+  L'organisateur est un compte de **12 minutes** (créé 04:49, événement 05:01),
+  sans aucun ami ni discussion, donc avec un sélecteur vide.
+  `20260914203000_audience_evenement_jamais_vide.sql` fait lever la RPC quand
+  une demande « groups »/« people » aboutit à une audience vide — la fonction
+  étant une seule transaction, la levée annule aussi ses `DELETE`, donc une
+  audience existante n'est jamais perdue par une tentative ratée. Déployée et
+  relue : garde présent, `anon` absent de l'ACL.
+- [x] **Le message d'échec disait faux** : « il reste visible par sa discussion
+  uniquement » alors qu'un événement créé **hors** discussion n'est visible de
+  personne — exactement le cas trouvé. Corrigé (`_messageAudienceRatee`).
+- [ ] **Événement restreint sans invités** : créer un « Personnes choisies »,
+  choisir quelqu'un, puis tout décocher et valider — le formulaire doit
+  refuser. Puis vérifier qu'un échec d'audience affiche bien le message rouge
+  « personne d'autre que vous ne le voit ».
+- [ ] **L'événement fautif de production** (`fea8bc43…`, organisateur
+  `mz4JJ8Fh…`) est **toujours invisible** : la correction empêche les suivants,
+  elle ne répare pas celui-là. Décider — le supprimer, ou le passer en public.
 - [ ] **Relancer le balayage après chaque lot** qui touche une écriture en
   deux temps, et y ajouter l'invariant correspondant.
 
