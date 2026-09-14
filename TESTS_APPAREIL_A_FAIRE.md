@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**932 cases à cocher, 528 cochées** — 190 entrées sur 234 ont encore des cases ouvertes.
+**936 cases à cocher, 530 cochées** — 191 entrées sur 235 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (20)
 
-- 9 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
+- 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
@@ -194,7 +194,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (48)
+**P3 — confort, cosmétique, fonction en pause** (49)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -219,6 +219,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
+- 5 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
 - 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
@@ -248,7 +249,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 150 à faire, 63 faites
+- [2. Messagerie](#2-messagerie) — 149 à faire, 65 faites
 - [3. Groupes](#3-groupes) — 111 à faire, 57 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -258,7 +259,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 110 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 33 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -521,12 +522,39 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 `messageFailureStreamProvider` n'avaient **aucun appelant**. Seul `enqueue`
 était branché, sur l'envoi de texte hors ligne.
 
-- [ ] **Écrire un message hors ligne**, quitter l'écran, y revenir : il est
-      toujours là, marqué en échec, avec « Renvoyer ».
+- [x] **Écrire un message hors ligne**, quitter l'écran, y revenir : il est
+      toujours là, marqué en échec, avec « Renvoyer ». Vérifié SM A515F le
+      2026-09-14 : `FILE-ATTENTE-2` écrit radios coupées, écran quitté 18 s
+      (au-delà des 5 s de grâce de l'`autoDispose`), toujours présent au
+      retour — « ⚠ Non envoyé · Réessayer ».
       (`message_provider.dart`, `_avecMessagesJamaisPartis`)
+- [x] **Renvoi manuel** : l'appui sur « Réessayer » envoie le message et la
+      bulle passe à « Reçu ». Vérifié le 2026-09-14, une seule ligne en base,
+      **aucun doublon**.
 - [ ] **Rétablir le réseau sans rien toucher** : il part seul, et la ligne de
       la liste se met à jour. (`RenvoiMessagesEnAttente`, tenu en vie par
       `app.dart`)
+
+      ⛔ **A ÉCHOUÉ au premier essai (2026-09-14), correctif posé, non
+      revérifié.** Une minute après le retour du réseau, rien n'était parti.
+      La cause n'est pas le renvoi mais son **déclencheur** :
+      `ConnectivityService.isConnected` vaut `!results.contains(none)`, et
+      `connectivity_plus` liste `vpn` tant que le tunnel est debout. Le
+      SM A515F porte un VPN permanent : couper les deux radios laisse donc
+      l'app **se croire en ligne**, aucune transition `false → true` n'est
+      émise au retour, et le déclencheur ne part jamais. Même illusion avec un
+      portail captif. Ajout d'un battement de 60 s qui ne demande rien à
+      personne (`RenvoiMessagesEnAttente.intervalleDeControle`) — c'est lui
+      qu'il faut vérifier.
+
+      ⚠️ **Et ça condamne la méthode de test elle-même** : `svc wifi disable`
+      + `svc data disable` ne rend pas l'app hors ligne **à ses propres yeux**
+      tant que le VPN tient. Pour éprouver un chemin qui dépend de
+      `connectivityNotifierProvider`, il faut le **mode avion** (qui, lui,
+      couche le tunnel) — ou couper le VPN d'abord. Ce détour explique aussi
+      pourquoi les points ci-dessus ont réussi : le message n'est jamais passé
+      par la branche « hors ligne », il a pris le chemin normal, a échoué, et
+      c'est l'accroche sur l'échec qui l'a sauvé.
 - [ ] **Tuer l'app entre les deux**, puis la rouvrir en ligne : il part au
       démarrage — le renvoi ne dépend pas d'une transition de connectivité.
 - [ ] **Une réponse citée et une carte de publication** écrites hors ligne
@@ -12243,6 +12271,32 @@ directement sur la section APPLICATION.
 # 12. Design, thème, langue et mise en page
 
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
+
+---
+
+## ⬜ Une couleur par service dans les deux grilles (2026-09-14)
+
+**Priorité P3** · importance 2/5 — Les tuiles de service se partageaient trois valeurs : le Fil et les Amis avaient **exactement** la même couleur, l'Annuaire une variante d'orange indiscernable du Fil, et sur l'accueil l'Annuaire était colorié avec `colorScheme.onPrimaryContainer` — un jeton de *texte*, presque noir. L'indigo des Ambassades tombait à 2,3:1 sur l'aplat sombre de sa tuile.
+
+Une seule source désormais : `ServiceAccents`
+([service_accents.dart](lib/features/home/presentation/theme/service_accents.dart)),
+lue par « Tous les services » et par la grille de l'accueil. Contrastes
+calculés (icône sur son propre aplat) : ≥ 3,4:1 en clair sauf le Fil à 2,4:1
+(l'orange était déjà ainsi), ≥ 5,1:1 en nocturne.
+
+- [ ] **« Tous les services »** : cinq tuiles, cinq teintes distinctes — Fil
+  orange, Annuaire teal, Ambassades bleu, Événements prune, Amis vert. Aucune
+  paire voisine ne se ressemble.
+- [ ] **Grille de l'accueil** : le Fil, l'Annuaire et les Ambassades y portent
+  la **même** couleur que dans « Tous les services » (c'est la régression la
+  plus probable : deux écrans, une seule liste).
+- [ ] **Thème sombre** : les cinq icônes restent lisibles sur leur aplat à
+  15 % — en particulier le bleu des Ambassades, qui était le cas le pire.
+- [ ] **Compte en thème Orange** : les tuiles ne bougent plus avec l'accent du
+  compte (elles ne lisent plus `adaptivePrimaryColor`). Vérifier que le résultat
+  reste cohérent avec le reste de l'écran, boutons compris.
+- [ ] Le prune des Événements est la seule teinte hors guide de style : juger
+  à l'œil si elle tient à côté du bleu des Ambassades, sa voisine de rangée.
 
 ---
 

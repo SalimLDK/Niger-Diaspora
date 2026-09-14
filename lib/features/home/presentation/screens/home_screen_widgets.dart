@@ -337,7 +337,7 @@ class _ServicesGrid extends ConsumerWidget {
       _ServiceTile(
         icon: Icons.dynamic_feed_rounded,
         label: l10n.homeServiceFeed,
-        color: context.adaptivePrimaryColor,
+        color: ServiceAccents.feed.of(context),
         onTap: () => context.push('/feed'),
       ),
       // Transfert et Boutique masqués de la grille d'accueil (même règle que
@@ -348,14 +348,14 @@ class _ServicesGrid extends ConsumerWidget {
       //   _ServiceTile(
       //     icon: Icons.send_rounded,
       //     label: l10n.serviceTransfer,
-      //     color: context.adaptivePrimaryColor,
+      //     color: ServiceAccents.transfers.of(context),
       //     onTap: () => context.push('/transfers'),
       //   ),
       // if (ref.watch(isMarketplaceEnabledProvider))
       //   _ServiceTile(
       //     icon: Icons.storefront_rounded,
       //     label: l10n.serviceMarketplace,
-      //     color: context.adaptiveSecondaryColor,
+      //     color: ServiceAccents.marketplace.of(context),
       //     onTap: () => context.push('/marketplace'),
       //   ),
       // Annuaire et ambassades : toujours présents, comme le Fil (décision
@@ -363,13 +363,13 @@ class _ServicesGrid extends ConsumerWidget {
       _ServiceTile(
         icon: Icons.business_rounded,
         label: l10n.homeDirectory,
-        color: Theme.of(context).colorScheme.onPrimaryContainer,
+        color: ServiceAccents.directory.of(context),
         onTap: () => context.push('/businesses'),
       ),
       _ServiceTile(
         icon: Icons.account_balance,
         label: l10n.embassies,
-        color: context.adaptiveSecondaryColor,
+        color: ServiceAccents.embassies.of(context),
         onTap: () => context.push('/embassies'),
       ),
       // Salons audio et Podcasts masqués ici aussi (2026-08-30) : cette
@@ -381,14 +381,14 @@ class _ServicesGrid extends ConsumerWidget {
       //   _ServiceTile(
       //     icon: Icons.podcasts_rounded,
       //     label: 'Salons',
-      //     color: context.adaptivePrimaryColor,
+      //     color: ServiceAccents.audioRooms.of(context),
       //     onTap: () => context.push('/audio-rooms'),
       //   ),
       // if (ref.watch(isPodcastsEnabledProvider))
       //   _ServiceTile(
       //     icon: Icons.mic_rounded,
       //     label: l10n.podcasts,
-      //     color: context.adaptiveSecondaryColor,
+      //     color: ServiceAccents.podcasts.of(context),
       //     onTap: () => context.push('/podcasts'),
       //   ),
     ];
