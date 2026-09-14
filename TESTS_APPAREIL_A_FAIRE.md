@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**968 cases à cocher, 538 cochées** — 196 entrées sur 240 ont encore des cases ouvertes.
+**966 cases à cocher, 540 cochées** — 196 entrées sur 240 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -117,7 +117,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27) · *Backend, sécurité et observabilité*
-- 7 · [⬜ Notice « une nouvelle version est disponible » (2026-09-14)](#-notice--une-nouvelle-version-est-disponible--2026-09-14) · *Publication et plateformes*
+- 5 · [⬜ Notice « une nouvelle version est disponible » (2026-09-14)](#-notice--une-nouvelle-version-est-disponible--2026-09-14) · *Publication et plateformes*
 - 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
 - 3 · [Messagerie (hors refonte Fil & Discussion)](#messagerie-hors-refonte-fil--discussion) · *Messagerie* · bloqué
 - 5 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
@@ -266,7 +266,7 @@ Par domaine :
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 34 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 43 à faire, 26 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -15579,17 +15579,24 @@ qu'il en existe un plus récent que lui.
 Décision et silences tenus par `test/core/services/mise_a_jour_service_test.dart`
 (22 cas).
 
-**Le secret n'est pas posé en production** : tant qu'il ne l'est pas, le
-bandeau ne peut pas apparaître, et rien de ce qui suit n'est observable.
+**Secret posé en production le 2026-09-14** à `1.2.1+19`, soit la valeur de
+`pubspec.yaml` — donc **égale** à la version installée, et la comparaison exige
+un strict supérieur : en régime normal le bandeau ne s'affiche pas, et c'est
+correct. Il faudra le monter à chaque mise en ligne (`DEPLOYMENT.md` § 10).
 
-- [ ] **Poser la clé, puis voir le bandeau** :
-      `supabase secrets set DERNIERE_VERSION_APP=1.9.9+99` (jamais
-      `--env-file`, qui remplacerait tous les secrets du projet), relancer
-      l'app à froid — le bandeau doit apparaître en tête. Remettre la vraie
-      valeur, ou retirer la clé, juste après.
-- [ ] **« Pas maintenant » tient** : écarter, tuer l'app, relancer — le
-      bandeau ne doit pas revenir. Puis passer le secret à une version
-      supérieure : il doit reparler.
+⚠️ L'Edge Function `app-config` **n'avait jamais été déployée** : l'appel
+rendait 404 et `RemoteConfigService` retombait en silence sur le `.env`.
+Déployée le 2026-09-14 (9 clés servies), après avoir vérifié par comparaison
+de SHA-256 que les 8 clés préexistantes étaient identiques au `.env` — sans
+quoi le déploiement aurait changé Maps, LiveKit et les liens profonds sans
+prévenir.
+
+- [x] **Poser la clé, puis voir le bandeau** : vu sur SM-A515F le 2026-09-14
+      avec `1.9.9+99`. Le bandeau affiche **« Diaspo Niger 1.9.9 »** — le nom
+      seul, sans le `+99`, comme voulu.
+- [x] **« Pas maintenant » tient** : écarté, `am force-stop`, relance à
+      froid — le bandeau n'est pas revenu. Secret passé ensuite à `2.0.0+100` :
+      il a reparlé, en « 2.0.0 ». Les deux moitiés vérifiées.
 - [ ] **« Mettre à jour » ouvre la bonne fiche** : Play Store sur
       `com.diasponiger.diasponiger`, et non une page « application
       introuvable » (les deux liens du projet ont déjà été faux).
@@ -15600,8 +15607,12 @@ bandeau ne peut pas apparaître, et rien de ce qui suit n'est observable.
       avec un compte dont les clés ne sont pas sauvegardées ET la clé serveur
       posée, c'est le bandeau des clés qui doit s'afficher ; une fois traité,
       celui de la mise à jour doit prendre sa place **sans relancer l'app**.
-- [ ] **Rendu du bandeau** : thème sombre, échelle de police augmentée, petit
-      écran — un `MaterialBanner` à deux actions déborde vite.
+- [ ] **Rendu du bandeau** : reste à voir en **thème sombre** et à **échelle de
+      police augmentée**. En clair, échelle par défaut, SM-A515F : correct, mais
+      il occupe environ un sixième de la hauteur (message sur deux lignes, puis
+      une rangée d'actions) et pousse tout le contenu vers le bas.
+      Vu aussi **par-dessus une discussion** — il vit dans `MainShell`, donc il
+      s'affiche sur n'importe quel onglet, sous la barre de la conversation.
 - [ ] **Hors ligne au démarrage** : aucune notice, aucun blocage du premier
       écran (`RemoteConfigService` sert alors son cache, ou rien).
 
