@@ -892,6 +892,18 @@
   "cityNearbyConfirm": "Yes, that's my city",
   "cityLocationFailed": "Location unavailable",
   "cityNoneNearby": "No city from the list nearby",
+  "officialGroupDepartureCityTitle": "You changed city",
+  "officialGroupDepartureCityBody": "Since {date}, your profile no longer shows {city}. You can leave this group or stay: nothing changes without your say-so.",
+  "@officialGroupDepartureCityBody": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "city": {
+        "type": "String"
+      }
+    }
+  },
   "cityFieldHint": "Search for a city",
   "cityDataCredit": "City list: GeoNames (CC BY 4.0)",
   "cityTypeToSearch": "Type the first letters of your city",

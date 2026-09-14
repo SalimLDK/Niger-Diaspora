@@ -16,15 +16,24 @@ class OfficialGroupDeparture {
   final String groupId;
 
   /// Pays du groupe, que le profil n'indique plus.
+  ///
+  /// Pour un groupe de VILLE, c'est le pays de cette ville — et l'usager y
+  /// habite peut-être toujours. C'est [formerCity] qui nomme alors ce qui est
+  /// quitté ; l'annoncer autrement serait faux.
   final String formerCountry;
 
-  /// Date à laquelle le profil a changé de pays.
+  /// Nom de la ville quittée, figé au moment de la planification. `null` pour
+  /// le départ d'un groupe de pays.
+  final String? formerCity;
+
+  /// Date à laquelle le profil a changé de pays — ou de ville.
   final DateTime changedAt;
 
   const OfficialGroupDeparture({
     required this.groupId,
     required this.formerCountry,
     required this.changedAt,
+    this.formerCity,
   });
 }
 
@@ -45,7 +54,7 @@ class OfficialGroupDepartureDataSource {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) return null;
     final row = await _supabase
         .from('departs_groupe_officiel')
-        .select('group_id, ancien_pays, change_le')
+        .select('group_id, ancien_pays, ancienne_ville, change_le')
         .eq('group_id', groupId)
         .eq('statut', 'a_confirmer')
         .maybeSingle();
@@ -55,6 +64,7 @@ class OfficialGroupDepartureDataSource {
     return OfficialGroupDeparture(
       groupId: row['group_id'] as String,
       formerCountry: row['ancien_pays'] as String,
+      formerCity: row['ancienne_ville'] as String?,
       changedAt: changedAt,
     );
   }
