@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1037 cases à cocher, 552 cochées** — 209 entrées sur 253 ont encore des cases ouvertes.
+**1040 cases à cocher, 552 cochées** — 209 entrées sur 253 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -53,7 +53,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
-- 3 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien-2026-09-14) · *Accueil, profil et réglages* · bloqué
+- 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -276,7 +276,7 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 121 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 44 à faire, 34 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 57 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
@@ -12113,37 +12113,83 @@ Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature 
 
 ---
 
-## ⬜ 🔴 Bloquer un utilisateur ne bloque rien (2026-09-14)
+## ⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)
 
-**Priorité P0** · importance 5/5 — Bloquer quelqu'un n'écrit rien, nulle part : ni dans Firestore, ni dans le miroir Supabase dont dépendent les policies. L'écran affiche la personne comme bloquée sans qu'elle le soit. *Bloqué : deux comptes.*
+**Priorité P0** · importance 5/5 — Bloquer quelqu'un n'écrivait rien, nulle part : ni dans Firestore, ni dans le miroir Supabase dont dépendent les policies. L'écran affichait la personne comme bloquée sans qu'elle le soit. Corrigé le 2026-09-14, **jamais vérifié sur appareil**. *Bloqué : deux comptes.*
 
 Trouvé en cherchant les autres occurrences du défaut qui cassait l'acceptation
 d'une demande d'ami — voir « Accepter une demande d'ami : « Erreur de
-chargement » ». Même fichier de causes, **jamais corrigé** :
+chargement » ». Même fichier de causes :
 `blocked_users_datasource.dart`, `blockUser` et `unblockUser`.
 
-Le lot y contient **deux** écritures condamnées, chacune suffisante à le faire
-échouer en entier :
+**Cause.** Le lot contenait **deux** écritures condamnées, chacune suffisante
+à le faire échouer en entier :
 
-1. `batch.update(users/{moi}, {'blockedUserIds': …})` — un `update` sur un
-   document **absent** échoue en `NOT_FOUND`, indépendamment des règles. Or les
-   documents `users` Firestore ne sont plus créés depuis la migration vers
-   Supabase.
+1. `batch.update(users/{moi}, {'blockedUserIds': …})` — sur un document
+   **absent**, et plus rien ne crée les documents `users` Firestore depuis la
+   migration vers Supabase ;
 2. `batch.set(users/{cible}, {'blockedByUserIds': …}, merge)` — création du
    document d'autrui, refusée par `users/{userId}`.
 
-Et `_refleterDansSupabase` est appelé **après** `batch.commit()` : quand le lot
-lève, le miroir n'est jamais écrit. Les policies RLS qui lisent
-`public.blocked_users` ne voient donc rien non plus. Le blocage est sans effet
-de bout en bout.
+Et `_refleterDansSupabase` était appelé **après** `batch.commit()` : le lot
+levant toujours, le miroir n'était jamais écrit. Les policies RLS qui lisent
+`public.blocked_users` ne voyaient donc rien non plus. Le blocage était sans
+effet de bout en bout.
 
-Ni `blockedUserIds` ni `blockedByUserIds` n'ont de lecteur côté app : le
-`blockedUsersProvider` lit la sous-collection `blocked_users`, et
-`usersWhoBlockedMe` passe par Supabase. Le correctif est le même qu'aux amis —
-retirer les deux écritures de profil — plus l'appel du miroir **avant** ou
-indépendamment du lot.
+**Confirmé par la donnée.** Le balayage d'invariants du 2026-09-14
+(`tools/invariants_donnees.py`, voir « Balayage des invariants de données ») a
+trouvé **0 ligne dans `public.blocked_users`** sur 47 comptes en base. Personne
+n'a jamais réussi à bloquer qui que ce soit.
 
-Non corrigé à ce jour : trouvé en fin de session, hors du lot livré.
+**Correctif.** Les deux écritures de profil sont retirées — aucune n'était
+lue : la liste des bloqués vient de la sous-collection `blocked_users`
+(`blockedUsersProvider`), le sens inverse passe par Supabase
+(`usersWhoBlockedMe`), et `functions/index.js` ne balaie ces tableaux qu'au
+nettoyage de suppression de compte, en Admin SDK. Il ne reste qu'une écriture
+Firestore, dans sa propre sous-collection : plus de lot du tout. Le miroir
+Supabase est maintenant tenté **quoi qu'il arrive** à Firestore, et son échec
+n'est plus avalé par un `debugPrint` — un blocage à moitié posé se dit.
+
+**Mesuré, pas supposé.** `tools/rules_tests/blocage_utilisateur.mjs` rejoue le
+lot sur l'émulateur Firestore avec les règles du dépôt, profil de la cible
+présent **et** absent. Le nouveau parcours passe dans les quatre cas ; l'ancien
+lot est refusé dans trois cas sur quatre, et ne passe que lorsque **les deux**
+profils existent — ce qui ne décrit presque aucun compte.
+
+Le banc corrige au passage une supposition de départ : on attendait un
+`NOT_FOUND` de l'`update` sur le profil absent. Ce n'est pas ce que voit
+l'usager. La règle `allow update` de `users/{userId}` appelle
+`diff(resource.data)`, nul sur un document absent — « Null value error », donc
+`PERMISSION_DENIED` avant d'atteindre le document. Le `NOT_FOUND` n'apparaît
+que règles désactivées (le banc le montre aussi). **Les deux causes rendaient
+donc le même code d'erreur, et aucune retouche des règles n'en aurait sauvé
+une seule** : il fallait retirer les écritures.
+
+`test/features/settings/blocage_utilisateur_test.dart` fige les documents que
+le blocage a le droit de toucher, et l'indépendance des deux moitiés. Sur
+l'ancien code il échoue sur 3 de ses 5 cas, avec le
+`ServerException: Some requested document was not found.` attendu.
+
+**Règles Firestore : rien à déployer.** La seule modification de
+`firestore.rules` est un commentaire — l'exception d'`update` sur
+`blockedByUserIds` n'est plus empruntée par le client et est laissée pour les
+APK déjà installés, sans profit d'ailleurs : leur lot bute un cran plus tôt,
+sur l'`update` de leur propre profil. Production relue le 2026-09-14 par l'API
+`firebaserules` (ruleset `b2645946`, déployé à 20:11 UTC) : **identique au
+fichier versionné hors commentaires**, 955 lignes utiles de part et d'autre.
+
+**Écrans.** Les trois appels au blocage annonçaient déjà l'échec. Le
+quatrième, la case « bloquer aussi » de `report_content_modal.dart`, jetait le
+résultat : le blocage pouvait échouer sous un « Merci pour votre signalement »
+vert. Il dit maintenant que le signalement est parti mais que le blocage n'a
+pas suivi. Au passage, `business_reviews_screen.dart` sort de la liste
+d'exceptions de `test/core/errors/echec_muet_test.dart` — il avait **deux**
+branches muettes (suppression d'un avis, réponse du gérant), pas la seule que
+sa note d'exception décrivait.
+
+*Deux appareils étaient connectés pendant la session, mais rien n'a pu être
+coché : les APK installés sont antérieurs à ce correctif, et les points
+ci-dessous demandent un second compte.*
 
 - [ ] **Bloquer** depuis la fiche de profil : la personne apparaît dans
   Réglages → Utilisateurs bloqués, et **en base** — `users/{moi}/blocked_users`
@@ -12151,6 +12197,15 @@ Non corrigé à ce jour : trouvé en fin de session, hors du lot livré.
 - [ ] **Ses publications disparaissent** du fil (c'est la policy Supabase qui
   tranche, donc le miroir doit être écrit).
 - [ ] **Débloquer** : les deux disparaissent, des deux bases.
+- [ ] **Bloquer depuis un signalement** (case « bloquer aussi ») : la ligne
+  arrive dans les deux bases, et un échec du blocage seul se dit à l'écran
+  sans faire croire que le signalement a échoué.
+- [ ] **Miroir en échec** : couper le réseau juste après avoir bloqué — le
+  message d'erreur doit apparaître, et rebloquer une fois le réseau revenu
+  doit aboutir (les deux écritures sont idempotentes).
+- [ ] **Avis d'un commerce** (`business_reviews_screen.dart`) : supprimer son
+  avis et répondre en tant que gérant annoncent maintenant l'échec autant que
+  le succès — vérifier qu'un refus affiche bien un bandeau rouge.
 
 ## ⬜ Photo de profil : on choisit son cadrage (2026-09-14)
 
@@ -14628,7 +14683,8 @@ Passe du 2026-09-14, 47 comptes en base :
   La RPC `set_event_audience`, elle, est saine (`SECURITY DEFINER`, exceptions
   explicites) — le trou est entre les deux appels, pas dedans.
 - **0 ligne dans `blocked_users`** — confirme par la donnée ce que la lecture
-  du code disait : voir « 🔴 Bloquer un utilisateur ne bloque rien ».
+  du code disait : voir « 🔴 Bloquer un utilisateur ne bloque rien —
+  corrigé », corrigé le 2026-09-14, après ce balayage.
 - **5 comptes sans `auth_mappings`** (sur 47) : le pont Firebase→Supabase n'a
   jamais abouti pour eux. Toute écriture part en `anon`, toute lecture réussit
   à vide au lieu d'échouer.
