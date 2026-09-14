@@ -619,7 +619,16 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 name: name.isEmpty ? '?' : name,
                 photoUrl: profile.photoUrl,
                 onTap:
-                    () => context.push('/messages/new?userId=${profile.id}'),
+                    () => context.push(
+                      '/messages/new?userId=${profile.id}',
+                      // Nom et photo évitent que l'en-tête de la discussion
+                      // s'ouvre sur un libellé de repli le temps du
+                      // chargement ; ils ne font pas autorité.
+                      extra: {
+                        'recipientName': profile.displayName,
+                        'recipientPhotoUrl': profile.photoUrl,
+                      },
+                    ),
               );
             },
           ),
@@ -1179,7 +1188,16 @@ class _EmptyStateSuggestions extends ConsumerWidget {
                   ? l10n.online
                   : (city != null && city.isNotEmpty ? city : 'À proximité'),
           trailing: Icons.send_rounded,
-          onTap: () => context.push('/messages/new?userId=${profile.id}'),
+          // La flèche d'envoi promet d'écrire à cette personne-là : la route
+          // ouvre maintenant la discussion, au lieu du sélecteur générique.
+          onTap:
+              () => context.push(
+                '/messages/new?userId=${profile.id}',
+                extra: {
+                  'recipientName': profile.displayName,
+                  'recipientPhotoUrl': profile.photoUrl,
+                },
+              ),
         ),
       );
     }

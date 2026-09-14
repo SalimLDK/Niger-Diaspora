@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1022 cases à cocher, 552 cochées** — 206 entrées sur 250 ont encore des cases ouvertes.
+**1037 cases à cocher, 552 cochées** — 209 entrées sur 253 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (63)
+**P1 — fonction importante, jamais vérifiée** (65)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -77,6 +77,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
 - 5 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
@@ -102,6 +103,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
+- 3 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
@@ -208,7 +210,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (50)
+**P3 — confort, cosmétique, fonction en pause** (51)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -234,6 +236,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
+- 4 · [⬜ Les pastilles d'accent dans le même ordre qu'aux Réglages (2026-09-14)](#-les-pastilles-daccent-dans-le-même-ordre-quaux-réglages-2026-09-14) · *Design, thème, langue et mise en page*
 - 5 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
 - 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
@@ -264,7 +267,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 175 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 183 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -274,8 +277,8 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 121 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 54 à faire, 40 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 146 à faire, 29 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 57 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -523,6 +526,40 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Trois entrées nommaient une personne et retombaient sur le sélecteur générique, identique au bouton « Nouvelle conversation » : la tuile « écrivez à … » de la messagerie vide (qui porte pourtant une flèche d'envoi), un résultat de recherche « personnes », et le bouton « Contacter » d'une fiche entreprise. Il fallait re-chercher à la main la personne qu'on venait de toucher du doigt.
+
+La route `/messages/new` construisait `const NewConversationScreen()` — un
+écran sans paramètre, qui ne lisait ni `?userId=` ni `state.extra`. Le
+destinataire était donc bien construit par les appelants, puis jeté en silence
+par le routeur ([app_router.dart](lib/core/router/app_router.dart)). L'écran
+accepte maintenant un destinataire et, quand il en reçoit un, se comporte en
+relais : il ouvre la discussion et **se remplace** par elle
+([new_conversation_screen.dart](lib/features/messages/presentation/screens/new_conversation_screen.dart)).
+
+- [ ] **Tuile « écrivez à … »** (messagerie vide) : le tap ouvre directement
+  la discussion avec cette personne — pas le sélecteur. L'en-tête porte son
+  nom et sa photo dès la première frame, sans libellé de repli.
+- [ ] **Résultat de recherche « personnes »** : même comportement.
+- [ ] **« Contacter » sur une fiche entreprise** : ouvre la discussion avec le
+  propriétaire. C'est le seul appelant qui passait par `extra` et non par
+  l'URL — à vérifier séparément, il emprunte l'autre branche du code.
+- [ ] **Retour depuis la discussion ainsi ouverte** : ramène à la liste des
+  messages, **pas** au sélecteur (c'est un `pushReplacement`). Vérifier aussi
+  le retour système Android, pas seulement la flèche.
+- [ ] **Discussion déjà existante** avec cette personne : on retombe dessus
+  avec son historique, aucun doublon créé. À refaire deux fois de suite.
+- [ ] **« Nouvelle conversation » et le crayon de l'en-tête** : inchangés, ils
+  ouvrent toujours le sélecteur générique. C'est la garde symétrique.
+- [ ] **Échec d'ouverture** (mode avion) : le sélecteur reprend la main avec
+  l'erreur — pas d'écran bloqué sur le rond de chargement. Le repli vaut
+  exactement le comportement d'avant le correctif.
+- [ ] **Lien profond `/messages/new?userId=<id>`, pile vide** : la flèche du
+  relais ramène à `/messages` et non dans le vide (voir « Pile vide » au § 7).
 
 ---
 
@@ -12099,6 +12136,11 @@ levant toujours, le miroir n'était jamais écrit. Les policies RLS qui lisent
 `public.blocked_users` ne voyaient donc rien non plus. Le blocage était sans
 effet de bout en bout.
 
+**Confirmé par la donnée.** Le balayage d'invariants du 2026-09-14
+(`tools/invariants_donnees.py`, voir « Balayage des invariants de données ») a
+trouvé **0 ligne dans `public.blocked_users`** sur 47 comptes en base. Personne
+n'a jamais réussi à bloquer qui que ce soit.
+
 **Correctif.** Les deux écritures de profil sont retirées — aucune n'était
 lue : la liste des bloqués vient de la sous-collection `blocked_users`
 (`blockedUsersProvider`), le sens inverse passe par Supabase
@@ -12937,6 +12979,26 @@ directement sur la section APPLICATION.
 # 12. Design, thème, langue et mise en page
 
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
+
+---
+
+## ⬜ Les pastilles d'accent dans le même ordre qu'aux Réglages (2026-09-14)
+
+**Priorité P3** · importance 2/5 — Le même réglage était présenté dans deux ordres opposés : Orange puis Vert à l'étape 4/4 de la configuration du profil, Vert puis Orange dans les Réglages. L'onboarding s'aligne sur les Réglages ([profile_config_screen.dart](lib/features/profile/presentation/screens/profile_config_screen.dart)).
+
+- [ ] **Configuration du profil, étape 4/4** : Vert en première position,
+  Orange en seconde.
+- [ ] **Réglages → thème** : l'ordre y est identique, les deux écrans se
+  lisent pareil.
+- [ ] **La sélection suit toujours la bonne pastille** : toucher Orange
+  sélectionne Orange (c'est la régression qu'un échange de positions invite —
+  les `isSelected` ont bougé avec leur widget, à confirmer à l'œil).
+- [ ] **Les trois vignettes Clair / Sombre / AUTO** affichent une barre
+  **orange** quel que soit l'accent choisi : observé sur Pixel le 2026-09-14
+  avec un compte en Vert. Les valeurs sont écrites en dur
+  (`AppColors.primaryDark` / `primaryLight`) et ne suivent pas l'accent —
+  juger si c'est voulu (la vignette illustre clair/sombre) ou si elle doit
+  porter l'accent du compte. **Non corrigé.**
 
 ---
 
@@ -14567,6 +14629,60 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+
+## ⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Deux écritures n'ont pas eu lieu, sans erreur nulle part : deux amitiés à sens unique (une personne ne voit pas les publications « Amis » de deux autres) et un événement restreint à un ensemble vide (visible de personne). *Bloqué pour la réparation : décision de Salim, ce sont des écritures en production.*
+
+`tools/invariants_donnees.py` — la contrepartie Supabase du banc de règles.
+Côté Firestore on rejoue l'écriture pour voir si elle passe ; côté Supabase
+**l'écriture ne dit rien** (un `UPDATE` qui ne matche aucune ligne rend 200,
+une lecture refusée par la RLS réussit à vide), donc on vérifie la **forme de
+la donnée**. Le script découvre le schéma réel avant de composer ses questions
+— plusieurs tables n'existent dans aucune migration — et sépare les
+**conditions** (doivent valoir 0) des **mesures** (à lire, jamais un verdict).
+
+```bash
+python tools/invariants_donnees.py
+```
+
+Passe du 2026-09-14, 47 comptes en base :
+
+- 🔴 **2 amitiés à sens unique** sur 8 lignes. Même `user_id` des deux côtés,
+  créées le 2026-09-13 — le jour de la reprise. `est_ami_de(auteur, lecteur)`
+  exige `friends.user_id = auteur` : ce compte **ne voit pas** les publications
+  « Amis » des deux autres, et eux voient les siennes. Les trois comptes
+  existent bien dans `public.users`, donc le garde « absent de public.users »
+  de `setFriendship` n'est pas en cause. Origine exacte non tranchée : il
+  faudrait lire les sous-collections Firestore, ce que le classificateur de
+  permissions a refusé.
+- 🔴 **1 événement `visibility = 'people'` avec 0 ligne d'audience**, créé le
+  2026-09-14 (1 inscrit, l'organisateur). `createEvent` écrit `visibility` sur
+  la ligne, puis `setEventAudience` est un **appel séparé** : PostgREST n'a
+  aucune atomicité entre deux appels, donc l'événement reste restreint à un
+  ensemble vide si le second ne part pas, échoue, ou part avec une liste vide.
+  La RPC `set_event_audience`, elle, est saine (`SECURITY DEFINER`, exceptions
+  explicites) — le trou est entre les deux appels, pas dedans.
+- **0 ligne dans `blocked_users`** — confirme par la donnée ce que la lecture
+  du code disait : voir « 🔴 Bloquer un utilisateur ne bloque rien —
+  corrigé », corrigé le 2026-09-14, après ce balayage.
+- **5 comptes sans `auth_mappings`** (sur 47) : le pont Firebase→Supabase n'a
+  jamais abouti pour eux. Toute écriture part en `anon`, toute lecture réussit
+  à vide au lieu d'échouer.
+- **Dérive de schéma relevée au passage** : `event_attendees.status` est
+  déclaré par `20260522223150_initial_schema.sql` mais **absent de la base**.
+  L'invariant qui en dépend est sauté, en le disant.
+- Sains : groupes (membres, créateur, `member_count`), sondages sans option,
+  stories « amis proches », `like_count` et `comment_count` du fil.
+
+- [ ] **Réparer les 2 amitiés** (écriture en production, à décider) : soit
+  compléter le côté manquant, soit supprimer les lignes orphelines. Vérifier
+  d'abord l'état Firestore, qui reste la source.
+- [ ] **Événement à audience vide** : reproduire — créer un événement
+  « Personnes choisies » sans choisir personne, et voir si le formulaire le
+  laisse passer. Puis décider si la validation va dans l'écran ou dans la RPC.
+- [ ] **Relancer le balayage après chaque lot** qui touche une écriture en
+  deux temps, et y ajouter l'invariant correspondant.
 
 ## Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)
 
