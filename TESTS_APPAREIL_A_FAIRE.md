@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1034 cases à cocher, 552 cochées** — 208 entrées sur 252 ont encore des cases ouvertes.
+**1037 cases à cocher, 552 cochées** — 209 entrées sur 253 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (64)
+**P1 — fonction importante, jamais vérifiée** (65)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -103,6 +103,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
+- 3 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
@@ -277,7 +278,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 44 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 54 à faire, 40 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 57 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -14592,6 +14593,59 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+
+## ⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Deux écritures n'ont pas eu lieu, sans erreur nulle part : deux amitiés à sens unique (une personne ne voit pas les publications « Amis » de deux autres) et un événement restreint à un ensemble vide (visible de personne). *Bloqué pour la réparation : décision de Salim, ce sont des écritures en production.*
+
+`tools/invariants_donnees.py` — la contrepartie Supabase du banc de règles.
+Côté Firestore on rejoue l'écriture pour voir si elle passe ; côté Supabase
+**l'écriture ne dit rien** (un `UPDATE` qui ne matche aucune ligne rend 200,
+une lecture refusée par la RLS réussit à vide), donc on vérifie la **forme de
+la donnée**. Le script découvre le schéma réel avant de composer ses questions
+— plusieurs tables n'existent dans aucune migration — et sépare les
+**conditions** (doivent valoir 0) des **mesures** (à lire, jamais un verdict).
+
+```bash
+python tools/invariants_donnees.py
+```
+
+Passe du 2026-09-14, 47 comptes en base :
+
+- 🔴 **2 amitiés à sens unique** sur 8 lignes. Même `user_id` des deux côtés,
+  créées le 2026-09-13 — le jour de la reprise. `est_ami_de(auteur, lecteur)`
+  exige `friends.user_id = auteur` : ce compte **ne voit pas** les publications
+  « Amis » des deux autres, et eux voient les siennes. Les trois comptes
+  existent bien dans `public.users`, donc le garde « absent de public.users »
+  de `setFriendship` n'est pas en cause. Origine exacte non tranchée : il
+  faudrait lire les sous-collections Firestore, ce que le classificateur de
+  permissions a refusé.
+- 🔴 **1 événement `visibility = 'people'` avec 0 ligne d'audience**, créé le
+  2026-09-14 (1 inscrit, l'organisateur). `createEvent` écrit `visibility` sur
+  la ligne, puis `setEventAudience` est un **appel séparé** : PostgREST n'a
+  aucune atomicité entre deux appels, donc l'événement reste restreint à un
+  ensemble vide si le second ne part pas, échoue, ou part avec une liste vide.
+  La RPC `set_event_audience`, elle, est saine (`SECURITY DEFINER`, exceptions
+  explicites) — le trou est entre les deux appels, pas dedans.
+- **0 ligne dans `blocked_users`** — confirme par la donnée ce que la lecture
+  du code disait : voir « 🔴 Bloquer un utilisateur ne bloque rien ».
+- **5 comptes sans `auth_mappings`** (sur 47) : le pont Firebase→Supabase n'a
+  jamais abouti pour eux. Toute écriture part en `anon`, toute lecture réussit
+  à vide au lieu d'échouer.
+- **Dérive de schéma relevée au passage** : `event_attendees.status` est
+  déclaré par `20260522223150_initial_schema.sql` mais **absent de la base**.
+  L'invariant qui en dépend est sauté, en le disant.
+- Sains : groupes (membres, créateur, `member_count`), sondages sans option,
+  stories « amis proches », `like_count` et `comment_count` du fil.
+
+- [ ] **Réparer les 2 amitiés** (écriture en production, à décider) : soit
+  compléter le côté manquant, soit supprimer les lignes orphelines. Vérifier
+  d'abord l'état Firestore, qui reste la source.
+- [ ] **Événement à audience vide** : reproduire — créer un événement
+  « Personnes choisies » sans choisir personne, et voir si le formulaire le
+  laisse passer. Puis décider si la validation va dans l'écran ou dans la RPC.
+- [ ] **Relancer le balayage après chaque lot** qui touche une écriture en
+  deux temps, et y ajouter l'invariant correspondant.
 
 ## Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)
 
