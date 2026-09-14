@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**934 cases à cocher, 516 cochées** — 189 entrées sur 233 ont encore des cases ouvertes.
+**933 cases à cocher, 518 cochées** — 189 entrées sur 233 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (20)
 
-- 9 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
+- 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
@@ -247,7 +247,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 148 à faire, 61 faites
+- [2. Messagerie](#2-messagerie) — 147 à faire, 63 faites
 - [3. Groupes](#3-groupes) — 115 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -520,12 +520,39 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 `messageFailureStreamProvider` n'avaient **aucun appelant**. Seul `enqueue`
 était branché, sur l'envoi de texte hors ligne.
 
-- [ ] **Écrire un message hors ligne**, quitter l'écran, y revenir : il est
-      toujours là, marqué en échec, avec « Renvoyer ».
+- [x] **Écrire un message hors ligne**, quitter l'écran, y revenir : il est
+      toujours là, marqué en échec, avec « Renvoyer ». Vérifié SM A515F le
+      2026-09-14 : `FILE-ATTENTE-2` écrit radios coupées, écran quitté 18 s
+      (au-delà des 5 s de grâce de l'`autoDispose`), toujours présent au
+      retour — « ⚠ Non envoyé · Réessayer ».
       (`message_provider.dart`, `_avecMessagesJamaisPartis`)
+- [x] **Renvoi manuel** : l'appui sur « Réessayer » envoie le message et la
+      bulle passe à « Reçu ». Vérifié le 2026-09-14, une seule ligne en base,
+      **aucun doublon**.
 - [ ] **Rétablir le réseau sans rien toucher** : il part seul, et la ligne de
       la liste se met à jour. (`RenvoiMessagesEnAttente`, tenu en vie par
       `app.dart`)
+
+      ⛔ **A ÉCHOUÉ au premier essai (2026-09-14), correctif posé, non
+      revérifié.** Une minute après le retour du réseau, rien n'était parti.
+      La cause n'est pas le renvoi mais son **déclencheur** :
+      `ConnectivityService.isConnected` vaut `!results.contains(none)`, et
+      `connectivity_plus` liste `vpn` tant que le tunnel est debout. Le
+      SM A515F porte un VPN permanent : couper les deux radios laisse donc
+      l'app **se croire en ligne**, aucune transition `false → true` n'est
+      émise au retour, et le déclencheur ne part jamais. Même illusion avec un
+      portail captif. Ajout d'un battement de 60 s qui ne demande rien à
+      personne (`RenvoiMessagesEnAttente.intervalleDeControle`) — c'est lui
+      qu'il faut vérifier.
+
+      ⚠️ **Et ça condamne la méthode de test elle-même** : `svc wifi disable`
+      + `svc data disable` ne rend pas l'app hors ligne **à ses propres yeux**
+      tant que le VPN tient. Pour éprouver un chemin qui dépend de
+      `connectivityNotifierProvider`, il faut le **mode avion** (qui, lui,
+      couche le tunnel) — ou couper le VPN d'abord. Ce détour explique aussi
+      pourquoi les points ci-dessus ont réussi : le message n'est jamais passé
+      par la branche « hors ligne », il a pris le chemin normal, a échoué, et
+      c'est l'accroche sur l'échec qui l'a sauvé.
 - [ ] **Tuer l'app entre les deux**, puis la rouvrir en ligne : il part au
       démarrage — le renvoi ne dépend pas d'une transition de connectivité.
 - [ ] **Une réponse citée et une carte de publication** écrites hors ligne
