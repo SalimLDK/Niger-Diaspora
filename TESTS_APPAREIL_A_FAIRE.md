@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1027 cases à cocher, 552 cochées** — 207 entrées sur 251 ont encore des cases ouvertes.
+**1031 cases à cocher, 552 cochées** — 208 entrées sur 252 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -209,7 +209,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (50)
+**P3 — confort, cosmétique, fonction en pause** (51)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -235,6 +235,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
+- 4 · [⬜ Les pastilles d'accent dans le même ordre qu'aux Réglages (2026-09-14)](#-les-pastilles-daccent-dans-le-même-ordre-quaux-réglages-2026-09-14) · *Design, thème, langue et mise en page*
 - 5 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
 - 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
@@ -275,7 +276,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 121 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 44 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 146 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 54 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -12922,6 +12923,26 @@ directement sur la section APPLICATION.
 # 12. Design, thème, langue et mise en page
 
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
+
+---
+
+## ⬜ Les pastilles d'accent dans le même ordre qu'aux Réglages (2026-09-14)
+
+**Priorité P3** · importance 2/5 — Le même réglage était présenté dans deux ordres opposés : Orange puis Vert à l'étape 4/4 de la configuration du profil, Vert puis Orange dans les Réglages. L'onboarding s'aligne sur les Réglages ([profile_config_screen.dart](lib/features/profile/presentation/screens/profile_config_screen.dart)).
+
+- [ ] **Configuration du profil, étape 4/4** : Vert en première position,
+  Orange en seconde.
+- [ ] **Réglages → thème** : l'ordre y est identique, les deux écrans se
+  lisent pareil.
+- [ ] **La sélection suit toujours la bonne pastille** : toucher Orange
+  sélectionne Orange (c'est la régression qu'un échange de positions invite —
+  les `isSelected` ont bougé avec leur widget, à confirmer à l'œil).
+- [ ] **Les trois vignettes Clair / Sombre / AUTO** affichent une barre
+  **orange** quel que soit l'accent choisi : observé sur Pixel le 2026-09-14
+  avec un compte en Vert. Les valeurs sont écrites en dur
+  (`AppColors.primaryDark` / `primaryLight`) et ne suivent pas l'accent —
+  juger si c'est voulu (la vignette illustre clair/sombre) ou si elle doit
+  porter l'accent du compte. **Non corrigé.**
 
 ---
 
