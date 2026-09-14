@@ -21,6 +21,9 @@ abstract class EventRepository {
     String eventId,
     EventAudience audience,
   );
+
+  /// L'audience enregistrée, pour la relire et la modifier.
+  Future<Either<Failure, EventAudience>> getEventAudience(String eventId);
   Future<Either<Failure, EventEntity>> updateEvent(EventEntity event);
   Future<Either<Failure, void>> deleteEvent(String eventId);
   Future<Either<Failure, void>> attendEvent(String eventId, String userId);

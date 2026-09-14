@@ -48,10 +48,41 @@ serveur est déployée et peuplée — 49 appareils, 39 jeux de clés, 4 581 pr�
 
 Le compteur qui compte vaut **0**.
 
-Le chemin réel (`MessageCryptoService.encrypt1to1`) retombe sur AES dès
-qu'aucune session Signal n'est établie, et aucune ne l'est jamais. Le code est
-complet, testé, jamais emprunté. Même famille que `MediaEncryptionService`
-(0 appelant, cf. `CHIFFREMENT_MEDIAS_PLAN.md`).
+Le code est complet, testé, jamais emprunté. Même famille que
+`MediaEncryptionService` (0 appelant, cf. `CHIFFREMENT_MEDIAS_PLAN.md`).
+
+### Et la cause n'est pas cryptographique — c'est un cycle de vie Riverpod
+
+Établi par instrumentation sur appareil le 2026-09-14 (commit `7bb2e78`, motif
+écrit en base) : `encrypt1to1` rapporte **`e2ee_non_initialise`**. Il saute
+donc tout le bloc Signal sans même regarder les clés du destinataire — ce qui
+explique que les clés soient parfaitement publiées pendant que rien ne tente
+jamais Signal.
+
+Mécanisme : `messagingE2EEServiceProvider` est un `Provider` simple, mais qui
+**observe** `keyManagerServiceProvider` et `secureKeyStorageProvider`.
+L'invalidation de l'un reconstruit le service, `_isInitialized` repart à
+`false`, et personne ne le rejoue — `E2EEBackupCoordinator.bootstrap` pose son
+garde `_bootstrappedFor` **avant** son `try` et sort immédiatement aux appels
+suivants. Un garde jamais remis fige l'état, sans journal.
+
+**C'est la leçon la plus transposable de tout ce document, et elle vaut plus
+que le choix du protocole.** Le chiffrement n'a pas échoué : il n'a jamais été
+appelé. Aucun test unitaire ne pouvait le voir, aucune revue de code non plus,
+et `debugPrint` ne remonte pas dans logcat sur un build release — il a fallu
+écrire le motif de repli **en base** pour l'apprendre.
+
+Trois règles en découlent pour le moteur MLS, à poser dès la première ligne :
+
+1. **Le moteur MLS ne doit pas être un `Provider` qui en observe d'autres.**
+   Une instance longue durée, ou un rattrapage au point d'usage — comme
+   `EncryptionService._ensureInitialized` le fait déjà.
+2. **Un repli silencieux est interdit.** Si MLS ne peut pas chiffrer, l'envoi
+   échoue visiblement. C'est le repli muet qui a rendu la panne invisible
+   pendant des semaines : tout marchait, en clair.
+3. **Le motif d'échec s'écrit en base, pas dans les journaux.** La colonne de
+   diagnostic fait partie du schéma `mls_messages` dès la phase 5, pas d'un
+   correctif ultérieur.
 
 **C'est le risque numéro un du chantier MLS, avant tout risque technique :**
 construire, en plus gros et en Rust, une seconde infrastructure que le chemin
@@ -310,7 +341,11 @@ Puis les cas méchants, qui sont le vrai contenu de cette phase :
 - appareil **retiré**, puis qui rejoue un vieux message ;
 - **réinstallation** de l'app : état MLS perdu, que voit l'utilisateur ;
 - reconnexion après coupure — le **rattrapage temps réel** (≈ 15 s, vérifié
-  device) doit continuer de fonctionner sur le flux MLS.
+  device) doit continuer de fonctionner sur le flux MLS ;
+- **le moteur détruit et recréé au milieu d'une session** — le cas exact qui a
+  tué le chantier Signal (§ 1). Le banc doit invalider le moteur entre deux
+  envois et vérifier que le second part quand même en MLS, ou échoue
+  visiblement. Jamais qu'il retombe en clair.
 
 C'est la phase qui fait la différence avec le chantier Signal. Elle doit exister
 **avant le premier écran**.

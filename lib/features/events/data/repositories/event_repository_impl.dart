@@ -146,6 +146,17 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
+  Future<Either<Failure, EventAudience>> getEventAudience(
+    String eventId,
+  ) async {
+    try {
+      return Right(await remoteDataSource.getEventAudience(eventId));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+
+  @override
   Future<Either<Failure, EventEntity>> updateEvent(EventEntity event) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));

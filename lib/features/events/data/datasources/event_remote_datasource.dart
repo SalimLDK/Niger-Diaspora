@@ -5,6 +5,7 @@ import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/connectivity_service.dart';
+import '../../domain/entities/event_audience.dart';
 import '../models/event_model.dart';
 
 abstract class EventRemoteDataSource {
@@ -26,6 +27,16 @@ abstract class EventRemoteDataSource {
     List<String> groupIds = const [],
     List<String> userIds = const [],
   });
+
+  /// L'audience telle qu'elle est enregistrée, pour la **relire**.
+  ///
+  /// Elle ne l'était par personne : le sélecteur ne vivait que dans l'écran de
+  /// création, aucune ligne de l'app ne lisait `event_audience`, et
+  /// `EventEntity` ne porte même pas `visibility`. Une audience se choisissait
+  /// donc une fois, à la création, et ne pouvait plus jamais être ni relue ni
+  /// changée — pas même par l'organisateur. Trouvé le 2026-09-14 en cherchant
+  /// qui pouvait réparer un événement restreint à un ensemble vide : personne.
+  Future<EventAudience> getEventAudience(String eventId);
   Future<EventModel> updateEvent(EventModel event);
   Future<void> deleteEvent(String eventId);
   Future<void> attendEvent(String eventId, String userId);
@@ -271,6 +282,14 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
     List<String> userIds = const [],
   }) async {
     // Firestore n'est plus câblé (voir `eventRemoteDataSource`) : rien à faire.
+  }
+
+  @override
+  Future<EventAudience> getEventAudience(String eventId) async {
+    // Idem : l'audience vit dans Postgres, pas ici. On rend la valeur la plus
+    // prudente plutôt que de lever — l'écran affiche alors « public », qui est
+    // ce que la base dérive de `isPublic` pour les événements d'avant.
+    return const EventAudience(visibility: EventVisibility.public);
   }
 
   @override

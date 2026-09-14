@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1053 cases à cocher, 556 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
+**1055 cases à cocher, 557 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -105,7 +105,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
-- 3 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
+- 5 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
@@ -281,7 +281,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 60 à faire, 44 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -14877,9 +14877,32 @@ Passe du 2026-09-14, 47 comptes en base :
   choisir quelqu'un, puis tout décocher et valider — le formulaire doit
   refuser. Puis vérifier qu'un échec d'audience affiche bien le message rouge
   « personne d'autre que vous ne le voit ».
+- [ ] **Modifier l'audience après coup** : ouvrir un événement dont on est
+  l'organisateur → Modifier → le sélecteur doit être **pré-rempli** avec
+  l'audience réelle (et non « Public » par défaut), en changer les invités,
+  enregistrer, rouvrir : le choix tient. Les personnes ajoutées reçoivent la
+  notification d'invitation que pose `set_event_audience`.
+- [ ] **Bandeau d'avertissement** : sur un événement restreint à une audience
+  vide, l'organisateur voit le bandeau rouge « Personne d'autre que vous ne
+  voit cet événement » ; les autres comptes ne voient rien (et pour cause, ils
+  ne voient pas l'événement).
+- [x] **🔴 L'audience était écrite une fois et plus jamais relue — corrigé.**
+  En cherchant qui pouvait réparer l'événement fautif, la réponse était :
+  **personne**. `EventAudiencePicker` ne vivait que dans l'écran de création,
+  aucune ligne de l'app ne lisait `event_audience`, et `EventEntity` ne porte
+  toujours pas `visibility`. Une limite du produit, indépendante du bug : on ne
+  pouvait pas ajouter quelqu'un à un événement qu'on avait créé.
+  Posé : `getEventAudience` de la base au dépôt, `eventAudienceProvider`
+  (provider simple, sans codegen — `build_runner` réécrit ~120 fichiers pour
+  rien ici), le sélecteur dans l'écran de modification avec pré-remplissage et
+  la même garde d'audience vide qu'à la création, et un bandeau rouge sur la
+  fiche vue par l'organisateur quand son événement n'est visible de personne.
+  Ni l'entité ni le modèle ne bougent.
 - [ ] **L'événement fautif de production** (`fea8bc43…`, organisateur
-  `mz4JJ8Fh…`) est **toujours invisible** : la correction empêche les suivants,
-  elle ne répare pas celui-là. Décider — le supprimer, ou le passer en public.
+  `mz4JJ8Fh…`) est toujours invisible, mais **son auteur peut désormais le
+  réparer lui-même** depuis l'écran de modification. Rien à écrire en base :
+  on ne devine pas à sa place qui il voulait inviter. Vérifier sur appareil que
+  le bandeau apparaît bien et que le sélecteur enregistre.
 - [ ] **Relancer le balayage après chaque lot** qui touche une écriture en
   deux temps, et y ajouter l'invariant correspondant.
 
