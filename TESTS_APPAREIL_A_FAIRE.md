@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**895 cases à cocher, 506 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
+**898 cases à cocher, 506 cochées** — 183 entrées sur 227 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -93,7 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
-- 6 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
+- 9 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
@@ -242,7 +242,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 129 à faire, 54 faites
-- [3. Groupes](#3-groupes) — 107 à faire, 52 faites
+- [3. Groupes](#3-groupes) — 110 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
@@ -2400,6 +2400,35 @@ Changer de pays ne faisait pas quitter le groupe officiel de l'ancien pays
 2026-09-12 (`20260912200000`, `20260912220000`, dans d'autres worktrees) sont
 désormais antérieures à la dernière appliquée : leur `db push` demandera
 `--include-all`.
+
+**Étendu aux groupes de ville le 2026-09-14.** Déménager de Montréal à
+Toronto propose de quitter « — Montréal » à six mois, sans toucher au groupe
+du Canada. Trois défauts que l'arrivée des groupes de ville révélait ont été
+corrigés avant livraison, dont un qui aurait rendu la fonction muette : la
+garde « revenu dans le pays » annulait les départs dont le groupe porte le
+pays du profil — et un groupe de ville porte le pays de sa ville. Le départ
+de Montréal s'annulait donc au premier enregistrement de profil venu,
+l'usager étant toujours au Canada. Sept cas rejoués en base, transaction
+annulée.
+
+Pour provoquer une proposition sans attendre six mois :
+
+```sql
+UPDATE public.departs_groupe_officiel
+   SET proposer_apres = now() - interval '1 day'
+ WHERE user_id = '<uid>' AND statut = 'en_attente';
+SELECT public.proposer_departs_groupes_officiels();
+```
+
+- [ ] **Sur appareil** : après un changement de ville et la proposition
+  provoquée, la fiche du groupe de l'ancienne ville affiche « Vous avez
+  changé de **ville** » et nomme la **ville** quittée — pas « changé de pays »
+  ni le nom du pays, qui seraient l'un et l'autre faux puisque l'usager n'a
+  pas quitté le pays.
+- [ ] **Sur appareil** : le groupe du PAYS n'affiche aucune carte de départ
+  dans ce cas.
+- [ ] **Sur appareil** : revenir à l'ancienne ville fait disparaître la carte
+  sans rien demander.
 
 ---
 
