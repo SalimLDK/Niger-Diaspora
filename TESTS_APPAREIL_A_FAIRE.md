@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**912 cases à cocher, 516 cochées** — 186 entrées sur 230 ont encore des cases ouvertes.
+**918 cases à cocher, 516 cochées** — 187 entrées sur 231 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (18)
+**P0 — avant toute nouvelle version** (19)
 
+- 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
@@ -244,7 +245,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 133 à faire, 61 faites
+- [2. Messagerie](#2-messagerie) — 139 à faire, 61 faites
 - [3. Groupes](#3-groupes) — 115 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -503,6 +504,42 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Trois chemins laissaient l'écran de discussion sur sa copie locale sans plus rien écouter, dont un qui **écrase le cache** avec du vide.
+
+*Bloqué : deux comptes, et de quoi couper le réseau.*
+
+Trouvé en essayant de tester le rattrapage en discussion ouverte, et c'est ce
+qui empêchait ce test d'aboutir : `_loadNetworkData()` sortait avant de poser
+les abonnements temps réel, donc le rattrapage ne pouvait pas exister.
+
+- [ ] **Discussion ouverte PENDANT que l'appareil est hors ligne**, puis retour
+      du réseau : les messages arrivés entre-temps s'affichent seuls. Avant, la
+      sortie anticipée sur `isOffline` ne posait **aucun écouteur** et rien ne
+      la relançait — l'écran restait figé jusqu'à ce qu'on ressorte et rentre.
+      (`message_provider.dart`, `_loadNetworkData`)
+- [ ] **Démarrage à froid directement dans une discussion** (notification, lien
+      profond, restauration de route) : la discussion se remplit. La session
+      Supabase n'est pas encore établie à cet instant, et `messages_select`
+      étant de rôle `public`, la lecture **réussissait à vide** — le repository
+      mettait ce vide en cache par-dessus la vraie discussion.
+      (`message_supabase_datasource.dart`, garde `_ensureReadableAuth`)
+- [ ] **Vérifier qu'aucune discussion n'a été vidée** par ce chemin avant le
+      correctif : ouvrir les discussions anciennes et confirmer que l'historique
+      est là. Le cache est local, donc le dégât éventuel est sur l'appareil,
+      pas en base.
+- [ ] **Lecture réseau en échec avec un cache non vide** (réseau très dégradé) :
+      l'écran garde la discussion lisible, et une relance finit par aboutir —
+      deux essais, à 4 s puis 10 s.
+- [ ] **Pas de relance en boucle** : rester hors ligne plusieurs minutes sur
+      une discussion ne doit pas produire une requête toutes les secondes
+      (`adb logcat`, ou compteur de requêtes côté Supabase).
+- [ ] **« Vider la discussion »** continue de fonctionner : une discussion
+      réellement vidée doit rester vide, la garde ne doit pas la repeupler.
 
 ---
 
