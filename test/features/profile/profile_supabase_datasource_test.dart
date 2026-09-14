@@ -44,7 +44,7 @@ void main() {
             isA<ServerException>().having(
               (e) => e.message,
               'message',
-              contains('Session Supabase'),
+              contains('Session non établie'),
             ),
           ),
         );
@@ -88,7 +88,7 @@ void main() {
           isA<ServerException>().having(
             (e) => e.message,
             'message',
-            contains('Session Supabase'),
+            contains('Session non établie'),
           ),
         ),
       );
