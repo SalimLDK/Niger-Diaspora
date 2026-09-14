@@ -100,11 +100,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Le fil vit dans une branche d'`IndexedStack` : passer aux Messages ne
-    // démonte pas cet écran, il reste là, invisible. `TickerMode` est
-    // justement ce que go_router coupe pour la branche inactive — c'est donc
-    // lui qui dit « on me regarde », et il évite d'interroger le réseau
-    // toutes les minutes depuis un onglet qu'on ne voit pas.
+    // Cet écran reste monté sous les écrans qu'on ouvre depuis lui (détail
+    // d'une publication, rédaction) : sans garde, il continuerait d'interroger
+    // le réseau toutes les minutes par-dessous. `TickerMode` est exactement ce
+    // signal — l'`Overlay` le coupe pour toute route passée sous une route
+    // opaque, et go_router fait de même pour la branche inactive d'un
+    // `IndexedStack` si le fil devient un jour un onglet du shell.
     _majVisibilite(TickerMode.valuesOf(context).enabled);
   }
 
