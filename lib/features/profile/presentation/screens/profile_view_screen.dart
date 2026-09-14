@@ -220,6 +220,29 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     }
   }
 
+  /// Dit l'issue d'une réponse à une demande d'ami, succès **comme** échec.
+  ///
+  /// Les deux boutons du bas de cet écran n'affichaient un message que sur
+  /// succès : `acceptRequest` rend `false` sans lever quand le dépôt renvoie un
+  /// `Left`, donc le `catch` juste en dessous ne voyait rien passer et l'écran
+  /// restait muet. Un refus de permission Firestore se lisait comme un tap qui
+  /// n'avait pas pris.
+  void _annoncerReponseAmi(
+    BuildContext context,
+    WidgetRef ref,
+    bool succes,
+    String messageSucces, {
+    Color couleurSucces = AppColors.error,
+  }) {
+    final erreur = ref.read(friendRequestNotifierProvider).error;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(succes ? messageSucces : messageErreurUsager(erreur)),
+        backgroundColor: succes ? couleurSucces : AppColors.error,
+      ),
+    );
+  }
+
   Future<void> _blockUser(ProfileEntity profile) async {
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
@@ -1323,16 +1346,12 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                             senderId: widget.userId,
                                           );
 
-                                      if (context.mounted && success) {
-                                        ScaffoldMessenger.of(
+                                      if (context.mounted) {
+                                        _annoncerReponseAmi(
                                           context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              l10n.profileRequestDeclined,
-                                            ),
-                                            backgroundColor: AppColors.error,
-                                          ),
+                                          ref,
+                                          success,
+                                          l10n.profileRequestDeclined,
                                         );
                                       }
                                     } on StateError {
@@ -1397,16 +1416,13 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                             senderId: widget.userId,
                                           );
 
-                                      if (context.mounted && success) {
-                                        ScaffoldMessenger.of(
+                                      if (context.mounted) {
+                                        _annoncerReponseAmi(
                                           context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              l10n.profileRequestAccepted,
-                                            ),
-                                            backgroundColor: AppColors.success,
-                                          ),
+                                          ref,
+                                          success,
+                                          l10n.profileRequestAccepted,
+                                          couleurSucces: AppColors.success,
                                         );
                                       }
                                     } on StateError {
@@ -1423,15 +1439,21 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                         );
                                       }
                                     } catch (e) {
+                                      // `profileAcceptError(e.toString())`
+                                      // rendait le message brut : le chemin du
+                                      // document Firestore, et l'uid du
+                                      // compte, à qui regarde l'écran. Le lot
+                                      // « plus aucune exception affichée à
+                                      // l'usager » (52316b4) avait corrigé le
+                                      // bouton « Refuser » juste à côté, pas
+                                      // celui-ci.
                                       if (context.mounted) {
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                              l10n.profileAcceptError(
-                                                e.toString(),
-                                              ),
+                                              messageErreurUsager(e),
                                             ),
                                             backgroundColor: AppColors.error,
                                           ),
