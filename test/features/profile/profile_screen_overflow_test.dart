@@ -7,10 +7,8 @@ import 'package:diaspo_niger/core/theme/app_theme.dart';
 import 'package:diaspo_niger/features/auth/domain/entities/user_entity.dart';
 import 'package:diaspo_niger/features/auth/presentation/providers/auth_provider.dart';
 import 'package:diaspo_niger/features/auth/presentation/providers/auth_state.dart';
-import 'package:diaspo_niger/features/feed/presentation/screens/my_posts_screen.dart'
-    show userPostsCountProvider;
-import 'package:diaspo_niger/features/feed/presentation/screens/saved_posts_screen.dart'
-    show bookmarkedPostsCountProvider;
+import 'package:diaspo_niger/features/feed/presentation/providers/feed_provider.dart'
+    show userPostsCountProvider, bookmarkedPostsCountProvider;
 import 'package:diaspo_niger/features/profile/presentation/screens/profile_screen.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 

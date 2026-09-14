@@ -579,6 +579,7 @@ class FeedNotifier extends Notifier<FeedState> {
       },
       (created) {
         state = state.copyWith(posts: [created, ...state.posts]);
+        _rafraichitMesPublications();
         return created;
       },
     );
@@ -628,6 +629,7 @@ class FeedNotifier extends Notifier<FeedState> {
           pendingPosts:
               state.pendingPosts.where((p) => p.id != postId).toList(),
         );
+        _rafraichitMesPublications();
         return true;
       },
     );
@@ -666,7 +668,7 @@ class FeedNotifier extends Notifier<FeedState> {
   }
 
   Future<void> toggleBookmark(String postId) async {
-    final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final userId = ref.read(currentUidProvider)() ?? '';
     if (userId.isEmpty) return;
     final isCurrentlyBookmarked = state.bookmarkedPostIds.contains(postId);
     final newBookmarkIds = Set<String>.from(state.bookmarkedPostIds);
@@ -677,6 +679,18 @@ class FeedNotifier extends Notifier<FeedState> {
     }
     state = state.copyWith(bookmarkedPostIds: newBookmarkIds);
     await _repo.toggleBookmark(postId, userId);
+    // « Enregistrés » (Mon espace, Profil) compte les favoris en base, pas
+    // `bookmarkedPostIds` : sans ça le chiffre restait celui de l'ouverture.
+    ref.invalidate(bookmarkedPostsCountProvider);
+  }
+
+  /// Recalcule les chiffres tirés de mes publications après en avoir ajouté ou
+  /// retiré une. Ces providers sont `autoDispose`, mais Mon espace et le Profil
+  /// restent montés sous l'écran de rédaction : sans invalidation explicite,
+  /// personne ne les relâche et le compteur garde sa valeur d'avant.
+  void _rafraichitMesPublications() {
+    ref.invalidate(userPostsCountProvider);
+    ref.invalidate(myPostsProvider);
   }
 
   /// Repartage simple (toggle) : ajoute ou retire le post de mes repartages.
@@ -762,6 +776,36 @@ class FeedNotifier extends Notifier<FeedState> {
       );
     } catch (_) {}
     await _repo.trackExternalShare(postId);
+    // Le compteur de partages de la carte est tenu par la base : sans cette
+    // relecture il ne bougeait qu'au prochain rechargement du fil.
+    unawaited(syncCounts(postId));
+  }
+
+  /// Suit ou ne suit plus [targetUserId], puis recalcule tout ce qui dépend
+  /// du lien d'abonnement.
+  ///
+  /// Le bouton « Suivre » appelait le dépôt directement et n'invalidait que
+  /// [isFollowingProvider] : il changeait d'état, et plus rien ne bougeait.
+  /// Les deux compteurs ne sont pas `autoDispose` et personne ne les
+  /// invalidait, donc « Abonnés » et « Abonnements » gardaient jusqu'au
+  /// redémarrage la valeur lue au premier affichage — y compris sur l'écran
+  /// où l'on venait de toucher le bouton. [followingIdsProvider] était dans
+  /// le même cas, et il décide de trois choses en aval : l'onglet
+  /// « Abonnements » du fil, le tri « Pour vous » (le scoreur) et les
+  /// repartages injectés dans le fil.
+  Future<void> toggleFollow(String targetUserId) async {
+    await _repo.toggleFollow(targetUserId);
+    ref.invalidate(isFollowingProvider(targetUserId));
+    // Le compte suivi gagne (ou perd) un abonné ; c'est moi qui gagne (ou
+    // perds) un abonnement — deux compteurs, sur deux personnes distinctes.
+    ref.invalidate(followersCountProvider(targetUserId));
+    ref.invalidate(followersProvider(targetUserId));
+    ref.invalidate(followingIdsProvider);
+    final me = ref.read(currentUidProvider)();
+    if (me != null && me.isNotEmpty) {
+      ref.invalidate(followingCountProvider(me));
+      ref.invalidate(followingProvider(me));
+    }
   }
 
   /// Relit les compteurs d'une publication en base et les pose partout où
@@ -1137,6 +1181,63 @@ final commentsProvider =
   CommentsNotifier.new,
 );
 
+/// Comment lire l'utilisateur courant. **Une fonction**, pas une valeur : un
+/// `Provider<String?>` mémoriserait l'identifiant pour toute la vie du
+/// conteneur, et un changement de compte laisserait les compteurs sur l'ancien.
+///
+/// Passer par un provider plutôt que d'appeler `FirebaseAuth.instance` en
+/// place rend ces compteurs injectables — c'est la seule façon de les tester,
+/// puisque `FirebaseAuth.instance` **lève** tant qu'aucune app Firebase
+/// n'existe, ce qui est le cas normal sous `flutter test`.
+final currentUidProvider = Provider<String? Function()>((ref) => _uidCourant);
+
+String? _uidCourant() {
+  try {
+    return FirebaseAuth.instance.currentUser?.uid;
+  } catch (_) {
+    return null;
+  }
+}
+
+// ============================================================================
+// Compteurs dérivés de mes publications
+//
+// Déclarés ici, et non plus dans les écrans qui les affichent : ce sont les
+// chiffres de « Mon espace » et du Profil, et c'est [FeedNotifier] — publier,
+// supprimer, enregistrer — qui doit les invalider. Un provider déclaré dans un
+// écran n'est pas atteignable depuis le notifier sans inverser les couches.
+// ============================================================================
+
+/// Mes publications (écran « Mes publications »).
+final myPostsProvider =
+    FutureProvider.autoDispose<List<PostEntity>>((ref) async {
+  final currentUserId = ref.watch(currentUidProvider)();
+  if (currentUserId == null) return const [];
+  final repo = ref.read(feedRepositoryProvider);
+  final result = await repo.getUserPosts(currentUserId);
+  return result.fold((_) => const [], (posts) => posts);
+});
+
+/// Case « Publications » de Mon espace et ligne « Mes publications » du Profil.
+final userPostsCountProvider = FutureProvider.autoDispose<int>((ref) async {
+  final currentUserId = ref.watch(currentUidProvider)();
+  if (currentUserId == null) return 0;
+  final repo = ref.read(feedRepositoryProvider);
+  final result = await repo.getUserPosts(currentUserId);
+  return result.fold((_) => 0, (posts) => posts.length);
+});
+
+/// Case « Enregistrés » de Mon espace et ligne « Publications enregistrées »
+/// du Profil.
+final bookmarkedPostsCountProvider =
+    FutureProvider.autoDispose<int>((ref) async {
+  final currentUserId = ref.watch(currentUidProvider)();
+  if (currentUserId == null) return 0;
+  final repo = ref.read(feedRepositoryProvider);
+  final result = await repo.getBookmarkedPostIds(currentUserId);
+  return result.fold((_) => 0, (ids) => ids.length);
+});
+
 // ============================================================================
 // Follow provider
 // ============================================================================
@@ -1162,19 +1263,21 @@ final followingProvider =
   return result.fold((_) => const <String>[], (ids) => ids);
 });
 
-/// Compteur d'abonnés de [userId] (réactif, invalidé avec [followersProvider]).
+/// Compteur d'abonnés de [userId] (invalidé par [FeedNotifier.toggleFollow]).
 final followersCountProvider =
     FutureProvider.family<int, String>((ref, userId) async {
   final result = await ref.read(feedRepositoryProvider).getFollowersCount(userId);
   return result.fold((_) => 0, (v) => v);
 });
 
-/// Compteur d'abonnements de [userId].
+/// Compteur d'abonnements de [userId] (invalidé par
+/// [FeedNotifier.toggleFollow]).
 final followingCountProvider =
     FutureProvider.family<int, String>((ref, userId) async {
   final result = await ref.read(feedRepositoryProvider).getFollowingCount(userId);
   return result.fold((_) => 0, (v) => v);
 });
+
 
 // ============================================================================
 // Reposts (repartages)

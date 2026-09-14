@@ -15,16 +15,6 @@ import '../widgets/saved_post_card.dart';
 import '../widgets/share_post_sheet.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
-// Provider for bookmarked posts count
-final bookmarkedPostsCountProvider =
-    FutureProvider.autoDispose<int>((ref) async {
-  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-  if (currentUserId == null) return 0;
-  final repo = ref.read(feedRepositoryProvider);
-  final result = await repo.getBookmarkedPostIds(currentUserId);
-  return result.fold((_) => 0, (ids) => ids.length);
-});
-
 // Provider for bookmarked posts
 final bookmarkedPostsProvider =
     StateNotifierProvider.autoDispose<BookmarkedPostsNotifier,
