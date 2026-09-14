@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**960 cases à cocher, 538 cochées** — 195 entrées sur 239 ont encore des cases ouvertes.
+**975 cases à cocher, 548 cochées** — 198 entrées sur 242 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -66,7 +66,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (57)
+**P1 — fonction importante, jamais vérifiée** (58)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -74,7 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 12 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
+- 6 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
@@ -117,6 +117,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27) · *Backend, sécurité et observabilité*
+- 7 · [⬜ Notice « une nouvelle version est disponible » (2026-09-14)](#-notice--une-nouvelle-version-est-disponible--2026-09-14) · *Publication et plateformes*
 - 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
 - 3 · [Messagerie (hors refonte Fil & Discussion)](#messagerie-hors-refonte-fil--discussion) · *Messagerie* · bloqué
 - 5 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
@@ -126,7 +127,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (68)
+**P2 — fonction secondaire ou cas limite** (70)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -159,6 +160,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
 - 4 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
@@ -166,6 +168,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
 - 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 8 · [Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)](#le-bouton--ouvrir-play-store--de-la-garde-play-integrity-ne-faisait-rien-2026-09-14) · *Backend, sécurité et observabilité*
 - 3 · [⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)](#-ce-que-dit-vraiment-la-console-crashlytics-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
@@ -253,7 +256,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 173 à faire, 65 faites
+- [2. Messagerie](#2-messagerie) — 167 à faire, 75 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -262,10 +265,10 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 108 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 34 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 34 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 54 à faire, 40 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 43 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -592,37 +595,54 @@ sondage « jamais voté » et sans auteur. Et `post_poll_votes` n'est lisible qu
 par l'auteur de la ligne — la lecture des votants réussissait à vide.
 Voir « Sondage dans une discussion privée » pour le parcours de création.
 
-- [ ] **Voter dans une bulle de sondage** (DM et groupe) : la carte bascule
+- [x] **Voter dans une bulle de sondage** (DM et groupe) : la carte bascule
       aussitôt sur les pourcentages, l'option choisie reste encadrée, et le
       nom de l'auteur s'affiche en en-tête. (`poll_supabase_datasource.dart`,
       `poll_card.dart`)
-- [ ] **Quitter l'écran et revenir** : le vote est toujours marqué comme le
+- [x] **Quitter l'écran et revenir** : le vote est toujours marqué comme le
       sien. C'est ce qui ne tenait pas.
-- [ ] **« Modifier mon vote »** : la sélection se rouvre sur son propre choix ;
+- [x] **« Modifier mon vote »** : la sélection se rouvre sur son propre choix ;
       en choisir un autre le remplace (l'ancien compteur retombe) ;
       tout décocher affiche « Retirer mon vote » et remet le total à zéro.
 - [ ] **Sondage à choix multiple** : plusieurs cases, total = nombre de voix.
 - [ ] **Sondage terminé** : « Sondage terminé » dans la ligne d'info, plus
       aucune façon de voter ni de se corriger.
-- [ ] **Écran de résultats d'un sondage normal** : le badge « Votre choix »
+- [x] **Écran de résultats d'un sondage normal** : le badge « Votre choix »
       apparaît, et les votants sont listés sous chaque option, pour tous ceux
       qui voient le sondage. (`poll_results_screen.dart`, RPC
       `poll_option_voters`) — plus de « Aucun vote pour le moment » sous une
       option qui en a.
-- [ ] **Créer un sondage anonyme** (la bascule est éteinte par défaut) :
-      aucune liste de votants nulle part, pas même pour son auteur, et la
-      phrase du bas le dit. (`create_poll_sheet.dart`, `is_anonymous`)
+- [x] **Sondage anonyme** : vérifié SM A515F sur un vrai sondage anonyme du
+      groupe Testeurs — la bulle dit « Vote anonyme », l'écran de résultats
+      n'affiche aucun votant et porte « Sondage anonyme : personne ne voit qui
+      a voté quoi », alors que le sondage a 2 voix. En base, sous l'identité du
+      lecteur : `poll_option_voters` rend 0 ligne pour l'anonyme et 2 pour le
+      sondage normal du même groupe.
+- [ ] **Créer** un sondage anonyme depuis la feuille (la bascule est éteinte
+      par défaut) : c'est la seule moitié non rejouée à la main.
 - [ ] **La notice sous la question** : « Vote public : votre nom sera
       visible », ou « Vote anonyme » — lisible AVANT de choisir, dans la
-      bulle comme dans le fil.
-- [ ] **Un sondage créé avant cette version** reste non anonyme (défaut
+      bulle comme dans le fil. *Les trois sondages du groupe Testeurs l'ont
+      affichée correctement à froid le 2026-09-14 (deux « Vote public », un
+      « Vote anonyme ») ; les absences vues pendant la passe venaient de taps
+      à l'estime qui regardaient un autre écran.*
+- [x] **Un sondage créé avant cette version** reste non anonyme (défaut
       `FALSE`) : sa notice dit bien « vote public ».
-- [ ] **Deux téléphones en même temps** : le vote de l'un fait bouger le
+- [x] **Deux téléphones en même temps** : le vote de l'un fait bouger le
       compteur chez l'autre sans quitter l'écran (temps réel).
-- [ ] **Thème sombre et échelle de police 1.1** : le pied de carte
-      (« N votes · Sondage terminé » + les boutons) passe à la ligne au lieu de
-      déborder — il est passé en `Wrap`.
-- [ ] **Avant la migration** : voter fonctionne toujours (repli sur l'ancien
+- [x] **Échelle de police 1.3** : le pied de carte ne déborde pas, il passe
+      à la ligne (vérifié SM A515F). Mais les deux boutons se retrouvent l'un
+      sous l'autre avec « 2 votes » centré entre eux : c'est laid, et ça
+      empire avec la police. À reprendre.
+- [x] **Thème sombre** : carte vérifiée SM A515F — fond sombre, notice
+      lisible en gris, option choisie encadrée en violet, pied sur une ligne.
+- [ ] **Thème sombre** : la feuille de création et l'écran de résultats.
+- [ ] **Pied de carte sur une bulle reçue** (plus étroite qu'une bulle
+      envoyée) : « Modifier mon vote » et « Voir les résultats » passent l'un
+      sous l'autre et « N votes » se retrouve centré entre les deux. Rien ne
+      déborde, même à l'échelle 1.3, mais ça se lit mal. (`poll_card.dart`,
+      le `Wrap` du pied)
+- [x] **Avant la migration** : voter fonctionne toujours (repli sur l'ancien
       chemin), mais la liste des votants reste vide.
 
 ---
@@ -11793,6 +11813,56 @@ Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature 
 
 ---
 
+## ⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Le dialogue natif d'avis ne dit jamais s'il s'est affiché : aucun banc, aucun journal ne peut distinguer « montré » de « avalé par le quota ».
+
+*Bloqué pour le dialogue natif : demande une installation **venue de Play**
+(piste de test interne), un compte neuf, et huit ouvertures étalées sur plus
+de trois jours. Un APK latéral ne le montrera jamais, même en release.*
+
+Le paquet `in_app_review` entre dans le projet
+([app_review_service.dart](lib/core/services/app_review_service.dart)), avec
+deux chemins volontairement distincts :
+
+- **le bouton** des Réglages ouvre la **fiche du store**, jamais le dialogue
+  natif — Google demande expressément de ne pas câbler un bouton « Noter »
+  sur `requestReview()`, que le quota peut avaler : l'utilisateur voit alors
+  un bouton mort ;
+- **l'invitation automatique** part de l'écran d'Accueil
+  ([home_screen.dart](lib/features/home/presentation/screens/home_screen.dart)),
+  après huit ouvertures, trois jours d'ancienneté, et une seule fois par
+  trimestre.
+
+[app_review_service_test.dart](test/core/services/app_review_service_test.dart)
+tient les seuils, le recalage d'une horloge menteuse, et le point qui compte :
+un `requestReview()` muet ne doit pas relancer la demande à **chaque**
+ouverture. Ce que le banc ne peut pas voir :
+
+- [ ] **La tuile est là** : Réglages → « Application », étoile, entre
+      « Aide & FAQ » et « À propos », en clair **et** en sombre.
+      (`settings_screen.dart`)
+- [ ] **L'appui ouvre l'application Play Store** sur la fiche Diaspo Niger, pas
+      un navigateur ni « élément introuvable ». La fiche est bien publiée :
+      vérifié en ligne le 2026-09-14 (Mirai Tech., 10+ téléchargements).
+- [ ] **Sans Play Store** (ou Play désactivé) : le bandeau
+      « Impossible d'ouvrir la fiche du store… » s'affiche. Le bouton ne doit
+      jamais rester muet.
+- [ ] **iOS** : `https://apps.apple.com/app/id6807607258` répondait
+      « The page you're looking for can't be found » le 2026-09-14 — la fiche
+      n'est pas publiée. Le bouton mènera là tant que ce n'est pas le cas
+      (voir « iOS : signature et conformité export jamais compilées » au § 14).
+- [ ] **L'invitation ne s'empile pas** : jamais par-dessus les coach marks du
+      premier démarrage, ni par-dessus un écran poussé par un lien profond ou
+      une notification pendant les quatre secondes d'attente.
+- [ ] **Le compteur tient au redémarrage** : huit ouvertures cumulées, pas
+      huit d'affilée dans la même session. `adb shell run-as` sur les clés
+      `review_*` de `SharedPreferences` permet de le lire sans attendre.
+
+---
+
+---
+
 ## ⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)
 
 **Priorité P2** · importance 3/5 — Le profil d'une autre personne n'affichait qu'une pastille « 3 groupes en commun », inerte : ni lesquels, ni comment y aller.
@@ -14112,6 +14182,68 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 
 ---
 
+## Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Un utilisateur bloqué au paiement du panier ou à l'envoi d'argent se voyait proposer « Ouvrir Play Store » ; le bouton était inerte. Invisible pour qui installe depuis Play — mais c'est exactement le cas d'un APK posé à la main, donc de nos propres tests.
+
+`SecurityGateService._openPlayStore()` avait un corps entièrement commenté :
+le tap fermait le dialogue et n'ouvrait rien. La méthode est supprimée, et le
+bouton appelle `AppReviewService.ouvrirLaFicheSansAvis()`, qui ouvre la bonne
+fiche par plateforme (`Platform.isIOS ? appStoreUrl : playStoreUrl`) en
+`LaunchMode.externalApplication` — les mêmes constantes que celles corrigées
+dans « Les deux liens « noter l'app » étaient morts ».
+
+**Et non `ouvrirLaFicheDuStore()`** : celle-ci ouvre la *page d'avis*
+(`?action=write-review` sur iOS) et marque la fiche comme ouverte. Ici on
+demande une installation, pas une note — et marquer couperait l'invitation
+automatique pour un avis que personne n'a déposé. Même choix qu'à la notice de
+mise à jour. Si l'ouverture échoue, un message le dit, sans quoi le bouton
+retomberait exactement dans le symptôme corrigé ici.
+
+Contrairement à ce qu'un `grep` laissait croire, le dialogue n'est pas mort :
+[checkAndShowDialog](lib/core/services/security_gate_service.dart) a deux
+appelants, tous deux sur des flux d'argent —
+[cart_screen.dart](lib/features/marketplace/presentation/screens/cart_screen.dart)
+(paiement du panier) et
+[send_money_screen.dart](lib/features/transfers/presentation/screens/send_money_screen.dart)
+(envoi d'argent). Le nom cherché, `showSecurityDialog`, n'existe nulle part
+dans le dépôt : le supprimer aurait retiré la garde Play Integrity des deux.
+
+Au passage, `result.verdict!` était déréférencé deux fois sans garde alors que
+`denied()` déclare `verdict` optionnel. Aucun de ses quatre chemins ne le
+laisse nul aujourd'hui, donc rien ne plantait — le `!` est remplacé par un
+test, et sans verdict le dialogue ne propose plus le store plutôt que
+d'affirmer un motif qu'il ignore.
+
+**Rien de tout ceci ne se vérifie hors appareil** : `flutter analyze` est
+propre, et Play Integrity ne rend un verdict que sur un vrai téléphone. Play
+Integrity n'était mentionné nulle part dans ce fichier jusqu'ici — la garde
+elle-même n'a donc jamais été observée en marche.
+
+- [ ] Sur SM A515F, APK installé à la main : ouvrir le panier marketplace et
+      lancer le paiement — le dialogue « Accès restreint » doit apparaître.
+- [ ] Sur ce dialogue, « Ouvrir Play Store » doit amener sur la fiche
+      `com.diasponiger.diasponiger`, et non sur une page « application
+      introuvable ». Ce chemin ouvre l'URL `https` (et non `market://`) :
+      l'app Play Store est l'issue attendue, un navigateur reste un repli
+      acceptable — noter laquelle des deux s'est ouverte.
+- [ ] « Compris » ferme le dialogue sans rien ouvrir.
+- [ ] Même parcours depuis l'envoi d'argent (destinataire choisi, montant
+      saisi, puis valider).
+- [ ] Au retour du Play Store, l'app reprend sur l'écran quitté : pas de
+      second dialogue, pas d'écran noir.
+- [ ] Noter le motif affiché. « nécessite l'installation depuis Google Play
+      Store » est le cas attendu ; « Impossible de vérifier la sécurité »
+      signifie que la Cloud Function d'intégrité a échoué — autre sujet, à
+      consigner séparément.
+- [ ] La fiche doit s'ouvrir sur la page normale, **pas** sur le formulaire
+      d'avis, et l'invitation automatique « noter l'app » doit rester
+      disponible ensuite : ce passage ne doit pas la consommer.
+- [ ] Couper le réseau puis retenter « Ouvrir Play Store » : un message doit
+      apparaître. Rien du tout signifierait que le retour d'échec est ignoré.
+
+---
+
 ## ⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)
 
 **Priorité P2** · importance 3/5 — Un écran qui déborde et une flèche retour sans effet (ou écran noir) restent non localisés — observés jusqu'ici sur l'appareil de test seulement. *Bloqué : Pixel déconnecté / nouvelle version publiée.*
@@ -15539,6 +15671,54 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 # 14. Publication et plateformes
 
 Play Store, exigences Android, build release, iOS.
+
+---
+
+## ⬜ Notice « une nouvelle version est disponible » (2026-09-14)
+
+**Priorité P1** · importance 3/5 — Le bandeau de mise à jour partage désormais
+son canal avec le rappel de sauvegarde des clés E2EE : une erreur d'arbitrage
+ferait taire le second, et des messages deviendraient illisibles au changement
+d'appareil.
+
+Bandeau non bloquant en tête d'application quand une version plus récente
+existe sur le store. La version disponible vient du serveur — clé
+`DERNIERE_VERSION_APP` de l'Edge Function `app-config`, au format de la ligne
+`version:` de `pubspec.yaml` (`1.3.0+20`) — parce qu'un APK ne peut pas savoir
+qu'il en existe un plus récent que lui.
+Décision et silences tenus par `test/core/services/mise_a_jour_service_test.dart`
+(22 cas).
+
+**Le secret n'est pas posé en production** : tant qu'il ne l'est pas, le
+bandeau ne peut pas apparaître, et rien de ce qui suit n'est observable.
+
+- [ ] **Poser la clé, puis voir le bandeau** :
+      `supabase secrets set DERNIERE_VERSION_APP=1.9.9+99` (jamais
+      `--env-file`, qui remplacerait tous les secrets du projet), relancer
+      l'app à froid — le bandeau doit apparaître en tête. Remettre la vraie
+      valeur, ou retirer la clé, juste après.
+- [ ] **« Pas maintenant » tient** : écarter, tuer l'app, relancer — le
+      bandeau ne doit pas revenir. Puis passer le secret à une version
+      supérieure : il doit reparler.
+- [ ] **« Mettre à jour » ouvre la bonne fiche** : Play Store sur
+      `com.diasponiger.diasponiger`, et non une page « application
+      introuvable » (les deux liens du projet ont déjà été faux).
+- [ ] **Revenir du store sans installer** : le bandeau doit pouvoir
+      reparaître au démarrage suivant — contrairement à « Pas maintenant »,
+      partir vers le store n'écarte pas la version.
+- [ ] **Le rappel E2EE passe devant** ([main_shell.dart](lib/core/shell/main_shell.dart)) :
+      avec un compte dont les clés ne sont pas sauvegardées ET la clé serveur
+      posée, c'est le bandeau des clés qui doit s'afficher ; une fois traité,
+      celui de la mise à jour doit prendre sa place **sans relancer l'app**.
+- [ ] **Rendu du bandeau** : thème sombre, échelle de police augmentée, petit
+      écran — un `MaterialBanner` à deux actions déborde vite.
+- [ ] **Hors ligne au démarrage** : aucune notice, aucun blocage du premier
+      écran (`RemoteConfigService` sert alors son cache, ou rien).
+
+Une notice qui s'affiche à tort est pire qu'une notice absente : elle envoie
+sur le store chercher une mise à jour qui n'existe pas, et recommence à chaque
+démarrage. D'où la règle tenue par le banc — toute version illisible, absente
+ou non postérieure se tait.
 
 ---
 

@@ -16,6 +16,7 @@ import 'core/errors/classification_erreurs.dart';
 import 'core/utils/logs_release.dart';
 import 'core/utils/licences_polices.dart';
 import 'core/constants/app_config.dart';
+import 'core/services/app_review_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/cache_service.dart';
 import 'core/services/google_maps_service.dart';
@@ -272,6 +273,18 @@ Future<void> _initServicesSecondaires() async {
       debugPrint('main: initialisation « $nom » échouée: $e');
     }
   }
+
+  // Deux écritures dans SharedPreferences, instantanées, et rien n'en dépend
+  // — mais elles passent devant Maps et Stripe, qui prennent plusieurs
+  // secondes sur un démarrage à froid. Derrière eux, le compteur montait
+  // après que l'Accueil ait déjà consulté la politique d'invitation.
+  // C'est le seul endroit traversé à chaque démarrage, quel que soit l'écran
+  // d'arrivée (lien profond, push, reprise) ; l'invitation, elle, part de
+  // l'écran d'Accueil.
+  await tenter(
+    "compteur d'avis",
+    AppReviewService.instance.enregistrerOuverture,
+  );
 
   // En premier du lot : le rendu de la carte a besoin de ce réglage avant
   // qu'un écran carte s'affiche, ce qui demande au moins une navigation.

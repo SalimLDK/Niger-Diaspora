@@ -1103,6 +1103,9 @@
   "supportEmail": "support@diasponiger.com",
   "helpUsImprove": "Help us improve the app",
   "rateUsOnStore": "Rate us on the store",
+  "rateApp": "Rate the app",
+  "rateAppSubtitle": "Your review counts, and it helps people find the app",
+  "rateAppUnavailable": "Can't open the store listing on this device",
   "deleteAccountTitle": "Delete account",
   "filterUnread": "Unread",
   "filterFriends": "Friends",
@@ -7196,5 +7199,7 @@
   "pollVotesArePublic": "Public vote: your name will be visible",
   "pollVotesAreAnonymous": "Anonymous vote",
   "pollVotersVisibleToAll": "Votes are not anonymous: everyone can see who voted for what.",
-  "pollVotersHidden": "Anonymous poll: nobody can see who voted for what."
+  "pollVotersHidden": "Anonymous poll: nobody can see who voted for what.",
+  "updateAvailableMessage": "Diaspo Niger {version} is available. Update to get the latest fixes.",
+  "updateAvailableAction": "Update"
 }

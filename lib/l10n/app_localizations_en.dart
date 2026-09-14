@@ -2295,6 +2295,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rateUsOnStore => 'Rate us on the store';
 
   @override
+  String get rateApp => 'Rate the app';
+
+  @override
+  String get rateAppSubtitle =>
+      'Your review counts, and it helps people find the app';
+
+  @override
+  String get rateAppUnavailable =>
+      'Can\'t open the store listing on this device';
+
+  @override
   String get deleteAccountTitle => 'Delete account';
 
   @override
@@ -16356,4 +16367,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get pollVotersHidden =>
       'Anonymous poll: nobody can see who voted for what.';
+
+  @override
+  String updateAvailableMessage(String version) {
+    return 'Diaspo Niger $version is available. Update to get the latest fixes.';
+  }
+
+  @override
+  String get updateAvailableAction => 'Update';
 }

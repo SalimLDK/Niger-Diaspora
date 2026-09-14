@@ -4280,6 +4280,24 @@ abstract class AppLocalizations {
   /// **'Notez-nous sur le store'**
   String get rateUsOnStore;
 
+  /// No description provided for @rateApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noter l\'application'**
+  String get rateApp;
+
+  /// No description provided for @rateAppSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre avis compte, et il aide l\'app à se faire connaître'**
+  String get rateAppSubtitle;
+
+  /// No description provided for @rateAppUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir la fiche du store sur cet appareil'**
+  String get rateAppUnavailable;
+
   /// No description provided for @deleteAccountTitle.
   ///
   /// In fr, this message translates to:
@@ -30121,6 +30139,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Sondage anonyme : personne ne voit qui a voté quoi.'**
   String get pollVotersHidden;
+
+  /// Bandeau non bloquant affiche quand une version plus recente existe sur le store
+  ///
+  /// In fr, this message translates to:
+  /// **'Diaspo Niger {version} est disponible. Mettez à jour pour profiter des derniers correctifs.'**
+  String updateAvailableMessage(String version);
+
+  /// Action du bandeau de mise a jour : ouvre la fiche du store
+  ///
+  /// In fr, this message translates to:
+  /// **'Mettre à jour'**
+  String get updateAvailableAction;
 }
 
 class _AppLocalizationsDelegate

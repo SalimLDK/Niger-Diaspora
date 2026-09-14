@@ -1115,6 +1115,9 @@
   "supportEmail": "support@diasponiger.com",
   "helpUsImprove": "Aidez-nous à améliorer l'app",
   "rateUsOnStore": "Notez-nous sur le store",
+  "rateApp": "Noter l'application",
+  "rateAppSubtitle": "Votre avis compte, et il aide l'app à se faire connaître",
+  "rateAppUnavailable": "Impossible d'ouvrir la fiche du store sur cet appareil",
   "deleteAccountTitle": "Supprimer le compte",
   "filterUnread": "Non lus",
   "filterFriends": "Amis",
@@ -8458,5 +8461,18 @@
   "pollVotersHidden": "Sondage anonyme : personne ne voit qui a voté quoi.",
   "@pollVotersHidden": {
     "description": "Regle affichee sous les resultats"
+  },
+  "updateAvailableMessage": "Diaspo Niger {version} est disponible. Mettez à jour pour profiter des derniers correctifs.",
+  "@updateAvailableMessage": {
+    "description": "Bandeau non bloquant affiche quand une version plus recente existe sur le store",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableAction": "Mettre à jour",
+  "@updateAvailableAction": {
+    "description": "Action du bandeau de mise a jour : ouvre la fiche du store"
   }
 }
