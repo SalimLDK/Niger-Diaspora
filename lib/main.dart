@@ -13,6 +13,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
 import 'app.dart';
 import 'core/errors/classification_erreurs.dart';
+import 'core/errors/journal_echecs.dart';
 import 'core/utils/logs_release.dart';
 import 'core/utils/licences_polices.dart';
 import 'core/constants/app_config.dart';
@@ -214,6 +215,14 @@ Future<void> _demarrer() async {
     );
     return true;
   };
+
+  // Les deux gestionnaires ci-dessus ne voient que les erreurs NON rattrapees.
+  // Un refus de permission Firestore ou un 42501 de la RLS, eux, sont
+  // attrapes : ils deviennent un `ServerFailure`, puis un `bool false`, et ne
+  // quittaient jamais le telephone. C'est ce qui a cache pendant des mois le
+  // fait qu'accepter une demande d'ami etait impossible. Desormais, chaque
+  // echec **montre a l'usager** part aussi en non-fatal.
+  installerJournalEchecs();
 
   // Activate Firebase App Check
   // Android: Debug mode uses DebugProvider, Release uses PlayIntegrity

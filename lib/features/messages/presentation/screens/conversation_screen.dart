@@ -53,15 +53,15 @@ import '../../../../core/errors/failure_mapper.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/providers/in_app_notification_provider.dart';
 import '../../domain/services/message_deletion_service.dart';
-// Appels 1-à-1 mis en pause (voir _startCall/_handleCallBack plus bas) :
+// Appels mis en pause (1-à-1 le 2026-08-14, groupe le 2026-09-14) :
 // imports devenus inutilisés, conservés en commentaire pour réactivation.
 // TODO(appels): réactiver après vérification à deux vrais téléphones —
 // protocole dans TESTS_APPAREIL_A_FAIRE.md, section « Appels 1-à-1 mis en
 // PAUSE (2026-08-14) ».
 // import '../../../calls/domain/entities/call_entity.dart';
 // import '../../../calls/presentation/providers/call_provider.dart';
-import '../../../group_calls/domain/entities/group_call_entity.dart';
-import '../../../group_calls/presentation/providers/group_call_provider.dart';
+// import '../../../group_calls/domain/entities/group_call_entity.dart';
+// import '../../../group_calls/presentation/providers/group_call_provider.dart';
 // import '../../../calls/presentation/screens/call_screen.dart';
 import '../../../gifs/domain/entities/gif_entity.dart';
 import '../../../stickers/domain/entities/sticker_entity.dart';
@@ -825,36 +825,39 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   // }
 
   /// Démarre un appel de groupe (audio/vidéo) avec tous les membres.
-  Future<void> _startGroupCall({required bool isVideo}) async {
-    final l10n = AppLocalizations.of(context)!;
-    final gid = _effectiveGroupId;
-    if (gid == null) return;
-    final group = ref.read(groupStreamProvider(gid)).valueOrNull;
-    if (group == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.loadingError)));
-      return;
-    }
-    final call = await ref
-        .read(currentGroupCallProvider.notifier)
-        .createGroupCall(
-          name: group.name,
-          participantIds: group.memberIds,
-          type: isVideo ? GroupCallType.video : GroupCallType.audio,
-        );
-    if (call != null && mounted) {
-      context.push('/group-calls/${call.id}');
-    } else if (mounted) {
-      final st = ref.read(currentGroupCallProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(st.error ?? l10n.callError),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
+  // Appels de groupe mis en pause le 2026-09-14 (voir les boutons de
+  // l'AppBar) : plus aucun appelant, code conservé pour réactivation.
+  // TODO(appels): réactiver après vérification à deux vrais téléphones.
+  // Future<void> _startGroupCall({required bool isVideo}) async {
+  //   final l10n = AppLocalizations.of(context)!;
+  //   final gid = _effectiveGroupId;
+  //   if (gid == null) return;
+  //   final group = ref.read(groupStreamProvider(gid)).valueOrNull;
+  //   if (group == null) {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text(l10n.loadingError)));
+  //     return;
+  //   }
+  //   final call = await ref
+  //       .read(currentGroupCallProvider.notifier)
+  //       .createGroupCall(
+  //         name: group.name,
+  //         participantIds: group.memberIds,
+  //         type: isVideo ? GroupCallType.video : GroupCallType.audio,
+  //       );
+  //   if (call != null && mounted) {
+  //     context.push('/group-calls/${call.id}');
+  //   } else if (mounted) {
+  //     final st = ref.read(currentGroupCallProvider);
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(st.error ?? l10n.callError),
+  //         backgroundColor: AppColors.error,
+  //       ),
+  //     );
+  //   }
+  // }
 
   void _exitSelectionMode() {
     setState(() {
@@ -3446,27 +3449,34 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         //     tooltip: l10n.videoCall,
         //   ),
         // ],
-        // Appels de groupe (comme en 1-a-1, mais pour tout le groupe)
-        if (_isGroup && !_isSelfNotes) ...[
-          IconButton(
-            onPressed: () => _startGroupCall(isVideo: false),
-            icon: AppIcon(
-              AppIcon.call,
-              size: 21,
-              color: context.textPrimaryColor,
-            ),
-            tooltip: l10n.voiceCall,
-          ),
-          IconButton(
-            onPressed: () => _startGroupCall(isVideo: true),
-            icon: AppIcon(
-              AppIcon.video,
-              size: 21,
-              color: context.textPrimaryColor,
-            ),
-            tooltip: l10n.videoCall,
-          ),
-        ],
+        // Appels de GROUPE mis en pause le 2026-09-14, comme le 1-à-1 avant
+        // eux : sous 5 participants un appel de groupe tourne en maillage
+        // flutter_webrtc — le MÊME `webrtc_service.dart` que le 1-à-1, et
+        // non LiveKit (qui ne prend le relais qu'en SFU, à 5 participants
+        // et plus). Les laisser actifs laissait la pile non vérifiée
+        // atteignable depuis n'importe quel groupe. Boutons masqués, code
+        // conservé. Voir TESTS_APPAREIL_A_FAIRE.md.
+        // TODO(appels): réactiver après vérification à deux vrais téléphones.
+        // if (_isGroup && !_isSelfNotes) ...[
+        //   IconButton(
+        //     onPressed: () => _startGroupCall(isVideo: false),
+        //     icon: AppIcon(
+        //       AppIcon.call,
+        //       size: 21,
+        //       color: context.textPrimaryColor,
+        //     ),
+        //     tooltip: l10n.voiceCall,
+        //   ),
+        //   IconButton(
+        //     onPressed: () => _startGroupCall(isVideo: true),
+        //     icon: AppIcon(
+        //       AppIcon.video,
+        //       size: 21,
+        //       color: context.textPrimaryColor,
+        //     ),
+        //     tooltip: l10n.videoCall,
+        //   ),
+        // ],
         // More options button — icône nue, sans conteneur gris (§4a).
         IconButton(
           onPressed: () => _showConversationOptions(),
