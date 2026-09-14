@@ -155,6 +155,25 @@ def main():
     fichier = Path(chemins[0]) if chemins else FICHIER
     with open(fichier, encoding='utf-8', newline='') as f:
         texte = f.read()
+
+    # Refuser de travailler sur un conflit de fusion non resolu.
+    #
+    # Ce fichier entre en conflit a chaque fusion, presque toujours sur les
+    # compteurs du sommaire -- que ce script reecrit en entier. Un marqueur
+    # tombe DANS le sommaire disparait donc tout seul, et le commit part
+    # propre. Un marqueur tombe dans une entree, lui, serait committe : meme
+    # commande, meme sortie rassurante, et sept lignes de `<<<<<<<` livrees.
+    # Frole le 2026-09-14.
+    lignes = [
+        f'  ligne {n} : {l[:40]}'
+        for n, l in enumerate(texte.splitlines(), 1)
+        if l.startswith(('<<<<<<<', '>>>>>>>')) or l == '======='
+    ]
+    if lignes:
+        print('conflit de fusion non resolu -- rien touche :')
+        print('\n'.join(lignes))
+        return 1
+
     neuf = regenerer(texte)
     if neuf == texte:
         print('sommaire a jour')
