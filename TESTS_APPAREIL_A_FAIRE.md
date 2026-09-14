@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**962 cases à cocher, 548 cochées** — 196 entrées sur 240 ont encore des cases ouvertes.
+**961 cases à cocher, 549 cochées** — 196 entrées sur 240 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -74,7 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 6 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
+- 5 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
@@ -254,7 +254,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 162 à faire, 75 faites
+- [2. Messagerie](#2-messagerie) — 161 à faire, 76 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -606,11 +606,11 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 - [x] **Thème sombre** : carte vérifiée SM A515F — fond sombre, notice
       lisible en gris, option choisie encadrée en violet, pied sur une ligne.
 - [ ] **Thème sombre** : la feuille de création et l'écran de résultats.
-- [ ] **Pied de carte sur une bulle reçue** (plus étroite qu'une bulle
-      envoyée) : « Modifier mon vote » et « Voir les résultats » passent l'un
-      sous l'autre et « N votes » se retrouve centré entre les deux. Rien ne
-      déborde, même à l'échelle 1.3, mais ça se lit mal. (`poll_card.dart`,
-      le `Wrap` du pied)
+- [x] **Pied de carte sur une bulle reçue** (plus étroite qu'une bulle
+      envoyée) : corrigé et revérifié SM A515F — « 2 votes » garde sa ligne,
+      les deux actions sont alignées à droite dessous, aux échelles 1.0 et
+      1.3, sans un seul avertissement de débordement dans logcat.
+      (`poll_card.dart`, `_pied`)
 - [x] **Avant la migration** : voter fonctionne toujours (repli sur l'ancien
       chemin), mais la liste des votants reste vide.
 
