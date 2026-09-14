@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1043 cases à cocher, 552 cochées** — 210 entrées sur 254 ont encore des cases ouvertes.
+**1047 cases à cocher, 552 cochées** — 211 entrées sur 255 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -212,7 +212,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (50)
+**P3 — confort, cosmétique, fonction en pause** (51)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -231,6 +231,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
 - 2 · [La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)](#la-signature-de-clé-pré-signée-ne-peut-jamais-vérifier-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
+- 4 · [⬜ Les appels de GROUPE restaient lançables alors que le 1-à-1 était en pause (2026-09-14)](#-les-appels-de-groupe-restaient-lançables-alors-que-le-1-à-1-était-en-pause-2026-09-14) · *Appels*
 - 1 · [La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14)](#la-bulle-dappel-elle-même-napparaissait-jamais-dans-la-conversation-2026-08-14) · *Appels* · bloqué
 - 7 · [Appels 1-à-1 (correctifs du 2026-08-03)](#appels-1-à-1-correctifs-du-2026-08-03) · *Appels* · bloqué
 - 1 · [Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06)](#scroll-des-notifications--mesuré-pas-un-défaut-de-lécran-2026-08-06) · *Notifications et push*
@@ -271,7 +272,7 @@ Par domaine :
 - [2. Messagerie](#2-messagerie) — 183 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
-- [5. Appels](#5-appels) — 18 à faire, 8 faites
+- [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
@@ -6446,6 +6447,56 @@ Appels 1:1 et de groupe : signalisation, bulle d'appel, WebRTC/TURN.
 
 ---
 
+## ⬜ Les appels de GROUPE restaient lançables alors que le 1-à-1 était en pause (2026-09-14)
+
+**Priorité P3** · importance 2/5 — Signalé par Salim : « les groupes possèdent
+toujours les icônes des appels ». L'en-tête d'une discussion de groupe affichait
+encore les deux boutons (audio, vidéo) alors que les mêmes boutons avaient été
+masqués en 1-à-1 un mois plus tôt.
+
+Ce n'était pas un oubli mais une **décision prise sur une prémisse fausse**. Le
+bloc commenté du 2026-08-14 (voir « 🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) —
+répondre à un appel ne faisait rigoureusement rien ») annonçait :
+« les boutons d'appel de GROUPE juste en dessous restent actifs, système
+différent/LiveKit, pas concerné ».
+
+LiveKit ne prend le relais qu'**au-delà de 4 participants** :
+`determineCallMode()` choisit le mode maillage en dessous, et
+[group_call_service.dart:8](lib/core/services/group_call_service.dart) importe
+alors le **même** `webrtc_service.dart` que le 1-à-1 — la pile dont la fiabilité
+était justement mise en doute. Un groupe de 3 amis lançait donc exactement le
+code mis en pause, par le chemin qu'on croyait fermé.
+
+Commenté au même format que le 1-à-1 (code conservé, `TODO(appels)` greppable),
+dans [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart) :
+les deux `IconButton` de l'AppBar, la méthode `_startGroupCall`, et les deux
+imports `group_calls/` devenus inutilisés.
+
+Ne ferme pas tous les chemins vers un appel de groupe, et c'est voulu : la route
+`/group-calls/:callId` reste ouverte pour **rejoindre** un appel existant — elle
+ne sert plus à rien tant que personne ne peut en créer, mais la supprimer
+casserait les notifications d'appel déjà en circulation. `GroupCallMessageBubble`
+(le bouton « Rejoindre » d'une bulle d'appel de groupe) n'a, lui, **aucun
+appelant** dans tout le projet : rien ne l'affiche, avant comme après ce commit.
+
+- [ ] Ouvrir une discussion de **groupe** : plus aucune icône d'appel dans
+      l'en-tête, seul le ⋮ subsiste. Vérifier que le nom du groupe et la ligne
+      « N membres » ne se décalent pas maintenant que la rangée d'actions a
+      rétréci (deux boutons en moins).
+- [ ] Même écran en **thème sombre** et à **grande échelle de police** : la
+      rangée d'actions reste alignée, rien ne déborde.
+- [ ] Une discussion 1-à-1 et « Mes notes » : inchangées (elles n'avaient déjà
+      plus de boutons d'appel).
+- [ ] Le ⋮ de groupe ouvre toujours sa feuille d'options complète : elle n'a pas
+      été touchée, mais c'est le voisin immédiat des boutons retirés.
+
+**Pour réactiver** : décommenter les trois blocs (chercher « Appels de GROUPE
+mis en pause » dans le fichier), et passer le protocole à deux téléphones réels
+décrit dans l'entrée du 2026-08-14 — plus un appel de groupe à 3 puis à 5
+participants, pour couvrir le maillage **et** le basculement SFU.
+
+---
+
 ## Un second appel qui arrive pendant qu'on est déjà en ligne était perdu en silence (2026-08-14)
 
 Trouvé en rejouant le logcat d'un vrai test (deux comptes qui s'appelaient
@@ -6581,9 +6632,14 @@ temps d'une vérification à deux VRAIS téléphones, sans contention.
 
 **Ce qui a été commenté (code conservé, pas supprimé)** :
 - `conversation_screen.dart` : les deux `IconButton` d'appel 1-à-1 dans
-  l'AppBar (audio/vidéo — les boutons d'appel de GROUPE juste en dessous
-  restent actifs, système différent/LiveKit, pas concerné) ; le rappel en un
-  geste sur une bulle d'appel (`onCallBack: null`) ; les méthodes
+  l'AppBar (audio/vidéo — ⚠️ il était écrit ici que les boutons d'appel de
+  GROUPE juste en dessous restaient actifs, « système différent/LiveKit,
+  pas concerné » : **c'était faux**, un appel de groupe à moins de 5
+  participants tourne en maillage sur le même `webrtc_service.dart`. Ils
+  ont été mis en pause à leur tour le 2026-09-14, voir « ⬜ Les appels de
+  GROUPE restaient lançables alors que le 1-à-1 était en pause
+  (2026-09-14) ») ; le rappel en un geste sur une bulle d'appel
+  (`onCallBack: null`) ; les méthodes
   `_startCall`/`_handleCallBack` et leurs imports (`call_entity.dart`,
   `call_provider.dart`, `call_screen.dart`) devenus inutilisés.
 - `profile_screen.dart` : l'entrée « Historique des appels » (menu Profil).
