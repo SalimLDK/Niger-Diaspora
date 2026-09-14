@@ -225,7 +225,7 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
     ).switchMap((authentifie) {
       if (!authentifie) {
         return Stream<PollModel?>.error(
-          ServerException('Session Supabase non établie – reconnectez-vous'),
+          ServerException('Session non établie – reconnectez-vous'),
         );
       }
       final pollStream = _supabase
@@ -353,7 +353,7 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
     String pollId,
   ) async {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session Supabase non établie – reconnectez-vous');
+      throw ServerException('Session non établie – reconnectez-vous');
     }
     final rows = await _supabase.rpc(
       'poll_option_voters',
