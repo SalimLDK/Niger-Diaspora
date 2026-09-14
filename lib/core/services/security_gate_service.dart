@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'play_integrity_service.dart';
+import 'support_service.dart';
 
 /// Niveaux de sécurité requis pour différentes opérations
 enum SecurityLevel {
@@ -209,6 +210,14 @@ class SecurityGateService {
 
     if (!context.mounted) return false;
 
+    // `denied()` déclare `verdict` optionnel. Aucun de ses quatre chemins ne le
+    // laisse nul aujourd'hui, mais un `!` ici ferait tomber le dialogue au lieu
+    // d'afficher le refus — sur le panier et sur l'envoi d'argent. Et sans
+    // verdict on ignore si le motif est la licence Play : on ne propose donc
+    // pas le store plutôt que de donner un conseil inventé.
+    final verdict = result.verdict;
+    final needsPlayStore = verdict != null && !verdict.isPlayLicensed;
+
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -218,7 +227,7 @@ class SecurityGateService {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(customMessage ?? result.denialReason ?? 'Accès non autorisé'),
-            if (!result.verdict!.isPlayLicensed) ...[
+            if (needsPlayStore) ...[
               const SizedBox(height: 16),
               const Text(
                 'Pour accéder à cette fonctionnalité, veuillez installer '
@@ -233,11 +242,11 @@ class SecurityGateService {
             onPressed: () => Navigator.of(ctx).pop(),
             child: const Text('Compris'),
           ),
-          if (!result.verdict!.isPlayLicensed)
+          if (needsPlayStore)
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(ctx).pop();
-                _openPlayStore();
+                await SupportService().openStoreForReview();
               },
               child: const Text('Ouvrir Play Store'),
             ),
@@ -246,10 +255,5 @@ class SecurityGateService {
     );
 
     return false;
-  }
-
-  void _openPlayStore() {
-    // Utiliser url_launcher pour ouvrir le Play Store
-    // launchUrl(Uri.parse('https://play.google.com/store/apps/details?id=com.diasponiger.diasponiger'));
   }
 }

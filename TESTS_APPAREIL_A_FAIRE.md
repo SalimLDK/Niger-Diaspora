@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**953 cases à cocher, 537 cochées** — 194 entrées sur 238 ont encore des cases ouvertes.
+**959 cases à cocher, 537 cochées** — 195 entrées sur 239 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -126,7 +126,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (67)
+**P2 — fonction secondaire ou cas limite** (68)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -165,6 +165,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
 - 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 6 · [Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)](#le-bouton--ouvrir-play-store--de-la-garde-play-integrity-ne-faisait-rien-2026-09-14) · *Backend, sécurité et observabilité*
 - 3 · [⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)](#-ce-que-dit-vraiment-la-console-crashlytics-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
@@ -263,7 +264,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 52 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -14043,6 +14044,54 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+
+## Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Un utilisateur bloqué au paiement du panier ou à l'envoi d'argent se voyait proposer « Ouvrir Play Store » ; le bouton était inerte. Invisible pour qui installe depuis Play — mais c'est exactement le cas d'un APK posé à la main, donc de nos propres tests.
+
+`SecurityGateService._openPlayStore()` avait un corps entièrement commenté :
+le tap fermait le dialogue et n'ouvrait rien. La méthode est supprimée, et le
+bouton appelle `SupportService.openStoreForReview()`, qui ouvre la bonne fiche
+par plateforme (`Platform.isIOS ? appStoreUrl : playStoreUrl`) en
+`LaunchMode.externalApplication` — les mêmes constantes que celles corrigées
+dans « Les deux liens « noter l'app » étaient morts ».
+
+Contrairement à ce qu'un `grep` laissait croire, le dialogue n'est pas mort :
+[checkAndShowDialog](lib/core/services/security_gate_service.dart) a deux
+appelants, tous deux sur des flux d'argent —
+[cart_screen.dart](lib/features/marketplace/presentation/screens/cart_screen.dart)
+(paiement du panier) et
+[send_money_screen.dart](lib/features/transfers/presentation/screens/send_money_screen.dart)
+(envoi d'argent). Le nom cherché, `showSecurityDialog`, n'existe nulle part
+dans le dépôt : le supprimer aurait retiré la garde Play Integrity des deux.
+
+Au passage, `result.verdict!` était déréférencé deux fois sans garde alors que
+`denied()` déclare `verdict` optionnel. Aucun de ses quatre chemins ne le
+laisse nul aujourd'hui, donc rien ne plantait — le `!` est remplacé par un
+test, et sans verdict le dialogue ne propose plus le store plutôt que
+d'affirmer un motif qu'il ignore.
+
+**Rien de tout ceci ne se vérifie hors appareil** : `flutter analyze` est
+propre, et Play Integrity ne rend un verdict que sur un vrai téléphone. Play
+Integrity n'était mentionné nulle part dans ce fichier jusqu'ici — la garde
+elle-même n'a donc jamais été observée en marche.
+
+- [ ] Sur SM A515F, APK installé à la main : ouvrir le panier marketplace et
+      lancer le paiement — le dialogue « Accès restreint » doit apparaître.
+- [ ] Sur ce dialogue, « Ouvrir Play Store » doit ouvrir l'application Play
+      Store sur la fiche `com.diasponiger.diasponiger` — pas un navigateur,
+      pas une page « application introuvable ».
+- [ ] « Compris » ferme le dialogue sans rien ouvrir.
+- [ ] Même parcours depuis l'envoi d'argent (destinataire choisi, montant
+      saisi, puis valider).
+- [ ] Au retour du Play Store, l'app reprend sur l'écran quitté : pas de
+      second dialogue, pas d'écran noir.
+- [ ] Noter le motif affiché. « nécessite l'installation depuis Google Play
+      Store » est le cas attendu ; « Impossible de vérifier la sécurité »
+      signifie que la Cloud Function d'intégrité a échoué — autre sujet, à
+      consigner séparément.
 
 ---
 
