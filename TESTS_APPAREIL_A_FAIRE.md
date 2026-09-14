@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1016 cases à cocher, 551 cochées** — 205 entrées sur 249 ont encore des cases ouvertes.
+**1016 cases à cocher, 552 cochées** — 205 entrées sur 249 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -263,7 +263,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 175 à faire, 76 faites
+- [2. Messagerie](#2-messagerie) — 175 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -675,6 +675,10 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 - [x] **Thème sombre** : carte vérifiée SM A515F — fond sombre, notice
       lisible en gris, option choisie encadrée en violet, pied sur une ligne.
 - [ ] **Thème sombre** : la feuille de création et l'écran de résultats.
+- [x] **Coin de queue de la bulle envoyée** : plus de triangle vert sous la
+      carte — elle reprend les rayons de la bulle. Vérifié SM A515F sur les
+      deux bulles envoyées et sans régression sur la bulle reçue.
+      (`message_bubble.dart` passe `_getBorderRadius()`)
 - [x] **Pied de carte sur une bulle reçue** (plus étroite qu'une bulle
       envoyée) : corrigé et revérifié SM A515F — « 2 votes » garde sa ligne,
       les deux actions sont alignées à droite dessous, aux échelles 1.0 et

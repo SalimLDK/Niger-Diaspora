@@ -2011,6 +2011,10 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         return PollMessageBubble(
           pollId: widget.message.pollId ?? '',
           fallbackQuestion: widget.message.content,
+          // La carte reprend les rayons de la bulle : sans eux, son coin
+          // arrondi a 16 laissait voir le vert de la bulle envoyee dans le
+          // coin de queue, arrondi a 6.
+          borderRadius: _getBorderRadius(),
         );
 
       case MessageType.sticker:
