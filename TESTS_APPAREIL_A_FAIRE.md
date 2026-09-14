@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**952 cases à cocher, 537 cochées** — 194 entrées sur 238 ont encore des cases ouvertes.
+**953 cases à cocher, 537 cochées** — 194 entrées sur 238 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -148,7 +148,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
-- 3 · [⚠️ Filtre hashtag par lien profond : la bannière s'affiche, la liste ne bouge pas (2026-09-14)](#-filtre-hashtag-par-lien-profond--la-bannière-saffiche-la-liste-ne-bouge-pas-2026-09-14) · *Liens profonds, navigation et QR codes*
+- 4 · [⬜ Filtre hashtag : corrigé en code, jamais rejoué sur un téléphone (2026-09-14)](#-filtre-hashtag--corrigé-en-code-jamais-rejoué-sur-un-téléphone-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
@@ -257,7 +257,7 @@ Par domaine :
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 44 à faire, 60 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 108 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
@@ -7765,14 +7765,21 @@ Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
 
 ---
 
-## ⚠️ Filtre hashtag par lien profond : la bannière s'affiche, la liste ne bouge pas (2026-09-14)
+## ⬜ Filtre hashtag : corrigé en code, jamais rejoué sur un téléphone (2026-09-14)
 
-**Priorité P2** · importance 3/5 — Ouvrir un hashtag alors que le fil est déjà à l'écran annonce le filtre mais montre le fil non filtré : l'utilisateur lit des publications qui n'ont rien à voir avec le hashtag demandé.
+**Priorité P2** · importance 3/5 — Ouvrir un hashtag alors que le fil est déjà à l'écran annonçait le filtre mais montrait le fil non filtré ; et le filtre ne se levait jamais, donc revenir au fil général le laissait filtré.
 
 Mesuré sur SM A515F le 2026-09-14 (build release `e5cb916c…`) :
 `am start -a android.intent.action.VIEW -d "diasponiger://feed?hashtag=zzzaucunresultat"`
 alors que le fil est ouvert affiche la bannière `# zzzaucunresultat` **et** la
 seule publication du compte, qui ne porte aucun hashtag.
+
+**Corrigé le 2026-09-14** (`feed_provider.dart`, `feed_screen.dart`), couvert
+par `test/features/feed/feed_filtre_hashtag_test.dart` — neutraliser le
+correctif fait tomber le test sur `Expected: null, Actual: 'niamey'`. **Rien
+n'a pu être rejoué sur l'appareil** : l'autre session réinstallait toutes les
+quelques minutes (`lastUpdateTime` 14:35, 14:46, 14:47), donc l'APK sur le
+téléphone n'était déjà plus celui qu'on voulait mesurer.
 
 Diagnostic : Android livre l'intention à l'instance en cours (« intent has been
 delivered to currently running top-most instance ») et go_router réutilise
@@ -7788,8 +7795,12 @@ ni avec la pastille (voir « Fil : tirer pour rafraîchir partout, et pastille
   puis un autre — la liste doit changer à chaque fois, pas seulement la
   bannière.
 - [ ] **Hashtag sans résultat** : la liste se vide et l'état « aucune
-  publication » s'affiche (c'est aussi ce qui permettrait de tester le
-  tiré-pour-rafraîchir sur un fil vide).
+  publication » s'affiche — et c'est là qu'il faut tirer vers le bas, pour
+  cocher enfin le fil vide de « Fil : tirer pour rafraîchir partout, et
+  pastille « N nouvelles publications » ».
+- [ ] **Quitter le hashtag** : revenir en arrière rend le fil général **sans
+  bannière ni filtre**. C'est la moitié la plus grave du défaut : le filtre
+  était indelébile une fois posé.
 - [ ] **Depuis l'app fermée** (démarrage à froid) : le même lien filtre bien,
   puisque l'écran est monté pour de bon — à confirmer.
 
