@@ -30,6 +30,7 @@ import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../settings/presentation/providers/notification_preferences_provider.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
 import '../providers/home_provider.dart';
+import '../theme/service_accents.dart';
 
 import '../widgets/home_section_header.dart';
 import '../widgets/home_empty_state_card.dart';

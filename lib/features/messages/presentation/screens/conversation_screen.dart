@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/locale_helper.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
@@ -163,6 +164,18 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   bool _isSelfNotesFromConversation = false;
   String? _otherUserIdFromConversation;
 
+  /// Profil de l'interlocuteur tel que l'appareil le connaissait à l'ouverture.
+  ///
+  /// Sert de valeur de départ à l'en-tête, le temps que le flux de profil rende
+  /// la sienne. Voir [_semerIdentiteConnue].
+  dynamic _profilConnuAuDemarrage;
+
+  /// La conversation telle que le cache local la connaissait à l'ouverture.
+  ///
+  /// Même rôle pour un groupe : son nom et son image sont dans la conversation,
+  /// pas dans un profil. Voir [_semerIdentiteConnue].
+  ConversationEntity? _conversationConnueAuDemarrage;
+
   bool get _isGroup => widget.isGroup || _isGroupFromConversation;
   String? get _effectiveGroupId => widget.groupId ?? _groupIdFromConversation;
   bool get _isSelfNotes => widget.isSelfNotes || _isSelfNotesFromConversation;
@@ -174,10 +187,72 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   bool _unreadMentionsCleared = false;
   bool _privateGroupFilterRequested = false;
 
+  /// Pose, **dès la première image**, ce que l'appareil sait déjà de
+  /// l'interlocuteur : son identifiant, puis son profil.
+  ///
+  /// Les trois sources sont locales et synchrones — l'uid Firebase (tenu en
+  /// mémoire dès l'initialisation, sans réseau), la conversation en cache et le
+  /// profil en cache. Les providers, eux, ne peuvent pas répondre à temps : un
+  /// flux n'émet jamais dans la même image que le premier rendu. L'en-tête
+  /// passait donc par « Chargement… » alors que le nom était déjà sur le
+  /// disque — d'autant plus visible hors ligne, où la suite ne vient jamais.
+  ///
+  /// Ne sème rien pour un groupe ou « Mes notes » : ils n'ont pas
+  /// d'interlocuteur. Et rien non plus si le compte courant est inconnu — sans
+  /// lui, « l'autre participant » ne se calcule pas.
+  void _semerIdentiteConnue() {
+    final moi = FirebaseAuth.instance.currentUser?.uid;
+
+    // 1. La conversation, telle que le cache local la connaît. Elle porte le
+    //    nom et l'image d'un groupe, et la liste des participants d'un DM.
+    final connues = ref
+        .read(messageRepositoryProvider)
+        .getCachedConversations()
+        .fold((_) => const <ConversationEntity>[], (liste) => liste);
+    for (final conversation in connues) {
+      if (conversation.id == widget.conversationId) {
+        _conversationConnueAuDemarrage = conversation;
+        break;
+      }
+    }
+    final connue = _conversationConnueAuDemarrage;
+
+    // 2. Sa nature. « Mes notes » se décide par différence avec le compte
+    //    courant, comme l'interlocuteur : sans lui, on ne tranche pas.
+    if (connue != null) {
+      if (connue.isGroup) {
+        _isGroupFromConversation = true;
+        _groupIdFromConversation = connue.groupId;
+      } else if (moi != null && connue.isSelfNotesFor(moi)) {
+        _isSelfNotesFromConversation = true;
+      }
+    }
+
+    // 3. L'interlocuteur d'un tête-à-tête, puis son profil.
+    if (_isGroup || _isSelfNotes) return;
+
+    var autreId = widget.otherUserId;
+    if (autreId == null && connue != null && moi != null) {
+      final autre = connue.getOtherParticipantId(moi);
+      if (autre.isNotEmpty) {
+        autreId = autre;
+        _otherUserIdFromConversation = autre;
+      }
+    }
+    if (autreId == null) return;
+
+    _profilConnuAuDemarrage = ref
+        .read(profileRepositoryProvider)
+        .getCachedProfile(autreId)
+        .fold((_) => null, (profil) => profil);
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    _semerIdentiteConnue();
 
     _scrollController.addListener(_onScroll);
 
@@ -1122,7 +1197,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final conversationAsync = ref.watch(
       conversationStreamProvider(widget.conversationId),
     );
-    final conversation = conversationAsync.valueOrNull;
+    // Même raison que pour le profil : le flux n'émet pas dans la première
+    // image. Sans ce repli, l'en-tête d'un groupe affichait « Groupe » et le
+    // fil personnel un nom d'utilisateur, le temps d'un aller-retour.
+    final conversation =
+        conversationAsync.valueOrNull ?? _conversationConnueAuDemarrage;
 
     // Réconcilie isGroup/groupId/isSelfNotes avec la donnée : indispensable
     // quand l'écran est atteint sans `state.extra` (lien profond, notification).
@@ -1191,7 +1270,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       otherUserAsync = ref.watch(userStreamProvider(_effectiveOtherUserId!));
     }
 
-    final otherUser = otherUserAsync?.valueOrNull;
+    // Le profil semé à l'ouverture tient lieu de valeur tant que le flux n'a
+    // rien rendu : un flux n'émet jamais dans la même image que le premier
+    // rendu, si bien que l'en-tête passait par « Chargement… » même avec le
+    // nom déjà sur le disque. Voir [_semerIdentiteConnue].
+    final otherUser = otherUserAsync?.valueOrNull ?? _profilConnuAuDemarrage;
 
     // Vrai tant qu'on n'a pas encore de quoi nommer l'interlocuteur : par
     // lien profond/notification, `widget.conversationName` est nul, et il

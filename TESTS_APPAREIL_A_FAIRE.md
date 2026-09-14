@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**944 cases à cocher, 516 cochées** — 190 entrées sur 234 ont encore des cases ouvertes.
+**948 cases à cocher, 528 cochées** — 192 entrées sur 236 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (20)
 
-- 9 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
+- 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
@@ -69,14 +69,14 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 **P1 — fonction importante, jamais vérifiée** (57)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
-- 11 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
+- 9 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 10 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
-- 2 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
+- 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
@@ -91,7 +91,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
-- 11 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
+- 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
@@ -126,7 +126,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (65)
+**P2 — fonction secondaire ou cas limite** (66)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -151,6 +151,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08)](#-fiche-dambassade-par-lien-profond--écran-rouge--corrigé-et-vérifié-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
+- 5 · [⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)](#-compteurs-de-mon-espace-et-du-profil--ils-suivent-enfin-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
@@ -194,7 +195,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (48)
+**P3 — confort, cosmétique, fonction en pause** (49)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -219,6 +220,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
+- 5 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
 - 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
@@ -248,17 +250,17 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 158 à faire, 61 faites
-- [3. Groupes](#3-groupes) — 115 à faire, 52 faites
+- [2. Messagerie](#2-messagerie) — 159 à faire, 65 faites
+- [3. Groupes](#3-groupes) — 113 à faire, 55 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 41 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 105 à faire, 9 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 110 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 33 à faire, 28 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 137 à faire, 29 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 28 à faire, 33 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 36 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -561,12 +563,39 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 `messageFailureStreamProvider` n'avaient **aucun appelant**. Seul `enqueue`
 était branché, sur l'envoi de texte hors ligne.
 
-- [ ] **Écrire un message hors ligne**, quitter l'écran, y revenir : il est
-      toujours là, marqué en échec, avec « Renvoyer ».
+- [x] **Écrire un message hors ligne**, quitter l'écran, y revenir : il est
+      toujours là, marqué en échec, avec « Renvoyer ». Vérifié SM A515F le
+      2026-09-14 : `FILE-ATTENTE-2` écrit radios coupées, écran quitté 18 s
+      (au-delà des 5 s de grâce de l'`autoDispose`), toujours présent au
+      retour — « ⚠ Non envoyé · Réessayer ».
       (`message_provider.dart`, `_avecMessagesJamaisPartis`)
+- [x] **Renvoi manuel** : l'appui sur « Réessayer » envoie le message et la
+      bulle passe à « Reçu ». Vérifié le 2026-09-14, une seule ligne en base,
+      **aucun doublon**.
 - [ ] **Rétablir le réseau sans rien toucher** : il part seul, et la ligne de
       la liste se met à jour. (`RenvoiMessagesEnAttente`, tenu en vie par
       `app.dart`)
+
+      ⛔ **A ÉCHOUÉ au premier essai (2026-09-14), correctif posé, non
+      revérifié.** Une minute après le retour du réseau, rien n'était parti.
+      La cause n'est pas le renvoi mais son **déclencheur** :
+      `ConnectivityService.isConnected` vaut `!results.contains(none)`, et
+      `connectivity_plus` liste `vpn` tant que le tunnel est debout. Le
+      SM A515F porte un VPN permanent : couper les deux radios laisse donc
+      l'app **se croire en ligne**, aucune transition `false → true` n'est
+      émise au retour, et le déclencheur ne part jamais. Même illusion avec un
+      portail captif. Ajout d'un battement de 60 s qui ne demande rien à
+      personne (`RenvoiMessagesEnAttente.intervalleDeControle`) — c'est lui
+      qu'il faut vérifier.
+
+      ⚠️ **Et ça condamne la méthode de test elle-même** : `svc wifi disable`
+      + `svc data disable` ne rend pas l'app hors ligne **à ses propres yeux**
+      tant que le VPN tient. Pour éprouver un chemin qui dépend de
+      `connectivityNotifierProvider`, il faut le **mode avion** (qui, lui,
+      couche le tunnel) — ou couper le VPN d'abord. Ce détour explique aussi
+      pourquoi les points ci-dessus ont réussi : le message n'est jamais passé
+      par la branche « hors ligne », il a pris le chemin normal, a échoué, et
+      c'est l'accroche sur l'échec qui l'a sauvé.
 - [ ] **Tuer l'app entre les deux**, puis la rouvrir en ligne : il part au
       démarrage — le renvoi ne dépend pas d'une transition de connectivité.
 - [ ] **Une réponse citée et une carte de publication** écrites hors ligne
@@ -762,12 +791,43 @@ participant s'en déduit — et le cache de profil ne sert alors à rien.
       donc comme identité en attente
       ([conversation_screen.dart:1199](lib/features/messages/presentation/screens/conversation_screen.dart:1199)).
       Vérifié SM A515F le 2026-09-14 (release md5 `9641765b…`).
-- [ ] **La fenêtre elle-même** : hors ligne, cette restauration de session prend
-      **une à deux minutes** (mesuré : « Chargement… » à +22 s et +52 s, nom à
-      +2 min), pendant lesquelles l'app martèle App Check toutes les secondes
-      (`Unable to resolve host firebaseappcheck.googleapis.com` dans logcat).
-      Le nom finit par arriver, mais l'attente est longue pour quelqu'un qui
-      ouvre une notification dans le métro. À instruire à part.
+- [x] **La fenêtre elle-même** — instruite le 2026-09-14, et refermée par les
+      deux bouts. La cause : `authStateChanges`
+      ([auth_remote_datasource.dart:574](lib/features/auth/data/datasources/auth_remote_datasource.dart:574))
+      enchaînait en `asyncMap` **trois appels distants** — pont
+      Firebase→Supabase, upsert, lecture de la ligne `users` — et n'émettait
+      rien tant qu'ils n'avaient pas rendu la main. Hors ligne, ils mettent une
+      à deux minutes à échouer : l'app n'avait aucun compte courant pendant tout
+      ce temps, alors que Firebase tient l'utilisateur en mémoire dès son
+      initialisation. L'identité locale part maintenant en première émission,
+      l'enrichissement distant suit — et un échec ne termine plus le flux.
+      ⚠️ Analysé et couvert par les tests, mais **son effet propre n'a pas été
+      isolé sur appareil** : le semis ci-dessous masque désormais le symptôme.
+- [x] **Le nom dès la première image**, sans passer par « Chargement… » : un
+      flux n'émet jamais dans l'image du premier rendu, donc même avec tout en
+      cache l'en-tête affichait son repli. `_semerIdentiteConnue()`
+      ([conversation_screen.dart:189](lib/features/messages/presentation/screens/conversation_screen.dart:189))
+      lit à l'ouverture trois sources locales et **synchrones** — uid Firebase,
+      conversation en cache, profil en cache — et les pose comme valeurs de
+      départ. Mesuré par rafale de captures (25 en 25 s) sur SM A515F le
+      2026-09-14, lien profond en mode avion, release md5 `4b37b3c2…` : trois
+      états seulement — écran de lancement, écran blanc, puis **« Salim L. »**.
+      Aucune image ne montre « Chargement… ».
+- [ ] **Groupe et « Mes notes » par lien profond** : le semis lit aussi la
+      nature du fil dans la conversation en cache (nom et image d'un groupe,
+      « Mes notes » par différence avec le compte courant). Écrit, analysé,
+      **pas mesuré** : il faudrait l'identifiant d'une conversation de groupe,
+      que rien n'expose depuis l'appareil — logcat n'en montre aucun en release
+      et la base n'est pas liée sur ce poste.
+- [ ] **Notification d'une discussion jamais ouverte** : le push porte déjà
+      `senderName`, `senderPhotoUrl`, `senderId` et `conversationType` ;
+      [app.dart:92](lib/app.dart:92) les passe en `extra` au moment de
+      naviguer, faute de quoi aucun cache local ne peut renseigner un fil
+      inconnu. Demande deux comptes et un vrai push pour être vérifié.
+- [ ] **Lien profond brut vers une discussion inconnue, hors ligne** : mesuré
+      le 2026-09-14 — « Chargement… » et le bandeau « Mode hors ligne », qui
+      restent. C'est le cas où aucune source n'existe : ni cache, ni réseau, ni
+      `extra`. Vérifier qu'il se remplit bien au retour du réseau.
 - [x] **Hors ligne, dès l'ouverture** : l'en-tête affiche « Salim L. » et son
       avatar « SL » sans attendre le réseau, et la liste des discussions ne
       montre plus « Utilisateur ». Vérifié SM A515F le 2026-09-14 (release md5
@@ -2581,13 +2641,13 @@ SELECT public.get_or_create_ville_group(
   (SELECT id FROM public.villes WHERE nom = 'Dosso' AND pays = 'Niger'));
 ```
 
-- [ ] **Sur appareil, sur l'un des quatre comptes invités** : la notification
+- [x] **Sur appareil, sur l'un des quatre comptes invités** : la notification
   « Rejoindre « Diaspora Niger — Niamey » ? » est bien arrivée, porte l'icône
   et la couleur des groupes, et son appui ouvre la **fiche du groupe** — pas
   la liste des notifications. C'est le chemin que l'analyseur a forcé à
   compléter dans cinq `switch` : sans eux la notification arrivait et
   n'ouvrait rien.
-- [ ] **Sur appareil** : sur cette fiche, « Rejoindre » fonctionne et le
+- [x] **Sur appareil** : sur cette fiche, « Rejoindre » fonctionne et le
   compteur de membres suit. Ne rien faire ne doit rien changer : le groupe
   doit rester à **1 membre** tant que personne n'a appuyé — c'est vérifiable
   en base à tout moment.
@@ -2613,7 +2673,7 @@ SELECT public.get_or_create_ville_group(
   la fiche du groupe de Niamey. Sur la fiche de « — Niamey » comme sur celle
   du Canada (aucun groupe de ville), la section doit être **absente** — pas
   vide, absente.
-- [ ] **Sur appareil, onglet Découvrir** : choisir un pays fait apparaître
+- [x] **Sur appareil, onglet Découvrir** : choisir un pays fait apparaître
   une rangée « Ville » sous celle des pays ; choisir « Niger » puis
   « Niamey » ne laisse que le groupe de Niamey. Revenir à « Tous » sur le
   pays fait disparaître la rangée. Changer de pays doit remettre la ville à
@@ -2627,6 +2687,87 @@ SELECT public.get_or_create_ville_group(
   Niamey, et « — Niger » à sa place habituelle — deux épingles distinctes,
   pas une seule. C'est le cas où ville et pays coexistent au même endroit du
   monde, celui qui risque de les superposer.
+
+### Vérifié sur SM A515F le 2026-09-14 (APK release `703f4eda…`, `ddb6dfa`)
+
+Compte **Sim A**, qui se trouvait être le profil « Montréal » sans pays laissé
+de côté par la reprise — donc le cas le plus délicat du plan, joué en vrai.
+Les quatre comptes réellement invités appartiennent à d'autres personnes : je
+ne m'y suis pas connecté.
+
+Le parcours a produit l'invitation lui-même, sans donnée fabriquée : donner
+Niamey à Sim A en a fait le cinquième profil de la ville.
+
+- Champ ville : « Montréal » **sans pastille** (aucune ville retenue),
+  suggestions affichées **au-dessus du clavier**, « Montréal, Quebec » choisi
+  → pastille verte, et `users.country_code` passe à `Canada` **par le geste de
+  l'usager**. La pastille survit à un rechargement de l'écran : `ville_id` fait
+  bien l'aller-retour.
+- Changer le pays pour Niger **vide le champ immédiatement** et rallume
+  « Utiliser ma position ». « Nia » sous Niger ne propose que Niamey.
+- Enregistrement : `city=Niamey`, `country_code=Niger`, `ville_id=Niamey`.
+- **Invitation** : le push « Rejoindre « Diaspora Niger — Niamey » ? » arrive,
+  et son appui ouvre **la fiche du groupe** — 1 membre, bouton « Rejoindre ».
+  Rien n'est imposé. C'est le chemin des cinq `switch`, jamais vu jusque-là.
+- **Départ consenti (étape 4)** : passer du Canada au Niger a programmé la
+  sortie de « — Canada » au 2027-03-14, sans toucher au reste.
+- **Filtre Découvrir** : choisir « Niger » fait apparaître la rangée « Ville »
+  avec « Niamey ».
+- **« Utiliser ma position »** : position lue, proposition « Vous êtes à
+  Montréal-Nord, Quebec ? ». Cohérent — Montréal-Nord a Montréal pour pôle,
+  donc mène au groupe de Montréal. La feuille de divulgation ne s'affiche
+  pas, et c'est voulu : la permission COARSE était déjà accordée, le système
+  n'allait pas reposer la question. Permissions relevées avant et **remises à
+  l'identique** (COARSE accordée, FINE refusée).
+- Un échec de recherche s'est produit une fois : « Recherche impossible pour
+  le moment » s'est affiché **et le champ s'est rétabli à la frappe
+  suivante** — le comportement voulu, observé pour de vrai.
+
+⚠️ **Deux choses trouvées, dont une non élucidée.**
+
+1. **« Niamey, Niamey », « Zinder, Zinder »** dans les suggestions : au Niger
+   la région porte le nom de son chef-lieu. Corrigé — la région se tait quand
+   elle ne distingue rien (`Ville.libelle`, `test/core/ville_libelle_test.dart`).
+   Reste que GeoNames ne donne les régions qu'en **ASCII** : « Montréal,
+   Quebec » s'affiche sans accent. Pas corrigé, la source n'a pas mieux.
+2. **L'onglet Découvrir restait sur ses cartes squelettes**, et « Mes
+   groupes · 0 » alors que le compte était membre de deux groupes. **Élucidé
+   et corrigé** — c'était antérieur à ce travail :
+
+   `MyGroupsNotifier.build()` posait `ref.onDispose(() => _disposed = true)`
+   sans jamais remettre le drapeau à `false`. Or `onDispose` se déclenche à
+   chaque **recalcul** du fournisseur, pas seulement à sa destruction, et pour
+   un `Notifier` c'est la MÊME instance qui est réutilisée. Comme `build()`
+   observe `currentUserProvider` — un flux : une fois sans utilisateur, une
+   fois avec — le drapeau passait à `true` sur un notifier bien vivant dès la
+   deuxième exécution. `loadMyGroups` se terminait, tombait sur
+   `if (_disposed) return;` et **n'écrivait jamais son résultat**. Ni elle ni
+   `_refreshQuietly` : rejoindre un groupe sous les yeux de l'écran ne le
+   débloquait pas non plus.
+
+   Rien dans les journaux — l'état ne devient jamais une erreur, il reste « en
+   chargement » pour toujours. Et c'est une **course** : un compte dont
+   l'authentification est déjà résolue quand l'écran demande la liste ne
+   déclenche qu'un seul `build()` et ne voit rien. D'où l'écart entre les deux
+   téléphones.
+
+   Reproduit au banc (`mes_groupes_reconstruction_test.dart`) avant d'être
+   corrigé — le banc échoue sur l'ancien code.
+
+   `onboarding_provider.dart` porte le même motif mais **n'observe rien** :
+   son `build()` ne s'exécute qu'une fois, il n'est pas touché. Laissé tel
+   quel — c'est le fournisseur qui garde le routeur, on n'y touche pas sans
+   reproduction.
+   - [ ] **Sur appareil** : « Mes groupes » liste bien les groupes du compte,
+     et l'onglet Découvrir affiche des groupes au lieu de squelettes — y
+     compris en allant sur l'onglet Groupes **tout de suite** après le
+     lancement, avant que l'authentification ait fini de se résoudre. C'est ce
+     timing-là qui déclenchait la panne.
+
+Pas encore vu : la mention GeoNames dans « À propos », la carte, le thème
+sombre. La feuille de divulgation du champ ville n'a pas pu être rejouée —
+`USER_FIXED` est posé sur les deux permissions et adb ne le retire pas.
+
 
 ---
 
@@ -9545,6 +9686,33 @@ Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
 
+## ⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Les chiffres affichés étaient ceux du démarrage de l'app : suivre quelqu'un, publier, enregistrer une publication ne les bougeait pas.
+
+Trois causes distinctes (`feed_provider.dart`, `follow_button.dart`) : les
+compteurs d'abonnés/abonnements n'étaient invalidés **par personne** et ne sont
+pas `autoDispose` ; les compteurs de publications et de favoris sont
+`autoDispose` mais l'écran qui les affiche reste monté sous l'écran de
+rédaction, donc personne ne les relâche ; et le compteur de partages de la
+carte n'était jamais relu après un partage externe. Couvert en test par
+`feed_compteurs_rafraichis_test.dart` — qui ne dit rien de ce qui s'affiche.
+
+- [ ] **Abonnés / Abonnements** (deux comptes) : suivre le second compte depuis
+  une carte du fil, ouvrir Mon espace → « Abonnements » a augmenté de 1 **sans
+  redémarrer l'app** ; ne plus suivre → il redescend. C'est le cas qui ne
+  marchait pas.
+- [ ] **Onglet « Abonnements » du fil** juste après avoir suivi quelqu'un : ses
+  publications y apparaissent (la liste des comptes suivis était, elle aussi,
+  figée jusqu'au redémarrage).
+- [ ] **Publications** : publier depuis le fil, revenir à Mon espace → le
+  chiffre a augmenté ; supprimer la publication → il redescend. Même contrôle
+  sur l'écran Profil, ligne « Mes publications ».
+- [ ] **Enregistrés** : toucher le marque-page d'une publication → le chiffre de
+  Mon espace et la ligne « Publications enregistrées » du Profil suivent.
+- [ ] **Partages** : partager une publication vers WhatsApp → le compteur de
+  partages de la carte s'incrémente sans recharger le fil.
+
 ## ⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)
 
 **Priorité P1** · importance 3/5 — Le fil pouvait rester figé sans que rien ne le signale : la pastille ne dépendait que du canal temps réel, et le geste de rafraîchissement ne partait pas sur un fil court, vide ou en erreur.
@@ -11515,13 +11683,13 @@ sont vérifiés en base, pas ici.
   passer sous le clavier (voir « Débordement clavier » du domaine Design) et
   se ferme à la perte du focus. Le champ est en bas d'un formulaire long :
   c'est le cas où la liste risque de sortir de l'écran.
-- [ ] **Sur appareil** : taper « mont » avec le pays Canada propose Montréal
+- [x] **Sur appareil** : taper « mont » avec le pays Canada propose Montréal
   en premier ; avec le pays Niger, ne le propose pas. Une ville choisie
   affiche la pastille verte, une ville retapée à la main la perd.
-- [ ] **Sur appareil** : changer de pays dans la liste déroulante vide le
+- [x] **Sur appareil** : changer de pays dans la liste déroulante vide le
   champ ville et éteint la pastille, immédiatement — pas seulement après
   enregistrement.
-- [ ] **Sur appareil, puis en base** : enregistrer avec une ville choisie, et
+- [x] **Sur appareil, puis en base** : enregistrer avec une ville choisie, et
   vérifier que `users.ville_id` ET `users.city` sont posés ; enregistrer avec
   un texte libre (« Almoustapha ») et vérifier que `ville_id` est nul et que
   le texte a survécu. Le déclencheur écrase `city` avec le nom officiel dès
@@ -11533,7 +11701,7 @@ sont vérifiés en base, pas ici.
   propose « Vous êtes à … ? » ; « Non » referme sans rien écrire.
 - [ ] **Sur appareil, hors d'une ville connue** : « Aucune ville de la liste à
   proximité » s'affiche au lieu d'une proposition fausse.
-- [ ] **Sur appareil, réseau coupé** : la ligne « Recherche impossible pour le
+- [x] **Sur appareil, réseau coupé** : la ligne « Recherche impossible pour le
   moment » remplace la liste, et le champ reste saisissable — le texte libre
   doit continuer de partir dans `city`.
 
@@ -11549,7 +11717,7 @@ le relier changerait aussi son pays. Décision : à proposer, pas à imposer.
   « Niamey » avec la pastille verte (une ville retenue), et le champ n'est
   plus du texte nu. Le compte qui avait écrit « niamey » en minuscules doit
   afficher « Niamey ».
-- [ ] **Sur appareil, le compte « Montréal »** : le champ montre toujours
+- [x] **Sur appareil, le compte « Montréal »** : le champ montre toujours
   « Montréal » SANS pastille. Ouvrir le champ doit proposer « Montréal,
   Québec » ; le choisir doit poser le Canada comme pays. C'est le seul
   chemin par lequel ce profil change de pays — vérifier qu'il ne l'a pas fait
@@ -12138,6 +12306,32 @@ directement sur la section APPLICATION.
 # 12. Design, thème, langue et mise en page
 
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
+
+---
+
+## ⬜ Une couleur par service dans les deux grilles (2026-09-14)
+
+**Priorité P3** · importance 2/5 — Les tuiles de service se partageaient trois valeurs : le Fil et les Amis avaient **exactement** la même couleur, l'Annuaire une variante d'orange indiscernable du Fil, et sur l'accueil l'Annuaire était colorié avec `colorScheme.onPrimaryContainer` — un jeton de *texte*, presque noir. L'indigo des Ambassades tombait à 2,3:1 sur l'aplat sombre de sa tuile.
+
+Une seule source désormais : `ServiceAccents`
+([service_accents.dart](lib/features/home/presentation/theme/service_accents.dart)),
+lue par « Tous les services » et par la grille de l'accueil. Contrastes
+calculés (icône sur son propre aplat) : ≥ 3,4:1 en clair sauf le Fil à 2,4:1
+(l'orange était déjà ainsi), ≥ 5,1:1 en nocturne.
+
+- [ ] **« Tous les services »** : cinq tuiles, cinq teintes distinctes — Fil
+  orange, Annuaire teal, Ambassades bleu, Événements prune, Amis vert. Aucune
+  paire voisine ne se ressemble.
+- [ ] **Grille de l'accueil** : le Fil, l'Annuaire et les Ambassades y portent
+  la **même** couleur que dans « Tous les services » (c'est la régression la
+  plus probable : deux écrans, une seule liste).
+- [ ] **Thème sombre** : les cinq icônes restent lisibles sur leur aplat à
+  15 % — en particulier le bleu des Ambassades, qui était le cas le pire.
+- [ ] **Compte en thème Orange** : les tuiles ne bougent plus avec l'accent du
+  compte (elles ne lisent plus `adaptivePrimaryColor`). Vérifier que le résultat
+  reste cohérent avec le reste de l'écran, boutons compris.
+- [ ] Le prune des Événements est la seule teinte hors guide de style : juger
+  à l'œil si elle tient à côté du bleu des Ambassades, sa voisine de rangée.
 
 ---
 
