@@ -419,8 +419,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
     // Selection mode: wrap with tap-to-select and show checkbox
     if (widget.isSelectionMode) {
+      // L'appui long coche lui aussi : c'est le geste qui a ouvert le mode,
+      // le refaire sur le message suivant doit l'ajouter, pas rouvrir un
+      // menu par-dessus la barre de sélection.
       return GestureDetector(
         onTap: () => widget.onSelect?.call(widget.message),
+        onLongPress: () => widget.onSelect?.call(widget.message),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           color:
@@ -449,7 +453,19 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   ),
                 ),
               ),
-              Expanded(child: _buildMainContent(context, isDeleted)),
+              // En sélection, le contenu ne reçoit plus aucun pointeur : il
+              // garde sinon TOUS ses gestes, et le plus profond gagne le tap.
+              // Toucher un sondage votait au lieu de cocher — et de la même
+              // façon une image s'ouvrait, un lien partait au navigateur, un
+              // envoi échoué se relançait, un double-appui posait une
+              // réaction, un glissement passait en réponse. Le tap remonte
+              // maintenant au `GestureDetector` ci-dessus, partout sur la
+              // ligne.
+              Expanded(
+                child: AbsorbPointer(
+                  child: _buildMainContent(context, isDeleted),
+                ),
+              ),
             ],
           ),
         ),
@@ -1022,9 +1038,10 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
   /// Ouvre la feuille d'actions (§27a).
   ///
-  /// Cinq entrées visibles, les autres derrière « Autres actions » : la
-  /// maquette impose la brièveté, mais épingler, modifier, enregistrer et
-  /// signaler restent des fonctions réelles qu'on ne fait pas disparaître.
+  /// Les entrées courantes visibles, les autres derrière « Autres
+  /// actions » : la maquette impose la brièveté, mais épingler, modifier,
+  /// enregistrer et signaler restent des fonctions réelles qu'on ne fait pas
+  /// disparaître.
   void _showOptionsModal(BuildContext context) {
     _moreOptionsOpen = false;
     showModalBottomSheet(
@@ -1033,15 +1050,19 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       builder: (ctx) => StatefulBuilder(
         builder: (_, setSheetState) {
           final secondaires = _secondaryOptionRows(ctx);
-          return Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: context.surfaceColor,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20),
-              ),
+          // `Material` et non `Container` : les `ListTile` peignent leur onde
+          // d'appui sur le Material le plus proche. Avec un fond opaque posé
+          // entre eux et celui de la feuille, l'onde était peinte DERRIÈRE —
+          // aucun retour au toucher sur douze entrées. Flutter 3.29 lève même
+          // une assertion dessus en debug.
+          return Material(
+            color: context.surfaceColor,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(20),
             ),
+            clipBehavior: Clip.antiAlias,
             child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -1095,7 +1116,13 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     );
   }
 
-  /// Les cinq entrées de la maquette, dans son ordre.
+  /// Les entrées de la maquette, dans son ordre, plus « Sélectionner ».
+  ///
+  /// La maquette n'en comptait que cinq. « Sélectionner » les rejoint parce
+  /// qu'il n'ouvre pas une fonction de plus : il ouvre le mode multi-sélection
+  /// que la conversation sait déjà tenir (barre de compte, tout cocher,
+  /// copier / transférer / supprimer la sélection). Rangé derrière
+  /// « Autres actions », ce mode restait sans porte d'entrée visible.
   List<Widget> _primaryOptionRows(BuildContext ctx) {
     final l10n = AppLocalizations.of(context)!;
     return [
@@ -1161,6 +1188,26 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                 widget.onToggleStar?.call(widget.message);
               },
             );
+          },
+        ),
+
+      // Entrer en sélection multiple depuis le message pressé. L'entrée
+      // vivait derrière « Autres actions », où personne ne la trouvait —
+      // alors que c'est le SEUL chemin vers la sélection : un simple appui
+      // sur une bulle ne coche que si le mode est déjà entré.
+      if (widget.onSelect != null)
+        ListTile(
+          leading: AppIcon(
+            AppIcon.checkCircle,
+            color: context.textPrimaryColor,
+          ),
+          title: Text(
+            l10n.select,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            widget.onSelect?.call(widget.message);
           },
         ),
 
@@ -1295,22 +1342,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onTap: () {
             Navigator.pop(ctx);
             _showSelectTextSheet(texte);
-          },
-        ),
-
-      if (widget.onSelect != null)
-        ListTile(
-          leading: AppIcon(
-            AppIcon.checkCircle,
-            color: context.textPrimaryColor,
-          ),
-          title: Text(
-            l10n.select,
-            style: TextStyle(color: context.textPrimaryColor),
-          ),
-          onTap: () {
-            Navigator.pop(ctx);
-            widget.onSelect?.call(widget.message);
           },
         ),
 

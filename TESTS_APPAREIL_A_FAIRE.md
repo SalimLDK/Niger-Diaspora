@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**961 cases à cocher, 549 cochées** — 196 entrées sur 240 ont encore des cases ouvertes.
+**983 cases à cocher, 549 cochées** — 199 entrées sur 243 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -66,7 +66,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (58)
+**P1 — fonction importante, jamais vérifiée** (59)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -74,6 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
 - 5 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
@@ -127,7 +128,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (68)
+**P2 — fonction secondaire ou cas limite** (70)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -138,6 +139,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
 - 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
@@ -167,6 +169,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
 - 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 8 · [Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)](#le-bouton--ouvrir-play-store--de-la-garde-play-integrity-ne-faisait-rien-2026-09-14) · *Backend, sécurité et observabilité*
 - 3 · [⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)](#-ce-que-dit-vraiment-la-console-crashlytics-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
@@ -254,7 +257,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 161 à faire, 76 faites
+- [2. Messagerie](#2-messagerie) — 175 à faire, 76 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -265,7 +268,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 34 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 46 à faire, 40 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 54 à faire, 40 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 43 à faire, 26 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -513,6 +516,66 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Le mode sélection enveloppait le message dans un `GestureDetector`, mais le contenu gardait tous ses gestes en dessous. Pour un tap, c'est le gestionnaire **le plus profond** qui gagne : toucher un sondage votait au lieu de cocher. Même cause pour l'image (visionneuse), l'aperçu de lien (navigateur), l'envoi échoué (relance), le double-appui (réaction) et le glissement (réponse) — un vote parti par erreur ne se reprend pas d'un geste.
+
+Le contenu passe sous `AbsorbPointer` tant que le mode est ouvert
+([message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)) :
+plus aucun pointeur ne l'atteint, le geste remonte au parent. L'appui long y
+coche désormais aussi, au lieu d'ouvrir une feuille d'actions par-dessus la
+barre de sélection. Le défaut est **préexistant** — il devient seulement plus
+atteignable depuis « Sélectionner » sorti de « Autres actions ». Couvert par
+`test/features/messages/mode_selection_gestes_test.dart` (les trois cas
+tombent sans le correctif, vérifié).
+
+- [ ] **Sondage en sélection** : toucher une option coche la ligne, aucun
+  vote ne part. Vérifier ensuite **dans le sondage lui-même** (sortir du mode,
+  rouvrir) qu'aucune voix n'a été enregistrée.
+- [ ] **Image, vidéo, aperçu de lien en sélection** : le tap coche, la
+  visionneuse ne s'ouvre pas, le navigateur non plus.
+- [ ] **Note vocale en sélection** : le tap coche, la lecture ne démarre pas.
+- [ ] **Message en échec d'envoi, en sélection** : le tap coche, il ne
+  relance pas l'envoi.
+- [ ] **Double-appui en sélection** : aucune réaction ne se pose.
+- [ ] **Glissement horizontal en sélection** : ne passe pas en réponse.
+- [ ] **Défilement de la liste en sélection** : toujours fluide — l'absorption
+  ne doit pas gêner le `ListView`, qui est au-dessus et non dedans.
+- [ ] **Appui long sur un deuxième message en sélection** : il s'ajoute à la
+  sélection, sans rouvrir le menu d'actions.
+- [ ] **Sortie du mode** : une fois la sélection vidée, le sondage redevient
+  votable et l'image réouvrable. C'est la garde symétrique du banc.
+
+---
+
+## ⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Le menu d'appui long montrait cinq entrées et rangeait le reste derrière « Autres actions ». « Sélectionner » y était — et c'est le **seul** chemin vers la sélection multiple : un simple appui sur une bulle ne coche rien tant que le mode n'est pas entré. La conversation savait pourtant déjà tout faire une fois dedans (barre de compte, tout cocher, copier / transférer / supprimer la sélection) : la fonction était complète, sans porte d'entrée trouvable.
+
+L'entrée rejoint la liste visible, juste avant le filet de « Supprimer »
+([message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)).
+Couvert par `test/features/messages/menu_appui_long_selectionner_test.dart`.
+
+- [ ] **Appui long sur un message texte** : « Sélectionner » se lit au premier
+  écran, sans déplier « Autres actions ». Le toucher ferme la feuille et fait
+  apparaître la barre « 1 sélectionné ».
+- [ ] **Appui long sur un sondage** : même menu. La carte de vote ne doit pas
+  avaler le geste — ses options sont tactiles, c'est le cas qui pouvait
+  échouer.
+- [ ] **La liste tient sans défiler** sur le SM A515F avec les six entrées
+  (Répondre, Copier, Transférer, Épingler, Sélectionner, Supprimer) plus la
+  rangée de réactions. À l'échelle de police 1,3, vérifier qu'« Autres
+  actions » reste atteignable.
+- [ ] **En mode sélection, taper une option de sondage** coche le message
+  au lieu de voter — corrigé depuis, voir « En sélection, la bulle ne fait
+  plus que cocher ».
+- [ ] **Onde d'appui sur les entrées du menu** : la feuille passe de
+  `Container` à `Material`, les `ListTile` peignaient leur onde derrière un
+  fond opaque. Vérifier qu'un appui laisse maintenant une trace visible, en
+  clair **et** en sombre, et que les coins arrondis du haut n'ont pas bougé.
 
 ---
 
@@ -14148,6 +14211,68 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+
+## Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Un utilisateur bloqué au paiement du panier ou à l'envoi d'argent se voyait proposer « Ouvrir Play Store » ; le bouton était inerte. Invisible pour qui installe depuis Play — mais c'est exactement le cas d'un APK posé à la main, donc de nos propres tests.
+
+`SecurityGateService._openPlayStore()` avait un corps entièrement commenté :
+le tap fermait le dialogue et n'ouvrait rien. La méthode est supprimée, et le
+bouton appelle `AppReviewService.ouvrirLaFicheSansAvis()`, qui ouvre la bonne
+fiche par plateforme (`Platform.isIOS ? appStoreUrl : playStoreUrl`) en
+`LaunchMode.externalApplication` — les mêmes constantes que celles corrigées
+dans « Les deux liens « noter l'app » étaient morts ».
+
+**Et non `ouvrirLaFicheDuStore()`** : celle-ci ouvre la *page d'avis*
+(`?action=write-review` sur iOS) et marque la fiche comme ouverte. Ici on
+demande une installation, pas une note — et marquer couperait l'invitation
+automatique pour un avis que personne n'a déposé. Même choix qu'à la notice de
+mise à jour. Si l'ouverture échoue, un message le dit, sans quoi le bouton
+retomberait exactement dans le symptôme corrigé ici.
+
+Contrairement à ce qu'un `grep` laissait croire, le dialogue n'est pas mort :
+[checkAndShowDialog](lib/core/services/security_gate_service.dart) a deux
+appelants, tous deux sur des flux d'argent —
+[cart_screen.dart](lib/features/marketplace/presentation/screens/cart_screen.dart)
+(paiement du panier) et
+[send_money_screen.dart](lib/features/transfers/presentation/screens/send_money_screen.dart)
+(envoi d'argent). Le nom cherché, `showSecurityDialog`, n'existe nulle part
+dans le dépôt : le supprimer aurait retiré la garde Play Integrity des deux.
+
+Au passage, `result.verdict!` était déréférencé deux fois sans garde alors que
+`denied()` déclare `verdict` optionnel. Aucun de ses quatre chemins ne le
+laisse nul aujourd'hui, donc rien ne plantait — le `!` est remplacé par un
+test, et sans verdict le dialogue ne propose plus le store plutôt que
+d'affirmer un motif qu'il ignore.
+
+**Rien de tout ceci ne se vérifie hors appareil** : `flutter analyze` est
+propre, et Play Integrity ne rend un verdict que sur un vrai téléphone. Play
+Integrity n'était mentionné nulle part dans ce fichier jusqu'ici — la garde
+elle-même n'a donc jamais été observée en marche.
+
+- [ ] Sur SM A515F, APK installé à la main : ouvrir le panier marketplace et
+      lancer le paiement — le dialogue « Accès restreint » doit apparaître.
+- [ ] Sur ce dialogue, « Ouvrir Play Store » doit amener sur la fiche
+      `com.diasponiger.diasponiger`, et non sur une page « application
+      introuvable ». Ce chemin ouvre l'URL `https` (et non `market://`) :
+      l'app Play Store est l'issue attendue, un navigateur reste un repli
+      acceptable — noter laquelle des deux s'est ouverte.
+- [ ] « Compris » ferme le dialogue sans rien ouvrir.
+- [ ] Même parcours depuis l'envoi d'argent (destinataire choisi, montant
+      saisi, puis valider).
+- [ ] Au retour du Play Store, l'app reprend sur l'écran quitté : pas de
+      second dialogue, pas d'écran noir.
+- [ ] Noter le motif affiché. « nécessite l'installation depuis Google Play
+      Store » est le cas attendu ; « Impossible de vérifier la sécurité »
+      signifie que la Cloud Function d'intégrité a échoué — autre sujet, à
+      consigner séparément.
+- [ ] La fiche doit s'ouvrir sur la page normale, **pas** sur le formulaire
+      d'avis, et l'invitation automatique « noter l'app » doit rester
+      disponible ensuite : ce passage ne doit pas la consommer.
+- [ ] Couper le réseau puis retenter « Ouvrir Play Store » : un message doit
+      apparaître. Rien du tout signifierait que le retour d'échec est ignoré.
 
 ---
 
