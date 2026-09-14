@@ -1207,11 +1207,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // discussion ouverte hors ligne restait sur « Conversation » alors que le
     // nom était là : le flux de la conversation, lui, n'avait pas de valeur,
     // et ce seul fait suffisait à déclarer l'identité « en chargement ».
+    //
+    // `currentUser == null` compte aussi : l'interlocuteur se déduit de la
+    // conversation **par différence** avec le compte courant, donc tant que la
+    // session n'est pas restaurée il n'y a personne à nommer. Hors ligne, cette
+    // fenêtre dure plusieurs dizaines de secondes, et sans cette clause
+    // l'en-tête affichait « Utilisateur » pendant tout ce temps — le repli
+    // final, celui qui se lit comme un défaut — avant de se corriger tout seul.
+    // Mesuré par lien profond, mode avion, le 2026-09-14.
     final identityLoading =
         !_isGroup &&
         !_isSelfNotes &&
         otherUser == null &&
         (!conversationAsync.hasValue ||
+            currentUser == null ||
             (_effectiveOtherUserId != null &&
                 !(otherUserAsync?.hasValue ?? false)));
 

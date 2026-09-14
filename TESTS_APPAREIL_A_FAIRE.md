@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**927 cases à cocher, 512 cochées** — 188 entrées sur 232 ont encore des cases ouvertes.
+**939 cases à cocher, 516 cochées** — 190 entrées sur 234 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (19)
+**P0 — avant toute nouvelle version** (20)
 
+- 9 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
@@ -65,7 +66,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (55)
+**P1 — fonction importante, jamais vérifiée** (56)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 11 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -74,13 +75,14 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
-- 1 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
+- 2 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
+- 2 · [✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)](#-lien-diasponiger-au-démarrage-à-froid--corrigé-vérifié-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)](#-le-scanner-de-laccueil-lit-tous-les-qr-du-projet-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 16 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04) · *Liens profonds, navigation et QR codes*
@@ -246,12 +248,12 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 138 à faire, 60 faites
+- [2. Messagerie](#2-messagerie) — 148 à faire, 61 faites
 - [3. Groupes](#3-groupes) — 115 à faire, 52 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 39 à faire, 57 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 41 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 110 à faire, 9 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
@@ -508,6 +510,43 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Un message écrit hors ligne partait dans Hive et **y restait pour toujours** : `processQueue()` n'était appelé de nulle part. Jamais envoyé, jamais purgé, jamais compté — et disparu de l'écran.
+
+*Bloqué : deux comptes, et de quoi couper le réseau.*
+
+`OfflineQueueService` était complet mais orphelin : `processQueue`,
+`cleanOldMessages`, `pendingMessagesCountProvider` et
+`messageFailureStreamProvider` n'avaient **aucun appelant**. Seul `enqueue`
+était branché, sur l'envoi de texte hors ligne.
+
+- [ ] **Écrire un message hors ligne**, quitter l'écran, y revenir : il est
+      toujours là, marqué en échec, avec « Renvoyer ».
+      (`message_provider.dart`, `_avecMessagesJamaisPartis`)
+- [ ] **Rétablir le réseau sans rien toucher** : il part seul, et la ligne de
+      la liste se met à jour. (`RenvoiMessagesEnAttente`, tenu en vie par
+      `app.dart`)
+- [ ] **Tuer l'app entre les deux**, puis la rouvrir en ligne : il part au
+      démarrage — le renvoi ne dépend pas d'une transition de connectivité.
+- [ ] **Une réponse citée et une carte de publication** écrites hors ligne
+      repartent **entières**. Les champs plats de `PendingMessage` les
+      perdaient, et codaient le type « text » en dur.
+- [ ] **Une photo écrite hors ligne** repart avec son image. Si Android a
+      purgé le fichier temporaire entre-temps, le message reste affiché en
+      échec plutôt que de repartir vide.
+- [ ] **Pas de doublon** : un message marqué en échec par le délai de 30 s
+      dont l'écho serveur arrive en retard ne doit PAS être renvoyé une
+      seconde fois. (`oublierMessageEnAttente` sur l'écho)
+- [ ] **Message de plus de 24 h** : il ne repart pas tout seul, il attend
+      « Renvoyer ». (`kFenetreRenvoiAutomatique`)
+- [ ] **Échec en ligne** (et non hors ligne) : couper le réseau juste après
+      l'appui sur envoyer. Même traitement — gardé, renvoyable.
+- [ ] **La file ne gonfle pas** : après une série d'envois réussis, vérifier
+      qu'il ne reste rien en attente.
+
+---
+
 ## ⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)
 
 **Priorité P0** · importance 5/5 — Trois chemins laissaient l'écran de discussion sur sa copie locale sans plus rien écouter, dont un qui **écrase le cache** avec du vide.
@@ -675,6 +714,20 @@ réseau : sans elle, un écran atteint sans `state.extra` (lien profond,
 notification) ne sait même pas **qui** est en face — l'identifiant de l'autre
 participant s'en déduit — et le cache de profil ne sert alors à rien.
 
+- [x] **Par lien profond, hors ligne** : plus de « Utilisateur » pendant que la
+      session se restaure — l'en-tête reste sur « Chargement… » puis affiche
+      « Salim L. ». L'interlocuteur se déduit de la conversation **par
+      différence avec le compte courant** : tant que la session n'est pas
+      restaurée, il n'y a personne à nommer, et `currentUser == null` compte
+      donc comme identité en attente
+      ([conversation_screen.dart:1199](lib/features/messages/presentation/screens/conversation_screen.dart:1199)).
+      Vérifié SM A515F le 2026-09-14 (release md5 `9641765b…`).
+- [ ] **La fenêtre elle-même** : hors ligne, cette restauration de session prend
+      **une à deux minutes** (mesuré : « Chargement… » à +22 s et +52 s, nom à
+      +2 min), pendant lesquelles l'app martèle App Check toutes les secondes
+      (`Unable to resolve host firebaseappcheck.googleapis.com` dans logcat).
+      Le nom finit par arriver, mais l'attente est longue pour quelqu'un qui
+      ouvre une notification dans le métro. À instruire à part.
 - [x] **Hors ligne, dès l'ouverture** : l'en-tête affiche « Salim L. » et son
       avatar « SL » sans attendre le réseau, et la liste des discussions ne
       montre plus « Utilisateur ». Vérifié SM A515F le 2026-09-14 (release md5
@@ -7467,6 +7520,53 @@ notifications d'un groupe une par une.
 # 7. Liens profonds, navigation et QR codes
 
 Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
+
+---
+
+## ✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Un lien du schéma maison ouvert alors que l'app n'est pas lancée tombait sur « Page Not Found ». Les QR codes du projet passent tous par ce schéma.
+
+*Bloqué : rien — `adb shell am start -a android.intent.action.VIEW -d …`.*
+
+**Le défaut, mesuré le 2026-09-14** (mode avion comme en ligne) :
+
+```
+GoException: no routes for location: /debef5f0-2fa0-4775-b1ed-85a4d6411102
+```
+
+La section a disparu. Dans `diasponiger://messages/<id>` elle est l'**hôte** de
+l'URI, pas le début du chemin. Au démarrage à froid, c'est
+`AudioServicePlugin.getFlutterEngine` qui fixe la route initiale ; il demande
+d'abord `activity.getInitialRoute()`, et la version de `FlutterFragmentActivity`
+ne rend que `data.getPath()` — l'hôte est jeté là, avant que quiconque côté Dart
+puisse le voir. La remise à plat de `app_router.dart` ne pouvait donc rien
+rattraper : elle recevait déjà `/<id>`.
+
+Les deux autres chemins allaient bien, ce qui rendait le défaut invisible en
+test : `onNewIntent` (app lancée) et `onCreate` sur moteur déjà lancé passent
+par `pushRouteFromIntent`, qui recolle l'hôte depuis le 2026-09-09. Et un lien
+`https` n'est pas concerné — son chemin est complet.
+
+**Corrigé** dans
+[MainActivity.java](android/app/src/main/java/com/diasponiger/diasponiger/MainActivity.java:332) :
+`getInitialRoute()` rend la route remise à plat, et la construction vit
+désormais dans `routeDepuisIntent()`, partagée avec `pushRouteFromIntent`.
+⚠️ `getInitialRoute()` est **déprécié** dans cet embedding (javac le signale
+depuis ce correctif) mais reste le point d'entrée qu'`audio_service` interroge :
+à revérifier à chaque montée de Flutter ou d'`audio_service`.
+
+- [x] **`diasponiger://messages/<id>`, app pas lancée, hors ligne** : ouvre la
+      discussion. Vérifié SM A515F le 2026-09-14 (release md5 `9641765b…`).
+- [x] **Le même, en ligne** : ouvre la discussion, nom et « En ligne » en
+      place à +40 s. Vérifié SM A515F le 2026-09-14.
+- [x] **`https://diasponiger.web.app/messages/<id>` à froid** : inchangé, ouvre
+      la discussion (non-régression). Vérifié SM A515F le 2026-09-14.
+- [ ] **Les autres sections à froid** (`groups`, `profile`, `events`, `posts`) :
+      un seul identifiant a été essayé, celui d'une discussion.
+- [ ] **Moteur en cache sans activité** (app balayée des récents pendant que le
+      service audio tourne) : le lien doit encore arriver — c'est le chemin
+      `onCreate` + `pushRouteFromIntent`, non rejoué depuis ce correctif.
 
 ---
 

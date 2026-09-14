@@ -7,6 +7,7 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/router/app_router.dart';
+import 'features/messages/presentation/providers/message_provider.dart';
 import 'core/router/retour_systeme.dart';
 import 'core/l10n/locale_provider.dart';
 import 'core/services/notification_service.dart';
@@ -177,6 +178,12 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
     // jamais `answerCall()` — répondre à un appel entrant depuis l'écran de
     // verrouillage ne faisait rigoureusement rien.
     ref.watch(callNotificationHandlerProvider);
+
+    // Même raison que ci-dessus, et le même défaut observé : rien ne lisait
+    // ce notifier, donc les messages écrits hors ligne restaient dans Hive
+    // indéfiniment. `OfflineQueueService.processQueue` n'était appelé de nulle
+    // part — la file se remplissait et ne se vidait jamais.
+    ref.watch(renvoiMessagesEnAttenteProvider);
 
     return MaterialApp.router(
       title: 'Diaspo Niger',

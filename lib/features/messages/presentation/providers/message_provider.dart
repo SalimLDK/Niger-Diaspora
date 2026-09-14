@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:uuid/uuid.dart';
@@ -22,6 +23,7 @@ import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../../core/services/link_preview_service.dart';
 import '../../data/datasources/message_remote_datasource.dart';
+import '../../data/models/message_model.dart';
 import '../../data/repositories/message_repository_impl.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
@@ -291,7 +293,9 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
       (cachedMessages) {
         if (cachedMessages.isNotEmpty) {
           state = MessagePaginationState(
-            messages: _withPendingLocalMessages(cachedMessages),
+            messages: _avecMessagesJamaisPartis(
+              _withPendingLocalMessages(cachedMessages),
+            ),
             hasMore: cachedMessages.length >= _pageSize,
             lastMessageId: cachedMessages.first.id,
             oldestMessageTimestamp: cachedMessages.first.createdAt,
@@ -355,7 +359,9 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
       (paginatedMessages) {
         _lectureReseauAboutie = true;
         state = MessagePaginationState(
-          messages: _withPendingLocalMessages(paginatedMessages.messages),
+          messages: _avecMessagesJamaisPartis(
+            _withPendingLocalMessages(paginatedMessages.messages),
+          ),
           hasMore: paginatedMessages.hasMore,
           lastMessageId: paginatedMessages.lastMessageId,
           oldestMessageTimestamp: paginatedMessages.oldestMessageTimestamp,
@@ -515,6 +521,15 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
                   }
 
                   if (optimisticIndex != -1) {
+                    // Le message est bel et bien arrivé : il ne doit plus
+                    // pouvoir repartir. Un message marqué « failed » par le
+                    // délai de 30 s dont l'écho arrive en retard serait sinon
+                    // renvoyé en double au retour du réseau.
+                    _ref
+                        .read(paginatedMessagesProvider(conversationId).notifier)
+                        .oublierMessageEnAttente(
+                          existingMessages[optimisticIndex].id,
+                        );
                     _cancelOptimisticTimeout(existingMessages[optimisticIndex].id);
                     existingMessages[optimisticIndex] = _reconcileEcho(
                       existingMessages[optimisticIndex],
@@ -592,6 +607,12 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
     final existingMessages = List<MessageEntity>.from(state.messages);
     existingMessages.removeWhere((m) => m.id == messageId);
     state = state.copyWith(messages: existingMessages);
+
+    // Tout renvoi commence par retirer la copie ratee : c'est donc le point
+    // ou l'entree de file correspondante cesse d'etre valable. Si l'envoi
+    // echoue de nouveau, il repartira sous un nouvel identifiant temporaire,
+    // que `updateMessageStatus` remettra de cote a son tour.
+    oublierMessageEnAttente(messageId);
   }
 
   void markMessageDeletedForMe(String messageId, String userId) {
@@ -706,14 +727,94 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
 
   void updateMessageStatus(String messageId, MessageStatus newStatus) {
     if (!mounted) return;
+    MessageEntity? tombeEnEchec;
     final messages = state.messages.map((m) {
       if (m.id == messageId) {
-        return m.copyWith(status: newStatus);
+        final maj = m.copyWith(status: newStatus);
+        if (newStatus == MessageStatus.failed &&
+            m.status != MessageStatus.failed) {
+          tombeEnEchec = maj;
+        }
+        return maj;
       }
       return m;
     }).toList();
 
     state = state.copyWith(messages: messages);
+
+    // Point de passage unique de l'échec : les six endroits qui marquent un
+    // message « failed » passent tous par ici. Sans cette mise de côté, le
+    // message n'existait qu'en mémoire — et `paginatedMessagesProvider` étant
+    // `autoDispose`, quitter l'écran plus de cinq secondes l'effaçait pour de
+    // bon, sans que rien ne le signale.
+    final aSauver = tombeEnEchec;
+    if (aSauver != null) unawaited(_mettreDeCote(aSauver));
+  }
+
+  /// Enregistre un message en échec pour qu'il survive à la fermeture de
+  /// l'écran, et puisse repartir plus tard.
+  Future<void> _mettreDeCote(MessageEntity message) async {
+    try {
+      final file = _ref.read(offlineQueueServiceProvider);
+      if (file.isInQueue(message.id)) return;
+      await file.enqueue(
+        PendingMessage(
+          id: message.id,
+          conversationId: conversationId,
+          senderId: message.senderId,
+          senderName: message.senderName,
+          senderPhotoUrl: message.senderPhotoUrl,
+          content: message.content,
+          type: message.type.name,
+          filePath: message.localFilePath,
+          createdAt: message.createdAt,
+          messageJson: jsonEncode(MessageModel.fromEntity(message).toJson()),
+        ),
+      );
+    } catch (e) {
+      debugPrint('mise de côté du message en échec : $e');
+    }
+  }
+
+  /// Retire un message de la file : il est parti, ou il part sous un autre
+  /// identifiant (renvoi), ou l'écho serveur vient de le remplacer.
+  void oublierMessageEnAttente(String messageId) {
+    unawaited(
+      _ref
+          .read(offlineQueueServiceProvider)
+          .dequeue(messageId)
+          .catchError((Object e) => debugPrint('oubli file : $e')),
+    );
+  }
+
+  /// Remet dans la liste les messages jamais partis, gardés par la file.
+  ///
+  /// Sans ça, ils disparaissaient de l'écran à la première recharge : leur
+  /// identifiant commence par `pending_` ou `temp_`, et seul le second était
+  /// réinjecté par [_withPendingLocalMessages] — encore fallait-il que l'état
+  /// n'ait pas été jeté entre-temps.
+  List<MessageEntity> _avecMessagesJamaisPartis(List<MessageEntity> fresh) {
+    final List<PendingMessage> enAttente;
+    try {
+      enAttente = _ref
+          .read(offlineQueueServiceProvider)
+          .getPendingForConversation(conversationId);
+    } catch (_) {
+      return fresh;
+    }
+    if (enAttente.isEmpty) return fresh;
+
+    final connus = fresh.map((m) => m.id).toSet();
+    final rendus = <MessageEntity>[];
+    for (final attente in enAttente) {
+      if (connus.contains(attente.id)) continue;
+      final entite = messageEnAttenteVersEntite(attente);
+      if (entite != null) rendus.add(entite);
+    }
+    if (rendus.isEmpty) return fresh;
+
+    return [...fresh, ...rendus]
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
 
   /// Met à jour le statut du message et remplace l'ID optimiste par l'ID réel
@@ -954,20 +1055,14 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
     // Mode offline: ajouter a la queue et afficher message optimiste
     if (!isOnline && attempt == 1) {
-      final pendingMessage = PendingMessage(
-        conversationId: conversationId,
-        senderId: currentUser.id,
-        senderName: currentUser.displayName ?? 'Utilisateur',
-        senderPhotoUrl: currentUser.photoUrl,
-        content: content,
-        type: 'text',
-      );
+      // Un seul identifiant pour la copie affichée ET l'entrée de file.
+      // Ils divergeaient (`pending_<uuid>` d'un côté, `<uuid>` de l'autre) :
+      // la réinjection au chargement recréait donc un doublon, et le retrait
+      // après envoi ne trouvait jamais son entrée.
+      final id = 'pending_${_uuid.v4()}';
 
-      await _ref.read(offlineQueueServiceProvider).enqueue(pendingMessage);
-
-      // Ajouter un message optimiste local avec status pending
       final optimisticMessage = MessageEntity(
-        id: 'pending_${pendingMessage.id}',
+        id: id,
         senderId: currentUser.id,
         senderName: currentUser.displayName ?? 'Utilisateur',
         senderPhotoUrl: currentUser.photoUrl,
@@ -984,6 +1079,25 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         eventData: eventData,
         sentWhileBlockedBy: sentWhileBlockedBy,
       );
+
+      // `messageJson` transporte le message entier : la réponse citée et les
+      // cartes ci-dessus étaient purement et simplement perdues par les champs
+      // plats de `PendingMessage`, qui codaient même le type « text » en dur.
+      await _ref.read(offlineQueueServiceProvider).enqueue(
+            PendingMessage(
+              id: id,
+              conversationId: conversationId,
+              senderId: currentUser.id,
+              senderName: currentUser.displayName ?? 'Utilisateur',
+              senderPhotoUrl: currentUser.photoUrl,
+              content: content,
+              type: MessageType.text.name,
+              createdAt: optimisticMessage.createdAt,
+              messageJson: jsonEncode(
+                MessageModel.fromEntity(optimisticMessage).toJson(),
+              ),
+            ),
+          );
 
       _ref.read(paginatedMessagesProvider(conversationId).notifier).addOptimisticMessage(optimisticMessage);
       return true; // Retourner true car le message est en queue
@@ -2188,3 +2302,153 @@ class MessageRequestActionsNotifier extends StateNotifier<AsyncValue<void>> {
     );
   }
 }
+
+// ============ Messages jamais partis : garde et renvoi ============
+
+/// Au-delà de ce délai, un message en attente ne repart plus tout seul.
+///
+/// Il n'est pas perdu pour autant : il reste affiché en échec, avec son
+/// bouton « Renvoyer ». Le but est d'éviter qu'un message écrit et oublié
+/// il y a trois jours parte à l'improviste au premier retour de réseau.
+/// Une fenêtre **nulle** (`Duration.zero`) désactive la condition d'âge : tout
+/// ce qui attend repart, quel que soit son âge.
+const Duration kFenetreRenvoiAutomatique = Duration(hours: 24);
+
+/// Reconstruit le message tel qu'il doit repartir.
+///
+/// `messageJson` porte l'entité complète — réponse citée, carte de
+/// publication ou d'événement, mentions. Les entrées écrites par les versions
+/// précédentes ne l'ont pas : on retombe alors sur les champs plats, qui ne
+/// décrivent qu'un texte.
+MessageEntity? messageEnAttenteVersEntite(PendingMessage attente) {
+  final blob = attente.messageJson;
+  if (blob != null) {
+    try {
+      final json = jsonDecode(blob) as Map<String, dynamic>;
+      final entite = MessageModel.fromJson(json).toEntity();
+      return entite.copyWith(
+        status: MessageStatus.failed,
+        // `MessageModel` ne porte pas le chemin local du média : il ne vit que
+        // sur l'entité, et c'est lui qu'il faudra re-téléverser.
+        localFilePath: attente.filePath,
+      );
+    } catch (e) {
+      debugPrint('message en attente illisible (${attente.id}) : $e');
+    }
+  }
+
+  if (attente.content.isEmpty) return null;
+  return MessageEntity(
+    id: attente.id,
+    senderId: attente.senderId,
+    senderName: attente.senderName,
+    senderPhotoUrl: attente.senderPhotoUrl,
+    content: attente.content,
+    type: MessageType.values.firstWhere(
+      (t) => t.name == attente.type,
+      orElse: () => MessageType.text,
+    ),
+    status: MessageStatus.failed,
+    createdAt: attente.createdAt,
+    readBy: const [],
+    readAt: const {},
+    localFilePath: attente.filePath,
+  );
+}
+
+/// Renvoie tout seul, au retour du réseau, les messages jamais partis.
+///
+/// Tenu en vie par un `ref.watch` dans `app.dart` : sans lui Riverpod ne le
+/// construirait jamais, et la file resterait pleine — c'est exactement ce qui
+/// se passait avant, `processQueue` n'étant appelé de nulle part.
+///
+/// ⚠️ N'utilise **pas** `OfflineQueueService.processQueue` : celui-ci
+/// **supprime** le message après cinq tentatives. C'est précisément la perte
+/// qu'on cherche à éviter — passé les tentatives, le message doit rester
+/// affiché et attendre un geste, pas disparaître.
+class RenvoiMessagesEnAttente {
+  RenvoiMessagesEnAttente(this._ref);
+
+  final Ref _ref;
+  ProviderSubscription<bool>? _abonnement;
+  bool _enCours = false;
+
+  void demarrer() {
+    _abonnement = _ref.listen<bool>(
+      connectivityNotifierProvider,
+      (avant, apres) {
+        if (apres == true && avant != true) unawaited(renvoyerCeQuiPeutPartir());
+      },
+    );
+    // Un démarrage d'app en ligne n'émet aucune transition : la file laissée
+    // par la session précédente doit partir quand même.
+    unawaited(renvoyerCeQuiPeutPartir());
+  }
+
+  void arreter() {
+    _abonnement?.close();
+    _abonnement = null;
+  }
+
+  /// Tente un envoi pour chaque message en attente encore éligible.
+  ///
+  /// Un message est laissé dans la file — donc toujours visible et renvoyable
+  /// à la main — quand il est trop vieux, quand son média local a disparu, ou
+  /// quand l'envoi échoue encore.
+  Future<void> renvoyerCeQuiPeutPartir() async {
+    if (_enCours) return;
+    _enCours = true;
+    try {
+      final file = _ref.read(offlineQueueServiceProvider);
+      await file.init();
+      final enAttente = file.getQueue();
+      if (enAttente.isEmpty) return;
+
+      const fenetre = kFenetreRenvoiAutomatique;
+      final maintenant = DateTime.now();
+
+      for (final attente in enAttente) {
+        if (fenetre > Duration.zero &&
+            maintenant.difference(attente.createdAt) > fenetre) {
+          continue;
+        }
+        final chemin = attente.filePath;
+        if (chemin != null && chemin.isNotEmpty && !File(chemin).existsSync()) {
+          // Android a purgé le fichier temporaire : il n'y a plus rien à
+          // téléverser. Le message reste en file pour rester visible, mais le
+          // renvoyer n'aboutirait qu'à un échec de plus.
+          debugPrint('renvoi impossible, média absent : $chemin');
+          continue;
+        }
+
+        final entite = messageEnAttenteVersEntite(attente);
+        if (entite == null) {
+          await file.dequeue(attente.id);
+          continue;
+        }
+
+        try {
+          final parti = await _ref
+              .read(sendMessageProvider.notifier)
+              .retryFailedMessage(
+                conversationId: attente.conversationId,
+                failedMessage: entite,
+              );
+          if (parti) await file.dequeue(attente.id);
+        } catch (e) {
+          debugPrint('renvoi du message ${attente.id} : $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('renvoi des messages en attente : $e');
+    } finally {
+      _enCours = false;
+    }
+  }
+}
+
+final renvoiMessagesEnAttenteProvider = Provider<RenvoiMessagesEnAttente>((ref) {
+  final renvoi = RenvoiMessagesEnAttente(ref)..demarrer();
+  ref.onDispose(renvoi.arreter);
+  return renvoi;
+});
