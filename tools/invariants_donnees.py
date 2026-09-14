@@ -20,6 +20,14 @@ USAGE
     python tools/invariants_donnees.py            # rapport
     python tools/invariants_donnees.py --sql      # imprime le SQL, n'execute rien
 
+⚠️ **Ne pas passer la sortie dans un `| tail`.** Le code de sortie d'un
+pipeline est celui de la DERNIERE commande : `tail` rend toujours 0, et une
+panne de connexion se lit alors comme un balayage reussi. Paye le 2026-09-14,
+le jour meme ou cet outil a ete ecrit pour traquer les succes qui n'ont rien
+fait. Rediriger dans un fichier, puis le lire :
+
+    python tools/invariants_donnees.py > /tmp/balayage.txt 2>&1; echo $?
+
 Sort en erreur si une CONDITION est violee. Les MESURES ne font jamais echouer :
 elles donnent un ordre de grandeur, et c'est au lecteur de trancher -- meme
 partage que `tools/rules_tests/signalisation_appels.mjs`. Un garde qui crie a
