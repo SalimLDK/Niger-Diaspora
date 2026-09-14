@@ -39,16 +39,17 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**968 cases à cocher, 538 cochées** — 196 entrées sur 240 ont encore des cases ouvertes.
+**974 cases à cocher, 538 cochées** — 197 entrées sur 241 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (20)
+**P0 — avant toute nouvelle version** (21)
 
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
@@ -258,7 +259,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 58 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 108 à faire, 11 faites
@@ -6573,6 +6574,60 @@ en solo.
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
+
+## ⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Accepter une demande d'ami échoue en production pour la quasi-totalité des comptes : le lot est refusé en entier, rien ne bouge en base, et l'usager lit « Erreur de chargement ». *Bloqué : deux comptes, dont un qui n'a jamais eu de document `users` Firestore.*
+
+Signalé par Salim. C'est la **deuxième fois** que ce chemin casse au même
+endroit — voir « Écrans de notifications — lot « une seule source » », qui
+porte la passe du 2026-08-05 et le premier correctif.
+
+**Cause.** Le lot de `acceptFriendRequest` touchait cinq documents, dont le
+profil `users` de **l'autre** personne, en `set(merge)` sur `friendIds`. Un
+`set(merge)` sur un document absent est une **création**, et
+`users/{userId}` ne l'autorise qu'à son propriétaire — à raison. Or plus rien
+ne crée les documents `users` Firestore depuis la migration vers Supabase :
+ils sont absents pour presque tous les comptes. Le lot étant atomique, ce
+seul refus annulait les quatre autres écritures. `removeFriend` avait la même
+faille. Le correctif du 2026-08-05 avait traité la création de **son propre**
+document, pas celle du document d'autrui.
+
+`friendIds` n'était lu par personne : la liste d'amis vient de la
+sous-collection `friends`, l'audience « Amis » du fil vient de
+`public.friends` que `mirrorFriendToSupabase` alimente depuis cette même
+sous-collection. Les deux écritures sont donc supprimées.
+(`friend_remote_datasource.dart`)
+
+**Mesuré, pas supposé** : `tools/rules_tests/acceptation_ami.mjs` rejoue le
+lot sur l'émulateur Firestore avec les règles du dépôt, profil de
+l'expéditeur présent **et** absent. Avant correctif : REFUSÉ quand il est
+absent. Après : les deux passent, et six garde-fous restent refusés.
+`test/features/friends/acceptation_demande_ami_test.dart` fige la liste des
+documents que le lot a le droit de toucher (il échoue sur l'ancien code).
+
+**Règles Firestore : à déployer** — `firestore.rules` gagne une exception de
+création strictement bornée (`friendIds` seul, contenant le seul uid de
+l'appelant) pour que les **APK déjà installés** soient réparés sans
+mise à jour. Sans ce déploiement, seul un nouveau build est corrigé. Le
+fichier était par ailleurs identique à la production, relu le 2026-09-14.
+
+- [ ] **Accepter depuis l'écran Notifications**, compte expéditeur **sans**
+  document `users` Firestore : « Demande acceptée », et en base
+  `status: accepted` + les deux sous-collections `friends` créées.
+- [ ] **Accepter depuis l'écran Amis** (onglet « Reçues ») : même résultat.
+  Cet écran n'affichait **rien** en cas d'échec — ni sur « Accepter », ni sur
+  « Refuser », ni sur « Annuler » ; il affiche désormais une erreur rouge.
+- [ ] **Accepter depuis la fiche de profil** : même résultat. Le message
+  d'échec y rendait l'exception brute (chemin du document Firestore et uid) ;
+  il passe par `messageErreurUsager`.
+- [ ] **Retirer un ami** : les deux entrées disparaissent des deux côtés.
+- [ ] **Message d'échec** : couper le réseau et accepter → « Connexion
+  indisponible… », pas « Erreur de chargement » (qui ne distinguait pas un
+  réseau coupé d'un refus de droits).
+- [ ] **Audience « Amis » après coup** : la nouvelle amitié arrive bien dans
+  `public.friends` (miroir), donc une publication « Amis » devient visible —
+  voir « Publications : audience Public / Abonnés / Amis / Moi uniquement ».
 
 ## ⬜ La messagerie sort de l'écran Notifications (2026-09-13)
 
