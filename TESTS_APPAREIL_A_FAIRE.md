@@ -39,16 +39,17 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1010 cases à cocher, 551 cochées** — 204 entrées sur 248 ont encore des cases ouvertes.
+**1019 cases à cocher, 552 cochées** — 206 entrées sur 250 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (22)
+**P0 — avant toute nouvelle version** (23)
 
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
@@ -68,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (62)
+**P1 — fonction importante, jamais vérifiée** (63)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -83,6 +84,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
@@ -262,9 +264,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 175 à faire, 76 faites
+- [2. Messagerie](#2-messagerie) — 175 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
@@ -674,6 +676,10 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 - [x] **Thème sombre** : carte vérifiée SM A515F — fond sombre, notice
       lisible en gris, option choisie encadrée en violet, pied sur une ligne.
 - [ ] **Thème sombre** : la feuille de création et l'écran de résultats.
+- [x] **Coin de queue de la bulle envoyée** : plus de triangle vert sous la
+      carte — elle reprend les rayons de la bulle. Vérifié SM A515F sur les
+      deux bulles envoyées et sans régression sur la bulle reçue.
+      (`message_bubble.dart` passe `_getBorderRadius()`)
 - [x] **Pied de carte sur une bulle reçue** (plus étroite qu'une bulle
       envoyée) : corrigé et revérifié SM A515F — « 2 votes » garde sa ligne,
       les deux actions sont alignées à droite dessous, aux échelles 1.0 et
@@ -5335,6 +5341,109 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)
+
+**Priorité P0** · importance 5/5 — Le chiffrement de bout en bout était mort en production : mesuré, **aucun** message ne passait par Signal, tout partait en repli AES. *Bloqué : deux comptes (le destinataire doit publier ses clés depuis SON appareil).*
+
+Relevé en base le 2026-09-14 : **0 message `encryptionLevel = 'e2ee'`** — 89 en
+`aes`, 10 en `null`, sur 2026-08-15 → 2026-09-14. Dont **75 en conversation à
+2+ participants** (70 `individual`, 20 `group`), donc pas un artefact du
+self-chat, où `aes` est correct.
+
+Rien ne clochait dans les données, et c'est ce qui l'a caché un mois : 35/35
+comptes `e2ee_enabled` avec `active_devices` non vide, 44 appareils, 4085
+prékeys, écriture le jour même, identifiants concordants (21/21), RLS
+permissive en lecture.
+
+La cause tenait à une dissymétrie d'une ligne dans
+`lib/core/services/e2ee/key_manager_service.dart` : la garde de session
+couvrait les trois **écritures** depuis le 2026-07-17 et **aucune lecture**.
+Les policies étant réservées au rôle `authenticated`, un client encore `anon`
+— la fenêtre du démarrage — lit zéro ligne **sans erreur**. `getActiveDevices`
+rendait donc une liste vide, indiscernable de « ce compte n'a pas de clés » :
+X3DH n'était pas tenté, l'envoi retombait en AES.
+
+Corrigé : garde sur les quatre lectures (`getActiveDevices`,
+`fetchPreKeyBundle`, `fetchAllPreKeyBundles`,
+`_countPublishedOneTimePreKeys`) avec la variante **bornée**
+`ensureReadableSession()` — le chemin d'envoi ne doit pas geler — et sur
+l'écriture `rotateSignedPreKey` avec `ensureAuthenticated()`. Verrouillé par
+`test/core/services/e2ee/acces_supabase_garde_test.dart`, qui refuse tout
+nouvel accès Supabase non gardé dans ce fichier.
+
+**À vérifier sur appareil** — rien de tout cela n'est prouvé hors base :
+
+- [ ] **Deux comptes, deux téléphones** : s'envoyer un message texte, puis
+      vérifier en base que le message porte `encryptionLevel = 'e2ee'` et non
+      `'aes'`. C'est LE test : c'est exactement ce qui ne s'est jamais produit
+      depuis le 2026-08-15.
+- [ ] **Premier envoi après lancement à froid**, dans les secondes qui suivent
+      l'ouverture — c'est la fenêtre où la session Supabase n'est pas encore
+      établie, donc celle que le correctif vise. Un `'aes'` ici signifie que la
+      borne de 3 s est trop courte sur ce réseau, pas que la garde manque.
+- [ ] **Envoi hors ligne** : doit continuer de partir en repli AES sans
+      blocage ni attente perceptible. La garde bornée ne doit jamais retarder
+      l'envoi — si l'interface fige ~3 s avant que la bulle apparaisse, la
+      borne est mal placée.
+- [ ] **Groupe** : les messages resteront en `aes` tant que les Sender Keys ne
+      sont pas distribuées (`e2ee_sender_key_distributions` est vide en prod,
+      voir « Distribution des Sender Keys : jamais rien en base »). Vérifier
+      seulement qu'ils partent toujours.
+- [ ] **4 comptes sur 35** ont un appareil actif sans `identitySigningKey` et
+      resteront en AES par refus explicite : leurs 7 appareils datent d'avant
+      le 2026-08-20. Vérifier qu'un de ces comptes republie bien sa clé de
+      signature au lancement (self-healing de `_ensurePublishedToSupabase`).
+
+---
+
+## ⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Tout message de groupe retombe en repli AES, sans que rien ne le signale. *Bloqué : deux comptes dans un même groupe.*
+
+`e2ee_sender_key_distributions` était **vide (0 ligne)** en production, alors
+que 20 messages de groupe en repli AES y sont passés. Ce n'est **pas** un
+défaut indépendant : `distributeSenderKey` chiffre la distribution via une
+session 1:1, donc via `fetchPreKeyBundle` — celui-là même qui rendait `null`
+sous `anon`. `encryptMessage` rendait donc `null`, et l'`upsert` de la ligne 154
+n'était **jamais atteint**. Voir « Signal remis en service : la garde de
+session sur les lectures de clés ».
+
+Les policies de la table, elles, sont correctes et ont été vérifiées en prod :
+`sender_id = firebase_uid()` à l'insertion, `recipient_id = firebase_uid()` en
+lecture et suppression. Rien à corriger de ce côté.
+
+Corrigé dans `lib/core/services/e2ee/sender_key_service.dart` : garde bornée
+sur `distributeSenderKey` (écriture, mais avec repli AES, donc bornée) et sur
+`fetchPendingDistributions` — cette dernière était la plus vicieuse des deux,
+puisqu'un relevé vide fait conclure « aucune distribution en attente » et
+laisse les messages des autres illisibles.
+
+**Ce qui reste fragile, et n'est pas corrigé :**
+
+`distributeSenderKeyToGroup` n'accepte la clé que si **chaque** membre l'a
+reçue — délibéré, un message qu'une partie du groupe ne peut pas lire serait
+pire. Mais sur un groupe de 17 personnes, cela demande 16 sessions 1:1
+établies d'un coup, et un seul membre sans `identitySigningKey` (4 comptes sur
+35) suffit à maintenir tout le groupe en AES, indéfiniment.
+
+- [ ] Ouvrir un groupe à deux comptes, envoyer un message, puis vérifier
+      qu'une ligne apparaît dans `e2ee_sender_key_distributions` — elle
+      disparaît après traitement par le destinataire, donc regarder vite, ou
+      côté destinataire avant qu'il n'ouvre le groupe.
+- [ ] Vérifier que le message de groupe porte alors `encryptionLevel = 'e2ee'`.
+- [ ] **Groupe à plus de deux membres** dont un compte ancien (appareil
+      enregistré avant le 2026-08-20) : vérifier si le groupe reste en AES, et
+      si le compte rendu de distribution le dit à l'utilisateur au lieu de se
+      taire.
+- [ ] **Redistribution avant traitement** : la table n'a **aucune policy
+      UPDATE**, or l'écriture est un `upsert` sur
+      `(group_id, sender_id, recipient_id)`. Tant que le destinataire n'a pas
+      consommé la ligne, une seconde distribution tombe sur le chemin UPDATE
+      et devrait être refusée (42501). Non reproduit — à provoquer en laissant
+      un destinataire hors ligne pendant deux envois.
 
 ---
 
@@ -12025,10 +12134,11 @@ correctif, donc rectangulaire, se montre entière plutôt que coupée. Couvert p
   l'avatar du profil, du fil et d'une discussion.
 - [ ] **Renoncer** : la croix referme l'écran sans rien changer à la photo
   actuelle.
-- [ ] **Photo en portrait très haut** (9:16) : elle tient entière dans le
-  cadre au départ ? Le calcul part d'un « cover », donc elle le remplit —
-  vérifier qu'on peut dézoomer jusqu'à la voir entière si besoin (aujourd'hui
-  `minScale` vaut 1, donc **non** : c'est peut-être à revoir sur pièce).
+- [ ] **Photo en portrait très haut** (9:16) : elle remplit le cadre et ne
+  peut pas être dézoomée sous le carré — arbitré le 2026-09-14, ce n'est pas
+  un défaut. Ce qui se vérifie ici, c'est qu'on atteint **toute** la photo en
+  la faisant glisser : le haut comme le bas doivent pouvoir venir dans le
+  cadre.
 - [ ] **Lenteur** : sur le SM A515F, le découpage tourne dans un isolate mais
   décode une image de 2048 px — mesurer le temps entre « valider » et le
   retour à l'écran de profil.
@@ -15943,11 +16053,23 @@ prévenir.
       avec un compte dont les clés ne sont pas sauvegardées ET la clé serveur
       posée, c'est le bandeau des clés qui doit s'afficher ; une fois traité,
       celui de la mise à jour doit prendre sa place **sans relancer l'app**.
-- [ ] **Rendu du bandeau** : reste à voir en **thème sombre** et à **échelle de
-      police augmentée**. En clair, échelle par défaut, SM-A515F : correct, mais
-      il occupe environ un sixième de la hauteur (message sur deux lignes, puis
-      une rangée d'actions) et pousse tout le contenu vers le bas.
-      Vu aussi **par-dessus une discussion** — il vit dans `MainShell`, donc il
+- [ ] **Rendu du bandeau** : le **débordement** n'est plus une question ouverte
+      — `test/core/shell/bandeaux_shell_test.dart` rend les deux bandeaux du
+      shell (mise à jour **et** E2EE, qui porte trois actions) sur 411, 360 et
+      320 dp de large, aux échelles de police 1,0 / 1,3 / 1,6 / 2,0, en clair
+      et en sombre : 51 cas, aucun débordement. Reste à juger **à l'œil** ce
+      qu'un banc ne voit pas : contraste et couleurs du bandeau en thème
+      sombre sur un vrai écran.
+
+      Ce qui a été corrigé en chemin, mesuré à 411 dp : le message portait une
+      seconde phrase (« Mettez à jour pour profiter des derniers correctifs »)
+      qui disait ce que le bouton dit déjà et le poussait à **224 dp**, un
+      quart de la hauteur du SM-A515F. Une seule phrase : **164 dp**. Les
+      62 dp restants tiennent à `MaterialBanner`, qui ne met l'action sur la
+      ligne du contenu qu'avec **une seule** action — et retirer « Pas
+      maintenant » rendrait le bandeau inécartable.
+
+      Vu **par-dessus une discussion** : il vit dans `MainShell`, donc il
       s'affiche sur n'importe quel onglet, sous la barre de la conversation.
 - [ ] **Hors ligne au démarrage** : aucune notice, aucun blocage du premier
       écran (`RemoteConfigService` sert alors son cache, ou rien).

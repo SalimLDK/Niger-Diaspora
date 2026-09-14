@@ -17,6 +17,7 @@ import '../services/e2ee/e2ee_backup_coordinator.dart';
 import '../services/mise_a_jour_service.dart';
 import '../services/shared_media_service.dart';
 import '../utils/toast_utils.dart';
+import 'bandeaux_shell.dart';
 
 /// Même seuil que `feed_screen.dart` (tour 4b) : au-delà, le fil affiche déjà
 /// sa colonne droite tablette — le rail de navigation gauche doit apparaître
@@ -204,84 +205,61 @@ class _MainShellState extends ConsumerState<MainShell> {
     );
   }
 
-  /// Bandeau invitant à sauvegarder ou restaurer les clés E2EE.
+  /// Câble le bandeau E2EE sur ses notifiers. Le rendu est dans
+  /// `bandeaux_shell.dart`, pour qu'un banc puisse le poser sans monter le
+  /// shell entier.
   MaterialBanner _bandeauE2EE(
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
     E2EEBackupPrompt prompt,
   ) {
-    final isRestore = prompt == E2EEBackupPrompt.needsRestore;
+    void ferme() => messenger.hideCurrentMaterialBanner();
+    final coordinateur = ref.read(e2eeBackupCoordinatorProvider.notifier);
 
-    return MaterialBanner(
-      content: Text(
-        isRestore ? l10n.e2eeRestoreNudgeMessage : l10n.e2eeBackupNudgeMessage,
-      ),
-      leading: const Icon(Icons.lock_outline),
-      actions: [
-        // Sortie définitive : « Pas maintenant » ne met en veille que 7 jours,
-        // et `needsRestore` reste vrai tant que la restauration n'a pas eu
-        // lieu — le bandeau revenait donc indéfiniment.
-        TextButton(
-          onPressed: () {
-            messenger.hideCurrentMaterialBanner();
-            ref.read(e2eeBackupCoordinatorProvider.notifier).dismissForever();
-          },
-          child: Text(l10n.e2eeNudgeMuteAction),
-        ),
-        TextButton(
-          onPressed: () {
-            messenger.hideCurrentMaterialBanner();
-            ref.read(e2eeBackupCoordinatorProvider.notifier).acknowledge();
-          },
-          child: Text(l10n.notNow),
-        ),
-        TextButton(
-          onPressed: () {
-            messenger.hideCurrentMaterialBanner();
-            ref.read(e2eeBackupCoordinatorProvider.notifier).acknowledge();
-            context.push('/settings/security/backup');
-          },
-          child: Text(
-            isRestore ? l10n.e2eeRestoreNudgeAction : l10n.e2eeBackupNudgeAction,
-          ),
-        ),
-      ],
+    return bandeauE2EE(
+      l10n: l10n,
+      prompt: prompt,
+      surNePlusRappeler: () {
+        ferme();
+        coordinateur.dismissForever();
+      },
+      surPasMaintenant: () {
+        ferme();
+        coordinateur.acknowledge();
+      },
+      surAgir: () {
+        ferme();
+        coordinateur.acknowledge();
+        context.push('/settings/security/backup');
+      },
     );
   }
 
-  /// Bandeau « une nouvelle version est disponible ».
-  ///
-  /// Deux actions seulement, et aucune n'est définitive : « Pas maintenant »
-  /// ne tait que cette version-là, et la version suivante reparlera.
+  /// Câble le bandeau de mise à jour sur son notifier.
   MaterialBanner _bandeauMiseAJour(
     ScaffoldMessengerState messenger,
     AppLocalizations l10n,
     NoticeMiseAJour notice,
   ) {
-    return MaterialBanner(
-      content: Text(l10n.updateAvailableMessage(notice.versionPubliee)),
-      leading: const Icon(Icons.system_update_outlined),
-      actions: [
-        TextButton(
-          onPressed: () {
-            messenger.hideCurrentMaterialBanner();
-            ref.read(coordinateurMiseAJourProvider.notifier).ecarte();
-          },
-          child: Text(l10n.notNow),
-        ),
-        TextButton(
-          onPressed: () {
-            messenger.hideCurrentMaterialBanner();
-            // `ouvre()` et non `ecarte()` : partir vers le store ne prouve pas
-            // que la mise à jour a été installée.
-            ref.read(coordinateurMiseAJourProvider.notifier).ouvre();
-            // `ouvrirLaFicheSansAvis` et non `ouvrirLaFicheDuStore` : la
-            // seconde marquerait un avis en cours de dépôt.
-            unawaited(AppReviewService.instance.ouvrirLaFicheSansAvis());
-          },
-          child: Text(l10n.updateAvailableAction),
-        ),
-      ],
+    void ferme() => messenger.hideCurrentMaterialBanner();
+    final coordinateur = ref.read(coordinateurMiseAJourProvider.notifier);
+
+    return bandeauMiseAJour(
+      l10n: l10n,
+      notice: notice,
+      surPasMaintenant: () {
+        ferme();
+        coordinateur.ecarte();
+      },
+      surMettreAJour: () {
+        ferme();
+        // `ouvre()` et non `ecarte()` : partir vers le store ne prouve pas que
+        // la mise à jour a été installée.
+        coordinateur.ouvre();
+        // `ouvrirLaFicheSansAvis` et non `ouvrirLaFicheDuStore` : la seconde
+        // marquerait un avis en cours de dépôt.
+        unawaited(AppReviewService.instance.ouvrirLaFicheSansAvis());
+      },
     );
   }
 

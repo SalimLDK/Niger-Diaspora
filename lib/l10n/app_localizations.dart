@@ -30158,10 +30158,10 @@ abstract class AppLocalizations {
   /// **'Sondage anonyme : personne ne voit qui a voté quoi.'**
   String get pollVotersHidden;
 
-  /// Bandeau non bloquant affiche quand une version plus recente existe sur le store
+  /// Bandeau non bloquant affiche quand une version plus recente existe sur le store. Une seule phrase, volontairement : la consigne « mettez a jour » est deja sur le bouton, et une seconde phrase faisait passer le bandeau a deux lignes (un sixieme de l'ecran sur SM-A515F)
   ///
   /// In fr, this message translates to:
-  /// **'Diaspo Niger {version} est disponible. Mettez à jour pour profiter des derniers correctifs.'**
+  /// **'Diaspo Niger {version} est disponible.'**
   String updateAvailableMessage(String version);
 
   /// Action du bandeau de mise a jour : ouvre la fiche du store

@@ -155,6 +155,26 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('la carte epouse les rayons que la bulle lui donne',
+        (tester) async {
+      // Sans ca, le coin de queue de la bulle (arrondi a 6) depassait de la
+      // carte (arrondie a 16) : sur une bulle envoyee, un triangle vert.
+      const rayon = BorderRadius.only(
+        topLeft: Radius.circular(18),
+        topRight: Radius.circular(18),
+        bottomLeft: Radius.circular(18),
+        bottomRight: Radius.circular(6),
+      );
+      await _pump(tester, _sondage(), rayon: rayon);
+
+      final conteneur = tester.widget<Container>(
+        find
+            .descendant(of: find.byType(PollCard), matching: find.byType(Container))
+            .first,
+      );
+      expect((conteneur.decoration as BoxDecoration).borderRadius, rayon);
+    });
+
     testWidgets('changer d avis envoie la nouvelle option', (tester) async {
       final actions = await _pump(tester, _sondage(votedOptionIds: ['o1']));
 
@@ -198,9 +218,10 @@ Future<_ActionsEspion> _pump(
   PollEntity poll, {
   double? largeur,
   double echellePolice = 1.0,
+  BorderRadiusGeometry? rayon,
 }) async {
   final actions = _ActionsEspion();
-  Widget carte = PollCard(poll: poll);
+  Widget carte = PollCard(poll: poll, borderRadius: rayon);
   if (largeur != null) {
     // La bulle de discussion contraint la carte a 320 dp.
     carte = Align(
