@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,8 +7,10 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
+import '../../domain/entities/event_audience.dart';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
+import '../widgets/event_audience_picker.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
@@ -43,6 +46,17 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
   final List<XFile> _newPosters = [];
   final _imagePicker = ImagePicker();
 
+  /// Audience en cours d'édition. `null` tant qu'elle n'est pas lue : le
+  /// sélecteur reste alors masqué plutôt que d'afficher « Public » par défaut
+  /// et de faire croire à l'organisateur que c'est son réglage.
+  EventAudience? _audience;
+
+  /// L'audience telle qu'elle était au chargement. On ne rappelle
+  /// `setEventAudience` que si elle a bougé : la RPC notifie chaque nouvelle
+  /// personne, et réenregistrer à l'identique n'enverrait rien, mais une
+  /// modification de titre ne doit pas dépenser un aller-retour pour rien.
+  EventAudience? _audienceInitiale;
+
   @override
   void initState() {
     super.initState();
@@ -66,6 +80,8 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
               ? widget.event.maxAttendees.toString()
               : '',
     );
+
+    _chargerAudience();
 
     _selectedCategory = widget.event.category;
     _startDate = widget.event.startDate;
@@ -273,8 +289,44 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
     setState(() => _newPosters.removeAt(index));
   }
 
+  /// Lit l'audience enregistrée pour pré-remplir le sélecteur.
+  ///
+  /// Hors du `build` : la lire par `ref.watch` reconstruirait le sélecteur à
+  /// chaque image et écraserait ce que l'organisateur vient de choisir.
+  Future<void> _chargerAudience() async {
+    final audience =
+        await ref.read(eventAudienceProvider(widget.event.id).future);
+    if (!mounted) return;
+    setState(() {
+      _audience = audience;
+      _audienceInitiale = audience;
+    });
+  }
+
+  /// Vrai si l'organisateur a touché à l'audience.
+  bool get _audienceAChange {
+    final avant = _audienceInitiale;
+    final apres = _audience;
+    if (avant == null || apres == null) return false;
+    return avant.visibility != apres.visibility ||
+        !setEquals(avant.groups.keys.toSet(), apres.groups.keys.toSet()) ||
+        !setEquals(avant.people.keys.toSet(), apres.people.keys.toSet());
+  }
+
   Future<void> _updateEvent() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Même garde qu'à la création : une audience « groupes » ou « personnes »
+    // sans personne dedans cache l'événement à tout le monde. Depuis
+    // `20260914203000` la base le refuse aussi, mais mieux vaut le dire ici,
+    // avant d'écrire quoi que ce soit.
+    final erreurAudience = _audience?.erreur;
+    if (erreurAudience != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(erreurAudience)),
+      );
+      return;
+    }
 
     final l10n = AppLocalizations.of(context)!;
     final successMessage = l10n.eventUpdatedSuccess;
@@ -338,6 +390,22 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
         .read(myEventsNotifierProvider.notifier)
         .updateEvent(updatedEvent);
 
+    // L'audience vit dans `event_audience`, pas dans la ligne `events` :
+    // `updateEvent` ne la touche pas. C'est un second aller-retour, sans
+    // atomicité possible entre les deux — d'où le message distinct plus bas
+    // quand celui-là seul échoue.
+    var audienceEnregistree = true;
+    final audience = _audience;
+    if (success && audience != null && _audienceAChange) {
+      final resultat = await ref
+          .read(eventRepositoryProvider)
+          .setEventAudience(widget.event.id, audience);
+      audienceEnregistree = resultat.isRight();
+      if (audienceEnregistree) {
+        ref.invalidate(eventAudienceProvider(widget.event.id));
+      }
+    }
+
     setState(() => _isLoading = false);
 
     if (success && mounted) {
@@ -353,8 +421,16 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(successMessage),
-          backgroundColor: context.adaptiveSecondaryColor,
+          content: Text(
+            audienceEnregistree
+                ? successMessage
+                : "Événement modifié, mais qui peut le voir n'a pas pu "
+                    "être enregistré : l'audience précédente reste en place.",
+          ),
+          backgroundColor: audienceEnregistree
+              ? context.adaptiveSecondaryColor
+              : context.errorColor,
+          duration: Duration(seconds: audienceEnregistree ? 3 : 6),
         ),
       );
       // Refresh events list
@@ -926,7 +1002,27 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
               style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+
+            // Qui peut voir l'événement. Absent de cet écran jusqu'au
+            // 2026-09-14 : l'audience se choisissait à la création et ne
+            // pouvait plus jamais changer, pas même par son organisateur.
+            // Masqué tant qu'elle n'est pas lue, plutôt que d'afficher un
+            // « Public » de remplissage qu'on prendrait pour le vrai réglage.
+            if (_audience != null) ...[
+              _buildLabel('Qui peut voir cet événement'),
+              const SizedBox(height: 8),
+              EventAudiencePicker(
+                audience: _audience!,
+                depuisUneDiscussion: widget.event.conversationId != null ||
+                    widget.event.groupId != null,
+                depuisUnGroupe: widget.event.groupId != null,
+                onChanged: (a) => setState(() => _audience = a),
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            const SizedBox(height: 24),
 
             // Bouton modifier
             SizedBox(

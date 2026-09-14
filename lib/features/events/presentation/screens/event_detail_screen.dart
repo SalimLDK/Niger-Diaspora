@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../domain/entities/event_audience.dart';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -422,6 +423,8 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (isOrganizer) _BandeauAudienceVide(eventId: event.id),
+
                     // Titre
                     Text(
                       event.title,
@@ -1202,6 +1205,84 @@ Niger Diaspora
         imageUrl:
             event.posterUrls.isNotEmpty ? event.posterUrls.first : null,
         message: '📅 ${event.title}',
+      ),
+    );
+  }
+}
+
+/// Avertit l'organisateur quand son événement n'est visible de personne.
+///
+/// Un événement « groupes » ou « personnes » dont l'audience est vide est
+/// caché à tout le monde, l'organisateur excepté — et rien ne le disait. Un
+/// tel événement existait bel et bien en production le 2026-09-14, créé le
+/// matin même par un compte de douze minutes : la RPC avait filtré en silence
+/// tout ce qu'on lui avait passé, écrit la visibilité quand meme, et rendu un
+/// succès.
+///
+/// La base refuse désormais ce cas (`20260914203000`), mais l'avertissement
+/// reste utile pour les événements déjà dans cet état — et il mène là où on
+/// peut le réparer, ce qui n'existait pas non plus avant ce lot.
+///
+/// N'affiche rien tant que l'audience n'est pas lue, ni quand tout va bien :
+/// un bandeau qui clignote pendant le chargement serait pris pour un défaut.
+class _BandeauAudienceVide extends ConsumerWidget {
+  const _BandeauAudienceVide({required this.eventId});
+
+  final String eventId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final audience = ref.watch(eventAudienceProvider(eventId)).valueOrNull;
+    if (audience == null) return const SizedBox.shrink();
+
+    final vide = audience.visibility == EventVisibility.groups
+        ? audience.groups.isEmpty
+        : audience.visibility == EventVisibility.people &&
+            audience.people.isEmpty;
+    if (!vide) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.errorColor.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: context.errorColor.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.visibility_off_outlined,
+              size: 20, color: context.errorColor),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Personne d\'autre que vous ne voit cet événement',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimaryColor,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  audience.visibility == EventVisibility.groups
+                      ? "Vous l'avez réservé à des groupes, mais aucun n'a été "
+                          'enregistré.'
+                      : "Vous l'avez réservé à des personnes choisies, mais "
+                          "aucune n'a été enregistrée.",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: context.textSecondaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
