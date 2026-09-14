@@ -122,18 +122,55 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   }
 
   @override
-  Stream<ProfileModel> getUserStream(String userId) {
-    return _supabase.from('users').stream(primaryKey: ['id']).eq('id', userId).map((
-      rows,
-    ) {
-      // Ligne absente = ressource introuvable (compte supprimé / invisible).
-      // NotFoundException est distinct des autres erreurs pour que la couche
-      // présentation ne confonde pas « supprimé » avec « échec de chargement ».
-      if (rows.isEmpty) throw NotFoundException('User $userId not found');
-      final profile = ProfileModel.fromJson(_mapProfile(rows.first));
-      _cache[userId] = profile;
-      return profile;
-    });
+  Stream<ProfileModel> getUserStream(String userId) async* {
+    // Même garde que [getProfile], et pour une raison plus coûteuse ici : la
+    // policy `users_select` vaut pour le rôle `public`, donc une lecture en
+    // anon **réussit** en ne renvoyant simplement aucune ligne dès que le
+    // profil est privé. Sans cette attente, le `.stream()` démarrait pendant
+    // la fenêtre d'établissement de la session, l'absence était lue comme
+    // « compte supprimé », et chaque ligne de la liste des discussions
+    // affichait « Utilisateur » avec un avatar à initiale à la place du
+    // correspondant — par intermittence, au gré de la course.
+    await _ensureReadableAuth();
+
+    yield* _supabase
+        .from('users')
+        .stream(primaryKey: ['id'])
+        .eq('id', userId)
+        .asyncMap((rows) async {
+          if (rows.isEmpty) return await _profilAbsent(userId);
+          final profile = ProfileModel.fromJson(_mapProfile(rows.first));
+          _cache[userId] = profile;
+          return profile;
+        });
+  }
+
+  /// Le flux n'a renvoyé aucune ligne : tranche entre « compte supprimé » et
+  /// « lu sans session ».
+  ///
+  /// Les deux se ressemblent parfaitement au niveau du `.stream()`, et les
+  /// confondre est visible à l'écran : `NotFoundException` devient un
+  /// `NotFoundFailure`, que `userStreamProvider` convertit en `null` — soit
+  /// une **donnée** qui écrase le nom déjà affiché, là où une erreur l'aurait
+  /// laissé en place. On ne conclut donc à l'absence qu'après une relecture
+  /// session confirmée.
+  Future<ProfileModel> _profilAbsent(String userId) async {
+    if (await _ensureReadableAuth()) {
+      final data =
+          await _supabase.from('users').select().eq('id', userId).maybeSingle();
+      if (data != null) {
+        final profile = ProfileModel.fromJson(_mapProfile(data));
+        _cache[userId] = profile;
+        return profile;
+      }
+      throw NotFoundException('User $userId not found');
+    }
+    // Session toujours pas établie : on ne sait rien. Le dernier profil connu
+    // vaut mieux qu'un faux « supprimé » ; à défaut, une erreur de chargement,
+    // qui laisse l'affichage précédent intact.
+    final connu = _cache[userId];
+    if (connu != null) return connu;
+    throw ServerException('Session Supabase non établie – réessayez');
   }
 
   @override
