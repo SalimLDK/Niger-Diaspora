@@ -900,8 +900,19 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
           const SizedBox(height: 24),
 
           DesignFieldLabel(l10n.setupAccentColor),
+          // Vert en premier, comme dans les Réglages
+          // (`settings_screen.dart`, `_buildThemeColorOption`) : les deux
+          // écrans règlent la même chose, ils ne peuvent pas la présenter
+          // dans deux ordres différents.
           Row(
             children: [
+              _AccentSwatch(
+                color: AppColors.secondary,
+                label: l10n.greenColor,
+                isSelected: _selectedThemeColor == AppThemeColor.green,
+                onTap: () => _selectThemeColor(AppThemeColor.green),
+              ),
+              const SizedBox(width: 18),
               _AccentSwatch(
                 // La pastille est l'aperçu de l'accent choisi : elle doit
                 // porter la valeur que le thème rendra réellement, soit
@@ -911,13 +922,6 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                 label: l10n.orangeColor,
                 isSelected: _selectedThemeColor == AppThemeColor.orange,
                 onTap: () => _selectThemeColor(AppThemeColor.orange),
-              ),
-              const SizedBox(width: 18),
-              _AccentSwatch(
-                color: AppColors.secondary,
-                label: l10n.greenColor,
-                isSelected: _selectedThemeColor == AppThemeColor.green,
-                onTap: () => _selectThemeColor(AppThemeColor.green),
               ),
             ],
           ),
@@ -1209,31 +1213,58 @@ class _ThemeModeCard extends StatelessWidget {
 /// Miniature de page. Les couleurs sont volontairement figées : cette vignette
 /// représente le thème clair et le thème sombre, elle ne suit donc pas le
 /// thème courant.
-class _ThemeModePreview extends StatelessWidget {
+class _ThemeModePreview extends ConsumerWidget {
   final AppThemeMode mode;
 
   const _ThemeModePreview({required this.mode});
 
+  /// L'accent est lu au provider, pas reçu en paramètre : c'est la seule
+  /// valeur qui fasse foi, et `_selectThemeColor` l'y écrit immédiatement —
+  /// les trois vignettes se repeignent donc au tap sur une pastille.
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accent = ref.watch(themeColorNotifierProvider);
+
     switch (mode) {
       case AppThemeMode.light:
-        return _panel(dark: false);
+        return _panel(dark: false, accent: accent);
       case AppThemeMode.dark:
-        return _panel(dark: true);
+        return _panel(dark: true, accent: accent);
       case AppThemeMode.system:
         // Moitié claire / moitié sombre, coupées en diagonale.
         return Stack(
           fit: StackFit.expand,
           children: [
-            _panel(dark: false),
-            ClipPath(clipper: _DiagonalClipper(), child: _panel(dark: true)),
+            _panel(dark: false, accent: accent),
+            ClipPath(
+              clipper: _DiagonalClipper(),
+              child: _panel(dark: true, accent: accent),
+            ),
           ],
         );
     }
   }
 
-  Widget _panel({required bool dark}) {
+  /// La barre d'accent de la vignette reprend **exactement** le
+  /// `colorScheme.primary` que rendra le thème correspondant
+  /// (`app_theme.dart`) : `secondary`/`secondaryLight` en Vert,
+  /// `primaryDark`/`primaryLight` en Orange.
+  ///
+  /// Elle était figée sur la paire orange. Un compte en Vert voyait donc
+  /// trois vignettes oranges juste au-dessus de la pastille verte qu'il
+  /// venait de choisir. C'est le défaut que `950024b` nommait — « un aperçu
+  /// qui ment sur ce qu'il propose » — corrigé alors sur la seule moitié
+  /// clair/sombre, et laissé entier sur l'accent.
+  static Color _accentBar({required bool dark, required AppThemeColor accent}) {
+    switch (accent) {
+      case AppThemeColor.green:
+        return dark ? AppColors.secondaryLight : AppColors.secondary;
+      case AppThemeColor.orange:
+        return dark ? AppColors.primaryLight : AppColors.primaryDark;
+    }
+  }
+
+  Widget _panel({required bool dark, required AppThemeColor accent}) {
     final background = dark ? AppColors.backgroundDark : AppColors.background;
     final bar = dark ? AppColors.surfaceVariantDark : AppColors.surfaceVariant;
     return Container(
@@ -1246,11 +1277,8 @@ class _ThemeModePreview extends StatelessWidget {
           const SizedBox(height: 5),
           _bar(bar, widthFactor: 0.6),
           const SizedBox(height: 12),
-          // L'aperçu doit montrer l'accent du thème qu'il représente : l'orange
-          // d'action en clair, sa version éclaircie en nocturne. Les deux
-          // vignettes affichaient la même valeur.
           _bar(
-            dark ? AppColors.primaryLight : AppColors.primaryDark,
+            _accentBar(dark: dark, accent: accent),
             widthFactor: 0.72,
             height: 9,
           ),

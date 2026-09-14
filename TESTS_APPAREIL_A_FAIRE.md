@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1019 cases à cocher, 552 cochées** — 206 entrées sur 250 ont encore des cases ouvertes.
+**1047 cases à cocher, 556 cochées** — 211 entrées sur 255 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -53,7 +53,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
-- 3 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien-2026-09-14) · *Accueil, profil et réglages* · bloqué
+- 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (63)
+**P1 — fonction importante, jamais vérifiée** (66)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -77,6 +77,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
 - 5 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
@@ -102,6 +103,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
+- 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
+- 3 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
@@ -135,7 +138,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (70)
+**P2 — fonction secondaire ou cas limite** (71)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -171,6 +174,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
+- 7 · [⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)](#-létape--thème--dit-enfin-la-vérité-sur-laccent-2026-09-14) · *Design, thème, langue et mise en page*
 - 4 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
@@ -208,7 +212,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (50)
+**P3 — confort, cosmétique, fonction en pause** (51)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -227,6 +231,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
 - 2 · [La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)](#la-signature-de-clé-pré-signée-ne-peut-jamais-vérifier-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
+- 4 · [⬜ Les appels de GROUPE restaient lançables alors que le 1-à-1 était en pause (2026-09-14)](#-les-appels-de-groupe-restaient-lançables-alors-que-le-1-à-1-était-en-pause-2026-09-14) · *Appels*
 - 1 · [La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14)](#la-bulle-dappel-elle-même-napparaissait-jamais-dans-la-conversation-2026-08-14) · *Appels* · bloqué
 - 7 · [Appels 1-à-1 (correctifs du 2026-08-03)](#appels-1-à-1-correctifs-du-2026-08-03) · *Appels* · bloqué
 - 1 · [Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06)](#scroll-des-notifications--mesuré-pas-un-défaut-de-lécran-2026-08-06) · *Notifications et push*
@@ -264,18 +269,18 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 175 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 183 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 109 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
-- [5. Appels](#5-appels) — 18 à faire, 8 faites
+- [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 121 à faire, 11 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 44 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 142 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 54 à faire, 40 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 60 à faire, 44 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -523,6 +528,40 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Trois entrées nommaient une personne et retombaient sur le sélecteur générique, identique au bouton « Nouvelle conversation » : la tuile « écrivez à … » de la messagerie vide (qui porte pourtant une flèche d'envoi), un résultat de recherche « personnes », et le bouton « Contacter » d'une fiche entreprise. Il fallait re-chercher à la main la personne qu'on venait de toucher du doigt.
+
+La route `/messages/new` construisait `const NewConversationScreen()` — un
+écran sans paramètre, qui ne lisait ni `?userId=` ni `state.extra`. Le
+destinataire était donc bien construit par les appelants, puis jeté en silence
+par le routeur ([app_router.dart](lib/core/router/app_router.dart)). L'écran
+accepte maintenant un destinataire et, quand il en reçoit un, se comporte en
+relais : il ouvre la discussion et **se remplace** par elle
+([new_conversation_screen.dart](lib/features/messages/presentation/screens/new_conversation_screen.dart)).
+
+- [ ] **Tuile « écrivez à … »** (messagerie vide) : le tap ouvre directement
+  la discussion avec cette personne — pas le sélecteur. L'en-tête porte son
+  nom et sa photo dès la première frame, sans libellé de repli.
+- [ ] **Résultat de recherche « personnes »** : même comportement.
+- [ ] **« Contacter » sur une fiche entreprise** : ouvre la discussion avec le
+  propriétaire. C'est le seul appelant qui passait par `extra` et non par
+  l'URL — à vérifier séparément, il emprunte l'autre branche du code.
+- [ ] **Retour depuis la discussion ainsi ouverte** : ramène à la liste des
+  messages, **pas** au sélecteur (c'est un `pushReplacement`). Vérifier aussi
+  le retour système Android, pas seulement la flèche.
+- [ ] **Discussion déjà existante** avec cette personne : on retombe dessus
+  avec son historique, aucun doublon créé. À refaire deux fois de suite.
+- [ ] **« Nouvelle conversation » et le crayon de l'en-tête** : inchangés, ils
+  ouvrent toujours le sélecteur générique. C'est la garde symétrique.
+- [ ] **Échec d'ouverture** (mode avion) : le sélecteur reprend la main avec
+  l'erreur — pas d'écran bloqué sur le rond de chargement. Le repli vaut
+  exactement le comportement d'avant le correctif.
+- [ ] **Lien profond `/messages/new?userId=<id>`, pile vide** : la flèche du
+  relais ramène à `/messages` et non dans le vide (voir « Pile vide » au § 7).
 
 ---
 
@@ -6408,6 +6447,56 @@ Appels 1:1 et de groupe : signalisation, bulle d'appel, WebRTC/TURN.
 
 ---
 
+## ⬜ Les appels de GROUPE restaient lançables alors que le 1-à-1 était en pause (2026-09-14)
+
+**Priorité P3** · importance 2/5 — Signalé par Salim : « les groupes possèdent
+toujours les icônes des appels ». L'en-tête d'une discussion de groupe affichait
+encore les deux boutons (audio, vidéo) alors que les mêmes boutons avaient été
+masqués en 1-à-1 un mois plus tôt.
+
+Ce n'était pas un oubli mais une **décision prise sur une prémisse fausse**. Le
+bloc commenté du 2026-08-14 (voir « 🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) —
+répondre à un appel ne faisait rigoureusement rien ») annonçait :
+« les boutons d'appel de GROUPE juste en dessous restent actifs, système
+différent/LiveKit, pas concerné ».
+
+LiveKit ne prend le relais qu'**au-delà de 4 participants** :
+`determineCallMode()` choisit le mode maillage en dessous, et
+[group_call_service.dart:8](lib/core/services/group_call_service.dart) importe
+alors le **même** `webrtc_service.dart` que le 1-à-1 — la pile dont la fiabilité
+était justement mise en doute. Un groupe de 3 amis lançait donc exactement le
+code mis en pause, par le chemin qu'on croyait fermé.
+
+Commenté au même format que le 1-à-1 (code conservé, `TODO(appels)` greppable),
+dans [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart) :
+les deux `IconButton` de l'AppBar, la méthode `_startGroupCall`, et les deux
+imports `group_calls/` devenus inutilisés.
+
+Ne ferme pas tous les chemins vers un appel de groupe, et c'est voulu : la route
+`/group-calls/:callId` reste ouverte pour **rejoindre** un appel existant — elle
+ne sert plus à rien tant que personne ne peut en créer, mais la supprimer
+casserait les notifications d'appel déjà en circulation. `GroupCallMessageBubble`
+(le bouton « Rejoindre » d'une bulle d'appel de groupe) n'a, lui, **aucun
+appelant** dans tout le projet : rien ne l'affiche, avant comme après ce commit.
+
+- [ ] Ouvrir une discussion de **groupe** : plus aucune icône d'appel dans
+      l'en-tête, seul le ⋮ subsiste. Vérifier que le nom du groupe et la ligne
+      « N membres » ne se décalent pas maintenant que la rangée d'actions a
+      rétréci (deux boutons en moins).
+- [ ] Même écran en **thème sombre** et à **grande échelle de police** : la
+      rangée d'actions reste alignée, rien ne déborde.
+- [ ] Une discussion 1-à-1 et « Mes notes » : inchangées (elles n'avaient déjà
+      plus de boutons d'appel).
+- [ ] Le ⋮ de groupe ouvre toujours sa feuille d'options complète : elle n'a pas
+      été touchée, mais c'est le voisin immédiat des boutons retirés.
+
+**Pour réactiver** : décommenter les trois blocs (chercher « Appels de GROUPE
+mis en pause » dans le fichier), et passer le protocole à deux téléphones réels
+décrit dans l'entrée du 2026-08-14 — plus un appel de groupe à 3 puis à 5
+participants, pour couvrir le maillage **et** le basculement SFU.
+
+---
+
 ## Un second appel qui arrive pendant qu'on est déjà en ligne était perdu en silence (2026-08-14)
 
 Trouvé en rejouant le logcat d'un vrai test (deux comptes qui s'appelaient
@@ -6543,9 +6632,14 @@ temps d'une vérification à deux VRAIS téléphones, sans contention.
 
 **Ce qui a été commenté (code conservé, pas supprimé)** :
 - `conversation_screen.dart` : les deux `IconButton` d'appel 1-à-1 dans
-  l'AppBar (audio/vidéo — les boutons d'appel de GROUPE juste en dessous
-  restent actifs, système différent/LiveKit, pas concerné) ; le rappel en un
-  geste sur une bulle d'appel (`onCallBack: null`) ; les méthodes
+  l'AppBar (audio/vidéo — ⚠️ il était écrit ici que les boutons d'appel de
+  GROUPE juste en dessous restaient actifs, « système différent/LiveKit,
+  pas concerné » : **c'était faux**, un appel de groupe à moins de 5
+  participants tourne en maillage sur le même `webrtc_service.dart`. Ils
+  ont été mis en pause à leur tour le 2026-09-14, voir « ⬜ Les appels de
+  GROUPE restaient lançables alors que le 1-à-1 était en pause
+  (2026-09-14) ») ; le rappel en un geste sur une bulle d'appel
+  (`onCallBack: null`) ; les méthodes
   `_startCall`/`_handleCallBack` et leurs imports (`call_entity.dart`,
   `call_provider.dart`, `call_screen.dart`) devenus inutilisés.
 - `profile_screen.dart` : l'entrée « Historique des appels » (menu Profil).
@@ -10196,6 +10290,13 @@ qui ne disent rien du rendu ni du geste.
   dans la minute qui suit le retour du réseau (c'est le sondage, pas le canal).
 - [ ] **Publication d'un ami** (audience « Amis », deux comptes amis) : elle
   arrive par le sondage alors que le canal temps réel l'écarte volontairement.
+  Le 2026-09-14, une autre session a supprimé deux amitiés à sens unique de
+  `public.friends` (8 → 6 lignes). **Sim n'en fait pas partie** : d'après cette
+  session, les deux lignes retirées portaient `user_id` = Salim, côtés manquants
+  `DgHD6guY…` et `zr1SjYSQ…`, et ce qui reste (6 lignes) forme trois amitiés
+  complètes. Ce test n'est donc pas affecté — mais l'information vient d'un
+  tiers, pas d'une lecture faite ici : si le fil ne montre pas la publication,
+  vérifier l'amitié en base **avant** de conclure à une régression du sondage.
 - [ ] **Pas de sondage en arrière-plan** : passer sur l'onglet Messages ou
   mettre l'app en arrière-plan, attendre trois minutes, revenir — vérifier
   dans les journaux (`adb logcat`) qu'aucune requête de fil n'est partie
@@ -12076,37 +12177,83 @@ Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature 
 
 ---
 
-## ⬜ 🔴 Bloquer un utilisateur ne bloque rien (2026-09-14)
+## ⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)
 
-**Priorité P0** · importance 5/5 — Bloquer quelqu'un n'écrit rien, nulle part : ni dans Firestore, ni dans le miroir Supabase dont dépendent les policies. L'écran affiche la personne comme bloquée sans qu'elle le soit. *Bloqué : deux comptes.*
+**Priorité P0** · importance 5/5 — Bloquer quelqu'un n'écrivait rien, nulle part : ni dans Firestore, ni dans le miroir Supabase dont dépendent les policies. L'écran affichait la personne comme bloquée sans qu'elle le soit. Corrigé le 2026-09-14, **jamais vérifié sur appareil**. *Bloqué : deux comptes.*
 
 Trouvé en cherchant les autres occurrences du défaut qui cassait l'acceptation
 d'une demande d'ami — voir « Accepter une demande d'ami : « Erreur de
-chargement » ». Même fichier de causes, **jamais corrigé** :
+chargement » ». Même fichier de causes :
 `blocked_users_datasource.dart`, `blockUser` et `unblockUser`.
 
-Le lot y contient **deux** écritures condamnées, chacune suffisante à le faire
-échouer en entier :
+**Cause.** Le lot contenait **deux** écritures condamnées, chacune suffisante
+à le faire échouer en entier :
 
-1. `batch.update(users/{moi}, {'blockedUserIds': …})` — un `update` sur un
-   document **absent** échoue en `NOT_FOUND`, indépendamment des règles. Or les
-   documents `users` Firestore ne sont plus créés depuis la migration vers
-   Supabase.
+1. `batch.update(users/{moi}, {'blockedUserIds': …})` — sur un document
+   **absent**, et plus rien ne crée les documents `users` Firestore depuis la
+   migration vers Supabase ;
 2. `batch.set(users/{cible}, {'blockedByUserIds': …}, merge)` — création du
    document d'autrui, refusée par `users/{userId}`.
 
-Et `_refleterDansSupabase` est appelé **après** `batch.commit()` : quand le lot
-lève, le miroir n'est jamais écrit. Les policies RLS qui lisent
-`public.blocked_users` ne voient donc rien non plus. Le blocage est sans effet
-de bout en bout.
+Et `_refleterDansSupabase` était appelé **après** `batch.commit()` : le lot
+levant toujours, le miroir n'était jamais écrit. Les policies RLS qui lisent
+`public.blocked_users` ne voyaient donc rien non plus. Le blocage était sans
+effet de bout en bout.
 
-Ni `blockedUserIds` ni `blockedByUserIds` n'ont de lecteur côté app : le
-`blockedUsersProvider` lit la sous-collection `blocked_users`, et
-`usersWhoBlockedMe` passe par Supabase. Le correctif est le même qu'aux amis —
-retirer les deux écritures de profil — plus l'appel du miroir **avant** ou
-indépendamment du lot.
+**Confirmé par la donnée.** Le balayage d'invariants du 2026-09-14
+(`tools/invariants_donnees.py`, voir « Balayage des invariants de données ») a
+trouvé **0 ligne dans `public.blocked_users`** sur 47 comptes en base. Personne
+n'a jamais réussi à bloquer qui que ce soit.
 
-Non corrigé à ce jour : trouvé en fin de session, hors du lot livré.
+**Correctif.** Les deux écritures de profil sont retirées — aucune n'était
+lue : la liste des bloqués vient de la sous-collection `blocked_users`
+(`blockedUsersProvider`), le sens inverse passe par Supabase
+(`usersWhoBlockedMe`), et `functions/index.js` ne balaie ces tableaux qu'au
+nettoyage de suppression de compte, en Admin SDK. Il ne reste qu'une écriture
+Firestore, dans sa propre sous-collection : plus de lot du tout. Le miroir
+Supabase est maintenant tenté **quoi qu'il arrive** à Firestore, et son échec
+n'est plus avalé par un `debugPrint` — un blocage à moitié posé se dit.
+
+**Mesuré, pas supposé.** `tools/rules_tests/blocage_utilisateur.mjs` rejoue le
+lot sur l'émulateur Firestore avec les règles du dépôt, profil de la cible
+présent **et** absent. Le nouveau parcours passe dans les quatre cas ; l'ancien
+lot est refusé dans trois cas sur quatre, et ne passe que lorsque **les deux**
+profils existent — ce qui ne décrit presque aucun compte.
+
+Le banc corrige au passage une supposition de départ : on attendait un
+`NOT_FOUND` de l'`update` sur le profil absent. Ce n'est pas ce que voit
+l'usager. La règle `allow update` de `users/{userId}` appelle
+`diff(resource.data)`, nul sur un document absent — « Null value error », donc
+`PERMISSION_DENIED` avant d'atteindre le document. Le `NOT_FOUND` n'apparaît
+que règles désactivées (le banc le montre aussi). **Les deux causes rendaient
+donc le même code d'erreur, et aucune retouche des règles n'en aurait sauvé
+une seule** : il fallait retirer les écritures.
+
+`test/features/settings/blocage_utilisateur_test.dart` fige les documents que
+le blocage a le droit de toucher, et l'indépendance des deux moitiés. Sur
+l'ancien code il échoue sur 3 de ses 5 cas, avec le
+`ServerException: Some requested document was not found.` attendu.
+
+**Règles Firestore : rien à déployer.** La seule modification de
+`firestore.rules` est un commentaire — l'exception d'`update` sur
+`blockedByUserIds` n'est plus empruntée par le client et est laissée pour les
+APK déjà installés, sans profit d'ailleurs : leur lot bute un cran plus tôt,
+sur l'`update` de leur propre profil. Production relue le 2026-09-14 par l'API
+`firebaserules` (ruleset `b2645946`, déployé à 20:11 UTC) : **identique au
+fichier versionné hors commentaires**, 955 lignes utiles de part et d'autre.
+
+**Écrans.** Les trois appels au blocage annonçaient déjà l'échec. Le
+quatrième, la case « bloquer aussi » de `report_content_modal.dart`, jetait le
+résultat : le blocage pouvait échouer sous un « Merci pour votre signalement »
+vert. Il dit maintenant que le signalement est parti mais que le blocage n'a
+pas suivi. Au passage, `business_reviews_screen.dart` sort de la liste
+d'exceptions de `test/core/errors/echec_muet_test.dart` — il avait **deux**
+branches muettes (suppression d'un avis, réponse du gérant), pas la seule que
+sa note d'exception décrivait.
+
+*Deux appareils étaient connectés pendant la session, mais rien n'a pu être
+coché : les APK installés sont antérieurs à ce correctif, et les points
+ci-dessous demandent un second compte.*
 
 - [ ] **Bloquer** depuis la fiche de profil : la personne apparaît dans
   Réglages → Utilisateurs bloqués, et **en base** — `users/{moi}/blocked_users`
@@ -12114,6 +12261,15 @@ Non corrigé à ce jour : trouvé en fin de session, hors du lot livré.
 - [ ] **Ses publications disparaissent** du fil (c'est la policy Supabase qui
   tranche, donc le miroir doit être écrit).
 - [ ] **Débloquer** : les deux disparaissent, des deux bases.
+- [ ] **Bloquer depuis un signalement** (case « bloquer aussi ») : la ligne
+  arrive dans les deux bases, et un échec du blocage seul se dit à l'écran
+  sans faire croire que le signalement a échoué.
+- [ ] **Miroir en échec** : couper le réseau juste après avoir bloqué — le
+  message d'erreur doit apparaître, et rebloquer une fois le réseau revenu
+  doit aboutir (les deux écritures sont idempotentes).
+- [ ] **Avis d'un commerce** (`business_reviews_screen.dart`) : supprimer son
+  avis et répondre en tant que gérant annoncent maintenant l'échec autant que
+  le succès — vérifier qu'un refus affiche bien un bandeau rouge.
 
 ## ⬜ Photo de profil : on choisit son cadrage (2026-09-14)
 
@@ -12887,6 +13043,45 @@ directement sur la section APPLICATION.
 # 12. Design, thème, langue et mise en page
 
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
+
+---
+
+## ⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)
+
+**Priorité P2** · importance 3/5 — Deux défauts au même endroit, étape 4/4 de la configuration du profil ([profile_config_screen.dart](lib/features/profile/presentation/screens/profile_config_screen.dart)).
+
+**L'ordre des pastilles.** Le même réglage était présenté dans deux ordres
+opposés : Orange puis Vert ici, Vert puis Orange dans les Réglages.
+L'onboarding s'aligne sur les Réglages.
+
+**Les vignettes mentaient sur l'accent.** Les trois aperçus Clair / Sombre /
+AUTO peignaient leur barre avec la paire **orange**, quel que soit l'accent
+choisi — observé sur Pixel le 2026-09-14, trois vignettes oranges juste
+au-dessus de la pastille verte qu'on venait de toucher. La vignette lit
+maintenant l'accent au provider et reprend le `colorScheme.primary` du thème
+qu'elle représente. C'est le défaut que `950024b` nommait — « un aperçu qui
+ment sur ce qu'il propose » — corrigé alors sur la seule moitié clair/sombre.
+Couvert par `test/features/profile/apercu_theme_accent_test.dart` (tombe sans
+le correctif, vérifié).
+
+- [ ] **Configuration du profil, étape 4/4** : Vert en première position,
+  Orange en seconde.
+- [ ] **Réglages → thème** : l'ordre y est identique, les deux écrans se
+  lisent pareil.
+- [ ] **La sélection suit toujours la bonne pastille** : toucher Orange
+  sélectionne Orange (c'est la régression qu'un échange de positions invite —
+  les `isSelected` ont bougé avec leur widget, à confirmer à l'œil).
+- [ ] **Compte en Vert** : les trois vignettes portent une barre **verte**.
+  C'est le cas qui a révélé le défaut.
+- [ ] **Compte en Orange** : elles portent une barre orange — la correction ne
+  doit pas avoir inversé le mensonge.
+- [ ] **Au tap sur une pastille**, les trois vignettes se repeignent
+  **immédiatement**, sans quitter ni rouvrir l'étape (elles lisent le
+  provider, que `_selectThemeColor` écrit aussitôt).
+- [ ] **Vignette AUTO** : ses deux moitiés, claire et sombre, portent chacune
+  la bonne nuance de l'accent — `secondary` / `secondaryLight` en Vert,
+  `primaryDark` / `primaryLight` en Orange. C'est la seule qui montre les
+  deux à la fois, donc la seule où un mélange se verrait.
 
 ---
 
@@ -14517,6 +14712,124 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+
+## ⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Aucun refus de permission n'atteignait Crashlytics : c'est pour ça qu'accepter une demande d'ami est resté impossible des mois. Chaque échec montré à l'usager y part désormais en non-fatal.
+
+`FlutterError.onError` et `PlatformDispatcher.onError` ne voient que les
+erreurs **non** rattrapées. Un `PERMISSION_DENIED` Firestore ou un `42501` de
+la RLS, eux, sont attrapés : ils deviennent un `ServerFailure`, puis un
+`bool false`. Ils ne quittaient jamais le téléphone.
+
+Le branchement est posé sur `messageErreurUsager` — le seul endroit du projet
+qui sait qu'on est en train de dire à quelqu'un que ça a raté, et par lequel
+passent déjà 48 sites. Une indirection (`brancherObservateurEchec`) garde ce
+fichier **pur** : il est lu par des tests sans Firebase, et `web/` est une
+cible réelle. L'implémentation vit dans `journal_echecs.dart`, branchée une
+fois depuis `main.dart`.
+
+Deux précautions, testées : le message est **caviardé** (uid, uuid, e-mail,
+JWT, sous-domaine du projet) parce que PostgREST met l'URL complète dans ses
+messages et Firebase le chemin du document ; et une même panne ne part
+**qu'une fois par 5 minutes**, sinon un écran en erreur hors ligne inonderait
+la console — `messageErreurUsager` est aussi appelé depuis des `build`.
+
+⚠️ **Ce que ça ne verra pas** : un succès qui n'a rien fait. Un `UPDATE`
+PostgREST qui ne matche aucune ligne rend 200. Ceux-là restent l'affaire de
+« Balayage des invariants de données ».
+
+- [ ] **Vérifier l'arrivée** : couper le réseau, ouvrir un écran qui charge,
+  puis consulter la console Crashlytics — un non-fatal `echec_affiche` avec
+  la clé `famille_echec = reseau`.
+- [ ] **Vérifier le caviardage sur un vrai message** : la fiche Crashlytics ne
+  doit contenir ni uid, ni uuid, ni le sous-domaine Supabase.
+- [ ] **Vérifier le volume** après 24 h : si une famille domine, c'est une
+  fonctionnalité cassée, pas du bruit — c'est exactement ce qu'on cherche.
+
+## ⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)
+
+**Priorité P1** · importance 4/5 — Deux écritures n'ont pas eu lieu, sans erreur nulle part : deux amitiés à sens unique (une personne ne voit pas les publications « Amis » de deux autres) et un événement restreint à un ensemble vide (visible de personne). *Bloqué pour la réparation : décision de Salim, ce sont des écritures en production.*
+
+`tools/invariants_donnees.py` — la contrepartie Supabase du banc de règles.
+Côté Firestore on rejoue l'écriture pour voir si elle passe ; côté Supabase
+**l'écriture ne dit rien** (un `UPDATE` qui ne matche aucune ligne rend 200,
+une lecture refusée par la RLS réussit à vide), donc on vérifie la **forme de
+la donnée**. Le script découvre le schéma réel avant de composer ses questions
+— plusieurs tables n'existent dans aucune migration — et sépare les
+**conditions** (doivent valoir 0) des **mesures** (à lire, jamais un verdict).
+
+```bash
+python tools/invariants_donnees.py
+```
+
+Passe du 2026-09-14, 47 comptes en base :
+
+- 🔴 **2 amitiés à sens unique** sur 8 lignes. Même `user_id` des deux côtés,
+  créées le 2026-09-13 — le jour de la reprise. `est_ami_de(auteur, lecteur)`
+  exige `friends.user_id = auteur` : ce compte **ne voit pas** les publications
+  « Amis » des deux autres, et eux voient les siennes. Les trois comptes
+  existent bien dans `public.users`, donc le garde « absent de public.users »
+  de `setFriendship` n'est pas en cause. Origine exacte non tranchée : il
+  faudrait lire les sous-collections Firestore, ce que le classificateur de
+  permissions a refusé.
+- 🔴 **1 événement `visibility = 'people'` avec 0 ligne d'audience**, créé le
+  2026-09-14 (1 inscrit, l'organisateur). `createEvent` écrit `visibility` sur
+  la ligne, puis `setEventAudience` est un **appel séparé** : PostgREST n'a
+  aucune atomicité entre deux appels, donc l'événement reste restreint à un
+  ensemble vide si le second ne part pas, échoue, ou part avec une liste vide.
+  La RPC `set_event_audience`, elle, est saine (`SECURITY DEFINER`, exceptions
+  explicites) — le trou est entre les deux appels, pas dedans.
+- **0 ligne dans `blocked_users`** — confirme par la donnée ce que la lecture
+  du code disait : voir « 🔴 Bloquer un utilisateur ne bloque rien —
+  corrigé », corrigé le 2026-09-14, après ce balayage.
+- **5 comptes sans `auth_mappings`** (sur 47) : le pont Firebase→Supabase n'a
+  jamais abouti pour eux. Toute écriture part en `anon`, toute lecture réussit
+  à vide au lieu d'échouer.
+- **Dérive de schéma relevée au passage** : `event_attendees.status` est
+  déclaré par `20260522223150_initial_schema.sql` mais **absent de la base**.
+  L'invariant qui en dépend est sauté, en le disant.
+- Sains : groupes (membres, créateur, `member_count`), sondages sans option,
+  stories « amis proches », `like_count` et `comment_count` du fil.
+
+- [x] **🔴 Les 2 amitiés étaient des RESTES, et sont supprimées.** Firestore
+  tranchait : les deux comptes d'en face ont **0 ami**, les entrées datent de
+  février et avril, et les 8 documents Firestore correspondaient exactement aux
+  8 lignes Postgres — le miroir était fidèle, le défaut était dans la source.
+  Or seuls deux chemins écrivent cette sous-collection : le lot d'acceptation,
+  **atomique depuis le premier commit** (2025-12-31), donc incapable de
+  n'écrire qu'un côté ; et la suppression de compte, qui efface le miroir
+  détenu par les autres — nettoyage **ajouté après coup**, dont le commentaire
+  décrit précisément ce résidu. Compléter aurait fabriqué un lien que personne
+  n'a exprimé. Les deux documents Firestore supprimés le 2026-09-14 (accord de
+  Salim) : 6 documents restants, soit 3 amitiés réciproques.
+- [x] **`mirrorFriendToSupabase` vu tourner sur une vraie amitié** — ce qui
+  n'avait jamais été observé. Les 2 lignes Postgres sont parties seules après
+  la suppression Firestore : 8 → 6, et l'invariant est à 0.
+- [x] **🔴 Événement à audience vide — cause trouvée, corrigée en base.** Le
+  formulaire valide bien (`_audience.erreur`, ligne 262) : la cause était dans
+  la RPC. `set_event_audience` **filtre en silence** (`u.id = ANY(p_user_ids)
+  AND u.id <> v_uid`), et quand il ne restait personne elle écrivait quand même
+  `events.visibility` et rendait `VOID` — un **succès qui n'a rien fait**.
+  L'organisateur est un compte de **12 minutes** (créé 04:49, événement 05:01),
+  sans aucun ami ni discussion, donc avec un sélecteur vide.
+  `20260914203000_audience_evenement_jamais_vide.sql` fait lever la RPC quand
+  une demande « groups »/« people » aboutit à une audience vide — la fonction
+  étant une seule transaction, la levée annule aussi ses `DELETE`, donc une
+  audience existante n'est jamais perdue par une tentative ratée. Déployée et
+  relue : garde présent, `anon` absent de l'ACL.
+- [x] **Le message d'échec disait faux** : « il reste visible par sa discussion
+  uniquement » alors qu'un événement créé **hors** discussion n'est visible de
+  personne — exactement le cas trouvé. Corrigé (`_messageAudienceRatee`).
+- [ ] **Événement restreint sans invités** : créer un « Personnes choisies »,
+  choisir quelqu'un, puis tout décocher et valider — le formulaire doit
+  refuser. Puis vérifier qu'un échec d'audience affiche bien le message rouge
+  « personne d'autre que vous ne le voit ».
+- [ ] **L'événement fautif de production** (`fea8bc43…`, organisateur
+  `mz4JJ8Fh…`) est **toujours invisible** : la correction empêche les suivants,
+  elle ne répare pas celui-là. Décider — le supprimer, ou le passer en public.
+- [ ] **Relancer le balayage après chaque lot** qui touche une écriture en
+  deux temps, et y ajouter l'invariant correspondant.
 
 ## Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)
 

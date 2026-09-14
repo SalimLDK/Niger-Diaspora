@@ -1018,7 +1018,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/messages/new',
-        builder: (context, state) => const NewConversationScreen(),
+        builder: (context, state) {
+          // Un destinataire déjà choisi arrive sous deux formes : `?userId=`
+          // (tuile « écrivez à … », résultat de recherche — rejouable par
+          // lien profond) et `extra` (bouton « Contacter » d'une fiche, qui
+          // connaît en plus le nom). Aucune des deux n'était lue ici : l'écran
+          // était construit `const`, sans paramètre, donc les trois appelants
+          // qui nommaient quelqu'un atterrissaient sur le même sélecteur
+          // générique que le bouton « Nouvelle conversation ».
+          final extra = state.extra as Map<String, dynamic>?;
+          return NewConversationScreen(
+            initialRecipientId:
+                state.uri.queryParameters['userId'] ??
+                extra?['recipientId'] as String?,
+            initialRecipientName: extra?['recipientName'] as String?,
+            initialRecipientPhotoUrl: extra?['recipientPhotoUrl'] as String?,
+          );
+        },
       ),
       GoRoute(
         path: '/messages/:conversationId',

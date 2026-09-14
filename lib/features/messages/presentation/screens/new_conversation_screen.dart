@@ -20,7 +20,28 @@ import 'package:diaspo_niger/core/errors/message_erreur.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class NewConversationScreen extends ConsumerStatefulWidget {
-  const NewConversationScreen({super.key});
+  /// Destinataire déjà désigné par l'écran appelant (tuile « écrivez à … »,
+  /// résultat de recherche, bouton « Contacter » d'une fiche).
+  ///
+  /// Quand il est posé, cet écran n'est qu'un relais : il ouvre la discussion
+  /// et se remplace par elle. Demander de re-choisir la personne qu'on vient
+  /// de désigner du doigt rendait ces trois entrées indiscernables du bouton
+  /// « Nouvelle conversation ».
+  final String? initialRecipientId;
+
+  /// Nom et photo du destinataire quand l'appelant les connaît — simple
+  /// raccourci d'affichage pour l'en-tête de la discussion, que
+  /// `ConversationScreen` réconcilie de toute façon avec la conversation
+  /// chargée. Nuls par lien profond, et c'est sans conséquence.
+  final String? initialRecipientName;
+  final String? initialRecipientPhotoUrl;
+
+  const NewConversationScreen({
+    super.key,
+    this.initialRecipientId,
+    this.initialRecipientName,
+    this.initialRecipientPhotoUrl,
+  });
 
   @override
   ConsumerState<NewConversationScreen> createState() =>
@@ -42,6 +63,12 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
   bool _isSearching = false;
   bool _isLoading = false;
 
+  /// Mode relais : un destinataire est arrivé par la route, la discussion est
+  /// en cours d'ouverture. Le sélecteur est masqué pendant ce temps — l'y
+  /// laisser le ferait clignoter une fraction de seconde avant d'être
+  /// remplacé par la discussion.
+  bool _isOpeningDirect = false;
+
   /// Ma position (pour la distance des « Proches de vous »), si disponible.
   double? _myLat;
   double? _myLng;
@@ -49,7 +76,65 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
   @override
   void initState() {
     super.initState();
+
+    final recipientId = widget.initialRecipientId?.trim();
+    if (recipientId != null && recipientId.isNotEmpty) {
+      // `context` n'est pas navigable depuis `initState` : on attend la
+      // première frame. Le drapeau est posé tout de suite, pour que cette
+      // frame-là montre déjà le relais et non le sélecteur.
+      _isOpeningDirect = true;
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _openDirectConversation(recipientId),
+      );
+      // Pas de « membres à proximité » en mode relais : l'écran ne sera pas
+      // affiché, et ce chargement lit la position.
+      return;
+    }
+
     _maybeLoadNearby();
+  }
+
+  /// Ouvre directement la discussion avec le destinataire reçu, et **remplace**
+  /// cet écran par elle : revenir depuis la discussion ramène à la liste des
+  /// messages, pas à un sélecteur qu'on n'a jamais eu à utiliser.
+  ///
+  /// En cas d'échec, pas de cul-de-sac : le sélecteur reprend la main avec
+  /// l'erreur, et la personne peut choisir à la main — soit exactement le
+  /// comportement d'avant ce correctif.
+  Future<void> _openDirectConversation(String recipientId) async {
+    try {
+      final conversation = await ref
+          .read(createConversationProvider.notifier)
+          .createIndividual(recipientId);
+
+      if (!mounted) return;
+
+      if (conversation == null) {
+        setState(() => _isOpeningDirect = false);
+        _maybeLoadNearby();
+        return;
+      }
+
+      context.pushReplacement(
+        '/messages/${conversation.id}',
+        extra: {
+          'name': widget.initialRecipientName,
+          'imageUrl': widget.initialRecipientPhotoUrl,
+          'otherUserId': recipientId,
+          'isGroup': false,
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isOpeningDirect = false);
+      _maybeLoadNearby();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(messageErreurUsager(e)),
+          backgroundColor: context.errorColor,
+        ),
+      );
+    }
   }
 
   /// Charge les membres proches pour l'état au repos — **sans** demander la
@@ -295,6 +380,30 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
+    // Mode relais : le destinataire est connu, la discussion s'ouvre. On ne
+    // montre pas le sélecteur — il serait remplacé aussitôt, et le laisser
+    // apparaître inviterait à taper dedans pendant qu'on navigue.
+    if (_isOpeningDirect) {
+      return Scaffold(
+        backgroundColor: context.backgroundColor,
+        appBar: AppBar(
+          // Même sortie explicite que sous le sélecteur, pour la même raison
+          // (cf. test/core/router/fleche_retour_test.dart) : sans elle, un
+          // échec d'ouverture arrivé par lien profond n'aurait pas de retour.
+          leading: BackButton(
+            onPressed:
+                () =>
+                    context.canPop() ? context.pop() : context.go('/messages'),
+          ),
+          title: DesignTitle(l10n.newConversationTitle, size: 22),
+        ),
+        body: Center(
+          child: CircularProgressIndicator(color: context.adaptivePrimaryColor),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(

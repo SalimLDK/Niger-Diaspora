@@ -31,12 +31,54 @@ String messageErreurUsager(Object? erreur) {
   final texte = erreur?.toString().toLowerCase() ?? '';
 
   if (_contientUn(texte, _marqueursReseau)) {
+    _observe(erreur, FamilleEchec.reseau);
     return 'Connexion indisponible. Vérifiez votre réseau, puis réessayez.';
   }
   if (_contientUn(texte, _marqueursDroits)) {
+    _observe(erreur, FamilleEchec.droits);
     return "Vous n'avez pas les droits nécessaires pour cette action.";
   }
+  _observe(erreur, FamilleEchec.autre);
   return 'Une erreur est survenue. Réessayez.';
+}
+
+/// Les trois familles ci-dessus, nommées pour l'observateur.
+enum FamilleEchec { reseau, droits, autre }
+
+/// Prévenu chaque fois qu'un échec est **montré à l'usager**.
+typedef ObservateurEchec = void Function(Object? erreur, FamilleEchec famille);
+
+ObservateurEchec? _observateur;
+
+/// Branche [observateur] sur tous les échecs affichés — appelé une fois depuis
+/// `main.dart`.
+///
+/// Pourquoi une indirection plutôt qu'un appel direct à Crashlytics : ce
+/// fichier doit rester **pur**. Il est lu par des tests unitaires sans
+/// Firebase initialisé, et `web/` est une cible réelle du projet. L'indirection
+/// garde la dépendance dans `journal_echecs.dart`, qui, lui, connaît Firebase.
+///
+/// Pourquoi ICI et pas sur chacun des sites d'affichage : c'est le seul endroit
+/// du projet qui sait qu'on est en train de dire à quelqu'un que ça a raté. Un
+/// observateur pose à chaque site aurait exactement le defaut qu'on repare —
+/// les nouveaux sites l'oublieraient.
+///
+/// ⚠️ Ce que ça ne voit PAS : un echec qui n'est jamais affiche, et surtout un
+/// succes qui n'a rien fait — un `UPDATE` PostgREST qui ne matche aucune ligne
+/// rend 200. Ceux-la se trouvent par la forme de la donnee
+/// (`tools/invariants_donnees.py`), pas par la telemetrie.
+void brancherObservateurEchec(ObservateurEchec? observateur) {
+  _observateur = observateur;
+}
+
+void _observe(Object? erreur, FamilleEchec famille) {
+  final observateur = _observateur;
+  if (observateur == null) return;
+  // Un observateur qui lève ne doit jamais empêcher l'écran d'afficher son
+  // message : l'usager passe avant la télémétrie.
+  try {
+    observateur(erreur, famille);
+  } catch (_) {}
 }
 
 /// Variante préfixée d'un libellé de contexte, pour les cas où l'écran veut
