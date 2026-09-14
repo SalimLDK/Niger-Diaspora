@@ -571,15 +571,51 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Stream<UserModel?> get authStateChanges {
-    return _firebaseAuth.authStateChanges().asyncMap((user) async {
-      if (user == null) return null;
-      await SupabaseAuthBridge.instance.syncWithFirebase(user);
+  Stream<UserModel?> get authStateChanges async* {
+    await for (final user in _firebaseAuth.authStateChanges()) {
+      if (user == null) {
+        yield null;
+        continue;
+      }
+
+      // Ce que Firebase sait déjà part **avant** tout appel réseau.
+      //
+      // Les trois étapes qui suivent — pont Firebase→Supabase, upsert, lecture
+      // de la ligne `users` — sont toutes distantes. En `asyncMap`, rien
+      // n'était émis tant qu'elles n'avaient pas rendu la main : hors ligne,
+      // elles mettent **une à deux minutes** à échouer (DNS mort, App Check
+      // retenté chaque seconde), et pendant tout ce temps l'app n'avait aucun
+      // utilisateur courant. Conséquence mesurée sur SM A515F le 2026-09-14,
+      // lien profond en mode avion : l'en-tête d'une discussion ne pouvait pas
+      // nommer l'interlocuteur — il se déduit des participants **par
+      // différence avec le compte courant** — et restait sur « Chargement… »
+      // deux minutes durant, alors que le nom était en cache.
+      //
+      // L'identité locale suffit à tout ce qui bloque : `id`, `email`,
+      // `displayName`, `photoUrl`. Les champs qui n'existent que côté serveur
+      // (`adminRole`, `isBanned`, `isVerified`) arrivent à la seconde émission
+      // — aucune garde de démarrage ne s'en sert.
+      yield _mapFirebaseUserToModel(user);
+
       try {
-        await _upsertUserToSupabase(user, email: user.email);
-      } catch (_) {}
-      return _getUserDataFromSupabase(user);
-    });
+        await SupabaseAuthBridge.instance.syncWithFirebase(user);
+        try {
+          await _upsertUserToSupabase(user, email: user.email);
+        } catch (_) {}
+        yield await _getUserDataFromSupabase(user);
+      } catch (e) {
+        // Le pont porte sa propre reprise (`politique_de_reprise.dart`) : on
+        // garde l'utilisateur local plutôt que de laisser l'échec emporter le
+        // flux — une erreur ici le terminait, et plus aucune émission ne
+        // suivait.
+        if (kDebugMode) {
+          dev.log(
+            'authStateChanges: enrichissement distant en echec: $e',
+            name: _tag,
+          );
+        }
+      }
+    }
   }
 
   UserModel _mapFirebaseUserToModel(User user) {

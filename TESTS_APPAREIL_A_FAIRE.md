@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**931 cases à cocher, 526 cochées** — 190 entrées sur 234 ont encore des cases ouvertes.
+**933 cases à cocher, 528 cochées** — 190 entrées sur 234 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -75,7 +75,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
-- 2 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
+- 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
@@ -248,7 +248,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 147 à faire, 63 faites
+- [2. Messagerie](#2-messagerie) — 149 à faire, 65 faites
 - [3. Groupes](#3-groupes) — 113 à faire, 55 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 46 à faire, 23 faites
 - [5. Appels](#5-appels) — 18 à faire, 8 faites
@@ -749,12 +749,43 @@ participant s'en déduit — et le cache de profil ne sert alors à rien.
       donc comme identité en attente
       ([conversation_screen.dart:1199](lib/features/messages/presentation/screens/conversation_screen.dart:1199)).
       Vérifié SM A515F le 2026-09-14 (release md5 `9641765b…`).
-- [ ] **La fenêtre elle-même** : hors ligne, cette restauration de session prend
-      **une à deux minutes** (mesuré : « Chargement… » à +22 s et +52 s, nom à
-      +2 min), pendant lesquelles l'app martèle App Check toutes les secondes
-      (`Unable to resolve host firebaseappcheck.googleapis.com` dans logcat).
-      Le nom finit par arriver, mais l'attente est longue pour quelqu'un qui
-      ouvre une notification dans le métro. À instruire à part.
+- [x] **La fenêtre elle-même** — instruite le 2026-09-14, et refermée par les
+      deux bouts. La cause : `authStateChanges`
+      ([auth_remote_datasource.dart:574](lib/features/auth/data/datasources/auth_remote_datasource.dart:574))
+      enchaînait en `asyncMap` **trois appels distants** — pont
+      Firebase→Supabase, upsert, lecture de la ligne `users` — et n'émettait
+      rien tant qu'ils n'avaient pas rendu la main. Hors ligne, ils mettent une
+      à deux minutes à échouer : l'app n'avait aucun compte courant pendant tout
+      ce temps, alors que Firebase tient l'utilisateur en mémoire dès son
+      initialisation. L'identité locale part maintenant en première émission,
+      l'enrichissement distant suit — et un échec ne termine plus le flux.
+      ⚠️ Analysé et couvert par les tests, mais **son effet propre n'a pas été
+      isolé sur appareil** : le semis ci-dessous masque désormais le symptôme.
+- [x] **Le nom dès la première image**, sans passer par « Chargement… » : un
+      flux n'émet jamais dans l'image du premier rendu, donc même avec tout en
+      cache l'en-tête affichait son repli. `_semerIdentiteConnue()`
+      ([conversation_screen.dart:189](lib/features/messages/presentation/screens/conversation_screen.dart:189))
+      lit à l'ouverture trois sources locales et **synchrones** — uid Firebase,
+      conversation en cache, profil en cache — et les pose comme valeurs de
+      départ. Mesuré par rafale de captures (25 en 25 s) sur SM A515F le
+      2026-09-14, lien profond en mode avion, release md5 `4b37b3c2…` : trois
+      états seulement — écran de lancement, écran blanc, puis **« Salim L. »**.
+      Aucune image ne montre « Chargement… ».
+- [ ] **Groupe et « Mes notes » par lien profond** : le semis lit aussi la
+      nature du fil dans la conversation en cache (nom et image d'un groupe,
+      « Mes notes » par différence avec le compte courant). Écrit, analysé,
+      **pas mesuré** : il faudrait l'identifiant d'une conversation de groupe,
+      que rien n'expose depuis l'appareil — logcat n'en montre aucun en release
+      et la base n'est pas liée sur ce poste.
+- [ ] **Notification d'une discussion jamais ouverte** : le push porte déjà
+      `senderName`, `senderPhotoUrl`, `senderId` et `conversationType` ;
+      [app.dart:92](lib/app.dart:92) les passe en `extra` au moment de
+      naviguer, faute de quoi aucun cache local ne peut renseigner un fil
+      inconnu. Demande deux comptes et un vrai push pour être vérifié.
+- [ ] **Lien profond brut vers une discussion inconnue, hors ligne** : mesuré
+      le 2026-09-14 — « Chargement… » et le bandeau « Mode hors ligne », qui
+      restent. C'est le cas où aucune source n'existe : ni cache, ni réseau, ni
+      `extra`. Vérifier qu'il se remplit bien au retour du réseau.
 - [x] **Hors ligne, dès l'ouverture** : l'en-tête affiche « Salim L. » et son
       avatar « SL » sans attendre le réseau, et la liste des discussions ne
       montre plus « Utilisateur ». Vérifié SM A515F le 2026-09-14 (release md5
@@ -2657,18 +2688,39 @@ Niamey à Sim A en a fait le cinquième profil de la ville.
    elle ne distingue rien (`Ville.libelle`, `test/core/ville_libelle_test.dart`).
    Reste que GeoNames ne donne les régions qu'en **ASCII** : « Montréal,
    Quebec » s'affiche sans accent. Pas corrigé, la source n'a pas mieux.
-2. **L'onglet Découvrir reste sur ses cartes squelettes**, sur ce compte, y
-   compris après relance à froid — `allGroupsAsync.isLoading ||
-   myGroupsAsync.isLoading` ne retombe jamais, et « Mes groupes · 0 » alors que
-   Sim A est bien membre de « — Canada » en base. **Je ne l'attribue pas** :
-   la branche squelette s'exécute AVANT tout mon code de filtre, et ma rangée
-   « Ville » s'est affichée correctement (donc les groupes SONT chargés, avec
-   une valeur précédente sous un `isLoading` persistant). Sur le Pixel (build
-   antérieur, autre compte, 3 groupes) l'onglet s'affiche normalement — deux
-   variables changent à la fois, le contrôle ne tranche pas.
-   - [ ] **À élucider** : reproduire sur un compte à 1 seul groupe, et
-     regarder si `loadMyGroups` se termine (`if (_disposed) return;` laisse
-     l'état en `loading` pour toujours si la notifier meurt en vol).
+2. **L'onglet Découvrir restait sur ses cartes squelettes**, et « Mes
+   groupes · 0 » alors que le compte était membre de deux groupes. **Élucidé
+   et corrigé** — c'était antérieur à ce travail :
+
+   `MyGroupsNotifier.build()` posait `ref.onDispose(() => _disposed = true)`
+   sans jamais remettre le drapeau à `false`. Or `onDispose` se déclenche à
+   chaque **recalcul** du fournisseur, pas seulement à sa destruction, et pour
+   un `Notifier` c'est la MÊME instance qui est réutilisée. Comme `build()`
+   observe `currentUserProvider` — un flux : une fois sans utilisateur, une
+   fois avec — le drapeau passait à `true` sur un notifier bien vivant dès la
+   deuxième exécution. `loadMyGroups` se terminait, tombait sur
+   `if (_disposed) return;` et **n'écrivait jamais son résultat**. Ni elle ni
+   `_refreshQuietly` : rejoindre un groupe sous les yeux de l'écran ne le
+   débloquait pas non plus.
+
+   Rien dans les journaux — l'état ne devient jamais une erreur, il reste « en
+   chargement » pour toujours. Et c'est une **course** : un compte dont
+   l'authentification est déjà résolue quand l'écran demande la liste ne
+   déclenche qu'un seul `build()` et ne voit rien. D'où l'écart entre les deux
+   téléphones.
+
+   Reproduit au banc (`mes_groupes_reconstruction_test.dart`) avant d'être
+   corrigé — le banc échoue sur l'ancien code.
+
+   `onboarding_provider.dart` porte le même motif mais **n'observe rien** :
+   son `build()` ne s'exécute qu'une fois, il n'est pas touché. Laissé tel
+   quel — c'est le fournisseur qui garde le routeur, on n'y touche pas sans
+   reproduction.
+   - [ ] **Sur appareil** : « Mes groupes » liste bien les groupes du compte,
+     et l'onglet Découvrir affiche des groupes au lieu de squelettes — y
+     compris en allant sur l'onglet Groupes **tout de suite** après le
+     lancement, avant que l'authentification ait fini de se résoudre. C'est ce
+     timing-là qui déclenchait la panne.
 
 Pas encore vu : la mention GeoNames dans « À propos », la carte, le thème
 sombre. La feuille de divulgation du champ ville n'a pas pu être rejouée —

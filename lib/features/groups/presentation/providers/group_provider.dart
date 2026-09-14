@@ -223,6 +223,21 @@ class MyGroupsNotifier extends _$MyGroupsNotifier {
 
   @override
   AsyncValue<List<GroupEntity>> build() {
+    // ⚠ À REMETTRE À CHAQUE BUILD. `ref.onDispose` se déclenche à chaque
+    // RECALCUL du fournisseur, pas seulement à sa destruction — et pour un
+    // `Notifier`, c'est la même instance qui est réutilisée. Sans cette
+    // remise à zéro, le drapeau passait à `true` sur un notifier bien vivant
+    // dès la deuxième exécution de `build()` (`currentUserProvider` est un
+    // flux : une fois sans utilisateur, une fois avec), et plus aucune
+    // lecture n'écrivait jamais son résultat.
+    //
+    // « Mes groupes » restait donc vide POUR TOUJOURS, et l'onglet Découvrir
+    // figé sur ses cartes squelettes (`_buildDiscoverTab` s'arrête sur
+    // `myGroupsAsync.isLoading`). Rien dans les journaux : l'état ne devient
+    // jamais une erreur. Vu sur SM A515F le 2026-09-14 ; invisible sur un
+    // compte dont l'authentification était déjà résolue à l'ouverture de
+    // l'écran, `build()` ne s'exécutant alors qu'une fois. Une course.
+    _disposed = false;
     ref.onDispose(() => _disposed = true);
 
     final user = ref.watch(currentUserProvider).valueOrNull;
