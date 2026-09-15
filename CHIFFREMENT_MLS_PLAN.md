@@ -908,6 +908,34 @@ Dart tient la clé maître **en transit** entre le stockage sécurisé et `open(
 Ce n'est pas un secret MLS ; c'est le prix d'éviter un accès direct au
 Keystore depuis Rust. À documenter, pas à cacher.
 
+**Tranché le 2026-09-15 : aucune des deux voies n'est ouverte en l'état, et la
+base reste en clair sur l'appareil.** Les trois obstacles, mesurés :
+
+1. **SQLCipher** demande `rusqlite/bundled-sqlcipher-vendored-openssl`. La
+   configuration d'OpenSSL échoue sur le poste — le `perl` de Git Bash ne
+   convient pas à `Configure` pour `VC-WIN64A`. Le banc Rust de la phase 3 ne
+   compilerait plus ici, et la compilation croisée Android resterait à prouver.
+2. **Chiffrer les valeurs par le `Codec`** ne marche pas tel quel : dans
+   `openmls_sqlite_storage`, les **clés de recherche** passent par le même
+   `Codec::to_vec` que les entités et servent de critère d'égalité en SQL. Un
+   AES-GCM à nonce aléatoire rendrait toute lecture introuvable. Il faudrait un
+   chiffrement déterministe (AES-SIV), plus faible, et le `Codec` étant un
+   trait à méthodes **statiques**, la clé devrait vivre dans un global de
+   processus.
+3. **L'isolate de notification** doit rouvrir cette base (§ 8) et n'a pas de
+   `MethodChannel` sans liaison explicite : il ne peut pas lire le Keystore
+   comme l'app. Chiffrer sans résoudre ce point casserait l'aperçu des
+   notifications, déjà livré.
+
+**Ce qui est fait à la place, et qui ferme le chemin le plus réaliste** : la
+base est exclue de la sauvegarde Google **et** du transfert d'appareil à
+appareil (`android/app/src/main/res/xml/`). Sans ça `allowBackup` valait
+`true` par défaut, et le fichier quittait le téléphone sans root ni accès
+physique. Exclure ne coûte rien : un état MLS restauré ailleurs serait une
+identité en double avec un cliquet déjà avancé, donc des messages illisibles
+des deux côtés — le registre traite déjà l'identité neuve. iOS reste à faire
+(`NSURLIsExcludedFromBackupKey`, sans API Dart).
+
 ---
 
 # 8. Notifications
