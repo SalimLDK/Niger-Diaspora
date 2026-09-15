@@ -199,6 +199,27 @@ class MlsDelivery {
         .update({'mls_since': DateTime.now().toUtc().toIso8601String()})
         .eq('id', conversationId)
         .isFilter('mls_since', null);
+
+    // **On relit, et on lève si la date n'est pas là.**
+    //
+    // Compter les lignes touchées ne suffirait pas : zéro ligne veut dire
+    // « déjà posée » — le cas idempotent, parfaitement normal — **ou** « le
+    // serveur a refusé ». Un `update` que le RLS écarte ne lève pas, il touche
+    // zéro ligne sans un mot. Seule la relecture sépare les deux.
+    //
+    // Ce que coûterait le silence : le groupe MLS vient d'être créé et le
+    // message suivant part chiffré, mais sans `mls_since` le serveur continue
+    // d'accepter du clair dans la même conversation. Elle se retrouverait à
+    // cheval sur les deux chemins, sans séparateur et sans gel — un état que
+    // rien ne rattrape ensuite, puisque la date est définitive une fois posée.
+    final ligne = await _client
+        .from('conversations')
+        .select('mls_since')
+        .eq('id', conversationId)
+        .maybeSingle();
+    if (ligne?['mls_since'] == null) {
+      throw StateError('bascule non enregistrée pour $conversationId');
+    }
   }
 
   Future<List<MlsDeviceRecord>> activeDevicesOf(String userId) async {
