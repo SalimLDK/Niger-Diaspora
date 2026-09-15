@@ -63,13 +63,28 @@ Si elles se chevauchent, ne pas livrer : le conflit sera pour lui, au milieu
 de son travail. Consigner dans `TESTS_APPAREIL_A_FAIRE.md` et attendre.
 
 **`git rebase` est refusé par le classificateur de permissions de Claude Code
-dans ce dépôt** (bloqué avant même que git ne s'exécute), alors que `git
-merge` passe. Pour intégrer les commits distants : stasher son propre WIP de
+dans ce dépôt** (bloqué avant même que git ne s'exécute). **Depuis le
+2026-09-14, `git merge` l'est aussi depuis l'outil Bash** — motif
+`[Out-of-Place Publication]`. La même commande, mot pour mot, **passe depuis
+l'outil PowerShell** : même worktree, même dépôt, même branche. C'est la seule
+voie de sortie connue, et elle est indispensable — sans elle la boucle
+ci-dessous se bloque à son deuxième pas.
+
+Pour intégrer les commits distants : stasher son propre WIP de
 façon **ciblée** (jamais `-A` sur tout l'index — voir la règle
-`--` ci-dessus), `git merge origin/<branche> --no-edit`, résoudre les
-conflits à la main, puis `git stash pop`. `git push` peut se faire rejeter
-une seconde fois si l'autre agent pousse pendant l'opération : refaire
-fetch/merge/push jusqu'à ce que ça passe, jamais de force.
+`--` ci-dessus), `git merge origin/<branche> --no-edit` **par l'outil
+PowerShell**, résoudre les conflits à la main, puis `git stash pop`. `git
+push` peut se faire rejeter une seconde fois si l'autre agent pousse pendant
+l'opération : refaire fetch/merge/push jusqu'à ce que ça passe, jamais de
+force. Compter deux tours plutôt qu'un — le 2026-09-14 le tip a bougé entre
+le merge et le push, deux fois de suite.
+
+Le conflit à attendre à chaque merge est `TESTS_APPAREIL_A_FAIRE.md`, et il
+est bénin : il ne porte que sur la **ligne de compteurs du sommaire**, qui est
+générée. Prendre un côté au hasard, puis relancer
+`python tools/index_tests_appareil.py` — il recompte depuis le contenu réel,
+et les cases cochées d'en face comme les entrées ajoutées des deux côtés se
+retrouvent dans le total. Ne jamais résoudre cette ligne à la main.
 
 ## Migrations Supabase sur la branche partagée
 

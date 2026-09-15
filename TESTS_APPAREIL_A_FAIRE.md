@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1045 cases à cocher, 559 cochées** — 211 entrées sur 255 ont encore des cases ouvertes.
+**1053 cases à cocher, 560 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (66)
+**P1 — fonction importante, jamais vérifiée** (67)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -84,6 +84,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
+- 6 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -104,7 +105,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
-- 3 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
+- 5 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
@@ -270,7 +271,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 183 à faire, 77 faites
-- [3. Groupes](#3-groupes) — 109 à faire, 62 faites
+- [3. Groupes](#3-groupes) — 115 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
@@ -280,7 +281,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 60 à faire, 44 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -2777,6 +2778,57 @@ de conclure quoi que ce soit.
 # 3. Groupes
 
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
+
+---
+
+## ⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)
+
+**Priorité P1** · importance 4/5 — La feuille « Inviter un membre » ne montrait que des « Utilisateur » à avatar gris : on ne pouvait pas savoir qui on invitait. Corrigé, jamais vu sur un écran.
+
+Relevé sur SM A515F le 2026-09-14, compte « Sim A », groupe « Groupe de test
+prive » : huit lignes visibles, toutes nommées « Utilisateur ». La recherche
+du même écran, elle, nommait correctement (« Yahaiya Moussa », avec sa photo)
+— deux providers différents derrière une seule feuille.
+
+`eligibleParticipantsProvider` ne lisait aucun profil : il prenait
+`conversation.name` quand la conversation était individuelle, « Utilisateur »
+sinon. Une conversation individuelle **n'a pas de nom** en base, et une
+conversation de groupe n'entrait pas dans la branche alors que la boucle
+propose chacun de ses participants — le compte partage un fil de 21 personnes,
+d'où les lignes anonymes en série.
+
+Le nom vient maintenant de `getProfilesByIds`, **une seule requête** pour toute
+la liste. Pas un `userStreamProvider` par ligne : sa `family` n'est pas
+`autoDispose`, vingt lignes laisseraient vingt abonnements temps réel ouverts
+pour le reste de la session.
+
+Couvert par `test/features/calls/candidats_nommes_test.dart` (nom résolu,
+requête unique, échec toléré, ami non relu, sans-nom en fin de liste). Ce que
+le test ne voit pas est ci-dessous.
+
+- [ ] **Sur appareil** : fiche d'un groupe dont on est admin → « Inviter un
+      membre ». Les suggestions portent des **noms et des photos**, pas
+      « Utilisateur » à avatar gris. Vérifier avec un compte qui partage une
+      conversation de **groupe** avec d'autres : c'est le cas qui produisait
+      des lignes anonymes en série.
+- [ ] **Sur appareil** : une invitation envoyée depuis cette liste arrive bien
+      chez l'invité et porte **son** nom, pas « Utilisateur » — `inviteeName`
+      part en base. Voir « Inviter des membres dans un groupe privé » pour le
+      reste du parcours.
+- [ ] **Sur appareil, en mode avion** : rouvrir la feuille. La liste doit
+      **rester affichée**, sans noms (les amis gardent le leur), au lieu de
+      basculer sur « Erreur de chargement ». C'est le repli explicite du
+      provider ; sans lui, la panne réseau serait pire que le défaut corrigé.
+- [ ] **Sur appareil** : même vérification côté appels — pendant un appel,
+      « Ajouter un participant » lit le même provider et souffrait du même
+      défaut.
+- [ ] **Sur appareil** : quelqu'un dont le profil est privé ou supprimé reste
+      sans nom. Il doit s'afficher « Utilisateur » (le repli localisé, posé par
+      l'écran) et se ranger **en fin de liste**, pas en tête.
+- [ ] **Sur appareil, clavier levé** : la liste des candidats n'occupe plus
+      qu'une ligne et demie une fois le clavier ouvert (hauteur de la feuille =
+      `0,8 × écran − insets`). Gênant sans être cassé, et invisible à la
+      relecture : à juger sur un vrai écran.
 
 ---
 
@@ -14837,9 +14889,32 @@ Passe du 2026-09-14, 47 comptes en base :
   choisir quelqu'un, puis tout décocher et valider — le formulaire doit
   refuser. Puis vérifier qu'un échec d'audience affiche bien le message rouge
   « personne d'autre que vous ne le voit ».
+- [ ] **Modifier l'audience après coup** : ouvrir un événement dont on est
+  l'organisateur → Modifier → le sélecteur doit être **pré-rempli** avec
+  l'audience réelle (et non « Public » par défaut), en changer les invités,
+  enregistrer, rouvrir : le choix tient. Les personnes ajoutées reçoivent la
+  notification d'invitation que pose `set_event_audience`.
+- [ ] **Bandeau d'avertissement** : sur un événement restreint à une audience
+  vide, l'organisateur voit le bandeau rouge « Personne d'autre que vous ne
+  voit cet événement » ; les autres comptes ne voient rien (et pour cause, ils
+  ne voient pas l'événement).
+- [x] **🔴 L'audience était écrite une fois et plus jamais relue — corrigé.**
+  En cherchant qui pouvait réparer l'événement fautif, la réponse était :
+  **personne**. `EventAudiencePicker` ne vivait que dans l'écran de création,
+  aucune ligne de l'app ne lisait `event_audience`, et `EventEntity` ne porte
+  toujours pas `visibility`. Une limite du produit, indépendante du bug : on ne
+  pouvait pas ajouter quelqu'un à un événement qu'on avait créé.
+  Posé : `getEventAudience` de la base au dépôt, `eventAudienceProvider`
+  (provider simple, sans codegen — `build_runner` réécrit ~120 fichiers pour
+  rien ici), le sélecteur dans l'écran de modification avec pré-remplissage et
+  la même garde d'audience vide qu'à la création, et un bandeau rouge sur la
+  fiche vue par l'organisateur quand son événement n'est visible de personne.
+  Ni l'entité ni le modèle ne bougent.
 - [ ] **L'événement fautif de production** (`fea8bc43…`, organisateur
-  `mz4JJ8Fh…`) est **toujours invisible** : la correction empêche les suivants,
-  elle ne répare pas celui-là. Décider — le supprimer, ou le passer en public.
+  `mz4JJ8Fh…`) est toujours invisible, mais **son auteur peut désormais le
+  réparer lui-même** depuis l'écran de modification. Rien à écrire en base :
+  on ne devine pas à sa place qui il voulait inviter. Vérifier sur appareil que
+  le bandeau apparaît bien et que le sélecteur enregistre.
 - [ ] **Relancer le balayage après chaque lot** qui touche une écriture en
   deux temps, et y ajouter l'invariant correspondant.
 

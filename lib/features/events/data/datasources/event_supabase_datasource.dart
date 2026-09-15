@@ -8,6 +8,7 @@ import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../../../core/utils/date_parsing.dart';
+import '../../domain/entities/event_audience.dart';
 import '../models/event_model.dart';
 import 'event_remote_datasource.dart';
 
@@ -525,6 +526,78 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
       throw ServerException(e.message);
     }
   }
+
+  @override
+  Future<EventAudience> getEventAudience(String eventId) async {
+    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    try {
+      final ligne = await _supabase
+          .from('events')
+          .select('visibility')
+          .eq('id', eventId)
+          .maybeSingle();
+
+      final visibilite = _versVisibilite(ligne?['visibility'] as String?);
+
+      // `event_audience_select` laisse l'organisateur lire toutes les lignes de
+      // ses événements (migration 20260912233000) : pas besoin de RPC.
+      final lignes = await _supabase
+          .from('event_audience')
+          .select('group_id, user_id')
+          .eq('event_id', eventId);
+
+      final idsGroupes = <String>[
+        for (final l in lignes)
+          if (l['group_id'] != null) l['group_id'] as String,
+      ];
+      final idsPersonnes = <String>[
+        for (final l in lignes)
+          if (l['user_id'] != null) l['user_id'] as String,
+      ];
+
+      return EventAudience(
+        visibility: visibilite,
+        groups: await _noms('groups', 'name', idsGroupes),
+        people: await _noms('users', 'display_name', idsPersonnes),
+      );
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
+    }
+  }
+
+  /// `id -> nom` pour l'affichage des pastilles du sélecteur.
+  ///
+  /// Deux requêtes plates plutôt qu'une jointure imbriquée : `event_audience`
+  /// porte une clé étrangère vers `groups` ET vers `users`, et l'imbrication
+  /// PostgREST devient ambiguë dès qu'il y en a plusieurs. Un id dont le nom
+  /// manque garde une étiquette de repli — mieux vaut une pastille anonyme
+  /// qu'une audience qui paraît vide.
+  Future<Map<String, String>> _noms(
+    String table,
+    String colonne,
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return const {};
+    final lignes =
+        await _supabase.from(table).select('id, $colonne').inFilter('id', ids);
+    final trouves = <String, String>{
+      for (final l in lignes)
+        l['id'] as String:
+            ((l[colonne] as String?)?.trim().isNotEmpty ?? false)
+                ? (l[colonne] as String).trim()
+                : 'Sans nom',
+    };
+    return {for (final id in ids) id: trouves[id] ?? 'Sans nom'};
+  }
+
+  /// La colonne est `TEXT` et peut être nulle sur les événements d'avant la
+  /// migration : on retombe sur `public`, ce que la base dérive d'`is_public`.
+  EventVisibility _versVisibilite(String? valeur) => switch (valeur) {
+    'discussion' => EventVisibility.discussion,
+    'groups' => EventVisibility.groups,
+    'people' => EventVisibility.people,
+    _ => EventVisibility.public,
+  };
 
   @override
   Future<void> setEventAudience({

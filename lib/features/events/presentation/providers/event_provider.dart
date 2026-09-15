@@ -43,6 +43,29 @@ final recentPastEventProvider = FutureProvider<EventEntity?>((ref) async {
   );
 });
 
+/// L'audience enregistrée d'un événement — qui le voit, au-delà de sa
+/// discussion.
+///
+/// Personne ne la lisait : le sélecteur ne vivait que dans l'écran de création,
+/// et une audience se choisissait donc une fois pour toutes. Ce provider sert
+/// aux deux écrans qui en ont besoin — la modification, pour pré-remplir, et la
+/// fiche, pour avertir l'organisateur quand son événement n'est visible de
+/// personne.
+///
+/// Provider simple (sans codegen), comme `recentPastEventProvider` : le
+/// générateur n'apporte rien ici et `build_runner` réécrit ~120 fichiers.
+final eventAudienceProvider =
+    FutureProvider.family<EventAudience, String>((ref, eventId) async {
+  final repository = ref.read(eventRepositoryProvider);
+  final resultat = await repository.getEventAudience(eventId);
+  // Un échec de lecture ne doit pas faire clignoter un avertissement « visible
+  // de personne » qui serait faux : on retombe sur la valeur la plus neutre.
+  return resultat.fold(
+    (_) => const EventAudience(visibility: EventVisibility.public),
+    (audience) => audience,
+  );
+});
+
 @Riverpod(keepAlive: true)
 class EventsNotifier extends _$EventsNotifier {
   @override

@@ -373,6 +373,13 @@ class _ParticipantListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Vide quand le profil n'a pas pu être résolu : le repli est localisé ici,
+    // l'écran étant le seul à avoir la locale (cf.
+    // `EligibleParticipant.displayName`).
+    final nom = participant.displayName.isEmpty
+        ? AppLocalizations.of(context)!.userDefault
+        : participant.displayName;
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -413,7 +420,7 @@ class _ParticipantListItem extends StatelessWidget {
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Center(
                           child: Text(
-                            _getInitials(participant.displayName),
+                            _getInitials(nom),
                             style: const TextStyle(
                               color: AppColors.white,
                               fontSize: 16,
@@ -425,7 +432,7 @@ class _ParticipantListItem extends StatelessWidget {
                     )
                   : Center(
                       child: Text(
-                        _getInitials(participant.displayName),
+                        _getInitials(nom),
                         style: const TextStyle(
                           color: AppColors.white,
                           fontSize: 16,
@@ -442,7 +449,7 @@ class _ParticipantListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    participant.displayName,
+                    nom,
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
