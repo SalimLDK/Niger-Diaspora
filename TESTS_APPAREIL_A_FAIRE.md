@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1139 cases à cocher, 581 cochées** — 228 entrées sur 274 ont encore des cases ouvertes.
+**1138 cases à cocher, 582 cochées** — 228 entrées sur 274 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -77,7 +77,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
-- 4 · [⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)](#-létat-mls-ne-quitte-plus-lappareil-sauvegardes-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)](#-létat-mls-ne-quitte-plus-lappareil-sauvegardes-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)](#-banc-mls-bout-en-bout-contre-la-vraie-base-phase-3-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
@@ -288,7 +288,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 220 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 87 à faire, 31 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 86 à faire, 32 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5776,9 +5776,14 @@ Verrouillé par
       comportement d'Android.
 - [ ] **Le reste de l'app est toujours sauvegardé** : l'exclusion ne doit
       porter que sur `mls/`, pas avoir désactivé la sauvegarde en entier.
-- [ ] **Rien ne casse au démarrage** : un attribut de manifeste mal résolu
-      fait échouer l'installation, pas le build. Installer l'APK et ouvrir
-      l'app suffit à le dire.
+- [x] **Rien ne casse au démarrage** : vérifié le 2026-09-15 sur SM A515F.
+      APK debug arm64 installé par-dessus l'existant (`install -r`, Success),
+      app lancée, aucune `E/flutter` ni `FATAL` dans logcat. Les deux règles
+      sont bien compilées dans l'APK et référencées par le manifeste fusionné
+      (`aapt2 dump xmltree`), ce qu'aucun test de structure ne peut dire.
+      Au passage, le moteur Rust charge en debug comme en release et
+      l'appareil se réinscrit avec la **même** identité — la base SQLite a
+      survécu à la réinstallation, et l'idempotence tient.
 - [ ] **iOS** : rien de fait. `Library/Application Support` part dans iCloud,
       et l'exclusion demande `NSURLIsExcludedFromBackupKey`, sans API Dart.
       À traiter avec le reste du chantier iOS.
