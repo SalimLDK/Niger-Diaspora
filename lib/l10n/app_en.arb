@@ -5055,6 +5055,8 @@
   "mlsDevicesTitle": "New registry (MLS)",
   "mlsDevicesExplain": "Every device signed in to this account is listed here with its own key. The upcoming encrypted messaging will rely on this registry.",
   "mlsSecurityCodeLabel": "Security code",
+  "mlsSecurityCodeShowQr": "Show as QR",
+  "mlsSecurityCodeQrHint": "Have the other person scan this from their QR scanner. It contains no secret.",
   "mlsVerifyTitle": "Device verification",
   "mlsVerifyMatch": "Code verified: you both see the same key.",
   "mlsVerifyMismatch": "The scanned code does not match the key you were served. Do not discuss anything sensitive until you understand why.",

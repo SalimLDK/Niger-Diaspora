@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1153 cases à cocher, 587 cochées** — 229 entrées sur 275 ont encore des cases ouvertes.
+**1153 cases à cocher, 588 cochées** — 229 entrées sur 275 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -289,7 +289,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 234 à faire, 80 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 87 à faire, 34 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 87 à faire, 35 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5770,9 +5770,10 @@ registre MLS (écran Appareils) : 60 chiffres en 12 groupes, comparables de
 vive voix.
 
 *Bloqué : demande deux téléphones sur deux comptes. Le scan **est** branché
-depuis le 2026-09-15 — `QrCodeParser` reconnaît `dn-mls-verif:`, et le
-scanner compare sur place au lieu de naviguer. Il manque encore l'affichage
-du QR de son propre appareil : sans lui, il n'y a rien à scanner.*
+(`QrCodeParser` reconnaît `dn-mls-verif:`, le scanner compare sur place au
+lieu de naviguer) et le QR **s'affiche** — les deux vérifiés le 2026-09-15.
+Ce qui manque est le geste complet : montrer sur un écran, scanner avec
+l'autre.*
 
 Fichiers : [mls_code_securite.dart](lib/core/crypto/mls/mls_code_securite.dart),
 [devices_screen.dart](lib/features/settings/presentation/screens/devices_screen.dart)
@@ -5798,6 +5799,13 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 - [ ] **Sélection et copie** du code fonctionnent (comparer par message écrit
   est le second canal le plus courant).
 - [ ] **Thème sombre** : le code et l'avertissement restent lisibles.
+- [x] **Le QR s'affiche** et se met en page. ✅ SM A515F, 2026-09-15 — après
+  correction : il s'ouvrait **entièrement vide**, sans titre ni bouton.
+  `AlertDialog` mesure son contenu par dimensions intrinsèques et
+  `QrImageView` contient un `LayoutBuilder`, qui ne sait pas y répondre. Rien
+  dans `logcat` et pas d'écran rouge — `FlutterError.onError` part chez
+  Crashlytics ; il a fallu `flutter attach` pour lire la cause. Tenu par
+  `test/core/crypto/mls_code_qr_test.dart`, qui rejoue le dialogue entier.
 - [ ] **Scan d'un code** depuis le scanner QR du profil : le résultat
   s'affiche **sur place**, sans quitter l'écran.
 - [ ] **Scan d'un QR étranger** (profil, lien) : le message dit que ce n'est
