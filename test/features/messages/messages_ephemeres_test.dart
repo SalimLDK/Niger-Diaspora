@@ -508,6 +508,47 @@ void main() {
       );
     });
 
+    test('modifier un message absent de `messages` ne reussit pas a vide', () {
+      // Un message MLS n'a AUCUNE ligne dans `messages` : sa ligne vit dans
+      // `mls_messages`. Quand l'aiguillage manque sa cible, l'ancien
+      // `if (rows.isEmpty) return;` faisait croire au succès — l'écran
+      // affichait « Message modifié », le nouveau texte restait en optimiste,
+      // et le texte d'avant revenait à la relecture. Mesuré sur SM A515F le
+      // 2026-09-15 : deux modifications annoncées réussies, zéro message de
+      // contrôle émis côté MLS.
+      final src = _source(
+        'lib/features/messages/data/datasources/'
+        'message_supabase_datasource.dart',
+      );
+      final bloc = src.substring(src.indexOf('Future<void> editMessage('));
+      final rows = bloc.indexOf('if (rows.isEmpty)');
+      expect(rows, isNot(-1), reason: 'le garde doit exister');
+      expect(
+        bloc.substring(rows, rows + 120).contains('throw'),
+        isTrue,
+        reason: 'une modification sans cible doit LEVER, pas rendre la main',
+      );
+    });
+
+    test('« Modifier » n’est plus derrière « Autres actions »', () {
+      // Elle y était en DERNIERE position : il fallait déployer le révélateur
+      // puis faire défiler. C'est une action courante, sur son propre message
+      // et dans une fenêtre de 25 min.
+      final src = _source(
+        'lib/features/messages/presentation/widgets/message_bubble.dart',
+      );
+      final principales = src.indexOf('List<Widget> _primaryOptionRows(');
+      final secondaires = src.indexOf('List<Widget> _secondaryOptionRows(');
+      final edition = src.indexOf('_showEditDialog(context);');
+      expect(principales, isNot(-1));
+      expect(secondaires, isNot(-1));
+      expect(
+        edition > principales && edition < secondaires,
+        isTrue,
+        reason: '« Modifier » doit vivre dans les actions PRINCIPALES',
+      );
+    });
+
     test('le helper lit le minuteur et pose expiresAt', () {
       final src = _source(chemin);
       expect(src.contains("data['expiresAt'] ="), isTrue);

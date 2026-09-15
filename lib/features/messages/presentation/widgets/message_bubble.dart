@@ -1214,6 +1214,29 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           },
         ),
 
+      // « Modifier » vivait derrière « Autres actions », en DERNIERE position
+      // de la section repliee : il fallait deployer le revelateur puis faire
+      // defiler pour l'atteindre. C'est une action courante, sur son propre
+      // message et dans une fenetre de 25 minutes — elle se place avec les
+      // autres, avant le filet qui isole le destructif.
+      if (widget.isMe &&
+          widget.message.type == MessageType.text &&
+          !widget.message.deletedForEveryone &&
+          widget.onEdit != null &&
+          widget.currentUserId != null &&
+          widget.message.canEdit(widget.currentUserId!))
+        ListTile(
+          leading: Icon(Icons.edit_outlined, color: context.textPrimaryColor),
+          title: Text(
+            l10n.edit,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            _showEditDialog(context);
+          },
+        ),
+
       // Action destructive isolée par un filet.
       if (_canShowDeleteOption()) ...[
         Divider(
@@ -1345,24 +1368,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onTap: () {
             Navigator.pop(ctx);
             _showSelectTextSheet(texte);
-          },
-        ),
-
-      if (widget.isMe &&
-          widget.message.type == MessageType.text &&
-          !widget.message.deletedForEveryone &&
-          widget.onEdit != null &&
-          widget.currentUserId != null &&
-          widget.message.canEdit(widget.currentUserId!))
-        ListTile(
-          leading: Icon(Icons.edit_outlined, color: context.textPrimaryColor),
-          title: Text(
-            l10n.edit,
-            style: TextStyle(color: context.textPrimaryColor),
-          ),
-          onTap: () {
-            Navigator.pop(ctx);
-            _showEditDialog(context);
           },
         ),
 
