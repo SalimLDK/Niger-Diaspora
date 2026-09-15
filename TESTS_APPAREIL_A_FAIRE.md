@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1182 cases à cocher, 597 cochées** — 236 entrées sur 282 ont encore des cases ouvertes.
+**1181 cases à cocher, 598 cochées** — 236 entrées sur 282 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -87,7 +87,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
-- 13 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
+- 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 19 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
@@ -294,7 +294,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 243 à faire, 86 faites
+- [2. Messagerie](#2-messagerie) — 242 à faire, 87 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 99 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -785,11 +785,33 @@ SELECT public.purger_messages_expires();
   après purge. Vérifié sur SM A515F le 2026-09-15 (la conversation bascule à
   MLS dès son ouverture quand le compte est dans `mlsMessagesComptes`, si bien
   que c'est le chemin MLS et non le legacy qui a été exercé).
-- [ ] **Reste du point MLS** : que le DESTINATAIRE affiche l'échéance calculée
-  depuis le `ttl` du payload et non depuis la colonne, et qu'aucun
-  `decrypt_failed` n'apparaisse dans `mls_diagnostics`. Non vérifié : le
-  second téléphone (Pixel 10 Pro XL) porte la version du Play Store, signée
-  par Google, qu'un build local ne peut pas remplacer sans désinstaller.
+- [x] **Reste du point MLS — VÉRIFIÉ À DEUX TÉLÉPHONES le 2026-09-15.**
+  Le Pixel 10 Pro XL ne porte PLUS la version du Play Store : il a un build
+  **debug**, signé du même keystore que le SM A515F (`8732adee…c5`,
+  `installerPackageName=null`). `install -r` y passe donc, données conservées.
+  La note « irremplaçable sans désinstaller » était périmée.
+
+  Message éphémère envoyé du A515F (Sim) → reçu **déchiffré** sur le Pixel
+  (Salim) avec le **signe minuteur** : l'échéance est bien recalculée chez le
+  destinataire depuis le `ttl` du payload. Et les pierres tombales s'y
+  affichent « **Message expiré** » (icône minuteur barré), pas « Message
+  supprimé ».
+
+  ⚠️ **Écart de libellé entre les deux appareils, expliqué** : l'expéditeur
+  affichait « Message supprimé » pour les mêmes messages. C'est un artefact de
+  recette, pas un défaut — l'échéance avait été antidatée en SQL côté serveur
+  seulement. L'expéditeur garde SA date (venue du `ttl`, donc future →
+  `isExpired` faux → « supprimé »), tandis que le destinataire reconstruit
+  l'entité depuis la ligne tombale et utilise donc la COLONNE, antidatée →
+  « expiré ». En usage réel les deux dates coïncident et les deux écrans
+  diraient « expiré ».
+
+  ⚠️ **Aucun `decrypt_failed` lié aux tombes** (le garde tient) — mais
+  **observation à part** : 11 `decrypt_failed` en rafale de 1,6 s sur le
+  Pixel, `{"code":"openmls","epoch":0}`, sans `message_id`, juste après la
+  réinstallation de l'app. Transitoires : le message suivant s'est déchiffré
+  normalement et le fil s'affiche correctement. Piste possible d'une course au
+  démarrage du moteur MLS — hors de cette fiche, à confirmer.
 - [ ] **Avant le passage du balayage, le contenu ne repart par aucun chemin.**
   Laisser un message expirer, puis, dans le quart d'heure qui précède le
   `pg_cron` : l'appui long ne propose plus ni réaction, ni « répondre », ni
