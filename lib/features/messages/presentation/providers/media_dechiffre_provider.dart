@@ -20,6 +20,16 @@ final mediasChiffresActifsProvider = Provider<bool>((ref) {
   return ref.watch(featureFlagsProvider).mediasChiffres;
 });
 
+/// Interrupteur serveur de la messagerie MLS (plan MLS, phase 5).
+///
+/// Fermé par défaut, et pour longtemps : l'ouvrir fait **basculer** une
+/// conversation sans retour — `conversations.mls_since` ne se remet jamais à
+/// NULL, et le legacy refuse ensuite d'y écrire. Les phases 1 à 4 doivent
+/// être vérifiées sur appareil avant.
+final mlsMessagesActifsProvider = Provider<bool>((ref) {
+  return ref.watch(featureFlagsProvider).mlsMessages;
+});
+
 /// Clé d'une demande de déchiffrement : l'id du message suffit à identifier
 /// le fichier, les métadonnées servent à le produire la première fois.
 class DemandeMediaDechiffre extends Equatable {
