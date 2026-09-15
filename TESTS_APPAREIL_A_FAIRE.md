@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1122 cases à cocher, 581 cochées** — 225 entrées sur 271 ont encore des cases ouvertes.
+**1131 cases à cocher, 581 cochées** — 227 entrées sur 273 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -71,11 +71,12 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (72)
+**P1 — fonction importante, jamais vérifiée** (74)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
+- 4 · [⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)](#-létat-mls-ne-quitte-plus-lappareil-sauvegardes-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)](#-banc-mls-bout-en-bout-contre-la-vraie-base-phase-3-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
@@ -92,6 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 6 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 5 · [⬜ Rechercher dans une conversation chiffrée (2026-09-15)](#-rechercher-dans-une-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -285,7 +287,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 220 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 70 à faire, 31 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 79 à faire, 31 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5693,6 +5695,90 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 
 ---
 
+## ⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)
+
+**Priorité P1** · importance 5/5 — La base SQLite du moteur
+(`<support>/mls/<uid>.sqlite`) porte la clé privée de signature de l'appareil,
+les secrets d'epoch et les arbres de groupe. Le manifeste ne portait **aucun**
+attribut de sauvegarde, donc `android:allowBackup` valait `true` : le fichier
+partait dans la sauvegarde Google et dans le transfert vers un téléphone neuf.
+Une exfiltration sans root, sans accès physique, et que rien ne signale.
+
+Il est désormais exclu des deux, par deux fichiers distincts — Android 12 a
+séparé la sauvegarde cloud du transfert d'appareil et **ignore**
+`fullBackupContent` dès l'API 31, donc n'en corriger qu'un laisserait la
+moitié du chemin ouverte.
+
+Exclure ne dégrade rien : l'état MLS n'est pas restaurable de toute façon. Une
+restauration ailleurs produirait une identité en double siégeant dans les
+mêmes groupes, avec un cliquet déjà avancé — des messages illisibles des deux
+côtés. Le registre traite déjà l'identité neuve (`identite_mls_changee`).
+
+**Ce que ça ne remplace pas** : le fichier reste en clair sur l'appareil. Le
+plan (§ 7.4) veut une clé maître dans le Keystore, et les deux voies ont été
+mesurées sans qu'aucune soit ouverte : SQLCipher ne se compile pas sur le
+poste (OpenSSL vendu refuse le `perl` de Git Bash), et chiffrer les valeurs
+par le `Codec` casserait les lectures (les clés de recherche passent par le
+même codec et servent de critère d'égalité). Une troisième contrainte pèse sur
+les deux : l'isolate de notification n'a pas de `MethodChannel`, donc pas
+d'accès au Keystore.
+
+Fichiers : [AndroidManifest.xml](android/app/src/main/AndroidManifest.xml),
+[regles_sauvegarde.xml](android/app/src/main/res/xml/regles_sauvegarde.xml),
+[regles_extraction_donnees.xml](android/app/src/main/res/xml/regles_extraction_donnees.xml),
+[mls_engine_provider.dart](lib/core/crypto/mls/mls_engine_provider.dart).
+Verrouillé par
+[etat_mls_hors_sauvegarde_test.dart](test/core/crypto/etat_mls_hors_sauvegarde_test.dart).
+
+- [ ] **La sauvegarde exclut bien le dossier** : `adb shell bmgr backupnow
+      com.diasponiger.diasponiger`, puis vérifier que `files/mls` n'est pas
+      dans le jeu sauvegardé. Le test de structure lit le manifeste, pas le
+      comportement d'Android.
+- [ ] **Le reste de l'app est toujours sauvegardé** : l'exclusion ne doit
+      porter que sur `mls/`, pas avoir désactivé la sauvegarde en entier.
+- [ ] **Rien ne casse au démarrage** : un attribut de manifeste mal résolu
+      fait échouer l'installation, pas le build. Installer l'APK et ouvrir
+      l'app suffit à le dire.
+- [ ] **iOS** : rien de fait. `Library/Application Support` part dans iCloud,
+      et l'exclusion demande `NSURLIsExcludedFromBackupKey`, sans API Dart.
+      À traiter avec le reste du chantier iOS.
+
+---
+
+## ⬜ Rechercher dans une conversation chiffrée (2026-09-15)
+
+**Priorité P1** · importance 4/5 — Le serveur ne détient qu'un ciphertext :
+son `ilike` sur le contenu d'une conversation basculée ne trouvait **rien**,
+et ne levait pas. La recherche rendait une liste vide en annonçant un succès.
+
+Elle interroge désormais aussi le cache Hive, seul endroit où le clair
+existe, et garde le résultat serveur pour l'historique d'avant le séparateur
+de bascule, que le cache peut ne pas couvrir en entier. Les deux sources se
+dédoublonnent par identifiant, le cache gagne.
+
+**La limite est inhérente, pas un défaut** : on ne trouve que ce que
+l'appareil a déjà déchiffré. Une conversation ouverte pour la première fois
+sur un téléphone neuf n'a rien à fouiller tant qu'on n'a pas remonté le fil.
+
+Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`searchMessagesInConversation`). Couvert hors appareil par
+[recherche_conversation_chiffree_test.dart](test/features/messages/recherche_conversation_chiffree_test.dart)
+(6 cas).
+
+- [ ] **Chercher un mot d'un message chiffré** : il ressort, avec sa bulle et
+      son horodatage justes.
+- [ ] **Chercher un mot d'avant la bascule** : il ressort aussi, sous le
+      séparateur.
+- [ ] **Un mot présent des deux côtés** : une seule occurrence par message,
+      pas de doublon.
+- [ ] **Fil jamais ouvert sur cet appareil** : la recherche ne trouve rien
+      dans la partie chiffrée. Juger si l'écran le dit de façon acceptable, ou
+      s'il faut un mot d'explication.
+- [ ] **Fil très long** : mesurer le temps de la recherche locale, le cache
+      étant parcouru en entier à chaque frappe.
+
+---
+
 ## ⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)
 
 **Priorité P2** · importance 3/5 — Jusqu'ici la réconciliation d'appartenance
@@ -5872,7 +5958,10 @@ Preuve de vie de la phase (en base, pas à l'écran) :
 - [ ] **Dette consignée, à ne pas oublier** : la base SQLite du moteur
   (`<support>/mls/<uid>.sqlite`, clé privée de signature comprise) est en
   clair dans le répertoire privé de l'app. La clé maître Keystore/Keychain
-  (plan § 7.4) vient avec la phase 3.
+  (plan § 7.4) n'est toujours pas posée — les trois obstacles mesurés le
+  2026-09-15 sont détaillés dans l'entrée « L'état MLS ne quitte plus
+  l'appareil ». Depuis cette date le fichier est au moins exclu des
+  sauvegardes.
 
 ---
 

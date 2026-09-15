@@ -1967,7 +1967,39 @@ class MessageRepositoryImpl implements MessageRepository {
         conversationId: conversationId,
         query: query,
       );
-      return Right(models.map((m) => m.toEntity()).toList());
+      final trouves = <String, MessageEntity>{
+        for (final m in models) m.id: m.toEntity(),
+      };
+
+      // Dans une conversation basculée, le serveur n'a que du ciphertext : son
+      // `ilike` sur le contenu ne trouve RIEN, et la recherche renvoyait une
+      // liste vide sans le dire — l'échec muet que ce chantier traque. Le
+      // clair n'existe que sur l'appareil, donc la recherche aussi.
+      //
+      // On garde quand même le résultat serveur : au-dessus du séparateur de
+      // bascule, l'historique est resté en clair et lui seul le couvre en
+      // entier. Les deux sources se recouvrent, la clé de la table les
+      // dédoublonne, et le cache gagne — c'est lui qui porte le texte déchiffré.
+      if (await _passerellePour(conversationId) != null) {
+        final aiguille = query.trim().toLowerCase();
+        if (aiguille.isNotEmpty) {
+          for (final brut in cacheService.getCachedMessages(conversationId)) {
+            try {
+              final modele = MessageModel.fromJson(brut);
+              if (modele.content.toLowerCase().contains(aiguille)) {
+                trouves[modele.id] = modele.toEntity();
+              }
+            } catch (_) {
+              // Une entrée de cache illisible ne doit pas emporter la
+              // recherche entière.
+            }
+          }
+        }
+      }
+
+      final resultats = trouves.values.toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return Right(resultats);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {

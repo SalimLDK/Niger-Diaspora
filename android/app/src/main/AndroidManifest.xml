@@ -120,7 +120,9 @@
         android:label="Diaspo Niger"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
+        android:fullBackupContent="@xml/regles_sauvegarde"
+        android:dataExtractionRules="@xml/regles_extraction_donnees">
         
         <!-- Service for background location -->
         <service

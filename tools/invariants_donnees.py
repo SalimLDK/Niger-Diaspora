@@ -254,14 +254,32 @@ INVARIANTS: tuple[Invariant, ...] = (
         "comptes_sans_pont",
         "Identite",
         MESURE,
-        ("users.id", "auth_mappings.firebase_uid"),
+        ("users.id", "users.email", "auth_mappings.firebase_uid"),
         """SELECT count(*) FROM users u
            WHERE NOT EXISTS (SELECT 1 FROM auth_mappings m
-                             WHERE m.firebase_uid = u.id)""",
-        "comptes sans correspondance dans `auth_mappings`",
+                             WHERE m.firebase_uid = u.id)
+             AND COALESCE(u.email, '') NOT LIKE '%@example.com'""",
+        "VRAIS comptes sans correspondance dans `auth_mappings`",
         "ces comptes n'ont jamais abouti l'echange Firebase -> Supabase. "
         "Toute ecriture faite pour eux part en `anon`, et toute lecture "
-        "reussit a vide au lieu d'echouer.",
+        "reussit a vide au lieu d'echouer. Comparer la date de creation au "
+        "2026-09-09, jour du correctif du pont : au-dela, c'est une "
+        "regression ; en deca, c'est de l'heritage.",
+    ),
+    Invariant(
+        "comptes_sonde_residuels",
+        "Identite",
+        MESURE,
+        ("users.id", "users.email"),
+        """SELECT count(*) FROM users u
+           WHERE COALESCE(u.email, '') LIKE '%@example.com'""",
+        "comptes de sonde restes dans `public.users`",
+        "residus des bancs (`sonde_echange_auth.mjs` et la verification du "
+        "pont) : ils ne sont PAS une panne. `purge_comptes_sonde.mjs` efface "
+        "l'utilisateur gotrue et Firebase, ce qui fait tomber `auth_mappings` "
+        "par cascade, mais laisse la ligne `public.users` — d'ou des comptes "
+        "« sans pont » qui apparaissent SANS qu'aucun vrai compte n'ait "
+        "echoue. C'est ce qui a produit une fausse alerte le 2026-09-15.",
     ),
 )
 
