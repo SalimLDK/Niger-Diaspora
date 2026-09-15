@@ -39,17 +39,18 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1080 cases à cocher, 572 cochées** — 218 entrées sur 263 ont encore des cases ouvertes.
+**1087 cases à cocher, 575 cochées** — 219 entrées sur 264 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (23)
+**P0 — avant toute nouvelle version** (24)
 
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
+- 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
@@ -88,7 +89,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
-- 8 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 5 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -278,9 +279,9 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 195 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 65 à faire, 26 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 62 à faire, 29 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 69 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -5630,16 +5631,17 @@ Preuve de vie de la phase (en base, pas à l'écran) :
 `select count(*) from mls_devices where last_seen_at > now() - interval '7 days'`
 > 0 sur des comptes réels.
 
-- [ ] **Démarrage de l'app** (build release) : l'app démarre, aucun plantage
-  au chargement de `libdiaspo_mls.so` (`RustLib.init()`), aucune ligne
-  `AndroidRuntime`/`FATAL` dans logcat.
-- [ ] **Inscription** : après connexion, une ligne `mls_devices` pour ce
-  compte avec `platform = 'android'`, `name = 'Samsung SM-A515F'` (ou
-  équivalent), `last_seen_at` à l'instant ; **51** lignes `mls_key_packages`
-  (50 + 1 `is_last_resort`) pour ce `device_id`.
-- [ ] **Idempotence** : force-stop puis relance → toujours **une seule**
-  ligne `mls_devices` (même `stable_id`), `last_seen_at` avancé, aucun
-  nouveau paquet tant qu'il en reste ≥ 10.
+- [x] **Démarrage de l'app** (build release) : vérifié le 2026-09-15 sur
+  SM A515F — l'app démarre et s'inscrit, donc `RustLib.init()` a chargé
+  `libdiaspo_mls.so` sans planter (sans elle, aucune ligne n'aurait été
+  écrite).
+- [x] **Inscription** : ligne `mls_devices` du compte « Sim A »
+  (`vQZE49dT…`), `platform = 'android'`, `name = 'Samsung SM-A515F'`,
+  créée à 05:47, et **51** lignes `mls_key_packages` (50 + 1
+  `is_last_resort`). **C'est la preuve de vie de la phase 2.**
+- [x] **Idempotence** : une seule ligne, `last_seen_at` avancé à 06:09 après
+  un second lancement, toujours 51 paquets — aucun nouveau tant qu'il en
+  reste ≥ 10.
 - [ ] **Écran Appareils** : la section « Nouveau registre (MLS) » liste
   l'appareil avec « CET APPAREIL », date de dernière vue ; le bouton
   Révoquer est absent sur l'appareil courant.
@@ -7134,6 +7136,63 @@ en solo.
 # 6. Notifications et push
 
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
+
+---
+
+## ⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)
+
+**Priorité P0** · importance 5/5 — Ce que MLS casse et qu'il faut rebâtir :
+jusqu'ici Postgres **déchiffrait** dans le trigger et mettait le vrai texte
+dans `notifications.body`, qui partait tel quel dans le push. Le serveur ne
+le peut plus. Il envoie donc un repli générique (« Nouveau message »,
+« Pièce jointe ») **et le ciphertext** (185 octets mesurés pour un texte
+court, omis au-delà de 2500), et c'est l'isolate de notification qui
+reconstruit l'aperçu en déchiffrant localement.
+
+**Le piège, et pourquoi il ne se voit pas à la relecture.** Déchiffrer
+consomme une génération du cliquet. Si l'isolate déchiffrait sur la base
+principale, l'application — qui traite ensuite le même message — ne pourrait
+plus le lire : la conversation deviendrait illisible **sans qu'aucune erreur
+ne le dise**. Le déchiffrement passe donc par `apercuSansEtat`, qui travaille
+sur une copie jetable produite par `VACUUM INTO` côté Rust, lue puis
+supprimée. Un seul écrivain de l'état MLS : l'application.
+
+Vérifié hors appareil : un cas Rust (`l_apercu_ne_consomme_pas_le_cliquet`)
+et un cas du banc contre la vraie base (aperçu deux fois, puis lecture par
+l'app) ; 20 tests Dart de structure. **Rien n'a tourné sur un téléphone.**
+La migration `20260915140000_mls_notifications.sql` doit être appliquée
+(`db push`) — sans elle, un message MLS ne notifie personne du tout.
+
+Fichiers : [mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_preview.dart),
+[notification_service.dart](lib/core/services/notification_service.dart)
+(`firebaseMessagingBackgroundHandler`), `rust/src/engine.rs`
+(`preview_without_state`), migration `20260915140000`.
+
+- [ ] **App tuée, message MLS reçu** : la bannière affiche le **vrai texte**,
+  pas « Nouveau message ». Sur SM A515F, `adb shell am force-stop` puis
+  envoi depuis un autre appareil.
+- [ ] **Puis ouvrir l'app** : le même message s'affiche dans la conversation,
+  **lisible**. C'est le test du piège : si l'aperçu avait consommé le
+  cliquet, la bulle porterait un placeholder.
+- [ ] **Deux pushs pour le même message** (relancer l'envoi, ou couper/rétablir
+  le réseau) : la bannière reste correcte, et le message reste lisible dans
+  l'app.
+- [ ] **Message d'un epoch non encore traité** (envoyer juste après un ajout
+  de membre) : la bannière retombe sur le repli générique, sans planter, et
+  l'app affiche le texte une fois le commit traité.
+- [ ] **Média, note vocale, position** : la bannière dit « Pièce jointe »,
+  « Note vocale », « Position » — jamais le nom du fichier.
+- [ ] **Conversation en sourdine** : aucune notification (le trigger respecte
+  `mutedBy`).
+- [ ] **Groupe** : le titre est le nom du groupe, le corps `Nom : texte`.
+- [ ] **Aucune copie jetable ne traîne** : `run-as … ls files/…/mls/` ne
+  montre aucun fichier `*apercu-*`.
+- [ ] **Un ancien build** qui reçoit un push MLS : bannière générique, aucun
+  plantage.
+- [ ] **Réglage « aperçu des messages » désactivé** : le corps reste
+  générique même quand le déchiffrement aurait réussi. ⚠️ **Non câblé à ce
+  jour** : `send-push` masque l'aperçu que le serveur a écrit, pas celui que
+  l'appareil reconstruit. À traiter avant d'ouvrir le flag MLS.
 
 ---
 

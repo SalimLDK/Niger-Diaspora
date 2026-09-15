@@ -26,6 +26,7 @@ import 'package:diaspo_niger/core/crypto/mls/mls_delivery.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_device_registry.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_payload_codec.dart';
 import 'package:diaspo_niger/src/rust/api/mls.dart';
+import 'package:diaspo_niger/src/rust/api/mls.dart' as rust;
 import 'package:diaspo_niger/src/rust/frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -295,6 +296,48 @@ void main() {
       final restes = await b.service.catchUp(conv);
       expect(restes.every((x) => !x.lisible), isTrue,
           reason: 'déjà consommés au moteur, le service ne peut que les rendre illisibles');
+    });
+
+    test('aperçu de notification : déchiffre sans consommer le cliquet', () async {
+      // Le chemin réel d'une notification : le serveur envoie le ciphertext
+      // (il ne peut plus lire le texte), l'isolate le déchiffre sur une copie
+      // jetable, puis l'application traite le MÊME message. Si l'aperçu
+      // faisait avancer le cliquet, cette seconde lecture échouerait — et la
+      // conversation deviendrait illisible sans qu'aucune erreur ne le dise.
+      final m = await a.service.send(conv, MlsPayload.texte(uuid.v4(), 'aperçu puis lecture'));
+      final aad = MlsAad.message(
+        conversationId: conv,
+        messageId: m.id,
+        senderDeviceId: m.senderDeviceId,
+        kind: m.kind,
+      );
+
+      // Bob « dort » : aucun moteur ouvert, comme au réveil par un push.
+      b.detruireLeMoteur();
+      final clair = await rust.apercuSansEtat(
+        dbPath: b.chemin,
+        userId: b.uid,
+        deviceId: b.stableId,
+        conversationId: conv,
+        message: m.ciphertext,
+        aad: aad,
+      );
+      expect(MlsPayload.decode(Uint8List.fromList(clair)).texte, 'aperçu puis lecture');
+
+      // Un même push peut être livré deux fois.
+      final encore = await rust.apercuSansEtat(
+        dbPath: b.chemin,
+        userId: b.uid,
+        deviceId: b.stableId,
+        conversationId: conv,
+        message: m.ciphertext,
+        aad: aad,
+      );
+      expect(MlsPayload.decode(Uint8List.fromList(encore)).texte, 'aperçu puis lecture');
+
+      // L'application se réveille et traite le message : il doit être lisible.
+      final recus = await b.service.catchUp(conv);
+      expect(recus.map((x) => x.payload?.texte), ['aperçu puis lecture']);
     });
 
     test('moteur détruit et recréé entre deux envois : le second part en MLS', () async {
