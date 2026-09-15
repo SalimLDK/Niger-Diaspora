@@ -15,6 +15,8 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/services/blurhash_service.dart';
 import '../../../../core/services/cache_service.dart';
+import '../../../../core/crypto/mls/mls_gateway.dart';
+import '../../../../core/crypto/mls/mls_source_merger.dart';
 import '../../../../core/services/e2ee/media_encryption_service.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
@@ -39,6 +41,12 @@ class MessageRepositoryImpl implements MessageRepository {
   /// drapeau prend effet sans relancer l'app.
   final bool Function() mediasChiffresActifs;
 
+  /// Messagerie MLS (plan MLS, phase 5). Nulle tant que rien ne l'injecte :
+  /// le comportement est alors **exactement** celui d'avant, sans un appel
+  /// réseau de plus. C'est ce qui rend ce branchement sûr à livrer avant
+  /// d'avoir pu le vérifier sur deux téléphones.
+  final MlsGateway? mlsGateway;
+
   /// Placeholders posés par la couche crypto quand un déchiffrement échoue.
   /// Signal (1:1) et Sender Key (groupes) consomment la clé de message au
   /// premier déchiffrement réussi — aucun cache de clés sautées côté client —
@@ -61,6 +69,7 @@ class MessageRepositoryImpl implements MessageRepository {
     BlurhashService? blurhashService,
     this.mediaEncryptionService,
     bool Function()? mediasChiffresActifs,
+    this.mlsGateway,
   }) : cacheService = cacheService ?? CacheService.instance,
        blurhashService = blurhashService ?? BlurhashService(),
        mediasChiffresActifs = mediasChiffresActifs ?? (() => false);
@@ -251,6 +260,30 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
+      // Envoi chiffré de bout en bout, quand cette conversation est passée à
+      // MLS (ou que le drapeau vient de l'y faire passer). Une conversation
+      // DÉJÀ basculée n'a pas de chemin de retour : si MLS échoue, l'envoi
+      // échoue — c'est le repli muet qui a laissé Signal envoyer en clair
+      // pendant des semaines. Avant la bascule, rien n'est engagé : on peut
+      // encore emprunter le chemin d'aujourd'hui, et ça se lit en base.
+      final passerelle = mlsGateway;
+      if (passerelle != null && await passerelle.enMls(conversationId)) {
+        try {
+          return Right(await passerelle.envoyerTexte(
+            conversationId: conversationId,
+            texte: content,
+            senderName: senderName,
+            senderPhotoUrl: senderPhotoUrl,
+            replyToId: replyToId,
+            replyToMessageData: replyToMessageData,
+          ));
+        } catch (e) {
+          if (!await passerelle.repliLegacyPossible(conversationId)) rethrow;
+          dev.log('MLS indisponible, envoi en clair (conversation non basculée)',
+              name: 'message_repository_impl', error: e);
+        }
+      }
+
       final message = await remoteDataSource.sendTextMessage(
         conversationId: conversationId,
         senderId: senderId,
@@ -540,6 +573,40 @@ class MessageRepositoryImpl implements MessageRepository {
       mediaChiffre: media.toJson(),
     );
     return Right(message.toEntity());
+  }
+
+  /// Fusionne l'historique legacy déjà chargé avec le fil MLS.
+  ///
+  /// Rend la liste inchangée dès que MLS n'est pas concerné : pas de
+  /// passerelle injectée, ou conversation jamais basculée et drapeau fermé.
+  /// Un échec de lecture MLS ne coûte pas l'historique — il coûte les
+  /// messages chiffrés, et se voit dans `mls_diagnostics`.
+  Future<List<MessageEntity>> _fusionnerAvecMls(
+    String conversationId,
+    List<MessageEntity> legacy,
+  ) async {
+    final passerelle = mlsGateway;
+    if (passerelle == null) return legacy;
+    try {
+      if (!await passerelle.enMls(conversationId)) return legacy;
+      final mls = await passerelle.messages(conversationId);
+      if (mls.isEmpty) return legacy;
+      // Sans ce cache, rouvrir la discussion hors ligne ferait disparaître
+      // les messages chiffrés : le serveur ne saura jamais les rendre en
+      // clair, et le cliquet ne se rejoue pas.
+      unawaited(cacheService.cacheMessages(
+        conversationId,
+        [for (final m in mls) MessageModel.fromEntity(m).toJson()],
+      ));
+      return MlsSourceMerger.fusionner(
+        legacy: legacy,
+        mls: mls,
+        mlsSince: await passerelle.mlsSince(conversationId),
+      );
+    } catch (e) {
+      dev.log('Fusion MLS impossible', name: 'message_repository_impl', error: e);
+      return legacy;
+    }
   }
 
   /// Lit la durée d'une vidéo locale sans la compresser (juste ses métadonnées),
@@ -868,9 +935,14 @@ class MessageRepositoryImpl implements MessageRepository {
 
         // debugPrint('💾 Repository: Cached ${messageMaps.length} messages');
 
+        // Coexistence (plan MLS § 2.3) : l'historique legacy est gelé, le
+        // fil MLS est vivant. On les fusionne ici, une fois, plutôt que de
+        // faire connaître deux sources aux 81 fichiers de la couche messages.
+        final fusionnes = await _fusionnerAvecMls(conversationId, entities);
+
         return Right(
           PaginatedMessages(
-            messages: entities,
+            messages: fusionnes,
             hasMore: hasMore,
             lastMessageId: entities.isNotEmpty ? entities.first.id : null,
             oldestMessageTimestamp:

@@ -34,6 +34,7 @@ import 'message_pagination_state.dart';
 import 'media_upload_provider.dart';
 import '../../../../core/services/e2ee/media_encryption_service.dart';
 import 'media_dechiffre_provider.dart';
+import '../../../../core/crypto/mls/mls_providers.dart';
 
 const int _pageSize = 30;
 
@@ -55,6 +56,10 @@ final messageRepositoryProvider = Provider<MessageRepository>((ref) {
     // `read` dans une fermeture : la valeur est relue à chaque envoi, et
     // un changement de drapeau ne reconstruit pas le repository.
     mediasChiffresActifs: () => ref.read(mediasChiffresActifsProvider),
+    // Messagerie MLS (plan MLS, phase 5) : nulle tant qu'aucun compte n'est
+    // connecté, et inerte tant que le drapeau est fermé ET qu'aucune
+    // conversation n'a basculé.
+    mlsGateway: ref.watch(mlsGatewayProvider),
   );
 });
 

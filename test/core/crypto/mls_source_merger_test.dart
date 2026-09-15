@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:diaspo_niger/core/crypto/mls/mls_message_mapper.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_source_merger.dart';
 import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
@@ -96,6 +98,43 @@ void main() {
       // Un vrai identifiant ne peut pas ressembler à celui-là : les messages
       // portent des uuid ou des identifiants Firestore.
       expect(MlsMessageMapper.idSeparateur.startsWith('__'), isTrue);
+    });
+  });
+
+  group('câblage — inerte tant que rien ne l’active', () {
+    String source(String c) =>
+        File(c).readAsStringSync().replaceAll('\r\n', '\n');
+
+    test('sans passerelle injectée, le repository se comporte comme avant', () {
+      final repo = source('lib/features/messages/data/repositories/message_repository_impl.dart');
+      // Le champ est nullable, et chaque chemin sort tôt quand il est nul :
+      // pas un appel réseau de plus tant que rien n'est branché.
+      expect(repo, contains('final MlsGateway? mlsGateway;'));
+      expect(repo, contains('if (passerelle == null) return legacy;'));
+      expect(repo, contains('if (passerelle != null && await passerelle.enMls('));
+    });
+
+    test('une conversation basculée n’a pas de repli en clair', () {
+      final repo = source('lib/features/messages/data/repositories/message_repository_impl.dart');
+      // Le repli n'existe que tant que rien n'est engagé ; après la bascule,
+      // l'échec remonte. C'est le repli muet qui a laissé Signal envoyer en
+      // clair pendant des semaines.
+      expect(repo, contains('if (!await passerelle.repliLegacyPossible(conversationId)) rethrow;'));
+    });
+
+    test('la passerelle ne dépend que de l’identifiant utilisateur', () {
+      final p = source('lib/core/crypto/mls/mls_providers.dart');
+      final debut = p.indexOf('final mlsGatewayProvider');
+      final corps = p.substring(debut);
+      // `ref.watch` reconstruirait la passerelle à la moindre invalidation
+      // d'un autre provider — la panne exacte du chantier Signal.
+      expect(corps.contains('ref.watch('), isFalse);
+      expect(corps, contains('ref.read(mlsMessagesActifsProvider)'));
+    });
+
+    test('les messages MLS sont mis en cache pour le mode hors ligne', () {
+      final repo = source('lib/features/messages/data/repositories/message_repository_impl.dart');
+      expect(repo, contains('MessageModel.fromEntity(m).toJson()'));
     });
   });
 

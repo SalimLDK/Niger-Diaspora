@@ -24,7 +24,10 @@ import 'dart:io';
 import 'package:diaspo_niger/core/crypto/mls/mls_conversation_service.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_delivery.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_device_registry.dart';
+import 'package:diaspo_niger/core/crypto/mls/mls_message_mapper.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_payload_codec.dart';
+import 'package:diaspo_niger/core/crypto/mls/mls_source_merger.dart';
+import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
 import 'package:diaspo_niger/src/rust/api/mls.dart';
 import 'package:diaspo_niger/src/rust/api/mls.dart' as rust;
 import 'package:diaspo_niger/src/rust/frb_generated.dart';
@@ -535,6 +538,105 @@ void main() {
       // Bob revient : Welcome, puis les cinq.
       final recus = await b.service.catchUp(conv3);
       expect(recus.map((x) => x.payload?.texte), attendus);
+    });
+  });
+
+  group('coexistence : un historique lisible, puis le chiffrement', () {
+    late String conv;
+
+    test('le legacy s’écrit, puis la bascule le ferme définitivement', () async {
+      conv = await conversation(a, [a, b]);
+
+      // Avant la bascule : la conversation vit comme aujourd'hui.
+      for (final texte in ['bonjour', 'ça va ?']) {
+        await a.client.from('messages').insert({
+          'id': uuid.v4(),
+          'conversation_id': conv,
+          'sender_id': a.uid,
+          'type': 'text',
+          'data': {'content': texte, 'senderName': 'Banc Alice'},
+        });
+      }
+      final avantBascule = await a.client
+          .from('messages')
+          .select('id')
+          .eq('conversation_id', conv);
+      expect(avantBascule, hasLength(2));
+
+      // La bascule : elle pose `mls_since`, et ne se défait jamais.
+      await a.service.ensureGroup(conv);
+      await a.service.reconcileMembership(conv);
+      final row = await a.delivery.conversation(conv);
+      expect(row?['mls_since'], isNotNull);
+
+      // À partir de là, plus rien ne peut écrire en clair dans cette
+      // conversation : c'est la garantie auditable du gel (§ 2.3).
+      await expectLater(
+        a.client.from('messages').insert({
+          'id': uuid.v4(),
+          'conversation_id': conv,
+          'sender_id': a.uid,
+          'type': 'text',
+          'data': {'content': 'après la bascule'},
+        }),
+        throwsA(isA<PostgrestException>()),
+      );
+
+      // Et `mls_since` ne se remet pas à NULL, même en essayant.
+      await expectLater(
+        a.client.from('conversations').update({'mls_since': null}).eq('id', conv),
+        throwsA(isA<PostgrestException>()),
+      );
+    });
+
+    test('le fil fusionné : historique, séparateur, puis messages chiffrés', () async {
+      await a.service.send(conv, MlsPayload.texte(uuid.v4(), 'et maintenant chiffré'));
+      final recus = await b.service.catchUp(conv);
+      expect(recus.map((x) => x.payload?.texte), contains('et maintenant chiffré'));
+
+      // Côté lecture, l'écran verra une seule liste. On la construit comme le
+      // repository le fera : legacy paginé + fil MLS + séparateur.
+      final lignesLegacy = await b.client
+          .from('messages')
+          .select()
+          .eq('conversation_id', conv)
+          .order('created_at', ascending: true);
+      final legacy = [
+        for (final r in (lignesLegacy as List).cast<Map<String, dynamic>>())
+          MessageEntity(
+            id: r['id'] as String,
+            senderId: r['sender_id'] as String,
+            senderName: 'Banc Alice',
+            content: (r['data'] as Map)['content'] as String? ?? '',
+            type: MessageType.text,
+            status: MessageStatus.sent,
+            createdAt: DateTime.parse(r['created_at'] as String),
+          ),
+      ];
+      final mls = [
+        for (final x in recus)
+          MlsMessageMapper.depuisEntrant(
+            x,
+            senderName: 'Banc Alice',
+            currentUserId: b.uid,
+          ),
+      ];
+
+      final conversationRow = await b.delivery.conversation(conv);
+      final fusion = MlsSourceMerger.fusionner(
+        legacy: legacy,
+        mls: mls,
+        mlsSince: DateTime.parse(conversationRow!['mls_since'] as String),
+      );
+
+      // L'historique d'abord, le séparateur ensuite, le chiffré en dernier.
+      expect(legacy.map((m) => m.content), ['bonjour', 'ça va ?']);
+      final iSeparateur = fusion.indexWhere(MlsMessageMapper.estSeparateur);
+      expect(iSeparateur, 2);
+      expect(fusion.last.content, 'et maintenant chiffré');
+      expect(fusion.last.encryptionLevel, MessageEncryptionLevel.e2ee);
+      // Le séparateur n'est pas un message : rien de ce qui compte ne le voit.
+      expect(MlsSourceMerger.sansSeparateur(fusion), hasLength(3));
     });
   });
 }
