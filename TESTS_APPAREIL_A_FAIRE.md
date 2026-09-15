@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1052 cases à cocher, 562 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
+**1051 cases à cocher, 563 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -123,7 +123,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
-- 5 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
+- 4 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
@@ -277,7 +277,7 @@ Par domaine :
 - [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 120 à faire, 14 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 119 à faire, 15 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
@@ -10343,9 +10343,21 @@ qui ne disent rien du rendu ni du geste.
   hashtag `zzzaucunresultat` : le geste déclenche bien le rechargement — la
   rafale de captures prend les squelettes (`isLoading` repassé à vrai) juste
   après le relâchement, puis le retour à l'état vide.
-- [ ] **Tirer sur l'écran d'échec** (mode avion, puis « Réessayer » ignoré) :
-  même geste, même rechargement. Demande de couper le réseau — réglage
-  système, à faire par Salim.
+- [x] **Tirer sur l'écran d'échec** : même geste, même rechargement.
+  ✅ SM A515F, build release `fbd02d9d…`, 2026-09-14 20:36 (mode avion posé
+  par Salim) : l'écran affiche la **bonne cause** — icône wifi barré, « Pas de
+  connexion », « Ton téléphone n'est relié à aucun réseau » — et non le message
+  générique. Le geste part : la rafale prend les squelettes (`refresh()`
+  appelé), puis l'échec revient, le réseau étant toujours coupé.
+  À noter : dans ce cas **il n'y a pas de bouton « Réessayer »** (le texte dit
+  que le fil se rechargera tout seul), donc le tiré-pour-rafraîchir est la
+  seule main que l'utilisateur ait — et il ne partait pas avant.
+
+  **Méthode, pour la prochaine fois** : couper le réseau ne suffit pas à
+  atteindre cet écran. Le fil général se replie sur son cache et affiche les
+  publications avec le bandeau « hors ligne ». Il faut un **hashtag jamais
+  consulté** (`diasponiger://feed?hashtag=zzzhorsligne`) : sa page n'est pas en
+  cache, l'échec n'a rien à replier dessus, et l'écran d'échec s'affiche.
 - [x] **Pastille** : publier depuis le second téléphone ; sur le premier, la
   pastille descend en haut du fil avec l'avatar de l'auteur, sans déplacer la
   lecture en cours ; la toucher pose la publication en tête et remonte le fil.
