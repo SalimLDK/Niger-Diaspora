@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/services/encryption_service.dart';
 
 /// Resultat d'une operation de suppression
 sealed class DeletionResult {
@@ -36,7 +35,6 @@ class MessageDeletionService {
   final rtdb.FirebaseDatabase _database;
   final FirebaseStorage _storage;
   final SupabaseClient _supabase;
-  final EncryptionService? _encryption;
 
   /// Delai maximum pour supprimer pour tous (1 heure)
   static const Duration deleteForEveryoneWindow = Duration(hours: 1);
@@ -45,11 +43,9 @@ class MessageDeletionService {
     rtdb.FirebaseDatabase? database,
     FirebaseStorage? storage,
     SupabaseClient? supabase,
-    EncryptionService? encryption,
   }) : _database = database ?? rtdb.FirebaseDatabase.instance,
        _storage = storage ?? FirebaseStorage.instance,
-       _supabase = supabase ?? Supabase.instance.client,
-       _encryption = encryption;
+       _supabase = supabase ?? Supabase.instance.client;
 
   /// Supprimer un message pour l'utilisateur courant uniquement (soft delete)
   Future<Either<Failure, void>> deleteForMe({
@@ -128,8 +124,20 @@ class MessageDeletionService {
         'linkPreviewData': null,
       });
 
-      // 6. Mettre a jour la preview de conversation si necessaire
-      await _updateConversationPreviewIfNeeded(conversationId, data);
+      // 6. L'apercu de la liste des discussions n'est PAS mis a jour ici.
+      //    C'est `MessageSupabaseDataSource.deleteMessageForEveryone`
+      //    (`_viderApercuSiDernier`) qui le fait, sur le seul chemin branche,
+      //    avec les marques `lastMessageDeleted` / `lastMessageExpired` qui
+      //    disent au client quel libelle afficher. Ce qui vivait ici en
+      //    doublon etait faux sur les deux points : il prenait
+      //    `lastMessageSenderId == senderId du message` pour « c'etait le
+      //    dernier message » — vrai des qu'on supprime n'importe lequel des
+      //    siens apres avoir envoye le dernier — et il ecrivait dans
+      //    `lastMessage` un « Message supprime » en dur, sans accent, hors
+      //    l10n, et **chiffre** si le service tenait une cle : la liste aurait
+      //    affiche le blob. Voir la regle « une seule source » de CLAUDE.md.
+      //    Si ce chemin RTDB devait revivre, il doit passer par le datasource,
+      //    pas reecrire la regle.
 
       return const DeletionSuccess();
     } catch (e) {
@@ -240,44 +248,6 @@ class MessageDeletionService {
         // Log l'erreur mais continuer - le fichier peut ne plus exister
         // ou ne pas etre un fichier Firebase Storage
       }
-    }
-  }
-
-  /// Mettre a jour la preview de la conversation si le message supprime etait le dernier
-  Future<void> _updateConversationPreviewIfNeeded(
-    String conversationId,
-    Map<dynamic, dynamic> deletedMessageData,
-  ) async {
-    try {
-      final rows = await _supabase
-          .from('conversations')
-          .select('data')
-          .eq('id', conversationId)
-          .limit(1);
-
-      if (rows.isEmpty) return;
-
-      final convData =
-          Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
-      final lastSenderId = convData['lastMessageSenderId'] as String?;
-      final deletedMsgSenderId = deletedMessageData['senderId'] as String?;
-
-      // Verifier si c'etait le dernier message
-      if (lastSenderId == deletedMsgSenderId) {
-        // Chiffrer le texte de remplacement si E2EE est active
-        String replacementText = 'Message supprime';
-        if (_encryption case final encryption?) {
-          replacementText = encryption.encryptText(replacementText);
-        }
-
-        final updated = {...convData, 'lastMessage': replacementText};
-        await _supabase
-            .from('conversations')
-            .update({'data': updated})
-            .eq('id', conversationId);
-      }
-    } catch (e) {
-      // Erreur non critique, la conversation continue de fonctionner
     }
   }
 
