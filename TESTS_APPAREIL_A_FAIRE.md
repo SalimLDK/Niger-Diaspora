@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1179 cases à cocher, 595 cochées** — 234 entrées sur 280 ont encore des cases ouvertes.
+**1180 cases à cocher, 595 cochées** — 235 entrées sur 281 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -75,7 +75,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (77)
+**P1 — fonction importante, jamais vérifiée** (78)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -86,6 +86,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 13 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 19 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
@@ -292,7 +293,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 242 à faire, 86 faites
+- [2. Messagerie](#2-messagerie) — 243 à faire, 86 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 97 à faire, 36 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -626,6 +627,51 @@ nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
 - [ ] **Thème sombre** : les trois libellés restent lisibles dans la liste.
 
 ---
+
+## ⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)
+
+**Priorité P1** · importance 4/5 — Signalé par Salim : « modifier message se
+passe uniquement en visuel, après actualisation le message précédent revient ».
+
+**Mesuré** : deux modifications annoncées réussies n'ont émis **aucun**
+`kind='control'` dans `mls_messages`. Elles sont donc parties vers `messages`,
+où un message MLS n'a aucune ligne, et `editMessage` y faisait
+`if (rows.isEmpty) return;` — succès sans écriture ni signal. Une modification
+qui passe bien par la passerelle, elle, **tient** (contrôle émis, texte
+conservé après sortie/retour).
+
+**Corrigé** : le `return` muet lève désormais, et l'erreur emporte l'état de
+bascule de la conversation (`mls_since`) — l'entrée dont dépend la décision.
+
+**⛔ NON ÉLUCIDÉ** : pourquoi `estMlsMessage` a répondu « non ». Ce qui a été
+écarté, par mesure — ne pas refaire ce chemin :
+
+- **l'identifiant optimiste (`temp_…`)** : faux. Une sonde sur
+  `_passerelleMessage` donne `routeMls=true` à chaque tentative, y compris
+  juste après l'envoi ;
+- **un `mlsSince` nul transitoire** : faux. `MlsDelivery.conversation()` ne
+  rattrape pas les erreurs, il lève ; `null` signifie donc réellement « pas de
+  bascule », pas « lecture ratée » ;
+- **retirer le veto `if (!await enMls(...)) return false;`** : écrit, testé,
+  puis ANNULÉ — il casse un test délibéré (« une conversation jamais basculée
+  ne consulte rien ») et coûte une lecture par action, pour une cause non
+  prouvée.
+
+**⚠️ Le cas ne se provoque pas depuis l'interface** : pour qu'une bulle MLS
+s'affiche, son fil a forcément été amorcé, donc `_connus` contient déjà son
+identifiant et l'aiguillage est bon. Il faudrait modifier avant le premier
+rendu. La prochaine occurrence en usage réel sera donc la source : elle
+affichera une erreur rouge portant l'identifiant du message ET l'état de
+bascule.
+
+**⚠️ Piège de recette rencontré** : une tentative de reproduction a tapé dans
+la mauvaise conversation ; le texte est parti dans la zone de saisie et a créé
+un message au lieu d'en modifier un. Les chiffres lus alors comme « deux
+valeurs fausses » étaient deux valeurs justes pour la conversation où la sonde
+tournait réellement. **Vérifier l'en-tête de la conversation avant d'agir.**
+
+- [ ] Reproduire en usage réel et relever l'erreur complète (identifiant +
+  `mls_since`), puis remonter de là vers la cause.
 
 ## ⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)
 

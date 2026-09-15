@@ -523,10 +523,22 @@ void main() {
       final bloc = src.substring(src.indexOf('Future<void> editMessage('));
       final rows = bloc.indexOf('if (rows.isEmpty)');
       expect(rows, isNot(-1), reason: 'le garde doit exister');
+      final garde = bloc.substring(rows, rows + 1400);
       expect(
-        bloc.substring(rows, rows + 120).contains('throw'),
+        garde.contains('throw'),
         isTrue,
         reason: 'une modification sans cible doit LEVER, pas rendre la main',
+      );
+      // Et elle doit DIRE ce qu'il faut pour comprendre : la cause du mauvais
+      // aiguillage n'est pas élucidée et ne se provoque pas depuis l'écran
+      // (pour qu'une bulle MLS s'affiche, son fil a été amorcé, donc son
+      // identifiant est déjà connu). L'erreur emporte donc l'état de bascule
+      // de la conversation, qui est l'entrée dont dépend la décision.
+      expect(
+        garde.contains('mls_since'),
+        isTrue,
+        reason: 'l’erreur doit porter l’état de bascule, sinon la prochaine '
+            'occurrence sera aussi muette que celle qu’on a corrigée',
       );
     });
 
