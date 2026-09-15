@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Android 12 et plus (`android:dataExtractionRules`). Même exclusion que
-  `regles_sauvegarde.xml`, mais il faut la répéter ici : Android 12 a séparé
-  la sauvegarde cloud du transfert d'appareil à appareil, et ignore
-  `fullBackupContent` dès l'API 31.
+  Android 12 et plus (android:dataExtractionRules). Même exclusion que
+  regles_sauvegarde.xml, mais il faut la répéter ici : Android 12 a séparé la
+  sauvegarde cloud du transfert d'appareil à appareil, et ignore
+  fullBackupContent dès l'API 31.
 
-  Les DEUX blocs comptent. `cloud-backup` couvre la sauvegarde Google ;
-  `device-transfer` couvre la copie vers un téléphone neuf, qui passe par un
-  câble et non par le réseau — et qui, sans cette ligne, emporterait la base
-  du moteur MLS alors que la sauvegarde cloud, elle, l'aurait laissée.
+  Les DEUX blocs comptent. cloud-backup couvre la sauvegarde Google ;
+  device-transfer couvre la copie vers un téléphone neuf, qui passe par un
+  câble et non par le réseau, et qui sans cette ligne emporterait la base du
+  moteur MLS alors que la sauvegarde cloud, elle, l'aurait laissée.
+
+  ATTENTION : pas de tiret double dans ce commentaire, XML l'interdit.
 -->
 <data-extraction-rules>
     <cloud-backup>
