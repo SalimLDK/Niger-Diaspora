@@ -638,6 +638,25 @@ class MessageRepositoryImpl implements MessageRepository {
     return await passerelle.enMls(conversationId) ? passerelle : null;
   }
 
+  /// La passerelle si **ce message-là** est un message MLS.
+  ///
+  /// L'aiguillage se fait par message, pas par conversation : une discussion
+  /// basculée garde son historique en clair juste au-dessus du séparateur, et
+  /// réagir à l'un de ces anciens messages doit continuer d'écrire dans
+  /// `messages`. Se tromper de table ne lève rien — un `update … where id`
+  /// sans cible réussit avec zéro ligne — et l'action paraîtrait juste « ne
+  /// pas prendre ».
+  Future<MlsGateway?> _passerelleMessage(
+    String conversationId,
+    String messageId,
+  ) async {
+    final passerelle = mlsGateway;
+    if (passerelle == null) return null;
+    return await passerelle.estMlsMessage(conversationId, messageId)
+        ? passerelle
+        : null;
+  }
+
   /// Exécute un envoi MLS, avec la règle du repli : avant la bascule, un
   /// échec peut encore emprunter le chemin d'aujourd'hui ; après, il remonte.
   Future<Either<Failure, MessageEntity>?> _tenterEnvoiMls(
@@ -781,6 +800,13 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     try {
+      // Une conversation basculée n'a plus de ligne dans `messages` : son
+      // reçu vit dans `mls_message_receipts`. Les deux sont appelés tant que
+      // l'historique legacy est là — chacun ne touche que ses propres lignes.
+      final passerelle = await _passerellePour(conversationId);
+      if (passerelle != null) {
+        await passerelle.marquerLivres(conversationId);
+      }
       await remoteDataSource.markAsDelivered(
         conversationId: conversationId,
         userId: userId,
@@ -801,6 +827,10 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
+      final passerelle = await _passerellePour(conversationId);
+      if (passerelle != null) {
+        await passerelle.marquerLus(conversationId);
+      }
       await remoteDataSource.markAsRead(
         conversationId: conversationId,
         userId: userId,
@@ -1524,6 +1554,11 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     try {
+      final passerelle = await _passerelleMessage(conversationId, messageId);
+      if (passerelle != null) {
+        await passerelle.supprimerPourMoi(messageId);
+        return const Right(null);
+      }
       await remoteDataSource.deleteMessageForMe(
         conversationId: conversationId,
         messageId: messageId,
@@ -1544,6 +1579,11 @@ class MessageRepositoryImpl implements MessageRepository {
     required String messageId,
   }) async {
     try {
+      final passerelle = await _passerelleMessage(conversationId, messageId);
+      if (passerelle != null) {
+        await passerelle.supprimerPourTous(messageId);
+        return const Right(null);
+      }
       await remoteDataSource.deleteMessageForEveryone(
         conversationId: conversationId,
         messageId: messageId,
@@ -1704,11 +1744,57 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     try {
+      final passerelle = await _passerelleMessage(conversationId, messageId);
+      if (passerelle != null) {
+        await passerelle.basculerEtoile(messageId);
+        return const Right(null);
+      }
       await remoteDataSource.toggleStarMessage(
         conversationId: conversationId,
         messageId: messageId,
         userId: userId,
       );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> toggleReaction({
+    required String conversationId,
+    required String messageId,
+    required String userId,
+    required String emoji,
+    required bool retirer,
+  }) async {
+    try {
+      final passerelle = await _passerelleMessage(conversationId, messageId);
+      if (passerelle != null) {
+        if (retirer) {
+          await passerelle.retirerReaction(messageId);
+        } else {
+          await passerelle.reagir(messageId, emoji);
+        }
+        return const Right(null);
+      }
+      if (retirer) {
+        await remoteDataSource.removeReaction(
+          conversationId: conversationId,
+          messageId: messageId,
+          userId: userId,
+        );
+      } else {
+        await remoteDataSource.addReaction(
+          conversationId: conversationId,
+          messageId: messageId,
+          userId: userId,
+          emoji: emoji,
+        );
+      }
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -1768,6 +1854,16 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
+      // Le nouveau texte d'un message chiffré doit repartir chiffré, dans un
+      // message de contrôle — rien ne l'émet encore. La passerelle lève, et
+      // l'écran affiche une erreur : laisser passer écrirait dans `messages`,
+      // sans cible, et le texte d'avant réapparaîtrait à la réouverture.
+      final passerelle = await _passerelleMessage(conversationId, messageId);
+      if (passerelle != null && !MlsGateway.modificationBranchee) {
+        return Left(ServerFailure(
+          'Un message chiffré de bout en bout ne peut pas encore être modifié',
+        ));
+      }
       await remoteDataSource.editMessage(
         conversationId: conversationId,
         messageId: messageId,

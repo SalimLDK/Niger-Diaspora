@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1097 cases à cocher, 581 cochées** — 223 entrées sur 269 ont encore des cases ouvertes.
+**1104 cases à cocher, 581 cochées** — 223 entrées sur 269 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -79,7 +79,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 6 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
+- 13 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
@@ -281,7 +281,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 201 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 208 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 64 à faire, 31 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -554,11 +554,17 @@ l'expéditeur ; le texte de l'aperçu doit être reconstruit par l'appareil
 depuis son cache déchiffré. Rien de tout ça n'a jamais tourné sur un
 téléphone.
 
-*Bloqué : demande d'ouvrir le drapeau MLS global, et la lecture Dart des
-nouvelles tables n'est pas encore branchée (réactions, édition, suppression,
-reçus passent encore par l'ancienne table). Ne pas ouvrir le drapeau avant.*
+*Bloqué : demande d'ouvrir le drapeau MLS global. Le Dart est branché depuis
+le 2026-09-15 — réactions, favoris, suppression pour moi et pour tous, reçus
+et mentions vont dans les tables annexes — **sauf la modification**, qui
+refuse visiblement (son nouveau texte doit voyager chiffré, et rien ne l'émet
+encore).*
 
 Fichiers : [20260915200000_mls_metadonnees_en_ligne.sql](supabase/migrations/20260915200000_mls_metadonnees_en_ligne.sql),
+[mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart),
+[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (`estMlsMessage`),
+[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`_passerelleMessage`),
 [conversation_item.dart](lib/features/messages/presentation/widgets/conversation_item.dart)
 (`_formatLastMessage`), [conversation_model.dart](lib/features/messages/data/models/conversation_model.dart)
 (`_parseMessageTypeFromJson`).
@@ -579,6 +585,21 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
   passent au bleu **sans rechargement** (canal temps réel des reçus).
 - [ ] **Pastille de non-lus** et **badge @** d'une mention, dans un groupe
   basculé, sur le second appareil du même compte.
+- [ ] **Réaction sur un message chiffré** : posée par B, elle apparaît chez A
+  et **survit à la réouverture** de la discussion (elle vient de la table, pas
+  de l'état d'écran).
+- [ ] **Réaction sur un message d'AVANT la bascule**, dans la même discussion :
+  elle marche aussi — c'est l'aiguillage par message qui est vérifié là.
+- [ ] **Supprimer pour moi** un message chiffré : il disparaît chez moi, reste
+  chez l'autre, et **ne revient pas** à la réouverture.
+- [ ] **Supprimer pour tous** : la bulle devient « message supprimé » des deux
+  côtés.
+- [ ] **Favori** posé sur un message chiffré : il tient après réouverture.
+- [ ] **Modifier** un message chiffré : le refus est **visible** (message
+  d'erreur), et le texte d'origine reste affiché — pas de modification qui
+  paraît réussir puis revient en arrière.
+- [ ] **Heure de lecture** dans la fiche d'un message : elle ne se remet pas à
+  « à l'instant » à chaque réouverture de la discussion.
 
 ---
 

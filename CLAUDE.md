@@ -28,6 +28,24 @@ cp android/app/diaspo-niger-release.jks "$W/android/app/"
 Sans le `.env` copié, toute commande Flutter échoue sur l'asset manquant.
 Compter ~4 min au premier `flutter analyze` (résolution des paquets).
 
+**Faire `flutter pub get` dans le worktree AVANT le premier `analyze`, et ne
+pas y lancer `--no-pub` tant qu'il n'a pas son propre `.dart_tool`.** Le
+worktree vit **dans** le dépôt principal (`.claude/worktrees/…`) : sans
+`.dart_tool` à lui, l'analyseur remonte l'arborescence et trouve celui du
+dépôt principal. `package:diaspo_niger/…` se résout alors vers le `lib/` du
+**dépôt principal**, qui est sur un autre commit. Constaté le 2026-09-15, et
+le diagnostic ment complètement :
+
+- 23 erreurs, toutes dans des fichiers qu'on n'a pas touchés ;
+- une méthode livrée la veille par l'autre agent annoncée « undefined »,
+  alors qu'elle est bien dans le fichier du worktree — c'est la copie du
+  dépôt principal, en retard d'un commit, qui était lue ;
+- et `AppLocalizations` déclaré incompatible avec lui-même, les deux chemins
+  absolus (worktree et dépôt principal) apparaissant dans le même message.
+
+Après `flutter pub get` : « No issues found ». Aucune de ces 23 erreurs
+n'existait.
+
 `supabase/.temp/` porte le lien vers le projet distant (ignoré par git,
 `.gitignore:80`). Sans lui, toute commande `--linked` — `db query`, `db push`,
 `migration list` — échoue sur « Cannot find project ref. Have you run supabase

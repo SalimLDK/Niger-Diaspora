@@ -296,6 +296,20 @@ abstract class MessageRepository {
     required String userId,
   });
 
+  /// Pose ou retire la réaction de [userId] sur un message.
+  ///
+  /// Passe par le repository, et non par la source de données, parce que
+  /// l'aiguillage vers MLS se décide ici : une réaction sur un message
+  /// chiffré va dans `mls_message_reactions`, où le message a une ligne —
+  /// pas dans `messages`, où il n'en a aucune.
+  Future<Either<Failure, void>> toggleReaction({
+    required String conversationId,
+    required String messageId,
+    required String userId,
+    required String emoji,
+    required bool retirer,
+  });
+
   /// Get starred messages for a conversation
   Future<Either<Failure, List<MessageEntity>>> getStarredMessages({
     required String conversationId,

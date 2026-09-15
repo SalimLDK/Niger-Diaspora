@@ -4,6 +4,7 @@ import '../../../features/messages/domain/entities/message_entity.dart';
 import 'mls_conversation_service.dart';
 import 'mls_delivery.dart';
 import 'mls_message_mapper.dart';
+import 'mls_metadonnees.dart';
 import 'mls_payload_codec.dart';
 
 /// Le point d'entrée unique de MLS pour la couche messages (plan MLS § 7.3).
@@ -28,16 +29,19 @@ class MlsGateway {
     required bool Function() actif,
     required MlsConversationService service,
     required MlsDelivery delivery,
+    MlsMetadonnees? metadonnees,
     Future<String?> Function(String userId)? nomDe,
   })  : _actif = actif,
         _service = service,
         _delivery = delivery,
+        _meta = metadonnees ?? MlsMetadonnees(userId: userId),
         _nomDe = nomDe;
 
   final String userId;
   final bool Function() _actif;
   final MlsConversationService _service;
   final MlsDelivery _delivery;
+  final MlsMetadonnees _meta;
   final Future<String?> Function(String userId)? _nomDe;
 
   /// `mls_since` par conversation, pour ne pas le redemander à chaque
@@ -45,6 +49,13 @@ class MlsGateway {
   /// nulle est définitive, donc sûre à retenir.
   final Map<String, DateTime?> _bascule = {};
   final Map<String, String> _noms = {};
+
+  /// Les identifiants de messages qu'on sait être des messages MLS, parce
+  /// qu'on vient de les lire. Un message qu'on peut toucher est un message
+  /// qu'on voit, donc qui est passé par [messages] : l'aller-retour vers la
+  /// base ne sert qu'au cas d'école — action sur un message reçu depuis, ou
+  /// écran rouvert sans relecture.
+  final Set<String> _connus = {};
 
   /// Le drapeau est lu à chaque appel, pas au démarrage : l'ouvrir ne doit
   /// pas demander de relancer l'application.
@@ -71,6 +82,11 @@ class MlsGateway {
   }
 
   /// Les messages MLS de la conversation, prêts pour l'écran.
+  ///
+  /// Le déchiffrement ne donne que le contenu : réactions, coches de lecture,
+  /// favoris et « supprimé pour moi » vivent dans les tables annexes
+  /// (décision J) et sont recollés ici. Sans ce second passage, un fil
+  /// basculé s'afficherait sans aucune réaction ni accusé — muettement.
   Future<List<MessageEntity>> messages(String conversationId) async {
     final entrants = await _service.catchUp(conversationId);
     final sortie = <MessageEntity>[];
@@ -81,7 +97,30 @@ class MlsGateway {
         currentUserId: userId,
       ));
     }
-    return sortie;
+    _connus.addAll(sortie.map((m) => m.id));
+    return _avecMetadonnees(sortie);
+  }
+
+  /// Recolle les métadonnées en ligne sur un fil déjà déchiffré.
+  Future<List<MessageEntity>> _avecMetadonnees(List<MessageEntity> fil) async {
+    if (fil.isEmpty) return fil;
+    final lot = await _meta.pour(fil.map((m) => m.id));
+    if (lot.estVide) return fil;
+    return [
+      for (final m in fil)
+        m.copyWith(
+          reactions: lot.reactions[m.id] ?? const {},
+          readBy: lot.lecteurs[m.id] ??
+              // L'expéditeur a forcément lu le sien : le mapper l'a déjà posé,
+              // et aucune ligne de reçu ne viendra le dire.
+              (m.senderId == userId ? [userId] : const <String>[]),
+          readAt: lot.luA[m.id] ?? const {},
+          deliveredTo: lot.destinataires[m.id] ?? const [],
+          deliveredAt: lot.livreA[m.id] ?? const {},
+          starredBy: lot.etoiles.contains(m.id) ? [userId] : const [],
+          deletedFor: lot.masques.contains(m.id) ? [userId] : const [],
+        ),
+    ];
   }
 
   /// Envoie un message texte.
@@ -145,6 +184,14 @@ class MlsGateway {
       payload,
       contentType: MlsMessageMapper.contentType(type),
     );
+    _connus.add(row.id);
+    // Les mentions sont en ligne (décision J) : le serveur doit savoir QUI
+    // est mentionné pour faire sonner un groupe muet, sans rien déchiffrer.
+    // Posées après l'insertion — le RLS les réserve à l'expéditeur du
+    // message, qui doit donc exister — et sans faire échouer l'envoi.
+    if (mentions.isNotEmpty) {
+      await _meta.poserMentions(row.id, mentions);
+    }
     return MlsMessageMapper.depuisPayload(
       MlsPayload(
         id: row.id,
@@ -262,6 +309,74 @@ class MlsGateway {
       debugPrint('MlsGateway: appartenance non réconciliée ($e)');
     }
   }
+
+  // ── Les actions sur un message (décision J) ──────────────────────────────
+  //
+  // Réagir, étoiler, masquer, supprimer, accuser réception : autant de
+  // chemins qui écrivaient dans `messages`, où un message MLS n'a AUCUNE
+  // ligne. Sans aiguillage, chacun de ces gestes ne touche rien — et Postgres
+  // ne s'en plaint pas : un `update … where id = …` sans cible réussit avec
+  // zéro ligne. Le tap paraîtrait simplement « ne pas prendre ».
+
+  /// Cette action porte-t-elle sur un message MLS ?
+  ///
+  /// **Une erreur remonte au lieu de répondre « non ».** Répondre « non »
+  /// renverrait l'action vers `messages`, où elle ne trouverait rien et
+  /// réussirait à vide : la panne se lirait comme un bouton mort. Mieux vaut
+  /// un message d'erreur.
+  Future<bool> estMlsMessage(String conversationId, String messageId) async {
+    if (_connus.contains(messageId)) return true;
+    if (!await enMls(conversationId)) return false;
+    final present = await _meta.existe(messageId);
+    if (present) _connus.add(messageId);
+    return present;
+  }
+
+  /// Une réaction par personne : poser remplace, reposer le même retire —
+  /// c'est l'appelant qui sait lequel des deux il veut.
+  Future<void> reagir(String messageId, String emoji) =>
+      _meta.poserReaction(messageId, emoji);
+
+  Future<void> retirerReaction(String messageId) =>
+      _meta.retirerReaction(messageId);
+
+  /// Bascule le favori et rend son nouvel état, relu en base — le message a
+  /// pu être étoilé depuis un autre appareil.
+  Future<bool> basculerEtoile(String messageId) =>
+      _meta.basculerEtoile(messageId);
+
+  /// « Supprimer pour moi » — sur tous mes appareils, pas seulement celui-ci.
+  Future<void> supprimerPourMoi(String messageId) => _meta.masquer(messageId);
+
+  /// « Supprimer pour tous » — le serveur cesse de servir le ciphertext.
+  /// Réservé à l'expéditeur par le RLS.
+  Future<void> supprimerPourTous(String messageId) =>
+      _meta.supprimerPourTous(messageId);
+
+  /// Modifier un message chiffré n'est **pas** branché : le nouveau texte
+  /// doit voyager chiffré, dans un message de contrôle, et rien ne l'émet
+  /// encore. L'appelant doit refuser visiblement — laisser passer écrirait
+  /// dans `messages`, sans cible, et le texte d'avant réapparaîtrait à la
+  /// réouverture, sans la moindre erreur.
+  static const modificationBranchee = false;
+
+  /// Accuse réception de tous les messages des autres dans la conversation.
+  ///
+  /// Conversation entière, comme le chemin d'aujourd'hui (`markAsRead` ne
+  /// prend pas d'identifiant de message) : les reçus manquants sont créés,
+  /// les existants avancés.
+  Future<void> marquerLus(String conversationId) async {
+    final ids = await _meta.messagesDesAutres(conversationId);
+    await _meta.marquer(ids, lu: true);
+  }
+
+  Future<void> marquerLivres(String conversationId) async {
+    final ids = await _meta.messagesDesAutres(conversationId);
+    await _meta.marquer(ids, lu: false);
+  }
+
+  /// Les compteurs de non-lus des conversations basculées, depuis la vue.
+  Future<Map<String, ({int nonLus, int mentions})>> nonLus() => _meta.nonLus();
 
   Future<String> _nom(String id) async {
     if (id == userId) return '';
