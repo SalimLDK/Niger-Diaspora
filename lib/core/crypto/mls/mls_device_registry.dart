@@ -2,13 +2,16 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../src/rust/api/mls.dart';
 import '../../services/e2ee/device_label.dart';
 import '../../services/e2ee/stable_device_id.dart';
 import '../../services/supabase_auth_bridge.dart';
+import 'bytea.dart' as bytea_codec;
 import 'mls_engine_provider.dart';
+import 'mls_notification_preview.dart';
 
 /// Une ligne de `mls_devices`.
 class MlsDeviceRecord {
@@ -185,6 +188,18 @@ class MlsDeviceRegistry {
       debugPrint('MlsDeviceRegistry: identité MLS changée, KeyPackages purgés');
     }
 
+    // L'isolate de notification ne peut pas recalculer cet identifiant : il
+    // vient d'un `MethodChannel` (le SSAID), muet dans un isolate frais. On le
+    // dépose ici, au seul endroit qui le connaît de façon sûre.
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(MlsNotificationPreview.cleStableId(userId), stableId);
+    } catch (e) {
+      // Sans lui, les notifications retombent sur l'aperçu générique — c'est
+      // dégradé, jamais cassé, et ça ne doit pas faire échouer l'inscription.
+      debugPrint('MlsDeviceRegistry: identifiant non mémorisé ($e)');
+    }
+
     await _reapprovisionner(moteur, appareil.id, userId);
     return appareil;
   }
@@ -332,26 +347,14 @@ class MlsDeviceRegistry {
     return code.length > 40 ? code.substring(0, 40) : code;
   }
 
-  /// Forme hexadécimale `\x…` attendue par PostgREST pour un `bytea`.
+  /// Encodage `bytea` de PostgREST. L'implémentation vit dans `bytea.dart`,
+  /// partagée avec le transport : deux copies auraient divergé, et un `bytea`
+  /// mal encodé ne se voit qu'à la lecture, longtemps après l'écriture.
   @visibleForTesting
-  static String versBytea(Uint8List octets) {
-    final b = StringBuffer(r'\x');
-    for (final o in octets) {
-      b.write(o.toRadixString(16).padLeft(2, '0'));
-    }
-    return b.toString();
-  }
+  static String versBytea(Uint8List octets) => bytea_codec.versBytea(octets);
 
-  /// Inverse de [versBytea] : PostgREST rend un `bytea` en `\x…`.
   @visibleForTesting
-  static Uint8List depuisBytea(String hex) {
-    final h = hex.startsWith(r'\x') ? hex.substring(2) : hex;
-    final out = Uint8List(h.length ~/ 2);
-    for (var i = 0; i < out.length; i++) {
-      out[i] = int.parse(h.substring(i * 2, i * 2 + 2), radix: 16);
-    }
-    return out;
-  }
+  static Uint8List depuisBytea(String hex) => bytea_codec.depuisBytea(hex);
 }
 
 final mlsDeviceRegistryProvider = Provider<MlsDeviceRegistry>((ref) {

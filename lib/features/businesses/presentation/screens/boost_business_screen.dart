@@ -368,7 +368,7 @@ class _BoostBusinessScreenState extends ConsumerState<BoostBusinessScreen> {
             l10n.businessBoostNote,
             textAlign: TextAlign.center,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.outline,
+              color: context.textTertiaryColor,
             ),
           ),
         ],

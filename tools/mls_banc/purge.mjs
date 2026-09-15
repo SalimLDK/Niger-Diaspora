@@ -9,8 +9,12 @@
 // Ce qui part, et dans cet ordre :
 //   1. conversations créées par un compte de banc — la cascade emporte
 //      `mls_messages`, `mls_commits`, `mls_welcomes`, `conversation_devices` ;
+//   1 bis. `notifications` de ces comptes — elles n'ont pas de clé étrangère
+//      vers la conversation, donc la cascade ne les touche pas (même séquelle
+//      que la purge du 2026-08-14, qui avait laissé 29 notifications
+//      orphelines pointant vers des conversations mortes) ;
 //   2. `mls_devices` de ces comptes — la cascade emporte `mls_key_packages` ;
-//   3. `mls_diagnostics` de ces comptes.
+//   3. `mls_diagnostics` et profils `users` de ces comptes.
 //
 // Les comptes d'authentification eux-mêmes se suppriment à part, avec
 // `node tools/purge_comptes_sonde.mjs --confirmer` (motif `sonde-banc-…`).
@@ -58,6 +62,8 @@ async function rest(chemin, methode = 'GET') {
 
 const cibles = [
   ['conversations', `conversations?created_by=like.${MOTIF}`],
+  ['notifications', `notifications?user_id=like.${MOTIF}`],
+  ['users', `users?id=like.${MOTIF}`],
   ['mls_devices', `mls_devices?user_id=like.${MOTIF}`],
   ['mls_diagnostics', `mls_diagnostics?user_id=like.${MOTIF}`],
 ];

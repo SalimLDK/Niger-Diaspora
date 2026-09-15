@@ -68,7 +68,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
                   String get codegenVersion => '2.13.0';
 
                   @override
-                  int get rustContentHash => -864710806;
+                  int get rustContentHash => 1387521686;
 
                   static const kDefaultExternalLibraryLoaderConfig = ExternalLibraryLoaderConfig(
                     stem: 'diaspo_mls',
@@ -113,6 +113,8 @@ Future<CommitDto> crateApiMlsMoteurRetirerMembres({required Moteur that , requir
 Future<EntrantDto> crateApiMlsMoteurTraiterEntrant({required Moteur that , required String conversationId , required List<int> message , required List<int> aadAttendu });
 
 Future<InstantaneDto> crateApiMlsMoteurTraiterWelcome({required Moteur that , required String conversationId , required List<int> welcome });
+
+Future<Uint8List> crateApiMlsApercuSansEtat({required String dbPath , required String userId , required String deviceId , required String conversationId , required List<int> message , required List<int> aad });
 
 RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_Moteur;
 
@@ -581,6 +583,36 @@ sse_encode_list_prim_u_8_loose(welcome, serializer);
         TaskConstMeta get kCrateApiMlsMoteurTraiterWelcomeConstMeta => const TaskConstMeta(
             debugName: "Moteur_traiter_welcome",
             argNames: ["that", "conversationId", "welcome"],
+        );
+        
+
+@override Future<Uint8List> crateApiMlsApercuSansEtat({required String dbPath , required String userId , required String deviceId , required String conversationId , required List<int> message , required List<int> aad })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(dbPath, serializer);
+sse_encode_String(userId, serializer);
+sse_encode_String(deviceId, serializer);
+sse_encode_String(conversationId, serializer);
+sse_encode_list_prim_u_8_loose(message, serializer);
+sse_encode_list_prim_u_8_loose(aad, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiMlsApercuSansEtatConstMeta,
+            argValues: [dbPath, userId, deviceId, conversationId, message, aad],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiMlsApercuSansEtatConstMeta => const TaskConstMeta(
+            debugName: "apercu_sans_etat",
+            argNames: ["dbPath", "userId", "deviceId", "conversationId", "message", "aad"],
         );
         
 

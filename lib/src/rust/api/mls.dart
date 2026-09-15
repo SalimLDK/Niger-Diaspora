@@ -12,7 +12,14 @@ part 'mls.freezed.dart';
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`
 
 
-            
+            /// Déchiffre un message pour en faire un APERÇU de notification, sans
+/// toucher à l'état qui fait foi (plan § 8).
+///
+/// Fonction libre, et non méthode de [`Moteur`] : l'isolate de notification
+/// n'a pas la poignée de l'application, et ne doit surtout pas la partager —
+/// deux écrivains sur le même cliquet rendraient la conversation illisible.
+/// Il ouvre sa propre copie jetable, le temps d'un message.
+Future<Uint8List>  apercuSansEtat({required String dbPath , required String userId , required String deviceId , required String conversationId , required List<int> message , required List<int> aad }) => RustLib.instance.api.crateApiMlsApercuSansEtat(dbPath: dbPath, userId: userId, deviceId: deviceId, conversationId: conversationId, message: message, aad: aad);
 
             
                 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Moteur>>

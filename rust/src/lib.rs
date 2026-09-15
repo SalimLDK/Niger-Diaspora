@@ -7,5 +7,5 @@ pub mod engine;
 mod frb_generated;
 pub mod provider;
 
-pub use engine::{CommitOut, GroupSnapshot, MlsEngine, MlsError, Processed};
+pub use engine::{preview_without_state, CommitOut, GroupSnapshot, MlsEngine, MlsError, Processed};
 

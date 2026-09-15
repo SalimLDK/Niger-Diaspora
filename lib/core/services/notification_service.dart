@@ -27,6 +27,7 @@ import 'notification_read_sync.dart';
 import '../../l10n/app_localizations.dart';
 import 'preferences_service.dart';
 import 'supabase_auth_bridge.dart';
+import '../crypto/mls/mls_notification_preview.dart';
 
 /// Représente un message pour le style MessagingStyle (comme WhatsApp)
 class NotificationMessage {
@@ -500,9 +501,17 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     if (conversationId != null) {
       final title =
           data['title'] as String? ?? data['senderName'] as String? ?? 'Message';
-      final body = data['isE2EE'] == 'true'
-          ? '🔒 Nouveau message'
-          : (data['body'] as String? ?? 'Nouveau message');
+
+      // Message MLS : le serveur n'a pas pu lire le texte, il a envoyé le
+      // ciphertext. On le déchiffre ici, sur une copie jetable de l'état —
+      // jamais sur celui qui fait foi, sinon l'application ne pourrait plus
+      // lire le message qu'elle vient d'annoncer (plan MLS § 8).
+      final apercuMls = await MlsNotificationPreview.texte(data);
+
+      final body = apercuMls ??
+          (data['isE2EE'] == 'true'
+              ? '🔒 Nouveau message'
+              : (data['body'] as String? ?? 'Nouveau message'));
       try {
         await _showFallbackMessageNotification(
           conversationId: conversationId,

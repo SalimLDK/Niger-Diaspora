@@ -55,6 +55,32 @@ fn code(e: crate::engine::MlsError) -> anyhow::Error {
     anyhow::anyhow!("{e}")
 }
 
+/// Déchiffre un message pour en faire un APERÇU de notification, sans
+/// toucher à l'état qui fait foi (plan § 8).
+///
+/// Fonction libre, et non méthode de [`Moteur`] : l'isolate de notification
+/// n'a pas la poignée de l'application, et ne doit surtout pas la partager —
+/// deux écrivains sur le même cliquet rendraient la conversation illisible.
+/// Il ouvre sa propre copie jetable, le temps d'un message.
+pub fn apercu_sans_etat(
+    db_path: String,
+    user_id: String,
+    device_id: String,
+    conversation_id: String,
+    message: Vec<u8>,
+    aad: Vec<u8>,
+) -> anyhow::Result<Vec<u8>> {
+    crate::engine::preview_without_state(
+        std::path::Path::new(&db_path),
+        &user_id,
+        &device_id,
+        &conversation_id,
+        &message,
+        &aad,
+    )
+    .map_err(code)
+}
+
 fn instantane(s: crate::engine::GroupSnapshot) -> InstantaneDto {
     InstantaneDto {
         epoch: s.epoch,

@@ -6,7 +6,7 @@
 
 use std::path::PathBuf;
 
-use diaspo_mls::{MlsEngine, MlsError, Processed};
+use diaspo_mls::{preview_without_state, MlsEngine, MlsError, Processed};
 
 fn base(nom: &str) -> PathBuf {
     let dir = std::env::temp_dir().join(format!("diaspo_mls_spike_{}", std::process::id()));
@@ -45,6 +45,9 @@ fn parcours_nominal_1_a_1() {
 
     let aad1 = aad(conv, "m1", "a1");
     let ct = alice.encrypt(conv, b"Salut Bob", &aad1).unwrap();
+    // Taille réelle d'un ciphertext : elle décide si le push peut le porter
+    // (plafond FCM 4 Ko, marge prise à 2500 o pour le reste du payload).
+    eprintln!("TAILLE ciphertext {} o pour {} o de clair", ct.len(), b"Salut Bob".len());
     assert!(!ct.windows(9).any(|w| w == b"Salut Bob"), "le ciphertext contient le clair");
 
     match bob.process_incoming(conv, &ct, &aad1).unwrap() {
@@ -229,4 +232,56 @@ fn chronometre_reouverture_a_froid() {
         "CHRONO ouverture {:?} — ouverture + déchiffrement {:?}",
         ouverture, total
     );
+}
+
+/// L'aperçu de notification ne doit RIEN consommer.
+///
+/// C'est le cas qui garde le piège du § 8 : si l'isolate de notification
+/// faisait avancer le cliquet, l'application ne pourrait plus lire le message
+/// qu'elle vient d'annoncer, et la conversation deviendrait illisible sans
+/// qu'aucune erreur ne le dise.
+#[test]
+fn l_apercu_ne_consomme_pas_le_cliquet() {
+    let conv = "conv-apercu";
+    let (mut alice, bob) = alice_et_bob(conv);
+    let chemin_bob = base(&format!("bob_{conv}"));
+    // L'app « se met en veille » : plus personne ne tient la base.
+    bob.close();
+
+    let a = aad(conv, "m1", "a1");
+    let ct = alice.encrypt(conv, "message qui arrive".as_bytes(), &a).unwrap();
+
+    // 1. L'isolate de notification déchiffre pour l'aperçu.
+    let apercu = preview_without_state(&chemin_bob, "bob", "b1", conv, &ct, &a).unwrap();
+    assert_eq!(apercu, "message qui arrive".as_bytes());
+
+    // 2. Deux fois : un même push peut être livré en double.
+    let encore = preview_without_state(&chemin_bob, "bob", "b1", conv, &ct, &a).unwrap();
+    assert_eq!(encore, "message qui arrive".as_bytes());
+
+    // 3. L'application se réveille et traite le MÊME message : elle doit
+    //    encore pouvoir le lire. C'est tout l'enjeu.
+    let mut bob2 = MlsEngine::open(&chemin_bob, "bob", "b1").unwrap();
+    match bob2.process_incoming(conv, &ct, &a).unwrap() {
+        Processed::Application(clair) => assert_eq!(clair, "message qui arrive".as_bytes()),
+        _ => panic!("attendu un message applicatif"),
+    }
+
+    // 4. Et la suite de la conversation continue de fonctionner.
+    let a2 = aad(conv, "m2", "a1");
+    let ct2 = alice.encrypt(conv, "et la suite".as_bytes(), &a2).unwrap();
+    match bob2.process_incoming(conv, &ct2, &a2).unwrap() {
+        Processed::Application(clair) => assert_eq!(clair, "et la suite".as_bytes()),
+        _ => panic!("attendu un message applicatif"),
+    }
+
+    // 5. Aucune copie jetable ne traîne à côté de la base.
+    let dossier = chemin_bob.parent().unwrap();
+    let restes: Vec<_> = std::fs::read_dir(dossier)
+        .unwrap()
+        .filter_map(|e| e.ok())
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .filter(|nom| nom.contains("apercu-"))
+        .collect();
+    assert!(restes.is_empty(), "copies jetables laissées derrière : {restes:?}");
 }

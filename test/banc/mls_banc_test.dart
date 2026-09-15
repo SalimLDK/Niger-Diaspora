@@ -26,6 +26,7 @@ import 'package:diaspo_niger/core/crypto/mls/mls_delivery.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_device_registry.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_payload_codec.dart';
 import 'package:diaspo_niger/src/rust/api/mls.dart';
+import 'package:diaspo_niger/src/rust/api/mls.dart' as rust;
 import 'package:diaspo_niger/src/rust/frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -91,6 +92,11 @@ class Appareil {
   }
 
   Future<void> inscrire() async {
+    // Profil minimal : le trigger de notification saute tout destinataire
+    // sans ligne `users` (même garde que le legacy). En production chaque
+    // compte en a une ; sans elle ici, le banc ne verrait aucune
+    // notification et en conclurait à tort que le trigger est muet.
+    await client.from('users').upsert({'id': uid, 'display_name': 'Banc $nom'});
     fiche = await registry.ensureRegistered(uid);
   }
 }
@@ -130,6 +136,9 @@ void main() {
   }
 
   setUpAll(() async {
+    // `SharedPreferences` (où le registre dépose l'identifiant d'appareil)
+    // passe par un MethodChannel : sans binding, il lève.
+    TestWidgetsFlutterBinding.ensureInitialized();
     HttpOverrides.global = null;
     await RustLib.init(externalLibrary: ExternalLibrary.open(_bibliotheque()));
     final s = jsonDecode(File(fichier).readAsStringSync()) as Map<String, dynamic>;
@@ -295,6 +304,113 @@ void main() {
       final restes = await b.service.catchUp(conv);
       expect(restes.every((x) => !x.lisible), isTrue,
           reason: 'déjà consommés au moteur, le service ne peut que les rendre illisibles');
+    });
+
+    test('le serveur notifie sans rien lire : repli générique et ciphertext', () async {
+      // Le trigger `mls_notify_recipients` remplace le déchiffrement serveur
+      // du legacy. Ce qu'il écrit doit rester illisible : c'est la garantie
+      // que MLS apporte, et elle se vérifie ligne par ligne en base.
+      final m = await a.service.send(
+        conv,
+        MlsPayload.texte(uuid.v4(), 'mot de passe du wifi'),
+      );
+
+      // Filtré par identifiant de message, jamais par date : l'horloge du
+      // poste et celle du serveur diffèrent de quelques secondes, et un
+      // `created_at >= now()` local ramasse des notifications antérieures.
+      final lignes = await b.client
+          .from('notifications')
+          .select()
+          .eq('user_id', b.uid)
+          .eq('data->>messageId', m.id);
+      expect(lignes, hasLength(1), reason: 'une notification, et une seule');
+      final notif = (lignes as List).cast<Map<String, dynamic>>().first;
+
+      // Le corps est un repli générique — le serveur n'a pas pu lire le texte.
+      expect(notif['body'], 'Nouveau message');
+      expect(notif['body'].toString().contains('wifi'), isFalse);
+      expect(jsonEncode(notif).contains('mot de passe'), isFalse);
+
+      final data = (notif['data'] as Map).cast<String, dynamic>();
+      expect(data['protocol'], 'mls');
+      expect(data['isE2EE'], 'true');
+      expect(data['conversationId'], conv);
+      expect(data['mlsSenderDeviceId'], m.senderDeviceId);
+      // Le ciphertext voyage tel quel : c'est lui que l'appareil déchiffre.
+      expect(base64Decode((data['mlsCiphertext'] as String).replaceAll('\n', '')), m.ciphertext);
+
+      // L'expéditeur ne se notifie pas lui-même.
+      final chezAlice = await a.client
+          .from('notifications')
+          .select('id')
+          .eq('user_id', a.uid)
+          .eq('data->>messageId', m.id);
+      expect(chezAlice, isEmpty);
+
+      // Et l'aperçu se reconstruit bien depuis ce que le push transporte.
+      b.detruireLeMoteur();
+      final clair = await rust.apercuSansEtat(
+        dbPath: b.chemin,
+        userId: b.uid,
+        deviceId: b.stableId,
+        conversationId: conv,
+        message: base64Decode((data['mlsCiphertext'] as String).replaceAll('\n', '')),
+        aad: MlsAad.message(
+          conversationId: conv,
+          messageId: data['messageId'] as String,
+          senderDeviceId: data['mlsSenderDeviceId'] as String,
+          kind: data['mlsKind'] as String,
+        ),
+      );
+      expect(
+        MlsPayload.decode(Uint8List.fromList(clair)).texte,
+        'mot de passe du wifi',
+      );
+      await b.service.catchUp(conv);
+    });
+
+    test('aperçu de notification : déchiffre sans consommer le cliquet', () async {
+      // Le chemin réel d'une notification : le serveur envoie le ciphertext
+      // (il ne peut plus lire le texte), l'isolate le déchiffre sur une copie
+      // jetable, puis l'application traite le MÊME message. Si l'aperçu
+      // faisait avancer le cliquet, cette seconde lecture échouerait — et la
+      // conversation deviendrait illisible sans qu'aucune erreur ne le dise.
+      final m = await a.service.send(conv, MlsPayload.texte(uuid.v4(), 'aperçu puis lecture'));
+      final aad = MlsAad.message(
+        conversationId: conv,
+        messageId: m.id,
+        senderDeviceId: m.senderDeviceId,
+        kind: m.kind,
+      );
+
+      // Bob « dort » : aucun moteur ouvert, comme au réveil par un push.
+      b.detruireLeMoteur();
+      final clair = await rust.apercuSansEtat(
+        dbPath: b.chemin,
+        userId: b.uid,
+        deviceId: b.stableId,
+        conversationId: conv,
+        message: m.ciphertext,
+        aad: aad,
+      );
+      expect(MlsPayload.decode(Uint8List.fromList(clair)).texte, 'aperçu puis lecture');
+
+      // Un même push peut être livré deux fois.
+      final encore = await rust.apercuSansEtat(
+        dbPath: b.chemin,
+        userId: b.uid,
+        deviceId: b.stableId,
+        conversationId: conv,
+        message: m.ciphertext,
+        aad: aad,
+      );
+      expect(MlsPayload.decode(Uint8List.fromList(encore)).texte, 'aperçu puis lecture');
+
+      // L'application se réveille et traite le message : il doit être lisible.
+      // On cherche CE message, sans exiger qu'il soit seul : un cas précédent
+      // peut avoir laissé du retard, et ce test-ci ne porte pas là-dessus.
+      final recus = await b.service.catchUp(conv);
+      expect(recus.map((x) => x.payload?.texte), contains('aperçu puis lecture'));
     });
 
     test('moteur détruit et recréé entre deux envois : le second part en MLS', () async {

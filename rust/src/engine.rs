@@ -162,6 +162,62 @@ fn commit_out(
     })
 }
 
+/// Déchiffre un message **sans faire avancer l'état qui fait foi**.
+///
+/// C'est le piège le plus subtil du chantier (plan § 8) : deux processus ne
+/// peuvent pas faire avancer le même cliquet. Si l'isolate de notification
+/// déchiffrait sur la base principale, il consommerait la clé du message ;
+/// l'application, qui traite ensuite le même message, ne pourrait plus le
+/// lire, et la conversation deviendrait illisible **en silence**.
+///
+/// On travaille donc sur une copie jetable produite par `VACUUM INTO` —
+/// cohérente même en WAL, contrairement à une copie de fichier qui laisserait
+/// le journal derrière elle. Elle est lue, puis supprimée. Coût : recopier
+/// une base de ~150 Ko, et déchiffrer deux fois le même message. La
+/// divergence d'état, elle, ne se rattrape pas.
+///
+/// L'appelant n'obtient que le clair : il en fait un aperçu de notification,
+/// jamais un message traité. C'est l'application qui fait foi.
+pub fn preview_without_state(
+    db_path: &Path,
+    user_id: &str,
+    device_id: &str,
+    conversation_id: &str,
+    message: &[u8],
+    aad: &[u8],
+) -> Result<Vec<u8>, MlsError> {
+    let horodatage = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    let copie = db_path.with_extension(format!("apercu-{}-{}.sqlite", std::process::id(), horodatage));
+    let nettoyer = |chemin: &Path| {
+        for suffixe in ["", "-wal", "-shm"] {
+            let mut nom = chemin.as_os_str().to_os_string();
+            nom.push(suffixe);
+            let _ = std::fs::remove_file(PathBuf::from(nom));
+        }
+    };
+    nettoyer(&copie);
+
+    let resultat = (|| -> Result<Vec<u8>, MlsError> {
+        {
+            // Lecture seule de la base qui fait foi : `VACUUM INTO` n'écrit
+            // que dans la cible, et les lecteurs ne bloquent pas en WAL.
+            let source = Connection::open(db_path)?;
+            source.execute("VACUUM INTO ?1", [copie.to_string_lossy().as_ref()])?;
+        }
+        let mut jetable = MlsEngine::open(&copie, user_id, device_id)?;
+        match jetable.process_incoming(conversation_id, message, aad)? {
+            Processed::Application(clair) => Ok(clair),
+            _ => Err(MlsError::NotApplicationMessage),
+        }
+    })();
+
+    nettoyer(&copie);
+    resultat
+}
+
 impl MlsEngine {
     /// Ouvre le moteur ; crée l'identité de l'appareil au premier appel,
     /// la recharge ensuite. Idempotent.
