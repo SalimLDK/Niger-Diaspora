@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -182,7 +183,7 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                       child: Icon(
                         business.category.icon,
                         size: 64,
-                        color: theme.colorScheme.outline,
+                        color: context.iconTertiaryColor,
                       ),
                     ),
           ),
@@ -596,11 +597,11 @@ class _OffersSection extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    AppIcon(AppIcon.info, color: theme.colorScheme.outline),
+                    AppIcon(AppIcon.info, color: context.iconTertiaryColor),
                     const SizedBox(width: 12),
                     Text(
                       l10n.noCurrentOffersMessage,
-                      style: TextStyle(color: theme.colorScheme.outline),
+                      style: TextStyle(color: context.textTertiaryColor),
                     ),
                   ],
                 ),
@@ -708,7 +709,7 @@ class _OfferCard extends StatelessWidget {
               Text(
                 'Valable jusqu\'au ${dateFormat.format(offer.offerEndDate!)}',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
+                  color: context.textSecondaryColor,
                 ),
               ),
             ],
@@ -773,11 +774,11 @@ class _PostsSection extends ConsumerWidget {
                 ),
                 child: Row(
                   children: [
-                    AppIcon(AppIcon.info, color: theme.colorScheme.outline),
+                    AppIcon(AppIcon.info, color: context.iconTertiaryColor),
                     const SizedBox(width: 12),
                     Text(
                       l10n.noNewsMessage,
-                      style: TextStyle(color: theme.colorScheme.outline),
+                      style: TextStyle(color: context.textTertiaryColor),
                     ),
                   ],
                 ),
@@ -1049,7 +1050,7 @@ class _PostCard extends StatelessWidget {
                   Text(
                     dateFormat.format(post.createdAt!),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outline,
+                      color: context.textSecondaryColor,
                     ),
                   ),
               ],
@@ -1088,7 +1089,7 @@ class _StatItem extends StatelessWidget {
         Text(
           label,
           style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.outline,
+            color: context.textSecondaryColor,
           ),
         ),
       ],
@@ -1240,7 +1241,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
                     Text(
                       '${business.reviewCount} avis',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.outline,
+                        color: context.textSecondaryColor,
                       ),
                     ),
                   ],
@@ -1264,13 +1265,13 @@ class _ReviewsPreviewSection extends ConsumerWidget {
                   children: [
                     Icon(
                       Icons.rate_review_outlined,
-                      color: theme.colorScheme.outline,
+                      color: context.iconTertiaryColor,
                       size: 40,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       l10n.noReviewsYetMessage,
-                      style: TextStyle(color: theme.colorScheme.outline),
+                      style: TextStyle(color: context.textTertiaryColor),
                     ),
                     if (!isOwner && userReviewAsync.valueOrNull == null) ...[
                       const SizedBox(height: 12),

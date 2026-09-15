@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/services/image_upload_service.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/review_entity.dart';
@@ -241,7 +242,7 @@ class _ReviewFormModalState extends ConsumerState<ReviewFormModal> {
                     Text(
                       l10n.reviewYourRating,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.outline,
+                        color: context.textSecondaryColor,
                       ),
                     ),
                     const SizedBox(height: 8),

@@ -610,7 +610,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
                   style: _countryName != null
                       ? theme.textTheme.bodyLarge
                       : theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.outline,
+                          color: context.textTertiaryColor,
                         ),
                 ),
               ),
@@ -672,7 +672,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
                   style: _latitude != null
                       ? theme.textTheme.bodyLarge
                       : theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.outline,
+                          color: context.textTertiaryColor,
                         ),
                 ),
               ),
