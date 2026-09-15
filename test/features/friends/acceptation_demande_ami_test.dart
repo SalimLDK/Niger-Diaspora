@@ -63,9 +63,16 @@ void main() {
       await FriendRemoteDataSourceImpl(firestore: base)
           .acceptFriendRequest(idDemande);
 
-      final demande =
-          await base.collection('friend_requests').doc(idDemande).get();
-      expect(demande.data()!['status'], 'accepted');
+      // Depuis le 2026-09-15, la demande est **supprimée** une fois acceptée :
+      // elle est passée par `accepted` dans le lot, puis oubliée. Les
+      // documents traités s'accumulaient sans que rien ne les lise. Ce que
+      // cette assertion vérifiait — « l'acceptation a bien eu lieu » — est
+      // couvert plus bas par les deux entrées `friends`, qui sont la vraie
+      // trace de l'amitié.
+      expect(
+        (await base.collection('friend_requests').doc(idDemande).get()).exists,
+        isFalse,
+      );
 
       // La sous-collection `friends` est la seule source : c'est elle que lit
       // `getFriends`/`areFriends`, et elle que `mirrorFriendToSupabase` reflète

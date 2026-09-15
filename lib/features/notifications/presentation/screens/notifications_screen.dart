@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/services/notification_read_sync.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../shared/widgets/loading_indicator.dart';
@@ -1172,6 +1173,22 @@ class _FriendRequestActionsState extends ConsumerState<_FriendRequestActions> {
     return null;
   }
 
+  /// Marque lue la notification d'une demande qui n'est plus en attente.
+  ///
+  /// Une seule fois par montage : `build` est rappelé à chaque image du flux,
+  /// et une écriture Supabase par image serait une autre façon de se tromper.
+  bool _oubliFait = false;
+
+  void _oublierLaNotification() {
+    if (_oubliFait) return;
+    _oubliFait = true;
+    NotificationReadSync.markTargetRead(
+      widget.requesterId,
+      keys: const ['senderId', 'sender_id', 'actor_id', 'targetId', 'target_id'],
+      type: 'friendRequest',
+    );
+  }
+
   Future<void> _respond(FriendRequestEntity request, bool accept) async {
     if (_busy) return;
     setState(() => _busy = true);
@@ -1222,8 +1239,19 @@ class _FriendRequestActionsState extends ConsumerState<_FriendRequestActions> {
         ref.watch(receivedFriendRequestsProvider).valueOrNull ?? [];
     final request = _pendingRequest(requests);
 
-    // Plus de demande en attente (déjà traitée ailleurs) : rien à afficher.
-    if (request == null) return const SizedBox.shrink();
+    // Plus de demande en attente : rien à afficher, et la notification n'a
+    // plus d'objet — on la marque lue.
+    //
+    // Le cas le plus courant est l'annulation par l'expéditeur. Il ne peut pas
+    // marquer cette notification lui-même : `markTargetRead` filtre sur
+    // `user_id = <l'appelant>`, donc chacun ne peut toucher que les siennes.
+    // Seul le destinataire peut le faire, et c'est ici qu'il constate la
+    // disparition. Sans ça, la pastille de la cloche comptait indéfiniment une
+    // demande qui n'existe plus.
+    if (request == null) {
+      _oublierLaNotification();
+      return const SizedBox.shrink();
+    }
 
     return Row(
       children: [

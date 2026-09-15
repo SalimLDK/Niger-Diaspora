@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1070 cases à cocher, 569 cochées** — 215 entrées sur 260 ont encore des cases ouvertes.
+**1075 cases à cocher, 569 cochées** — 216 entrées sur 261 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -141,7 +141,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (71)
+**P2 — fonction secondaire ou cas limite** (72)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -164,6 +164,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
 - 2 · [✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)](#-filtre-hashtag--réparé-et-vérifié-sur-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
@@ -277,7 +278,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 113 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 63 à faire, 23 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 69 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -7037,6 +7038,60 @@ en solo.
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
+
+## ⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)
+
+**Priorité P2** · importance 3/5 — Aucun de ces six n'était visible pour un usager, mais l'un d'eux laissait n'importe quel compte fabriquer une demande d'ami **au nom de quelqu'un d'autre**. *Bloqué : deux comptes pour les points croisés.*
+
+Audit du cycle complet, après « Accepter une demande d'ami : « Erreur de
+chargement » ». Tout est corrigé, mesuré et déployé ; ce qui reste est
+l'observation sur appareil.
+
+1. **`cancelled` n'existait pas dans l'énumération** alors que
+   `cancelFriendRequest` l'écrit : le `default` du parseur le rendait comme
+   `pending`. Latent (les flux filtrent côté serveur), mais `getRequestById`
+   lisait une demande annulée comme en attente.
+2. **Rien ne vérifiait qu'une demande était encore en attente.** Un écran resté
+   ouvert pouvait accepter une demande fraîchement annulée, ou en réaccepter
+   une déjà traitée. Garde côté client — avec un message qui *nomme* l'état
+   trouvé — et côté règles.
+3. **🔴 `allow create` était `isAuthenticated()` tout court** : n'importe quel
+   compte pouvait créer une demande **au nom d'un autre**. La règle exige
+   désormais `senderId == request.auth.uid`, un destinataire différent, et un
+   statut `pending` ; le destinataire ne peut plus poser `cancelled` à la
+   place de l'expéditeur.
+4. **Aucune garde « pas soi-même »** hors du bouton de la fiche de profil.
+   Posée dans `sendFriendRequest` et dans la règle.
+5. **Les documents traités s'accumulaient indéfiniment.** Supprimés après
+   acceptation, refus et annulation — au mieux : un échec de ménage ne défait
+   pas une acceptation réussie, il est signalé.
+6. **Une annulation laissait au destinataire une notification orpheline.**
+   L'expéditeur ne peut pas la marquer lue — `markTargetRead` filtre sur
+   `user_id = <l'appelant>`. C'est donc le destinataire qui le fait, là où il
+   constate la disparition.
+
+`public.friend_requests` (Supabase) n'est lue ni écrite par personne : marquée
+par `COMMENT ON` (`20260915093000`), **pas supprimée**. `public.friends` a reçu
+le même traitement — une ligne par sens, ce qui n'allait pas de soi.
+
+**Règles déployées le 2026-09-15**, compilation OK, banc passé avant :
+`tools/rules_tests/acceptation_ami.mjs` blocs 5 et 6, dix cas, plus les treize
+tests Dart de `cycle_demande_ami_test.dart`.
+
+⚠️ **Le banc a tourné sur un port privé (8098)** : le 8080 était pris par
+l'émulateur d'une autre session. Ne jamais lancer le banc sur l'émulateur
+d'autrui — `initializeTestEnvironment` y téléverse **vos** règles et
+`clearFirestore()` efface **ses** données.
+
+- [ ] **Annuler puis accepter** (deux comptes) : A envoie, B ouvre l'écran
+  Notifications, A annule depuis « Envoyées », B tape « Accepter » sans
+  rafraîchir → message clair « cette demande a été annulée », et rien en base.
+- [ ] **La notification orpheline disparaît** : après l'annulation, la carte de
+  B n'affiche plus de boutons **et** la pastille de la cloche redescend.
+- [ ] **Accepter puis réaccepter** : après une acceptation, la demande n'existe
+  plus en base (`friend_requests` vide pour ce couple) et l'amitié est là.
+- [ ] **Refuser** : même chose, document supprimé, aucune amitié.
+- [ ] **Renvoyer après un refus** : A peut réenvoyer une demande à B.
 
 ## ⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)
 

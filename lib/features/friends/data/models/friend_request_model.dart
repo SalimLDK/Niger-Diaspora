@@ -38,12 +38,18 @@ class FriendRequestModel with _$FriendRequestModel {
         updatedAt: updatedAt,
       );
 
+  /// Le `default` rendait `pending` pour TOUTE valeur inconnue — donc pour
+  /// `cancelled`, que `cancelFriendRequest` ecrit. Une demande annulee se
+  /// lisait comme en attente. Les trois etats terminaux sont desormais nommes,
+  /// et `pending` ne reste le repli que pour une valeur vraiment inattendue.
   static FriendRequestStatus _parseStatus(String status) {
     switch (status) {
       case 'accepted':
         return FriendRequestStatus.accepted;
       case 'declined':
         return FriendRequestStatus.declined;
+      case 'cancelled':
+        return FriendRequestStatus.cancelled;
       default:
         return FriendRequestStatus.pending;
     }
