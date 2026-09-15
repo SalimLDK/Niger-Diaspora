@@ -46,8 +46,16 @@ class MlsNotificationPreview {
   static const maxApercusCaches = 50;
 
   /// Vrai quand ce push est un message MLS à déchiffrer localement.
+  ///
+  /// Le réglage « aperçu des messages » (`users.show_message_preview`) compte
+  /// ici autant qu'avant : `send-push` le transmet dans le payload sous
+  /// `showMessagePreview`. Sans cette garde il n'aurait plus couvert que le
+  /// legacy — un réglage qui cesse silencieusement de s'appliquer est pire
+  /// qu'un réglage absent.
   static bool concerne(Map<String, dynamic> data) =>
-      data['protocol'] == 'mls' && (data['mlsCiphertext'] as String?)?.isNotEmpty == true;
+      data['protocol'] == 'mls' &&
+      data['showMessagePreview'] != 'false' &&
+      (data['mlsCiphertext'] as String?)?.isNotEmpty == true;
 
   /// Rend le texte d'aperçu, ou `null` si quoi que ce soit manque ou échoue.
   ///
@@ -81,7 +89,7 @@ class MlsNotificationPreview {
         userId: userId,
         deviceId: deviceId,
         conversationId: conversationId,
-        message: base64Decode(data['mlsCiphertext'] as String),
+        message: _decoderBase64(data['mlsCiphertext'] as String),
         // Recomposé depuis les colonnes portées par le push, jamais depuis le
         // payload : un ciphertext présenté sous un autre identifiant échoue.
         aad: MlsAad.message(
@@ -117,6 +125,14 @@ class MlsNotificationPreview {
       await prefs.remove(cle);
     }
   }
+
+  /// `encode(bytea, 'base64')` de Postgres coupe sa sortie tous les 76
+  /// caractères, et `base64Decode` refuse les sauts de ligne. Le trigger ne
+  /// les émet plus (migration `20260915160000`), mais un push écrit par une
+  /// version antérieure peut encore en porter : les retirer coûte une ligne,
+  /// et l'aperçu échouait à chaque message sans elle.
+  static Uint8List _decoderBase64(String valeur) =>
+      base64Decode(valeur.replaceAll('\n', '').replaceAll('\r', ''));
 
   /// Ce qu'on montre dans la bannière, selon le type de message.
   @visibleForTesting

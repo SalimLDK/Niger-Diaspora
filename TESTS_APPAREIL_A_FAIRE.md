@@ -7159,11 +7159,19 @@ ne le dise**. Le déchiffrement passe donc par `apercuSansEtat`, qui travaille
 sur une copie jetable produite par `VACUUM INTO` côté Rust, lue puis
 supprimée. Un seul écrivain de l'état MLS : l'application.
 
-Vérifié hors appareil : un cas Rust (`l_apercu_ne_consomme_pas_le_cliquet`)
-et un cas du banc contre la vraie base (aperçu deux fois, puis lecture par
-l'app) ; 20 tests Dart de structure. **Rien n'a tourné sur un téléphone.**
-La migration `20260915140000_mls_notifications.sql` doit être appliquée
-(`db push`) — sans elle, un message MLS ne notifie personne du tout.
+Vérifié hors appareil, **contre la base de production** : le banc (16 cas
+verts) écrit un message MLS, relit la ligne `notifications` produite par le
+trigger et vérifie qu'elle ne contient **rien de lisible** — corps générique,
+ciphertext intact, expéditeur non notifié — puis reconstruit l'aperçu depuis
+ce que le push transporte. Plus un cas Rust
+(`l_apercu_ne_consomme_pas_le_cliquet`) et 22 tests Dart. **Rien n'a tourné
+sur un téléphone.**
+
+⚠️ **Une migration reste à appliquer** :
+`20260915160000_mls_notifications_base64_sans_sauts.sql`. Sans elle,
+`encode(bytea,'base64')` coupe sa sortie tous les 76 caractères et
+`base64Decode` la refuse : l'aperçu échouerait **à chaque message**, en
+silence. Le client a été rendu tolérant en plus, pas à la place.
 
 Fichiers : [mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_preview.dart),
 [notification_service.dart](lib/core/services/notification_service.dart)
@@ -7192,9 +7200,9 @@ Fichiers : [mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_
 - [ ] **Un ancien build** qui reçoit un push MLS : bannière générique, aucun
   plantage.
 - [ ] **Réglage « aperçu des messages » désactivé** : le corps reste
-  générique même quand le déchiffrement aurait réussi. ⚠️ **Non câblé à ce
-  jour** : `send-push` masque l'aperçu que le serveur a écrit, pas celui que
-  l'appareil reconstruit. À traiter avant d'ouvrir le flag MLS.
+  générique même quand le déchiffrement aurait réussi. Câblé le 2026-09-15 —
+  `MlsNotificationPreview.concerne` lit le drapeau `showMessagePreview` que
+  `send-push` transmet déjà —, à vérifier sur appareil.
 
 ---
 

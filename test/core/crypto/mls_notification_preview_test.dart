@@ -58,6 +58,28 @@ void main() {
       // Un message legacy garde son chemin : le serveur a déjà mis l'aperçu.
       expect(MlsNotificationPreview.concerne({'type': 'message'}), isFalse);
     });
+
+    test('le réglage « aperçu des messages » vaut aussi pour MLS', () {
+      // `send-push` transmet ce drapeau. Sans cette garde, le réglage aurait
+      // cessé de s'appliquer au moment où le déchiffrement a changé de côté —
+      // un réglage qui s'éteint en silence est pire qu'un réglage absent.
+      expect(
+        MlsNotificationPreview.concerne({
+          'protocol': 'mls',
+          'mlsCiphertext': 'AAA',
+          'showMessagePreview': 'false',
+        }),
+        isFalse,
+      );
+      expect(
+        MlsNotificationPreview.concerne({
+          'protocol': 'mls',
+          'mlsCiphertext': 'AAA',
+          'showMessagePreview': 'true',
+        }),
+        isTrue,
+      );
+    });
   });
 
   group('câblage — le piège du cliquet', () {
