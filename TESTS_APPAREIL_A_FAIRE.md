@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1082 cases à cocher, 569 cochées** — 218 entrées sur 263 ont encore des cases ouvertes.
+**1080 cases à cocher, 572 cochées** — 218 entrées sur 263 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -74,7 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
-- 4 · [⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)](#-banc-mls-bout-en-bout-contre-la-vraie-base-phase-3-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 2 · [⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)](#-banc-mls-bout-en-bout-contre-la-vraie-base-phase-3-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
@@ -278,7 +278,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 195 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 67 à faire, 23 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 65 à faire, 26 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 69 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5558,24 +5558,49 @@ Fichiers : [mls_banc_test.dart](test/banc/mls_banc_test.dart),
 Protocole :
 
 ```bash
-supabase db push --linked                       # migration de transport (Salim)
-cd rust && cargo build && cd ..                 # bibliothèque hôte
-node tools/mls_banc/sessions.mjs > "$TEMP/sessions.json" && \n  MLS_BANC_SESSIONS="$TEMP/sessions.json" flutter test test/banc   # jetons : 6 min
-node tools/purge_comptes_sonde.mjs --confirmer  # ménage des comptes sonde-banc-*
+cd rust && cargo build && cd ..                  # bibliothèque hôte
+node tools/mls_banc/sessions.mjs > "$TEMP/sessions.json" \
+  && MLS_BANC_SESSIONS="$TEMP/sessions.json" flutter test test/banc
+node tools/mls_banc/purge.mjs --confirmer        # données laissées en base
+node tools/purge_comptes_sonde.mjs --confirmer   # comptes sonde-banc-*
 ```
 
-- [ ] **Le banc passe** en entier sur la base de production. Premier passage
-  le 2026-09-15 avant la migration de transport : les 2 cas du registre
-  passent (RLS réel), les 11 autres tombent sur `mls_welcomes` absente —
-  attendu.
-- [ ] **Il échoue quand on casse un cas exprès** (par exemple : commenter
-  `set_aad` dans `add_members` du moteur et relancer — le cas « epoch passé »
-  doit tomber sur `aad_mismatch`). C'est le critère de sortie de la phase.
+Les jetons de sonde expirent en **six minutes** : fabriquer le fichier et
+lancer le banc dans la même commande, jamais à l'avance.
+
+- [x] **Le banc passe** en entier sur la base de production — **14 cas, le
+  2026-09-15 à 05:58**, RLS réel, moteur Rust chargé dans `flutter test`.
+  Trafic produit : 98 messages chiffrés, 68 commits, 41 Welcome, 24
+  conversations basculées.
+- [x] **Il échoue quand on casse un cas exprès** — vérifié le 2026-09-15 :
+  l'AAD de commit retiré de `add_members`, deux cas tombent (le message d'un
+  epoch passé et la révocation), parce qu'un commit sans AAD devient
+  illisible pour les autres membres. Moteur restauré, banc revenu au vert.
+- [x] **`mls_diagnostics` ne contient que les lignes attendues** :
+  `decrypt_failed` (messages antérieurs à un ajout, appareil révoqué),
+  `commit_perdu` (cas concurrent), `identite_mls_changee` (réinstallations).
+  `commit_illisible` et `epoch_futur` n'apparaissent que sur le passage
+  saboté — c'est ce qui rend le sabotage visible en base.
 - [ ] **Il reste vert deux jours de suite** (les KeyPackages, les sessions
   et les comptes sonde sont neufs à chaque exécution).
-- [ ] **`mls_diagnostics`** ne contient, après un passage, que les lignes
-  attendues (`commit_perdu` du cas concurrent, `decrypt_failed` du Charlie
-  révoqué) — rien d'autre.
+- [ ] **Relancer après tout changement du moteur ou du transport.** C'est le
+  seul endroit où les deux défauts ci-dessous pouvaient apparaître.
+
+**Ce que le premier passage a trouvé, et qu'aucun test unitaire ne voyait :**
+
+1. **Les KeyPackages survivaient à une réinstallation.** La ligne
+   `mls_devices` est mise à jour avec la nouvelle identité MLS, mais ses 51
+   paquets restaient publiés — leurs secrets privés partis avec l'ancienne
+   base, et portant l'ancienne clé de signature. Le compteur de
+   réapprovisionnement les voyait (51 ≥ 10, rien à faire), un membre en
+   réclamait un, et l'ajout échouait sur `CreateCommitError` : la clé était
+   déjà dans l'arbre. Trois cas sur douze tombaient dessus, tous avec la même
+   erreur, sans que rien ne désigne la cause. Corrigé : `ensureRegistered` lit
+   l'identité avant de l'écraser et purge les paquets quand elle change.
+2. **Une révocation refusée par le RLS ne levait pas.** Un compte tentant de
+   révoquer l'appareil d'un autre touchait zéro ligne, sans erreur, et
+   l'écran aurait annoncé « appareil révoqué ». Corrigé : `revoke` lit les
+   lignes modifiées et lève si elles sont vides.
 
 ---
 

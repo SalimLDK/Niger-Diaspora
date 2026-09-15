@@ -102,6 +102,30 @@ void main() {
       }
     });
 
+    test('une identité MLS changée purge les KeyPackages de l’appareil', () {
+      // Trouvé par le banc le 2026-09-15 : après une réinstallation, les
+      // paquets de l'installation d'avant restaient publiés, le compteur de
+      // réapprovisionnement les voyait, et l'ajout du nouvel appareil
+      // échouait sur une clé déjà présente dans l'arbre.
+      final source = _source('lib/core/crypto/mls/mls_device_registry.dart');
+      expect(source, contains("select('id, mls_identity')"),
+          reason: 'lire l’identité AVANT de l’écraser');
+      expect(source, contains("identiteAvant.isNotEmpty && identiteAvant != identite"));
+      expect(source, contains("from('mls_key_packages').delete().eq('device_id'"));
+      expect(source, contains("'identite_mls_changee'"));
+    });
+
+    test('une révocation refusée par le RLS lève, au lieu de mentir', () {
+      // Un `update` que le RLS refuse touche zéro ligne sans erreur : l'écran
+      // annonçait « appareil révoqué » alors que rien n'avait bougé.
+      final source = _source('lib/core/crypto/mls/mls_device_registry.dart');
+      final i = source.indexOf('Future<void> revoke(');
+      expect(i, greaterThan(-1));
+      final corps = source.substring(i, i + 900);
+      expect(corps, contains(".select('id')"));
+      expect(corps, contains('throw StateError'));
+    });
+
     test('la migration ne laisse rien à anon et réclame les paquets par RPC', () {
       final sql = _source(
         'supabase/migrations/20260915100000_mls_registre_appareils.sql',
