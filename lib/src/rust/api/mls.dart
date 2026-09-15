@@ -52,6 +52,10 @@ part 'mls.freezed.dart';
  Future<void>  jeterCommitEnAttente({required String conversationId });
 
 
+/// Supprime l'état local d'un groupe (perdant de la course à la création).
+ Future<void>  oublierGroupe({required String conversationId });
+
+
 /// Ouvre (ou crée) la base SQLite du moteur pour cet appareil.
 static Future<Moteur>  ouvrir({required String dbPath , required String userId , required String deviceId })=>RustLib.instance.api.crateApiMlsMoteurOuvrir(dbPath: dbPath, userId: userId, deviceId: deviceId);
 

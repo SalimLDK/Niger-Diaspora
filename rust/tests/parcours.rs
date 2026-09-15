@@ -117,7 +117,7 @@ fn membre_retire_ne_lit_plus() {
         .unwrap()
         .members
         .into_iter()
-        .find(|m| m.identity == b"bob:b1")
+        .find(|m| m.identity.starts_with(b"bob:b1:"))
         .unwrap()
         .leaf_index;
     let out = alice.remove_members(conv, &[leaf_bob], &aad_commit(conv, 2)).unwrap();
@@ -139,7 +139,7 @@ fn moteur_ferme_et_rouvert_conserve_le_groupe() {
 
     // Nouveau moteur sur la même base : même identité, même groupe.
     let mut alice2 = MlsEngine::open(&chemin, "alice", "a1").unwrap();
-    assert_eq!(alice2.identity(), b"alice:a1");
+    assert!(alice2.identity().starts_with(b"alice:a1:"));
     let snap = alice2.snapshot(conv).unwrap();
     assert_eq!(snap.epoch, 1);
 
@@ -166,7 +166,7 @@ fn jointure_externe_par_group_info() {
     match alice.process_incoming(conv, &out.commit, &a_join).unwrap() {
         Processed::Commit(snap) => {
             assert_eq!(snap.epoch, 2);
-            assert!(snap.members.iter().any(|m| m.identity == b"charlie:c1"));
+            assert!(snap.members.iter().any(|m| m.identity.starts_with(b"charlie:c1:")));
         }
         _ => panic!("attendu un commit"),
     }

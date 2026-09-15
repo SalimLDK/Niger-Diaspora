@@ -175,6 +175,11 @@ impl Moteur {
         })
     }
 
+    /// Supprime l'état local d'un groupe (perdant de la course à la création).
+    pub fn oublier_groupe(&mut self, conversation_id: String) -> anyhow::Result<()> {
+        self.interne.forget_group(&conversation_id).map_err(code)
+    }
+
     pub fn instantane(&mut self, conversation_id: String) -> anyhow::Result<InstantaneDto> {
         self.interne
             .snapshot(&conversation_id)

@@ -68,7 +68,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
                   String get codegenVersion => '2.13.0';
 
                   @override
-                  int get rustContentHash => 1064426577;
+                  int get rustContentHash => -864710806;
 
                   static const kDefaultExternalLibraryLoaderConfig = ExternalLibraryLoaderConfig(
                     stem: 'diaspo_mls',
@@ -101,6 +101,8 @@ String crateApiMlsMoteurIdentite({required Moteur that });
 Future<InstantaneDto> crateApiMlsMoteurInstantane({required Moteur that , required String conversationId });
 
 Future<void> crateApiMlsMoteurJeterCommitEnAttente({required Moteur that , required String conversationId });
+
+Future<void> crateApiMlsMoteurOublierGroupe({required Moteur that , required String conversationId });
 
 Future<Moteur> crateApiMlsMoteurOuvrir({required String dbPath , required String userId , required String deviceId });
 
@@ -418,13 +420,39 @@ sse_encode_String(conversationId, serializer);
         );
         
 
+@override Future<void> crateApiMlsMoteurOublierGroupe({required Moteur that , required String conversationId })  { return handler.executeNormal(NormalTask(
+            callFfi: (port_) {
+              
+            final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMoteur(that, serializer);
+sse_encode_String(conversationId, serializer);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12, port: port_);
+            
+            },
+            codec: 
+        SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        )
+        ,
+            constMeta: kCrateApiMlsMoteurOublierGroupeConstMeta,
+            argValues: [that, conversationId],
+            apiImpl: this,
+        )); }
+
+
+        TaskConstMeta get kCrateApiMlsMoteurOublierGroupeConstMeta => const TaskConstMeta(
+            debugName: "Moteur_oublier_groupe",
+            argNames: ["that", "conversationId"],
+        );
+        
+
 @override Future<Moteur> crateApiMlsMoteurOuvrir({required String dbPath , required String userId , required String deviceId })  { return handler.executeNormal(NormalTask(
             callFfi: (port_) {
               
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_String(dbPath, serializer);
 sse_encode_String(userId, serializer);
 sse_encode_String(deviceId, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13, port: port_);
             
             },
             codec: 
@@ -452,7 +480,7 @@ sse_encode_String(deviceId, serializer);
 sse_encode_String(conversationId, serializer);
 sse_encode_list_prim_u_8_loose(groupInfo, serializer);
 sse_encode_list_prim_u_8_loose(aad, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14, port: port_);
             
             },
             codec: 
@@ -480,7 +508,7 @@ sse_encode_list_prim_u_8_loose(aad, serializer);
 sse_encode_String(conversationId, serializer);
 sse_encode_list_prim_u_32_loose(leafIndices, serializer);
 sse_encode_list_prim_u_8_loose(aad, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15, port: port_);
             
             },
             codec: 
@@ -508,7 +536,7 @@ sse_encode_list_prim_u_8_loose(aad, serializer);
 sse_encode_String(conversationId, serializer);
 sse_encode_list_prim_u_8_loose(message, serializer);
 sse_encode_list_prim_u_8_loose(aadAttendu, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16, port: port_);
             
             },
             codec: 
@@ -535,7 +563,7 @@ sse_encode_list_prim_u_8_loose(aadAttendu, serializer);
             final serializer = SseSerializer(generalizedFrbRustBinding);sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMoteur(that, serializer);
 sse_encode_String(conversationId, serializer);
 sse_encode_list_prim_u_8_loose(welcome, serializer);
-            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16, port: port_);
+            pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17, port: port_);
             
             },
             codec: 
@@ -904,6 +932,10 @@ serializer.buffer.putInt32(self); }
 
 
  Future<void>  jeterCommitEnAttente({required String conversationId })=>RustLib.instance.api.crateApiMlsMoteurJeterCommitEnAttente(that: this, conversationId: conversationId);
+
+
+/// Supprime l'état local d'un groupe (perdant de la course à la création).
+ Future<void>  oublierGroupe({required String conversationId })=>RustLib.instance.api.crateApiMlsMoteurOublierGroupe(that: this, conversationId: conversationId);
 
 
  Future<CommitDto>  rejoindreParCommitExterne({required String conversationId , required List<int> groupInfo , required List<int> aad })=>RustLib.instance.api.crateApiMlsMoteurRejoindreParCommitExterne(that: this, conversationId: conversationId, groupInfo: groupInfo, aad: aad);

@@ -11,6 +11,7 @@ use openmls::prelude::tls_codec::{Deserialize as TlsDeserialize, Serialize as Tl
 use openmls::messages::group_info::GroupInfo;
 use openmls::prelude::*;
 use openmls_basic_credential::SignatureKeyPair;
+use openmls_traits::random::OpenMlsRand;
 use openmls_traits::OpenMlsProvider;
 use rusqlite::Connection;
 
@@ -167,38 +168,51 @@ impl MlsEngine {
     pub fn open(db_path: &Path, user_id: &str, device_id: &str) -> Result<Self, MlsError> {
         let provider = DiaspoProvider::open(db_path)?;
         let meta = Connection::open(db_path)?;
+        // Une INSTALLATION par (compte, appareil) : l'identité MLS porte un
+        // suffixe tiré au sort à la création de la base. Une réinstallation
+        // (base perdue) produit donc une identité NEUVE — c'est ce qui permet
+        // aux autres membres de voir un appareil à réajouter, au lieu d'un
+        // membre existant dont la clé aurait changé sans prévenir (§ 5.6).
         meta.execute_batch(
-            "CREATE TABLE IF NOT EXISTS diaspo_identity (
-                identity BLOB PRIMARY KEY,
+            "CREATE TABLE IF NOT EXISTS diaspo_installation (
+                cle TEXT PRIMARY KEY,
+                identity BLOB NOT NULL,
                 public_key BLOB NOT NULL
             );",
         )?;
 
-        let identity = format!("{user_id}:{device_id}").into_bytes();
-        let existing: Option<Vec<u8>> = meta
+        let cle = format!("{user_id}:{device_id}");
+        let existing: Option<(Vec<u8>, Vec<u8>)> = meta
             .query_row(
-                "SELECT public_key FROM diaspo_identity WHERE identity = ?1",
-                [&identity],
-                |row| row.get(0),
+                "SELECT identity, public_key FROM diaspo_installation WHERE cle = ?1",
+                [&cle],
+                |row| Ok((row.get(0)?, row.get(1)?)),
             )
             .ok();
 
-        let signer = match existing {
-            Some(public_key) => SignatureKeyPair::read(
-                provider.storage(),
-                &public_key,
-                CIPHERSUITE.signature_algorithm(),
-            )
-            .ok_or(MlsError::IdentityMissing)?,
+        let (identity, signer) = match existing {
+            Some((identity, public_key)) => (
+                identity,
+                SignatureKeyPair::read(
+                    provider.storage(),
+                    &public_key,
+                    CIPHERSUITE.signature_algorithm(),
+                )
+                .ok_or(MlsError::IdentityMissing)?,
+            ),
             None => {
                 let signer =
                     SignatureKeyPair::new(CIPHERSUITE.signature_algorithm()).map_err(code)?;
                 signer.store(provider.storage()).map_err(code)?;
+                // 8 octets aléatoires du fournisseur crypto, en hexadécimal.
+                let alea = provider.rand().random_vec(8).map_err(code)?;
+                let suffixe: String = alea.iter().map(|o| format!("{o:02x}")).collect();
+                let identity = format!("{cle}:{suffixe}").into_bytes();
                 meta.execute(
-                    "INSERT INTO diaspo_identity (identity, public_key) VALUES (?1, ?2)",
-                    (&identity, signer.public()),
+                    "INSERT INTO diaspo_installation (cle, identity, public_key) VALUES (?1, ?2, ?3)",
+                    (&cle, &identity, signer.public()),
                 )?;
-                signer
+                (identity, signer)
             }
         };
 
@@ -432,6 +446,24 @@ impl MlsEngine {
         group
             .export_secret(self.provider.crypto(), label, &[], length)
             .map_err(code)
+    }
+
+    /// Oublie un groupe local (état et secrets supprimés du stockage).
+    ///
+    /// Sert au perdant de la course à la création (§ 5.2) : deux appareils
+    /// qui créent le même groupe en même temps ont deux secrets différents ;
+    /// celui dont la réservation de l'epoch 0 est refusée jette le sien et
+    /// attend un Welcome.
+    pub fn forget_group(&mut self, conversation_id: &str) -> Result<(), MlsError> {
+        let mut group = match self.groups.remove(conversation_id) {
+            Some(g) => g,
+            None => match MlsGroup::load(self.provider.storage(), &group_id(conversation_id)).map_err(code)? {
+                Some(g) => g,
+                None => return Ok(()),
+            },
+        };
+        group.delete(self.provider.storage()).map_err(code)?;
+        Ok(())
     }
 
     /// Ferme le moteur : l'état est déjà sur disque (écriture continue).
