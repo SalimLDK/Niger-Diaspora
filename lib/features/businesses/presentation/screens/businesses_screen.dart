@@ -132,20 +132,20 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                           Icon(
                             Icons.business_outlined,
                             size: 64,
-                            color: theme.colorScheme.outline,
+                            color: context.iconTertiaryColor,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             l10n.noBusinessFound,
                             style: theme.textTheme.titleMedium?.copyWith(
-                              color: theme.colorScheme.outline,
+                              color: context.textSecondaryColor,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             l10n.beFirstToAddBusiness,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.outline,
+                              color: context.textTertiaryColor,
                             ),
                           ),
                         ],
@@ -153,7 +153,11 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                     );
                   }
                   return ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    // Marge basse généreuse : le FAB étendu « Ajouter » flotte
+                    // par-dessus la liste (le Scaffold ne réserve pas
+                    // d'espace pour lui) et recouvrait le bas de la dernière
+                    // carte — ville et note illisibles derrière le bouton.
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
                     itemCount: businesses.length,
                     itemBuilder: (context, index) {
                       final business = businesses[index];

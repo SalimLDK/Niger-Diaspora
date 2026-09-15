@@ -1,10 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/services/file_download_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../utils/image_locale_ou_reseau.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Full screen image viewer with zoom, pan, download, and share capabilities
@@ -98,7 +98,11 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
       }
     }
 
-    final success = await service.downloadImageToGallery(
+    final success = estUrlLocale(widget.imageUrl)
+        ? await enregistrerImageLocaleDansGalerie(
+            cheminDepuisUrlLocale(widget.imageUrl),
+          )
+        : await service.downloadImageToGallery(
       widget.imageUrl,
       onProgress: (received, total) {
         if (total > 0) {
@@ -127,7 +131,15 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
 
   Future<void> _shareImage() async {
     try {
-      await SharePlus.instance.share(ShareParams(text: widget.imageUrl));
+      await SharePlus.instance.share(
+        estUrlLocale(widget.imageUrl)
+            // Un média déchiffré se partage en fichier : son URL ne mène
+            // qu'à un blob illisible.
+            ? ShareParams(
+                files: [XFile(cheminDepuisUrlLocale(widget.imageUrl))],
+              )
+            : ShareParams(text: widget.imageUrl),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -232,7 +244,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
 
   Widget _buildPhotoView() {
     return PhotoView(
-      imageProvider: CachedNetworkImageProvider(widget.imageUrl),
+      imageProvider: imageProviderPour(widget.imageUrl),
       loadingBuilder: (context, event) {
         return Center(
           child: CircularProgressIndicator(

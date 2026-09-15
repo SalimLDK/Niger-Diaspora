@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1051 cases à cocher, 566 cochées** — 213 entrées sur 257 ont encore des cases ouvertes.
+**1062 cases à cocher, 569 cochées** — 214 entrées sur 259 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (67)
+**P1 — fonction importante, jamais vérifiée** (68)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -77,6 +77,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
 - 5 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
@@ -240,7 +241,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
-- 3 · [⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14)](#-deux-textes-du-fil-que-font_scale-13-abime--corrigés-à-revoir-2026-09-14) · *Design, thème, langue et mise en page*
+- 2 · [⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14)](#-deux-textes-du-fil-que-font_scale-13-abime--corrigés-à-revoir-2026-09-14) · *Design, thème, langue et mise en page*
 - 5 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
 - 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
@@ -271,7 +272,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 183 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 195 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 113 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -279,9 +280,9 @@ Par domaine :
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 46 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 152 à faire, 29 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 151 à faire, 30 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -530,6 +531,65 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)
+
+**Priorité P1** · importance 4/5 — Première tranche du chiffrement des
+médias de messagerie (plan MLS, décision C4) : quand le drapeau
+administrateur `featureFlags.mediasChiffres` est ouvert, une photo, un
+document, un fichier audio ou une note vocale part chiffré (AES-256-GCM,
+clé propre au fichier) vers `encrypted_media/…` de Firebase Storage, et sa
+clé voyage dans `messages.data.encMedia`, scellée avec la clé dérivée de la
+conversation. Le serveur ne voit qu'un blob et un nom générique (« photo »,
+« document », « note-vocale »). **La vidéo n'est pas concernée** (elle attend
+un déchiffrement par morceaux). Rien de tout ça n'a tourné sur un appareil :
+le drapeau est fermé par défaut, et **doit le rester tant que la mise à jour
+minimale n'est pas imposée** — un ancien build affiche une image cassée.
+
+Fichiers : [media_dechiffre_cache.dart](lib/core/services/e2ee/media_dechiffre_cache.dart)
+(téléchargement + déchiffrement une seule fois, cache dans le répertoire de
+support), [media_chiffre_gate.dart](lib/features/messages/presentation/widgets/media_chiffre_gate.dart)
+(barrière qui passe aux bulles un `file://` déjà déchiffré),
+[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`_envoyerMediaChiffre`), [message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart)
+(`_scellerMedia`, `_fusionnerMedia`).
+
+Protocole : deux téléphones sur le même build, drapeau ouvert dans le
+document `admin_settings` de Firestore (`featureFlags.mediasChiffres: true`),
+puis remis à `false` à la fin.
+
+- [ ] **Photo** : envoyée depuis A, elle s'affiche chez B (gabarit flou puis
+  image), et chez A dans sa propre bulle **sans rechargement**. En base,
+  `data->>'fileName'` vaut `photo`, `data ? 'encMedia'` est vrai, et
+  `data->>'fileUrl'` téléchargé à la main donne un fichier illisible.
+- [ ] **Réouverture** de la discussion : la photo revient depuis le cache
+  local, sans nouveau téléchargement (couper le réseau avant de rouvrir).
+- [ ] **Accusé de lecture** : après que B a lu, la bulle de A montre toujours
+  la photo (le flux de mises à jour ne doit pas l'effacer).
+- [ ] **Plein écran, enregistrer, partager** depuis la bulle de B : l'image
+  s'ouvre, s'enregistre dans la galerie (album « Diaspo Niger »), se partage
+  en fichier — pas en lien.
+- [ ] **Galerie de la conversation** (grille et bandeau compact) : la photo
+  chiffrée y figure et s'ouvre en plein écran.
+- [ ] **Document PDF** : le tap ouvre la feuille de partage du système (pas
+  de navigateur) ; « ouvrir avec » un lecteur PDF affiche le document.
+- [ ] **Note vocale** et **fichier audio** : lecture, pause, vitesse, forme
+  d'onde — identiques à un envoi en clair.
+- [ ] **Mode données réduites** : la barrière de déchiffrement se lève après
+  la barrière « télécharger », pas avant (aucun téléchargement sans tap).
+- [ ] **Clé de conversation indisponible** (couper le réseau juste avant
+  d'envoyer une photo avec le cache de clés vidé) : l'envoi **échoue
+  visiblement** — « Clé de conversation indisponible : média non envoyé » —
+  au lieu de partir en clair.
+- [ ] **Supprimer pour tous** une photo chiffrée : la bulle disparaît chez B,
+  `encMedia` n'est plus en base.
+- [ ] **Ancien build** (APK précédent) qui reçoit une photo chiffrée : image
+  cassée, sans plantage. C'est attendu, et c'est pourquoi le drapeau attend la
+  mise à jour minimale.
+- [ ] **Thème sombre** : gabarit d'attente et état d'erreur de la barrière
+  lisibles.
 
 ---
 
@@ -10736,6 +10796,31 @@ Annuaires, démarches consulaires, carte des membres et des postes, événements
 
 ---
 
+## ✅ Annuaire Business : texte et icônes quasi invisibles sur la carte — corrigé, vérifié SM A515F clair + sombre (2026-09-14)
+
+**Priorité P2** · importance 2/5 — Sur l'écran `/businesses`, la ville, les
+icônes de localisation, l'icône de remplacement (pas de photo) et le nombre
+d'avis étaient posés en `theme.colorScheme.outline` — une couleur de
+**bordure** (`AppColors.border`/`borderDark`, quasi confondue avec le fond de
+carte dans les deux thèmes), pas une couleur de texte. Rendu quasi illisible,
+signalé par Salim sur capture SM A515F.
+
+**Corrigé** dans `business_card.dart` et `businesses_screen.dart` : bascule
+vers `context.textSecondaryColor`/`context.textTertiaryColor`/
+`context.iconTertiaryColor` (`AdaptiveColors`, déjà la source unique de ces
+tons ailleurs dans l'app). `outlineVariant` reste en place là où c'est un
+vrai trait de bordure (`businesses_screen.dart`, séparateur du filtre
+localisation).
+
+- [x] **Thème clair** — SM A515F, `/businesses` (lien profond
+  `https://diasponiger.com/businesses`) : ville et icônes lisibles sur les
+  trois cartes de la liste.
+- [x] **Thème sombre** — même écran, `adb shell cmd uimode night yes` :
+  toujours lisible, aucune régression du gris de bordure en clair sur fond
+  sombre.
+
+---
+
 ## ⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)
 
 **Priorité P0** · importance 5/5 — Un événement « visible uniquement par les participants » d'une discussion était lisible par TOUT LE MONDE (policy `events_select` ouverte, aucun filtre `is_public`), et le seul choix était un interrupteur caché sous la catégorie.
@@ -13172,11 +13257,15 @@ page.
 elle, ne l'est pas — c'est du rendu à une échelle donnée, un test unitaire
 n'en dirait rien.
 
-- [ ] **Ligne d'auteur à `font_scale` 1.3** : `@nassirou · il y a 3 heures`
+- [x] **Ligne d'auteur à `font_scale` 1.3** : `@nassirou · il y a 3 heures`
   doit s'afficher **en entier**, quitte à passer sur deux lignes (`maxLines`
-  est passé de 1 à 2). Vérifier au passage qu'à l'échelle normale la ligne
-  tient toujours sur une seule, et qu'un pseudo très long ne fait pas gonfler
-  la carte outre mesure.
+  est passé de 1 à 2), et tenir sur une seule à l'échelle normale.
+  ✅ SM A515F, 2026-09-14 21:18, APK debug construit par une session sœur
+  depuis `d4245ea` (ancestralité et contenu vérifiés dans l'objet git avant la
+  mesure) : à 1.3, `il y a environ 42 minutes` et `@nassirou · il y a 3 heures`
+  s'affichent **en entier sur deux lignes** — c'était `31 minut…` et `3 he…`.
+  À 1.0, les trois lignes de l'écran tiennent sur une seule. Reste à voir un
+  pseudo très long, qu'aucun compte de test ne porte.
 - [ ] **Bandeau hors ligne** : « Fil hors ligne · dernière mise à jour **il**
   y a 11 **minutes** » — minuscule en milieu de phrase, pluriel décliné. Le
   bandeau apparaît en coupant le réseau sur le fil général (il se replie sur
