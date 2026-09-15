@@ -126,11 +126,15 @@ void main() {
   const uuid = Uuid();
 
   /// Une conversation neuve entre les participants donnés, créée par [par].
-  Future<String> conversation(Appareil par, List<Appareil> participants) async {
+  Future<String> conversation(
+    Appareil par,
+    List<Appareil> participants, {
+    String? type,
+  }) async {
     final id = uuid.v4();
     await par.client.from('conversations').insert({
       'id': id,
-      'type': participants.length > 2 ? 'group' : 'individual',
+      'type': type ?? (participants.length > 2 ? 'group' : 'individual'),
       'participant_ids': [for (final p in participants) p.uid],
       'created_by': par.uid,
       'data': {'name': 'banc MLS'},
@@ -637,6 +641,69 @@ void main() {
       expect(fusion.last.encryptionLevel, MessageEncryptionLevel.e2ee);
       // Le séparateur n'est pas un message : rien de ce qui compte ne le voit.
       expect(MlsSourceMerger.sansSeparateur(fusion), hasLength(3));
+    });
+  });
+
+  group('groupe ouvert : on entre sans attendre personne', () {
+    test('Charlie se joint par commit externe, puis lit et écrit', () async {
+      // Le cas du groupe officiel d'une ville : on le rejoint automatiquement,
+      // souvent sans qu'aucun membre ne soit en ligne pour vous ajouter. Sans
+      // la jointure externe (§ 5.7), l'arrivant attendrait indéfiniment son
+      // Welcome — et le groupe paraîtrait vide.
+      // Un GROUPE à deux au départ : c'est le cas du groupe officiel d'une
+      // ville, que des gens rejoignent ensuite sans être invités.
+      final conv = await conversation(a, [a, b], type: 'group');
+      await a.service.ensureGroup(conv);
+      await a.service.reconcileMembership(conv);
+      await a.service.send(conv, MlsPayload.texte(uuid.v4(), 'avant Charlie'));
+      await b.service.catchUp(conv);
+
+      // Charlie devient participant côté serveur, et personne ne l'ajoute.
+      await a.client.from('conversations').update({
+        'participant_ids': [a.uid, b.uid, c.uid],
+      }).eq('id', conv);
+
+      // Il entre tout seul, depuis l'arbre public.
+      await c.service.ensureGroup(conv);
+      final snapC = await (await c.moteur()).instantane(conversationId: conv);
+      expect(snapC.membres.length, 3);
+
+      // Les membres en place traitent son commit et continuent de lui parler.
+      final m = await a.service.send(conv, MlsPayload.texte(uuid.v4(), 'bienvenue'));
+      expect((await c.service.catchUp(conv)).map((x) => x.payload?.texte),
+          contains('bienvenue'));
+      expect((await b.service.catchUp(conv)).map((x) => x.payload?.texte),
+          contains('bienvenue'));
+
+      // Et ce qu'il écrit est lu par les autres.
+      final sien = await c.service.send(conv, MlsPayload.texte(uuid.v4(), 'merci'));
+      expect(sien.epoch, greaterThanOrEqualTo(m.epoch));
+      expect((await a.service.catchUp(conv)).map((x) => x.payload?.texte),
+          contains('merci'));
+
+      // Ce qui précède son arrivée lui reste illisible : c'est la propriété
+      // du protocole, pas un défaut — et l'écran doit pouvoir le dire.
+      final avant = await c.service.catchUp(conv);
+      expect(avant.where((x) => x.payload?.texte == 'avant Charlie'), isEmpty);
+    });
+
+    test('un 1:1 ne se rejoint pas tout seul', () async {
+      // Personne ne doit pouvoir entrer dans une conversation à deux sans y
+      // être invité. Le RLS l'empêcherait de toute façon — la garde côté
+      // client dit seulement l'intention.
+      final prive = await conversation(a, [a, b]);
+      await a.service.ensureGroup(prive);
+      await a.service.reconcileMembership(prive);
+      await a.service.send(prive, MlsPayload.texte(uuid.v4(), 'entre nous'));
+
+      await a.client.from('conversations').update({
+        'participant_ids': [a.uid, b.uid, c.uid],
+      }).eq('id', prive);
+
+      await expectLater(
+        c.service.ensureGroup(prive),
+        throwsA(isA<MlsEnAttenteDeWelcome>()),
+      );
     });
   });
 }

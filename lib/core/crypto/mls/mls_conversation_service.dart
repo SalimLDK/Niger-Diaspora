@@ -96,8 +96,46 @@ class MlsConversationService {
       return;
     }
 
-    // 2. Le groupe existe déjà : quelqu'un doit m'ajouter.
+    // 2. Le groupe existe déjà. Dans un groupe, je peux m'ajouter moi-même
+    //    depuis l'arbre public (§ 5.7) : c'est ce qui rend le groupe officiel
+    //    d'une ville praticable, puisqu'on le rejoint automatiquement, souvent
+    //    sans qu'aucun membre ne soit en ligne. Pour un 1:1, non — il n'y a
+    //    personne à rejoindre sans invitation.
     if (await _delivery.currentEpoch(conversationId) != null) {
+      if (await _jointureExternePossible(conversationId)) {
+        final arbre = await _delivery.groupInfo(conversationId);
+        final epochCourant = await _delivery.currentEpoch(conversationId);
+        if (arbre != null && epochCourant != null) {
+          final epoch = epochCourant + 1;
+          final aad = MlsAad.commit(conversationId: conversationId, epoch: epoch);
+          final out = await moteur.rejoindreParCommitExterne(
+            conversationId: conversationId,
+            groupInfo: arbre,
+            aad: aad,
+          );
+          try {
+            await _delivery.publishCommit(
+              conversationId: conversationId,
+              epoch: epoch,
+              senderDeviceId: appareil.id,
+              commit: out.commit,
+              groupInfo: out.groupInfo,
+            );
+          } on EpochConflict {
+            // Quelqu'un a commité pendant ma jointure : mon arbre est déjà
+            // périmé. J'oublie ce groupe et je recommence — le sien
+            // m'attendra peut-être avec un Welcome.
+            await moteur.oublierGroupe(conversationId: conversationId);
+            await _delivery.diagnostic(userId, 'jointure_externe_perdue',
+                deviceId: appareil.id, detail: {'epoch': epoch});
+            return ensureGroup(conversationId);
+          }
+          await _delivery.upsertConversationDevice(
+              conversationId, appareil.id, 'active', epochAdded: epoch);
+          await _publierArbre(conversationId, moteur);
+          return;
+        }
+      }
       throw MlsEnAttenteDeWelcome(conversationId);
     }
 
@@ -118,6 +156,34 @@ class MlsConversationService {
     }
     await _delivery.marquerMlsSince(conversationId);
     await _delivery.upsertConversationDevice(conversationId, appareil.id, 'active', epochAdded: 0);
+    await _publierArbre(conversationId, moteur);
+  }
+
+  /// Publie l'arbre public de l'epoch courant, pour les arrivants.
+  ///
+  /// Échoue en silence : un arbre non publié coûte une jointure externe —
+  /// l'arrivant attendra un Welcome — mais ne doit jamais faire échouer le
+  /// commit qui vient d'aboutir.
+  Future<void> _publierArbre(String conversationId, Moteur moteur) async {
+    try {
+      final arbre = await moteur.exporterGroupInfo(conversationId: conversationId);
+      await _delivery.publierGroupInfo(conversationId, arbre);
+    } catch (e) {
+      await _delivery.diagnostic(userId, 'group_info_non_publie',
+          detail: {'code': _code(e)});
+    }
+  }
+
+  /// La jointure externe n'a de sens que pour une conversation de groupe.
+  ///
+  /// Dans un 1:1, s'ajouter soi-même à la conversation de quelqu'un d'autre
+  /// n'aurait aucune légitimité — et le RLS l'interdirait de toute façon,
+  /// puisqu'il faut déjà figurer dans `participant_ids` pour lire l'arbre.
+  /// Cette garde est donc une clarté d'intention ; la barrière, elle, est
+  /// côté serveur.
+  Future<bool> _jointureExternePossible(String conversationId) async {
+    final conv = await _delivery.conversation(conversationId);
+    return (conv?['type'] as String?) == 'group';
   }
 
   /// Aligne les membres du groupe sur les appareils actifs des participants
@@ -185,6 +251,7 @@ class MlsConversationService {
         for (final id in destinataires) {
           await _delivery.upsertConversationDevice(conversationId, id, 'active', epochAdded: epoch);
         }
+        await _publierArbre(conversationId, moteur);
       }
       if (aRetirer.isNotEmpty) {
         final snap2 = await moteur.instantane(conversationId: conversationId);
@@ -201,6 +268,9 @@ class MlsConversationService {
           commit: out.commit,
         );
         await moteur.fusionnerCommitEnAttente(conversationId: conversationId);
+        // Sans ça, l'arbre public se périme dès qu'un membre part, et plus
+        // personne ne peut rejoindre le groupe par commit externe.
+        await _publierArbre(conversationId, moteur);
       }
     } on EpochConflict catch (e) {
       // Quelqu'un a commité avant moi : je jette le mien, je traite le sien,
