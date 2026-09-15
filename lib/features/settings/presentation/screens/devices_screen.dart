@@ -7,6 +7,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/e2ee/device_sync_service.dart';
 import '../../../../core/services/e2ee/models/e2ee_models.dart';
+import '../../../../core/crypto/mls/mls_device_registry.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Nombre maximal d'appareils par compte, imposé par la synchro E2EE.
@@ -308,6 +309,9 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
         ),
+        const SizedBox(height: 28),
+        if (FirebaseAuth.instance.currentUser?.uid case final uid?)
+          _MlsRegistrySection(userId: uid),
       ],
     );
   }
@@ -337,6 +341,9 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
           ),
         const SizedBox(height: 4),
         const _LimitNotice(),
+        const SizedBox(height: 28),
+        if (FirebaseAuth.instance.currentUser?.uid case final uid?)
+          _MlsRegistrySection(userId: uid),
       ],
     );
   }
@@ -740,6 +747,201 @@ class _CardAction extends StatelessWidget {
             color: danger ? context.errorColor : context.textSecondaryColor,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Registre MLS (plan MLS, phase 2)
+// ---------------------------------------------------------------------------
+
+/// La liste `mls_devices` du compte, sous la liste Signal. Deux registres le
+/// temps de la coexistence : celui-ci est le seul que la messagerie MLS
+/// utilisera, et sa preuve de vie est en base (`last_seen_at` récent), pas à
+/// l'écran.
+class _MlsRegistrySection extends ConsumerWidget {
+  final String userId;
+
+  const _MlsRegistrySection({required this.userId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final etat = ref.watch(mlsDevicesProvider(userId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.mlsDevicesTitle,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: context.textPrimaryColor,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l10n.mlsDevicesExplain,
+          style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+        ),
+        const SizedBox(height: 12),
+        etat.when(
+          loading: () => const LinearProgressIndicator(minHeight: 2),
+          error: (_, __) => Text(
+            l10n.mlsDevicesLoadError,
+            style: TextStyle(fontSize: 13, color: context.errorColor),
+          ),
+          data: (appareils) => appareils.isEmpty
+              ? Text(
+                  l10n.mlsDevicesNone,
+                  style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
+                )
+              : Column(
+                  children: [
+                    for (final appareil in appareils)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _MlsDeviceTile(
+                          appareil: appareil,
+                          onRevoke: appareil.estCetAppareil || appareil.estRevoque
+                              ? null
+                              : () => _revoquer(context, ref, appareil),
+                        ),
+                      ),
+                  ],
+                ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _revoquer(
+    BuildContext context,
+    WidgetRef ref,
+    MlsDeviceRecord appareil,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirme = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(appareil.name),
+        content: Text(l10n.mlsDeviceRevokeConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(l10n.settingsRevokeAction),
+          ),
+        ],
+      ),
+    );
+    if (confirme != true || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(mlsDeviceRegistryProvider).revoke(appareil.id);
+      ref.invalidate(mlsDevicesProvider(userId));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.deviceRevoked)));
+    } catch (e) {
+      // Un refus RLS ou un réseau absent : le dire, pas laisser croire que
+      // le tap n'a pas pris.
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.mlsDevicesLoadError),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
+
+class _MlsDeviceTile extends StatelessWidget {
+  final MlsDeviceRecord appareil;
+  final VoidCallback? onRevoke;
+
+  const _MlsDeviceTile({required this.appareil, required this.onRevoke});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final courant = appareil.estCetAppareil;
+    final vu = appareil.lastSeenAt.toLocal();
+    final vuTexte =
+        '${vu.day.toString().padLeft(2, '0')}/${vu.month.toString().padLeft(2, '0')} '
+        '${vu.hour.toString().padLeft(2, '0')}:${vu.minute.toString().padLeft(2, '0')}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: courant ? context.successColor : context.borderColor,
+          width: courant ? 1.5 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            appareil.platform == 'ios'
+                ? Icons.phone_iphone
+                : appareil.platform == 'android'
+                    ? Icons.phone_android
+                    : Icons.computer,
+            color: courant ? context.successColor : context.textSecondaryColor,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        appareil.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: context.textPrimaryColor,
+                          decoration: appareil.estRevoque
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
+                    ),
+                    if (courant) ...[
+                      const SizedBox(width: 7),
+                      Text(
+                        l10n.thisDevice.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: context.successColor,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  appareil.estRevoque ? l10n.mlsDeviceRevokedLabel : vuTexte,
+                  style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
+                ),
+              ],
+            ),
+          ),
+          if (onRevoke != null)
+            TextButton(
+              onPressed: onRevoke,
+              child: Text(l10n.settingsRevokeAction),
+            ),
+        ],
       ),
     );
   }

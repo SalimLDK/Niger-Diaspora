@@ -22,6 +22,7 @@ import '../../domain/usecases/send_password_reset_email.dart';
 import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../../core/services/cache_service.dart';
+import '../../../../core/crypto/mls/mls_device_registry.dart';
 import '../../../../core/services/file_download_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
@@ -178,6 +179,23 @@ class AuthNotifier extends _$AuthNotifier {
         .read(e2eeBackupCoordinatorProvider.notifier)
         .bootstrap(userId)
         .catchError((Object e) => dev.log('E2EE bootstrap failed: $e'));
+
+    // Registre d'appareils MLS (plan MLS, phase 2) : inscrit l'appareil et
+    // publie ses KeyPackages, avec réessais le temps que le pont de session
+    // s'établisse. Un échec définitif s'écrit dans `mls_diagnostics`, pas
+    // dans un journal que le build release n'émet pas.
+    unawaited(
+      ref
+          .read(mlsDeviceRegistryProvider)
+          .ensureRegisteredWithRetry(userId)
+          .then((appareil) {
+            debugPrint(
+              appareil == null
+                  ? 'MlsDeviceRegistry: enregistrement échoué'
+                  : 'MlsDeviceRegistry: appareil ${appareil.id} inscrit',
+            );
+          }),
+    );
 
     // Peupler les clés dérivées du repli AES pour toutes les conversations de
     // ce compte, en tâche de fond.

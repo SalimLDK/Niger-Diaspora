@@ -1,0 +1,333 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../src/rust/api/mls.dart';
+import '../../services/e2ee/device_label.dart';
+import '../../services/e2ee/stable_device_id.dart';
+import '../../services/supabase_auth_bridge.dart';
+import 'mls_engine_provider.dart';
+
+/// Une ligne de `mls_devices`.
+class MlsDeviceRecord {
+  final String id;
+  final String userId;
+  final String stableId;
+  final String name;
+  final String platform;
+  final String mlsIdentity;
+  final DateTime createdAt;
+  final DateTime lastSeenAt;
+  final DateTime? revokedAt;
+
+  /// Vrai pour la ligne de l'appareil qui lit la liste.
+  final bool estCetAppareil;
+
+  const MlsDeviceRecord({
+    required this.id,
+    required this.userId,
+    required this.stableId,
+    required this.name,
+    required this.platform,
+    required this.mlsIdentity,
+    required this.createdAt,
+    required this.lastSeenAt,
+    this.revokedAt,
+    this.estCetAppareil = false,
+  });
+
+  bool get estRevoque => revokedAt != null;
+
+  factory MlsDeviceRecord.fromRow(
+    Map<String, dynamic> row, {
+    String? stableIdCourant,
+  }) {
+    final stableId = row['stable_id'] as String? ?? '';
+    return MlsDeviceRecord(
+      id: row['id'] as String,
+      userId: row['user_id'] as String? ?? '',
+      stableId: stableId,
+      name: row['name'] as String? ?? '',
+      platform: row['platform'] as String? ?? '',
+      mlsIdentity: row['mls_identity'] as String? ?? '',
+      createdAt: DateTime.tryParse(row['created_at'] as String? ?? '') ?? DateTime.now(),
+      lastSeenAt: DateTime.tryParse(row['last_seen_at'] as String? ?? '') ?? DateTime.now(),
+      revokedAt: DateTime.tryParse(row['revoked_at'] as String? ?? ''),
+      estCetAppareil: stableIdCourant != null && stableId == stableIdCourant,
+    );
+  }
+}
+
+/// Registre d'appareils MLS (plan MLS, phase 2) : une ligne `mls_devices` par
+/// (compte, appareil), et une réserve de KeyPackages publiée pour chacune.
+///
+/// Ce que le chantier Signal a appris, appliqué ici :
+/// - **`ensureAuthenticated()` avant toute écriture ET toute lecture** — sous
+///   `anon`, une lecture rend 0 ligne sans erreur, et l'app conclut à tort
+///   qu'il n'y a rien à faire ;
+/// - **réessais** au démarrage (le pont de session Supabase n'est pas prêt
+///   pendant les premières secondes) ;
+/// - **le motif d'échec s'écrit en base** (`mls_diagnostics`), jamais dans un
+///   journal que le build release n'émet pas ;
+/// - **aucun secret ne sort du moteur Rust** : ce service ne manipule que la
+///   clé publique, la credential et des KeyPackages, conçus pour être publiés.
+class MlsDeviceRegistry {
+  MlsDeviceRegistry({
+    required Future<Moteur> Function(String userId) moteur,
+    SupabaseClient? client,
+    Future<String> Function(String userId)? stableId,
+    Future<String> Function()? libelle,
+    Future<bool> Function()? ensureAuth,
+    String? platforme,
+  })  : _moteur = moteur,
+        _clientOptionnel = client,
+        _stableId = stableId ?? stableDeviceId,
+        _libelle = libelle ?? currentDeviceLabel,
+        _ensureAuth = ensureAuth ?? SupabaseAuthBridge.instance.ensureAuthenticated,
+        _platforme = platforme ?? plateformeCourante();
+
+  final Future<Moteur> Function(String userId) _moteur;
+  final SupabaseClient? _clientOptionnel;
+  final Future<String> Function(String userId) _stableId;
+  final Future<String> Function() _libelle;
+  final Future<bool> Function() _ensureAuth;
+  final String _platforme;
+
+  SupabaseClient get _client => _clientOptionnel ?? Supabase.instance.client;
+
+  /// Suite de chiffrement du moteur (`CIPHERSUITE` dans `engine.rs`).
+  static const cipherSuite = 'MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519';
+
+  /// En dessous de ce nombre de paquets disponibles, on en regénère un lot.
+  static const seuilRecharge = 10;
+  static const lotRecharge = 50;
+  static const validitePaquet = Duration(days: 90);
+  static const validiteDernierRecours = Duration(days: 365);
+
+  /// Décision de réapprovisionnement, isolée pour être testée : tout ou rien,
+  /// jamais « juste ce qui manque » — un paquet coûte peu, un aller-retour
+  /// serveur coûte plus.
+  @visibleForTesting
+  static int aGenerer(int disponibles) =>
+      disponibles >= seuilRecharge ? 0 : lotRecharge;
+
+  static String plateformeCourante() {
+    if (kIsWeb) return 'web';
+    if (Platform.isAndroid) return 'android';
+    if (Platform.isIOS) return 'ios';
+    return 'desktop';
+  }
+
+  /// Enregistre (ou rafraîchit) l'appareil courant et réapprovisionne ses
+  /// KeyPackages. À appeler à chaque connexion. Idempotent.
+  Future<MlsDeviceRecord> ensureRegistered(String userId) async {
+    if (!await _ensureAuth()) {
+      throw StateError('Session non établie — enregistrement différé');
+    }
+    final moteur = await _moteur(userId);
+    final stableId = await _stableId(userId);
+    final nom = await _libelle();
+
+    final ligne = await _client
+        .from('mls_devices')
+        .upsert(
+          {
+            'user_id': userId,
+            'stable_id': stableId,
+            'name': nom,
+            'platform': _platforme,
+            'mls_identity': moteur.identite(),
+            'signature_key': versBytea(moteur.cleSignaturePublique()),
+            'credential': versBytea(moteur.credential()),
+            'last_seen_at': DateTime.now().toUtc().toIso8601String(),
+          },
+          onConflict: 'user_id,stable_id',
+        )
+        .select()
+        .single();
+
+    final appareil = MlsDeviceRecord.fromRow(ligne, stableIdCourant: stableId);
+    if (appareil.estRevoque) {
+      // Un appareil révoqué depuis un autre téléphone ne se réenregistre pas
+      // tout seul : ce serait défaire la révocation. Il reste visible, sans
+      // paquets, jusqu'à ce que l'utilisateur en décide autrement.
+      await _diagnostic(userId, 'appareil_revoque_au_demarrage', appareil.id);
+      return appareil;
+    }
+
+    await _reapprovisionner(moteur, appareil.id, userId);
+    return appareil;
+  }
+
+  /// Comme [ensureRegistered], avec réessais : le pont de session Supabase
+  /// met quelques secondes à s'établir au démarrage, et le premier échange
+  /// d'un compte neuf échoue toujours une fois. Même profil que
+  /// `KeyManagerService._publishWithRetry`.
+  Future<MlsDeviceRecord?> ensureRegisteredWithRetry(
+    String userId, {
+    int tentatives = 4,
+  }) async {
+    Object? derniere;
+    for (var essai = 1; essai <= tentatives; essai++) {
+      try {
+        return await ensureRegistered(userId);
+      } catch (e) {
+        derniere = e;
+        debugPrint('MlsDeviceRegistry: tentative $essai/$tentatives ($e)');
+        if (essai < tentatives) {
+          await Future<void>.delayed(Duration(seconds: essai * 3));
+        }
+      }
+    }
+    await _diagnostic(
+      userId,
+      'enregistrement_echoue',
+      null,
+      detail: {'erreur': _codeErreur(derniere)},
+    );
+    return null;
+  }
+
+  Future<void> _reapprovisionner(Moteur moteur, String deviceId, String userId) async {
+    final maintenant = DateTime.now().toUtc();
+    final lignes = await _client
+        .from('mls_key_packages')
+        .select('id, is_last_resort')
+        .eq('device_id', deviceId)
+        .isFilter('used_at', null)
+        .gt('expires_at', maintenant.toIso8601String());
+    final rows = (lignes as List).cast<Map<String, dynamic>>();
+    final disponibles = rows.where((r) => r['is_last_resort'] != true).length;
+    final dernierRecours = rows.any((r) => r['is_last_resort'] == true);
+
+    final n = aGenerer(disponibles);
+    final aInserer = <Map<String, dynamic>>[];
+    if (n > 0) {
+      final paquets = await moteur.creerKeyPackages(n: n, dernierRecours: false);
+      for (final p in paquets) {
+        aInserer.add({
+          'device_id': deviceId,
+          'key_package': versBytea(p),
+          'cipher_suite': cipherSuite,
+          'is_last_resort': false,
+          'expires_at': maintenant.add(validitePaquet).toIso8601String(),
+        });
+      }
+    }
+    if (!dernierRecours) {
+      final p = (await moteur.creerKeyPackages(n: 1, dernierRecours: true)).first;
+      aInserer.add({
+        'device_id': deviceId,
+        'key_package': versBytea(p),
+        'cipher_suite': cipherSuite,
+        'is_last_resort': true,
+        'expires_at': maintenant.add(validiteDernierRecours).toIso8601String(),
+      });
+    }
+    if (aInserer.isEmpty) return;
+    await _client.from('mls_key_packages').insert(aInserer);
+    debugPrint('MlsDeviceRegistry: ${aInserer.length} KeyPackages publiés');
+  }
+
+  /// Les appareils du compte, l'appareil courant en tête.
+  Future<List<MlsDeviceRecord>> myDevices(String userId) async {
+    if (!await _ensureAuth()) {
+      throw StateError('Session non établie');
+    }
+    final stableId = await _stableId(userId);
+    final rows = await _client
+        .from('mls_devices')
+        .select()
+        .eq('user_id', userId)
+        .order('last_seen_at', ascending: false);
+    final liste = (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map((r) => MlsDeviceRecord.fromRow(r, stableIdCourant: stableId))
+        .toList();
+    liste.sort((a, b) {
+      if (a.estCetAppareil != b.estCetAppareil) return a.estCetAppareil ? -1 : 1;
+      return b.lastSeenAt.compareTo(a.lastSeenAt);
+    });
+    return liste;
+  }
+
+  /// Révoque un appareil : plus de KeyPackages (trigger), et il ne se
+  /// réenregistre pas seul. Le retrait cryptographique des groupes (Remove +
+  /// commit) vient en phase 7.
+  Future<void> revoke(String deviceId) async {
+    if (!await _ensureAuth()) throw StateError('Session non établie');
+    await _client
+        .from('mls_devices')
+        .update({'revoked_at': DateTime.now().toUtc().toIso8601String()})
+        .eq('id', deviceId);
+  }
+
+  Future<void> rename(String deviceId, String nom) async {
+    if (!await _ensureAuth()) throw StateError('Session non établie');
+    await _client.from('mls_devices').update({'name': nom.trim()}).eq('id', deviceId);
+  }
+
+  Future<void> _diagnostic(
+    String userId,
+    String event,
+    String? deviceId, {
+    Map<String, dynamic>? detail,
+  }) async {
+    try {
+      await _client.from('mls_diagnostics').insert({
+        'user_id': userId,
+        if (deviceId != null) 'device_id': deviceId,
+        'event': event,
+        if (detail != null) 'detail': detail,
+      });
+    } catch (e) {
+      // Le diagnostic ne doit jamais aggraver la panne qu'il décrit.
+      debugPrint('MlsDeviceRegistry: diagnostic non écrit ($e)');
+    }
+  }
+
+  /// Un code, pas un message : `mls_diagnostics` ne porte jamais de contenu.
+  static String _codeErreur(Object? e) {
+    if (e == null) return 'inconnue';
+    final texte = e.toString();
+    final code = RegExp(r'[A-Za-z_]+').firstMatch(texte)?.group(0) ?? 'inconnue';
+    return code.length > 40 ? code.substring(0, 40) : code;
+  }
+
+  /// Forme hexadécimale `\x…` attendue par PostgREST pour un `bytea`.
+  @visibleForTesting
+  static String versBytea(Uint8List octets) {
+    final b = StringBuffer(r'\x');
+    for (final o in octets) {
+      b.write(o.toRadixString(16).padLeft(2, '0'));
+    }
+    return b.toString();
+  }
+
+  /// Inverse de [versBytea] : PostgREST rend un `bytea` en `\x…`.
+  @visibleForTesting
+  static Uint8List depuisBytea(String hex) {
+    final h = hex.startsWith(r'\x') ? hex.substring(2) : hex;
+    final out = Uint8List(h.length ~/ 2);
+    for (var i = 0; i < out.length; i++) {
+      out[i] = int.parse(h.substring(i * 2, i * 2 + 2), radix: 16);
+    }
+    return out;
+  }
+}
+
+final mlsDeviceRegistryProvider = Provider<MlsDeviceRegistry>((ref) {
+  // `ref.read` dans une fermeture, pas `ref.watch` : le registre ne se
+  // reconstruit pas quand le moteur est (re)créé — même règle que le moteur.
+  return MlsDeviceRegistry(
+    moteur: (userId) => ref.read(mlsEngineProvider(userId).future),
+  );
+});
+
+/// Les appareils MLS d'un compte, pour l'écran « Appareils ».
+final mlsDevicesProvider =
+    FutureProvider.autoDispose.family<List<MlsDeviceRecord>, String>((ref, userId) {
+  return ref.watch(mlsDeviceRegistryProvider).myDevices(userId);
+});

@@ -22676,6 +22676,42 @@ abstract class AppLocalizations {
   /// **'Les appareils utilisant le chiffrement de bout en bout apparaîtront ici.'**
   String get devicesE2eeWillAppear;
 
+  /// No description provided for @mlsDevicesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau registre (MLS)'**
+  String get mlsDevicesTitle;
+
+  /// No description provided for @mlsDevicesExplain.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque appareil connecté à ce compte y est inscrit avec sa propre clé. C\'est ce registre que la future messagerie chiffrée utilisera.'**
+  String get mlsDevicesExplain;
+
+  /// No description provided for @mlsDevicesNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun appareil inscrit pour l\'instant. L\'inscription se fait à la connexion.'**
+  String get mlsDevicesNone;
+
+  /// No description provided for @mlsDevicesLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le registre n\'a pas pu être lu. Réessayez plus tard.'**
+  String get mlsDevicesLoadError;
+
+  /// No description provided for @mlsDeviceRevokedLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révoqué'**
+  String get mlsDeviceRevokedLabel;
+
+  /// No description provided for @mlsDeviceRevokeConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil ne pourra plus rejoindre de conversation chiffrée. Continuer ?'**
+  String get mlsDeviceRevokeConfirm;
+
   /// No description provided for @rename.
   ///
   /// In fr, this message translates to:

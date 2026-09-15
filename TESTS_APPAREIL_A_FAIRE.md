@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1062 cases à cocher, 569 cochées** — 214 entrées sur 259 ont encore des cases ouvertes.
+**1070 cases à cocher, 569 cochées** — 215 entrées sur 260 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (68)
+**P1 — fonction importante, jamais vérifiée** (69)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -87,6 +87,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 8 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -274,7 +275,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 195 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 113 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 63 à faire, 23 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5501,6 +5502,60 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)
+
+**Priorité P1** · importance 4/5 — Première entrée du moteur Rust (OpenMLS,
+Flutter Rust Bridge) dans l'app : à chaque connexion, l'appareil s'inscrit
+dans `mls_devices` (clé de signature publique, credential, nom, plateforme)
+et publie 50 KeyPackages + 1 « dernier recours » dans `mls_key_packages`.
+L'écran Réglages › Sécurité › Appareils affiche ce registre sous la liste
+Signal, avec révocation. Rien n'a tourné sur un appareil : ni le chargement
+de la bibliothèque native au démarrage de l'app réelle (seul le harnais du
+spike a tourné), ni l'inscription, ni l'écran. La migration
+`20260915100000_mls_registre_appareils.sql` doit être appliquée AVANT
+(`supabase db push --linked`, par Salim) ; sans elle, l'inscription échoue
+quatre fois puis écrit… dans `mls_diagnostics`, qui n'existe pas non plus —
+donc rien, et `MlsDeviceRegistry: enregistrement échoué` dans logcat en
+debug seulement.
+
+Fichiers : [mls_engine_provider.dart](lib/core/crypto/mls/mls_engine_provider.dart),
+[mls_device_registry.dart](lib/core/crypto/mls/mls_device_registry.dart),
+[devices_screen.dart](lib/features/settings/presentation/screens/devices_screen.dart),
+[auth_provider.dart](lib/features/auth/presentation/providers/auth_provider.dart)
+(`_initializeE2EE`), crate `rust/`.
+
+Preuve de vie de la phase (en base, pas à l'écran) :
+`select count(*) from mls_devices where last_seen_at > now() - interval '7 days'`
+> 0 sur des comptes réels.
+
+- [ ] **Démarrage de l'app** (build release) : l'app démarre, aucun plantage
+  au chargement de `libdiaspo_mls.so` (`RustLib.init()`), aucune ligne
+  `AndroidRuntime`/`FATAL` dans logcat.
+- [ ] **Inscription** : après connexion, une ligne `mls_devices` pour ce
+  compte avec `platform = 'android'`, `name = 'Samsung SM-A515F'` (ou
+  équivalent), `last_seen_at` à l'instant ; **51** lignes `mls_key_packages`
+  (50 + 1 `is_last_resort`) pour ce `device_id`.
+- [ ] **Idempotence** : force-stop puis relance → toujours **une seule**
+  ligne `mls_devices` (même `stable_id`), `last_seen_at` avancé, aucun
+  nouveau paquet tant qu'il en reste ≥ 10.
+- [ ] **Écran Appareils** : la section « Nouveau registre (MLS) » liste
+  l'appareil avec « CET APPAREIL », date de dernière vue ; le bouton
+  Révoquer est absent sur l'appareil courant.
+- [ ] **Révocation depuis un second appareil** (ou depuis SQL) : la ligne
+  passe barrée « Révoqué », ses paquets non consommés ont disparu (trigger),
+  et au redémarrage l'appareil révoqué **ne se réinscrit pas** (ligne
+  `mls_diagnostics` `appareil_revoque_au_demarrage`).
+- [ ] **Compte neuf** : le premier échange de session échoue toujours une
+  fois (piège connu) ; l'inscription doit quand même aboutir grâce aux
+  réessais (3 s, 6 s, 9 s).
+- [ ] **Thème sombre** : section lisible.
+- [ ] **Dette consignée, à ne pas oublier** : la base SQLite du moteur
+  (`<support>/mls/<uid>.sqlite`, clé privée de signature comprise) est en
+  clair dans le répertoire privé de l'app. La clé maître Keystore/Keychain
+  (plan § 7.4) vient avec la phase 3.
 
 ---
 

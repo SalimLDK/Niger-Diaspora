@@ -185,6 +185,9 @@ dependencies:
   visibility_detector: ^0.4.0
   app_tracking_transparency: ^2.0.7
   in_app_review: ^2.0.12
+  diaspo_mls:
+    path: rust_builder
+  flutter_rust_bridge: 2.13.0
 
 dev_dependencies:
   flutter_test:
