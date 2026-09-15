@@ -434,6 +434,24 @@ class MlsConversationService {
   /// messages **nouveaux** depuis le dernier appel, déchiffrés ou non.
   Future<List<MlsIncoming>> catchUp(String conversationId) async {
     if (!await estMembre(conversationId)) {
+      // **Lire ne crée jamais le groupe.** Créer pose `mls_since`, qui est
+      // définitif : le serveur refuse le clair ensuite, et rien ne revient en
+      // arrière. Laisser la lecture créer revenait à geler une discussion en
+      // l'ouvrant, sans que personne n'ait rien écrit.
+      //
+      // Ce n'est pas une crainte : en production, les trois premières
+      // conversations basculées l'ont été **avant** leur premier message
+      // chiffré — de 12, 88 et 126 secondes. C'est l'ouverture qui les a
+      // gelées, pas un envoi.
+      //
+      // Sans groupe côté serveur, il n'y a de toute façon rien à lire : aucun
+      // message MLS ne peut exister. On rend la main, et le fil s'affiche
+      // depuis le legacy seul.
+      if (await _delivery.currentEpoch(conversationId) == null) {
+        return const [];
+      }
+      // Le groupe existe : le rejoindre est légitime en lecture — c'est
+      // justement ce qu'il faut pour déchiffrer ce qu'on nous a envoyé.
       await ensureGroup(conversationId);
     }
     final moteur = await _moteur();
