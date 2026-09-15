@@ -7,6 +7,7 @@ import 'package:diaspo_niger/core/services/cache_service.dart';
 import 'package:diaspo_niger/features/messages/data/datasources/message_remote_datasource.dart';
 import 'package:diaspo_niger/features/messages/data/models/message_model.dart';
 import 'package:diaspo_niger/features/messages/data/repositories/message_repository_impl.dart';
+import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Ce que ces tests protègent (plan MLS § 6.3)
@@ -182,6 +183,41 @@ MessageRepositoryImpl _depot({
 void main() {
   final t0 = DateTime.utc(2026, 9, 15, 8);
 
+  group('amorçage du fil chiffré', () {
+    // Ce que ce groupe protège : un amorçage VIDE ne doit pas verrouiller le
+    // fil. `_mlsDuCache` rend `const []` dès que `mlsSince` est nul, et
+    // `mlsSince` vient d'une lecture réseau ; au démarrage à froid `enMls`
+    // reste vrai par le drapeau de compte pendant que la date manque encore.
+    // L'ancien `if (_fil.containsKey(...)) return;` posait alors un fil vide
+    // que PLUS AUCUN appel ne pouvait remplir — le fil chiffré restait vide
+    // pour toute la vie du processus. Mesuré sur SM A515F le 2026-09-15 :
+    // trois messages vivants en base, aucun à l'écran, zéro diagnostic.
+    //
+    // L'assertion passe par `estMlsMessage`, qui répond depuis l'ensemble des
+    // identifiants connus rempli par l'amorçage — sans réveiller le moteur,
+    // que cette fixture interdit.
+    test('un amorçage vide ne condamne pas le fil', () async {
+      final passerelle = _passerelle(basculee: true);
+      passerelle.amorcer('c1', const []);
+      passerelle.amorcer('c1', [_message('m1', 'bonjour')]);
+      expect(
+        await passerelle.estMlsMessage('c1', 'm1'),
+        isTrue,
+        reason: 'le second amorçage doit pouvoir remplir un fil laissé vide',
+      );
+    });
+
+    test('un amorçage garni n’est pas remplacé par un suivant', () async {
+      // L'autre moitié de la règle : une fois le fil garni, un amorçage plus
+      // tardif ne doit rien écraser — sinon une lecture concurrente ferait
+      // disparaître des messages déjà affichés.
+      final passerelle = _passerelle(basculee: true);
+      passerelle.amorcer('c1', [_message('m1', 'premier')]);
+      passerelle.amorcer('c1', [_message('m2', 'second')]);
+      expect(await passerelle.estMlsMessage('c1', 'm1'), isTrue);
+    });
+  });
+
   group('recherche dans une conversation basculée', () {
     test('le cache local fournit ce que le serveur ne peut pas lire', () async {
       // Le serveur ne rend rien : le contenu est chiffré chez lui.
@@ -341,3 +377,13 @@ void main() {
     });
   });
 }
+
+MessageEntity _message(String id, String contenu) => MessageEntity(
+      id: id,
+      senderId: 'u1',
+      senderName: 'Sim',
+      content: contenu,
+      type: MessageType.text,
+      status: MessageStatus.sent,
+      createdAt: DateTime(2026, 9, 15, 12),
+    );

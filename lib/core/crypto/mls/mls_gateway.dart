@@ -150,7 +150,24 @@ class MlsGateway {
   /// N'amorce qu'une fois : ensuite c'est le fil en mémoire qui fait foi, et
   /// il contient déjà tout le cache plus ce qui est arrivé depuis.
   void amorcer(String conversationId, List<MessageEntity> caches) {
-    if (_fil.containsKey(conversationId)) return;
+    // Ne verrouiller le fil que sur un amorçage QUI A QUELQUE CHOSE.
+    //
+    // `containsKey` tenait tant qu'on supposait le cache toujours lisible au
+    // premier appel. Il ne l'est pas : `_mlsDuCache` rend `const []` dès que
+    // `mlsSince` est nul, et `mlsSince` vient d'une lecture réseau. Au
+    // démarrage à froid, tant qu'elle n'a pas répondu, `enMls` reste vrai par
+    // le DRAPEAU DE COMPTE pendant que la date de bascule manque encore. Le
+    // premier appel posait alors `_fil[conv] = []`, et `containsKey` faisait
+    // sortir tous les suivants : le fil chiffré restait vide pour TOUTE la vie
+    // du processus, même une fois `mls_since` connu.
+    //
+    // Mesuré sur SM A515F le 2026-09-15 : trois messages vivants en base
+    // (ciphertext non vide, `is_deleted` faux), aucun à l'écran, et pas une
+    // ligne dans `mls_diagnostics` — l'échec ne se signalait nulle part. Le
+    // même fil réapparaissait dès qu'on renvoyait un message, ce qui faisait
+    // passer la panne pour un caprice d'affichage.
+    if (_fil[conversationId]?.isNotEmpty ?? false) return;
+    if (caches.isEmpty) return;
     final fil = [...caches]
       ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
     _fil[conversationId] = fil;

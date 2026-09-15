@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1164 cases à cocher, 593 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
+**1164 cases à cocher, 594 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -289,7 +289,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 243 à faire, 84 faites
+- [2. Messagerie](#2-messagerie) — 243 à faire, 85 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 36 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -670,17 +670,26 @@ SELECT public.purger_messages_expires();
   est relu à chaque envoi, jamais mémorisé).
 - [ ] **Messages déjà envoyés** : changer le minuteur ne touche pas les
   échéances des messages précédents.
-- [ ] **⛔ Expiration côté expéditeur — MESURÉ FAUX le 2026-09-15.** La bulle
-  ne devient pas « Message expiré » : le message **disparaît entièrement** du
-  fil (absent de l'arbre `uiautomator`, pas seulement invisible), y compris
-  après redémarrage complet. Cause : le rattrapage MLS persiste un curseur
-  (`mls_curseur_<user>_<conv>`, `MlsConversationService._curseurDe`) et relit
-  avec `.gt('created_at', curseur)` — une ligne déjà dépassée n'est **plus
-  jamais relue**, donc aucun changement d'état ultérieur ne l'atteint. Ça vaut
-  pour la pierre tombale de la purge comme pour « supprimer pour tous ».
-  Dépasse cette fiche : à traiter dans le rattrapage MLS. **L'étanchéité, elle,
-  tient** — le garde client (`MessageEntity.videeParExpiration`) vide l'entité
-  dès l'échéance à partir du `ttl` du payload, sans rien attendre du serveur.
+- [ ] **Expiration côté expéditeur** : la bulle doit devenir « Message
+  expiré » (icône minuteur barré) — **pas** « Message supprimé ». Pas encore
+  vu : la passe du 2026-09-15 est tombée sur une panne plus grave qui masquait
+  tout (ci-dessous), corrigée depuis ; le rendu de la tombe reste à voir.
+- [x] **⛔ Le fil chiffré disparaissait entièrement au démarrage — CORRIGÉ.**
+  Trouvé en cherchant la pierre tombale : trois messages MLS **vivants** en
+  base (ciphertext non vide, `is_deleted` faux), **aucun à l'écran** après
+  redémarrage, et **zéro ligne dans `mls_diagnostics`**. Dans le même
+  processus le fil s'affichait ; seul le démarrage à froid perdait tout, et
+  renvoyer un message le repeuplait — ce qui faisait passer la panne pour un
+  caprice d'affichage. Cause : `MlsGateway.amorcer` sortait sur
+  `_fil.containsKey(...)`, or `_mlsDuCache` rend `const []` dès que `mlsSince`
+  est nul, et `mlsSince` vient d'une lecture réseau ; au démarrage `enMls`
+  reste vrai **par le drapeau de compte** pendant que la date manque encore.
+  Le premier appel posait `_fil[conv] = []` et verrouillait le fil pour toute
+  la vie du processus. Corrigé : on ne verrouille que sur un amorçage non
+  vide. Vérifié sur SM A515F le 2026-09-15 — message restauré sous le
+  séparateur après démarrage à froid. Test :
+  `lectures_conversation_chiffree_test.dart` § « amorçage du fil chiffré »
+  (rougit bien sans le correctif).
 - [ ] **Expiration côté destinataire**, discussion ouverte : la bulle bascule
   sans rechargement (le temps réel propage la pierre tombale comme il propage
   déjà une suppression).
