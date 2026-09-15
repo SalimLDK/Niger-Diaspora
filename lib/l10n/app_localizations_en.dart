@@ -12193,6 +12193,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mlsSecurityCodeLabel => 'Security code';
 
   @override
+  String get mlsSecurityCodeShowQr => 'Show as QR';
+
+  @override
+  String get mlsSecurityCodeQrHint =>
+      'Have the other person scan this from their QR scanner. It contains no secret.';
+
+  @override
   String get mlsVerifyTitle => 'Device verification';
 
   @override

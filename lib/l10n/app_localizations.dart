@@ -22706,6 +22706,18 @@ abstract class AppLocalizations {
   /// **'Code de sécurité'**
   String get mlsSecurityCodeLabel;
 
+  /// No description provided for @mlsSecurityCodeShowQr.
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher en QR'**
+  String get mlsSecurityCodeShowQr;
+
+  /// No description provided for @mlsSecurityCodeQrHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faites scanner ce code par la personne en face, depuis son scanner QR. Il ne contient aucun secret.'**
+  String get mlsSecurityCodeQrHint;
+
   /// No description provided for @mlsVerifyTitle.
   ///
   /// In fr, this message translates to:

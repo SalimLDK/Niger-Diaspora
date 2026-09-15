@@ -36,6 +36,27 @@ import 'package:flutter_test/flutter_test.dart';
 String _source(String chemin) =>
     File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
 
+/// La dernière migration (ordre lexicographique = chronologique, les noms
+/// commencent par 14 chiffres) qui contient [motif].
+///
+/// Une fonction PostgreSQL n'a pas de « fichier source » : elle a un dernier
+/// `CREATE OR REPLACE` gagnant. Un test qui vise le fichier de CRÉATION
+/// continue de passer longtemps après que le corps a changé ailleurs.
+String _derniereMigrationDefinissant(String motif) {
+  final fichiers = Directory('supabase/migrations')
+      .listSync()
+      .whereType<File>()
+      .map((f) => f.path.replaceAll(r'\', '/'))
+      .where((f) => f.endsWith('.sql'))
+      .toList()
+    ..sort();
+  final trouves = fichiers.where((f) => _source(f).contains(motif)).toList();
+  if (trouves.isEmpty) {
+    throw StateError('aucune migration ne definit « $motif »');
+  }
+  return trouves.last;
+}
+
 MlsMessageRow _ligne({
   DateTime? creeLe,
   DateTime? expireLe,
@@ -464,19 +485,53 @@ void main() {
   });
 
   group('structure : la purge existe côté serveur', () {
-    const chemin =
-        'supabase/migrations/20260915234500_purge_messages_ephemeres.sql';
+    // **Pas le fichier qui l'a créée : celui qui la définit aujourd'hui.**
+    // `purger_messages_expires()` se réécrit par `CREATE OR REPLACE`, et
+    // 20260915235900 l'a déjà fait une fois — pour poser `lastMessageExpired`,
+    // la marque qui distingue « a expiré » de « a été supprimé » dans l'aperçu
+    // de la liste. Continuer de pointer 20260915234500 revenait à garder un
+    // fossile : le corps réellement déployé pouvait perdre le garde ISO ou
+    // cesser d'effacer la clé du média sans qu'un seul de ces tests ne
+    // bronche. Le prochain remplacement est couvert d'office.
+    final chemin = _derniereMigrationDefinissant(
+      'FUNCTION public.purger_messages_expires',
+    );
 
-    test('la migration balaie les deux tables et se programme', () {
+    test('la purge balaie les deux tables, et personne ne peut l\'appeler',
+        () {
       final sql = _source(chemin);
       expect(sql.contains('public.purger_messages_expires()'), isTrue);
       // Les deux tables : le legacy lit son échéance dans le JSONB (il n'a
       // pas de colonne `expires_at`), MLS dans sa colonne.
       expect(sql.contains("data->>'expiresAt'"), isTrue);
       expect(sql.contains('public.mls_messages'), isTrue);
-      expect(sql.contains("cron.schedule("), isTrue);
-      // Personne ne l'appelle depuis l'application.
+      // Personne ne l'appelle depuis l'application : l'exposer donnerait à
+      // n'importe quel client le moyen de faire expirer les messages des
+      // autres en boucle.
       expect(sql.contains('REVOKE ALL ON FUNCTION'), isTrue);
+    });
+
+    test('le balayage est programmé quelque part', () {
+      // Séparé du corps, parce que ce n'en est pas : `cron.schedule` est un
+      // upsert par nom (pg_cron ≥ 1.4), posé UNE fois par la migration qui
+      // crée la purge. Un `CREATE OR REPLACE` ultérieur n'a aucune raison de
+      // le reposer — le chercher dans le fichier qui définit le corps
+      // aujourd'hui ne pourrait que le rater à tort.
+      final planifiantes = Directory('supabase/migrations')
+          .listSync()
+          .whereType<File>()
+          .map((f) => f.path.replaceAll(r'\', '/'))
+          .where((f) => f.endsWith('.sql'))
+          .where((f) => _source(f).contains("'purger-messages-expires'"))
+          .toList();
+      expect(planifiantes, isNotEmpty,
+          reason: 'sans job cron, rien n\'expire jamais côté serveur');
+      expect(
+        // .last et non .single : re-programmer le meme nom est un upsert
+        // legitime (pg_cron >= 1.4), pas une anomalie a faire echouer.
+        _source(planifiantes.last).contains('cron.schedule('),
+        isTrue,
+      );
     });
 
     test('une échéance mal formée ne fait pas échouer la purge entière', () {
@@ -517,9 +572,17 @@ void main() {
       // EN CLAIR. Vider la bulle sans le vider laisserait le message expiré
       // parfaitement lisible une ligne plus haut, dans la liste — la fonction
       // se dirait accomplie pendant que son contenu reste à l'écran.
+      //
+      // Deux faits, et non la mise en forme d'un `jsonb_build_object` : elle a
+      // déjà changé une fois, en accueillant `lastMessageExpired` à côté de
+      // `lastMessage`. Un test collé à la ponctuation d'un appel se casse sur
+      // des ajouts légitimes et finit par être « réparé » sans être lu.
       final sql = _source(chemin);
-      expect(sql.contains("jsonb_build_object('lastMessage', '')"), isTrue);
+      expect(sql.contains("'lastMessage', ''"), isTrue);
       expect(sql.contains('public.conversations c'), isTrue);
+      // Et l'aperçu dit POURQUOI il est vide — sinon le client ne peut que
+      // deviner, et il devinait « expiré » pour les deux causes.
+      expect(sql.contains("'lastMessageExpired', true"), isTrue);
     });
 
     test('un aperçu vidé ne se lit pas « nouvelle conversation »', () {

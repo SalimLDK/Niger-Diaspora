@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1165 cases à cocher, 591 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
+**1164 cases à cocher, 593 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -84,7 +84,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 14 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
-- 20 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
+- 19 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
@@ -289,9 +289,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 244 à faire, 83 faites
+- [2. Messagerie](#2-messagerie) — 243 à faire, 84 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 35 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 36 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -769,9 +769,12 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
   passent au bleu **sans rechargement** (canal temps réel des reçus).
 - [ ] **Pastille de non-lus** et **badge @** d'une mention, dans un groupe
   basculé, sur le second appareil du même compte.
-- [ ] **Réaction sur un message chiffré** : posée par B, elle apparaît chez A
-  et **survit à la réouverture** de la discussion (elle vient de la table, pas
-  de l'état d'écran).
+- [x] **Réaction sur un message chiffré** : posée, elle atterrit dans
+  `mls_message_reactions` et **revient sur la bulle après un arrêt complet**
+  de l'application — donc lue depuis la table, pas gardée à l'écran.
+  ✅ SM A515F, 2026-09-15. Le premier essai a **échoué en silence** : le
+  durcissement des droits avait cassé l'`upsert` (voir « Un upsert PostgREST
+  réécrit la clé primaire »). Reste à voir entre **deux** comptes.
 - [ ] **Réaction sur un message d'AVANT la bascule**, dans la même discussion :
   elle marche aussi — c'est l'aiguillage par message qui est vérifié là.
 - [ ] **Supprimer pour moi** un message chiffré : il disparaît chez moi, reste
@@ -5866,9 +5869,10 @@ registre MLS (écran Appareils) : 60 chiffres en 12 groupes, comparables de
 vive voix.
 
 *Bloqué : demande deux téléphones sur deux comptes. Le scan **est** branché
-depuis le 2026-09-15 — `QrCodeParser` reconnaît `dn-mls-verif:`, et le
-scanner compare sur place au lieu de naviguer. Il manque encore l'affichage
-du QR de son propre appareil : sans lui, il n'y a rien à scanner.*
+(`QrCodeParser` reconnaît `dn-mls-verif:`, le scanner compare sur place au
+lieu de naviguer) et le QR **s'affiche** — les deux vérifiés le 2026-09-15.
+Ce qui manque est le geste complet : montrer sur un écran, scanner avec
+l'autre.*
 
 Fichiers : [mls_code_securite.dart](lib/core/crypto/mls/mls_code_securite.dart),
 [devices_screen.dart](lib/features/settings/presentation/screens/devices_screen.dart)
@@ -5894,6 +5898,13 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 - [ ] **Sélection et copie** du code fonctionnent (comparer par message écrit
   est le second canal le plus courant).
 - [ ] **Thème sombre** : le code et l'avertissement restent lisibles.
+- [x] **Le QR s'affiche** et se met en page. ✅ SM A515F, 2026-09-15 — après
+  correction : il s'ouvrait **entièrement vide**, sans titre ni bouton.
+  `AlertDialog` mesure son contenu par dimensions intrinsèques et
+  `QrImageView` contient un `LayoutBuilder`, qui ne sait pas y répondre. Rien
+  dans `logcat` et pas d'écran rouge — `FlutterError.onError` part chez
+  Crashlytics ; il a fallu `flutter attach` pour lire la cause. Tenu par
+  `test/core/crypto/mls_code_qr_test.dart`, qui rejoue le dialogue entier.
 - [ ] **Scan d'un code** depuis le scanner QR du profil : le résultat
   s'affiche **sur place**, sans quitter l'écran.
 - [ ] **Scan d'un QR étranger** (profil, lien) : le message dit que ce n'est

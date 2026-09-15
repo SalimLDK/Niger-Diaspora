@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/journal_echecs.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/e2ee/message_crypto_service.dart';
 import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
@@ -2699,13 +2700,20 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   /// Vide `conversations.data->>'lastMessage'` quand le message supprimé était
   /// le dernier de la conversation, et pose la marque qui dit pourquoi.
   ///
-  /// **L'échec n'est pas avalé.** Les autres nettoyages de
-  /// [deleteMessageForEveryone] tolèrent le silence — une épingle fantôme est
-  /// une gêne. Celui-ci, non : le laisser passer, c'est laisser le texte
-  /// supprimé à l'écran en annonçant une suppression réussie. La pierre
-  /// tombale est déjà posée quand on arrive ici, et rejouer la suppression est
-  /// sans effet de bord : une erreur remontée est réparable, une fuite muette
-  /// ne l'est pas.
+  /// **L'échec ne fait pas échouer la suppression, mais il ne se tait pas.**
+  /// Le premier jet relevait l'exception, au motif qu'« une erreur remontée
+  /// est réparable ». Elle ne l'était pas : `deleteMessageProvider` n'est
+  /// jamais `watch`é — seulement lu par `.notifier` —, la modale de
+  /// suppression se referme **avant** l'appel, et son `onDeleted` n'est même
+  /// pas fourni par `message_bubble.dart`. Un `throw` d'ici n'atteignait donc
+  /// ni l'écran ni un journal : il coûtait une invalidation du fil, et rien
+  /// d'autre. L'usager ne peut pas réessayer non plus — le message porte déjà
+  /// sa pierre tombale, et « supprimer pour tout le monde » ne lui est plus
+  /// proposé dessus.
+  ///
+  /// D'où [signalerEchecSilencieux], qui est exactement fait pour ça :
+  /// « ne pas faire échouer » n'est pas « ne rien dire ». La fuite devient
+  /// visible dans Crashlytics au lieu de n'exister nulle part.
   ///
   /// `last_message_at` vient du même `now` que le `created_at` du message
   /// (cf. [_updateConversationLastMessage], appelé avec `at: now`) : leur
@@ -2716,34 +2724,38 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     String conversationId,
     dynamic creeLe,
   ) async {
-    final quand = DateTime.tryParse(creeLe?.toString() ?? '');
-    if (quand == null) return;
+    try {
+      final quand = DateTime.tryParse(creeLe?.toString() ?? '');
+      if (quand == null) return;
 
-    final rows = await _supabase
-        .from('conversations')
-        .select('data, last_message_at')
-        .eq('id', conversationId)
-        .limit(1);
-    if (rows.isEmpty) return;
+      final rows = await _supabase
+          .from('conversations')
+          .select('data, last_message_at')
+          .eq('id', conversationId)
+          .limit(1);
+      if (rows.isEmpty) return;
 
-    final dernier = DateTime.tryParse(
-      rows.first['last_message_at']?.toString() ?? '',
-    );
-    if (dernier == null || !dernier.toUtc().isAtSameMomentAs(quand.toUtc())) {
-      return;
+      final dernier = DateTime.tryParse(
+        rows.first['last_message_at']?.toString() ?? '',
+      );
+      if (dernier == null || !dernier.toUtc().isAtSameMomentAs(quand.toUtc())) {
+        return;
+      }
+
+      final data = Map<String, dynamic>.from(
+        (rows.first['data'] as Map?) ?? {},
+      );
+      data['lastMessage'] = '';
+      data[_kApercuSupprime] = true;
+      data.remove(_kApercuExpire);
+
+      await _supabase
+          .from('conversations')
+          .update({'data': data})
+          .eq('id', conversationId);
+    } catch (e) {
+      signalerEchecSilencieux(e, contexte: 'apercu du message supprime');
     }
-
-    final data = Map<String, dynamic>.from(
-      (rows.first['data'] as Map?) ?? {},
-    );
-    data['lastMessage'] = '';
-    data[_kApercuSupprime] = true;
-    data.remove(_kApercuExpire);
-
-    await _supabase
-        .from('conversations')
-        .update({'data': data})
-        .eq('id', conversationId);
   }
 
   @override

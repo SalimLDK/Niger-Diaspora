@@ -1,4 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/e2ee/device_sync_service.dart';
 import '../../../../core/services/e2ee/models/e2ee_models.dart';
+import '../../../../core/crypto/mls/mls_code_qr.dart';
 import '../../../../core/crypto/mls/mls_code_securite.dart';
 import '../../../../core/crypto/mls/mls_device_registry.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -975,6 +978,52 @@ class _CodeSecurite extends StatelessWidget {
   final MlsDeviceRecord appareil;
   final String userId;
 
+  /// Le QR ne porte **aucun secret** : une identité d'appareil et une
+  /// empreinte publique, toutes deux déjà lisibles dans `mls_devices`.
+  /// Photographié par un tiers, il ne lui apprend rien.
+  void _montrerQr(BuildContext context, Uint8List empreinte) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.mlsSecurityCodeLabel),
+        // **Largeur fixe, et ce n'est pas cosmétique.** `AlertDialog` mesure
+        // son contenu par dimensions INTRINSÈQUES ; `QrImageView` contient un
+        // `LayoutBuilder`, qui ne sait pas y répondre (« LayoutBuilder does
+        // not support returning intrinsic dimensions »). Sans une taille
+        // imposée qui arrête la question avant d'atteindre le QR, la mise en
+        // page du dialogue échoue **en entier** : plus rien n'est peint, ni
+        // titre ni bouton. Et l'erreur ne se voit nulle part — ce dépôt
+        // détourne `FlutterError.onError` vers Crashlytics. Un dialogue vide,
+        // sans message, sans trace dans logcat.
+        content: SizedBox(
+          width: 252,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MlsCodeQr(
+                mlsIdentity: appareil.mlsIdentity,
+                empreinte: empreinte,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.mlsSecurityCodeQrHint,
+                style:
+                    TextStyle(fontSize: 12, color: context.textSecondaryColor),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.close),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -1010,6 +1059,21 @@ class _CodeSecurite extends StatelessWidget {
             fontFamily: 'monospace',
             height: 1.5,
             color: context.textSecondaryColor,
+          ),
+        ),
+        // Sans un QR à montrer, le scanner branché côté lecture n'a rien à
+        // lire : la vérification ne tiendrait qu'à la lecture de soixante
+        // chiffres à voix haute.
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () => _montrerQr(context, empreinte),
+            icon: const Icon(Icons.qr_code_2, size: 18),
+            label: Text(l10n.mlsSecurityCodeShowQr),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              visualDensity: VisualDensity.compact,
+            ),
           ),
         ),
         FutureBuilder<EtatVerification>(
