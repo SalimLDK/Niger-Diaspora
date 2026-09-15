@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1053 cases à cocher, 560 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
+**1052 cases à cocher, 561 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -123,7 +123,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
-- 6 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
+- 5 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
@@ -277,7 +277,7 @@ Par domaine :
 - [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 121 à faire, 12 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 120 à faire, 13 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
@@ -10346,9 +10346,17 @@ qui ne disent rien du rendu ni du geste.
 - [ ] **Tirer sur l'écran d'échec** (mode avion, puis « Réessayer » ignoré) :
   même geste, même rechargement. Demande de couper le réseau — réglage
   système, à faire par Salim.
-- [ ] **Pastille** : publier depuis le second téléphone ; sur le premier, la
+- [x] **Pastille** : publier depuis le second téléphone ; sur le premier, la
   pastille descend en haut du fil avec l'avatar de l'auteur, sans déplacer la
   lecture en cours ; la toucher pose la publication en tête et remonte le fil.
+  ✅ SM A515F, build release `fbd02d9d…`, 2026-09-14 20:27:37 : Salim publie
+  « Bonjour » depuis le Pixel (compte « Test Appareil »), la pastille apparaît
+  sur le fil du SM — galet orange, avatar « T » de l'auteur, flèche haute,
+  « 1 nouvelle publication ». Détectée 40 s après le début de la veille ; **on
+  ne sait pas par quel chemin** elle est arrivée (temps réel ou sondage), faute
+  de connaître l'heure exacte de la publication — c'est ce que mesure l'entrée
+  « Sans temps réel » ci-dessous. L'appui sur la pastille a été fait par Salim
+  et vu par lui à l'écran, pas mesuré ici.
 - [ ] **Sans temps réel** : couper le Wi-Fi/les données une minute, publier
   depuis l'autre téléphone, revenir : la pastille doit finir par apparaître
   dans la minute qui suit le retour du réseau (c'est le sondage, pas le canal).
