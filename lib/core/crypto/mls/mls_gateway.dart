@@ -84,8 +84,7 @@ class MlsGateway {
     return sortie;
   }
 
-  /// Envoie un message texte. Lève si la conversation est basculée et que
-  /// MLS échoue — c'est voulu (cf. la règle du repli ci-dessus).
+  /// Envoie un message texte.
   Future<MessageEntity> envoyerTexte({
     required String conversationId,
     required String texte,
@@ -93,6 +92,38 @@ class MlsGateway {
     String? senderPhotoUrl,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+  }) =>
+      envoyer(
+        conversationId: conversationId,
+        type: 'text',
+        body: {'content': texte},
+        senderName: senderName,
+        senderPhotoUrl: senderPhotoUrl,
+        replyToId: replyToId,
+        replyToMessageData: replyToMessageData,
+      );
+
+  /// Envoie n'importe quel type de message — texte, média, note vocale,
+  /// position, sondage, sticker.
+  ///
+  /// **Tout ce qui décrit le message passe par [body], donc par le
+  /// chiffrement** : la légende, le nom du fichier, la clé du média, les
+  /// coordonnées. C'est ce que le legacy laissait fuir à côté d'un `content`
+  /// chiffré, et ce que le payload MLS (§ 6.2) referme. Le serveur n'apprend
+  /// que le `content_type`, gardé grossier.
+  ///
+  /// Lève si la conversation est basculée et que MLS échoue — c'est voulu
+  /// (cf. la règle du repli en tête de classe).
+  Future<MessageEntity> envoyer({
+    required String conversationId,
+    required String type,
+    required Map<String, dynamic> body,
+    required String senderName,
+    String? senderPhotoUrl,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
+    List<String> mentions = const [],
+    bool forwarded = false,
   }) async {
     await _service.ensureGroup(conversationId);
     await _service.reconcileMembership(conversationId);
@@ -100,17 +131,19 @@ class MlsGateway {
 
     final payload = MlsPayload(
       id: '',
-      type: 'text',
+      type: type,
       sentAt: DateTime.now().millisecondsSinceEpoch,
-      body: {'content': texte},
+      body: body,
       replyTo: replyToMessageData == null && replyToId == null
           ? null
           : {'id': replyToId, ...?replyToMessageData},
+      mentions: mentions,
+      forwarded: forwarded,
     );
     final row = await _service.send(
       conversationId,
       payload,
-      contentType: MlsMessageMapper.contentType('text'),
+      contentType: MlsMessageMapper.contentType(type),
     );
     return MlsMessageMapper.depuisPayload(
       MlsPayload(
@@ -119,6 +152,8 @@ class MlsGateway {
         sentAt: payload.sentAt,
         body: payload.body,
         replyTo: payload.replyTo,
+        mentions: payload.mentions,
+        forwarded: payload.forwarded,
       ),
       row: row,
       senderName: senderName,
@@ -126,6 +161,38 @@ class MlsGateway {
       currentUserId: userId,
     );
   }
+
+  /// Le corps d'un message média, clé de fichier comprise (plan § 9).
+  ///
+  /// La clé voyageait jusqu'ici dans `encAnnexes`, chiffré avec la clé
+  /// **dérivée** de la conversation — que le serveur sait reconstruire. Ici
+  /// elle entre dans le payload MLS : le serveur ne peut plus la lire, donc
+  /// plus ouvrir le fichier. C'est ce qui achève le chiffrement des pièces
+  /// jointes commencé en C4.
+  static Map<String, dynamic> corpsMedia({
+    String? legende,
+    required String storagePath,
+    required String fileName,
+    required String mimeType,
+    required int fileSize,
+    String? fileKey,
+    String? fileNonce,
+    String? blurhash,
+    int? duration,
+    List<double>? waveform,
+  }) =>
+      {
+        if (legende != null && legende.isNotEmpty) 'content': legende,
+        'storagePath': storagePath,
+        'fileName': fileName,
+        'mimeType': mimeType,
+        'fileSize': fileSize,
+        if (fileKey != null) 'fileKey': fileKey,
+        if (fileNonce != null) 'fileNonce': fileNonce,
+        if (blurhash != null) 'blurhash': blurhash,
+        if (duration != null) 'duration': duration,
+        if (waveform != null) 'waveform': waveform,
+      };
 
   /// Un envoi peut-il encore emprunter le chemin d'aujourd'hui ?
   ///

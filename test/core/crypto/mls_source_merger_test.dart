@@ -111,7 +111,8 @@ void main() {
       // pas un appel réseau de plus tant que rien n'est branché.
       expect(repo, contains('final MlsGateway? mlsGateway;'));
       expect(repo, contains('if (passerelle == null) return legacy;'));
-      expect(repo, contains('if (passerelle != null && await passerelle.enMls('));
+      expect(repo, contains('Future<MlsGateway?> _passerellePour('));
+      expect(repo, contains('if (passerelle == null) return null;'));
     });
 
     test('une conversation basculée n’a pas de repli en clair', () {
@@ -135,6 +136,42 @@ void main() {
     test('les messages MLS sont mis en cache pour le mode hors ligne', () {
       final repo = source('lib/features/messages/data/repositories/message_repository_impl.dart');
       expect(repo, contains('MessageModel.fromEntity(m).toJson()'));
+    });
+
+    test('un média dans une conversation chiffrée l’est forcément', () {
+      // Le drapeau des pièces jointes ne décide que des conversations encore
+      // en clair : dans une conversation MLS, un média en clair serait refusé
+      // par le serveur, et l'envoi échouerait sans cause lisible.
+      final repo = source('lib/features/messages/data/repositories/message_repository_impl.dart');
+      expect(repo, contains('(mediasChiffresActifs() || conversationChiffree)'));
+    });
+
+    test('CHAQUE type de message passe par la passerelle', () {
+      // La garde qui compte. Un type oublié partirait vers `messages`, que le
+      // serveur refuse pour une conversation basculée : l'envoi échouerait
+      // sans que rien n'explique pourquoi, et seulement une fois le drapeau
+      // ouvert — c'est-à-dire trop tard.
+      final repo = source('lib/features/messages/data/repositories/message_repository_impl.dart');
+      const methodes = [
+        'sendTextMessage',
+        'sendFileMessage',
+        'sendAudioMessage',
+        'sendLocationMessage',
+        'sendPollMessage',
+        'sendStickerMessage',
+      ];
+      for (final methode in methodes) {
+        final debut = repo.indexOf('Future<Either<Failure, MessageEntity>> $methode(');
+        expect(debut, greaterThan(-1), reason: methode);
+        // Fin de la méthode : le début de la suivante, ou la fin du fichier.
+        final suivante = repo.indexOf('Future<Either<Failure, MessageEntity>> ', debut + 10);
+        final corps = repo.substring(debut, suivante == -1 ? repo.length : suivante);
+        // `sendFileMessage` délègue à `_envoyerMediaChiffre`, qui porte le
+        // branchement : suivre la délégation plutôt que l'exiger sur place.
+        final passeParMls = corps.contains('_passerellePour(conversationId)') ||
+            corps.contains('_envoyerMediaChiffre(');
+        expect(passeParMls, isTrue, reason: methode);
+      }
     });
   });
 
