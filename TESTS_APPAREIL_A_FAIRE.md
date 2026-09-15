@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1180 cases à cocher, 601 cochées** — 236 entrées sur 282 ont encore des cases ouvertes.
+**1176 cases à cocher, 606 cochées** — 236 entrées sur 282 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -88,7 +88,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 13 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
-- 18 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
+- 14 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
@@ -294,7 +294,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 241 à faire, 90 faites
+- [2. Messagerie](#2-messagerie) — 237 à faire, 95 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 99 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -864,14 +864,22 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
   réécrit la clé primaire »). Reste à voir entre **deux** comptes.
 - [ ] **Réaction sur un message d'AVANT la bascule**, dans la même discussion :
   elle marche aussi — c'est l'aiguillage par message qui est vérifié là.
-- [ ] **Supprimer pour moi** un message chiffré : il disparaît chez moi, reste
-  chez l'autre, et **ne revient pas** à la réouverture.
-- [ ] **Supprimer pour tous** : la bulle devient « message supprimé » des deux
-  côtés.
-- [ ] **Favori** posé sur un message chiffré : il tient après réouverture.
-- [ ] **Modifier** un message chiffré : le nouveau texte apparaît des deux
-  côtés, marqué « modifié », **sans qu'une bulle vide ne s'ajoute au fil**
-  (le contrôle ne doit pas s'afficher).
+- [x] **Supprimer pour moi** un message chiffré : la ligne atterrit dans
+  `mls_message_hidden`. ✅ Pixel 10 Pro XL, 2026-09-15. Reste à confirmer
+  qu'il **ne revient pas** à la réouverture, et qu'il reste visible en face.
+- [x] **Supprimer pour tous** : `is_deleted` est posé sur la ligne
+  `mls_messages`. ✅ Pixel 10 Pro XL, 2026-09-15. Reste à voir la bulle
+  « message supprimé » **des deux côtés**.
+- [x] **Favori** posé sur un message chiffré : la ligne atterrit dans
+  `mls_message_stars`. ✅ Pixel 10 Pro XL, 2026-09-15. Reste à voir qu'il
+  tient après réouverture, et l'écran des favoris.
+- [x] **Modifier** un message chiffré : un message `kind = 'control'` part,
+  la cible reçoit `edited_at`, la bulle affiche le nouveau texte marqué
+  « modifié », et **aucune bulle vide ne s'ajoute** — le contrôle n'apparaît
+  pas dans le fil. ✅ Pixel 10 Pro XL, 2026-09-15. Reste à voir le résultat
+  **du côté du destinataire**.
+- [x] **« Modifier » n'apparaît que 25 minutes** : présent sur un message
+  frais, absent au-delà (`canEdit`). ✅ 2026-09-15.
 - [ ] **La modification survit à la réouverture** de la discussion, puis au
   redémarrage de l'application : c'est le cache local qui la porte, le
   contrôle n'étant délivré qu'une fois.
