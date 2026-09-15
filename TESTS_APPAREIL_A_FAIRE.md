@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1181 cases à cocher, 597 cochées** — 235 entrées sur 281 ont encore des cases ouvertes.
+**1185 cases à cocher, 597 cochées** — 236 entrées sur 282 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -75,11 +75,12 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (78)
+**P1 — fonction importante, jamais vérifiée** (79)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
+- 4 · [⬜ « Supprimer pour tous » efface vraiment le contenu (2026-09-16)](#--supprimer-pour-tous--efface-vraiment-le-contenu-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)](#-létat-mls-ne-quitte-plus-lappareil-sauvegardes-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)](#-banc-mls-bout-en-bout-contre-la-vraie-base-phase-3-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
@@ -295,7 +296,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 242 à faire, 86 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 99 à faire, 38 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 103 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5888,6 +5889,49 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ « Supprimer pour tous » efface vraiment le contenu (2026-09-16)
+
+**Priorité P1** · importance 5/5 — **La promesse du plan n'était pas tenue.**
+Le § 6.3 dit que le serveur cesse de servir le ciphertext ; il ne cessait pas.
+La suppression posait `is_deleted` et `deleted_at`, et rien d'autre. Le contenu
+restait en base, et un destinataire qui n'avait pas encore rattrapé pouvait
+encore le déchiffrer.
+
+Le client ne pouvait pas faire mieux : `UPDATE` ne lui est pas accordé sur
+`ciphertext`, et **cette restriction doit rester** — c'est elle qui l'empêche
+de réécrire son propre message des heures après, un défaut déjà trouvé et
+fermé. D'où une fonction `SECURITY DEFINER` qui fait le geste précis, vider,
+sans donner le moyen d'écrire n'importe quoi. Elle se réserve à l'expéditeur
+dans son corps, puisqu'elle passe outre le RLS.
+
+Second défaut fermé au passage : l'ancien `update` ne vérifiait pas son effet.
+Un refus du RLS réussissait avec zéro ligne et sans erreur — la sixième forme
+d'échec muet de ce dépôt, celle qui avait déjà fait mentir une révocation
+d'appareil. La fonction rend l'identifiant touché, et le client lève quand elle
+ne rend rien.
+
+⚠️ **Migration à appliquer** : `20260916001500_mls_supprimer_pour_tous_efface_vraiment.sql`
+(validée en `BEGIN … ROLLBACK`, jamais appliquée). Tant qu'elle ne l'est pas,
+supprimer pour tous **lèvera** côté client au lieu de faire semblant.
+
+Fichiers : la migration,
+[mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
+(`supprimerPourTous`). Couvert hors appareil par
+[suppression_pour_tous_test.dart](test/core/crypto/suppression_pour_tous_test.dart)
+(6 cas de structure).
+
+- [ ] **Supprimer pour tous un message chiffré** : la bulle devient une pierre
+      tombale, et en base `octet_length(ciphertext)` vaut **0**.
+- [ ] **Sur le message de quelqu'un d'autre** : refusé, et l'écran le dit —
+      il ne doit pas afficher un succès.
+- [ ] **Un appareil qui n'avait pas rattrapé** ne peut plus lire le message :
+      c'est tout l'objet du changement, et ça demande un second appareil.
+- [ ] **Aucun `decrypt_failed` de plus** dans `mls_diagnostics` après la
+      suppression : le rattrapage doit sauter la pierre tombale, pas buter sur
+      son ciphertext vide.
 
 ---
 
