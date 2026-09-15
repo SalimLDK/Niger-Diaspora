@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1181 cases à cocher, 608 cochées** — 238 entrées sur 285 ont encore des cases ouvertes.
+**1181 cases à cocher, 609 cochées** — 238 entrées sur 285 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -298,7 +298,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 237 à faire, 97 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 104 à faire, 38 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 104 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -6121,9 +6121,16 @@ Fichiers : [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
 [metadonnees_absence_vs_echec_test.dart](test/core/crypto/metadonnees_absence_vs_echec_test.dart)
 (4 cas).
 
-- [ ] **Réagir puis retirer la réaction** : le badge disparaît, et
-      `mls_message_reactions` ne porte plus la ligne. Rouvrir la discussion ne
-      la fait pas revenir.
+- [x] **Le badge d'une réaction absente du serveur disparaît** : vérifié le
+      2026-09-16 sur SM A515F, et par le meilleur des témoins — un pouce levé
+      qui traînait sur « SondeA » depuis la veille, alors que
+      `mls_message_reactions` ne portait **aucune** ligne pour cette
+      conversation. Build neuf installé, discussion rouverte : le badge a
+      disparu. C'est exactement le cas que le correctif vise, observé sur une
+      donnée réelle et non fabriquée.
+- [ ] **Réagir puis retirer la réaction dans la foulée** : le badge disparaît,
+      et `mls_message_reactions` ne porte plus la ligne. Reste à faire — le
+      téléphone était tenu par une autre session.
 - [ ] **Étoiler puis retirer** : même chose côté `mls_message_stars`.
 - [ ] **Réagir hors ligne** : le badge ne doit pas rester figé comme un succès
       une fois la connexion revenue sans que rien n'ait été écrit.
