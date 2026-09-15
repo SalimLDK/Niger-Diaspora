@@ -260,6 +260,11 @@ class MessageRepositoryImpl implements MessageRepository {
 
     final texte = dernier['content'] as String? ?? '';
     if (texte.isEmpty) return c;
+    // Un message que cet appareil n'a pas su déchiffrer est mis en cache avec
+    // son placeholder. Le reprendre comme aperçu afficherait « 🔐 Message
+    // chiffré » dans la liste des discussions — vu sur le SM A515F le
+    // 2026-09-15. Mieux vaut le libellé de type, que l'écran dérive tout seul.
+    if (texte == MlsMessageMapper.placeholderIllisible) return c;
     return c.copyWith(lastMessage: texte);
   }
 

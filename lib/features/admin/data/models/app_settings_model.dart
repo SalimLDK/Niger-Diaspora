@@ -743,6 +743,7 @@ class FeatureFlagsModel {
   final bool mediasChiffres;
   final bool mlsMessages;
   final List<String> mlsMessagesComptes;
+  final List<String> multiAppareilComptes;
 
   final bool maintenanceMode;
   final String? maintenanceMessage;
@@ -760,6 +761,7 @@ class FeatureFlagsModel {
     this.mediasChiffres = false,
     this.mlsMessages = false,
     this.mlsMessagesComptes = const [],
+    this.multiAppareilComptes = const [],
     this.maintenanceMode = false,
     this.maintenanceMessage,
   });
@@ -793,6 +795,14 @@ class FeatureFlagsModel {
                 .whereType<String>()
                 .toList()
             : const [],
+        // Même tolérance que `mlsMessagesComptes`, et pour la même raison :
+        // une valeur mal tapée dans la console ne doit ni ouvrir la porte, ni
+        // faire échouer la lecture de TOUS les drapeaux.
+        multiAppareilComptes: json['multiAppareilComptes'] is List
+            ? (json['multiAppareilComptes'] as List)
+                .whereType<String>()
+                .toList()
+            : const [],
         maintenanceMode: json['maintenanceMode'] as bool? ?? false,
         maintenanceMessage: json['maintenanceMessage'] as String?,
       );
@@ -810,6 +820,7 @@ class FeatureFlagsModel {
     'mediasChiffres': mediasChiffres,
     'mlsMessages': mlsMessages,
     'mlsMessagesComptes': mlsMessagesComptes,
+    'multiAppareilComptes': multiAppareilComptes,
     'maintenanceMode': maintenanceMode,
     'maintenanceMessage': maintenanceMessage,
   };
@@ -827,6 +838,7 @@ class FeatureFlagsModel {
     mediasChiffres: mediasChiffres,
     mlsMessages: mlsMessages,
     mlsMessagesComptes: mlsMessagesComptes,
+    multiAppareilComptes: multiAppareilComptes,
     maintenanceMode: maintenanceMode,
     maintenanceMessage: maintenanceMessage,
   );

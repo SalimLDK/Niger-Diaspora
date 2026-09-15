@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1163 cases à cocher, 595 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
+**1175 cases à cocher, 595 cochées** — 233 entrées sur 279 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (27)
+**P0 — avant toute nouvelle version** (28)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 4 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
@@ -51,6 +51,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 4 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
@@ -73,7 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (76)
+**P1 — fonction importante, jamais vérifiée** (77)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -81,6 +82,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)](#-létat-mls-ne-quitte-plus-lappareil-sauvegardes-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)](#-banc-mls-bout-en-bout-contre-la-vraie-base-phase-3-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
+- 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 13 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
@@ -291,11 +293,11 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 242 à faire, 86 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 36 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 93 à faire, 36 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
-- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
+- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 48 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
@@ -5887,6 +5889,53 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
+## ⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)
+
+**Priorité P0** · importance 5/5 — **Le défaut est mesuré, pas théorique.**
+Relevé en production le 2026-09-15 : deux conversations à deux personnes
+avaient basculé en MLS avec **un seul appareil** dans `conversation_devices`,
+celui de l'expéditeur. En face, aucune ligne dans `mls_devices` — l'autre
+étant sur la version du Play Store, qui n'a pas le registre. Huit messages
+sont partis chiffrés pour un groupe d'une personne.
+
+Et **rien ne le disait**. `reconcileMembership` ne trouvait personne à
+ajouter, donc `aAjouter` restait vide, donc pas même un
+`appareil_sans_key_package`. L'échec muet dans sa forme la plus pure.
+
+Deux gardes posées :
+
+- `ensureGroup` **refuse de créer le groupe** si un participant n'a aucun
+  appareil actif, et lève avant que `mls_since` soit posé — l'envoi retombe
+  alors en clair, ce qui est légitime tant que rien n'est engagé. La
+  conversation basculera d'elle-même quand l'autre aura ouvert l'app une fois.
+- `reconcileMembership` écrit désormais `participant_sans_appareil` quand il
+  croise ce cas, pour les conversations déjà basculées.
+
+⚠️ **Les deux conversations abîmées ne sont pas réparables par l'app.** Le
+déclencheur `conversations_garde_mls_since` interdit toute modification de
+`mls_since` une fois posé, et les huit messages resteront illisibles pour
+l'autre — MLS ne redonne pas le secret d'un epoch passé. Les revenir en clair
+demanderait une intervention manuelle en base, à décider à part.
+
+Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
+(`refuserSiQuelquUnNePeutPasSuivre`). Couvert hors appareil par
+[bascule_refusee_sans_appareil_test.dart](test/core/crypto/bascule_refusee_sans_appareil_test.dart)
+(6 cas, dont la garde d'ordre : la vérification doit précéder la création).
+
+- [ ] **Deux comptes, un seul à jour** : écrire au compte resté sur l'ancienne
+      version. Le message doit partir **en clair**, `mls_since` rester nul, et
+      une ligne `bascule_refusee_sans_appareil` apparaître dans
+      `mls_diagnostics`.
+- [ ] **L'autre met à jour et ouvre l'app une fois** : il s'inscrit dans
+      `mls_devices`, et le message suivant fait basculer la conversation, avec
+      **deux** lignes dans `conversation_devices`.
+- [ ] **Il lit bien ce qui a été envoyé après la bascule**, et rien d'avant.
+- [ ] **Groupe à plusieurs** : un seul membre sans appareil suffit à retenir
+      la bascule. Vérifier que ça ne bloque pas l'envoi, seulement le
+      chiffrement.
+
+---
+
 ## ⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)
 
 **Priorité P1** · importance 4/5 — MLS ne protège pas contre un serveur qui
@@ -10574,6 +10623,43 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
 # 8. Comptes, session et onboarding
 
 Connexion, déconnexion, session Supabase, onboarding et assistant de profil, blocage.
+
+---
+
+## ⬜ Verrou de version minimale et multi-appareil (2026-09-15)
+
+**Priorité P1** · importance 5/5 — Deux préalables du plan MLS, construits le
+même jour et **tous deux inertes par défaut**. Ce qui doit être vérifié, c'est
+justement qu'ils restent inertes tant qu'on ne les ouvre pas : une erreur dans
+l'un ferme l'application à tout le monde, une erreur dans l'autre déconnecte
+sans raison.
+
+*Bloqué : le verrou demande de publier `VERSION_MINIMALE_APP` ; le
+multi-appareil demande d'ajouter un compte à `multiAppareilComptes` et un
+second téléphone.*
+
+Fichiers : [version_minimale.dart](lib/core/services/version_minimale.dart),
+[ecran_mise_a_jour_requise.dart](lib/core/shell/ecran_mise_a_jour_requise.dart),
+[session_service.dart](lib/core/services/session_service.dart) (`doitEjecter`).
+
+- [ ] **Sans rien publier** : l'application démarre normalement (c'est l'état
+  du jour, à confirmer après la mise à jour du build).
+- [ ] **`VERSION_MINIMALE_APP` égale à la version installée** : rien ne
+  bloque.
+- [ ] **Version minimale supérieure à ce que sert le store** : rien ne bloque
+  non plus — c'est le garde principal, et il se vérifie en production, pas
+  seulement au banc.
+- [ ] **Version minimale atteignable** : l'écran de blocage s'affiche, sans
+  moyen d'en sortir, et le bouton ouvre bien la fiche du store.
+- [ ] **Thème sombre** et **grande police** sur cet écran : il n'a pas de
+  défilement horizontal et le bouton reste atteignable.
+- [ ] **Multi-appareil fermé** : se connecter sur un second téléphone
+  déconnecte toujours le premier (« Connecté ailleurs »).
+- [ ] **Multi-appareil ouvert pour le compte de test** : les deux téléphones
+  restent connectés, et chacun reçoit les messages.
+- [ ] **Transfert de clés** depuis l'ancien téléphone, multi-appareil ouvert :
+  vérifier que le dépôt marche toujours **après** connexion du neuf — l'ordre
+  imposé jusqu'ici n'a plus de raison d'être, mais rien ne le prouve encore.
 
 ---
 

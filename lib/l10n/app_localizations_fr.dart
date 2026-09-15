@@ -12317,6 +12317,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mlsSecurityCodeLabel => 'Code de sécurité';
 
   @override
+  String get majObligatoireTitre => 'Mise à jour requise';
+
+  @override
+  String get majObligatoireTexte =>
+      'Cette version de l\'application n\'est plus prise en charge. Installez la dernière version pour continuer — vos messages et vos clés restent sur cet appareil.';
+
+  @override
+  String get majObligatoireAction => 'Mettre à jour';
+
+  @override
   String get mlsSecurityCodeShowQr => 'Afficher en QR';
 
   @override

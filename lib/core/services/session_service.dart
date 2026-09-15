@@ -166,9 +166,11 @@ class SessionService {
             if (data != null && data.containsKey('session_id')) {
               final remoteSessionId = data['session_id'] as String?;
 
-              // precise check: if remote exists and differs from local -> logout
-              if (remoteSessionId != null &&
-                  remoteSessionId != _currentSessionId) {
+              if (doitEjecter(
+                sessionDistante: remoteSessionId,
+                sessionLocale: _currentSessionId,
+                multiAppareil: multiAppareilAutorise(),
+              )) {
                 _handleForceLogout();
               }
             }
@@ -177,6 +179,34 @@ class SessionService {
             // debugPrint('Session listener error: $e');
           },
         );
+  }
+
+  /// Ce compte peut-il tenir plusieurs sessions ? Branché depuis Riverpod
+  /// (cf. `multiAppareilAutoriseProvider`) ; `false` tant que personne ne le
+  /// branche, donc le comportement d'avant par défaut.
+  bool Function() multiAppareilAutorise = () => false;
+
+  /// Faut-il éjecter cet appareil ?
+  ///
+  /// Isolée parce que c'est **la** décision : le reste du service n'est que
+  /// de la plomberie autour d'elle. Elle porte la levée de « une seule
+  /// session par compte » (plan MLS, phase 7).
+  ///
+  /// Quand le multi-appareil est autorisé, `session_id` cesse d'être un
+  /// signal d'éjection — il reste écrit, mais plus personne ne l'oppose à
+  /// quiconque. Ce qui identifie un appareil à partir de là, c'est le
+  /// registre `mls_devices`, pas cette colonne.
+  @visibleForTesting
+  static bool doitEjecter({
+    required String? sessionDistante,
+    required String? sessionLocale,
+    required bool multiAppareil,
+  }) {
+    if (multiAppareil) return false;
+    // Pas de session distante : rien à opposer. Éjecter ici déconnecterait
+    // sur une lecture incomplète.
+    if (sessionDistante == null) return false;
+    return sessionDistante != sessionLocale;
   }
 
   /// Point d'entrée de test pour la déconnexion forcée.

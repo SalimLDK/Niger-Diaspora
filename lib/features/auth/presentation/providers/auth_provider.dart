@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../../messages/presentation/providers/media_dechiffre_provider.dart';
 import '../../../../core/services/crypto/derived_key_store.dart';
 import '../../../../core/errors/failures.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
@@ -114,6 +115,10 @@ class AuthNotifier extends _$AuthNotifier {
     // destruction compare bien le même objet.
     _hookDeconnexionForcee = surDeconnexionForcee;
     SessionService.instance.onForceLogout = _hookDeconnexionForcee;
+    // Lu à chaque instantané Firestore, pas au démarrage : ouvrir le
+    // multi-appareil ne doit pas demander de relancer l'application.
+    SessionService.instance.multiAppareilAutorise =
+        () => ref.read(multiAppareilAutoriseProvider);
 
     ref.onDispose(() {
       _disposed = true;
