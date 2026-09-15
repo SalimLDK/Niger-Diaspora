@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1053 cases à cocher, 564 cochées** — 213 entrées sur 257 ont encore des cases ouvertes.
+**1052 cases à cocher, 565 cochées** — 213 entrées sur 257 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -240,7 +240,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
-- 3 · [⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14)](#-deux-textes-du-fil-que-font_scale-13-abime--corrigés-à-revoir-2026-09-14) · *Design, thème, langue et mise en page*
+- 2 · [⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14)](#-deux-textes-du-fil-que-font_scale-13-abime--corrigés-à-revoir-2026-09-14) · *Design, thème, langue et mise en page*
 - 5 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
 - 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
@@ -281,7 +281,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 152 à faire, 29 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 151 à faire, 30 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -13164,11 +13164,15 @@ page.
 elle, ne l'est pas — c'est du rendu à une échelle donnée, un test unitaire
 n'en dirait rien.
 
-- [ ] **Ligne d'auteur à `font_scale` 1.3** : `@nassirou · il y a 3 heures`
+- [x] **Ligne d'auteur à `font_scale` 1.3** : `@nassirou · il y a 3 heures`
   doit s'afficher **en entier**, quitte à passer sur deux lignes (`maxLines`
-  est passé de 1 à 2). Vérifier au passage qu'à l'échelle normale la ligne
-  tient toujours sur une seule, et qu'un pseudo très long ne fait pas gonfler
-  la carte outre mesure.
+  est passé de 1 à 2), et tenir sur une seule à l'échelle normale.
+  ✅ SM A515F, 2026-09-14 21:18, APK debug construit par une session sœur
+  depuis `d4245ea` (ancestralité et contenu vérifiés dans l'objet git avant la
+  mesure) : à 1.3, `il y a environ 42 minutes` et `@nassirou · il y a 3 heures`
+  s'affichent **en entier sur deux lignes** — c'était `31 minut…` et `3 he…`.
+  À 1.0, les trois lignes de l'écran tiennent sur une seule. Reste à voir un
+  pseudo très long, qu'aucun compte de test ne porte.
 - [ ] **Bandeau hors ligne** : « Fil hors ligne · dernière mise à jour **il**
   y a 11 **minutes** » — minuscule en milieu de phrase, pluriel décliné. Le
   bandeau apparaît en coupant le réseau sur le fil général (il se replie sur
