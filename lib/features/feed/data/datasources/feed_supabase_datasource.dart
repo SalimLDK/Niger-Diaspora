@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/foundation.dart';
@@ -144,8 +145,13 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
     var query = _supabase.from('posts').select();
 
     if (hashtagFilter != null) {
-      // Recherche dans le tableau JSONB hashtags
-      query = query.contains('hashtags', [hashtagFilter]);
+      // `hashtags` est une colonne **jsonb**, et `contains(col, [x])` du client
+      // Dart sérialise une liste en littéral de tableau Postgres (`cs.{x}`) :
+      // jsonb le refuse, PostgREST rend une erreur, et l'exception remontait
+      // jusqu'à laisser le fil sur ses squelettes indéfiniment. En passant la
+      // chaîne déjà encodée, le client la transmet telle quelle et la
+      // comparaison devient `hashtags @> '["x"]'`.
+      query = query.contains('hashtags', jsonEncode([hashtagFilter]));
     }
 
     if (mode == FeedMode.following) {

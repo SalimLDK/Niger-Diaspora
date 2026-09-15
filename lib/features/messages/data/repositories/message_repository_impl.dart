@@ -15,6 +15,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/services/blurhash_service.dart';
 import '../../../../core/services/cache_service.dart';
+import '../../../../core/services/e2ee/media_encryption_service.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../../domain/entities/paginated_messages.dart';
@@ -29,6 +30,14 @@ class MessageRepositoryImpl implements MessageRepository {
   final NetworkInfo networkInfo;
   final CacheService cacheService;
   final BlurhashService blurhashService;
+
+  /// Chiffrement des pièces jointes (plan MLS, C4). Nul dans les tests qui
+  /// ne s'y intéressent pas ; l'envoi reste alors en clair.
+  final MediaEncryptionService? mediaEncryptionService;
+
+  /// Interrupteur serveur, lu à chaque envoi (pas au démarrage) : ouvrir le
+  /// drapeau prend effet sans relancer l'app.
+  final bool Function() mediasChiffresActifs;
 
   /// Placeholders posés par la couche crypto quand un déchiffrement échoue.
   /// Signal (1:1) et Sender Key (groupes) consomment la clé de message au
@@ -50,8 +59,11 @@ class MessageRepositoryImpl implements MessageRepository {
     required this.networkInfo,
     CacheService? cacheService,
     BlurhashService? blurhashService,
+    this.mediaEncryptionService,
+    bool Function()? mediasChiffresActifs,
   }) : cacheService = cacheService ?? CacheService.instance,
-       blurhashService = blurhashService ?? BlurhashService();
+       blurhashService = blurhashService ?? BlurhashService(),
+       mediasChiffresActifs = mediasChiffresActifs ?? (() => false);
 
   /// Collapse duplicate 1:1 conversations that share the same participant pair.
   ///
@@ -303,6 +315,30 @@ class MessageRepositoryImpl implements MessageRepository {
     try {
       final fileName = file.path.split('/').last;
 
+      // C4 : pièces jointes chiffrées — images, documents, audio. Pas la
+      // vidéo, qui attend un déchiffrement par morceaux
+      // (CHIFFREMENT_MEDIAS_PLAN.md). Le blob part sur Storage, la clé
+      // voyage dans le message, scellée par le datasource.
+      final chiffrement = mediaEncryptionService;
+      if (chiffrement != null &&
+          type != MessageType.video &&
+          mediasChiffresActifs()) {
+        return _envoyerMediaChiffre(
+          chiffrement,
+          conversationId: conversationId,
+          senderId: senderId,
+          senderName: senderName,
+          senderPhotoUrl: senderPhotoUrl,
+          file: file,
+          type: type,
+          caption: caption,
+          onProgress: onProgress,
+          checkCancelled: checkCancelled,
+          replyToId: replyToId,
+          replyToMessageData: replyToMessageData,
+        );
+      }
+
       // 1. Start Upload
       final uploadTask = remoteDataSource.uploadMediaFile(
         file: file,
@@ -429,6 +465,81 @@ class MessageRepositoryImpl implements MessageRepository {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
       return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
+  }
+
+  /// Envoi d'une pièce jointe chiffrée (C4, tranche 1).
+  ///
+  /// Un échec de scellement de la clé fait échouer l'envoi avec un message
+  /// lisible — jamais de repli en clair : ce serait annuler tout le bénéfice
+  /// sans le dire.
+  Future<Either<Failure, MessageEntity>> _envoyerMediaChiffre(
+    MediaEncryptionService chiffrement, {
+    required String conversationId,
+    required String senderId,
+    required String senderName,
+    String? senderPhotoUrl,
+    required File file,
+    required MessageType type,
+    String? caption,
+    void Function(double customProgress)? onProgress,
+    bool Function()? checkCancelled,
+    String? replyToId,
+    Map<String, dynamic>? replyToMessageData,
+  }) async {
+    final resultat = await chiffrement.encryptAndUploadFile(
+      file: file,
+      conversationId: conversationId,
+      senderId: senderId,
+      mediaType: switch (type) {
+        MessageType.image => MediaType.image,
+        MessageType.audio => MediaType.audio,
+        _ => MediaType.document,
+      },
+      onProgress: onProgress,
+      checkCancelled: checkCancelled,
+    );
+    if (checkCancelled?.call() == true) {
+      return const Left(ServerFailure('Envoi annulé'));
+    }
+
+    String? blurhash;
+    if (type == MessageType.image) {
+      blurhash = await blurhashService.generateFromImage(file);
+    }
+    int? audioDuration;
+    if (type == MessageType.audio) {
+      audioDuration = await AudioPlaybackService.getDurationFromFile(file.path);
+    }
+    final dbType = type == MessageType.audio ? 'audioFile' : type.name;
+
+    final media = MediaChiffre(
+      storagePath: resultat.storagePath,
+      encryptedUrl: resultat.encryptedUrl,
+      fileKeyBase64: resultat.fileKeyBase64,
+      ivBase64: resultat.ivBase64,
+      fileName: resultat.originalFileName,
+      mimeType: resultat.mimeType,
+      size: resultat.originalSize,
+    );
+
+    final message = await remoteDataSource.sendMediaMessage(
+      conversationId: conversationId,
+      senderId: senderId,
+      senderName: senderName,
+      senderPhotoUrl: senderPhotoUrl,
+      fileUrl: resultat.encryptedUrl,
+      fileName: resultat.originalFileName,
+      fileSize: resultat.originalSize,
+      mimeType: resultat.mimeType,
+      type: dbType,
+      caption: caption,
+      replyToId: replyToId,
+      replyToMessageData: replyToMessageData,
+      blurhash: blurhash,
+      audioDuration: audioDuration,
+      mediaChiffre: media.toJson(),
+    );
+    return Right(message.toEntity());
   }
 
   /// Lit la durée d'une vidéo locale sans la compresser (juste ses métadonnées),
@@ -920,6 +1031,28 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
+      // C4 : note vocale chiffrée avant le téléversement, quand le drapeau
+      // est ouvert. Le datasource ne téléverse alors rien lui-même.
+      Map<String, dynamic>? mediaChiffre;
+      final chiffrement = mediaEncryptionService;
+      if (chiffrement != null && mediasChiffresActifs()) {
+        final r = await chiffrement.encryptAndUploadFile(
+          file: audioFile,
+          conversationId: conversationId,
+          senderId: senderId,
+          mediaType: MediaType.voiceNote,
+        );
+        mediaChiffre = MediaChiffre(
+          storagePath: r.storagePath,
+          encryptedUrl: r.encryptedUrl,
+          fileKeyBase64: r.fileKeyBase64,
+          ivBase64: r.ivBase64,
+          fileName: r.originalFileName,
+          mimeType: r.mimeType,
+          size: r.originalSize,
+        ).toJson();
+      }
+
       final message = await remoteDataSource.sendAudioMessage(
         conversationId: conversationId,
         senderId: senderId,
@@ -931,6 +1064,7 @@ class MessageRepositoryImpl implements MessageRepository {
         replyToId: replyToId,
         replyToMessageData: replyToMessageData,
         isForwarded: isForwarded,
+        mediaChiffre: mediaChiffre,
       );
       return Right(message.toEntity());
     } on ServerException catch (e) {

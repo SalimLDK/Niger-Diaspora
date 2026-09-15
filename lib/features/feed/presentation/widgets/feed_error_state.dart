@@ -171,7 +171,9 @@ class FeedCachedNotice extends StatelessWidget {
             child: Text(
               cachedAt == null
                   ? l10n.feedCachedNoticeUnknownTime
-                  : l10n.feedCachedNotice(_relative(l10n, cachedAt!)),
+                  : l10n.feedCachedNotice(
+                      _minuscule(_relative(l10n, cachedAt!)),
+                    ),
               style: TextStyle(fontSize: 12, color: tokens.mutedText),
             ),
           ),
@@ -189,6 +191,18 @@ class FeedCachedNotice extends StatelessWidget {
     if (d.inHours < 24) return l10n.hoursAgo(d.inHours);
     return l10n.daysAgo(d.inDays);
   }
+
+  /// Ces libellés sont écrits pour vivre seuls (« Il y a 11 minutes »,
+  /// « À l'instant ») et servent ailleurs en début de ligne. Ici ils sont
+  /// enchâssés : « dernière mise à jour **Il** y a 11 minutes » portait une
+  /// majuscule en plein milieu de la phrase.
+  ///
+  /// Abaisser la première lettre plutôt que d'ajouter trois clés en double :
+  /// les deux langues du projet s'en accommodent (l'anglais commence par un
+  /// chiffre, donc rien ne bouge). Une langue dont les mots communs prennent
+  /// la majuscule — l'allemand — demanderait, elle, des clés dédiées.
+  String _minuscule(String texte) =>
+      texte.isEmpty ? texte : texte[0].toLowerCase() + texte.substring(1);
 }
 
 /// Publication dont l'envoi a échoué, gardée en tête du fil (maquette 2b,

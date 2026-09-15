@@ -1,6 +1,9 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
+import 'media_chiffre.dart';
+
+export 'media_chiffre.dart';
 
 enum MessageStatus {
   sending, // Message en cours d'envoi
@@ -89,6 +92,11 @@ class MessageEntity extends Equatable {
 
   // Link preview fields
   final Map<String, dynamic>? linkPreviewData;
+
+  /// Clé et emplacement d'un média chiffré (C4). Nul pour un média envoyé
+  /// en clair, comme tous ceux d'avant. Quand il est présent, `fileUrl`
+  /// pointe sur un blob illisible : passer par `MediaChiffreGate`.
+  final MediaChiffre? mediaChiffre;
 
   // Forward fields
   final bool isForwarded;
@@ -182,6 +190,7 @@ class MessageEntity extends Equatable {
     this.callerId,
     this.calleeId,
     this.linkPreviewData,
+    this.mediaChiffre,
     this.isForwarded = false,
     this.starredBy = const [],
     this.editedAt,
@@ -384,6 +393,7 @@ class MessageEntity extends Equatable {
     String? callerId,
     String? calleeId,
     Map<String, dynamic>? linkPreviewData,
+    MediaChiffre? mediaChiffre,
     bool? isForwarded,
     List<String>? starredBy,
     DateTime? editedAt,
@@ -444,6 +454,7 @@ class MessageEntity extends Equatable {
       callerId: callerId ?? this.callerId,
       calleeId: calleeId ?? this.calleeId,
       linkPreviewData: linkPreviewData ?? this.linkPreviewData,
+      mediaChiffre: mediaChiffre ?? this.mediaChiffre,
       isForwarded: isForwarded ?? this.isForwarded,
       starredBy: starredBy ?? this.starredBy,
       editedAt: editedAt ?? this.editedAt,
@@ -507,6 +518,7 @@ class MessageEntity extends Equatable {
     callerId,
     calleeId,
     linkPreviewData,
+    mediaChiffre,
     isForwarded,
     starredBy,
     editedAt,

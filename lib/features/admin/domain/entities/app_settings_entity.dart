@@ -584,6 +584,12 @@ class FeatureFlagsEntity extends Equatable {
   final bool audioRooms;
   final bool podcasts;
   final bool feed;
+
+  /// Chiffrement des pièces jointes de la messagerie (plan MLS, C4).
+  /// Fermé par défaut : un média chiffré est illisible par les builds
+  /// antérieurs — à n'ouvrir qu'après la mise à jour minimale imposée.
+  final bool mediasChiffres;
+
   final bool maintenanceMode;
   final String? maintenanceMessage;
 
@@ -597,6 +603,7 @@ class FeatureFlagsEntity extends Equatable {
     this.audioRooms = false,
     this.podcasts = false,
     this.feed = true,
+    this.mediasChiffres = false,
     this.maintenanceMode = false,
     this.maintenanceMessage,
   });
@@ -616,6 +623,7 @@ class FeatureFlagsEntity extends Equatable {
     bool? audioRooms,
     bool? podcasts,
     bool? feed,
+    bool? mediasChiffres,
     bool? maintenanceMode,
     Object? maintenanceMessage = _unset,
   }) {
@@ -629,6 +637,7 @@ class FeatureFlagsEntity extends Equatable {
       audioRooms: audioRooms ?? this.audioRooms,
       podcasts: podcasts ?? this.podcasts,
       feed: feed ?? this.feed,
+      mediasChiffres: mediasChiffres ?? this.mediasChiffres,
       maintenanceMode: maintenanceMode ?? this.maintenanceMode,
       maintenanceMessage: identical(maintenanceMessage, _unset)
           ? this.maintenanceMessage
@@ -647,6 +656,7 @@ class FeatureFlagsEntity extends Equatable {
     audioRooms,
     podcasts,
     feed,
+    mediasChiffres,
     maintenanceMode,
     maintenanceMessage,
   ];
