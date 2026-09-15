@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1179 cases à cocher, 603 cochées** — 236 entrées sur 283 ont encore des cases ouvertes.
+**1180 cases à cocher, 603 cochées** — 237 entrées sur 284 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -75,7 +75,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (79)
+**P1 — fonction importante, jamais vérifiée** (80)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -86,6 +86,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 1 · [⬜ Modifications et suppressions MLS n'arrivent pas en direct (2026-09-15)](#-modifications-et-suppressions-mls-narrivent-pas-en-direct-2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 18 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
@@ -294,7 +295,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 240 à faire, 92 faites
+- [2. Messagerie](#2-messagerie) — 241 à faire, 92 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 99 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -651,6 +652,41 @@ incrémental. L'écran dédoublonne déjà par identifiant.
 
 - [x] **Vérifié le 2026-09-15** : `LIVE-TEST` envoyé du A515F apparaît sur le
   Pixel « À l'instant », **sans y toucher**, dans une conversation chiffrée.
+
+## ⬜ Modifications et suppressions MLS n'arrivent pas en direct (2026-09-15)
+
+**Priorité P1** · importance 4/5 — Signalé par Salim : « les modifications et
+suppression ne sont pas instantanés ». **Non corrigé** — une première
+tentative a été ANNULÉE parce qu'elle faisait disparaître un message.
+
+**L'analyse, qui elle tient** — trois maillons manquent, un par étage :
+
+1. l'abonnement temps réel sur `mls_messages` est en `insert` : une
+   **suppression** (« pour tout le monde », ou une expiration purgée) n'est
+   qu'un `UPDATE` de `is_deleted` — il ne la voit pas ;
+2. le dépôt ne réémet que ce qui est plus récent que `afterTimestamp` : une
+   **modification** porte la date d'ORIGINE du message, elle est donc filtrée ;
+3. l'écran ignore un identifiant déjà connu
+   (`else if (!existingMessages.any(...))`) — or une édition et une pierre
+   tombale gardent le leur, donc elles tombent toujours dans cette branche.
+
+⚠️ **Le canal `getMessageUpdatesStream` ne convient PAS** pour ça : il
+préserve délibérément le contenu déjà en place (la ligne brute est chiffrée et
+Signal ne peut pas re-déchiffrer, le cliquet ayant consommé la clé). Une
+édition MLS doit au contraire remplacer le contenu.
+
+**⛔ CE QUI A ÉTÉ TENTÉ PUIS ANNULÉ** — ne pas refaire tel quel : passer
+l'abonnement en `PostgresChangeEvent.all`, réémettre le fil ENTIER, et faire
+REMPLACER par l'écran un identifiant connu. Mesuré à deux téléphones : après
+l'arrivée du message de contrôle d'une édition, le message visé a **disparu**
+de l'écran du destinataire — alors qu'il était vivant côté serveur
+(`is_deleted=false`, 390 octets) — et il n'est pas revenu à la réouverture.
+Aucun `mls_diagnostics`. Cause non élucidée ; le correctif a été retiré parce
+qu'il faisait pire que le défaut visé.
+
+- [ ] Reprendre avec une sonde sur le fil du DESTINATAIRE au moment où le
+  contrôle d'édition arrive (`_traiterControle` / `_appliquerEditionsEnAttente`),
+  pour voir si l'entité sort du fil ou si c'est l'écran qui la perd.
 
 ## ⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)
 
