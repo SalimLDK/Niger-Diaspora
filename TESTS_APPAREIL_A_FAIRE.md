@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1064 cases à cocher, 567 cochées** — 214 entrées sur 259 ont encore des cases ouvertes.
+**1062 cases à cocher, 569 cochées** — 214 entrées sur 259 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -85,7 +85,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
-- 6 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
+- 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -273,7 +273,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 195 à faire, 77 faites
-- [3. Groupes](#3-groupes) — 115 à faire, 62 faites
+- [3. Groupes](#3-groupes) — 113 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
@@ -2867,11 +2867,13 @@ Couvert par `test/features/calls/candidats_nommes_test.dart` (nom résolu,
 requête unique, échec toléré, ami non relu, sans-nom en fin de liste). Ce que
 le test ne voit pas est ci-dessous.
 
-- [ ] **Sur appareil** : fiche d'un groupe dont on est admin → « Inviter un
-      membre ». Les suggestions portent des **noms et des photos**, pas
-      « Utilisateur » à avatar gris. Vérifier avec un compte qui partage une
-      conversation de **groupe** avec d'autres : c'est le cas qui produisait
-      des lignes anonymes en série.
+- [x] **Sur appareil — VÉRIFIÉ SM A515F le 2026-09-14, 21:22** : « Groupe de
+      test prive », compte « Sim A » (qui partage un fil de 21 personnes). Les
+      suggestions portent toutes un **nom et une photo** — « Abdou Sala
+      L'auteur », « Abdoul Dee Ibrahim », « Albade Mohamed »… — classées par
+      nom. Plus une seule ligne « Utilisateur » à avatar gris, là où la
+      capture d'avant correctif n'avait que ça sur huit lignes. APK debug
+      `d2fc966d921aed9c7cbe229843a14e29`, commit `d4245ea`.
 - [ ] **Sur appareil** : une invitation envoyée depuis cette liste arrive bien
       chez l'invité et porte **son** nom, pas « Utilisateur » — `inviteeName`
       part en base. Voir « Inviter des membres dans un groupe privé » pour le
@@ -2883,13 +2885,19 @@ le test ne voit pas est ci-dessous.
 - [ ] **Sur appareil** : même vérification côté appels — pendant un appel,
       « Ajouter un participant » lit le même provider et souffrait du même
       défaut.
-- [ ] **Sur appareil** : quelqu'un dont le profil est privé ou supprimé reste
-      sans nom. Il doit s'afficher « Utilisateur » (le repli localisé, posé par
-      l'écran) et se ranger **en fin de liste**, pas en tête.
-- [ ] **Sur appareil, clavier levé** : la liste des candidats n'occupe plus
-      qu'une ligne et demie une fois le clavier ouvert (hauteur de la feuille =
-      `0,8 × écran − insets`). Gênant sans être cassé, et invisible à la
-      relecture : à juger sur un vrai écran.
+- [x] **Sur appareil — VÉRIFIÉ SM A515F le 2026-09-14, 21:23** : un seul
+      candidat sans nom dans la liste du compte de test. Il s'affiche bien
+      « Utilisateur » — le repli localisé, posé par l'écran — et il est
+      **la dernière ligne**, après « Yahaiya Moussa ». C'est la règle de tri
+      qui le veut : une chaîne vide remonterait en tête d'un tri
+      alphabétique.
+- [ ] **Sur appareil, clavier levé — CONSTATÉ le 2026-09-14, 21:23, reste à
+      arbitrer** : clavier ouvert (`mInputShown=true`), la liste ne montre plus
+      qu'**une seule ligne** et l'amorce de la suivante. Chercher quelqu'un
+      oblige donc à taper à l'aveugle. La hauteur de la feuille vaut
+      `0,8 × écran − insets` : c'est le `− insets` qui mange la liste alors que
+      le clavier la recouvre déjà. Gênant sans être cassé — à Salim de dire si
+      ça vaut un correctif.
 
 ---
 

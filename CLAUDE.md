@@ -46,6 +46,46 @@ déroule, et c'est `:app:packageRelease` qui tombe sur
 `android/.gitignore` (`key.properties`, `**/*.jks`) : les copier ne risque pas
 de les faire committer.
 
+**⚠️ Le worktree isole l'arbre, PAS le cache Gradle. Ne jamais builder à deux.**
+`~/.gradle/caches/8.13/transforms` est commun à tous les worktrees et à tous
+les projets de la machine : avoir chacun son `build/` n'en protège en rien.
+Deux builds Gradle simultanés y laissent des `metadata.bin` tronqués. Constaté
+le 2026-09-14, et le diagnostic trompe à trois reprises :
+
+- l'échec tombe sur `:app:mergeExtDexDebug`, « Could not read workspace
+  metadata from …/metadata.bin », **99 fois** — ça ressemble à un cache à
+  vider, pas à une course ; seul `--stacktrace` donne la vraie cause,
+  `KryoException: Buffer underflow`, c'est-à-dire des écritures interrompues ;
+- **la taille ne trahit rien** : un `metadata.bin` corrompu fait 110-112
+  octets, comme un sain. Inutile de chercher des fichiers vides ;
+- **supprimer les dossiers ne suffit pas** — Gradle cite encore les mêmes
+  hashs, l'état vit dans le démon. `cd android && ./gradlew --stop`, puis
+  rebuilder.
+
+Avant de lancer un build, vérifier qu'aucun autre n'est en cours — un wrapper
+`gradlew` en vie suffit à le dire :
+
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='dart.exe'" |
+  Where-Object { $_.CommandLine -match 'gradlew|build apk' } |
+  Select-Object ProcessId, CreationDate, CommandLine
+```
+
+Le chemin du worktree — donc à qui est le build — n'apparaît que dans la ligne
+du **wrapper java**, au classpath du `gradle-wrapper.jar`. Le `dart.exe` ne le
+porte pas : tombé sur lui seul, on ne sait pas de qui il est.
+
+Un **démon** survivant (né avec un build précédent) est normal et n'est pas un
+build en cours ; c'est le wrapper qu'on regarde.
+
+Et si vous coupez un build : **arrêter la tâche ne tue pas le build.** Le
+2026-09-14, un `TaskStop` sur un `flutter build apk --release` lancé en arrière-plan
+a rendu la main en annonçant l'arrêt, pendant que le wrapper `gradlew` et le
+`flutter build` continuaient, orphelins, à écrire dans le cache partagé. Tuer
+les PID à la main, les vérifier morts, puis `./gradlew --stop` + `flutter
+clean` avant de reconstruire — un build interrompu laisse un cache incrémental
+partiel, et le suivant produit un APK périmé **en annonçant un succès**.
+
 Pour livrer, pousser directement sur la branche partagée :
 
 ```bash
