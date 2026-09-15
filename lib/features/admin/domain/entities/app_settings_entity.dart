@@ -590,6 +590,12 @@ class FeatureFlagsEntity extends Equatable {
   /// antérieurs — à n'ouvrir qu'après la mise à jour minimale imposée.
   final bool mediasChiffres;
 
+  /// Messagerie chiffrée de bout en bout par MLS (plan MLS, phase 5).
+  /// Fermé par défaut, et pour longtemps : ouvrir ce drapeau fait BASCULER
+  /// une conversation sans retour possible — `conversations.mls_since` ne se
+  /// remet jamais à NULL, et le legacy refuse ensuite d'y écrire.
+  final bool mlsMessages;
+
   final bool maintenanceMode;
   final String? maintenanceMessage;
 
@@ -604,6 +610,7 @@ class FeatureFlagsEntity extends Equatable {
     this.podcasts = false,
     this.feed = true,
     this.mediasChiffres = false,
+    this.mlsMessages = false,
     this.maintenanceMode = false,
     this.maintenanceMessage,
   });
@@ -624,6 +631,7 @@ class FeatureFlagsEntity extends Equatable {
     bool? podcasts,
     bool? feed,
     bool? mediasChiffres,
+    bool? mlsMessages,
     bool? maintenanceMode,
     Object? maintenanceMessage = _unset,
   }) {
@@ -638,6 +646,7 @@ class FeatureFlagsEntity extends Equatable {
       podcasts: podcasts ?? this.podcasts,
       feed: feed ?? this.feed,
       mediasChiffres: mediasChiffres ?? this.mediasChiffres,
+      mlsMessages: mlsMessages ?? this.mlsMessages,
       maintenanceMode: maintenanceMode ?? this.maintenanceMode,
       maintenanceMessage: identical(maintenanceMessage, _unset)
           ? this.maintenanceMessage
@@ -657,6 +666,7 @@ class FeatureFlagsEntity extends Equatable {
     podcasts,
     feed,
     mediasChiffres,
+    mlsMessages,
     maintenanceMode,
     maintenanceMessage,
   ];

@@ -28,6 +28,24 @@ cp android/app/diaspo-niger-release.jks "$W/android/app/"
 Sans le `.env` copié, toute commande Flutter échoue sur l'asset manquant.
 Compter ~4 min au premier `flutter analyze` (résolution des paquets).
 
+**Faire `flutter pub get` dans le worktree AVANT le premier `analyze`, et ne
+pas y lancer `--no-pub` tant qu'il n'a pas son propre `.dart_tool`.** Le
+worktree vit **dans** le dépôt principal (`.claude/worktrees/…`) : sans
+`.dart_tool` à lui, l'analyseur remonte l'arborescence et trouve celui du
+dépôt principal. `package:diaspo_niger/…` se résout alors vers le `lib/` du
+**dépôt principal**, qui est sur un autre commit. Constaté le 2026-09-15, et
+le diagnostic ment complètement :
+
+- 23 erreurs, toutes dans des fichiers qu'on n'a pas touchés ;
+- une méthode livrée la veille par l'autre agent annoncée « undefined »,
+  alors qu'elle est bien dans le fichier du worktree — c'est la copie du
+  dépôt principal, en retard d'un commit, qui était lue ;
+- et `AppLocalizations` déclaré incompatible avec lui-même, les deux chemins
+  absolus (worktree et dépôt principal) apparaissant dans le même message.
+
+Après `flutter pub get` : « No issues found ». Aucune de ces 23 erreurs
+n'existait.
+
 `supabase/.temp/` porte le lien vers le projet distant (ignoré par git,
 `.gitignore:80`). Sans lui, toute commande `--linked` — `db query`, `db push`,
 `migration list` — échoue sur « Cannot find project ref. Have you run supabase
@@ -181,7 +199,33 @@ Sortie vide = ok. Sinon, renuméroter **celle qui n'a jamais été appliquée**
 (le message de commit le dit en général), après la dernière migration
 existante — jamais avant, sinon désordre d'ordonnancement.
 
-**2. `db push` s'arrête à la première migration en échec**, et bloque tout ce
+**2. Un `GRANT` ne restreint rien : il faut `REVOKE`.** Supabase pose
+`ALTER DEFAULT PRIVILEGES … GRANT ALL ON TABLES TO anon, authenticated` :
+toute table neuve du schéma `public` naît avec **tous** les droits pour ces
+deux rôles. Écrire
+
+```sql
+GRANT SELECT, INSERT ON public.ma_table TO authenticated;   -- n'enlève RIEN
+```
+
+donne l'illusion d'une restriction et n'en pose aucune. Le motif juste est
+`REVOKE ALL … FROM authenticated;` **puis** les `GRANT` voulus — et le faire
+pour `authenticated` autant que pour `anon`, qu'on pense plus souvent à
+révoquer.
+
+Ce que ça a coûté, trouvé par un banc le 2026-09-15 : `mls_messages` portait
+en commentaire « le ciphertext ne se réécrit jamais : seules les métadonnées
+de retouche », avec le `GRANT UPDATE (…)` colonne par colonne juste en
+dessous. En production, l'expéditeur pouvait **réécrire le ciphertext de son
+propre message**, des heures après. Le RLS n'y pouvait rien : il filtre des
+lignes, jamais des colonnes ni des verbes.
+
+Et `TRUNCATE`, accordé par le même défaut sur **101 tables** à
+`authenticated` (84 à `anon`), **ignore le RLS** — aucune policy ne le
+retient. PostgREST ne l'expose pas, donc ce n'est pas une porte ouverte
+aujourd'hui ; ça le deviendrait au premier `security invoker` qui tronque.
+
+**3. `db push` s'arrête à la première migration en échec**, et bloque tout ce
 qui suit dans la file — y compris une migration sans rapport, à quelqu'un
 d'autre. Un fichier qui recrée une fonction (`CREATE FUNCTION` sans
 `OR REPLACE`) doit `DROP` **toutes** ses surcharges existantes, pas seulement

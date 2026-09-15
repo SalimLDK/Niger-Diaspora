@@ -6,8 +6,8 @@ import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:video_compress/video_compress.dart';
-// import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -15,6 +15,9 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/services/blurhash_service.dart';
 import '../../../../core/services/cache_service.dart';
+import '../../../../core/crypto/mls/mls_gateway.dart';
+import '../../../../core/crypto/mls/mls_message_mapper.dart';
+import '../../../../core/crypto/mls/mls_source_merger.dart';
 import '../../../../core/services/e2ee/media_encryption_service.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
@@ -39,6 +42,12 @@ class MessageRepositoryImpl implements MessageRepository {
   /// drapeau prend effet sans relancer l'app.
   final bool Function() mediasChiffresActifs;
 
+  /// Messagerie MLS (plan MLS, phase 5). Nulle tant que rien ne l'injecte :
+  /// le comportement est alors **exactement** celui d'avant, sans un appel
+  /// réseau de plus. C'est ce qui rend ce branchement sûr à livrer avant
+  /// d'avoir pu le vérifier sur deux téléphones.
+  final MlsGateway? mlsGateway;
+
   /// Placeholders posés par la couche crypto quand un déchiffrement échoue.
   /// Signal (1:1) et Sender Key (groupes) consomment la clé de message au
   /// premier déchiffrement réussi — aucun cache de clés sautées côté client —
@@ -61,6 +70,7 @@ class MessageRepositoryImpl implements MessageRepository {
     BlurhashService? blurhashService,
     this.mediaEncryptionService,
     bool Function()? mediasChiffresActifs,
+    this.mlsGateway,
   }) : cacheService = cacheService ?? CacheService.instance,
        blurhashService = blurhashService ?? BlurhashService(),
        mediasChiffresActifs = mediasChiffresActifs ?? (() => false);
@@ -120,7 +130,9 @@ class MessageRepositoryImpl implements MessageRepository {
   ) {
     return remoteDataSource
         .getConversations(userId)
-        .map<Either<Failure, List<ConversationEntity>>>((conversations) {
+        .asyncMap<Either<Failure, List<ConversationEntity>>>((
+          conversations,
+        ) async {
           // Filter out deleted conversations
           final filteredConversations =
               conversations.where((c) {
@@ -133,13 +145,101 @@ class MessageRepositoryImpl implements MessageRepository {
               filteredConversations.map((c) => c.toJson()).toList();
           cacheService.cacheConversations(conversationsMap);
 
+          final liste = _dedupConversationsByPair(
+            filteredConversations.map((c) => c.toEntity()).toList(),
+          );
+
           return Right<Failure, List<ConversationEntity>>(
-            _dedupConversationsByPair(
-              filteredConversations.map((c) => c.toEntity()).toList(),
-            ),
+            await _completerAvecMls(userId, liste),
           );
         })
         .transform(_echecEmis<List<ConversationEntity>>());
+  }
+
+  /// Ce qu'une conversation basculée ne porte plus en base, et qu'il faut
+  /// donc reconstituer ici : sa pastille de non-lus, et le texte de son
+  /// aperçu.
+  ///
+  /// Le serveur n'écrit ni `data.unreadCount` (il ne sait pas le
+  /// décrémenter : `mark_messages_as_read` ne connaît que `messages`) ni
+  /// `data.lastMessage` (ce serait du clair). Sans ce passage, une
+  /// discussion chiffrée n'a jamais de pastille et affiche « Nouveau
+  /// message » à vie.
+  ///
+  /// Un échec ne coûte pas la liste : il coûte la pastille.
+  Future<List<ConversationEntity>> _completerAvecMls(
+    String userId,
+    List<ConversationEntity> liste,
+  ) async {
+    final avecApercu = [for (final c in liste) _apercuDepuisLeCache(c)];
+
+    final passerelle = mlsGateway;
+    // Inerte tant que rien n'est basculé et que le drapeau est fermé : pas
+    // un appel réseau de plus sur un flux qui émet à chaque changement de
+    // conversation.
+    if (passerelle == null ||
+        (!passerelle.actif && !passerelle.aDesConversationsBasculees)) {
+      return avecApercu;
+    }
+    try {
+      final compteurs = await passerelle.nonLus();
+      if (compteurs.isEmpty) return avecApercu;
+      return [
+        for (final c in avecApercu)
+          if (compteurs[c.id] case final compteur?)
+            c.copyWith(
+              unreadCount: {...c.unreadCount, userId: compteur.nonLus},
+              unreadMentions: {...c.unreadMentions, userId: compteur.mentions},
+            )
+          else
+            c,
+      ];
+    } catch (e) {
+      dev.log('Compteurs MLS indisponibles',
+          name: 'message_repository_impl', error: e);
+      return avecApercu;
+    }
+  }
+
+  /// Le texte de l'aperçu d'une conversation chiffrée, repris du cache local
+  /// déchiffré (décision G) — le serveur, lui, ne porte que le type.
+  ///
+  /// **L'horodatage doit correspondre exactement.** Le cache peut être en
+  /// retard : si la discussion n'a pas été rouverte depuis, son dernier
+  /// message caché n'est pas le dernier message. Afficher celui-là serait
+  /// pire qu'un libellé générique — ce serait un aperçu faux, et rien ne le
+  /// dirait. `last_message_at` vient du même `created_at` serveur que le
+  /// message caché : l'égalité est franche, pas approchée.
+  ConversationEntity _apercuDepuisLeCache(ConversationEntity c) =>
+      apercuDepuisCache(c, () => cacheService.getCachedMessages(c.id));
+
+  /// La règle seule, sans cache ni base — pour pouvoir la tenir par un test.
+  /// Le cache n'est lu que si la conversation en a besoin.
+  @visibleForTesting
+  static ConversationEntity apercuDepuisCache(
+    ConversationEntity c,
+    List<Map<String, dynamic>> Function() messagesCaches,
+  ) {
+    final quand = c.lastMessageAt;
+    if (quand == null) return c;
+    if ((c.lastMessage ?? '').isNotEmpty) return c;
+
+    Map<String, dynamic>? dernier;
+    DateTime? dernierQuand;
+    for (final m in messagesCaches()) {
+      final t = DateTime.tryParse(m['createdAt'] as String? ?? '');
+      if (t == null) continue;
+      if (dernierQuand == null || t.isAfter(dernierQuand)) {
+        dernier = m;
+        dernierQuand = t;
+      }
+    }
+    if (dernier == null || dernierQuand == null) return c;
+    if (dernierQuand.toUtc().difference(quand.toUtc()).inSeconds != 0) return c;
+
+    final texte = dernier['content'] as String? ?? '';
+    if (texte.isEmpty) return c;
+    return c.copyWith(lastMessage: texte);
   }
 
   @override
@@ -181,7 +281,20 @@ class MessageRepositoryImpl implements MessageRepository {
           if (model == null) {
             return const Right<Failure, ConversationEntity?>(null);
           }
-          return Right<Failure, ConversationEntity?>(model.toEntity());
+          final entite = model.toEntity();
+          // Le serveur vient d'annoncer l'appartenance. C'est le seul signal
+          // qui voit TOUS les chemins — y compris ceux où un déclencheur
+          // recopie `group_members` dans `participant_ids` sans qu'aucun code
+          // Dart ne passe. On ne l'attend pas : la réconciliation MLS est un
+          // travail de fond, l'écran ne doit rien lui devoir.
+          unawaited(
+            mlsGateway?.appartenanceChangee(
+                  conversationId,
+                  entite.participantIds,
+                ) ??
+                Future<void>.value(),
+          );
+          return Right<Failure, ConversationEntity?>(entite);
         })
         .transform(_echecEmis<ConversationEntity?>());
   }
@@ -251,6 +364,29 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
+      // Envoi chiffré de bout en bout, quand cette conversation est passée à
+      // MLS (ou que le drapeau vient de l'y faire passer). Une conversation
+      // DÉJÀ basculée n'a pas de chemin de retour : si MLS échoue, l'envoi
+      // échoue — c'est le repli muet qui a laissé Signal envoyer en clair
+      // pendant des semaines. Avant la bascule, rien n'est engagé : on peut
+      // encore emprunter le chemin d'aujourd'hui, et ça se lit en base.
+      final passerelle = await _passerellePour(conversationId);
+      if (passerelle != null) {
+        final envoye = await _tenterEnvoiMls(
+          passerelle,
+          conversationId,
+          () => passerelle.envoyerTexte(
+            conversationId: conversationId,
+            texte: content,
+            senderName: senderName,
+            senderPhotoUrl: senderPhotoUrl,
+            replyToId: replyToId,
+            replyToMessageData: replyToMessageData,
+          ),
+        );
+        if (envoye != null) return envoye;
+      }
+
       final message = await remoteDataSource.sendTextMessage(
         conversationId: conversationId,
         senderId: senderId,
@@ -319,10 +455,16 @@ class MessageRepositoryImpl implements MessageRepository {
       // vidéo, qui attend un déchiffrement par morceaux
       // (CHIFFREMENT_MEDIAS_PLAN.md). Le blob part sur Storage, la clé
       // voyage dans le message, scellée par le datasource.
+      // Dans une conversation passée à MLS, un média **doit** être chiffré,
+      // que le drapeau des pièces jointes soit ouvert ou non : le serveur
+      // refuse désormais d'y écrire en clair, et l'envoi échouerait sans
+      // cause lisible. Le drapeau ne décide donc que des conversations
+      // encore en clair.
       final chiffrement = mediaEncryptionService;
+      final conversationChiffree = await _passerellePour(conversationId) != null;
       if (chiffrement != null &&
           type != MessageType.video &&
-          mediasChiffresActifs()) {
+          (mediasChiffresActifs() || conversationChiffree)) {
         return _envoyerMediaChiffre(
           chiffrement,
           conversationId: conversationId,
@@ -522,6 +664,38 @@ class MessageRepositoryImpl implements MessageRepository {
       size: resultat.originalSize,
     );
 
+    // Conversation chiffrée : la clé du fichier entre dans le payload MLS
+    // (plan § 9) au lieu du blob `encAnnexes`, que le serveur sait ouvrir
+    // puisqu'il détient la racine dont la clé de conversation est dérivée.
+    // C'est ce qui achève le chiffrement des pièces jointes commencé en C4.
+    final passerelle = await _passerellePour(conversationId);
+    if (passerelle != null) {
+      final envoye = await _tenterEnvoiMls(
+        passerelle,
+        conversationId,
+        () => passerelle.envoyer(
+          conversationId: conversationId,
+          type: dbType == 'audioFile' ? 'audio' : dbType,
+          body: MlsGateway.corpsMedia(
+            legende: caption,
+            storagePath: resultat.storagePath,
+            fileName: resultat.originalFileName,
+            mimeType: resultat.mimeType,
+            fileSize: resultat.originalSize,
+            fileKey: resultat.fileKeyBase64,
+            fileNonce: resultat.ivBase64,
+            blurhash: blurhash,
+            duration: audioDuration,
+          ),
+          senderName: senderName,
+          senderPhotoUrl: senderPhotoUrl,
+          replyToId: replyToId,
+          replyToMessageData: replyToMessageData,
+        ),
+      );
+      if (envoye != null) return envoye;
+    }
+
     final message = await remoteDataSource.sendMediaMessage(
       conversationId: conversationId,
       senderId: senderId,
@@ -540,6 +714,132 @@ class MessageRepositoryImpl implements MessageRepository {
       mediaChiffre: media.toJson(),
     );
     return Right(message.toEntity());
+  }
+
+  /// La passerelle MLS si — et seulement si — cette conversation doit
+  /// passer par elle. Nulle sinon, et l'appelant reprend son chemin habituel.
+  ///
+  /// Centralisée parce qu'elle est appelée par les six méthodes d'envoi : un
+  /// type de message oublié ici, et il partirait vers `messages` que le
+  /// serveur refuse désormais pour une conversation basculée — l'envoi
+  /// échouerait sans que rien n'explique pourquoi.
+  Future<MlsGateway?> _passerellePour(String conversationId) async {
+    final passerelle = mlsGateway;
+    if (passerelle == null) return null;
+    return await passerelle.enMls(conversationId) ? passerelle : null;
+  }
+
+  /// La passerelle si **ce message-là** est un message MLS.
+  ///
+  /// L'aiguillage se fait par message, pas par conversation : une discussion
+  /// basculée garde son historique en clair juste au-dessus du séparateur, et
+  /// réagir à l'un de ces anciens messages doit continuer d'écrire dans
+  /// `messages`. Se tromper de table ne lève rien — un `update … where id`
+  /// sans cible réussit avec zéro ligne — et l'action paraîtrait juste « ne
+  /// pas prendre ».
+  Future<MlsGateway?> _passerelleMessage(
+    String conversationId,
+    String messageId,
+  ) async {
+    final passerelle = mlsGateway;
+    if (passerelle == null) return null;
+    return await passerelle.estMlsMessage(conversationId, messageId)
+        ? passerelle
+        : null;
+  }
+
+  /// Exécute un envoi MLS, avec la règle du repli : avant la bascule, un
+  /// échec peut encore emprunter le chemin d'aujourd'hui ; après, il remonte.
+  Future<Either<Failure, MessageEntity>?> _tenterEnvoiMls(
+    MlsGateway passerelle,
+    String conversationId,
+    Future<MessageEntity> Function() envoi,
+  ) async {
+    try {
+      return Right(await envoi());
+    } catch (e) {
+      if (!await passerelle.repliLegacyPossible(conversationId)) rethrow;
+      dev.log('MLS indisponible, envoi en clair (conversation non basculée)',
+          name: 'message_repository_impl', error: e);
+      return null;
+    }
+  }
+
+  /// Fusionne l'historique legacy déjà chargé avec le fil MLS.
+  ///
+  /// Rend la liste inchangée dès que MLS n'est pas concerné : pas de
+  /// passerelle injectée, ou conversation jamais basculée et drapeau fermé.
+  /// Un échec de lecture MLS ne coûte pas l'historique — il coûte les
+  /// messages chiffrés, et se voit dans `mls_diagnostics`.
+  Future<List<MessageEntity>> _fusionnerAvecMls(
+    String conversationId,
+    List<MessageEntity> legacy,
+  ) async {
+    final passerelle = mlsGateway;
+    if (passerelle == null) return legacy;
+    try {
+      if (!await passerelle.enMls(conversationId)) return legacy;
+      // Le moteur ne sait pas relire ce qu'il a déjà déchiffré : au
+      // lancement, le serveur n'a plus rien de lisible à offrir pour les
+      // messages d'hier. Le cache de l'appareil, lui, a le clair — on le rend
+      // à la passerelle avant de lui demander le fil.
+      passerelle.amorcer(
+        conversationId,
+        _mlsDuCache(conversationId, await passerelle.mlsSince(conversationId)),
+      );
+      final mls = await passerelle.messages(conversationId);
+      if (mls.isEmpty) return legacy;
+      // Sans ce cache, rouvrir la discussion hors ligne ferait disparaître
+      // les messages chiffrés : le serveur ne saura jamais les rendre en
+      // clair, et le cliquet ne se rejoue pas.
+      unawaited(cacheService.cacheMessages(
+        conversationId,
+        [for (final m in mls) MessageModel.fromEntity(m).toJson()],
+      ));
+      return MlsSourceMerger.fusionner(
+        legacy: legacy,
+        mls: mls,
+        mlsSince: await passerelle.mlsSince(conversationId),
+      );
+    } catch (e) {
+      dev.log('Fusion MLS impossible', name: 'message_repository_impl', error: e);
+      return legacy;
+    }
+  }
+
+  /// Les messages chiffrés déjà en cache sur cet appareil.
+  ///
+  /// Reconnus à leur date : une fois `mls_since` posé, le serveur refuse
+  /// toute écriture en clair pour cette conversation — tout ce qui vient
+  /// après la bascule est donc chiffré, et rien d'autre ne l'est.
+  ///
+  /// Les placeholders sont écartés : un « 🔐 Message chiffré » mis en cache
+  /// par un passage précédent ne doit pas revenir prendre la place du clair
+  /// qu'un autre passage avait obtenu.
+  List<MessageEntity> _mlsDuCache(String conversationId, DateTime? depuis) =>
+      mlsDuCache(cacheService.getCachedMessages(conversationId), depuis);
+
+  /// La règle seule, sans cache — pour pouvoir la tenir par un test.
+  @visibleForTesting
+  static List<MessageEntity> mlsDuCache(
+    List<Map<String, dynamic>> caches,
+    DateTime? depuis,
+  ) {
+    if (depuis == null) return const [];
+    final sortie = <MessageEntity>[];
+    for (final brut in caches) {
+      try {
+        final m = MessageModel.fromJson(brut).toEntity();
+        if (m.createdAt.isBefore(depuis)) continue;
+        if (MlsMessageMapper.estSeparateur(m)) continue;
+        if (m.content == MlsMessageMapper.placeholderIllisible) continue;
+        sortie.add(m);
+      } catch (_) {
+        // Une entrée de cache illisible ne coûte que ce message.
+        continue;
+      }
+    }
+    return sortie;
   }
 
   /// Lit la durée d'une vidéo locale sans la compresser (juste ses métadonnées),
@@ -634,6 +934,13 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     try {
+      // Une conversation basculée n'a plus de ligne dans `messages` : son
+      // reçu vit dans `mls_message_receipts`. Les deux sont appelés tant que
+      // l'historique legacy est là — chacun ne touche que ses propres lignes.
+      final passerelle = await _passerellePour(conversationId);
+      if (passerelle != null) {
+        await passerelle.marquerLivres(conversationId);
+      }
       await remoteDataSource.markAsDelivered(
         conversationId: conversationId,
         userId: userId,
@@ -654,6 +961,10 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
+      final passerelle = await _passerellePour(conversationId);
+      if (passerelle != null) {
+        await passerelle.marquerLus(conversationId);
+      }
       await remoteDataSource.markAsRead(
         conversationId: conversationId,
         userId: userId,
@@ -868,9 +1179,14 @@ class MessageRepositoryImpl implements MessageRepository {
 
         // debugPrint('💾 Repository: Cached ${messageMaps.length} messages');
 
+        // Coexistence (plan MLS § 2.3) : l'historique legacy est gelé, le
+        // fil MLS est vivant. On les fusionne ici, une fois, plutôt que de
+        // faire connaître deux sources aux 81 fichiers de la couche messages.
+        final fusionnes = await _fusionnerAvecMls(conversationId, entities);
+
         return Right(
           PaginatedMessages(
-            messages: entities,
+            messages: fusionnes,
             hasMore: hasMore,
             lastMessageId: entities.isNotEmpty ? entities.first.id : null,
             oldestMessageTimestamp:
@@ -1053,6 +1369,38 @@ class MessageRepositoryImpl implements MessageRepository {
         ).toJson();
       }
 
+      // Conversation chiffrée : le corps de la note vocale (clé du fichier,
+      // durée, forme d'onde) entre dans le payload MLS. Sans ce branchement,
+      // l'envoi partirait vers `messages`, que le serveur refuse pour une
+      // conversation basculée — et l'utilisateur verrait un échec sans cause.
+      final passerelle = await _passerellePour(conversationId);
+      if (passerelle != null && mediaChiffre != null) {
+        final envoye = await _tenterEnvoiMls(
+          passerelle,
+          conversationId,
+          () => passerelle.envoyer(
+            conversationId: conversationId,
+            type: 'voiceNote',
+            body: MlsGateway.corpsMedia(
+              storagePath: mediaChiffre!['storagePath'] as String? ?? '',
+              fileName: mediaChiffre['fileName'] as String? ?? '',
+              mimeType: mediaChiffre['mimeType'] as String? ?? 'audio/mp4',
+              fileSize: (mediaChiffre['size'] as num?)?.toInt() ?? 0,
+              fileKey: mediaChiffre['fileKey'] as String?,
+              fileNonce: mediaChiffre['iv'] as String?,
+              duration: duration,
+              waveform: waveform,
+            ),
+            senderName: senderName,
+            senderPhotoUrl: senderPhotoUrl,
+            replyToId: replyToId,
+            replyToMessageData: replyToMessageData,
+            forwarded: isForwarded,
+          ),
+        );
+        if (envoye != null) return envoye;
+      }
+
       final message = await remoteDataSource.sendAudioMessage(
         conversationId: conversationId,
         senderId: senderId,
@@ -1092,6 +1440,31 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
+      // La position est une donnée sensible que le legacy écrivait en clair
+      // (latitude, longitude et adresse, relevés en production le
+      // 2026-09-14) : elle entre ici dans le payload chiffré.
+      final passerelle = await _passerellePour(conversationId);
+      if (passerelle != null) {
+        final envoye = await _tenterEnvoiMls(
+          passerelle,
+          conversationId,
+          () => passerelle.envoyer(
+            conversationId: conversationId,
+            type: 'location',
+            body: {
+              'latitude': latitude,
+              'longitude': longitude,
+              'address': address,
+            },
+            senderName: senderName,
+            senderPhotoUrl: senderPhotoUrl,
+            replyToId: replyToId,
+            replyToMessageData: replyToMessageData,
+          ),
+        );
+        if (envoye != null) return envoye;
+      }
+
       final message = await remoteDataSource.sendLocationMessage(
         conversationId: conversationId,
         senderId: senderId,
@@ -1126,6 +1499,26 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
+      // Le sondage vit en Postgres et le restera : voter demande un arbitre,
+      // et l'anonymat des votants est une garantie serveur (plan § 6.3). Le
+      // message ne porte donc que son identifiant et sa question — cette
+      // dernière étant chiffrée ici, alors qu'elle partait en clair.
+      final passerelle = await _passerellePour(conversationId);
+      if (passerelle != null) {
+        final envoye = await _tenterEnvoiMls(
+          passerelle,
+          conversationId,
+          () => passerelle.envoyer(
+            conversationId: conversationId,
+            type: 'poll',
+            body: {'pollId': pollId, 'content': question},
+            senderName: senderName,
+            senderPhotoUrl: senderPhotoUrl,
+          ),
+        );
+        if (envoye != null) return envoye;
+      }
+
       final message = await remoteDataSource.sendPollMessage(
         conversationId: conversationId,
         senderId: senderId,
@@ -1161,6 +1554,32 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
+      final passerelle = await _passerellePour(conversationId);
+      if (passerelle != null) {
+        final envoye = await _tenterEnvoiMls(
+          passerelle,
+          conversationId,
+          () => passerelle.envoyer(
+            conversationId: conversationId,
+            type: 'sticker',
+            body: {
+              'stickerPackId': stickerPackId,
+              'stickerId': stickerId,
+              // L'URL du sticker reste une requête réseau visible du
+              // fournisseur ; c'est une limite connue, pas une fuite de ce
+              // dépôt (plan § 6.3).
+              'stickerUrl': stickerUrl,
+              'isAnimated': isAnimated,
+            },
+            senderName: senderName,
+            senderPhotoUrl: senderPhotoUrl,
+            replyToId: replyToId,
+            replyToMessageData: replyToMessageData,
+          ),
+        );
+        if (envoye != null) return envoye;
+      }
+
       final message = await remoteDataSource.sendStickerMessage(
         conversationId: conversationId,
         senderId: senderId,
@@ -1269,6 +1688,11 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     try {
+      final passerelle = await _passerelleMessage(conversationId, messageId);
+      if (passerelle != null) {
+        await passerelle.supprimerPourMoi(messageId);
+        return const Right(null);
+      }
       await remoteDataSource.deleteMessageForMe(
         conversationId: conversationId,
         messageId: messageId,
@@ -1289,6 +1713,11 @@ class MessageRepositoryImpl implements MessageRepository {
     required String messageId,
   }) async {
     try {
+      final passerelle = await _passerelleMessage(conversationId, messageId);
+      if (passerelle != null) {
+        await passerelle.supprimerPourTous(messageId);
+        return const Right(null);
+      }
       await remoteDataSource.deleteMessageForEveryone(
         conversationId: conversationId,
         messageId: messageId,
@@ -1449,11 +1878,57 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
   }) async {
     try {
+      final passerelle = await _passerelleMessage(conversationId, messageId);
+      if (passerelle != null) {
+        await passerelle.basculerEtoile(messageId);
+        return const Right(null);
+      }
       await remoteDataSource.toggleStarMessage(
         conversationId: conversationId,
         messageId: messageId,
         userId: userId,
       );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> toggleReaction({
+    required String conversationId,
+    required String messageId,
+    required String userId,
+    required String emoji,
+    required bool retirer,
+  }) async {
+    try {
+      final passerelle = await _passerelleMessage(conversationId, messageId);
+      if (passerelle != null) {
+        if (retirer) {
+          await passerelle.retirerReaction(messageId);
+        } else {
+          await passerelle.reagir(messageId, emoji);
+        }
+        return const Right(null);
+      }
+      if (retirer) {
+        await remoteDataSource.removeReaction(
+          conversationId: conversationId,
+          messageId: messageId,
+          userId: userId,
+        );
+      } else {
+        await remoteDataSource.addReaction(
+          conversationId: conversationId,
+          messageId: messageId,
+          userId: userId,
+          emoji: emoji,
+        );
+      }
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -1513,12 +1988,25 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
-      await remoteDataSource.editMessage(
-        conversationId: conversationId,
-        messageId: messageId,
-        newContent: newContent,
-        oldContent: oldContent,
-      );
+      // Le nouveau texte d'un message chiffré doit repartir chiffré, dans un
+      // message de contrôle — rien ne l'émet encore. La passerelle lève, et
+      // l'écran affiche une erreur : laisser passer écrirait dans `messages`,
+      // sans cible, et le texte d'avant réapparaîtrait à la réouverture.
+      final passerelle = await _passerelleMessage(conversationId, messageId);
+      if (passerelle != null) {
+        await passerelle.modifier(
+          conversationId: conversationId,
+          messageId: messageId,
+          nouveauTexte: newContent,
+        );
+      } else {
+        await remoteDataSource.editMessage(
+          conversationId: conversationId,
+          messageId: messageId,
+          newContent: newContent,
+          oldContent: oldContent,
+        );
+      }
 
       // Depuis que la modification est rechiffrée, l'expéditeur ne sait plus
       // relire son propre message depuis le serveur : les charges Signal d'un

@@ -1,5 +1,6 @@
 
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../src/rust/api/mls.dart';
@@ -47,20 +48,40 @@ class MlsConversationService {
     required Future<Moteur> Function() moteur,
     required MlsDelivery delivery,
     required Future<MlsDeviceRecord> Function() appareil,
+    Future<String?> Function(String cle)? lireMemo,
+    Future<void> Function(String cle, String valeur)? ecrireMemo,
   })  : _moteur = moteur,
         _delivery = delivery,
-        _appareil = appareil;
+        _appareil = appareil,
+        _lireMemo = lireMemo ?? _lirePrefs,
+        _ecrireMemo = ecrireMemo ?? _ecrirePrefs;
 
   final String userId;
   final Future<Moteur> Function() _moteur;
   final MlsDelivery _delivery;
   final Future<MlsDeviceRecord> Function() _appareil;
+  final Future<String?> Function(String cle) _lireMemo;
+  final Future<void> Function(String cle, String valeur) _ecrireMemo;
 
   static const _uuid = Uuid();
+
+  static Future<String?> _lirePrefs(String cle) async =>
+      (await SharedPreferences.getInstance()).getString(cle);
+
+  static Future<void> _ecrirePrefs(String cle, String valeur) async =>
+      (await SharedPreferences.getInstance()).setString(cle, valeur);
 
   /// Dernier `created_at` traité par conversation, et ids déjà rendus : un
   /// message rendu deux fois ferait deux bulles (le projet a déjà payé ce
   /// bug avec `clientMessageId`).
+  ///
+  /// **Le curseur survit au redémarrage** (`SharedPreferences`), et ce n'est
+  /// pas une optimisation. MLS supprime le secret d'un message applicatif
+  /// après usage : redemander au moteur un message déjà déchiffré ne le rend
+  /// pas une seconde fois, il **échoue**. Sans mémoire, toute conversation
+  /// basculée serait donc relue depuis le début à chaque lancement, et son
+  /// historique reviendrait en « 🔐 Message chiffré ». Le clair, lui, est
+  /// dans le cache local — c'est `MlsGateway.amorcer` qui l'y reprend.
   final Map<String, DateTime> _curseur = {};
   final Set<String> _vus = {};
 
@@ -96,8 +117,46 @@ class MlsConversationService {
       return;
     }
 
-    // 2. Le groupe existe déjà : quelqu'un doit m'ajouter.
+    // 2. Le groupe existe déjà. Dans un groupe, je peux m'ajouter moi-même
+    //    depuis l'arbre public (§ 5.7) : c'est ce qui rend le groupe officiel
+    //    d'une ville praticable, puisqu'on le rejoint automatiquement, souvent
+    //    sans qu'aucun membre ne soit en ligne. Pour un 1:1, non — il n'y a
+    //    personne à rejoindre sans invitation.
     if (await _delivery.currentEpoch(conversationId) != null) {
+      if (await _jointureExternePossible(conversationId)) {
+        final arbre = await _delivery.groupInfo(conversationId);
+        final epochCourant = await _delivery.currentEpoch(conversationId);
+        if (arbre != null && epochCourant != null) {
+          final epoch = epochCourant + 1;
+          final aad = MlsAad.commit(conversationId: conversationId, epoch: epoch);
+          final out = await moteur.rejoindreParCommitExterne(
+            conversationId: conversationId,
+            groupInfo: arbre,
+            aad: aad,
+          );
+          try {
+            await _delivery.publishCommit(
+              conversationId: conversationId,
+              epoch: epoch,
+              senderDeviceId: appareil.id,
+              commit: out.commit,
+              groupInfo: out.groupInfo,
+            );
+          } on EpochConflict {
+            // Quelqu'un a commité pendant ma jointure : mon arbre est déjà
+            // périmé. J'oublie ce groupe et je recommence — le sien
+            // m'attendra peut-être avec un Welcome.
+            await moteur.oublierGroupe(conversationId: conversationId);
+            await _delivery.diagnostic(userId, 'jointure_externe_perdue',
+                deviceId: appareil.id, detail: {'epoch': epoch});
+            return ensureGroup(conversationId);
+          }
+          await _delivery.upsertConversationDevice(
+              conversationId, appareil.id, 'active', epochAdded: epoch);
+          await _publierArbre(conversationId, moteur);
+          return;
+        }
+      }
       throw MlsEnAttenteDeWelcome(conversationId);
     }
 
@@ -118,6 +177,34 @@ class MlsConversationService {
     }
     await _delivery.marquerMlsSince(conversationId);
     await _delivery.upsertConversationDevice(conversationId, appareil.id, 'active', epochAdded: 0);
+    await _publierArbre(conversationId, moteur);
+  }
+
+  /// Publie l'arbre public de l'epoch courant, pour les arrivants.
+  ///
+  /// Échoue en silence : un arbre non publié coûte une jointure externe —
+  /// l'arrivant attendra un Welcome — mais ne doit jamais faire échouer le
+  /// commit qui vient d'aboutir.
+  Future<void> _publierArbre(String conversationId, Moteur moteur) async {
+    try {
+      final arbre = await moteur.exporterGroupInfo(conversationId: conversationId);
+      await _delivery.publierGroupInfo(conversationId, arbre);
+    } catch (e) {
+      await _delivery.diagnostic(userId, 'group_info_non_publie',
+          detail: {'code': _code(e)});
+    }
+  }
+
+  /// La jointure externe n'a de sens que pour une conversation de groupe.
+  ///
+  /// Dans un 1:1, s'ajouter soi-même à la conversation de quelqu'un d'autre
+  /// n'aurait aucune légitimité — et le RLS l'interdirait de toute façon,
+  /// puisqu'il faut déjà figurer dans `participant_ids` pour lire l'arbre.
+  /// Cette garde est donc une clarté d'intention ; la barrière, elle, est
+  /// côté serveur.
+  Future<bool> _jointureExternePossible(String conversationId) async {
+    final conv = await _delivery.conversation(conversationId);
+    return (conv?['type'] as String?) == 'group';
   }
 
   /// Aligne les membres du groupe sur les appareils actifs des participants
@@ -185,6 +272,7 @@ class MlsConversationService {
         for (final id in destinataires) {
           await _delivery.upsertConversationDevice(conversationId, id, 'active', epochAdded: epoch);
         }
+        await _publierArbre(conversationId, moteur);
       }
       if (aRetirer.isNotEmpty) {
         final snap2 = await moteur.instantane(conversationId: conversationId);
@@ -201,6 +289,9 @@ class MlsConversationService {
           commit: out.commit,
         );
         await moteur.fusionnerCommitEnAttente(conversationId: conversationId);
+        // Sans ça, l'arbre public se périme dès qu'un membre part, et plus
+        // personne ne peut rejoindre le groupe par commit externe.
+        await _publierArbre(conversationId, moteur);
       }
     } on EpochConflict catch (e) {
       // Quelqu'un a commité avant moi : je jette le mien, je traite le sien,
@@ -270,7 +361,8 @@ class MlsConversationService {
     await _traiterCommits(conversationId, moteur, appareil);
 
     final resultats = <MlsIncoming>[];
-    var lignes = await _delivery.messagesAfter(conversationId, _curseur[conversationId]);
+    final depart = await _curseurDe(conversationId);
+    var lignes = await _delivery.messagesAfter(conversationId, depart);
     for (var i = 0; i < lignes.length; i++) {
       final m = lignes[i];
       if (_vus.contains(m.id)) {
@@ -321,8 +413,43 @@ class MlsConversationService {
         resultats.add(MlsIncoming(m, erreur: code));
       }
     }
+    await _memoriserCurseur(conversationId, depart);
     return resultats;
   }
+
+  /// Le curseur de cette conversation, repris du disque au premier besoin.
+  Future<DateTime?> _curseurDe(String conversationId) async {
+    if (_curseur.containsKey(conversationId)) return _curseur[conversationId];
+    try {
+      final brut = await _lireMemo(_cleCurseur(conversationId));
+      final date = brut == null ? null : DateTime.tryParse(brut);
+      if (date != null) _curseur[conversationId] = date;
+      return date;
+    } catch (e) {
+      // Sans mémoire, on relit depuis le début : dégradé (des placeholders),
+      // jamais faux. Ça ne doit pas empêcher d'ouvrir la discussion.
+      debugPrint('MlsConversationService: curseur illisible ($e)');
+      return null;
+    }
+  }
+
+  Future<void> _memoriserCurseur(String conversationId, DateTime? avant) async {
+    final apres = _curseur[conversationId];
+    if (apres == null || apres == avant) return;
+    try {
+      await _ecrireMemo(
+        _cleCurseur(conversationId),
+        apres.toUtc().toIso8601String(),
+      );
+    } catch (e) {
+      debugPrint('MlsConversationService: curseur non mémorisé ($e)');
+    }
+  }
+
+  /// Par utilisateur : deux comptes sur le même téléphone n'ont ni le même
+  /// moteur ni le même avancement.
+  String _cleCurseur(String conversationId) =>
+      'mls_curseur_${userId}_$conversationId';
 
   Future<void> _traiterCommits(
     String conversationId,

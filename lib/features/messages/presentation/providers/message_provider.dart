@@ -34,6 +34,7 @@ import 'message_pagination_state.dart';
 import 'media_upload_provider.dart';
 import '../../../../core/services/e2ee/media_encryption_service.dart';
 import 'media_dechiffre_provider.dart';
+import '../../../../core/crypto/mls/mls_providers.dart';
 
 const int _pageSize = 30;
 
@@ -55,6 +56,10 @@ final messageRepositoryProvider = Provider<MessageRepository>((ref) {
     // `read` dans une fermeture : la valeur est relue à chaque envoi, et
     // un changement de drapeau ne reconstruit pas le repository.
     mediasChiffresActifs: () => ref.read(mediasChiffresActifsProvider),
+    // Messagerie MLS (plan MLS, phase 5) : nulle tant qu'aucun compte n'est
+    // connecté, et inerte tant que le drapeau est fermé ET qu'aucune
+    // conversation n'a basculé.
+    mlsGateway: ref.watch(mlsGatewayProvider),
   );
 });
 
@@ -878,20 +883,19 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
     state = state.copyWith(messages: updatedMessages);
 
     try {
-      if (wasMine) {
-        await _ref.read(messageRemoteDataSourceProvider).removeReaction(
-          conversationId: conversationId,
-          messageId: messageId,
-          userId: currentUser.id,
-        );
-      } else {
-        await _ref.read(messageRemoteDataSourceProvider).addReaction(
-          conversationId: conversationId,
-          messageId: messageId,
-          userId: currentUser.id,
-          emoji: emoji,
-        );
-      }
+      // Par le repository, et non par la source de données : c'est lui qui
+      // sait si ce message est chiffré, donc dans quelle table la réaction
+      // doit aller. Écrire dans `messages` pour un message MLS ne touche
+      // rien et ne lève rien — la réaction disparaîtrait au rechargement.
+      final resultat =
+          await _ref.read(messageRepositoryProvider).toggleReaction(
+                conversationId: conversationId,
+                messageId: messageId,
+                userId: currentUser.id,
+                emoji: emoji,
+                retirer: wasMine,
+              );
+      resultat.fold((echec) => throw Exception(echec.message), (_) {});
     } catch (e) {
       if (!mounted) return;
       final revertedMessages = List<MessageEntity>.from(state.messages);
@@ -926,11 +930,15 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
     state = state.copyWith(messages: updatedMessages);
 
     try {
-      await _ref.read(messageRemoteDataSourceProvider).toggleStarMessage(
-        conversationId: conversationId,
-        messageId: messageId,
-        userId: currentUser.id,
-      );
+      // Même raison que pour les réactions : le favori d'un message chiffré
+      // vit dans `mls_message_stars`, et seul le repository sait aiguiller.
+      final resultat =
+          await _ref.read(messageRepositoryProvider).toggleStarMessage(
+                conversationId: conversationId,
+                messageId: messageId,
+                userId: currentUser.id,
+              );
+      resultat.fold((echec) => throw Exception(echec.message), (_) {});
     } catch (e) {
       final revertedMessages = List<MessageEntity>.from(state.messages);
       if (revertedMessages.length > messageIndex &&

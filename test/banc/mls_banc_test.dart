@@ -24,7 +24,10 @@ import 'dart:io';
 import 'package:diaspo_niger/core/crypto/mls/mls_conversation_service.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_delivery.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_device_registry.dart';
+import 'package:diaspo_niger/core/crypto/mls/mls_message_mapper.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_payload_codec.dart';
+import 'package:diaspo_niger/core/crypto/mls/mls_source_merger.dart';
+import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
 import 'package:diaspo_niger/src/rust/api/mls.dart';
 import 'package:diaspo_niger/src/rust/api/mls.dart' as rust;
 import 'package:diaspo_niger/src/rust/frb_generated.dart';
@@ -123,11 +126,15 @@ void main() {
   const uuid = Uuid();
 
   /// Une conversation neuve entre les participants donnés, créée par [par].
-  Future<String> conversation(Appareil par, List<Appareil> participants) async {
+  Future<String> conversation(
+    Appareil par,
+    List<Appareil> participants, {
+    String? type,
+  }) async {
     final id = uuid.v4();
     await par.client.from('conversations').insert({
       'id': id,
-      'type': participants.length > 2 ? 'group' : 'individual',
+      'type': type ?? (participants.length > 2 ? 'group' : 'individual'),
       'participant_ids': [for (final p in participants) p.uid],
       'created_by': par.uid,
       'data': {'name': 'banc MLS'},
@@ -337,7 +344,13 @@ void main() {
       expect(data['conversationId'], conv);
       expect(data['mlsSenderDeviceId'], m.senderDeviceId);
       // Le ciphertext voyage tel quel : c'est lui que l'appareil déchiffre.
-      expect(base64Decode((data['mlsCiphertext'] as String).replaceAll('\n', '')), m.ciphertext);
+      final b64 = data['mlsCiphertext'] as String;
+      // `encode(bytea,'base64')` coupe tous les 76 caractères et
+      // `base64Decode` refuse les sauts : le trigger doit les retirer
+      // (migration 20260915160000). Sans cette exigence, une régression du
+      // SQL ne se verrait que sur le téléphone de quelqu'un, en silence.
+      expect(b64.contains('\n'), isFalse, reason: 'base64 coupé par Postgres');
+      expect(base64Decode(b64), m.ciphertext);
 
       // L'expéditeur ne se notifie pas lui-même.
       final chezAlice = await a.client
@@ -354,7 +367,7 @@ void main() {
         userId: b.uid,
         deviceId: b.stableId,
         conversationId: conv,
-        message: base64Decode((data['mlsCiphertext'] as String).replaceAll('\n', '')),
+        message: base64Decode(b64),
         aad: MlsAad.message(
           conversationId: conv,
           messageId: data['messageId'] as String,
@@ -529,6 +542,168 @@ void main() {
       // Bob revient : Welcome, puis les cinq.
       final recus = await b.service.catchUp(conv3);
       expect(recus.map((x) => x.payload?.texte), attendus);
+    });
+  });
+
+  group('coexistence : un historique lisible, puis le chiffrement', () {
+    late String conv;
+
+    test('le legacy s’écrit, puis la bascule le ferme définitivement', () async {
+      conv = await conversation(a, [a, b]);
+
+      // Avant la bascule : la conversation vit comme aujourd'hui.
+      for (final texte in ['bonjour', 'ça va ?']) {
+        await a.client.from('messages').insert({
+          'id': uuid.v4(),
+          'conversation_id': conv,
+          'sender_id': a.uid,
+          'type': 'text',
+          'data': {'content': texte, 'senderName': 'Banc Alice'},
+        });
+      }
+      final avantBascule = await a.client
+          .from('messages')
+          .select('id')
+          .eq('conversation_id', conv);
+      expect(avantBascule, hasLength(2));
+
+      // La bascule : elle pose `mls_since`, et ne se défait jamais.
+      await a.service.ensureGroup(conv);
+      await a.service.reconcileMembership(conv);
+      final row = await a.delivery.conversation(conv);
+      expect(row?['mls_since'], isNotNull);
+
+      // À partir de là, plus rien ne peut écrire en clair dans cette
+      // conversation : c'est la garantie auditable du gel (§ 2.3).
+      await expectLater(
+        a.client.from('messages').insert({
+          'id': uuid.v4(),
+          'conversation_id': conv,
+          'sender_id': a.uid,
+          'type': 'text',
+          'data': {'content': 'après la bascule'},
+        }),
+        throwsA(isA<PostgrestException>()),
+      );
+
+      // Et `mls_since` ne se remet pas à NULL, même en essayant.
+      await expectLater(
+        a.client.from('conversations').update({'mls_since': null}).eq('id', conv),
+        throwsA(isA<PostgrestException>()),
+      );
+    });
+
+    test('le fil fusionné : historique, séparateur, puis messages chiffrés', () async {
+      await a.service.send(conv, MlsPayload.texte(uuid.v4(), 'et maintenant chiffré'));
+      final recus = await b.service.catchUp(conv);
+      expect(recus.map((x) => x.payload?.texte), contains('et maintenant chiffré'));
+
+      // Côté lecture, l'écran verra une seule liste. On la construit comme le
+      // repository le fera : legacy paginé + fil MLS + séparateur.
+      final lignesLegacy = await b.client
+          .from('messages')
+          .select()
+          .eq('conversation_id', conv)
+          .order('created_at', ascending: true);
+      final legacy = [
+        for (final r in (lignesLegacy as List).cast<Map<String, dynamic>>())
+          MessageEntity(
+            id: r['id'] as String,
+            senderId: r['sender_id'] as String,
+            senderName: 'Banc Alice',
+            content: (r['data'] as Map)['content'] as String? ?? '',
+            type: MessageType.text,
+            status: MessageStatus.sent,
+            createdAt: DateTime.parse(r['created_at'] as String),
+          ),
+      ];
+      final mls = [
+        for (final x in recus)
+          MlsMessageMapper.depuisEntrant(
+            x,
+            senderName: 'Banc Alice',
+            currentUserId: b.uid,
+          ),
+      ];
+
+      final conversationRow = await b.delivery.conversation(conv);
+      final fusion = MlsSourceMerger.fusionner(
+        legacy: legacy,
+        mls: mls,
+        mlsSince: DateTime.parse(conversationRow!['mls_since'] as String),
+      );
+
+      // L'historique d'abord, le séparateur ensuite, le chiffré en dernier.
+      expect(legacy.map((m) => m.content), ['bonjour', 'ça va ?']);
+      final iSeparateur = fusion.indexWhere(MlsMessageMapper.estSeparateur);
+      expect(iSeparateur, 2);
+      expect(fusion.last.content, 'et maintenant chiffré');
+      expect(fusion.last.encryptionLevel, MessageEncryptionLevel.e2ee);
+      // Le séparateur n'est pas un message : rien de ce qui compte ne le voit.
+      expect(MlsSourceMerger.sansSeparateur(fusion), hasLength(3));
+    });
+  });
+
+  group('groupe ouvert : on entre sans attendre personne', () {
+    test('Charlie se joint par commit externe, puis lit et écrit', () async {
+      // Le cas du groupe officiel d'une ville : on le rejoint automatiquement,
+      // souvent sans qu'aucun membre ne soit en ligne pour vous ajouter. Sans
+      // la jointure externe (§ 5.7), l'arrivant attendrait indéfiniment son
+      // Welcome — et le groupe paraîtrait vide.
+      // Un GROUPE à deux au départ : c'est le cas du groupe officiel d'une
+      // ville, que des gens rejoignent ensuite sans être invités.
+      final conv = await conversation(a, [a, b], type: 'group');
+      await a.service.ensureGroup(conv);
+      await a.service.reconcileMembership(conv);
+      await a.service.send(conv, MlsPayload.texte(uuid.v4(), 'avant Charlie'));
+      await b.service.catchUp(conv);
+
+      // Charlie devient participant côté serveur, et personne ne l'ajoute.
+      await a.client.from('conversations').update({
+        'participant_ids': [a.uid, b.uid, c.uid],
+      }).eq('id', conv);
+
+      // Il entre tout seul, depuis l'arbre public.
+      await c.service.ensureGroup(conv);
+      final snapC = await (await c.moteur()).instantane(conversationId: conv);
+      expect(snapC.membres.length, 3);
+
+      // Les membres en place traitent son commit et continuent de lui parler.
+      final m = await a.service.send(conv, MlsPayload.texte(uuid.v4(), 'bienvenue'));
+      expect((await c.service.catchUp(conv)).map((x) => x.payload?.texte),
+          contains('bienvenue'));
+      expect((await b.service.catchUp(conv)).map((x) => x.payload?.texte),
+          contains('bienvenue'));
+
+      // Et ce qu'il écrit est lu par les autres.
+      final sien = await c.service.send(conv, MlsPayload.texte(uuid.v4(), 'merci'));
+      expect(sien.epoch, greaterThanOrEqualTo(m.epoch));
+      expect((await a.service.catchUp(conv)).map((x) => x.payload?.texte),
+          contains('merci'));
+
+      // Ce qui précède son arrivée lui reste illisible : c'est la propriété
+      // du protocole, pas un défaut — et l'écran doit pouvoir le dire.
+      final avant = await c.service.catchUp(conv);
+      expect(avant.where((x) => x.payload?.texte == 'avant Charlie'), isEmpty);
+    });
+
+    test('un 1:1 ne se rejoint pas tout seul', () async {
+      // Personne ne doit pouvoir entrer dans une conversation à deux sans y
+      // être invité. Le RLS l'empêcherait de toute façon — la garde côté
+      // client dit seulement l'intention.
+      final prive = await conversation(a, [a, b]);
+      await a.service.ensureGroup(prive);
+      await a.service.reconcileMembership(prive);
+      await a.service.send(prive, MlsPayload.texte(uuid.v4(), 'entre nous'));
+
+      await a.client.from('conversations').update({
+        'participant_ids': [a.uid, b.uid, c.uid],
+      }).eq('id', prive);
+
+      await expectLater(
+        c.service.ensureGroup(prive),
+        throwsA(isA<MlsEnAttenteDeWelcome>()),
+      );
     });
   });
 }

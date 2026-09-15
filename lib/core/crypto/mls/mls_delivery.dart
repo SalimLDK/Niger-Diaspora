@@ -72,6 +72,12 @@ class MlsMessageRow {
   final Uint8List ciphertext;
   final String? replyToId;
   final bool isDeleted;
+
+  /// Posé par l'expéditeur avec le contrôle `edit`. Un appareil qui n'a pas
+  /// reçu ce contrôle — arrivé après, réinstallé — affiche quand même
+  /// « modifié » sous le texte d'origine, plutôt que de faire passer une
+  /// version périmée pour la dernière.
+  final DateTime? editedAt;
   final DateTime createdAt;
 
   const MlsMessageRow({
@@ -85,6 +91,7 @@ class MlsMessageRow {
     required this.ciphertext,
     this.replyToId,
     this.isDeleted = false,
+    this.editedAt,
     required this.createdAt,
   });
 
@@ -99,6 +106,7 @@ class MlsMessageRow {
         ciphertext: depuisBytea(r['ciphertext'] as String),
         replyToId: r['reply_to_id'] as String?,
         isDeleted: r['is_deleted'] == true,
+        editedAt: DateTime.tryParse(r['edited_at'] as String? ?? ''),
         createdAt: DateTime.parse(r['created_at'] as String),
       );
 
@@ -166,7 +174,7 @@ class MlsDelivery {
     await _auth();
     return _client
         .from('conversations')
-        .select('id, participant_ids, mls_since')
+        .select('id, type, participant_ids, mls_since')
         .eq('id', conversationId)
         .maybeSingle();
   }
@@ -248,6 +256,48 @@ class MlsDelivery {
     } on PostgrestException catch (e) {
       if (e.code == '23505') throw EpochConflict(conversationId, epoch);
       rethrow;
+    }
+  }
+
+  /// Publie l'arbre public du groupe (§ 5.7), celui de l'epoch courant.
+  ///
+  /// Écrit par le dernier committeur, lu par un arrivant qui rejoint un
+  /// groupe ouvert. Aucun secret : c'est un arbre de clés publiques.
+  Future<void> publierGroupInfo(String conversationId, Uint8List groupInfo) async {
+    await _auth();
+    try {
+      await _client
+          .from('conversations')
+          .update({'mls_group_info': versBytea(groupInfo)})
+          .eq('id', conversationId);
+    } catch (e) {
+      // Même raison que pour la lecture : tant que la colonne n'existe pas,
+      // ne rien publier coûte une jointure externe, pas un message.
+      debugPrint('MlsDelivery: arbre public non publié ($e)');
+    }
+  }
+
+  /// L'arbre public publié pour cette conversation, s'il y en a un.
+  ///
+  /// Requête **séparée**, et tolérante à son propre échec : `mls_group_info`
+  /// est une colonne récente, et la mettre dans le select principal ferait
+  /// échouer la requête entière tant que la migration n'est pas appliquée —
+  /// donc chaque envoi de message, pour une colonne qui ne sert qu'à une
+  /// jointure externe. C'est la règle que ce dépôt a déjà payée côté Edge
+  /// Functions.
+  Future<Uint8List?> groupInfo(String conversationId) async {
+    await _auth();
+    try {
+      final row = await _client
+          .from('conversations')
+          .select('mls_group_info')
+          .eq('id', conversationId)
+          .maybeSingle();
+      final brut = row?['mls_group_info'] as String?;
+      return brut == null ? null : depuisBytea(brut);
+    } catch (e) {
+      debugPrint('MlsDelivery: arbre public illisible ($e)');
+      return null;
     }
   }
 
