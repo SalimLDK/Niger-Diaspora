@@ -45,6 +45,9 @@ v1 est conservé en § 10, parce qu'il commande une règle de conception.
 7. **Ordre de grandeur** : 6 à 9 mois pour un développeur seul à temps
    partiel, si le spike de 2 semaines passe. Le gain le plus rapide reste
    hors MLS : chiffrer les pièces jointes avec le repli existant.
+8. **Décisions actées le 2026-09-14** (§ 11) : toutes les recommandations,
+   plus une métadonnée en ligne pour chaque fonctionnalité « locale » (J).
+   Départ : spike et C4 en parallèle.
 
 ---
 
@@ -329,13 +332,22 @@ create table mls_messages (
                      ('text','media','voice','location','poll','sticker','system')),
   ciphertext       bytea not null,
   aad_version      smallint not null default 1,
-  is_deleted       boolean not null default false,
+  reply_to_id      uuid references mls_messages(id),   -- métadonnée (J) ; l'extrait cité reste dans le payload
+  is_deleted       boolean not null default false,     -- « pour tous » : le serveur cesse de servir le ciphertext
+  deleted_at       timestamptz,
+  edited_at        timestamptz,                        -- posé par l'expéditeur avec le contrôle `edit`
   expires_at       timestamptz,
   created_at       timestamptz not null default now()
 );
 create index on mls_messages (conversation_id, created_at desc);
 
--- Reçus : métadonnée acceptée (décision F), nécessaire aux compteurs de non-lus.
+-- Métadonnées en ligne des fonctionnalités « locales » (décision J) : ce qui
+-- suit est visible du serveur — qui a réagi, lu, masqué, étoilé, été mentionné.
+-- Le CONTENU (emoji, nouveau texte) voyage aussi en contrôle MLS ; la table
+-- sert à la synchronisation entre appareils, à la réinstallation et aux
+-- compteurs. Sans elle, un second appareil ne verrait ni réactions ni favoris.
+
+-- Reçus : nécessaire aux compteurs de non-lus.
 create table mls_message_receipts (
   message_id   uuid not null references mls_messages(id) on delete cascade,
   user_id      text not null references users(id) on delete cascade,
@@ -343,6 +355,62 @@ create table mls_message_receipts (
   read_at      timestamptz,
   primary key (message_id, user_id)
 );
+
+-- Réactions : une par personne et par message, comme aujourd'hui.
+create table mls_message_reactions (
+  message_id uuid not null references mls_messages(id) on delete cascade,
+  user_id    text not null references users(id) on delete cascade,
+  emoji      text not null,
+  created_at timestamptz not null default now(),
+  primary key (message_id, user_id)
+);
+
+-- « Supprimer pour moi » : masqué pour cet utilisateur, sur tous ses appareils.
+create table mls_message_hidden (
+  message_id uuid not null references mls_messages(id) on delete cascade,
+  user_id    text not null references users(id) on delete cascade,
+  hidden_at  timestamptz not null default now(),
+  primary key (message_id, user_id)
+);
+
+-- Favoris.
+create table mls_message_stars (
+  message_id uuid not null references mls_messages(id) on delete cascade,
+  user_id    text not null references users(id) on delete cascade,
+  starred_at timestamptz not null default now(),
+  primary key (message_id, user_id)
+);
+
+-- Mentions : écrites par l'expéditeur, lues pour le compteur « mentions non lues ».
+create table mls_message_mentions (
+  message_id uuid not null references mls_messages(id) on delete cascade,
+  user_id    text not null references users(id) on delete cascade,
+  primary key (message_id, user_id)
+);
+
+-- Aperçu de la liste des discussions : des métadonnées, jamais le texte.
+alter table conversations
+  add column last_message_id        uuid,
+  add column last_message_kind      text,    -- content_type du dernier message
+  add column last_message_sender_id text;
+-- `last_message_at` existe déjà. Le texte de l'aperçu vient du cache local
+-- déchiffré ; à défaut, l'UI dérive « Photo », « Note vocale », « Nouveau
+-- message » de `last_message_kind`.
+
+-- Non-lus et mentions non lues : calculés, pas stockés.
+create view mls_unread_counts as
+select m.conversation_id, u.user_id,
+       count(*) filter (where r.read_at is null)                                      as unread,
+       count(*) filter (where r.read_at is null and mn.user_id is not null)          as unread_mentions
+  from mls_messages m
+  join conversations c on c.id = m.conversation_id
+  join unnest(c.participant_ids) as u(user_id) on u.user_id <> m.sender_id
+  left join mls_message_receipts r  on r.message_id = m.id and r.user_id = u.user_id
+  left join mls_message_mentions mn on mn.message_id = m.id and mn.user_id = u.user_id
+  left join mls_message_hidden  h   on h.message_id = m.id and h.user_id = u.user_id
+ where m.kind = 'content' and not m.is_deleted and h.message_id is null
+ group by m.conversation_id, u.user_id;
+-- Filtrée par RLS via `security_invoker = on` : chacun ne voit que ses lignes.
 
 -- Diagnostics : le motif d'échec s'écrit EN BASE, jamais un plaintext.
 create table mls_diagnostics (
@@ -387,8 +455,13 @@ end $$;
 | `conversation_devices` | participant | participant | participant | — |
 | `mls_commits` | participant | participant **et** `sender_device_id` possédé | — | — |
 | `mls_welcomes` | destinataire (`recipient_device_id` possédé) | participant | destinataire (`consumed_at`) | destinataire |
-| `mls_messages` | participant | `sender_id = firebase_uid()` **et** participant **et** appareil possédé | expéditeur, colonnes `is_deleted`, `expires_at` seulement (`GRANT UPDATE (is_deleted, expires_at)`) | expéditeur |
+| `mls_messages` | participant | `sender_id = firebase_uid()` **et** participant **et** appareil possédé | expéditeur, colonnes `is_deleted`, `deleted_at`, `edited_at`, `expires_at` seulement (`GRANT UPDATE (…)`) | expéditeur |
 | `mls_message_receipts` | participant | `user_id = firebase_uid()` | idem | — |
+| `mls_message_reactions` | participant | `user_id = firebase_uid()` **et** participant | idem | idem |
+| `mls_message_hidden` | `user_id = firebase_uid()` (personne d'autre n'a à savoir ce que je masque) | idem | — | idem |
+| `mls_message_stars` | `user_id = firebase_uid()` | idem | — | idem |
+| `mls_message_mentions` | participant | expéditeur du message (`exists mls_messages m where m.id = message_id and m.sender_id = firebase_uid()`) | — | expéditeur |
+| `conversations.last_message_*` | participant (déjà) | — | participant, par le trigger de `mls_messages` | — |
 | `mls_diagnostics` | `user_id = firebase_uid()` ou admin | `user_id = firebase_uid()` | — | — |
 
 « participant » = `exists (select 1 from conversations c where c.id =
@@ -611,17 +684,18 @@ maintenant **dans** le payload. `encAnnexes` disparaît avec le legacy.
 | Localisation | clair | payload |
 | Sondage | `pollId`, contenu en Postgres, vote par `cast_poll_vote` | inchangé : le sondage est serveur par conception (dit dans l'UI) |
 | Sticker, GIF | ids de pack / URL Tenor | ids dans le payload ; l'URL Tenor reste une requête réseau visible |
-| Réactions | `data.reactions` en clair, modifiable par tout participant | contrôle `reaction` ; état recomposé localement |
-| Modification | réécrit `data.content` | contrôle `edit` ; le serveur garde le ciphertext d'origine |
-| Supprimer pour tous | `is_deleted` + réécriture | `is_deleted` (colonne, pour que le serveur cesse de servir) **et** contrôle `delete` |
-| Supprimer pour moi | `deletedFor[]` en base | local seulement (cache Hive) — un « pour moi » n'a pas à être serveur |
-| Reçus livré / lu | `data.readBy`, RPC `mark_messages_as_delivered` | `mls_message_receipts` (métadonnée acceptée, décision F) |
-| Non-lus, mentions non lues | `conversations.data.unreadCount` map | compteur serveur depuis les reçus ; mentions **locales** (le serveur ne voit plus qui est mentionné) |
-| Aperçu liste des discussions | `lastMessage` en clair | cache local déchiffré, sinon « Nouveau message » (décision G) |
-| Recherche dans une conversation | `searchMessagesInConversation` serveur | **locale** sur le cache Hive ; rien côté serveur |
-| Messages favoris | `starredBy[]` en base | local (ou métadonnée, au choix — proposer local) |
-| Expiration | `expiresAt` | `expires_at` colonne (le serveur doit purger) + `expiresIn` payload |
-| Épinglés (en pause) | `group_pinned_items` | contrôle `pin` plus tard ; hors périmètre ici |
+| Réactions | `data.reactions` en clair, modifiable par tout participant | contrôle `reaction` (contenu, ordonné avec les messages) **+ `mls_message_reactions`** (métadonnée : qui, quel emoji — synchronisation multi-appareil et réinstallation) |
+| Modification | réécrit `data.content` | contrôle `edit` (nouveau texte, chiffré) **+ `edited_at`** sur la ligne ; le serveur garde le ciphertext d'origine, l'UI affiche « modifié » même sans le contrôle |
+| Supprimer pour tous | `is_deleted` + réécriture | **`is_deleted` + `deleted_at`** (le serveur cesse de servir le ciphertext) **+** contrôle `delete` |
+| Supprimer pour moi | `deletedFor[]` en base | **`mls_message_hidden`** (visible de moi seul, appliqué sur tous mes appareils) ; le cache Hive suit |
+| Reçus livré / lu | `data.readBy`, RPC `mark_messages_as_delivered` | **`mls_message_receipts`** (métadonnée acceptée, décision F) |
+| Non-lus, mentions non lues | `conversations.data.unreadCount` map | **vue `mls_unread_counts`** depuis reçus + **`mls_message_mentions`** (écrite par l'expéditeur) + masqués ; le serveur sait qui est mentionné — accepté (J) |
+| Aperçu liste des discussions | `lastMessage` en clair | **`last_message_id` / `last_message_kind` / `last_message_sender_id`** en ligne ; le **texte** vient du cache local déchiffré, sinon « Photo », « Note vocale », « Nouveau message » d'après `last_message_kind` (décision G) |
+| Réponse à un message | `replyToId` + `replyToMessageData` en clair | `replyTo` dans le payload (extrait chiffré) **+ `reply_to_id`** en ligne (fil de réponses, navigation) |
+| Recherche dans une conversation | `searchMessagesInConversation` serveur | **locale** sur le cache Hive — le serveur n'a que du ciphertext, aucune métadonnée ne peut aider ici |
+| Messages favoris | `starredBy[]` en base | **`mls_message_stars`** (visible de moi seul) |
+| Expiration | `expiresAt` | `expires_at` colonne (le serveur purge) + `expiresIn` payload |
+| Épinglés (en pause) | `group_pinned_items` | `group_pinned_items` reste utilisable tel quel (il référence un id de message) ; contrôle `pin` plus tard |
 | Frappe en cours | canal Realtime broadcast | inchangé, en clair (éphémère, non stocké) |
 | Bulle d'appel | `type = 'call'` | `type = 'call'` dans le payload, `content_type = 'system'` |
 | Multi-appareil | 1:1 oui, groupes cassés, une session par compte | appareil = membre MLS, phase 7 |
@@ -912,9 +986,18 @@ logcat ment.
 
 ---
 
-# 11. À trancher maintenant
+# 11. Décisions — actées par Salim le 2026-09-14
 
-| # | Question | Recommandation |
+Toutes les recommandations ci-dessous sont **retenues**, avec une décision
+supplémentaire (J) : les fonctionnalités que la v2 mettait « en local
+seulement » gardent une **métadonnée en ligne** (§ 4, § 6.3), pour que
+réactions, favoris, masquages, mentions et aperçus suivent l'utilisateur d'un
+appareil à l'autre et survivent à une réinstallation. Le contenu reste dans
+MLS ; ce qui est en ligne dit *qui, quoi, quand* — jamais le texte.
+
+Ordre de départ : **spike (phase 1) et C4 en parallèle**, comme en I.
+
+| # | Question | Décision |
 |---|---|---|
 | **A** | Messages existants : gel + coexistence, purge, ou ré-encapsulation ? | **Gel + coexistence.** Ré-encapsulation écartée pour de bon |
 | **B** | Mise à jour minimale imposée avant le gel ? | **Oui**, via `CoordinateurMiseAJour` existant ; le gel ne précède pas l'expiration du délai |
@@ -925,3 +1008,53 @@ logcat ment.
 | **G** | Aperçu de la liste des discussions depuis le cache local seulement (« Nouveau message » sinon) ? | **Oui** ; c'est le compromis fondamental de l'E2EE |
 | **H** | Purge du legacy 90 jours après le gel, puis extinction de `crypto-keys` et de la clé globale ? | **Oui**, annoncée dans l'app. Sans purge, trois clés restent load-bearing pour toujours |
 | **I** | Commencer par C4 (pièces jointes) ou par le spike ? | **Les deux en parallèle** : C4 ne dépend de rien, le spike ne touche pas la prod |
+| **J** | Réactions, modification, suppressions, reçus, non-lus, mentions, aperçu, favoris, réponses : local seulement, ou métadonnée en ligne aussi ? | **En ligne aussi** (tables `mls_message_*`, colonnes `last_message_*`, vue `mls_unread_counts`). Coût accepté : le serveur voit qui réagit, lit, masque, étoile, est mentionné — pas le contenu |
+
+---
+
+# 12. Journal du spike (phase 1) — 2026-09-14, premier jour
+
+Branche jetable `claude/spike-mls` (poussée telle quelle, **pas** sur la
+branche partagée), crate `rust/`. Ce qui est établi, avec des chiffres ; ce
+qui reste à établir, avec ce qu'il faut pour le faire.
+
+## Établi
+
+| Question du spike | Résultat |
+|---|---|
+| OpenMLS 0.9 tient-il le parcours complet sur SQLite ? | **Oui.** Façade `MlsEngine` (identité par appareil, KeyPackages, création, ajout, retrait, Welcome, jointure externe, chiffrement avec AAD, traitement entrant) sur `openmls_sqlite_storage 0.3` + `RustCrypto`. Banc de **8 cas, 8 passent** : nominal 1:1, AAD déplacé refusé, rejeu refusé, message d'un epoch passé encore lisible (`max_past_epochs = 3`), membre retiré aveugle, **moteur fermé et rouvert** sur la même base, jointure externe par GroupInfo, commit perdant jeté proprement (`clear_pending_commit` puis traitement du gagnant) |
+| Chaîne de build Android | **Oui.** rustc 1.98.1, cargo-ndk 4.1.2, NDK 27.0.12077973, `rusqlite` en `bundled`. `.so` release (opt-level z, LTO, strip) : **arm64-v8a 4,2 Mo, armeabi-v7a 3,1 Mo**. **Alignement 16 Ko vérifié** par `tools/verifie_alignement_16k.py`, sans drapeau de lien supplémentaire |
+| Poids | ≈ 4 Mo par ABI, donc ≈ 4 Mo de plus sur un APK découpé par ABI, ≈ 7 Mo sur un APK universel — avant FRB, dont la couche générée ajoute peu. Le poids de l'APK actuel n'a pas été relevé dans cette session |
+| Ordre de grandeur à froid | Sur le poste : ouverture de la base **7,5 ms**, ouverture + déchiffrement **18 ms**. Ce n'est pas l'appareil ; deux symboles C (`diaspo_mls_spike_parcours`, `diaspo_mls_spike_reouverture`) sont exportés pour le mesurer sur SM A515F |
+
+Versions figées dans `Cargo.lock` : openmls 0.9.0, openmls_traits 0.6.0,
+openmls_rust_crypto 0.6.0, openmls_basic_credential 0.6.0,
+openmls_sqlite_storage 0.3.0, rusqlite 0.37.0.
+
+## Trois pièges d'API, à reporter dans le moteur de production
+
+1. **L'AAD est remis à vide après chaque `MlsMessageOut`.** Un commit produit
+   par `add_members` juste après un `create_message` part donc avec un AAD
+   vide, pas celui du message. Le moteur doit poser un AAD **de commit**
+   explicite (`dn-mls/1|conv|commit|epoch`) avant chaque commit, et le
+   récepteur le recomposer depuis `mls_commits`. Sans ça, § 6.1 ne tient
+   pas pour les commits.
+2. `MlsMessageIn::into_verifiable_group_info()` n'existe qu'en `test-utils` :
+   passer par `extract()` et la variante `MlsMessageBodyIn::GroupInfo`.
+3. `openmls_sqlite_storage` ne réexporte pas `refinery` : l'erreur de
+   migration se convertit en code, pas en type.
+
+Et une décision de configuration : `MIXED_CIPHERTEXT_WIRE_FORMAT_POLICY`
+(sortant chiffré, entrant mixte), parce qu'un commit externe arrive
+forcément en clair. `PURE_CIPHERTEXT` le refuserait sans dire pourquoi.
+
+## Reste à établir (les trois qui peuvent tuer)
+
+| Question | Ce qu'il faut |
+|---|---|
+| ms à froid **dans l'isolate background, sur SM A515F** | l'appareil branché, un `dart:ffi` jetable vers `diaspo_mls_spike_reouverture` (ou l'intégration FRB), une base préparée sur l'appareil |
+| **NSE iOS** avec App Group et copie de travail | un Mac. Rien de ce spike ne l'aborde |
+| **Build release signé qui démarre** avec la lib | `flutter_rust_bridge_codegen integrate` (cargokit dans Gradle), `key.properties`, l'appareil |
+
+**Verdict provisoire : GO côté Rust/Android**, sous réserve des trois
+mesures ci-dessus. Aucun NO-GO rencontré.

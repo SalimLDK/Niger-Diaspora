@@ -975,7 +975,7 @@
       }
     }
   },
-  "minutesAgo": "Il y a {count} minute(s)",
+  "minutesAgo": "{count, plural, =1{Il y a 1 minute} other{Il y a {count} minutes}}",
   "@minutesAgo": {
     "placeholders": {
       "count": {
@@ -983,7 +983,7 @@
       }
     }
   },
-  "hoursAgo": "Il y a {count} heure(s)",
+  "hoursAgo": "{count, plural, =1{Il y a 1 heure} other{Il y a {count} heures}}",
   "@hoursAgo": {
     "placeholders": {
       "count": {
@@ -991,7 +991,7 @@
       }
     }
   },
-  "daysAgo": "Il y a {count} jour(s)",
+  "daysAgo": "{count, plural, =1{Il y a 1 jour} other{Il y a {count} jours}}",
   "@daysAgo": {
     "placeholders": {
       "count": {
