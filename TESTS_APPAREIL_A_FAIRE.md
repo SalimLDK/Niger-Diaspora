@@ -39,18 +39,18 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1155 cases à cocher, 584 cochées** — 229 entrées sur 275 ont encore des cases ouvertes.
+**1153 cases à cocher, 587 cochées** — 229 entrées sur 275 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (26)
 
-- 5 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
+- 4 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
-- 5 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -287,9 +287,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 235 à faire, 78 faites
+- [2. Messagerie](#2-messagerie) — 234 à faire, 80 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 88 à faire, 33 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 87 à faire, 34 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -745,14 +745,23 @@ Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_
   application tuée et rouverte : c'est le cas que le curseur mémorisé
   protège, et le seul où le moteur refuserait de redéchiffrer. **Non
   vérifié** — demande un second téléphone sur un autre compte.
+
+---
+
+- [x] **Deux messages échangés**, application tuée, rouverte : vérifié le
+  2026-09-15 sur SM A515F, dans « Mes notes ». Deux messages MLS envoyés,
+  l'application relancée deux fois entre les deux (le système la tuait sous
+  la pression mémoire du build debug), et le fil a montré le texte à chaque
+  réouverture — jamais un placeholder.
 - [ ] **Un troisième message** arrive après la réouverture : il se déchiffre
   normalement (le curseur repris ne doit pas sauter ce qui est neuf).
 - [ ] **Vider le cache de l'application** puis rouvrir : les anciens messages
   deviennent des placeholders — attendu, c'est la limite du chiffrement — mais
   les nouveaux passent toujours.
 - [ ] **Même épreuve après réinstallation** : placeholders attendus aussi.
-- [ ] `mls_diagnostics` ne se remplit pas de `decrypt_failed` à chaque
-  lancement (c'était le symptôme silencieux du défaut).
+- [x] `mls_diagnostics` ne se remplit pas de `decrypt_failed` à chaque
+  lancement : **zéro ligne** sur toute l'heure de l'essai, redémarrages
+  compris. C'était le symptôme silencieux du défaut.
 
 ---
 
@@ -5828,8 +5837,14 @@ Couvert hors appareil par
 
 - [ ] **Compte non listé** : rien ne change, les messages partent par le
       chemin d'aujourd'hui. À vérifier AVANT d'ouvrir pour qui que ce soit.
-- [ ] **Compte listé, première conversation** : `conversations.mls_since` se
-      pose, une ligne apparaît dans `mls_messages`, et le fil reste lisible.
+- [x] **Compte listé, première conversation** : vérifié le 2026-09-15 sur
+      SM A515F, dans « Mes notes » (un seul participant, personne d'autre
+      engagé). `mls_since` posé à 13:53:59 UTC, un commit à l'epoch 0, **deux**
+      lignes dans `mls_messages` (371 et 388 octets), et les 15 messages en
+      clair intacts au-dessus du séparateur « Messages d'avant le chiffrement
+      de bout en bout ». Aucune ligne dans `mls_diagnostics`. Et le serveur ne
+      lit rien : chercher le texte des deux messages dans les ciphertexts rend
+      zéro. **C'est la preuve de vie de la phase 5.**
 - [ ] **L'autre bout n'est pas listé** : c'est le cas qui décide. Vérifier ce
       que voit le destinataire, et que rien ne se perd en silence.
 - [ ] **Prise d'effet sans relancer l'app** : le drapeau est lu à chaque
