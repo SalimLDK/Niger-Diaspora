@@ -39,19 +39,19 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1164 cases à cocher, 582 cochées** — 230 entrées sur 276 ont encore des cases ouvertes.
+**1166 cases à cocher, 588 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (27)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
-- 5 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
+- 4 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
-- 5 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -73,7 +73,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (75)
+**P1 — fonction importante, jamais vérifiée** (76)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -95,7 +95,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
-- 6 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
@@ -127,6 +127,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
+- 2 · [✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)](#-le-bandeau--1-message-non-lu--dune-conversation-basculée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ La messagerie sort de l'écran Notifications (2026-09-13)](#-la-messagerie-sort-de-lécran-notifications-2026-09-13) · *Notifications et push*
 - 7 · [⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)](#-notifications-ouvertes-ailleurs-ou-obsolètes--lues-2026-09-12) · *Notifications et push*
@@ -288,9 +289,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 246 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 245 à faire, 80 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 86 à faire, 32 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 35 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -808,16 +809,34 @@ Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_
 [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
 (`mlsDuCache`).
 
-- [ ] **Deux messages échangés**, application tuée, rouverte : le fil montre
-  le texte, pas « 🔐 Message chiffré ».
+- [x] **Message propre à l'appareil**, application **tuée** puis rouverte :
+  le message chiffré est toujours affiché en clair (`Ttg`, sous le
+  séparateur), et `mls_diagnostics` ne porte aucun `decrypt_failed`.
+  ✅ SM A515F, 2026-09-15. **Ce que ça prouve exactement** : l'amorçage
+  depuis le cache (`MlsGateway.amorcer`). Sans lui le message aurait
+  *disparu* du fil — `catchUp` saute mes propres messages, et le legacy n'a
+  aucune ligne pour lui.
+- [ ] **Message REÇU d'un autre appareil**, déchiffré une fois, puis
+  application tuée et rouverte : c'est le cas que le curseur mémorisé
+  protège, et le seul où le moteur refuserait de redéchiffrer. **Non
+  vérifié** — demande un second téléphone sur un autre compte.
+
+---
+
+- [x] **Deux messages échangés**, application tuée, rouverte : vérifié le
+  2026-09-15 sur SM A515F, dans « Mes notes ». Deux messages MLS envoyés,
+  l'application relancée deux fois entre les deux (le système la tuait sous
+  la pression mémoire du build debug), et le fil a montré le texte à chaque
+  réouverture — jamais un placeholder.
 - [ ] **Un troisième message** arrive après la réouverture : il se déchiffre
   normalement (le curseur repris ne doit pas sauter ce qui est neuf).
 - [ ] **Vider le cache de l'application** puis rouvrir : les anciens messages
   deviennent des placeholders — attendu, c'est la limite du chiffrement — mais
   les nouveaux passent toujours.
 - [ ] **Même épreuve après réinstallation** : placeholders attendus aussi.
-- [ ] `mls_diagnostics` ne se remplit pas de `decrypt_failed` à chaque
-  lancement (c'était le symptôme silencieux du défaut).
+- [x] `mls_diagnostics` ne se remplit pas de `decrypt_failed` à chaque
+  lancement : **zéro ligne** sur toute l'heure de l'essai, redémarrages
+  compris. C'était le symptôme silencieux du défaut.
 
 ---
 
@@ -5825,9 +5844,10 @@ la seule réponse, et elle est maintenant affichée sous chaque ligne du
 registre MLS (écran Appareils) : 60 chiffres en 12 groupes, comparables de
 vive voix.
 
-*Bloqué : demande deux téléphones sur deux comptes. Le scan par QR n'est pas
-branché — la charge et son analyseur existent
-(`MlsCodeSecurite.chargeQr` / `lireQr`), l'écran de scan non.*
+*Bloqué : demande deux téléphones sur deux comptes. Le scan **est** branché
+depuis le 2026-09-15 — `QrCodeParser` reconnaît `dn-mls-verif:`, et le
+scanner compare sur place au lieu de naviguer. Il manque encore l'affichage
+du QR de son propre appareil : sans lui, il n'y a rien à scanner.*
 
 Fichiers : [mls_code_securite.dart](lib/core/crypto/mls/mls_code_securite.dart),
 [devices_screen.dart](lib/features/settings/presentation/screens/devices_screen.dart)
@@ -5838,9 +5858,12 @@ Le banc tient le calcul (16 cas) — il a d'ailleurs trouvé que l'analyseur de
 QR rejetait tout code valide, l'identité MLS `uid:stable_id` contenant déjà
 un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 
-- [ ] **Le code s'affiche** sous chaque appareil du registre MLS, en 12
-  groupes de 5 chiffres, lisible sans troncature en français comme en
-  anglais.
+- [x] **Le code s'affiche** sous chaque appareil du registre MLS, en 12
+  groupes de 5 chiffres, lisible sans troncature. ✅ SM A515F, 2026-09-15 :
+  `22230 38146 54707 62226 81456 64965 10205 68341 64687 01548 66580 85468`,
+  **recalculé indépendamment** (Python, depuis `mls_identity` et
+  `signature_key` de la production) — identique chiffre pour chiffre. Le
+  rendu anglais reste à voir.
 - [ ] **Deux téléphones, deux comptes** : le code affiché pour l'appareil de
   A, lu sur le téléphone de B, est le même que celui que A voit chez lui.
 - [ ] **Après réinstallation** de l'application sur A : son code change, et
@@ -5850,6 +5873,44 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 - [ ] **Sélection et copie** du code fonctionnent (comparer par message écrit
   est le second canal le plus courant).
 - [ ] **Thème sombre** : le code et l'avertissement restent lisibles.
+- [ ] **Scan d'un code** depuis le scanner QR du profil : le résultat
+  s'affiche **sur place**, sans quitter l'écran.
+- [ ] **Scan d'un QR étranger** (profil, lien) : le message dit que ce n'est
+  pas un code de vérification — **jamais** « ne correspond pas », qui serait
+  une accusation fausse.
+- [ ] **Après un scan qui correspond** : la vérification est retenue, et
+  l'avertissement « la clé a changé » apparaît si l'app est réinstallée en
+  face.
+
+---
+
+## ✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)
+
+**Priorité P1** · importance 3/5 — Trouvé par le premier essai réel de MLS,
+et par rien d'autre : ni les tests ni le banc ne pouvaient le voir.
+
+Le séparateur « Messages d'avant le chiffrement de bout en bout » est un
+message **système synthétique** (`senderId: 'system'`, `readBy` vide, absent
+du serveur). Le compteur de non-lus du fil le prenait pour un message
+d'autrui jamais lu : bandeau permanent, impossible à faire partir, puisque
+rien ne viendrait jamais le marquer. Le serveur disait zéro — la vue
+`mls_unread_counts` ne compte que `kind = 'content'` et exclut l'expéditeur.
+
+Corrigé en sautant les messages système, ce qui aligne le fil sur la règle du
+serveur et corrige aussi le rang du premier non-lu : le bandeau se posait
+**sur** le séparateur, et l'écran s'y déroulait.
+
+Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
+(`compterNonLus`). Tenu par
+[non_lus_fil_test.dart](test/features/messages/non_lus_fil_test.dart) (6 cas).
+
+- [x] **Bandeau disparu** : vérifié le 2026-09-15 sur SM A515F, build debug
+      réinstallé, « Mes notes » rouverte. Le fil montre le séparateur puis les
+      trois messages chiffrés, et plus aucun « non lu ».
+- [ ] **Un vrai non-lu s'affiche toujours** : à deux comptes, recevoir un
+      message sans ouvrir la discussion, puis l'ouvrir — le bandeau doit
+      apparaître au bon endroit, au-dessus du message reçu.
+- [ ] **La pastille de la liste** suit la même règle et retombe à zéro.
 
 ---
 
@@ -5881,8 +5942,14 @@ Couvert hors appareil par
 
 - [ ] **Compte non listé** : rien ne change, les messages partent par le
       chemin d'aujourd'hui. À vérifier AVANT d'ouvrir pour qui que ce soit.
-- [ ] **Compte listé, première conversation** : `conversations.mls_since` se
-      pose, une ligne apparaît dans `mls_messages`, et le fil reste lisible.
+- [x] **Compte listé, première conversation** : vérifié le 2026-09-15 sur
+      SM A515F, dans « Mes notes » (un seul participant, personne d'autre
+      engagé). `mls_since` posé à 13:53:59 UTC, un commit à l'epoch 0, **deux**
+      lignes dans `mls_messages` (371 et 388 octets), et les 15 messages en
+      clair intacts au-dessus du séparateur « Messages d'avant le chiffrement
+      de bout en bout ». Aucune ligne dans `mls_diagnostics`. Et le serveur ne
+      lit rien : chercher le texte des deux messages dans les ciphertexts rend
+      zéro. **C'est la preuve de vie de la phase 5.**
 - [ ] **L'autre bout n'est pas listé** : c'est le cas qui décide. Vérifier ce
       que voit le destinataire, et que rien ne se perd en silence.
 - [ ] **Prise d'effet sans relancer l'app** : le drapeau est lu à chaque

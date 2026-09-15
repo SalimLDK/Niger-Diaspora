@@ -138,6 +138,84 @@ void main() {
     });
   });
 
+  group('Le scan compare ce qui est lu à ce que le serveur sert', () {
+    /// Le QR tel que l'appareil d'en face l'affiche.
+    String qrDe(String identite, Uint8List cle) => MlsCodeSecurite.chargeQr(
+          mlsIdentity: identite,
+          empreinte: MlsCodeSecurite.empreinteAppareil(
+              mlsIdentity: identite, signatureKey: cle),
+        );
+
+    test('les deux côtés voient la même clé', () async {
+      expect(
+        await MlsVerificationScan.comparer(
+          charge: qrDe('u2:def', _cle(1)),
+          cleDe: (_) async => _cle(1),
+        ),
+        ResultatScan.correspond,
+      );
+    });
+
+    test('le serveur sert une AUTRE clé : ne correspond pas', () async {
+      // Le scénario que toute la phase 7 existe pour attraper. L'écran d'en
+      // face montre sa vraie clé ; le serveur, lui, m'en a servi une autre.
+      expect(
+        await MlsVerificationScan.comparer(
+          charge: qrDe('u2:def', _cle(1)),
+          cleDe: (_) async => _cle(2),
+        ),
+        ResultatScan.neCorrespondPas,
+      );
+    });
+
+    test('appareil absent du registre : inconnu, pas « ne correspond pas »',
+        () async {
+      expect(
+        await MlsVerificationScan.comparer(
+          charge: qrDe('u2:def', _cle(1)),
+          cleDe: (_) async => null,
+        ),
+        ResultatScan.appareilInconnu,
+      );
+    });
+
+    test('appareil sans clé publiée : inconnu', () async {
+      expect(
+        await MlsVerificationScan.comparer(
+          charge: qrDe('u2:def', _cle(1)),
+          cleDe: (_) async => Uint8List(0),
+        ),
+        ResultatScan.appareilInconnu,
+      );
+    });
+
+    test('un QR étranger n\'est pas une non-correspondance', () async {
+      // Répondre « ne correspond pas » sur un QR de profil enverrait la
+      // personne chercher un attaquant qui n'existe pas.
+      expect(
+        await MlsVerificationScan.comparer(
+          charge: 'https://diasponiger.com/p/u/salim',
+          cleDe: (_) async => _cle(1),
+        ),
+        ResultatScan.pasUnCode,
+      );
+    });
+
+    test('c\'est bien l\'identité lue qui est cherchée', () async {
+      // Chercher la mauvaise ligne donnerait « ne correspond pas » sur deux
+      // appareils parfaitement sains.
+      String? demandee;
+      await MlsVerificationScan.comparer(
+        charge: qrDe('u2:def', _cle(1)),
+        cleDe: (id) async {
+          demandee = id;
+          return _cle(1);
+        },
+      );
+      expect(demandee, 'u2:def');
+    });
+  });
+
   group('La mémoire des vérifications', () {
     /// Mémoire en RAM : le comportement se teste sans plateforme.
     ({MlsVerifications verifs, Map<String, String> memoire}) monter() {

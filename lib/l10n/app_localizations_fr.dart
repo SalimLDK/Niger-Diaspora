@@ -12317,6 +12317,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mlsSecurityCodeLabel => 'Code de sécurité';
 
   @override
+  String get mlsVerifyTitle => 'Vérification d\'appareil';
+
+  @override
+  String get mlsVerifyMatch =>
+      'Code vérifié : vous voyez tous les deux la même clé.';
+
+  @override
+  String get mlsVerifyMismatch =>
+      'Le code lu ne correspond pas à la clé qui vous est servie. Ne parlez pas de ce qui est sensible avant d\'avoir compris pourquoi.';
+
+  @override
+  String get mlsVerifyUnknownDevice =>
+      'Cet appareil n\'est pas dans le registre, ou n\'a pas publié sa clé. Rien à comparer.';
+
+  @override
+  String get mlsVerifyReadError =>
+      'Impossible de vérifier : le registre n\'a pas répondu.';
+
+  @override
   String get mlsSecurityCodeUnavailable =>
       'Code indisponible — cet appareil n\'a pas publié sa clé';
 

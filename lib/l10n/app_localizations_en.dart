@@ -12193,6 +12193,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mlsSecurityCodeLabel => 'Security code';
 
   @override
+  String get mlsVerifyTitle => 'Device verification';
+
+  @override
+  String get mlsVerifyMatch => 'Code verified: you both see the same key.';
+
+  @override
+  String get mlsVerifyMismatch =>
+      'The scanned code does not match the key you were served. Do not discuss anything sensitive until you understand why.';
+
+  @override
+  String get mlsVerifyUnknownDevice =>
+      'This device is not in the registry, or has not published its key. Nothing to compare.';
+
+  @override
+  String get mlsVerifyReadError =>
+      'Cannot verify: the registry did not answer.';
+
+  @override
   String get mlsSecurityCodeUnavailable =>
       'Code unavailable — this device has not published its key';
 
