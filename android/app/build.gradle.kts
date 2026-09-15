@@ -4,8 +4,9 @@ import java.io.FileInputStream
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
+    // Spike MLS : paquet à part, sans Firebase (le harnais sort avant son init).
+    // id("com.google.gms.google-services")
+    // id("com.google.firebase.crashlytics")
     // END: FlutterFire Configuration
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -35,7 +36,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.diasponiger.diasponiger"
+        applicationId = "com.diasponiger.diasponiger.spike"
         minSdk = flutter.minSdkVersion
         // Épinglé, pas `flutter.targetSdkVersion` : cette valeur est une
         // exigence Play Store datée (API 36 obligatoire pour toute mise à jour
