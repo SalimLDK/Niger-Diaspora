@@ -366,6 +366,16 @@ class FeedNotifier extends Notifier<FeedState> {
     } on TimeoutException {
       await _handleLoadFailure('timeout', filter);
       return;
+    } catch (e) {
+      // Toute autre exception s'échappait d'ici : `isLoading` restait vrai et
+      // le fil gardait ses squelettes **pour toujours**, sans message et sans
+      // bouton — le seul état d'échec que la maquette 2b n'avait pas prévu.
+      // Le dépôt ne traduit que `ServerException` et `NetworkException` ; une
+      // requête refusée par PostgREST (un filtre hashtag sur une colonne
+      // JSONB, par exemple) remonte telle quelle. Mesuré sur SM A515F le
+      // 2026-09-14 : 35 s de squelettes, et rien d'autre à attendre.
+      await _handleLoadFailure(e.toString(), filter);
+      return;
     }
     if (paginated == null) {
       await _handleLoadFailure(message, filter);
@@ -538,6 +548,11 @@ class FeedNotifier extends Notifier<FeedState> {
       // Extraction synchrone : pas de closure async passee a fold.
       paginated = result.fold((_) => null, (p) => p);
     } on TimeoutException {
+      state = state.copyWith(isLoadingMore: false);
+      return;
+    } catch (_) {
+      // Même faille que dans `loadInitial`, en moins visible : le spinner de
+      // pagination tournait sans fin en bas de liste.
       state = state.copyWith(isLoadingMore: false);
       return;
     }
