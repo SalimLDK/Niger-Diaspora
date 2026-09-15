@@ -7,7 +7,8 @@
 // il est ignoré : `flutter test` reste utilisable hors ligne.
 //
 //   cd rust && cargo build && cd ..
-//   node tools/mls_banc/sessions.mjs > "$TEMP/sessions.json" && \n//     MLS_BANC_SESSIONS="$TEMP/sessions.json" flutter test test/banc
+//   node tools/mls_banc/sessions.mjs > "$TEMP/sessions.json" \
+//     && MLS_BANC_SESSIONS="$TEMP/sessions.json" flutter test test/banc
 //
 // Les jetons de sonde expirent au bout de six minutes : fabriquer et lancer
 // dans la même commande.

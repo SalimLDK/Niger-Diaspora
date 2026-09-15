@@ -11,7 +11,8 @@
 // `node tools/purge_comptes_sonde.mjs` sait lister et supprimer (même motif).
 //
 // Usage :
-//   node tools/mls_banc/sessions.mjs > "$TEMP/sessions.json" && \n//     MLS_BANC_SESSIONS="$TEMP/sessions.json" flutter test test/banc
+//   node tools/mls_banc/sessions.mjs > "$TEMP/sessions.json" \
+//     && MLS_BANC_SESSIONS="$TEMP/sessions.json" flutter test test/banc
 //
 // Les jetons expirent au bout de SIX MINUTES (réglage JWT du projet) : fabriquer
 // le fichier et lancer le banc dans la même commande, jamais à l'avance.
