@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1062 cases à cocher, 569 cochées** — 214 entrées sur 259 ont encore des cases ouvertes.
+**1075 cases à cocher, 569 cochées** — 216 entrées sur 261 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (68)
+**P1 — fonction importante, jamais vérifiée** (69)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -87,6 +87,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 8 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -140,7 +141,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (71)
+**P2 — fonction secondaire ou cas limite** (72)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -163,6 +164,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
 - 2 · [✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)](#-filtre-hashtag--réparé-et-vérifié-sur-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
 - 2 · [⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09)](#-lien--inviter-un-proche---il-ne-menait-nulle-part-2026-09-09) · *Liens profonds, navigation et QR codes*
@@ -274,9 +276,9 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 195 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 113 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 63 à faire, 23 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 69 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -5504,6 +5506,60 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
+## ⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)
+
+**Priorité P1** · importance 4/5 — Première entrée du moteur Rust (OpenMLS,
+Flutter Rust Bridge) dans l'app : à chaque connexion, l'appareil s'inscrit
+dans `mls_devices` (clé de signature publique, credential, nom, plateforme)
+et publie 50 KeyPackages + 1 « dernier recours » dans `mls_key_packages`.
+L'écran Réglages › Sécurité › Appareils affiche ce registre sous la liste
+Signal, avec révocation. Rien n'a tourné sur un appareil : ni le chargement
+de la bibliothèque native au démarrage de l'app réelle (seul le harnais du
+spike a tourné), ni l'inscription, ni l'écran. La migration
+`20260915100000_mls_registre_appareils.sql` doit être appliquée AVANT
+(`supabase db push --linked`, par Salim) ; sans elle, l'inscription échoue
+quatre fois puis écrit… dans `mls_diagnostics`, qui n'existe pas non plus —
+donc rien, et `MlsDeviceRegistry: enregistrement échoué` dans logcat en
+debug seulement.
+
+Fichiers : [mls_engine_provider.dart](lib/core/crypto/mls/mls_engine_provider.dart),
+[mls_device_registry.dart](lib/core/crypto/mls/mls_device_registry.dart),
+[devices_screen.dart](lib/features/settings/presentation/screens/devices_screen.dart),
+[auth_provider.dart](lib/features/auth/presentation/providers/auth_provider.dart)
+(`_initializeE2EE`), crate `rust/`.
+
+Preuve de vie de la phase (en base, pas à l'écran) :
+`select count(*) from mls_devices where last_seen_at > now() - interval '7 days'`
+> 0 sur des comptes réels.
+
+- [ ] **Démarrage de l'app** (build release) : l'app démarre, aucun plantage
+  au chargement de `libdiaspo_mls.so` (`RustLib.init()`), aucune ligne
+  `AndroidRuntime`/`FATAL` dans logcat.
+- [ ] **Inscription** : après connexion, une ligne `mls_devices` pour ce
+  compte avec `platform = 'android'`, `name = 'Samsung SM-A515F'` (ou
+  équivalent), `last_seen_at` à l'instant ; **51** lignes `mls_key_packages`
+  (50 + 1 `is_last_resort`) pour ce `device_id`.
+- [ ] **Idempotence** : force-stop puis relance → toujours **une seule**
+  ligne `mls_devices` (même `stable_id`), `last_seen_at` avancé, aucun
+  nouveau paquet tant qu'il en reste ≥ 10.
+- [ ] **Écran Appareils** : la section « Nouveau registre (MLS) » liste
+  l'appareil avec « CET APPAREIL », date de dernière vue ; le bouton
+  Révoquer est absent sur l'appareil courant.
+- [ ] **Révocation depuis un second appareil** (ou depuis SQL) : la ligne
+  passe barrée « Révoqué », ses paquets non consommés ont disparu (trigger),
+  et au redémarrage l'appareil révoqué **ne se réinscrit pas** (ligne
+  `mls_diagnostics` `appareil_revoque_au_demarrage`).
+- [ ] **Compte neuf** : le premier échange de session échoue toujours une
+  fois (piège connu) ; l'inscription doit quand même aboutir grâce aux
+  réessais (3 s, 6 s, 9 s).
+- [ ] **Thème sombre** : section lisible.
+- [ ] **Dette consignée, à ne pas oublier** : la base SQLite du moteur
+  (`<support>/mls/<uid>.sqlite`, clé privée de signature comprise) est en
+  clair dans le répertoire privé de l'app. La clé maître Keystore/Keychain
+  (plan § 7.4) vient avec la phase 3.
+
+---
+
 ## ⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)
 
 **Priorité P0** · importance 5/5 — Le chiffrement de bout en bout était mort en production : mesuré, **aucun** message ne passait par Signal, tout partait en repli AES. *Bloqué : deux comptes (le destinataire doit publier ses clés depuis SON appareil).*
@@ -6982,6 +7038,60 @@ en solo.
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
+
+## ⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)
+
+**Priorité P2** · importance 3/5 — Aucun de ces six n'était visible pour un usager, mais l'un d'eux laissait n'importe quel compte fabriquer une demande d'ami **au nom de quelqu'un d'autre**. *Bloqué : deux comptes pour les points croisés.*
+
+Audit du cycle complet, après « Accepter une demande d'ami : « Erreur de
+chargement » ». Tout est corrigé, mesuré et déployé ; ce qui reste est
+l'observation sur appareil.
+
+1. **`cancelled` n'existait pas dans l'énumération** alors que
+   `cancelFriendRequest` l'écrit : le `default` du parseur le rendait comme
+   `pending`. Latent (les flux filtrent côté serveur), mais `getRequestById`
+   lisait une demande annulée comme en attente.
+2. **Rien ne vérifiait qu'une demande était encore en attente.** Un écran resté
+   ouvert pouvait accepter une demande fraîchement annulée, ou en réaccepter
+   une déjà traitée. Garde côté client — avec un message qui *nomme* l'état
+   trouvé — et côté règles.
+3. **🔴 `allow create` était `isAuthenticated()` tout court** : n'importe quel
+   compte pouvait créer une demande **au nom d'un autre**. La règle exige
+   désormais `senderId == request.auth.uid`, un destinataire différent, et un
+   statut `pending` ; le destinataire ne peut plus poser `cancelled` à la
+   place de l'expéditeur.
+4. **Aucune garde « pas soi-même »** hors du bouton de la fiche de profil.
+   Posée dans `sendFriendRequest` et dans la règle.
+5. **Les documents traités s'accumulaient indéfiniment.** Supprimés après
+   acceptation, refus et annulation — au mieux : un échec de ménage ne défait
+   pas une acceptation réussie, il est signalé.
+6. **Une annulation laissait au destinataire une notification orpheline.**
+   L'expéditeur ne peut pas la marquer lue — `markTargetRead` filtre sur
+   `user_id = <l'appelant>`. C'est donc le destinataire qui le fait, là où il
+   constate la disparition.
+
+`public.friend_requests` (Supabase) n'est lue ni écrite par personne : marquée
+par `COMMENT ON` (`20260915093000`), **pas supprimée**. `public.friends` a reçu
+le même traitement — une ligne par sens, ce qui n'allait pas de soi.
+
+**Règles déployées le 2026-09-15**, compilation OK, banc passé avant :
+`tools/rules_tests/acceptation_ami.mjs` blocs 5 et 6, dix cas, plus les treize
+tests Dart de `cycle_demande_ami_test.dart`.
+
+⚠️ **Le banc a tourné sur un port privé (8098)** : le 8080 était pris par
+l'émulateur d'une autre session. Ne jamais lancer le banc sur l'émulateur
+d'autrui — `initializeTestEnvironment` y téléverse **vos** règles et
+`clearFirestore()` efface **ses** données.
+
+- [ ] **Annuler puis accepter** (deux comptes) : A envoie, B ouvre l'écran
+  Notifications, A annule depuis « Envoyées », B tape « Accepter » sans
+  rafraîchir → message clair « cette demande a été annulée », et rien en base.
+- [ ] **La notification orpheline disparaît** : après l'annulation, la carte de
+  B n'affiche plus de boutons **et** la pastille de la cloche redescend.
+- [ ] **Accepter puis réaccepter** : après une acceptation, la demande n'existe
+  plus en base (`friend_requests` vide pour ce couple) et l'amitié est là.
+- [ ] **Refuser** : même chose, document supprimé, aucune amitié.
+- [ ] **Renvoyer après un refus** : A peut réenvoyer une demande à B.
 
 ## ⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)
 

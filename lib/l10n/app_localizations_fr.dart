@@ -12301,6 +12301,28 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les appareils utilisant le chiffrement de bout en bout apparaîtront ici.';
 
   @override
+  String get mlsDevicesTitle => 'Nouveau registre (MLS)';
+
+  @override
+  String get mlsDevicesExplain =>
+      'Chaque appareil connecté à ce compte y est inscrit avec sa propre clé. C\'est ce registre que la future messagerie chiffrée utilisera.';
+
+  @override
+  String get mlsDevicesNone =>
+      'Aucun appareil inscrit pour l\'instant. L\'inscription se fait à la connexion.';
+
+  @override
+  String get mlsDevicesLoadError =>
+      'Le registre n\'a pas pu être lu. Réessayez plus tard.';
+
+  @override
+  String get mlsDeviceRevokedLabel => 'Révoqué';
+
+  @override
+  String get mlsDeviceRevokeConfirm =>
+      'Cet appareil ne pourra plus rejoindre de conversation chiffrée. Continuer ?';
+
+  @override
   String get rename => 'Renommer';
 
   @override

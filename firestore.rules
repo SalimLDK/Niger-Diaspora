@@ -201,16 +201,32 @@ service cloud.firestore {
       allow read: if isAuthenticated() &&
         (resource.data.senderId == request.auth.uid ||
          resource.data.receiverId == request.auth.uid);
-      allow create: if isAuthenticated();
+      // `create` etait `isAuthenticated()` tout court : n'importe quel compte
+      // pouvait fabriquer une demande AU NOM DE quelqu'un d'autre, ou se
+      // l'adresser a soi-meme. La garde « pas soi-meme » ne vivait que dans le
+      // bouton de la fiche de profil.
+      allow create: if isAuthenticated()
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.receiverId != request.auth.uid
+        && request.resource.data.status == 'pending';
+
       // Only allow updating status field by the receiver, or canceling by sender
-      allow update: if isAuthenticated() && (
-        (resource.data.receiverId == request.auth.uid && 
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
-        // Sender can cancel (update status to cancelled)
-        (resource.data.senderId == request.auth.uid && 
-         request.resource.data.status == 'cancelled' &&
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt']))
-      );
+      //
+      // `resource.data.status == 'pending'` ferme la reprise d'une demande
+      // deja traitee : sans lui, un ecran reste ouvert pouvait accepter une
+      // demande que l'expediteur venait d'annuler, ou en reaccepter une deja
+      // acceptee. Et le destinataire ne peut poser que les deux etats qui sont
+      // les siens — il ne peut pas « annuler » a la place de l'expediteur.
+      allow update: if isAuthenticated()
+        && resource.data.status == 'pending'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && (
+          (resource.data.receiverId == request.auth.uid &&
+           request.resource.data.status in ['accepted', 'declined']) ||
+          // Sender can cancel (update status to cancelled)
+          (resource.data.senderId == request.auth.uid &&
+           request.resource.data.status == 'cancelled')
+        );
       // Allow deletion by either party after request is accepted/declined/cancelled
       allow delete: if isAuthenticated() && 
         (resource.data.senderId == request.auth.uid || 

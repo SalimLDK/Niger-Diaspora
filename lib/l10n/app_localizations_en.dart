@@ -12177,6 +12177,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'Devices using end-to-end encryption will appear here.';
 
   @override
+  String get mlsDevicesTitle => 'New registry (MLS)';
+
+  @override
+  String get mlsDevicesExplain =>
+      'Every device signed in to this account is listed here with its own key. The upcoming encrypted messaging will rely on this registry.';
+
+  @override
+  String get mlsDevicesNone =>
+      'No device registered yet. Registration happens at sign-in.';
+
+  @override
+  String get mlsDevicesLoadError =>
+      'The registry could not be read. Try again later.';
+
+  @override
+  String get mlsDeviceRevokedLabel => 'Revoked';
+
+  @override
+  String get mlsDeviceRevokeConfirm =>
+      'This device will no longer be able to join encrypted conversations. Continue?';
+
+  @override
   String get rename => 'Rename';
 
   @override

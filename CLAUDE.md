@@ -126,6 +126,40 @@ générée. Prendre un côté au hasard, puis relancer
 et les cases cochées d'en face comme les entrées ajoutées des deux côtés se
 retrouvent dans le total. Ne jamais résoudre cette ligne à la main.
 
+## Rust dans le build : `rust/` (OpenMLS) compilé par cargokit
+
+Depuis la phase 2 du plan MLS (2026-09-15), l'app embarque un crate Rust
+(`rust/`, moteur OpenMLS) relié par Flutter Rust Bridge. **Tout `flutter
+build` / `flutter run` compile ce crate** via `rust_builder/` (cargokit, dans
+Gradle et Xcode). Ce que ça impose :
+
+- **Rust sur le poste** : `rustup` (installé par winget le 2026-09-14),
+  cibles `aarch64-linux-android`, `armv7-linux-androideabi`,
+  `x86_64-linux-android`. Sous Git Bash, `~/.cargo/bin` n'est pas dans le
+  PATH : `export PATH="$HOME/.cargo/bin:$PATH"` **avant** `flutter build`,
+  sinon cargokit échoue dans Gradle avec un message qui parle de `cargo`
+  introuvable. Compter ~6 min de plus au premier build (trois ABI), puis le
+  cache de cargokit prend le relais.
+- **Regénérer les liaisons** après tout changement de `rust/src/api/` :
+
+  ```bash
+  flutter_rust_bridge_codegen generate --no-build-runner --no-dart-format
+  ```
+
+  Les deux drapeaux ne sont pas optionnels. Sans `--no-build-runner`, le
+  générateur lance `build_runner` sur tout le projet et a **supprimé 129
+  `.g.dart` suivis par git** le 2026-09-15 (restaurer : `git ls-files -d |
+  xargs git checkout --`). Sans `--no-dart-format`, c'est `dart format` sur
+  tout `lib/`.
+- **Banc Rust** : `cd rust && cargo test` (≈ 10 min la première fois, puis
+  < 1 min). C'est le banc de la phase 3 ; il doit passer avant toute
+  livraison qui touche `rust/`.
+- **Alignement 16 Ko** des `.so` : cargokit + NDK 27 le produisent sans
+  drapeau ; vérifier quand même dans l'APK, pas dans `target/` :
+  `python tools/verifie_alignement_16k.py <lib/arm64-v8a/libdiaspo_mls.so>`.
+- `RustLib.init()` ne se fait qu'**une fois par processus** (second appel :
+  exception). Passer par `mlsEngineProvider`, jamais l'appeler soi-même.
+
 ## Migrations Supabase sur la branche partagée
 
 Le worktree isole l'index et l'arbre, mais **pas le contenu une fois fusionné

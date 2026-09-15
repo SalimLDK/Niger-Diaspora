@@ -250,6 +250,81 @@ for (const [quoi, geste] of [
     }
 }
 
+// ---------------------------------------------------------------------------
+console.log("\n5. CYCLE DE VIE — une demande ne se traite qu'une fois\n");
+
+/** Pose une demande dans l'etat voulu, regles desactivees. */
+async function demandeAvecStatut(statut) {
+    await env.clearFirestore();
+    await env.withSecurityRulesDisabled(async (ctx) => {
+        await setDoc(doc(ctx.firestore(), "friend_requests", DEMANDE), {
+            senderId: A, senderName: "A", receiverId: B, receiverName: "B",
+            status: statut, createdAt: new Date(), updatedAt: new Date(),
+        });
+    });
+}
+
+const repondre = (statut) =>
+    setDoc(doc(commeB(), "friend_requests", DEMANDE),
+        { status: statut, updatedAt: serverTimestamp() }, { merge: true });
+
+for (const [statut, attendu] of [
+    ["pending", "PASSE"],
+    ["accepted", "REFUSE"],
+    ["declined", "REFUSE"],
+    ["cancelled", "REFUSE"],
+]) {
+    await demandeAvecStatut(statut);
+    let verdict;
+    try {
+        await repondre("accepted");
+        verdict = "PASSE";
+    } catch (e) {
+        verdict = /permission|insufficient/i.test(String(e)) ? "REFUSE" : `ERREUR ${e}`;
+    }
+    ligne(verdict === attendu,
+        `B accepte une demande « ${statut} » -> ${verdict} (attendu ${attendu})`);
+}
+
+await demandeAvecStatut("pending");
+try {
+    await assertFails(repondre("cancelled"));
+    ligne(true, "refuse : le destinataire ne peut pas ANNULER a la place de l'expediteur");
+} catch {
+    ligne(false, "AUTORISE : le destinataire peut annuler a la place de l'expediteur");
+}
+
+// ---------------------------------------------------------------------------
+console.log("\n6. CREATION — on n'envoie une demande QUE de sa part\n");
+
+const creer = (qui, donnees) =>
+    setDoc(doc(env.authenticatedContext(qui).firestore(),
+        "friend_requests", "demande_neuve"), donnees);
+
+await env.clearFirestore();
+const base = { senderName: "A", receiverName: "B", status: "pending" };
+
+try {
+    await assertSucceeds(creer(A, { ...base, senderId: A, receiverId: B }));
+    ligne(true, "A envoie une demande a B");
+} catch (e) {
+    ligne(false, `A ne peut plus envoyer de demande — ${String(e).split("\n")[0]}`);
+}
+
+for (const [quoi, qui, donnees] of [
+    ["une demande AU NOM d'un autre", "tiers_C", { ...base, senderId: A, receiverId: B }],
+    ["une demande a soi-meme", A, { ...base, senderId: A, receiverId: A }],
+    ["une demande deja « accepted »", A, { ...base, senderId: A, receiverId: B, status: "accepted" }],
+]) {
+    await env.clearFirestore();
+    try {
+        await assertFails(creer(qui, donnees));
+        ligne(true, `refuse : ${quoi}`);
+    } catch {
+        ligne(false, `AUTORISE (ne devrait pas) : ${quoi}`);
+    }
+}
+
 await env.cleanup();
 
 console.log(
