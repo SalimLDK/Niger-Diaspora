@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1055 cases à cocher, 557 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
+**1055 cases à cocher, 559 cochées** — 212 entrées sur 257 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -278,7 +278,7 @@ Par domaine :
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 45 à faire, 60 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 121 à faire, 11 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 46 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
@@ -10674,6 +10674,31 @@ sur une voix réellement captée par le SFU.
 # 10. Ambassades, démarches, carte, entreprises et événements
 
 Annuaires, démarches consulaires, carte des membres et des postes, événements.
+
+---
+
+## ✅ Annuaire Business : texte et icônes quasi invisibles sur la carte — corrigé, vérifié SM A515F clair + sombre (2026-09-14)
+
+**Priorité P2** · importance 2/5 — Sur l'écran `/businesses`, la ville, les
+icônes de localisation, l'icône de remplacement (pas de photo) et le nombre
+d'avis étaient posés en `theme.colorScheme.outline` — une couleur de
+**bordure** (`AppColors.border`/`borderDark`, quasi confondue avec le fond de
+carte dans les deux thèmes), pas une couleur de texte. Rendu quasi illisible,
+signalé par Salim sur capture SM A515F.
+
+**Corrigé** dans `business_card.dart` et `businesses_screen.dart` : bascule
+vers `context.textSecondaryColor`/`context.textTertiaryColor`/
+`context.iconTertiaryColor` (`AdaptiveColors`, déjà la source unique de ces
+tons ailleurs dans l'app). `outlineVariant` reste en place là où c'est un
+vrai trait de bordure (`businesses_screen.dart`, séparateur du filtre
+localisation).
+
+- [x] **Thème clair** — SM A515F, `/businesses` (lien profond
+  `https://diasponiger.com/businesses`) : ville et icônes lisibles sur les
+  trois cartes de la liste.
+- [x] **Thème sombre** — même écran, `adb shell cmd uimode night yes` :
+  toujours lisible, aucune régression du gris de bordure en clair sur fond
+  sombre.
 
 ---
 

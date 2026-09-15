@@ -132,20 +132,20 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                           Icon(
                             Icons.business_outlined,
                             size: 64,
-                            color: theme.colorScheme.outline,
+                            color: context.iconTertiaryColor,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             l10n.noBusinessFound,
                             style: theme.textTheme.titleMedium?.copyWith(
-                              color: theme.colorScheme.outline,
+                              color: context.textSecondaryColor,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             l10n.beFirstToAddBusiness,
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.outline,
+                              color: context.textTertiaryColor,
                             ),
                           ),
                         ],

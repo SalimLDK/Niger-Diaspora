@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/business_entity.dart';
 import '../../domain/entities/business_post_entity.dart';
@@ -89,7 +90,7 @@ class BusinessCard extends ConsumerWidget {
                         child: Icon(
                           business.category.icon,
                           size: 48,
-                          color: theme.colorScheme.outline,
+                          color: context.iconTertiaryColor,
                         ),
                       ),
                     ),
@@ -166,7 +167,7 @@ class BusinessCard extends ConsumerWidget {
                 child: Icon(
                   business.category.icon,
                   size: 48,
-                  color: theme.colorScheme.outline,
+                  color: context.iconTertiaryColor,
                 ),
               ),
             // Content
@@ -229,14 +230,14 @@ class BusinessCard extends ConsumerWidget {
                         AppIcon(
                           AppIcon.location,
                           size: 16,
-                          color: theme.colorScheme.outline,
+                          color: context.iconTertiaryColor,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             business.city!,
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.outline,
+                              color: context.textSecondaryColor,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -260,7 +261,7 @@ class BusinessCard extends ConsumerWidget {
                         Text(
                           ' (${business.reviewCount})',
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.outline,
+                            color: context.textTertiaryColor,
                           ),
                         ),
                       ],
