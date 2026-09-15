@@ -12308,6 +12308,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'Chaque appareil connecté à ce compte y est inscrit avec sa propre clé. C\'est ce registre que la future messagerie chiffrée utilisera.';
 
   @override
+  String get mlsSecurityCodeLabel => 'Code de sécurité';
+
+  @override
+  String get mlsSecurityCodeUnavailable =>
+      'Code indisponible — cet appareil n\'a pas publié sa clé';
+
+  @override
+  String get mlsSecurityCodeExplain =>
+      'Comparez ce code de vive voix avec la personne en face. S\'il diffère, ne parlez pas de ce qui est sensible : la clé servie n\'est pas la sienne.';
+
+  @override
+  String get mlsSecurityCodeChanged =>
+      'La clé de cet appareil a changé depuis votre vérification';
+
+  @override
   String get mlsDevicesNone =>
       'Aucun appareil inscrit pour l\'instant. L\'inscription se fait à la connexion.';
 

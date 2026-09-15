@@ -22688,6 +22688,30 @@ abstract class AppLocalizations {
   /// **'Chaque appareil connecté à ce compte y est inscrit avec sa propre clé. C\'est ce registre que la future messagerie chiffrée utilisera.'**
   String get mlsDevicesExplain;
 
+  /// No description provided for @mlsSecurityCodeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de sécurité'**
+  String get mlsSecurityCodeLabel;
+
+  /// No description provided for @mlsSecurityCodeUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code indisponible — cet appareil n\'a pas publié sa clé'**
+  String get mlsSecurityCodeUnavailable;
+
+  /// No description provided for @mlsSecurityCodeExplain.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comparez ce code de vive voix avec la personne en face. S\'il diffère, ne parlez pas de ce qui est sensible : la clé servie n\'est pas la sienne.'**
+  String get mlsSecurityCodeExplain;
+
+  /// No description provided for @mlsSecurityCodeChanged.
+  ///
+  /// In fr, this message translates to:
+  /// **'La clé de cet appareil a changé depuis votre vérification'**
+  String get mlsSecurityCodeChanged;
+
   /// No description provided for @mlsDevicesNone.
   ///
   /// In fr, this message translates to:

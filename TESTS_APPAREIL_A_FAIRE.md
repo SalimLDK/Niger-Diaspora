@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1128 cases à cocher, 581 cochées** — 226 entrées sur 272 ont encore des cases ouvertes.
+**1134 cases à cocher, 581 cochées** — 227 entrées sur 273 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -71,7 +71,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (73)
+**P1 — fonction importante, jamais vérifiée** (74)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -92,6 +92,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 6 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
@@ -286,7 +287,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 220 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 76 à faire, 31 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 82 à faire, 31 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5654,6 +5655,43 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)
+
+**Priorité P1** · importance 4/5 — MLS ne protège pas contre un serveur qui
+substituerait un KeyPackage : rien, dans le protocole, ne dit qu'une clé
+servie est bien celle de la personne annoncée. La comparaison hors bande est
+la seule réponse, et elle est maintenant affichée sous chaque ligne du
+registre MLS (écran Appareils) : 60 chiffres en 12 groupes, comparables de
+vive voix.
+
+*Bloqué : demande deux téléphones sur deux comptes. Le scan par QR n'est pas
+branché — la charge et son analyseur existent
+(`MlsCodeSecurite.chargeQr` / `lireQr`), l'écran de scan non.*
+
+Fichiers : [mls_code_securite.dart](lib/core/crypto/mls/mls_code_securite.dart),
+[devices_screen.dart](lib/features/settings/presentation/screens/devices_screen.dart)
+(`_CodeSecurite`), [mls_device_registry.dart](lib/core/crypto/mls/mls_device_registry.dart)
+(`signatureKey`).
+
+Le banc tient le calcul (16 cas) — il a d'ailleurs trouvé que l'analyseur de
+QR rejetait tout code valide, l'identité MLS `uid:stable_id` contenant déjà
+un `:`. Ce qui suit est ce qu'il ne peut pas voir.
+
+- [ ] **Le code s'affiche** sous chaque appareil du registre MLS, en 12
+  groupes de 5 chiffres, lisible sans troncature en français comme en
+  anglais.
+- [ ] **Deux téléphones, deux comptes** : le code affiché pour l'appareil de
+  A, lu sur le téléphone de B, est le même que celui que A voit chez lui.
+- [ ] **Après réinstallation** de l'application sur A : son code change, et
+  le téléphone de B le signale (« la clé de cet appareil a changé »).
+- [ ] **Un appareil sans clé publiée** (ligne ancienne) affiche « code
+  indisponible », jamais une suite de chiffres.
+- [ ] **Sélection et copie** du code fonctionnent (comparer par message écrit
+  est le second canal le plus courant).
+- [ ] **Thème sombre** : le code et l'avertissement restent lisibles.
 
 ---
 
