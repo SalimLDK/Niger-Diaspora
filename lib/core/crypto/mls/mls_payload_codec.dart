@@ -57,6 +57,21 @@ class MlsPayload {
   final List<String> mentions;
   final bool forwarded;
 
+  /// Durée de vie en secondes, quand la conversation a un minuteur.
+  ///
+  /// **Elle voyage ici, dans le clair que seul le groupe lit, et pas
+  /// seulement dans la colonne `mls_messages.expires_at`.** Le service de
+  /// livraison est considéré comme hostile (§ « ce que le serveur est ») :
+  /// il peut repousser l'échéance de la colonne, ou l'effacer. Le récepteur
+  /// recalcule donc la sienne depuis cette valeur-ci, que le serveur ne peut
+  /// ni lire ni réécrire — la colonne ne lui sert qu'à balayer.
+  ///
+  /// `null` = pas de minuteur. L'échéance se compte depuis le `created_at`
+  /// de la ligne et non depuis [sentAt] : l'horloge de l'expéditeur n'est
+  /// pas une autorité, un `sentAt` antidaté ferait expirer le message à
+  /// l'arrivée.
+  final int? ttl;
+
   const MlsPayload({
     this.v = versionCourante,
     required this.id,
@@ -66,6 +81,7 @@ class MlsPayload {
     this.replyTo,
     this.mentions = const [],
     this.forwarded = false,
+    this.ttl,
   });
 
   factory MlsPayload.texte(String id, String texte, {DateTime? quand}) => MlsPayload(
@@ -77,6 +93,11 @@ class MlsPayload {
 
   String get texte => body['content'] as String? ?? '';
 
+  /// L'échéance du message, à partir de l'horodatage **serveur** de sa ligne.
+  /// `null` quand le message n'a pas de minuteur.
+  DateTime? echeance(DateTime createdAt) =>
+      ttl == null || ttl! <= 0 ? null : createdAt.add(Duration(seconds: ttl!));
+
   Map<String, dynamic> toJson() => {
         'v': v,
         'id': id,
@@ -86,6 +107,7 @@ class MlsPayload {
         if (replyTo != null) 'replyTo': replyTo,
         if (mentions.isNotEmpty) 'mentions': mentions,
         if (forwarded) 'forwarded': true,
+        if (ttl != null) 'ttl': ttl,
       };
 
   factory MlsPayload.fromJson(Map<String, dynamic> json) => MlsPayload(
@@ -99,6 +121,7 @@ class MlsPayload {
             : null,
         mentions: (json['mentions'] as List?)?.cast<String>() ?? const [],
         forwarded: json['forwarded'] == true,
+        ttl: (json['ttl'] as num?)?.toInt(),
       );
 
   Uint8List encode() => Uint8List.fromList(utf8.encode(jsonEncode(toJson())));

@@ -19910,6 +19910,12 @@ abstract class AppLocalizations {
   /// **'Message supprimé'**
   String get messageDeleted;
 
+  /// No description provided for @messageAutoDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message expiré'**
+  String get messageAutoDeleted;
+
   /// No description provided for @photo.
   ///
   /// In fr, this message translates to:
