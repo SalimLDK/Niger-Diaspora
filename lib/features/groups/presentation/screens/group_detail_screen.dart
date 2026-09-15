@@ -37,6 +37,7 @@ import '../widgets/share_group_modal.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class GroupDetailScreen extends ConsumerStatefulWidget {
   final String groupId;
@@ -660,6 +661,15 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         ),
       );
       context.pop();
+    } else if (mounted) {
+      // Sans ce message, un refus de la RLS se lit comme un bouton mort : on
+      // reste sur la fiche, toujours non-membre, sans savoir pourquoi.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(messageErreurUsager(null)),
+          backgroundColor: context.errorColor,
+        ),
+      );
     }
   }
 
@@ -713,6 +723,13 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.groupLeft)));
       context.pop();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(messageErreurUsager(null)),
+          backgroundColor: context.errorColor,
+        ),
+      );
     }
   }
 
