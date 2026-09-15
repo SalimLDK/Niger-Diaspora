@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1181 cases à cocher, 609 cochées** — 238 entrées sur 285 ont encore des cases ouvertes.
+**1181 cases à cocher, 610 cochées** — 238 entrées sur 285 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
