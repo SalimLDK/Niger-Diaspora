@@ -337,7 +337,13 @@ void main() {
       expect(data['conversationId'], conv);
       expect(data['mlsSenderDeviceId'], m.senderDeviceId);
       // Le ciphertext voyage tel quel : c'est lui que l'appareil déchiffre.
-      expect(base64Decode((data['mlsCiphertext'] as String).replaceAll('\n', '')), m.ciphertext);
+      final b64 = data['mlsCiphertext'] as String;
+      // `encode(bytea,'base64')` coupe tous les 76 caractères et
+      // `base64Decode` refuse les sauts : le trigger doit les retirer
+      // (migration 20260915160000). Sans cette exigence, une régression du
+      // SQL ne se verrait que sur le téléphone de quelqu'un, en silence.
+      expect(b64.contains('\n'), isFalse, reason: 'base64 coupé par Postgres');
+      expect(base64Decode(b64), m.ciphertext);
 
       // L'expéditeur ne se notifie pas lui-même.
       final chezAlice = await a.client
@@ -354,7 +360,7 @@ void main() {
         userId: b.uid,
         deviceId: b.stableId,
         conversationId: conv,
-        message: base64Decode((data['mlsCiphertext'] as String).replaceAll('\n', '')),
+        message: base64Decode(b64),
         aad: MlsAad.message(
           conversationId: conv,
           messageId: data['messageId'] as String,
