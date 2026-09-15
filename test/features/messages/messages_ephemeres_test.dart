@@ -458,6 +458,146 @@ void main() {
       );
     });
 
+    test('TOUS les envois optimistes portent l’échéance', () {
+      // Le signe « éphémère » (icône minuteur de `_buildMetaRow`) se lit sur
+      // `expiresAt`. Sans lui sur l'entité optimiste, il n'apparaissait pas à
+      // l'envoi — le seul moment où il dit quelque chose. Côté MLS c'était
+      // définitif tant qu'on restait dans la conversation : `catchUp` saute
+      // nos propres messages, donc aucun écho ne remplace l'optimiste.
+      // Mesuré sur SM A515F le 2026-09-15 : échéance correcte en base, aucune
+      // icône à l'écran jusqu'à ressortir de la conversation.
+      final src = _source(
+        'lib/features/messages/presentation/providers/message_provider.dart',
+      );
+      final poses = 'expiresAt: _echeanceOptimiste(_ref, conversationId),'
+          .allMatches(src)
+          .length;
+      final optimistes = 'final optimisticMessage = MessageEntity('
+          .allMatches(src)
+          .length;
+      expect(
+        poses,
+        optimistes,
+        reason: 'chaque chemin d’envoi doit la porter — un seul oubli et ce '
+            'type de message n’a pas de signe éphémère',
+      );
+      expect(optimistes, 6,
+          reason: 'texte, audio, position, sondage, sticker, et la copie '
+              'mise en file hors ligne');
+    });
+
+    test('la liste ne masque QUE ce que j’ai supprimé pour moi', () {
+      // `isDeletedFor` vaut `deletedForEveryone || deletedFor.contains(moi)`.
+      // L'écran filtrait dessus : tout message supprimé pour tous — y compris
+      // un éphémère arrivé à échéance, que `videeParExpiration` marque
+      // exactement ainsi — était retiré AVANT d'atteindre la bulle, rendant
+      // le rendu de pierre tombale inatteignable. Le message disparaissait
+      // sans laisser de trace. Mesuré sur SM A515F le 2026-09-15.
+      final src = _source(
+        'lib/features/messages/presentation/screens/conversation_screen.dart',
+      );
+      expect(
+        src.contains('!m.deletedFor.contains(currentUserId) &&'),
+        isTrue,
+        reason: 'le filtre de liste doit viser deletedFor, pas isDeletedFor',
+      );
+      expect(
+        src.contains('!m.isDeletedFor(currentUserId) &&'),
+        isFalse,
+        reason: 'isDeletedFor ici emporte les pierres tombales',
+      );
+    });
+
+    test('modifier un message absent de `messages` ne reussit pas a vide', () {
+      // Un message MLS n'a AUCUNE ligne dans `messages` : sa ligne vit dans
+      // `mls_messages`. Quand l'aiguillage manque sa cible, l'ancien
+      // `if (rows.isEmpty) return;` faisait croire au succès — l'écran
+      // affichait « Message modifié », le nouveau texte restait en optimiste,
+      // et le texte d'avant revenait à la relecture. Mesuré sur SM A515F le
+      // 2026-09-15 : deux modifications annoncées réussies, zéro message de
+      // contrôle émis côté MLS.
+      final src = _source(
+        'lib/features/messages/data/datasources/'
+        'message_supabase_datasource.dart',
+      );
+      final bloc = src.substring(src.indexOf('Future<void> editMessage('));
+      final rows = bloc.indexOf('if (rows.isEmpty)');
+      expect(rows, isNot(-1), reason: 'le garde doit exister');
+      final garde = bloc.substring(rows, rows + 1400);
+      expect(
+        garde.contains('throw'),
+        isTrue,
+        reason: 'une modification sans cible doit LEVER, pas rendre la main',
+      );
+      // Et elle doit DIRE ce qu'il faut pour comprendre : la cause du mauvais
+      // aiguillage n'est pas élucidée et ne se provoque pas depuis l'écran
+      // (pour qu'une bulle MLS s'affiche, son fil a été amorcé, donc son
+      // identifiant est déjà connu). L'erreur emporte donc l'état de bascule
+      // de la conversation, qui est l'entrée dont dépend la décision.
+      expect(
+        garde.contains('mls_since'),
+        isTrue,
+        reason: 'l’erreur doit porter l’état de bascule, sinon la prochaine '
+            'occurrence sera aussi muette que celle qu’on a corrigée',
+      );
+    });
+
+    test('le menu du message est rangé par intention', () {
+      // L'ordre d'avant venait de la maquette puis des ajouts successifs. Ce
+      // test tient le rangement : quatre intentions (agir / emporter / ranger
+      // / isolé), et surtout ce qui ne doit PLUS être enterré derrière le
+      // révélateur « Autres actions » :
+      //   - Enregistrer : sur un média, c'est LE geste ;
+      //   - Signaler : recours d'une personne harcelée — son propre
+      //     commentaire disait « il ne disparaît pas d'un écran » alors qu'il
+      //     était caché ;
+      //   - Modifier : action courante, fenêtre de 25 min ;
+      //   - Épingler : `canPin` est déjà restrictif.
+      final src = _source(
+        'lib/features/messages/presentation/widgets/message_bubble.dart',
+      );
+      final principales = src.indexOf('List<Widget> _primaryOptionRows(');
+      final secondaires = src.indexOf('List<Widget> _secondaryOptionRows(');
+      expect(principales, isNot(-1));
+      expect(secondaires, greaterThan(principales));
+
+      int place(String aiguille) {
+        final i = src.indexOf(aiguille, principales);
+        expect(i, isNot(-1), reason: 'introuvable : $aiguille');
+        return i;
+      }
+
+      // Dans les principales, et dans cet ordre.
+      const ordre = [
+        'l10n.reply',
+        'l10n.edit',
+        'l10n.copy',
+        'l10n.save',
+        'l10n.forwardTo',
+        'l10n.starMessage',
+        'l10n.pin',
+        'l10n.select',
+        'l10n.report',
+        'l10n.delete',
+      ];
+      var precedent = principales;
+      for (final entree in ordre) {
+        final i = place(entree);
+        expect(i, lessThan(secondaires),
+            reason: '$entree doit être une action PRINCIPALE');
+        expect(i, greaterThan(precedent),
+            reason: '$entree est hors de l’ordre voulu');
+        precedent = i;
+      }
+
+      // Et seulement celles-là derrière le révélateur.
+      for (final rare in ['l10n.selectText', 'l10n.share',
+          'l10n.messageInfoTitle']) {
+        expect(src.indexOf(rare, secondaires), isNot(-1),
+            reason: '$rare doit rester derrière « Autres actions »');
+      }
+    });
+
     test('le helper lit le minuteur et pose expiresAt', () {
       final src = _source(chemin);
       expect(src.contains("data['expiresAt'] ="), isTrue);

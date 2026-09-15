@@ -47,9 +47,24 @@ class MlsMetadonneesLot {
     this.masques = const {},
     this.etoiles = const {},
     this.supprimes = const {},
+    this.lu = true,
   });
 
+  /// La lecture du serveur **a abouti**.
+  ///
+  /// Sans ce drapeau, « aucune métadonnée » et « je n'ai pas réussi à
+  /// lire » se rendaient par le même objet vide, et l'appelant ne pouvait
+  /// pas les distinguer. C'est la septième forme d'échec muet de ce dépôt —
+  /// une requête qui réussit à vide, où l'absence se confond avec la
+  /// suppression. Ici elle se payait à l'écran : une réaction retirée côté
+  /// serveur restait affichée pour toujours, et une réaction dont l'écriture
+  /// avait échoué paraissait avoir pris.
+  final bool lu;
+
   static const vide = MlsMetadonneesLot();
+
+  /// Ce qu'on rend quand la lecture a échoué : rien, et on le dit.
+  static const illisible = MlsMetadonneesLot(lu: false);
 
   bool get estVide =>
       reactions.isEmpty &&
@@ -185,7 +200,11 @@ class MlsMetadonnees {
       );
     } catch (e) {
       debugPrint('MlsMetadonnees: lot illisible ($e)');
-      return MlsMetadonneesLot.vide;
+      // **Pas `vide`.** Un lot vide signifie « le serveur ne porte aucune
+      // métadonnée », ce qui autorise l'appelant à effacer ce qu'il affichait.
+      // Une lecture ratée n'autorise rien de tel : elle doit laisser l'écran
+      // tel quel.
+      return MlsMetadonneesLot.illisible;
     }
   }
 

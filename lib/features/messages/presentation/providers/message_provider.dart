@@ -183,6 +183,31 @@ final paginatedMessagesProvider = StateNotifierProvider.autoDispose.family<
   },
 );
 
+/// L'échéance à afficher sur un message qu'on vient d'envoyer.
+///
+/// Le signe « message éphémère » (l'icône minuteur de `_buildMetaRow`) se
+/// lit sur `expiresAt`. Les entités optimistes n'en portaient aucune : le
+/// signe n'apparaissait donc **pas à l'envoi**, alors que c'est précisément
+/// le moment où il dit quelque chose. Côté MLS c'était même définitif tant
+/// qu'on restait dans la conversation : `catchUp` saute nos propres
+/// messages, aucun écho ne vient remplacer l'optimiste, `_reconcileEcho` ne
+/// s'exécute jamais. Mesuré sur SM A515F le 2026-09-15 — minuteur à 24 h,
+/// `mls_messages.expires_at` correctement posé côté serveur, et aucune
+/// icône à l'écran jusqu'à ce qu'on ressorte de la conversation.
+///
+/// **Valeur d'affichage seulement.** L'échéance qui fait foi est recalculée
+/// par le destinataire depuis le `ttl` du payload chiffré, jamais depuis
+/// ici ni depuis la colonne du serveur.
+DateTime? _echeanceOptimiste(Ref ref, String conversationId) {
+  final secondes = ref
+      .read(conversationStreamProvider(conversationId))
+      .valueOrNull
+      ?.autoDeleteAfterSeconds;
+  return secondes == null
+      ? null
+      : DateTime.now().add(Duration(seconds: secondes));
+}
+
 class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   final Ref _ref;
   final String conversationId;
@@ -1088,6 +1113,9 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
       final optimisticMessage = MessageEntity(
         id: id,
+        // Hors ligne aussi : un message mis en file dans une conversation à
+        // minuteur est éphémère comme les autres, et doit le montrer.
+        expiresAt: _echeanceOptimiste(_ref, conversationId),
         senderId: currentUser.id,
         senderName: currentUser.displayName ?? 'Utilisateur',
         senderPhotoUrl: currentUser.photoUrl,
@@ -1146,6 +1174,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
     final optimisticMessage = MessageEntity(
       id: tempId,
+      expiresAt: _echeanceOptimiste(_ref, conversationId),
       senderId: currentUser.id,
       senderName: currentUser.displayName ?? 'Utilisateur',
       senderPhotoUrl: currentUser.photoUrl,
@@ -1482,6 +1511,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
     final optimisticMessage = MessageEntity(
       id: tempId,
+      expiresAt: _echeanceOptimiste(_ref, conversationId),
       senderId: currentUser.id,
       senderName: currentUser.displayName ?? 'Utilisateur',
       senderPhotoUrl: currentUser.photoUrl,
@@ -1557,6 +1587,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
     final optimisticMessage = MessageEntity(
       id: tempId,
+      expiresAt: _echeanceOptimiste(_ref, conversationId),
       senderId: currentUser.id,
       senderName: currentUser.displayName ?? 'Utilisateur',
       senderPhotoUrl: currentUser.photoUrl,
@@ -1623,6 +1654,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
     final optimisticMessage = MessageEntity(
       id: tempId,
+      expiresAt: _echeanceOptimiste(_ref, conversationId),
       senderId: currentUser.id,
       senderName: currentUser.displayName ?? 'Utilisateur',
       senderPhotoUrl: currentUser.photoUrl,
@@ -1698,6 +1730,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
     final optimisticMessage = MessageEntity(
       id: tempId,
+      expiresAt: _echeanceOptimiste(_ref, conversationId),
       senderId: currentUser.id,
       senderName: currentUser.displayName ?? 'Utilisateur',
       senderPhotoUrl: currentUser.photoUrl,

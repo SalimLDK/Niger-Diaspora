@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1174 cases à cocher, 598 cochées** — 233 entrées sur 279 ont encore des cases ouvertes.
+**1180 cases à cocher, 601 cochées** — 236 entrées sur 282 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (28)
+**P0 — avant toute nouvelle version** (29)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
@@ -51,7 +51,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
-- 4 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
@@ -74,7 +75,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (77)
+**P1 — fonction importante, jamais vérifiée** (79)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -85,7 +86,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 14 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
+- 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
+- 13 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 18 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
@@ -97,6 +99,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 4 · [⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)](#-une-réaction-retirée-disparaît-vraiment-de-lécran-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -291,9 +294,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 241 à faire, 89 faites
+- [2. Messagerie](#2-messagerie) — 241 à faire, 90 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 93 à faire, 36 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 99 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -626,6 +629,51 @@ nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
 
 ---
 
+## ⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)
+
+**Priorité P1** · importance 4/5 — Signalé par Salim : « modifier message se
+passe uniquement en visuel, après actualisation le message précédent revient ».
+
+**Mesuré** : deux modifications annoncées réussies n'ont émis **aucun**
+`kind='control'` dans `mls_messages`. Elles sont donc parties vers `messages`,
+où un message MLS n'a aucune ligne, et `editMessage` y faisait
+`if (rows.isEmpty) return;` — succès sans écriture ni signal. Une modification
+qui passe bien par la passerelle, elle, **tient** (contrôle émis, texte
+conservé après sortie/retour).
+
+**Corrigé** : le `return` muet lève désormais, et l'erreur emporte l'état de
+bascule de la conversation (`mls_since`) — l'entrée dont dépend la décision.
+
+**⛔ NON ÉLUCIDÉ** : pourquoi `estMlsMessage` a répondu « non ». Ce qui a été
+écarté, par mesure — ne pas refaire ce chemin :
+
+- **l'identifiant optimiste (`temp_…`)** : faux. Une sonde sur
+  `_passerelleMessage` donne `routeMls=true` à chaque tentative, y compris
+  juste après l'envoi ;
+- **un `mlsSince` nul transitoire** : faux. `MlsDelivery.conversation()` ne
+  rattrape pas les erreurs, il lève ; `null` signifie donc réellement « pas de
+  bascule », pas « lecture ratée » ;
+- **retirer le veto `if (!await enMls(...)) return false;`** : écrit, testé,
+  puis ANNULÉ — il casse un test délibéré (« une conversation jamais basculée
+  ne consulte rien ») et coûte une lecture par action, pour une cause non
+  prouvée.
+
+**⚠️ Le cas ne se provoque pas depuis l'interface** : pour qu'une bulle MLS
+s'affiche, son fil a forcément été amorcé, donc `_connus` contient déjà son
+identifiant et l'aiguillage est bon. Il faudrait modifier avant le premier
+rendu. La prochaine occurrence en usage réel sera donc la source : elle
+affichera une erreur rouge portant l'identifiant du message ET l'état de
+bascule.
+
+**⚠️ Piège de recette rencontré** : une tentative de reproduction a tapé dans
+la mauvaise conversation ; le texte est parti dans la zone de saisie et a créé
+un message au lieu d'en modifier un. Les chiffres lus alors comme « deux
+valeurs fausses » étaient deux valeurs justes pour la conversation où la sonde
+tournait réellement. **Vérifier l'en-tête de la conversation avant d'agir.**
+
+- [ ] Reproduire en usage réel et relever l'erreur complète (identifiant +
+  `mls_since`), puis remonter de là vers la cause.
+
 ## ⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)
 
 **Priorité P1** · importance 4/5 — La fonction était **morte en silence** sur
@@ -672,31 +720,29 @@ SELECT public.purger_messages_expires();
   est relu à chaque envoi, jamais mémorisé).
 - [ ] **Messages déjà envoyés** : changer le minuteur ne touche pas les
   échéances des messages précédents.
-- [ ] **⛔ Expiration côté expéditeur — OUVERT, mesuré faux le 2026-09-15.**
-  La bulle ne devient pas « supprimé automatiquement » : le message
-  **disparaît**. Confirmé à l'écran (capture), pas seulement dans l'arbre
-  `uiautomator`. Le fil s'arrête au séparateur.
+- [x] **Expiration côté expéditeur — CORRIGÉ et vu à l'écran le 2026-09-15.**
+  La bulle affiche bien la pierre tombale (icône + libellé), au lieu de
+  disparaître. Cause : `conversation_screen.dart` filtrait la liste sur
+  `!m.isDeletedFor(moi)`, or `isDeletedFor` vaut
+  `deletedForEveryone || deletedFor.contains(moi)` — **tout** message supprimé
+  pour tous, y compris un éphémère arrivé à échéance (que
+  `videeParExpiration` marque exactement ainsi), était retiré AVANT d'atteindre
+  la bulle. Le rendu de tombe de `message_bubble.dart` était donc du code
+  inatteignable. Le filtre vise maintenant `deletedFor` seul ; la bulle sait
+  déjà se taire pour un message supprimé pour moi seul.
 
-  **Ce qui est déjà éliminé — ne pas refaire ce chemin :**
-  - le widget de tombe existe et est correct (`message_bubble.dart` ~1612 :
-    `Icons.timer_off_outlined` + `l10n.messageAutoDeleted` quand
-    `isExpired`) — il n'est simplement jamais atteint ;
-  - l'aller-retour JSON du cache préserve `deletedForEveryone`
-    (`message_model.dart` 173 et 251) ;
-  - `MlsSourceMerger.fusionner` n'écarte rien — et **le séparateur affiché
-    prouve que la liste MLS n'est PAS vide** (il n'est inséré que si `mls`
-    a quelque chose) : l'entité est donc bien dans la liste et ne produit
-    aucune hauteur ;
-  - le verrou d'amorçage vide (`MlsGateway.amorcer`) : corrigé, c'était une
-    autre panne ;
-  - le curseur de rattrapage `.gt('created_at', …)` et un mélange UTC/local
-    dans `mlsDuCache` : **deux fausses pistes**, vérifiées et écartées
-    (`.toLocal()` ne change pas l'instant, `isBefore` compare des instants).
+  ⚠️ **Méthode** : quatre hypothèses ont été écartées avant celle-là (curseur
+  de rattrapage, mélange UTC/local, aller-retour JSON du cache, verrou
+  d'amorçage). Ce qui a tranché n'est aucune déduction mais une **sonde
+  temporaire** dans `_fusionnerAvecMls` journalisant le contenu réel de la
+  liste : elle a montré les entités présentes avec `deletedForEveryone=true`,
+  donc écartées plus bas. Poser la sonde plus tôt aurait économné des heures.
 
-  **Piste non explorée** : `message_bubble.dart:419` rend un
-  `SizedBox.shrink()` quand `isDeletedFor(moi) && !deletedForEveryone` —
-  vérifier ce que valent ces deux champs sur l'entité MLS effectivement
-  rendue (journal ou point d'arrêt), plutôt que de le déduire.
+  ⚠️ **Piège de recette** : antidater `expires_at` en SQL ne suffit pas à voir
+  le libellé « supprimé automatiquement ». Le client garde SA date (venue du
+  `ttl` du payload) : `isExpired` reste faux chez lui et la bulle dit
+  « Message supprimé ». Pour voir le bon libellé, poser un minuteur COURT et
+  laisser l'échéance passer des deux côtés.
 - [x] **⛔ Le fil chiffré disparaissait entièrement au démarrage — CORRIGÉ.**
   Trouvé en cherchant la pierre tombale : trois messages MLS **vivants** en
   base (ciphertext non vide, `is_deleted` faux), **aucun à l'écran** après
@@ -5904,6 +5950,86 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
+## ⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)
+
+**Priorité P1** · importance 4/5 — **Trouvé en regardant l'écran, pas le
+code.** Une bulle de « Mes notes » affichait un pouce levé alors que
+`mls_message_reactions` était **vide** en base. La réaction n'existait plus
+côté serveur, et l'écran la montrait quand même.
+
+La cause est la septième forme d'échec muet de ce dépôt. `MlsMetadonnees.pour`
+rendait un lot **vide** dans deux cas très différents : le serveur ne porte
+aucune métadonnée, et la lecture a échoué. L'appelant sortait sur le vide,
+donc sans recoller — et le recollage ne fait pas qu'ajouter, il **efface**
+aussi ce que le serveur ne porte plus. Le fil venant du cache de l'appareil,
+les réactions, étoiles et marques d'hier restaient figées.
+
+Conséquence : une réaction retirée restait affichée pour toujours, et une
+réaction dont l'écriture avait échoué **paraissait avoir pris**.
+
+Le lot porte maintenant un drapeau `lu`. On sort sur l'échec de lecture, plus
+sur le vide — une coupure réseau ne doit pas non plus effacer tout l'écran.
+
+Fichiers : [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
+(`illisible`), [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
+(`_avecMetadonnees`). Couvert hors appareil par
+[metadonnees_absence_vs_echec_test.dart](test/core/crypto/metadonnees_absence_vs_echec_test.dart)
+(4 cas).
+
+- [ ] **Réagir puis retirer la réaction** : le badge disparaît, et
+      `mls_message_reactions` ne porte plus la ligne. Rouvrir la discussion ne
+      la fait pas revenir.
+- [ ] **Étoiler puis retirer** : même chose côté `mls_message_stars`.
+- [ ] **Réagir hors ligne** : le badge ne doit pas rester figé comme un succès
+      une fois la connexion revenue sans que rien n'ait été écrit.
+- [ ] **Couper le réseau sur un fil qui porte des réactions** : elles restent
+      affichées, elles ne s'effacent pas d'un coup. C'est l'autre moitié du
+      correctif.
+
+---
+
+## ⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)
+
+**Priorité P0** · importance 5/5 — **Il suffisait de regarder une discussion
+pour l'engager.** Le chemin de lecture appelait `ensureGroup`, qui crée le
+groupe et pose `mls_since` — une marque définitive : le serveur refuse le
+clair ensuite, et rien ne revient en arrière.
+
+Mesuré, pas supposé. Les trois premières conversations basculées en
+production l'ont été **avant** leur premier message chiffré :
+
+| conversation | bascule | 1er message | écart |
+|---|---|---|---|
+| `805adcaa…` | 13:53:59 | 13:55:27 | 88 s |
+| `debef5f0…` | 15:28:05 | 15:30:11 | 126 s |
+| `d41d4ea0…` | 19:53:56 | 19:54:08 | 12 s |
+
+C'est l'ouverture qui les a gelées. Et ça explique la conversation de groupe
+basculée à 19:53 sans que personne n'ait décidé quoi que ce soit.
+
+La règle posée : **créer est une décision d'écriture, elle appartient à
+l'envoi**. La lecture peut *rejoindre* un groupe existant — c'est nécessaire
+pour déchiffrer ce qu'on nous envoie — mais sans groupe côté serveur elle
+rend la main, puisqu'il n'y a de toute façon aucun message MLS à lire.
+
+Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
+(`catchUp`). Couvert hors appareil par
+[lire_ne_bascule_pas_test.dart](test/core/crypto/lire_ne_bascule_pas_test.dart)
+(4 cas, dont la garde d'ordre).
+
+- [x] **Ouvrir une discussion jamais basculée, drapeau ouvert, sans rien
+      écrire** : vérifié le 2026-09-15 sur SM A515F, conversation
+      `97ac9997…` (7 messages en clair). Ouverte, laissée trois minutes,
+      `mls_since` est resté **nul** et le compteur de conversations basculées
+      n'a pas bougé. Que MLS était bien actif est prouvé par la suite : le
+      même écran a fait tomber la garde de bascule douze minutes plus tard.
+- [ ] **Puis envoyer** : la bascule a lieu à ce moment-là, pas avant.
+- [ ] **Recevoir dans une discussion déjà basculée par l'autre** : l'ouvrir
+      doit suffire à rejoindre le groupe et à déchiffrer.
+- [ ] **Parcourir la liste des discussions** : aucune ne bascule au passage.
+
+---
+
 ## ⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)
 
 **Priorité P0** · importance 5/5 — **Le défaut est mesuré, pas théorique.**
@@ -5937,10 +6063,13 @@ Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_
 [bascule_refusee_sans_appareil_test.dart](test/core/crypto/bascule_refusee_sans_appareil_test.dart)
 (6 cas, dont la garde d'ordre : la vérification doit précéder la création).
 
-- [ ] **Deux comptes, un seul à jour** : écrire au compte resté sur l'ancienne
-      version. Le message doit partir **en clair**, `mls_since` rester nul, et
-      une ligne `bascule_refusee_sans_appareil` apparaître dans
-      `mls_diagnostics`.
+- [x] **Deux comptes, un seul à jour** : vérifié le 2026-09-15 sur SM A515F.
+      Message envoyé à « Test Appareil », qui n'a aucun appareil MLS. Résultat
+      exact attendu : la ligne est allée dans `messages` (le clair, 8 → 9),
+      `mls_since` est resté **nul**, aucune ligne dans `mls_messages`, et
+      `mls_diagnostics` a reçu `bascule_refusee_sans_appareil` à 21:58:55 avec
+      `participants_sans_appareil: 1`. Le message n'est pas perdu, la
+      conversation n'est pas gelée, et le refus se voit.
 - [ ] **L'autre met à jour et ouvre l'app une fois** : il s'inscrit dans
       `mls_devices`, et le message suivant fait basculer la conversation, avec
       **deux** lignes dans `conversation_devices`.

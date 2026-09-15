@@ -2212,13 +2212,32 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     }
 
     final allMessages = paginationState.messages as List<MessageEntity>;
-    // Filter out deleted messages, messages from blocked users, and messages sent while blocked
+    // Masquer ce que J'AI supprimé pour moi seul — pas ce qui est supprimé
+    // pour tout le monde.
+    //
+    // Le filtre appelait `isDeletedFor`, qui vaut
+    // `deletedForEveryone || deletedFor.contains(moi)`. Tout message supprimé
+    // pour tous était donc retiré de la liste AVANT d'atteindre la bulle, et
+    // le rendu de pierre tombale de `message_bubble.dart` (icône + « Message
+    // supprimé » / « supprimé automatiquement ») était du code que rien ne
+    // pouvait atteindre. Le message ne laissait aucune trace : il
+    // disparaissait, ce qui fait soupçonner un bug plutôt qu'une suppression.
+    //
+    // Ça valait pour « supprimer pour tout le monde » comme pour un message
+    // ÉPHÉMÈRE arrivé à échéance — `videeParExpiration` pose précisément
+    // `deletedForEveryone`. Mesuré sur SM A515F le 2026-09-15 : entité bien
+    // présente dans le fil avec les bons drapeaux (vérifié en pur sur
+    // l'aller-retour complet du cache), et rien à l'écran.
+    //
+    // La bulle sait déjà se taire pour l'autre cas : `message_bubble.dart`
+    // rend un `SizedBox.shrink()` quand le message est supprimé pour moi
+    // seul. Les deux règles ne se marchent plus dessus.
     final messages =
         currentUserId != null
             ? allMessages
                 .where(
                   (m) =>
-                      !m.isDeletedFor(currentUserId) &&
+                      !m.deletedFor.contains(currentUserId) &&
                       !blockedUserIds.contains(m.senderId) &&
                       !m.sentWhileBlockedBy.contains(currentUserId),
                 )
