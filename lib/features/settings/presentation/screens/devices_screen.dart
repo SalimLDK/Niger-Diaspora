@@ -7,6 +7,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/e2ee/device_sync_service.dart';
 import '../../../../core/services/e2ee/models/e2ee_models.dart';
+import '../../../../core/crypto/mls/mls_code_securite.dart';
 import '../../../../core/crypto/mls/mls_device_registry.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
@@ -804,6 +805,7 @@ class _MlsRegistrySection extends ConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: _MlsDeviceTile(
+                          userId: userId,
                           appareil: appareil,
                           onRevoke: appareil.estCetAppareil || appareil.estRevoque
                               ? null
@@ -861,9 +863,14 @@ class _MlsRegistrySection extends ConsumerWidget {
 
 class _MlsDeviceTile extends StatelessWidget {
   final MlsDeviceRecord appareil;
+  final String userId;
   final VoidCallback? onRevoke;
 
-  const _MlsDeviceTile({required this.appareil, required this.onRevoke});
+  const _MlsDeviceTile({
+    required this.appareil,
+    required this.userId,
+    required this.onRevoke,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -933,6 +940,10 @@ class _MlsDeviceTile extends StatelessWidget {
                   appareil.estRevoque ? l10n.mlsDeviceRevokedLabel : vuTexte,
                   style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
                 ),
+                if (!appareil.estRevoque) ...[
+                  const SizedBox(height: 8),
+                  _CodeSecurite(appareil: appareil, userId: userId),
+                ],
               ],
             ),
           ),
@@ -943,6 +954,93 @@ class _MlsDeviceTile extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+
+/// Le code de sécurité d'un appareil (plan MLS, phase 7).
+///
+/// Affiché sous chaque ligne du registre pour qu'il soit **comparable de vive
+/// voix** — c'est le canal hors bande le plus simple, et il ne dépend
+/// d'aucune caméra. Le QR (`MlsCodeSecurite.chargeQr`) est une commodité
+/// pour plus tard, pas le mécanisme.
+///
+/// Sans clé publiée, on affiche « code indisponible » plutôt qu'un code :
+/// deux appareils sans clé en auraient le même, et deux personnes
+/// concluraient qu'elles sont vérifiées alors que rien ne l'a été.
+class _CodeSecurite extends StatelessWidget {
+  const _CodeSecurite({required this.appareil, required this.userId});
+
+  final MlsDeviceRecord appareil;
+  final String userId;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    if (!MlsCodeSecurite.estCalculable(appareil.signatureKey)) {
+      return Text(
+        l10n.mlsSecurityCodeUnavailable,
+        style: TextStyle(fontSize: 11, color: context.textTertiaryColor),
+      );
+    }
+
+    final empreinte = MlsCodeSecurite.empreinteAppareil(
+      mlsIdentity: appareil.mlsIdentity,
+      signatureKey: appareil.signatureKey,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.mlsSecurityCodeLabel,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.4,
+            color: context.textTertiaryColor,
+          ),
+        ),
+        const SizedBox(height: 2),
+        SelectableText(
+          MlsCodeSecurite.formater(empreinte),
+          style: TextStyle(
+            fontSize: 12,
+            fontFamily: 'monospace',
+            height: 1.5,
+            color: context.textSecondaryColor,
+          ),
+        ),
+        FutureBuilder<EtatVerification>(
+          future: MlsVerifications(userId: userId)
+              .etat(appareil.mlsIdentity, empreinte),
+          builder: (context, snap) {
+            // Tant qu'on ne sait pas, on ne dit rien : « je ne sais pas »
+            // ne doit pas se lire comme une alerte.
+            if (snap.data != EtatVerification.changee) {
+              return const SizedBox.shrink();
+            }
+            return Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.warning_amber_rounded,
+                      size: 14, color: context.errorColor),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      l10n.mlsSecurityCodeChanged,
+                      style: TextStyle(fontSize: 11, color: context.errorColor),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }
