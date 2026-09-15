@@ -12193,6 +12193,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mlsSecurityCodeLabel => 'Security code';
 
   @override
+  String get majObligatoireTitre => 'Update required';
+
+  @override
+  String get majObligatoireTexte =>
+      'This version of the app is no longer supported. Install the latest version to continue — your messages and keys stay on this device.';
+
+  @override
+  String get majObligatoireAction => 'Update';
+
+  @override
   String get mlsSecurityCodeShowQr => 'Show as QR';
 
   @override

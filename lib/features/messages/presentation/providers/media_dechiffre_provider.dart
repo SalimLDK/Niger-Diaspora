@@ -47,6 +47,23 @@ final mlsMessagesActifsProvider = Provider<bool>((ref) {
   return uid != null && uid.isNotEmpty && comptes.contains(uid);
 });
 
+/// Ce compte peut-il tenir **plusieurs sessions à la fois** (plan MLS,
+/// phase 7) ?
+///
+/// Par compte, jamais globalement : lever « une seule session » change une
+/// posture de sécurité pour tout le monde, et cette règle protège peut-être
+/// contre le partage de comptes. Une liste permet de l'ouvrir aux comptes de
+/// test — qui sont justement ceux dont on a besoin pour éprouver le
+/// multi-appareil.
+///
+/// Vide = comportement d'avant, pour tout le monde.
+final multiAppareilAutoriseProvider = Provider<bool>((ref) {
+  final comptes = ref.watch(featureFlagsProvider).multiAppareilComptes;
+  if (comptes.isEmpty) return false;
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  return uid != null && uid.isNotEmpty && comptes.contains(uid);
+});
+
 /// Clé d'une demande de déchiffrement : l'id du message suffit à identifier
 /// le fichier, les métadonnées servent à le produire la première fois.
 class DemandeMediaDechiffre extends Equatable {

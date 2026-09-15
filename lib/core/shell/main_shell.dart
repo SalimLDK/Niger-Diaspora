@@ -12,6 +12,8 @@ import '../../features/podcasts/presentation/widgets/podcast_mini_player.dart';
 import '../../l10n/app_localizations.dart';
 import '../../shared/widgets/bottom_navigation.dart';
 import '../../shared/widgets/tablet_navigation_rail.dart';
+import 'ecran_mise_a_jour_requise.dart';
+import '../services/version_minimale.dart';
 import '../services/app_review_service.dart';
 import '../services/e2ee/e2ee_backup_coordinator.dart';
 import '../services/mise_a_jour_service.dart';
@@ -56,6 +58,10 @@ class _MainShellState extends ConsumerState<MainShell> {
       // La vérification de version, elle, n'a personne pour la déclencher :
       // elle n'est accrochée ni à la connexion ni à une navigation.
       unawaited(ref.read(coordinateurMiseAJourProvider.notifier).verifie());
+      // Le verrou de version, lui, décide s'il faut REFUSER de continuer. Il
+      // est inerte tant que `VERSION_MINIMALE_APP` n'est pas servie, et
+      // refuse de bloquer dans quatre cas (cf. `miseAJourObligatoire`).
+      unawaited(ref.read(versionTropAncienneProvider.notifier).verifie());
     });
   }
 
@@ -83,6 +89,13 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    // Avant tout le reste : une version trop ancienne ne doit pas pouvoir
+    // écrire. C'est ce qui rend le gel de `messages` tenable — un bandeau
+    // qu'on ignore ne suffisait pas.
+    if (ref.watch(versionTropAncienneProvider)) {
+      return const EcranMiseAJourRequise();
+    }
+
     // Watch total unread count for messages
     final unreadMessagesCount = ref.watch(totalUnreadCountProvider);
 

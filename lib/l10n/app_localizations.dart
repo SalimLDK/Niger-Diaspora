@@ -22706,6 +22706,24 @@ abstract class AppLocalizations {
   /// **'Code de sécurité'**
   String get mlsSecurityCodeLabel;
 
+  /// No description provided for @majObligatoireTitre.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mise à jour requise'**
+  String get majObligatoireTitre;
+
+  /// No description provided for @majObligatoireTexte.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette version de l\'application n\'est plus prise en charge. Installez la dernière version pour continuer — vos messages et vos clés restent sur cet appareil.'**
+  String get majObligatoireTexte;
+
+  /// No description provided for @majObligatoireAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mettre à jour'**
+  String get majObligatoireAction;
+
   /// No description provided for @mlsSecurityCodeShowQr.
   ///
   /// In fr, this message translates to:

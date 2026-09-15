@@ -612,6 +612,11 @@ class FeatureFlagsEntity extends Equatable {
   /// de revenir.
   final List<String> mlsMessagesComptes;
 
+  /// Comptes autorisés à tenir **plusieurs sessions à la fois** (plan MLS,
+  /// phase 7). Vide = la règle d'une seule session par compte s'applique à
+  /// tout le monde, comme avant.
+  final List<String> multiAppareilComptes;
+
   final bool maintenanceMode;
   final String? maintenanceMessage;
 
@@ -628,6 +633,7 @@ class FeatureFlagsEntity extends Equatable {
     this.mediasChiffres = false,
     this.mlsMessages = false,
     this.mlsMessagesComptes = const [],
+    this.multiAppareilComptes = const [],
     this.maintenanceMode = false,
     this.maintenanceMessage,
   });
@@ -650,6 +656,7 @@ class FeatureFlagsEntity extends Equatable {
     bool? mediasChiffres,
     bool? mlsMessages,
     List<String>? mlsMessagesComptes,
+    List<String>? multiAppareilComptes,
     bool? maintenanceMode,
     Object? maintenanceMessage = _unset,
   }) {
@@ -666,6 +673,7 @@ class FeatureFlagsEntity extends Equatable {
       mediasChiffres: mediasChiffres ?? this.mediasChiffres,
       mlsMessages: mlsMessages ?? this.mlsMessages,
       mlsMessagesComptes: mlsMessagesComptes ?? this.mlsMessagesComptes,
+      multiAppareilComptes: multiAppareilComptes ?? this.multiAppareilComptes,
       maintenanceMode: maintenanceMode ?? this.maintenanceMode,
       maintenanceMessage: identical(maintenanceMessage, _unset)
           ? this.maintenanceMessage
@@ -687,6 +695,7 @@ class FeatureFlagsEntity extends Equatable {
     mediasChiffres,
     mlsMessages,
     mlsMessagesComptes,
+    multiAppareilComptes,
     maintenanceMode,
     maintenanceMessage,
   ];
