@@ -34,6 +34,9 @@ import '../widgets/audio_file_bubble.dart';
 import 'audio_message_bubble.dart';
 import '../widgets/blurhash_image.dart';
 import '../widgets/data_saver_gate.dart';
+import '../widgets/media_chiffre_gate.dart';
+import '../utils/image_locale_ou_reseau.dart';
+import '../providers/media_dechiffre_provider.dart';
 import '../widgets/call_message_bubble.dart';
 import '../widgets/undecryptable_message_bubble.dart';
 import '../widgets/delete_message_modal.dart';
@@ -1887,13 +1890,15 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
     switch (widget.message.type) {
       case MessageType.image:
-        return DataSaverGate(
+        return MediaChiffreGate(
+          message: widget.message,
+          builder: (context, m) => DataSaverGate(
           messageId: widget.message.id,
           isMe: widget.isMe,
           blurhash: widget.message.blurhash,
           fileSize: widget.message.fileSize,
           builder: (context) => OptimizedImageBubble(
-          imageUrl: widget.message.fileUrl ?? '',
+          imageUrl: m.fileUrl ?? '',
           caption:
               widget.message.content == widget.message.fileName ||
                       widget.message.content == widget.message.fileUrl ||
@@ -1908,27 +1913,32 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onTap:
               () => FullScreenImageViewer.show(
                 context,
-                imageUrl: widget.message.fileUrl!,
+                imageUrl: m.fileUrl!,
                 heroTag: 'message_image_${widget.message.id}',
                 senderName: widget.message.senderName,
                 sentAt: widget.message.createdAt,
                 messageId: widget.message.id,
               ),
-          onSave: () => _saveImageToGallery(widget.message.fileUrl!),
+          onSave: () => _saveImageToGallery(m.fileUrl!),
           onShare: () => _shareMessage(),
           // Appui long = menu complet (permet d'épingler une photo, etc.).
           onLongPress: _onLongPress,
           ),
+          ),
         );
 
       case MessageType.file:
-        return DocumentBubble(
-          fileUrl: widget.message.fileUrl ?? '',
-          fileName: widget.message.fileName ?? l10n.fileLabel,
-          fileSize: widget.message.fileSize,
-          isMe: widget.isMe,
-          onTap: () => _openFile(widget.message.fileUrl),
-          onShare: () => _shareMessage(),
+        return MediaChiffreGate(
+          message: widget.message,
+          aspectRatio: 4,
+          builder: (context, m) => DocumentBubble(
+            fileUrl: m.fileUrl ?? '',
+            fileName: m.fileName ?? l10n.fileLabel,
+            fileSize: m.fileSize,
+            isMe: widget.isMe,
+            onTap: () => _openFile(m.fileUrl),
+            onShare: () => _shareMessage(),
+          ),
         );
 
       case MessageType.video: {
@@ -1979,10 +1989,19 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       }
 
       case MessageType.audio:
-        return AudioFileBubble(message: widget.message, isMe: widget.isMe);
+        return MediaChiffreGate(
+          message: widget.message,
+          aspectRatio: 4,
+          builder: (context, m) => AudioFileBubble(message: m, isMe: widget.isMe),
+        );
 
       case MessageType.voiceNote:
-        return AudioMessageBubble(message: widget.message, isMe: widget.isMe);
+        return MediaChiffreGate(
+          message: widget.message,
+          aspectRatio: 4,
+          builder: (context, m) =>
+              AudioMessageBubble(message: m, isMe: widget.isMe),
+        );
 
       case MessageType.text:
         return _buildTextContent(context);
@@ -2773,10 +2792,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       final granted = await service.requestGalleryPermission();
       if (!granted) return;
     }
-    final success = await service.downloadImageToGallery(
-      imageUrl,
-      messageId: widget.message.id,
-    );
+    final success = estUrlLocale(imageUrl)
+        ? await enregistrerImageLocaleDansGalerie(cheminDepuisUrlLocale(imageUrl))
+        : await service.downloadImageToGallery(
+          imageUrl,
+          messageId: widget.message.id,
+        );
     if (mounted) {
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2812,6 +2833,14 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
   Future<void> _openFile(String? url) async {
     if (url == null) return;
+    // Document déchiffré : pas d'URL à ouvrir dans un navigateur, on passe
+    // par la feuille de partage du système, qui sait « ouvrir avec ».
+    if (estUrlLocale(url)) {
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(cheminDepuisUrlLocale(url))]),
+      );
+      return;
+    }
     // Add https:// if no protocol is specified
     String normalizedUrl = url;
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -2831,6 +2860,25 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     try {
       if (message.type == MessageType.text) {
         await SharePlus.instance.share(ShareParams(text: message.content));
+        return;
+      }
+
+      // Média chiffré : partager le fichier déjà déchiffré (cache), jamais
+      // le blob que `fileUrl` désigne.
+      final mediaChiffre = message.mediaChiffre;
+      if (mediaChiffre != null) {
+        final chemin = await ref.read(
+          mediaDechiffreProvider(
+            DemandeMediaDechiffre(message.id, mediaChiffre),
+          ).future,
+        );
+        final legende =
+            message.content.isNotEmpty && message.content != message.fileName
+                ? message.content
+                : '';
+        await SharePlus.instance.share(
+          ShareParams(files: [XFile(chemin)], text: legende),
+        );
         return;
       }
 

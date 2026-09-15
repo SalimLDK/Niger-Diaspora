@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1052 cases à cocher, 561 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
+**1064 cases à cocher, 561 cochées** — 213 entrées sur 257 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -69,7 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (67)
+**P1 — fonction importante, jamais vérifiée** (68)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -77,6 +77,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
 - 5 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
@@ -270,7 +271,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 183 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 195 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 115 à faire, 62 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 55 à faire, 23 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -529,6 +530,65 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)
+
+**Priorité P1** · importance 4/5 — Première tranche du chiffrement des
+médias de messagerie (plan MLS, décision C4) : quand le drapeau
+administrateur `featureFlags.mediasChiffres` est ouvert, une photo, un
+document, un fichier audio ou une note vocale part chiffré (AES-256-GCM,
+clé propre au fichier) vers `encrypted_media/…` de Firebase Storage, et sa
+clé voyage dans `messages.data.encMedia`, scellée avec la clé dérivée de la
+conversation. Le serveur ne voit qu'un blob et un nom générique (« photo »,
+« document », « note-vocale »). **La vidéo n'est pas concernée** (elle attend
+un déchiffrement par morceaux). Rien de tout ça n'a tourné sur un appareil :
+le drapeau est fermé par défaut, et **doit le rester tant que la mise à jour
+minimale n'est pas imposée** — un ancien build affiche une image cassée.
+
+Fichiers : [media_dechiffre_cache.dart](lib/core/services/e2ee/media_dechiffre_cache.dart)
+(téléchargement + déchiffrement une seule fois, cache dans le répertoire de
+support), [media_chiffre_gate.dart](lib/features/messages/presentation/widgets/media_chiffre_gate.dart)
+(barrière qui passe aux bulles un `file://` déjà déchiffré),
+[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`_envoyerMediaChiffre`), [message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart)
+(`_scellerMedia`, `_fusionnerMedia`).
+
+Protocole : deux téléphones sur le même build, drapeau ouvert dans le
+document `admin_settings` de Firestore (`featureFlags.mediasChiffres: true`),
+puis remis à `false` à la fin.
+
+- [ ] **Photo** : envoyée depuis A, elle s'affiche chez B (gabarit flou puis
+  image), et chez A dans sa propre bulle **sans rechargement**. En base,
+  `data->>'fileName'` vaut `photo`, `data ? 'encMedia'` est vrai, et
+  `data->>'fileUrl'` téléchargé à la main donne un fichier illisible.
+- [ ] **Réouverture** de la discussion : la photo revient depuis le cache
+  local, sans nouveau téléchargement (couper le réseau avant de rouvrir).
+- [ ] **Accusé de lecture** : après que B a lu, la bulle de A montre toujours
+  la photo (le flux de mises à jour ne doit pas l'effacer).
+- [ ] **Plein écran, enregistrer, partager** depuis la bulle de B : l'image
+  s'ouvre, s'enregistre dans la galerie (album « Diaspo Niger »), se partage
+  en fichier — pas en lien.
+- [ ] **Galerie de la conversation** (grille et bandeau compact) : la photo
+  chiffrée y figure et s'ouvre en plein écran.
+- [ ] **Document PDF** : le tap ouvre la feuille de partage du système (pas
+  de navigateur) ; « ouvrir avec » un lecteur PDF affiche le document.
+- [ ] **Note vocale** et **fichier audio** : lecture, pause, vitesse, forme
+  d'onde — identiques à un envoi en clair.
+- [ ] **Mode données réduites** : la barrière de déchiffrement se lève après
+  la barrière « télécharger », pas avant (aucun téléchargement sans tap).
+- [ ] **Clé de conversation indisponible** (couper le réseau juste avant
+  d'envoyer une photo avec le cache de clés vidé) : l'envoi **échoue
+  visiblement** — « Clé de conversation indisponible : média non envoyé » —
+  au lieu de partir en clair.
+- [ ] **Supprimer pour tous** une photo chiffrée : la bulle disparaît chez B,
+  `encMedia` n'est plus en base.
+- [ ] **Ancien build** (APK précédent) qui reçoit une photo chiffrée : image
+  cassée, sans plantage. C'est attendu, et c'est pourquoi le drapeau attend la
+  mise à jour minimale.
+- [ ] **Thème sombre** : gabarit d'attente et état d'erreur de la barrière
+  lisibles.
 
 ---
 

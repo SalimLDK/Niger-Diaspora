@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
@@ -6,7 +5,9 @@ import 'package:shimmer/shimmer.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/media_gallery_provider.dart';
+import '../utils/image_locale_ou_reseau.dart';
 import 'full_screen_image_viewer.dart';
+import 'media_chiffre_gate.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Widget to display a grid of media (images) from a conversation
@@ -119,11 +120,11 @@ class MediaGalleryGrid extends ConsumerWidget {
             message: image,
             showOverlay: isLastItem,
             overlayCount: (images.length - maxItems + 1).clamp(0, 999),
-            onTap: () {
+            onTap: (resolu) {
               if (isLastItem) {
                 onViewAll?.call();
               } else {
-                _openImage(context, image);
+                _openImage(context, resolu);
               }
             },
           );
@@ -149,7 +150,10 @@ class _MediaGridItem extends StatelessWidget {
   final MessageEntity message;
   final bool showOverlay;
   final int overlayCount;
-  final VoidCallback onTap;
+
+  /// Reçoit le message **résolu** : pour un média chiffré, `fileUrl` y
+  /// désigne déjà le fichier déchiffré, prêt pour le plein écran.
+  final void Function(MessageEntity resolu) onTap;
 
   const _MediaGridItem({
     required this.message,
@@ -160,8 +164,11 @@ class _MediaGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+    return MediaChiffreGate(
+      message: message,
+      aspectRatio: 1,
+      builder: (context, m) => GestureDetector(
+      onTap: () => onTap(m),
       child: Hero(
         tag: 'gallery_${message.id}',
         child: ClipRRect(
@@ -169,8 +176,8 @@ class _MediaGridItem extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              CachedNetworkImage(
-                imageUrl: message.fileUrl ?? '',
+              ImageLocaleOuReseau(
+                url: m.fileUrl ?? '',
                 fit: BoxFit.cover,
                 memCacheWidth: 300,
                 placeholder:
@@ -209,6 +216,7 @@ class _MediaGridItem extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -403,8 +411,11 @@ class MediaGalleryCompact extends ConsumerWidget {
                 }
 
                 final image = images[index];
-                return GestureDetector(
-                  onTap: () => _openImage(context, image),
+                return MediaChiffreGate(
+                  message: image,
+                  aspectRatio: 1,
+                  builder: (context, m) => GestureDetector(
+                  onTap: () => _openImage(context, m),
                   child: Hero(
                     tag: 'compact_${image.id}',
                     child: Container(
@@ -422,8 +433,8 @@ class MediaGalleryCompact extends ConsumerWidget {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: CachedNetworkImage(
-                          imageUrl: image.fileUrl ?? '',
+                        child: ImageLocaleOuReseau(
+                          url: m.fileUrl ?? '',
                           width: 90,
                           height: 90,
                           fit: BoxFit.cover,
@@ -458,6 +469,7 @@ class MediaGalleryCompact extends ConsumerWidget {
                         ),
                       ),
                     ),
+                  ),
                   ),
                 );
               },
