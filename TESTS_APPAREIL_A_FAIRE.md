@@ -39,17 +39,18 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1134 cases à cocher, 581 cochées** — 227 entrées sur 273 ont encore des cases ouvertes.
+**1139 cases à cocher, 581 cochées** — 228 entrées sur 274 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (25)
+**P0 — avant toute nouvelle version** (26)
 
 - 5 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 5 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -287,7 +288,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 220 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 82 à faire, 31 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 87 à faire, 31 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5692,6 +5693,45 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 - [ ] **Sélection et copie** du code fonctionnent (comparer par message écrit
   est le second canal le plus courant).
 - [ ] **Thème sombre** : le code et l'avertissement restent lisibles.
+
+---
+
+## ⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)
+
+**Priorité P0** · importance 5/5 — Le drapeau `featureFlags.mlsMessages` est
+global, et l'ouvrir fait **basculer sans retour** : `conversations.mls_since`
+ne se remet jamais à NULL, et le legacy refuse ensuite d'y écrire. Vérifier
+MLS sur un téléphone demandait donc de basculer la production entière.
+Vérifier ne doit pas être un point de non-retour.
+
+`featureFlags.mlsMessagesComptes` est une liste d'uid Firebase pour qui MLS
+est actif, le drapeau global restant fermé. La lecture est **tolérante et
+fermée par défaut** : clé absente, valeur nulle ou mal typée valent liste
+vide, donc personne. Le test a d'ailleurs trouvé avant livraison qu'un `as
+List?` sur une chaîne **levait**, ce qui aurait emporté la lecture de tous
+les drapeaux.
+
+⚠️ **Retirer un compte de la liste ne débascule pas ses conversations.** La
+liste décide de basculer, pas de revenir. Un compte qu'on y met est engagé.
+
+Fichiers : [media_dechiffre_provider.dart](lib/features/messages/presentation/providers/media_dechiffre_provider.dart)
+(`mlsMessagesActifsProvider`),
+[app_settings_entity.dart](lib/features/admin/domain/entities/app_settings_entity.dart),
+[app_settings_model.dart](lib/features/admin/data/models/app_settings_model.dart).
+Couvert hors appareil par
+[drapeau_mls_par_compte_test.dart](test/features/messages/drapeau_mls_par_compte_test.dart)
+(8 cas).
+
+- [ ] **Compte non listé** : rien ne change, les messages partent par le
+      chemin d'aujourd'hui. À vérifier AVANT d'ouvrir pour qui que ce soit.
+- [ ] **Compte listé, première conversation** : `conversations.mls_since` se
+      pose, une ligne apparaît dans `mls_messages`, et le fil reste lisible.
+- [ ] **L'autre bout n'est pas listé** : c'est le cas qui décide. Vérifier ce
+      que voit le destinataire, et que rien ne se perd en silence.
+- [ ] **Prise d'effet sans relancer l'app** : le drapeau est lu à chaque
+      appel, pas au démarrage.
+- [ ] **Écran d'administration** : la liste n'y est pas éditable. Juger s'il
+      faut l'y mettre ou la laisser en écriture directe.
 
 ---
 

@@ -742,6 +742,7 @@ class FeatureFlagsModel {
   final bool feed;
   final bool mediasChiffres;
   final bool mlsMessages;
+  final List<String> mlsMessagesComptes;
 
   final bool maintenanceMode;
   final String? maintenanceMessage;
@@ -758,6 +759,7 @@ class FeatureFlagsModel {
     this.feed = true,
     this.mediasChiffres = false,
     this.mlsMessages = false,
+    this.mlsMessagesComptes = const [],
     this.maintenanceMode = false,
     this.maintenanceMessage,
   });
@@ -777,6 +779,20 @@ class FeatureFlagsModel {
         feed: json['feed'] as bool? ?? true,
         mediasChiffres: json['mediasChiffres'] as bool? ?? false,
         mlsMessages: json['mlsMessages'] as bool? ?? false,
+        // Liste d'uid, tolérante : une valeur absente, nulle ou mal typée vaut
+        // liste vide, donc personne. Un interrupteur de sécurité ne doit
+        // jamais s'ouvrir sur une donnée qu'on n'a pas su lire — ce dépôt a
+        // déjà payé ce motif avec les endpoints dont la vérification sautait
+        // quand le secret manquait.
+        //
+        // `is List` et non `as List?` : sur une chaîne tapée à la main dans la
+        // console, le cast **lève**, et l'exception emporterait la lecture de
+        // TOUS les drapeaux. Trouvé par le test avant la livraison.
+        mlsMessagesComptes: json['mlsMessagesComptes'] is List
+            ? (json['mlsMessagesComptes'] as List)
+                .whereType<String>()
+                .toList()
+            : const [],
         maintenanceMode: json['maintenanceMode'] as bool? ?? false,
         maintenanceMessage: json['maintenanceMessage'] as String?,
       );
@@ -793,6 +809,7 @@ class FeatureFlagsModel {
     'feed': feed,
     'mediasChiffres': mediasChiffres,
     'mlsMessages': mlsMessages,
+    'mlsMessagesComptes': mlsMessagesComptes,
     'maintenanceMode': maintenanceMode,
     'maintenanceMessage': maintenanceMessage,
   };
@@ -809,6 +826,7 @@ class FeatureFlagsModel {
     feed: feed,
     mediasChiffres: mediasChiffres,
     mlsMessages: mlsMessages,
+    mlsMessagesComptes: mlsMessagesComptes,
     maintenanceMode: maintenanceMode,
     maintenanceMessage: maintenanceMessage,
   );
@@ -826,6 +844,7 @@ class FeatureFlagsModel {
         feed: entity.feed,
         mediasChiffres: entity.mediasChiffres,
         mlsMessages: entity.mlsMessages,
+        mlsMessagesComptes: entity.mlsMessagesComptes,
         maintenanceMode: entity.maintenanceMode,
         maintenanceMessage: entity.maintenanceMessage,
       );

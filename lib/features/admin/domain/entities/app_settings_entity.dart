@@ -596,6 +596,22 @@ class FeatureFlagsEntity extends Equatable {
   /// remet jamais à NULL, et le legacy refuse ensuite d'y écrire.
   final bool mlsMessages;
 
+  /// Comptes pour lesquels MLS est actif **même si [mlsMessages] est fermé**.
+  ///
+  /// Sans cette liste, essayer MLS sur un seul téléphone demandait d'ouvrir le
+  /// drapeau global, donc de basculer **tous** les comptes, sans retour
+  /// possible : une vérification devenait un point de non-retour pour la
+  /// production entière. Ici, on ouvre pour un compte de test, et rien d'autre
+  /// ne bouge.
+  ///
+  /// L'identifiant attendu est l'uid Firebase, celui que porte déjà
+  /// `mls_devices.user_id`.
+  ///
+  /// ⚠️ Retirer un compte de la liste ne **débascule** pas ses conversations :
+  /// `conversations.mls_since` est définitif. La liste décide de basculer, pas
+  /// de revenir.
+  final List<String> mlsMessagesComptes;
+
   final bool maintenanceMode;
   final String? maintenanceMessage;
 
@@ -611,6 +627,7 @@ class FeatureFlagsEntity extends Equatable {
     this.feed = true,
     this.mediasChiffres = false,
     this.mlsMessages = false,
+    this.mlsMessagesComptes = const [],
     this.maintenanceMode = false,
     this.maintenanceMessage,
   });
@@ -632,6 +649,7 @@ class FeatureFlagsEntity extends Equatable {
     bool? feed,
     bool? mediasChiffres,
     bool? mlsMessages,
+    List<String>? mlsMessagesComptes,
     bool? maintenanceMode,
     Object? maintenanceMessage = _unset,
   }) {
@@ -647,6 +665,7 @@ class FeatureFlagsEntity extends Equatable {
       feed: feed ?? this.feed,
       mediasChiffres: mediasChiffres ?? this.mediasChiffres,
       mlsMessages: mlsMessages ?? this.mlsMessages,
+      mlsMessagesComptes: mlsMessagesComptes ?? this.mlsMessagesComptes,
       maintenanceMode: maintenanceMode ?? this.maintenanceMode,
       maintenanceMessage: identical(maintenanceMessage, _unset)
           ? this.maintenanceMessage
@@ -667,6 +686,7 @@ class FeatureFlagsEntity extends Equatable {
     feed,
     mediasChiffres,
     mlsMessages,
+    mlsMessagesComptes,
     maintenanceMode,
     maintenanceMessage,
   ];
