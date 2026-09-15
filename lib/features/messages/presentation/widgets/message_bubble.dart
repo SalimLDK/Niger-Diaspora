@@ -773,7 +773,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                                               _buildReplyPreview(context),
 
                                             // Message content
-                                            widget.message.deletedForEveryone
+                                            _bulleVidee
                                                 ? _buildDeletedContent(context)
                                                 : _buildContent(context),
                                           ],
@@ -1595,15 +1595,31 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     }
   }
 
+  /// Une bulle vidée de son contenu : supprimée pour tout le monde, ou
+  /// arrivée à l'échéance de son minuteur.
+  ///
+  /// L'échéance compte **dès qu'elle est passée**, sans attendre la pierre
+  /// tombale du serveur : le balayage ne tourne qu'au quart d'heure, et un
+  /// appareil hors ligne ne le verra pas passer du tout. Le contenu doit
+  /// quitter l'écran à l'heure dite, pas à l'heure où le serveur s'en
+  /// aperçoit.
+  bool get _bulleVidee =>
+      widget.message.deletedForEveryone || widget.message.isExpired;
+
   Widget _buildDeletedContent(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    // « Supprimé » et « expiré » ne disent pas la même chose : l'un désigne
+    // quelqu'un qui a agi, l'autre un minuteur que les deux côtés ont accepté.
+    // Les confondre ferait soupçonner son interlocuteur d'un effacement qu'il
+    // n'a pas fait.
+    final expire = widget.message.isExpired;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.block,
+            expire ? Icons.timer_off_outlined : Icons.block,
             size: 16,
             color:
                 widget.isMe
@@ -1612,7 +1628,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           ),
           const SizedBox(width: 8),
           Text(
-            l10n.messageDeleted,
+            expire ? l10n.messageAutoDeleted : l10n.messageDeleted,
             style: TextStyle(
               fontSize: 14,
               fontStyle: FontStyle.italic,

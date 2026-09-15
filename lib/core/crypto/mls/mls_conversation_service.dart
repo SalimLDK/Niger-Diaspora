@@ -310,6 +310,7 @@ class MlsConversationService {
     MlsPayload payload, {
     String kind = 'content',
     String contentType = 'text',
+    DateTime? expiresAt,
   }) async {
     await catchUp(conversationId);
     final moteur = await _moteur();
@@ -344,6 +345,7 @@ class MlsConversationService {
       contentType: contentType,
       ciphertext: ciphertext,
       createdAt: DateTime.now().toUtc(),
+      expiresAt: expiresAt,
     );
     await _delivery.publishMessage(row);
     _vus.add(id);
@@ -383,6 +385,14 @@ class MlsConversationService {
       }
       _vus.add(m.id);
       _curseur[conversationId] = m.createdAt;
+      if (m.isDeleted) {
+        // Pierre tombale — message expiré, ou supprimé pour tout le monde.
+        // Son `ciphertext` a été vidé par la purge : le déchiffrer échouerait
+        // à coup sûr et écrirait un `decrypt_failed` de plus à chaque
+        // rattrapage, pour un message dont l'affichage est déjà décidé.
+        resultats.add(MlsIncoming(m, erreur: 'tombstone'));
+        continue;
+      }
       if (m.senderDeviceId == appareil.id) {
         // Mon propre message : son clair est dans le cache local, et le
         // cliquet ne sait pas relire ce qu'il a émis.

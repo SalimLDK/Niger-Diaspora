@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1135 cases à cocher, 585 cochées** — 228 entrées sur 274 ont encore des cases ouvertes.
+**1150 cases à cocher, 585 cochées** — 229 entrées sur 275 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -72,7 +72,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (74)
+**P1 — fonction importante, jamais vérifiée** (75)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -82,6 +82,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 15 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 20 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
@@ -286,7 +287,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 218 à faire, 79 faites
+- [2. Messagerie](#2-messagerie) — 233 à faire, 79 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 85 à faire, 33 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -545,6 +546,88 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)
+
+**Priorité P1** · importance 4/5 — La fonction était **morte en silence** sur
+le chemin de production : l'écran de réglage écrivait bien
+`conversations.data->>'autoDeleteAfterSeconds'`, mais `MessageSupabaseDataSource`
+— le seul datasource branché — ne le lisait jamais à l'envoi et ne posait
+jamais `expiresAt` ; aucun balayage serveur n'existait ; et `mls_messages.
+expires_at` attendait sans écrivain. Activer le minuteur n'avait aucun effet
+observable, et rien ne le disait. Réparé des deux côtés, avec une purge
+`pg_cron` qui pose une **pierre tombale** (contenu vidé, `is_deleted`) au lieu
+de supprimer la ligne. Mesuré avant livraison : 0 conversation sur 19 avait un
+minuteur, 0 message sur 118 une échéance — rien d'existant ne pouvait donc
+disparaître rétroactivement.
+
+Fichiers : [message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart)
+(`_insererMessageUtilisateur`, seul point d'insertion des messages utilisateur),
+[mls_payload_codec.dart](lib/core/crypto/mls/mls_payload_codec.dart) (`ttl`),
+[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (lecture du minuteur),
+[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)
+(bulle « Message expiré »),
+[20260915234500_purge_messages_ephemeres.sql](supabase/migrations/20260915234500_purge_messages_ephemeres.sql).
+
+Protocole : deux téléphones. Les durées proposées sont 24 h / 7 j / 30 j —
+trop longues pour une session. Pour éprouver l'expiration elle-même,
+antidater l'échéance à la main puis déclencher le balayage :
+
+```sql
+UPDATE messages SET data = jsonb_set(data, '{expiresAt}',
+  to_jsonb(to_char(now() - interval '1 min' AT TIME ZONE 'UTC',
+                   'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
+ WHERE id = '<id du message>';
+SELECT public.purger_messages_expires();
+```
+
+- [ ] **Pose de l'échéance** : minuteur à 24 h dans une discussion, envoyer un
+  texte. En base, `data->>'expiresAt'` vaut `created_at` + 24 h.
+- [ ] **Tous les types** : photo, note vocale, position, sondage, sticker
+  portent aussi `expiresAt`. Un message **système** (« X a rejoint ») n'en
+  porte pas — il décrit la conversation, pas son contenu.
+- [ ] **Minuteur coupé** : remettre sur « Désactivé », le message suivant n'a
+  plus de clé `expiresAt` du tout.
+- [ ] **Minuteur changé en cours de route** : passer de 24 h à 7 j, le message
+  suivant prend la nouvelle durée sans redémarrer l'application (le réglage
+  est relu à chaque envoi, jamais mémorisé).
+- [ ] **Messages déjà envoyés** : changer le minuteur ne touche pas les
+  échéances des messages précédents.
+- [ ] **Expiration côté expéditeur** : après la recette SQL ci-dessus, la
+  bulle devient « Message expiré » (icône minuteur barré) — **pas** « Message
+  supprimé », qui ferait soupçonner l'interlocuteur d'un effacement.
+- [ ] **Expiration côté destinataire**, discussion ouverte : la bulle bascule
+  sans rechargement (le temps réel propage la pierre tombale comme il propage
+  déjà une suppression).
+- [ ] **Avant le passage du balayage** : une échéance dépassée vide déjà la
+  bulle sur l'appareil, sans attendre le quart d'heure du `pg_cron`.
+- [ ] **Hors ligne** : une échéance dépassée pendant que le téléphone est en
+  mode avion vide la bulle quand même à la réouverture de la discussion.
+- [ ] **Ce que la pierre tombale emporte** : pour un message média expiré,
+  `data ? 'encMedia'` et `data ? 'fileUrl'` sont faux en base — la clé du
+  média part avec lui, le blob Storage restant devient illisible. Vérifier de
+  même qu'un message qui portait une carte de partage n'a plus `encAnnexes`
+  ni `postData`.
+- [ ] **Dernier message de la liste** : quand le dernier message d'une
+  discussion expire, la tuile de la liste n'affiche pas son texte effacé (la
+  purge ne touche pas `conversations.data.lastMessage` — à regarder, c'est la
+  fuite résiduelle la plus probable).
+- [ ] **Notification déjà reçue** : une push arrivée avant l'expiration reste
+  dans le centre de notifications avec son aperçu. Voir « Aperçu des
+  notifications MLS » si l'entrée existe.
+- [ ] **Thème sombre** : la bulle « Message expiré » est lisible des deux
+  côtés (bulle à moi, bulle de l'autre).
+- [ ] **Côté MLS**, drapeau ouvert : `mls_messages.expires_at` est renseigné à
+  l'envoi, et le destinataire affiche bien l'échéance calculée depuis le
+  `ttl` du payload — pas depuis la colonne. Après purge, `length(ciphertext)`
+  vaut 0 et le rattrapage n'écrit **aucun** `decrypt_failed` dans
+  `mls_diagnostics` (garde « pierre tombale »).
+- [ ] **Menu d'appui long** sur un message expiré mais pas encore balayé :
+  réactions et « répondre » restent proposés pendant le quart d'heure de
+  battement. Défaut connu, sans conséquence en base — à confirmer sans gravité
+  sur appareil, ou à fermer si c'est gênant à l'usage.
 
 ---
 

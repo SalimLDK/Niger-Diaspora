@@ -4561,6 +4561,7 @@
   "receivedMessage": "Received message",
   "sentMessage": "Sent message",
   "messageDeleted": "Message deleted",
+  "messageAutoDeleted": "Message expired",
   "photo": "Photo",
   "video": "Video",
   "audio": "Audio",

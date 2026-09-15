@@ -80,6 +80,11 @@ class MlsMessageRow {
   final DateTime? editedAt;
   final DateTime createdAt;
 
+  /// Échéance du minuteur, telle que le service de livraison la voit — une
+  /// **aide au balayage**, jamais une autorité : la durée qui fait foi
+  /// voyage dans le payload chiffré (`MlsPayload.ttl`), hors de sa portée.
+  final DateTime? expiresAt;
+
   const MlsMessageRow({
     required this.id,
     required this.conversationId,
@@ -93,6 +98,7 @@ class MlsMessageRow {
     this.isDeleted = false,
     this.editedAt,
     required this.createdAt,
+    this.expiresAt,
   });
 
   factory MlsMessageRow.fromRow(Map<String, dynamic> r) => MlsMessageRow(
@@ -108,6 +114,9 @@ class MlsMessageRow {
         isDeleted: r['is_deleted'] == true,
         editedAt: DateTime.tryParse(r['edited_at'] as String? ?? ''),
         createdAt: DateTime.parse(r['created_at'] as String),
+        expiresAt: r['expires_at'] is String
+            ? DateTime.tryParse(r['expires_at'] as String)
+            : null,
       );
 
   Map<String, dynamic> toInsert() => {
@@ -120,6 +129,8 @@ class MlsMessageRow {
         'content_type': contentType,
         'ciphertext': versBytea(ciphertext),
         if (replyToId != null) 'reply_to_id': replyToId,
+        if (expiresAt != null)
+          'expires_at': expiresAt!.toUtc().toIso8601String(),
       };
 }
 
@@ -174,7 +185,7 @@ class MlsDelivery {
     await _auth();
     return _client
         .from('conversations')
-        .select('id, type, participant_ids, mls_since')
+        .select('id, type, participant_ids, mls_since, data')
         .eq('id', conversationId)
         .maybeSingle();
   }

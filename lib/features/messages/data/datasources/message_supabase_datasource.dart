@@ -692,6 +692,69 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     }
   }
 
+  // ── Messages éphémères ───────────────────────────────────────────────────
+
+  /// Insère un message utilisateur et, si la conversation porte un minuteur,
+  /// y pose son `expiresAt`.
+  ///
+  /// **Le calcul vit ici, au seul point d'insertion.** Il vivait recopié dans
+  /// chacune des cinq méthodes d'envoi de l'ancien datasource Firestore, et
+  /// c'est exactement pour ça qu'il a disparu en entier au portage vers
+  /// Supabase : cinq copies à reporter, zéro reportée, aucune erreur nulle
+  /// part. L'écran de réglage a continué d'écrire `autoDeleteAfterSeconds`,
+  /// `MessageModel.expiresAt` a continué de se sérialiser, et plus rien
+  /// n'expirait. Une septième méthode d'envoi ajoutée demain passera par ici
+  /// ou n'insérera pas.
+  ///
+  /// Les messages **système** ne passent pas par ce chemin : « X a rejoint le
+  /// groupe » décrit la conversation, pas son contenu, et disparaîtrait en
+  /// laissant un trou inexplicable.
+  ///
+  /// [data] est **muté** avant l'insertion : l'appelant rend ensuite
+  /// `MessageModel.fromJson({...msgData, …})` à l'expéditeur, et sans cette
+  /// mutation sa propre bulle ignorerait l'échéance jusqu'au prochain
+  /// chargement.
+  Future<void> _insererMessageUtilisateur({
+    required String id,
+    required String conversationId,
+    required String senderId,
+    required String type,
+    required String createdAt,
+    required Map<String, dynamic> data,
+  }) async {
+    final secondes = await _minuteurDe(conversationId);
+    if (secondes != null && secondes > 0) {
+      data['expiresAt'] = DateTime.parse(createdAt)
+          .add(Duration(seconds: secondes))
+          .toUtc()
+          .toIso8601String();
+    }
+
+    await _supabase.from('messages').insert({
+      'id': id,
+      'conversation_id': conversationId,
+      'sender_id': senderId,
+      'type': type,
+      'created_at': createdAt,
+      'data': data,
+    });
+  }
+
+  /// Le minuteur de la conversation en secondes, `null` s'il est coupé.
+  ///
+  /// Relu à chaque envoi plutôt que mémorisé : un minuteur qu'on vient
+  /// d'activer doit mordre dès le message suivant, et un qu'on vient de
+  /// couper ne doit plus rien marquer.
+  ///
+  /// **Une lecture en échec fait échouer l'envoi**, volontairement : elle ne
+  /// sait pas distinguer « pas de minuteur » d'« impossible de savoir », et
+  /// livrer un message permanent dans une conversation que l'utilisateur
+  /// croit éphémère est le pire des deux dénouements. Le coût en fiabilité
+  /// est faible : ce SELECT vise le même Postgres que l'INSERT qui suit, les
+  /// deux tombent ensemble.
+  Future<int?> _minuteurDe(String conversationId) =>
+      getAutoDeleteSettings(conversationId);
+
   // ═══════════════════════════════════════════════════════════════════════════
   // STREAMS
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1200,14 +1263,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         if (selfNote) 'selfNote': selfNote,
       };
 
-      await _supabase.from('messages').insert({
-        'id': msgId,
-        'conversation_id': conversationId,
-        'sender_id': senderId,
-        'type': 'text',
-        'created_at': now,
-        'data': msgData,
-      });
+      await _insererMessageUtilisateur(
+        id: msgId,
+        conversationId: conversationId,
+        senderId: senderId,
+        type: 'text',
+        createdAt: now,
+        data: msgData,
+      );
 
       final displayText =
           postData != null
@@ -1311,14 +1374,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'mediaExpired': false,
       };
 
-      await _supabase.from('messages').insert({
-        'id': msgId,
-        'conversation_id': conversationId,
-        'sender_id': senderId,
-        'type': type,
-        'created_at': now,
-        'data': msgData,
-      });
+      await _insererMessageUtilisateur(
+        id: msgId,
+        conversationId: conversationId,
+        senderId: senderId,
+        type: type,
+        createdAt: now,
+        data: msgData,
+      );
 
       final String lastMsg;
       switch (type) {
@@ -1439,14 +1502,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'mediaExpired': false,
       };
 
-      await _supabase.from('messages').insert({
-        'id': msgId,
-        'conversation_id': conversationId,
-        'sender_id': senderId,
-        'type': 'voiceNote',
-        'created_at': now,
-        'data': msgData,
-      });
+      await _insererMessageUtilisateur(
+        id: msgId,
+        conversationId: conversationId,
+        senderId: senderId,
+        type: 'voiceNote',
+        createdAt: now,
+        data: msgData,
+      );
 
       await _updateConversationLastMessage(
         conversationId,
@@ -1533,14 +1596,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         ...annexes,
       };
 
-      await _supabase.from('messages').insert({
-        'id': msgId,
-        'conversation_id': conversationId,
-        'sender_id': senderId,
-        'type': 'location',
-        'created_at': now,
-        'data': msgData,
-      });
+      await _insererMessageUtilisateur(
+        id: msgId,
+        conversationId: conversationId,
+        senderId: senderId,
+        type: 'location',
+        createdAt: now,
+        data: msgData,
+      );
 
       await _updateConversationLastMessage(
         conversationId,
@@ -1589,14 +1652,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'encryptionLevel': 'aes',
       };
 
-      await _supabase.from('messages').insert({
-        'id': msgId,
-        'conversation_id': conversationId,
-        'sender_id': senderId,
-        'type': 'poll',
-        'created_at': now,
-        'data': msgData,
-      });
+      await _insererMessageUtilisateur(
+        id: msgId,
+        conversationId: conversationId,
+        senderId: senderId,
+        type: 'poll',
+        createdAt: now,
+        data: msgData,
+      );
 
       await _updateConversationLastMessage(
         conversationId,
@@ -1658,14 +1721,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         ...annexes,
       };
 
-      await _supabase.from('messages').insert({
-        'id': msgId,
-        'conversation_id': conversationId,
-        'sender_id': senderId,
-        'type': 'sticker',
-        'created_at': now,
-        'data': msgData,
-      });
+      await _insererMessageUtilisateur(
+        id: msgId,
+        conversationId: conversationId,
+        senderId: senderId,
+        type: 'sticker',
+        createdAt: now,
+        data: msgData,
+      );
 
       await _updateConversationLastMessage(
         conversationId,
