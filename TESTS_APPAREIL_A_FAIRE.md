@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1179 cases à cocher, 608 cochées** — 237 entrées sur 284 ont encore des cases ouvertes.
+**1180 cases à cocher, 608 cochées** — 237 entrées sur 284 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -80,7 +80,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
-- 4 · [⬜ « Supprimer pour tous » efface vraiment le contenu (2026-09-16)](#--supprimer-pour-tous--efface-vraiment-le-contenu-2026-09-16) · *Chiffrement de bout en bout et clés*
+- 5 · [⬜ « Supprimer pour tous » efface vraiment le contenu (2026-09-16)](#--supprimer-pour-tous--efface-vraiment-le-contenu-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)](#-létat-mls-ne-quitte-plus-lappareil-sauvegardes-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)](#-banc-mls-bout-en-bout-contre-la-vraie-base-phase-3-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
@@ -297,7 +297,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 236 à faire, 97 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 103 à faire, 38 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 104 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -6029,9 +6029,11 @@ d'échec muet de ce dépôt, celle qui avait déjà fait mentir une révocation
 d'appareil. La fonction rend l'identifiant touché, et le client lève quand elle
 ne rend rien.
 
-⚠️ **Migration à appliquer** : `20260916001500_mls_supprimer_pour_tous_efface_vraiment.sql`
-(validée en `BEGIN … ROLLBACK`, jamais appliquée). Tant qu'elle ne l'est pas,
-supprimer pour tous **lèvera** côté client au lieu de faire semblant.
+**Migration appliquée le 2026-09-16.** Vérifié en production : la fonction
+existe, elle est `SECURITY DEFINER`, exécutable par `authenticated` et refusée
+à `anon`. Éprouvée sur un vrai message sans revendication JWT : elle rend
+`NULL` et ne touche rien — la condition écrite dans son corps tient, ce qui est
+le point, puisqu'elle passe outre le RLS.
 
 Fichiers : la migration,
 [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
@@ -6045,6 +6047,12 @@ Fichiers : la migration,
       il ne doit pas afficher un succès.
 - [ ] **Un appareil qui n'avait pas rattrapé** ne peut plus lire le message :
       c'est tout l'objet du changement, et ça demande un second appareil.
+- [ ] **La bascule d'une conversation lève si elle n'est pas enregistrée** :
+      `marquerMlsSince` relit désormais la date au lieu de supposer. Sans ça,
+      un refus silencieux laissait la conversation à cheval sur les deux
+      chemins — groupe MLS créé, messages chiffrés, et le serveur acceptant
+      toujours du clair à côté. Difficile à provoquer à la main (tout
+      participant a le droit d'écrire) ; à surveiller dans les journaux.
 - [ ] **Aucun `decrypt_failed` de plus** dans `mls_diagnostics` après la
       suppression : le rattrapage doit sauter la pierre tombale, pas buter sur
       son ciphertext vide.
