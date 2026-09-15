@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1179 cases à cocher, 595 cochées** — 234 entrées sur 280 ont encore des cases ouvertes.
+**1177 cases à cocher, 597 cochées** — 234 entrées sur 280 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -51,8 +51,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
-- 4 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
-- 4 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
@@ -294,7 +294,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 242 à faire, 86 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 97 à faire, 36 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 95 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5919,8 +5919,12 @@ Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_
 [lire_ne_bascule_pas_test.dart](test/core/crypto/lire_ne_bascule_pas_test.dart)
 (4 cas, dont la garde d'ordre).
 
-- [ ] **Ouvrir une discussion jamais basculée, drapeau ouvert, sans rien
-      écrire** : `mls_since` doit rester **nul**. C'est LE test.
+- [x] **Ouvrir une discussion jamais basculée, drapeau ouvert, sans rien
+      écrire** : vérifié le 2026-09-15 sur SM A515F, conversation
+      `97ac9997…` (7 messages en clair). Ouverte, laissée trois minutes,
+      `mls_since` est resté **nul** et le compteur de conversations basculées
+      n'a pas bougé. Que MLS était bien actif est prouvé par la suite : le
+      même écran a fait tomber la garde de bascule douze minutes plus tard.
 - [ ] **Puis envoyer** : la bascule a lieu à ce moment-là, pas avant.
 - [ ] **Recevoir dans une discussion déjà basculée par l'autre** : l'ouvrir
       doit suffire à rejoindre le groupe et à déchiffrer.
@@ -5961,10 +5965,13 @@ Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_
 [bascule_refusee_sans_appareil_test.dart](test/core/crypto/bascule_refusee_sans_appareil_test.dart)
 (6 cas, dont la garde d'ordre : la vérification doit précéder la création).
 
-- [ ] **Deux comptes, un seul à jour** : écrire au compte resté sur l'ancienne
-      version. Le message doit partir **en clair**, `mls_since` rester nul, et
-      une ligne `bascule_refusee_sans_appareil` apparaître dans
-      `mls_diagnostics`.
+- [x] **Deux comptes, un seul à jour** : vérifié le 2026-09-15 sur SM A515F.
+      Message envoyé à « Test Appareil », qui n'a aucun appareil MLS. Résultat
+      exact attendu : la ligne est allée dans `messages` (le clair, 8 → 9),
+      `mls_since` est resté **nul**, aucune ligne dans `mls_messages`, et
+      `mls_diagnostics` a reçu `bascule_refusee_sans_appareil` à 21:58:55 avec
+      `participants_sans_appareil: 1`. Le message n'est pas perdu, la
+      conversation n'est pas gelée, et le refus se voit.
 - [ ] **L'autre met à jour et ouvre l'app une fois** : il s'inscrit dans
       `mls_devices`, et le message suivant fait basculer la conversation, avec
       **deux** lignes dans `conversation_devices`.
