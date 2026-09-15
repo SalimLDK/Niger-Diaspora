@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1167 cases à cocher, 589 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
+**1166 cases à cocher, 590 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -84,7 +84,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 16 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
-- 20 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
+- 19 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
@@ -289,7 +289,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 246 à faire, 80 faites
+- [2. Messagerie](#2-messagerie) — 245 à faire, 81 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 36 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -756,9 +756,12 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
   passent au bleu **sans rechargement** (canal temps réel des reçus).
 - [ ] **Pastille de non-lus** et **badge @** d'une mention, dans un groupe
   basculé, sur le second appareil du même compte.
-- [ ] **Réaction sur un message chiffré** : posée par B, elle apparaît chez A
-  et **survit à la réouverture** de la discussion (elle vient de la table, pas
-  de l'état d'écran).
+- [x] **Réaction sur un message chiffré** : posée, elle atterrit dans
+  `mls_message_reactions` et **revient sur la bulle après un arrêt complet**
+  de l'application — donc lue depuis la table, pas gardée à l'écran.
+  ✅ SM A515F, 2026-09-15. Le premier essai a **échoué en silence** : le
+  durcissement des droits avait cassé l'`upsert` (voir « Un upsert PostgREST
+  réécrit la clé primaire »). Reste à voir entre **deux** comptes.
 - [ ] **Réaction sur un message d'AVANT la bascule**, dans la même discussion :
   elle marche aussi — c'est l'aiguillage par message qui est vérifié là.
 - [ ] **Supprimer pour moi** un message chiffré : il disparaît chez moi, reste
