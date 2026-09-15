@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1172 cases à cocher, 594 cochées** — 232 entrées sur 278 ont encore des cases ouvertes.
+**1176 cases à cocher, 594 cochées** — 233 entrées sur 279 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (27)
+**P0 — avant toute nouvelle version** (28)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 4 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
@@ -51,6 +51,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 4 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
@@ -292,7 +293,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 243 à faire, 85 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 36 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 93 à faire, 36 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5887,6 +5888,53 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)
+
+**Priorité P0** · importance 5/5 — **Le défaut est mesuré, pas théorique.**
+Relevé en production le 2026-09-15 : deux conversations à deux personnes
+avaient basculé en MLS avec **un seul appareil** dans `conversation_devices`,
+celui de l'expéditeur. En face, aucune ligne dans `mls_devices` — l'autre
+étant sur la version du Play Store, qui n'a pas le registre. Huit messages
+sont partis chiffrés pour un groupe d'une personne.
+
+Et **rien ne le disait**. `reconcileMembership` ne trouvait personne à
+ajouter, donc `aAjouter` restait vide, donc pas même un
+`appareil_sans_key_package`. L'échec muet dans sa forme la plus pure.
+
+Deux gardes posées :
+
+- `ensureGroup` **refuse de créer le groupe** si un participant n'a aucun
+  appareil actif, et lève avant que `mls_since` soit posé — l'envoi retombe
+  alors en clair, ce qui est légitime tant que rien n'est engagé. La
+  conversation basculera d'elle-même quand l'autre aura ouvert l'app une fois.
+- `reconcileMembership` écrit désormais `participant_sans_appareil` quand il
+  croise ce cas, pour les conversations déjà basculées.
+
+⚠️ **Les deux conversations abîmées ne sont pas réparables par l'app.** Le
+déclencheur `conversations_garde_mls_since` interdit toute modification de
+`mls_since` une fois posé, et les huit messages resteront illisibles pour
+l'autre — MLS ne redonne pas le secret d'un epoch passé. Les revenir en clair
+demanderait une intervention manuelle en base, à décider à part.
+
+Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
+(`refuserSiQuelquUnNePeutPasSuivre`). Couvert hors appareil par
+[bascule_refusee_sans_appareil_test.dart](test/core/crypto/bascule_refusee_sans_appareil_test.dart)
+(6 cas, dont la garde d'ordre : la vérification doit précéder la création).
+
+- [ ] **Deux comptes, un seul à jour** : écrire au compte resté sur l'ancienne
+      version. Le message doit partir **en clair**, `mls_since` rester nul, et
+      une ligne `bascule_refusee_sans_appareil` apparaître dans
+      `mls_diagnostics`.
+- [ ] **L'autre met à jour et ouvre l'app une fois** : il s'inscrit dans
+      `mls_devices`, et le message suivant fait basculer la conversation, avec
+      **deux** lignes dans `conversation_devices`.
+- [ ] **Il lit bien ce qui a été envoyé après la bascule**, et rien d'avant.
+- [ ] **Groupe à plusieurs** : un seul membre sans appareil suffit à retenir
+      la bascule. Vérifier que ça ne bloque pas l'envoi, seulement le
+      chiffrement.
 
 ---
 

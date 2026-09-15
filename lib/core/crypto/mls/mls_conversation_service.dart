@@ -29,6 +29,25 @@ class MlsEnAttenteDeWelcome implements Exception {
   String toString() => 'MlsEnAttenteDeWelcome($conversationId)';
 }
 
+/// La conversation ne peut pas basculer : au moins un participant n'a aucun
+/// appareil MLS actif, donc rien ne pourrait lui être chiffré.
+///
+/// Levée **avant** que quoi que ce soit soit engagé — `mls_since` est encore
+/// nul —, précisément pour que l'envoi puisse retomber en clair.
+class MlsParticipantSansAppareil implements Exception {
+  final String conversationId;
+
+  /// Les identifiants sans appareil. Jamais affichés tels quels : ils servent
+  /// au diagnostic, pas à l'écran.
+  final List<String> participants;
+
+  const MlsParticipantSansAppareil(this.conversationId, this.participants);
+
+  @override
+  String toString() =>
+      'MlsParticipantSansAppareil($conversationId, ${participants.length})';
+}
+
 /// Orchestration MLS d'une conversation : le seul service que la couche
 /// messages appellera (plan MLS § 7.3).
 ///
@@ -160,7 +179,12 @@ class MlsConversationService {
       throw MlsEnAttenteDeWelcome(conversationId);
     }
 
-    // 3. Le créer — et réserver l'epoch 0 ; le perdant jette le sien.
+    // 3. Le créer — mais PAS avant d'avoir vérifié que tout le monde peut
+    //    suivre. Créer le groupe pose `mls_since`, et `mls_since` est
+    //    définitif : à partir de là le serveur refuse le clair, et qui n'est
+    //    pas dans l'arbre à cet instant ne lira plus jamais rien — le secret
+    //    d'un epoch passé ne se redonne pas.
+    await refuserSiQuelquUnNePeutPasSuivre(conversationId);
     await moteur.creerGroupe(conversationId: conversationId);
     try {
       await _delivery.publishCommit(
@@ -178,6 +202,44 @@ class MlsConversationService {
     await _delivery.marquerMlsSince(conversationId);
     await _delivery.upsertConversationDevice(conversationId, appareil.id, 'active', epochAdded: 0);
     await _publierArbre(conversationId, moteur);
+  }
+
+  /// Refuse la bascule si un participant n'a aucun appareil MLS actif.
+  ///
+  /// **Le défaut que ça ferme, mesuré en production le 2026-09-15.** Deux
+  /// conversations à deux personnes avaient basculé avec **un seul appareil**
+  /// dans `conversation_devices` : celui de l'expéditeur. En face, personne
+  /// n'avait encore de ligne dans `mls_devices`, donc `reconcileMembership`
+  /// ne trouvait personne à ajouter, `aAjouter` était vide, et **rien n'était
+  /// journalisé** — l'échec muet dans sa forme la plus pure. Huit messages
+  /// sont partis chiffrés pour un groupe d'une personne. L'autre ne les lira
+  /// jamais : MLS ne redonne pas le secret d'un epoch passé.
+  ///
+  /// Le repli est légitime ici, et c'est le seul endroit où il l'est : tant
+  /// que `mls_since` est nul, rien n'est engagé et le chemin d'aujourd'hui
+  /// reste ouvert (cf. la règle du repli en tête de `MlsGateway`). Lever
+  /// suffit donc : l'envoi retombe en clair, et la conversation basculera
+  /// d'elle-même quand l'autre aura ouvert l'application une fois.
+  @visibleForTesting
+  Future<void> refuserSiQuelquUnNePeutPasSuivre(String conversationId) async {
+    final conv = await _delivery.conversation(conversationId);
+    if (conv == null) return; // conversation inconnue : l'appelant tranchera.
+    final participants =
+        ((conv['participant_ids'] as List?) ?? const []).cast<String>();
+
+    final orphelins = <String>[];
+    for (final p in participants) {
+      if (p == userId) continue;
+      if ((await _delivery.activeDevicesOf(p)).isEmpty) orphelins.add(p);
+    }
+    if (orphelins.isEmpty) return;
+
+    await _delivery.diagnostic(userId, 'bascule_refusee_sans_appareil',
+        detail: {
+          'conversation': conversationId,
+          'participants_sans_appareil': orphelins.length,
+        });
+    throw MlsParticipantSansAppareil(conversationId, orphelins);
   }
 
   /// Publie l'arbre public de l'epoch courant, pour les arrivants.
@@ -220,8 +282,24 @@ class MlsConversationService {
     final participants = (conv['participant_ids'] as List).cast<String>();
 
     final actifs = <MlsDeviceRecord>[];
+    var muets = 0;
     for (final p in participants) {
-      actifs.addAll(await _delivery.activeDevicesOf(p));
+      final siens = await _delivery.activeDevicesOf(p);
+      if (siens.isEmpty && p != userId) muets++;
+      actifs.addAll(siens);
+    }
+    if (muets > 0) {
+      // Le silence qu'il fallait casser. Un participant sans aucun appareil
+      // ne produit **rien** ici : `aAjouter` reste vide, aucun KeyPackage
+      // n'est réclamé, donc pas même un `appareil_sans_key_package`. La
+      // conversation continue de tourner en paraissant saine, et lui ne
+      // déchiffrera jamais ce qui s'y dit. Mesuré en production le
+      // 2026-09-15 sur deux conversations. La garde de `ensureGroup` empêche
+      // désormais d'en arriver là ; cette ligne est pour celles qui y sont
+      // déjà, et pour celles qu'on quitterait entre-temps.
+      await _delivery.diagnostic(userId, 'participant_sans_appareil',
+          deviceId: appareil.id,
+          detail: {'conversation': conversationId, 'combien': muets});
     }
     final snap = await moteur.instantane(conversationId: conversationId);
     final membres = {for (final m in snap.membres) m.identity: m.leafIndex};
