@@ -2,7 +2,9 @@
 //! parcours complet sur un stockage SQLite, avant d'y brancher Flutter Rust
 //! Bridge. Rien ici n'est du code de production.
 
+pub mod api;
 pub mod engine;
+mod frb_generated;
 pub mod provider;
 
 pub use engine::{CommitOut, GroupSnapshot, MlsEngine, MlsError, Processed};

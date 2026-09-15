@@ -1,4 +1,7 @@
 import 'dart:async';
+
+import 'package:diaspo_niger/spike_mls/spike_app.dart';
+import 'package:diaspo_niger/src/rust/frb_generated.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -125,6 +128,14 @@ void main() => demarrerSansLogsEnRelease(_demarrer);
 
 Future<void> _demarrer() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Spike MLS (branche jetable) : `--dart-define=SPIKE_MLS=true` remplace
+  // l'app par le harnais de mesure, avant Firebase et tout le reste.
+  if (const bool.fromEnvironment('SPIKE_MLS')) {
+    await RustLib.init();
+    runApp(const SpikeApp());
+    return;
+  }
   enregistrerLicencesPolices();
   tz.initializeTimeZones();
 
