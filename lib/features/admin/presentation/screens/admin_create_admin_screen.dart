@@ -8,6 +8,7 @@ import '../../domain/constants/role_permissions.dart';
 import '../providers/role_management_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class AdminCreateAdminScreen extends ConsumerStatefulWidget {
   const AdminCreateAdminScreen({super.key});
@@ -673,6 +674,17 @@ class _AdminCreateAdminScreenState
         ),
       );
       Navigator.pop(context, true);
+    } else if (mounted) {
+      // Attribuer un rôle d'administrateur qui échoue en silence laisse croire
+      // que le rôle est posé. C'est la pire moitié du défaut : on croit avoir
+      // donné un droit qu'on n'a pas donné.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(messageErreurUsager(null)),
+          backgroundColor: AdminColors.statusRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 }

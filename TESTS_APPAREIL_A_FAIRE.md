@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1104 cases à cocher, 579 cochées** — 222 entrées sur 268 ont encore des cases ouvertes.
+**1149 cases à cocher, 581 cochées** — 228 entrées sur 274 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (24)
+**P0 — avant toute nouvelle version** (25)
 
+- 5 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
@@ -70,16 +71,18 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (71)
+**P1 — fonction importante, jamais vérifiée** (75)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
+- 4 · [⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)](#-létat-mls-ne-quitte-plus-lappareil-sauvegardes-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)](#-banc-mls-bout-en-bout-contre-la-vraie-base-phase-3-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 15 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
+- 20 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
@@ -90,7 +93,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
-- 5 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 6 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 8 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -144,7 +149,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (75)
+**P2 — fonction secondaire ou cas limite** (76)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -167,6 +172,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
 - 2 · [✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)](#-filtre-hashtag--réparé-et-vérifié-sur-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
@@ -280,9 +286,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 210 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 235 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 62 à faire, 29 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 82 à faire, 31 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -621,6 +627,124 @@ SELECT public.purger_messages_expires();
   réactions et « répondre » restent proposés pendant le quart d'heure de
   battement. Défaut connu, sans conséquence en base — à confirmer sans gravité
   sur appareil, ou à fermer si c'est gênant à l'usage.
+
+---
+
+## ⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)
+
+**Priorité P1** · importance 4/5 — Une conversation basculée à MLS n'écrit
+plus rien dans `messages` : sa ligne dans la liste des discussions et ses
+pastilles de non-lus viennent désormais de métadonnées posées à part
+(migration `20260915200000_mls_metadonnees_en_ligne`). Le déclencheur
+serveur **retire** l'aperçu en clair du legacy et pose à la place le type et
+l'expéditeur ; le texte de l'aperçu doit être reconstruit par l'appareil
+depuis son cache déchiffré. Rien de tout ça n'a jamais tourné sur un
+téléphone.
+
+*Bloqué : demande d'ouvrir le drapeau MLS global. Le Dart est branché depuis
+le 2026-09-15 — réactions, favoris, suppression pour moi et pour tous, reçus
+et mentions vont dans les tables annexes — **sauf la modification**, qui
+refuse visiblement (son nouveau texte doit voyager chiffré, et rien ne l'émet
+encore).*
+
+Fichiers : [20260915200000_mls_metadonnees_en_ligne.sql](supabase/migrations/20260915200000_mls_metadonnees_en_ligne.sql),
+[mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart),
+[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (`estMlsMessage`),
+[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`_passerelleMessage`),
+[conversation_item.dart](lib/features/messages/presentation/widgets/conversation_item.dart)
+(`_formatLastMessage`), [conversation_model.dart](lib/features/messages/data/models/conversation_model.dart)
+(`_parseMessageTypeFromJson`).
+
+La partie base est vérifiée hors appareil par
+`tools/mls_banc/metadonnees_en_ligne.sql` (RLS joué en `authenticated`,
+transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
+
+- [ ] **Aperçu après bascule** : une discussion qui contenait des messages en
+  clair passe à MLS ; sa ligne cesse d'afficher l'ancien texte en clair et
+  n'affiche jamais le texte d'un message chiffré venu d'ailleurs.
+- [ ] **Photo envoyée** : la ligne dit « 📎 Document » au pire, jamais une
+  ligne vide — le serveur ne distingue pas photo, vidéo et document.
+- [ ] **Note vocale** : la ligne montre l'icône micro, pas « Document ».
+- [ ] **Réaction, édition, suppression** : aucune ne fait remonter la
+  discussion en tête de liste (ce sont des contrôles, pas des messages).
+- [ ] **Coches de lecture** : après lecture par B, les deux coches de A
+  passent au bleu **sans rechargement** (canal temps réel des reçus).
+- [ ] **Pastille de non-lus** et **badge @** d'une mention, dans un groupe
+  basculé, sur le second appareil du même compte.
+- [ ] **Réaction sur un message chiffré** : posée par B, elle apparaît chez A
+  et **survit à la réouverture** de la discussion (elle vient de la table, pas
+  de l'état d'écran).
+- [ ] **Réaction sur un message d'AVANT la bascule**, dans la même discussion :
+  elle marche aussi — c'est l'aiguillage par message qui est vérifié là.
+- [ ] **Supprimer pour moi** un message chiffré : il disparaît chez moi, reste
+  chez l'autre, et **ne revient pas** à la réouverture.
+- [ ] **Supprimer pour tous** : la bulle devient « message supprimé » des deux
+  côtés.
+- [ ] **Favori** posé sur un message chiffré : il tient après réouverture.
+- [ ] **Modifier** un message chiffré : le nouveau texte apparaît des deux
+  côtés, marqué « modifié », **sans qu'une bulle vide ne s'ajoute au fil**
+  (le contrôle ne doit pas s'afficher).
+- [ ] **La modification survit à la réouverture** de la discussion, puis au
+  redémarrage de l'application : c'est le cache local qui la porte, le
+  contrôle n'étant délivré qu'une fois.
+- [ ] **Une modification ne remonte pas** la discussion en tête de liste et
+  ne déclenche **aucune notification**.
+- [ ] **Heure de lecture** dans la fiche d'un message : elle ne se remet pas à
+  « à l'instant » à chaque réouverture de la discussion.
+- [ ] **Rouvrir une discussion chiffrée** dans la même session : les messages
+  sont toujours là. `catchUp` ne rend que le delta — le fil est gardé par la
+  passerelle, et c'est ce qu'il faut voir tenir.
+- [ ] **⚠️ Rouvrir l'application** (processus tué), puis la discussion : c'est
+  le point noir connu, voir « Un fil chiffré survit-il au redémarrage ? ».
+- [ ] **Pastille de non-lus** d'une conversation basculée : elle apparaît, et
+  **retombe à zéro** après ouverture.
+- [ ] **Aperçu texte** d'une conversation basculée : la ligne montre le vrai
+  texte du dernier message, repris du cache local — pas « Nouveau message ».
+- [ ] **Aperçu sur un appareil qui n'a jamais ouvert la discussion** : il
+  montre le libellé de type, jamais le texte d'un message plus ancien.
+
+---
+
+## ⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)
+
+**Priorité P0** · importance 5/5 — Corrigé le 2026-09-15, **jamais vérifié
+sur un téléphone**, et c'est ce qui décide de l'ouverture du drapeau.
+
+Le défaut : `MlsConversationService` tenait son curseur **en mémoire
+seulement**. Au redémarrage, `catchUp` reprenait depuis le début et
+redemandait au moteur de déchiffrer des messages déjà déchiffrés — or MLS
+supprime le secret d'un message applicatif après usage. Tout l'historique
+d'une discussion basculée serait revenu en « 🔐 Message chiffré ».
+
+Deux correctifs, qui vont ensemble : le curseur est **mémorisé**
+(`SharedPreferences`, une clé par compte), donc le moteur n'est plus
+sollicité pour d'anciens messages ; et le fil est **repris du cache local**
+(`MlsGateway.amorcer`) avant chaque lecture, puisque le serveur n'a plus rien
+de lisible à offrir. Les placeholders déjà en cache sont écartés à la reprise
+— sinon la perte se figerait.
+
+Le banc Dart tient l'amorçage et le filtrage ; **le refus de redéchiffrer, lui,
+ne s'observe qu'avec le vrai moteur Rust** — donc ici.
+
+Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
+(`_curseurDe`, `_memoriserCurseur`),
+[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (`amorcer`),
+[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`mlsDuCache`).
+
+- [ ] **Deux messages échangés**, application tuée, rouverte : le fil montre
+  le texte, pas « 🔐 Message chiffré ».
+- [ ] **Un troisième message** arrive après la réouverture : il se déchiffre
+  normalement (le curseur repris ne doit pas sauter ce qui est neuf).
+- [ ] **Vider le cache de l'application** puis rouvrir : les anciens messages
+  deviennent des placeholders — attendu, c'est la limite du chiffrement — mais
+  les nouveaux passent toujours.
+- [ ] **Même épreuve après réinstallation** : placeholders attendus aussi.
+- [ ] `mls_diagnostics` ne se remplit pas de `decrypt_failed` à chaque
+  lancement (c'était le symptôme silencieux du défaut).
+
+---
 
 ## ⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)
 
@@ -5617,6 +5741,189 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
+## ⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)
+
+**Priorité P1** · importance 4/5 — MLS ne protège pas contre un serveur qui
+substituerait un KeyPackage : rien, dans le protocole, ne dit qu'une clé
+servie est bien celle de la personne annoncée. La comparaison hors bande est
+la seule réponse, et elle est maintenant affichée sous chaque ligne du
+registre MLS (écran Appareils) : 60 chiffres en 12 groupes, comparables de
+vive voix.
+
+*Bloqué : demande deux téléphones sur deux comptes. Le scan par QR n'est pas
+branché — la charge et son analyseur existent
+(`MlsCodeSecurite.chargeQr` / `lireQr`), l'écran de scan non.*
+
+Fichiers : [mls_code_securite.dart](lib/core/crypto/mls/mls_code_securite.dart),
+[devices_screen.dart](lib/features/settings/presentation/screens/devices_screen.dart)
+(`_CodeSecurite`), [mls_device_registry.dart](lib/core/crypto/mls/mls_device_registry.dart)
+(`signatureKey`).
+
+Le banc tient le calcul (16 cas) — il a d'ailleurs trouvé que l'analyseur de
+QR rejetait tout code valide, l'identité MLS `uid:stable_id` contenant déjà
+un `:`. Ce qui suit est ce qu'il ne peut pas voir.
+
+- [ ] **Le code s'affiche** sous chaque appareil du registre MLS, en 12
+  groupes de 5 chiffres, lisible sans troncature en français comme en
+  anglais.
+- [ ] **Deux téléphones, deux comptes** : le code affiché pour l'appareil de
+  A, lu sur le téléphone de B, est le même que celui que A voit chez lui.
+- [ ] **Après réinstallation** de l'application sur A : son code change, et
+  le téléphone de B le signale (« la clé de cet appareil a changé »).
+- [ ] **Un appareil sans clé publiée** (ligne ancienne) affiche « code
+  indisponible », jamais une suite de chiffres.
+- [ ] **Sélection et copie** du code fonctionnent (comparer par message écrit
+  est le second canal le plus courant).
+- [ ] **Thème sombre** : le code et l'avertissement restent lisibles.
+
+---
+
+## ⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)
+
+**Priorité P1** · importance 5/5 — La base SQLite du moteur
+(`<support>/mls/<uid>.sqlite`) porte la clé privée de signature de l'appareil,
+les secrets d'epoch et les arbres de groupe. Le manifeste ne portait **aucun**
+attribut de sauvegarde, donc `android:allowBackup` valait `true` : le fichier
+partait dans la sauvegarde Google et dans le transfert vers un téléphone neuf.
+Une exfiltration sans root, sans accès physique, et que rien ne signale.
+
+Il est désormais exclu des deux, par deux fichiers distincts — Android 12 a
+séparé la sauvegarde cloud du transfert d'appareil et **ignore**
+`fullBackupContent` dès l'API 31, donc n'en corriger qu'un laisserait la
+moitié du chemin ouverte.
+
+Exclure ne dégrade rien : l'état MLS n'est pas restaurable de toute façon. Une
+restauration ailleurs produirait une identité en double siégeant dans les
+mêmes groupes, avec un cliquet déjà avancé — des messages illisibles des deux
+côtés. Le registre traite déjà l'identité neuve (`identite_mls_changee`).
+
+**Ce que ça ne remplace pas** : le fichier reste en clair sur l'appareil. Le
+plan (§ 7.4) veut une clé maître dans le Keystore, et les deux voies ont été
+mesurées sans qu'aucune soit ouverte : SQLCipher ne se compile pas sur le
+poste (OpenSSL vendu refuse le `perl` de Git Bash), et chiffrer les valeurs
+par le `Codec` casserait les lectures (les clés de recherche passent par le
+même codec et servent de critère d'égalité). Une troisième contrainte pèse sur
+les deux : l'isolate de notification n'a pas de `MethodChannel`, donc pas
+d'accès au Keystore.
+
+Fichiers : [AndroidManifest.xml](android/app/src/main/AndroidManifest.xml),
+[regles_sauvegarde.xml](android/app/src/main/res/xml/regles_sauvegarde.xml),
+[regles_extraction_donnees.xml](android/app/src/main/res/xml/regles_extraction_donnees.xml),
+[mls_engine_provider.dart](lib/core/crypto/mls/mls_engine_provider.dart).
+Verrouillé par
+[etat_mls_hors_sauvegarde_test.dart](test/core/crypto/etat_mls_hors_sauvegarde_test.dart).
+
+- [ ] **La sauvegarde exclut bien le dossier** : `adb shell bmgr backupnow
+      com.diasponiger.diasponiger`, puis vérifier que `files/mls` n'est pas
+      dans le jeu sauvegardé. Le test de structure lit le manifeste, pas le
+      comportement d'Android.
+- [ ] **Le reste de l'app est toujours sauvegardé** : l'exclusion ne doit
+      porter que sur `mls/`, pas avoir désactivé la sauvegarde en entier.
+- [ ] **Rien ne casse au démarrage** : un attribut de manifeste mal résolu
+      fait échouer l'installation, pas le build. Installer l'APK et ouvrir
+      l'app suffit à le dire.
+- [ ] **iOS** : rien de fait. `Library/Application Support` part dans iCloud,
+      et l'exclusion demande `NSURLIsExcludedFromBackupKey`, sans API Dart.
+      À traiter avec le reste du chantier iOS.
+
+---
+
+## ⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)
+
+**Priorité P1** · importance 4/5 — **Trois écrans posaient au serveur une
+question qu'il ne peut pas entendre**, et prenaient sa réponse vide pour une
+vérité. Aucun ne levait.
+
+- La **recherche** dans une conversation : son `ilike` porte sur un
+  ciphertext, donc ne trouvait jamais rien.
+- La liste des **favoris** : la pire des trois, parce que la moitié marchait.
+  L'étoile d'un message chiffré s'écrit bien dans `mls_message_stars` et le
+  fil l'affiche, mais la liste lisait `messages`, où ce message n'a pas de
+  ligne. On étoilait dans le vide.
+- La **galerie** : le descripteur d'un média chiffré voyage dans le payload,
+  donc le serveur ne sait même pas qu'il s'agit d'un média.
+
+Les trois interrogent désormais aussi le cache Hive, seul endroit où le clair
+existe, et gardent le résultat serveur pour l'historique d'avant le
+séparateur de bascule, que le cache peut ne pas couvrir en entier. Les deux
+sources se dédoublonnent par identifiant, le cache gagne.
+
+**La limite est inhérente, pas un défaut** : on ne trouve que ce que
+l'appareil a déjà déchiffré. Une conversation ouverte pour la première fois
+sur un téléphone neuf n'a rien à fouiller tant qu'on n'a pas remonté le fil.
+
+Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`searchMessagesInConversation`, `getStarredMessages`, `getMediaMessages`),
+[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (`favorisParmi`).
+Couvert hors appareil par
+[lectures_conversation_chiffree_test.dart](test/features/messages/lectures_conversation_chiffree_test.dart)
+(11 cas).
+
+- [ ] **Chercher un mot d'un message chiffré** : il ressort, avec sa bulle et
+      son horodatage justes.
+- [ ] **Chercher un mot d'avant la bascule** : il ressort aussi, sous le
+      séparateur.
+- [ ] **Un mot présent des deux côtés** : une seule occurrence par message,
+      pas de doublon.
+- [ ] **Étoiler un message chiffré, puis ouvrir la liste des favoris** : il y
+      est. C'était le défaut le plus trompeur, l'étoile s'affichant dans le
+      fil pendant que la liste restait vide.
+- [ ] **Retirer l'étoile** : il disparaît de la liste.
+- [ ] **Galerie d'une conversation basculée** : les photos chiffrées y sont,
+      et s'ouvrent en plein écran. Croiser avec l'entrée « Pièces jointes
+      chiffrées ».
+- [ ] **Fil jamais ouvert sur cet appareil** : les trois écrans ne montrent
+      rien de la partie chiffrée. Juger si c'est dit de façon acceptable, ou
+      s'il faut un mot d'explication.
+- [ ] **Fil très long** : mesurer le temps de la recherche locale, le cache
+      étant parcouru en entier à chaque frappe.
+
+---
+
+## ⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)
+
+**Priorité P2** · importance 3/5 — Jusqu'ici la réconciliation d'appartenance
+ne tournait qu'à l'envoi : exclure quelqu'un d'un groupe ne le sortait de
+l'arbre MLS qu'au prochain message de quelqu'un d'autre, et un arrivant
+attendait ce même message pour recevoir son Welcome. Tardif, jamais faux — le
+retrait précède le chiffrement, donc l'exclu ne lit rien de neuf.
+
+`MlsGateway.appartenanceChangee` ferme l'écart, accrochée au **flux de la
+conversation** et non aux six appelants qui touchent à l'appartenance :
+la moitié d'entre eux écrit `group_members`, et c'est un déclencheur serveur
+qui recopie dans `conversations.participant_ids` — aucun site d'appel Dart ne
+le voit passer, la ligne de conversation les voit tous.
+
+Fichiers : [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
+(`appartenanceChangee`),
+[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`getConversationStream`). Couvert hors appareil par
+[mls_appartenance_test.dart](test/core/crypto/mls_appartenance_test.dart)
+(8 cas, dont la garde de câblage).
+
+**Rien de tout ça n'a tourné sur un téléphone**, et ça ne tournera pas tant
+que `featureFlags.mlsMessages` est fermé : les trois refus (conversation non
+basculée, première vue, liste inchangée) font que le chemin ne s'ouvre jamais
+sur une conversation en clair.
+
+- [ ] **Exclusion pendant que l'écran est ouvert** : A et B dans un groupe
+      basculé, l'écran de A ouvert ; exclure B depuis la fiche des membres.
+      Sans envoyer un seul message, `mls_commits` doit gagner une ligne au
+      nouvel epoch, et `conversation_devices` passer l'appareil de B hors
+      `active`.
+- [ ] **Arrivée pendant que l'écran est ouvert** : ajouter C au même groupe ;
+      un `mls_welcomes` doit apparaître pour son appareil sans qu'aucun
+      message ne soit envoyé.
+- [ ] **Deux téléphones en ligne sur le même changement** : les deux
+      réagissent, un seul gagne l'epoch. Le perdant doit écrire
+      `commit_perdu` dans `mls_diagnostics` et **ne rien casser** — c'est
+      l'arbitrage du § 5.4, jamais vu à deux vrais appareils.
+- [ ] **Coût à l'ouverture** : ouvrir une discussion de groupe nombreuse ne
+      doit lancer AUCUN balayage des appareils des participants (la première
+      vue n'agit pas). À lire dans les journaux réseau, pas à l'œil.
+
+---
+
 ## ⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)
 
 **Priorité P1** · importance 5/5 — Le banc `test/banc/mls_banc_test.dart`
@@ -5725,21 +6032,37 @@ Preuve de vie de la phase (en base, pas à l'écran) :
 - [x] **Idempotence** : une seule ligne, `last_seen_at` avancé à 06:09 après
   un second lancement, toujours 51 paquets — aucun nouveau tant qu'il en
   reste ≥ 10.
-- [ ] **Écran Appareils** : la section « Nouveau registre (MLS) » liste
-  l'appareil avec « CET APPAREIL », date de dernière vue ; le bouton
-  Révoquer est absent sur l'appareil courant.
+- [x] **Écran Appareils** : vérifié le 2026-09-15 sur SM A515F (build
+  sideloadé versionCode 19). Sous l'avertissement des 5 appareils Signal, la
+  section « Nouveau registre (MLS) » porte son texte d'explication puis une
+  seule carte, bordée de vert : « Samsung SM-A515F », le badge « CET
+  APPAREIL » en vert, et « 15/09 04:33 » — la dernière vue, avancée par le
+  lancement même. **Aucun bouton Révoquer sur cette carte**, alors que les
+  trois cartes Signal au-dessus en portent un : c'est la garde attendue.
 - [ ] **Révocation depuis un second appareil** (ou depuis SQL) : la ligne
   passe barrée « Révoqué », ses paquets non consommés ont disparu (trigger),
   et au redémarrage l'appareil révoqué **ne se réinscrit pas** (ligne
   `mls_diagnostics` `appareil_revoque_au_demarrage`).
+  *Tenté le 2026-09-15, non fait : la seule voie disponible était un `update`
+  sur la table de production, refusé par le classificateur de permissions
+  (motif « Modify Shared Resources »). Le chemin est couvert par le banc
+  (`mls_banc_test.dart`), jamais sur l'appareil. À refaire quand un second
+  téléphone portera le même compte, la révocation passant alors par l'écran.*
 - [ ] **Compte neuf** : le premier échange de session échoue toujours une
   fois (piège connu) ; l'inscription doit quand même aboutir grâce aux
   réessais (3 s, 6 s, 9 s).
-- [ ] **Thème sombre** : section lisible.
+- [x] **Thème sombre** : vérifié le 2026-09-15 sur SM A515F, même écran en
+  `uimode night yes`. Le titre, le texte d'explication et la date passent en
+  clair sur fond noir, la bordure et le badge « CET APPAREIL » restent verts
+  et lisibles — aucun jeton clair figé, le défaut que ce dépôt a déjà payé
+  48 fois.
 - [ ] **Dette consignée, à ne pas oublier** : la base SQLite du moteur
   (`<support>/mls/<uid>.sqlite`, clé privée de signature comprise) est en
   clair dans le répertoire privé de l'app. La clé maître Keystore/Keychain
-  (plan § 7.4) vient avec la phase 3.
+  (plan § 7.4) n'est toujours pas posée — les trois obstacles mesurés le
+  2026-09-15 sont détaillés dans l'entrée « L'état MLS ne quitte plus
+  l'appareil ». Depuis cette date le fichier est au moins exclu des
+  sauvegardes.
 
 ---
 

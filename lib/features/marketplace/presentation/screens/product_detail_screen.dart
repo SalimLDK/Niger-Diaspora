@@ -16,6 +16,7 @@ import '../../domain/entities/product_entity.dart';
 import '../providers/marketplace_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/adaptive_colors.dart';
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   final String productId;
@@ -487,6 +488,18 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           .deleteProduct(id);
       if (success && mounted) {
         context.pop();
+      } else if (mounted) {
+        // Ici l'echec etait DOUBLEMENT muet : ni message, ni `pop`. L'ecran
+        // restait tel quel, et le produit avec — on ne pouvait pas distinguer
+        // « la suppression a rate » de « le bouton n'a pas pris ».
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              messageErreurUsager(ref.read(productNotifierProvider).error),
+            ),
+            backgroundColor: context.errorColor,
+          ),
+        );
       }
     }
   }

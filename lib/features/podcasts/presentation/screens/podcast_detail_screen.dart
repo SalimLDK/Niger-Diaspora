@@ -17,6 +17,8 @@ import '../providers/podcast_provider.dart';
 import '../widgets/episode_tile.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import 'package:diaspo_niger/core/theme/adaptive_colors.dart';
 
 /// Screen displaying podcast details and episodes
 /// Ordre d'affichage des épisodes. `autoDispose` : le tri n'a pas à survivre
@@ -558,6 +560,15 @@ class _PremiumSubscribeButtonState
       final ok = await ref
           .read(purchaseNotifierProvider.notifier)
           .purchaseOffering(RCOffering.podcastOffering);
+      // Un achat qui échoue en silence est le pire de la famille : l'usager
+      // ne sait pas s'il a payé. `PurchaseState` porte son propre `error`, on
+      // le classe plutôt que de le montrer brut.
+      //
+      // Un seul `if/else`, et non deux `if` qui se suivent : les deux formes
+      // se valent à l'exécution, mais la garde `echec_muet_test.dart` lit la
+      // source et ne peut pas rattacher un `if (!ok)` séparé au `if (ok)`
+      // qu'il complète. Écrite en deux blocs, elle signalait — à juste titre —
+      // un succès sans branche d'échec.
       if (ok && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -567,6 +578,15 @@ class _PremiumSubscribeButtonState
         );
         // Refresh RevenueCat entitlements so the UI updates immediately
         ref.invalidate(customerInfoProvider);
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              messageErreurUsager(ref.read(purchaseNotifierProvider).error),
+            ),
+            backgroundColor: context.errorColor,
+          ),
+        );
       }
     }
   }

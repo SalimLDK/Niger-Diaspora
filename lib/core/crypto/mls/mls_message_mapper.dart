@@ -122,6 +122,11 @@ class MlsMessageMapper {
       // Les reçus ne viennent pas du payload : ils vivent dans
       // `mls_message_receipts`, et l'expéditeur a forcément lu le sien.
       readBy: row.senderId == currentUserId ? [currentUserId] : const [],
+      // Le texte modifié voyage dans un contrôle, qui n'est délivré qu'une
+      // fois ; la colonne, elle, est toujours là. Un appareil qui a manqué le
+      // contrôle affiche donc « modifié » sous le texte d'origine — dégradé,
+      // jamais mensonger.
+      editedAt: row.editedAt?.toLocal(),
       encryptionLevel: MessageEncryptionLevel.e2ee,
     );
   }

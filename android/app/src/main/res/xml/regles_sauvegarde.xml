@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sauvegarde cloud, Android 11 et avant (android:fullBackupContent).
+
+  CE QUI EST EXCLU, ET POURQUOI
+  files/mls/ porte la base SQLite du moteur MLS : clé privée de signature de
+  l'appareil, secrets d'epoch, arbres de groupe. Le plan (§ 7.4) veut cette
+  base chiffrée sous une clé du Keystore ; ce n'est pas encore fait. En
+  attendant, elle ne doit au moins pas QUITTER l'appareil, et une sauvegarde
+  Google est exactement le chemin par lequel elle le ferait : sans root, sans
+  accès physique, sans que personne ne s'en aperçoive.
+
+  Exclure ne dégrade rien. L'état MLS n'est pas restaurable de toute façon :
+  une restauration sur un autre appareil produirait une identité en double
+  siégeant dans les mêmes groupes, avec un cliquet qui a déjà avancé ailleurs,
+  c'est-à-dire des messages illisibles des deux côtés. Le registre d'appareils
+  traite déjà le cas d'une identité neuve (identite_mls_changee) : repartir
+  d'une base vide est le comportement JUSTE, pas une perte.
+
+  Le reste de l'app continue d'être sauvegardé.
+
+  ATTENTION : pas de tiret double dans ce commentaire, XML l'interdit. Le
+  build a échoué dessus le 2026-09-15, sur mergeReleaseResources.
+-->
+<full-backup-content>
+    <exclude domain="file" path="mls/" />
+</full-backup-content>

@@ -20,11 +20,38 @@ import '../../services/e2ee/stable_device_id.dart';
 /// Pas `autoDispose` : le résultat est une poignée sur un fichier ouvert, et
 /// la reconstruire au gré des écrans rouvrirait la base à chaque fois.
 ///
-/// **Dette assumée en phase 2** : la base SQLite du moteur (clé privée de
-/// signature, futurs secrets de groupe) est écrite en clair dans le
-/// répertoire privé de l'app. Le plan (§ 7.4) prévoit une clé maître dans le
-/// Keystore / Keychain ; elle vient avec la phase 3. Consigné dans
-/// `TESTS_APPAREIL_A_FAIRE.md`.
+/// **Dette assumée, et ce qui la tient** : la base SQLite du moteur (clé
+/// privée de signature, secrets d'epoch, arbres de groupe) est écrite en clair
+/// dans le répertoire privé de l'app. Le plan (§ 7.4) prévoit une clé maître
+/// dans le Keystore / Keychain, en laissant le chiffrement au choix — SQLCipher
+/// ou chiffrement des valeurs par le provider. **Les deux voies ont été
+/// mesurées le 2026-09-15, et aucune n'est ouverte en l'état :**
+///
+/// - **SQLCipher** demande `rusqlite/bundled-sqlcipher-vendored-openssl`. La
+///   configuration d'OpenSSL échoue sur ce poste — le `perl` de Git Bash ne
+///   convient pas à `Configure` pour la cible `VC-WIN64A`. Le banc Rust de la
+///   phase 3 ne compilerait plus ici, et la compilation croisée Android
+///   resterait à prouver.
+/// - **Chiffrer les valeurs par le `Codec`** ne marche pas tel quel : dans
+///   `openmls_sqlite_storage`, les **clés de recherche** passent par le même
+///   `Codec::to_vec` que les entités et servent de critère d'égalité en SQL.
+///   Un AES-GCM à nonce aléatoire rendrait toute lecture introuvable. Il
+///   faudrait un chiffrement déterministe (AES-SIV), plus faible, et le
+///   `Codec` étant un trait à méthodes statiques, la clé devrait vivre dans un
+///   global de processus.
+///
+/// Et une troisième contrainte, découverte au même moment, pèse sur les deux :
+/// l'isolate de notification doit rouvrir cette base (§ 8) mais **n'a pas de
+/// `MethodChannel` sans liaison explicite** — il ne peut donc pas lire le
+/// Keystore comme l'app. Chiffrer sans résoudre ce point casserait l'aperçu
+/// des notifications, déjà livré.
+///
+/// **Ce qui est fait en attendant** : la base ne quitte plus l'appareil. Elle
+/// est exclue de la sauvegarde Google et du transfert d'appareil à appareil
+/// (`android/app/src/main/res/xml/`), ce qui ferme le seul chemin
+/// d'exfiltration qui ne demande ni root ni accès physique. Verrouillé par
+/// `test/core/crypto/etat_mls_hors_sauvegarde_test.dart`. Le chiffrement du
+/// fichier reste à faire, et reste consigné dans `TESTS_APPAREIL_A_FAIRE.md`.
 final mlsEngineProvider = FutureProvider.family<Moteur, String>((ref, userId) async {
   await _initialiserRustUneFois();
   final support = await getApplicationSupportDirectory();

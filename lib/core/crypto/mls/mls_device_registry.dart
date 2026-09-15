@@ -21,6 +21,17 @@ class MlsDeviceRecord {
   final String name;
   final String platform;
   final String mlsIdentity;
+
+  /// Clé publique de signature MLS, telle que publiée par l'appareil.
+  ///
+  /// Publique par construction — elle sert à valider ce qu'il émet. C'est
+  /// elle qu'un serveur devrait substituer pour se faire passer pour
+  /// quelqu'un, et donc elle qu'on compare hors bande
+  /// ([MlsCodeSecurite.empreinteAppareil]). Vide si la ligne est trop
+  /// ancienne pour l'avoir : l'écran affiche alors « code indisponible »
+  /// plutôt qu'un code faux.
+  final Uint8List signatureKey;
+
   final DateTime createdAt;
   final DateTime lastSeenAt;
   final DateTime? revokedAt;
@@ -28,18 +39,25 @@ class MlsDeviceRecord {
   /// Vrai pour la ligne de l'appareil qui lit la liste.
   final bool estCetAppareil;
 
-  const MlsDeviceRecord({
+  MlsDeviceRecord({
     required this.id,
     required this.userId,
     required this.stableId,
     required this.name,
     required this.platform,
     required this.mlsIdentity,
+    Uint8List? signatureKey,
     required this.createdAt,
     required this.lastSeenAt,
     this.revokedAt,
     this.estCetAppareil = false,
-  });
+  }) : signatureKey = signatureKey ?? sansCle;
+
+  /// Pas de clé publiée. L'écran doit dire « code indisponible » plutôt que
+  /// de calculer un code sur du vide — il serait le MÊME pour tous les
+  /// appareils, et deux personnes concluraient à tort qu'elles sont
+  /// vérifiées.
+  static final Uint8List sansCle = Uint8List(0);
 
   bool get estRevoque => revokedAt != null;
 
@@ -55,6 +73,9 @@ class MlsDeviceRecord {
       name: row['name'] as String? ?? '',
       platform: row['platform'] as String? ?? '',
       mlsIdentity: row['mls_identity'] as String? ?? '',
+      signatureKey: row['signature_key'] is String
+          ? bytea_codec.depuisBytea(row['signature_key'] as String)
+          : MlsDeviceRecord.sansCle,
       createdAt: DateTime.tryParse(row['created_at'] as String? ?? '') ?? DateTime.now(),
       lastSeenAt: DateTime.tryParse(row['last_seen_at'] as String? ?? '') ?? DateTime.now(),
       revokedAt: DateTime.tryParse(row['revoked_at'] as String? ?? ''),

@@ -17,6 +17,7 @@ import '../widgets/review_card.dart';
 import '../widgets/review_form_modal.dart';
 import '../widgets/star_rating_input.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class BusinessDetailScreen extends ConsumerStatefulWidget {
   final String businessId;
@@ -1169,6 +1170,13 @@ class _ReviewsPreviewSection extends ConsumerWidget {
                     content: Text(
                       text.isEmpty ? 'Réponse supprimée' : 'Réponse publiée',
                     ),
+                  ),
+                );
+              } else if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(messageErreurUsager(null)),
+                    backgroundColor: context.errorColor,
                   ),
                 );
               }

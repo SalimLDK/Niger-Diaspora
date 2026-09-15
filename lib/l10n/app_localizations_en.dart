@@ -12187,6 +12187,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Every device signed in to this account is listed here with its own key. The upcoming encrypted messaging will rely on this registry.';
 
   @override
+  String get mlsSecurityCodeLabel => 'Security code';
+
+  @override
+  String get mlsSecurityCodeUnavailable =>
+      'Code unavailable — this device has not published its key';
+
+  @override
+  String get mlsSecurityCodeExplain =>
+      'Read this code aloud with the other person. If it differs, do not discuss anything sensitive: the key you were served is not theirs.';
+
+  @override
+  String get mlsSecurityCodeChanged =>
+      'This device\'s key has changed since you verified it';
+
+  @override
   String get mlsDevicesNone =>
       'No device registered yet. Registration happens at sign-in.';
 

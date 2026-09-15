@@ -33,11 +33,32 @@ import 'package:flutter_test/flutter_test.dart';
 /// (core/errors/message_erreur.dart) fournit le texte sans divulguer le
 /// message brut, qui porte le chemin du document et l'uid.
 ///
-/// **Limite assumée.** Ce test lit la source et ne connaît qu'une graphie,
-/// `mounted && <nom>)`. Il n'attrape ni `if (!ok) return;` sans message, ni un
-/// `catch` vide, ni un `bool` ignoré — un `bool` rendu par une action reste
-/// une invitation au silence, que Dart ne sait pas refuser. Il ferme la porte
-/// par laquelle le défaut est passé deux fois, pas toutes les portes.
+/// ## Ce que ce garde a lui-même raté
+///
+/// Écrit le 2026-09-14, il ne connaissait qu'une graphie — `mounted && ok)`.
+/// Mesuré le 2026-09-15 : **une** occurrence de celle-là dans `lib/`, contre
+/// **seize** de la graphie inverse, `ok && mounted)`. Il ne regardait donc
+/// qu'un site sur dix-sept. La session « blocage » l'avait signalé le jour
+/// même en trouvant une branche muette que le motif ne voyait pas ; c'est
+/// resté noté et non fait.
+///
+/// Deux changements depuis : les **deux** graphies sont reconnues, et une
+/// occurrence n'est retenue que si aucune branche d'échec ne suit. Sans ce
+/// second point, les seize crieraient toutes — or plusieurs ont bel et bien
+/// leur `else if (mounted)`. Un garde qui crie à tort finit désactivé, et
+/// c'est ce qui était en train de lui arriver.
+///
+/// **Limites assumées.** Le test lit la source, pas un arbre syntaxique :
+/// - le bloc est délimité en comptant les accolades, pas par une fenêtre de
+///   lignes. La première version lisait 22 lignes après le `if` : trop court
+///   pour `edit_event_screen`, dont le bloc de succès fait quarante lignes —
+///   son `else` existait et le garde criait quand même. Une fenêtre fixe
+///   accuse les blocs longs, ce qui est précisément la mauvaise moitié ;
+/// - le comptage est naïf : une accolade dans un commentaire le déséquilibre.
+///   L'interpolation `${…}` s'équilibre seule, donc ne gêne pas ;
+/// - il n'attrape ni `if (!ok) return;` sans message, ni un `catch` vide, ni
+///   un `bool` ignoré. Un `bool` rendu par une action reste une invitation au
+///   silence, que Dart ne sait pas refuser.
 void main() {
   /// Usages légitimes : le drapeau garde autre chose qu'une annonce à
   /// l'usager. Cette liste ne peut que rétrécir — n'y ajoutez rien sans une
@@ -50,18 +71,24 @@ void main() {
     // en passant sur le blocage — il avait DEUX branches muettes, pas la
     // seule que la note d'exception décrivait : la suppression d'un avis
     // (attrapée par le motif) et la réponse du gérant, écrite `ok &&
-    // context.mounted`, que le motif ne voit pas. Les deux passent maintenant
-    // par un `_annoncer` local. Le signalement d'un avis, lui, annonçait déjà
-    // les deux cas : la note était périmée.
+    // context.mounted`, que le motif ne voyait pas. Les deux passent
+    // maintenant par un `_annoncer` local.
   };
 
   test('aucune action n\'annonce seulement son succès', () {
-    // `success` / `ok` / `succes` : les noms effectivement employés ici. Un
-    // motif plus large (`mounted && \w+`) attraperait
-    // `mounted && _controller.value.isInitialized`, qui n'a rien à voir — et
-    // un garde qui crie à tort finit désactivé.
-    final motif = RegExp(r'mounted && (success|ok|succes|reussi)\)');
-
+    // Les deux graphies, et seulement les noms de drapeau réellement employés
+    // ici. `mounted && \w+` attraperait `mounted && _controller.value
+    // .isInitialized`, qui n'a rien à voir.
+    const drapeaux = r'(success|ok|succes|reussi)';
+    // `(?<![!\w.])` écarte `if (!ok && context.mounted)`, qui n'annonce QUE
+    // l'échec — l'inverse exact du défaut — et `isOk`, `_lastOk` et consorts.
+    // Sans lui, `groups_screen.dart` était accusé pour une ligne juste.
+    // L'autre graphie n'a pas besoin de la garde : `mounted && !ok)` ne
+    // correspond simplement pas.
+    final motif = RegExp(
+      '(mounted && $drapeaux\\)'
+      '|(?<![!\\w.])$drapeaux && (context\\.)?mounted\\))',
+    );
     final coupables = <String>[];
     for (final entite in Directory('lib').listSync(recursive: true)) {
       if (entite is! File || !entite.path.endsWith('.dart')) continue;
@@ -70,7 +97,8 @@ void main() {
 
       final lignes = entite.readAsLinesSync();
       for (var i = 0; i < lignes.length; i++) {
-        if (motif.hasMatch(lignes[i])) {
+        if (!motif.hasMatch(lignes[i])) continue;
+        if (!_suiviDUneBrancheDEchec(lignes, i)) {
           coupables.add('$chemin:${i + 1}');
         }
       }
@@ -90,4 +118,40 @@ void main() {
           'Sites : ${coupables.join(', ')}',
     );
   });
+}
+
+/// Vrai si le bloc ouvert à [depart] est suivi d'un `else`.
+///
+/// On suit les accolades jusqu'à la fermeture du bloc, puis on regarde si un
+/// `else` la suit — sur la même ligne (`} else {`) ou sur la suivante.
+bool _suiviDUneBrancheDEchec(List<String> lignes, int depart) {
+  const plafond = 300; // une méthode raisonnable ; évite de lire un fichier
+  var profondeur = 0;
+  var ouvert = false;
+
+  for (var i = depart; i < lignes.length && i - depart < plafond; i++) {
+    final ligne = lignes[i];
+    for (var j = 0; j < ligne.length; j++) {
+      final c = ligne[j];
+      if (c == '{') {
+        profondeur++;
+        ouvert = true;
+      } else if (c == '}') {
+        profondeur--;
+        if (ouvert && profondeur == 0) {
+          // Fermeture du bloc : le `else` est ici, ou au début de la suivante.
+          final reste = ligne.substring(j);
+          if (reste.contains('else')) return true;
+          for (var k = i + 1; k < lignes.length && k <= i + 2; k++) {
+            final suivante = lignes[k].trim();
+            if (suivante.isEmpty) continue;
+            return suivante.startsWith('else');
+          }
+          return false;
+        }
+      }
+    }
+  }
+  // Bloc jamais refermé dans le plafond : on ne conclut pas à un défaut.
+  return true;
 }

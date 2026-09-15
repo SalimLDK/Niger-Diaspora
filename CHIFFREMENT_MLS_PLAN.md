@@ -423,6 +423,62 @@ create table mls_diagnostics (
 );
 ```
 
+**Les métadonnées en ligne ci-dessus sont appliquées en production depuis le
+2026-09-15** — migration `20260915200000_mls_metadonnees_en_ligne.sql`, banc
+`tools/mls_banc/metadonnees_en_ligne.sql` (RLS joué en `authenticated`, dans
+une transaction annulée ; vérifié en cassant la migration à dessein). Trois
+écarts assumés par rapport au schéma écrit plus haut :
+
+- **La vue ne rend que les lignes de l'appelant.** Écrite par participant
+  comme ci-dessus, elle fuyait : `unnest(participant_ids)` n'est pas une
+  table, aucun RLS ne s'y applique, et chacun aurait lu le compteur de
+  non-lus des autres. `firebase_uid()` remplace l'unnest — au passage, un
+  produit cartésien par la taille du groupe disparaît.
+- **Rien n'écrit `data.unreadCount` ni `data.unreadMentions`.** Ces cartes
+  sont décrémentées par `mark_messages_as_read`, qui ne connaît que
+  `messages` : les alimenter depuis `mls_messages` donnerait un compteur qui
+  ne sait que monter. La vue est la seule source pour MLS, et son
+  branchement Dart reste à faire.
+- **Le déclencheur d'aperçu retire `data.lastMessage`** au lieu de le
+  laisser. Sans ça, une conversation qui bascule garderait pour toujours
+  l'aperçu en clair de son dernier message legacy, figé sous des messages
+  chiffrés récents. Et il traduit `content_type` avant de l'écrire :
+  `media` tel quel tomberait en silence sur `MessageType.text` dans le
+  parseur Dart, et une photo s'afficherait comme une ligne vide.
+
+**Côté Dart, branché le 2026-09-15** : `MlsMetadonnees` tient les cinq tables
+et la vue, `MlsGateway` l'expose, `_passerelleMessage` aiguille dans le
+repository. L'aiguillage se fait **par message, pas par conversation** : une
+discussion basculée garde son historique en clair au-dessus du séparateur, et
+réagir à l'un de ces anciens messages doit rester legacy.
+
+**Les neuf chemins sont branchés.** La modification voyage dans un message de
+contrôle chiffré (`kind = 'control'`, type `edit`) : le serveur ne voit passer
+qu'un ciphertext et pose `edited_at`, il ne lit pas le nouveau texte et garde
+l'original qu'il n'a jamais compris. Un contrôle n'est pas une bulle — il est
+écarté du fil et appliqué à sa cible.
+
+**La durabilité du fil est traitée** : le curseur de rattrapage est mémorisé
+par compte (`SharedPreferences`) — sans quoi chaque lancement redemandait au
+moteur des messages déjà déchiffrés, dont MLS a supprimé le secret, et
+l'historique serait revenu en « 🔐 Message chiffré ». Et le fil est repris du
+cache local (`MlsGateway.amorcer`) avant chaque lecture, le serveur n'ayant
+plus rien de lisible à offrir. Écrit et tenu par un banc ; **le refus de
+redéchiffrer ne s'observe qu'avec le vrai moteur, donc sur un téléphone**.
+
+Ce qui reste : **la vérification sur appareil**, et rien d'autre côté code.
+Entrées « Un fil chiffré survit au redémarrage » et « Aperçu et compteurs
+d'une conversation chiffrée » dans `TESTS_APPAREIL_A_FAIRE.md`.
+
+**Un mot sur les droits.** Les `GRANT` de ces migrations ne restreignaient
+rien : Supabase accorde déjà tout à `authenticated` sur toute table neuve du
+schéma `public`, et un `GRANT` n'enlève pas. L'expéditeur pouvait donc
+**réécrire le ciphertext de son propre message** malgré le commentaire qui
+affirmait le contraire — le RLS filtre des lignes, jamais des colonnes.
+Réparé par `20260915230000`, `REVOKE` d'abord. `TRUNCATE` reste accordé à
+`authenticated` sur 101 tables du schéma, et **ignore le RLS** : hors de
+portée de PostgREST aujourd'hui, à traiter à part.
+
 Réclamation atomique d'un KeyPackage (sinon deux ajouts concurrents
 consomment le même paquet et le second Welcome est indéchiffrable) :
 
@@ -852,6 +908,34 @@ Dart tient la clé maître **en transit** entre le stockage sécurisé et `open(
 Ce n'est pas un secret MLS ; c'est le prix d'éviter un accès direct au
 Keystore depuis Rust. À documenter, pas à cacher.
 
+**Tranché le 2026-09-15 : aucune des deux voies n'est ouverte en l'état, et la
+base reste en clair sur l'appareil.** Les trois obstacles, mesurés :
+
+1. **SQLCipher** demande `rusqlite/bundled-sqlcipher-vendored-openssl`. La
+   configuration d'OpenSSL échoue sur le poste — le `perl` de Git Bash ne
+   convient pas à `Configure` pour `VC-WIN64A`. Le banc Rust de la phase 3 ne
+   compilerait plus ici, et la compilation croisée Android resterait à prouver.
+2. **Chiffrer les valeurs par le `Codec`** ne marche pas tel quel : dans
+   `openmls_sqlite_storage`, les **clés de recherche** passent par le même
+   `Codec::to_vec` que les entités et servent de critère d'égalité en SQL. Un
+   AES-GCM à nonce aléatoire rendrait toute lecture introuvable. Il faudrait un
+   chiffrement déterministe (AES-SIV), plus faible, et le `Codec` étant un
+   trait à méthodes **statiques**, la clé devrait vivre dans un global de
+   processus.
+3. **L'isolate de notification** doit rouvrir cette base (§ 8) et n'a pas de
+   `MethodChannel` sans liaison explicite : il ne peut pas lire le Keystore
+   comme l'app. Chiffrer sans résoudre ce point casserait l'aperçu des
+   notifications, déjà livré.
+
+**Ce qui est fait à la place, et qui ferme le chemin le plus réaliste** : la
+base est exclue de la sauvegarde Google **et** du transfert d'appareil à
+appareil (`android/app/src/main/res/xml/`). Sans ça `allowBackup` valait
+`true` par défaut, et le fichier quittait le téléphone sans root ni accès
+physique. Exclure ne coûte rien : un état MLS restauré ailleurs serait une
+identité en double avec un cliquet déjà avancé, donc des messages illisibles
+des deux côtés — le registre traite déjà l'identité neuve. iOS reste à faire
+(`NSURLIsExcludedFromBackupKey`, sans API Dart).
+
 ---
 
 # 8. Notifications
@@ -917,9 +1001,9 @@ Pas « le code est écrit ».
 | **3 — Banc bout en bout, sans écran** — **FAITE le 2026-09-15** | migration `20260915120000_mls_transport.sql` appliquée en production (`mls_commits` dont la clé primaire `(conversation, epoch)` arbitre les commits concurrents et réserve la création par l'epoch 0, `mls_welcomes`, `mls_messages`, `conversation_devices`, `conversations.mls_since` + refus du legacy) ; `MlsDelivery`, `MlsPayloadCodec`, `MlsConversationService` ; identité MLS par **installation** ; banc `test/banc/mls_banc_test.dart` — trois appareils contre la vraie base, RLS réel, moteur Rust chargé dans `flutter test` | **14 cas verts** contre la production (98 messages chiffrés, 68 commits, 41 Welcome, 24 conversations basculées), **et le banc échoue quand on casse un cas exprès** (AAD de commit retiré → deux cas tombent). Deux défauts trouvés et corrigés : KeyPackages survivant à une réinstallation, révocation refusée en silence | 3–4 semaines |
 | **4 — Notifications** — **moitié Android FAITE le 2026-09-15**, iOS en attente d'un Mac | migrations `20260915140000` + `20260915160000` (trigger sur `mls_messages` : repli générique dans `notifications.body`, ciphertext en base64 **sans sauts de ligne** dans le payload si ≤ 2500 o, drapeau `protocol: 'mls'`) ; `preview_without_state` côté Rust — déchiffrement sur une **copie jetable** produite par `VACUUM INTO`, l'état qui fait foi n'avance jamais ; `MlsNotificationPreview` dans l'isolate background (identifiant d'appareil mémorisé à l'inscription, réglage « aperçu des messages » respecté), branché avant le repli du handler | **côté serveur : fait et prouvé** — le banc écrit un message MLS, relit la ligne `notifications` et vérifie qu'elle ne contient rien de lisible, puis reconstruit l'aperçu depuis le push (16 cas verts contre la production). **Côté appareil : pas encore** — sur SM A515F, app tuée, push reçu, aperçu réel affiché, puis message lisible dans l'app. iOS pas commencé | 3–4 semaines (dont l'essentiel côté iOS) |
 | **5 — 1:1 derrière un flag** — **branchée le 2026-09-15**, drapeau fermé | `MlsMessageMapper`, `MlsSourceMerger`, `MlsGateway` (le seul point d'entrée de MLS pour la couche messages), branchée dans `message_repository_impl` : lecture fusionnée et envoi chiffré, avec repli en clair **seulement tant que `mls_since` est nul** ; messages MLS mis en cache pour le mode hors ligne ; drapeau `featureFlags.mlsMessages` fermé | coexistence prouvée par le banc contre la production (18 cas) : le legacy s'écrit, la bascule le ferme définitivement, `mls_since` ne revient jamais à NULL, et le fil fusionné sort dans le bon ordre. **Sur appareil : rien** — `select count(*) from mls_messages` entre deux comptes réels reste à faire | 4–6 semaines |
-| **6 — Gel** (point de non-retour) | délai de mise à jour minimale expiré (B) ; `REVOKE INSERT` ; triggers d'insertion retirés de `messages` ; `decrypt_aes_fallback` hors triggers ; annonce de purge (H) | un `insert` dans `messages` sous `SET LOCAL ROLE authenticated` échoue (sans `SET LOCAL ROLE`, `db query --linked` tourne en `postgres` et le test ment) | 1 semaine |
-| **7 — Multi-appareil** | lever « une session par compte » (E) ; ajout d'un second appareil, vérification par QR (`safety_code`), retrait d'un appareil perdu → Remove + commit | deux appareils d'un même compte affichent la même conversation ; un troisième révoqué ne déchiffre plus les suivants | 3–4 semaines |
-| **8 — Groupes** — **partie cryptographique FAITE le 2026-09-15** | la réconciliation gère N membres ; l'arbre public (`GroupInfo`) est publié sur `conversations.mls_group_info` après chaque commit, et un arrivant s'ajoute lui-même par commit externe (§ 5.7). Réservé au type `group` — un 1:1 ne se rejoint pas tout seul. Colonne lue à part : son absence ne coûte que la jointure externe, jamais un envoi | **faite** : `select count(*) from mls_messages m join conversations c on c.id = m.conversation_id where c.type='group'` rend **69** sur la production, et le banc (20 cas verts) joue un groupe ouvert que Charlie rejoint seul, puis lit et écrit. **Reste** : les chemins d'appartenance de l'app (invitations, exclusions, groupe officiel rejoint selon la ville) déclenchent la réconciliation au prochain envoi ou à la prochaine lecture, jamais au moment du changement — tardif, mais jamais faux | 5–8 semaines |
+| **6 — Gel** — **PRÉPARÉE, non applicable le 2026-09-15** (`supabase/gel-messages-cible.sql`, hors `migrations/` pour que `db push` ne puisse pas l'appliquer ; banc `tools/mls_banc/gel_messages.sql`). Les trois conditions sont **fausses** : (1) aucun verrou de version minimale n'existe — `CoordinateurMiseAJour` est explicitement « jamais bloquant » ; (2) le délai n'a pas commencé, `DERNIERE_VERSION_APP` valant exactement la version du `pubspec.yaml` ; (3) le trafic n'a pas basculé — 106 messages legacy sur trente jours, 0 message chiffré, 0 conversation basculée. Le gel n'emporte que `INSERT` : l'historique reste amendable (réactions, suppressions), ce que le banc mesure | délai de mise à jour minimale expiré (B) ; `REVOKE INSERT` ; triggers d'insertion retirés de `messages` ; `decrypt_aes_fallback` hors triggers ; annonce de purge (H) | un `insert` dans `messages` sous `SET LOCAL ROLE authenticated` échoue (sans `SET LOCAL ROLE`, `db query --linked` tourne en `postgres` et le test ment) | 1 semaine |
+| **7 — Multi-appareil** — **code de sécurité FAIT le 2026-09-15**, le reste ouvert | `MlsCodeSecurite` : empreinte d'un appareil (identité MLS + clé publique de signature), code à 60 chiffres comparable de vive voix, charge QR et son analyseur, mémoire locale des vérifications avec **détection du changement de clé**. Affiché sous chaque ligne du registre MLS. **Reste** : l'écran de scan, et surtout la levée de « une session par compte » (E) — une décision de sécurité, pas une tâche : la règle protège peut-être contre le partage de comptes, et `KeyTransferService` en dépend (l'ancien téléphone dépose ses clés AVANT que le neuf ne se connecte, parce que se connecter l'éjecterait) | deux appareils d'un même compte affichent la même conversation ; un troisième révoqué ne déchiffre plus les suivants | 3–4 semaines |
+| **8 — Groupes** — **partie cryptographique FAITE le 2026-09-15** | la réconciliation gère N membres ; l'arbre public (`GroupInfo`) est publié sur `conversations.mls_group_info` après chaque commit, et un arrivant s'ajoute lui-même par commit externe (§ 5.7). Réservé au type `group` — un 1:1 ne se rejoint pas tout seul. Colonne lue à part : son absence ne coûte que la jointure externe, jamais un envoi | **faite** : `select count(*) from mls_messages m join conversations c on c.id = m.conversation_id where c.type='group'` rend **69** sur la production, et le banc (20 cas verts) joue un groupe ouvert que Charlie rejoint seul, puis lit et écrit. **Appartenance branchée le 2026-09-15** : la réconciliation part du flux de la conversation (`appartenanceChangee`), pas des six appelants — la moitié d'entre eux écrit `group_members`, et c'est un déclencheur serveur qui recopie dans `participant_ids`, invisible depuis Dart. Trois refus la rendent gratuite : conversation non basculée, première vue, liste inchangée. **Reste** : rien de tout cela n'a tourné sur un téléphone | 5–8 semaines |
 | **9 — Pièces jointes** — **FAITE le 2026-09-15** (le transport de la clé) | C4 avait déjà chiffré les fichiers et fait voyager leur clé dans `encAnnexes`, chiffré avec la clé **dérivée** de la conversation — que le serveur sait reconstruire. La clé entre maintenant dans le payload MLS (`MlsGateway.corpsMedia`), que le serveur ne peut plus lire. Et dans une conversation basculée, le chiffrement du fichier **n'est plus optionnel** : le drapeau des pièces jointes ne décide que des conversations encore en clair | un média envoyé dans une conversation MLS n'a plus ni URL ni clé lisibles en base — reste à voir sur appareil. La vidéo attend toujours le déchiffrement par morceaux | 2 semaines si C4 suivi, 6 sinon |
 | **10 — Démantèlement** | après **100 % du trafic en MLS pendant plusieurs semaines** et la purge (H) : `lib/core/services/e2ee/` (8 608 lignes), `e2ee_*` (5 tables), `crypto-keys`, `decrypt_aes_fallback`, `EncryptionService._sharedKeyString`, `encAnnexes` | `select count(*) from messages` = 0 puis `drop table` | 1–2 semaines |
 
