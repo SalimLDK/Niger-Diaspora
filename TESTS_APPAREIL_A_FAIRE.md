@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1052 cases à cocher, 561 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
+**1052 cases à cocher, 562 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -277,7 +277,7 @@ Par domaine :
 - [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 120 à faire, 13 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 120 à faire, 14 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
@@ -10357,9 +10357,21 @@ qui ne disent rien du rendu ni du geste.
   de connaître l'heure exacte de la publication — c'est ce que mesure l'entrée
   « Sans temps réel » ci-dessous. L'appui sur la pastille a été fait par Salim
   et vu par lui à l'écran, pas mesuré ici.
-- [ ] **Sans temps réel** : couper le Wi-Fi/les données une minute, publier
-  depuis l'autre téléphone, revenir : la pastille doit finir par apparaître
-  dans la minute qui suit le retour du réseau (c'est le sondage, pas le canal).
+- [x] **Après une coupure réseau** : couper le Wi-Fi/les données, publier
+  depuis l'autre téléphone, rétablir : la pastille apparaît sans aucun geste.
+  ✅ SM A515F, build release `fbd02d9d…`, 2026-09-14 : coupure à 20:32:54,
+  réseau revenu à 20:33:47, pastille à 20:33:57 — **10 s après le retour**. La
+  publication est restée derrière la pastille sans s'insérer dans la liste.
+  ⚠ **Ce test ne crédite pas le sondage.** 10 s, c'est le `rattrapage` du
+  canal Postgres à sa reconnexion (`rattrapageAuRejoint`), qui existait avant.
+  Le sondage, lui, tique à 60 s : sa minuterie était partie à 20:32:01, le tic
+  de 20:33:01 est tombé pendant la coupure (écarté, `connectivityNotifier` à
+  faux) et le suivant était à 20:34:01 — 4 s **après** la pastille.
+- [ ] **Isoler le sondage** : ce qu'il apporte vraiment, c'est le cas où le
+  canal est muet **sans se rejoindre** (websocket filtrée par le réseau,
+  canal jamais souscrit) — une coupure franche ne le reproduit pas, puisque
+  le canal se rejoint et rattrape. Piste : bloquer le websocket seul (proxy,
+  ou réseau qui filtre `wss://`) en laissant passer le HTTP, puis publier.
 - [ ] **Publication d'un ami** (audience « Amis », deux comptes amis) : elle
   arrive par le sondage alors que le canal temps réel l'écarte volontairement.
   Le 2026-09-14, une autre session a supprimé deux amitiés à sens unique de
