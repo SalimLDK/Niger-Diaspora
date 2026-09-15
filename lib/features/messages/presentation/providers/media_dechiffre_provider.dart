@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/e2ee/media_dechiffre_cache.dart';
@@ -24,10 +25,26 @@ final mediasChiffresActifsProvider = Provider<bool>((ref) {
 ///
 /// Fermé par défaut, et pour longtemps : l'ouvrir fait **basculer** une
 /// conversation sans retour — `conversations.mls_since` ne se remet jamais à
-/// NULL, et le legacy refuse ensuite d'y écrire. Les phases 1 à 4 doivent
-/// être vérifiées sur appareil avant.
+/// NULL, et le legacy refuse ensuite d'y écrire.
+///
+/// **Deux interrupteurs, pas un.** `mlsMessages` vaut pour tout le monde ;
+/// `mlsMessagesComptes` ne vaut que pour les uid qu'il nomme. Le second
+/// existe parce que le premier rendait toute vérification impossible : essayer
+/// MLS sur un seul téléphone demandait de basculer la production entière, sans
+/// retour. Vérifier ne doit pas être un point de non-retour.
+///
+/// La lecture d'une conversation déjà basculée ne dépend d'aucun des deux —
+/// c'est `MlsGateway.enMls`, qui regarde `mls_since`. Refermer ne rend jamais
+/// illisible ce qui a déjà été envoyé.
 final mlsMessagesActifsProvider = Provider<bool>((ref) {
-  return ref.watch(featureFlagsProvider).mlsMessages;
+  final drapeaux = ref.watch(featureFlagsProvider);
+  if (drapeaux.mlsMessages) return true;
+  final comptes = drapeaux.mlsMessagesComptes;
+  if (comptes.isEmpty) return false;
+  // Lu à l'appel, comme le reste du chemin MLS : personne ne doit avoir à
+  // relancer l'application pour que l'ouverture prenne effet.
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  return uid != null && uid.isNotEmpty && comptes.contains(uid);
 });
 
 /// Clé d'une demande de déchiffrement : l'id du message suffit à identifier
