@@ -1009,3 +1009,52 @@ Ordre de départ : **spike (phase 1) et C4 en parallèle**, comme en I.
 | **H** | Purge du legacy 90 jours après le gel, puis extinction de `crypto-keys` et de la clé globale ? | **Oui**, annoncée dans l'app. Sans purge, trois clés restent load-bearing pour toujours |
 | **I** | Commencer par C4 (pièces jointes) ou par le spike ? | **Les deux en parallèle** : C4 ne dépend de rien, le spike ne touche pas la prod |
 | **J** | Réactions, modification, suppressions, reçus, non-lus, mentions, aperçu, favoris, réponses : local seulement, ou métadonnée en ligne aussi ? | **En ligne aussi** (tables `mls_message_*`, colonnes `last_message_*`, vue `mls_unread_counts`). Coût accepté : le serveur voit qui réagit, lit, masque, étoile, est mentionné — pas le contenu |
+
+---
+
+# 12. Journal du spike (phase 1) — 2026-09-14, premier jour
+
+Branche jetable `claude/spike-mls` (poussée telle quelle, **pas** sur la
+branche partagée), crate `rust/`. Ce qui est établi, avec des chiffres ; ce
+qui reste à établir, avec ce qu'il faut pour le faire.
+
+## Établi
+
+| Question du spike | Résultat |
+|---|---|
+| OpenMLS 0.9 tient-il le parcours complet sur SQLite ? | **Oui.** Façade `MlsEngine` (identité par appareil, KeyPackages, création, ajout, retrait, Welcome, jointure externe, chiffrement avec AAD, traitement entrant) sur `openmls_sqlite_storage 0.3` + `RustCrypto`. Banc de **8 cas, 8 passent** : nominal 1:1, AAD déplacé refusé, rejeu refusé, message d'un epoch passé encore lisible (`max_past_epochs = 3`), membre retiré aveugle, **moteur fermé et rouvert** sur la même base, jointure externe par GroupInfo, commit perdant jeté proprement (`clear_pending_commit` puis traitement du gagnant) |
+| Chaîne de build Android | **Oui.** rustc 1.98.1, cargo-ndk 4.1.2, NDK 27.0.12077973, `rusqlite` en `bundled`. `.so` release (opt-level z, LTO, strip) : **arm64-v8a 4,2 Mo, armeabi-v7a 3,1 Mo**. **Alignement 16 Ko vérifié** par `tools/verifie_alignement_16k.py`, sans drapeau de lien supplémentaire |
+| Poids | ≈ 4 Mo par ABI, donc ≈ 4 Mo de plus sur un APK découpé par ABI, ≈ 7 Mo sur un APK universel — avant FRB, dont la couche générée ajoute peu. Le poids de l'APK actuel n'a pas été relevé dans cette session |
+| Ordre de grandeur à froid | Sur le poste : ouverture de la base **7,5 ms**, ouverture + déchiffrement **18 ms**. Ce n'est pas l'appareil ; deux symboles C (`diaspo_mls_spike_parcours`, `diaspo_mls_spike_reouverture`) sont exportés pour le mesurer sur SM A515F |
+
+Versions figées dans `Cargo.lock` : openmls 0.9.0, openmls_traits 0.6.0,
+openmls_rust_crypto 0.6.0, openmls_basic_credential 0.6.0,
+openmls_sqlite_storage 0.3.0, rusqlite 0.37.0.
+
+## Trois pièges d'API, à reporter dans le moteur de production
+
+1. **L'AAD est remis à vide après chaque `MlsMessageOut`.** Un commit produit
+   par `add_members` juste après un `create_message` part donc avec un AAD
+   vide, pas celui du message. Le moteur doit poser un AAD **de commit**
+   explicite (`dn-mls/1|conv|commit|epoch`) avant chaque commit, et le
+   récepteur le recomposer depuis `mls_commits`. Sans ça, § 6.1 ne tient
+   pas pour les commits.
+2. `MlsMessageIn::into_verifiable_group_info()` n'existe qu'en `test-utils` :
+   passer par `extract()` et la variante `MlsMessageBodyIn::GroupInfo`.
+3. `openmls_sqlite_storage` ne réexporte pas `refinery` : l'erreur de
+   migration se convertit en code, pas en type.
+
+Et une décision de configuration : `MIXED_CIPHERTEXT_WIRE_FORMAT_POLICY`
+(sortant chiffré, entrant mixte), parce qu'un commit externe arrive
+forcément en clair. `PURE_CIPHERTEXT` le refuserait sans dire pourquoi.
+
+## Reste à établir (les trois qui peuvent tuer)
+
+| Question | Ce qu'il faut |
+|---|---|
+| ms à froid **dans l'isolate background, sur SM A515F** | l'appareil branché, un `dart:ffi` jetable vers `diaspo_mls_spike_reouverture` (ou l'intégration FRB), une base préparée sur l'appareil |
+| **NSE iOS** avec App Group et copie de travail | un Mac. Rien de ce spike ne l'aborde |
+| **Build release signé qui démarre** avec la lib | `flutter_rust_bridge_codegen integrate` (cargokit dans Gradle), `key.properties`, l'appareil |
+
+**Verdict provisoire : GO côté Rust/Android**, sous réserve des trois
+mesures ci-dessus. Aucun NO-GO rencontré.
