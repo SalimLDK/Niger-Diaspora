@@ -405,6 +405,38 @@ void main() {
       }
     });
 
+    test('l’écran passe le vrai minuteur au menu d’options', () {
+      // Le paramètre est optionnel : omis, il vaut `null` pour toujours. Le
+      // menu annonçait alors « Désactivé » quelle que soit la base, la feuille
+      // s'ouvrait sur « Désactivé » déjà coché, et son garde « rien n'a
+      // changé » sortait sans écrire — le minuteur s'allumait et ne
+      // s'éteignait PLUS JAMAIS. Mesuré sur appareil le 2026-09-15.
+      final src = _source(
+        'lib/features/messages/presentation/screens/conversation_screen.dart',
+      );
+      expect(
+        src.contains(
+          'autoDeleteAfterSeconds: conversation?.autoDeleteAfterSeconds,',
+        ),
+        isTrue,
+        reason: 'ConversationOptionsModal doit recevoir la vraie valeur',
+      );
+    });
+
+    test('« Enregistrer » écrit toujours, sans raccourci', () {
+      // Le raccourci comparait à une valeur que personne n'alimentait. Un
+      // geste explicite de l'utilisateur ne doit pas pouvoir être avalé par
+      // une comparaison avec un état supposé.
+      final src = _source(
+        'lib/features/messages/presentation/widgets/auto_delete_settings_sheet.dart',
+      );
+      expect(
+        src.contains('_selectedDuration == widget.currentDurationSeconds'),
+        isFalse,
+        reason: 'le raccourci « rien n’a changé » rendait le geste muet',
+      );
+    });
+
     test('le helper lit le minuteur et pose expiresAt', () {
       final src = _source(chemin);
       expect(src.contains("data['expiresAt'] ="), isTrue);

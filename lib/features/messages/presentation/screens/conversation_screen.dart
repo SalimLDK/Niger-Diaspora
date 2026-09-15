@@ -1129,6 +1129,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       builder:
           (context) => ConversationOptionsModal(
             conversationId: widget.conversationId,
+            // Sans cette ligne, le paramètre restait à `null` pour toujours :
+            // le menu annonçait « Désactivé » quelle que soit la vraie valeur,
+            // et la feuille de réglage s'ouvrait sur « Désactivé » déjà coché.
+            // Choisir « Désactivé » ne changeait alors rien à ses yeux, son
+            // garde « rien n'a changé » sortait avant d'écrire, et le minuteur
+            // ne pouvait plus JAMAIS être éteint — activer 24 h passait (null
+            // ≠ 86400), éteindre était un geste sans effet ni message.
+            // Mesuré sur SM A515F le 2026-09-15 : base à 86400, écran à
+            // « Désactivé », messages horodatés à 24 h malgré tout.
+            autoDeleteAfterSeconds: conversation?.autoDeleteAfterSeconds,
             otherUserId: _effectiveOtherUserId,
             otherUserName: displayName,
             otherUserPhotoUrl: displayImage,

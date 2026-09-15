@@ -67,11 +67,14 @@ class _AutoDeleteSettingsSheetState
   }
 
   Future<void> _saveSettings() async {
-    if (_selectedDuration == widget.currentDurationSeconds) {
-      Navigator.pop(context);
-      return;
-    }
-
+    // Pas de raccourci « rien n'a changé » ici. Il comparait à la valeur reçue
+    // de l'appelant, que personne n'alimentait : elle valait toujours `null`,
+    // si bien que choisir « Désactivé » était jugé identique à l'état courant
+    // et sortait sans écrire. Le minuteur s'allumait (null ≠ 86400) et ne
+    // s'éteignait plus jamais, sans erreur ni message — constaté sur appareil
+    // le 2026-09-15. L'appelant est corrigé ; ce raccourci reste néanmoins
+    // retiré : une écriture idempotente coûte un aller-retour, un geste sans
+    // effet coûte la fonctionnalité.
     setState(() => _isLoading = true);
 
     final success = await ref

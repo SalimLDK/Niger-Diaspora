@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1167 cases à cocher, 588 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
+**1165 cases à cocher, 591 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -83,7 +83,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 16 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
+- 14 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 20 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
@@ -289,7 +289,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 246 à faire, 80 faites
+- [2. Messagerie](#2-messagerie) — 244 à faire, 83 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 35 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -658,21 +658,29 @@ UPDATE messages SET data = jsonb_set(data, '{expiresAt}',
 SELECT public.purger_messages_expires();
 ```
 
-- [ ] **Pose de l'échéance** : minuteur à 24 h dans une discussion, envoyer un
+- [x] **Pose de l'échéance** : minuteur à 24 h dans une discussion, envoyer un
   texte. En base, `data->>'expiresAt'` vaut `created_at` + 24 h.
 - [ ] **Tous les types** : photo, note vocale, position, sondage, sticker
   portent aussi `expiresAt`. Un message **système** (« X a rejoint ») n'en
   porte pas — il décrit la conversation, pas son contenu.
-- [ ] **Minuteur coupé** : remettre sur « Désactivé », le message suivant n'a
+- [x] **Minuteur coupé** : remettre sur « Désactivé », le message suivant n'a
   plus de clé `expiresAt` du tout.
 - [ ] **Minuteur changé en cours de route** : passer de 24 h à 7 j, le message
   suivant prend la nouvelle durée sans redémarrer l'application (le réglage
   est relu à chaque envoi, jamais mémorisé).
 - [ ] **Messages déjà envoyés** : changer le minuteur ne touche pas les
   échéances des messages précédents.
-- [ ] **Expiration côté expéditeur** : après la recette SQL ci-dessus, la
-  bulle devient « Message expiré » (icône minuteur barré) — **pas** « Message
-  supprimé », qui ferait soupçonner l'interlocuteur d'un effacement.
+- [ ] **⛔ Expiration côté expéditeur — MESURÉ FAUX le 2026-09-15.** La bulle
+  ne devient pas « Message expiré » : le message **disparaît entièrement** du
+  fil (absent de l'arbre `uiautomator`, pas seulement invisible), y compris
+  après redémarrage complet. Cause : le rattrapage MLS persiste un curseur
+  (`mls_curseur_<user>_<conv>`, `MlsConversationService._curseurDe`) et relit
+  avec `.gt('created_at', curseur)` — une ligne déjà dépassée n'est **plus
+  jamais relue**, donc aucun changement d'état ultérieur ne l'atteint. Ça vaut
+  pour la pierre tombale de la purge comme pour « supprimer pour tous ».
+  Dépasse cette fiche : à traiter dans le rattrapage MLS. **L'étanchéité, elle,
+  tient** — le garde client (`MessageEntity.videeParExpiration`) vide l'entité
+  dès l'échéance à partir du `ttl` du payload, sans rien attendre du serveur.
 - [ ] **Expiration côté destinataire**, discussion ouverte : la bulle bascule
   sans rechargement (le temps réel propage la pierre tombale comme il propage
   déjà une suppression).
@@ -694,11 +702,16 @@ SELECT public.purger_messages_expires();
   notifications MLS » si l'entrée existe.
 - [ ] **Thème sombre** : la bulle « Message expiré » est lisible des deux
   côtés (bulle à moi, bulle de l'autre).
-- [ ] **Côté MLS**, drapeau ouvert : `mls_messages.expires_at` est renseigné à
-  l'envoi, et le destinataire affiche bien l'échéance calculée depuis le
-  `ttl` du payload — pas depuis la colonne. Après purge, `length(ciphertext)`
-  vaut 0 et le rattrapage n'écrit **aucun** `decrypt_failed` dans
-  `mls_diagnostics` (garde « pierre tombale »).
+- [x] **Côté MLS**, drapeau ouvert : `mls_messages.expires_at` renseigné à
+  l'envoi — **écart mesuré 86400 s exactement** — et `length(ciphertext)` à 0
+  après purge. Vérifié sur SM A515F le 2026-09-15 (la conversation bascule à
+  MLS dès son ouverture quand le compte est dans `mlsMessagesComptes`, si bien
+  que c'est le chemin MLS et non le legacy qui a été exercé).
+- [ ] **Reste du point MLS** : que le DESTINATAIRE affiche l'échéance calculée
+  depuis le `ttl` du payload et non depuis la colonne, et qu'aucun
+  `decrypt_failed` n'apparaisse dans `mls_diagnostics`. Non vérifié : le
+  second téléphone (Pixel 10 Pro XL) porte la version du Play Store, signée
+  par Google, qu'un build local ne peut pas remplacer sans désinstaller.
 - [ ] **Avant le passage du balayage, le contenu ne repart par aucun chemin.**
   Laisser un message expirer, puis, dans le quart d'heure qui précède le
   `pg_cron` : l'appui long ne propose plus ni réaction, ni « répondre », ni
