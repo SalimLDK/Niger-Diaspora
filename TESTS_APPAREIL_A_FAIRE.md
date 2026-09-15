@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1051 cases à cocher, 563 cochées** — 212 entrées sur 256 ont encore des cases ouvertes.
+**1052 cases à cocher, 564 cochées** — 213 entrées sur 257 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -123,7 +123,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
-- 4 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
+- 3 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
@@ -213,7 +213,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (51)
+**P3 — confort, cosmétique, fonction en pause** (52)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -240,6 +240,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
+- 2 · [⬜ Deux textes du fil que `font_scale` 1.3 abime (2026-09-14)](#-deux-textes-du-fil-que-font_scale-13-abime-2026-09-14) · *Design, thème, langue et mise en page*
 - 5 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
 - 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
@@ -277,10 +278,10 @@ Par domaine :
 - [6. Notifications et push](#6-notifications-et-push) — 64 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 119 à faire, 15 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 44 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 149 à faire, 29 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 151 à faire, 29 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -10397,9 +10398,15 @@ qui ne disent rien du rendu ni du geste.
   mettre l'app en arrière-plan, attendre trois minutes, revenir — vérifier
   dans les journaux (`adb logcat`) qu'aucune requête de fil n'est partie
   entre-temps, et qu'une seule part au retour.
-- [ ] **Thème sombre et `font_scale` 1.3** : la pastille reste lisible sur le
+- [x] **Thème sombre et `font_scale` 1.3** : la pastille reste lisible sur le
   fond sombre et son texte ne déborde pas du galet (voir « Fil sombre : même
   structure que le fil clair »).
+  ✅ SM A515F, build release `fbd02d9d…`, 2026-09-14 20:40, `font_scale 1.3` +
+  `cmd uimode night yes` (remis à 1.0 / no ensuite) : galet à l'accent violet
+  du thème sombre, « 1 nouvelle publication » **en entier**, sans troncature ni
+  bande de débordement, avatar cerclé lisible, galet dans la largeur de
+  l'écran. Il recouvre la ligne d'auteur de la première carte — c'est voulu,
+  il flotte au-dessus du fil.
 
 ## ⬜ Fil sombre : même structure que le fil clair (2026-09-13)
 
@@ -13141,6 +13148,24 @@ directement sur la section APPLICATION.
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
 
 ---
+
+## ⬜ Deux textes du fil que `font_scale` 1.3 abime (2026-09-14)
+
+**Priorité P3** · importance 2/5 — À grande police, l'horodatage d'une publication est coupé et le bandeau hors ligne se lit mal. Rien ne déborde, mais de l'information se perd.
+
+Vus en passant pendant la vérification de la pastille en thème sombre
+(SM A515F, `font_scale 1.3`, build release `fbd02d9d…`, 2026-09-14 20:39).
+Aucune bande de débordement : ce sont des défauts de texte, pas de mise en
+page.
+
+- [ ] **Ligne d'auteur tronquée** : `@nassirou · il y a 3 he…` — l'horodatage
+  est élidé alors que la ligne a la place de passer à la ligne ou de
+  raccourcir la mention. À 1.0 il tient (`il y a 3 heures`).
+- [ ] **Bandeau hors ligne** : « Fil hors ligne · dernière mise à jour **Il**
+  y a 11 minute(s) » — majuscule en milieu de phrase, et `minute(s)` non
+  pluralisé là où le reste de l'app décline. Visible à toutes les échelles,
+  c'est l'échelle qui l'a mis sous les yeux. (`feed_error_state.dart`,
+  `FeedCachedNotice`)
 
 ## ⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)
 
