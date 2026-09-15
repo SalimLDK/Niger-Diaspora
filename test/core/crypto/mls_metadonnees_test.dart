@@ -633,6 +633,19 @@ void main() {
       expect(lectures, 0, reason: 'une conversation legacy ne coûte rien');
     });
 
+    test('un placeholder ne devient jamais un aperçu', () {
+      // Vu sur le SM A515F le 2026-09-15 : une discussion affichait
+      // « 🔐 Message chiffré » dans la liste. Un message que cet appareil n'a
+      // pas su déchiffrer est mis en cache avec son placeholder ; le reprendre
+      // comme aperçu montre la panne au lieu du libellé de type.
+      final t = DateTime.utc(2026, 9, 15, 12);
+      final sortie = MessageRepositoryImpl.apercuDepuisCache(
+        conv(quand: t),
+        () => [cache(MlsMessageMapper.placeholderIllisible, t)],
+      );
+      expect(sortie.lastMessage, isNull);
+    });
+
     test('une conversation sans dernier message reste intacte', () {
       final sortie =
           MessageRepositoryImpl.apercuDepuisCache(conv(), () => const []);
