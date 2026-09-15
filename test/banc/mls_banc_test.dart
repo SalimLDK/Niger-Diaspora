@@ -336,8 +336,15 @@ void main() {
       expect(recus.map((x) => x.payload?.texte), ['émis avant', 'émis après']);
 
       // Le Charlie réinstallé lit ce qui suit son ajout, pas ce qui précède.
+      // Le message d'avant lui parvient quand même, illisible : c'est ce qui
+      // permettra à l'écran d'afficher « antérieur à votre arrivée » plutôt
+      // que de le faire disparaître sans rien dire.
       final chezCharlie = await c.service.catchUp(conv);
-      expect(chezCharlie.map((x) => x.payload?.texte), ['émis après']);
+      expect(
+        chezCharlie.where((x) => x.lisible).map((x) => x.payload!.texte),
+        ['émis après'],
+      );
+      expect(chezCharlie.where((x) => !x.lisible), hasLength(1));
     });
 
     test('commit concurrent : le perdant jette le sien et retombe sur ses pieds', () async {
@@ -363,11 +370,29 @@ void main() {
       final m = await a.service.send(conv2, MlsPayload.texte(uuid.v4(), 'à trois'));
       expect((await b.service.catchUp(conv2)).map((x) => x.payload?.texte), ['à trois']);
       expect((await c.service.catchUp(conv2)).map((x) => x.payload?.texte), ['à trois']);
-      expect(m.epoch, snapA.epoch);
+      expect(m.epoch, snapA.epoch.toInt());
+    });
+
+    test('révoquer l’appareil d’autrui est refusé, et ça se voit', () async {
+      await expectLater(b.registry.revoke(c.fiche.id), throwsA(isA<StateError>()));
+      final ligne = await c.client
+          .from('mls_devices')
+          .select('revoked_at')
+          .eq('id', c.fiche.id)
+          .single();
+      expect(ligne['revoked_at'], isNull, reason: 'rien ne doit avoir bougé');
     });
 
     test('appareil révoqué : retiré au prochain reconcile, il ne lit plus', () async {
-      await b.registry.revoke(c.fiche.id);
+      // La révocation vient d'un autre appareil du MÊME compte — ici Charlie
+      // lui-même, faute d'un second appareil dans le banc.
+      await c.registry.revoke(c.fiche.id);
+      final ligne = await c.client
+          .from('mls_devices')
+          .select('revoked_at')
+          .eq('id', c.fiche.id)
+          .single();
+      expect(ligne['revoked_at'], isNotNull);
       await a.service.reconcileMembership(conv);
       final m = await a.service.send(conv, MlsPayload.texte(uuid.v4(), 'sans Charlie'));
       final chezBob = await b.service.catchUp(conv);

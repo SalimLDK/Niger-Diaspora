@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/business_entity.dart';
 import '../providers/business_provider.dart';
@@ -108,7 +109,7 @@ class _StatsRow extends StatelessWidget {
               Text(
                 label,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
+                  color: context.textSecondaryColor,
                 ),
               ),
             ],
@@ -187,17 +188,17 @@ class _OwnerBusinessCard extends StatelessWidget {
             Text(
               business.category.label,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.outline,
+                color: context.textSecondaryColor,
               ),
             ),
             const SizedBox(height: 12),
             // Stats compactes
             Row(
               children: [
-                _stat(theme, Icons.visibility_outlined,
+                _stat(context, theme, Icons.visibility_outlined,
                     '${business.viewCount} vues'),
                 const SizedBox(width: 16),
-                _stat(theme, Icons.star_border,
+                _stat(context, theme, Icons.star_border,
                     '${business.reviewCount} avis'),
               ],
             ),
@@ -251,15 +252,15 @@ class _OwnerBusinessCard extends StatelessWidget {
     );
   }
 
-  Widget _stat(ThemeData theme, IconData icon, String text) => Row(
+  Widget _stat(BuildContext context, ThemeData theme, IconData icon, String text) => Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: theme.colorScheme.outline),
+          Icon(icon, size: 16, color: context.iconTertiaryColor),
           const SizedBox(width: 4),
           Text(
             text,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.outline,
+              color: context.textSecondaryColor,
             ),
           ),
         ],
@@ -438,7 +439,7 @@ class _EmptyView extends StatelessWidget {
       children: [
         const SizedBox(height: 80),
         Icon(Icons.storefront_outlined,
-            size: 72, color: theme.colorScheme.outline),
+            size: 72, color: context.iconTertiaryColor),
         const SizedBox(height: 16),
         Text(
           'Aucune entreprise',
@@ -452,7 +453,7 @@ class _EmptyView extends StatelessWidget {
           'Référencez votre commerce pour être visible par la diaspora.',
           textAlign: TextAlign.center,
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.outline,
+            color: context.textTertiaryColor,
           ),
         ),
         const SizedBox(height: 24),

@@ -129,6 +129,17 @@ class MlsDeviceRegistry {
     final moteur = await _moteur(userId);
     final stableId = await _stableId(userId);
     final nom = await _libelle();
+    final identite = moteur.identite();
+
+    // Identité MLS déjà enregistrée pour cet appareil, AVANT de l'écraser.
+    // Une réinstallation en produit une neuve (§ 5.6) : il faut le savoir
+    // ici, c'est le seul endroit qui voit les deux.
+    final precedente = await _client
+        .from('mls_devices')
+        .select('id, mls_identity')
+        .eq('user_id', userId)
+        .eq('stable_id', stableId)
+        .maybeSingle();
 
     final ligne = await _client
         .from('mls_devices')
@@ -138,7 +149,7 @@ class MlsDeviceRegistry {
             'stable_id': stableId,
             'name': nom,
             'platform': _platforme,
-            'mls_identity': moteur.identite(),
+            'mls_identity': identite,
             'signature_key': versBytea(moteur.cleSignaturePublique()),
             'credential': versBytea(moteur.credential()),
             'last_seen_at': DateTime.now().toUtc().toIso8601String(),
@@ -155,6 +166,23 @@ class MlsDeviceRegistry {
       // paquets, jusqu'à ce que l'utilisateur en décide autrement.
       await _diagnostic(userId, 'appareil_revoque_au_demarrage', appareil.id);
       return appareil;
+    }
+
+    // Réinstallation : l'identité MLS a changé, mais les KeyPackages publiés
+    // sont ceux de l'installation d'AVANT — leurs secrets privés sont partis
+    // avec l'ancienne base, et ils portent l'ancienne clé de signature.
+    //
+    // Les laisser en place est le pire des trois cas possibles : le compteur
+    // de réapprovisionnement les voit (51 ≥ 10, rien à faire), un membre en
+    // réclame un, et l'ajout **échoue** — la clé est déjà dans l'arbre, celle
+    // de l'ancienne installation qui y siège encore. Trouvé par le banc de la
+    // phase 3 le 2026-09-15 : trois cas sur douze tombaient dessus, tous avec
+    // le même `CreateCommitError`, sans que rien ne désigne la cause.
+    final identiteAvant = (precedente?['mls_identity'] as String?) ?? '';
+    if (identiteAvant.isNotEmpty && identiteAvant != identite) {
+      await _client.from('mls_key_packages').delete().eq('device_id', appareil.id);
+      await _diagnostic(userId, 'identite_mls_changee', appareil.id);
+      debugPrint('MlsDeviceRegistry: identité MLS changée, KeyPackages purgés');
     }
 
     await _reapprovisionner(moteur, appareil.id, userId);
@@ -258,10 +286,18 @@ class MlsDeviceRegistry {
   /// commit) vient en phase 7.
   Future<void> revoke(String deviceId) async {
     if (!await _ensureAuth()) throw StateError('Session non établie');
-    await _client
+    final touchees = await _client
         .from('mls_devices')
         .update({'revoked_at': DateTime.now().toUtc().toIso8601String()})
-        .eq('id', deviceId);
+        .eq('id', deviceId)
+        .select('id');
+    // Un `update` que le RLS refuse ne lève pas : il touche zéro ligne, et
+    // l'écran annonce « appareil révoqué » alors que rien n'a bougé. C'est la
+    // 6e forme des échecs muets de Supabase, et le banc l'a reproduite le
+    // 2026-09-15 (un compte tentant de révoquer l'appareil d'un autre).
+    if ((touchees as List).isEmpty) {
+      throw StateError('Révocation refusée : cet appareil n\'est pas le vôtre');
+    }
   }
 
   Future<void> rename(String deviceId, String nom) async {
