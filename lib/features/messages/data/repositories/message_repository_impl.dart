@@ -16,6 +16,7 @@ import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/services/blurhash_service.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/crypto/mls/mls_gateway.dart';
+import '../../../../core/crypto/mls/mls_message_mapper.dart';
 import '../../../../core/crypto/mls/mls_source_merger.dart';
 import '../../../../core/services/e2ee/media_encryption_service.dart';
 import '../../domain/entities/conversation_entity.dart';
@@ -778,6 +779,14 @@ class MessageRepositoryImpl implements MessageRepository {
     if (passerelle == null) return legacy;
     try {
       if (!await passerelle.enMls(conversationId)) return legacy;
+      // Le moteur ne sait pas relire ce qu'il a déjà déchiffré : au
+      // lancement, le serveur n'a plus rien de lisible à offrir pour les
+      // messages d'hier. Le cache de l'appareil, lui, a le clair — on le rend
+      // à la passerelle avant de lui demander le fil.
+      passerelle.amorcer(
+        conversationId,
+        _mlsDuCache(conversationId, await passerelle.mlsSince(conversationId)),
+      );
       final mls = await passerelle.messages(conversationId);
       if (mls.isEmpty) return legacy;
       // Sans ce cache, rouvrir la discussion hors ligne ferait disparaître
@@ -796,6 +805,41 @@ class MessageRepositoryImpl implements MessageRepository {
       dev.log('Fusion MLS impossible', name: 'message_repository_impl', error: e);
       return legacy;
     }
+  }
+
+  /// Les messages chiffrés déjà en cache sur cet appareil.
+  ///
+  /// Reconnus à leur date : une fois `mls_since` posé, le serveur refuse
+  /// toute écriture en clair pour cette conversation — tout ce qui vient
+  /// après la bascule est donc chiffré, et rien d'autre ne l'est.
+  ///
+  /// Les placeholders sont écartés : un « 🔐 Message chiffré » mis en cache
+  /// par un passage précédent ne doit pas revenir prendre la place du clair
+  /// qu'un autre passage avait obtenu.
+  List<MessageEntity> _mlsDuCache(String conversationId, DateTime? depuis) =>
+      mlsDuCache(cacheService.getCachedMessages(conversationId), depuis);
+
+  /// La règle seule, sans cache — pour pouvoir la tenir par un test.
+  @visibleForTesting
+  static List<MessageEntity> mlsDuCache(
+    List<Map<String, dynamic>> caches,
+    DateTime? depuis,
+  ) {
+    if (depuis == null) return const [];
+    final sortie = <MessageEntity>[];
+    for (final brut in caches) {
+      try {
+        final m = MessageModel.fromJson(brut).toEntity();
+        if (m.createdAt.isBefore(depuis)) continue;
+        if (MlsMessageMapper.estSeparateur(m)) continue;
+        if (m.content == MlsMessageMapper.placeholderIllisible) continue;
+        sortie.add(m);
+      } catch (_) {
+        // Une entrée de cache illisible ne coûte que ce message.
+        continue;
+      }
+    }
+    return sortie;
   }
 
   /// Lit la durée d'une vidéo locale sans la compresser (juste ses métadonnées),
@@ -1949,17 +1993,20 @@ class MessageRepositoryImpl implements MessageRepository {
       // l'écran affiche une erreur : laisser passer écrirait dans `messages`,
       // sans cible, et le texte d'avant réapparaîtrait à la réouverture.
       final passerelle = await _passerelleMessage(conversationId, messageId);
-      if (passerelle != null && !MlsGateway.modificationBranchee) {
-        return Left(ServerFailure(
-          'Un message chiffré de bout en bout ne peut pas encore être modifié',
-        ));
+      if (passerelle != null) {
+        await passerelle.modifier(
+          conversationId: conversationId,
+          messageId: messageId,
+          nouveauTexte: newContent,
+        );
+      } else {
+        await remoteDataSource.editMessage(
+          conversationId: conversationId,
+          messageId: messageId,
+          newContent: newContent,
+          oldContent: oldContent,
+        );
       }
-      await remoteDataSource.editMessage(
-        conversationId: conversationId,
-        messageId: messageId,
-        newContent: newContent,
-        oldContent: oldContent,
-      );
 
       // Depuis que la modification est rechiffrée, l'expéditeur ne sait plus
       // relire son propre message depuis le serveur : les charges Signal d'un

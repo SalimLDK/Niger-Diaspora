@@ -452,21 +452,32 @@ repository. L'aiguillage se fait **par message, pas par conversation** : une
 discussion basculée garde son historique en clair au-dessus du séparateur, et
 réagir à l'un de ces anciens messages doit rester legacy.
 
-Ce qui manque encore pour ouvrir le drapeau, par ordre de gravité :
+**Les neuf chemins sont branchés.** La modification voyage dans un message de
+contrôle chiffré (`kind = 'control'`, type `edit`) : le serveur ne voit passer
+qu'un ciphertext et pose `edited_at`, il ne lit pas le nouveau texte et garde
+l'original qu'il n'a jamais compris. Un contrôle n'est pas une bulle — il est
+écarté du fil et appliqué à sa cible.
 
-1. **On ne sait pas si un fil chiffré survit au redémarrage de
-   l'application.** `catchUp` tient son curseur en mémoire ; au redémarrage
-   il redemande au moteur des messages déjà déchiffrés, dont MLS a supprimé
-   le secret. Le cache Hive a le clair mais le chemin en ligne ne le relit
-   jamais. Si la crainte se confirme, une discussion basculée afficherait
-   tout son historique en « 🔐 Message chiffré ». **À vérifier sur appareil
-   avant tout le reste** — c'est le seul moyen de trancher, et ça décide de
-   l'ouverture du drapeau.
-2. **Modifier un message chiffré refuse visiblement.** Son nouveau texte doit
-   repartir dans un message de contrôle, et rien ne l'émet encore. Le
-   brancher suppose de répondre d'abord à (1) : un contrôle n'est délivré
-   qu'une fois, donc le texte modifié doit être gardé localement — même
-   question de durabilité.
+**La durabilité du fil est traitée** : le curseur de rattrapage est mémorisé
+par compte (`SharedPreferences`) — sans quoi chaque lancement redemandait au
+moteur des messages déjà déchiffrés, dont MLS a supprimé le secret, et
+l'historique serait revenu en « 🔐 Message chiffré ». Et le fil est repris du
+cache local (`MlsGateway.amorcer`) avant chaque lecture, le serveur n'ayant
+plus rien de lisible à offrir. Écrit et tenu par un banc ; **le refus de
+redéchiffrer ne s'observe qu'avec le vrai moteur, donc sur un téléphone**.
+
+Ce qui reste : **la vérification sur appareil**, et rien d'autre côté code.
+Entrées « Un fil chiffré survit au redémarrage » et « Aperçu et compteurs
+d'une conversation chiffrée » dans `TESTS_APPAREIL_A_FAIRE.md`.
+
+**Un mot sur les droits.** Les `GRANT` de ces migrations ne restreignaient
+rien : Supabase accorde déjà tout à `authenticated` sur toute table neuve du
+schéma `public`, et un `GRANT` n'enlève pas. L'expéditeur pouvait donc
+**réécrire le ciphertext de son propre message** malgré le commentaire qui
+affirmait le contraire — le RLS filtre des lignes, jamais des colonnes.
+Réparé par `20260915230000`, `REVOKE` d'abord. `TRUNCATE` reste accordé à
+`authenticated` sur 101 tables du schéma, et **ignore le RLS** : hors de
+portée de PostgREST aujourd'hui, à traiter à part.
 
 Réclamation atomique d'un KeyPackage (sinon deux ajouts concurrents
 consomment le même paquet et le second Welcome est indéchiffrable) :

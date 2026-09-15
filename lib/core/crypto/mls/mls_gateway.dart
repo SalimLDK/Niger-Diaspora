@@ -63,6 +63,11 @@ class MlsGateway {
   /// existe en entier.
   final Map<String, List<MessageEntity>> _fil = {};
 
+  /// Modifications reçues dont la cible n'est pas encore dans le fil — un
+  /// contrôle peut précéder le chargement du message qu'il vise. Vidée dès
+  /// que la cible paraît.
+  final Map<String, ({String texte, DateTime quand})> _editions = {};
+
   /// Le drapeau est lu à chaque appel, pas au démarrage : l'ouvrir ne doit
   /// pas demander de relancer l'application.
   bool get actif => _actif();
@@ -114,6 +119,13 @@ class MlsGateway {
     final fil = _fil[conversationId] ??= [];
     final deja = {for (final m in fil) m.id};
     for (final e in entrants) {
+      // Un contrôle n'est pas une bulle : il modifie, supprime ou annote un
+      // autre message. L'afficher ferait apparaître une ligne vide dans le
+      // fil à chaque réaction.
+      if (e.row.kind == 'control') {
+        _traiterControle(e);
+        continue;
+      }
       if (!deja.add(e.row.id)) continue;
       fil.add(MlsMessageMapper.depuisEntrant(
         e,
@@ -122,8 +134,55 @@ class MlsGateway {
       ));
     }
     fil.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    _appliquerEditionsEnAttente(fil);
     _connus.addAll(deja);
     return _avecMetadonnees(List.of(fil));
+  }
+
+  /// Reprend le fil déchiffré depuis le cache local de l'appareil.
+  ///
+  /// **C'est ce qui fait tenir une conversation basculée d'un lancement à
+  /// l'autre.** Le moteur ne sait pas relire ce qu'il a déjà déchiffré — MLS
+  /// supprime le secret d'un message applicatif après usage. Au démarrage, le
+  /// serveur n'a donc plus rien de lisible à offrir : seul le cache de
+  /// l'appareil garde le clair.
+  ///
+  /// N'amorce qu'une fois : ensuite c'est le fil en mémoire qui fait foi, et
+  /// il contient déjà tout le cache plus ce qui est arrivé depuis.
+  void amorcer(String conversationId, List<MessageEntity> caches) {
+    if (_fil.containsKey(conversationId)) return;
+    final fil = [...caches]
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    _fil[conversationId] = fil;
+    _connus.addAll(fil.map((m) => m.id));
+  }
+
+  /// Un message de contrôle reçu. Un type inconnu — écrit par une version
+  /// plus récente — est ignoré, pas jeté en erreur : le fil doit survivre à
+  /// ce qu'il ne comprend pas.
+  void _traiterControle(MlsIncoming entrant) {
+    final payload = entrant.payload;
+    if (payload == null || payload.type != 'edit') return;
+    final cible = payload.body['targetId'] as String?;
+    final texte = payload.body['content'] as String?;
+    if (cible == null || texte == null) return;
+    _editions[cible] = (texte: texte, quand: entrant.row.createdAt.toLocal());
+  }
+
+  /// Applique les modifications reçues **dans le fil lui-même**, pas à la
+  /// sortie : c'est ce fil-là qui sera mis en cache, donc relu au prochain
+  /// lancement. Un contrôle n'est délivré qu'une fois — s'il ne laissait pas
+  /// de trace durable, le texte d'avant réapparaîtrait au redémarrage.
+  void _appliquerEditionsEnAttente(List<MessageEntity> fil) {
+    if (_editions.isEmpty) return;
+    for (var i = 0; i < fil.length; i++) {
+      final edition = _editions.remove(fil[i].id);
+      if (edition == null) continue;
+      fil[i] = fil[i].copyWith(
+        content: edition.texte,
+        editedAt: edition.quand,
+      );
+    }
   }
 
   /// Recolle les métadonnées en ligne sur un fil déjà déchiffré.
@@ -386,12 +445,40 @@ class MlsGateway {
   Future<void> supprimerPourTous(String messageId) =>
       _meta.supprimerPourTous(messageId);
 
-  /// Modifier un message chiffré n'est **pas** branché : le nouveau texte
-  /// doit voyager chiffré, dans un message de contrôle, et rien ne l'émet
-  /// encore. L'appelant doit refuser visiblement — laisser passer écrirait
-  /// dans `messages`, sans cible, et le texte d'avant réapparaîtrait à la
-  /// réouverture, sans la moindre erreur.
-  static const modificationBranchee = false;
+  static const modificationBranchee = true;
+
+  /// Modifie un message chiffré.
+  ///
+  /// Le nouveau texte **repart chiffré**, dans un message de contrôle : le
+  /// serveur ne peut pas le lire, et garde le ciphertext d'origine qu'il n'a
+  /// jamais compris. La colonne `edited_at`, elle, dit publiquement « ce
+  /// message a été modifié » — pour l'appareil qui n'aurait pas reçu le
+  /// contrôle, et qui doit savoir que son texte n'est plus le dernier.
+  ///
+  /// Lève si l'envoi échoue : une modification qui « réussit » sans rien
+  /// changer est l'échec muet que ce chantier traque.
+  Future<void> modifier({
+    required String conversationId,
+    required String messageId,
+    required String nouveauTexte,
+  }) async {
+    await _service.send(
+      conversationId,
+      MlsPayload(
+        id: '',
+        type: 'edit',
+        sentAt: DateTime.now().millisecondsSinceEpoch,
+        body: {'targetId': messageId, 'content': nouveauTexte},
+      ),
+      kind: 'control',
+    );
+    await _meta.marquerModifie(messageId);
+    // Chez moi aussi : `catchUp` saute mes propres messages, le contrôle ne
+    // me reviendra jamais.
+    _editions[messageId] = (texte: nouveauTexte, quand: DateTime.now());
+    final fil = _fil[conversationId];
+    if (fil != null) _appliquerEditionsEnAttente(fil);
+  }
 
   /// Accuse réception de tous les messages des autres dans la conversation.
   ///

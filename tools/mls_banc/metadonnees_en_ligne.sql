@@ -188,6 +188,65 @@ BEGIN
     RAISE EXCEPTION 'C7 ÉCHEC: un message masqué compte encore (% ligne(s))', v_n;
   END IF;
 
+  -- ── E. La modification : qui peut poser `edited_at`, et sur quoi ────────
+  -- Le nouveau TEXTE voyage dans un message de contrôle chiffré ; la colonne
+  -- ne dit que « ce message a été modifié ». Reste à vérifier que seul son
+  -- expéditeur peut le dire, et que personne ne peut réécrire le ciphertext.
+
+  -- E1 — Bob n'est pas l'expéditeur : il ne marque pas le message modifié.
+  BEGIN
+    UPDATE public.mls_messages SET edited_at = now() WHERE id = v_msg;
+    IF FOUND THEN
+      RAISE EXCEPTION 'E1 ÉCHEC: un non-expéditeur a marqué le message modifié';
+    END IF;
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+
+  RESET ROLE;
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('role', 'authenticated',
+                      'app_metadata', json_build_object('firebase_uid', v_alice))::text, true);
+  SET LOCAL ROLE authenticated;
+
+  -- E2 — L'expéditrice, elle, le peut.
+  UPDATE public.mls_messages SET edited_at = now() WHERE id = v_msg;
+  IF (SELECT edited_at FROM public.mls_messages WHERE id = v_msg) IS NULL THEN
+    RAISE EXCEPTION 'E2 ÉCHEC: l''expéditrice ne peut pas marquer son message modifié';
+  END IF;
+
+  -- E3 — Mais elle ne réécrit pas le ciphertext. C'est la garantie qui fait
+  -- qu'une « modification » ne peut pas remplacer l'original en base : le
+  -- serveur garde ce qu'il n'a jamais compris.
+  BEGIN
+    UPDATE public.mls_messages SET ciphertext = decode('ff', 'hex') WHERE id = v_msg;
+    RAISE EXCEPTION 'E3 ÉCHEC: le ciphertext d''un message a été réécrit';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+
+  -- E3b — Ni le TRUNCATE, qui IGNORE le RLS : aucune policy ne le retient,
+  -- seul le droit de table le fait.
+  BEGIN
+    EXECUTE 'TRUNCATE public.mls_message_reactions';
+    RAISE EXCEPTION 'E3b ÉCHEC: une table de métadonnées a été tronquée';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+
+  -- E3c — Ni le déplacement d'un reçu d'un message à l'autre.
+  BEGIN
+    UPDATE public.mls_message_receipts SET message_id = v_ctrl WHERE message_id = v_msg;
+    IF FOUND THEN
+      RAISE EXCEPTION 'E3c ÉCHEC: un reçu a changé de message';
+    END IF;
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+
+  -- E4 — Un message de contrôle ne remonte pas la conversation dans la liste
+  -- et ne compte pas dans les non-lus : il n'est pas un message.
+  SELECT count(*) INTO v_n FROM public.mls_unread_counts WHERE conversation_id = v_conv;
+  IF v_n <> 0 THEN
+    RAISE EXCEPTION 'E4 ÉCHEC: l''expéditrice compte % ligne(s) de non-lus', v_n;
+  END IF;
+
   -- ── D. Carol, étrangère à la conversation, ne lit RIEN ───────────────────
   -- Le refus est muet : ce sont des 0 lignes, pas des erreurs (7e forme des
   -- échecs muets Supabase). C'est exactement pour ça qu'on le mesure.

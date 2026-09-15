@@ -199,7 +199,33 @@ Sortie vide = ok. Sinon, renuméroter **celle qui n'a jamais été appliquée**
 (le message de commit le dit en général), après la dernière migration
 existante — jamais avant, sinon désordre d'ordonnancement.
 
-**2. `db push` s'arrête à la première migration en échec**, et bloque tout ce
+**2. Un `GRANT` ne restreint rien : il faut `REVOKE`.** Supabase pose
+`ALTER DEFAULT PRIVILEGES … GRANT ALL ON TABLES TO anon, authenticated` :
+toute table neuve du schéma `public` naît avec **tous** les droits pour ces
+deux rôles. Écrire
+
+```sql
+GRANT SELECT, INSERT ON public.ma_table TO authenticated;   -- n'enlève RIEN
+```
+
+donne l'illusion d'une restriction et n'en pose aucune. Le motif juste est
+`REVOKE ALL … FROM authenticated;` **puis** les `GRANT` voulus — et le faire
+pour `authenticated` autant que pour `anon`, qu'on pense plus souvent à
+révoquer.
+
+Ce que ça a coûté, trouvé par un banc le 2026-09-15 : `mls_messages` portait
+en commentaire « le ciphertext ne se réécrit jamais : seules les métadonnées
+de retouche », avec le `GRANT UPDATE (…)` colonne par colonne juste en
+dessous. En production, l'expéditeur pouvait **réécrire le ciphertext de son
+propre message**, des heures après. Le RLS n'y pouvait rien : il filtre des
+lignes, jamais des colonnes ni des verbes.
+
+Et `TRUNCATE`, accordé par le même défaut sur **101 tables** à
+`authenticated` (84 à `anon`), **ignore le RLS** — aucune policy ne le
+retient. PostgREST ne l'expose pas, donc ce n'est pas une porte ouverte
+aujourd'hui ; ça le deviendrait au premier `security invoker` qui tronque.
+
+**3. `db push` s'arrête à la première migration en échec**, et bloque tout ce
 qui suit dans la file — y compris une migration sans rapport, à quelqu'un
 d'autre. Un fichier qui recrée une fonction (`CREATE FUNCTION` sans
 `OR REPLACE`) doit `DROP` **toutes** ses surcharges existantes, pas seulement

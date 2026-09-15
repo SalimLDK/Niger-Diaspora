@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:diaspo_niger/core/crypto/mls/mls_conversation_service.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_delivery.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_gateway.dart';
+import 'package:diaspo_niger/core/crypto/mls/mls_message_mapper.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_metadonnees.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_payload_codec.dart';
 import 'package:diaspo_niger/features/messages/data/repositories/message_repository_impl.dart';
@@ -28,13 +29,15 @@ import 'package:flutter_test/flutter_test.dart';
 ///    contenu ; sans le second passage, un fil basculé s'afficherait sans
 ///    réactions, sans coches et sans favoris — encore muettement.
 
-MlsMessageRow _ligne(String id, {String expediteur = 'u2'}) => MlsMessageRow(
+MlsMessageRow _ligne(String id,
+        {String expediteur = 'u2', String kind = 'content'}) =>
+    MlsMessageRow(
       id: id,
       conversationId: 'c1',
       senderId: expediteur,
       senderDeviceId: 'd1',
       epoch: 1,
-      kind: 'content',
+      kind: kind,
       contentType: 'text',
       ciphertext: Uint8List.fromList([1]),
       createdAt: DateTime.utc(2026, 9, 15, 12),
@@ -74,6 +77,8 @@ class _ServiceFige extends MlsConversationService {
 
   final List<MlsIncoming> fil;
   MlsMessageRow? dernierEnvoi;
+  String? dernierKind;
+  MlsPayload? dernierPayload;
   int rattrapages = 0;
 
   /// **Le vrai `catchUp` est incrémental** : il avance un curseur et retient
@@ -98,9 +103,12 @@ class _ServiceFige extends MlsConversationService {
     MlsPayload payload, {
     String kind = 'content',
     String contentType = 'text',
-  }) async =>
-      dernierEnvoi = _ligne(payload.id.isEmpty ? 'm-neuf' : payload.id,
-          expediteur: 'u1');
+  }) async {
+    dernierKind = kind;
+    dernierPayload = payload;
+    return dernierEnvoi = _ligne(payload.id.isEmpty ? 'm-neuf' : payload.id,
+        expediteur: 'u1');
+  }
 }
 
 /// Les tables annexes, sans base : on compte les appels et on rend ce qu'on
@@ -113,6 +121,7 @@ class _MetaEspion extends MlsMetadonnees {
   final Set<String> presents;
 
   int interrogations = 0;
+  final List<String> modifies = [];
   final List<String> reactionsPosees = [];
   final List<String> reactionsRetirees = [];
   final List<String> masques = [];
@@ -140,6 +149,10 @@ class _MetaEspion extends MlsMetadonnees {
 
   @override
   Future<void> masquer(String messageId) async => masques.add(messageId);
+
+  @override
+  Future<void> marquerModifie(String messageId) async =>
+      modifies.add(messageId);
 
   @override
   Future<void> supprimerPourTous(String messageId) async =>
@@ -372,6 +385,194 @@ void main() {
     });
   });
 
+  group('Un fil chiffré survit au redémarrage', () {
+    // Le point noir de la coexistence. MLS supprime le secret d'un message
+    // applicatif après usage : au lancement suivant, le serveur n'a plus rien
+    // de lisible à offrir pour les messages d'hier. Seul le cache de
+    // l'appareil garde le clair — encore faut-il aller le chercher.
+
+    test('le fil revient du cache quand le serveur n\'a plus rien à rendre',
+        () async {
+      // Application relancée : moteur neuf, curseur au dernier message traité,
+      // donc `catchUp` ne rend rien. Sans amorçage, l'écran serait vide.
+      final passerelle = _passerelle(_ServiceFige(const []), _MetaEspion());
+
+      passerelle.amorcer('c1', [
+        MlsMessageMapper.depuisPayload(_payload('m1'),
+            row: _ligne('m1'), senderName: 'Nom', currentUserId: 'u1'),
+      ]);
+
+      final fil = await passerelle.messages('c1');
+      expect(fil.map((m) => m.id), ['m1']);
+      expect(fil.first.content, 'bonjour');
+    });
+
+    test('amorcer ne se fait qu\'une fois, et n\'écrase jamais le fil vivant',
+        () async {
+      final service = _ServiceFige([
+        MlsIncoming(_ligne('m1'), payload: _payload('m1')),
+      ]);
+      final passerelle = _passerelle(service, _MetaEspion());
+
+      await passerelle.messages('c1'); // le fil existe désormais
+      passerelle.amorcer('c1', const []); // un cache vide ne doit rien vider
+
+      expect((await passerelle.messages('c1')).map((m) => m.id), ['m1']);
+    });
+
+    test('le cache d\'une conversation non basculée n\'est pas repris', () {
+      // `mls_since` nul : rien n'est chiffré ici, tout le cache est legacy.
+      expect(
+        MessageRepositoryImpl.mlsDuCache([
+          {'id': 'm1', 'content': 'clair', 'createdAt': '2026-09-15T12:00:00Z'}
+        ], null),
+        isEmpty,
+      );
+    });
+
+    test('seuls les messages d\'après la bascule sont repris', () {
+      final repris = MessageRepositoryImpl.mlsDuCache([
+        {'id': 'avant', 'content': 'legacy', 'createdAt': '2026-09-15T10:00:00Z'},
+        {'id': 'apres', 'content': 'chiffré', 'createdAt': '2026-09-15T12:00:00Z'},
+      ], DateTime.utc(2026, 9, 15, 11));
+
+      expect(repris.map((m) => m.id), ['apres']);
+    });
+
+    test('un placeholder en cache ne revient pas prendre la place du clair',
+        () {
+      // Si un passage précédent a mis « 🔐 Message chiffré » en cache, le
+      // reprendre figerait la perte : le fil ne se réparerait plus jamais.
+      final repris = MessageRepositoryImpl.mlsDuCache([
+        {
+          'id': 'm1',
+          'content': MlsMessageMapper.placeholderIllisible,
+          'createdAt': '2026-09-15T12:00:00Z',
+        },
+      ], DateTime.utc(2026, 9, 15, 11));
+
+      expect(repris, isEmpty);
+    });
+
+    test('le séparateur n\'est pas un message et ne revient pas', () {
+      final repris = MessageRepositoryImpl.mlsDuCache([
+        {
+          'id': MlsMessageMapper.idSeparateur,
+          'content': 'Messages d\'avant',
+          'createdAt': '2026-09-15T12:00:00Z',
+        },
+      ], DateTime.utc(2026, 9, 15, 11));
+
+      expect(repris, isEmpty);
+    });
+  });
+
+  group('La modification voyage chiffrée', () {
+    test('elle part en contrôle, pas en message', () async {
+      final service = _ServiceFige(const []);
+      final meta = _MetaEspion();
+      final passerelle = _passerelle(service, meta);
+
+      await passerelle.modifier(
+        conversationId: 'c1',
+        messageId: 'm1',
+        nouveauTexte: 'texte corrigé',
+      );
+
+      expect(service.dernierKind, 'control',
+          reason: 'un message de contenu ferait une bulle et une notification');
+      expect(service.dernierPayload?.type, 'edit');
+      expect(service.dernierPayload?.body['content'], 'texte corrigé',
+          reason: 'le nouveau texte doit être DANS le chiffré');
+      expect(service.dernierPayload?.body['targetId'], 'm1');
+      expect(meta.modifies, ['m1'],
+          reason: '`edited_at` dit « modifié » à qui n\'a pas eu le contrôle');
+    });
+
+    test('elle s\'applique chez soi : le contrôle ne me revient jamais',
+        () async {
+      final service = _ServiceFige([
+        MlsIncoming(_ligne('m1', expediteur: 'u1'), payload: _payload('m1')),
+      ]);
+      final passerelle = _passerelle(service, _MetaEspion());
+      await passerelle.messages('c1');
+
+      await passerelle.modifier(
+        conversationId: 'c1',
+        messageId: 'm1',
+        nouveauTexte: 'texte corrigé',
+      );
+
+      final fil = await passerelle.messages('c1');
+      expect(fil.single.content, 'texte corrigé');
+      expect(fil.single.editedAt, isNotNull);
+    });
+
+    test('un contrôle reçu réécrit la cible sans faire de bulle', () async {
+      final service = _ServiceFige([
+        MlsIncoming(_ligne('m1'), payload: _payload('m1')),
+        MlsIncoming(
+          _ligne('ctrl', kind: 'control'),
+          payload: MlsPayload(
+            id: 'ctrl',
+            type: 'edit',
+            sentAt: 0,
+            body: const {'targetId': 'm1', 'content': 'corrigé par l\'autre'},
+          ),
+        ),
+      ]);
+      final passerelle = _passerelle(service, _MetaEspion());
+
+      final fil = await passerelle.messages('c1');
+
+      expect(fil, hasLength(1), reason: 'le contrôle n\'est pas une bulle');
+      expect(fil.single.content, 'corrigé par l\'autre');
+    });
+
+    test('un contrôle arrivé avant sa cible s\'applique quand elle paraît',
+        () async {
+      final service = _ServiceFige([
+        MlsIncoming(
+          _ligne('ctrl', kind: 'control'),
+          payload: MlsPayload(
+            id: 'ctrl',
+            type: 'edit',
+            sentAt: 0,
+            body: const {'targetId': 'm1', 'content': 'corrigé'},
+          ),
+        ),
+      ]);
+      final passerelle = _passerelle(service, _MetaEspion());
+
+      await passerelle.messages('c1'); // le contrôle seul : rien à réécrire
+      passerelle.amorcer('c1', const []);
+      service.fil
+        ..clear()
+        ..add(MlsIncoming(_ligne('m1'), payload: _payload('m1')));
+      service.rattrapages = 0; // la cible arrive au tour suivant
+
+      final fil = await passerelle.messages('c1');
+      expect(fil.single.content, 'corrigé');
+    });
+
+    test('un type de contrôle inconnu est ignoré, pas jeté en erreur',
+        () async {
+      // Écrit par une version plus récente : le fil doit survivre à ce qu'il
+      // ne comprend pas.
+      final service = _ServiceFige([
+        MlsIncoming(_ligne('m1'), payload: _payload('m1')),
+        MlsIncoming(
+          _ligne('ctrl', kind: 'control'),
+          payload: MlsPayload(
+              id: 'ctrl', type: 'epingler', sentAt: 0, body: const {}),
+        ),
+      ]);
+
+      final fil = await _passerelle(service, _MetaEspion()).messages('c1');
+      expect(fil.map((m) => m.id), ['m1']);
+    });
+  });
+
   group("L'aperçu d'une discussion chiffrée vient du cache local", () {
     // Le serveur ne porte que le type (décision G) : le texte, s'il doit
     // apparaître, ne peut venir que du cache déchiffré de l'appareil.
@@ -451,6 +652,34 @@ void main() {
       // Refermer le drapeau n'annule pas ce qui est basculé : ces
       // conversations gardent leurs compteurs.
       expect(passerelle.aDesConversationsBasculees, isTrue);
+    });
+  });
+
+  group('Le curseur de rattrapage survit au redémarrage', () {
+    // Garde structurelle. Le comportement réel — le moteur qui refuse de
+    // redéchiffrer — ne s'observe qu'avec le vrai moteur Rust, donc sur un
+    // téléphone (entrée « Un fil chiffré survit-il au redémarrage ? »). Ce
+    // qui se tient ici, c'est que le curseur est bien lu du disque avant la
+    // requête, et réécrit après.
+    final source =
+        _source('lib/core/crypto/mls/mls_conversation_service.dart');
+
+    test('catchUp part du curseur mémorisé, pas de zéro', () {
+      expect(source, contains('final depart = await _curseurDe(conversationId);'),
+          reason: 'sans ça, chaque lancement relit toute la conversation');
+      expect(source,
+          contains('_delivery.messagesAfter(conversationId, depart)'));
+    });
+
+    test('catchUp réécrit le curseur avant de rendre la main', () {
+      expect(source, contains('await _memoriserCurseur(conversationId, depart);'),
+          reason: 'un curseur qui n\'est pas écrit ne sert à rien au lancement suivant');
+    });
+
+    test('la clé porte l\'utilisateur', () {
+      // Deux comptes sur le même téléphone n'ont ni le même moteur ni le même
+      // avancement : une clé commune ferait sauter des messages à l'un.
+      expect(source, contains("'mls_curseur_\${userId}_\$conversationId'"));
     });
   });
 

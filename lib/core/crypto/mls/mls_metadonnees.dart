@@ -292,6 +292,17 @@ class MlsMetadonnees {
     }).eq('id', messageId);
   }
 
+  /// Marque le message comme modifié. Le **nouveau texte** n'entre pas ici :
+  /// il voyage chiffré, dans un message de contrôle. La colonne ne dit que
+  /// « ce message a été modifié », ce que le serveur voit de toute façon en
+  /// voyant passer le contrôle.
+  Future<void> marquerModifie(String messageId) async {
+    await _auth();
+    await _client.from('mls_messages').update({
+      'edited_at': DateTime.now().toUtc().toIso8601String(),
+    }).eq('id', messageId);
+  }
+
   // ── Reçus ────────────────────────────────────────────────────────────────
 
   /// Pose « livré » puis « lu » sur les messages donnés.

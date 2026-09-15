@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1112 cases à cocher, 581 cochées** — 224 entrées sur 270 ont encore des cases ouvertes.
+**1116 cases à cocher, 581 cochées** — 224 entrées sur 270 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (25)
 
-- 3 · [⬜ Un fil chiffré survit-il au redémarrage de l'application ? (2026-09-15)](#-un-fil-chiffré-survit-il-au-redémarrage-de-lapplication--2026-09-15) · *Messagerie*
+- 5 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
@@ -80,7 +80,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 18 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
+- 20 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
@@ -282,7 +282,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 216 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 220 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 64 à faire, 31 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -596,9 +596,14 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
 - [ ] **Supprimer pour tous** : la bulle devient « message supprimé » des deux
   côtés.
 - [ ] **Favori** posé sur un message chiffré : il tient après réouverture.
-- [ ] **Modifier** un message chiffré : le refus est **visible** (message
-  d'erreur), et le texte d'origine reste affiché — pas de modification qui
-  paraît réussir puis revient en arrière.
+- [ ] **Modifier** un message chiffré : le nouveau texte apparaît des deux
+  côtés, marqué « modifié », **sans qu'une bulle vide ne s'ajoute au fil**
+  (le contrôle ne doit pas s'afficher).
+- [ ] **La modification survit à la réouverture** de la discussion, puis au
+  redémarrage de l'application : c'est le cache local qui la porte, le
+  contrôle n'étant délivré qu'une fois.
+- [ ] **Une modification ne remonte pas** la discussion en tête de liste et
+  ne déclenche **aucune notification**.
 - [ ] **Heure de lecture** dans la fiche d'un message : elle ne se remet pas à
   « à l'instant » à chaque réouverture de la discussion.
 - [ ] **Rouvrir une discussion chiffrée** dans la même session : les messages
@@ -615,38 +620,43 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
 
 ---
 
-## ⬜ Un fil chiffré survit-il au redémarrage de l'application ? (2026-09-15)
+## ⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)
 
-**Priorité P0** · importance 5/5 — Question ouverte, trouvée en branchant les
-métadonnées, **jamais vérifiée**. Elle décide si le drapeau MLS est ouvrable.
+**Priorité P0** · importance 5/5 — Corrigé le 2026-09-15, **jamais vérifié
+sur un téléphone**, et c'est ce qui décide de l'ouverture du drapeau.
 
-`MlsConversationService` tient son curseur et sa liste de messages vus **en
-mémoire seulement** (`_curseur`, `_vus`). Au redémarrage, `catchUp` reprend
-donc depuis le début et redemande au moteur de déchiffrer des messages déjà
-déchiffrés. MLS supprime le secret d'un message applicatif après usage : ces
-messages devraient revenir en **« 🔐 Message chiffré »**, et une discussion
-basculée afficherait tout son historique en placeholders.
+Le défaut : `MlsConversationService` tenait son curseur **en mémoire
+seulement**. Au redémarrage, `catchUp` reprenait depuis le début et
+redemandait au moteur de déchiffrer des messages déjà déchiffrés — or MLS
+supprime le secret d'un message applicatif après usage. Tout l'historique
+d'une discussion basculée serait revenu en « 🔐 Message chiffré ».
 
-Le cache Hive contient bien le clair — `_fusionnerAvecMls` l'y écrit à chaque
-lecture — mais **le chemin en ligne ne le relit jamais** : il ne sert qu'au
-mode hors ligne. Pire, s'il est réécrit avec des placeholders, il perd le
-clair qu'il détenait.
+Deux correctifs, qui vont ensemble : le curseur est **mémorisé**
+(`SharedPreferences`, une clé par compte), donc le moteur n'est plus
+sollicité pour d'anciens messages ; et le fil est **repris du cache local**
+(`MlsGateway.amorcer`) avant chaque lecture, puisque le serveur n'a plus rien
+de lisible à offrir. Les placeholders déjà en cache sont écartés à la reprise
+— sinon la perte se figerait.
 
-Rien de tout ça n'est prouvé : il faut un appareil, deux comptes et un
-redémarrage. C'est le seul moyen de trancher.
+Le banc Dart tient l'amorçage et le filtrage ; **le refus de redéchiffrer, lui,
+ne s'observe qu'avec le vrai moteur Rust** — donc ici.
 
 Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
-(`_curseur`, `_vus`, `catchUp`),
+(`_curseurDe`, `_memoriserCurseur`),
+[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (`amorcer`),
 [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
-(`_fusionnerAvecMls`).
+(`mlsDuCache`).
 
 - [ ] **Deux messages échangés**, application tuée, rouverte : le fil montre
   le texte, pas « 🔐 Message chiffré ».
-- [ ] Si ce sont des placeholders : vérifier en base que le cache Hive
-  contenait le clair **avant** la réouverture, et qu'il ne l'a pas perdu
-  après (c'est la perte qui serait irréversible).
-- [ ] **Même épreuve après réinstallation** : là, les placeholders sont
-  attendus et normaux — c'est la limite du chiffrement, pas un défaut.
+- [ ] **Un troisième message** arrive après la réouverture : il se déchiffre
+  normalement (le curseur repris ne doit pas sauter ce qui est neuf).
+- [ ] **Vider le cache de l'application** puis rouvrir : les anciens messages
+  deviennent des placeholders — attendu, c'est la limite du chiffrement — mais
+  les nouveaux passent toujours.
+- [ ] **Même épreuve après réinstallation** : placeholders attendus aussi.
+- [ ] `mls_diagnostics` ne se remplit pas de `decrypt_failed` à chaque
+  lancement (c'était le symptôme silencieux du défaut).
 
 ---
 

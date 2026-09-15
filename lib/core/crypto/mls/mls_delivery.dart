@@ -72,6 +72,12 @@ class MlsMessageRow {
   final Uint8List ciphertext;
   final String? replyToId;
   final bool isDeleted;
+
+  /// Posé par l'expéditeur avec le contrôle `edit`. Un appareil qui n'a pas
+  /// reçu ce contrôle — arrivé après, réinstallé — affiche quand même
+  /// « modifié » sous le texte d'origine, plutôt que de faire passer une
+  /// version périmée pour la dernière.
+  final DateTime? editedAt;
   final DateTime createdAt;
 
   const MlsMessageRow({
@@ -85,6 +91,7 @@ class MlsMessageRow {
     required this.ciphertext,
     this.replyToId,
     this.isDeleted = false,
+    this.editedAt,
     required this.createdAt,
   });
 
@@ -99,6 +106,7 @@ class MlsMessageRow {
         ciphertext: depuisBytea(r['ciphertext'] as String),
         replyToId: r['reply_to_id'] as String?,
         isDeleted: r['is_deleted'] == true,
+        editedAt: DateTime.tryParse(r['edited_at'] as String? ?? ''),
         createdAt: DateTime.parse(r['created_at'] as String),
       );
 
