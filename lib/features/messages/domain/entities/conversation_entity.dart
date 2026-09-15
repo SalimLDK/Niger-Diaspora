@@ -19,6 +19,26 @@ enum ConversationRequestStatus {
   declined,
 }
 
+/// Pourquoi l'aperçu d'une conversation n'a plus de texte à montrer.
+///
+/// `conversations.data->>'lastMessage'` porte le dernier message **en clair**.
+/// Deux choses le vident, et elles ne se disent pas pareil à l'écran : la
+/// purge des messages éphémères (« Message expiré ») et « supprimer pour tout
+/// le monde » (« Message supprimé »). Avant que ces deux marques existent, le
+/// client devinait — il n'y avait qu'une cause possible, donc un seul
+/// libellé, et la seconde cause l'aurait fait mentir sans que rien ne le
+/// dise.
+enum ApercuEfface {
+  /// L'aperçu a son texte, ou n'en a jamais eu (conversation neuve).
+  aucun,
+
+  /// Le dernier message a été supprimé pour tout le monde.
+  supprime,
+
+  /// Le dernier message a atteint son échéance.
+  expire,
+}
+
 class ConversationEntity extends Equatable {
   final String id;
   final ConversationType type;
@@ -35,6 +55,15 @@ class ConversationEntity extends Equatable {
   final DateTime? lastMessageAt;
   final List<String> lastMessageReadBy;
   final List<String> lastMessageDeliveredTo;
+
+  /// L'aperçu a été vidé parce que son message a été supprimé pour tous.
+  /// Écrit dans `conversations.data` par le client qui supprime.
+  final bool lastMessageDeleted;
+
+  /// L'aperçu a été vidé parce que son message a expiré.
+  /// Écrit dans `conversations.data` par `purger_messages_expires()`.
+  final bool lastMessageExpired;
+
   final DateTime createdAt;
   final String createdBy;
   final Map<String, int> unreadCount;
@@ -79,6 +108,8 @@ class ConversationEntity extends Equatable {
     this.lastMessageAt,
     this.lastMessageReadBy = const [],
     this.lastMessageDeliveredTo = const [],
+    this.lastMessageDeleted = false,
+    this.lastMessageExpired = false,
     required this.createdAt,
     required this.createdBy,
     this.unreadCount = const {},
@@ -111,6 +142,21 @@ class ConversationEntity extends Equatable {
   bool isPinnedBy(String userId) => pinnedBy.containsKey(userId);
   DateTime? pinnedAtBy(String userId) => pinnedBy[userId];
   bool isDeletedFor(String userId) => deletedBy.containsKey(userId);
+
+  /// La règle, au singulier : ce que l'aperçu doit dire quand il n'a plus de
+  /// texte.
+  ///
+  /// **Un texte présent l'emporte sur les marques.** Tout écrivain d'aperçu
+  /// les retire en écrivant le sien — l'envoi legacy
+  /// (`_updateConversationLastMessage`), le trigger MLS — donc un aperçu
+  /// non vide vient forcément d'un message plus récent, et la marque qu'on
+  /// lirait à côté serait périmée.
+  ApercuEfface get apercuEfface {
+    if ((lastMessage ?? '').isNotEmpty) return ApercuEfface.aucun;
+    if (lastMessageDeleted) return ApercuEfface.supprime;
+    if (lastMessageExpired) return ApercuEfface.expire;
+    return ApercuEfface.aucun;
+  }
 
   bool get isGroup => type == ConversationType.group;
   bool get isIndividual => type == ConversationType.individual;
@@ -192,6 +238,8 @@ class ConversationEntity extends Equatable {
     DateTime? lastMessageAt,
     List<String>? lastMessageReadBy,
     List<String>? lastMessageDeliveredTo,
+    bool? lastMessageDeleted,
+    bool? lastMessageExpired,
     DateTime? createdAt,
     String? createdBy,
     Map<String, int>? unreadCount,
@@ -223,6 +271,8 @@ class ConversationEntity extends Equatable {
       lastMessageReadBy: lastMessageReadBy ?? this.lastMessageReadBy,
       lastMessageDeliveredTo:
           lastMessageDeliveredTo ?? this.lastMessageDeliveredTo,
+      lastMessageDeleted: lastMessageDeleted ?? this.lastMessageDeleted,
+      lastMessageExpired: lastMessageExpired ?? this.lastMessageExpired,
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,
       unreadCount: unreadCount ?? this.unreadCount,
@@ -257,6 +307,8 @@ class ConversationEntity extends Equatable {
     lastMessageAt,
     lastMessageReadBy,
     lastMessageDeliveredTo,
+    lastMessageDeleted,
+    lastMessageExpired,
     createdAt,
     createdBy,
     unreadCount,

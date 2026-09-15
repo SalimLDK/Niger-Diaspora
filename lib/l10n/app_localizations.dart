@@ -19916,6 +19916,12 @@ abstract class AppLocalizations {
   /// **'Message expiré'**
   String get messageAutoDeleted;
 
+  /// No description provided for @lastMessageEncrypted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message chiffré'**
+  String get lastMessageEncrypted;
+
   /// No description provided for @photo.
   ///
   /// In fr, this message translates to:

@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1153 cases à cocher, 582 cochées** — 229 entrées sur 275 ont encore des cases ouvertes.
+**1164 cases à cocher, 582 cochées** — 230 entrées sur 276 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (26)
+**P0 — avant toute nouvelle version** (27)
 
+- 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 5 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
@@ -287,7 +288,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 235 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 246 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 86 à faire, 32 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -549,6 +550,79 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)
+
+**Priorité P0** · importance 5/5 — `conversations.data->>'lastMessage'` porte
+le texte du dernier message **en clair** : c'est lui qu'on lit dans la liste
+des discussions. « Supprimer pour tout le monde » vidait la ligne `messages`
+— contenu, `fileUrl`, cartes de partage, clé du média chiffré — et **ne le
+touchait pas**. Supprimer son dernier message donnait donc une bulle
+« Message supprimé » avec, une ligne plus haut, son texte parfaitement
+lisible. La suppression se disait accomplie pendant que son contenu restait à
+l'écran.
+
+Refermer ce trou en ouvre un second : deux causes vident désormais cet aperçu
+— la purge des messages éphémères et la suppression — et elles ne se disent
+pas pareil. Le client n'en connaissait qu'une et affichait « Message expiré »
+pour les deux. D'où deux marques dans `conversations.data`,
+`lastMessageDeleted` et `lastMessageExpired` : elles s'excluent, et **tout
+écrivain d'aperçu les efface** (envoi legacy, trigger MLS, purge).
+
+Trois chemins mènent au même aperçu et les trois sont couverts : la base
+(legacy), le **cache local** (MLS — le serveur n'a jamais le clair, et la
+copie de l'appareil garde le texte supprimé jusqu'au prochain rechargement),
+et le libellé à l'écran.
+
+Fichiers : [message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart)
+(`_viderApercuSiDernier`), [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`apercuDepuisCache`), [conversation_entity.dart](lib/features/messages/domain/entities/conversation_entity.dart)
+(`apercuEfface`), [conversation_item.dart](lib/features/messages/presentation/widgets/conversation_item.dart),
+[20260915235900_apercu_dit_pourquoi_il_est_vide.sql](supabase/migrations/20260915235900_apercu_dit_pourquoi_il_est_vide.sql).
+
+Banc serveur (BEGIN/ROLLBACK, n'écrit rien de durable) :
+`supabase db query --linked -f supabase/diagnostics/2026-09-15_banc_apercu_message_supprime.sql`
+— 13 contrôles, tous VERT au 2026-09-15 avec la migration jouée dans la
+transaction ; 4 ROUGE sans elle, ce qui est aussi la preuve qu'elle est
+nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
+
+- [ ] **La fuite d'origine** : envoyer un texte reconnaissable, le supprimer
+  pour tout le monde, revenir à la liste des discussions. La tuile ne montre
+  plus le texte, elle dit « Message supprimé ». Vérifier **des deux côtés** :
+  l'expéditeur et le destinataire.
+- [ ] **En base**, après ce geste : `data->>'lastMessage'` est vide et
+  `data->>'lastMessageDeleted'` vaut `true` sur la conversation.
+- [ ] **Pas le dernier** : supprimer un message qui n'est PAS le dernier de la
+  discussion laisse l'aperçu intact (c'est l'égalité `last_message_at` =
+  `created_at` du message qui décide).
+- [ ] **Un message neuf efface la marque** : après la suppression, envoyer un
+  autre message. La tuile affiche son texte, et plus jamais « Message
+  supprimé » — la marque doit disparaître, sinon elle colle à la conversation
+  pour toujours.
+- [ ] **Une photo supprimée** ne s'annonce plus « 📎 Photo » : ni la
+  suppression ni l'expiration ne touchent `lastMessageType`, et le libellé de
+  type passait avant. Même contrôle pour une **note vocale** (elle gardait son
+  icône micro et « 🎤 Message vocal ») et pour un **appel** (combiné vert).
+- [ ] **Expiré ≠ supprimé** : faire expirer le dernier message (recette SQL de
+  « Messages éphémères — minuteur réparé, purge serveur »). La tuile dit
+  « Message expiré », pas « Message supprimé ».
+- [ ] **Côté MLS**, drapeau ouvert : supprimer le dernier message chiffré
+  d'une discussion. La tuile dit « Message supprimé » — et non le texte, que
+  le **cache local** de l'appareil détient encore (le serveur, lui, ne l'a
+  jamais eu). C'est le contrôle le plus important de la liste : la fuite y
+  passe par un chemin entièrement différent.
+- [ ] **MLS, discussion jamais ouverte sur cet appareil** (ou cache vidé) : la
+  tuile dit « Message chiffré », **pas** « Message expiré » — ce qu'elle
+  disait depuis que la purge a appris à vider l'aperçu, en annonçant la
+  disparition de messages vivants.
+- [ ] **Conversation neuve** : une discussion sans aucun message dit toujours
+  « Nouvelle conversation ».
+- [ ] **Hors ligne / après redémarrage** : le libellé survit au cache Hive —
+  rouvrir l'application en mode avion doit encore afficher « Message
+  supprimé », pas le texte.
+- [ ] **Thème sombre** : les trois libellés restent lisibles dans la liste.
+
+---
+
 ## ⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)
 
 **Priorité P1** · importance 4/5 — La fonction était **morte en silence** sur
@@ -611,9 +685,9 @@ SELECT public.purger_messages_expires();
   même qu'un message qui portait une carte de partage n'a plus `encAnnexes`
   ni `postData`.
 - [ ] **Dernier message de la liste** : quand le dernier message d'une
-  discussion expire, la tuile de la liste n'affiche pas son texte effacé (la
-  purge ne touche pas `conversations.data.lastMessage` — à regarder, c'est la
-  fuite résiduelle la plus probable).
+  discussion expire, la tuile de la liste n'affiche pas son texte effacé, et
+  dit « Message expiré » — pas « Message supprimé ». Voir « L'aperçu de la
+  liste dit pourquoi il est vide ».
 - [ ] **Notification déjà reçue** : une push arrivée avant l'expiration reste
   dans le centre de notifications avec son aperçu. Voir « Aperçu des
   notifications MLS » si l'entrée existe.

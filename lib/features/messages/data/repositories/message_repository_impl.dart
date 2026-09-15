@@ -215,6 +215,14 @@ class MessageRepositoryImpl implements MessageRepository {
 
   /// La règle seule, sans cache ni base — pour pouvoir la tenir par un test.
   /// Le cache n'est lu que si la conversation en a besoin.
+  ///
+  /// **Le cache est en retard sur une suppression, par construction.** Le
+  /// serveur vide `messages.data->>'content'`, mais la copie locale garde le
+  /// texte jusqu'au prochain rechargement de la discussion — et pour un
+  /// message MLS, le serveur n'a jamais eu le clair à vider. Sans les deux
+  /// gardes ci-dessous, ce passage rendrait à la liste le texte que
+  /// « supprimer pour tout le monde » venait d'en retirer : la fuite refermée
+  /// en base, rouverte depuis l'appareil.
   @visibleForTesting
   static ConversationEntity apercuDepuisCache(
     ConversationEntity c,
@@ -223,6 +231,9 @@ class MessageRepositoryImpl implements MessageRepository {
     final quand = c.lastMessageAt;
     if (quand == null) return c;
     if ((c.lastMessage ?? '').isNotEmpty) return c;
+    // Garde 1 : la base dit déjà pourquoi l'aperçu est vide (chemin legacy).
+    // Rien à reconstituer — le cache n'aurait que le texte à ne pas montrer.
+    if (c.apercuEfface != ApercuEfface.aucun) return c;
 
     Map<String, dynamic>? dernier;
     DateTime? dernierQuand;
@@ -236,6 +247,16 @@ class MessageRepositoryImpl implements MessageRepository {
     }
     if (dernier == null || dernierQuand == null) return c;
     if (dernierQuand.toUtc().difference(quand.toUtc()).inSeconds != 0) return c;
+
+    // Garde 2 : le chemin MLS. Le serveur ne porte aucune marque — le trigger
+    // d'aperçu retire `lastMessage` à chaque message chiffré, et la
+    // suppression n'écrit que dans `mls_messages`. C'est donc le message
+    // caché lui-même qui dit qu'il a été supprimé, et il le dit : la
+    // passerelle recolle `deletedForEveryone` sur le fil avant de le mettre
+    // en cache.
+    if (dernier['deletedForEveryone'] == true) {
+      return c.copyWith(lastMessageDeleted: true);
+    }
 
     final texte = dernier['content'] as String? ?? '';
     if (texte.isEmpty) return c;
