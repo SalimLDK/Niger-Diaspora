@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1084 cases à cocher, 572 cochées** — 220 entrées sur 265 ont encore des cases ouvertes.
+**1082 cases à cocher, 574 cochées** — 220 entrées sur 265 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -179,7 +179,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
-- 3 · [⬜ L'en-tête d'un sondage effaçait son auteur dans une bulle — corrigé, à revoir (2026-09-15)](#-len-tête-dun-sondage-effaçait-son-auteur-dans-une-bulle--corrigé-à-revoir-2026-09-15) · *Design, thème, langue et mise en page*
+- 1 · [⬜ L'en-tête d'un sondage effaçait son auteur dans une bulle — corrigé, à revoir (2026-09-15)](#-len-tête-dun-sondage-effaçait-son-auteur-dans-une-bulle--corrigé-à-revoir-2026-09-15) · *Design, thème, langue et mise en page*
 - 1 · [⬜ Le pied d'un sondage déborde encore en mode vote — NON corrigé (2026-09-15)](#-le-pied-dun-sondage-déborde-encore-en-mode-vote--non-corrigé-2026-09-15) · *Design, thème, langue et mise en page*
 - 7 · [⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)](#-létape--thème--dit-enfin-la-vérité-sur-laccent-2026-09-14) · *Design, thème, langue et mise en page*
 - 4 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
@@ -288,7 +288,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 46 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 155 à faire, 30 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -13471,22 +13471,43 @@ prend le relais (« 1 j », « 12 min »). Mesurer plutôt que se fier à la seu
 largeur, parce que le facteur d'échelle vient des réglages de l'appareil —
 même famille que « Deux textes du fil que `font_scale` 1.3 abime ».
 
-Couvert par `test/features/polls/sondage_vote_test.dart` (4 cas, dont un qui
+Couvert par `test/features/polls/sondage_vote_test.dart` (6 cas, dont un qui
 vérifie la **géométrie** : le temps collé à droite, le nom prenant tout le
 reste). Vérifié par mutation : le correctif « évident » — passer le temps en
-`Flexible` — fait tomber 3 des 4 cas, parce que deux enfants flexibles
-cessent de recevoir leur largeur intrinsèque et se partagent l'espace libre
-au prorata des flex.
+`Flexible` — fait tomber 3 des cas, parce que deux enfants flexibles cessent
+de recevoir leur largeur intrinsèque et se partagent l'espace libre au prorata
+des flex.
 
-- [ ] **Bulle de sondage reçue** : le nom de l'auteur doit être **visible** en
+⚠ **Un second défaut n'est apparu que sur l'appareil**, et aucun banc ne
+pouvait le voir. La mesure se faisait avec `TextStyle(fontSize: 12)` seul,
+donc dans la police **par défaut de la plateforme**, alors que le `Text` rendu
+fusionne le `DefaultTextStyle` ambiant et s'affiche en **Inter**, plus large.
+La mesure concluait que la forme longue tenait ; le filet `ConstrainedBox`
+rattrapait le débordement en **tronquant** — « il y a 11 heur... » à
+`font_scale` 1.6, soit exactement l'ellipse que le correctif visait à éviter.
+Corrigé en fusionnant `DefaultTextStyle.of(context).style` avant de mesurer.
+Le banc de non-régression joue l'écart de police par un **interlettrage**, la
+police du banc étant unique.
+
+**Le banc ne dit rien de l'ampleur.** Sa police rend chaque glyphe carré
+(1 em) : les 269,5 px qu'il donne à « il y a environ un jour » ne sont pas
+ceux de l'écran. Mesuré avec la vraie Inter à 12 px dans une bulle de 320 dp
+(plafond 131 px) : 113 px à l'échelle 1.0 — donc à réglages normaux le défaut
+ne se voyait **pas**, il mordait à partir de `font_scale` ~1,8, et le nom
+devenait illisible dès ~1,5.
+
+- [x] **Bulle de sondage reçue** : le nom de l'auteur doit être **visible** en
   tête de la carte, et l'horodatage collé au bord droit, sans bande de
   débordement. Un sondage créé la veille donne la forme compacte (« 1 j »).
+  ✅ SM A515F, 2026-09-15 02:52, APK debug `3bc84313...` du worktree `debordement-poll-card`, compte réel, groupe « Testeurs », sondage « Vert » (11 h). Carte mesurée à **317,7 dp** : le plafond de 320 dp de `poll_message_bubble.dart` est bien le contraignant.
+  « Sim A » visible, « il y a 11 heures » collé au bord droit, aucune bande.
 - [ ] **Le même sondage dans le fil** (carte large, [post_card.dart](lib/features/feed/presentation/widgets/post_card.dart)) :
   la forme **longue** doit y rester, « il y a environ un jour ». C'est le
   point qui distingue le correctif d'un raccourcissement partout.
-- [ ] **À `font_scale` 1.3 et au-delà** : la bascule vers la forme compacte
+- [x] **À `font_scale` 1.3 et au-delà** : la bascule vers la forme compacte
   doit se déclencher aussi sur une carte large, puisque c'est la mesure qui
   décide et non la largeur.
+  ✅ Même passe, quatre échelles : **1.0** et **1.3** gardent « il y a 11 heures » ; **1.6** et **2.0** basculent sur « 11 h ». Le nom reste visible et le libellé collé à droite aux quatre. C'est à 1.6 que le défaut de police de mesure a été pris.
 
 ## ⬜ Le pied d'un sondage déborde encore en mode vote — NON corrigé (2026-09-15)
 

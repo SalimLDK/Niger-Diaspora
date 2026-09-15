@@ -190,6 +190,17 @@ class _PollCardState extends ConsumerState<PollCard> {
                 fontSize: 12,
                 color: context.textTertiaryColor,
               );
+              // Mesurer avec le style REELLEMENT rendu, pas avec `styleTemps`
+              // seul : un `Text` fusionne d'abord le `DefaultTextStyle`
+              // ambiant, qui porte ici la police du theme (Inter) et son
+              // interlettrage. Mesurer sans lui revient a mesurer dans la
+              // police par defaut de la plateforme — plus etroite — donc a
+              // conclure que la forme longue tient quand elle deborde.
+              // Constate sur SM A515F le 2026-09-15 a `font_scale` 1.6 :
+              // « il y a 11 heur... » tronque par le filet, au lieu de la
+              // forme compacte attendue.
+              final styleMesure =
+                  DefaultTextStyle.of(context).style.merge(styleTemps);
               // L'icone et son espace ne participent pas au partage entre le
               // nom et l'heure.
               final largeurUtile = contraintes.maxWidth - 18 - 8;
@@ -201,7 +212,7 @@ class _PollCardState extends ConsumerState<PollCard> {
                   : _libelleTempsTenantEn(
                       poll.createdAt!,
                       context,
-                      styleTemps,
+                      styleMesure,
                       plafondTemps,
                     );
 
