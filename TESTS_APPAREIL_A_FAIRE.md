@@ -670,10 +670,31 @@ SELECT public.purger_messages_expires();
   est relu à chaque envoi, jamais mémorisé).
 - [ ] **Messages déjà envoyés** : changer le minuteur ne touche pas les
   échéances des messages précédents.
-- [ ] **Expiration côté expéditeur** : la bulle doit devenir « Message
-  expiré » (icône minuteur barré) — **pas** « Message supprimé ». Pas encore
-  vu : la passe du 2026-09-15 est tombée sur une panne plus grave qui masquait
-  tout (ci-dessous), corrigée depuis ; le rendu de la tombe reste à voir.
+- [ ] **⛔ Expiration côté expéditeur — OUVERT, mesuré faux le 2026-09-15.**
+  La bulle ne devient pas « supprimé automatiquement » : le message
+  **disparaît**. Confirmé à l'écran (capture), pas seulement dans l'arbre
+  `uiautomator`. Le fil s'arrête au séparateur.
+
+  **Ce qui est déjà éliminé — ne pas refaire ce chemin :**
+  - le widget de tombe existe et est correct (`message_bubble.dart` ~1612 :
+    `Icons.timer_off_outlined` + `l10n.messageAutoDeleted` quand
+    `isExpired`) — il n'est simplement jamais atteint ;
+  - l'aller-retour JSON du cache préserve `deletedForEveryone`
+    (`message_model.dart` 173 et 251) ;
+  - `MlsSourceMerger.fusionner` n'écarte rien — et **le séparateur affiché
+    prouve que la liste MLS n'est PAS vide** (il n'est inséré que si `mls`
+    a quelque chose) : l'entité est donc bien dans la liste et ne produit
+    aucune hauteur ;
+  - le verrou d'amorçage vide (`MlsGateway.amorcer`) : corrigé, c'était une
+    autre panne ;
+  - le curseur de rattrapage `.gt('created_at', …)` et un mélange UTC/local
+    dans `mlsDuCache` : **deux fausses pistes**, vérifiées et écartées
+    (`.toLocal()` ne change pas l'instant, `isBefore` compare des instants).
+
+  **Piste non explorée** : `message_bubble.dart:419` rend un
+  `SizedBox.shrink()` quand `isDeletedFor(moi) && !deletedForEveryone` —
+  vérifier ce que valent ces deux champs sur l'entité MLS effectivement
+  rendue (journal ou point d'arrêt), plutôt que de le déduire.
 - [x] **⛔ Le fil chiffré disparaissait entièrement au démarrage — CORRIGÉ.**
   Trouvé en cherchant la pierre tombale : trois messages MLS **vivants** en
   base (ciphertext non vide, `is_deleted` faux), **aucun à l'écran** après
