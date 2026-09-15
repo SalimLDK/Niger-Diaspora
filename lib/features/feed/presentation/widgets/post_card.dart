@@ -261,7 +261,12 @@ class _PostHeader extends ConsumerWidget {
                                 fontSize: 12.5,
                                 color: tokens.mutedText,
                               ),
-                              maxLines: 1,
+                              // Deux lignes, pas une : à `font_scale` 1.3
+                              // l'élision mangeait l'horodatage
+                              // (« @nassirou · il y a 3 he… »), alors qu'il y a
+                              // la place juste en dessous. À l'échelle normale
+                              // rien ne change : la ligne tient toujours.
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),

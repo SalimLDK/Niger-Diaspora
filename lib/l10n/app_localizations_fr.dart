@@ -2047,17 +2047,35 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String minutesAgo(int count) {
-    return 'Il y a $count minute(s)';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Il y a $count minutes',
+      one: 'Il y a 1 minute',
+    );
+    return '$_temp0';
   }
 
   @override
   String hoursAgo(int count) {
-    return 'Il y a $count heure(s)';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Il y a $count heures',
+      one: 'Il y a 1 heure',
+    );
+    return '$_temp0';
   }
 
   @override
   String daysAgo(int count) {
-    return 'Il y a $count jour(s)';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Il y a $count jours',
+      one: 'Il y a 1 jour',
+    );
+    return '$_temp0';
   }
 
   @override

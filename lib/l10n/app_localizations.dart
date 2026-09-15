@@ -3779,19 +3779,19 @@ abstract class AppLocalizations {
   /// No description provided for @minutesAgo.
   ///
   /// In fr, this message translates to:
-  /// **'Il y a {count} minute(s)'**
+  /// **'{count, plural, =1{Il y a 1 minute} other{Il y a {count} minutes}}'**
   String minutesAgo(int count);
 
   /// No description provided for @hoursAgo.
   ///
   /// In fr, this message translates to:
-  /// **'Il y a {count} heure(s)'**
+  /// **'{count, plural, =1{Il y a 1 heure} other{Il y a {count} heures}}'**
   String hoursAgo(int count);
 
   /// No description provided for @daysAgo.
   ///
   /// In fr, this message translates to:
-  /// **'Il y a {count} jour(s)'**
+  /// **'{count, plural, =1{Il y a 1 jour} other{Il y a {count} jours}}'**
   String daysAgo(int count);
 
   /// No description provided for @weeksAgo.
