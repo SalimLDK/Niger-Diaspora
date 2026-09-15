@@ -81,6 +81,11 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   String? _selectedRegion;
   _GroupsTab _tab = _GroupsTab.mine;
 
+  /// Bascule liste/grille de « Mes groupes » (§9d, option C). Affichage
+  /// seulement — ne change ni le tri ni les filtres, donc pas un « réglage »
+  /// au sens de `design_kit.dart` : état local au même titre que `_tab`.
+  bool _gridView = false;
+
   @override
   void initState() {
     super.initState();
@@ -414,6 +419,27 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                                 setState(() => _tab = _GroupsTab.discover),
                           ),
                         ),
+                        // Bascule liste/grille (§9d) : seule « Mes groupes »
+                        // se prête à un affichage en grille, « Découvrir »
+                        // garde ses sections (suggéré, filtres géo).
+                        if (_tab == _GroupsTab.mine) ...[
+                          const SizedBox(width: 10),
+                          DesignSquareAction(
+                            icon: Icons.view_list_rounded,
+                            tooltip: 'Affichage en liste',
+                            filled: !_gridView,
+                            onPressed: () =>
+                                setState(() => _gridView = false),
+                          ),
+                          const SizedBox(width: 8),
+                          DesignSquareAction(
+                            icon: Icons.grid_view_rounded,
+                            tooltip: 'Affichage en grille',
+                            filled: _gridView,
+                            onPressed: () =>
+                                setState(() => _gridView = true),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -477,6 +503,45 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
 
                       if (filteredGroups.isEmpty) {
                         return _buildEmptyMyGroups();
+                      }
+                      if (_gridView) {
+                        // §9d, option C : deux colonnes de largeur égale via
+                        // `Wrap` plutôt que `GridView.count` — un rapport
+                        // largeur/hauteur fixe aurait débordé sur les noms de
+                        // groupe qui tiennent sur deux lignes.
+                        return LayoutBuilder(
+                          builder: (context, constraints) {
+                            final cardWidth =
+                                (constraints.maxWidth - 12) / 2;
+                            return Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children:
+                                  filteredGroups
+                                      .map(
+                                        (group) => SizedBox(
+                                          width: cardWidth,
+                                          child: _GroupCardGrid(
+                                            group: group,
+                                            isJoined: true,
+                                            currentUserId:
+                                                currentUser?.id ?? '',
+                                            onTap:
+                                                () => context.push(
+                                                  '/groups/${group.id}',
+                                                  extra: group,
+                                                ),
+                                            onJoinLeave:
+                                                () => _leaveGroup(group.id),
+                                            onOpen:
+                                                () => _openGroupChat(group),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
+                            );
+                          },
+                        );
                       }
                       return Column(
                         children:
@@ -961,67 +1026,74 @@ class _GroupCard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(kDesignRadius),
           border: Border.all(color: context.borderColor),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: context.adaptiveSecondaryColor,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child:
-                  group.imageUrl != null
-                      ? ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
-                        child: CachedNetworkImage(
-                          imageUrl: group.imageUrl!,
-                          fit: BoxFit.cover,
-                          placeholder:
-                              (_, __) => const Center(
-                                child: AppIcon(AppIcon.groups,
-                                  color: AppColors.white,
-                                  size: 30,
-                                ),
-                              ),
-                          errorWidget:
-                              (_, __, ___) => const Center(
-                                child: AppIcon(AppIcon.groups,
-                                  color: AppColors.white,
-                                  size: 30,
-                                ),
-                              ),
-                        ),
-                      )
-                      : const Center(
-                        child: AppIcon(AppIcon.groups,
-                          color: AppColors.white,
-                          size: 30,
-                        ),
-                      ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // §9c — la ligne du titre ne porte plus que le nom et les
-                  // deux indicateurs à largeur bornée (cadenas, épinglé :
-                  // 13 et 14 dp).
-                  //
-                  // Elle portait aussi la pastille « Officiel » et la pastille
-                  // ACTIF/CALME, toutes deux à largeur libre. Sur un écran de
-                  // 360 dp il ne restait alors qu'une soixantaine de dp au nom
-                  // (226 dp de ligne − 52 avatar déjà déduits − 56 « Officiel »
-                  // − 60 « ACTIF » − 39 d'icônes et d'écarts) : « Diaspora
-                  // Niger — Canada » s'affichait « Diaspor… ». C'est le nom qui
-                  // cédait, jamais les pastilles, parce que lui seul était
-                  // `Flexible`.
-                  //
-                  // Les deux pastilles rejoignent la ligne de méta en bas de
-                  // carte, qui est un `Wrap` : elles y restent entières et
-                  // passent à la ligne plutôt que de rogner quoi que ce soit.
-                  Row(
+            // §9d — en-tête aligné en haut : l'avatar, le nom et le bouton
+            // partagent la même ligne de départ au lieu d'être centrés sur
+            // toute la hauteur de la carte (qui variait avec le nombre de
+            // pastilles ci-dessous). La description et les pastilles ne sont
+            // plus indentées sous le nom : elles occupent toute la largeur de
+            // la carte, à la même marge que l'avatar.
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: context.adaptiveSecondaryColor,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child:
+                      group.imageUrl != null
+                          ? ClipRRect(
+                            borderRadius: BorderRadius.circular(15),
+                            child: CachedNetworkImage(
+                              imageUrl: group.imageUrl!,
+                              fit: BoxFit.cover,
+                              placeholder:
+                                  (_, __) => const Center(
+                                    child: AppIcon(AppIcon.groups,
+                                      color: AppColors.white,
+                                      size: 30,
+                                    ),
+                                  ),
+                              errorWidget:
+                                  (_, __, ___) => const Center(
+                                    child: AppIcon(AppIcon.groups,
+                                      color: AppColors.white,
+                                      size: 30,
+                                    ),
+                                  ),
+                            ),
+                          )
+                          : const Center(
+                            child: AppIcon(AppIcon.groups,
+                              color: AppColors.white,
+                              size: 30,
+                            ),
+                          ),
+                ),
+                const SizedBox(width: 14),
+                // §9c — la ligne du titre ne porte plus que le nom et les
+                // deux indicateurs à largeur bornée (cadenas, épinglé :
+                // 13 et 14 dp).
+                //
+                // Elle portait aussi la pastille « Officiel » et la pastille
+                // ACTIF/CALME, toutes deux à largeur libre. Sur un écran de
+                // 360 dp il ne restait alors qu'une soixantaine de dp au nom
+                // (226 dp de ligne − 52 avatar déjà déduits − 56 « Officiel »
+                // − 60 « ACTIF » − 39 d'icônes et d'écarts) : « Diaspora
+                // Niger — Canada » s'affichait « Diaspor… ». C'est le nom qui
+                // cédait, jamais les pastilles, parce que lui seul était
+                // `Flexible`.
+                //
+                // Les deux pastilles rejoignent la ligne de méta en bas de
+                // carte, qui est un `Wrap` : elles y restent entières et
+                // passent à la ligne plutôt que de rogner quoi que ce soit.
+                Expanded(
+                  child: Row(
                     children: [
                       Expanded(
                         child: Text(
@@ -1062,179 +1134,360 @@ class _GroupCard extends ConsumerWidget {
                       ],
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    group.description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: context.textTertiaryColor,
+                ),
+                const SizedBox(width: 8),
+                // Groupe rejoint : l'action utile est d'entrer dans la
+                // discussion (fiche 9c, « Ouvrir »), pas d'afficher une
+                // pastille « Membre » dont le seul effet était de quitter le
+                // groupe. La sortie vit désormais en 9d, où elle est
+                // délibérée.
+                GestureDetector(
+                  onTap: isJoined ? onOpen : onJoinLeave,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    decoration: BoxDecoration(
+                      gradient: context.adaptiveSecondaryGradient,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: context.adaptiveSecondaryColor.withValues(
+                            alpha: 0.3,
+                          ),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      isJoined ? l10n.open : l10n.joinGroup,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.white,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  // §9c — `Wrap` et non `Row` : les pastilles qui n'entrent
-                  // pas passent à la ligne suivante. En `Row`, ajouter
-                  // « Officiel » et ACTIF/CALME ici aurait déplacé la
-                  // troncature sur le nom de ville au lieu de la supprimer.
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      // Groupe officiel (§9c) — pastille déplacée depuis la
-                      // ligne du titre, qu'elle tronquait.
-                      if (group.isOfficial)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.adaptivePrimaryColor
-                                .withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              group.description,
+              style: TextStyle(
+                fontSize: 13,
+                color: context.textTertiaryColor,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 10),
+            // §9c — `Wrap` et non `Row` : les pastilles qui n'entrent
+            // pas passent à la ligne suivante. En `Row`, ajouter
+            // « Officiel » et ACTIF/CALME ici aurait déplacé la
+            // troncature sur le nom de ville au lieu de la supprimer.
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                // Groupe officiel (§9c) — pastille déplacée depuis la
+                // ligne du titre, qu'elle tronquait.
+                if (group.isOfficial)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: context.adaptivePrimaryColor
+                          .withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      l10n.audioRoomCategoryOfficial,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: context.adaptivePrimaryColor,
+                      ),
+                    ),
+                  ),
+                // Badge d'activité ACTIF/CALME (refonte 9c) — visible dès
+                // qu'on connaît la dernière activité de la conversation.
+                if (lastActivity != null)
+                  _GroupActivityBadge(lastActivity: lastActivity),
+                // Ville (refonte 9c : « ville · N membres »).
+                if ((group.location ?? group.country)?.trim().isNotEmpty ??
+                    false)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: context.surfaceVariantColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppIcon(
+                          AppIcon.location,
+                          size: 12,
+                          color: context.textSecondaryColor,
+                        ),
+                        const SizedBox(width: 4),
+                        // Le seul libellé de longueur non bornée de la
+                        // ligne : lui seul reste `Flexible`, donc lui
+                        // seul peut s'élider si la pastille atteint la
+                        // largeur de la carte.
+                        Flexible(
                           child: Text(
-                            l10n.audioRoomCategoryOfficial,
+                            // Même graphie que les puces de filtre,
+                            // juste au-dessus : « 🇨🇦 Canada ».
+                            // `location` (saisie libre) est affichée
+                            // telle quelle.
+                            group.location?.trim().isNotEmpty ?? false
+                                ? group.location!
+                                : countryDisplayLabel(group.country),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: context.adaptivePrimaryColor,
+                              fontWeight: FontWeight.w500,
+                              color: context.textSecondaryColor,
                             ),
                           ),
                         ),
-                      // Badge d'activité ACTIF/CALME (refonte 9c) — visible dès
-                      // qu'on connaît la dernière activité de la conversation.
-                      if (lastActivity != null)
-                        _GroupActivityBadge(lastActivity: lastActivity),
-                      // Ville (refonte 9c : « ville · N membres »).
-                      if ((group.location ?? group.country)?.trim().isNotEmpty ??
-                          false)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: context.surfaceVariantColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              AppIcon(
-                                AppIcon.location,
-                                size: 12,
-                                color: context.textSecondaryColor,
-                              ),
-                              const SizedBox(width: 4),
-                              // Le seul libellé de longueur non bornée de la
-                              // ligne : lui seul reste `Flexible`, donc lui
-                              // seul peut s'élider si la pastille atteint la
-                              // largeur de la carte.
-                              Flexible(
-                                child: Text(
-                                  // Même graphie que les puces de filtre,
-                                  // juste au-dessus : « 🇨🇦 Canada ».
-                                  // `location` (saisie libre) est affichée
-                                  // telle quelle.
-                                  group.location?.trim().isNotEmpty ?? false
-                                      ? group.location!
-                                      : countryDisplayLabel(group.country),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: context.textSecondaryColor,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.secondaryBackgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AppIcon(AppIcon.people,
-                              size: 12,
-                              color: context.adaptivePrimaryColor,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${group.memberIds.length}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: context.adaptivePrimaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
+                      ],
+                    ),
+                  ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.secondaryBackgroundColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AppIcon(AppIcon.people,
+                        size: 12,
+                        color: context.adaptivePrimaryColor,
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.surfaceVariantColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          group.category.label,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: context.textSecondaryColor,
-                          ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${group.memberIds.length}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: context.adaptivePrimaryColor,
                         ),
                       ),
                     ],
                   ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.surfaceVariantColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    group.category.label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: context.textSecondaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Vignette de groupe pour l'affichage en grille (§9d, option C). Mêmes
+/// données que `_GroupCard`, présentation plus dense pensée pour deux
+/// colonnes — jamais les deux widgets pour la même carte à la fois, la
+/// bascule vit dans `_GroupsScreenState._gridView`.
+class _GroupCardGrid extends ConsumerWidget {
+  final GroupEntity group;
+  final bool isJoined;
+  final String currentUserId;
+  final VoidCallback onTap;
+  final VoidCallback onJoinLeave;
+  final VoidCallback? onOpen;
+
+  const _GroupCardGrid({
+    required this.group,
+    required this.isJoined,
+    required this.currentUserId,
+    required this.onTap,
+    required this.onJoinLeave,
+    this.onOpen,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final lastActivity = ref.watch(groupLastActivityProvider)[group.id];
+    final isActive = lastActivity != null &&
+        DateTime.now().difference(lastActivity).inHours < 24;
+
+    // Une seule ligne de statut : officiel et actif/calme se cumulent plutôt
+    // que d'empiler des pastilles, la vignette n'a pas la largeur d'une
+    // carte de liste pour ça.
+    final statusParts = <String>[
+      if (group.isOfficial) l10n.audioRoomCategoryOfficial.toUpperCase(),
+      if (lastActivity != null)
+        (isActive ? l10n.groupActive : l10n.groupCalm).toUpperCase(),
+    ];
+    const activeColor = Color(0xFF009600);
+    final statusColor = isActive
+        ? activeColor
+        : (group.isOfficial
+            ? context.adaptivePrimaryColor
+            : context.textSecondaryColor);
+
+    final locationLabel = group.location?.trim().isNotEmpty ?? false
+        ? group.location!
+        : countryDisplayLabel(group.country);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: context.surfaceColor,
+          borderRadius: BorderRadius.circular(kDesignRadius),
+          border: Border.all(color: context.borderColor),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: context.adaptiveSecondaryColor,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child:
+                  group.imageUrl != null
+                      ? ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: CachedNetworkImage(
+                          imageUrl: group.imageUrl!,
+                          fit: BoxFit.cover,
+                          placeholder:
+                              (_, __) => const Center(
+                                child: AppIcon(AppIcon.groups,
+                                  color: AppColors.white,
+                                  size: 26,
+                                ),
+                              ),
+                          errorWidget:
+                              (_, __, ___) => const Center(
+                                child: AppIcon(AppIcon.groups,
+                                  color: AppColors.white,
+                                  size: 26,
+                                ),
+                              ),
+                        ),
+                      )
+                      : const Center(
+                        child: AppIcon(AppIcon.groups,
+                          color: AppColors.white,
+                          size: 26,
+                        ),
+                      ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Flexible(
+                  child: Text(
+                    group.name,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      height: 1.2,
+                      color: context.textPrimaryColor,
+                    ),
+                  ),
+                ),
+                if (group.isPrivate) ...[
+                  const SizedBox(width: 4),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Icon(
+                      Icons.lock_outline_rounded,
+                      size: 11,
+                      color: context.textTertiaryColor,
+                    ),
+                  ),
                 ],
+              ],
+            ),
+            if (statusParts.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                statusParts.join(' · '),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                  color: statusColor,
+                ),
+              ),
+            ],
+            const SizedBox(height: 4),
+            Text(
+              '${l10n.members(group.memberIds.length)} · $locationLabel',
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                color: context.textTertiaryColor,
               ),
             ),
-            const SizedBox(width: 8),
-            // Groupe rejoint : l'action utile est d'entrer dans la discussion
-            // (fiche 9c, « Ouvrir »), pas d'afficher une pastille « Membre »
-            // dont le seul effet était de quitter le groupe. La sortie vit
-            // désormais en 9d, où elle est délibérée.
+            const SizedBox(height: 8),
             GestureDetector(
               onTap: isJoined ? onOpen : onJoinLeave,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
+                width: double.infinity,
+                height: 32,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   gradient: context.adaptiveSecondaryGradient,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: context.adaptiveSecondaryColor.withValues(
-                        alpha: 0.3,
-                      ),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   isJoined ? l10n.open : l10n.joinGroup,
                   style: const TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.white,
                   ),
                 ),

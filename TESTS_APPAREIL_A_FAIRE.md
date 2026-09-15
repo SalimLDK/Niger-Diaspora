@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1079 cases à cocher, 569 cochées** — 217 entrées sur 262 ont encore des cases ouvertes.
+**1082 cases à cocher, 569 cochées** — 218 entrées sur 263 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -142,7 +142,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (72)
+**P2 — fonction secondaire ou cas limite** (73)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -195,6 +195,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [Réactions emoji : une par personne et par message (2026-08-13)](#réactions-emoji--une-par-personne-et-par-message-2026-08-13) · *Messagerie* · bloqué
 - 8 · [Discussion — l'horodatage sort de la bulle (fiches 4a/6b, 2026-08-05)](#discussion--lhorodatage-sort-de-la-bulle-fiches-4a6b-2026-08-05) · *Messagerie*
 - 10 · [Panneau stickers / GIF / émojis (fiche 26b, 2026-08-05)](#panneau-stickers--gif--émojis-fiche-26b-2026-08-05) · *Messagerie*
+- 3 · [⬜ Réorganisation des tuiles de « Mes groupes » + vue grille (2026-09-15)](#-réorganisation-des-tuiles-de--mes-groupes---vue-grille-2026-09-15) · *Groupes*
 - 1 · [Groupes & événements en conversation](#groupes--événements-en-conversation) · *Groupes*
 - 1 · [Fiche membres de groupe bloquée / vide (2026-08-13)](#fiche-membres-de-groupe-bloquée--vide-2026-08-13) · *Groupes* · bloqué
 - 2 · [⬜ Clé AES de repli : Firebase Functions avait divergé (2026-09-06)](#-clé-aes-de-repli--firebase-functions-avait-divergé-2026-09-06) · *Chiffrement de bout en bout et clés* · bloqué
@@ -276,7 +277,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 195 à faire, 77 faites
-- [3. Groupes](#3-groupes) — 113 à faire, 64 faites
+- [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 67 à faire, 23 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 69 à faire, 73 faites
@@ -2844,6 +2845,31 @@ de conclure quoi que ce soit.
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
 
 ---
+
+## ⬜ Réorganisation des tuiles de « Mes groupes » + vue grille (2026-09-15)
+
+**Priorité P2** · importance 2/5 — Changement de disposition sans logique de tri/filtre touchée, jamais vu sur un écran.
+
+`_GroupCard` a un en-tête aligné en haut (avatar, nom et bouton sur la même
+ligne de départ, au lieu d'être centrés sur toute la hauteur — variable selon
+le nombre de pastilles — de la carte) ; la description et les pastilles ne
+sont plus indentées sous le nom, elles occupent toute la largeur de la carte,
+à la même marge que l'avatar. Une bascule liste/grille est apparue à côté des
+onglets « Mes groupes »/« Découvrir » (affichée seulement sur « Mes
+groupes ») ; la grille rend une nouvelle vignette `_GroupCardGrid` sur deux
+colonnes de largeur égale via `Wrap` + `LayoutBuilder` (pas `GridView.count` —
+un ratio largeur/hauteur fixe aurait débordé sur les noms de groupe qui
+tiennent sur deux lignes).
+
+- [ ] **Sur appareil** : les pastilles (Officiel, Actif/Calme, ville,
+      membres, catégorie) restent lisibles et ne débordent pas de la carte
+      sur un écran étroit (360 dp), en clair comme en sombre.
+- [ ] **Sur appareil** : la bascule grille affiche des vignettes à deux
+      colonnes de largeur égale, sans texte tronqué sur les noms longs
+      (« Diaspora Niger — Niamey »).
+- [ ] **Sur appareil** : le bouton « Ouvrir »/« Rejoindre » reste au bon
+      endroit (ligne d'en-tête en liste, bas de vignette en grille) et
+      déclenche la bonne action selon `isJoined`.
 
 ## ⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)
 
