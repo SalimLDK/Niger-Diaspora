@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1175 cases à cocher, 595 cochées** — 233 entrées sur 279 ont encore des cases ouvertes.
+**1179 cases à cocher, 595 cochées** — 234 entrées sur 280 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (28)
+**P0 — avant toute nouvelle version** (29)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 4 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
@@ -51,6 +51,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 4 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
@@ -293,7 +294,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 242 à faire, 86 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 93 à faire, 36 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 97 à faire, 36 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5886,6 +5887,44 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)
+
+**Priorité P0** · importance 5/5 — **Il suffisait de regarder une discussion
+pour l'engager.** Le chemin de lecture appelait `ensureGroup`, qui crée le
+groupe et pose `mls_since` — une marque définitive : le serveur refuse le
+clair ensuite, et rien ne revient en arrière.
+
+Mesuré, pas supposé. Les trois premières conversations basculées en
+production l'ont été **avant** leur premier message chiffré :
+
+| conversation | bascule | 1er message | écart |
+|---|---|---|---|
+| `805adcaa…` | 13:53:59 | 13:55:27 | 88 s |
+| `debef5f0…` | 15:28:05 | 15:30:11 | 126 s |
+| `d41d4ea0…` | 19:53:56 | 19:54:08 | 12 s |
+
+C'est l'ouverture qui les a gelées. Et ça explique la conversation de groupe
+basculée à 19:53 sans que personne n'ait décidé quoi que ce soit.
+
+La règle posée : **créer est une décision d'écriture, elle appartient à
+l'envoi**. La lecture peut *rejoindre* un groupe existant — c'est nécessaire
+pour déchiffrer ce qu'on nous envoie — mais sans groupe côté serveur elle
+rend la main, puisqu'il n'y a de toute façon aucun message MLS à lire.
+
+Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
+(`catchUp`). Couvert hors appareil par
+[lire_ne_bascule_pas_test.dart](test/core/crypto/lire_ne_bascule_pas_test.dart)
+(4 cas, dont la garde d'ordre).
+
+- [ ] **Ouvrir une discussion jamais basculée, drapeau ouvert, sans rien
+      écrire** : `mls_since` doit rester **nul**. C'est LE test.
+- [ ] **Puis envoyer** : la bascule a lieu à ce moment-là, pas avant.
+- [ ] **Recevoir dans une discussion déjà basculée par l'autre** : l'ouvrir
+      doit suffire à rejoindre le groupe et à déchiffrer.
+- [ ] **Parcourir la liste des discussions** : aucune ne bascule au passage.
 
 ---
 
