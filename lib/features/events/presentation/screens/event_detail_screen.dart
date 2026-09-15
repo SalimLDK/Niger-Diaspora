@@ -18,6 +18,7 @@ import '../../../../core/services/analytics_service.dart';
 import '../../../../core/services/deep_link_service.dart';
 import '../../../../shared/widgets/share_options_sheet.dart';
 import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 class EventDetailScreen extends ConsumerStatefulWidget {
   final String eventId;
@@ -1036,6 +1037,13 @@ Voir plus de d\u00e9tails sur DiaspoNiger
           backgroundColor: context.adaptiveSecondaryColor,
         ),
       );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(messageErreurUsager(null)),
+          backgroundColor: context.errorColor,
+        ),
+      );
     }
   }
 
@@ -1075,6 +1083,13 @@ Voir plus de d\u00e9tails sur DiaspoNiger
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.participationCancelled)));
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(messageErreurUsager(null)),
+          backgroundColor: context.errorColor,
+        ),
+      );
     }
   }
 
