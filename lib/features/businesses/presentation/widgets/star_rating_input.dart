@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/app_icon.dart';
 
 class StarRatingInput extends StatelessWidget {
@@ -90,7 +91,7 @@ class StarRatingDisplay extends StatelessWidget {
             Text(
               ' ($reviewCount)',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.outline,
+                color: context.textSecondaryColor,
               ),
             ),
           ],

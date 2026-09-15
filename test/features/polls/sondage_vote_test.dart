@@ -188,12 +188,95 @@ void main() {
       expect(actions.votes.single, ['o2']);
     });
   });
+
+  /// L'en-tete « auteur · il y a X ». Le libelle de temps y etait pose sans
+  /// contrainte a cote d'un `Expanded` : il prenait sa largeur intrinseque,
+  /// l'`Expanded` tombait a zero, et la rangee debordait. Aucun test ne
+  /// couvrait ce coin — `_sondage()` ne portait pas de `createdAt`, donc le
+  /// libelle ne s'affichait jamais ici ; l'echec est apparu ailleurs, dans
+  /// `mode_selection_gestes_test.dart`.
+  group('en-tete : anciennete', () {
+    // 26 h : la forme longue est « il y a environ un jour », la plus longue
+    // que `timeago` produise a cette echelle.
+    final creeIlYA26h = DateTime.now().subtract(const Duration(hours: 26));
+
+    /// ⚠ Ces bancs montent la carte en mode RESULTATS (`votedOptionIds`), et
+    /// ce n'est pas un detail de confort : en mode vote, `_pied` n'a qu'une
+    /// action et la pose sans contrainte a cote d'un `Expanded`, exactement
+    /// le motif corrige ici dans l'en-tete. A 288 dp, « Voir les résultats »
+    /// deborde alors de 22 px — defaut PREEXISTANT et independant, visible
+    /// avec `createdAt` a null, donc sans le moindre libelle de temps.
+    /// Consigne dans `TESTS_APPAREIL_A_FAIRE.md`. En mode resultats, `_pied`
+    /// a deux actions et passe par sa branche `Column` + `Wrap`, qui elle
+    /// est correcte : l'en-tete est donc seule en cause dans ce qui suit.
+    PollEntity sondageDate() =>
+        _sondage(votedOptionIds: ['o1'], createdAt: creeIlYA26h);
+
+    testWidgets('bulle etroite : la forme compacte prend le relais',
+        (tester) async {
+      await _pump(tester, sondageDate(), largeur: 288);
+
+      // « il y a environ un jour » mesure a lui seul 269,5 px dans la police
+      // de test, contre 262 px laisses par l'icone et son espace : la rangee
+      // debordait de 7,5 px.
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('il y a'), findsNothing);
+      expect(find.text('1 j'), findsOneWidget);
+    });
+
+    testWidgets('carte large : la forme longue est gardee', (tester) async {
+      // Raccourcir partout serait une regression : la ou il y a la place, le
+      // libelle en toutes lettres reste celui de la maquette.
+      await _pump(tester, sondageDate());
+
+      expect(find.textContaining('il y a environ'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('le nom prend tout ce que le temps laisse', (tester) async {
+      await _pump(tester, sondageDate(), largeur: 288);
+
+      final nom = tester.getRect(find.text('Sim A'));
+      final temps = tester.getRect(find.text('1 j'));
+
+      // Le temps reste colle au bord interieur de la carte (padding 16)...
+      expect(temps.right, moreOrLessEquals(288 - 16, epsilon: 0.5));
+      // ...et le nom occupe tout l'espace jusqu'a lui, sans blanc entre les
+      // deux.
+      //
+      // ⚠ C'est precisement ce que le correctif « evident » casserait :
+      // passer le libelle de temps en `Flexible` a cote de l'`Expanded` du
+      // nom supprime bien le debordement, mais `RenderFlex` cesse alors de
+      // donner leur largeur intrinseque aux deux enfants — il partage
+      // l'espace libre au prorata des flex. Le nom serait fige a la moitie
+      // de la rangee et le temps flotterait au milieu, decolle du bord.
+      expect(nom.right, moreOrLessEquals(temps.left, epsilon: 0.5));
+    });
+
+    testWidgets('echelle de police 1.3 : rien ne deborde non plus',
+        (tester) async {
+      // Le facteur d'echelle vient des reglages de l'appareil : la meme
+      // rangee deborde sur une carte plus large des que le texte grossit.
+      // D'ou une mesure du libelle plutot qu'un simple seuil de largeur.
+      await _pump(
+        tester,
+        sondageDate(),
+        largeur: 320,
+        echellePolice: 1.3,
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('1 j'), findsOneWidget);
+    });
+  });
+
 }
 
 PollEntity _sondage({
   List<String> votedOptionIds = const [],
   DateTime? endsAt,
   bool isAnonymous = false,
+  DateTime? createdAt,
 }) {
   return PollEntity(
     id: 'p1',
@@ -208,6 +291,7 @@ PollEntity _sondage({
     isAnonymous: isAnonymous,
     createdBy: 'u1',
     createdByName: 'Sim A',
+    createdAt: createdAt,
     endsAt: endsAt,
     votedOptionIds: votedOptionIds,
   );

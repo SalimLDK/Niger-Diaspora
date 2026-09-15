@@ -356,7 +356,7 @@ class _EmptyState extends StatelessWidget {
             Icon(
               Icons.rate_review_outlined,
               size: 80,
-              color: theme.colorScheme.outline,
+              color: context.iconTertiaryColor,
             ),
             const SizedBox(height: 24),
             Text(
@@ -368,7 +368,7 @@ class _EmptyState extends StatelessWidget {
             Text(
               l10n.beFirstToShareExperience,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.outline,
+                color: context.textTertiaryColor,
               ),
               textAlign: TextAlign.center,
             ),
@@ -416,7 +416,7 @@ class _ErrorState extends StatelessWidget {
             Text(
               error,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.outline,
+                color: context.textSecondaryColor,
               ),
               textAlign: TextAlign.center,
             ),
@@ -480,7 +480,7 @@ class _ReviewsHeader extends StatelessWidget {
                   Text(
                     '$totalReviews avis',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outline,
+                      color: context.textSecondaryColor,
                     ),
                   ),
                 ],

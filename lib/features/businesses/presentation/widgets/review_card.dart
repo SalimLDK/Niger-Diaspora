@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/review_entity.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -80,7 +81,7 @@ class ReviewCard extends StatelessWidget {
                         Text(
                           dateFormat.format(review.createdAt!),
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.outline,
+                            color: context.textSecondaryColor,
                           ),
                         ),
                     ],
@@ -233,7 +234,7 @@ class ReviewCard extends StatelessWidget {
                           Text(
                             dateFormat.format(review.ownerReplyAt!),
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.outline,
+                              color: context.textSecondaryColor,
                             ),
                           ),
                         ],
