@@ -2896,7 +2896,20 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .select('data, sender_id')
           .eq('id', messageId)
           .limit(1);
-      if (rows.isEmpty) return;
+      // Aucune ligne : ce message n'est PAS dans `messages`. C'est le cas d'un
+      // message MLS, dont la ligne vit dans `mls_messages` — l'aiguillage a
+      // manqué sa cible. Le `return` muet d'avant faisait croire au succès :
+      // l'écran affichait « Message modifié », le nouveau texte restait en
+      // optimiste, et le texte d'avant revenait à la moindre relecture.
+      // Constaté sur SM A515F le 2026-09-15 (aucun message de contrôle émis
+      // côté MLS pour deux modifications annoncées réussies). Un geste sans
+      // effet doit se voir.
+      if (rows.isEmpty) {
+        throw ServerException(
+          'editMessage : aucun message $messageId dans `messages` — '
+          'message chiffré ? aiguillage MLS manqué',
+        );
+      }
       final data = Map<String, dynamic>.from(
         (rows.first['data'] as Map?) ?? {},
       );
