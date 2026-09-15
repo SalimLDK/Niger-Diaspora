@@ -39,14 +39,14 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1181 cases à cocher, 598 cochées** — 236 entrées sur 282 ont encore des cases ouvertes.
+**1179 cases à cocher, 602 cochées** — 236 entrées sur 282 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (29)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
-- 4 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
+- 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
@@ -88,7 +88,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
-- 19 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
+- 18 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
@@ -294,7 +294,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 242 à faire, 87 faites
+- [2. Messagerie](#2-messagerie) — 240 à faire, 91 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 99 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -865,8 +865,17 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
 - [ ] **Note vocale** : la ligne montre l'icône micro, pas « Document ».
 - [ ] **Réaction, édition, suppression** : aucune ne fait remonter la
   discussion en tête de liste (ce sont des contrôles, pas des messages).
-- [ ] **Coches de lecture** : après lecture par B, les deux coches de A
-  passent au bleu **sans rechargement** (canal temps réel des reçus).
+- [x] **Reçus de lecture écrits** : ouvrir la conversation sur le Pixel a
+  posé 14 lignes dans `mls_message_receipts`, toutes au compte du Pixel, sur
+  des messages reçus de l'autre compte. ✅ 2026-09-15. Reste à voir que les
+  coches de l'expéditeur passent au bleu **sans rechargement**.
+- [x] **Réaction sur un message REÇU** : posée depuis le Pixel sur un message
+  de Sim A, elle atterrit dans `mls_message_reactions` (le cas RLS
+  « participant sans être l'expéditeur »), et **revient sur la bulle après
+  redémarrage**. ✅ 2026-09-15.
+- [x] **Aperçu depuis le cache sur un message reçu** : la ligne de la
+  discussion affiche « Hh », le vrai texte, et non le libellé générique.
+  ✅ 2026-09-15.
 - [ ] **Pastille de non-lus** et **badge @** d'une mention, dans un groupe
   basculé, sur le second appareil du même compte.
 - [x] **Réaction sur un message chiffré** : posée, elle atterrit dans
@@ -940,10 +949,14 @@ Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_
   depuis le cache (`MlsGateway.amorcer`). Sans lui le message aurait
   *disparu* du fil — `catchUp` saute mes propres messages, et le legacy n'a
   aucune ligne pour lui.
-- [ ] **Message REÇU d'un autre appareil**, déchiffré une fois, puis
-  application tuée et rouverte : c'est le cas que le curseur mémorisé
-  protège, et le seul où le moteur refuserait de redéchiffrer. **Non
-  vérifié** — demande un second téléphone sur un autre compte.
+- [x] **Message REÇU d'un autre appareil**, déchiffré une fois, puis
+  application tuée et rouverte. ✅ **Pixel 10 Pro XL (compte Salim L.)
+  contre SM A515F (compte Sim A), 2026-09-15.** Deux messages reçus du
+  SM A515F restent lisibles après arrêt complet, avec leur réaction. Et
+  `mls_diagnostics` ne porte **aucun** `decrypt_failed` postérieur au
+  redémarrage — les 11 antérieurs viennent de l'historique d'avant que ce
+  Pixel ne rejoigne le groupe, ce qui est attendu. C'était le dernier P0 de
+  cette entrée.
 
 ---
 
