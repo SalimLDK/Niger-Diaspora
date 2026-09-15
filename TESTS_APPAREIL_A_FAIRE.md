@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1089 cases à cocher, 579 cochées** — 221 entrées sur 267 ont encore des cases ouvertes.
+**1095 cases à cocher, 579 cochées** — 222 entrées sur 268 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -70,7 +70,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (70)
+**P1 — fonction importante, jamais vérifiée** (71)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -79,6 +79,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
@@ -279,7 +280,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 195 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 201 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 62 à faire, 29 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -538,6 +539,45 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)
+
+**Priorité P1** · importance 4/5 — Une conversation basculée à MLS n'écrit
+plus rien dans `messages` : sa ligne dans la liste des discussions et ses
+pastilles de non-lus viennent désormais de métadonnées posées à part
+(migration `20260915200000_mls_metadonnees_en_ligne`). Le déclencheur
+serveur **retire** l'aperçu en clair du legacy et pose à la place le type et
+l'expéditeur ; le texte de l'aperçu doit être reconstruit par l'appareil
+depuis son cache déchiffré. Rien de tout ça n'a jamais tourné sur un
+téléphone.
+
+*Bloqué : demande d'ouvrir le drapeau MLS global, et la lecture Dart des
+nouvelles tables n'est pas encore branchée (réactions, édition, suppression,
+reçus passent encore par l'ancienne table). Ne pas ouvrir le drapeau avant.*
+
+Fichiers : [20260915200000_mls_metadonnees_en_ligne.sql](supabase/migrations/20260915200000_mls_metadonnees_en_ligne.sql),
+[conversation_item.dart](lib/features/messages/presentation/widgets/conversation_item.dart)
+(`_formatLastMessage`), [conversation_model.dart](lib/features/messages/data/models/conversation_model.dart)
+(`_parseMessageTypeFromJson`).
+
+La partie base est vérifiée hors appareil par
+`tools/mls_banc/metadonnees_en_ligne.sql` (RLS joué en `authenticated`,
+transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
+
+- [ ] **Aperçu après bascule** : une discussion qui contenait des messages en
+  clair passe à MLS ; sa ligne cesse d'afficher l'ancien texte en clair et
+  n'affiche jamais le texte d'un message chiffré venu d'ailleurs.
+- [ ] **Photo envoyée** : la ligne dit « 📎 Document » au pire, jamais une
+  ligne vide — le serveur ne distingue pas photo, vidéo et document.
+- [ ] **Note vocale** : la ligne montre l'icône micro, pas « Document ».
+- [ ] **Réaction, édition, suppression** : aucune ne fait remonter la
+  discussion en tête de liste (ce sont des contrôles, pas des messages).
+- [ ] **Coches de lecture** : après lecture par B, les deux coches de A
+  passent au bleu **sans rechargement** (canal temps réel des reçus).
+- [ ] **Pastille de non-lus** et **badge @** d'une mention, dans un groupe
+  basculé, sur le second appareil du même compte.
 
 ---
 

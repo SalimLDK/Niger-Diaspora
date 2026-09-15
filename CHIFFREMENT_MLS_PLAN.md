@@ -423,6 +423,33 @@ create table mls_diagnostics (
 );
 ```
 
+**Les métadonnées en ligne ci-dessus sont appliquées en production depuis le
+2026-09-15** — migration `20260915200000_mls_metadonnees_en_ligne.sql`, banc
+`tools/mls_banc/metadonnees_en_ligne.sql` (RLS joué en `authenticated`, dans
+une transaction annulée ; vérifié en cassant la migration à dessein). Trois
+écarts assumés par rapport au schéma écrit plus haut :
+
+- **La vue ne rend que les lignes de l'appelant.** Écrite par participant
+  comme ci-dessus, elle fuyait : `unnest(participant_ids)` n'est pas une
+  table, aucun RLS ne s'y applique, et chacun aurait lu le compteur de
+  non-lus des autres. `firebase_uid()` remplace l'unnest — au passage, un
+  produit cartésien par la taille du groupe disparaît.
+- **Rien n'écrit `data.unreadCount` ni `data.unreadMentions`.** Ces cartes
+  sont décrémentées par `mark_messages_as_read`, qui ne connaît que
+  `messages` : les alimenter depuis `mls_messages` donnerait un compteur qui
+  ne sait que monter. La vue est la seule source pour MLS, et son
+  branchement Dart reste à faire.
+- **Le déclencheur d'aperçu retire `data.lastMessage`** au lieu de le
+  laisser. Sans ça, une conversation qui bascule garderait pour toujours
+  l'aperçu en clair de son dernier message legacy, figé sous des messages
+  chiffrés récents. Et il traduit `content_type` avant de l'écrire :
+  `media` tel quel tomberait en silence sur `MessageType.text` dans le
+  parseur Dart, et une photo s'afficherait comme une ligne vide.
+
+Ce qui manque encore pour ouvrir le drapeau : côté Dart, les réactions,
+l'édition, la suppression et les reçus écrivent toujours dans `messages`,
+où un message MLS n'a aucune ligne.
+
 Réclamation atomique d'un KeyPackage (sinon deux ajouts concurrents
 consomment le même paquet et le second Welcome est indéchiffrable) :
 
