@@ -48,7 +48,7 @@ class MlsMessageMapper {
     final row = entrant.row;
     final payload = entrant.payload;
     if (payload == null) {
-      return MessageEntity(
+      final illisible = MessageEntity(
         id: row.id,
         senderId: row.senderId,
         senderName: senderName,
@@ -64,6 +64,7 @@ class MlsMessageMapper {
         expiresAt: row.expiresAt?.toLocal(),
         encryptionLevel: MessageEncryptionLevel.e2ee,
       );
+      return illisible.isExpired ? illisible.videeParExpiration() : illisible;
     }
     return depuisPayload(
       payload,
@@ -79,6 +80,27 @@ class MlsMessageMapper {
   static const placeholderIllisible = '🔐 Message chiffré';
 
   static MessageEntity depuisPayload(
+    MlsPayload payload, {
+    required MlsMessageRow row,
+    required String senderName,
+    String? senderPhotoUrl,
+    required String currentUserId,
+  }) {
+    final entite = _depuisPayload(
+      payload,
+      row: row,
+      senderName: senderName,
+      senderPhotoUrl: senderPhotoUrl,
+      currentUserId: currentUserId,
+    );
+    // Le pendant MLS du garde de `MessageModel.toEntity` : un message dont
+    // l'echeance est passee ne rend jamais son clair, meme si le serveur n'a
+    // pas encore pose la pierre tombale. Ici ca compte double — le clair sort
+    // du dechiffrement, il n'existe nulle part ailleurs que dans cette entite.
+    return entite.isExpired ? entite.videeParExpiration() : entite;
+  }
+
+  static MessageEntity _depuisPayload(
     MlsPayload payload, {
     required MlsMessageRow row,
     required String senderName,

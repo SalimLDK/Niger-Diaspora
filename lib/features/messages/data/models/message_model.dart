@@ -335,7 +335,19 @@ final class MessageModel {
   }
 
   /// Convertir en entite de domaine
-  MessageEntity toEntity() => MessageEntity(
+  /// Le modèle vers l'entité que l'interface manipule.
+  ///
+  /// **Un message dont l'échéance est passée en ressort vidé**, sans attendre
+  /// le balayage serveur : c'est le seul point de passage du chemin legacy
+  /// (tout `message_repository_impl.dart` y converge), donc le seul endroit
+  /// où le poser une fois suffit. Voir
+  /// [MessageEntity.videeParExpiration].
+  MessageEntity toEntity() {
+    final entite = _versEntite();
+    return entite.isExpired ? entite.videeParExpiration() : entite;
+  }
+
+  MessageEntity _versEntite() => MessageEntity(
     id: id,
     senderId: senderId,
     senderName: senderName,

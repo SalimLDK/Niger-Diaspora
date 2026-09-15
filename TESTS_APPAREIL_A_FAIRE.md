@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1166 cases à cocher, 588 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
+**1167 cases à cocher, 588 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -83,7 +83,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 15 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
+- 16 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 20 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
@@ -289,7 +289,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 245 à faire, 80 faites
+- [2. Messagerie](#2-messagerie) — 246 à faire, 80 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 35 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -699,10 +699,18 @@ SELECT public.purger_messages_expires();
   `ttl` du payload — pas depuis la colonne. Après purge, `length(ciphertext)`
   vaut 0 et le rattrapage n'écrit **aucun** `decrypt_failed` dans
   `mls_diagnostics` (garde « pierre tombale »).
-- [ ] **Menu d'appui long** sur un message expiré mais pas encore balayé :
-  réactions et « répondre » restent proposés pendant le quart d'heure de
-  battement. Défaut connu, sans conséquence en base — à confirmer sans gravité
-  sur appareil, ou à fermer si c'est gênant à l'usage.
+- [ ] **Avant le passage du balayage, le contenu ne repart par aucun chemin.**
+  Laisser un message expirer, puis, dans le quart d'heure qui précède le
+  `pg_cron` : l'appui long ne propose plus ni réaction, ni « répondre », ni
+  « modifier » ; **« Copier » ne met rien dans le presse-papiers** ; l'export
+  de la conversation (JSON et HTML) écrit « Message supprimé » à sa place et
+  **pas** son texte ; la recherche dans la discussion ne le trouve plus par
+  son contenu. C'est le chemin qui compte le plus : le serveur n'a encore
+  rien effacé, tout tient au garde client.
+- [ ] **Hors ligne prolongé** : mode avion, laisser passer l'échéance, rouvrir
+  la discussion sans jamais retrouver le réseau — la bulle est vide et
+  « Copier » ne rend rien, alors que le balayage serveur n'a évidemment pas
+  pu passer.
 
 ---
 

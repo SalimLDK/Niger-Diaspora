@@ -244,6 +244,52 @@ class MessageEntity extends Equatable {
   /// Check if ephemeral message has expired
   bool get isExpired => expiresAt != null && DateTime.now().isAfter(expiresAt!);
 
+  /// La même bulle, vidée de tout ce qui porte du contenu.
+  ///
+  /// **Pourquoi ça vit ici, et pas dans chaque écran.** Le balayage serveur ne
+  /// passe qu'au quart d'heure, et un appareil hors ligne ne le voit pas
+  /// passer du tout : entre l'échéance et la pierre tombale, le message reste
+  /// entier dans le modèle local. Masquer la bulle ne suffit alors pas — le
+  /// texte repart par « Copier », par l'export de la conversation (qui
+  /// l'écrit dans un fichier), par la recherche, par l'aperçu de citation.
+  /// Autant de chemins qui savent déjà taire un message supprimé, et aucun
+  /// qui pensait à un message expiré.
+  ///
+  /// Se poser `deletedForEveryone` fait donc d'une pierre deux coups : les
+  /// quinze contrôles déjà écrits pour la suppression valent pour
+  /// l'expiration, et un seizième chemin ajouté demain héritera du bon
+  /// comportement sans qu'on ait à y penser. `expiresAt` est **conservé** :
+  /// c'est lui qui fait dire « Message expiré » plutôt que « supprimé ».
+  ///
+  /// Ce qui reste : l'identité de l'auteur, l'horodatage, les reçus, les
+  /// réactions et l'étoile — exactement ce qu'une suppression pour tout le
+  /// monde laisse derrière elle côté serveur.
+  MessageEntity videeParExpiration() => MessageEntity(
+    id: id,
+    senderId: senderId,
+    senderName: senderName,
+    senderPhotoUrl: senderPhotoUrl,
+    senderIsVerified: senderIsVerified,
+    content: '',
+    type: type,
+    status: status,
+    readBy: readBy,
+    readAt: readAt,
+    deliveredTo: deliveredTo,
+    deliveredAt: deliveredAt,
+    createdAt: createdAt,
+    deletedFor: deletedFor,
+    deletedForEveryone: true,
+    deletedAt: deletedAt,
+    reactions: reactions,
+    replyToId: replyToId,
+    starredBy: starredBy,
+    editedAt: editedAt,
+    expiresAt: expiresAt,
+    clientMessageId: clientMessageId,
+    encryptionLevel: encryptionLevel,
+  );
+
   /// Get remaining time until expiration
   Duration? get remainingTime {
     if (expiresAt == null) return null;
