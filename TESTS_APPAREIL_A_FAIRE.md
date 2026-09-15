@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1177 cases à cocher, 597 cochées** — 234 entrées sur 280 ont encore des cases ouvertes.
+**1181 cases à cocher, 597 cochées** — 235 entrées sur 281 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -75,7 +75,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (77)
+**P1 — fonction importante, jamais vérifiée** (78)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -98,6 +98,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 4 · [⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)](#-une-réaction-retirée-disparaît-vraiment-de-lécran-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -294,7 +295,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 242 à faire, 86 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 95 à faire, 38 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 99 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5887,6 +5888,44 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)
+
+**Priorité P1** · importance 4/5 — **Trouvé en regardant l'écran, pas le
+code.** Une bulle de « Mes notes » affichait un pouce levé alors que
+`mls_message_reactions` était **vide** en base. La réaction n'existait plus
+côté serveur, et l'écran la montrait quand même.
+
+La cause est la septième forme d'échec muet de ce dépôt. `MlsMetadonnees.pour`
+rendait un lot **vide** dans deux cas très différents : le serveur ne porte
+aucune métadonnée, et la lecture a échoué. L'appelant sortait sur le vide,
+donc sans recoller — et le recollage ne fait pas qu'ajouter, il **efface**
+aussi ce que le serveur ne porte plus. Le fil venant du cache de l'appareil,
+les réactions, étoiles et marques d'hier restaient figées.
+
+Conséquence : une réaction retirée restait affichée pour toujours, et une
+réaction dont l'écriture avait échoué **paraissait avoir pris**.
+
+Le lot porte maintenant un drapeau `lu`. On sort sur l'échec de lecture, plus
+sur le vide — une coupure réseau ne doit pas non plus effacer tout l'écran.
+
+Fichiers : [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
+(`illisible`), [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
+(`_avecMetadonnees`). Couvert hors appareil par
+[metadonnees_absence_vs_echec_test.dart](test/core/crypto/metadonnees_absence_vs_echec_test.dart)
+(4 cas).
+
+- [ ] **Réagir puis retirer la réaction** : le badge disparaît, et
+      `mls_message_reactions` ne porte plus la ligne. Rouvrir la discussion ne
+      la fait pas revenir.
+- [ ] **Étoiler puis retirer** : même chose côté `mls_message_stars`.
+- [ ] **Réagir hors ligne** : le badge ne doit pas rester figé comme un succès
+      une fois la connexion revenue sans que rien n'ait été écrit.
+- [ ] **Couper le réseau sur un fil qui porte des réactions** : elles restent
+      affichées, elles ne s'effacent pas d'un coup. C'est l'autre moitié du
+      correctif.
 
 ---
 
