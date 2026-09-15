@@ -530,23 +530,60 @@ void main() {
       );
     });
 
-    test('« Modifier » n’est plus derrière « Autres actions »', () {
-      // Elle y était en DERNIERE position : il fallait déployer le révélateur
-      // puis faire défiler. C'est une action courante, sur son propre message
-      // et dans une fenêtre de 25 min.
+    test('le menu du message est rangé par intention', () {
+      // L'ordre d'avant venait de la maquette puis des ajouts successifs. Ce
+      // test tient le rangement : quatre intentions (agir / emporter / ranger
+      // / isolé), et surtout ce qui ne doit PLUS être enterré derrière le
+      // révélateur « Autres actions » :
+      //   - Enregistrer : sur un média, c'est LE geste ;
+      //   - Signaler : recours d'une personne harcelée — son propre
+      //     commentaire disait « il ne disparaît pas d'un écran » alors qu'il
+      //     était caché ;
+      //   - Modifier : action courante, fenêtre de 25 min ;
+      //   - Épingler : `canPin` est déjà restrictif.
       final src = _source(
         'lib/features/messages/presentation/widgets/message_bubble.dart',
       );
       final principales = src.indexOf('List<Widget> _primaryOptionRows(');
       final secondaires = src.indexOf('List<Widget> _secondaryOptionRows(');
-      final edition = src.indexOf('_showEditDialog(context);');
       expect(principales, isNot(-1));
-      expect(secondaires, isNot(-1));
-      expect(
-        edition > principales && edition < secondaires,
-        isTrue,
-        reason: '« Modifier » doit vivre dans les actions PRINCIPALES',
-      );
+      expect(secondaires, greaterThan(principales));
+
+      int place(String aiguille) {
+        final i = src.indexOf(aiguille, principales);
+        expect(i, isNot(-1), reason: 'introuvable : $aiguille');
+        return i;
+      }
+
+      // Dans les principales, et dans cet ordre.
+      const ordre = [
+        'l10n.reply',
+        'l10n.edit',
+        'l10n.copy',
+        'l10n.save',
+        'l10n.forwardTo',
+        'l10n.starMessage',
+        'l10n.pin',
+        'l10n.select',
+        'l10n.report',
+        'l10n.delete',
+      ];
+      var precedent = principales;
+      for (final entree in ordre) {
+        final i = place(entree);
+        expect(i, lessThan(secondaires),
+            reason: '$entree doit être une action PRINCIPALE');
+        expect(i, greaterThan(precedent),
+            reason: '$entree est hors de l’ordre voulu');
+        precedent = i;
+      }
+
+      // Et seulement celles-là derrière le révélateur.
+      for (final rare in ['l10n.selectText', 'l10n.share',
+          'l10n.messageInfoTitle']) {
+        expect(src.indexOf(rare, secondaires), isNot(-1),
+            reason: '$rare doit rester derrière « Autres actions »');
+      }
     });
 
     test('le helper lit le minuteur et pose expiresAt', () {

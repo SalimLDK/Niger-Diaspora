@@ -1119,13 +1119,32 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     );
   }
 
-  /// Les entrées de la maquette, dans son ordre, plus « Sélectionner ».
+  /// Les actions du message, rangées par INTENTION.
   ///
-  /// La maquette n'en comptait que cinq. « Sélectionner » les rejoint parce
-  /// qu'il n'ouvre pas une fonction de plus : il ouvre le mode multi-sélection
-  /// que la conversation sait déjà tenir (barre de compte, tout cocher,
-  /// copier / transférer / supprimer la sélection). Rangé derrière
-  /// « Autres actions », ce mode restait sans porte d'entrée visible.
+  /// L'ordre d'avant était celui de la maquette puis des ajouts successifs :
+  /// les gestes se retrouvaient mêlés, et le révélateur « Autres actions »
+  /// gardait des choses qu'on cherche souvent. Quatre intentions, dans cet
+  /// ordre :
+  ///
+  /// 1. **agir sur ce message** — Répondre, Modifier ;
+  /// 2. **emporter son contenu** — Copier, Enregistrer, Transférer ;
+  /// 3. **le ranger** — Favoris, Épingler, Sélectionner ;
+  /// 4. **isolé par un filet** — Signaler / Supprimer.
+  ///
+  /// Ce qui est remonté du révélateur, et pourquoi :
+  ///
+  /// - **Enregistrer** : sur un média, c'est LE geste ; il demandait deux
+  ///   étapes de plus ;
+  /// - **Signaler** : c'est le recours d'une personne harcelée. Le
+  ///   commentaire de l'entrée disait déjà « il ne disparaît pas d'un
+  ///   écran » — il était pourtant caché. On a suivi l'intention écrite ;
+  /// - **Épingler** : `canPin` est déjà restrictif, donc quand l'entrée
+  ///   existe, elle est voulue ;
+  /// - **Modifier** : action courante sur son propre message, dans une
+  ///   fenêtre de 25 min ; elle était en DERNIÈRE position de la section
+  ///   repliée ;
+  /// - **Sélectionner** : seul chemin vers la multi-sélection — un appui
+  ///   simple ne coche que si le mode est déjà entré.
   List<Widget> _primaryOptionRows(BuildContext ctx) {
     final l10n = AppLocalizations.of(context)!;
     return [
@@ -1142,6 +1161,24 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           },
         ),
 
+      if (widget.isMe &&
+          widget.message.type == MessageType.text &&
+          !widget.message.deletedForEveryone &&
+          widget.onEdit != null &&
+          widget.currentUserId != null &&
+          widget.message.canEdit(widget.currentUserId!))
+        ListTile(
+          leading: Icon(Icons.edit_outlined, color: context.textPrimaryColor),
+          title: Text(
+            l10n.edit,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            _showEditDialog(context);
+          },
+        ),
+
       // Texte, légende de photo/vidéo, adresse d'une position, question d'un
       // sondage : la règle vit dans `messageCopyText`.
       if (messageCopyText(widget.message) case final texte?)
@@ -1154,6 +1191,29 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onTap: () {
             Navigator.pop(ctx);
             _copyToClipboard(texte);
+          },
+        ),
+
+      if (!widget.message.deletedForEveryone &&
+          widget.message.fileUrl != null &&
+          (widget.message.type == MessageType.image ||
+              widget.message.type == MessageType.video))
+        ListTile(
+          leading: Icon(
+            Icons.download_rounded,
+            color: context.textPrimaryColor,
+          ),
+          title: Text(
+            l10n.save,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            if (widget.message.type == MessageType.image) {
+              _saveImageToGallery(widget.message.fileUrl!);
+            } else {
+              _saveVideoToDevice(widget.message.fileUrl!);
+            }
           },
         ),
 
@@ -1194,91 +1254,6 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           },
         ),
 
-      // Entrer en sélection multiple depuis le message pressé. L'entrée
-      // vivait derrière « Autres actions », où personne ne la trouvait —
-      // alors que c'est le SEUL chemin vers la sélection : un simple appui
-      // sur une bulle ne coche que si le mode est déjà entré.
-      if (widget.onSelect != null)
-        ListTile(
-          leading: AppIcon(
-            AppIcon.checkCircle,
-            color: context.textPrimaryColor,
-          ),
-          title: Text(
-            l10n.select,
-            style: TextStyle(color: context.textPrimaryColor),
-          ),
-          onTap: () {
-            Navigator.pop(ctx);
-            widget.onSelect?.call(widget.message);
-          },
-        ),
-
-      // « Modifier » vivait derrière « Autres actions », en DERNIERE position
-      // de la section repliee : il fallait deployer le revelateur puis faire
-      // defiler pour l'atteindre. C'est une action courante, sur son propre
-      // message et dans une fenetre de 25 minutes — elle se place avec les
-      // autres, avant le filet qui isole le destructif.
-      if (widget.isMe &&
-          widget.message.type == MessageType.text &&
-          !widget.message.deletedForEveryone &&
-          widget.onEdit != null &&
-          widget.currentUserId != null &&
-          widget.message.canEdit(widget.currentUserId!))
-        ListTile(
-          leading: Icon(Icons.edit_outlined, color: context.textPrimaryColor),
-          title: Text(
-            l10n.edit,
-            style: TextStyle(color: context.textPrimaryColor),
-          ),
-          onTap: () {
-            Navigator.pop(ctx);
-            _showEditDialog(context);
-          },
-        ),
-
-      // Action destructive isolée par un filet.
-      if (_canShowDeleteOption()) ...[
-        Divider(
-          height: 1,
-          indent: 16,
-          endIndent: 16,
-          color: context.borderColor,
-        ),
-        ListTile(
-          leading: AppIcon(AppIcon.delete, color: context.errorColor),
-          title: Text(
-            l10n.delete,
-            style: TextStyle(color: context.errorColor),
-          ),
-          onTap: () {
-            Navigator.pop(ctx);
-            _showDeleteModal(context);
-          },
-        ),
-      ],
-    ];
-  }
-
-  /// Ce que la maquette ne montre pas mais que l'app sait faire.
-  List<Widget> _secondaryOptionRows(BuildContext ctx) {
-    final l10n = AppLocalizations.of(context)!;
-    return [
-      if (widget.isMe &&
-          !widget.message.deletedForEveryone &&
-          widget.conversationId != null)
-        ListTile(
-          leading: AppIcon(AppIcon.info, color: context.textPrimaryColor),
-          title: Text(
-            l10n.messageInfoTitle,
-            style: TextStyle(color: context.textPrimaryColor),
-          ),
-          onTap: () {
-            Navigator.pop(ctx);
-            _showMessageInfoSheet(context);
-          },
-        ),
-
       if (widget.canPin && !widget.message.deletedForEveryone)
         if (widget.isPinned && widget.onUnpin != null)
           ListTile(
@@ -1313,61 +1288,22 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             },
           ),
 
-      if (!widget.message.deletedForEveryone &&
-          widget.message.fileUrl != null &&
-          (widget.message.type == MessageType.image ||
-              widget.message.type == MessageType.video))
+      // Entrer en sélection multiple depuis le message pressé : c'est le SEUL
+      // chemin vers la sélection — un simple appui sur une bulle ne coche que
+      // si le mode est déjà entré.
+      if (widget.onSelect != null)
         ListTile(
-          leading: Icon(
-            Icons.download_rounded,
+          leading: AppIcon(
+            AppIcon.checkCircle,
             color: context.textPrimaryColor,
           ),
           title: Text(
-            l10n.save,
+            l10n.select,
             style: TextStyle(color: context.textPrimaryColor),
           ),
           onTap: () {
             Navigator.pop(ctx);
-            if (widget.message.type == MessageType.image) {
-              _saveImageToGallery(widget.message.fileUrl!);
-            } else {
-              _saveVideoToDevice(widget.message.fileUrl!);
-            }
-          },
-        ),
-
-      if (!widget.message.deletedForEveryone &&
-          (widget.message.type == MessageType.text ||
-              widget.message.type == MessageType.image ||
-              widget.message.type == MessageType.video ||
-              widget.message.type == MessageType.file))
-        ListTile(
-          leading: AppIcon(AppIcon.share, color: context.textPrimaryColor),
-          title: Text(
-            l10n.share,
-            style: TextStyle(color: context.textPrimaryColor),
-          ),
-          onTap: () {
-            Navigator.pop(ctx);
-            _shareMessage();
-          },
-        ),
-
-      // Copier une partie seulement : un numéro, un lien, une phrase. La bulle
-      // n'est pas sélectionnable (l'appui long y ouvre ce menu).
-      if (messageCopyText(widget.message) case final texte?)
-        ListTile(
-          leading: Icon(
-            Icons.text_fields_rounded,
-            color: context.textPrimaryColor,
-          ),
-          title: Text(
-            l10n.selectText,
-            style: TextStyle(color: context.textPrimaryColor),
-          ),
-          onTap: () {
-            Navigator.pop(ctx);
-            _showSelectTextSheet(texte);
+            widget.onSelect?.call(widget.message);
           },
         ),
 
@@ -1397,7 +1333,86 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             );
           },
         ),
-    ];
+
+      // Action destructive isolée par un filet.
+      if (_canShowDeleteOption()) ...[
+        Divider(
+          height: 1,
+          indent: 16,
+          endIndent: 16,
+          color: context.borderColor,
+        ),
+        ListTile(
+          leading: AppIcon(AppIcon.delete, color: context.errorColor),
+          title: Text(
+            l10n.delete,
+            style: TextStyle(color: context.errorColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            _showDeleteModal(context);
+          },
+        ),
+      ],];
+  }
+
+  /// Ce qu'on ne cherche qu'exceptionnellement.
+  ///
+  /// Le révélateur ne garde plus que ça : copier une partie du texte,
+  /// partager HORS de l'app (« Transférer » couvre l'intérieur, qui est le
+  /// cas courant), et consulter les détails techniques d'un message.
+  List<Widget> _secondaryOptionRows(BuildContext ctx) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+
+      // Copier une partie seulement : un numéro, un lien, une phrase. La bulle
+      // n'est pas sélectionnable (l'appui long y ouvre ce menu).
+      if (messageCopyText(widget.message) case final texte?)
+        ListTile(
+          leading: Icon(
+            Icons.text_fields_rounded,
+            color: context.textPrimaryColor,
+          ),
+          title: Text(
+            l10n.selectText,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            _showSelectTextSheet(texte);
+          },
+        ),
+
+      if (!widget.message.deletedForEveryone &&
+          (widget.message.type == MessageType.text ||
+              widget.message.type == MessageType.image ||
+              widget.message.type == MessageType.video ||
+              widget.message.type == MessageType.file))
+        ListTile(
+          leading: AppIcon(AppIcon.share, color: context.textPrimaryColor),
+          title: Text(
+            l10n.share,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            _shareMessage();
+          },
+        ),
+      if (widget.isMe &&
+          !widget.message.deletedForEveryone &&
+          widget.conversationId != null)
+        ListTile(
+          leading: AppIcon(AppIcon.info, color: context.textPrimaryColor),
+          title: Text(
+            l10n.messageInfoTitle,
+            style: TextStyle(color: context.textPrimaryColor),
+          ),
+          onTap: () {
+            Navigator.pop(ctx);
+            _showMessageInfoSheet(context);
+          },
+        ),];
   }
 
   void _copyToClipboard(String texte) {
