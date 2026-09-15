@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1116 cases à cocher, 581 cochées** — 224 entrées sur 270 ont encore des cases ouvertes.
+**1121 cases à cocher, 581 cochées** — 225 entrées sur 271 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -71,7 +71,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (71)
+**P1 — fonction importante, jamais vérifiée** (72)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -91,6 +91,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 5 · [⬜ Rechercher dans une conversation chiffrée (2026-09-15)](#-rechercher-dans-une-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -284,7 +285,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 220 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 64 à faire, 31 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 69 à faire, 31 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5652,6 +5653,40 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Rechercher dans une conversation chiffrée (2026-09-15)
+
+**Priorité P1** · importance 4/5 — Le serveur ne détient qu'un ciphertext :
+son `ilike` sur le contenu d'une conversation basculée ne trouvait **rien**,
+et ne levait pas. La recherche rendait une liste vide en annonçant un succès.
+
+Elle interroge désormais aussi le cache Hive, seul endroit où le clair
+existe, et garde le résultat serveur pour l'historique d'avant le séparateur
+de bascule, que le cache peut ne pas couvrir en entier. Les deux sources se
+dédoublonnent par identifiant, le cache gagne.
+
+**La limite est inhérente, pas un défaut** : on ne trouve que ce que
+l'appareil a déjà déchiffré. Une conversation ouverte pour la première fois
+sur un téléphone neuf n'a rien à fouiller tant qu'on n'a pas remonté le fil.
+
+Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`searchMessagesInConversation`). Couvert hors appareil par
+[recherche_conversation_chiffree_test.dart](test/features/messages/recherche_conversation_chiffree_test.dart)
+(6 cas).
+
+- [ ] **Chercher un mot d'un message chiffré** : il ressort, avec sa bulle et
+      son horodatage justes.
+- [ ] **Chercher un mot d'avant la bascule** : il ressort aussi, sous le
+      séparateur.
+- [ ] **Un mot présent des deux côtés** : une seule occurrence par message,
+      pas de doublon.
+- [ ] **Fil jamais ouvert sur cet appareil** : la recherche ne trouve rien
+      dans la partie chiffrée. Juger si l'écran le dit de façon acceptable, ou
+      s'il faut un mot d'explication.
+- [ ] **Fil très long** : mesurer le temps de la recherche locale, le cache
+      étant parcouru en entier à chaque frappe.
 
 ---
 
