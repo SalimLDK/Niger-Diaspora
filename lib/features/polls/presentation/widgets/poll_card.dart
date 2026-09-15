@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/utils/date_formatter.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../domain/entities/poll_entity.dart';
 import '../providers/poll_provider.dart';
@@ -17,6 +18,49 @@ String _formatTimeAgo(DateTime dt, BuildContext context) {
     return timeago.format(dt, locale: 'fr');
   }
   return timeago.format(dt);
+}
+
+/// Forme compacte de l'anciennete : « 12 min », « 3 j » en francais, « 12m »,
+/// « ~1d » ailleurs.
+///
+/// Le francais passe par [DateFormatter.timeAgoShort], qui est le vocabulaire
+/// compact deja en place dans l'app (cartes « Enregistres ») ; on ne le
+/// redouble pas ici. `FrShortMessages` de timeago ne conviendrait pas : malgre
+/// son nom, il se contente de retirer le « environ » et rend encore
+/// « il y a un jour ».
+String _formatTimeAgoCompact(DateTime dt, BuildContext context) {
+  final locale = Localizations.localeOf(context).languageCode;
+  if (locale == 'fr') return DateFormatter.timeAgoShort(dt);
+  return timeago.format(dt, locale: 'en_short');
+}
+
+/// Rend la forme longue de [_formatTimeAgo] tant qu'elle tient dans [plafond],
+/// la forme compacte sinon.
+///
+/// L'en-tete du sondage doit tenir dans une bulle de discussion large de
+/// 288 px, ou « il y a environ un jour » depasse a lui seul (269,5 px) la
+/// place laissee par l'icone. Tronquer serait pire que raccourcir : « il y a
+/// envi... » supprime justement l'information que le libelle porte.
+///
+/// On **mesure** au lieu de se fier a la largeur seule, parce que le facteur
+/// d'echelle de police vient des reglages de l'appareil : la meme rangee
+/// deborde sur un ecran large des que l'utilisateur grossit le texte.
+String _libelleTempsTenantEn(
+  DateTime dt,
+  BuildContext context,
+  TextStyle style,
+  double plafond,
+) {
+  final complet = _formatTimeAgo(dt, context);
+  final peintre = TextPainter(
+    text: TextSpan(text: complet, style: style),
+    maxLines: 1,
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
+  )..layout();
+  return peintre.width <= plafond
+      ? complet
+      : _formatTimeAgoCompact(dt, context);
 }
 
 /// Carte de sondage avec vote inline, reutilisable pour un groupe ou un post.
@@ -134,27 +178,64 @@ class _PollCardState extends ConsumerState<PollCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const AppIcon(AppIcon.poll, size: 18, color: kPollAccent),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  poll.createdByName ?? '',
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: context.textSecondaryColor,
+          // Le libelle de temps garde sa largeur naturelle — c'est ce qui le
+          // laisse colle a droite et donne au nom tout le reste. Le rendre
+          // `Flexible` a cote d'un `Expanded` le casserait : deux enfants
+          // flexibles ne recoivent plus leur largeur intrinseque mais une
+          // part de l'espace libre au prorata des flex, donc un nom fige a la
+          // moitie de la rangee et un blanc entre lui et l'heure.
+          LayoutBuilder(
+            builder: (context, contraintes) {
+              final styleTemps = TextStyle(
+                fontSize: 12,
+                color: context.textTertiaryColor,
+              );
+              // L'icone et son espace ne participent pas au partage entre le
+              // nom et l'heure.
+              final largeurUtile = contraintes.maxWidth - 18 - 8;
+              // Le nom de l'auteur est l'information principale : l'heure ne
+              // prend jamais plus de la moitie de ce qui reste.
+              final plafondTemps = largeurUtile > 0 ? largeurUtile / 2 : 0.0;
+              final libelleTemps = poll.createdAt == null
+                  ? null
+                  : _libelleTempsTenantEn(
+                      poll.createdAt!,
+                      context,
+                      styleTemps,
+                      plafondTemps,
+                    );
+
+              return Row(
+                children: [
+                  const AppIcon(AppIcon.poll, size: 18, color: kPollAccent),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      poll.createdByName ?? '',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              if (poll.createdAt != null)
-                Text(
-                  _formatTimeAgo(poll.createdAt!, context),
-                  style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
-                ),
-            ],
+                  if (libelleTemps != null)
+                    // Dernier filet : a une echelle de police extreme, meme la
+                    // forme compacte peut deborder. L'ellipse est alors le
+                    // moindre mal.
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: plafondTemps),
+                      child: Text(
+                        libelleTemps,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: styleTemps,
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 12),
           Text(

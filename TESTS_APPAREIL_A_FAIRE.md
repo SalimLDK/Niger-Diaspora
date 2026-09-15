@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1082 cases à cocher, 569 cochées** — 218 entrées sur 263 ont encore des cases ouvertes.
+**1086 cases à cocher, 569 cochées** — 220 entrées sur 265 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -142,7 +142,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (73)
+**P2 — fonction secondaire ou cas limite** (75)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -179,6 +179,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
+- 3 · [⬜ L'en-tête d'un sondage effaçait son auteur dans une bulle — corrigé, à revoir (2026-09-15)](#-len-tête-dun-sondage-effaçait-son-auteur-dans-une-bulle--corrigé-à-revoir-2026-09-15) · *Design, thème, langue et mise en page*
+- 1 · [⬜ Le pied d'un sondage déborde encore en mode vote — NON corrigé (2026-09-15)](#-le-pied-dun-sondage-déborde-encore-en-mode-vote--non-corrigé-2026-09-15) · *Design, thème, langue et mise en page*
 - 7 · [⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)](#-létape--thème--dit-enfin-la-vérité-sur-laccent-2026-09-14) · *Design, thème, langue et mise en page*
 - 4 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
@@ -286,7 +288,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 46 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 151 à faire, 30 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 155 à faire, 30 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -13424,6 +13426,68 @@ directement sur la section APPLICATION.
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
 
 ---
+
+## ⬜ L'en-tête d'un sondage effaçait son auteur dans une bulle — corrigé, à revoir (2026-09-15)
+
+**Priorité P2** · importance 3/5 — Dans une bulle de discussion, le nom de l'auteur du sondage disparaissait purement et simplement, et l'horodatage débordait de la carte.
+
+Dans [poll_card.dart](lib/features/polls/presentation/widgets/poll_card.dart),
+la rangée d'en-tête « auteur · il y a X » posait le libellé de temps **sans
+contrainte** à côté d'un `Expanded`. `RenderFlex` sert les enfants
+inflexibles en premier : « il y a environ un jour » prenait toute sa largeur
+intrinsèque, l'`Expanded` du nom tombait à zéro — donc **invisible**, pas
+tronqué — et la rangée débordait de 7,5 px. `PollMessageBubble` contraint la
+carte à 288 dp ; c'est là que ça se voyait.
+
+Le libellé est maintenant **mesuré** (`TextPainter`, échelle de police
+comprise) : la forme longue de `timeago` est gardée tant qu'elle tient dans la
+moitié de la rangée, sinon la forme compacte de `DateFormatter.timeAgoShort`
+prend le relais (« 1 j », « 12 min »). Mesurer plutôt que se fier à la seule
+largeur, parce que le facteur d'échelle vient des réglages de l'appareil —
+même famille que « Deux textes du fil que `font_scale` 1.3 abime ».
+
+Couvert par `test/features/polls/sondage_vote_test.dart` (4 cas, dont un qui
+vérifie la **géométrie** : le temps collé à droite, le nom prenant tout le
+reste). Vérifié par mutation : le correctif « évident » — passer le temps en
+`Flexible` — fait tomber 3 des 4 cas, parce que deux enfants flexibles
+cessent de recevoir leur largeur intrinsèque et se partagent l'espace libre
+au prorata des flex.
+
+- [ ] **Bulle de sondage reçue** : le nom de l'auteur doit être **visible** en
+  tête de la carte, et l'horodatage collé au bord droit, sans bande de
+  débordement. Un sondage créé la veille donne la forme compacte (« 1 j »).
+- [ ] **Le même sondage dans le fil** (carte large, [post_card.dart](lib/features/feed/presentation/widgets/post_card.dart)) :
+  la forme **longue** doit y rester, « il y a environ un jour ». C'est le
+  point qui distingue le correctif d'un raccourcissement partout.
+- [ ] **À `font_scale` 1.3 et au-delà** : la bascule vers la forme compacte
+  doit se déclencher aussi sur une carte large, puisque c'est la mesure qui
+  décide et non la largeur.
+
+## ⬜ Le pied d'un sondage déborde encore en mode vote — NON corrigé (2026-09-15)
+
+**Priorité P2** · importance 3/5 — Même motif que l'en-tête, même bulle, mais dans `_pied` : « N votes » disparaît et « Voir les résultats » est rogné.
+
+Trouvé en écrivant les bancs de l'entrée ci-dessus, et **indépendant d'elle** :
+mesuré avec `createdAt` à null, donc sans le moindre libellé de temps dans
+l'en-tête. Préexistant.
+
+`_pied` ([poll_card.dart](lib/features/polls/presentation/widgets/poll_card.dart))
+traite le cas à **une seule action** par `Row(Expanded(compte), action)` —
+exactement le motif corrigé dans l'en-tête. À 288 dp en mode vote, l'unique
+action est « Voir les résultats » : elle déborde de 22 px et écrase le compte
+à zéro. Le cas à **deux** actions, lui, est correct (branche `Column` + `Wrap`,
+posée le 2026-09-14), et c'est pourquoi les bancs existants ne le voyaient
+pas : ils montent la carte en mode résultats, à 320 dp.
+
+Pas corrigé ici : contrairement à l'en-tête où il s'agit d'un libellé de
+texte, l'enfant trop large est un `TextButton`, et le choisir entre empiler
+(précédent du fichier), raccourcir le libellé ou l'ellipser est un arbitrage
+de maquette, pas une évidence technique.
+
+- [ ] **Bulle de sondage reçue, pas encore voté** : « 3 votes » doit rester
+  lisible à gauche et « Voir les résultats » entier à droite. Aujourd'hui, en
+  release, le débordement est **silencieux** (pas de bande jaune et noire) :
+  c'est le texte rogné qu'il faut regarder.
 
 ## ⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14)
 
