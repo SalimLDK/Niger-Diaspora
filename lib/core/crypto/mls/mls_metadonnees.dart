@@ -30,6 +30,14 @@ class MlsMetadonneesLot {
   /// Messages que **moi seul** ai mis en favori.
   final Set<String> etoiles;
 
+  /// Messages supprimés pour tous, par leur expéditeur.
+  ///
+  /// Relu à chaque passage, et pas seulement à l'arrivée du message : une
+  /// suppression se décide après coup, et le cliquet ne repasse jamais sur
+  /// un message déjà déchiffré. Sans ça, « supprimer pour tous » ne se
+  /// verrait que chez celui qui l'a fait.
+  final Set<String> supprimes;
+
   const MlsMetadonneesLot({
     this.reactions = const {},
     this.lecteurs = const {},
@@ -38,6 +46,7 @@ class MlsMetadonneesLot {
     this.livreA = const {},
     this.masques = const {},
     this.etoiles = const {},
+    this.supprimes = const {},
   });
 
   static const vide = MlsMetadonneesLot();
@@ -47,7 +56,8 @@ class MlsMetadonneesLot {
       lecteurs.isEmpty &&
       destinataires.isEmpty &&
       masques.isEmpty &&
-      etoiles.isEmpty;
+      etoiles.isEmpty &&
+      supprimes.isEmpty;
 }
 
 /// Les métadonnées en ligne des messages MLS (plan § 4, décision J).
@@ -114,6 +124,7 @@ class MlsMetadonnees {
       final livreA = <String, Map<String, DateTime>>{};
       final masques = <String>{};
       final etoiles = <String>{};
+      final supprimes = <String>{};
 
       for (final lot in _lots(ids)) {
         final resultats = await Future.wait([
@@ -124,6 +135,11 @@ class MlsMetadonnees {
               .inFilter('message_id', lot),
           _client.from('mls_message_hidden').select('message_id').inFilter('message_id', lot),
           _client.from('mls_message_stars').select('message_id').inFilter('message_id', lot),
+          _client
+              .from('mls_messages')
+              .select('id')
+              .inFilter('id', lot)
+              .eq('is_deleted', true),
         ]);
 
         for (final r in (resultats[0] as List).cast<Map<String, dynamic>>()) {
@@ -152,6 +168,9 @@ class MlsMetadonnees {
         for (final r in (resultats[3] as List).cast<Map<String, dynamic>>()) {
           etoiles.add(r['message_id'] as String);
         }
+        for (final r in (resultats[4] as List).cast<Map<String, dynamic>>()) {
+          supprimes.add(r['id'] as String);
+        }
       }
 
       return MlsMetadonneesLot(
@@ -162,6 +181,7 @@ class MlsMetadonnees {
         livreA: livreA,
         masques: masques,
         etoiles: etoiles,
+        supprimes: supprimes,
       );
     } catch (e) {
       debugPrint('MlsMetadonnees: lot illisible ($e)');

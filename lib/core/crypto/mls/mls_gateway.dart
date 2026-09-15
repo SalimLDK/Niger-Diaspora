@@ -57,9 +57,23 @@ class MlsGateway {
   /// écran rouvert sans relecture.
   final Set<String> _connus = {};
 
+  /// Le fil déchiffré de chaque conversation, tel quel — sans métadonnées,
+  /// qui sont recollées à la sortie parce qu'elles bougent sans message
+  /// nouveau. `catchUp` ne rendant que le delta, c'est ici que le fil
+  /// existe en entier.
+  final Map<String, List<MessageEntity>> _fil = {};
+
   /// Le drapeau est lu à chaque appel, pas au démarrage : l'ouvrir ne doit
   /// pas demander de relancer l'application.
   bool get actif => _actif();
+
+  /// Au moins une conversation vue est basculée.
+  ///
+  /// Sert à ne rien demander au serveur quand il n'y a rien à demander :
+  /// refermer le drapeau n'annule pas les conversations déjà basculées, et
+  /// elles gardent leurs compteurs.
+  bool get aDesConversationsBasculees =>
+      _bascule.values.any((date) => date != null);
 
   /// Date de bascule de la conversation, `null` si elle est encore en clair.
   Future<DateTime?> mlsSince(String conversationId) async {
@@ -83,22 +97,33 @@ class MlsGateway {
 
   /// Les messages MLS de la conversation, prêts pour l'écran.
   ///
+  /// **Le fil entier, pas le dernier lot.** `catchUp` est incrémental par
+  /// construction — le cliquet ne déchiffre jamais deux fois, et il saute
+  /// mes propres messages, dont il ne sait pas relire le clair. Rendre son
+  /// résultat tel quel viderait l'écran au deuxième affichage : la fusion
+  /// retombe sur le legacy seul quand le côté MLS est vide, et tout ce qui a
+  /// été dit depuis la bascule paraîtrait effacé. Le fil déchiffré est donc
+  /// gardé ici, et complété à chaque passage.
+  ///
   /// Le déchiffrement ne donne que le contenu : réactions, coches de lecture,
-  /// favoris et « supprimé pour moi » vivent dans les tables annexes
-  /// (décision J) et sont recollés ici. Sans ce second passage, un fil
-  /// basculé s'afficherait sans aucune réaction ni accusé — muettement.
+  /// favoris, « supprimé pour moi » et « supprimé pour tous » vivent dans les
+  /// tables annexes (décision J) et sont recollés à chaque appel — eux
+  /// changent sans qu'un nouveau message arrive.
   Future<List<MessageEntity>> messages(String conversationId) async {
     final entrants = await _service.catchUp(conversationId);
-    final sortie = <MessageEntity>[];
+    final fil = _fil[conversationId] ??= [];
+    final deja = {for (final m in fil) m.id};
     for (final e in entrants) {
-      sortie.add(MlsMessageMapper.depuisEntrant(
+      if (!deja.add(e.row.id)) continue;
+      fil.add(MlsMessageMapper.depuisEntrant(
         e,
         senderName: await _nom(e.row.senderId),
         currentUserId: userId,
       ));
     }
-    _connus.addAll(sortie.map((m) => m.id));
-    return _avecMetadonnees(sortie);
+    fil.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    _connus.addAll(deja);
+    return _avecMetadonnees(List.of(fil));
   }
 
   /// Recolle les métadonnées en ligne sur un fil déjà déchiffré.
@@ -119,6 +144,10 @@ class MlsGateway {
           deliveredAt: lot.livreA[m.id] ?? const {},
           starredBy: lot.etoiles.contains(m.id) ? [userId] : const [],
           deletedFor: lot.masques.contains(m.id) ? [userId] : const [],
+          // Jamais dégradé : un message déjà su supprimé le reste, même si
+          // la requête d'en face est revenue vide.
+          deletedForEveryone:
+              m.deletedForEveryone || lot.supprimes.contains(m.id),
         ),
     ];
   }
@@ -192,7 +221,7 @@ class MlsGateway {
     if (mentions.isNotEmpty) {
       await _meta.poserMentions(row.id, mentions);
     }
-    return MlsMessageMapper.depuisPayload(
+    final envoye = MlsMessageMapper.depuisPayload(
       MlsPayload(
         id: row.id,
         type: payload.type,
@@ -207,9 +236,13 @@ class MlsGateway {
       senderPhotoUrl: senderPhotoUrl,
       currentUserId: userId,
     );
+    // `catchUp` saute mes propres messages : sans cette ligne, celui-ci
+    // disparaîtrait de l'écran au premier rafraîchissement.
+    (_fil[conversationId] ??= []).add(envoye);
+    return envoye;
   }
 
-  /// Le corps d'un message média, clé de fichier comprise (plan § 9).
+  /// Le corps d'un média, clé de fichier comprise (plan § 9).
   ///
   /// La clé voyageait jusqu'ici dans `encAnnexes`, chiffré avec la clé
   /// **dérivée** de la conversation — que le serveur sait reconstruire. Ici

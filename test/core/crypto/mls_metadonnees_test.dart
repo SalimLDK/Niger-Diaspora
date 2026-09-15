@@ -6,6 +6,8 @@ import 'package:diaspo_niger/core/crypto/mls/mls_delivery.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_gateway.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_metadonnees.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_payload_codec.dart';
+import 'package:diaspo_niger/features/messages/data/repositories/message_repository_impl.dart';
+import 'package:diaspo_niger/features/messages/domain/entities/conversation_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Ce que ces tests protègent (plan MLS § 4, décision J)
@@ -72,9 +74,16 @@ class _ServiceFige extends MlsConversationService {
 
   final List<MlsIncoming> fil;
   MlsMessageRow? dernierEnvoi;
+  int rattrapages = 0;
 
+  /// **Le vrai `catchUp` est incrémental** : il avance un curseur et retient
+  /// les messages déjà vus, parce que le cliquet ne déchiffre jamais deux
+  /// fois. Le second appel ne rend donc que ce qui est arrivé depuis —
+  /// rien, ici. Un faux qui rendrait le fil entier à chaque fois mentirait
+  /// sur le seul point qui compte.
   @override
-  Future<List<MlsIncoming>> catchUp(String conversationId) async => fil;
+  Future<List<MlsIncoming>> catchUp(String conversationId) async =>
+      rattrapages++ == 0 ? fil : const [];
 
   @override
   Future<void> ensureGroup(String conversationId) async {}
@@ -204,6 +213,43 @@ void main() {
       expect(fil.first.isDeletedFor('u1'), isFalse);
     });
 
+    test('rouvrir la discussion ne vide pas le fil chiffré', () async {
+      // `catchUp` ne rend que le delta. Si la passerelle le renvoyait tel
+      // quel, le second affichage de la conversation — rouvrir, paginer,
+      // rafraîchir — ne contiendrait plus AUCUN message chiffré : la fusion
+      // retombe sur le legacy seul quand le côté MLS est vide. Le fil
+      // paraîtrait avoir perdu tout ce qui a été dit depuis la bascule.
+      final service = _ServiceFige([
+        MlsIncoming(_ligne('m1'), payload: _payload('m1')),
+        MlsIncoming(_ligne('m2'), payload: _payload('m2')),
+      ]);
+      final passerelle = _passerelle(service, _MetaEspion());
+
+      expect(await passerelle.messages('c1'), hasLength(2));
+      expect(await passerelle.messages('c1'), hasLength(2),
+          reason: 'le fil se garde, il ne se redemande pas');
+      expect(service.rattrapages, 2);
+    });
+
+    test('un message envoyé reste dans le fil à la réouverture', () async {
+      // `catchUp` saute mes propres messages (« son clair est dans le cache
+      // local, et le cliquet ne sait pas relire ce qu'il a émis »). Sans
+      // l'ajouter au fil à l'envoi, mon message disparaîtrait de l'écran au
+      // premier rafraîchissement.
+      final service = _ServiceFige(const []);
+      final passerelle = _passerelle(service, _MetaEspion());
+
+      await passerelle.envoyer(
+        conversationId: 'c1',
+        type: 'text',
+        body: const {'content': 'salut'},
+        senderName: 'Moi',
+      );
+
+      final fil = await passerelle.messages('c1');
+      expect(fil.map((m) => m.id), ['m-neuf']);
+    });
+
     test('un fil sans métadonnées reste affichable', () async {
       final service = _ServiceFige([
         MlsIncoming(_ligne('m1'), payload: _payload('m1')),
@@ -323,6 +369,88 @@ void main() {
       );
 
       expect(meta.mentionsPosees, isEmpty);
+    });
+  });
+
+  group("L'aperçu d'une discussion chiffrée vient du cache local", () {
+    // Le serveur ne porte que le type (décision G) : le texte, s'il doit
+    // apparaître, ne peut venir que du cache déchiffré de l'appareil.
+    ConversationEntity conv({String? apercu, DateTime? quand}) =>
+        ConversationEntity(
+          id: 'c1',
+          type: ConversationType.individual,
+          participantIds: const ['u1', 'u2'],
+          createdBy: 'u1',
+          createdAt: DateTime.utc(2026, 9, 1),
+          lastMessage: apercu,
+          lastMessageAt: quand,
+        );
+
+    Map<String, dynamic> cache(String texte, DateTime quand) => {
+          'id': 'm1',
+          'content': texte,
+          'createdAt': quand.toUtc().toIso8601String(),
+        };
+
+    test('le dernier message caché devient l\'aperçu quand l\'heure colle', () {
+      final t = DateTime.utc(2026, 9, 15, 12);
+      final sortie = MessageRepositoryImpl.apercuDepuisCache(
+        conv(quand: t),
+        () => [cache('bonjour', t)],
+      );
+      expect(sortie.lastMessage, 'bonjour');
+    });
+
+    test('un cache en retard ne fabrique pas un aperçu faux', () {
+      // Le vrai dernier message est de 12 h ; le cache s'arrête à 11 h parce
+      // que la discussion n'a pas été rouverte depuis. Afficher celui de 11 h
+      // serait pire qu'un libellé générique : ce serait faux, sans que rien
+      // ne le dise.
+      final sortie = MessageRepositoryImpl.apercuDepuisCache(
+        conv(quand: DateTime.utc(2026, 9, 15, 12)),
+        () => [cache('message d\'avant', DateTime.utc(2026, 9, 15, 11))],
+      );
+      expect(sortie.lastMessage, isNull);
+    });
+
+    test('un aperçu déjà posé n\'est pas touché, et le cache pas même lu', () {
+      var lectures = 0;
+      final sortie = MessageRepositoryImpl.apercuDepuisCache(
+        conv(apercu: 'texte du serveur', quand: DateTime.utc(2026, 9, 15, 12)),
+        () {
+          lectures++;
+          return const [];
+        },
+      );
+      expect(sortie.lastMessage, 'texte du serveur');
+      expect(lectures, 0, reason: 'une conversation legacy ne coûte rien');
+    });
+
+    test('une conversation sans dernier message reste intacte', () {
+      final sortie =
+          MessageRepositoryImpl.apercuDepuisCache(conv(), () => const []);
+      expect(sortie.lastMessage, isNull);
+    });
+  });
+
+  group('Les compteurs ne sont demandés que s\'il y a de quoi compter', () {
+    test('drapeau fermé et rien de basculé : inerte', () async {
+      final passerelle = _passerelle(_ServiceFige(const []), _MetaEspion(),
+          mlsSince: null, actif: false);
+
+      await passerelle.mlsSince('c1'); // la conversation est vue, pas basculée
+      expect(passerelle.actif, isFalse);
+      expect(passerelle.aDesConversationsBasculees, isFalse);
+    });
+
+    test('une conversation basculée suffit, drapeau refermé', () async {
+      final passerelle = _passerelle(_ServiceFige(const []), _MetaEspion(),
+          actif: false);
+
+      await passerelle.mlsSince('c1');
+      // Refermer le drapeau n'annule pas ce qui est basculé : ces
+      // conversations gardent leurs compteurs.
+      expect(passerelle.aDesConversationsBasculees, isTrue);
     });
   });
 

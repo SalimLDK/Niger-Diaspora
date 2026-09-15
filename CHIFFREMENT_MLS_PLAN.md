@@ -446,9 +446,27 @@ une transaction annulée ; vérifié en cassant la migration à dessein). Trois
   `media` tel quel tomberait en silence sur `MessageType.text` dans le
   parseur Dart, et une photo s'afficherait comme une ligne vide.
 
-Ce qui manque encore pour ouvrir le drapeau : côté Dart, les réactions,
-l'édition, la suppression et les reçus écrivent toujours dans `messages`,
-où un message MLS n'a aucune ligne.
+**Côté Dart, branché le 2026-09-15** : `MlsMetadonnees` tient les cinq tables
+et la vue, `MlsGateway` l'expose, `_passerelleMessage` aiguille dans le
+repository. L'aiguillage se fait **par message, pas par conversation** : une
+discussion basculée garde son historique en clair au-dessus du séparateur, et
+réagir à l'un de ces anciens messages doit rester legacy.
+
+Ce qui manque encore pour ouvrir le drapeau, par ordre de gravité :
+
+1. **On ne sait pas si un fil chiffré survit au redémarrage de
+   l'application.** `catchUp` tient son curseur en mémoire ; au redémarrage
+   il redemande au moteur des messages déjà déchiffrés, dont MLS a supprimé
+   le secret. Le cache Hive a le clair mais le chemin en ligne ne le relit
+   jamais. Si la crainte se confirme, une discussion basculée afficherait
+   tout son historique en « 🔐 Message chiffré ». **À vérifier sur appareil
+   avant tout le reste** — c'est le seul moyen de trancher, et ça décide de
+   l'ouverture du drapeau.
+2. **Modifier un message chiffré refuse visiblement.** Son nouveau texte doit
+   repartir dans un message de contrôle, et rien ne l'émet encore. Le
+   brancher suppose de répondre d'abord à (1) : un contrôle n'est délivré
+   qu'une fois, donc le texte modifié doit être gardé localement — même
+   question de durabilité.
 
 Réclamation atomique d'un KeyPackage (sinon deux ajouts concurrents
 consomment le même paquet et le second Welcome est indéchiffrable) :

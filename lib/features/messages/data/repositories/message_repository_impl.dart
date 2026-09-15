@@ -6,8 +6,8 @@ import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:video_compress/video_compress.dart';
-// import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
@@ -129,7 +129,9 @@ class MessageRepositoryImpl implements MessageRepository {
   ) {
     return remoteDataSource
         .getConversations(userId)
-        .map<Either<Failure, List<ConversationEntity>>>((conversations) {
+        .asyncMap<Either<Failure, List<ConversationEntity>>>((
+          conversations,
+        ) async {
           // Filter out deleted conversations
           final filteredConversations =
               conversations.where((c) {
@@ -142,13 +144,101 @@ class MessageRepositoryImpl implements MessageRepository {
               filteredConversations.map((c) => c.toJson()).toList();
           cacheService.cacheConversations(conversationsMap);
 
+          final liste = _dedupConversationsByPair(
+            filteredConversations.map((c) => c.toEntity()).toList(),
+          );
+
           return Right<Failure, List<ConversationEntity>>(
-            _dedupConversationsByPair(
-              filteredConversations.map((c) => c.toEntity()).toList(),
-            ),
+            await _completerAvecMls(userId, liste),
           );
         })
         .transform(_echecEmis<List<ConversationEntity>>());
+  }
+
+  /// Ce qu'une conversation basculée ne porte plus en base, et qu'il faut
+  /// donc reconstituer ici : sa pastille de non-lus, et le texte de son
+  /// aperçu.
+  ///
+  /// Le serveur n'écrit ni `data.unreadCount` (il ne sait pas le
+  /// décrémenter : `mark_messages_as_read` ne connaît que `messages`) ni
+  /// `data.lastMessage` (ce serait du clair). Sans ce passage, une
+  /// discussion chiffrée n'a jamais de pastille et affiche « Nouveau
+  /// message » à vie.
+  ///
+  /// Un échec ne coûte pas la liste : il coûte la pastille.
+  Future<List<ConversationEntity>> _completerAvecMls(
+    String userId,
+    List<ConversationEntity> liste,
+  ) async {
+    final avecApercu = [for (final c in liste) _apercuDepuisLeCache(c)];
+
+    final passerelle = mlsGateway;
+    // Inerte tant que rien n'est basculé et que le drapeau est fermé : pas
+    // un appel réseau de plus sur un flux qui émet à chaque changement de
+    // conversation.
+    if (passerelle == null ||
+        (!passerelle.actif && !passerelle.aDesConversationsBasculees)) {
+      return avecApercu;
+    }
+    try {
+      final compteurs = await passerelle.nonLus();
+      if (compteurs.isEmpty) return avecApercu;
+      return [
+        for (final c in avecApercu)
+          if (compteurs[c.id] case final compteur?)
+            c.copyWith(
+              unreadCount: {...c.unreadCount, userId: compteur.nonLus},
+              unreadMentions: {...c.unreadMentions, userId: compteur.mentions},
+            )
+          else
+            c,
+      ];
+    } catch (e) {
+      dev.log('Compteurs MLS indisponibles',
+          name: 'message_repository_impl', error: e);
+      return avecApercu;
+    }
+  }
+
+  /// Le texte de l'aperçu d'une conversation chiffrée, repris du cache local
+  /// déchiffré (décision G) — le serveur, lui, ne porte que le type.
+  ///
+  /// **L'horodatage doit correspondre exactement.** Le cache peut être en
+  /// retard : si la discussion n'a pas été rouverte depuis, son dernier
+  /// message caché n'est pas le dernier message. Afficher celui-là serait
+  /// pire qu'un libellé générique — ce serait un aperçu faux, et rien ne le
+  /// dirait. `last_message_at` vient du même `created_at` serveur que le
+  /// message caché : l'égalité est franche, pas approchée.
+  ConversationEntity _apercuDepuisLeCache(ConversationEntity c) =>
+      apercuDepuisCache(c, () => cacheService.getCachedMessages(c.id));
+
+  /// La règle seule, sans cache ni base — pour pouvoir la tenir par un test.
+  /// Le cache n'est lu que si la conversation en a besoin.
+  @visibleForTesting
+  static ConversationEntity apercuDepuisCache(
+    ConversationEntity c,
+    List<Map<String, dynamic>> Function() messagesCaches,
+  ) {
+    final quand = c.lastMessageAt;
+    if (quand == null) return c;
+    if ((c.lastMessage ?? '').isNotEmpty) return c;
+
+    Map<String, dynamic>? dernier;
+    DateTime? dernierQuand;
+    for (final m in messagesCaches()) {
+      final t = DateTime.tryParse(m['createdAt'] as String? ?? '');
+      if (t == null) continue;
+      if (dernierQuand == null || t.isAfter(dernierQuand)) {
+        dernier = m;
+        dernierQuand = t;
+      }
+    }
+    if (dernier == null || dernierQuand == null) return c;
+    if (dernierQuand.toUtc().difference(quand.toUtc()).inSeconds != 0) return c;
+
+    final texte = dernier['content'] as String? ?? '';
+    if (texte.isEmpty) return c;
+    return c.copyWith(lastMessage: texte);
   }
 
   @override

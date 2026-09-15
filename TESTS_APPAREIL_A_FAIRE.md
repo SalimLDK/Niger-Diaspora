@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1104 cases à cocher, 581 cochées** — 223 entrées sur 269 ont encore des cases ouvertes.
+**1112 cases à cocher, 581 cochées** — 224 entrées sur 270 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (24)
+**P0 — avant toute nouvelle version** (25)
 
+- 3 · [⬜ Un fil chiffré survit-il au redémarrage de l'application ? (2026-09-15)](#-un-fil-chiffré-survit-il-au-redémarrage-de-lapplication--2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
@@ -79,7 +80,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 13 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
+- 18 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
@@ -281,7 +282,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 208 à faire, 77 faites
+- [2. Messagerie](#2-messagerie) — 216 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 64 à faire, 31 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -600,6 +601,52 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
   paraît réussir puis revient en arrière.
 - [ ] **Heure de lecture** dans la fiche d'un message : elle ne se remet pas à
   « à l'instant » à chaque réouverture de la discussion.
+- [ ] **Rouvrir une discussion chiffrée** dans la même session : les messages
+  sont toujours là. `catchUp` ne rend que le delta — le fil est gardé par la
+  passerelle, et c'est ce qu'il faut voir tenir.
+- [ ] **⚠️ Rouvrir l'application** (processus tué), puis la discussion : c'est
+  le point noir connu, voir « Un fil chiffré survit-il au redémarrage ? ».
+- [ ] **Pastille de non-lus** d'une conversation basculée : elle apparaît, et
+  **retombe à zéro** après ouverture.
+- [ ] **Aperçu texte** d'une conversation basculée : la ligne montre le vrai
+  texte du dernier message, repris du cache local — pas « Nouveau message ».
+- [ ] **Aperçu sur un appareil qui n'a jamais ouvert la discussion** : il
+  montre le libellé de type, jamais le texte d'un message plus ancien.
+
+---
+
+## ⬜ Un fil chiffré survit-il au redémarrage de l'application ? (2026-09-15)
+
+**Priorité P0** · importance 5/5 — Question ouverte, trouvée en branchant les
+métadonnées, **jamais vérifiée**. Elle décide si le drapeau MLS est ouvrable.
+
+`MlsConversationService` tient son curseur et sa liste de messages vus **en
+mémoire seulement** (`_curseur`, `_vus`). Au redémarrage, `catchUp` reprend
+donc depuis le début et redemande au moteur de déchiffrer des messages déjà
+déchiffrés. MLS supprime le secret d'un message applicatif après usage : ces
+messages devraient revenir en **« 🔐 Message chiffré »**, et une discussion
+basculée afficherait tout son historique en placeholders.
+
+Le cache Hive contient bien le clair — `_fusionnerAvecMls` l'y écrit à chaque
+lecture — mais **le chemin en ligne ne le relit jamais** : il ne sert qu'au
+mode hors ligne. Pire, s'il est réécrit avec des placeholders, il perd le
+clair qu'il détenait.
+
+Rien de tout ça n'est prouvé : il faut un appareil, deux comptes et un
+redémarrage. C'est le seul moyen de trancher.
+
+Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
+(`_curseur`, `_vus`, `catchUp`),
+[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`_fusionnerAvecMls`).
+
+- [ ] **Deux messages échangés**, application tuée, rouverte : le fil montre
+  le texte, pas « 🔐 Message chiffré ».
+- [ ] Si ce sont des placeholders : vérifier en base que le cache Hive
+  contenait le clair **avant** la réouverture, et qu'il ne l'a pas perdu
+  après (c'est la perte qui serait irréversible).
+- [ ] **Même épreuve après réinstallation** : là, les placeholders sont
+  attendus et normaux — c'est la limite du chiffrement, pas un défaut.
 
 ---
 
