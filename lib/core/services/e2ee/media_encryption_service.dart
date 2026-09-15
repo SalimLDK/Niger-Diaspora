@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -47,11 +48,18 @@ class MediaEncryptionService {
   /// [mediaType] - Type de média (image, audio, video, document)
   ///
   /// Returns: Les métadonnées du fichier chiffré (incluant la clé)
+  ///
+  /// [onProgress] reçoit la progression du téléversement (0..1) ;
+  /// [checkCancelled] est consulté pendant le téléversement, qui est annulé
+  /// s'il rend vrai. Le chiffrement lui-même est en mémoire (fichiers
+  /// ≤ 10 Mo en tranche 1 : pas de vidéo).
   Future<EncryptedMediaResult> encryptAndUploadFile({
     required File file,
     required String conversationId,
     required String senderId,
     required MediaType mediaType,
+    void Function(double progress)? onProgress,
+    bool Function()? checkCancelled,
   }) async {
     // Générer une clé AES-256 aléatoire pour ce fichier
     final fileKey = await _generateFileKey();
@@ -89,7 +97,7 @@ class MediaEncryptionService {
 
     // Uploader sur Firebase Storage
     final ref = _storage.ref(storagePath);
-    final uploadTask = await ref.putData(
+    final task = ref.putData(
       encryptedBytes,
       SettableMetadata(
         contentType: 'application/octet-stream', // Masquer le vrai type
@@ -99,6 +107,24 @@ class MediaEncryptionService {
         },
       ),
     );
+    StreamSubscription<TaskSnapshot>? suivi;
+    if (onProgress != null || checkCancelled != null) {
+      suivi = task.snapshotEvents.listen((event) {
+        if (checkCancelled?.call() == true) {
+          task.cancel();
+          return;
+        }
+        if (onProgress != null && event.totalBytes > 0) {
+          onProgress(event.bytesTransferred / event.totalBytes);
+        }
+      }, onError: (_) {});
+    }
+    final TaskSnapshot uploadTask;
+    try {
+      uploadTask = await task;
+    } finally {
+      await suivi?.cancel();
+    }
 
     final downloadUrl = await uploadTask.ref.getDownloadURL();
 

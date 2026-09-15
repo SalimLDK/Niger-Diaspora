@@ -32,6 +32,8 @@ import '../../../../core/errors/failures.dart';
 import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
 import 'message_pagination_state.dart';
 import 'media_upload_provider.dart';
+import '../../../../core/services/e2ee/media_encryption_service.dart';
+import 'media_dechiffre_provider.dart';
 
 const int _pageSize = 30;
 
@@ -49,6 +51,10 @@ final messageRepositoryProvider = Provider<MessageRepository>((ref) {
   return MessageRepositoryImpl(
     remoteDataSource: ref.watch(messageRemoteDataSourceProvider),
     networkInfo: ref.watch(networkInfoProvider),
+    mediaEncryptionService: ref.watch(mediaEncryptionServiceProvider),
+    // `read` dans une fermeture : la valeur est relue à chaque envoi, et
+    // un changement de drapeau ne reconstruit pas le repository.
+    mediasChiffresActifs: () => ref.read(mediasChiffresActifsProvider),
   );
 });
 
@@ -581,6 +587,11 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
                 existingMessages[index] = updatedMessage.copyWith(
                   content: existing.content,
                   fileUrl: existing.fileUrl,
+                  // Média chiffré : la ligne brute ne porte que le blob
+                  // `encMedia` et un nom de fichier générique. Sans ce rappel,
+                  // le premier accusé de lecture rendait la photo illisible.
+                  mediaChiffre: existing.mediaChiffre,
+                  fileName: existing.fileName,
                   postData: existing.postData,
                   eventData: existing.eventData,
                   productData: existing.productData,

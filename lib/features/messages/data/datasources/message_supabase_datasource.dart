@@ -49,6 +49,15 @@ const _kChampsAnnexes = <String>[
 /// se relit tel quel.
 const _kAnnexesChiffrees = 'encAnnexes';
 
+/// Clé du blob chiffré qui porte les métadonnées d'un média chiffré (chemin
+/// du blob, clé de fichier, IV, nom d'origine — cf. `MediaChiffre`). Même
+/// mécanisme que [_kAnnexesChiffrees], blob distinct : une annexe perdue coûte
+/// une carte, un média perdu coûte la bulle entière.
+const _kMediaChiffre = 'encMedia';
+
+/// Clé, dans le modèle local seulement, de la forme EN CLAIR de ce blob.
+const _kChampMediaChiffre = 'mediaChiffre';
+
 /// Supabase implementation of [MessageRemoteDataSource].
 ///
 /// Uses a NoSQL-like schema where minimal typed columns are indexed (id,
@@ -217,6 +226,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       }
 
       await _fusionnerAnnexes(data, row['conversation_id'] as String?);
+      await _fusionnerMedia(data, row['conversation_id'] as String?);
     }
 
     return MessageModel.fromJson({
@@ -395,6 +405,85 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       // Clé indisponible, version inconnue, marqueur d'illisibilité renvoyé à
       // la place du JSON : aucune de ces situations ne doit coûter le message.
       debugPrint('MessageSupabaseDataSource: annexes illisibles ($e)');
+    }
+  }
+
+  /// Scelle les métadonnées d'un média chiffré dans [_kMediaChiffre].
+  ///
+  /// Contrairement aux annexes, un échec ici **fait échouer l'envoi** : sans
+  /// sa clé, le destinataire n'aurait qu'un blob ; et cette clé ne doit
+  /// jamais partir en clair, ni en repli.
+  Future<Map<String, dynamic>> _scellerMedia(
+    Map<String, dynamic>? media,
+    String conversationId,
+  ) async {
+    if (media == null) return const {};
+    final crypto = _crypto;
+    if (crypto == null) {
+      throw ServerException('Chiffrement du média indisponible');
+    }
+    final scelle = await crypto.chiffrerAnnexe(
+      jsonEncode(media),
+      conversationId: conversationId,
+    );
+    // `chiffrerAnnexe` retombe sur la clé globale de l'APK quand la clé
+    // dérivée manque (format `iv:ct`, deux segments, contre `v<n>:iv:ct`).
+    // Acceptable pour une carte de partage, pas pour la clé d'un fichier :
+    // elle serait lisible par tout porteur de l'APK. On refuse, et l'envoi
+    // échoue visiblement.
+    if (scelle.isEmpty || scelle.split(':').length < 3) {
+      throw ServerException(
+        'Clé de conversation indisponible : média non envoyé',
+      );
+    }
+    return {_kMediaChiffre: scelle};
+  }
+
+  /// Nom de fichier écrit en base à la place du nom d'origine d'un média
+  /// chiffré : le vrai nom voyage dans le blob, comme la légende.
+  @visibleForTesting
+  static String nomGeneriquePour(String type) {
+    switch (type) {
+      case 'image':
+        return 'photo';
+      case 'video':
+        return 'video';
+      case 'voiceNote':
+        return 'note-vocale';
+      case 'audioFile':
+        return 'audio';
+      default:
+        return 'document';
+    }
+  }
+
+  /// Relit [_kMediaChiffre] et pose la forme en clair sous
+  /// [_kChampMediaChiffre], en restaurant le nom d'origine du fichier.
+  Future<void> _fusionnerMedia(
+    Map<String, dynamic> data,
+    String? conversationId,
+  ) async {
+    final chiffre = data[_kMediaChiffre];
+    if (chiffre is! String || chiffre.isEmpty) return;
+
+    final crypto = _crypto;
+    if (crypto == null) return;
+
+    try {
+      final clair = await crypto.dechiffrerAnnexe(
+        chiffre,
+        conversationId: conversationId,
+      );
+      final decode = jsonDecode(clair);
+      if (decode is! Map) return;
+      final media = Map<String, dynamic>.from(decode);
+      data[_kChampMediaChiffre] = media;
+      final nom = media['fileName'];
+      if (nom is String && nom.isNotEmpty) data['fileName'] = nom;
+    } catch (e) {
+      // Clé indisponible ou blob illisible : la bulle affichera l'état
+      // « média chiffré illisible », pas un blob brut.
+      debugPrint('MessageSupabaseDataSource: média chiffré illisible ($e)');
     }
   }
 
@@ -1179,6 +1268,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     int? audioDuration,
     List<double>? audioWaveform,
     String? blurhash,
+    Map<String, dynamic>? mediaChiffre,
   }) async {
     try {
       final msgId = _uuid.v4();
@@ -1188,6 +1278,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         conversationId,
         replyToMessageData: replyToMessageData,
       );
+      final mediaScelle = await _scellerMedia(mediaChiffre, conversationId);
 
       final msgData = <String, dynamic>{
         'senderName': senderName,
@@ -1195,7 +1286,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'content': caption ?? '',
         'status': 'sent',
         'fileUrl': fileUrl,
-        'fileName': fileName,
+        'fileName': mediaChiffre == null ? fileName : nomGeneriquePour(type),
         'fileSize': fileSize,
         'mimeType': mimeType,
         'readBy': [senderId],
@@ -1205,6 +1296,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'encryptionLevel': 'aes',
         if (replyToId != null) 'replyToId': replyToId,
         ...annexes,
+        ...mediaScelle,
         if (isForwarded) 'isForwarded': isForwarded,
         if (thumbnailUrl != null) 'thumbnailUrl': thumbnailUrl,
         if (videoDuration != null) 'videoDuration': videoDuration,
@@ -1251,6 +1343,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       return MessageModel.fromJson({
         ...msgData,
         ..._annexesEnClair(replyToMessageData: replyToMessageData),
+        // Le modèle rendu à l'expéditeur porte le vrai nom et la clé en
+        // clair : ils ne quittent pas l'appareil, et sans eux sa propre bulle
+        // serait illisible jusqu'au prochain chargement.
+        'fileName': fileName,
+        if (mediaChiffre != null) _kChampMediaChiffre: mediaChiffre,
         'id': msgId,
         'senderId': senderId,
         'type': type,
@@ -1280,6 +1377,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     bool isForwarded = false,
+    Map<String, dynamic>? mediaChiffre,
   }) async {
     try {
       if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
@@ -1291,11 +1389,19 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       final extension = dotIndex > 0 ? fileName.substring(dotIndex) : '.m4a';
       final timestamp = DateTime.now().millisecondsSinceEpoch;
 
-      final storageRef = FirebaseStorage.instance.ref().child(
-        'messages/$conversationId/audio_$timestamp$extension',
-      );
-      await storageRef.putFile(audioFile);
-      final fileUrl = await storageRef.getDownloadURL();
+      // Média déjà chiffré et téléversé par le repository : rien à envoyer
+      // en clair, l'URL est celle du blob.
+      final String fileUrl;
+      if (mediaChiffre != null) {
+        fileUrl = (mediaChiffre['encryptedUrl'] as String?) ?? '';
+      } else {
+        final storageRef = FirebaseStorage.instance.ref().child(
+          'messages/$conversationId/audio_$timestamp$extension',
+        );
+        await storageRef.putFile(audioFile);
+        fileUrl = await storageRef.getDownloadURL();
+      }
+      final mediaScelle = await _scellerMedia(mediaChiffre, conversationId);
 
       final fileSize = await audioFile.length();
       final msgId = _uuid.v4();
@@ -1313,7 +1419,8 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'content': '',
         'status': 'sent',
         'fileUrl': fileUrl,
-        'fileName': fileName,
+        'fileName':
+            mediaChiffre == null ? fileName : nomGeneriquePour('voiceNote'),
         'fileSize': fileSize,
         'mimeType': _audioMimeType(extension),
         'audioDuration': duration,
@@ -1325,6 +1432,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'encryptionLevel': 'aes',
         if (replyToId != null) 'replyToId': replyToId,
         ...annexes,
+        ...mediaScelle,
         if (isForwarded) 'isForwarded': true,
         'mediaExpiresAt':
             nowDateTime.add(const Duration(days: 15)).toUtc().toIso8601String(),
@@ -1358,6 +1466,8 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       return MessageModel.fromJson({
         ...msgData,
         ..._annexesEnClair(replyToMessageData: replyToMessageData),
+        'fileName': fileName,
+        if (mediaChiffre != null) _kChampMediaChiffre: mediaChiffre,
         'id': msgId,
         'senderId': senderId,
         'type': 'voiceNote',
@@ -2471,6 +2581,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       // le contenu partait, l'aperçu — titre, extrait, image, URL cible —
       // restait en base. La forme chiffrée comme les anciennes en clair.
       data.remove(_kAnnexesChiffrees);
+      // La clé d'un média chiffré part avec lui : le blob Storage restant
+      // devient définitivement illisible.
+      data.remove(_kMediaChiffre);
       for (final champ in _kChampsAnnexes) {
         data.remove(champ);
       }

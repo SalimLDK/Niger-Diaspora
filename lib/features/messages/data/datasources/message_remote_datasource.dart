@@ -122,6 +122,7 @@ abstract class MessageRemoteDataSource {
     int? audioDuration,
     List<double>? audioWaveform,
     String? blurhash,
+    Map<String, dynamic>? mediaChiffre,
   });
 
   /// Créer une conversation individuelle
@@ -187,6 +188,7 @@ abstract class MessageRemoteDataSource {
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     bool isForwarded = false,
+    Map<String, dynamic>? mediaChiffre,
   });
 
   /// Envoyer un message de localisation
@@ -1244,6 +1246,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     int? audioDuration,
     List<double>? audioWaveform,
     String? blurhash,
+    Map<String, dynamic>? mediaChiffre,
   }) async {
     try {
       // Check for auto-delete settings
@@ -2000,6 +2003,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
     bool isForwarded = false,
+    Map<String, dynamic>? mediaChiffre,
   }) async {
     try {
       // Upload audio file avec retry automatique

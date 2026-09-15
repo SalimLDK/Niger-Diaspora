@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
+import '../utils/image_locale_ou_reseau.dart';
 import 'full_screen_image_viewer.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
@@ -79,17 +80,21 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
       return;
     }
 
-    _imageProvider = CachedNetworkImageProvider(
-      widget.imageUrl,
-      errorListener: (error) {
-        if (mounted) {
-          setState(() {
-            _hasError = true;
-            _isLoading = false;
-          });
-        }
-      },
-    );
+    // Un média chiffré arrive déjà déchiffré sur disque (`file://…`, cf.
+    // MediaChiffreGate) : on le lit tel quel, sans passer par le réseau.
+    _imageProvider = estUrlLocale(widget.imageUrl)
+        ? imageProviderPour(widget.imageUrl)
+        : CachedNetworkImageProvider(
+            widget.imageUrl,
+            errorListener: (error) {
+              if (mounted) {
+                setState(() {
+                  _hasError = true;
+                  _isLoading = false;
+                });
+              }
+            },
+          );
 
     // Get image dimensions to handle loading state
     _imageProvider!
@@ -358,23 +363,35 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
       );
     }
 
+    Widget imageCassee(BuildContext context) => Container(
+      color: context.surfaceVariantColor,
+      child: Center(
+        child: Icon(
+          Icons.broken_image_rounded,
+          color: context.textTertiaryColor,
+          size: 48,
+        ),
+      ),
+    );
+
+    if (estUrlLocale(widget.imageUrl)) {
+      return AspectRatio(
+        aspectRatio: 1.5,
+        child: Image(
+          image: _imageProvider ?? imageProviderPour(widget.imageUrl),
+          fit: BoxFit.cover,
+          errorBuilder: (context, _, __) => imageCassee(context),
+        ),
+      );
+    }
+
     // Use fixed aspect ratio for consistent size with loading state
     return AspectRatio(
       aspectRatio: 1.5,
       child: CachedNetworkImage(
         imageUrl: widget.imageUrl,
         fit: BoxFit.cover,
-        errorWidget:
-            (context, url, error) => Container(
-              color: context.surfaceVariantColor,
-              child: Center(
-                child: Icon(
-                  Icons.broken_image_rounded,
-                  color: context.textTertiaryColor,
-                  size: 48,
-                ),
-              ),
-            ),
+        errorWidget: (context, url, error) => imageCassee(context),
         progressIndicatorBuilder: (context, url, progress) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && progress.progress != null) {
