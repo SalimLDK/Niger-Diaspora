@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1181 cases à cocher, 609 cochées** — 238 entrées sur 285 ont encore des cases ouvertes.
+**1185 cases à cocher, 609 cochées** — 239 entrées sur 286 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (29)
+**P0 — avant toute nouvelle version** (30)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
@@ -51,6 +51,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 4 · [⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)](#-un-média-chiffré-de-plus-de-10-mo-était-illisible-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -298,7 +299,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 237 à faire, 97 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 104 à faire, 39 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 108 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -6041,6 +6042,51 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)
+
+**Priorité P0** · importance 5/5 — **Trouvé en cherchant pourquoi la vidéo
+était écartée, et c'est bien plus large que la vidéo.** Le téléchargement
+appelait `ref.getData()` sans argument. Le défaut de `firebase_storage` est
+**10 Mo** : au-delà, l'appel échoue. Toute photo un peu lourde, tout document,
+tout audio long, une fois chiffré, aurait été **illisible**. Le drapeau étant
+fermé, personne ne l'avait rencontré.
+
+Second défaut, superposé : tout passait par la mémoire. Octets chiffrés
+entiers, puis la liste des morceaux déchiffrés, puis leur concaténation —
+près de trois fois la taille du fichier au pic. C'est **la** raison pour
+laquelle la vidéo était exclue du chiffrement.
+
+Le format n'a pas changé : en-tête `[version][nombre de morceaux]`, puis
+`[taille][ciphertext][étiquette]` par morceau, IV dérivé de l'index. Ce qui
+change est qu'on le lit d'un fichier vers un autre, un morceau à la fois.
+`writeToFile` remplace `getData` : pas de plafond, et rien en mémoire.
+
+Le format simple d'avant reste lu — rien ne l'a encore écrit en production,
+mais le refuser rendrait illisible ce qu'une version intermédiaire aurait
+produit.
+
+Fichiers : [media_encryption_service.dart](lib/core/services/e2ee/media_encryption_service.dart)
+(`downloadAndDecryptFile`, `dechiffrerFichierVersFichier`). Couvert hors
+appareil par
+[dechiffrement_media_en_flux_test.dart](test/core/services/e2ee/dechiffrement_media_en_flux_test.dart)
+(6 cas, dont la mauvaise clé et le fichier tronqué).
+
+⚠️ **L'envoi n'est pas encore en flux.** `encryptAndUploadFile` lit toujours
+le fichier entier (`readAsBytes`) et téléverse un tampon (`putData`). La
+descente est donc réparée, la montée non — et la vidéo reste écartée tant que
+les deux ne le sont pas.
+
+- [ ] **Envoyer puis rouvrir une photo chiffrée de plus de 10 Mo** : elle
+      s'affiche. C'était impossible avant, à coup sûr.
+- [ ] **Un document chiffré de 30 à 50 Mo** : il se télécharge et s'ouvre,
+      sans que l'application soit tuée pour mémoire.
+- [ ] **Surveiller la mémoire pendant le déchiffrement** : le pic doit suivre
+      la taille d'un morceau, pas celle du fichier.
+- [ ] **Un média dont le transfert est coupé en route** : le fichier
+      temporaire chiffré ne doit pas rester sur le disque.
 
 ---
 
