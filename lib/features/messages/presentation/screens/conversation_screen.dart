@@ -95,6 +95,39 @@ class ConversationScreen extends ConsumerStatefulWidget {
   ConsumerState<ConversationScreen> createState() => _ConversationScreenState();
 }
 
+/// Les non-lus d'un fil, et le rang du premier.
+///
+/// **Un message système n'est pas du courrier.** Il n'a pas d'expéditeur à
+/// qui répondre, personne ne le « lit », et rien ne viendra jamais le marquer
+/// comme lu. Le compter donnait un bandeau « 1 message non lu » qui ne
+/// s'effaçait plus — vu le 2026-09-15 sur SM A515F, dans la première
+/// conversation basculée en MLS : le séparateur « Messages d'avant le
+/// chiffrement de bout en bout » est un message système synthétique
+/// (`senderId: 'system'`, `readBy` vide), donc éternellement non lu. Le
+/// serveur, lui, disait bien zéro.
+///
+/// C'est d'ailleurs la règle du serveur : la vue `mls_unread_counts` ne
+/// compte que `kind = 'content'` et exclut l'expéditeur. Ici, la même.
+///
+/// Sortie hors de l'État pour être tenue par un test : c'est une règle, pas
+/// un morceau d'écran.
+({int nombre, int? premier}) compterNonLus(
+  List<MessageEntity> messages,
+  String moi,
+) {
+  var nombre = 0;
+  int? premier;
+  for (var i = 0; i < messages.length; i++) {
+    final m = messages[i];
+    if (m.type == MessageType.system) continue;
+    if (m.senderId == moi) continue;
+    if (m.readBy.contains(moi)) continue;
+    nombre++;
+    premier ??= i;
+  }
+  return (nombre: nombre, premier: premier);
+}
+
 class _ConversationScreenState extends ConsumerState<ConversationScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   AppLocalizations get l10n => AppLocalizations.of(context)!;
@@ -418,20 +451,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     if (messages.isEmpty) return;
 
-    int unreadCount = 0;
-    int? firstUnreadIndex;
-
-    for (int i = 0; i < messages.length; i++) {
-      final message = messages[i];
-      // Skip own messages
-      if (message.senderId == currentUser.id) continue;
-      // Check if message is unread
-      if (!message.readBy.contains(currentUser.id)) {
-        unreadCount++;
-        // Track the first unread message index
-        firstUnreadIndex ??= i;
-      }
-    }
+    final compte = compterNonLus(messages, currentUser.id);
+    final unreadCount = compte.nombre;
+    final firstUnreadIndex = compte.premier;
 
     if (unreadCount > 0 && firstUnreadIndex != null) {
       setState(() {

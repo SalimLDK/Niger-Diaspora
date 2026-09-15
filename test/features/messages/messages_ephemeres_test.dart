@@ -7,6 +7,7 @@ import 'package:diaspo_niger/core/crypto/mls/mls_message_mapper.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_payload_codec.dart';
 import 'package:diaspo_niger/features/messages/data/models/message_model.dart';
 import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
+import 'package:diaspo_niger/features/messages/presentation/utils/message_copy_text.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Ce que ces tests protègent
@@ -148,6 +149,7 @@ void main() {
     });
 
     test('un serveur qui ment sur expires_at ne décale pas l’échéance', () {
+      final maintenant = DateTime.now().toUtc();
       // Le service de livraison est considéré comme hostile : il peut
       // repousser la colonne de dix ans. Le récepteur ne la regarde pas — il
       // recalcule depuis le ttl du payload, qu'aucun serveur ne peut lire.
@@ -159,23 +161,44 @@ void main() {
           body: const {'content': 'salut'},
           ttl: 86400,
         ),
-        row: _ligne(expireLe: DateTime.utc(2036, 1, 1)),
+        row: _ligne(
+          creeLe: maintenant,
+          expireLe: DateTime.utc(2036, 1, 1),
+        ),
         senderName: 'Amina',
         currentUserId: 'u2',
       );
-      expect(entite.expiresAt, DateTime.utc(2026, 9, 16, 12).toLocal());
+      expect(entite.expiresAt, maintenant.add(const Duration(days: 1)).toLocal());
     });
 
     test('payload illisible : on se rabat sur la colonne', () {
       // Sans ce repli, une bulle « 🔐 Message chiffré » resterait à l'écran
       // pour toujours, alors même que le serveur l'a déjà balayée.
+      //
+      // Échéance **relative à maintenant**, pas une date en dur : écrite en
+      // dur, elle finit par tomber dans le passé et le test se met à mesurer
+      // l'expiration au lieu du repli — rouge un matin, sans que rien n'ait
+      // changé dans le code.
+      final dans2h = DateTime.now().toUtc().add(const Duration(hours: 2));
       final entite = MlsMessageMapper.depuisEntrant(
-        MlsIncoming(_ligne(expireLe: DateTime.utc(2026, 9, 16, 12))),
+        MlsIncoming(_ligne(expireLe: dans2h)),
         senderName: 'Amina',
         currentUserId: 'u2',
       );
       expect(entite.content, MlsMessageMapper.placeholderIllisible);
-      expect(entite.expiresAt, DateTime.utc(2026, 9, 16, 12).toLocal());
+      expect(entite.expiresAt, dans2h.toLocal());
+    });
+
+    test('payload illisible ET expiré : la bulle se vide quand même', () {
+      final entite = MlsMessageMapper.depuisEntrant(
+        MlsIncoming(_ligne(
+          expireLe: DateTime.now().toUtc().subtract(const Duration(hours: 2)),
+        )),
+        senderName: 'Amina',
+        currentUserId: 'u2',
+      );
+      expect(entite.content, '');
+      expect(entite.deletedForEveryone, isTrue);
     });
   });
 
@@ -225,6 +248,106 @@ void main() {
         avec(DateTime.now().add(const Duration(days: 1))).isExpired,
         isFalse,
       );
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Le contenu ne survit pas à l'échéance, même avant le balayage
+  // ═══════════════════════════════════════════════════════════════════════
+  group('un message expiré ne rend plus son contenu', () {
+    // Le balayage serveur ne passe qu'au quart d'heure, et un appareil hors
+    // ligne ne le voit pas passer du tout. Entre les deux, le message est
+    // entier dans le modèle local — et masquer la bulle ne suffit pas : le
+    // texte repart par « Copier », par l'export de la conversation (qui
+    // l'écrit dans un FICHIER), par la recherche.
+    MessageModel modele({required bool expire}) => MessageModel.fromJson({
+          'id': 'm1',
+          'senderId': 'u1',
+          'senderName': 'Amina',
+          'content': 'le secret',
+          'type': 'text',
+          'createdAt': '2026-09-15T12:00:00.000Z',
+          'fileUrl': 'https://exemple.test/blob',
+          'postData': {'authorName': 'quelqu’un'},
+          'replyToMessageData': {'content': 'la citation'},
+          'expiresAt': DateTime.now()
+              .add(Duration(days: expire ? -1 : 1))
+              .toUtc()
+              .toIso8601String(),
+        });
+
+    test('toEntity vide la bulle sans attendre le serveur', () {
+      final e = modele(expire: true).toEntity();
+      expect(e.content, '');
+      expect(e.deletedForEveryone, isTrue);
+      expect(e.fileUrl, isNull);
+      expect(e.postData, isNull);
+      expect(e.replyToMessageData, isNull);
+      // Mais l'échéance survit : c'est elle qui fait dire « expiré » plutôt
+      // que « supprimé ».
+      expect(e.isExpired, isTrue);
+      // Et l'identité aussi : le fil garde sa forme, on sait de qui et quand.
+      expect(e.senderName, 'Amina');
+      expect(e.createdAt, isNotNull);
+    });
+
+    test('un message pas encore expiré passe intact', () {
+      final e = modele(expire: false).toEntity();
+      expect(e.content, 'le secret');
+      expect(e.deletedForEveryone, isFalse);
+      expect(e.fileUrl, 'https://exemple.test/blob');
+    });
+
+    test('« Copier » ne rend rien d’un message expiré', () {
+      expect(messageCopyText(modele(expire: true).toEntity()), isNull);
+      expect(messageCopyText(modele(expire: false).toEntity()), 'le secret');
+    });
+
+    test('l’export écrit « supprimé » au lieu du texte', () {
+      // L'export ne regarde que `deletedForEveryone` — c'est précisément
+      // pourquoi le garde se pose là plutôt que dans chaque écran : quinze
+      // chemins savaient déjà taire un message supprimé, aucun ne pensait à
+      // un message expiré.
+      expect(modele(expire: true).toEntity().deletedForEveryone, isTrue);
+    });
+
+    test('côté MLS, le clair déchiffré ne sort pas non plus', () {
+      // Ici ça compte double : le clair sort du déchiffrement, il n'existe
+      // nulle part ailleurs que dans cette entité.
+      final e = MlsMessageMapper.depuisPayload(
+        MlsPayload(
+          id: 'm1',
+          type: 'text',
+          sentAt: 0,
+          body: const {'content': 'le secret'},
+          ttl: 60,
+        ),
+        row: _ligne(creeLe: DateTime.now().toUtc().subtract(
+              const Duration(hours: 2),
+            )),
+        senderName: 'Amina',
+        currentUserId: 'u2',
+      );
+      expect(e.content, '');
+      expect(e.deletedForEveryone, isTrue);
+      expect(e.isExpired, isTrue);
+    });
+
+    test('côté MLS, un message encore vivant garde son clair', () {
+      final e = MlsMessageMapper.depuisPayload(
+        MlsPayload(
+          id: 'm1',
+          type: 'text',
+          sentAt: 0,
+          body: const {'content': 'le secret'},
+          ttl: 86400,
+        ),
+        row: _ligne(creeLe: DateTime.now().toUtc()),
+        senderName: 'Amina',
+        currentUserId: 'u2',
+      );
+      expect(e.content, 'le secret');
+      expect(e.deletedForEveryone, isFalse);
     });
   });
 

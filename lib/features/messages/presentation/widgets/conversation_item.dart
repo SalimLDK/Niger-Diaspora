@@ -614,7 +614,13 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
 
     final l10n = AppLocalizations.of(context)!;
     final formattedMessage = _formatLastMessage(conversation, currentUserId, l10n);
-    final isCallMessage = conversation.lastMessageType == MessageType.call;
+    // Un aperçu effacé n'a plus ni icône ni couleur d'état : le type du
+    // message survit à sa suppression, et sans ce garde un appel supprimé
+    // gardait son combiné vert et une note vocale son micro — « 🎤 Message
+    // vocal », quel que soit le texte calculé juste au-dessus.
+    final efface = _apercuEfface(conversation, l10n);
+    final isCallMessage =
+        efface == null && conversation.lastMessageType == MessageType.call;
 
     Color textColor;
     if (isCallMessage) {
@@ -666,7 +672,8 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
 
     // Note vocale : icône micro + libellé (§9a).
     final msgType = conversation.lastMessageType;
-    if (msgType == MessageType.audio || msgType == MessageType.voiceNote) {
+    if (efface == null &&
+        (msgType == MessageType.audio || msgType == MessageType.voiceNote)) {
       final youPrefix = conversation.lastMessageSenderId == currentUserId;
       return Row(
         children: [
@@ -700,11 +707,29 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
     );
   }
 
+  /// Le libellé d'un aperçu effacé, ou `null` s'il ne l'est pas.
+  ///
+  /// La règle vit sur l'entité ([ConversationEntity.apercuEfface]) ; ici, il
+  /// n'y a que la traduction. Deux causes, deux libellés — avant les marques,
+  /// le client n'en connaissait qu'une et disait « expiré » pour les deux.
+  String? _apercuEfface(ConversationEntity c, AppLocalizations l10n) =>
+      switch (c.apercuEfface) {
+        ApercuEfface.aucun => null,
+        ApercuEfface.supprime => l10n.messageDeleted,
+        ApercuEfface.expire => l10n.messageAutoDeleted,
+      };
+
   String _formatLastMessage(
     ConversationEntity conversation,
     String currentUserId,
     AppLocalizations l10n,
   ) {
+    // Les marques d'abord, AVANT le libellé de type : ni la suppression ni
+    // l'expiration ne touchent `lastMessageType`, si bien qu'une photo
+    // supprimée continuait de s'annoncer « 📎 Photo ».
+    final efface = _apercuEfface(conversation, l10n);
+    if (efface != null) return efface;
+
     final youPrefix = conversation.lastMessageSenderId == currentUserId;
 
     // L'aperçu dit son type (§9a) — les notes vocales sont gérées à part
@@ -735,18 +760,17 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
 
     final lastMessage = conversation.lastMessage;
     if (lastMessage == null || lastMessage.isEmpty) {
-      // « Nouvelle conversation » ne vaut que si rien n'a jamais été envoyé.
-      // Un aperçu vidé par la purge des messages éphémères laisse
-      // `lastMessageAt` derrière lui : annoncer une conversation neuve, là où
-      // il y a un historique entier, serait faux.
+      // Vide sans marque, et pourtant il s'est passé quelque chose : c'est le
+      // cas MLS. Le trigger d'aperçu retire `lastMessage` à chaque message
+      // chiffré (le serveur n'en verra jamais le clair) et le texte revient
+      // du cache local déchiffré — quand ce cache l'a. Sur un appareil neuf,
+      // ou avant la première ouverture de la discussion, il ne l'a pas.
       //
-      // La purge est aujourd'hui la seule chose qui vide cet aperçu, d'où le
-      // libellé « expiré ». Le jour où « supprimer pour tout le monde » le
-      // videra aussi — il ne le fait pas, et c'est une fuite en soi — il
-      // faudra distinguer les deux cas.
+      // « Nouvelle conversation » ne vaut que si rien n'a jamais été envoyé :
+      // `lastMessageAt` le dit.
       return conversation.lastMessageAt == null
           ? l10n.newConversation
-          : l10n.messageAutoDeleted;
+          : l10n.lastMessageEncrypted;
     }
 
     // Ajouter le préfixe "Vous:" si le message a été envoyé par l'utilisateur courant

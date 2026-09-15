@@ -4562,6 +4562,7 @@
   "sentMessage": "Sent message",
   "messageDeleted": "Message deleted",
   "messageAutoDeleted": "Message expired",
+  "lastMessageEncrypted": "Encrypted message",
   "photo": "Photo",
   "video": "Video",
   "audio": "Audio",

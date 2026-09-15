@@ -10807,6 +10807,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get messageAutoDeleted => 'Message expiré';
 
   @override
+  String get lastMessageEncrypted => 'Message chiffré';
+
+  @override
   String get photo => 'Photo';
 
   @override

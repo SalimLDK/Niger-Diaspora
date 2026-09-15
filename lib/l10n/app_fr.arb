@@ -5127,6 +5127,7 @@
   "sentMessage": "Message envoyé",
   "messageDeleted": "Message supprimé",
   "messageAutoDeleted": "Message expiré",
+  "lastMessageEncrypted": "Message chiffré",
   "photo": "Photo",
   "video": "Vidéo",
   "audio": "Audio",

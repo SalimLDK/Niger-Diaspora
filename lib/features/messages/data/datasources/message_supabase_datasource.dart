@@ -58,6 +58,22 @@ const _kMediaChiffre = 'encMedia';
 /// Clé, dans le modèle local seulement, de la forme EN CLAIR de ce blob.
 const _kChampMediaChiffre = 'mediaChiffre';
 
+/// Les deux marques de `conversations.data` qui disent **pourquoi** l'aperçu
+/// de la liste des discussions est vide.
+///
+/// `lastMessage` porte le dernier message en clair. Deux choses le vident, et
+/// elles ne se disent pas pareil à l'écran : « supprimer pour tout le monde »
+/// (ici) et la purge des messages éphémères (`purger_messages_expires()`).
+/// Sans marque, le client devait deviner — et il devinait « expiré » pour les
+/// deux.
+///
+/// **Elles s'excluent, et tout écrivain d'aperçu les efface.** Poser l'une
+/// retire l'autre ; un message qui arrive ensuite retire les deux. Une marque
+/// oubliée sous un aperçu neuf ferait dire « Message supprimé » à une
+/// conversation vivante, pour toujours.
+const _kApercuSupprime = 'lastMessageDeleted';
+const _kApercuExpire = 'lastMessageExpired';
+
 /// Supabase implementation of [MessageRemoteDataSource].
 ///
 /// Uses a NoSQL-like schema where minimal typed columns are indexed (id,
@@ -678,7 +694,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         'unreadCount': unreadCount,
         'lastMessageReadBy': [senderId],
         'lastMessageDeliveredTo': [senderId],
-      };
+      }..removeWhere((cle, _) =>
+          // Un message neuf efface les deux marques : celle du message
+          // supprimé comme celle du message expiré. Le `...current` les
+          // aurait recopiées telles quelles, et la liste aurait annoncé
+          // « Message supprimé » sous le texte du message qu'on vient
+          // d'envoyer.
+          cle == _kApercuSupprime || cle == _kApercuExpire);
 
       await _supabase
           .from('conversations')
@@ -2628,7 +2650,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
       final rows = await _supabase
           .from('messages')
-          .select('data')
+          .select('data, created_at')
           .eq('id', messageId)
           .limit(1);
       if (rows.isEmpty) return;
@@ -2664,9 +2686,64 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .delete()
           .eq('item_type', 'message')
           .eq('item_id', messageId);
+
+      // Et l'aperçu de la liste des discussions, qui porte le même texte en
+      // clair. Sans lui, la bulle dit « Message supprimé » pendant que son
+      // contenu reste parfaitement lisible une ligne plus haut.
+      await _viderApercuSiDernier(conversationId, rows.first['created_at']);
     } catch (e) {
       throw ServerException('deleteMessageForEveryone error: $e');
     }
+  }
+
+  /// Vide `conversations.data->>'lastMessage'` quand le message supprimé était
+  /// le dernier de la conversation, et pose la marque qui dit pourquoi.
+  ///
+  /// **L'échec n'est pas avalé.** Les autres nettoyages de
+  /// [deleteMessageForEveryone] tolèrent le silence — une épingle fantôme est
+  /// une gêne. Celui-ci, non : le laisser passer, c'est laisser le texte
+  /// supprimé à l'écran en annonçant une suppression réussie. La pierre
+  /// tombale est déjà posée quand on arrive ici, et rejouer la suppression est
+  /// sans effet de bord : une erreur remontée est réparable, une fuite muette
+  /// ne l'est pas.
+  ///
+  /// `last_message_at` vient du même `now` que le `created_at` du message
+  /// (cf. [_updateConversationLastMessage], appelé avec `at: now`) : leur
+  /// égalité identifie le dernier message sans dépendre de `last_message_id`,
+  /// que ce chemin d'écriture ne renseigne pas. C'est le critère qu'emploie
+  /// déjà `purger_messages_expires()`.
+  Future<void> _viderApercuSiDernier(
+    String conversationId,
+    dynamic creeLe,
+  ) async {
+    final quand = DateTime.tryParse(creeLe?.toString() ?? '');
+    if (quand == null) return;
+
+    final rows = await _supabase
+        .from('conversations')
+        .select('data, last_message_at')
+        .eq('id', conversationId)
+        .limit(1);
+    if (rows.isEmpty) return;
+
+    final dernier = DateTime.tryParse(
+      rows.first['last_message_at']?.toString() ?? '',
+    );
+    if (dernier == null || !dernier.toUtc().isAtSameMomentAs(quand.toUtc())) {
+      return;
+    }
+
+    final data = Map<String, dynamic>.from(
+      (rows.first['data'] as Map?) ?? {},
+    );
+    data['lastMessage'] = '';
+    data[_kApercuSupprime] = true;
+    data.remove(_kApercuExpire);
+
+    await _supabase
+        .from('conversations')
+        .update({'data': data})
+        .eq('id', conversationId);
   }
 
   @override

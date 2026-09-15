@@ -10700,6 +10700,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get messageAutoDeleted => 'Message expired';
 
   @override
+  String get lastMessageEncrypted => 'Encrypted message';
+
+  @override
   String get photo => 'Photo';
 
   @override

@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1153 cases à cocher, 588 cochées** — 229 entrées sur 275 ont encore des cases ouvertes.
+**1167 cases à cocher, 589 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (26)
+**P0 — avant toute nouvelle version** (27)
 
+- 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 4 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
@@ -72,7 +73,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (75)
+**P1 — fonction importante, jamais vérifiée** (76)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -82,7 +83,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 15 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
+- 16 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 20 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
@@ -126,6 +127,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
+- 2 · [✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)](#-le-bandeau--1-message-non-lu--dune-conversation-basculée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ La messagerie sort de l'écran Notifications (2026-09-13)](#-la-messagerie-sort-de-lécran-notifications-2026-09-13) · *Notifications et push*
 - 7 · [⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)](#-notifications-ouvertes-ailleurs-ou-obsolètes--lues-2026-09-12) · *Notifications et push*
@@ -287,9 +289,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 234 à faire, 80 faites
+- [2. Messagerie](#2-messagerie) — 246 à faire, 80 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 87 à faire, 35 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 36 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -549,6 +551,79 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)
+
+**Priorité P0** · importance 5/5 — `conversations.data->>'lastMessage'` porte
+le texte du dernier message **en clair** : c'est lui qu'on lit dans la liste
+des discussions. « Supprimer pour tout le monde » vidait la ligne `messages`
+— contenu, `fileUrl`, cartes de partage, clé du média chiffré — et **ne le
+touchait pas**. Supprimer son dernier message donnait donc une bulle
+« Message supprimé » avec, une ligne plus haut, son texte parfaitement
+lisible. La suppression se disait accomplie pendant que son contenu restait à
+l'écran.
+
+Refermer ce trou en ouvre un second : deux causes vident désormais cet aperçu
+— la purge des messages éphémères et la suppression — et elles ne se disent
+pas pareil. Le client n'en connaissait qu'une et affichait « Message expiré »
+pour les deux. D'où deux marques dans `conversations.data`,
+`lastMessageDeleted` et `lastMessageExpired` : elles s'excluent, et **tout
+écrivain d'aperçu les efface** (envoi legacy, trigger MLS, purge).
+
+Trois chemins mènent au même aperçu et les trois sont couverts : la base
+(legacy), le **cache local** (MLS — le serveur n'a jamais le clair, et la
+copie de l'appareil garde le texte supprimé jusqu'au prochain rechargement),
+et le libellé à l'écran.
+
+Fichiers : [message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart)
+(`_viderApercuSiDernier`), [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`apercuDepuisCache`), [conversation_entity.dart](lib/features/messages/domain/entities/conversation_entity.dart)
+(`apercuEfface`), [conversation_item.dart](lib/features/messages/presentation/widgets/conversation_item.dart),
+[20260915235900_apercu_dit_pourquoi_il_est_vide.sql](supabase/migrations/20260915235900_apercu_dit_pourquoi_il_est_vide.sql).
+
+Banc serveur (BEGIN/ROLLBACK, n'écrit rien de durable) :
+`supabase db query --linked -f supabase/diagnostics/2026-09-15_banc_apercu_message_supprime.sql`
+— 13 contrôles, tous VERT au 2026-09-15 avec la migration jouée dans la
+transaction ; 4 ROUGE sans elle, ce qui est aussi la preuve qu'elle est
+nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
+
+- [ ] **La fuite d'origine** : envoyer un texte reconnaissable, le supprimer
+  pour tout le monde, revenir à la liste des discussions. La tuile ne montre
+  plus le texte, elle dit « Message supprimé ». Vérifier **des deux côtés** :
+  l'expéditeur et le destinataire.
+- [ ] **En base**, après ce geste : `data->>'lastMessage'` est vide et
+  `data->>'lastMessageDeleted'` vaut `true` sur la conversation.
+- [ ] **Pas le dernier** : supprimer un message qui n'est PAS le dernier de la
+  discussion laisse l'aperçu intact (c'est l'égalité `last_message_at` =
+  `created_at` du message qui décide).
+- [ ] **Un message neuf efface la marque** : après la suppression, envoyer un
+  autre message. La tuile affiche son texte, et plus jamais « Message
+  supprimé » — la marque doit disparaître, sinon elle colle à la conversation
+  pour toujours.
+- [ ] **Une photo supprimée** ne s'annonce plus « 📎 Photo » : ni la
+  suppression ni l'expiration ne touchent `lastMessageType`, et le libellé de
+  type passait avant. Même contrôle pour une **note vocale** (elle gardait son
+  icône micro et « 🎤 Message vocal ») et pour un **appel** (combiné vert).
+- [ ] **Expiré ≠ supprimé** : faire expirer le dernier message (recette SQL de
+  « Messages éphémères — minuteur réparé, purge serveur »). La tuile dit
+  « Message expiré », pas « Message supprimé ».
+- [ ] **Côté MLS**, drapeau ouvert : supprimer le dernier message chiffré
+  d'une discussion. La tuile dit « Message supprimé » — et non le texte, que
+  le **cache local** de l'appareil détient encore (le serveur, lui, ne l'a
+  jamais eu). C'est le contrôle le plus important de la liste : la fuite y
+  passe par un chemin entièrement différent.
+- [ ] **MLS, discussion jamais ouverte sur cet appareil** (ou cache vidé) : la
+  tuile dit « Message chiffré », **pas** « Message expiré » — ce qu'elle
+  disait depuis que la purge a appris à vider l'aperçu, en annonçant la
+  disparition de messages vivants.
+- [ ] **Conversation neuve** : une discussion sans aucun message dit toujours
+  « Nouvelle conversation ».
+- [ ] **Hors ligne / après redémarrage** : le libellé survit au cache Hive —
+  rouvrir l'application en mode avion doit encore afficher « Message
+  supprimé », pas le texte.
+- [ ] **Thème sombre** : les trois libellés restent lisibles dans la liste.
+
+---
+
 ## ⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)
 
 **Priorité P1** · importance 4/5 — La fonction était **morte en silence** sur
@@ -611,9 +686,9 @@ SELECT public.purger_messages_expires();
   même qu'un message qui portait une carte de partage n'a plus `encAnnexes`
   ni `postData`.
 - [ ] **Dernier message de la liste** : quand le dernier message d'une
-  discussion expire, la tuile de la liste n'affiche pas son texte effacé (la
-  purge ne touche pas `conversations.data.lastMessage` — à regarder, c'est la
-  fuite résiduelle la plus probable).
+  discussion expire, la tuile de la liste n'affiche pas son texte effacé, et
+  dit « Message expiré » — pas « Message supprimé ». Voir « L'aperçu de la
+  liste dit pourquoi il est vide ».
 - [ ] **Notification déjà reçue** : une push arrivée avant l'expiration reste
   dans le centre de notifications avec son aperçu. Voir « Aperçu des
   notifications MLS » si l'entrée existe.
@@ -624,10 +699,18 @@ SELECT public.purger_messages_expires();
   `ttl` du payload — pas depuis la colonne. Après purge, `length(ciphertext)`
   vaut 0 et le rattrapage n'écrit **aucun** `decrypt_failed` dans
   `mls_diagnostics` (garde « pierre tombale »).
-- [ ] **Menu d'appui long** sur un message expiré mais pas encore balayé :
-  réactions et « répondre » restent proposés pendant le quart d'heure de
-  battement. Défaut connu, sans conséquence en base — à confirmer sans gravité
-  sur appareil, ou à fermer si c'est gênant à l'usage.
+- [ ] **Avant le passage du balayage, le contenu ne repart par aucun chemin.**
+  Laisser un message expirer, puis, dans le quart d'heure qui précède le
+  `pg_cron` : l'appui long ne propose plus ni réaction, ni « répondre », ni
+  « modifier » ; **« Copier » ne met rien dans le presse-papiers** ; l'export
+  de la conversation (JSON et HTML) écrit « Message supprimé » à sa place et
+  **pas** son texte ; la recherche dans la discussion ne le trouve plus par
+  son contenu. C'est le chemin qui compte le plus : le serveur n'a encore
+  rien effacé, tout tient au garde client.
+- [ ] **Hors ligne prolongé** : mode avion, laisser passer l'échéance, rouvrir
+  la discussion sans jamais retrouver le réseau — la bulle est vide et
+  « Copier » ne rend rien, alors que le balayage serveur n'a évidemment pas
+  pu passer.
 
 ---
 
@@ -5814,6 +5897,36 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 - [ ] **Après un scan qui correspond** : la vérification est retenue, et
   l'avertissement « la clé a changé » apparaît si l'app est réinstallée en
   face.
+
+---
+
+## ✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)
+
+**Priorité P1** · importance 3/5 — Trouvé par le premier essai réel de MLS,
+et par rien d'autre : ni les tests ni le banc ne pouvaient le voir.
+
+Le séparateur « Messages d'avant le chiffrement de bout en bout » est un
+message **système synthétique** (`senderId: 'system'`, `readBy` vide, absent
+du serveur). Le compteur de non-lus du fil le prenait pour un message
+d'autrui jamais lu : bandeau permanent, impossible à faire partir, puisque
+rien ne viendrait jamais le marquer. Le serveur disait zéro — la vue
+`mls_unread_counts` ne compte que `kind = 'content'` et exclut l'expéditeur.
+
+Corrigé en sautant les messages système, ce qui aligne le fil sur la règle du
+serveur et corrige aussi le rang du premier non-lu : le bandeau se posait
+**sur** le séparateur, et l'écran s'y déroulait.
+
+Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
+(`compterNonLus`). Tenu par
+[non_lus_fil_test.dart](test/features/messages/non_lus_fil_test.dart) (6 cas).
+
+- [x] **Bandeau disparu** : vérifié le 2026-09-15 sur SM A515F, build debug
+      réinstallé, « Mes notes » rouverte. Le fil montre le séparateur puis les
+      trois messages chiffrés, et plus aucun « non lu ».
+- [ ] **Un vrai non-lu s'affiche toujours** : à deux comptes, recevoir un
+      message sans ouvrir la discussion, puis l'ouvrir — le bandeau doit
+      apparaître au bon endroit, au-dessus du message reçu.
+- [ ] **La pastille de la liste** suit la même règle et retombe à zéro.
 
 ---
 

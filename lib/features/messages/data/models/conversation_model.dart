@@ -21,6 +21,14 @@ final class ConversationModel {
   final DateTime? lastMessageAt;
   final List<String> lastMessageReadBy;
   final List<String> lastMessageDeliveredTo;
+
+  /// Pourquoi l'aperçu est vide, quand il l'est. Les deux marques vivent dans
+  /// le JSONB `conversations.data`, à côté de `lastMessage` : l'une posée par
+  /// « supprimer pour tout le monde », l'autre par la purge des messages
+  /// éphémères.
+  final bool lastMessageDeleted;
+  final bool lastMessageExpired;
+
   final DateTime? createdAt;
   final String createdBy;
   final Map<String, dynamic> unreadCount;
@@ -59,6 +67,8 @@ final class ConversationModel {
     this.lastMessageAt,
     this.lastMessageReadBy = const [],
     this.lastMessageDeliveredTo = const [],
+    this.lastMessageDeleted = false,
+    this.lastMessageExpired = false,
     this.createdAt,
     required this.createdBy,
     this.unreadCount = const {},
@@ -92,6 +102,8 @@ final class ConversationModel {
       lastMessageAt: _parseDateTime(json['lastMessageAt']),
       lastMessageReadBy: _parseStringList(json['lastMessageReadBy']),
       lastMessageDeliveredTo: _parseStringList(json['lastMessageDeliveredTo']),
+      lastMessageDeleted: json['lastMessageDeleted'] as bool? ?? false,
+      lastMessageExpired: json['lastMessageExpired'] as bool? ?? false,
       createdAt: _parseDateTime(json['createdAt']),
       createdBy: json['createdBy'] as String? ?? '',
       unreadCount: _parseMap(json['unreadCount']),
@@ -138,6 +150,8 @@ final class ConversationModel {
       if (lastMessageAt != null) 'lastMessageAt': lastMessageAt!.toUtc().toIso8601String(),
       if (lastMessageReadBy.isNotEmpty) 'lastMessageReadBy': lastMessageReadBy,
       if (lastMessageDeliveredTo.isNotEmpty) 'lastMessageDeliveredTo': lastMessageDeliveredTo,
+      if (lastMessageDeleted) 'lastMessageDeleted': true,
+      if (lastMessageExpired) 'lastMessageExpired': true,
       if (createdAt != null) 'createdAt': createdAt!.toUtc().toIso8601String(),
       'createdBy': createdBy,
       if (unreadCount.isNotEmpty) 'unreadCount': unreadCount,
@@ -196,6 +210,8 @@ final class ConversationModel {
     lastMessageAt: lastMessageAt,
     lastMessageReadBy: lastMessageReadBy,
     lastMessageDeliveredTo: lastMessageDeliveredTo,
+    lastMessageDeleted: lastMessageDeleted,
+    lastMessageExpired: lastMessageExpired,
     createdAt: createdAt ?? DateTime.now(),
     createdBy: createdBy,
     unreadCount: _parseUnreadCount(unreadCount),
@@ -229,6 +245,8 @@ final class ConversationModel {
         lastMessageAt: entity.lastMessageAt,
         lastMessageReadBy: entity.lastMessageReadBy,
         lastMessageDeliveredTo: entity.lastMessageDeliveredTo,
+        lastMessageDeleted: entity.lastMessageDeleted,
+        lastMessageExpired: entity.lastMessageExpired,
         createdAt: entity.createdAt,
         createdBy: entity.createdBy,
         unreadCount: entity.unreadCount.map((k, v) => MapEntry(k, v)),
