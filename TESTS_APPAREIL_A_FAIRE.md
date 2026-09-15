@@ -911,11 +911,15 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
 - [ ] **Réaction sur un message d'AVANT la bascule**, dans la même discussion :
   elle marche aussi — c'est l'aiguillage par message qui est vérifié là.
 - [x] **Supprimer pour moi** un message chiffré : la ligne atterrit dans
-  `mls_message_hidden`. ✅ Pixel 10 Pro XL, 2026-09-15. Reste à confirmer
-  qu'il **ne revient pas** à la réouverture, et qu'il reste visible en face.
-- [x] **Supprimer pour tous** : `is_deleted` est posé sur la ligne
-  `mls_messages`. ✅ Pixel 10 Pro XL, 2026-09-15. Reste à voir la bulle
-  « message supprimé » **des deux côtés**.
+  `mls_message_hidden`, et après un **arrêt complet** de l'application le
+  message **n'est plus dans le fil** — donc relu depuis la table, pas gardé
+  à l'écran. ✅ Pixel 10 Pro XL, 2026-09-15. Reste à confirmer qu'il demeure
+  visible en face.
+- [x] **Supprimer pour tous** : `is_deleted` est posé sur la ligne, et après
+  un **arrêt complet** la bulle affiche « Message supprimé » — donc relu
+  depuis la base. La mention « modifié » survit à côté, ce qui est correct :
+  le message a bien été modifié avant d'être supprimé. ✅ Pixel 10 Pro XL,
+  2026-09-15. Reste à voir la bulle **du côté du destinataire**.
 - [x] **Favori** posé sur un message chiffré : la ligne atterrit dans
   `mls_message_stars`. ✅ Pixel 10 Pro XL, 2026-09-15. Reste à voir qu'il
   tient après réouverture, et l'écran des favoris.
