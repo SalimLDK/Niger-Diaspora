@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../domain/entities/message_entity.dart'
-    show MessageEntity, MessageEncryptionLevel, MessageStatus, MessageType;
+    show MediaChiffre, MessageEntity, MessageEncryptionLevel, MessageStatus, MessageType;
 import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
 
 /// Model de message pour la couche data
@@ -49,6 +49,11 @@ final class MessageModel {
   final String? calleeId;
   // Link preview fields
   final Map<String, dynamic>? linkPreviewData;
+
+  /// Forme JSON de [MediaChiffre], **en clair** : ce champ n'existe que dans
+  /// le modèle local (et le cache Hive). En base, il voyage chiffré sous
+  /// `encMedia`, jamais sous ce nom.
+  final Map<String, dynamic>? mediaChiffre;
   // Forward fields
   final bool isForwarded;
   // Starred messages
@@ -119,6 +124,7 @@ final class MessageModel {
     this.callerId,
     this.calleeId,
     this.linkPreviewData,
+    this.mediaChiffre,
     this.isForwarded = false,
     this.starredBy = const [],
     this.editedAt,
@@ -181,6 +187,9 @@ final class MessageModel {
       callerId: json['callerId'] as String?,
       calleeId: json['calleeId'] as String?,
       linkPreviewData: json['linkPreviewData'] as Map<String, dynamic>?,
+      mediaChiffre: json['mediaChiffre'] is Map
+          ? Map<String, dynamic>.from(json['mediaChiffre'] as Map)
+          : null,
       isForwarded: json['isForwarded'] as bool? ?? false,
       starredBy: _parseStringList(json['starredBy']),
       editedAt: _parseDateTime(json['editedAt']),
@@ -256,6 +265,7 @@ final class MessageModel {
       if (callerId != null) 'callerId': callerId,
       if (calleeId != null) 'calleeId': calleeId,
       if (linkPreviewData != null) 'linkPreviewData': linkPreviewData,
+      if (mediaChiffre != null) 'mediaChiffre': mediaChiffre,
       'isForwarded': isForwarded,
       if (starredBy.isNotEmpty) 'starredBy': starredBy,
       if (editedAt != null) 'editedAt': editedAt!.toUtc().toIso8601String(),
@@ -366,6 +376,8 @@ final class MessageModel {
     callerId: callerId,
     calleeId: calleeId,
     linkPreviewData: linkPreviewData,
+    mediaChiffre:
+        mediaChiffre == null ? null : MediaChiffre.fromJson(mediaChiffre!),
     isForwarded: isForwarded,
     starredBy: starredBy,
     editedAt: editedAt,
@@ -431,6 +443,7 @@ final class MessageModel {
     callerId: entity.callerId,
     calleeId: entity.calleeId,
     linkPreviewData: entity.linkPreviewData,
+    mediaChiffre: entity.mediaChiffre?.toJson(),
     isForwarded: entity.isForwarded,
     starredBy: entity.starredBy,
     editedAt: entity.editedAt,
@@ -496,6 +509,7 @@ final class MessageModel {
     String? callerId,
     String? calleeId,
     Map<String, dynamic>? linkPreviewData,
+    Map<String, dynamic>? mediaChiffre,
     bool? isForwarded,
     List<String>? starredBy,
     DateTime? editedAt,
@@ -550,6 +564,7 @@ final class MessageModel {
       callerId: callerId ?? this.callerId,
       calleeId: calleeId ?? this.calleeId,
       linkPreviewData: linkPreviewData ?? this.linkPreviewData,
+      mediaChiffre: mediaChiffre ?? this.mediaChiffre,
       isForwarded: isForwarded ?? this.isForwarded,
       starredBy: starredBy ?? this.starredBy,
       editedAt: editedAt ?? this.editedAt,

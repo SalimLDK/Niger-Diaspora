@@ -740,6 +740,7 @@ class FeatureFlagsModel {
   final bool audioRooms;
   final bool podcasts;
   final bool feed;
+  final bool mediasChiffres;
 
   final bool maintenanceMode;
   final String? maintenanceMessage;
@@ -754,6 +755,7 @@ class FeatureFlagsModel {
     this.audioRooms = false,
     this.podcasts = false,
     this.feed = true,
+    this.mediasChiffres = false,
     this.maintenanceMode = false,
     this.maintenanceMessage,
   });
@@ -771,6 +773,7 @@ class FeatureFlagsModel {
         audioRooms: json['audioRooms'] as bool? ?? false,
         podcasts: json['podcasts'] as bool? ?? false,
         feed: json['feed'] as bool? ?? true,
+        mediasChiffres: json['mediasChiffres'] as bool? ?? false,
         maintenanceMode: json['maintenanceMode'] as bool? ?? false,
         maintenanceMessage: json['maintenanceMessage'] as String?,
       );
@@ -785,6 +788,7 @@ class FeatureFlagsModel {
     'audioRooms': audioRooms,
     'podcasts': podcasts,
     'feed': feed,
+    'mediasChiffres': mediasChiffres,
     'maintenanceMode': maintenanceMode,
     'maintenanceMessage': maintenanceMessage,
   };
@@ -799,6 +803,7 @@ class FeatureFlagsModel {
     audioRooms: audioRooms,
     podcasts: podcasts,
     feed: feed,
+    mediasChiffres: mediasChiffres,
     maintenanceMode: maintenanceMode,
     maintenanceMessage: maintenanceMessage,
   );
@@ -814,6 +819,7 @@ class FeatureFlagsModel {
         audioRooms: entity.audioRooms,
         podcasts: entity.podcasts,
         feed: entity.feed,
+        mediasChiffres: entity.mediasChiffres,
         maintenanceMode: entity.maintenanceMode,
         maintenanceMessage: entity.maintenanceMessage,
       );

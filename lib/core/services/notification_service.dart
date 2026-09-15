@@ -18,6 +18,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 import '../constants/app_colors.dart';
+import '../errors/journal_echecs.dart';
 import 'e2ee/notification_decryption_service.dart';
 import 'background_location_service.dart';
 import 'background_reply_service.dart';
@@ -2891,6 +2892,15 @@ class NotificationService {
         'p_data': {...?data, 'target_id': targetId, 'targetId': targetId},
       });
     } catch (e) {
+      // Ne pas faire échouer l'appelant : rater la notification qui prévient
+      // quelqu'un qu'on a accepté sa demande d'ami ne doit pas faire échouer
+      // l'acceptation. Mais « ne pas faire échouer » n'est pas « ne rien
+      // dire » : ce `catch` est le seul point de passage des DOUZE appels qui
+      // créent une notification entre utilisateurs — amis, fil, événements,
+      // commandes de la place de marché. S'il se met à tomber, plus aucune
+      // notification n'est posée nulle part, et il n'y avait ici qu'un
+      // `debugPrint` que personne ne lit en production.
+      signalerEchecSilencieux(e, contexte: 'notification entre utilisateurs');
       debugPrint('Error creating notification: $e');
     }
   }

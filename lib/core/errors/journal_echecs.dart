@@ -46,6 +46,35 @@ void installerJournalEchecs() {
 @visibleForTesting
 void reinitialiserJournalEchecs() => _dejaVu.clear();
 
+/// Signale un échec qu'on a **délibérément avalé** — jamais montré, donc
+/// invisible même pour l'observateur branché sur `messageErreurUsager`.
+///
+/// Certains `catch` sont justifiés : rater la notification qui prévient
+/// quelqu'un qu'on a accepté sa demande d'ami ne doit pas faire échouer
+/// l'acceptation elle-même. Mais « ne pas faire échouer » n'est pas
+/// « ne rien dire » : jusqu'ici ces échecs ne laissaient qu'un `debugPrint`,
+/// que personne ne lit en production.
+///
+/// [contexte] nomme l'endroit, en clair et sans donnée personnelle — il sert
+/// à regrouper dans la console : « notification entre utilisateurs ».
+void signalerEchecSilencieux(Object? erreur, {required String contexte}) {
+  final texte = caviarder(erreur?.toString() ?? 'null');
+  final type = erreur?.runtimeType.toString() ?? 'null';
+  if (!aSignaler('silencieux|$contexte|$type|$texte', DateTime.now())) return;
+
+  try {
+    FirebaseCrashlytics.instance.recordError(
+      'echec avale ($contexte) : $type : $texte',
+      StackTrace.current,
+      fatal: false,
+      reason: 'echec_silencieux',
+    );
+  } catch (_) {
+    // Crashlytics indisponible : on ne casse surtout pas l'appelant, dont tout
+    // l'intérêt était de continuer malgré cet échec.
+  }
+}
+
 void _signaler(Object? erreur, FamilleEchec famille) {
   final texte = caviarder(erreur?.toString() ?? 'null');
   final type = erreur?.runtimeType.toString() ?? 'null';
