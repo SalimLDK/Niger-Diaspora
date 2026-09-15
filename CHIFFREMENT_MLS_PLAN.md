@@ -1055,7 +1055,13 @@ forcément en clair. `PURE_CIPHERTEXT` le refuserait sans dire pourquoi.
 | FRB 2.13 sur ce projet | **Oui.** `integrate` (cargokit, sans `dart fix` ni `dart format`) + crate conservé + surface `api/mls.rs` : `Moteur` opaque (`#[frb(opaque)]`, le verrou de FRB sérialise les méthodes `&mut self` — la règle « un seul écrivain »), DTO plats, erreurs en codes. Bindings générés dans `lib/src/rust/`, `cargo check` et `flutter analyze` propres |
 | Build release **signé** | **Oui.** `flutter build apk --release --dart-define=SPIKE_MLS=true` : 519 s de Gradle, cargokit compile le crate pour arm64-v8a, armeabi-v7a et x86_64 ; APK universel de **131,6 Mo**, signé V2 avec le certificat de production (CN=Diaspo Niger) |
 | Lib dans l'APK | `libdiaspo_mls.so` : **4,4 Mo (arm64), 3,3 Mo (armv7), 5,1 Mo (x86_64)** ; les deux 64 bits **alignées 16 Ko** (vérifié dans l'APK, pas seulement dans `target/`) |
-| Démarre sur l'appareil, ms à froid | **Pas encore** : aucun appareil branché ce jour-là. Le harnais `lib/spike_mls/spike_app.dart` (activé par le `dart-define`) remplace l'app par un écran qui joue le parcours, chronomètre la réouverture à froid + déchiffrement et vérifie le refus d'un AAD déplacé — les chiffres s'affichent à l'écran, à lire par `adb exec-out screencap` |
+| Démarre sur l'appareil, ms à froid | **Oui, mesuré sur SM A515F (release, 2026-09-15 00:28).** Le harnais `lib/spike_mls/spike_app.dart` (activé par le `dart-define`) joue le parcours et affiche les chiffres à l'écran, lus par `adb exec-out screencap` : ouverture de deux moteurs neufs **206 ms** ; création + ajout + Welcome **137 ms** ; chiffrer + déchiffrer **5 ms** ; **réouverture à froid 6 ms, réouverture + déchiffrement 15 ms** (le chemin « notification en arrière-plan », budget 2 s : tenu avec deux ordres de grandeur de marge) ; AAD déplacé **refusé** (`aad_mismatch`) ; base SQLite de Bob 147 Ko après un parcours |
+
+Installé **à côté** de l'app, sous `com.diasponiger.diasponiger.spike` (plugins
+google-services et crashlytics commentés sur la branche du spike) : l'app en
+place sur ce téléphone est signée avec une autre clé que celle du dépôt, et la
+remplacer aurait coûté ses clés Signal locales. `adb uninstall
+com.diasponiger.diasponiger.spike` pour le retirer.
 
 Deux pièges d'outillage, payés :
 
@@ -1071,8 +1077,9 @@ Deux pièges d'outillage, payés :
 
 | Question | Ce qu'il faut |
 |---|---|
-| ms à froid **sur SM A515F** (ouverture + déchiffrement, puis dans l'isolate background) | l'appareil branché : `adb install -r` de l'APK du spike, lancer, lire l'écran. Tout est prêt |
+| ms à froid **dans l'isolate background** (pas seulement au premier plan) | un `onBackgroundMessage` jetable qui ouvre le moteur : même code, autre isolate — 15 ms au premier plan laissent 130× de marge sur le budget, le risque est ailleurs (réveil du processus, pas la crypto) |
 | **NSE iOS** avec App Group et copie de travail | un Mac. Rien de ce spike ne l'aborde |
 
-**Verdict : GO côté Rust, Android et chaîne de build.** Reste l'appareil et
-iOS. Aucun NO-GO rencontré.
+**Verdict : GO côté Rust, Android, chaîne de build et appareil.** Reste iOS.
+Aucun NO-GO rencontré. Le spike Android peut être considéré comme clos ; la
+phase 2 (registre d'appareils) peut commencer.
