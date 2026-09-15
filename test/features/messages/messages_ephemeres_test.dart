@@ -523,10 +523,22 @@ void main() {
       final bloc = src.substring(src.indexOf('Future<void> editMessage('));
       final rows = bloc.indexOf('if (rows.isEmpty)');
       expect(rows, isNot(-1), reason: 'le garde doit exister');
+      final garde = bloc.substring(rows, rows + 1400);
       expect(
-        bloc.substring(rows, rows + 120).contains('throw'),
+        garde.contains('throw'),
         isTrue,
         reason: 'une modification sans cible doit LEVER, pas rendre la main',
+      );
+      // Et elle doit DIRE ce qu'il faut pour comprendre : la cause du mauvais
+      // aiguillage n'est pas élucidée et ne se provoque pas depuis l'écran
+      // (pour qu'une bulle MLS s'affiche, son fil a été amorcé, donc son
+      // identifiant est déjà connu). L'erreur emporte donc l'état de bascule
+      // de la conversation, qui est l'entrée dont dépend la décision.
+      expect(
+        garde.contains('mls_since'),
+        isTrue,
+        reason: 'l’erreur doit porter l’état de bascule, sinon la prochaine '
+            'occurrence sera aussi muette que celle qu’on a corrigée',
       );
     });
 
@@ -584,6 +596,41 @@ void main() {
         expect(src.indexOf(rare, secondaires), isNot(-1),
             reason: '$rare doit rester derrière « Autres actions »');
       }
+    });
+
+    test('le temps réel écoute AUSSI les messages chiffrés', () {
+      // Le temps réel n'écoutait que `messages`. Depuis la bascule MLS, les
+      // messages vivants sont dans `mls_messages` : dans une conversation
+      // chiffrée, plus rien n'arrivait en direct — il fallait ressortir et
+      // revenir. Constaté à deux téléphones le 2026-09-15 (message envoyé du
+      // premier, second resté ouvert sur la conversation, rien à l'écran).
+      //
+      // Le serveur était prêt : `mls_messages` est déjà dans la publication
+      // `supabase_realtime`. Il manquait l'abonnement côté client.
+      final ds = _source(
+        'lib/features/messages/data/datasources/'
+        'message_supabase_datasource.dart',
+      );
+      expect(
+        ds.contains("table: 'mls_messages'"),
+        isTrue,
+        reason: 'aucun abonnement temps réel sur mls_messages',
+      );
+
+      // ... et il ne sert à rien s'il n'est pas branché au flux de l'écran.
+      final depot = _source(
+        'lib/features/messages/data/repositories/message_repository_impl.dart',
+      );
+      expect(
+        depot.contains('mlsNouveauxMessages(conversationId)'),
+        isTrue,
+        reason: 'le dépôt doit consommer le signal',
+      );
+      expect(
+        depot.contains('Rx.merge'),
+        isTrue,
+        reason: 'il doit le FUSIONNER au flux existant, pas le remplacer',
+      );
     });
 
     test('le helper lit le minuteur et pose expiresAt', () {

@@ -1158,6 +1158,39 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     return controller.stream;
   }
 
+  @override
+  Stream<void> mlsNouveauxMessages(String conversationId) {
+    final channelName = 'mls_new:$conversationId';
+    final ch = _channel(channelName);
+    final controller = StreamController<void>.broadcast();
+
+    ch
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'mls_messages',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'conversation_id',
+            value: conversationId,
+          ),
+          // On ne transmet RIEN de la ligne : elle est chiffrée, et la lire
+          // ici n'apprendrait rien. Le signal suffit — le dépôt relit le fil
+          // par la passerelle, qui seule sait déchiffrer.
+          callback: (payload) {
+            if (!controller.isClosed) controller.add(null);
+          },
+        )
+        .subscribe();
+
+    controller.onCancel = () {
+      ch.unsubscribe();
+      _channels.remove(channelName);
+    };
+
+    return controller.stream;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // TYPING
   // ═══════════════════════════════════════════════════════════════════════════
@@ -2905,9 +2938,28 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       // côté MLS pour deux modifications annoncées réussies). Un geste sans
       // effet doit se voir.
       if (rows.isEmpty) {
+        // On ne sait toujours pas POURQUOI l'aiguillage manque sa cible : le
+        // cas ne se provoque pas depuis l'interface (pour qu'une bulle MLS
+        // s'affiche, son fil a forcément été amorcé, donc son identifiant est
+        // déjà connu de la passerelle). Alors on fait parler la prochaine
+        // occurrence : l'erreur emporte l'état de bascule de la conversation,
+        // qui est précisément l'entrée dont dépend la décision.
+        String bascule;
+        try {
+          final conv = await _supabase
+              .from('conversations')
+              .select('mls_since')
+              .eq('id', conversationId)
+              .maybeSingle();
+          bascule = conv == null
+              ? 'conversation introuvable (RLS ?)'
+              : 'mls_since=${conv['mls_since'] ?? 'null'}';
+        } catch (e) {
+          bascule = 'lecture de mls_since impossible : $e';
+        }
         throw ServerException(
           'editMessage : aucun message $messageId dans `messages` — '
-          'message chiffré ? aiguillage MLS manqué',
+          'message chiffré ? aiguillage MLS manqué [$bascule]',
         );
       }
       final data = Map<String, dynamic>.from(
