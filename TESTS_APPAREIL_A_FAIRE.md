@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1179 cases à cocher, 602 cochées** — 236 entrées sur 282 ont encore des cases ouvertes.
+**1179 cases à cocher, 603 cochées** — 236 entrées sur 283 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -294,7 +294,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 240 à faire, 91 faites
+- [2. Messagerie](#2-messagerie) — 240 à faire, 92 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 99 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -628,6 +628,29 @@ nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
 - [ ] **Thème sombre** : les trois libellés restent lisibles dans la liste.
 
 ---
+
+## ✅ Le temps réel n'écoutait pas les messages chiffrés (2026-09-15)
+
+**Priorité P0** · importance 5/5 — Signalé par Salim : « les messages ne
+s'actualisent pas ». **Corrigé et vérifié à deux téléphones.**
+
+Le temps réel s'abonnait à `conversations` et `messages`, **jamais à
+`mls_messages`**. Or depuis la bascule MLS, ce sont les messages chiffrés qui
+sont vivants : dans une conversation basculée, plus RIEN n'arrivait en direct
+— il fallait ressortir de la conversation et y revenir. Mesuré : Pixel resté
+ouvert sur la conversation, message envoyé du SM A515F, rien à l'écran.
+
+Le serveur était déjà prêt — `mls_messages` figure dans la publication
+`supabase_realtime` et porte sa politique SELECT « participants ». Il manquait
+seulement l'abonnement côté client.
+
+Corrigé : la datasource émet un **signal** (pas un message : la ligne est
+chiffrée, seule la passerelle sait la lire), et le dépôt le fusionne
+(`Rx.merge`) au flux existant en relisant le fil par `catchUp`, qui est
+incrémental. L'écran dédoublonne déjà par identifiant.
+
+- [x] **Vérifié le 2026-09-15** : `LIVE-TEST` envoyé du A515F apparaît sur le
+  Pixel « À l'instant », **sans y toucher**, dans une conversation chiffrée.
 
 ## ⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)
 
