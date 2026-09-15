@@ -571,8 +571,21 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
                       existingMessages[optimisticIndex],
                       newMessage,
                     );
-                  } else if (!existingMessages.any((m) => m.id == newMessage.id)) {
-                    existingMessages.add(newMessage);
+                  } else {
+                    final connu = existingMessages
+                        .indexWhere((m) => m.id == newMessage.id);
+                    if (connu == -1) {
+                      existingMessages.add(newMessage);
+                    } else {
+                      // Remplacer, au lieu d'ignorer. Ce flux porte du
+                      // DÉCHIFFRÉ — contrairement à `getMessageUpdatesStream`,
+                      // qui rend la ligne brute et doit donc préserver le
+                      // contenu en place. Ignorer un identifiant connu faisait
+                      // qu'une MODIFICATION n'arrivait jamais en direct : son
+                      // entité garde l'identifiant d'origine, elle tombait
+                      // donc toujours dans cette branche.
+                      existingMessages[connu] = newMessage;
+                    }
                   }
                 }
 
