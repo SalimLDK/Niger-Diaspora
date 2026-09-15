@@ -78,3 +78,4 @@ functions/node_modules/
 # Windows reserved names
 nul
 supabase/.temp/
+spike_jniLibs/

@@ -1,0 +1,27 @@
+[package]
+name = "diaspo_mls"
+version = "0.1.0"
+edition = "2021"
+description = "Spike jetable : OpenMLS 0.9 + stockage SQLite, avant Flutter Rust Bridge"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+openmls = "0.9"
+openmls_traits = "0.6"
+openmls_rust_crypto = "0.6"
+openmls_basic_credential = "0.6"
+openmls_sqlite_storage = "0.3"
+rusqlite = { version = "0.37", features = ["bundled"] }
+tls_codec = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
