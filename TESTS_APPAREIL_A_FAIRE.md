@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1176 cases à cocher, 606 cochées** — 236 entrées sur 282 ont encore des cases ouvertes.
+**1179 cases à cocher, 608 cochées** — 237 entrées sur 284 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -75,11 +75,12 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (79)
+**P1 — fonction importante, jamais vérifiée** (80)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
+- 4 · [⬜ « Supprimer pour tous » efface vraiment le contenu (2026-09-16)](#--supprimer-pour-tous--efface-vraiment-le-contenu-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)](#-létat-mls-ne-quitte-plus-lappareil-sauvegardes-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)](#-banc-mls-bout-en-bout-contre-la-vraie-base-phase-3-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
@@ -87,7 +88,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
-- 13 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
+- 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 14 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
@@ -294,9 +295,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 237 à faire, 95 faites
+- [2. Messagerie](#2-messagerie) — 236 à faire, 97 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 99 à faire, 38 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 103 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -629,6 +630,29 @@ nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
 
 ---
 
+## ✅ Le temps réel n'écoutait pas les messages chiffrés (2026-09-15)
+
+**Priorité P0** · importance 5/5 — Signalé par Salim : « les messages ne
+s'actualisent pas ». **Corrigé et vérifié à deux téléphones.**
+
+Le temps réel s'abonnait à `conversations` et `messages`, **jamais à
+`mls_messages`**. Or depuis la bascule MLS, ce sont les messages chiffrés qui
+sont vivants : dans une conversation basculée, plus RIEN n'arrivait en direct
+— il fallait ressortir de la conversation et y revenir. Mesuré : Pixel resté
+ouvert sur la conversation, message envoyé du SM A515F, rien à l'écran.
+
+Le serveur était déjà prêt — `mls_messages` figure dans la publication
+`supabase_realtime` et porte sa politique SELECT « participants ». Il manquait
+seulement l'abonnement côté client.
+
+Corrigé : la datasource émet un **signal** (pas un message : la ligne est
+chiffrée, seule la passerelle sait la lire), et le dépôt le fusionne
+(`Rx.merge`) au flux existant en relisant le fil par `catchUp`, qui est
+incrémental. L'écran dédoublonne déjà par identifiant.
+
+- [x] **Vérifié le 2026-09-15** : `LIVE-TEST` envoyé du A515F apparaît sur le
+  Pixel « À l'instant », **sans y toucher**, dans une conversation chiffrée.
+
 ## ⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)
 
 **Priorité P1** · importance 4/5 — Signalé par Salim : « modifier message se
@@ -785,11 +809,33 @@ SELECT public.purger_messages_expires();
   après purge. Vérifié sur SM A515F le 2026-09-15 (la conversation bascule à
   MLS dès son ouverture quand le compte est dans `mlsMessagesComptes`, si bien
   que c'est le chemin MLS et non le legacy qui a été exercé).
-- [ ] **Reste du point MLS** : que le DESTINATAIRE affiche l'échéance calculée
-  depuis le `ttl` du payload et non depuis la colonne, et qu'aucun
-  `decrypt_failed` n'apparaisse dans `mls_diagnostics`. Non vérifié : le
-  second téléphone (Pixel 10 Pro XL) porte la version du Play Store, signée
-  par Google, qu'un build local ne peut pas remplacer sans désinstaller.
+- [x] **Reste du point MLS — VÉRIFIÉ À DEUX TÉLÉPHONES le 2026-09-15.**
+  Le Pixel 10 Pro XL ne porte PLUS la version du Play Store : il a un build
+  **debug**, signé du même keystore que le SM A515F (`8732adee…c5`,
+  `installerPackageName=null`). `install -r` y passe donc, données conservées.
+  La note « irremplaçable sans désinstaller » était périmée.
+
+  Message éphémère envoyé du A515F (Sim) → reçu **déchiffré** sur le Pixel
+  (Salim) avec le **signe minuteur** : l'échéance est bien recalculée chez le
+  destinataire depuis le `ttl` du payload. Et les pierres tombales s'y
+  affichent « **Message expiré** » (icône minuteur barré), pas « Message
+  supprimé ».
+
+  ⚠️ **Écart de libellé entre les deux appareils, expliqué** : l'expéditeur
+  affichait « Message supprimé » pour les mêmes messages. C'est un artefact de
+  recette, pas un défaut — l'échéance avait été antidatée en SQL côté serveur
+  seulement. L'expéditeur garde SA date (venue du `ttl`, donc future →
+  `isExpired` faux → « supprimé »), tandis que le destinataire reconstruit
+  l'entité depuis la ligne tombale et utilise donc la COLONNE, antidatée →
+  « expiré ». En usage réel les deux dates coïncident et les deux écrans
+  diraient « expiré ».
+
+  ⚠️ **Aucun `decrypt_failed` lié aux tombes** (le garde tient) — mais
+  **observation à part** : 11 `decrypt_failed` en rafale de 1,6 s sur le
+  Pixel, `{"code":"openmls","epoch":0}`, sans `message_id`, juste après la
+  réinstallation de l'app. Transitoires : le message suivant s'est déchiffré
+  normalement et le fil s'affiche correctement. Piste possible d'une course au
+  démarrage du moteur MLS — hors de cette fiche, à confirmer.
 - [ ] **Avant le passage du balayage, le contenu ne repart par aucun chemin.**
   Laisser un message expirer, puis, dans le quart d'heure qui précède le
   `pg_cron` : l'appui long ne propose plus ni réaction, ni « répondre », ni
@@ -5955,6 +6001,49 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ « Supprimer pour tous » efface vraiment le contenu (2026-09-16)
+
+**Priorité P1** · importance 5/5 — **La promesse du plan n'était pas tenue.**
+Le § 6.3 dit que le serveur cesse de servir le ciphertext ; il ne cessait pas.
+La suppression posait `is_deleted` et `deleted_at`, et rien d'autre. Le contenu
+restait en base, et un destinataire qui n'avait pas encore rattrapé pouvait
+encore le déchiffrer.
+
+Le client ne pouvait pas faire mieux : `UPDATE` ne lui est pas accordé sur
+`ciphertext`, et **cette restriction doit rester** — c'est elle qui l'empêche
+de réécrire son propre message des heures après, un défaut déjà trouvé et
+fermé. D'où une fonction `SECURITY DEFINER` qui fait le geste précis, vider,
+sans donner le moyen d'écrire n'importe quoi. Elle se réserve à l'expéditeur
+dans son corps, puisqu'elle passe outre le RLS.
+
+Second défaut fermé au passage : l'ancien `update` ne vérifiait pas son effet.
+Un refus du RLS réussissait avec zéro ligne et sans erreur — la sixième forme
+d'échec muet de ce dépôt, celle qui avait déjà fait mentir une révocation
+d'appareil. La fonction rend l'identifiant touché, et le client lève quand elle
+ne rend rien.
+
+⚠️ **Migration à appliquer** : `20260916001500_mls_supprimer_pour_tous_efface_vraiment.sql`
+(validée en `BEGIN … ROLLBACK`, jamais appliquée). Tant qu'elle ne l'est pas,
+supprimer pour tous **lèvera** côté client au lieu de faire semblant.
+
+Fichiers : la migration,
+[mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
+(`supprimerPourTous`). Couvert hors appareil par
+[suppression_pour_tous_test.dart](test/core/crypto/suppression_pour_tous_test.dart)
+(6 cas de structure).
+
+- [ ] **Supprimer pour tous un message chiffré** : la bulle devient une pierre
+      tombale, et en base `octet_length(ciphertext)` vaut **0**.
+- [ ] **Sur le message de quelqu'un d'autre** : refusé, et l'écran le dit —
+      il ne doit pas afficher un succès.
+- [ ] **Un appareil qui n'avait pas rattrapé** ne peut plus lire le message :
+      c'est tout l'objet du changement, et ça demande un second appareil.
+- [ ] **Aucun `decrypt_failed` de plus** dans `mls_diagnostics` après la
+      suppression : le rattrapage doit sauter la pierre tombale, pas buter sur
+      son ciphertext vide.
 
 ---
 

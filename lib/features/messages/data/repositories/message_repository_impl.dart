@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'dart:async';
+import 'package:rxdart/rxdart.dart';
 
 import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import 'dart:io';
@@ -1312,7 +1313,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required DateTime afterTimestamp,
   }) {
-    return remoteDataSource
+    final legacy = remoteDataSource
         .getNewMessagesStream(
           conversationId: conversationId,
           afterTimestamp: afterTimestamp,
@@ -1335,6 +1336,47 @@ class MessageRepositoryImpl implements MessageRepository {
             ServerFailure(error.toString()),
           );
         });
+
+    // Le temps réel n'écoutait que `messages`. Depuis la bascule MLS, les
+    // messages vivants sont dans `mls_messages` : dans une conversation
+    // chiffrée, plus RIEN n'arrivait en direct — il fallait ressortir de la
+    // conversation et y revenir pour voir ce qu'on venait de recevoir.
+    // Constaté à deux téléphones le 2026-09-15 : message envoyé du premier,
+    // second resté ouvert sur la conversation, rien à l'écran.
+    //
+    // Le serveur était prêt (`mls_messages` est déjà dans la publication
+    // `supabase_realtime`, avec sa politique SELECT) : il manquait seulement
+    // l'abonnement.
+    final passerelle = mlsGateway;
+    if (passerelle == null) return legacy;
+
+    final chiffres = remoteDataSource
+        .mlsNouveauxMessages(conversationId)
+        .asyncMap<Either<Failure, List<MessageEntity>>?>((_) async {
+          try {
+            if (!await passerelle.enMls(conversationId)) return null;
+            // Relire le fil, pas la ligne : `catchUp` est incrémental, il ne
+            // déchiffre que ce qui est nouveau depuis son curseur.
+            final fil = await passerelle.messages(conversationId);
+            final frais = fil
+                .where((m) => m.createdAt.isAfter(afterTimestamp))
+                .toList();
+            if (frais.isEmpty) return null;
+            return Right<Failure, List<MessageEntity>>(frais);
+          } catch (e) {
+            // Un rattrapage raté ne doit pas tuer le flux : le suivant, ou la
+            // prochaine ouverture, reprendra.
+            dev.log('rattrapage MLS temps réel',
+                name: 'message_repository_impl', error: e);
+            return null;
+          }
+        })
+        .where((e) => e != null)
+        .cast<Either<Failure, List<MessageEntity>>>();
+
+    // L'écran dédoublonne par identifiant : réémettre un message déjà présent
+    // ne le duplique pas.
+    return Rx.merge([legacy, chiffres]);
   }
 
   @override

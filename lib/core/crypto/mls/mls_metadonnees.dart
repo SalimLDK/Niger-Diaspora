@@ -310,10 +310,25 @@ class MlsMetadonnees {
   /// jamais.
   Future<void> supprimerPourTous(String messageId) async {
     await _auth();
-    await _client.from('mls_messages').update({
-      'is_deleted': true,
-      'deleted_at': DateTime.now().toUtc().toIso8601String(),
-    }).eq('id', messageId);
+    // **Une RPC, pas un `update`.** Poser `is_deleted` ne suffisait pas : le
+    // ciphertext restait en base, et un destinataire qui n'avait pas encore
+    // rattrapé pouvait encore le déchiffrer. Le client ne peut pas le vider
+    // lui-même — `UPDATE` ne lui est pas accordé sur cette colonne, et cette
+    // restriction doit rester, c'est elle qui l'empêche de réécrire son propre
+    // message après coup. La fonction fait le geste précis à sa place.
+    final id = await _client.rpc<dynamic>(
+      'mls_supprimer_pour_tous',
+      params: {'p_message_id': messageId},
+    );
+    // Elle rend l'identifiant touché, ou rien. Sans cette garde, un refus du
+    // RLS passerait pour un succès — zéro ligne, aucune erreur : la sixième
+    // forme d'échec muet de ce dépôt, celle qui a déjà fait mentir une
+    // révocation d'appareil.
+    if (id == null) {
+      throw StateError(
+        'suppression pour tous refusée ou sans cible ($messageId)',
+      );
+    }
   }
 
   /// Marque le message comme modifié. Le **nouveau texte** n'entre pas ici :

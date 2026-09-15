@@ -47,6 +47,18 @@ abstract class MessageRemoteDataSource {
     required DateTime afterTimestamp,
   });
 
+  /// Un signal à chaque nouveau message CHIFFRÉ de la conversation.
+  ///
+  /// Le temps réel n'écoutait que `messages`. Depuis la bascule MLS, les
+  /// messages vivants sont dans `mls_messages` : plus rien n'arrivait en
+  /// direct dans une conversation chiffrée, il fallait ressortir et revenir
+  /// pour voir ce qu'on venait de recevoir. Constaté à deux téléphones le
+  /// 2026-09-15.
+  ///
+  /// Un simple signal, pas un message : la ligne est chiffrée, et seule la
+  /// passerelle sait la lire. C'est au dépôt de relire le fil quand ça tombe.
+  Stream<void> mlsNouveauxMessages(String conversationId);
+
   /// Stream pour écouter les modifications de messages existants (réactions, éditions)
   Stream<MessageModel> getMessageUpdatesStream({
     required String conversationId,
@@ -683,6 +695,14 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
 
           return messages;
         });
+  }
+
+  @override
+  Stream<void> mlsNouveauxMessages(String conversationId) {
+    // Ce datasource-ci parle à Firestore ; MLS vit dans Postgres. Rien à
+    // écouter, et surtout pas d'erreur : le dépôt fusionne ce flux avec le
+    // sien, un flux vide le laisse simplement inchangé.
+    return const Stream<void>.empty();
   }
 
   @override

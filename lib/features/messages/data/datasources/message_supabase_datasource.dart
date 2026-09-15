@@ -1158,6 +1158,39 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     return controller.stream;
   }
 
+  @override
+  Stream<void> mlsNouveauxMessages(String conversationId) {
+    final channelName = 'mls_new:$conversationId';
+    final ch = _channel(channelName);
+    final controller = StreamController<void>.broadcast();
+
+    ch
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'mls_messages',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'conversation_id',
+            value: conversationId,
+          ),
+          // On ne transmet RIEN de la ligne : elle est chiffrée, et la lire
+          // ici n'apprendrait rien. Le signal suffit — le dépôt relit le fil
+          // par la passerelle, qui seule sait déchiffrer.
+          callback: (payload) {
+            if (!controller.isClosed) controller.add(null);
+          },
+        )
+        .subscribe();
+
+    controller.onCancel = () {
+      ch.unsubscribe();
+      _channels.remove(channelName);
+    };
+
+    return controller.stream;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // TYPING
   // ═══════════════════════════════════════════════════════════════════════════
