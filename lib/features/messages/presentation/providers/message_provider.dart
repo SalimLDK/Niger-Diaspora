@@ -1001,13 +1001,19 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
     state = state.copyWith(messages: updatedMessages);
 
     try {
-      await _ref.read(messageRemoteDataSourceProvider).editMessage(
-        conversationId: conversationId,
-        messageId: messageId,
-        newContent: newContent,
-        oldContent: oldContent,
-      );
-      return true;
+      // Par le repository, et non par la source de données : lui seul sait si
+      // ce message est chiffré. Le nouveau texte d'un message MLS doit repartir
+      // dans un message de contrôle chiffré ; écrit dans `messages`, il ne
+      // toucherait aucune ligne et ne lèverait rien — la bulle afficherait le
+      // nouveau texte jusqu'au prochain chargement, puis reviendrait à
+      // l'ancien.
+      final resultat = await _ref.read(messageRepositoryProvider).editMessage(
+            conversationId: conversationId,
+            messageId: messageId,
+            newContent: newContent,
+            oldContent: oldContent,
+          );
+      return resultat.fold((echec) => throw Exception(echec.message), (_) => true);
     } catch (e) {
       // Revert on error
       final revertedMessages = List<MessageEntity>.from(state.messages);

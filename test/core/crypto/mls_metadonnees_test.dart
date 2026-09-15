@@ -689,6 +689,43 @@ void main() {
     });
   });
 
+  group('L\'écran ne court-circuite pas le repository', () {
+    // La garde du repository ne vaut rien si personne ne passe par lui. Les
+    // réactions, les favoris et la modification appelaient la source de
+    // données **directement** depuis le provider : l'aiguillage MLS n'était
+    // jamais atteint, et l'écriture partait vers `messages`, où un message
+    // chiffré n'a aucune ligne. Zéro ligne touchée, aucune erreur — la
+    // modification revenait à l'ancien texte au prochain chargement.
+    //
+    // Trouvé pour la modification le 2026-09-15, APRÈS avoir corrigé les deux
+    // autres : la garde d'alors regardait le mauvais fichier.
+    final source = _source(
+        'lib/features/messages/presentation/providers/message_provider.dart');
+
+    String corpsProvider(String methode) {
+      var debut = source.indexOf('Future<bool> $methode(');
+      if (debut == -1) debut = source.indexOf('> $methode(');
+      expect(debut, isNot(-1), reason: '$methode a disparu du provider');
+      final suivante = source.indexOf('\n  Future<', debut + 10);
+      return source.substring(
+          debut, suivante == -1 ? source.length : suivante);
+    }
+
+    for (final methode in const [
+      'toggleReaction',
+      'toggleStar',
+      'editMessage',
+    ]) {
+      test('$methode passe par le repository, pas par la source', () {
+        final corps = corpsProvider(methode);
+        expect(corps, contains('messageRepositoryProvider'),
+            reason: '$methode doit passer par le repository, seul à savoir aiguiller');
+        expect(corps, isNot(contains('messageRemoteDataSourceProvider')),
+            reason: '$methode écrirait dans `messages` pour un message chiffré');
+      });
+    }
+  });
+
   group('Aucune mutation de message n\'oublie l\'aiguillage', () {
     // Garde structurelle, pas de comportement : un jour quelqu'un ajoutera
     // une action sur un message (épingler, transférer en place…) et la
