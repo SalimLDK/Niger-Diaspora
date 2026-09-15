@@ -206,7 +206,19 @@ class MlsGateway {
   Future<List<MessageEntity>> _avecMetadonnees(List<MessageEntity> fil) async {
     if (fil.isEmpty) return fil;
     final lot = await _meta.pour(fil.map((m) => m.id));
-    if (lot.estVide) return fil;
+    // **On sort sur l'échec de lecture, pas sur le vide.**
+    //
+    // Sortir quand le lot est vide paraissait une économie : rien à recoller,
+    // rien à faire. C'en était une seulement si l'on oubliait que ce bloc ne
+    // fait pas qu'ajouter — il **efface** aussi ce que le serveur ne porte
+    // plus. Le fil vient du cache de l'appareil, qui garde les réactions,
+    // étoiles et marques de lecture d'hier : sauter le recollage les figeait.
+    //
+    // Mesuré le 2026-09-15 sur SM A515F : une bulle affichait un 👍 alors que
+    // `mls_message_reactions` était **vide**. Une réaction retirée restait
+    // donc à l'écran pour toujours, et une réaction dont l'écriture avait
+    // échoué paraissait avoir pris — l'échec muet, là encore.
+    if (!lot.lu) return fil;
     return [
       for (final m in fil)
         m.copyWith(
