@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1091 cases à cocher, 575 cochées** — 221 entrées sur 266 ont encore des cases ouvertes.
+**1091 cases à cocher, 577 cochées** — 221 entrées sur 267 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -287,7 +287,7 @@ Par domaine :
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 30 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 46 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 48 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 155 à faire, 30 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
@@ -11070,6 +11070,35 @@ sur une voix réellement captée par le SFU.
 # 10. Ambassades, démarches, carte, entreprises et événements
 
 Annuaires, démarches consulaires, carte des membres et des postes, événements.
+
+---
+
+## ✅ Avis d'une entreprise : « Erreur de chargement », index Firestore manquant — corrigé, vérifié SM A515F (2026-09-15)
+
+**Priorité P1** · importance 3/5 — Ouvrir les avis d'une entreprise
+(`/businesses/<id>/reviews`) rendait « Erreur de chargement » à chaque fois :
+`business_reviews` porte `where(businessId).where(status).orderBy(createdAt)`
+(`review_remote_datasource.dart`), et aucun index composite ne couvrait cette
+combinaison — jamais déclenché avant faute d'avis sur une entreprise.
+Signalé par Salim, capture SM A515F du 2026-09-15 (la fiche « Sonda », 11 vues,
+zéro avis, tombait dessus).
+
+Deux index ajoutés à `firestore.indexes.json` (`businessId, status,
+createdAt` et `userId, createdAt`, ce dernier pour `getUserReviews`, pas
+encore relié à un écran mais qui aurait cassé pareil) et déployés
+(`firebase deploy --only firestore:indexes`).
+
+- [x] **Construction de l'index** — confirmée terminée par requête directe
+  (SDK Admin, contournant l'app) ~10 min après le déploiement, sur une
+  collection quasi vide.
+- [x] **Écran** — SM A515F, fiche « Sonda », bouton « Réessayer » après
+  construction : passe de l'erreur à « Aucun avis pour le moment ».
+
+⚠️ Le premier essai après la fin de construction a encore montré l'erreur :
+`businessReviewsNotifierProvider` ne réessaie pas de lui-même une fois entré
+en état d'échec, il faut le bouton « Réessayer » (ou toucher `Erreur de
+chargement`, sinon lire `firestore/indexes` : « that index is currently
+building » signifie fait, pas cassé).
 
 ---
 
