@@ -437,6 +437,22 @@ class MlsGateway {
   Future<bool> basculerEtoile(String messageId) =>
       _meta.basculerEtoile(messageId);
 
+  /// Parmi ces messages, ceux que **moi seul** ai mis en favori.
+  ///
+  /// L'écran des favoris interrogeait la table `messages`, où un message
+  /// chiffré n'a pas de ligne : mettre en favori marchait — l'étoile est bien
+  /// écrite dans `mls_message_stars`, et le fil l'affiche — mais la LISTE des
+  /// favoris restait vide, sans erreur. On étoilait dans le vide.
+  ///
+  /// L'appelant fournit les identifiants qu'il peut déjà afficher, c'est-à-dire
+  /// ceux de son cache : le clair n'existe que là.
+  Future<Set<String>> favorisParmi(Iterable<String> messageIds) async {
+    final ids = messageIds.toList();
+    if (ids.isEmpty) return const <String>{};
+    final lot = await _meta.pour(ids);
+    return lot.etoiles;
+  }
+
   /// « Supprimer pour moi » — sur tous mes appareils, pas seulement celui-ci.
   Future<void> supprimerPourMoi(String messageId) => _meta.masquer(messageId);
 

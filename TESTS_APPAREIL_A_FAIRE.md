@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1125 cases à cocher, 581 cochées** — 226 entrées sur 272 ont encore des cases ouvertes.
+**1128 cases à cocher, 581 cochées** — 226 entrées sur 272 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -92,7 +92,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
-- 5 · [⬜ Rechercher dans une conversation chiffrée (2026-09-15)](#-rechercher-dans-une-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 8 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -286,7 +286,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 220 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 73 à faire, 31 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 76 à faire, 31 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5707,25 +5707,36 @@ Verrouillé par
 
 ---
 
-## ⬜ Rechercher dans une conversation chiffrée (2026-09-15)
+## ⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)
 
-**Priorité P1** · importance 4/5 — Le serveur ne détient qu'un ciphertext :
-son `ilike` sur le contenu d'une conversation basculée ne trouvait **rien**,
-et ne levait pas. La recherche rendait une liste vide en annonçant un succès.
+**Priorité P1** · importance 4/5 — **Trois écrans posaient au serveur une
+question qu'il ne peut pas entendre**, et prenaient sa réponse vide pour une
+vérité. Aucun ne levait.
 
-Elle interroge désormais aussi le cache Hive, seul endroit où le clair
-existe, et garde le résultat serveur pour l'historique d'avant le séparateur
-de bascule, que le cache peut ne pas couvrir en entier. Les deux sources se
-dédoublonnent par identifiant, le cache gagne.
+- La **recherche** dans une conversation : son `ilike` porte sur un
+  ciphertext, donc ne trouvait jamais rien.
+- La liste des **favoris** : la pire des trois, parce que la moitié marchait.
+  L'étoile d'un message chiffré s'écrit bien dans `mls_message_stars` et le
+  fil l'affiche, mais la liste lisait `messages`, où ce message n'a pas de
+  ligne. On étoilait dans le vide.
+- La **galerie** : le descripteur d'un média chiffré voyage dans le payload,
+  donc le serveur ne sait même pas qu'il s'agit d'un média.
+
+Les trois interrogent désormais aussi le cache Hive, seul endroit où le clair
+existe, et gardent le résultat serveur pour l'historique d'avant le
+séparateur de bascule, que le cache peut ne pas couvrir en entier. Les deux
+sources se dédoublonnent par identifiant, le cache gagne.
 
 **La limite est inhérente, pas un défaut** : on ne trouve que ce que
 l'appareil a déjà déchiffré. Une conversation ouverte pour la première fois
 sur un téléphone neuf n'a rien à fouiller tant qu'on n'a pas remonté le fil.
 
 Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
-(`searchMessagesInConversation`). Couvert hors appareil par
-[recherche_conversation_chiffree_test.dart](test/features/messages/recherche_conversation_chiffree_test.dart)
-(6 cas).
+(`searchMessagesInConversation`, `getStarredMessages`, `getMediaMessages`),
+[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (`favorisParmi`).
+Couvert hors appareil par
+[lectures_conversation_chiffree_test.dart](test/features/messages/lectures_conversation_chiffree_test.dart)
+(11 cas).
 
 - [ ] **Chercher un mot d'un message chiffré** : il ressort, avec sa bulle et
       son horodatage justes.
@@ -5733,8 +5744,15 @@ Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositorie
       séparateur.
 - [ ] **Un mot présent des deux côtés** : une seule occurrence par message,
       pas de doublon.
-- [ ] **Fil jamais ouvert sur cet appareil** : la recherche ne trouve rien
-      dans la partie chiffrée. Juger si l'écran le dit de façon acceptable, ou
+- [ ] **Étoiler un message chiffré, puis ouvrir la liste des favoris** : il y
+      est. C'était le défaut le plus trompeur, l'étoile s'affichant dans le
+      fil pendant que la liste restait vide.
+- [ ] **Retirer l'étoile** : il disparaît de la liste.
+- [ ] **Galerie d'une conversation basculée** : les photos chiffrées y sont,
+      et s'ouvrent en plein écran. Croiser avec l'entrée « Pièces jointes
+      chiffrées ».
+- [ ] **Fil jamais ouvert sur cet appareil** : les trois écrans ne montrent
+      rien de la partie chiffrée. Juger si c'est dit de façon acceptable, ou
       s'il faut un mot d'explication.
 - [ ] **Fil très long** : mesurer le temps de la recherche locale, le cache
       étant parcouru en entier à chaque frappe.

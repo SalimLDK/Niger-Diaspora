@@ -1617,7 +1617,39 @@ class MessageRepositoryImpl implements MessageRepository {
         limit: limit,
         beforeMessageId: beforeMessageId,
       );
-      return Right(messages.map((m) => m.toEntity()).toList());
+      final trouves = <String, MessageEntity>{
+        for (final m in messages) m.id: m.toEntity(),
+      };
+
+      // Troisième occurrence du même défaut : la galerie d'une conversation
+      // basculée ne montrait que les médias d'AVANT la bascule. Le descripteur
+      // d'un média chiffré (URL, clé du fichier) voyage dans le payload MLS,
+      // donc le serveur ne sait pas dire qu'il s'agit d'un média. Le cache,
+      // lui, porte l'entité déjà déchiffrée et son type.
+      if (await _passerellePour(conversationId) != null) {
+        for (final brut in cacheService.getCachedMessages(conversationId)) {
+          try {
+            final modele = MessageModel.fromJson(brut);
+            final e = modele.toEntity();
+            // Mêmes types et même exigence d'URL que le chemin serveur
+            // (`inFilter('type', …)` puis `fileUrl != null`) : la galerie
+            // d'une conversation basculée doit contenir la même chose, pas
+            // davantage.
+            final estMedia = e.type == MessageType.image ||
+                e.type == MessageType.video ||
+                e.type == MessageType.file;
+            if (estMedia && (e.fileUrl?.isNotEmpty ?? false)) {
+              trouves[e.id] = e;
+            }
+          } catch (_) {
+            // Une entrée illisible ne doit pas vider la galerie entière.
+          }
+        }
+      }
+
+      final resultats = trouves.values.toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return Right(resultats);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
@@ -1948,7 +1980,34 @@ class MessageRepositoryImpl implements MessageRepository {
         conversationId: conversationId,
         userId: userId,
       );
-      return Right(models.map((m) => m.toEntity()).toList());
+      final trouves = <String, MessageEntity>{
+        for (final m in models) m.id: m.toEntity(),
+      };
+
+      // Même défaut que la recherche, et plus visible encore : l'étoile d'un
+      // message chiffré s'écrit bien (`mls_message_stars`) et le fil
+      // l'affiche, mais la LISTE des favoris lisait `messages`, où ce message
+      // n'a pas de ligne. On étoilait dans le vide.
+      final passerelle = await _passerellePour(conversationId);
+      if (passerelle != null) {
+        final caches = <String, MessageEntity>{};
+        for (final brut in cacheService.getCachedMessages(conversationId)) {
+          try {
+            final modele = MessageModel.fromJson(brut);
+            caches[modele.id] = modele.toEntity();
+          } catch (_) {
+            // Une entrée illisible ne doit pas vider la liste entière.
+          }
+        }
+        for (final id in await passerelle.favorisParmi(caches.keys)) {
+          final m = caches[id];
+          if (m != null) trouves[id] = m;
+        }
+      }
+
+      final resultats = trouves.values.toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return Right(resultats);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
