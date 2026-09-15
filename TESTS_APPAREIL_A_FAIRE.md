@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1154 cases à cocher, 587 cochées** — 229 entrées sur 275 ont encore des cases ouvertes.
+**1156 cases à cocher, 588 cochées** — 230 entrées sur 276 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -72,7 +72,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (75)
+**P1 — fonction importante, jamais vérifiée** (76)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -126,6 +126,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
+- 2 · [✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)](#-le-bandeau--1-message-non-lu--dune-conversation-basculée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ La messagerie sort de l'écran Notifications (2026-09-13)](#-la-messagerie-sort-de-lécran-notifications-2026-09-13) · *Notifications et push*
 - 7 · [⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)](#-notifications-ouvertes-ailleurs-ou-obsolètes--lues-2026-09-12) · *Notifications et push*
@@ -289,7 +290,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 235 à faire, 80 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 87 à faire, 34 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 35 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5814,6 +5815,36 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 - [ ] **Après un scan qui correspond** : la vérification est retenue, et
   l'avertissement « la clé a changé » apparaît si l'app est réinstallée en
   face.
+
+---
+
+## ✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)
+
+**Priorité P1** · importance 3/5 — Trouvé par le premier essai réel de MLS,
+et par rien d'autre : ni les tests ni le banc ne pouvaient le voir.
+
+Le séparateur « Messages d'avant le chiffrement de bout en bout » est un
+message **système synthétique** (`senderId: 'system'`, `readBy` vide, absent
+du serveur). Le compteur de non-lus du fil le prenait pour un message
+d'autrui jamais lu : bandeau permanent, impossible à faire partir, puisque
+rien ne viendrait jamais le marquer. Le serveur disait zéro — la vue
+`mls_unread_counts` ne compte que `kind = 'content'` et exclut l'expéditeur.
+
+Corrigé en sautant les messages système, ce qui aligne le fil sur la règle du
+serveur et corrige aussi le rang du premier non-lu : le bandeau se posait
+**sur** le séparateur, et l'écran s'y déroulait.
+
+Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
+(`compterNonLus`). Tenu par
+[non_lus_fil_test.dart](test/features/messages/non_lus_fil_test.dart) (6 cas).
+
+- [x] **Bandeau disparu** : vérifié le 2026-09-15 sur SM A515F, build debug
+      réinstallé, « Mes notes » rouverte. Le fil montre le séparateur puis les
+      trois messages chiffrés, et plus aucun « non lu ».
+- [ ] **Un vrai non-lu s'affiche toujours** : à deux comptes, recevoir un
+      message sans ouvrir la discussion, puis l'ouvrir — le bandeau doit
+      apparaître au bon endroit, au-dessus du message reçu.
+- [ ] **La pastille de la liste** suit la même règle et retombe à zéro.
 
 ---
 
