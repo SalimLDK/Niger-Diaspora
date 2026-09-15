@@ -5731,6 +5731,8 @@
   "mlsDevicesTitle": "Nouveau registre (MLS)",
   "mlsDevicesExplain": "Chaque appareil connecté à ce compte y est inscrit avec sa propre clé. C'est ce registre que la future messagerie chiffrée utilisera.",
   "mlsSecurityCodeLabel": "Code de sécurité",
+  "mlsSecurityCodeShowQr": "Afficher en QR",
+  "mlsSecurityCodeQrHint": "Faites scanner ce code par la personne en face, depuis son scanner QR. Il ne contient aucun secret.",
   "mlsVerifyTitle": "Vérification d'appareil",
   "mlsVerifyMatch": "Code vérifié : vous voyez tous les deux la même clé.",
   "mlsVerifyMismatch": "Le code lu ne correspond pas à la clé qui vous est servie. Ne parlez pas de ce qui est sensible avant d'avoir compris pourquoi.",

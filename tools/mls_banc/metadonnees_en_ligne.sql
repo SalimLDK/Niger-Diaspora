@@ -247,6 +247,62 @@ BEGIN
     RAISE EXCEPTION 'E4 ÉCHEC: l''expéditrice compte % ligne(s) de non-lus', v_n;
   END IF;
 
+  -- ── F. Les upserts, dans la forme EXACTE que PostgREST émet ─────────────
+  -- Un `upsert` du client devient `ON CONFLICT DO UPDATE SET <toutes les
+  -- colonnes envoyées>`, clé primaire comprise. Un droit d'UPDATE trop étroit
+  -- le refuse — et le provider de réactions avale le refus en retirant la
+  -- réaction de l'écran. C'est ce qui est arrivé le 2026-09-15 : quatre
+  -- chemins morts, aucun message d'erreur nulle part.
+  --
+  -- Le banc rejoue donc la forme du client, pas une forme idéalisée.
+  --
+  -- Bob reprend la main : la section précédente l'avait laissée à Alice, et
+  -- une policy qui exige `user_id = firebase_uid()` refuse sous la mauvaise
+  -- identité — le banc accuserait alors les DROITS d'un défaut qui n'est que
+  -- le sien.
+  RESET ROLE;
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('role', 'authenticated',
+                      'app_metadata', json_build_object('firebase_uid', v_bob))::text, true);
+  SET LOCAL ROLE authenticated;
+
+  -- F1 — Réaction : le conflit doit ÉCRASER (l'emoji change).
+  BEGIN
+    INSERT INTO public.mls_message_reactions (message_id, user_id, emoji, created_at)
+    VALUES (v_msg, v_bob, '😮', now())
+    ON CONFLICT (message_id, user_id) DO UPDATE
+      SET message_id = excluded.message_id,
+          user_id    = excluded.user_id,
+          emoji      = excluded.emoji,
+          created_at = excluded.created_at;
+  EXCEPTION WHEN insufficient_privilege THEN
+    RAISE EXCEPTION 'F1 ÉCHEC: l''upsert de réaction est refusé — plus aucune réaction ne passe';
+  END;
+  IF (SELECT emoji FROM public.mls_message_reactions
+       WHERE message_id = v_msg AND user_id = v_bob) <> '😮' THEN
+    RAISE EXCEPTION 'F1 ÉCHEC: la réaction n''a pas été remplacée';
+  END IF;
+
+  -- F2 — Favori : aucune charge, donc DO NOTHING suffit et doit passer.
+  BEGIN
+    INSERT INTO public.mls_message_stars (message_id, user_id)
+    VALUES (v_msg, v_bob)
+    ON CONFLICT (message_id, user_id) DO NOTHING;
+  EXCEPTION WHEN insufficient_privilege THEN
+    RAISE EXCEPTION 'F2 ÉCHEC: poser un favori est refusé';
+  END;
+
+  -- F3 — Et le DO UPDATE, lui, doit RESTER refusé sur les favoris : c'est ce
+  -- qui garantit qu'un favori ne se déplace pas d'un message à l'autre.
+  BEGIN
+    INSERT INTO public.mls_message_stars (message_id, user_id)
+    VALUES (v_msg, v_bob)
+    ON CONFLICT (message_id, user_id) DO UPDATE
+      SET message_id = excluded.message_id, user_id = excluded.user_id;
+    RAISE EXCEPTION 'F3 ÉCHEC: un favori peut être déplacé';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+
   -- ── D. Carol, étrangère à la conversation, ne lit RIEN ───────────────────
   -- Le refus est muet : ce sont des 0 lignes, pas des erreurs (7e forme des
   -- échecs muets Supabase). C'est exactement pour ça qu'on le mesure.

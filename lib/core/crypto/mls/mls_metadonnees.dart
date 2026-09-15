@@ -229,10 +229,14 @@ class MlsMetadonnees {
 
   Future<void> etoiler(String messageId) async {
     await _auth();
+    // `ignoreDuplicates` → `ON CONFLICT DO NOTHING`. Un favori n'a aucune
+    // charge à écraser, et le `DO UPDATE` d'un upsert ordinaire réécrirait
+    // les colonnes de la clé primaire — pour lesquelles cette table n'a
+    // volontairement aucun droit d'UPDATE. Le refus serait muet.
     await _client.from('mls_message_stars').upsert({
       'message_id': messageId,
       'user_id': userId,
-    }, onConflict: 'message_id,user_id');
+    }, onConflict: 'message_id,user_id', ignoreDuplicates: true);
   }
 
   /// Bascule le favori et rend son **nouvel** état.
@@ -270,10 +274,11 @@ class MlsMetadonnees {
   /// un simple oubli local.
   Future<void> masquer(String messageId) async {
     await _auth();
+    // Même raison que pour les favoris : rien à écraser, donc DO NOTHING.
     await _client.from('mls_message_hidden').upsert({
       'message_id': messageId,
       'user_id': userId,
-    }, onConflict: 'message_id,user_id');
+    }, onConflict: 'message_id,user_id', ignoreDuplicates: true);
   }
 
   // ── Suppression pour tous ────────────────────────────────────────────────
@@ -385,7 +390,7 @@ class MlsMetadonnees {
       await _auth();
       await _client.from('mls_message_mentions').upsert([
         for (final id in ids) {'message_id': messageId, 'user_id': id},
-      ], onConflict: 'message_id,user_id');
+      ], onConflict: 'message_id,user_id', ignoreDuplicates: true);
     } catch (e) {
       debugPrint('MlsMetadonnees: mentions non posées ($e)');
     }

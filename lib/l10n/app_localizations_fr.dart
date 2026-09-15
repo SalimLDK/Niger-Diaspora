@@ -12317,6 +12317,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get mlsSecurityCodeLabel => 'Code de sécurité';
 
   @override
+  String get mlsSecurityCodeShowQr => 'Afficher en QR';
+
+  @override
+  String get mlsSecurityCodeQrHint =>
+      'Faites scanner ce code par la personne en face, depuis son scanner QR. Il ne contient aucun secret.';
+
+  @override
   String get mlsVerifyTitle => 'Vérification d\'appareil';
 
   @override
