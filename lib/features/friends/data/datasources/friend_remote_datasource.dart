@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/journal_echecs.dart';
 import '../../../messages/data/datasources/message_remote_datasource.dart';
 import '../../domain/repositories/friend_repository.dart';
 import '../models/friend_model.dart';
@@ -54,6 +55,14 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
     String? receiverPhotoUrl,
   }) async {
     try {
+      // S'ajouter soi-même n'a aucun sens, et le lot d'acceptation qui
+      // suivrait écrirait `users/X/friends/X`. La garde existait seulement
+      // dans le bouton de la fiche de profil (`_isCurrentUser`) : un autre
+      // appelant, ou un client modifié, n'en rencontrait aucune.
+      if (senderId == receiverId) {
+        throw ServerException('On ne peut pas s\'ajouter soi-même');
+      }
+
       // Check if a request already exists
       final existingRequest =
           await _firestore
@@ -121,6 +130,11 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
       }
 
       final data = requestDoc.data()!;
+      // Ni le datasource ni les règles ne vérifiaient que la demande était
+      // encore en attente : un écran resté ouvert pouvait accepter une demande
+      // que l'expéditeur venait d'annuler, ou en réaccepter une déjà traitée.
+      _exigerEnAttente(data['status'], 'accepter');
+
       final senderId = data['senderId'] as String;
       final senderName = data['senderName'] as String;
       final senderPhotoUrl = data['senderPhotoUrl'] as String?;
@@ -183,6 +197,7 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
       // l'usager lisait « Erreur de chargement » sans que rien ne bouge.
       // Mesuré par `tools/rules_tests/acceptation_ami.mjs`, bloc 2.
       await batch.commit();
+      await _oublierDemande(requestDoc.reference);
 
       // Create a conversation between the new friends
       if (_messageDataSource != null) {
@@ -203,31 +218,78 @@ class FriendRemoteDataSourceImpl implements FriendRemoteDataSource {
 
   @override
   Future<void> declineFriendRequest(String requestId) async {
-    try {
-      await _firestore
-          .collection(FirebaseCollections.friendRequests)
-          .doc(requestId)
-          .update({
-            'status': 'declined',
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-    } on FirebaseException catch (e) {
-      throw ServerException(e.message ?? 'Erreur lors du refus');
-    }
+    await _cloreDemande(requestId, 'declined', 'refuser');
   }
 
   @override
   Future<void> cancelFriendRequest(String requestId) async {
+    await _cloreDemande(requestId, 'cancelled', 'annuler');
+  }
+
+  /// Passe la demande dans son état terminal, puis la supprime.
+  ///
+  /// Les deux gestes faisaient exactement la même chose à un mot près.
+  Future<void> _cloreDemande(
+    String requestId,
+    String statut,
+    String geste,
+  ) async {
+    final reference = _firestore
+        .collection(FirebaseCollections.friendRequests)
+        .doc(requestId);
     try {
-      await _firestore
-          .collection(FirebaseCollections.friendRequests)
-          .doc(requestId)
-          .update({
-            'status': 'cancelled',
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
+      final doc = await reference.get();
+      if (!doc.exists) throw ServerException('Demande non trouvée');
+      _exigerEnAttente(doc.data()?['status'], geste);
+
+      await reference.update({
+        'status': statut,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      await _oublierDemande(reference);
     } on FirebaseException catch (e) {
-      throw ServerException(e.message ?? 'Erreur lors de l\'annulation');
+      throw ServerException(e.message ?? 'Erreur lors de l\'opération');
+    }
+  }
+
+  /// Refuse d'agir sur une demande qui n'est plus en attente.
+  ///
+  /// Le message nomme l'état trouvé : « cette demande a déjà été acceptée »
+  /// se comprend, « erreur » non.
+  void _exigerEnAttente(Object? statut, String geste) {
+    final valeur = statut is String ? statut : 'pending';
+    if (valeur == 'pending') return;
+    const dejaFait = {
+      'accepted': 'a déjà été acceptée',
+      'declined': 'a déjà été refusée',
+      'cancelled': 'a été annulée',
+    };
+    throw ServerException(
+      'Impossible de $geste : cette demande '
+      '${dejaFait[valeur] ?? "n’est plus en attente"}.',
+    );
+  }
+
+  /// Supprime la demande une fois qu'elle a servi.
+  ///
+  /// Les documents s'accumulaient indéfiniment — acceptés, refusés, annulés —
+  /// alors que plus rien ne les lit : la liste d'amis vit dans la
+  /// sous-collection `friends`, et les deux flux de l'écran Amis filtrent
+  /// `status == 'pending'`. Les règles autorisaient déjà cette suppression
+  /// (statut terminal, par l'une des deux parties), personne ne l'appelait.
+  ///
+  /// **Au mieux** : un échec ici ne doit pas défaire une acceptation réussie.
+  /// Il ne reste alors qu'un document inerte de plus — exactement l'état
+  /// d'avant. Mais il est signalé, plutôt que perdu.
+  ///
+  /// Contrepartie assumée : on perd la trace de qui avait demandé quoi. Rien
+  /// ne s'en sert aujourd'hui, et renvoyer une demande n'a jamais regardé les
+  /// documents terminaux — `sendFriendRequest` ne cherche que `pending`.
+  Future<void> _oublierDemande(DocumentReference<Map<String, dynamic>> ref) async {
+    try {
+      await ref.delete();
+    } catch (e) {
+      signalerEchecSilencieux(e, contexte: 'menage demande d\'ami');
     }
   }
 
