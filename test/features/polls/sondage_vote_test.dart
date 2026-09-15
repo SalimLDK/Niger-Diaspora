@@ -253,6 +253,55 @@ void main() {
       expect(nom.right, moreOrLessEquals(temps.left, epsilon: 0.5));
     });
 
+    testWidgets('la mesure tient compte du style herite', (tester) async {
+      // ⚠ Banc de non-regression d'un defaut TROUVE SUR APPAREIL le
+      // 2026-09-15 (SM A515F, `font_scale` 1.6) : la carte affichait
+      // « il y a 11 heur... », tronque par le filet, au lieu de basculer sur
+      // la forme compacte.
+      //
+      // Un `Text` fusionne le `DefaultTextStyle` ambiant avant de rendre.
+      // Mesurer le libelle avec le seul `TextStyle(fontSize: 12)` revient
+      // donc a le mesurer dans une AUTRE police que celle affichee — sur
+      // l'appareil, la police par defaut de la plateforme au lieu d'Inter,
+      // plus etroite : la mesure conclut que la forme longue tient, et le
+      // rendu deborde.
+      //
+      // La police du banc etant unique, c'est l'INTERLETTRAGE qui joue ici le
+      // role d'Inter : +3 px par glyphe, invisibles pour une mesure qui
+      // ignore le style herite. Sans le `merge`, ce cas rend la forme longue
+      // tronquee et « 11 h » est introuvable.
+      await _pump(
+        tester,
+        _sondage(
+          votedOptionIds: ['o1'],
+          createdAt: DateTime.now().subtract(const Duration(hours: 11)),
+        ),
+        largeur: 500,
+        interlettrage: 3,
+      );
+
+      expect(find.text('11 h'), findsOneWidget);
+      expect(find.textContaining('il y a'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('sans interlettrage, la meme carte garde la forme longue',
+        (tester) async {
+      // Le temoin du cas precedent : a 500 dp, « il y a 11 heures » tient
+      // largement. C'est bien le style herite qui fait basculer, pas la
+      // largeur.
+      await _pump(
+        tester,
+        _sondage(
+          votedOptionIds: ['o1'],
+          createdAt: DateTime.now().subtract(const Duration(hours: 11)),
+        ),
+        largeur: 500,
+      );
+
+      expect(find.text('il y a 11 heures'), findsOneWidget);
+    });
+
     testWidgets('echelle de police 1.3 : rien ne deborde non plus',
         (tester) async {
       // Le facteur d'echelle vient des reglages de l'appareil : la meme
@@ -303,9 +352,18 @@ Future<_ActionsEspion> _pump(
   double? largeur,
   double echellePolice = 1.0,
   BorderRadiusGeometry? rayon,
+  double? interlettrage,
 }) async {
   final actions = _ActionsEspion();
   Widget carte = PollCard(poll: poll, borderRadius: rayon);
+  if (interlettrage != null) {
+    // Tient lieu de la police du theme : un style ambiant que le `Text` du
+    // libelle fusionne, et qu'une mesure naive ne verrait pas.
+    carte = DefaultTextStyle.merge(
+      style: TextStyle(letterSpacing: interlettrage),
+      child: carte,
+    );
+  }
   if (largeur != null) {
     // La bulle de discussion contraint la carte a 320 dp.
     carte = Align(
