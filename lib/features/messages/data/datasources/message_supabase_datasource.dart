@@ -1166,6 +1166,15 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
     ch
         .onPostgresChanges(
+          // `insert`, PAS `all`. Les deux tables de messages sont en
+          // REPLICA IDENTITY DEFAULT : un UPDATE ne transporte que la clé
+          // primaire, donc un filtre sur `conversation_id` ne peut pas être
+          // évalué et le canal CESSE DE LIVRER — mesuré à deux téléphones le
+          // 2026-09-15, plus aucun message n'arrivait en direct. Une
+          // MODIFICATION passe de toute façon par un message de contrôle, qui
+          // est un insert : elle est donc couverte. Une SUPPRESSION, elle,
+          // n'est qu'un UPDATE de `is_deleted` — elle ne l'est pas, et ça
+          // demanderait REPLICA IDENTITY FULL.
           event: PostgresChangeEvent.insert,
           schema: 'public',
           table: 'mls_messages',

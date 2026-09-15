@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1181 cases à cocher, 608 cochées** — 238 entrées sur 285 ont encore des cases ouvertes.
+**1181 cases à cocher, 609 cochées** — 238 entrées sur 285 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -75,7 +75,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (81)
+**P1 — fonction importante, jamais vérifiée** (80)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -87,7 +87,6 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 1 · [⬜ Modifications et suppressions MLS n'arrivent pas en direct (2026-09-15)](#-modifications-et-suppressions-mls-narrivent-pas-en-direct-2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 14 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
@@ -159,7 +158,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (76)
+**P2 — fonction secondaire ou cas limite** (77)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -170,6 +169,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 1 · [⬜ Suppressions MLS pas en direct — modifications OK (2026-09-15)](#-suppressions-mls-pas-en-direct--modifications-ok-2026-09-15) · *Messagerie*
 - 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
@@ -296,7 +296,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 237 à faire, 97 faites
+- [2. Messagerie](#2-messagerie) — 237 à faire, 98 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 104 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -654,40 +654,46 @@ incrémental. L'écran dédoublonne déjà par identifiant.
 - [x] **Vérifié le 2026-09-15** : `LIVE-TEST` envoyé du A515F apparaît sur le
   Pixel « À l'instant », **sans y toucher**, dans une conversation chiffrée.
 
-## ⬜ Modifications et suppressions MLS n'arrivent pas en direct (2026-09-15)
+## ⬜ Suppressions MLS pas en direct — modifications OK (2026-09-15)
 
-**Priorité P1** · importance 4/5 — Signalé par Salim : « les modifications et
-suppression ne sont pas instantanés ». **Non corrigé** — une première
-tentative a été ANNULÉE parce qu'elle faisait disparaître un message.
+**Priorité P2** · importance 3/5 — Signalé par Salim : « les modifications et
+suppression ne sont pas instantanés ». **Modifications corrigées et vérifiées
+à deux téléphones. Suppressions : toujours non.**
 
-**L'analyse, qui elle tient** — trois maillons manquent, un par étage :
+Il manquait deux maillons pour les modifications, et ils sont réparés :
 
-1. l'abonnement temps réel sur `mls_messages` est en `insert` : une
-   **suppression** (« pour tout le monde », ou une expiration purgée) n'est
-   qu'un `UPDATE` de `is_deleted` — il ne la voit pas ;
-2. le dépôt ne réémet que ce qui est plus récent que `afterTimestamp` : une
-   **modification** porte la date d'ORIGINE du message, elle est donc filtrée ;
-3. l'écran ignore un identifiant déjà connu
-   (`else if (!existingMessages.any(...))`) — or une édition et une pierre
-   tombale gardent le leur, donc elles tombent toujours dans cette branche.
+1. le dépôt ne réémettait que ce qui est plus récent que `afterTimestamp` —
+   or une modification porte la date d'**origine** du message, elle était donc
+   filtrée ;
+2. l'écran **ignorait** un identifiant déjà connu — or une édition garde le
+   sien, elle tombait toujours dans cette branche.
 
-⚠️ **Le canal `getMessageUpdatesStream` ne convient PAS** pour ça : il
-préserve délibérément le contenu déjà en place (la ligne brute est chiffrée et
-Signal ne peut pas re-déchiffrer, le cliquet ayant consommé la clé). Une
-édition MLS doit au contraire remplacer le contenu.
+- [x] **Vérifié le 2026-09-15** : `VRAI-LIVE` envoyé du A515F arrive sur le
+  Pixel « À l'instant », puis sa modification s'y affiche
+  « VRAI-MODIF · modifié » — **sans toucher au Pixel**.
 
-**⛔ CE QUI A ÉTÉ TENTÉ PUIS ANNULÉ** — ne pas refaire tel quel : passer
-l'abonnement en `PostgresChangeEvent.all`, réémettre le fil ENTIER, et faire
-REMPLACER par l'écran un identifiant connu. Mesuré à deux téléphones : après
-l'arrivée du message de contrôle d'une édition, le message visé a **disparu**
-de l'écran du destinataire — alors qu'il était vivant côté serveur
-(`is_deleted=false`, 390 octets) — et il n'est pas revenu à la réouverture.
-Aucun `mls_diagnostics`. Cause non élucidée ; le correctif a été retiré parce
-qu'il faisait pire que le défaut visé.
+**⛔ Reste ouvert : les SUPPRESSIONS.** Une suppression (« pour tout le
+monde », ou une expiration purgée) n'est qu'un `UPDATE` de `is_deleted`, pas un
+insert. Une modification, elle, passe par un message de **contrôle**, qui est
+un insert — d'où la différence.
 
-- [ ] Reprendre avec une sonde sur le fil du DESTINATAIRE au moment où le
-  contrôle d'édition arrive (`_traiterControle` / `_appliquerEditionsEnAttente`),
-  pour voir si l'entité sort du fil ou si c'est l'écran qui la perd.
+⚠️ **Ne pas « corriger » en passant l'abonnement en `PostgresChangeEvent.all`**
+sans autre chose : `messages` comme `mls_messages` sont en **REPLICA IDENTITY
+DEFAULT** (clé primaire seule). Un UPDATE ne transporte alors que la clé, donc
+un filtre sur `conversation_id` ne peut pas être évalué. Il faudrait
+`REPLICA IDENTITY FULL` sur la table — décision de schéma, en production, qui
+alourdit le WAL.
+
+⚠️ **Piège de recette, coûteux ce soir-là** : trois essais d'affilée ont
+conclu « rien n'arrive en direct » alors que **les messages n'étaient jamais
+partis** — les taps avaient ouvert « Mes notes » au lieu de la conversation.
+Vérifier l'EN-TÊTE de la conversation, puis la présence du texte dans la zone
+de saisie, AVANT de conclure quoi que ce soit. Une conclusion tirée d'un envoi
+fantôme envoie sur de fausses pistes (ici : accuser `event: all`).
+
+- [ ] Suppression en direct : décider si `REPLICA IDENTITY FULL` sur
+  `mls_messages` vaut son coût, ou passer par un message de contrôle comme
+  pour la modification.
 
 ## ⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)
 

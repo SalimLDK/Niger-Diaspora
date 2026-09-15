@@ -1357,12 +1357,14 @@ class MessageRepositoryImpl implements MessageRepository {
             if (!await passerelle.enMls(conversationId)) return null;
             // Relire le fil, pas la ligne : `catchUp` est incrémental, il ne
             // déchiffre que ce qui est nouveau depuis son curseur.
+            // Le fil ENTIER, pas seulement ce qui est plus récent que
+            // `afterTimestamp` : une modification porte la date d'ORIGINE du
+            // message, pas celle du changement. La filtrer sur la date
+            // revenait à ne jamais la délivrer — le texte modifié
+            // n'apparaissait qu'à la réouverture.
             final fil = await passerelle.messages(conversationId);
-            final frais = fil
-                .where((m) => m.createdAt.isAfter(afterTimestamp))
-                .toList();
-            if (frais.isEmpty) return null;
-            return Right<Failure, List<MessageEntity>>(frais);
+            if (fil.isEmpty) return null;
+            return Right<Failure, List<MessageEntity>>(fil);
           } catch (e) {
             // Un rattrapage raté ne doit pas tuer le flux : le suivant, ou la
             // prochaine ouverture, reprendra.
