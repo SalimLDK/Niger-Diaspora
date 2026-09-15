@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1089 cases à cocher, 579 cochées** — 221 entrées sur 267 ont encore des cases ouvertes.
+**1087 cases à cocher, 581 cochées** — 221 entrées sur 267 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -89,7 +89,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
-- 5 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
@@ -281,7 +281,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 195 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 62 à faire, 29 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 60 à faire, 31 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5644,17 +5644,30 @@ Preuve de vie de la phase (en base, pas à l'écran) :
 - [x] **Idempotence** : une seule ligne, `last_seen_at` avancé à 06:09 après
   un second lancement, toujours 51 paquets — aucun nouveau tant qu'il en
   reste ≥ 10.
-- [ ] **Écran Appareils** : la section « Nouveau registre (MLS) » liste
-  l'appareil avec « CET APPAREIL », date de dernière vue ; le bouton
-  Révoquer est absent sur l'appareil courant.
+- [x] **Écran Appareils** : vérifié le 2026-09-15 sur SM A515F (build
+  sideloadé versionCode 19). Sous l'avertissement des 5 appareils Signal, la
+  section « Nouveau registre (MLS) » porte son texte d'explication puis une
+  seule carte, bordée de vert : « Samsung SM-A515F », le badge « CET
+  APPAREIL » en vert, et « 15/09 04:33 » — la dernière vue, avancée par le
+  lancement même. **Aucun bouton Révoquer sur cette carte**, alors que les
+  trois cartes Signal au-dessus en portent un : c'est la garde attendue.
 - [ ] **Révocation depuis un second appareil** (ou depuis SQL) : la ligne
   passe barrée « Révoqué », ses paquets non consommés ont disparu (trigger),
   et au redémarrage l'appareil révoqué **ne se réinscrit pas** (ligne
   `mls_diagnostics` `appareil_revoque_au_demarrage`).
+  *Tenté le 2026-09-15, non fait : la seule voie disponible était un `update`
+  sur la table de production, refusé par le classificateur de permissions
+  (motif « Modify Shared Resources »). Le chemin est couvert par le banc
+  (`mls_banc_test.dart`), jamais sur l'appareil. À refaire quand un second
+  téléphone portera le même compte, la révocation passant alors par l'écran.*
 - [ ] **Compte neuf** : le premier échange de session échoue toujours une
   fois (piège connu) ; l'inscription doit quand même aboutir grâce aux
   réessais (3 s, 6 s, 9 s).
-- [ ] **Thème sombre** : section lisible.
+- [x] **Thème sombre** : vérifié le 2026-09-15 sur SM A515F, même écran en
+  `uimode night yes`. Le titre, le texte d'explication et la date passent en
+  clair sur fond noir, la bordure et le badge « CET APPAREIL » restent verts
+  et lisibles — aucun jeton clair figé, le défaut que ce dépôt a déjà payé
+  48 fois.
 - [ ] **Dette consignée, à ne pas oublier** : la base SQLite du moteur
   (`<support>/mls/<uid>.sqlite`, clé privée de signature comprise) est en
   clair dans le répertoire privé de l'app. La clé maître Keystore/Keychain
