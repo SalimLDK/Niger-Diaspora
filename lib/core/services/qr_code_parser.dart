@@ -31,11 +31,23 @@ enum QrCodeKind {
   /// Rendez-vous de transfert de clés E2EE (`dn-e2ee-transfer:…`), qui n'est
   /// pas une URL et se consomme sur l'écran de réception dédié.
   keyTransfer,
+
+  /// Code de sécurité d'un appareil MLS (`dn-mls-verif:…`).
+  ///
+  /// Ne mène nulle part : la comparaison se fait **sur place**, face à
+  /// l'autre téléphone. Naviguer ailleurs ferait perdre le fil du geste, qui
+  /// est de regarder deux écrans en même temps.
+  mlsVerification,
 }
 
 /// Ce qu'un QR du projet désigne, une fois lu.
 class QrCodeTarget {
-  const QrCodeTarget({required this.kind, this.routePath, this.shortCode});
+  const QrCodeTarget({
+    required this.kind,
+    this.routePath,
+    this.shortCode,
+    this.charge,
+  });
 
   final QrCodeKind kind;
 
@@ -45,6 +57,11 @@ class QrCodeTarget {
 
   /// Code court à résoudre, renseigné pour [QrCodeKind.profileShortCode].
   final String? shortCode;
+
+  /// Contenu brut, pour les cibles qui se consomment sans navigation —
+  /// [QrCodeKind.mlsVerification] aujourd'hui. Le parseur reconnaît, il ne
+  /// décode pas : `MlsCodeSecurite.lireQr` reste seul juge de la validité.
+  final String? charge;
 
   @override
   String toString() =>
@@ -57,6 +74,9 @@ abstract final class QrCodeParser {
   /// Reconnu ici sans être décodé : le décodage et la revendication restent
   /// l'affaire de l'écran de réception.
   static const String keyTransferPrefix = 'dn-e2ee-transfer:';
+
+  /// Préfixe du code de sécurité d'un appareil MLS — voir `MlsCodeSecurite`.
+  static const String mlsVerificationPrefix = 'dn-mls-verif:';
 
   /// Hôtes reconnus comme étant ceux du projet.
   ///
@@ -83,6 +103,10 @@ abstract final class QrCodeParser {
 
     if (value.startsWith(keyTransferPrefix)) {
       return const QrCodeTarget(kind: QrCodeKind.keyTransfer);
+    }
+
+    if (value.startsWith(mlsVerificationPrefix)) {
+      return QrCodeTarget(kind: QrCodeKind.mlsVerification, charge: value);
     }
 
     final uri = Uri.tryParse(value);

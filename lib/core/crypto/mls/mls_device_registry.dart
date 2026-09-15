@@ -378,6 +378,33 @@ class MlsDeviceRegistry {
   static Uint8List depuisBytea(String hex) => bytea_codec.depuisBytea(hex);
 }
 
+/// La clé publique de signature publiée pour une identité MLS.
+///
+/// Sert au scan d'un code de sécurité (phase 7) : le QR porte l'identité de
+/// l'appareil d'en face, il faut aller voir ce que le serveur, lui, sert pour
+/// cette identité-là — c'est la comparaison des deux qui détecte une
+/// substitution.
+///
+/// Un appareil **révoqué** est traité comme inconnu : comparer son code
+/// donnerait « vérifié » sur un appareil qui ne peut plus rien lire, ce qui
+/// ne veut rien dire.
+extension MlsDeviceLookup on MlsDeviceRegistry {
+  Future<Uint8List?> cleDeIdentite(String mlsIdentity) async {
+    // Sans session établie, la lecture part en `anon` et rend 0 ligne SANS
+    // erreur : le scan conclurait « appareil inconnu » sur un appareil qui
+    // existe.
+    if (!await _ensureAuth()) return null;
+    final ligne = await _client
+        .from('mls_devices')
+        .select('signature_key, revoked_at')
+        .eq('mls_identity', mlsIdentity)
+        .maybeSingle();
+    if (ligne == null || ligne['revoked_at'] != null) return null;
+    final brut = ligne['signature_key'];
+    return brut is String ? bytea_codec.depuisBytea(brut) : null;
+  }
+}
+
 final mlsDeviceRegistryProvider = Provider<MlsDeviceRegistry>((ref) {
   // `ref.read` dans une fermeture, pas `ref.watch` : le registre ne se
   // reconstruit pas quand le moteur est (re)créé — même règle que le moteur.

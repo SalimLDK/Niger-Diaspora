@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1150 cases à cocher, 585 cochées** — 229 entrées sur 275 ont encore des cases ouvertes.
+**1153 cases à cocher, 587 cochées** — 229 entrées sur 275 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (26)
 
-- 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
+- 4 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
@@ -94,7 +94,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
-- 6 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
@@ -287,9 +287,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 233 à faire, 79 faites
+- [2. Messagerie](#2-messagerie) — 234 à faire, 80 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 85 à faire, 33 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 87 à faire, 34 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -733,6 +733,20 @@ Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_
 [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (`amorcer`),
 [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
 (`mlsDuCache`).
+
+- [x] **Message propre à l'appareil**, application **tuée** puis rouverte :
+  le message chiffré est toujours affiché en clair (`Ttg`, sous le
+  séparateur), et `mls_diagnostics` ne porte aucun `decrypt_failed`.
+  ✅ SM A515F, 2026-09-15. **Ce que ça prouve exactement** : l'amorçage
+  depuis le cache (`MlsGateway.amorcer`). Sans lui le message aurait
+  *disparu* du fil — `catchUp` saute mes propres messages, et le legacy n'a
+  aucune ligne pour lui.
+- [ ] **Message REÇU d'un autre appareil**, déchiffré une fois, puis
+  application tuée et rouverte : c'est le cas que le curseur mémorisé
+  protège, et le seul où le moteur refuserait de redéchiffrer. **Non
+  vérifié** — demande un second téléphone sur un autre compte.
+
+---
 
 - [x] **Deux messages échangés**, application tuée, rouverte : vérifié le
   2026-09-15 sur SM A515F, dans « Mes notes ». Deux messages MLS envoyés,
@@ -5755,9 +5769,10 @@ la seule réponse, et elle est maintenant affichée sous chaque ligne du
 registre MLS (écran Appareils) : 60 chiffres en 12 groupes, comparables de
 vive voix.
 
-*Bloqué : demande deux téléphones sur deux comptes. Le scan par QR n'est pas
-branché — la charge et son analyseur existent
-(`MlsCodeSecurite.chargeQr` / `lireQr`), l'écran de scan non.*
+*Bloqué : demande deux téléphones sur deux comptes. Le scan **est** branché
+depuis le 2026-09-15 — `QrCodeParser` reconnaît `dn-mls-verif:`, et le
+scanner compare sur place au lieu de naviguer. Il manque encore l'affichage
+du QR de son propre appareil : sans lui, il n'y a rien à scanner.*
 
 Fichiers : [mls_code_securite.dart](lib/core/crypto/mls/mls_code_securite.dart),
 [devices_screen.dart](lib/features/settings/presentation/screens/devices_screen.dart)
@@ -5768,9 +5783,12 @@ Le banc tient le calcul (16 cas) — il a d'ailleurs trouvé que l'analyseur de
 QR rejetait tout code valide, l'identité MLS `uid:stable_id` contenant déjà
 un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 
-- [ ] **Le code s'affiche** sous chaque appareil du registre MLS, en 12
-  groupes de 5 chiffres, lisible sans troncature en français comme en
-  anglais.
+- [x] **Le code s'affiche** sous chaque appareil du registre MLS, en 12
+  groupes de 5 chiffres, lisible sans troncature. ✅ SM A515F, 2026-09-15 :
+  `22230 38146 54707 62226 81456 64965 10205 68341 64687 01548 66580 85468`,
+  **recalculé indépendamment** (Python, depuis `mls_identity` et
+  `signature_key` de la production) — identique chiffre pour chiffre. Le
+  rendu anglais reste à voir.
 - [ ] **Deux téléphones, deux comptes** : le code affiché pour l'appareil de
   A, lu sur le téléphone de B, est le même que celui que A voit chez lui.
 - [ ] **Après réinstallation** de l'application sur A : son code change, et
@@ -5780,6 +5798,14 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 - [ ] **Sélection et copie** du code fonctionnent (comparer par message écrit
   est le second canal le plus courant).
 - [ ] **Thème sombre** : le code et l'avertissement restent lisibles.
+- [ ] **Scan d'un code** depuis le scanner QR du profil : le résultat
+  s'affiche **sur place**, sans quitter l'écran.
+- [ ] **Scan d'un QR étranger** (profil, lien) : le message dit que ce n'est
+  pas un code de vérification — **jamais** « ne correspond pas », qui serait
+  une accusation fausse.
+- [ ] **Après un scan qui correspond** : la vérification est retenue, et
+  l'avertissement « la clé a changé » apparaît si l'app est réinstallée en
+  face.
 
 ---
 
