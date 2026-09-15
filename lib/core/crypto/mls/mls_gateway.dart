@@ -202,6 +202,67 @@ class MlsGateway {
   Future<bool> repliLegacyPossible(String conversationId) async =>
       await mlsSince(conversationId) == null;
 
+  /// Ce que le serveur annonçait la dernière fois qu'on l'a regardé.
+  final Map<String, Set<String>> _appartenanceVue = {};
+
+  /// Le serveur vient d'annoncer une liste de participants pour cette
+  /// conversation.
+  ///
+  /// **Pourquoi ce point d'entrée existe.** La réconciliation ne tournait
+  /// qu'à l'envoi : exclure quelqu'un d'un groupe ne le sortait de l'arbre
+  /// MLS qu'au prochain message de quelqu'un d'autre — tardif, jamais faux
+  /// (le retrait précède le chiffrement, donc l'exclu ne lit rien de neuf),
+  /// mais tardif quand même, et un arrivant attendait ce même message pour
+  /// recevoir son Welcome. Ici, le changement agit au moment où il a lieu.
+  ///
+  /// C'est branché sur le flux de la conversation, et non sur les six
+  /// appelants qui touchent à l'appartenance (adhésion, départ, exclusion,
+  /// invitation acceptée, groupe officiel, et la RPC `leave_group_
+  /// conversation`) : la moitié d'entre eux écrit `group_members`, et c'est
+  /// un **déclencheur** serveur qui recopie dans `participant_ids` — aucun
+  /// site d'appel Dart ne le voit passer. La ligne de conversation, elle,
+  /// les voit tous.
+  ///
+  /// Trois refus, dans cet ordre, pour que ça ne coûte rien :
+  /// - une conversation pas encore basculée n'a pas d'arbre à réconcilier ;
+  /// - la **première** vue ne déclenche rien, elle ne fait qu'enregistrer :
+  ///   ouvrir une discussion ne doit pas lancer un balayage des appareils de
+  ///   tous les participants, que `catchUp` et l'envoi couvrent déjà ;
+  /// - une liste identique à la précédente ne déclenche rien non plus.
+  ///
+  /// Échoue en silence. Plusieurs membres en ligne réagissent au même
+  /// changement : un seul gagne l'epoch, les autres reçoivent un 23505, le
+  /// jettent et retrouvent le travail fait (§ 5.4). Et si tout rate, le
+  /// filet d'avant est intact — le prochain envoi réconciliera.
+  Future<void> appartenanceChangee(
+    String conversationId,
+    List<String> participants,
+  ) async {
+    final maintenant = participants.toSet();
+    final vue = _appartenanceVue[conversationId];
+    if (vue != null &&
+        vue.length == maintenant.length &&
+        vue.containsAll(maintenant)) {
+      return;
+    }
+    if (!await enMls(conversationId)) return;
+
+    _appartenanceVue[conversationId] = maintenant;
+    if (vue == null) return; // première vue : on enregistre, on n'agit pas.
+
+    try {
+      await _service.ensureGroup(conversationId);
+      await _service.reconcileMembership(conversationId);
+    } catch (e) {
+      // On remet la liste **d'avant**, pas rien du tout : effacer l'entrée
+      // ferait passer le signal suivant pour une première vue, et la règle
+      // « la première vue n'agit pas » avalerait le rattrapage pour de bon.
+      // Trouvé par `mls_appartenance_test.dart`.
+      _appartenanceVue[conversationId] = vue;
+      debugPrint('MlsGateway: appartenance non réconciliée ($e)');
+    }
+  }
+
   Future<String> _nom(String id) async {
     if (id == userId) return '';
     final connu = _noms[id];

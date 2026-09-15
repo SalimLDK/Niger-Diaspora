@@ -190,7 +190,20 @@ class MessageRepositoryImpl implements MessageRepository {
           if (model == null) {
             return const Right<Failure, ConversationEntity?>(null);
           }
-          return Right<Failure, ConversationEntity?>(model.toEntity());
+          final entite = model.toEntity();
+          // Le serveur vient d'annoncer l'appartenance. C'est le seul signal
+          // qui voit TOUS les chemins — y compris ceux où un déclencheur
+          // recopie `group_members` dans `participant_ids` sans qu'aucun code
+          // Dart ne passe. On ne l'attend pas : la réconciliation MLS est un
+          // travail de fond, l'écran ne doit rien lui devoir.
+          unawaited(
+            mlsGateway?.appartenanceChangee(
+                  conversationId,
+                  entite.participantIds,
+                ) ??
+                Future<void>.value(),
+          );
+          return Right<Failure, ConversationEntity?>(entite);
         })
         .transform(_echecEmis<ConversationEntity?>());
   }
