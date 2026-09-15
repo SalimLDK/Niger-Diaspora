@@ -458,6 +458,56 @@ void main() {
       );
     });
 
+    test('TOUS les envois optimistes portent l’échéance', () {
+      // Le signe « éphémère » (icône minuteur de `_buildMetaRow`) se lit sur
+      // `expiresAt`. Sans lui sur l'entité optimiste, il n'apparaissait pas à
+      // l'envoi — le seul moment où il dit quelque chose. Côté MLS c'était
+      // définitif tant qu'on restait dans la conversation : `catchUp` saute
+      // nos propres messages, donc aucun écho ne remplace l'optimiste.
+      // Mesuré sur SM A515F le 2026-09-15 : échéance correcte en base, aucune
+      // icône à l'écran jusqu'à ressortir de la conversation.
+      final src = _source(
+        'lib/features/messages/presentation/providers/message_provider.dart',
+      );
+      final poses = 'expiresAt: _echeanceOptimiste(_ref, conversationId),'
+          .allMatches(src)
+          .length;
+      final optimistes = 'final optimisticMessage = MessageEntity('
+          .allMatches(src)
+          .length;
+      expect(
+        poses,
+        optimistes,
+        reason: 'chaque chemin d’envoi doit la porter — un seul oubli et ce '
+            'type de message n’a pas de signe éphémère',
+      );
+      expect(optimistes, 6,
+          reason: 'texte, audio, position, sondage, sticker, et la copie '
+              'mise en file hors ligne');
+    });
+
+    test('la liste ne masque QUE ce que j’ai supprimé pour moi', () {
+      // `isDeletedFor` vaut `deletedForEveryone || deletedFor.contains(moi)`.
+      // L'écran filtrait dessus : tout message supprimé pour tous — y compris
+      // un éphémère arrivé à échéance, que `videeParExpiration` marque
+      // exactement ainsi — était retiré AVANT d'atteindre la bulle, rendant
+      // le rendu de pierre tombale inatteignable. Le message disparaissait
+      // sans laisser de trace. Mesuré sur SM A515F le 2026-09-15.
+      final src = _source(
+        'lib/features/messages/presentation/screens/conversation_screen.dart',
+      );
+      expect(
+        src.contains('!m.deletedFor.contains(currentUserId) &&'),
+        isTrue,
+        reason: 'le filtre de liste doit viser deletedFor, pas isDeletedFor',
+      );
+      expect(
+        src.contains('!m.isDeletedFor(currentUserId) &&'),
+        isFalse,
+        reason: 'isDeletedFor ici emporte les pierres tombales',
+      );
+    });
+
     test('le helper lit le minuteur et pose expiresAt', () {
       final src = _source(chemin);
       expect(src.contains("data['expiresAt'] ="), isTrue);

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1164 cases à cocher, 594 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
+**1163 cases à cocher, 595 cochées** — 231 entrées sur 277 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -83,7 +83,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 14 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
+- 13 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 19 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
@@ -289,7 +289,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 243 à faire, 85 faites
+- [2. Messagerie](#2-messagerie) — 242 à faire, 86 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 89 à faire, 36 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -670,31 +670,29 @@ SELECT public.purger_messages_expires();
   est relu à chaque envoi, jamais mémorisé).
 - [ ] **Messages déjà envoyés** : changer le minuteur ne touche pas les
   échéances des messages précédents.
-- [ ] **⛔ Expiration côté expéditeur — OUVERT, mesuré faux le 2026-09-15.**
-  La bulle ne devient pas « supprimé automatiquement » : le message
-  **disparaît**. Confirmé à l'écran (capture), pas seulement dans l'arbre
-  `uiautomator`. Le fil s'arrête au séparateur.
+- [x] **Expiration côté expéditeur — CORRIGÉ et vu à l'écran le 2026-09-15.**
+  La bulle affiche bien la pierre tombale (icône + libellé), au lieu de
+  disparaître. Cause : `conversation_screen.dart` filtrait la liste sur
+  `!m.isDeletedFor(moi)`, or `isDeletedFor` vaut
+  `deletedForEveryone || deletedFor.contains(moi)` — **tout** message supprimé
+  pour tous, y compris un éphémère arrivé à échéance (que
+  `videeParExpiration` marque exactement ainsi), était retiré AVANT d'atteindre
+  la bulle. Le rendu de tombe de `message_bubble.dart` était donc du code
+  inatteignable. Le filtre vise maintenant `deletedFor` seul ; la bulle sait
+  déjà se taire pour un message supprimé pour moi seul.
 
-  **Ce qui est déjà éliminé — ne pas refaire ce chemin :**
-  - le widget de tombe existe et est correct (`message_bubble.dart` ~1612 :
-    `Icons.timer_off_outlined` + `l10n.messageAutoDeleted` quand
-    `isExpired`) — il n'est simplement jamais atteint ;
-  - l'aller-retour JSON du cache préserve `deletedForEveryone`
-    (`message_model.dart` 173 et 251) ;
-  - `MlsSourceMerger.fusionner` n'écarte rien — et **le séparateur affiché
-    prouve que la liste MLS n'est PAS vide** (il n'est inséré que si `mls`
-    a quelque chose) : l'entité est donc bien dans la liste et ne produit
-    aucune hauteur ;
-  - le verrou d'amorçage vide (`MlsGateway.amorcer`) : corrigé, c'était une
-    autre panne ;
-  - le curseur de rattrapage `.gt('created_at', …)` et un mélange UTC/local
-    dans `mlsDuCache` : **deux fausses pistes**, vérifiées et écartées
-    (`.toLocal()` ne change pas l'instant, `isBefore` compare des instants).
+  ⚠️ **Méthode** : quatre hypothèses ont été écartées avant celle-là (curseur
+  de rattrapage, mélange UTC/local, aller-retour JSON du cache, verrou
+  d'amorçage). Ce qui a tranché n'est aucune déduction mais une **sonde
+  temporaire** dans `_fusionnerAvecMls` journalisant le contenu réel de la
+  liste : elle a montré les entités présentes avec `deletedForEveryone=true`,
+  donc écartées plus bas. Poser la sonde plus tôt aurait économné des heures.
 
-  **Piste non explorée** : `message_bubble.dart:419` rend un
-  `SizedBox.shrink()` quand `isDeletedFor(moi) && !deletedForEveryone` —
-  vérifier ce que valent ces deux champs sur l'entité MLS effectivement
-  rendue (journal ou point d'arrêt), plutôt que de le déduire.
+  ⚠️ **Piège de recette** : antidater `expires_at` en SQL ne suffit pas à voir
+  le libellé « supprimé automatiquement ». Le client garde SA date (venue du
+  `ttl` du payload) : `isExpired` reste faux chez lui et la bulle dit
+  « Message supprimé ». Pour voir le bon libellé, poser un minuteur COURT et
+  laisser l'échéance passer des deux côtés.
 - [x] **⛔ Le fil chiffré disparaissait entièrement au démarrage — CORRIGÉ.**
   Trouvé en cherchant la pierre tombale : trois messages MLS **vivants** en
   base (ciphertext non vide, `is_deleted` faux), **aucun à l'écran** après
