@@ -735,7 +735,18 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
 
     final lastMessage = conversation.lastMessage;
     if (lastMessage == null || lastMessage.isEmpty) {
-      return l10n.newConversation;
+      // « Nouvelle conversation » ne vaut que si rien n'a jamais été envoyé.
+      // Un aperçu vidé par la purge des messages éphémères laisse
+      // `lastMessageAt` derrière lui : annoncer une conversation neuve, là où
+      // il y a un historique entier, serait faux.
+      //
+      // La purge est aujourd'hui la seule chose qui vide cet aperçu, d'où le
+      // libellé « expiré ». Le jour où « supprimer pour tout le monde » le
+      // videra aussi — il ne le fait pas, et c'est une fuite en soi — il
+      // faudra distinguer les deux cas.
+      return conversation.lastMessageAt == null
+          ? l10n.newConversation
+          : l10n.messageAutoDeleted;
     }
 
     // Ajouter le préfixe "Vous:" si le message a été envoyé par l'utilisateur courant

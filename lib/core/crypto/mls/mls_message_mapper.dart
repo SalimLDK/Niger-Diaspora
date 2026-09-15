@@ -58,6 +58,10 @@ class MlsMessageMapper {
         status: MessageStatus.sent,
         createdAt: row.createdAt.toLocal(),
         deletedForEveryone: row.isDeleted,
+        // Payload illisible : il ne reste que l'échéance vue par le serveur.
+        // Moins sûre que celle du payload, mais c'est tout ce qu'on a — et
+        // une bulle « chiffrée » qui ne s'efface jamais serait pire.
+        expiresAt: row.expiresAt?.toLocal(),
         encryptionLevel: MessageEncryptionLevel.e2ee,
       );
     }
@@ -98,6 +102,11 @@ class MlsMessageMapper {
       blurhash: body['blurhash'] as String?,
       createdAt: row.createdAt.toLocal(),
       deletedForEveryone: row.isDeleted,
+      // L'échéance vient du `ttl` du **payload**, pas de la colonne
+      // `expires_at` : le service de livraison peut réécrire la seconde, pas
+      // le premier. Elle se compte depuis le `created_at` de la ligne — le
+      // seul horodatage que l'expéditeur ne choisit pas.
+      expiresAt: payload.echeance(row.createdAt)?.toLocal(),
       replyToId: payload.replyTo?['id'] as String?,
       replyToMessageData: payload.replyTo,
       latitude: (body['latitude'] as num?)?.toDouble(),

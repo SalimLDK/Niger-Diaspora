@@ -69,6 +69,25 @@ void main() {
       }
     });
 
+    test('les deux fichiers ont des commentaires XML légaux', () {
+      // Un tiret double dans un commentaire XML est interdit, et `aapt2` le
+      // refuse : le 2026-09-15 une ligne de séparation en tirets a fait
+      // échouer `:app:mergeReleaseResources` après **sept minutes** de build,
+      // alors que rien côté Dart ne bronchait. Le règlement de ces deux
+      // fichiers se relit rarement ; qu'il coûte une seconde de test plutôt
+      // qu'un build entier.
+      for (final chemin in [sauvegarde, extraction]) {
+        for (final m
+            in RegExp(r'<!--(.*?)-->', dotAll: true).allMatches(_lire(chemin))) {
+          expect(
+            m.group(1)!.contains('--'),
+            isFalse,
+            reason: '$chemin : tiret double dans un commentaire XML',
+          );
+        }
+      }
+    });
+
     test('le chemin exclu est bien celui que le moteur utilise', () {
       // Si le provider changeait de dossier, les règles protégeraient un
       // chemin qui n'existe plus — et rien ne le dirait.

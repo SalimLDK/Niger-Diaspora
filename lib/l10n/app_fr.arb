@@ -5126,6 +5126,7 @@
   "receivedMessage": "Message reçu",
   "sentMessage": "Message envoyé",
   "messageDeleted": "Message supprimé",
+  "messageAutoDeleted": "Message expiré",
   "photo": "Photo",
   "video": "Vidéo",
   "audio": "Audio",

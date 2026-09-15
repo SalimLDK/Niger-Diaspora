@@ -79,6 +79,10 @@ class _ServiceFige extends MlsConversationService {
   MlsMessageRow? dernierEnvoi;
   String? dernierKind;
   MlsPayload? dernierPayload;
+
+  /// Un message de contrôle — réaction, édition, suppression — n'a pas de
+  /// minuteur : il décrit un autre message, il ne porte pas de contenu.
+  DateTime? dernierExpiresAt;
   int rattrapages = 0;
 
   /// **Le vrai `catchUp` est incrémental** : il avance un curseur et retient
@@ -103,9 +107,11 @@ class _ServiceFige extends MlsConversationService {
     MlsPayload payload, {
     String kind = 'content',
     String contentType = 'text',
+    DateTime? expiresAt,
   }) async {
     dernierKind = kind;
     dernierPayload = payload;
+    dernierExpiresAt = expiresAt;
     return dernierEnvoi = _ligne(payload.id.isEmpty ? 'm-neuf' : payload.id,
         expediteur: 'u1');
   }

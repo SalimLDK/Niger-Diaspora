@@ -39,17 +39,18 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1133 cases à cocher, 583 cochées** — 227 entrées sur 273 ont encore des cases ouvertes.
+**1155 cases à cocher, 584 cochées** — 229 entrées sur 275 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (25)
+**P0 — avant toute nouvelle version** (26)
 
 - 5 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 5 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -71,16 +72,17 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (74)
+**P1 — fonction importante, jamais vérifiée** (75)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
 - 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
-- 4 · [⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)](#-létat-mls-ne-quitte-plus-lappareil-sauvegardes-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)](#-létat-mls-ne-quitte-plus-lappareil-sauvegardes-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)](#-banc-mls-bout-en-bout-contre-la-vraie-base-phase-3-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 15 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 20 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
@@ -93,7 +95,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
-- 5 · [⬜ Rechercher dans une conversation chiffrée (2026-09-15)](#-rechercher-dans-une-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 8 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -285,9 +287,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 220 à faire, 78 faites
+- [2. Messagerie](#2-messagerie) — 235 à faire, 78 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 81 à faire, 32 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 88 à faire, 33 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -544,6 +546,88 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)
+
+**Priorité P1** · importance 4/5 — La fonction était **morte en silence** sur
+le chemin de production : l'écran de réglage écrivait bien
+`conversations.data->>'autoDeleteAfterSeconds'`, mais `MessageSupabaseDataSource`
+— le seul datasource branché — ne le lisait jamais à l'envoi et ne posait
+jamais `expiresAt` ; aucun balayage serveur n'existait ; et `mls_messages.
+expires_at` attendait sans écrivain. Activer le minuteur n'avait aucun effet
+observable, et rien ne le disait. Réparé des deux côtés, avec une purge
+`pg_cron` qui pose une **pierre tombale** (contenu vidé, `is_deleted`) au lieu
+de supprimer la ligne. Mesuré avant livraison : 0 conversation sur 19 avait un
+minuteur, 0 message sur 118 une échéance — rien d'existant ne pouvait donc
+disparaître rétroactivement.
+
+Fichiers : [message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart)
+(`_insererMessageUtilisateur`, seul point d'insertion des messages utilisateur),
+[mls_payload_codec.dart](lib/core/crypto/mls/mls_payload_codec.dart) (`ttl`),
+[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (lecture du minuteur),
+[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)
+(bulle « Message expiré »),
+[20260915234500_purge_messages_ephemeres.sql](supabase/migrations/20260915234500_purge_messages_ephemeres.sql).
+
+Protocole : deux téléphones. Les durées proposées sont 24 h / 7 j / 30 j —
+trop longues pour une session. Pour éprouver l'expiration elle-même,
+antidater l'échéance à la main puis déclencher le balayage :
+
+```sql
+UPDATE messages SET data = jsonb_set(data, '{expiresAt}',
+  to_jsonb(to_char(now() - interval '1 min' AT TIME ZONE 'UTC',
+                   'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
+ WHERE id = '<id du message>';
+SELECT public.purger_messages_expires();
+```
+
+- [ ] **Pose de l'échéance** : minuteur à 24 h dans une discussion, envoyer un
+  texte. En base, `data->>'expiresAt'` vaut `created_at` + 24 h.
+- [ ] **Tous les types** : photo, note vocale, position, sondage, sticker
+  portent aussi `expiresAt`. Un message **système** (« X a rejoint ») n'en
+  porte pas — il décrit la conversation, pas son contenu.
+- [ ] **Minuteur coupé** : remettre sur « Désactivé », le message suivant n'a
+  plus de clé `expiresAt` du tout.
+- [ ] **Minuteur changé en cours de route** : passer de 24 h à 7 j, le message
+  suivant prend la nouvelle durée sans redémarrer l'application (le réglage
+  est relu à chaque envoi, jamais mémorisé).
+- [ ] **Messages déjà envoyés** : changer le minuteur ne touche pas les
+  échéances des messages précédents.
+- [ ] **Expiration côté expéditeur** : après la recette SQL ci-dessus, la
+  bulle devient « Message expiré » (icône minuteur barré) — **pas** « Message
+  supprimé », qui ferait soupçonner l'interlocuteur d'un effacement.
+- [ ] **Expiration côté destinataire**, discussion ouverte : la bulle bascule
+  sans rechargement (le temps réel propage la pierre tombale comme il propage
+  déjà une suppression).
+- [ ] **Avant le passage du balayage** : une échéance dépassée vide déjà la
+  bulle sur l'appareil, sans attendre le quart d'heure du `pg_cron`.
+- [ ] **Hors ligne** : une échéance dépassée pendant que le téléphone est en
+  mode avion vide la bulle quand même à la réouverture de la discussion.
+- [ ] **Ce que la pierre tombale emporte** : pour un message média expiré,
+  `data ? 'encMedia'` et `data ? 'fileUrl'` sont faux en base — la clé du
+  média part avec lui, le blob Storage restant devient illisible. Vérifier de
+  même qu'un message qui portait une carte de partage n'a plus `encAnnexes`
+  ni `postData`.
+- [ ] **Dernier message de la liste** : quand le dernier message d'une
+  discussion expire, la tuile de la liste n'affiche pas son texte effacé (la
+  purge ne touche pas `conversations.data.lastMessage` — à regarder, c'est la
+  fuite résiduelle la plus probable).
+- [ ] **Notification déjà reçue** : une push arrivée avant l'expiration reste
+  dans le centre de notifications avec son aperçu. Voir « Aperçu des
+  notifications MLS » si l'entrée existe.
+- [ ] **Thème sombre** : la bulle « Message expiré » est lisible des deux
+  côtés (bulle à moi, bulle de l'autre).
+- [ ] **Côté MLS**, drapeau ouvert : `mls_messages.expires_at` est renseigné à
+  l'envoi, et le destinataire affiche bien l'échéance calculée depuis le
+  `ttl` du payload — pas depuis la colonne. Après purge, `length(ciphertext)`
+  vaut 0 et le rattrapage n'écrit **aucun** `decrypt_failed` dans
+  `mls_diagnostics` (garde « pierre tombale »).
+- [ ] **Menu d'appui long** sur un message expiré mais pas encore balayé :
+  réactions et « répondre » restent proposés pendant le quart d'heure de
+  battement. Défaut connu, sans conséquence en base — à confirmer sans gravité
+  sur appareil, ou à fermer si c'est gênant à l'usage.
 
 ---
 
@@ -5716,6 +5800,45 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 
 ---
 
+## ⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)
+
+**Priorité P0** · importance 5/5 — Le drapeau `featureFlags.mlsMessages` est
+global, et l'ouvrir fait **basculer sans retour** : `conversations.mls_since`
+ne se remet jamais à NULL, et le legacy refuse ensuite d'y écrire. Vérifier
+MLS sur un téléphone demandait donc de basculer la production entière.
+Vérifier ne doit pas être un point de non-retour.
+
+`featureFlags.mlsMessagesComptes` est une liste d'uid Firebase pour qui MLS
+est actif, le drapeau global restant fermé. La lecture est **tolérante et
+fermée par défaut** : clé absente, valeur nulle ou mal typée valent liste
+vide, donc personne. Le test a d'ailleurs trouvé avant livraison qu'un `as
+List?` sur une chaîne **levait**, ce qui aurait emporté la lecture de tous
+les drapeaux.
+
+⚠️ **Retirer un compte de la liste ne débascule pas ses conversations.** La
+liste décide de basculer, pas de revenir. Un compte qu'on y met est engagé.
+
+Fichiers : [media_dechiffre_provider.dart](lib/features/messages/presentation/providers/media_dechiffre_provider.dart)
+(`mlsMessagesActifsProvider`),
+[app_settings_entity.dart](lib/features/admin/domain/entities/app_settings_entity.dart),
+[app_settings_model.dart](lib/features/admin/data/models/app_settings_model.dart).
+Couvert hors appareil par
+[drapeau_mls_par_compte_test.dart](test/features/messages/drapeau_mls_par_compte_test.dart)
+(8 cas).
+
+- [ ] **Compte non listé** : rien ne change, les messages partent par le
+      chemin d'aujourd'hui. À vérifier AVANT d'ouvrir pour qui que ce soit.
+- [ ] **Compte listé, première conversation** : `conversations.mls_since` se
+      pose, une ligne apparaît dans `mls_messages`, et le fil reste lisible.
+- [ ] **L'autre bout n'est pas listé** : c'est le cas qui décide. Vérifier ce
+      que voit le destinataire, et que rien ne se perd en silence.
+- [ ] **Prise d'effet sans relancer l'app** : le drapeau est lu à chaque
+      appel, pas au démarrage.
+- [ ] **Écran d'administration** : la liste n'y est pas éditable. Juger s'il
+      faut l'y mettre ou la laisser en écriture directe.
+
+---
+
 ## ⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)
 
 **Priorité P1** · importance 5/5 — La base SQLite du moteur
@@ -5757,34 +5880,50 @@ Verrouillé par
       comportement d'Android.
 - [ ] **Le reste de l'app est toujours sauvegardé** : l'exclusion ne doit
       porter que sur `mls/`, pas avoir désactivé la sauvegarde en entier.
-- [ ] **Rien ne casse au démarrage** : un attribut de manifeste mal résolu
-      fait échouer l'installation, pas le build. Installer l'APK et ouvrir
-      l'app suffit à le dire.
+- [x] **Rien ne casse au démarrage** : vérifié le 2026-09-15 sur SM A515F.
+      APK debug arm64 installé par-dessus l'existant (`install -r`, Success),
+      app lancée, aucune `E/flutter` ni `FATAL` dans logcat. Les deux règles
+      sont bien compilées dans l'APK et référencées par le manifeste fusionné
+      (`aapt2 dump xmltree`), ce qu'aucun test de structure ne peut dire.
+      Au passage, le moteur Rust charge en debug comme en release et
+      l'appareil se réinscrit avec la **même** identité — la base SQLite a
+      survécu à la réinstallation, et l'idempotence tient.
 - [ ] **iOS** : rien de fait. `Library/Application Support` part dans iCloud,
       et l'exclusion demande `NSURLIsExcludedFromBackupKey`, sans API Dart.
       À traiter avec le reste du chantier iOS.
 
 ---
 
-## ⬜ Rechercher dans une conversation chiffrée (2026-09-15)
+## ⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)
 
-**Priorité P1** · importance 4/5 — Le serveur ne détient qu'un ciphertext :
-son `ilike` sur le contenu d'une conversation basculée ne trouvait **rien**,
-et ne levait pas. La recherche rendait une liste vide en annonçant un succès.
+**Priorité P1** · importance 4/5 — **Trois écrans posaient au serveur une
+question qu'il ne peut pas entendre**, et prenaient sa réponse vide pour une
+vérité. Aucun ne levait.
 
-Elle interroge désormais aussi le cache Hive, seul endroit où le clair
-existe, et garde le résultat serveur pour l'historique d'avant le séparateur
-de bascule, que le cache peut ne pas couvrir en entier. Les deux sources se
-dédoublonnent par identifiant, le cache gagne.
+- La **recherche** dans une conversation : son `ilike` porte sur un
+  ciphertext, donc ne trouvait jamais rien.
+- La liste des **favoris** : la pire des trois, parce que la moitié marchait.
+  L'étoile d'un message chiffré s'écrit bien dans `mls_message_stars` et le
+  fil l'affiche, mais la liste lisait `messages`, où ce message n'a pas de
+  ligne. On étoilait dans le vide.
+- La **galerie** : le descripteur d'un média chiffré voyage dans le payload,
+  donc le serveur ne sait même pas qu'il s'agit d'un média.
+
+Les trois interrogent désormais aussi le cache Hive, seul endroit où le clair
+existe, et gardent le résultat serveur pour l'historique d'avant le
+séparateur de bascule, que le cache peut ne pas couvrir en entier. Les deux
+sources se dédoublonnent par identifiant, le cache gagne.
 
 **La limite est inhérente, pas un défaut** : on ne trouve que ce que
 l'appareil a déjà déchiffré. Une conversation ouverte pour la première fois
 sur un téléphone neuf n'a rien à fouiller tant qu'on n'a pas remonté le fil.
 
 Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
-(`searchMessagesInConversation`). Couvert hors appareil par
-[recherche_conversation_chiffree_test.dart](test/features/messages/recherche_conversation_chiffree_test.dart)
-(6 cas).
+(`searchMessagesInConversation`, `getStarredMessages`, `getMediaMessages`),
+[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (`favorisParmi`).
+Couvert hors appareil par
+[lectures_conversation_chiffree_test.dart](test/features/messages/lectures_conversation_chiffree_test.dart)
+(11 cas).
 
 - [ ] **Chercher un mot d'un message chiffré** : il ressort, avec sa bulle et
       son horodatage justes.
@@ -5792,8 +5931,15 @@ Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositorie
       séparateur.
 - [ ] **Un mot présent des deux côtés** : une seule occurrence par message,
       pas de doublon.
-- [ ] **Fil jamais ouvert sur cet appareil** : la recherche ne trouve rien
-      dans la partie chiffrée. Juger si l'écran le dit de façon acceptable, ou
+- [ ] **Étoiler un message chiffré, puis ouvrir la liste des favoris** : il y
+      est. C'était le défaut le plus trompeur, l'étoile s'affichant dans le
+      fil pendant que la liste restait vide.
+- [ ] **Retirer l'étoile** : il disparaît de la liste.
+- [ ] **Galerie d'une conversation basculée** : les photos chiffrées y sont,
+      et s'ouvrent en plein écran. Croiser avec l'entrée « Pièces jointes
+      chiffrées ».
+- [ ] **Fil jamais ouvert sur cet appareil** : les trois écrans ne montrent
+      rien de la partie chiffrée. Juger si c'est dit de façon acceptable, ou
       s'il faut un mot d'explication.
 - [ ] **Fil très long** : mesurer le temps de la recherche locale, le cache
       étant parcouru en entier à chaque frappe.

@@ -1,5 +1,6 @@
 import 'package:diaspo_niger/core/crypto/mls/mls_conversation_service.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_delivery.dart';
+import 'package:diaspo_niger/core/crypto/mls/mls_metadonnees.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_gateway.dart';
 import 'package:diaspo_niger/core/network/network_info.dart';
 import 'package:diaspo_niger/core/services/cache_service.dart';
@@ -8,29 +9,45 @@ import 'package:diaspo_niger/features/messages/data/models/message_model.dart';
 import 'package:diaspo_niger/features/messages/data/repositories/message_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Ce que ce test protège (plan MLS § 6.3, ligne « Recherche »)
-/// -----------------------------------------------------------
-/// Le serveur ne détient qu'un ciphertext : son `ilike` sur le contenu d'une
-/// conversation basculée ne trouve **rien**, et ne lève pas. La recherche
-/// rendait donc une liste vide en annonçant un succès — l'échec muet que ce
-/// chantier traque depuis le début.
+/// Ce que ces tests protègent (plan MLS § 6.3)
+/// -------------------------------------------
+/// **Trois écrans posaient au serveur une question qu'il ne peut pas
+/// entendre**, et prenaient sa réponse vide pour une vérité :
 ///
-/// Le clair n'existe que sur l'appareil, dans le cache Hive : la recherche
-/// d'une conversation chiffrée doit l'interroger. Elle garde en même temps le
-/// résultat du serveur, parce qu'au-dessus du séparateur de bascule
-/// l'historique est resté en clair et que lui seul le couvre en entier.
+/// - la **recherche** dans une conversation : son `ilike` porte sur un
+///   ciphertext, donc ne trouve jamais rien ;
+/// - la liste des **favoris** : l'étoile d'un message chiffré s'écrit bien
+///   dans `mls_message_stars` et le fil l'affiche, mais la liste lisait
+///   `messages`, où ce message n'a pas de ligne. On étoilait dans le vide ;
+/// - la **galerie** : le descripteur d'un média chiffré voyage dans le
+///   payload, donc le serveur ne sait même pas que c'en est un.
 ///
-/// Ce que le test empêche, concrètement : qu'on croie la recherche réparée
-/// alors qu'elle ignore le cache, qu'elle perde l'historique d'avant la
-/// bascule, ou qu'elle rende deux fois le même message quand les deux sources
-/// le portent.
+/// Aucune des trois ne levait. Le clair n'existe que sur l'appareil, dans le
+/// cache Hive : les trois l'interrogent maintenant, tout en gardant le
+/// résultat serveur — au-dessus du séparateur de bascule l'historique est
+/// resté en clair, et lui seul le couvre en entier.
+///
+/// Ce que ces tests empêchent, concrètement : qu'on croie un de ces chemins
+/// réparé alors qu'il ignore le cache, qu'il perde l'historique d'avant la
+/// bascule, qu'il rende deux fois le même message quand les deux sources le
+/// portent, ou qu'il se mette à servir le cache dans une conversation **en
+/// clair**, où la pagination serveur fait foi.
 
-MessageModel _m(String id, String contenu, DateTime quand) => MessageModel(
+MessageModel _m(
+  String id,
+  String contenu,
+  DateTime quand, {
+  String type = 'text',
+  String? fileUrl,
+}) =>
+    MessageModel(
       id: id,
       senderId: 'u2',
       senderName: 'Amina',
       content: contenu,
       createdAt: quand,
+      type: type,
+      fileUrl: fileUrl,
     );
 
 class _SourceAvecHistorique implements MessageRemoteDataSource {
@@ -44,6 +61,26 @@ class _SourceAvecHistorique implements MessageRemoteDataSource {
     required String conversationId,
     required String query,
     int limit = 200,
+  }) async {
+    appels++;
+    return resultats;
+  }
+
+  @override
+  Future<List<MessageModel>> getStarredMessages({
+    required String conversationId,
+    required String userId,
+    int limit = 100,
+  }) async {
+    appels++;
+    return resultats;
+  }
+
+  @override
+  Future<List<MessageModel>> getMediaMessages({
+    required String conversationId,
+    int limit = 50,
+    String? beforeMessageId,
   }) async {
     appels++;
     return resultats;
@@ -103,11 +140,31 @@ class _ServiceMuet extends MlsConversationService {
         );
 }
 
-MlsGateway _passerelle({required bool basculee}) => MlsGateway(
+/// Les métadonnées en ligne, sans Supabase : seules les étoiles comptent ici.
+class _MetadonneesFigees extends MlsMetadonnees {
+  _MetadonneesFigees(this.etoiles)
+      : super(userId: 'u1', ensureAuth: (() async => true));
+
+  final Set<String> etoiles;
+  List<String> demandes = const [];
+
+  @override
+  Future<MlsMetadonneesLot> pour(Iterable<String> messageIds) async {
+    demandes = messageIds.toList();
+    return MlsMetadonneesLot(etoiles: etoiles);
+  }
+}
+
+MlsGateway _passerelle({
+  required bool basculee,
+  Set<String> etoiles = const {},
+}) =>
+    MlsGateway(
       userId: 'u1',
       actif: () => false,
       service: _ServiceMuet(),
       delivery: _TransportFige(basculee ? '2026-09-15T00:00:00Z' : null),
+      metadonnees: _MetadonneesFigees(etoiles),
     );
 
 MessageRepositoryImpl _depot({
@@ -217,6 +274,70 @@ void main() {
       ).searchMessagesInConversation(conversationId: 'c1', query: 'bonjour');
 
       expect(res.getOrElse(() => []).map((m) => m.id), ['s-1']);
+    });
+  });
+
+  group("favoris d'une conversation basculée", () {
+    test("l'étoile d'un message chiffré apparaît enfin dans la liste", () async {
+      // Le pire des trois : mettre en favori MARCHE (la ligne est écrite, le
+      // fil affiche l'étoile), mais la liste lisait `messages`, où le message
+      // n'a pas de ligne. On étoilait dans le vide.
+      final res = await _depot(
+        source: _SourceAvecHistorique([]),
+        cache: _CacheAvecFil([
+          _m('mls-1', 'à garder', t0),
+          _m('mls-2', 'pas gardé', t0),
+        ]),
+        passerelle: _passerelle(basculee: true, etoiles: {'mls-1'}),
+      ).getStarredMessages(conversationId: 'c1', userId: 'u1');
+
+      expect(res.getOrElse(() => []).map((m) => m.id), ['mls-1']);
+    });
+
+    test("les favoris d'avant la bascule restent", () async {
+      final res = await _depot(
+        source: _SourceAvecHistorique([_m('legacy-1', 'ancien', t0)]),
+        cache: _CacheAvecFil([_m('mls-1', 'récent', t0)]),
+        passerelle: _passerelle(basculee: true, etoiles: {'mls-1'}),
+      ).getStarredMessages(conversationId: 'c1', userId: 'u1');
+
+      expect(res.getOrElse(() => []).map((m) => m.id),
+          containsAll(['legacy-1', 'mls-1']));
+    });
+
+    test("sans bascule, le cache ne s'invite pas", () async {
+      final res = await _depot(
+        source: _SourceAvecHistorique([_m('legacy-1', 'ancien', t0)]),
+        cache: _CacheAvecFil([_m('mls-1', 'récent', t0)]),
+        passerelle: _passerelle(basculee: false, etoiles: {'mls-1'}),
+      ).getStarredMessages(conversationId: 'c1', userId: 'u1');
+
+      expect(res.getOrElse(() => []).map((m) => m.id), ['legacy-1']);
+    });
+  });
+
+  group("galerie d'une conversation basculée", () {
+    test('les médias chiffrés entrent dans la galerie', () async {
+      final res = await _depot(
+        source: _SourceAvecHistorique([]),
+        cache: _CacheAvecFil([
+          _m('img', 'photo', t0, type: 'image', fileUrl: 'https://x/1.enc'),
+          _m('txt', 'juste du texte', t0),
+        ]),
+        passerelle: _passerelle(basculee: true),
+      ).getMediaMessages(conversationId: 'c1');
+
+      expect(res.getOrElse(() => []).map((m) => m.id), ['img']);
+    });
+
+    test('un média sans URL reste dehors, comme côté serveur', () async {
+      final res = await _depot(
+        source: _SourceAvecHistorique([]),
+        cache: _CacheAvecFil([_m('img', 'photo', t0, type: 'image')]),
+        passerelle: _passerelle(basculee: true),
+      ).getMediaMessages(conversationId: 'c1');
+
+      expect(res.getOrElse(() => []), isEmpty);
     });
   });
 }

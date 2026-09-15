@@ -254,7 +254,15 @@ class MlsGateway {
   }) async {
     await _service.ensureGroup(conversationId);
     await _service.reconcileMembership(conversationId);
-    _bascule.remove(conversationId); // la bascule vient peut-être d'avoir lieu
+
+    // Une seule lecture de la conversation pour deux besoins : rafraîchir la
+    // bascule (que le `ensureGroup` ci-dessus vient peut-être de poser) et
+    // relire le minuteur. Il est relu à CHAQUE envoi, jamais mémorisé : un
+    // minuteur qu'on vient d'activer doit mordre dès le message suivant.
+    final conv = await _delivery.conversation(conversationId);
+    _bascule[conversationId] =
+        DateTime.tryParse((conv?['mls_since'] as String?) ?? '');
+    final ttl = _minuteurDe(conv);
 
     final payload = MlsPayload(
       id: '',
@@ -266,11 +274,17 @@ class MlsGateway {
           : {'id': replyToId, ...?replyToMessageData},
       mentions: mentions,
       forwarded: forwarded,
+      ttl: ttl,
     );
     final row = await _service.send(
       conversationId,
       payload,
       contentType: MlsMessageMapper.contentType(type),
+      // La colonne, elle, sert au balayage du serveur — le récepteur, lui,
+      // recalcule l'échéance depuis le `ttl` du payload.
+      expiresAt: ttl == null
+          ? null
+          : DateTime.now().toUtc().add(Duration(seconds: ttl)),
     );
     _connus.add(row.id);
     // Les mentions sont en ligne (décision J) : le serveur doit savoir QUI
@@ -289,6 +303,7 @@ class MlsGateway {
         replyTo: payload.replyTo,
         mentions: payload.mentions,
         forwarded: payload.forwarded,
+        ttl: payload.ttl,
       ),
       row: row,
       senderName: senderName,
@@ -340,6 +355,18 @@ class MlsGateway {
   /// façon.
   Future<bool> repliLegacyPossible(String conversationId) async =>
       await mlsSince(conversationId) == null;
+
+  /// Le minuteur de la conversation en secondes, `null` s'il est coupé.
+  ///
+  /// Même source que le chemin legacy — `conversations.data`, écrit par
+  /// l'écran de réglage — pour qu'une conversation basculée à MLS garde le
+  /// minuteur qu'elle avait avant.
+  static int? _minuteurDe(Map<String, dynamic>? conversation) {
+    final data = conversation?['data'];
+    if (data is! Map) return null;
+    final secondes = (data['autoDeleteAfterSeconds'] as num?)?.toInt();
+    return secondes == null || secondes <= 0 ? null : secondes;
+  }
 
   /// Ce que le serveur annonçait la dernière fois qu'on l'a regardé.
   final Map<String, Set<String>> _appartenanceVue = {};
@@ -436,6 +463,22 @@ class MlsGateway {
   /// pu être étoilé depuis un autre appareil.
   Future<bool> basculerEtoile(String messageId) =>
       _meta.basculerEtoile(messageId);
+
+  /// Parmi ces messages, ceux que **moi seul** ai mis en favori.
+  ///
+  /// L'écran des favoris interrogeait la table `messages`, où un message
+  /// chiffré n'a pas de ligne : mettre en favori marchait — l'étoile est bien
+  /// écrite dans `mls_message_stars`, et le fil l'affiche — mais la LISTE des
+  /// favoris restait vide, sans erreur. On étoilait dans le vide.
+  ///
+  /// L'appelant fournit les identifiants qu'il peut déjà afficher, c'est-à-dire
+  /// ceux de son cache : le clair n'existe que là.
+  Future<Set<String>> favorisParmi(Iterable<String> messageIds) async {
+    final ids = messageIds.toList();
+    if (ids.isEmpty) return const <String>{};
+    final lot = await _meta.pour(ids);
+    return lot.etoiles;
+  }
 
   /// « Supprimer pour moi » — sur tous mes appareils, pas seulement celui-ci.
   Future<void> supprimerPourMoi(String messageId) => _meta.masquer(messageId);
