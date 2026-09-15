@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1131 cases à cocher, 581 cochées** — 227 entrées sur 273 ont encore des cases ouvertes.
+**1134 cases à cocher, 581 cochées** — 227 entrées sur 273 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -92,7 +92,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
-- 6 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 9 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Rechercher dans une conversation chiffrée (2026-09-15)](#-rechercher-dans-une-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
@@ -287,7 +287,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 220 à faire, 77 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 79 à faire, 31 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 82 à faire, 31 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -5667,9 +5667,10 @@ la seule réponse, et elle est maintenant affichée sous chaque ligne du
 registre MLS (écran Appareils) : 60 chiffres en 12 groupes, comparables de
 vive voix.
 
-*Bloqué : demande deux téléphones sur deux comptes. Le scan par QR n'est pas
-branché — la charge et son analyseur existent
-(`MlsCodeSecurite.chargeQr` / `lireQr`), l'écran de scan non.*
+*Bloqué : demande deux téléphones sur deux comptes. Le scan **est** branché
+depuis le 2026-09-15 — `QrCodeParser` reconnaît `dn-mls-verif:`, et le
+scanner compare sur place au lieu de naviguer. Il manque encore l'affichage
+du QR de son propre appareil : sans lui, il n'y a rien à scanner.*
 
 Fichiers : [mls_code_securite.dart](lib/core/crypto/mls/mls_code_securite.dart),
 [devices_screen.dart](lib/features/settings/presentation/screens/devices_screen.dart)
@@ -5692,6 +5693,14 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
 - [ ] **Sélection et copie** du code fonctionnent (comparer par message écrit
   est le second canal le plus courant).
 - [ ] **Thème sombre** : le code et l'avertissement restent lisibles.
+- [ ] **Scan d'un code** depuis le scanner QR du profil : le résultat
+  s'affiche **sur place**, sans quitter l'écran.
+- [ ] **Scan d'un QR étranger** (profil, lien) : le message dit que ce n'est
+  pas un code de vérification — **jamais** « ne correspond pas », qui serait
+  une accusation fausse.
+- [ ] **Après un scan qui correspond** : la vérification est retenue, et
+  l'avertissement « la clé a changé » apparaît si l'app est réinstallée en
+  face.
 
 ---
 

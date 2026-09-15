@@ -3,7 +3,7 @@
   Sauvegarde cloud, Android 11 et avant (`android:fullBackupContent`).
 
   Ce qui est exclu, et pourquoi
-  ----------------------------
+  ____________________________
   `files/mls/` porte la base SQLite du moteur MLS : clé privée de signature de
   l'appareil, secrets d'epoch, arbres de groupe. Le plan (§ 7.4) veut cette
   base chiffrée sous une clé du Keystore ; ce n'est pas encore fait. En

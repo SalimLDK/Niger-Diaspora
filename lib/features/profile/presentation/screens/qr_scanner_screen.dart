@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/crypto/mls/mls_code_securite.dart';
+import '../../../../core/crypto/mls/mls_device_registry.dart';
 import '../../../../core/services/feature_flag_service.dart';
 import '../../../../core/services/qr_code_parser.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -178,6 +181,12 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
         );
         return;
 
+      // La vérification se joue SUR PLACE : deux écrans côte à côte. Partir
+      // sur un autre écran ferait perdre le fil du geste.
+      case QrCodeKind.mlsVerification:
+        await _verifierAppareil(target.charge!);
+        return;
+
       case QrCodeKind.profileShortCode:
         await _openShortCode(target.shortCode!);
         return;
@@ -253,6 +262,69 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  /// Compare le code lu à la clé que le serveur sert pour cette identité.
+  ///
+  /// Le résultat n'est pas un simple oui/non : « appareil inconnu » et « ce
+  /// n'est pas un code » sont distincts de « ne correspond pas », qui est une
+  /// accusation et ne doit sortir que quand elle est fondée.
+  Future<void> _verifierAppareil(String charge) async {
+    final registre = ref.read(mlsDeviceRegistryProvider);
+    ResultatScan resultat;
+    try {
+      resultat = await MlsVerificationScan.comparer(
+        charge: charge,
+        cleDe: registre.cleDeIdentite,
+      );
+    } catch (e) {
+      debugPrint('Vérification MLS impossible : $e');
+      _showError(l10n.mlsVerifyReadError);
+      return;
+    }
+    if (!mounted) return;
+
+    // Le code lu est bien formé et correspond : on s'en souvient, sinon la
+    // vérification serait à refaire à chaque fois et personne ne la ferait.
+    if (resultat == ResultatScan.correspond) {
+      final lu = MlsCodeSecurite.lireQr(charge);
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (lu != null && uid != null) {
+        await MlsVerifications(userId: uid)
+            .marquerVerifie(lu.mlsIdentity, lu.empreinte);
+      }
+    }
+    if (!mounted) return;
+
+    switch (resultat) {
+      case ResultatScan.correspond:
+        _showSucces(l10n.mlsVerifyMatch);
+      case ResultatScan.neCorrespondPas:
+        _showError(l10n.mlsVerifyMismatch);
+      case ResultatScan.appareilInconnu:
+        _showError(l10n.mlsVerifyUnknownDevice);
+      case ResultatScan.pasUnCode:
+        _showError(_messageCodeInconnu(charge));
+    }
+  }
+
+  void _showSucces(String message) {
+    _reprise?.cancel();
+    _reprise = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _isProcessing = false);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.success,
+        content: Row(
+          children: [
+            Icon(Icons.verified_user, color: AppColors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(message)),
+          ],
+        ),
       ),
     );
   }

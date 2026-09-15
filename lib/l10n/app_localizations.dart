@@ -22694,6 +22694,36 @@ abstract class AppLocalizations {
   /// **'Code de sécurité'**
   String get mlsSecurityCodeLabel;
 
+  /// No description provided for @mlsVerifyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérification d\'appareil'**
+  String get mlsVerifyTitle;
+
+  /// No description provided for @mlsVerifyMatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code vérifié : vous voyez tous les deux la même clé.'**
+  String get mlsVerifyMatch;
+
+  /// No description provided for @mlsVerifyMismatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le code lu ne correspond pas à la clé qui vous est servie. Ne parlez pas de ce qui est sensible avant d\'avoir compris pourquoi.'**
+  String get mlsVerifyMismatch;
+
+  /// No description provided for @mlsVerifyUnknownDevice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil n\'est pas dans le registre, ou n\'a pas publié sa clé. Rien à comparer.'**
+  String get mlsVerifyUnknownDevice;
+
+  /// No description provided for @mlsVerifyReadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de vérifier : le registre n\'a pas répondu.'**
+  String get mlsVerifyReadError;
+
   /// No description provided for @mlsSecurityCodeUnavailable.
   ///
   /// In fr, this message translates to:

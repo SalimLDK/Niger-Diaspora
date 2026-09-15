@@ -148,6 +148,61 @@ class MlsCodeSecurite {
   }
 }
 
+/// Ce qu'un scan de code de sécurité peut donner.
+enum ResultatScan {
+  /// Le QR n'est pas un code de vérification de cette application.
+  ///
+  /// **Distinct de [neCorrespondPas], et ça compte** : dire « ne correspond
+  /// pas » sur un QR de profil serait une accusation fausse, et la personne
+  /// chercherait un attaquant qui n'existe pas.
+  pasUnCode,
+
+  /// Le code est bien formé, mais l'appareil qu'il désigne n'est pas dans le
+  /// registre — ou n'a pas publié de clé. Rien à comparer, donc rien à dire.
+  appareilInconnu,
+
+  /// Les deux côtés voient la même clé.
+  correspond,
+
+  /// **Le code lu ne correspond pas à la clé servie par le serveur.** C'est
+  /// exactement ce que la phase 7 cherche à détecter.
+  neCorrespondPas,
+}
+
+/// La comparaison, sans caméra ni base : elle ne dépend que du contenu lu et
+/// d'une façon de retrouver la clé publiée pour cette identité.
+abstract final class MlsVerificationScan {
+  static Future<ResultatScan> comparer({
+    required String charge,
+    required Future<Uint8List?> Function(String mlsIdentity) cleDe,
+  }) async {
+    final lu = MlsCodeSecurite.lireQr(charge);
+    if (lu == null) return ResultatScan.pasUnCode;
+
+    final cle = await cleDe(lu.mlsIdentity);
+    if (cle == null || !MlsCodeSecurite.estCalculable(cle)) {
+      return ResultatScan.appareilInconnu;
+    }
+
+    final attendue = MlsCodeSecurite.empreinteAppareil(
+      mlsIdentity: lu.mlsIdentity,
+      signatureKey: cle,
+    );
+    return _egales(attendue, lu.empreinte)
+        ? ResultatScan.correspond
+        : ResultatScan.neCorrespondPas;
+  }
+
+  static bool _egales(Uint8List a, Uint8List b) {
+    if (a.length != b.length) return false;
+    var diff = 0;
+    for (var i = 0; i < a.length; i++) {
+      diff |= a[i] ^ b[i];
+    }
+    return diff == 0;
+  }
+}
+
 /// L'état de vérification d'un appareil, du point de vue de celui qui
 /// regarde.
 enum EtatVerification {
