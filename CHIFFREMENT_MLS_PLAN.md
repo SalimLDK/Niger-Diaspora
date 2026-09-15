@@ -1048,13 +1048,31 @@ Et une décision de configuration : `MIXED_CIPHERTEXT_WIRE_FORMAT_POLICY`
 (sortant chiffré, entrant mixte), parce qu'un commit externe arrive
 forcément en clair. `PURE_CIPHERTEXT` le refuserait sans dire pourquoi.
 
-## Reste à établir (les trois qui peuvent tuer)
+## Deuxième jour (2026-09-15) — Flutter Rust Bridge intégré, APK signé produit
+
+| Question du spike | Résultat |
+|---|---|
+| FRB 2.13 sur ce projet | **Oui.** `integrate` (cargokit, sans `dart fix` ni `dart format`) + crate conservé + surface `api/mls.rs` : `Moteur` opaque (`#[frb(opaque)]`, le verrou de FRB sérialise les méthodes `&mut self` — la règle « un seul écrivain »), DTO plats, erreurs en codes. Bindings générés dans `lib/src/rust/`, `cargo check` et `flutter analyze` propres |
+| Build release **signé** | **Oui.** `flutter build apk --release --dart-define=SPIKE_MLS=true` : 519 s de Gradle, cargokit compile le crate pour arm64-v8a, armeabi-v7a et x86_64 ; APK universel de **131,6 Mo**, signé V2 avec le certificat de production (CN=Diaspo Niger) |
+| Lib dans l'APK | `libdiaspo_mls.so` : **4,4 Mo (arm64), 3,3 Mo (armv7), 5,1 Mo (x86_64)** ; les deux 64 bits **alignées 16 Ko** (vérifié dans l'APK, pas seulement dans `target/`) |
+| Démarre sur l'appareil, ms à froid | **Pas encore** : aucun appareil branché ce jour-là. Le harnais `lib/spike_mls/spike_app.dart` (activé par le `dart-define`) remplace l'app par un écran qui joue le parcours, chronomètre la réouverture à froid + déchiffrement et vérifie le refus d'un AAD déplacé — les chiffres s'affichent à l'écran, à lire par `adb exec-out screencap` |
+
+Deux pièges d'outillage, payés :
+
+- **`flutter_rust_bridge_codegen generate` lance `build_runner`** dès qu'un
+  enum à données (freezed) est exposé. Ici il a **supprimé 129 `.g.dart`
+  suivis par git** dans l'arbre de travail, et le premier build a cassé
+  dessus. Restaurer par `git ls-files -d | xargs git checkout --`, puis
+  passer `--no-build-runner` (et toujours `--no-dart-format`).
+- `--no-write-lib` évite le `lib/main.dart` d'exemple mais ne crée alors
+  **ni crate, ni `flutter_rust_bridge.yaml`** : les écrire soi-même.
+
+## Reste à établir
 
 | Question | Ce qu'il faut |
 |---|---|
-| ms à froid **dans l'isolate background, sur SM A515F** | l'appareil branché, un `dart:ffi` jetable vers `diaspo_mls_spike_reouverture` (ou l'intégration FRB), une base préparée sur l'appareil |
+| ms à froid **sur SM A515F** (ouverture + déchiffrement, puis dans l'isolate background) | l'appareil branché : `adb install -r` de l'APK du spike, lancer, lire l'écran. Tout est prêt |
 | **NSE iOS** avec App Group et copie de travail | un Mac. Rien de ce spike ne l'aborde |
-| **Build release signé qui démarre** avec la lib | `flutter_rust_bridge_codegen integrate` (cargokit dans Gradle), `key.properties`, l'appareil |
 
-**Verdict provisoire : GO côté Rust/Android**, sous réserve des trois
-mesures ci-dessus. Aucun NO-GO rencontré.
+**Verdict : GO côté Rust, Android et chaîne de build.** Reste l'appareil et
+iOS. Aucun NO-GO rencontré.
