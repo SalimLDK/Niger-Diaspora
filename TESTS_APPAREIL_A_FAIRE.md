@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1330 cases à cocher, 637 cochées** — 261 entrées sur 310 ont encore des cases ouvertes.
+**1327 cases à cocher, 640 cochées** — 261 entrées sur 310 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -61,9 +61,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 21 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 19 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
-- 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
+- 9 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
@@ -323,7 +323,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 141 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -9401,7 +9401,7 @@ renseignait même pas `when`. Le serveur envoie désormais `data.sentAt`
 (`created_at`, l'autorité), et la pile se trie dessus : un message reçu au
 retour du réseau porte son heure d'envoi, pas « à l'instant ».
 
-- [ ] **Heure affichée** sur la bannière, et c'est celle de l'**envoi** :
+- [x] **Heure affichée** sur la bannière, et c'est celle de l'**envoi**. ✅ **2026-09-16, prouvé à la milliseconde** : le `when` de la bannière du Pixel vaut `1789538396006`, et `mls_messages.created_at` du message vaut `2026-09-16 05:59:56.005661` — soit exactement le même horodatage. Même correspondance côté clair sur le SM A515F (`1789532896525` ↔ `messages.created_at 04:28:16.52452`). C'est donc bien l'heure d'ENVOI qui voyage, pas celle de la livraison. Reste à vérifier à la main :
   couper le réseau, se faire envoyer un message, rétablir. L'heure doit être
   celle de l'envoi, pas celle du retour de réseau.
 - [ ] **Ordre** : cinq messages d'affilée, le plus ancien **en haut**.
@@ -9423,8 +9423,8 @@ bannière d'origine n'avait qu'une ligne pour tout dire. `MessagingStyle`
 affiche l'expéditeur de son côté — le nom sortait donc **deux fois sur la même
 ligne**. Il est retiré du texte, et seulement là où le serveur l'a mis.
 
-- [ ] **Heure sur chaque ligne** de la pile, pas seulement dans l'en-tête, et
-  **en fin de ligne**. ⚠️ Elle ne sera pas alignée sur le bord droit : une
+- [x] **Heure sur chaque ligne** de la pile, pas seulement dans l'en-tête, et
+  **en fin de ligne**. ✅ **2026-09-16, deux appareils** : `dumpsys notification --noredact` rend `android.text = Cfg · 01:59` sur le Pixel (groupe chiffré) et `Ok · 01:29` sur le SM A515F (1:1 en clair), les deux sous `android.template = MessagingStyle`. ⚠️ Elle ne sera pas alignée sur le bord droit : une
   ligne de notification est du texte, pas une mise en page. Un vrai alignement
   demanderait un `RemoteViews` maison, au prix du regroupement par expéditeur
   et des avatars — à trancher à l'écran si la fin de ligne ne suffit pas.
@@ -9748,7 +9748,8 @@ Fichiers : [mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_
 (`firebaseMessagingBackgroundHandler`), `rust/src/engine.rs`
 (`preview_without_state`), migration `20260915140000`.
 
-- [ ] **App tuée, message MLS reçu** : la bannière affiche le **vrai texte**,
+- [x] **App tuée, message MLS reçu** : la bannière affiche le **vrai texte**, ✅ **2026-09-16** : la bannière du Pixel porte `Cfg`, le vrai texte d'un message d'une conversation **chiffrée** — pas le repli « Nouveau message ». Le cache `mls_apercu_*` des préférences en contient d'autres (`Hgg`, `Gy`), donc l'isolate déchiffre bien, plusieurs fois.
+  Contrôle d'origine :
   pas « Nouveau message ». Sur SM A515F, `adb shell am force-stop` puis
   envoi depuis un autre appareil.
 - [ ] **Puis ouvrir l'app** : le même message s'affiche dans la conversation,
