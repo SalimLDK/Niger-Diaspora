@@ -492,9 +492,18 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
         ],
         if (_error != null) ...[
           const SizedBox(width: 6),
-          Text(
-            _error!,
-            style: const TextStyle(fontSize: 11, color: Colors.red),
+          // `Flexible` + ellipse : cette rangée vit dans une bulle de 250 px
+          // au plus, et tous ses autres enfants sont rigides. Un message
+          // d'erreur ajouté ici la faisait DÉBORDER — le défaut de lecture
+          // se doublait donc d'un défaut d'affichage. Une erreur doit se
+          // voir, pas casser la mise en page.
+          Flexible(
+            child: Text(
+              _error!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, color: Colors.red),
+            ),
           ),
         ],
         // Téléchargement hors ligne à droite (notes reçues uniquement).

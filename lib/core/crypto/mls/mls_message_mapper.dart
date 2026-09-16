@@ -121,6 +121,29 @@ class MlsMessageMapper {
       type: _type(payload.type),
       status: MessageStatus.sent,
       fileUrl: body['storagePath'] as String?,
+      // **Reposer la fiche du média chiffré.** Sans elle, `MediaChiffreGate`
+      // laisse passer le message tel quel (`mediaChiffre == null` = « rien à
+      // déchiffrer »), et la bulle tente d'ouvrir `fileUrl` — qui pointe sur
+      // le blob CHIFFRÉ. Résultat : aucune note vocale ne se lit, aucune
+      // image ne s'affiche, et l'erreur de lecture vient s'ajouter dans la
+      // rangée de contrôles, qui déborde. Signalé par Salim le 2026-09-15
+      // (« je n'arrive pas à lire les audios et aussi il y a overflow »), les
+      // deux symptômes ayant la même cause.
+      //
+      // La passerelle met déjà tout dans le payload (`corpsMedia`) : il ne
+      // manquait que la traduction vers la forme que la porte attend.
+      // `encryptedUrl` reste vide — le téléchargement se fait par
+      // `storagePath`, et `MediaChiffre.fromJson` tolère son absence.
+      mediaChiffre: body['fileKey'] == null || body['storagePath'] == null
+          ? null
+          : MediaChiffre.fromJson(<String, dynamic>{
+              'storagePath': body['storagePath'],
+              'fileKey': body['fileKey'],
+              'iv': body['fileNonce'],
+              'fileName': body['fileName'],
+              'mimeType': body['mimeType'],
+              'size': body['fileSize'],
+            }),
       fileName: body['fileName'] as String?,
       fileSize: (body['fileSize'] as num?)?.toInt(),
       mimeType: body['mimeType'] as String?,
