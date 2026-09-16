@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1273 cases à cocher, 626 cochées** — 253 entrées sur 302 ont encore des cases ouvertes.
+**1276 cases à cocher, 626 cochées** — 253 entrées sur 302 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -60,7 +60,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 9 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 12 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -315,7 +315,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 122 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 120 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 123 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -8905,6 +8905,28 @@ Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile
   (`notif_pile_*`).
 - [ ] **Appui sur la bannière empilée** : ouvre la bonne conversation, et la
   bannière disparaît.
+
+**Corrigé le 2026-09-16, signalé sur appareil** : la pile s'affichait **à
+l'envers** et **sans heure**. Deux causes distinctes.
+
+L'ordre venait du chemin premier plan : `.take(10)` gardait les dix plus
+**anciennes** — celles qu'on veut justement laisser tomber — puis `.reversed`
+mettait la plus récente **en haut**. `MessagingStyle` affiche dans l'ordre de
+la liste, et une conversation se lit du haut vers le bas.
+
+L'heure manquait parce que **rien ne l'envoyait** : aucun des deux
+déclencheurs ne mettait d'horodatage dans la charge du push. L'appareil n'avait
+que `DateTime.now()` — l'heure de *livraison* — et le chemin d'arrière-plan ne
+renseignait même pas `when`. Le serveur envoie désormais `data.sentAt`
+(`created_at`, l'autorité), et la pile se trie dessus : un message reçu au
+retour du réseau porte son heure d'envoi, pas « à l'instant ».
+
+- [ ] **Heure affichée** sur la bannière, et c'est celle de l'**envoi** :
+  couper le réseau, se faire envoyer un message, rétablir. L'heure doit être
+  celle de l'envoi, pas celle du retour de réseau.
+- [ ] **Ordre** : cinq messages d'affilée, le plus ancien **en haut**.
+- [ ] **Rattrapage hors ligne** : plusieurs messages d'un coup au retour du
+  réseau, dans le bon ordre même s'ils n'arrivent pas dans cet ordre-là.
 
 ---
 
