@@ -592,14 +592,41 @@ class MlsGateway {
   /// Limite assumée : sans push reçu (notifications coupées, message d'un
   /// epoch que l'isolate n'a pas su traiter), il n'y a rien à relire et le
   /// libellé générique reste. C'est un progrès, pas une garantie.
-  Future<Map<String, String>> apercusDejaDechiffres() async {
+  /// [conversationIds] : celles dont l'aperçu manque. Rien n'est demandé au
+  /// serveur si la liste est vide.
+  Future<Map<String, String>> apercusDejaDechiffres(
+    Iterable<String> conversationIds,
+  ) async {
     try {
-      final derniers = await _meta.derniersMessages();
+      final derniers = await _meta.derniersMessages(conversationIds);
       if (derniers.isEmpty) return const {};
-      final sortie = <String, String>{};
-      for (final e in derniers.entries) {
-        final texte = await MlsNotificationPreview.apercuCache(e.value);
-        if (texte != null && texte.isNotEmpty) sortie[e.key] = texte;
+
+      Future<Map<String, String>> lire() async {
+        final trouves = <String, String>{};
+        for (final e in derniers.entries) {
+          final texte = await MlsNotificationPreview.apercuCache(e.value);
+          if (texte != null && texte.isNotEmpty) trouves[e.key] = texte;
+        }
+        return trouves;
+      }
+
+      var sortie = await lire();
+      if (sortie.length < derniers.length) {
+        // Course perdue, et elle se voyait : l'isolate de notification met
+        // l'aperçu en cache **après** l'émission de la liste qui porte le
+        // message. Rien ne redéclenchait la liste, donc la tuile restait sur
+        // « Message chiffré » jusqu'au rafraîchissement suivant — mesuré le
+        // 2026-09-15 sur Pixel 10 Pro XL, où le texte n'est apparu qu'après
+        // un « tirer pour rafraîchir ».
+        //
+        // Le correctif propre serait un signal émis par
+        // `MlsNotificationPreview` à la mise en cache. Il n'est pas fait ici :
+        // ce fichier est en cours de refonte ailleurs, et une seconde lecture
+        // bornée suffit à refermer la fenêtre sans coupler les deux. Le délai
+        // n'est payé **que** s'il manque quelque chose.
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        final second = await lire();
+        if (second.length > sortie.length) sortie = second;
       }
       return sortie;
     } catch (e) {

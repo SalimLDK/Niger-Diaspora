@@ -90,31 +90,26 @@ void main() {
     test('seul `mls_notify_recipients` la pose', () {
       // Si un second trigger se mettait à écrire `mlsCiphertext`, le nettoyage
       // ci-dessus ne couvrirait plus tout — et rien ne le dirait.
-      final ecrivains = <String>[];
+      //
+      // L'invariant porte sur la FONCTION, pas sur une liste de fichiers : la
+      // même fonction est remplacée à chaque correction (base64 sans sauts,
+      // puis `call`/`contact`), et une liste figée transformerait chacune de
+      // ces corrections en échec de banc.
+      final coupables = <String>[];
       for (final f in Directory('supabase/migrations').listSync()) {
         if (f is! File || !f.path.endsWith('.sql')) continue;
         final sql = _lire(f.path);
-        if (sql.contains("'mlsCiphertext'") &&
-            !f.path.endsWith('20260916030000_mls_notifications_suivent_le_message.sql')) {
-          ecrivains.add(f.path.split(RegExp(r'[\\/]')).last);
+        if (!sql.contains("'mlsCiphertext'")) continue;
+        final nom = f.uri.pathSegments.last;
+        if (nom == '20260916030000_mls_notifications_suivent_le_message.sql') {
+          continue; // le nettoyage lui-même
+        }
+        if (!sql.contains('FUNCTION public.mls_notify_recipients()')) {
+          coupables.add(nom);
         }
       }
-      // Les deux fichiers portent le MÊME `mls_notify_recipients` : le second
-      // le remplace pour retirer les sauts de ligne du base64. Un troisième
-      // nom dans cette liste voudrait dire un second écrivain, et un nettoyage
-      // qui ne couvre plus tout.
-      expect(
-        ecrivains,
-        const [
-          '20260915140000_mls_notifications.sql',
-          '20260915160000_mls_notifications_base64_sans_sauts.sql',
-        ],
-        reason: 'écrivains inattendus de la copie : $ecrivains',
-      );
-      for (final fichier in ecrivains) {
-        expect(_lire('supabase/migrations/$fichier'),
-            contains('FUNCTION public.mls_notify_recipients()'));
-      }
+      expect(coupables, isEmpty,
+          reason: 'écrivains inattendus de la copie : $coupables');
     });
   });
 }

@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1270 cases à cocher, 619 cochées** — 252 entrées sur 301 ont encore des cases ouvertes.
+**1269 cases à cocher, 626 cochées** — 252 entrées sur 301 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (36)
 
-- 7 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
+- 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
 - 4 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
@@ -94,7 +94,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 7 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau-2026-09-15) · *Messagerie*
+- 5 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
 - 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
@@ -310,7 +310,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 271 à faire, 107 faites
+- [2. Messagerie](#2-messagerie) — 270 à faire, 114 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -572,7 +572,7 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
-## ⬜ « Mes notes » s'ouvre sans aller-retour réseau (2026-09-15)
+## ⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)
 
 **Priorité P1** · importance 4/5 — la tuile « Mes notes » était la seule de la
 liste à faire une requête **avant** de pousser son écran : un spinner à la
@@ -595,19 +595,44 @@ C'est la règle qui est testée (`test/features/messages/mes_notes_ouverture_tes
 pas son câblage : la provenance réelle des émissions ne se voit qu'à
 l'exécution, et c'est précisément ce qu'il faut vérifier ici.
 
-- [ ] App déjà chargée, liste affichée : taper « Mes notes » ouvre l'écran
+**Passe appareil du 2026-09-15 (SM A515F, compte `vQZE49…`, le seul « Mes
+notes » basculé en MLS).** Le point décisif s'est joué **réseau coupé** :
+`svc wifi disable` + `svc data disable`, jusqu'à ce que le téléphone réponde
+`ping: unknown host` sur l'hôte Supabase. Dans cet état, `ensure` ne *peut
+pas* aboutir — il commence par `ensureAuthenticated` puis un `select`. Taper
+« Mes notes » a pourtant ouvert le fil entier, et la tuile portait encore son
+icône signet (capture à t+1,3 s), pas un tourniquet : aucun état de chargement
+n'a été posé. C'est le raccourci, et rien d'autre, qui a ouvert l'écran.
+Réseau rétabli ensuite, vérifié à 15 ms.
+
+- [x] App déjà chargée, liste affichée : taper « Mes notes » ouvre l'écran
       **sans spinner** sur la tuile
-- [ ] Un message envoyé depuis cette ouverture-là part vraiment — pas de
-      « Non envoyé · Réessayer » (c'est la panne de 2026-08-06)
-- [ ] Démarrage à froid, tap immédiat avant que la liste n'ait chargé : la
-      tuile fait encore son aller-retour (spinner), et l'ouverture aboutit
-- [ ] Mode avion : l'ouverture aboutit quand même si « Mes notes » a déjà été
-      ouverte dans la session, échoue proprement (SnackBar) sinon
+- [x] Un message envoyé depuis cette ouverture-là part vraiment — pas de
+      « Non envoyé · Réessayer » (c'est la panne de 2026-08-06). Prouvé en
+      base, pas à l'écran : `mls_messages` de `805adcaa…` est passé de 5 à 6
+      lignes, la dernière 23 s après le tap. L'écran seul ne suffirait pas,
+      il affiche « Envoyé » de façon optimiste.
+- [x] Réseau coupé, liste déjà chargée depuis le réseau : l'ouverture aboutit
+      quand même (c'est le test ci-dessus)
+- [ ] Réseau coupé **et** liste jamais chargée depuis le réseau (démarrage à
+      froid hors ligne) : doit échouer proprement sur le SnackBar
+      « Impossible d'ouvrir Mes notes pour le moment »
+- [ ] Démarrage à froid en ligne, tap immédiat avant que la liste n'ait
+      chargé : la tuile fait encore son aller-retour (spinner), et
+      l'ouverture aboutit
 - [ ] Après un tirer-pour-rafraîchir, la première ouverture peut refaire
       l'aller-retour, les suivantes non
 - [ ] Compte neuf, « Mes notes » jamais créée : le premier tap la crée et la
       tuile prend son aperçu dans la liste
 - [ ] Même parcours depuis « Nouvelle conversation » (l'autre appelant)
+
+⚠️ **Vu au passage, sans rapport avec ce changement** : après l'envoi d'une
+note en MLS, l'aperçu de la tuile retombe sur son libellé par défaut
+(« Notes, brouillons et sondages ») au lieu du dernier texte — le serveur n'a
+jamais le clair d'un message MLS, et `conversations.last_message` reste vide.
+Voir « La liste n'annonce plus « Utilisateur » ni « Message chiffré » », qui
+traite la reconstruction de l'aperçu depuis le cache local, et l'entrée sur
+l'accusé « lu » et l'aperçu chiffré.
 
 Fichiers : [message_provider.dart](lib/features/messages/presentation/providers/message_provider.dart)
 (`conversationsDepuisReseauProvider`, `EnsureSelfNotesNotifier.ouvrir`),
@@ -652,9 +677,60 @@ Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens
 (10 cas). Diagnostic serveur :
 `supabase db query --linked -f supabase/diagnostics/2026-09-15_non_lus_mls.sql`.
 
-- [ ] **La pastille revient** : depuis un second compte, envoyer un message
-  sans ouvrir la discussion sur l'appareil cible. La tuile doit porter sa
-  pastille de non-lus, et l'onglet Messages son badge.
+- [x] **La pastille revient** : vérifié le 2026-09-15 sur Pixel 10 Pro XL.
+  Deux messages reçus de Sim A sans ouvrir la discussion → pastille « 2 » sur
+  la tuile, puce « Non lus 3 », badge « 3 » sur l'onglet Messages. ⚠️ **Mais
+  la cause n'était pas celle annoncée** : voir « ce que j'avais dit à tort »
+  ci-dessous. À refaire une fois le correctif de la course livré, pour
+  s'assurer que la pastille tombe **aussi** quand on ouvre.
+- [x] **L'aperçu chiffré arrive sans ouvrir** : vérifié, « Hccuycyfyfyf » puis
+  « Fghg » s'affichent dans la tuile. ⚠️ Mais **un rafraîchissement en
+  retard** : l'isolate met l'aperçu en cache après l'émission de la liste. Le
+  texte n'apparaissait qu'après un « tirer pour rafraîchir ». Corrigé par une
+  seconde lecture bornée (400 ms) — à revérifier.
+
+**Ce que j'avais dit à tort, et la vraie cause.** J'ai annoncé que « plus
+aucun reçu n'était écrit, même en ouvrant ». C'était faux : mon diagnostic
+avait lu un instantané **avant** que la livraison n'ait lieu. Les reçus
+existaient, sous le bon `user_id`, avec `delivered_at` posé. Seul `read_at`
+manquait.
+
+La cause, elle, est réelle et corrigée : `initState` lance `markAsDelivered`
+**et** `markAsRead` sans `await`. Les deux lisent « aucun reçu », le premier
+insère, le second heurte la clé primaire `(message_id, user_id)` — exception
+avalée, `read_at` jamais posé, aucun journal. C'est une **course** : une heure
+plus tôt, les mêmes reçus étaient corrects. Ni les droits ni les policies RLS
+n'y étaient pour quelque chose (vérifiés en production,
+`supabase/diagnostics/2026-09-15_droits_recus_mls.sql` et `…_rls_recus_mls.sql`).
+
+- [x] **Après le correctif de la course** : vérifié le 2026-09-15 sur Pixel
+  10 Pro XL, build reconstruit. Cinq messages traînaient avec `read_at` nul
+  depuis une demi-heure ; ouvrir la discussion les a **tous** marqués lus à
+  02:37:49 UTC, une seconde après le tap. Avant, ils restaient nuls
+  indéfiniment.
+
+  | message | `delivered_at` | `read_at` |
+  |---|---|---|
+  | 02:04:23 | 02:09:23 | **02:37:49** |
+  | 02:04:53 | 02:09:23 | **02:37:49** |
+  | 02:07:47 | 02:09:23 | **02:37:49** |
+  | 02:11:25 | 02:11:30 | **02:37:49** |
+  | 02:13:19 | 02:17:14 | **02:37:49** |
+
+  Et deux messages arrivés **pendant** que la discussion était affichée
+  (02:38:35, 02:38:46) ont été marqués lus à leur tour : le garde
+  `_estAffichee` ne bloque pas la lecture légitime. Recette :
+  `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`.
+- [ ] **Ce que cette passe n'a PAS montré** : que l'expéditeur repasse à
+  « Lu » de son côté. Le A515F était piloté par un autre agent, je n'ai pas
+  regardé son écran après coup. À confirmer à deux téléphones.
+- [x] **L'aperçu chiffré arrive sans rafraîchir** : vérifié le 2026-09-15.
+  « Tggt » puis « Erty » s'affichent **dès la première image** après le
+  splash, sans « tirer pour rafraîchir ». La seconde lecture bornée (400 ms)
+  referme bien la course avec l'isolate.
+- [ ] **Deux ouvertures de suite** : la seconde ne doit pas réécrire `read_at`
+  — « lu à 14 h 03 » ne devient pas « lu à l'instant ». C'est ce que tient le
+  filtre `read_at IS NULL`.
 - [ ] **Et l'expéditeur ne voit pas « Lu »** tant que la discussion n'a pas
   été ouverte — c'est la moitié de ce correctif qui se voit **sur l'autre
   téléphone**. Les deux appareils sont nécessaires.

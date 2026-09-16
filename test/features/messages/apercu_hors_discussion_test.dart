@@ -115,6 +115,57 @@ void main() {
     });
   });
 
+  group('« lu » survit à la course avec « livré »', () {
+    // `ConversationScreen.initState` lance `markAsDelivered` **et**
+    // `markAsRead` coup sur coup, sans `await`. Les deux lisent « aucun
+    // reçu », le premier insère, le second heurte la clé primaire
+    // `(message_id, user_id)`. L'exception remontait au `catch` de
+    // `markAsRead`, qui rend un `Left` que l'appelant ignore.
+    //
+    // Mesuré le 2026-09-15 sur Pixel 10 Pro XL : cinq messages avec
+    // `delivered_at` posé et `read_at` nul, même après avoir ouvert la
+    // discussion, et pas une ligne de journal. C'est une course : une heure
+    // plus tôt, les mêmes reçus étaient corrects.
+    //
+    // Limite assumée : `marquer()` parle au réseau, ces tests lisent la
+    // source. Le comportement, lui, se vérifie sur appareil.
+    late String source;
+
+    setUpAll(() {
+      final fichier = File('lib/core/crypto/mls/mls_metadonnees.dart');
+      expect(fichier.existsSync(), isTrue, reason: 'fichier introuvable');
+      source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
+    });
+
+    test('la collision de clé primaire ne fait plus échouer « lu »', () {
+      expect(
+        source,
+        contains("if (e.code != '23505') rethrow;"),
+        reason: 'une insertion concurrente reperdrait « lu »',
+      );
+    });
+
+    test('« lu » est posé sur tout le lot, pas sur les seuls reçus vus', () {
+      // C'est la moitié qui referme vraiment la course : entre le SELECT et
+      // l'UPDATE, l'autre appel a pu créer les reçus manquants.
+      final debut = source.indexOf('if (!lu) continue;');
+      expect(debut, isNot(-1));
+
+      final bloc = source.substring(debut, debut + 600);
+      expect(bloc, contains(".inFilter('message_id', lot)"));
+      expect(bloc, isNot(contains('aAvancer')));
+    });
+
+    test("l'heure du premier coup d'œil n'est pas réécrite", () {
+      // La règle d'origine : « lu à 14 h 03 » ne doit pas devenir « lu à
+      // l'instant » à chaque ouverture. Elle tient désormais par un filtre
+      // SQL au lieu d'une lecture préalable.
+      final debut = source.indexOf('if (!lu) continue;');
+      final bloc = source.substring(debut, debut + 600);
+      expect(bloc, contains(".isFilter('read_at', null)"));
+    });
+  });
+
   group('« lu » exige que la discussion soit affichée', () {
     // Limite assumée, comme `etat_vide_filtre_test.dart` : ces tests lisent la
     // source. Monter `ConversationScreen` demande GoRouter, une session

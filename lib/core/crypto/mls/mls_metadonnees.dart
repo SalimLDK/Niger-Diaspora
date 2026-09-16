@@ -374,28 +374,47 @@ class MlsMetadonnees {
 
       final aCreer = [for (final id in lot) if (!existants.containsKey(id)) id];
       if (aCreer.isNotEmpty) {
-        await _client.from('mls_message_receipts').insert([
-          for (final id in aCreer)
-            {
-              'message_id': id,
-              'user_id': userId,
-              'delivered_at': maintenant,
-              if (lu) 'read_at': maintenant,
-            },
-        ]);
+        try {
+          await _client.from('mls_message_receipts').insert([
+            for (final id in aCreer)
+              {
+                'message_id': id,
+                'user_id': userId,
+                'delivered_at': maintenant,
+                if (lu) 'read_at': maintenant,
+              },
+          ]);
+        } on PostgrestException catch (e) {
+          // 23505 : la clé primaire est `(message_id, user_id)`, et un autre
+          // appel a créé le reçu entre notre SELECT et notre INSERT.
+          //
+          // Ce n'est pas théorique : `ConversationScreen.initState` lance
+          // `markAsDelivered` **et** `markAsRead` coup sur coup, sans `await`.
+          // Ils lisent tous deux « aucun reçu », le premier insère, le second
+          // heurte la clé. L'exception remontait jusqu'au `catch` de
+          // `markAsRead`, qui rend un `Left` que l'appelant ignore : « livré »
+          // était écrit, « lu » ne l'était jamais, et pas une ligne de journal.
+          //
+          // Vu le 2026-09-15 sur Pixel 10 Pro XL : cinq messages avec
+          // `delivered_at` posé et `read_at` nul, même après avoir ouvert la
+          // discussion. C'est une course : elle ne tombe pas toujours du même
+          // côté, d'où des reçus corrects une heure plus tôt.
+          if (e.code != '23505') rethrow;
+        }
       }
 
       if (!lu) continue;
-      final aAvancer = [
-        for (final e in existants.entries) if (!e.value) e.key,
-      ];
-      if (aAvancer.isNotEmpty) {
-        await _client
-            .from('mls_message_receipts')
-            .update({'read_at': maintenant})
-            .inFilter('message_id', aAvancer)
-            .eq('user_id', userId);
-      }
+      // Tout le lot, et non les seuls reçus vus au SELECT : entre les deux,
+      // l'autre appel a pu créer ceux qui manquaient. `read_at IS NULL` garde
+      // la règle d'origine — « lu à 14 h 03 » ne devient pas « lu à
+      // l'instant » à chaque ouverture, seule l'heure du premier coup d'œil
+      // compte — et rend l'écriture idempotente.
+      await _client
+          .from('mls_message_receipts')
+          .update({'read_at': maintenant})
+          .inFilter('message_id', lot)
+          .isFilter('read_at', null)
+          .eq('user_id', userId);
     }
   }
 
@@ -465,12 +484,18 @@ class MlsMetadonnees {
   /// Une seule requête pour toute la liste, bornée : au-delà, les
   /// conversations concernées sont de toute façon plus anciennes que ce que
   /// l'écran montre en premier.
-  Future<Map<String, String>> derniersMessages({int limite = 200}) async {
+  Future<Map<String, String>> derniersMessages(
+    Iterable<String> conversationIds, {
+    int limite = 200,
+  }) async {
+    final ids = conversationIds.toList(growable: false);
+    if (ids.isEmpty) return const {};
     try {
       await _auth();
       final rows = await _client
           .from('mls_messages')
           .select('id, conversation_id, created_at')
+          .inFilter('conversation_id', ids)
           .eq('kind', 'content')
           .eq('is_deleted', false)
           .order('created_at', ascending: false)
