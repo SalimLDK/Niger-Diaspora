@@ -109,62 +109,89 @@ async function getAccessToken(sa: ServiceAccount): Promise<string> {
   return cachedAccessToken.token
 }
 
-// Mappe un type de notification vers la clé de `users.notification_prefs`.
-// Miroir exact du switch de `_shouldShowNotification` côté app — les deux
-// doivent bouger ensemble, sinon une bascule coupe au premier plan et laisse
-// passer en arrière-plan (le défaut que cette colonne corrige).
-// null = type non filtrable par préférence (toujours envoyé).
+// Quelle bascule de réglages commande quel type de notification.
+//
+// **Reflet exact de `kClePreferenceParType`** (lib/core/services/
+// notification_pref_keys.dart), qui fait foi. Cette table décide de l'ENVOI,
+// la table Dart décide de l'AFFICHAGE au premier plan : quand les deux
+// divergent, une bascule coupe d'un côté seulement, et l'utilisateur voit un
+// réglage qui « marche à moitié » selon que son téléphone était sur l'app ou
+// non. C'est arrivé à sept endroits, dans les deux sens, jusqu'au 2026-09-16.
+//
+// `test/core/services/notification_prefs_parite_test.dart` compare les deux
+// fichiers : ils ne peuvent plus bouger l'un sans l'autre.
+//
+// Un type absent d'ici n'est pas filtrable — il part toujours.
+const CLE_PREFERENCE_PAR_TYPE: Record<string, string> = {
+
+  // Messagerie.
+  'message': 'messages',
+  'messageReaction': 'messages',
+
+  // Les gens.
+  'friendRequest': 'friend_requests',
+  'friendRequestAccepted': 'friend_requests',
+  'friendAccepted': 'friend_requests',
+  // Plus aucun écrivain depuis le 2026-09-16, et la valeur a quitté
+  // `NotificationType` pour cette raison. L'entrée reste : cette table est
+  // indexée par la chaîne du champ `type`, pas par l'énumération, et une
+  // vieille ligne en base doit continuer d'obéir à la bascule.
+  'newFollower': 'friend_requests',
+
+  // Groupes. Les deux derniers proposent un choix dans la fiche du groupe :
+  // ils appartiennent bien à cette famille-là.
+  'groupInvite': 'groups',
+  'groupJoinRequest': 'groups',
+  'groupRequestApproved': 'groups',
+  'groupRequestRejected': 'groups',
+  'officialGroupLeave': 'groups',
+  'cityGroupInvite': 'groups',
+
+  // Événements.
+  'eventUpdate': 'events',
+  'eventAttendance': 'events',
+  'eventReminder': 'event_reminders',
+  'localEvent': 'local_events',
+
+  // Salons audio et podcasts.
+  'audioRoomReminder': 'audio_room_reminders',
+  'audioRoomLive': 'audio_room_reminders',
+  'audioRoomInvite': 'audio_room_reminders',
+  'audioRoomSpeakerRequest': 'audio_room_reminders',
+  'audioRoomEnded': 'audio_room_reminders',
+  'podcastNewEpisode': 'podcast_episodes',
+  'podcastLiveStarting': 'podcast_episodes',
+  'podcastLiveNow': 'podcast_episodes',
+
+  // Transferts d'argent.
+  'transferReminder': 'transfer_reminders',
+  'transferCompleted': 'transfer_reminders',
+  'transferReceived': 'transfer_reminders',
+  'transferFailed': 'transfer_reminders',
+  'transfer': 'transfer_reminders',
+
+  // Appels.
+  'missedCall': 'calls',
+
+  // Place de marché.
+  'order': 'orders',
+  'newOrder': 'orders',
+  'orderPaid': 'orders',
+  'orderShipped': 'orders',
+  'orderDelivered': 'orders',
+  'orderCancelled': 'orders',
+  'orderCompleted': 'orders',
+  'orderShippingReminder': 'orders',
+
+  // Annonces. `system` respecte la bascule ; `general`, volontairement, non —
+  // c'est le type de repli, et il ne doit pas pouvoir être éteint par erreur.
+  'system': 'system_messages',
+  'systemMessage': 'system_messages',
+
+}
+
 function prefKeyFor(type: string): string | null {
-  switch (type) {
-    case 'message':
-    case 'messageReaction':
-      return 'messages'
-    case 'friendRequest':
-    case 'friendRequestAccepted':
-    case 'friendAccepted':
-    case 'newFollower':
-      return 'friend_requests'
-    case 'groupInvite':
-    case 'groupJoinRequest':
-    case 'groupRequestApproved':
-    case 'groupRequestRejected':
-      return 'groups'
-    case 'eventUpdate':
-    case 'eventAttendance':
-      return 'events'
-    case 'eventReminder':
-      return 'event_reminders'
-    case 'localEvent':
-      return 'local_events'
-    case 'audioRoomReminder':
-    case 'audioRoomLive':
-    case 'audioRoomInvite':
-    case 'audioRoomSpeakerRequest':
-    case 'audioRoomEnded':
-      return 'audio_room_reminders'
-    case 'podcastNewEpisode':
-    case 'podcastLiveStarting':
-    case 'podcastLiveNow':
-      return 'podcast_episodes'
-    case 'transferReminder':
-    case 'transferCompleted':
-    case 'transferReceived':
-    case 'transferFailed':
-      return 'transfer_reminders'
-    case 'missedCall':
-      return 'calls'
-    case 'newOrder':
-    case 'orderPaid':
-    case 'orderShipped':
-    case 'orderDelivered':
-    case 'orderCancelled':
-      return 'orders'
-    case 'system':
-    case 'systemMessage':
-      return 'system_messages'
-    default:
-      return null
-  }
+  return CLE_PREFERENCE_PAR_TYPE[type] ?? null
 }
 
 // Mappe un type de notification vers un canal Android (créés côté app dans

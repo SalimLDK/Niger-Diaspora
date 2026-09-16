@@ -830,7 +830,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   /// qui désactive les appels et bascule le menu « + » en brouillon de sondage.
   Future<void> _openSelfNotes() async {
     final conversation =
-        await ref.read(ensureSelfNotesProvider.notifier).ensure();
+        await ref.read(ensureSelfNotesProvider.notifier).ouvrir();
     if (!mounted) return;
 
     if (conversation == null) {

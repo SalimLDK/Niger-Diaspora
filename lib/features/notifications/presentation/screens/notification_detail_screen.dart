@@ -302,8 +302,6 @@ class NotificationDetailScreen extends ConsumerWidget {
     switch (notification.type) {
       // Location-based notifications -> navigate to map
       case NotificationType.localEvent:
-      case NotificationType.nearbyMember:
-      case NotificationType.proximityAlert:
         context.push('/map');
         break;
       case NotificationType.message:
@@ -313,7 +311,6 @@ class NotificationDetailScreen extends ConsumerWidget {
         }
         break;
       case NotificationType.groupInvite:
-      case NotificationType.newMember:
       case NotificationType.groupJoinRequest:
       case NotificationType.groupRequestApproved:
       case NotificationType.groupRequestRejected:
@@ -330,7 +327,6 @@ class NotificationDetailScreen extends ConsumerWidget {
           context.push('/events/${notification.targetId}');
         }
         break;
-      case NotificationType.newFollower:
       case NotificationType.friendRequest:
       case NotificationType.friendRequestAccepted:
       case NotificationType.friendAccepted:
@@ -345,6 +341,7 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.orderDelivered:
       case NotificationType.orderCancelled:
       case NotificationType.orderCompleted:
+      case NotificationType.orderShippingReminder:
         // All order-related notifications go to my orders
         context.push('/marketplace/my-orders');
         break;
@@ -353,6 +350,8 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.groupMention:
       case NotificationType.postCommented:
       case NotificationType.commentReply:
+      case NotificationType.postLiked:
+      case NotificationType.postReposted:
         if (notification.targetId != null) {
           context.push('/feed/${notification.targetId}');
         }
@@ -360,6 +359,24 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.reportResolved:
       case NotificationType.groupCallInvitation:
       case NotificationType.general:
+      // On est déjà sur la fiche : ces types-là n'ont pas d'ailleurs où aller.
+      case NotificationType.system:
+      case NotificationType.supportReply:
+      case NotificationType.missedCall:
+      case NotificationType.audioRoomReminder:
+      case NotificationType.audioRoomLive:
+      case NotificationType.audioRoomInvite:
+      case NotificationType.podcastNewEpisode:
+      case NotificationType.podcastLiveNow:
+      case NotificationType.transferReminder:
+      case NotificationType.transferReceived:
+      case NotificationType.transferCompleted:
+      case NotificationType.transferFailed:
+      case NotificationType.transfer:
+      case NotificationType.paymentFailed:
+      case NotificationType.payout:
+      case NotificationType.payoutFailed:
+      case NotificationType.stripeAccountEnabled:
         break;
     }
   }
@@ -384,8 +401,6 @@ class NotificationDetailScreen extends ConsumerWidget {
         return 'Groupe de votre ancien pays';
       case NotificationType.cityGroupInvite:
         return 'Groupe de votre ville';
-      case NotificationType.newMember:
-        return 'Nouveau membre';
       case NotificationType.eventReminder:
         return 'Rappel d\'événement';
       case NotificationType.eventUpdate:
@@ -397,14 +412,8 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.friendRequestAccepted:
       case NotificationType.friendAccepted:
         return 'Demande acceptée';
-      case NotificationType.newFollower:
-        return 'Nouvel abonné';
       case NotificationType.localEvent:
         return 'Événement local';
-      case NotificationType.nearbyMember:
-        return 'Membre à proximité';
-      case NotificationType.proximityAlert:
-        return 'Alerte de proximité';
       case NotificationType.order:
       case NotificationType.newOrder:
         return 'Commande';
@@ -435,6 +444,32 @@ class NotificationDetailScreen extends ConsumerWidget {
         return 'Réaction';
       case NotificationType.general:
         return l10n.notificationsTitle;
+      // Ces libellés-là ne sont pas recopiés ici : `NotificationTypeExtension`
+      // en est la source, et cette liste-ci ne fait que la reprendre. Les
+      // anciens cas gardent leur formulation propre à la fiche (« Invitation à
+      // un groupe » contre « Invitation groupe » dans la liste) — les aligner
+      // est un autre chantier, celui de la source unique.
+      case NotificationType.system:
+      case NotificationType.supportReply:
+      case NotificationType.missedCall:
+      case NotificationType.audioRoomReminder:
+      case NotificationType.audioRoomLive:
+      case NotificationType.audioRoomInvite:
+      case NotificationType.podcastNewEpisode:
+      case NotificationType.podcastLiveNow:
+      case NotificationType.transferReminder:
+      case NotificationType.transferReceived:
+      case NotificationType.transferCompleted:
+      case NotificationType.transferFailed:
+      case NotificationType.transfer:
+      case NotificationType.paymentFailed:
+      case NotificationType.payout:
+      case NotificationType.payoutFailed:
+      case NotificationType.stripeAccountEnabled:
+      case NotificationType.postLiked:
+      case NotificationType.postReposted:
+      case NotificationType.orderShippingReminder:
+        return type.label;
     }
   }
 

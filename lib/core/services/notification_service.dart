@@ -22,6 +22,7 @@ import '../errors/journal_echecs.dart';
 import 'e2ee/notification_decryption_service.dart';
 import 'background_location_service.dart';
 import 'background_reply_service.dart';
+import 'notification_pref_keys.dart';
 import 'native_call_service.dart';
 import 'notification_read_sync.dart';
 import '../../l10n/app_localizations.dart';
@@ -1785,6 +1786,13 @@ class NotificationService {
   }
 
   /// Check if notification should be shown based on user preferences
+  /// Faut-il AFFICHER cette notification au premier plan ?
+  ///
+  /// La règle (quel type dépend de quelle bascule) vit dans
+  /// [kClePreferenceParType], et pas dans un `switch` d'ici : elle était
+  /// recopiée dans `prefKeyFor` côté `send-push`, et les deux copies avaient
+  /// divergé à sept endroits — une bascule qui coupait app fermée mais pas app
+  /// ouverte, et l'inverse. Voir la table pour le détail.
   Future<bool> _shouldShowNotification(String? type) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -1794,50 +1802,10 @@ class NotificationService {
 
       if (type == null) return true;
 
-      switch (type) {
-        case 'message':
-        case 'messageReaction':
-          return prefs.getBool('notify_messages') ?? true;
-        case 'friendRequest':
-        case 'friendRequestAccepted':
-          return prefs.getBool('notify_friend_requests') ?? true;
-        case 'groupInvite':
-        case 'groupJoinRequest':
-        case 'groupRequestApproved':
-        case 'groupRequestRejected':
-        case 'officialGroupLeave':
-        case 'cityGroupInvite':
-          return prefs.getBool('notify_groups') ?? true;
-        case 'eventUpdate':
-          return prefs.getBool('notify_events') ?? true;
-        case 'eventReminder':
-          return prefs.getBool('notify_event_reminders') ?? true;
-        case 'audioRoomReminder':
-        case 'audioRoomLive':
-        case 'audioRoomInvite':
-        case 'audioRoomSpeakerRequest':
-        case 'audioRoomEnded':
-          return prefs.getBool('notify_audio_room_reminders') ?? true;
-        case 'podcastNewEpisode':
-        case 'podcastLiveStarting':
-        case 'podcastLiveNow':
-          return prefs.getBool('notify_podcast_episodes') ?? true;
-        case 'transferReminder':
-        case 'transferCompleted':
-        case 'transferReceived':
-        case 'transferFailed':
-          return prefs.getBool('notify_transfer_reminders') ?? true;
-        case 'missedCall':
-          return prefs.getBool('notify_calls') ?? true;
-        case 'newOrder':
-        case 'orderPaid':
-        case 'orderShipped':
-        case 'orderDelivered':
-        case 'orderCancelled':
-          return prefs.getBool('notify_orders') ?? true;
-        default:
-          return true;
-      }
+      final cle = kClePreferenceParType[type];
+      // Type non filtrable (paiements, modération, fil) : il passe toujours.
+      if (cle == null) return true;
+      return prefs.getBool('notify_$cle') ?? true;
     } catch (e) {
       // debugPrint('Error checking notification preferences: $e');
       return true; // Show notification if error

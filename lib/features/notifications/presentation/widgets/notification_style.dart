@@ -33,13 +33,16 @@ Color notificationTint(BuildContext context, NotificationType type) {
     case NotificationType.groupMention:
     case NotificationType.postCommented:
     case NotificationType.commentReply:
+    case NotificationType.postLiked:
+    case NotificationType.postReposted:
+    case NotificationType.system:
+    case NotificationType.supportReply:
       return context.adaptivePrimaryColor;
 
     // Ce qui rassemble : groupes et événements.
     case NotificationType.groupInvite:
     case NotificationType.groupJoinRequest:
     case NotificationType.groupRequestApproved:
-    case NotificationType.newMember:
     case NotificationType.officialGroupLeave:
     case NotificationType.cityGroupInvite:
     case NotificationType.eventReminder:
@@ -47,15 +50,17 @@ Color notificationTint(BuildContext context, NotificationType type) {
     case NotificationType.eventAttendance:
     case NotificationType.localEvent:
     case NotificationType.groupCallInvitation:
+    case NotificationType.audioRoomReminder:
+    case NotificationType.audioRoomLive:
+    case NotificationType.audioRoomInvite:
+    case NotificationType.podcastNewEpisode:
+    case NotificationType.podcastLiveNow:
       return context.successColor;
 
     // Les gens : demandes, abonnements, présence à proximité.
     case NotificationType.friendRequest:
     case NotificationType.friendRequestAccepted:
     case NotificationType.friendAccepted:
-    case NotificationType.newFollower:
-    case NotificationType.nearbyMember:
-    case NotificationType.proximityAlert:
       return context.adaptiveSecondaryColor;
 
     // Les transactions.
@@ -65,12 +70,23 @@ Color notificationTint(BuildContext context, NotificationType type) {
     case NotificationType.orderShipped:
     case NotificationType.orderDelivered:
     case NotificationType.orderCompleted:
+    case NotificationType.orderShippingReminder:
+    case NotificationType.transferReminder:
+    case NotificationType.transferReceived:
+    case NotificationType.transferCompleted:
+    case NotificationType.transfer:
+    case NotificationType.payout:
+    case NotificationType.stripeAccountEnabled:
       return context.goldColor;
 
     // Ce qui a échoué, et la modération.
     case NotificationType.groupRequestRejected:
     case NotificationType.orderCancelled:
     case NotificationType.reportResolved:
+    case NotificationType.transferFailed:
+    case NotificationType.paymentFailed:
+    case NotificationType.payoutFailed:
+    case NotificationType.missedCall:
       return context.errorColor;
   }
 }
@@ -83,7 +99,6 @@ IconData notificationIcon(NotificationType type) {
     case NotificationType.groupInvite:
     case NotificationType.groupJoinRequest:
       return Icons.group_add_outlined;
-    case NotificationType.newMember:
     case NotificationType.officialGroupLeave:
     case NotificationType.cityGroupInvite:
       return Icons.groups_outlined;
@@ -99,15 +114,10 @@ IconData notificationIcon(NotificationType type) {
     case NotificationType.eventAttendance:
       return Icons.event_available_outlined;
     case NotificationType.friendRequest:
-    case NotificationType.newFollower:
       return Icons.person_add_alt;
     case NotificationType.friendRequestAccepted:
     case NotificationType.friendAccepted:
       return Icons.how_to_reg_outlined;
-    case NotificationType.nearbyMember:
-      return Icons.person_pin_circle_outlined;
-    case NotificationType.proximityAlert:
-      return Icons.location_on_outlined;
     case NotificationType.order:
     case NotificationType.newOrder:
       return Icons.shopping_bag_outlined;
@@ -136,6 +146,38 @@ IconData notificationIcon(NotificationType type) {
       return Icons.groups_outlined;
     case NotificationType.messageReaction:
       return Icons.add_reaction_outlined;
+    case NotificationType.postLiked:
+      return Icons.favorite_outline;
+    case NotificationType.postReposted:
+      return Icons.repeat;
+    case NotificationType.system:
+      return Icons.campaign_outlined;
+    case NotificationType.supportReply:
+      return Icons.support_agent_outlined;
+    case NotificationType.missedCall:
+      return Icons.call_missed_outgoing;
+    case NotificationType.audioRoomReminder:
+    case NotificationType.audioRoomLive:
+    case NotificationType.audioRoomInvite:
+      return Icons.mic_none_outlined;
+    case NotificationType.podcastNewEpisode:
+    case NotificationType.podcastLiveNow:
+      return Icons.podcasts_outlined;
+    case NotificationType.transferReminder:
+    case NotificationType.transferReceived:
+    case NotificationType.transferCompleted:
+    case NotificationType.transfer:
+      return Icons.payments_outlined;
+    case NotificationType.transferFailed:
+    case NotificationType.paymentFailed:
+    case NotificationType.payoutFailed:
+      return Icons.error_outline;
+    case NotificationType.orderShippingReminder:
+      return Icons.local_shipping_outlined;
+    case NotificationType.payout:
+      return Icons.account_balance_outlined;
+    case NotificationType.stripeAccountEnabled:
+      return Icons.verified_outlined;
   }
 }
 

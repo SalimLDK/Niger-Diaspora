@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1238 cases à cocher, 621 cochées** — 248 entrées sur 297 ont encore des cases ouvertes.
+**1250 cases à cocher, 624 cochées** — 250 entrées sur 299 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -81,7 +81,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (83)
+**P1 — fonction importante, jamais vérifiée** (85)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -93,6 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 5 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
 - 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
@@ -115,6 +116,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
+- 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
 - 2 · [✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)](#-lien-diasponiger-au-démarrage-à-froid--corrigé-vérifié-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
@@ -306,11 +308,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 265 à faire, 109 faites
+- [2. Messagerie](#2-messagerie) — 270 à faire, 112 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 94 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 101 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -565,6 +567,75 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)
+
+**Priorité P1** · importance 4/5 — la tuile « Mes notes » était la seule de la
+liste à faire une requête **avant** de pousser son écran : un spinner à la
+place de l'icône signet, la tuile intouchable, à **chaque** ouverture. Toutes
+les autres discussions s'ouvrent d'un `context.push` synchrone.
+
+Ce coût était celui d'un correctif, pas d'un oubli. Le raccourci d'origine a
+été retiré le 2026-08-06 parce qu'il lisait le **cache Hive** : une
+conversation effacée côté serveur y reste, on ouvrait un document fantôme,
+l'écran annonçait « Ce groupe a été supprimé » et tout envoi échouait ensuite
+(« Non envoyé · Réessayer »).
+
+Le raccourci revient avec une source différente : la liste n'est crue que
+lorsqu'elle vient du **flux Supabase vivant** — qui retire une conversation
+supprimée — jamais de sa copie Hive. `conversationsDepuisReseauProvider`
+distingue les deux et repart à `false` à chaque (re)construction du flux, donc
+après un tirer-pour-rafraîchir aussi.
+
+C'est la règle qui est testée (`test/features/messages/mes_notes_ouverture_test.dart`),
+pas son câblage : la provenance réelle des émissions ne se voit qu'à
+l'exécution, et c'est précisément ce qu'il faut vérifier ici.
+
+**Passe appareil du 2026-09-15 (SM A515F, compte `vQZE49…`, le seul « Mes
+notes » basculé en MLS).** Le point décisif s'est joué **réseau coupé** :
+`svc wifi disable` + `svc data disable`, jusqu'à ce que le téléphone réponde
+`ping: unknown host` sur l'hôte Supabase. Dans cet état, `ensure` ne *peut
+pas* aboutir — il commence par `ensureAuthenticated` puis un `select`. Taper
+« Mes notes » a pourtant ouvert le fil entier, et la tuile portait encore son
+icône signet (capture à t+1,3 s), pas un tourniquet : aucun état de chargement
+n'a été posé. C'est le raccourci, et rien d'autre, qui a ouvert l'écran.
+Réseau rétabli ensuite, vérifié à 15 ms.
+
+- [x] App déjà chargée, liste affichée : taper « Mes notes » ouvre l'écran
+      **sans spinner** sur la tuile
+- [x] Un message envoyé depuis cette ouverture-là part vraiment — pas de
+      « Non envoyé · Réessayer » (c'est la panne de 2026-08-06). Prouvé en
+      base, pas à l'écran : `mls_messages` de `805adcaa…` est passé de 5 à 6
+      lignes, la dernière 23 s après le tap. L'écran seul ne suffirait pas,
+      il affiche « Envoyé » de façon optimiste.
+- [x] Réseau coupé, liste déjà chargée depuis le réseau : l'ouverture aboutit
+      quand même (c'est le test ci-dessus)
+- [ ] Réseau coupé **et** liste jamais chargée depuis le réseau (démarrage à
+      froid hors ligne) : doit échouer proprement sur le SnackBar
+      « Impossible d'ouvrir Mes notes pour le moment »
+- [ ] Démarrage à froid en ligne, tap immédiat avant que la liste n'ait
+      chargé : la tuile fait encore son aller-retour (spinner), et
+      l'ouverture aboutit
+- [ ] Après un tirer-pour-rafraîchir, la première ouverture peut refaire
+      l'aller-retour, les suivantes non
+- [ ] Compte neuf, « Mes notes » jamais créée : le premier tap la crée et la
+      tuile prend son aperçu dans la liste
+- [ ] Même parcours depuis « Nouvelle conversation » (l'autre appelant)
+
+⚠️ **Vu au passage, sans rapport avec ce changement** : après l'envoi d'une
+note en MLS, l'aperçu de la tuile retombe sur son libellé par défaut
+(« Notes, brouillons et sondages ») au lieu du dernier texte — le serveur n'a
+jamais le clair d'un message MLS, et `conversations.last_message` reste vide.
+Voir « La liste n'annonce plus « Utilisateur » ni « Message chiffré » », qui
+traite la reconstruction de l'aperçu depuis le cache local, et l'entrée sur
+l'accusé « lu » et l'aperçu chiffré.
+
+Fichiers : [message_provider.dart](lib/features/messages/presentation/providers/message_provider.dart)
+(`conversationsDepuisReseauProvider`, `EnsureSelfNotesNotifier.ouvrir`),
+[messages_screen.dart](lib/features/messages/presentation/screens/messages_screen.dart),
+[new_conversation_screen.dart](lib/features/messages/presentation/screens/new_conversation_screen.dart)
 
 ---
 
@@ -8704,6 +8775,68 @@ en solo.
 # 6. Notifications et push
 
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
+
+---
+
+## ⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)
+
+**Priorité P1** · importance 4/5 — Inventaire du 2026-09-16, à partir des
+écrivains eux-mêmes (client, migrations, `functions/index.js`) plutôt que
+d'une lecture. Trois écarts, tous muets.
+
+**1. Vingt types écrits, absents de `NotificationType`.** `postLiked`,
+`postReposted`, `system` et dix-sept types des Cloud Functions étaient repliés
+sur `general` par `_parseNotificationType` : libellé « Général » dans la liste,
+et pour les deux premiers, un appui qui ouvrait la fiche au lieu de la
+publication. `system` porte les **37 lignes** de l'annonce du 2026-09-15.
+
+**2. Sept divergences entre les deux tables de préférences.** L'app décide de
+l'affichage au premier plan, `send-push` décide de l'envoi, et la règle était
+recopiée des deux côtés. `friendAccepted`, `newFollower`, `eventAttendance`,
+`localEvent` et `system` n'étaient filtrés que côté serveur ; `officialGroupLeave`
+et `cityGroupInvite`, que côté app. Une bascule qui coupe app fermée mais pas
+app ouverte, ou l'inverse — irreproductible pour qui ne sait pas que ce sont
+deux chemins. La table vit désormais dans
+`lib/core/services/notification_pref_keys.dart`, et le TypeScript en est le
+reflet, comparé par un banc.
+
+**3. `report_resolved` n'écrivait aucune clé de cible.** Ni `targetId` ni
+`target_id` : `NotificationReadSync` ne pouvait pas la retrouver, elle restait
+non lue pour toujours.
+
+Retirés au passage : quatre types que personne n'écrit (`newFollower`,
+`newMember`, `nearbyMember`, `proximityAlert`) et les huit fichiers de la pile
+`settings/notification_preferences_*`, qui lisaient des documents `users`
+Firestore qui n'existent plus et n'avaient aucun consommateur.
+
+⚠️ **`send-push` doit être redéployée** pour que le volet serveur des
+préférences change quoi que ce soit : `supabase functions deploy send-push`.
+Sans ça, seul l'affichage au premier plan est corrigé — c'est-à-dire la moitié
+du défaut.
+
+Vérifié hors appareil : 40 cas (couverture des types, parité des tables, clés
+de cible), `flutter analyze` propre. **Rien n'a tourné sur un téléphone.**
+
+Fichiers : [notification_entity.dart](lib/features/notifications/domain/entities/notification_entity.dart),
+[notification_pref_keys.dart](lib/core/services/notification_pref_keys.dart),
+`supabase/functions/send-push/index.ts`.
+
+- [ ] **Une annonce `system`** s'affiche « Message système », pas « Général ».
+- [ ] **Un j'aime sur ma publication** : la notification s'appelle « Nouveau
+  j'aime », et l'appui ouvre **la publication**, pas la fiche.
+- [ ] **Couper « Messages système »**, puis se faire envoyer une annonce :
+  rien ne doit arriver, **app ouverte comme app fermée**. C'est le test de la
+  parité — avant, elle passait app ouverte.
+- [ ] **Couper « Groupes »**, puis déclencher une invitation de groupe de
+  ville : rien ne doit arriver app fermée non plus.
+- [ ] **Couper « Demandes d'ami »**, puis faire accepter une demande : la
+  notification d'acceptation ne doit pas arriver.
+- [ ] **Écran Notifications, filtres** : les onglets fonctionnent encore après
+  le retrait des quatre types morts (ils figuraient dans trois listes de
+  filtres).
+- [ ] **Réglages → Notifications** : les bascules s'affichent et se
+  souviennent (la pile Firestore supprimée n'était pas celle qui sert, mais
+  c'est le moment de le vérifier).
 
 ---
 
