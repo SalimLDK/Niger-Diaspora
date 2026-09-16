@@ -129,6 +129,38 @@ class ConversationScreen extends ConsumerStatefulWidget {
   return (nombre: nombre, premier: premier);
 }
 
+/// Le rang du premier des [combien] derniers messages **d'autrui**, en
+/// remontant depuis la fin.
+///
+/// Sert quand les messages reviennent du serveur **déjà marqués lus** et que
+/// [compterNonLus] ne peut donc plus rien trouver : `markAsRead` part dès
+/// `initState`, avant même que les messages chiffrés ne soient récupérés.
+/// Mesuré le 2026-09-15 sur Pixel 10 Pro XL : `delivered_at` et `read_at`
+/// posés à 7 ms d'écart à l'instant de l'ouverture. Le séparateur ne pouvait
+/// alors **jamais** s'afficher sur une conversation chiffrée.
+///
+/// Le compte, lui, vient du serveur et a été relevé **avant** l'ouverture (la
+/// tuile de la liste le portait déjà). Même exclusion que `compterNonLus` :
+/// ni message système, ni les miens.
+int? rangDesDerniersDAutrui(
+  List<MessageEntity> messages,
+  String moi,
+  int combien,
+) {
+  if (combien <= 0) return null;
+  var restant = combien;
+  for (var i = messages.length - 1; i >= 0; i--) {
+    final m = messages[i];
+    if (m.type == MessageType.system) continue;
+    if (m.senderId == moi) continue;
+    restant--;
+    if (restant == 0) return i;
+  }
+  // Moins de messages d'autrui que le compteur n'en annonçait : le fil n'est
+  // pas encore complet. On ne pose rien plutôt que de se tromper de rang.
+  return null;
+}
+
 class _ConversationScreenState extends ConsumerState<ConversationScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   AppLocalizations get l10n => AppLocalizations.of(context)!;
@@ -151,6 +183,26 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   // For highlighting a message when scrolling to it
   String? _highlightedMessageId;
+
+  /// Ouverture de l'écran, pour borner le recompte des non-lus.
+  final DateTime _ouvertA = DateTime.now();
+
+  /// Le compteur de non-lus **tel que la liste l'affichait**, relevé avant que
+  /// quoi que ce soit ne marque lu.
+  ///
+  /// C'est la seule source qui survit à l'ouverture : `markAsRead` part dès
+  /// `initState`, donc les messages chiffrés reviennent du serveur déjà lus
+  /// et `compterNonLus` ne trouve plus rien. Voir [rangDesDerniersDAutrui].
+  int _nonLusAvantOuverture = 0;
+
+  /// Au-delà, un message qui arrive est un message **reçu en direct** : il ne
+  /// doit pas se ranger sous un séparateur « nouveaux messages » sous les yeux
+  /// de quelqu'un qui regarde la discussion.
+  static const _fenetreRecompteNonLus = Duration(seconds: 6);
+
+  /// Le placement initial ne se fait qu'une fois, même si le comptage des
+  /// non-lus, lui, repasse : sinon la vue sauterait à chaque émission.
+  bool _aFaitLePlacementInitial = false;
 
   // Unread messages separator
   int? _firstUnreadMessageIndex;
@@ -285,6 +337,24 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       }
     }
     final connue = _conversationConnueAuDemarrage;
+
+    // 1 bis. Le compteur de non-lus, pris sur la liste **vivante** et non sur
+    //        le cache : pour une conversation chiffrée, le serveur n'écrit
+    //        jamais `data.unreadCount`, et la copie en cache dirait zéro. La
+    //        liste, elle, l'a reconstitué depuis `mls_unread_counts` — c'est
+    //        ce nombre-là qu'affichait la pastille juste avant le tap.
+    //
+    //        Il faut le prendre **maintenant** : `markAsRead` part au premier
+    //        rendu, et tout sera lu quelques millisecondes plus tard.
+    if (moi != null) {
+      final vivantes = ref.read(conversationsProvider).valueOrNull;
+      for (final c in vivantes ?? const <ConversationEntity>[]) {
+        if (c.id == widget.conversationId) {
+          _nonLusAvantOuverture = c.getUnreadCountFor(moi);
+          break;
+        }
+      }
+    }
 
     // 2. Sa nature. « Mes notes » se décide par différence avec le compte
     //    courant, comme l'interlocuteur : sans lui, on ne tranche pas.
@@ -497,9 +567,57 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         _firstUnreadMessageIndex = firstUnreadIndex;
         _hasCalculatedUnread = true;
       });
-      _scrollToUnreadOrBottom(firstUnreadIndex, messages.length);
-    } else {
+      if (!_aFaitLePlacementInitial) {
+        _aFaitLePlacementInitial = true;
+        _scrollToUnreadOrBottom(firstUnreadIndex, messages.length);
+      }
+      return;
+    }
+
+    // Zéro trouvé dans les messages, mais le serveur en annonçait : ils sont
+    // revenus **déjà marqués lus**, parce que `markAsRead` est parti au premier
+    // rendu, avant même que le fil chiffré ne soit récupéré. On retombe alors
+    // sur le compteur relevé à l'ouverture, et on place le séparateur par le
+    // rang plutôt que par l'état de lecture.
+    if (_nonLusAvantOuverture > 0) {
+      final rang = rangDesDerniersDAutrui(
+        messages,
+        currentUser.id,
+        _nonLusAvantOuverture,
+      );
+      if (rang != null) {
+        setState(() {
+          _unreadCountOnOpen = _nonLusAvantOuverture;
+          _firstUnreadMessageIndex = rang;
+          _hasCalculatedUnread = true;
+        });
+        if (!_aFaitLePlacementInitial) {
+          _aFaitLePlacementInitial = true;
+          _scrollToUnreadOrBottom(rang, messages.length);
+        }
+        return;
+      }
+      // Le fil n'est pas encore complet (moins de messages d'autrui que le
+      // compteur n'en annonce) : on laisse la fenêtre de recompte repasser.
+    }
+
+    // Zéro non-lu — mais sur quoi a-t-on compté ?
+    //
+    // `_loadCacheSync` affiche le cache local immédiatement et pose
+    // `isLoadingInitial: false` ; c'est voulu, l'écran ne doit pas rester
+    // vide. Seulement, les messages neufs ne sont PAS dans ce cache : sur une
+    // conversation chiffrée ils n'ont jamais été déchiffrés, et ils
+    // n'arrivent qu'après la lecture réseau. Le compte tombait donc sur zéro,
+    // `_hasCalculatedUnread` se fermait pour de bon, et rien ne recomptait
+    // quand ils arrivaient : **le séparateur ne s'affichait jamais**.
+    //
+    // On ne ferme donc le verrou qu'une fois la fenêtre d'ouverture passée.
+    // Le placement, lui, a déjà eu lieu : il ne se rejoue pas.
+    if (DateTime.now().difference(_ouvertA) >= _fenetreRecompteNonLus) {
       _hasCalculatedUnread = true;
+    }
+    if (!_aFaitLePlacementInitial) {
+      _aFaitLePlacementInitial = true;
       _scrollToUnreadOrBottom(null, messages.length);
     }
   }

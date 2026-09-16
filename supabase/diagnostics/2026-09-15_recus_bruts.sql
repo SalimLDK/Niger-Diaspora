@@ -19,7 +19,7 @@ SELECT m.created_at,
   FROM public.mls_messages m
   LEFT JOIN public.mls_message_receipts r ON r.message_id = m.id
  WHERE m.conversation_id = 'debef5f0-2fa0-4775-b1ed-85a4d6411102'
-   AND m.created_at > now() - interval '70 minutes'
+   AND m.created_at > now() - interval '15 minutes'
  ORDER BY m.created_at DESC, r.user_id;
 
 ROLLBACK;

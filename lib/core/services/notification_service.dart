@@ -102,6 +102,24 @@ class NotificationGroup {
 }
 
 /// Constantes pour les actions de notification
+/// L'heure que le SERVEUR a donnée au message, prise dans la charge du push.
+///
+/// Repli sur maintenant si elle manque — un ancien `send-push`, ou un type de
+/// notification qui n'en porte pas. Jamais d'exception : une bannière sans
+/// heure vaut mieux qu'une bannière absente.
+///
+/// **Pourquoi ce n'est pas `DateTime.now()`.** C'est ce qu'on faisait, et ça
+/// datait la notification de sa LIVRAISON : un message reçu au retour du
+/// réseau s'affichait « à l'instant » alors qu'il datait de deux heures. Dans
+/// une pile, ça donnait des heures toutes égales — et un ordre qui ne veut
+/// plus rien dire.
+DateTime heureDuMessage(Map<String, dynamic> data) {
+  final brut = data['sentAt'];
+  final ms = brut is int ? brut : int.tryParse(brut?.toString() ?? '');
+  if (ms == null || ms <= 0) return DateTime.now();
+  return DateTime.fromMillisecondsSinceEpoch(ms);
+}
+
 /// Préfixe du groupe Android des notifications de messagerie.
 ///
 /// Une conversation = un groupe. Les deux chemins d'affichage — l'isolate
@@ -584,11 +602,13 @@ Future<void> _showFallbackMessageNotification({
   // lisible, aucun compteur. Le chemin premier plan savait déjà empiler, mais
   // son cache vit en mémoire dans le singleton — cet isolate-ci ne le voit
   // pas. D'où la pile en `SharedPreferences`, le seul état partagé.
+  final quand = heureDuMessage(data);
   final pile = await PileMessagesNotifiees.empiler(
     conversationId: conversationId,
     messageId: data['messageId'] as String? ?? '',
     texte: body,
     expediteur: data['senderName'] as String? ?? title,
+    quand: quand,
   );
   final estGroupe = data['conversationType'] == 'group';
   final styleMessagerie = MessagingStyleInformation(
@@ -626,6 +646,11 @@ Future<void> _showFallbackMessageNotification({
         // Le compteur que la pastille du lanceur affiche sur les surcouches qui
         // le gèrent (Samsung, Xiaomi) : « 5 » plutôt que « 1 ».
         number: pile.length,
+        // L'heure du message, pas celle de la livraison — et affichée : ce
+        // chemin-ci ne renseignait pas `when`, donc la bannière d'arrière-plan
+        // n'affichait aucune heure du tout.
+        showWhen: true,
+        when: quand.millisecondsSinceEpoch,
         groupKey: '$kPrefixeGroupeMessages$conversationId',
         // Sans ça, le repli retombait sur l'icône par défaut du plugin
         // (`@mipmap/ic_launcher`), que la barre d'état réduit à un disque
@@ -1997,7 +2022,7 @@ class NotificationService {
         body: body,
         senderName: senderName,
         senderPhotoUrl: senderPhotoUrl,
-        timestamp: DateTime.now(),
+        timestamp: heureDuMessage(data),
         messageType: messageType,
       ),
     );
@@ -2013,6 +2038,7 @@ class NotificationService {
         messageId: data['messageId'] as String? ?? '',
         texte: body,
         expediteur: senderName,
+        quand: heureDuMessage(data),
       );
     }
 
@@ -2109,7 +2135,7 @@ class NotificationService {
                   : AndroidNotificationCategory.social,
           visibility: NotificationVisibility.private,
           showWhen: true,
-          when: DateTime.now().millisecondsSinceEpoch,
+          when: heureDuMessage(data).millisecondsSinceEpoch,
           usesChronometer: false,
           autoCancel: true,
           onlyAlertOnce: false,
@@ -2158,7 +2184,18 @@ class NotificationService {
     final messages = <Message>[];
 
     if (group != null) {
-      for (final notification in group.notifications.take(10)) {
+      // Les DIX PLUS RÉCENTES, dans l'ordre chronologique.
+      //
+      // C'était `.take(10)` — donc les dix plus ANCIENNES, celles qu'on veut
+      // justement laisser tomber quand la pile déborde — suivi d'un
+      // `.reversed` qui mettait le plus récent EN HAUT. D'où une bannière à
+      // l'envers, signalée sur appareil le 2026-09-16. `MessagingStyle` affiche
+      // dans l'ordre de la liste, et une conversation se lit du haut vers le
+      // bas : le plus ancien d'abord.
+      final recentes = group.notifications.length > 10
+          ? group.notifications.sublist(group.notifications.length - 10)
+          : group.notifications;
+      for (final notification in recentes) {
         // Créer la Person pour l'expéditeur
         final person = await _getOrCreatePerson(
           name: notification.senderName ?? 'Utilisateur',
@@ -2181,7 +2218,7 @@ class NotificationService {
 
     return MessagingStyleInformation(
       me,
-      messages: messages.reversed.toList(), // Plus récents en premier
+      messages: messages, // Chronologique : le plus ancien en haut
       conversationTitle: isGroup ? conversationTitle : null,
       groupConversation: isGroup,
     );

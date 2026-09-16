@@ -93,6 +93,34 @@ void main() {
     });
   });
 
+  group('l’ordre est celui de la conversation', () {
+    test('du plus ancien au plus récent, quel que soit l’ordre d’arrivée', () async {
+      // Au retour du réseau, plusieurs messages arrivent d'un coup et pas
+      // toujours dans l'ordre où ils ont été écrits. C'est l'heure du serveur
+      // qui tranche, pas l'ordre d'empilement.
+      final base = DateTime(2026, 9, 16, 10);
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm3', texte: 'troisième',
+          expediteur: 'A', quand: base.add(const Duration(minutes: 2)));
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'premier',
+          expediteur: 'A', quand: base);
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm2', texte: 'deuxième',
+          expediteur: 'A', quand: base.add(const Duration(minutes: 1)));
+      final pile = await PileMessagesNotifiees.lire('c1');
+      expect(pile.map((m) => m.texte), ['premier', 'deuxième', 'troisième']);
+    });
+
+    test('l’heure posée est bien celle qu’on a donnée', () async {
+      final quand = DateTime(2026, 9, 16, 8, 30);
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'a',
+          expediteur: 'A', quand: quand);
+      expect((await PileMessagesNotifiees.lire('c1')).single.quand, quand);
+    });
+  });
+
   group('la pile se vide quand la conversation est vue', () {
     test('vider une conversation ne touche pas l’autre', () async {
       await PileMessagesNotifiees.empiler(
@@ -156,6 +184,30 @@ void main() {
       final i = source.indexOf('Future<void> _cancelNotificationsForConversation(');
       final corps = source.substring(i, source.indexOf('\n}\n', i));
       expect(corps, contains('PileMessagesNotifiees.vider(conversationId)'));
+    });
+
+    test('la bannière porte l’heure du MESSAGE, pas celle de la livraison', () {
+      final source = _lire(service);
+      // Une seule lecture de l'heure, partagée par les deux chemins.
+      expect(source, contains('DateTime heureDuMessage(Map<String, dynamic> data)'));
+      expect(source, contains("data['sentAt']"));
+      // Et elle est AFFICHÉE : ce chemin-ci ne renseignait pas `when`.
+      expect(source, contains('when: quand.millisecondsSinceEpoch'));
+      expect(source.contains('when: DateTime.now().millisecondsSinceEpoch'), isFalse,
+          reason: 'plus aucun `when` sur l’heure de livraison');
+    });
+
+    test('la pile s’affiche du plus ancien au plus récent', () {
+      // `.take(10)` gardait les dix plus ANCIENNES — celles qu'on veut laisser
+      // tomber — et `.reversed` mettait la plus récente en HAUT. Bannière à
+      // l'envers, signalée sur appareil.
+      final source = _lire(service);
+      final i = source.indexOf('_buildMessagingStyle(');
+      expect(i, greaterThan(-1));
+      final corps = source.substring(i, source.indexOf('String _formatMessagePreview(', i));
+      expect(corps.contains('messages.reversed'), isFalse);
+      expect(corps.contains('group.notifications.take(10)'), isFalse);
+      expect(corps, contains('sublist(group.notifications.length - 10)'));
     });
 
     test('les deux chemins d’affichage posent le MÊME groupe Android', () {

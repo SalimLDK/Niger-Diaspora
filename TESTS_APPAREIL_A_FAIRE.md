@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1271 cases à cocher, 628 cochées** — 253 entrées sur 302 ont encore des cases ouvertes.
+**1277 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -60,7 +60,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 9 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 12 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -82,7 +82,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (86)
+**P1 — fonction importante, jamais vérifiée** (87)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -94,6 +94,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 3 · [⬜ Pastille de non-lus, et séparateur « nouveaux messages » (2026-09-15)](#-pastille-de-non-lus-et-séparateur--nouveaux-messages--2026-09-15) · *Messagerie*
 - 4 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
 - 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
@@ -311,11 +312,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 269 à faire, 115 faites
+- [2. Messagerie](#2-messagerie) — 272 à faire, 119 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 120 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 123 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -570,6 +571,94 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Pastille de non-lus, et séparateur « nouveaux messages » (2026-09-15)
+
+**Priorité P1** · importance 4/5 — signalé à l'usage : ouvrir une discussion
+qui a de nouveaux messages n'affiche aucune pastille, et le message neuf met
+un instant à apparaître. Trois causes distinctes, deux corrigées et vérifiées,
+une qui résiste.
+
+**1. La pastille de la LISTE — corrigée, vérifiée.** `_completerAvecMls` sort
+d'emblée si `!actif && !aDesConversationsBasculees`. Or ce dernier se remplit
+**paresseusement, en ouvrant un fil**. Après un démarrage à froid, la
+passerelle croyait donc qu'il n'y avait rien de chiffré : ni compteurs, ni
+aperçus. Et ouvrir la discussion « réparait » la liste pour le reste de la
+session, ce qui rendait le défaut déroutant. `amorcerBascules` lit tout en une
+requête, avant le garde.
+
+- [x] **Démarrage à froid, sans ouvrir aucun fil** : vérifié le 2026-09-15 sur
+  Pixel 10 Pro XL. « 3 non lus » en sous-titre, pastille **3** sur la tuile,
+  puce « Non lus 3 », badge **3** sur l'onglet Messages, horodatage en orange,
+  et l'aperçu en clair (l'emoji du dernier message). Avant : « Message
+  chiffré », aucune pastille, vingt secondes durant, notification en clair à
+  l'écran.
+- [x] **L'expéditeur ne voit pas « Lu »** : vérifié à deux téléphones. Deux
+  messages envoyés du SM A515F (Sim A) restent « Envoyé » tant que le Pixel
+  n'ouvre pas. Ferme la case laissée ouverte par la passe précédente.
+
+**2. Le séparateur « nouveaux messages » DANS le fil — ⚠️ toujours absent.**
+Il était compté sur le cache local seul puis verrouillé à zéro ; c'est corrigé
+(fenêtre de recompte de 6 s). **Mais ça ne suffit pas**, et la mesure le
+montre : `markAsRead` part dès `initState`, **avant** que les messages MLS ne
+soient récupérés. Ils reviennent donc déjà lus — `delivered_at` et `read_at`
+à 7 ms d'écart, mesurés à 03:10:58 UTC à l'instant de l'ouverture — et
+`compterNonLus` trouve zéro. Aucun recompte ne peut y changer quoi que ce
+soit : la donnée elle-même dit « lu ».
+
+Le correctif demande de **changer l'ordre d'ouverture** : retenir le compte de
+non-lus **avant** de marquer lu (le compteur serveur est déjà dans la tuile de
+la liste), puis poser le séparateur, puis marquer. Ce n'est pas une ligne, et
+ce n'est pas fait.
+
+- [x] **Le séparateur** : vérifié le 2026-09-15 sur Pixel 10 Pro XL. Sept
+  messages reçus sans ouvrir, puis ouverture : la pastille orange
+  « 7 messages non lus » se pose au bon rang — sept messages d'autrui en
+  dessous, ni plus ni moins — et la vue s'y place.
+
+  L'ordre n'a finalement **pas** été changé : `markAsRead` part toujours au
+  premier rendu. C'est le **compteur** qui est relevé avant, sur la liste
+  vivante, et le séparateur qui se place par le **rang**
+  (`rangDesDerniersDAutrui`) au lieu de l'état de lecture — lequel est
+  déjà faussé quand le fil arrive.
+- [ ] **Et il ne doit PAS apparaître** sur un message reçu en direct pendant
+  qu'on regarde la discussion.
+
+**3. Le délai avant que le message neuf s'affiche — ⚠️ structurel, non traité.**
+Il n'existe **aucun rattrapage MLS en arrière-plan** : le déchiffrement n'a
+lieu qu'à l'ouverture du fil, et le temps réel sur `mls_messages` n'est
+abonné que par la discussion ouverte. Réseau + déchiffrement, à chaque
+ouverture. Le corriger demande un abonnement global et un rattrapage hors
+écran — un chantier, pas un correctif.
+
+- [x] **Mesuré, puis corrigé.** Avant : le fil s'affichait depuis le cache,
+  **sans** les messages reçus entre deux visites, et il fallait 2,5 à 3 s
+  (trois à quatre images de rafale) pour les voir apparaître. Après : ils
+  sont là dès la **première image** après le tap. La liste déclenche un
+  rattrapage de fond qui les déchiffre **et les met en cache** avant
+  qu'on ouvre.
+- [ ] **Le verrou de rattrapage, sous charge** : `messages()` partage
+  désormais un seul futur par conversation, parce que le rattrapage de
+  fond et l'ouverture du fil peuvent tomber ensemble — deux `catchUp`
+  concurrents feraient avancer le cliquet deux fois. Tenu par trois tests,
+  **jamais éprouvé sur appareil** : à voir en ouvrant une discussion à
+  l'instant précis où son rattrapage part.
+- [ ] ⚠️ **L'aperçu de la liste est retombé sur « Message chiffré »** lors de
+  cette même passe, alors qu'il marchait à la précédente. La pastille et le
+  fil, eux, sont justes. L'aperçu dépend du cache de l'isolate de
+  notification, qui n'est pas toujours écrit à temps — la seconde lecture
+  bornée (400 ms) ne referme pas toujours la fenêtre. À reprendre : le
+  rattrapage de fond remplit maintenant le cache du fil, dont
+  `_apercuDepuisLeCache` sait tirer l'aperçu — il manque sans doute une
+  émission après lui.
+
+Fichiers : [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
+(`amorcerBascules`), [mls_delivery.dart](lib/core/crypto/mls/mls_delivery.dart)
+(`bascules`), [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
+(`_fenetreRecompteNonLus`). Recette :
+`supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`.
 
 ---
 
@@ -8940,6 +9029,28 @@ Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile
   (`notif_pile_*`).
 - [ ] **Appui sur la bannière empilée** : ouvre la bonne conversation, et la
   bannière disparaît.
+
+**Corrigé le 2026-09-16, signalé sur appareil** : la pile s'affichait **à
+l'envers** et **sans heure**. Deux causes distinctes.
+
+L'ordre venait du chemin premier plan : `.take(10)` gardait les dix plus
+**anciennes** — celles qu'on veut justement laisser tomber — puis `.reversed`
+mettait la plus récente **en haut**. `MessagingStyle` affiche dans l'ordre de
+la liste, et une conversation se lit du haut vers le bas.
+
+L'heure manquait parce que **rien ne l'envoyait** : aucun des deux
+déclencheurs ne mettait d'horodatage dans la charge du push. L'appareil n'avait
+que `DateTime.now()` — l'heure de *livraison* — et le chemin d'arrière-plan ne
+renseignait même pas `when`. Le serveur envoie désormais `data.sentAt`
+(`created_at`, l'autorité), et la pile se trie dessus : un message reçu au
+retour du réseau porte son heure d'envoi, pas « à l'instant ».
+
+- [ ] **Heure affichée** sur la bannière, et c'est celle de l'**envoi** :
+  couper le réseau, se faire envoyer un message, rétablir. L'heure doit être
+  celle de l'envoi, pas celle du retour de réseau.
+- [ ] **Ordre** : cinq messages d'affilée, le plus ancien **en haut**.
+- [ ] **Rattrapage hors ligne** : plusieurs messages d'un coup au retour du
+  réseau, dans le bon ordre même s'ils n'arrivent pas dans cet ordre-là.
 
 ---
 
