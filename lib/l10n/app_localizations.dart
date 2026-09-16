@@ -593,13 +593,13 @@ abstract class AppLocalizations {
   /// No description provided for @connectedDevices.
   ///
   /// In fr, this message translates to:
-  /// **'Appareils connectés'**
+  /// **'Appareils enregistrés'**
   String get connectedDevices;
 
   /// No description provided for @connectedDevicesSubtitle.
   ///
   /// In fr, this message translates to:
-  /// **'Gérez vos appareils (max 5)'**
+  /// **'Les clés inscrites par chaque appareil'**
   String get connectedDevicesSubtitle;
 
   /// No description provided for @endToEndEncryption.
@@ -749,7 +749,7 @@ abstract class AppLocalizations {
   /// No description provided for @deviceManagementInfo.
   ///
   /// In fr, this message translates to:
-  /// **'Vous pouvez avoir jusqu\'à 5 appareils connectés simultanément. Chaque appareil possède ses propres clés de chiffrement.'**
+  /// **'Chaque appareil qui s\'est connecté à ce compte y inscrit ses propres clés de chiffrement. Cette liste ne dit pas lesquels sont connectés en ce moment.'**
   String get deviceManagementInfo;
 
   /// No description provided for @noDevices.
@@ -779,7 +779,7 @@ abstract class AppLocalizations {
   /// No description provided for @revokeDevice.
   ///
   /// In fr, this message translates to:
-  /// **'Révoquer'**
+  /// **'Supprimer'**
   String get revokeDevice;
 
   /// No description provided for @revokeDeviceTitle.
@@ -791,7 +791,7 @@ abstract class AppLocalizations {
   /// No description provided for @revokeDeviceWarning.
   ///
   /// In fr, this message translates to:
-  /// **'Cet appareil ne pourra plus envoyer ni recevoir de messages chiffrés. Les clés de cet appareil seront supprimées.'**
+  /// **'Cela ne déconnecte pas l\'appareil : s\'il est encore connecté, il le reste et continue de recevoir vos messages.'**
   String get revokeDeviceWarning;
 
   /// No description provided for @deviceRenamed.
@@ -805,6 +805,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Appareil révoqué'**
   String get deviceRevoked;
+
+  /// No description provided for @deviceKeysDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clés supprimées'**
+  String get deviceKeysDeleted;
+
+  /// No description provided for @deviceKeysDeleteError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression impossible'**
+  String get deviceKeysDeleteError;
+
+  /// No description provided for @devicesRegisteredCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscrits : {count} sur {max}'**
+  String devicesRegisteredCount(int count, int max);
+
+  /// No description provided for @devicesLimitNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au-delà de {max}, un nouvel appareil ne pourra plus inscrire ses clés tant qu\'un autre n\'a pas été supprimé.'**
+  String devicesLimitNotice(int max);
 
   /// No description provided for @deviceLimitReached.
   ///
@@ -22895,13 +22919,13 @@ abstract class AppLocalizations {
   /// No description provided for @revokeDeviceQuestion.
   ///
   /// In fr, this message translates to:
-  /// **'Révoquer l\'appareil ?'**
+  /// **'Supprimer ces clés ?'**
   String get revokeDeviceQuestion;
 
   /// No description provided for @revokeDeviceConfirmMessage.
   ///
   /// In fr, this message translates to:
-  /// **'Voulez-vous vraiment révoquer l\'accès de \"{deviceName}\" ?'**
+  /// **'Supprimer les clés inscrites par \"{deviceName}\" ?'**
   String revokeDeviceConfirmMessage(String deviceName);
 
   /// No description provided for @deviceRenameSuccess.

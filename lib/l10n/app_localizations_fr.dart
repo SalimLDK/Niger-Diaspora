@@ -262,10 +262,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get keyBackupSubtitle => 'Protégez vos messages chiffrés';
 
   @override
-  String get connectedDevices => 'Appareils connectés';
+  String get connectedDevices => 'Appareils enregistrés';
 
   @override
-  String get connectedDevicesSubtitle => 'Gérez vos appareils (max 5)';
+  String get connectedDevicesSubtitle =>
+      'Les clés inscrites par chaque appareil';
 
   @override
   String get endToEndEncryption => 'Chiffrement des messages';
@@ -345,7 +346,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get deviceManagementInfo =>
-      'Vous pouvez avoir jusqu\'à 5 appareils connectés simultanément. Chaque appareil possède ses propres clés de chiffrement.';
+      'Chaque appareil qui s\'est connecté à ce compte y inscrit ses propres clés de chiffrement. Cette liste ne dit pas lesquels sont connectés en ce moment.';
 
   @override
   String get noDevices => 'Aucun appareil enregistré';
@@ -361,20 +362,36 @@ class AppLocalizationsFr extends AppLocalizations {
   String get renameDevice => 'Renommer';
 
   @override
-  String get revokeDevice => 'Révoquer';
+  String get revokeDevice => 'Supprimer';
 
   @override
   String get revokeDeviceTitle => 'Révoquer l\'appareil ?';
 
   @override
   String get revokeDeviceWarning =>
-      'Cet appareil ne pourra plus envoyer ni recevoir de messages chiffrés. Les clés de cet appareil seront supprimées.';
+      'Cela ne déconnecte pas l\'appareil : s\'il est encore connecté, il le reste et continue de recevoir vos messages.';
 
   @override
   String get deviceRenamed => 'Appareil renommé';
 
   @override
   String get deviceRevoked => 'Appareil révoqué';
+
+  @override
+  String get deviceKeysDeleted => 'Clés supprimées';
+
+  @override
+  String get deviceKeysDeleteError => 'Suppression impossible';
+
+  @override
+  String devicesRegisteredCount(int count, int max) {
+    return 'Inscrits : $count sur $max';
+  }
+
+  @override
+  String devicesLimitNotice(int max) {
+    return 'Au-delà de $max, un nouvel appareil ne pourra plus inscrire ses clés tant qu\'un autre n\'a pas été supprimé.';
+  }
 
   @override
   String get deviceLimitReached => 'Limite atteinte';
@@ -12437,11 +12454,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get rename => 'Renommer';
 
   @override
-  String get revokeDeviceQuestion => 'Révoquer l\'appareil ?';
+  String get revokeDeviceQuestion => 'Supprimer ces clés ?';
 
   @override
   String revokeDeviceConfirmMessage(String deviceName) {
-    return 'Voulez-vous vraiment révoquer l\'accès de \"$deviceName\" ?';
+    return 'Supprimer les clés inscrites par \"$deviceName\" ?';
   }
 
   @override

@@ -229,7 +229,15 @@ class DeviceSyncService {
     return devices.where((d) => d.deviceId == deviceId).firstOrNull;
   }
 
-  /// Supprime un appareil (déconnexion à distance)
+  /// Supprime les clés Signal inscrites par un appareil.
+  ///
+  /// ⚠️ **Ceci ne déconnecte pas l'appareil visé** — la ligne
+  /// `e2ee_devices` est un registre de clés, pas une session. L'appareil
+  /// garde la sienne, ses notifications et ses messages. Le commentaire
+  /// précédent disait « déconnexion à distance », l'écran le répétait à
+  /// l'usager, et c'était faux des deux côtés. Déconnecter UN appareil
+  /// demanderait un suivi de session par appareil, que le projet n'a pas :
+  /// `users.session_id` est une colonne unique par compte.
   ///
   /// Ne peut pas supprimer l'appareil actuel via cette méthode.
   Future<bool> removeDevice(String userId, String deviceId) async {
@@ -246,11 +254,22 @@ class DeviceSyncService {
         'p_user_id': userId,
         'p_device_id': deviceId,
       });
-      await _supabase
+      // `.select()` et non un `delete` nu : un refus RLS ne lève pas, il
+      // touche zéro ligne — et l'écran annonçait « Clés supprimées » sans
+      // que rien n'ait bougé. Même garde que `MlsDeviceRegistry.revoke`.
+      final touchees = await _supabase
           .from('e2ee_devices')
           .delete()
           .eq('user_id', userId)
-          .eq('device_id', deviceId);
+          .eq('device_id', deviceId)
+          .select('device_id');
+
+      if ((touchees as List).isEmpty) {
+        debugPrint(
+          'DeviceSyncService: aucune ligne supprimee pour $deviceId',
+        );
+        return false;
+      }
 
       debugPrint('DeviceSyncService: Removed device $deviceId (supabase)');
       return true;

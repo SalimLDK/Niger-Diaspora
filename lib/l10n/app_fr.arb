@@ -89,8 +89,8 @@
   "security": "Sécurité",
   "keyBackup": "Sauvegarde des clés",
   "keyBackupSubtitle": "Protégez vos messages chiffrés",
-  "connectedDevices": "Appareils connectés",
-  "connectedDevicesSubtitle": "Gérez vos appareils (max 5)",
+  "connectedDevices": "Appareils enregistrés",
+  "connectedDevicesSubtitle": "Les clés inscrites par chaque appareil",
   "endToEndEncryption": "Chiffrement des messages",
   "e2eeDescription": "Les discussions passées au chiffrement de bout en bout ne sont lisibles que par leurs participants : la clé n'existe que sur vos appareils. Les autres conversations sont chiffrées en transit et au repos, avec une clé détenue par le serveur — c'est ce qui lui permet d'afficher l'aperçu des notifications.",
   "createBackup": "Créer une sauvegarde",
@@ -115,16 +115,31 @@
   "enterPassphrase": "Entrez votre passphrase pour restaurer vos clés",
   "passphraseWarning": "N'oubliez pas votre passphrase ! Sans elle, vos clés ne pourront pas être restaurées.",
   "deviceManagement": "Gestion des appareils",
-  "deviceManagementInfo": "Vous pouvez avoir jusqu'à 5 appareils connectés simultanément. Chaque appareil possède ses propres clés de chiffrement.",
+  "deviceManagementInfo": "Chaque appareil qui s'est connecté à ce compte y inscrit ses propres clés de chiffrement. Cette liste ne dit pas lesquels sont connectés en ce moment.",
   "noDevices": "Aucun appareil enregistré",
   "noDevicesDescription": "Les appareils utilisant le chiffrement de bout en bout apparaîtront ici.",
   "thisDevice": "Cet appareil",
   "renameDevice": "Renommer",
-  "revokeDevice": "Révoquer",
+  "revokeDevice": "Supprimer",
   "revokeDeviceTitle": "Révoquer l'appareil ?",
-  "revokeDeviceWarning": "Cet appareil ne pourra plus envoyer ni recevoir de messages chiffrés. Les clés de cet appareil seront supprimées.",
+  "revokeDeviceWarning": "Cela ne déconnecte pas l'appareil : s'il est encore connecté, il le reste et continue de recevoir vos messages.",
   "deviceRenamed": "Appareil renommé",
   "deviceRevoked": "Appareil révoqué",
+  "deviceKeysDeleted": "Clés supprimées",
+  "deviceKeysDeleteError": "Suppression impossible",
+  "devicesRegisteredCount": "Inscrits : {count} sur {max}",
+  "@devicesRegisteredCount": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+  "devicesLimitNotice": "Au-delà de {max}, un nouvel appareil ne pourra plus inscrire ses clés tant qu'un autre n'a pas été supprimé.",
+  "@devicesLimitNotice": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
   "deviceLimitReached": "Limite atteinte",
   "fingerprint": "Empreinte",
   "online": "En ligne",
@@ -5779,8 +5794,8 @@
   "mlsDeviceRevokedLabel": "Révoqué",
   "mlsDeviceRevokeConfirm": "Cet appareil ne pourra plus rejoindre de conversation chiffrée. Continuer ?",
   "rename": "Renommer",
-  "revokeDeviceQuestion": "Révoquer l'appareil ?",
-  "revokeDeviceConfirmMessage": "Voulez-vous vraiment révoquer l'accès de \"{deviceName}\" ?",
+  "revokeDeviceQuestion": "Supprimer ces clés ?",
+  "revokeDeviceConfirmMessage": "Supprimer les clés inscrites par \"{deviceName}\" ?",
   "@revokeDeviceConfirmMessage": {
     "placeholders": {
       "deviceName": {

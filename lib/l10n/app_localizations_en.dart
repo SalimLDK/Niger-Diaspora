@@ -260,10 +260,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get keyBackupSubtitle => 'Protect your encrypted messages';
 
   @override
-  String get connectedDevices => 'Connected devices';
+  String get connectedDevices => 'Registered devices';
 
   @override
-  String get connectedDevicesSubtitle => 'Manage your devices (max 5)';
+  String get connectedDevicesSubtitle => 'The keys registered by each device';
 
   @override
   String get endToEndEncryption => 'Message encryption';
@@ -342,7 +342,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deviceManagementInfo =>
-      'You can have up to 5 devices connected simultaneously. Each device has its own encryption keys.';
+      'Every device that has signed in to this account registers its own encryption keys here. This list does not say which ones are connected right now.';
 
   @override
   String get noDevices => 'No registered devices';
@@ -358,20 +358,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get renameDevice => 'Rename';
 
   @override
-  String get revokeDevice => 'Revoke';
+  String get revokeDevice => 'Delete';
 
   @override
   String get revokeDeviceTitle => 'Revoke device?';
 
   @override
   String get revokeDeviceWarning =>
-      'This device will no longer be able to send or receive encrypted messages. The keys for this device will be deleted.';
+      'This does not sign the device out: if it is still connected, it stays connected and keeps receiving your messages.';
 
   @override
   String get deviceRenamed => 'Device renamed';
 
   @override
   String get deviceRevoked => 'Device revoked';
+
+  @override
+  String get deviceKeysDeleted => 'Keys deleted';
+
+  @override
+  String get deviceKeysDeleteError => 'Could not delete';
+
+  @override
+  String devicesRegisteredCount(int count, int max) {
+    return 'Registered: $count of $max';
+  }
+
+  @override
+  String devicesLimitNotice(int max) {
+    return 'Past $max, a new device will not be able to register its keys until another one is deleted.';
+  }
 
   @override
   String get deviceLimitReached => 'Limit reached';
@@ -12309,11 +12325,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rename => 'Rename';
 
   @override
-  String get revokeDeviceQuestion => 'Revoke device?';
+  String get revokeDeviceQuestion => 'Delete these keys?';
 
   @override
   String revokeDeviceConfirmMessage(String deviceName) {
-    return 'Do you really want to revoke access for \"$deviceName\"?';
+    return 'Delete the keys registered by \"$deviceName\"?';
   }
 
   @override

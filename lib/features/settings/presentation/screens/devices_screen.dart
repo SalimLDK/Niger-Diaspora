@@ -124,8 +124,15 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
   }
 
   Future<void> _revokeDevice(E2EEDeviceInfo device) async {
-    // La maquette révoque sans confirmation ; on la garde — l'appareil perd
-    // l'accès à tous ses messages et ne le récupère pas.
+    // La maquette supprimait sans confirmation ; on garde la confirmation —
+    // les clés inscrites par cet appareil ne se récupèrent pas.
+    //
+    // Ce que ce bouton NE fait pas : déconnecter. Il supprime une ligne de
+    // `e2ee_devices`, rien d'autre. L'appareil visé garde sa session, ses
+    // notifications et ses messages — le viser demanderait un suivi de
+    // session PAR appareil, que le projet n'a pas (`session_id` est une
+    // colonne unique par compte). L'avertissement du dialogue le dit
+    // maintenant, au lieu de promettre l'inverse.
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) {
@@ -192,13 +199,13 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       );
 
       if (success) {
-        _showSuccessSnackBar(l10n.deviceRevoked);
+        _showSuccessSnackBar(l10n.deviceKeysDeleted);
       } else {
-        _showErrorSnackBar('Impossible de révoquer cet appareil');
+        _showErrorSnackBar(l10n.deviceKeysDeleteError);
       }
       await _loadDevices();
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de la révocation');
+      _showErrorSnackBar(l10n.deviceKeysDeleteError);
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -357,8 +364,8 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
 // Bandeau d'explication
 // ---------------------------------------------------------------------------
 
-/// « 3 appareils sur 5 » et ce que révoquer implique, dans un seul bloc — le
-/// compteur vivait loin de l'explication qui lui donne son sens.
+/// Le compteur d'inscriptions et ce que la liste est vraiment, dans un seul
+/// bloc — le compteur vivait loin de l'explication qui lui donne son sens.
 class _InfoBanner extends StatelessWidget {
   final int count;
 
@@ -390,9 +397,9 @@ class _InfoBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  count > 1
-                      ? '$count appareils sur $_kMaxDevices'
-                      : '$count appareil sur $_kMaxDevices',
+                  AppLocalizations.of(
+                    context,
+                  )!.devicesRegisteredCount(count, _kMaxDevices),
                   style: TextStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
@@ -472,8 +479,7 @@ class _LimitNotice extends StatelessWidget {
           const SizedBox(width: 11),
           Expanded(
             child: Text(
-              'Au-delà de $_kMaxDevices appareils, il faudra en révoquer un '
-              'avant d\'en connecter un nouveau.',
+              AppLocalizations.of(context)!.devicesLimitNotice(_kMaxDevices),
               style: TextStyle(
                 fontSize: 12,
                 height: 1.45,

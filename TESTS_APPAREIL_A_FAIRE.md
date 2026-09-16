@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1347 cases à cocher, 640 cochées** — 264 entrées sur 313 ont encore des cases ouvertes.
+**1353 cases à cocher, 640 cochées** — 265 entrées sur 314 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -179,7 +179,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (81)
+**P2 — fonction secondaire ou cas limite** (82)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -219,6 +219,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [⬜ L'écran des appareils ne promet plus ce qu'il ne fait pas (2026-09-16)](#-lécran-des-appareils-ne-promet-plus-ce-quil-ne-fait-pas-2026-09-16) · *Accueil, profil et réglages*
 - 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
@@ -331,7 +332,7 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 47 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 48 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 53 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
@@ -15464,6 +15465,49 @@ attendre le sondage.
 # 11. Accueil, profil et réglages
 
 Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature flags d'écrans.
+
+---
+
+## ⬜ L'écran des appareils ne promet plus ce qu'il ne fait pas (2026-09-16)
+
+**Priorité P2** · importance 3/5 — L'écran « Appareils connectés » était la
+troisième réponse du projet à « quels appareils tiennent ce compte », et elle
+ne concordait avec aucune des deux autres. Trois affirmations fausses, toutes
+mesurées le 2026-09-16 :
+
+- « jusqu'à 5 appareils connectés simultanément », alors que `SessionService`
+  n'en autorise **qu'un** ;
+- « Appareils connectés », alors que la liste est celle des inscriptions de
+  clés Signal (`e2ee_devices`), que rien n'élague : le compte principal y avait
+  **3 lignes, dernière activité le 23 août**, pour un seul appareil réel ;
+- « Révoquer », présenté comme une déconnexion à distance (le commentaire de
+  `removeDevice` disait littéralement « déconnexion à distance ») alors que
+  c'est un `DELETE` sur une ligne de registre : l'appareil visé garde sa
+  session, ses notifications et ses messages.
+
+Les textes disent maintenant ce qui se passe, et `removeDevice` vérifie les
+lignes touchées au lieu d'annoncer un succès à vide. **Ce qui reste ouvert :
+déconnecter UN appareil est impossible aujourd'hui** — `users.session_id` est
+une colonne unique par compte, cf. « Expulsion admin et bannissement ».
+
+Fichiers :
+[devices_screen.dart](lib/features/settings/presentation/screens/devices_screen.dart),
+[device_sync_service.dart](lib/core/services/e2ee/device_sync_service.dart).
+
+- [ ] **Lire l'écran en entier** : plus aucune mention de « connectés
+  simultanément », le compteur dit « Inscrits : n sur 5 », et l'avertissement
+  de suppression dit bien que l'appareil reste connecté.
+- [ ] **Supprimer les clés d'un appareil qui n'est pas le sien** : le message
+  est « Clés supprimées », la ligne disparaît, et — c'est le point —
+  **l'autre téléphone continue de recevoir les messages**. C'est désormais ce
+  que le dialogue annonce ; le vérifier à deux appareils.
+- [ ] **Le bouton de sa propre carte** : `removeDevice` refuse l'appareil
+  courant. Vérifier que l'écran ne laisse pas croire l'inverse.
+- [ ] **Grande police** (réglages système à fond) : les deux boutons de carte
+  — « Renommer » / « Supprimer » — tiennent côte à côte sans rognage. Rien
+  n'a été rendu en image, les libellés ayant seulement changé de mot.
+- [ ] **Thème sombre** sur les deux bandeaux (info et plafond).
+- [ ] **Anglais** : basculer la langue et relire les mêmes écrans.
 
 ---
 

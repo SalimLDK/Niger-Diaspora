@@ -89,8 +89,8 @@
   "security": "Security",
   "keyBackup": "Key backup",
   "keyBackupSubtitle": "Protect your encrypted messages",
-  "connectedDevices": "Connected devices",
-  "connectedDevicesSubtitle": "Manage your devices (max 5)",
+  "connectedDevices": "Registered devices",
+  "connectedDevicesSubtitle": "The keys registered by each device",
   "endToEndEncryption": "Message encryption",
   "e2eeDescription": "Conversations switched to end-to-end encryption can only be read by their participants: the key exists on your devices only. Other conversations are encrypted in transit and at rest, with a key held by the server — which is what lets it show notification previews.",
   "createBackup": "Create backup",
@@ -115,16 +115,31 @@
   "enterPassphrase": "Enter your passphrase to restore your keys",
   "passphraseWarning": "Don't forget your passphrase! Without it, your keys cannot be restored.",
   "deviceManagement": "Device management",
-  "deviceManagementInfo": "You can have up to 5 devices connected simultaneously. Each device has its own encryption keys.",
+  "deviceManagementInfo": "Every device that has signed in to this account registers its own encryption keys here. This list does not say which ones are connected right now.",
   "noDevices": "No registered devices",
   "noDevicesDescription": "Devices using end-to-end encryption will appear here.",
   "thisDevice": "This device",
   "renameDevice": "Rename",
-  "revokeDevice": "Revoke",
+  "revokeDevice": "Delete",
   "revokeDeviceTitle": "Revoke device?",
-  "revokeDeviceWarning": "This device will no longer be able to send or receive encrypted messages. The keys for this device will be deleted.",
+  "revokeDeviceWarning": "This does not sign the device out: if it is still connected, it stays connected and keeps receiving your messages.",
   "deviceRenamed": "Device renamed",
   "deviceRevoked": "Device revoked",
+  "deviceKeysDeleted": "Keys deleted",
+  "deviceKeysDeleteError": "Could not delete",
+  "devicesRegisteredCount": "Registered: {count} of {max}",
+  "@devicesRegisteredCount": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "max": { "type": "int" }
+    }
+  },
+  "devicesLimitNotice": "Past {max}, a new device will not be able to register its keys until another one is deleted.",
+  "@devicesLimitNotice": {
+    "placeholders": {
+      "max": { "type": "int" }
+    }
+  },
   "deviceLimitReached": "Limit reached",
   "fingerprint": "Fingerprint",
   "online": "Online",
@@ -5101,8 +5116,8 @@
   "mlsDeviceRevokedLabel": "Revoked",
   "mlsDeviceRevokeConfirm": "This device will no longer be able to join encrypted conversations. Continue?",
   "rename": "Rename",
-  "revokeDeviceQuestion": "Revoke device?",
-  "revokeDeviceConfirmMessage": "Do you really want to revoke access for \"{deviceName}\"?",
+  "revokeDeviceQuestion": "Delete these keys?",
+  "revokeDeviceConfirmMessage": "Delete the keys registered by \"{deviceName}\"?",
   "@revokeDeviceConfirmMessage": {"placeholders": {"deviceName": {"type": "String"}}},
   "deviceRenameSuccess": "Device renamed",
   "deviceRenameError": "Error renaming device",
