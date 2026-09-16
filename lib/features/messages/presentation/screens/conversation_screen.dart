@@ -30,6 +30,7 @@ import '../widgets/message_bubble.dart';
 import '../utils/message_copy_text.dart';
 import '../utils/message_grouping.dart';
 import '../utils/phrase_modification.dart';
+import '../utils/releve_a_l_ecran.dart';
 import '../widgets/message_input.dart';
 import '../widgets/note_poll_draft_sheet.dart';
 import '../widgets/typing_indicator_widget.dart';
@@ -200,6 +201,33 @@ int? rangDesDerniersDAutrui(
   return null;
 }
 
+/// Parmi les bulles à l'écran, celle qui porte le curseur de lecture le plus
+/// loin : le message d'autrui le plus récent, s'il est postérieur à
+/// [dejaVu].
+///
+/// `null` quand rien n'avancerait le curseur — y compris quand le compte
+/// courant est inconnu : sans lui, « d'autrui » ne se décide pas, et avancer
+/// jusqu'à l'un de mes messages marquerait lu ce qui le précède sans qu'on
+/// l'ait regardé.
+///
+/// Une seule cible pour tout ce qui est à l'écran : le serveur marque
+/// « jusqu'à », donc une écriture suffit, en groupe comme en tête-à-tête.
+MessageEntity? plusRecentALire(
+  Iterable<MessageEntity> visibles, {
+  required String? moi,
+  DateTime? dejaVu,
+}) {
+  if (moi == null) return null;
+  MessageEntity? cible;
+  for (final m in visibles) {
+    if (m.type == MessageType.system) continue;
+    if (m.senderId == moi) continue;
+    if (dejaVu != null && !m.createdAt.isAfter(dejaVu)) continue;
+    if (cible == null || m.createdAt.isAfter(cible.createdAt)) cible = m;
+  }
+  return cible;
+}
+
 class _ConversationScreenState extends ConsumerState<ConversationScreen>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   AppLocalizations get l10n => AppLocalizations.of(context)!;
@@ -317,7 +345,27 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   String? _vuJusquaId;
   Timer? _envoiCurseur;
 
+  /// Les bulles d'autrui **actuellement** à l'écran, et le moment où la vue
+  /// est posée.
+  ///
+  /// `VisibilityDetector` ne rapporte que les **changements** : une bulle qui
+  /// reste à l'écran ne se signale plus jamais. Sans ce relevé, rien ne
+  /// pourrait dire ce qui est affiché au moment où la vue se pose, ni au retour
+  /// au premier plan — et un message arrivé pendant que l'app était en
+  /// arrière-plan restait non lu, sous les yeux, tant qu'on ne défilait pas.
+  ///
+  /// Avant que la vue soit posée, ce qui passe à l'écran n'est qu'un état
+  /// transitoire — la liste s'ouvre en bas, puis saute au premier non-lu. Lire
+  /// à ce moment-là marquerait les derniers messages, que personne n'a vus.
+  final ReleveALEcran _aLEcran = ReleveALEcran(seuil: _visibiliteMinimale);
+
+  /// Filet : si le placement n'arrive jamais (fil vide à l'ouverture, compte
+  /// pas encore chargé), le curseur doit quand même pouvoir avancer.
+  Timer? _filetPlacement;
+
   void _signalerVisibilite(MessageEntity message, double fraction) {
+    // Un rapport en attente peut tomber après la fermeture de l'écran.
+    if (!mounted) return;
     // Ni mes propres messages, ni les repères système : personne ne les
     // « lit », et rien ne viendra jamais les marquer.
     if (message.senderId == ref.read(currentUserProvider).valueOrNull?.id) {
@@ -325,10 +373,22 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     }
     if (message.type == MessageType.system) return;
 
+    _aLEcran.noter(message, fraction);
     if (fraction < _visibiliteMinimale) {
       _attentesDeVisibilite.remove(message.id)?.cancel();
       return;
     }
+
+    // La vue n'est pas encore posée : noté, sans rien compter.
+    // [_lireCeQuiEstALEcran] reprendra ce relevé dès qu'elle le sera.
+    if (!_aLEcran.vuePosee) return;
+    _attendreAvantDeLire(message);
+  }
+
+  /// Le chemin ordinaire, une fois la vue posée : la bulle doit rester à
+  /// l'écran [_dureeAvantVu], et le serveur n'est prévenu qu'après
+  /// [_delaiAvantEnvoi]. C'est ce qui empêche un défilement de « lire ».
+  void _attendreAvantDeLire(MessageEntity message) {
     if (_attentesDeVisibilite.containsKey(message.id)) return;
 
     _attentesDeVisibilite[message.id] = Timer(_dureeAvantVu, () {
@@ -353,6 +413,48 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       _envoiCurseur?.cancel();
       _envoiCurseur = Timer(_delaiAvantEnvoi, _pousserCurseur);
     });
+  }
+
+  /// **Ouvrir, c'est lire ce qui est à l'écran** (choix A2 du 2026-09-16).
+  ///
+  /// Appelé quand la vue vient de se poser, et au retour au premier plan. Ce
+  /// qui est affiché à cet instant est lu **tout de suite** : les 400 ms +
+  /// 700 ms protègent d'un défilement, et il n'y en a pas — la vue est posée.
+  /// Ce qui est sous le pli reste non lu, et le séparateur garde son sens.
+  ///
+  /// Le repère, lui, a déjà été relevé : [_pousserCurseur] attend la fin du
+  /// relevé avant d'écrire quoi que ce soit.
+  void _lireCeQuiEstALEcran() {
+    if (!mounted) return;
+    final cible = plusRecentALire(
+      _aLEcran.visibles,
+      moi: ref.read(currentUserProvider).valueOrNull?.id,
+      dejaVu: _vuJusqua,
+    );
+    if (cible == null) return;
+
+    if (!_isAppInForeground || !_estAffichee) {
+      // Pas réellement affichée (transition, feuille par-dessus) : les comptes
+      // à rebours ordinaires, qui réévaluent les gardes à l'échéance. Refuser
+      // ici sans rien armer, c'était ne plus jamais lire ces bulles — leur
+      // visibilité ne changera plus.
+      for (final message in _aLEcran.visibles.toList()) {
+        _attendreAvantDeLire(message);
+      }
+      return;
+    }
+
+    _vuJusqua = cible.createdAt;
+    _vuJusquaId = cible.id;
+    _envoiCurseur?.cancel();
+    unawaited(_pousserCurseur());
+  }
+
+  /// La vue est posée : à l'image suivante, lire ce qui est à l'écran. Voir
+  /// [ReleveALEcran.poser].
+  void _apresPlacement() {
+    _filetPlacement?.cancel();
+    _aLEcran.poser(_lireCeQuiEstALEcran, monte: () => mounted);
   }
 
   Future<void> _pousserCurseur() async {
@@ -679,6 +781,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     WidgetsBinding.instance.addObserver(this);
 
     unawaited(_releverCurseur());
+    // Au-delà de la fenêtre d'ouverture, la vue est posée quoi qu'il arrive —
+    // sans quoi une discussion vide à l'ouverture, ou un compte chargé en
+    // retard, n'avancerait jamais le curseur. Annulé dès le vrai placement.
+    _filetPlacement = Timer(_fenetreRecompteNonLus, _apresPlacement);
     _semerIdentiteConnue();
 
     _scrollController.addListener(_onScroll);
@@ -1012,14 +1118,25 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     // Avec reverse: true, la liste démarre au bas (position 0)
     // Donc pas besoin de scroll si pas de messages non lus
-    if (unreadIndex == null) return;
+    if (unreadIndex == null) {
+      _apresPlacement();
+      return;
+    }
 
     // Attendre que le ListView soit complètement rendu
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scrollController.hasClients) return;
+      // Chaque sortie pose la vue : un placement impossible reste un
+      // placement, et la lecture de ce qui est à l'écran doit partir.
+      if (!mounted || !_scrollController.hasClients) {
+        _apresPlacement();
+        return;
+      }
 
       final maxExtent = _scrollController.position.maxScrollExtent;
-      if (maxExtent <= 0) return;
+      if (maxExtent <= 0) {
+        _apresPlacement();
+        return;
+      }
 
       // Avec reverse: true, l'index dans la liste inversée est:
       // reversedIndex = totalMessages - 1 - unreadIndex
@@ -1029,6 +1146,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       final targetPosition = (maxExtent * ratio).clamp(0.0, maxExtent);
 
       _scrollController.jumpTo(targetPosition);
+      // Le saut s'applique à l'image suivante : c'est elle que
+      // [_apresPlacement] attend, pas celle-ci, où la liste est encore en bas.
+      _apresPlacement();
     });
   }
 
@@ -1039,6 +1159,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     }
     _attentesDeVisibilite.clear();
     _envoiCurseur?.cancel();
+    _filetPlacement?.cancel();
     // Clear current conversation to re-enable in-app notifications
     NotificationService().setCurrentConversation(null);
     // Note: We don't clear the provider here because dispose() may be called
@@ -1061,10 +1182,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Track foreground state to prevent marking messages as read when in background
     if (state == AppLifecycleState.resumed) {
       _isAppInForeground = true;
-      // « Livré » vaut dès que l'appareil a le message. « Lu » repart du
-      // curseur : les bulles redeviennent visibles, leurs comptes à rebours
-      // reprennent, et le curseur avance de lui-même.
+      // « Livré » vaut dès que l'appareil a le message. « Lu », c'est ce qui
+      // est à l'écran au retour — lu tout de suite, comme à l'ouverture.
+      //
+      // Ça ne se fait pas tout seul : la visibilité d'une bulle ne change pas
+      // pendant que l'app est en arrière-plan, donc `VisibilityDetector` ne
+      // redit rien au retour. Un message arrivé pendant l'absence voyait son
+      // compte à rebours refusé (app pas au premier plan), et restait non lu
+      // sous les yeux tant qu'on ne défilait pas.
       ref.read(markAsDeliveredProvider.notifier).mark(widget.conversationId);
+      if (_aLEcran.vuePosee) _lireCeQuiEstALEcran();
       setState(() {
         // Force rebuild to update date labels like "Aujourd'hui", "Hier"
       });
