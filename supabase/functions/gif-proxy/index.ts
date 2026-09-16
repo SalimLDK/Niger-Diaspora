@@ -117,10 +117,19 @@ Deno.serve(async (req) => {
   for (const provider of candidates) {
     const result = await callProvider(provider, endpoint, type, limit, query)
     if (result) {
-      // Charge utile du fournisseur relayée verbatim, mais **nommée** : le
-      // parsing Dart dépend de la forme (`results[]` chez Tenor, `data[]` chez
-      // Giphy) et ne peut plus la déduire de ce qu'il a demandé.
-      return jsonResponse(200, { provider, payload: result })
+      // Charge utile du fournisseur relayée verbatim, mais **nommée** : sur
+      // `auto`, le client n'a pas choisi, et le parsing dépend de la forme
+      // (`results[]` chez Tenor, `data[]` chez Giphy).
+      //
+      // Un client qui a nommé son fournisseur sait déjà quelle forme lire :
+      // on la lui rend telle quelle. Ce n'est pas de la courtoisie, c'est ce
+      // qui fait marcher les versions **déjà installées**, qui demandent
+      // `tenor` puis `giphy` — les envelopper ici leur donnerait une grille
+      // vide, indiscernable d'une recherche sans résultat.
+      return jsonResponse(
+        200,
+        requested === 'auto' ? { provider, payload: result } : result,
+      )
     }
   }
 
