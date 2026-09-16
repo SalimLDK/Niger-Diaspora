@@ -6,7 +6,10 @@ import 'package:flutter/services.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
+
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -142,6 +145,40 @@ class ConversationScreen extends ConsumerStatefulWidget {
 /// Le compte, lui, vient du serveur et a été relevé **avant** l'ouverture (la
 /// tuile de la liste le portait déjà). Même exclusion que `compterNonLus` :
 /// ni message système, ni les miens.
+/// Ce qui est arrivé **depuis la dernière visite** : combien, et à quel rang
+/// commence le premier.
+///
+/// C'est le seul repère fiable pour le séparateur « N messages non lus ».
+/// Les deux autres candidats mentent :
+///
+/// - **l'état de lecture des messages** est déjà faussé quand le fil arrive :
+///   `markAsRead` part au premier rendu, avant même que les messages chiffrés
+///   ne soient récupérés, et ils reviennent marqués lus ;
+/// - **le compteur de la liste** met quelques secondes à retomber à zéro après
+///   lecture. S'y fier faisait réapparaître « 7 messages non lus » en rouvrant
+///   la discussion aussitôt après l'avoir lue — signalé à l'usage le
+///   2026-09-15, et c'est bien ce correctif-ci qui l'avait introduit.
+///
+/// La date de visite, elle, est écrite par cet appareil en quittant l'écran :
+/// elle ne dépend d'aucun aller-retour.
+({int nombre, int? premier}) compterDepuis(
+  List<MessageEntity> messages,
+  String moi,
+  DateTime depuis,
+) {
+  var nombre = 0;
+  int? premier;
+  for (var i = 0; i < messages.length; i++) {
+    final m = messages[i];
+    if (m.type == MessageType.system) continue;
+    if (m.senderId == moi) continue;
+    if (!m.createdAt.isAfter(depuis)) continue;
+    nombre++;
+    premier ??= i;
+  }
+  return (nombre: nombre, premier: premier);
+}
+
 int? rangDesDerniersDAutrui(
   List<MessageEntity> messages,
   String moi,
@@ -194,6 +231,41 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// `initState`, donc les messages chiffrés reviennent du serveur déjà lus
   /// et `compterNonLus` ne trouve plus rien. Voir [rangDesDerniersDAutrui].
   int _nonLusAvantOuverture = 0;
+
+  /// Fin de la dernière visite de cette discussion **sur cet appareil**,
+  /// relue au démarrage de l'écran et réécrite en le quittant.
+  DateTime? _derniereVisite;
+  bool _visiteRelue = false;
+
+  String get _cleDerniereVisite => 'derniere_visite_${widget.conversationId}';
+
+  Future<void> _relireDerniereVisite() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final brut = prefs.getString(_cleDerniereVisite);
+      _derniereVisite = brut == null ? null : DateTime.tryParse(brut);
+    } catch (_) {
+      // Pas de préférences lisibles : on retombe sur le compteur de la liste.
+    }
+    _visiteRelue = true;
+    // La lecture est asynchrone : le comptage a pu passer avant elle.
+    if (mounted) _calculateUnreadOnOpen();
+  }
+
+  /// Écrite **en quittant**, pas à l'ouverture : « j'ai vu jusque-là » vaut
+  /// pour tout ce qui était à l'écran, y compris ce qui est arrivé pendant
+  /// qu'on lisait.
+  Future<void> _noterVisite() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _cleDerniereVisite,
+        DateTime.now().toUtc().toIso8601String(),
+      );
+    } catch (_) {
+      // Tant pis : au pire le séparateur se fie au compteur la fois suivante.
+    }
+  }
 
   /// Au-delà, un message qui arrive est un message **reçu en direct** : il ne
   /// doit pas se ranger sous un séparateur « nouveaux messages » sous les yeux
@@ -391,6 +463,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
+    unawaited(_relireDerniereVisite());
     _semerIdentiteConnue();
 
     _scrollController.addListener(_onScroll);
@@ -574,6 +647,41 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       return;
     }
 
+    // Rien dans l'état de lecture — attendu, il est déjà faussé. On regarde
+    // ce qui est arrivé depuis la dernière visite de cet appareil.
+    if (!_visiteRelue) return; // la relecture rappellera
+    final depuis = _derniereVisite;
+    if (depuis != null) {
+      final vus = compterDepuis(messages, currentUser.id, depuis);
+      if (vus.nombre > 0 && vus.premier != null) {
+        setState(() {
+          _unreadCountOnOpen = vus.nombre;
+          _firstUnreadMessageIndex = vus.premier;
+          _hasCalculatedUnread = true;
+        });
+        if (!_aFaitLePlacementInitial) {
+          _aFaitLePlacementInitial = true;
+          _scrollToUnreadOrBottom(vus.premier, messages.length);
+        }
+        return;
+      }
+      // Rien de neuf depuis la dernière visite : pas de séparateur, et
+      // surtout pas celui du compteur de la liste, qui met quelques secondes
+      // à retomber à zéro et ferait réapparaître « N non lus » sur des
+      // messages qu'on vient de lire.
+      if (DateTime.now().difference(_ouvertA) >= _fenetreRecompteNonLus) {
+        _hasCalculatedUnread = true;
+      }
+      if (!_aFaitLePlacementInitial) {
+        _aFaitLePlacementInitial = true;
+        _scrollToUnreadOrBottom(null, messages.length);
+      }
+      return;
+    }
+
+    // Première ouverture sur cet appareil : aucune visite antérieure à quoi se
+    // comparer. Le compteur de la liste est alors frais (rien ne l'a encore
+    // fait retomber), on peut s'y fier.
     // Zéro trouvé dans les messages, mais le serveur en annonçait : ils sont
     // revenus **déjà marqués lus**, parce que `markAsRead` est parti au premier
     // rendu, avant même que le fil chiffré ne soit récupéré. On retombe alors
@@ -652,6 +760,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   @override
   void dispose() {
+    // « J'ai vu jusque-là » : écrit en partant, donc englobe ce qui est
+    // arrivé pendant qu'on lisait. C'est ce repère, et non le compteur de la
+    // liste, qui décide du séparateur à la prochaine ouverture.
+    unawaited(_noterVisite());
     // Clear current conversation to re-enable in-app notifications
     NotificationService().setCurrentConversation(null);
     // Note: We don't clear the provider here because dispose() may be called
