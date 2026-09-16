@@ -323,6 +323,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       // **aucun autre événement ne venait** : le curseur n'avançait jamais.
       // Constaté le 2026-09-16 sur Pixel 10 Pro XL, deux messages à l'écran
       // pendant deux minutes et `read_at` toujours nul.
+
       if (!_isAppInForeground || !_estAffichee) return;
       final vu = _vuJusqua;
       if (vu != null && !message.createdAt.isAfter(vu)) return;
@@ -412,25 +413,24 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// n'était pas affichée. Côté expéditeur, « Lu » sur des messages jamais
   /// lus ; côté destinataire, plus aucune pastille de non-lus, jamais.
   ///
-  /// On interroge l'emplacement **global** du routeur, pas
-  /// `ModalRoute.isCurrent` : ce dernier est vrai aussi dans une branche
-  /// d'onglet inactive, où la route reste en tête de SON navigateur.
+  /// **Mesuré, pas supposé.** J'ai d'abord interrogé l'emplacement global du
+  /// routeur (`currentConfiguration.uri`), en craignant que
+  /// `ModalRoute.isCurrent` ne soit vrai jusque dans une branche d'onglet
+  /// inactive. Sur appareil, ce garde rendait **toujours faux** alors que la
+  /// discussion était bien à l'écran — le curseur de lecture n'avançait donc
+  /// jamais, en silence. Tracé le 2026-09-16 sur Pixel 10 Pro XL :
+  /// `fraction=1.0` à chaque bulle, puis `affichee=false` à chaque échéance.
+  ///
+  /// La crainte ne s'appliquait pas : l'écran de discussion est poussé
+  /// **au-dessus** du shell — c'est pourquoi la barre d'onglets disparaît —
+  /// et non dans une branche. `ModalRoute.isCurrent` dit donc exactement
+  /// « cette route est au sommet », y compris quand une feuille ou un
+  /// visionneur passe par-dessus.
   bool get _estAffichee {
     if (!mounted) return false;
-    try {
-      final uri = GoRouter.of(context)
-          .routerDelegate
-          .currentConfiguration
-          .uri
-          .toString();
-      return uri == '/messages/${widget.conversationId}' ||
-          uri.startsWith('/messages/${widget.conversationId}?') ||
-          uri.startsWith('/messages/${widget.conversationId}/');
-    } catch (_) {
-      // Pas de routeur au-dessus (test qui monte l'écran seul) : on ne bloque
-      // pas le comportement historique.
-      return true;
-    }
+    // Absent hors navigateur (un test qui monte l'écran seul) : on ne bloque
+    // pas le comportement historique.
+    return ModalRoute.of(context)?.isCurrent ?? true;
   }
 
   // --- Nature réelle de la conversation --------------------------------
