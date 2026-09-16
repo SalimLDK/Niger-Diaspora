@@ -1,0 +1,240 @@
+import 'dart:async';
+
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:diaspo_niger/core/crypto/mls/mls_gateway.dart';
+import 'package:diaspo_niger/core/network/network_info.dart';
+import 'package:diaspo_niger/core/services/cache_service.dart';
+import 'package:diaspo_niger/features/messages/data/datasources/message_remote_datasource.dart';
+import 'package:diaspo_niger/features/messages/data/models/conversation_model.dart';
+import 'package:diaspo_niger/features/messages/data/repositories/message_repository_impl.dart';
+import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
+
+/// « Message chiffré » qui ne s'en va pas — signalé sur Pixel 10 Pro XL le
+/// 2026-09-16, dans deux cas : une discussion jamais ouverte sur l'appareil,
+/// et un message reçu pendant que la liste est à l'écran.
+///
+/// Le clair d'un message chiffré n'existe que sur l'appareil : la liste le
+/// reconstitue depuis le cache du fil. Quand le cache ne l'a pas encore,
+/// `_rattraperMlsEnArrierePlan` le déchiffre en tâche de fond et le met en
+/// cache — mais **rien ne redemandait la liste après coup**. Le texte était
+/// donc sur l'appareil, prêt, et la tuile continuait d'afficher « Message
+/// chiffré » jusqu'à un tirer-pour-rafraîchir, l'ouverture de la discussion,
+/// ou le message suivant.
+///
+/// Deux garanties, une par bout :
+/// - le rattrapage n'est **replanifié** que si quelque chose a bougé
+///   (`rattrapageADeclencher`) — sinon chaque émission de la liste paierait
+///   une requête, et un fil qui échoue tournerait en boucle ;
+/// - une fois le déchiffrement en cache, la liste **rejoue**.
+
+final _quand = DateTime.utc(2026, 9, 16, 5, 27, 40);
+
+MessageEntity _message(String contenu) => MessageEntity(
+  id: 'm1',
+  senderId: 'autre',
+  senderName: 'Sim A',
+  content: contenu,
+  type: MessageType.text,
+  createdAt: _quand,
+);
+
+ConversationModel _conversation() => ConversationModel(
+  id: 'c1',
+  createdBy: 'moi',
+  participantIds: const ['moi', 'autre'],
+  // Une conversation basculée : le serveur n'a jamais le clair, donc pas
+  // d'aperçu — seulement la date.
+  lastMessage: null,
+  lastMessageAt: _quand,
+  lastMessageType: MessageType.text,
+);
+
+class _Source implements MessageRemoteDataSource {
+  @override
+  Stream<List<ConversationModel>> getConversations(String userId) =>
+      Stream<List<ConversationModel>>.value([_conversation()]);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _Cache implements CacheService {
+  final Map<String, List<Map<String, dynamic>>> parConversation = {};
+
+  @override
+  Future<void> cacheConversations(
+    List<Map<String, dynamic>> conversations,
+  ) async {}
+
+  @override
+  Future<void> cacheMessages(
+    String conversationId,
+    List<Map<String, dynamic>> messages,
+  ) async {
+    parConversation[conversationId] = messages;
+  }
+
+  @override
+  List<Map<String, dynamic>> getCachedMessages(
+    String conversationId, {
+    int? limit,
+    String? beforeMessageId,
+  }) => parConversation[conversationId] ?? const [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _Passerelle implements MlsGateway {
+  _Passerelle(this.fil);
+
+  /// Ce que le déchiffrement rendrait. Vide = rien à rattraper.
+  final List<MessageEntity> fil;
+  int appelsMessages = 0;
+
+  @override
+  bool get actif => true;
+
+  @override
+  bool get aDesConversationsBasculees => true;
+
+  @override
+  Future<void> amorcerBascules(Iterable<String> conversationIds) async {}
+
+  @override
+  Future<Map<String, String>> apercusDejaDechiffres(
+    Iterable<String> conversationIds,
+  ) async => const {};
+
+  @override
+  Future<List<String>> conversationsARattraper(
+    Iterable<String> conversationIds, {
+    int maximum = 3,
+  }) async => fil.isEmpty ? const [] : [...conversationIds];
+
+  @override
+  Future<List<MessageEntity>> messages(String conversationId) async {
+    appelsMessages++;
+    return fil;
+  }
+
+  @override
+  Future<Map<String, ({int nonLus, int mentions})>> nonLus() async => const {};
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _Reseau implements NetworkInfo {
+  @override
+  Future<bool> get isConnected async => true;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+Future<List<String>> _apercusEmis(
+  MessageRepositoryImpl depot, {
+  Duration pendant = const Duration(milliseconds: 400),
+}) async {
+  final vus = <String>[];
+  final sub = depot.getConversations('moi').listen((e) {
+    e.fold((_) {}, (liste) => vus.add(liste.single.lastMessage ?? ''));
+  });
+  await Future<void>.delayed(pendant);
+  await sub.cancel();
+  return vus;
+}
+
+void main() {
+  group('replanifier un rattrapage', () {
+    test('une date jamais tentée le déclenche', () {
+      expect(
+        MessageRepositoryImpl.rattrapageADeclencher(
+          candidats: {'c1': _quand},
+          dejaTente: const {},
+        ),
+        isTrue,
+      );
+    });
+
+    test('la même date, déjà tentée, ne le redéclenche pas', () {
+      // C'est ce qui empêche un fil qui refuse de se déchiffrer d'être
+      // redemandé à chaque émission de la liste.
+      expect(
+        MessageRepositoryImpl.rattrapageADeclencher(
+          candidats: {'c1': _quand},
+          dejaTente: {'c1': _quand},
+        ),
+        isFalse,
+      );
+    });
+
+    test('un message plus récent rouvre la tentative', () {
+      expect(
+        MessageRepositoryImpl.rattrapageADeclencher(
+          candidats: {'c1': _quand.add(const Duration(minutes: 1))},
+          dejaTente: {'c1': _quand},
+        ),
+        isTrue,
+      );
+    });
+
+    test('plus rien en attente : rien à faire', () {
+      expect(
+        MessageRepositoryImpl.rattrapageADeclencher(
+          candidats: const {},
+          dejaTente: {'c1': _quand},
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('la liste rejoue après le rattrapage', () {
+    test('le texte déchiffré arrive sans rien toucher', () async {
+      final passerelle = _Passerelle([_message('Bonjour')]);
+      final depot = MessageRepositoryImpl(
+        remoteDataSource: _Source(),
+        networkInfo: _Reseau(),
+        cacheService: _Cache(),
+        mlsGateway: passerelle,
+      );
+
+      final vus = await _apercusEmis(depot);
+
+      expect(
+        vus.length,
+        greaterThanOrEqualTo(2),
+        reason: 'la liste doit rejouer une fois le fil déchiffré',
+      );
+      expect(
+        vus.first,
+        isEmpty,
+        reason: 'la première émission précède le déchiffrement',
+      );
+      expect(
+        vus.last,
+        'Bonjour',
+        reason: 'sans le rejeu, la tuile reste sur « Message chiffré »',
+      );
+      expect(passerelle.appelsMessages, 1);
+    });
+
+    test('rien à rattraper : une seule émission, aucun rejeu', () async {
+      final passerelle = _Passerelle(const []);
+      final depot = MessageRepositoryImpl(
+        remoteDataSource: _Source(),
+        networkInfo: _Reseau(),
+        cacheService: _Cache(),
+        mlsGateway: passerelle,
+      );
+
+      final vus = await _apercusEmis(depot);
+
+      expect(vus, hasLength(1));
+      expect(passerelle.appelsMessages, 0);
+    });
+  });
+}

@@ -686,8 +686,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// applique `enforce()` sur les contraintes du parent, donc une largeur
   /// minimale plus grande que la place disponible est ramenée à cette place.
   double _largeurMinCitation(BuildContext context) {
-    final largeur = MediaQuery.sizeOf(context).width * 0.52;
-    return largeur > 240 ? 240 : largeur;
+    final largeur = MediaQuery.sizeOf(context).width * 0.58;
+    return largeur > 260 ? 260 : largeur;
   }
 
   /// La citation ne peut s'étirer que si la largeur intrinsèque du contenu
@@ -2093,14 +2093,14 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         // reste, l'aplat revient — sur la bulle envoyée aussi. Il avait été
         // retiré parce qu'il faisait « une seconde bulle dans la bulle », mais
         // c'était le liseré de 4 px OPAQUE qui la dessinait, pas l'aplat : à
-        // 3 px translucides et 14 % d'alpha, le bloc pose un fond, pas une
+        // 3 px translucides et 12 % d'alpha, le bloc pose un fond, pas une
         // bulle — et sans lui, la citation se lit comme une étiquette posée à
         // côté du message plutôt que comme le message cité.
-        padding: const EdgeInsets.only(left: 8, top: 6, bottom: 6, right: 10),
+        padding: const EdgeInsets.only(left: 8, top: 5, bottom: 5, right: 10),
         decoration: BoxDecoration(
           color:
               isMe
-                  ? Colors.white.withValues(alpha: 0.14)
+                  ? Colors.white.withValues(alpha: 0.12)
                   : isDarkMode
                   ? Colors.black.withValues(alpha: 0.35)
                   : Colors.black.withValues(alpha: 0.08),
@@ -2134,7 +2134,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 1),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [

@@ -110,8 +110,8 @@ void main() {
       greaterThan(bulle.height),
       reason: 'la bulle est redevenue plus haute que large',
     );
-    // Le plancher : 52 % de l'écran, plafonné à 240 (`_largeurMinCitation`).
-    expect(bulle.width, greaterThanOrEqualTo(_largeurEcran * 0.52 - 1));
+    // Le plancher : 58 % de l'écran, plafonné à 260 (`_largeurMinCitation`).
+    expect(bulle.width, greaterThanOrEqualTo(_largeurEcran * 0.58 - 1));
   });
 
   testWidgets('la citation s\'étire sur toute la largeur de la bulle', (
@@ -142,7 +142,7 @@ void main() {
     final bulle = tester.getRect(_bulleEnvoyee().first);
 
     // Le plancher ne vaut QUE pour une citation : sans elle, « Ok » reste une
-    // pastille, jamais une barre de 214 px.
+    // pastille, jamais une barre de 238 px.
     expect(bulle.width, lessThan(_largeurEcran * 0.4));
   });
 
