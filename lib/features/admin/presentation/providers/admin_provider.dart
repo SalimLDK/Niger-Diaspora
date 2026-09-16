@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/services/currency_service.dart';
+import '../../../../core/services/session_service.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../businesses/data/models/business_model.dart';
@@ -389,8 +390,13 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
     String? adminName,
   }) async {
     try {
+      // Sentinelle lue par `SessionService` sur la ligne `public.users` de
+      // l'usager, via Realtime. La constante vient de la, pas d'ici : c'est
+      // ce qui relie les deux moities. Ecrire `session_id` dans Firestore a
+      // la place ne marcherait pas — `firestore.rules` n'ouvre l'update d'un
+      // document `users` qu'a son proprietaire, et le refus serait muet.
       final newSessionId =
-          'force_logout_${DateTime.now().millisecondsSinceEpoch}';
+          '${SessionService.prefixeForceLogout}${DateTime.now().millisecondsSinceEpoch}';
       await _supabase
           .from('users')
           .update({'session_id': newSessionId})
@@ -1539,7 +1545,12 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
         'banned_at': DateTime.now().toUtc().toIso8601String(),
       }).eq('id', userId);
 
-      final newSessionId = 'banned_${DateTime.now().millisecondsSinceEpoch}';
+      // Ceinture et bretelles : `is_banned` ci-dessus suffit a faire sortir
+      // l'appareil (SessionService.doitEjecterSurDecisionAdmin le lit), la
+      // sentinelle couvre le cas ou cette seconde ecriture serait la seule
+      // a passer.
+      final newSessionId =
+          '${SessionService.prefixeBanni}${DateTime.now().millisecondsSinceEpoch}';
       await _supabase
           .from('users')
           .update({'session_id': newSessionId})

@@ -3,17 +3,42 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import 'package:uuid/uuid.dart';
 import '../../l10n/app_localizations.dart';
 import '../router/app_router.dart';
 import 'preferences_service.dart';
+import 'supabase_auth_bridge.dart';
+
+/// Pourquoi cet appareil se fait sortir. Décide du texte affiché : dire
+/// « Connecté ailleurs » à quelqu'un que l'administration vient de suspendre
+/// est un mensonge, et le support en hérite.
+enum MotifDeconnexionForcee {
+  /// Le compte s'est connecté sur un autre appareil (règle de session unique).
+  connecteAilleurs,
+
+  /// Un administrateur a mis fin à la session depuis la console.
+  sessionFermeeParAdmin,
+
+  /// Le compte est suspendu.
+  compteSuspendu,
+}
 
 /// Enforces single concurrent session rule.
 class SessionService {
   static final SessionService _instance = SessionService._internal();
   static SessionService get instance => _instance;
 
+  /// Sentinelles écrites dans `public.users.session_id` par la console admin
+  /// (`AdminProvider.forceLogoutUser` et `banUser`). Exposées ici parce que
+  /// c'est le seul endroit qui les *lit* : les garder en littéral des deux
+  /// côtés, c'est laisser un renommage couper le fil sans rien casser à la
+  /// compilation.
+  static const String prefixeForceLogout = 'force_logout_';
+  static const String prefixeBanni = 'banned_';
+
   StreamSubscription<DocumentSnapshot>? _sessionSubscription;
+  RealtimeChannel? _canalAdmin;
   String? _currentSessionId;
   bool _isListening = false;
 
@@ -56,6 +81,17 @@ class SessionService {
       // );
       return;
     }
+
+    // Décisions de la console admin — volontairement AVANT le bloc Firestore
+    // ci-dessous, et hors de son `try`.
+    //
+    // Ce bloc-là sort sans rien écouter dès que `users/<uid>` n'existe pas :
+    // son `update` lève `not-found`, le `catch` efface l'identifiant et
+    // `return`. Or plus rien ne crée ces documents depuis la migration vers
+    // Supabase — 8 comptes sur 54 en avaient un le 2026-09-16. Accrocher
+    // l'expulsion administrative à ce chemin, c'est la livrer morte pour la
+    // grande majorité des comptes, exactement comme elle l'était.
+    await _surveillerDecisionsAdmin(userId, nouvelleConnexion: isNewLogin);
 
     try {
       if (isNewLogin) {
@@ -171,7 +207,9 @@ class SessionService {
                 sessionLocale: _currentSessionId,
                 multiAppareil: multiAppareilAutorise(),
               )) {
-                _handleForceLogout();
+                _handleForceLogout(
+                  motif: MotifDeconnexionForcee.connecteAilleurs,
+                );
               }
             }
           },
@@ -179,6 +217,138 @@ class SessionService {
             // debugPrint('Session listener error: $e');
           },
         );
+  }
+
+  /// Écoute `public.users` — la ligne de ce compte, et elle seule — pour y
+  /// voir venir une décision administrative.
+  ///
+  /// **Pourquoi Supabase et pas Firestore.** `AdminProvider.forceLogoutUser`
+  /// et `banUser` écrivent `session_id` dans `public.users` ; l'écouteur
+  /// historique, lui, regarde Firestore `users/<uid>`. Les deux actions
+  /// n'éjectaient donc personne, en silence, et l'audit enregistrait un
+  /// succès (constaté le 2026-09-16). Faire écrire l'admin dans Firestore
+  /// était l'autre issue, et elle est fermée : `firestore.rules` ne permet
+  /// l'`update` d'un document `users` qu'à son propriétaire, sans branche
+  /// admin — et un refus Firestore ne remonte pas au client, l'écriture
+  /// « réussit » dans le cache.
+  Future<void> _surveillerDecisionsAdmin(
+    String userId, {
+    required bool nouvelleConnexion,
+  }) async {
+    if (_canalAdmin != null) return;
+
+    // Session d'abord : un abonnement créé en anon fait son fetch initial sous
+    // RLS sans droits, et ne verra jamais rien. Même précaution que partout
+    // ailleurs sur Supabase.
+    // Ce qu'on accepte ici : le tout premier échange d'un compte neuf échoue
+    // régulièrement (cycle de vie du pont Supabase). `_canalAdmin` reste nul,
+    // donc le prochain appel d'`initialize` — reprise, relance de l'app —
+    // réessaie. La fenêtre non surveillée est la première session d'un compte
+    // qui vient d'être créé ; personne n'y est banni.
+    final pret = await SupabaseAuthBridge.instance.ensureAuthenticated();
+    if (!pret) {
+      debugPrint(
+        'SessionService: pas de session Supabase, decisions admin non surveillees',
+      );
+      return;
+    }
+    final supabase = Supabase.instance.client;
+
+    // Effacer la sentinelle laissée par une expulsion précédente. Sans ça,
+    // `force_logout_…` resterait dans la colonne pour toujours — personne ne
+    // la réécrit, `unbanUser` non plus — et la lecture initiale ci-dessous
+    // ressortirait le compte à CHAQUE connexion, définitivement.
+    //
+    // Une suspension, elle, tient : elle est portée par `is_banned`, que ceci
+    // ne touche pas.
+    if (nouvelleConnexion) {
+      try {
+        await supabase
+            .from('users')
+            .update({'session_id': const Uuid().v4()})
+            .eq('id', userId);
+      } catch (e) {
+        debugPrint('SessionService: sentinelle admin non effacee: $e');
+      }
+    }
+
+    // S'abonner AVANT la lecture initiale : l'ordre inverse laisse une fenêtre
+    // où une décision prise entre les deux n'est ni lue ni notifiée.
+    final canal = supabase.channel('session_admin_$userId')
+      ..onPostgresChanges(
+        event: PostgresChangeEvent.update,
+        schema: 'public',
+        table: 'users',
+        filter: PostgresChangeFilter(
+          type: PostgresChangeFilterType.eq,
+          column: 'id',
+          value: userId,
+        ),
+        callback: (payload) {
+          final ligne = payload.newRecord;
+          _examinerDecisionAdmin(
+            sessionDistante: ligne['session_id'] as String?,
+            banni: ligne['is_banned'] == true,
+          );
+        },
+      );
+    _canalAdmin = canal;
+    canal.subscribe();
+
+    try {
+      final ligne = await supabase
+          .from('users')
+          .select('session_id, is_banned')
+          .eq('id', userId)
+          .maybeSingle();
+      if (ligne == null) return;
+      _examinerDecisionAdmin(
+        sessionDistante: ligne['session_id'] as String?,
+        banni: ligne['is_banned'] == true,
+      );
+    } catch (e) {
+      debugPrint('SessionService: lecture initiale des decisions admin: $e');
+    }
+  }
+
+  void _examinerDecisionAdmin({
+    required String? sessionDistante,
+    required bool banni,
+  }) {
+    if (!doitEjecterSurDecisionAdmin(
+      sessionDistante: sessionDistante,
+      banni: banni,
+      multiAppareil: multiAppareilAutorise(),
+    )) {
+      return;
+    }
+    _handleForceLogout(
+      motif: banni
+          ? MotifDeconnexionForcee.compteSuspendu
+          : MotifDeconnexionForcee.sessionFermeeParAdmin,
+    );
+  }
+
+  /// Faut-il sortir cet appareil sur décision de la console admin ?
+  ///
+  /// Isolée pour la même raison que [doitEjecter] : c'est la décision, le
+  /// reste est de la plomberie autour d'elle.
+  ///
+  /// L'exemption `multiAppareilComptes` couvre **tout**, suspension comprise
+  /// (choix du 2026-09-16) : la liste dit « laissez ce compte tranquille »,
+  /// et elle ne contient que des comptes de test. Un banni qui y figure ne
+  /// sort donc qu'à sa prochaine connexion.
+  @visibleForTesting
+  static bool doitEjecterSurDecisionAdmin({
+    required String? sessionDistante,
+    required bool banni,
+    required bool multiAppareil,
+  }) {
+    if (multiAppareil) return false;
+    if (banni) return true;
+    if (sessionDistante == null) return false;
+    return sessionDistante.startsWith(prefixeForceLogout) ||
+        sessionDistante.startsWith(prefixeBanni);
   }
 
   /// Ce compte peut-il tenir plusieurs sessions ? Branché depuis Riverpod
@@ -216,9 +386,13 @@ class SessionService {
   /// déléguer à la déconnexion complète, et retomber sur le repli si elle
   /// manque ou échoue.
   @visibleForTesting
-  Future<void> forcerDeconnexionPourTest() => _handleForceLogout();
+  Future<void> forcerDeconnexionPourTest({
+    MotifDeconnexionForcee motif = MotifDeconnexionForcee.connecteAilleurs,
+  }) => _handleForceLogout(motif: motif);
 
-  Future<void> _handleForceLogout() async {
+  Future<void> _handleForceLogout({
+    required MotifDeconnexionForcee motif,
+  }) async {
     dispose(); // Stop listening immediately
 
     // La déconnexion complète est celle d'`AuthNotifier` : même purge, même
@@ -265,8 +439,21 @@ class SessionService {
           (dialogContext) => PopScope(
             canPop: false, // Prevent dismissing by back button
             child: AlertDialog(
-              title: Text(l10n.connectedElsewhere),
-              content: Text(l10n.connectedElsewhereMessage),
+              title: Text(switch (motif) {
+                MotifDeconnexionForcee.connecteAilleurs =>
+                  l10n.connectedElsewhere,
+                MotifDeconnexionForcee.sessionFermeeParAdmin =>
+                  l10n.sessionClosedByAdmin,
+                MotifDeconnexionForcee.compteSuspendu => l10n.accountSuspended,
+              }),
+              content: Text(switch (motif) {
+                MotifDeconnexionForcee.connecteAilleurs =>
+                  l10n.connectedElsewhereMessage,
+                MotifDeconnexionForcee.sessionFermeeParAdmin =>
+                  l10n.sessionClosedByAdminMessage,
+                MotifDeconnexionForcee.compteSuspendu =>
+                  l10n.accountSuspendedMessage,
+              }),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -287,6 +474,14 @@ class SessionService {
   void dispose() {
     _sessionSubscription?.cancel();
     _sessionSubscription = null;
+    // Le canal doit partir avec le reste : laissé en vie, il continuerait de
+    // parler au nom d'un compte sorti, et `_surveillerDecisionsAdmin` se
+    // croirait déjà branché au compte suivant (garde `_canalAdmin != null`).
+    final canal = _canalAdmin;
+    _canalAdmin = null;
+    if (canal != null) {
+      unawaited(Supabase.instance.client.removeChannel(canal));
+    }
     _isListening = false;
     // La session est terminée : garder son identifiant ferait comparer le
     // prochain écouteur à celui d'un compte sorti.

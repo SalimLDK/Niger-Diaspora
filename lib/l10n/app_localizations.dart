@@ -11804,6 +11804,30 @@ abstract class AppLocalizations {
   /// **'Votre compte a été connecté sur un autre appareil. Vous avez été déconnecté de cet appareil pour sécurité.'**
   String get connectedElsewhereMessage;
 
+  /// No description provided for @sessionClosedByAdmin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Session fermée'**
+  String get sessionClosedByAdmin;
+
+  /// No description provided for @sessionClosedByAdminMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un administrateur a mis fin à votre session. Vous pouvez vous reconnecter.'**
+  String get sessionClosedByAdminMessage;
+
+  /// No description provided for @accountSuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte suspendu'**
+  String get accountSuspended;
+
+  /// No description provided for @accountSuspendedMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre compte a été suspendu. Contactez le support pour en connaître la raison.'**
+  String get accountSuspendedMessage;
+
   /// No description provided for @ok.
   ///
   /// In fr, this message translates to:

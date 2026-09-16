@@ -2919,6 +2919,10 @@
 
   "connectedElsewhere": "Connected elsewhere",
   "connectedElsewhereMessage": "Your account has been connected on another device. You have been logged out from this device for security.",
+  "sessionClosedByAdmin": "Session closed",
+  "sessionClosedByAdminMessage": "An administrator ended your session. You can sign in again.",
+  "accountSuspended": "Account suspended",
+  "accountSuspendedMessage": "Your account has been suspended. Contact support to find out why.",
   "ok": "OK",
 
   "taxAutomatic": "Automatic",

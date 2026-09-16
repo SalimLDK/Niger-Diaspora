@@ -6428,6 +6428,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Votre compte a été connecté sur un autre appareil. Vous avez été déconnecté de cet appareil pour sécurité.';
 
   @override
+  String get sessionClosedByAdmin => 'Session fermée';
+
+  @override
+  String get sessionClosedByAdminMessage =>
+      'Un administrateur a mis fin à votre session. Vous pouvez vous reconnecter.';
+
+  @override
+  String get accountSuspended => 'Compte suspendu';
+
+  @override
+  String get accountSuspendedMessage =>
+      'Votre compte a été suspendu. Contactez le support pour en connaître la raison.';
+
+  @override
   String get ok => 'OK';
 
   @override

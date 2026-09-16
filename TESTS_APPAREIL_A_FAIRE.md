@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1327 cases à cocher, 640 cochées** — 261 entrées sur 310 ont encore des cases ouvertes.
+**1336 cases à cocher, 640 cochées** — 262 entrées sur 311 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (39)
+**P0 — avant toute nouvelle version** (40)
 
 - 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
@@ -65,6 +65,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
+- 9 · [⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)](#-expulsion-admin-et-bannissement--ils-néjectaient-personne-2026-09-16) · *Comptes, session et onboarding*
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
@@ -325,7 +326,7 @@ Par domaine :
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
-- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
+- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 47 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 48 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 47 à faire, 34 faites
@@ -12495,6 +12496,63 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
 # 8. Comptes, session et onboarding
 
 Connexion, déconnexion, session Supabase, onboarding et assistant de profil, blocage.
+
+---
+
+## ⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)
+
+**Priorité P0** · importance 5/5 — Un compte banni depuis la console restait
+pleinement actif sur son téléphone : il continuait d'écrire, de recevoir ses
+notifications et de lire ses discussions, pendant que la console affichait
+« banni » et que l'audit enregistrait un succès. La modération ne pouvait donc
+rien arrêter en cours de route.
+
+La cause n'était pas une erreur de logique : `AdminProvider` écrivait la
+sentinelle dans **`public.users.session_id` (Supabase)** et `SessionService`
+écoutait **Firestore `users/<uid>`**. Deux moitiés dans deux bases, rien pour
+les relier. L'autre issue — faire écrire l'admin dans Firestore — est fermée :
+`firestore.rules` n'ouvre l'`update` d'un document `users` qu'à son
+propriétaire, et un refus Firestore ne remonte pas au client.
+
+À vérifier **à deux appareils** : un téléphone connecté sur un compte
+ordinaire, l'autre sur la console admin.
+
+*Bloqué : demande un second téléphone et un compte admin.*
+
+Fichiers : [session_service.dart](lib/core/services/session_service.dart)
+(`_surveillerDecisionsAdmin`, `doitEjecterSurDecisionAdmin`),
+[admin_provider.dart](lib/features/admin/presentation/providers/admin_provider.dart)
+(`forceLogoutUser`, `banUser`). Banc :
+[session_expulsion_admin_test.dart](test/core/services/session_expulsion_admin_test.dart)
+— il couvre la décision, pas le transport Realtime ni la RLS, qui sont
+justement ce qui reste à prouver ici.
+
+- [ ] **« Déconnecter » depuis la console** : le téléphone sort **dans la
+  seconde**, sans rien toucher, et affiche « Session fermée » — pas
+  « Connecté ailleurs ».
+- [ ] **Se reconnecter juste après** : ça marche du premier coup. C'est le
+  test de l'effacement de la sentinelle ; s'il rate, le compte est expulsé à
+  chaque connexion, définitivement.
+- [ ] **Bannir depuis la console** : le téléphone sort et affiche « Compte
+  suspendu ».
+- [ ] **Sur un compte SANS document Firestore `users`** (46 sur 54 le
+  2026-09-16 — donc presque n'importe quel compte autre que ceux de test) :
+  l'expulsion marche quand même. C'est tout l'objet du correctif ; le tester
+  sur un compte de test qui a un document Firestore ne prouverait rien.
+- [ ] **Application en arrière-plan** au moment de l'expulsion : au retour au
+  premier plan, l'appareil est bien sorti (la lecture initiale rattrape ce que
+  le canal Realtime a manqué).
+- [ ] **Après `flutter build apk --release`** : vérifier sur un build release,
+  le canal Realtime dépendant de la session Supabase — voir « Session Supabase
+  non établie » ne compte plus comme un plantage.
+- [ ] **Compte de la liste `multiAppareilComptes`** : il n'est PAS expulsé,
+  bannissement compris (choix assumé — voir « Verrou de version minimale et
+  multi-appareil »).
+- [ ] **Rien de neuf n'éjecte** : un compte ordinaire, non banni, sur un seul
+  téléphone, reste connecté toute une session d'usage normal. Ce canal ne
+  porte que des décisions admin ; s'il se met à éjecter sur autre chose, c'est
+  « une seule session » qui vient d'être généralisée par accident.
+- [ ] **Thème sombre** et **grande police** sur les deux nouveaux dialogues.
 
 ---
 

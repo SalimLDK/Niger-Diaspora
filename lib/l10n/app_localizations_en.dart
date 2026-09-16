@@ -6355,6 +6355,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your account has been connected on another device. You have been logged out from this device for security.';
 
   @override
+  String get sessionClosedByAdmin => 'Session closed';
+
+  @override
+  String get sessionClosedByAdminMessage =>
+      'An administrator ended your session. You can sign in again.';
+
+  @override
+  String get accountSuspended => 'Account suspended';
+
+  @override
+  String get accountSuspendedMessage =>
+      'Your account has been suspended. Contact support to find out why.';
+
+  @override
   String get ok => 'OK';
 
   @override
