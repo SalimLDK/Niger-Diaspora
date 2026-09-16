@@ -95,6 +95,42 @@ void main() {
     });
   });
 
+  group('toute notification de messagerie est datée', () {
+    const migHeure =
+        'supabase/migrations/20260916160000_les_reactions_sont_datees.sql';
+
+    test('les deux chemins de réaction posent `sentAt`', () {
+      // Trouvé par le banc de bout en bout : les cinq notifications produites
+      // portaient `sentAt`… sauf celle de réaction. Le client retombait alors
+      // sur l'heure de LIVRAISON — le défaut corrigé la veille pour les
+      // messages, resté sur son voisin.
+      final sql = _lire(migHeure);
+      expect(sql, contains('FUNCTION public.mls_notifier_reaction()'));
+      expect(sql, contains('FUNCTION public.set_message_reaction('));
+      expect("'sentAt',".allMatches(sql).length, 2,
+          reason: 'un par chemin, chiffré et clair');
+    });
+
+    test('c’est l’heure de la RÉACTION, pas celle du message', () {
+      // C'est la réaction qu'on annonce ; la dater du message auquel elle
+      // répond donnerait une bannière antidatée de plusieurs jours.
+      final sql = _lire(migHeure);
+      expect(sql, contains('COALESCE(NEW.created_at, now())'));
+      expect(sql, contains('extract(epoch from now())'));
+    });
+
+    test('aucun écrivain de notification de messagerie ne l’oublie', () {
+      // Les quatre migrations qui posent une notification de messagerie
+      // doivent toutes dater leur charge.
+      for (final f in const [
+        'supabase/migrations/20260916140000_le_push_porte_l_heure_du_message.sql',
+        migHeure,
+      ]) {
+        expect(_lire(f), contains("'sentAt',"), reason: f);
+      }
+    });
+  });
+
   group('une mention passe outre la sourdine', () {
     test('elle n\'est posée QUE dans la branche muette', () {
       // Hors sourdine, la notification `message` suffit : en ajouter une
