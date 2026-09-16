@@ -11,6 +11,12 @@ RLS exacts, flux MLS sur ces tables, façade Rust et interfaces Dart, format du
 payload, et le traitement complet des messages existants. Le diagnostic de la
 v1 est conservé en § 10, parce qu'il commande une règle de conception.
 
+> **Vous revenez sur le chantier après une pause ?** Lisez d'abord
+> [MLS_RESTE_A_FAIRE.md](MLS_RESTE_A_FAIRE.md) : il ne dit que ce qui n'est pas
+> fait, et distingue ce qui est *bloqué* (la machine l'interdit), *différé*
+> (possible, mais le faire maintenant serait une faute) et *à décider*.
+> Ce fichier-ci reste la référence sur le **quoi** et le **pourquoi**.
+
 ---
 
 # 0. Résumé
