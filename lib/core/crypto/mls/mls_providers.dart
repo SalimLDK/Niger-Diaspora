@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -35,9 +36,10 @@ final mlsGatewayProvider = Provider<MlsGateway?>((ref) {
   final delivery = ref.read(mlsDeliveryProvider);
   final registry = ref.read(mlsDeviceRegistryProvider);
 
-  MlsDeviceRecord? fiche;
-  Future<MlsDeviceRecord> appareil() async =>
-      fiche ??= await registry.ensureRegistered(userId);
+  // `fiche ??= await …` ne mémorisait qu'une inscription TERMINÉE : trois
+  // appels arrivés pendant la première en lançaient trois. Le 2026-09-16 ils
+  // ont donné trois lignes `mls_devices` en 190 ms.
+  final appareil = volUnique(() => registry.ensureRegistered(userId));
 
   final service = MlsConversationService(
     userId: userId,
@@ -61,3 +63,24 @@ final mlsGatewayProvider = Provider<MlsGateway?>((ref) {
     },
   );
 });
+
+/// Une opération asynchrone qu'on n'exécute qu'une fois à la fois : les
+/// appelants simultanés partagent l'appel en cours, un succès est gardé, un
+/// échec est oublié — l'appel suivant réessaie.
+@visibleForTesting
+Future<T> Function() volUnique<T>(Future<T> Function() operation) {
+  Future<T>? enCours;
+  return () {
+    final existant = enCours;
+    if (existant != null) return existant;
+    final appel = operation();
+    enCours = appel;
+    appel.then<void>(
+      (_) {},
+      onError: (Object _) {
+        if (identical(enCours, appel)) enCours = null;
+      },
+    );
+    return appel;
+  };
+}
