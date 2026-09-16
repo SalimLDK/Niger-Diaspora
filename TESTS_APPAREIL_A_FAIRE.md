@@ -39,14 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1206 cases à cocher, 617 cochées** — 244 entrées sur 292 ont encore des cases ouvertes.
+**1205 cases à cocher, 618 cochées** — 243 entrées sur 292 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (33)
+**P0 — avant toute nouvelle version** (32)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
-- 1 · [⬜ Média chiffré illisible à l'arrivée — et le débordement qui va avec (2026-09-15)](#-média-chiffré-illisible-à-larrivée--et-le-débordement-qui-va-avec-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
 - 4 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
 - 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
@@ -302,7 +301,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 254 à faire, 105 faites
+- [2. Messagerie](#2-messagerie) — 253 à faire, 106 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -824,7 +823,7 @@ taps avaient ouvert « Mes notes ». C'est ce qui avait fait accuser `event: all
 et annuler une correction saine. **Vérifier l'en-tête de la conversation PUIS
 la présence du texte dans la zone de saisie avant de conclure.**
 
-## ⬜ Média chiffré illisible à l'arrivée — et le débordement qui va avec (2026-09-15)
+## ✅ Média chiffré illisible à l'arrivée — et le débordement qui va avec (2026-09-15)
 
 **Priorité P0** · importance 5/5 — Signalé par Salim : « je n'arrive pas à
 lire les audios et aussi il y a overflow des deux côtés ». **Corrigé, à
@@ -850,9 +849,19 @@ payload (`storagePath`, `fileKey`, `fileNonce`, `fileName`, `mimeType`,
 `storagePath`), et l'erreur de la rangée de contrôles est passée en
 `Flexible` + ellipse : une erreur doit se voir, pas casser la mise en page.
 
-- [ ] **À vérifier sur appareil** : une note vocale reçue se lit ; une image
-  et une pièce jointe reçues en MLS s'affichent ; plus aucun débordement dans
-  la bulle vocale, même en cas d'erreur.
+- [x] **Vérifié à deux téléphones le 2026-09-15**, dans « Testeurs » :
+  - une note vocale **reçue se lit** sur le Pixel (`0:07 / 0:10`, onde
+    parcourue, tête de lecture) — donc téléchargée ET déchiffrée ;
+  - une **image reçue s'affiche** (flou d'attente, puis la photo) ;
+  - une note vocale **envoyée se lit** chez l'expéditeur (`0:03 / 0:03`) ;
+  - **plus aucun débordement** : l'erreur de lecture s'affiche tronquée
+    (« Erreur de l… ») à l'intérieur de la bulle.
+
+  ⚠️ **Les médias envoyés AVANT ce correctif restent illisibles** : leur
+  entité en cache n'a pas la fiche du média, et rien ne la recalcule. C'est
+  visible à l'écran (« Image non disponible », erreur de lecture). Ça ne se
+  répare pas tout seul — il faudrait renvoyer le média, ou purger le cache
+  local de la conversation.
 
 ## ✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)
 
