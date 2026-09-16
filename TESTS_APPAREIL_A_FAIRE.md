@@ -39,13 +39,14 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1189 cases à cocher, 610 cochées** — 240 entrées sur 287 ont encore des cases ouvertes.
+**1192 cases à cocher, 610 cochées** — 241 entrées sur 288 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (30)
+**P0 — avant toute nouvelle version** (31)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
+- 3 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
 - 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
@@ -298,7 +299,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 237 à faire, 98 faites
+- [2. Messagerie](#2-messagerie) — 240 à faire, 98 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -992,6 +993,50 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
   texte du dernier message, repris du cache local — pas « Nouveau message ».
 - [ ] **Aperçu sur un appareil qui n'a jamais ouvert la discussion** : il
   montre le libellé de type, jamais le texte d'un message plus ancien.
+
+---
+
+## ⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)
+
+**Priorité P0** · importance 5/5 — **Défaut ouvert, reproduit deux fois sur
+deux téléphones différents.** Après un arrêt complet de l'application, le fil
+d'une conversation basculée s'arrête net à un message donné : tout ce qui est
+arrivé **après** disparaît de l'écran, alors que la base le porte toujours
+(`is_deleted` faux, ciphertext intact).
+
+Mesuré le 2026-09-16 : Pixel 10 Pro XL, conversation `debef5f0…`. Le fil
+s'arrête à 18:48 ; les messages de 00:04 et 00:08 manquent, et le SM A515F a
+perdu le même 00:04 de son côté. Les deux les affichaient **avant** le
+redémarrage.
+
+**L'hypothèse, à confirmer avant de corriger.** La reprise après redémarrage
+repose sur deux pièces qui doivent se tenir : le **curseur mémorisé** évite
+de redemander au moteur un message déjà déchiffré, et **`MlsGateway.amorcer`**
+rend le clair depuis le cache local. Un message livré par le **canal temps
+réel** (branché le 2026-09-15) s'affiche sans passer par
+`_fusionnerAvecMls` — qui est le seul endroit qui écrit dans le cache Hive.
+Il est donc vu (curseur avancé, donc jamais re-demandé) mais jamais caché
+(donc jamais restitué). Les deux mécanismes sont corrects séparément ; c'est
+leur jonction qui perd le message.
+
+**Ce que ça implique** : tout chemin qui AFFICHE un message chiffré doit
+aussi le **cacher**, ou bien le curseur ne doit pas avancer sur un message
+qui n'a pas été caché. La seconde règle est la plus sûre : elle rend la perte
+impossible plutôt qu'improbable.
+
+Fichiers : [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
+(`amorcer`, `_fil`), [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
+(`_curseurDe`, `_memoriserCurseur`),
+[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`_fusionnerAvecMls`, `mlsDuCache`).
+
+- [ ] **Reproduire volontairement** : A envoie pendant que B a la discussion
+  ouverte (livraison en direct), puis tuer et rouvrir B. Le message doit
+  rester.
+- [ ] **Vérifier l'hypothèse** : le message perdu est-il absent du cache
+  Hive, alors que le curseur mémorisé l'a dépassé ?
+- [ ] **Après correctif** : même épreuve, et le cas déjà vert du message reçu
+  hors direct ne doit pas régresser.
 
 ---
 
