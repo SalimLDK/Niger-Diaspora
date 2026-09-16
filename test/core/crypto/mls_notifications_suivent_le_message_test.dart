@@ -104,9 +104,13 @@ void main() {
         if (nom == '20260916030000_mls_notifications_suivent_le_message.sql') {
           continue; // le nettoyage lui-même
         }
-        if (!sql.contains('FUNCTION public.mls_notify_recipients()')) {
-          coupables.add(nom);
-        }
+        // Deux écrivains légitimes : le message lui-même, et le message de
+        // CONTRÔLE qu'on transporte pour corriger une bannière après édition.
+        // Les deux posent des lignes `mls_messages`, donc les deux sont
+        // couverts par le nettoyage ci-dessus.
+        final legitime = sql.contains('FUNCTION public.mls_notify_recipients()') ||
+            sql.contains('FUNCTION public.mls_notifier_controle()');
+        if (!legitime) coupables.add(nom);
       }
       expect(coupables, isEmpty,
           reason: 'écrivains inattendus de la copie : $coupables');

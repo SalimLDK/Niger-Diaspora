@@ -10,10 +10,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// ferait diverger sans rien casser de visible.
 void main() {
   group('filtre de la requête', () {
-    test('écarte message et messageReaction, garde les types nuls', () {
+    test('écarte la messagerie, garde les types nuls', () {
+      // `messageEdited` s'y ajoute depuis le 2026-09-16 : elle n'annonce rien,
+      // elle corrige une bannière. L'afficher montrerait une entrée par faute
+      // de frappe corrigée.
       expect(
         NotificationSupabaseDataSource.filtreTypesAffiches,
-        'type.is.null,type.not.in.(message,messageReaction)',
+        'type.is.null,type.not.in.(message,messageReaction,messageEdited)',
       );
     });
 

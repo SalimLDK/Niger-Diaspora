@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1288 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
+**1295 cases à cocher, 632 cochées** — 255 entrées sur 304 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -82,7 +82,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (87)
+**P1 — fonction importante, jamais vérifiée** (88)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -118,6 +118,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
+- 7 · [⬜ Une édition corrige la bannière déjà posée (2026-09-16)](#-une-édition-corrige-la-bannière-déjà-posée-2026-09-16) · *Notifications et push*
 - 12 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
 - 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
@@ -316,7 +317,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 134 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 141 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -8974,6 +8975,56 @@ en solo.
 # 6. Notifications et push
 
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
+
+---
+
+## ⬜ Une édition corrige la bannière déjà posée (2026-09-16)
+
+**Priorité P1** · importance 4/5 — Avant : la bannière gardait le texte
+d'avant, et surtout **la pile le gardait 24 h** — le message suivant de la
+conversation réaffichait la ligne périmée au-dessus de la neuve. Le texte faux
+ne restait pas, il **revenait**, et rien ne permettait de s'en apercevoir.
+
+Maintenant, une édition envoie un `messageEdited` **silencieux** : `send-push`
+le passe en data-only, donc le système n'affiche rien de lui-même ; l'appareil
+corrige sa ligne dans la pile et **repose la même bannière**, sans la faire
+re-sonner (`onlyAlertOnce`). On ne la retire pas pour la reposer : ça la ferait
+sonner et disparaître un instant.
+
+**Le garde qui compte** : la correction n'est envoyée qu'aux destinataires dont
+une notification `message` est encore **non lue** pour cette conversation, et
+l'appareil refuse en plus de reposer une bannière si le message corrigé n'est
+pas dans sa pile. Une édition ne doit **jamais** faire réapparaître une
+conversation déjà lue.
+
+En chiffré, le serveur ne peut pas savoir ce que dit une édition — `kind` vaut
+`control` pour une édition, une réaction et une suppression indistinctement.
+Il transporte donc le contrôle, et l'appareil déchiffre pour trier, sur la même
+copie jetable que l'aperçu.
+
+Vérifié hors appareil : banc contre la production (Bob, bannière en attente,
+reçoit « rdv à 18h » ; Carl, qui a lu, ne reçoit rien ; l'expéditeur non plus),
+39 cas sur la pile. **Rien n'a tourné sur un téléphone.**
+
+Fichiers : migration `20260916200000`,
+[notification_service.dart](lib/core/services/notification_service.dart)
+(`_corrigerBanniereApresEdition`),
+[notification_pile_messages.dart](lib/core/services/notification_pile_messages.dart).
+
+- [ ] **Bannière affichée, l'autre corrige son message** : la bannière montre
+  le **nouveau** texte, **sans** sonner ni vibrer une seconde fois.
+- [ ] **Conversation déjà lue, l'autre corrige** : **aucune** bannière ne
+  réapparaît. C'est le point le plus important.
+- [ ] **Édition en conversation chiffrée** : même comportement — le texte
+  corrigé s'affiche, et il a bien été déchiffré sur l'appareil.
+- [ ] **Puis ouvrir la conversation** : le message reste **lisible**. C'est le
+  test du cliquet : corriger une bannière passe par la copie jetable.
+- [ ] **Réaction ou suppression en chiffré** : elles passent par le même
+  transport de contrôle mais ne doivent **rien** changer à la bannière.
+- [ ] **Pile de plusieurs messages** : seule la ligne corrigée change, elle
+  garde sa place et son heure d'envoi.
+- [ ] **Édition d'un message ancien** (hors des 6 de la pile) : rien ne se
+  passe, et surtout aucune bannière ne surgit.
 
 ---
 

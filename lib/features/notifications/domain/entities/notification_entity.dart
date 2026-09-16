@@ -127,6 +127,11 @@ enum NotificationType {
   // une conversation MLS les mentions sont dans la charge chiffrée, le serveur
   // ne peut pas savoir qu'un message vous nomme.
   messageMention,
+  // Correction d'une bannière déjà posée après l'édition d'un message. N'est
+  // JAMAIS annoncée : `send-push` l'envoie en data-only, l'appareil met sa
+  // bannière à jour en place, et la ligne est écrite `is_read` d'emblée. Elle
+  // figure donc dans `kTypesHorsEcranNotifications`.
+  messageEdited,
 }
 
 /// Types que l'écran Notifications n'affiche pas, et que la pastille de la
@@ -145,6 +150,9 @@ enum NotificationType {
 const kTypesHorsEcranNotifications = {
   NotificationType.message,
   NotificationType.messageReaction,
+  // Celle-ci n'annonce rien : elle corrige une bannière. L'afficher dans la
+  // liste montrerait une entrée pour chaque faute de frappe corrigée.
+  NotificationType.messageEdited,
 };
 
 extension NotificationTypeExtension on NotificationType {
@@ -248,6 +256,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'Réponse du support';
       case NotificationType.messageMention:
         return 'Mention';
+      case NotificationType.messageEdited:
+        return 'Message modifié';
     }
   }
 
@@ -343,6 +353,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'support_agent';
       case NotificationType.messageMention:
         return 'alternate_email';
+      case NotificationType.messageEdited:
+        return 'edit';
     }
   }
 }

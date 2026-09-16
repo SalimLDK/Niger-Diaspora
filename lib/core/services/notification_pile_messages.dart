@@ -145,6 +145,45 @@ class PileMessagesNotifiees {
     }
   }
 
+  /// Corrige le texte d'un message déjà empilé, et rend la pile.
+  ///
+  /// Rend `null` si ce message n'est pas dans la pile — il n'y a alors aucune
+  /// bannière à corriger, et il ne faut surtout pas en créer une : une édition
+  /// ne doit jamais faire réapparaître une conversation qu'on a déjà lue.
+  static Future<List<MessageEmpile>?> remplacer({
+    required String conversationId,
+    required String messageId,
+    required String texte,
+  }) async {
+    if (messageId.isEmpty) return null;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pile = _lireDepuis(prefs, conversationId);
+      final i = pile.indexWhere((m) => m.messageId == messageId);
+      if (i < 0) return null;
+      if (pile[i].texte == texte) return pile;
+      final ancien = pile[i];
+      pile[i] = MessageEmpile(
+        messageId: ancien.messageId,
+        texte: texte,
+        expediteur: ancien.expediteur,
+        expediteurId: ancien.expediteurId,
+        // L'heure reste celle de l'ENVOI, pas celle de la correction : la
+        // ligne ne doit pas sauter de place dans la conversation parce qu'une
+        // faute a été corrigée.
+        quand: ancien.quand,
+      );
+      await prefs.setString(
+        cleDe(conversationId),
+        jsonEncode([for (final m in pile) m.versJson()]),
+      );
+      return pile;
+    } catch (e) {
+      debugPrint('PileMessagesNotifiees: correction impossible ($e)');
+      return null;
+    }
+  }
+
   /// La pile de [conversationId], expirés retirés.
   static Future<List<MessageEmpile>> lire(String conversationId) async {
     try {

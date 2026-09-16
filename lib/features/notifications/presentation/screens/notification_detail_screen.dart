@@ -307,6 +307,7 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.message:
       case NotificationType.messageReaction:
       case NotificationType.messageMention:
+      case NotificationType.messageEdited:
         if (notification.targetId != null) {
           context.push('/messages/${notification.targetId}');
         }
@@ -471,6 +472,7 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.postReposted:
       case NotificationType.orderShippingReminder:
       case NotificationType.messageMention:
+      case NotificationType.messageEdited:
         return type.label;
     }
   }

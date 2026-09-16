@@ -40,6 +40,9 @@ const Map<String, String> kClePreferenceParType = {
   // La sourdine d'une conversation cède sur mention, l'interrupteur global
   // non : une mention reste un message.
   'messageMention': 'messages',
+  // Couper « Messages » coupe aussi les corrections : sans bannière à
+  // corriger, elles n'ont plus d'objet.
+  'messageEdited': 'messages',
 
   // Les gens.
   'friendRequest': 'friend_requests',
