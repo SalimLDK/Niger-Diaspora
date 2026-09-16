@@ -489,8 +489,12 @@ class MessageRepositoryImpl implements MessageRepository {
       // encore en clair.
       final chiffrement = mediaEncryptionService;
       final conversationChiffree = await _passerellePour(conversationId) != null;
+      // La video n'est plus ecartee. Elle l'etait pour une raison precise et
+      // desormais levee : le chiffrement passait par la memoire, avec un pic
+      // proche de trois fois la taille du fichier, et le telechargement
+      // plafonnait a 10 Mo. Les deux sens vont maintenant d'un fichier vers
+      // un autre, un morceau a la fois.
       if (chiffrement != null &&
-          type != MessageType.video &&
           (mediasChiffresActifs() || conversationChiffree)) {
         return _envoyerMediaChiffre(
           chiffrement,
@@ -662,6 +666,7 @@ class MessageRepositoryImpl implements MessageRepository {
       mediaType: switch (type) {
         MessageType.image => MediaType.image,
         MessageType.audio => MediaType.audio,
+        MessageType.video => MediaType.video,
         _ => MediaType.document,
       },
       onProgress: onProgress,
@@ -671,13 +676,22 @@ class MessageRepositoryImpl implements MessageRepository {
       return const Left(ServerFailure('Envoi annulé'));
     }
 
+    // Vignette et duree se calculent sur le fichier EN CLAIR, avant qu'il ne
+    // parte chiffre. Sans elles, une video chiffree arriverait sans apercu ni
+    // badge de duree, et se lirait comme un defaut d'affichage.
     String? blurhash;
     if (type == MessageType.image) {
       blurhash = await blurhashService.generateFromImage(file);
+    } else if (type == MessageType.video) {
+      blurhash = await blurhashService.generateFromVideo(file);
     }
     int? audioDuration;
     if (type == MessageType.audio) {
       audioDuration = await AudioPlaybackService.getDurationFromFile(file.path);
+    }
+    int? videoDuration;
+    if (type == MessageType.video) {
+      videoDuration = await _getVideoDurationSeconds(file.path);
     }
     final dbType = type == MessageType.audio ? 'audioFile' : type.name;
 
@@ -713,6 +727,7 @@ class MessageRepositoryImpl implements MessageRepository {
             fileNonce: resultat.ivBase64,
             blurhash: blurhash,
             duration: audioDuration,
+            dureeVideo: videoDuration,
           ),
           senderName: senderName,
           senderPhotoUrl: senderPhotoUrl,
@@ -738,6 +753,7 @@ class MessageRepositoryImpl implements MessageRepository {
       replyToMessageData: replyToMessageData,
       blurhash: blurhash,
       audioDuration: audioDuration,
+      videoDuration: videoDuration,
       mediaChiffre: media.toJson(),
     );
     return Right(message.toEntity());
@@ -1357,12 +1373,25 @@ class MessageRepositoryImpl implements MessageRepository {
             if (!await passerelle.enMls(conversationId)) return null;
             // Relire le fil, pas la ligne : `catchUp` est incrémental, il ne
             // déchiffre que ce qui est nouveau depuis son curseur.
+            // Le fil ENTIER, pas seulement ce qui est plus récent que
+            // `afterTimestamp` : une modification porte la date d'ORIGINE du
+            // message, pas celle du changement. La filtrer sur la date
+            // revenait à ne jamais la délivrer — le texte modifié
+            // n'apparaissait qu'à la réouverture.
             final fil = await passerelle.messages(conversationId);
-            final frais = fil
-                .where((m) => m.createdAt.isAfter(afterTimestamp))
-                .toList();
-            if (frais.isEmpty) return null;
-            return Right<Failure, List<MessageEntity>>(frais);
+            if (fil.isEmpty) return null;
+            // **Mettre en cache, comme le fait la lecture.** Sans ça, un
+            // message arrivé UNIQUEMENT par ce chemin vivait en mémoire et
+            // nulle part ailleurs : il s'affichait, puis disparaissait dès
+            // que la passerelle était recréée — le cache local, seul à
+            // garder le clair d'un message chiffré, ne l'avait jamais vu.
+            // Mesuré à deux téléphones le 2026-09-15 : message reçu « à
+            // l'instant », absent du fil à la réouverture suivante.
+            unawaited(cacheService.cacheMessages(
+              conversationId,
+              [for (final m in fil) MessageModel.fromEntity(m).toJson()],
+            ));
+            return Right<Failure, List<MessageEntity>>(fil);
           } catch (e) {
             // Un rattrapage raté ne doit pas tuer le flux : le suivant, ou la
             // prochaine ouverture, reprendra.

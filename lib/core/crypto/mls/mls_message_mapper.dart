@@ -121,6 +121,7 @@ class MlsMessageMapper {
       fileSize: (body['fileSize'] as num?)?.toInt(),
       mimeType: body['mimeType'] as String?,
       audioDuration: (body['duration'] as num?)?.toInt(),
+      videoDuration: (body['videoDuration'] as num?)?.toInt(),
       blurhash: body['blurhash'] as String?,
       createdAt: row.createdAt.toLocal(),
       deletedForEveryone: row.isDeleted,
