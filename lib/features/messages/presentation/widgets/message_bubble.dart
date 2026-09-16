@@ -645,144 +645,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                                               : null,
                                       child: ClipRRect(
                                         borderRadius: _getBorderRadius(),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            // Forwarded label
-                                            if (widget.message.isForwarded)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 12,
-                                                  right: 12,
-                                                  top: 8,
-                                                ),
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Transform.flip(
-                                                      flipX: true,
-                                                      child: Icon(
-                                                        Icons.reply,
-                                                        size: 16,
-                                                        color:
-                                                            widget.isMe
-                                                                ? AppColors
-                                                                    .white
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.6,
-                                                                    )
-                                                                : context
-                                                                    .textTertiaryColor
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.8,
-                                                                    ),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 4),
-                                                    Text(
-                                                      AppLocalizations.of(
-                                                        context,
-                                                      )!.forwarded,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        fontStyle:
-                                                            FontStyle.italic,
-                                                        color:
-                                                            widget.isMe
-                                                                ? AppColors
-                                                                    .white
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.6,
-                                                                    )
-                                                                : context
-                                                                    .textTertiaryColor
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.8,
-                                                                    ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            // Sender name inside bubble for groups
-                                            if (widget.showSenderInfo &&
-                                                !widget.isMe)
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                  left: 12,
-                                                  right: 12,
-                                                  top: 8,
-                                                ),
-                                                child: InkWell(
-                                                  onTap:
-                                                      () => widget.onSenderTap
-                                                          ?.call(
-                                                            widget
-                                                                .message
-                                                                .senderId,
-                                                          ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Text(
-                                                        widget
-                                                            .message
-                                                            .senderName,
-                                                        style: TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color:
-                                                              UserColorUtils.getUserColor(
-                                                                widget
-                                                                    .message
-                                                                    .senderId,
-                                                              ),
-                                                        ),
-                                                      ),
-                                                      if (widget
-                                                          .message
-                                                          .senderIsVerified) ...[
-                                                        const SizedBox(
-                                                          width: 4,
-                                                        ),
-                                                        const VerificationBadge(
-                                                          size:
-                                                              VerificationBadgeSize
-                                                                  .small,
-                                                        ),
-                                                      ],
-                                                      if (widget
-                                                          .senderIsAdmin) ...[
-                                                        const SizedBox(
-                                                          width: 6,
-                                                        ),
-                                                        _buildAdminBadge(
-                                                          context,
-                                                        ),
-                                                      ],
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            // Reply preview
-                                            if (widget.replyToMessage != null)
-                                              _buildReplyPreview(context),
-
-                                            // Message content
-                                            _bulleVidee
-                                                ? _buildDeletedContent(context)
-                                                : _buildContent(context),
-                                          ],
-                                        ),
+                                        child: _buildBubbleColumn(context),
                                       ),
                                     ),
                                   ),
@@ -809,6 +672,137 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           ],
         ),
       ),
+    );
+  }
+
+  /// Une bulle qui porte une citation ne descend jamais sous cette largeur.
+  ///
+  /// Sans elle, une réponse courte à un message court donne un bloc plus haut
+  /// que large : la citation, le texte et rien d'autre, empilés dans une
+  /// colonne de la largeur du plus court des trois. La citation s'y lit comme
+  /// une étiquette posée à côté du message, plus comme le message cité.
+  ///
+  /// La contrainte est un plancher, jamais un plafond : `ConstrainedBox`
+  /// applique `enforce()` sur les contraintes du parent, donc une largeur
+  /// minimale plus grande que la place disponible est ramenée à cette place.
+  double _largeurMinCitation(BuildContext context) {
+    final largeur = MediaQuery.sizeOf(context).width * 0.52;
+    return largeur > 240 ? 240 : largeur;
+  }
+
+  /// La citation ne peut s'étirer que si la largeur intrinsèque du contenu
+  /// est calculable — voir `_buildBubbleColumn`.
+  ///
+  /// `AudioMessageBubble` et `AudioFileBubble` contiennent un `LayoutBuilder`,
+  /// qui **lève** quand on lui demande une dimension intrinsèque au lieu de se
+  /// dégrader. Une bulle média est large de toute façon : c'est la bulle de
+  /// texte, elle seule, qui se repliait en colonne.
+  bool get _citationEtirable {
+    if (widget.replyToMessage == null) return false;
+    if (_bulleVidee) return true;
+    if (widget.message.type != MessageType.text) return false;
+    return widget.message.postData == null &&
+        widget.message.productData == null &&
+        widget.message.eventData == null &&
+        widget.message.linkPreviewData == null;
+  }
+
+  /// Colonne interne de la bulle : étiquette de transfert, nom de
+  /// l'expéditeur, citation, puis contenu.
+  ///
+  /// Quand le message répond à un autre, la citation s'étire sur toute la
+  /// largeur de la bulle — c'est ce qui la fait lire comme un bandeau. Le
+  /// détour par `IntrinsicWidth` n'est pas évitable : un `Column` se
+  /// dimensionne sur son enfant le plus large, donc `CrossAxisAlignment
+  /// .stretch` seul ferait prendre à **chaque** bulle toute la largeur
+  /// disponible. `IntrinsicWidth` mesure d'abord, `stretch` remplit ensuite
+  /// la largeur mesurée — une passe de mise en page de plus, bornée aux
+  /// bulles de texte qui citent.
+  Widget _buildBubbleColumn(BuildContext context) {
+    final colonne = Column(
+      crossAxisAlignment:
+          _citationEtirable
+              ? CrossAxisAlignment.stretch
+              : CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Forwarded label
+        if (widget.message.isForwarded)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Transform.flip(
+                  flipX: true,
+                  child: Icon(
+                    Icons.reply,
+                    size: 16,
+                    color:
+                        widget.isMe
+                            ? AppColors.white.withValues(alpha: 0.6)
+                            : context.textTertiaryColor.withValues(alpha: 0.8),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  AppLocalizations.of(context)!.forwarded,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    color:
+                        widget.isMe
+                            ? AppColors.white.withValues(alpha: 0.6)
+                            : context.textTertiaryColor.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        // Sender name inside bubble for groups
+        if (widget.showSenderInfo && !widget.isMe)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, right: 12, top: 8),
+            child: InkWell(
+              onTap: () => widget.onSenderTap?.call(widget.message.senderId),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.message.senderName,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: UserColorUtils.getUserColor(
+                        widget.message.senderId,
+                      ),
+                    ),
+                  ),
+                  if (widget.message.senderIsVerified) ...[
+                    const SizedBox(width: 4),
+                    const VerificationBadge(size: VerificationBadgeSize.small),
+                  ],
+                  if (widget.senderIsAdmin) ...[
+                    const SizedBox(width: 6),
+                    _buildAdminBadge(context),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        // Reply preview
+        if (widget.replyToMessage != null) _buildReplyPreview(context),
+
+        // Message content
+        _bulleVidee ? _buildDeletedContent(context) : _buildContent(context),
+      ],
+    );
+
+    if (widget.replyToMessage == null) return colonne;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(minWidth: _largeurMinCitation(context)),
+      child: _citationEtirable ? IntrinsicWidth(child: colonne) : colonne,
     );
   }
 
@@ -2094,31 +2088,36 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         widget.onScrollToMessage?.call(reply.id);
       },
       child: Container(
-        margin: const EdgeInsets.only(left: 8, right: 8, top: 8, bottom: 4),
-        // Fiche 4a : « citation bordure gauche blanche translucide » — un
-        // filet de 2 px et 9 px de retrait, sans aplat ni rayon. Le bloc
-        // portait un liseré de 4 px opaque sur un fond translucide arrondi,
-        // qui faisait une seconde bulle dans la bulle.
-        padding: const EdgeInsets.only(left: 9, top: 2, bottom: 2, right: 4),
+        margin: const EdgeInsets.only(left: 6, right: 6, top: 6, bottom: 2),
+        // Fiche 4a : « citation bordure gauche blanche translucide ». Le filet
+        // reste, l'aplat revient — sur la bulle envoyée aussi. Il avait été
+        // retiré parce qu'il faisait « une seconde bulle dans la bulle », mais
+        // c'était le liseré de 4 px OPAQUE qui la dessinait, pas l'aplat : à
+        // 3 px translucides et 14 % d'alpha, le bloc pose un fond, pas une
+        // bulle — et sans lui, la citation se lit comme une étiquette posée à
+        // côté du message plutôt que comme le message cité.
+        padding: const EdgeInsets.only(left: 8, top: 6, bottom: 6, right: 10),
         decoration: BoxDecoration(
-          // Sur la bulle verte, le filet suffit à détacher la citation. Sur
-          // une bulle reçue (fond blanc), il n'y a aucun contraste à
-          // exploiter : on garde l'aplat discret, sinon la citation se
-          // confond avec le message.
           color:
               isMe
-                  ? null
+                  ? Colors.white.withValues(alpha: 0.14)
                   : isDarkMode
                   ? Colors.black.withValues(alpha: 0.35)
                   : Colors.black.withValues(alpha: 0.08),
-          borderRadius: isMe ? null : BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
+          // Un `Border` non uniforme avec un `borderRadius` ne passe que parce
+          // qu'une SEULE couleur est visible (les trois autres côtés sont
+          // `BorderStyle.none`) : `Border.paint` prend alors le chemin
+          // `paintNonUniformBorder`. Ajouter un second côté coloré ici ferait
+          // lever l'assertion « A borderRadius can only be given on borders
+          // with uniform colors ».
           border: Border(
             left: BorderSide(
               color:
                   isMe
-                      ? Colors.white.withValues(alpha: 0.55)
+                      ? Colors.white.withValues(alpha: 0.85)
                       : context.adaptivePrimaryColor,
-              width: 2,
+              width: 3,
             ),
           ),
         ),
@@ -2135,7 +2134,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -2504,7 +2503,14 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     }
 
     return Padding(
-      padding: const EdgeInsets.only(left: 14, right: 14, top: 10, bottom: 8),
+      // Sous une citation, le bandeau porte déjà son propre retrait : 10 px de
+      // plus séparaient le texte de la citation d'un tiers de sa hauteur.
+      padding: EdgeInsets.only(
+        left: 14,
+        right: 14,
+        top: widget.replyToMessage != null ? 4 : 10,
+        bottom: 8,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

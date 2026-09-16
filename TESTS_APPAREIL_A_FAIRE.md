@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1298 cases à cocher, 632 cochées** — 255 entrées sur 304 ont encore des cases ouvertes.
+**1306 cases à cocher, 632 cochées** — 257 entrées sur 306 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (37)
+**P0 — avant toute nouvelle version** (38)
 
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
@@ -69,6 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
+- 4 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
 - 9 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
@@ -172,7 +173,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (79)
+**P2 — fonction secondaire ou cas limite** (80)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -183,6 +184,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 4 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
 - 6 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
 - 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
 - 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
@@ -313,7 +315,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 282 à faire, 119 faites
+- [2. Messagerie](#2-messagerie) — 290 à faire, 119 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -572,6 +574,68 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)
+
+**Priorité P0** · importance 4/5 — signalé à l'usage le 2026-09-16, juste après le déploiement de `gif-proxy` : « les gifs/stickers ne s'affichent pas dans les messages ». Deux messages `sticker` partis en MLS à 05:05 UTC, tous deux muets à l'écran.
+
+`MlsMessageMapper` ne lisait `fileUrl` que depuis `body['storagePath']`, qui
+n'existe que pour un média chiffré. Un sticker — et un GIF, qui emprunte le
+même transport — porte son URL dans `body['stickerUrl']` : l'entité sortait
+avec `fileUrl == null`, et `StickerBubble` n'affichait qu'un cadre « image
+cassée ». `isAnimated` n'était pas relu non plus.
+
+**L'expéditeur voyait la même chose** : sa propre copie est remappée depuis ce
+payload dès l'accusé d'envoi. Aucune erreur, aucun journal — le message part,
+s'affiche, et ne montre rien. C'est la deuxième perte de champ du même mapper
+(voir `mediaChiffre`, corrigé la veille) : d'où un banc par champ,
+[mls_sticker_gif_test.dart](test/features/messages/mls_sticker_gif_test.dart),
+qui échoue si la ligne saute.
+
+Les deux messages déjà envoyés portent l'URL dans leur payload chiffré : ils
+s'afficheront correctement au prochain build, sans rien réémettre.
+
+- [ ] **Envoyer un GIF dans une conversation basculée MLS** : la vignette
+      s'affiche chez l'expéditeur **et** chez le destinataire
+- [ ] **Les deux GIFs du 2026-09-16** (05:05 UTC) s'affichent après mise à
+      jour, au lieu du cadre cassé
+- [ ] **Sticker animé** : l'animation joue, elle ne se fige pas sur la
+      première trame (`isAnimated` relu)
+- [ ] **Conversation non basculée** : toujours bon — ce chemin-là passait par
+      `data->>'fileUrl'` et n'a jamais été touché
+
+---
+
+## ⬜ Forme de la bulle qui cite un message (2026-09-16)
+
+**Priorité P2** · importance 3/5 — signalé sur capture : une réponse courte à
+un message court donnait un bloc **plus haut que large**, où la citation se
+lisait comme une étiquette posée à côté du message plutôt que comme le message
+cité. Trois changements dans `message_bubble.dart` :
+
+- un plancher de largeur (52 % de l'écran, plafonné à 240) dès qu'il y a une
+  citation ;
+- la citation étirée sur toute la largeur de la bulle — par `IntrinsicWidth`,
+  **réservé au texte** : `AudioMessageBubble` et `AudioFileBubble` contiennent
+  un `LayoutBuilder`, qui lève au lieu de rendre une dimension intrinsèque ;
+- un aplat translucide sous la citation de la bulle envoyée (le filet seul ne
+  la détachait pas), un filet de 3 px, et 12 px d'air en moins entre la
+  citation et le texte.
+
+La forme est fixée par `test/features/messages/bulle_citation_forme_test.dart`
+et a été regardée en golden jetable (« Aperçu UI sans build »). Ce qu'un
+golden ne dit pas :
+
+- [ ] **Thème sombre** : l'aplat blanc à 14 % sur le vert `#009600` — détaché
+  sans virer au laiteux.
+- [ ] **Échelle de police à 130 %** (réglages Android) : la citation tient sur
+  ses deux lignes, la bulle ne déborde pas. Voir « Échelle de police ».
+- [ ] **Réponse à une photo, puis à une note vocale** : ces bulles passent par
+  le chemin SANS `IntrinsicWidth` — la citation ne s'y étire pas, et rien ne
+  doit lever.
+- [ ] **Bulle reçue** portant une citation, en clair et en sombre.
 
 ---
 

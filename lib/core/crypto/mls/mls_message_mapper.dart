@@ -120,7 +120,13 @@ class MlsMessageMapper {
       content: body['content'] as String? ?? '',
       type: _type(payload.type),
       status: MessageStatus.sent,
-      fileUrl: body['storagePath'] as String?,
+      // Un sticker — et un GIF, qui emprunte le même transport — n'a pas de
+      // blob chiffré : son média est une URL publique du fournisseur, posée
+      // dans le corps sous `stickerUrl`. La bulle la lit dans `fileUrl`,
+      // comme pour tout autre média. Sans ce repli, `StickerBubble` recevait
+      // une chaîne vide et n'affichait qu'un cadre « image cassée » — pour
+      // l'expéditeur aussi, dont la copie est remappée depuis ce même payload.
+      fileUrl: (body['storagePath'] ?? body['stickerUrl']) as String?,
       // **Reposer la fiche du média chiffré.** Sans elle, `MediaChiffreGate`
       // laisse passer le message tel quel (`mediaChiffre == null` = « rien à
       // déchiffrer »), et la bulle tente d'ouvrir `fileUrl` — qui pointe sur
@@ -165,6 +171,7 @@ class MlsMessageMapper {
       pollId: body['pollId'] as String?,
       stickerPackId: body['stickerPackId'] as String?,
       stickerId: body['stickerId'] as String?,
+      isAnimatedSticker: body['isAnimated'] as bool? ?? false,
       isForwarded: payload.forwarded,
       mentionedUsers: [
         for (final id in payload.mentions) MentionedUser(id: id, name: ''),
