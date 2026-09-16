@@ -29,6 +29,9 @@ Map<String, dynamic> _mapGroup(Map<String, dynamic> row) => {
   'memberCount': row['member_count'] ?? 0,
   'permissions': (row['permissions'] as Map?)?.cast<String, dynamic>() ?? {},
   'isOfficial': row['is_official'] ?? false,
+  // Posé par `_withMembership` depuis `group_members.joined_at` : la table
+  // `groups` n'a pas de colonne de ce nom.
+  'memberJoinedAt': row['member_joined_at'] ?? const <String, String>{},
 };
 
 class GroupSupabaseDataSource implements GroupRemoteDataSource {
@@ -62,22 +65,35 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
   ///
   /// Une seule requête pour toute la liste : compter groupe par groupe ferait
   /// un N+1 sur les écrans de découverte.
-  Future<Map<String, ({List<String> members, List<String> admins})>>
-      _membershipFor(List<String> groupIds) async {
+  Future<
+      Map<
+        String,
+        ({
+          List<String> members,
+          List<String> admins,
+          Map<String, String> joinedAt,
+        })
+      >> _membershipFor(List<String> groupIds) async {
     if (groupIds.isEmpty) return const {};
     try {
       final rows = await _supabase
           .from('group_members')
-          .select('group_id, user_id, role')
+          // `joined_at` : sans lui, le filtre des groupes privés ne trouvait
+          // jamais de date d'arrivée et laissait tout voir à un nouveau membre.
+          .select('group_id, user_id, role, joined_at')
           .inFilter('group_id', groupIds) as List;
 
       final members = <String, List<String>>{};
       final admins = <String, List<String>>{};
+      final joinedAt = <String, Map<String, String>>{};
       for (final r in rows) {
         final gid = r['group_id'] as String?;
         final uid = r['user_id'] as String?;
         if (gid == null || uid == null) continue;
         (members[gid] ??= <String>[]).add(uid);
+        if (r['joined_at'] case final String quand) {
+          (joinedAt[gid] ??= <String, String>{})[uid] = quand;
+        }
         final role = r['role'] as String?;
         if (role == 'owner' || role == 'admin') {
           (admins[gid] ??= <String>[]).add(uid);
@@ -88,6 +104,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
           gid: (
             members: members[gid] ?? const <String>[],
             admins: admins[gid] ?? const <String>[],
+            joinedAt: joinedAt[gid] ?? const <String, String>{},
           ),
       };
     } catch (_) {
@@ -100,7 +117,14 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
   /// Applique l'appartenance réelle à une ligne `groups` avant décodage.
   Map<String, dynamic> _withMembership(
     Map<String, dynamic> row,
-    Map<String, ({List<String> members, List<String> admins})> membership,
+    Map<
+      String,
+      ({
+        List<String> members,
+        List<String> admins,
+        Map<String, String> joinedAt,
+      })
+    > membership,
   ) {
     final gid = row['id'] as String?;
     final entry = gid == null ? null : membership[gid];
@@ -108,6 +132,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     final patched = Map<String, dynamic>.from(row);
     patched['member_ids'] = entry.members;
     if (entry.admins.isNotEmpty) patched['admin_ids'] = entry.admins;
+    patched['member_joined_at'] = entry.joinedAt;
     // `member_count` de la table n'est volontairement pas repris :
     // `GroupEntity.memberCount` est un getter sur `memberIds.length`, donc le
     // compte suit l'appartenance et ne peut plus la contredire.

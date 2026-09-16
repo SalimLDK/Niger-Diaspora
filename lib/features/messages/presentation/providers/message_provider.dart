@@ -235,13 +235,52 @@ DateTime? _echeanceOptimiste(Ref ref, String conversationId) {
       : DateTime.now().add(Duration(seconds: secondes));
 }
 
+/// Le fil tel qu'un membre arrivé à [arrivee] peut le voir : rien de ce qui
+/// a été dit avant lui.
+///
+/// `null` : pas de borne (discussion hors groupe privé, ou date inconnue).
+List<MessageEntity> sansMessagesAvantArrivee(
+  List<MessageEntity> messages,
+  DateTime? arrivee,
+) {
+  if (arrivee == null) return messages;
+  if (messages.every((m) => m.createdAt.isAfter(arrivee))) return messages;
+  return [
+    for (final m in messages)
+      if (m.createdAt.isAfter(arrivee)) m,
+  ];
+}
+
 class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   final Ref _ref;
   final String conversationId;
 
   StreamSubscription<dynamic>? _newMessagesSubscription;
   StreamSubscription<dynamic>? _messageUpdatesSubscription;
+
+  /// Date d'arrivée du membre dans un groupe privé : rien d'antérieur ne
+  /// s'affiche. Voir [state].
   DateTime? _filterAfterDate;
+
+  /// **Le seul endroit où la borne d'arrivée s'applique.**
+  ///
+  /// Elle n'était passée qu'à la page réseau (`getMessagesPaginated`) : le
+  /// cache local, la fusion MLS, la pagination et le temps réel posaient
+  /// leurs messages sans elle. Tant que la date n'était jamais lue — ce qui a
+  /// duré jusqu'au 2026-09-16 —, ça ne se voyait pas. Dès qu'elle l'est, un
+  /// membre voyait les messages d'avant son arrivée surgir du cache à chaque
+  /// ouverture, puis disparaître au retour du réseau. Une vingtaine
+  /// d'écritures de `state` dans ce notifier : filtrer chacune, c'était en
+  /// oublier une.
+  @override
+  set state(MessagePaginationState valeur) {
+    final borne = _filterAfterDate;
+    super.state = borne == null
+        ? valeur
+        : valeur.copyWith(
+            messages: sansMessagesAvantArrivee(valeur.messages, borne),
+          );
+  }
   final Map<String, Timer> _optimisticTimeouts = {};
 
   /// La lecture réseau initiale a abouti au moins une fois.
@@ -481,6 +520,10 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   void setFilterDate(DateTime? date) {
     if (_filterAfterDate != date) {
       _filterAfterDate = date;
+      // Tout de suite, sur ce qui est déjà affiché — le cache s'est posé avant
+      // que la date soit connue. Sans ça, les messages d'avant l'arrivée
+      // restaient à l'écran le temps de la relecture réseau.
+      if (mounted) state = state;
       loadInitial();
     }
   }

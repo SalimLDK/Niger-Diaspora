@@ -23,6 +23,14 @@ class GroupModel extends Equatable {
   final Map<String, dynamic> permissions;
   final bool isOfficial;
 
+  /// Date d'arrivée de chaque membre (`group_members.joined_at`).
+  ///
+  /// Le champ existait sur `GroupEntity` mais pas ici : `toEntity` ne pouvait
+  /// donc rien lui transmettre, et le filtre des groupes privés (« un nouveau
+  /// membre ne voit pas ce qui a été dit avant lui ») ne trouvait jamais de
+  /// date. Seul l'ancien datasource Firestore l'alimentait.
+  final Map<String, DateTime> memberJoinedAt;
+
   const GroupModel({
     required this.id,
     required this.name,
@@ -42,6 +50,7 @@ class GroupModel extends Equatable {
     this.originRegion,
     this.permissions = const {},
     this.isOfficial = false,
+    this.memberJoinedAt = const {},
   });
 
   static DateTime? _parseDateTime(dynamic value) {
@@ -86,6 +95,12 @@ class GroupModel extends Equatable {
           (json['permissions'] as Map<dynamic, dynamic>?)?.cast<String, dynamic>() ??
               const {},
       isOfficial: json['isOfficial'] as bool? ?? false,
+      memberJoinedAt: {
+        for (final e
+            in ((json['memberJoinedAt'] as Map?) ?? const {}).entries)
+          if (_parseDateTime(e.value) case final quand?)
+            e.key.toString(): quand,
+      },
     );
   }
 
@@ -109,6 +124,11 @@ class GroupModel extends Equatable {
       'originRegion': originRegion,
       'permissions': permissions,
       'isOfficial': isOfficial,
+      // `memberJoinedAt` n'y est volontairement pas : ce `toJson` n'a plus
+      // qu'un appelant, l'ancien datasource Firestore, qui l'écrit tel quel
+      // dans le document du groupe — où cette carte vit en `Timestamp`, tenue
+      // champ par champ par `FieldValue.serverTimestamp()`. L'y envoyer en
+      // chaînes l'écraserait.
     };
   }
 
@@ -151,6 +171,7 @@ class GroupModel extends Equatable {
         originRegion: originRegion,
         permissions: _parsePermissions(),
         isOfficial: isOfficial,
+        memberJoinedAt: memberJoinedAt,
       );
 
   static GroupCategory _parseCategory(String value) {
@@ -179,6 +200,7 @@ class GroupModel extends Equatable {
         originRegion: entity.originRegion,
         permissions: _permissionsToJson(entity.permissions),
         isOfficial: entity.isOfficial,
+        memberJoinedAt: entity.memberJoinedAt,
       );
 
   GroupModel copyWith({
@@ -200,6 +222,7 @@ class GroupModel extends Equatable {
     String? originRegion,
     Map<String, dynamic>? permissions,
     bool? isOfficial,
+    Map<String, DateTime>? memberJoinedAt,
   }) {
     return GroupModel(
       id: id ?? this.id,
@@ -220,6 +243,7 @@ class GroupModel extends Equatable {
       originRegion: originRegion ?? this.originRegion,
       permissions: permissions ?? this.permissions,
       isOfficial: isOfficial ?? this.isOfficial,
+      memberJoinedAt: memberJoinedAt ?? this.memberJoinedAt,
     );
   }
 
@@ -243,5 +267,6 @@ class GroupModel extends Equatable {
         originRegion,
         permissions,
         isOfficial,
+        memberJoinedAt,
       ];
 }
