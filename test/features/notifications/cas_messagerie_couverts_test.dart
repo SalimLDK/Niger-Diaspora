@@ -131,6 +131,85 @@ void main() {
     });
   });
 
+  group('les droits de la table sont au plus juste', () {
+    const migDroits =
+        'supabase/migrations/20260916180000_droits_au_plus_juste_et_emoji_partout.sql';
+
+    test('on RÉVOQUE avant d’accorder', () {
+      // Un GRANT seul n'enlève rien : Supabase accorde ALL par défaut sur
+      // toute table neuve du schéma public.
+      final sql = _lire(migDroits);
+      final revoque = sql.indexOf('REVOKE ALL ON TABLE public.notifications');
+      final accorde = sql.indexOf('GRANT SELECT, DELETE');
+      expect(revoque, greaterThan(-1));
+      expect(accorde, greaterThan(revoque), reason: 'REVOKE d’abord');
+      // Les deux rôles, pas seulement `anon` auquel on pense davantage.
+      expect(sql, contains('FROM anon;'));
+      expect(sql, contains('FROM authenticated;'));
+    });
+
+    test('`anon` ne reçoit rien', () {
+      final sql = _lire(migDroits);
+      expect(sql.contains('TO anon'), isFalse,
+          reason: '`notifications_own` compare à firebase_uid(), nul pour lui');
+    });
+
+    test('l’UPDATE est borné aux colonnes de lecture', () {
+      // Personne n'a besoin de réécrire le titre, le corps ou le `data` d'une
+      // notification : le client ne fait que poser `is_read`.
+      expect(_lire(migDroits), contains('GRANT UPDATE (is_read, read_at)'));
+    });
+
+    test('ni INSERT ni TRUNCATE', () {
+      // TRUNCATE ignore la RLS — c'est le seul verbe qu'aucune policy
+      // n'arrête. INSERT est inutile : tout passe par la RPC SECURITY DEFINER
+      // ou par les déclencheurs.
+      final sql = _lire(migDroits);
+      final accords = RegExp(r'GRANT ([^;]+) ON TABLE public\.notifications')
+          .allMatches(sql).map((m) => m.group(1)!).join(' ');
+      expect(accords.contains('INSERT'), isFalse);
+      expect(accords.contains('TRUNCATE'), isFalse);
+    });
+  });
+
+  group('l’emoji d’une réaction passe des deux côtés', () {
+    const migDroits =
+        'supabase/migrations/20260916180000_droits_au_plus_juste_et_emoji_partout.sql';
+
+    test('les deux transports le posent, dans le corps et dans `data`', () {
+      // Décision du 2026-09-16 : les deux bannières se ressemblent, quitte à
+      // donner l'emoji à FCM sur une conversation chiffrée.
+      final sql = _lire(migDroits);
+      expect(sql, contains("' a réagi ' || NEW.emoji || ' à '"));
+      expect(sql, contains("'A réagi ' || NEW.emoji || ' à '"));
+      expect(sql, contains("'emoji',            NEW.emoji,"));
+    });
+
+    test('et les deux disent À QUOI on a réagi', () {
+      final sql = _lire(migDroits);
+      expect(sql, contains('FUNCTION private.libelle_message_reagi(p_type TEXT)'));
+      // Une seule table pour les deux vocabulaires : `content_type` côté
+      // chiffré, `type` côté clair.
+      expect(sql, contains("WHEN 'voice'     THEN 'votre note vocale'"));
+      expect(sql, contains("WHEN 'voiceNote' THEN 'votre note vocale'"));
+      // `media` est le type grossier du transport chiffré.
+      expect(sql, contains("WHEN 'media'     THEN 'votre pièce jointe'"));
+      expect('libelle_message_reagi'.allMatches(sql).length,
+          greaterThanOrEqualTo(5),
+          reason: 'définie, révoquée, commentée, et appelée des deux côtés');
+    });
+
+    test('le libellé ne dit que le TYPE, jamais le contenu', () {
+      // C'est ce qui le rend acceptable sur une conversation chiffrée : la
+      // métadonnée servait déjà à composer la notification du message lui-même.
+      final sql = _lire(migDroits);
+      final i = sql.indexOf('FUNCTION private.libelle_message_reagi');
+      final corps = sql.substring(i, sql.indexOf(r'$$;', i));
+      expect(corps.contains('ciphertext'), isFalse);
+      expect(corps.contains("data->>"), isFalse);
+    });
+  });
+
   group('une mention passe outre la sourdine', () {
     test('elle n\'est posée QUE dans la branche muette', () {
       // Hors sourdine, la notification `message` suffit : en ajouter une

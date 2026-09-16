@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1286 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
+**1288 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -118,7 +118,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
-- 10 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
+- 12 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
 - 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
@@ -316,7 +316,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 132 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 134 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -9147,7 +9147,16 @@ Fichiers : migrations `20260916120000` et `20260916130000`,
 - [ ] **Sticker reçu en clair** : « 🎨 Sticker », et surtout **pas une URL**.
 - [ ] **Document reçu** : « 📄 <nom du fichier> ».
 - [ ] **Réagir à un message chiffré depuis l'autre téléphone** : l'auteur
-  reçoit « A réagi à votre message », **sans l'emoji**.
+  reçoit « A réagi 🎉 à votre note vocale » — avec l'emoji, et en disant à quoi.
+  *(Décision de Salim du 2026-09-16 : les deux transports se ressemblent,
+  quitte à donner l'emoji à FCM. Le libellé, lui, ne dit que le TYPE du
+  message — jamais son contenu.)*
+- [ ] **Réagir à une photo, à un texte, à un sondage** : le libellé suit
+  (« votre photo », « votre message », « votre sondage »), et il est le même
+  en clair et en chiffré.
+- [ ] **Droits de la table** : marquer lu, supprimer une notification et faire
+  défiler la liste marchent toujours. C'est ce que le `REVOKE ALL` pouvait
+  casser — vérifié par banc côté serveur, jamais depuis l'app.
 - [ ] **Retirer cette réaction** : la notification disparaît de la liste.
 - [ ] **Réagir à son propre message** : aucune notification.
 - [ ] **Conversation en sourdine + mention** (conversation en clair) : la
