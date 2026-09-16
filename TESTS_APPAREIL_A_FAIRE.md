@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1207 cases à cocher, 616 cochées** — 244 entrées sur 292 ont encore des cases ouvertes.
+**1206 cases à cocher, 617 cochées** — 244 entrées sur 292 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -258,7 +258,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
-- 8 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
+- 7 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
@@ -302,7 +302,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 255 à faire, 104 faites
+- [2. Messagerie](#2-messagerie) — 254 à faire, 105 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -634,20 +634,28 @@ Fichiers : [messages_skeleton.dart](lib/features/messages/presentation/widgets/m
 [messages_screen.dart](lib/features/messages/presentation/screens/messages_screen.dart),
 [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart).
 
-- [ ] **Liste des discussions, première ouverture après un démarrage à froid**
-  (tuer l'app, couper le Wi-Fi pour ralentir le premier chargement) : le
-  squelette apparaît sous les puces de filtre, puis la vraie liste se pose
-  **sans saut vertical** — les tuiles ne doivent pas se décaler par rapport
-  aux lignes annoncées.
+- [ ] **Liste des discussions** : ⚠️ un `force-stop` puis un tap sur l'onglet
+  Messages **ne suffit pas** à le voir. Essayé le 2026-09-15 sur Pixel
+  10 Pro XL : sur 10 images prises pendant la transition, aucune ne porte le
+  squelette — le cache Hive rend la liste avant lui. C'est le bon
+  comportement, pas un défaut, mais ça déplace la vérification : il faut un
+  cache froid (appareil où l'app vient d'être installée) ou un réseau lent.
+  Ce qu'on regarde alors : le squelette sous les puces de filtre, puis la
+  vraie liste **sans saut vertical** par rapport aux lignes annoncées.
 - [ ] **Le squelette ne revient pas** sur un « tirer pour rafraîchir » ni au
   retour sur l'onglet Messages (`skipLoadingOnRefresh` / `OnReload`) : la
   liste déjà affichée doit rester en place.
 - [ ] **Fil d'une discussion** : ouvrir une discussion à tête-tête depuis la
   liste. Les bulles vides sont **collées en bas**, contre le composeur, comme
   la vraie liste inversée — pas en haut de l'écran.
-- [ ] **Fil de groupe** : même geste sur un groupe. La colonne d'avatar est
-  réservée à gauche des bulles reçues, et celles-ci ne sautent pas de 28 px
-  vers la droite quand les messages arrivent.
+- [x] **Fil de groupe** : vérifié le 2026-09-15 sur Pixel 10 Pro XL, thème
+  sombre, « Groupe de test prive » ouvert depuis la liste. La colonne
+  d'avatar est bien réservée à gauche, les bulles sont collées en bas contre
+  le composeur, et le balayage traverse l'écran d'un bloc. Capturé par
+  rafale `screencap` **sur le téléphone** (une capture par USB coûte ~1 s,
+  trop lent) : 12 images pendant le tap, le squelette tient sur une seule.
+  Reste à voir : que les bulles ne sautent pas de 28 px quand les messages
+  arrivent — l'image d'après était déjà la liste chargée.
 - [ ] **Ouverture par lien profond ou par notification** : `state.extra` est
   nul par ce chemin, donc `widget.isGroup` est faux à l'instant du squelette
   et un fil de groupe peut s'afficher sans sa colonne d'avatar. Vérifier si
