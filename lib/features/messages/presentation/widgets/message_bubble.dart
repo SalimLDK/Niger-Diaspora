@@ -2792,7 +2792,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
-        widget.message.content,
+        // Le séparateur de bascule MLS ne porte pas son texte : il portait une
+        // phrase française en dur, servie telle quelle à un compte en anglais.
+        // Son libellé se résout ici, donc dans la langue courante.
+        widget.message.estSeparateurMls
+            ? AppLocalizations.of(context)!.mlsSeparatorEncrypted
+            : widget.message.content,
         style: TextStyle(fontSize: 12, color: context.textSecondaryColor),
         textAlign: TextAlign.center,
       ),

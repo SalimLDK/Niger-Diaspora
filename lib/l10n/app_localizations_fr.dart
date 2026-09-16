@@ -12307,6 +12307,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les appareils utilisant le chiffrement de bout en bout apparaîtront ici.';
 
   @override
+  String get mlsSeparatorEncrypted =>
+      'Les messages sont chiffrés de bout en bout';
+
+  @override
   String get mlsDevicesTitle => 'Nouveau registre (MLS)';
 
   @override

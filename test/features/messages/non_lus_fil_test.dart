@@ -7,8 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// --------------------------
 /// Le bandeau « 1 message non lu » d'une conversation basculée ne s'effaçait
 /// plus. Vu le 2026-09-15 sur SM A515F, dans la première conversation passée
-/// en MLS : le séparateur « Messages d'avant le chiffrement de bout en bout »
-/// est un message **système synthétique** — `senderId: 'system'`, `readBy`
+/// en MLS : le séparateur de bascule (dont le libellé est désormais résolu
+/// à l'affichage, voir `separateur_bascule_libelle_test.dart`) est un
+/// message **système synthétique** — `senderId: 'system'`, `readBy`
 /// vide — donc éternellement non lu. Rien ne viendra jamais le marquer, il
 /// n'existe pas côté serveur.
 ///
