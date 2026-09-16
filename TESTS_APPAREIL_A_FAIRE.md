@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1191 cases à cocher, 613 cochées** — 240 entrées sur 288 ont encore des cases ouvertes.
+**1191 cases à cocher, 614 cochées** — 240 entrées sur 288 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -298,7 +298,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 239 à faire, 101 faites
+- [2. Messagerie](#2-messagerie) — 239 à faire, 102 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -669,6 +669,16 @@ instantanés ». **Corrigé et vérifié à deux téléphones, les trois cas.**
   supprimé » en direct.
 - [x] **Ce qui arrive en direct SURVIT** à une sortie/retour de la
   conversation.
+- [x] **EN GROUPE aussi** — vérifié dans « Testeurs » (basculé le 2026-09-15 à
+  19:53, 2 membres) : `GROUPE-LIVE` arrive en direct et **déchiffré** sur le
+  Pixel, sa modification s'y affiche `GROUPE-MODIF`, et après purge la bulle
+  devient « Message supprimé ». Les trois sans jamais toucher au Pixel.
+
+  ⚠️ **Observation, état antérieur non causé par ces correctifs** : le message
+  chiffré déjà présent dans ce groupe (19:54) s'affiche sur le Pixel comme
+  « Message indisponible sur cet appareil » — il est illisible pour lui. Les
+  messages envoyés APRÈS se déchiffrent normalement. À regarder par qui
+  travaille sur le rattrapage MLS de groupe.
 
 **Ce qu'il fallait, et rien de plus** — trois petites pièces, aucune migration :
 
