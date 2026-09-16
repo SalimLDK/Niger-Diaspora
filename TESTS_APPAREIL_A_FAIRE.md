@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1200 cases à cocher, 613 cochées** — 241 entrées sur 289 ont encore des cases ouvertes.
+**1200 cases à cocher, 615 cochées** — 241 entrées sur 289 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -299,7 +299,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 248 à faire, 101 faites
+- [2. Messagerie](#2-messagerie) — 248 à faire, 103 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -725,6 +725,16 @@ instantanés ». **Corrigé et vérifié à deux téléphones, les trois cas.**
   supprimé » en direct.
 - [x] **Ce qui arrive en direct SURVIT** à une sortie/retour de la
   conversation.
+- [x] **EN GROUPE aussi** — vérifié dans « Testeurs » (basculé le 2026-09-15 à
+  19:53, 2 membres) : `GROUPE-LIVE` arrive en direct et **déchiffré** sur le
+  Pixel, sa modification s'y affiche `GROUPE-MODIF`, et après purge la bulle
+  devient « Message supprimé ». Les trois sans jamais toucher au Pixel.
+
+  ⚠️ **Observation, état antérieur non causé par ces correctifs** : le message
+  chiffré déjà présent dans ce groupe (19:54) s'affiche sur le Pixel comme
+  « Message indisponible sur cet appareil » — il est illisible pour lui. Les
+  messages envoyés APRÈS se déchiffrent normalement. À regarder par qui
+  travaille sur le rattrapage MLS de groupe.
 
 **Ce qu'il fallait, et rien de plus** — trois petites pièces, aucune migration :
 
@@ -909,6 +919,13 @@ SELECT public.purger_messages_expires();
   notifications MLS » si l'entrée existe.
 - [ ] **Thème sombre** : la bulle « Message expiré » est lisible des deux
   côtés (bulle à moi, bulle de l'autre).
+- [x] **EN GROUPE aussi** — « Testeurs » (basculé, 2 membres), 2026-09-15 :
+  minuteur 24 h posé depuis le menu du groupe, écrit en base ; message envoyé
+  → `expires_at` avec un **écart de 86400 s exactement** ; le signe éphémère
+  (⏱) apparaît **chez l'expéditeur dès l'envoi** ET **chez le destinataire**
+  (donc recalculé depuis le `ttl` du payload, pas lu dans la colonne) ; la
+  pierre tombale s'affiche des deux côtés. Rien de spécifique au groupe : le
+  minuteur vit sur la conversation, quel que soit son type.
 - [x] **Côté MLS**, drapeau ouvert : `mls_messages.expires_at` renseigné à
   l'envoi — **écart mesuré 86400 s exactement** — et `length(ciphertext)` à 0
   après purge. Vérifié sur SM A515F le 2026-09-15 (la conversation bascule à
@@ -6624,9 +6641,16 @@ Verrouillé par
       Au passage, le moteur Rust charge en debug comme en release et
       l'appareil se réinscrit avec la **même** identité — la base SQLite a
       survécu à la réinstallation, et l'idempotence tient.
-- [ ] **iOS** : rien de fait. `Library/Application Support` part dans iCloud,
-      et l'exclusion demande `NSURLIsExcludedFromBackupKey`, sans API Dart.
-      À traiter avec le reste du chantier iOS.
+- [ ] **iOS : écrit le 2026-09-16, JAMAIS COMPILÉ.** `Library/Application
+      Support` part dans iCloud, et l'exclusion demande
+      `NSURLIsExcludedFromBackupKey`, sans API Dart : le drapeau se pose donc
+      par le canal natif existant (`AppDelegate.swift`), et le moteur le
+      réclame à l'ouverture du dossier. Ce dépôt n'a pas de Mac — le Swift
+      n'est ni compilé ni éprouvé. Sur Android l'appel n'existe pas et retombe
+      dans le `catch`, donc il ne peut rien casser ici.
+      À vérifier au premier build iOS : que l'appel ne lève pas, puis que le
+      dossier est bien absent d'une sauvegarde (Xcode › Devices, ou une
+      restauration sur un second appareil).
 
 ---
 
