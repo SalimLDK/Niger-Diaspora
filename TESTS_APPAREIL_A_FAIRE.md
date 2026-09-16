@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1306 cases à cocher, 632 cochées** — 257 entrées sur 306 ont encore des cases ouvertes.
+**1313 cases à cocher, 632 cochées** — 258 entrées sur 307 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (38)
+**P0 — avant toute nouvelle version** (39)
 
+- 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
@@ -315,7 +316,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 290 à faire, 119 faites
+- [2. Messagerie](#2-messagerie) — 297 à faire, 119 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -574,6 +575,55 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)
+
+**Priorité P0** · importance 5/5 — jusqu'au 2026-09-16, **tout participant
+d'une conversation pouvait réécrire le texte du message de n'importe qui
+d'autre**, par PostgREST. Vérifié en production, puis corrigé et redéployé le
+jour même (migration `20260916210000`). Le correctif touche le chemin
+d'écriture de TOUTE la messagerie : ce qui doit être vérifié ici, ce n'est pas
+l'attaque — le banc SQL la couvre — mais que **rien de légitime n'a été
+emporté**.
+
+La policy `messages_update` laissait passer n'importe quel participant, et
+`authenticated` avait l'`UPDATE` au niveau table, donc sur toutes les colonnes.
+La recette habituelle (`GRANT UPDATE (colonne, …)`) ne s'applique pas ici :
+`messages` n'a que sept colonnes et tout ce qui bouge après l'envoi vit dans
+une seule, `data` (jsonb) — le contenu de l'expéditeur et les accusés des
+destinataires dans le même sac. D'où un déclencheur `BEGIN UPDATE` qui borne
+les **clés** de `data` qu'un non-expéditeur peut faire bouger, en plus du
+`REVOKE` + `GRANT UPDATE (data, is_deleted)`.
+
+**La régression à craindre est muette** : si les accusés cassent, le « Lu »
+cesse simplement d'arriver — aucune erreur, aucun journal, rien à l'écran. Un
+seul téléphone ne peut pas le voir. D'où deux appareils, obligatoirement.
+
+Couvert côté serveur par
+[tools/rls_tests/droits_update_messages.sql](tools/rls_tests/droits_update_messages.sql)
+(20 cas, 0 en échec en production ; retirer le déclencheur en fait tomber 10).
+Le banc prouve les droits, pas l'affichage — d'où cette entrée.
+
+- [ ] **Accusé de lecture, deux téléphones** : A écrit à B, B ouvre la
+      discussion → la coche passe à « Lu » chez A, en quelques secondes
+- [ ] **Accusé de livraison** : B reçoit sans ouvrir (app en arrière-plan) →
+      la coche « remis » apparaît chez A
+- [ ] **Modifier son propre message** : A modifie, le nouveau texte tient
+      après un retour arrière et une relecture (voir « Modifier un message en
+      ligne »)
+- [ ] **Réaction** : B réagit au message de A → l'emoji apparaît des deux
+      côtés
+- [ ] **Favori / signalement / supprimer pour moi** sur le message d'un
+      **autre** : les trois passent toujours (ce sont les seules écritures
+      qu'un non-expéditeur garde)
+- [ ] **Modération** : dans un groupe, un admin fait « supprimer pour tout le
+      monde » sur le message d'un membre → la bulle passe à « message
+      supprimé » chez les deux
+- [ ] **Conversation chiffrée (MLS)** : les accusés et la modification s'y
+      comportent pareil — `mls_messages` est une autre table, avec ses propres
+      droits, et n'a pas été touchée par cette migration
 
 ---
 
