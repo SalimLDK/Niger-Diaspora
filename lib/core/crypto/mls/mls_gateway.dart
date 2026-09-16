@@ -664,6 +664,13 @@ class MlsGateway {
     String conversationId,
   ) => _meta.curseurDeLecture(conversationId);
 
+  /// Le premier message non lu, **même hors de la page chargée** : c'est lui
+  /// que le séparateur désigne.
+  Future<({String id, DateTime quand})?> premierNonLu(
+    String conversationId, {
+    DateTime? apres,
+  }) => _meta.premierNonLu(conversationId, apres: apres);
+
   /// Avance le curseur jusqu'à [jusqua] inclus, sans marquer au-delà.
   Future<void> avancerCurseur(String conversationId, DateTime jusqua) =>
       _meta.marquerLusJusqua(conversationId, jusqua);

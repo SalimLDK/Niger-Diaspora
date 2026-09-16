@@ -467,6 +467,49 @@ class MlsMetadonnees {
     }
   }
 
+  /// Le **premier message non lu** de cette conversation, qu'il soit chargé
+  /// ou non.
+  ///
+  /// C'est le pendant de [curseurDeLecture] : le curseur dit « j'ai lu
+  /// jusqu'ici », celui-ci dit « le repère va là ». Le calculer **sur le
+  /// serveur** est ce qui le rend compatible avec la pagination : si la page
+  /// affichée commence après le premier non-lu, le chercher dans les messages
+  /// chargés désignerait le plus ancien de la page, pas le bon. L'identifiant,
+  /// lui, attend simplement que la remontée du fil l'amène à l'écran.
+  ///
+  /// [apres] est la date du curseur ; `null` quand rien n'a jamais été lu, et
+  /// tout ce qui vient d'autrui est alors nouveau.
+  Future<({String id, DateTime quand})?> premierNonLu(
+    String conversationId, {
+    DateTime? apres,
+  }) async {
+    try {
+      await _auth();
+      var requete = _client
+          .from('mls_messages')
+          .select('id, created_at')
+          .eq('conversation_id', conversationId)
+          .eq('kind', 'content')
+          .eq('is_deleted', false)
+          .neq('sender_id', userId);
+      if (apres != null) {
+        requete = requete.gt('created_at', apres.toUtc().toIso8601String());
+      }
+      final rows = await requete.order('created_at', ascending: true).limit(1);
+      final liste = (rows as List).cast<Map<String, dynamic>>();
+      if (liste.isEmpty) return null;
+      final id = liste.first['id'] as String?;
+      final quand = DateTime.tryParse(
+        liste.first['created_at'] as String? ?? '',
+      );
+      if (id == null || quand == null) return null;
+      return (id: id, quand: quand);
+    } catch (e) {
+      debugPrint('MlsMetadonnees: premier non-lu illisible ($e)');
+      return null;
+    }
+  }
+
   /// Avance le curseur : marque lus les messages d'autrui **jusqu'à**
   /// [jusqua] inclus, et pas au-delà.
   ///

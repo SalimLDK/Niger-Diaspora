@@ -276,6 +276,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   DateTime? _curseurALOuverture;
   bool _curseurReleve = false;
 
+  /// Le repère tel que **le serveur** le désigne : l'identifiant du premier
+  /// non-lu, et combien il y en a.
+  ///
+  /// C'est ce qui rend le séparateur compatible avec la pagination (§ 11 du
+  /// modèle). Le chercher dans les messages **chargés** désignerait le plus
+  /// ancien de la page quand le vrai premier non-lu est encore plus haut.
+  /// L'identifiant, lui, attend simplement que la remontée du fil l'amène à
+  /// l'écran, et le séparateur apparaît alors tout seul.
+  ({String id, int nombre})? _repereServeur;
+
   // ── Avancée du curseur ────────────────────────────────────────────────
   //
   // Un message n'est pas « lu » parce qu'il est arrivé, ni parce qu'on a
@@ -369,6 +379,21 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       if (passerelle != null) {
         final curseur = await passerelle.curseurDeLecture(widget.conversationId);
         _curseurALOuverture = curseur?.quand.toLocal();
+
+        // Le repère, pris au même instant que le curseur : les deux doivent
+        // décrire le même état, sans quoi un message arrivé entre les deux
+        // lectures décalerait le compte.
+        final premier = await passerelle.premierNonLu(
+          widget.conversationId,
+          apres: curseur?.quand,
+        );
+        if (premier != null) {
+          final compteurs = await passerelle.nonLus();
+          final nombre = compteurs[widget.conversationId]?.nonLus ?? 0;
+          if (nombre > 0) {
+            _repereServeur = (id: premier.id, nombre: nombre);
+          }
+        }
       }
     } catch (_) {
       // Curseur indisponible : on retombe sur l'état de lecture des messages
@@ -776,6 +801,26 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Rien dans l'état de lecture — attendu, il est déjà faussé. On regarde
     // ce qui est arrivé depuis la dernière visite de cet appareil.
     if (!_curseurReleve) return; // le relèvement rappellera
+
+    // Le serveur a désigné le repère : on le prend tel quel, sans rien
+    // déduire des messages chargés. C'est le seul chemin qui reste juste quand
+    // le premier non-lu est encore hors de la page.
+    final repere = _repereServeur;
+    if (repere != null) {
+      setState(() {
+        _unreadCountOnOpen = repere.nombre;
+        _firstUnreadMessageId = repere.id;
+        _hasCalculatedUnread = true;
+      });
+      if (!_aFaitLePlacementInitial) {
+        _aFaitLePlacementInitial = true;
+        // Le message peut ne pas être chargé : on ne se place alors pas
+        // dessus, mais le séparateur apparaîtra en remontant.
+        final rang = messages.indexWhere((m) => m.id == repere.id);
+        _scrollToUnreadOrBottom(rang == -1 ? null : rang, messages.length);
+      }
+      return;
+    }
     if (!_filVaJusquAuBout(messages)) {
       // Fil incomplet : ne rien poser. La fenêtre de recompte repassera dès
       // que la lecture réseau l'aura complété.
