@@ -91,6 +91,44 @@ class MlsGateway {
     return date;
   }
 
+  /// Vrai une fois les dates de bascule lues en lot (voir [amorcerBascules]).
+  bool _amorce = false;
+
+  /// Apprend d'un coup quelles conversations de la liste sont basculées.
+  ///
+  /// [aDesConversationsBasculees] se remplissait **paresseusement**, une
+  /// conversation à la fois, et seulement en ouvrant son fil. Or c'est lui qui
+  /// décide, dans `_completerAvecMls`, s'il faut demander au serveur les
+  /// compteurs de non-lus et les aperçus. Conséquence : après un démarrage à
+  /// froid, et tant qu'aucun fil chiffré n'avait été ouvert, la liste n'avait
+  /// **ni pastille de non-lus ni aperçu** sur les discussions chiffrées — elle
+  /// affichait « Message chiffré » et rien d'autre.
+  ///
+  /// Constaté le 2026-09-15 sur Pixel 10 Pro XL : deux messages reçus,
+  /// notification en clair à l'écran, et la tuile muette vingt secondes plus
+  /// tard. Ouvrir la discussion « réparait » la liste pour le reste de la
+  /// session, ce qui rendait le défaut déroutant.
+  ///
+  /// Une seule requête, une seule fois par passerelle. Un échec ne coûte que
+  /// ce qu'il coûtait avant : la lecture paresseuse reprend la main.
+  Future<void> amorcerBascules(Iterable<String> conversationIds) async {
+    if (_amorce) return;
+    final ids = [
+      for (final id in conversationIds)
+        if (!_bascule.containsKey(id)) id,
+    ];
+    if (ids.isEmpty) return;
+    try {
+      final dates = await _delivery.bascules(ids);
+      for (final id in ids) {
+        _bascule[id] = dates[id];
+      }
+      _amorce = true;
+    } catch (e) {
+      debugPrint('MlsGateway: bascules illisibles ($e)');
+    }
+  }
+
   /// Vrai quand les messages de cette conversation passent par MLS.
   ///
   /// Une conversation **déjà basculée** reste lue par MLS même si le drapeau

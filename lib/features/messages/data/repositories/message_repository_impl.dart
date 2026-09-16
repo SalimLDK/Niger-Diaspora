@@ -175,6 +175,13 @@ class MessageRepositoryImpl implements MessageRepository {
     var avecApercu = [for (final c in liste) _apercuDepuisLeCache(c)];
 
     final passerelle = mlsGateway;
+    // Avant le garde, pas après : c'est lui qui a besoin de savoir. Sans cette
+    // amorce, `aDesConversationsBasculees` reste faux tant qu'aucun fil
+    // chiffré n'a été ouvert, et la liste sort sans pastille ni aperçu après
+    // chaque démarrage à froid.
+    if (passerelle != null) {
+      await passerelle.amorcerBascules([for (final c in avecApercu) c.id]);
+    }
     // Inerte tant que rien n'est basculé et que le drapeau est fermé : pas
     // un appel réseau de plus sur un flux qui émet à chaque changement de
     // conversation.
