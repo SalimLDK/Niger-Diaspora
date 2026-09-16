@@ -612,6 +612,18 @@ du rejeu échoue sur le code d'avant). Ce qu'un test ne dit pas :
 - [ ] **Hors ligne** : la liste ne doit ni tourner en boucle de rattrapage ni
       afficher un aperçu faux.
 
+**Première observation sur le build qui porte le correctif** (Pixel 10 Pro XL,
+APK debug `84ef4752…`, installé et relancé à 01:59 le 2026-09-16) : après un
+démarrage à froid, « Testeurs » et « Sim A » — deux discussions dont le
+message était arrivé pendant que l'app ne tournait pas — affichaient leur
+texte déchiffré (« Cfg », « Yy ») et leur pastille de non-lus dans les 30 s,
+sans qu'on les ouvre. Aucune tuile sur « Message chiffré ».
+
+⚠️ Ça ne coche aucune case ci-dessus : sur ce chemin-là, l'aperçu peut aussi
+venir de l'isolate de notification, qui déchiffre à l'arrivée du push. Ce que
+le rejeu change ne se voit qu'en **recevant liste à l'écran**, et en
+**rafale** — les deux premières cases.
+
 ---
 
 ## ✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16)
