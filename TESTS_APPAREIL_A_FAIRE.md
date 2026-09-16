@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1250 cases à cocher, 624 cochées** — 250 entrées sur 299 ont encore des cases ouvertes.
+**1250 cases à cocher, 626 cochées** — 250 entrées sur 299 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -308,7 +308,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 270 à faire, 112 faites
+- [2. Messagerie](#2-messagerie) — 270 à faire, 114 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -701,10 +701,31 @@ plus tôt, les mêmes reçus étaient corrects. Ni les droits ni les policies RL
 n'y étaient pour quelque chose (vérifiés en production,
 `supabase/diagnostics/2026-09-15_droits_recus_mls.sql` et `…_rls_recus_mls.sql`).
 
-- [ ] **Après le correctif de la course** : ouvrir une discussion chiffrée
-  portant des non-lus. `read_at` doit être posé (recette :
-  `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`),
-  la pastille tomber, et l'expéditeur passer à « Lu ».
+- [x] **Après le correctif de la course** : vérifié le 2026-09-15 sur Pixel
+  10 Pro XL, build reconstruit. Cinq messages traînaient avec `read_at` nul
+  depuis une demi-heure ; ouvrir la discussion les a **tous** marqués lus à
+  02:37:49 UTC, une seconde après le tap. Avant, ils restaient nuls
+  indéfiniment.
+
+  | message | `delivered_at` | `read_at` |
+  |---|---|---|
+  | 02:04:23 | 02:09:23 | **02:37:49** |
+  | 02:04:53 | 02:09:23 | **02:37:49** |
+  | 02:07:47 | 02:09:23 | **02:37:49** |
+  | 02:11:25 | 02:11:30 | **02:37:49** |
+  | 02:13:19 | 02:17:14 | **02:37:49** |
+
+  Et deux messages arrivés **pendant** que la discussion était affichée
+  (02:38:35, 02:38:46) ont été marqués lus à leur tour : le garde
+  `_estAffichee` ne bloque pas la lecture légitime. Recette :
+  `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`.
+- [ ] **Ce que cette passe n'a PAS montré** : que l'expéditeur repasse à
+  « Lu » de son côté. Le A515F était piloté par un autre agent, je n'ai pas
+  regardé son écran après coup. À confirmer à deux téléphones.
+- [x] **L'aperçu chiffré arrive sans rafraîchir** : vérifié le 2026-09-15.
+  « Tggt » puis « Erty » s'affichent **dès la première image** après le
+  splash, sans « tirer pour rafraîchir ». La seconde lecture bornée (400 ms)
+  referme bien la course avec l'isolate.
 - [ ] **Deux ouvertures de suite** : la seconde ne doit pas réécrire `read_at`
   — « lu à 14 h 03 » ne devient pas « lu à l'instant ». C'est ce que tient le
   filtre `read_at IS NULL`.
