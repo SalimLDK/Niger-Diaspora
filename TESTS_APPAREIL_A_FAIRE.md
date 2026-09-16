@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1300 cases à cocher, 632 cochées** — 256 entrées sur 305 ont encore des cases ouvertes.
+**1306 cases à cocher, 632 cochées** — 257 entrées sur 306 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -173,7 +173,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (79)
+**P2 — fonction secondaire ou cas limite** (80)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -185,6 +185,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
 - 4 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
+- 6 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
 - 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
 - 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
@@ -314,7 +315,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 284 à faire, 119 faites
+- [2. Messagerie](#2-messagerie) — 290 à faire, 119 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -635,6 +636,58 @@ golden ne dit pas :
   le chemin SANS `IntrinsicWidth` — la citation ne s'y étire pas, et rien ne
   doit lever.
 - [ ] **Bulle reçue** portant une citation, en clair et en sombre.
+
+---
+
+## ⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)
+
+**Priorité P2** · importance 3/5 — le geste a été refait en entier, sur
+demande. Rien n'est vérifié sur un vrai téléphone : tout ce qui suit vient de
+`flutter test` et d'un aperçu de rendu.
+
+**Ce qui a changé.** La boîte de dialogue disparaît : la saisie se fait dans la
+barre du bas, sous un bandeau « Modifier le message » qui reprend le gabarit de
+celui de la réponse. La fenêtre passe de 25 min à 48 h
+(`MessageEntity.fenetreModification` — **rien ne l'impose côté serveur**, la
+policy `messages_update` ne connaît pas le temps). Hors fenêtre, l'entrée de
+menu reste **visible mais désactivée**, avec le motif en sous-titre, au lieu de
+disparaître. Et chaque échec porte enfin sa cause : avant, coupure réseau,
+refus serveur et échec de la passerelle MLS s'annonçaient tous « Le délai de
+modification est expiré (25 min) ».
+
+- [ ] **Le brouillon survit.** C'est le point à vérifier en premier, parce
+  qu'il se perd en silence : écrire un début de message SANS l'envoyer, entrer
+  en modification sur un message plus haut, ressortir par la croix — le
+  brouillon doit être revenu intact dans le champ. Puis recommencer en
+  **quittant la discussion** en pleine modification : à la réouverture, c'est
+  le brouillon qui doit être là, jamais le texte du message modifié. Tenu par
+  `test/features/messages/modifier_message_test.dart`, mais le cycle de vie
+  réel de l'écran n'est pas celui du banc.
+- [ ] **Le clavier.** Le bandeau ajoute une ligne au-dessus du composeur :
+  vérifier qu'aucun débordement n'apparaît, clavier ouvert, en portrait puis
+  en **paysage** — c'est là que le composeur est déjà le plus serré (voir
+  « Paysage — overflow quand le chrome dépasse la hauteur »).
+- [ ] **Le bouton.** En modification il doit porter une coche, jamais le micro,
+  et un appui long ne doit **pas** lancer un enregistrement vocal. Grisé tant
+  que le champ est vide.
+- [ ] **Message d'hier.** Un message de la veille doit encore se modifier
+  (c'était le cas le plus courant refusé par la fenêtre de 25 min). Un message
+  de plus de 48 h doit montrer l'entrée **grisée**, avec « Passé 48 h, un
+  message ne se modifie plus » en sous-titre.
+- [ ] **Les motifs, en vrai.** Couper le réseau et tenter une modification :
+  le message affiché doit parler de connexion, pas de délai. Puis dans une
+  conversation **basculée en MLS**, vérifier qu'une modification aboutit
+  réellement — la passerelle passe par un message de contrôle chiffré, et
+  l'échec y était particulièrement trompeur.
+- [ ] **« Infos » dit quand.** Le panneau d'informations d'un message modifié
+  doit afficher « Modifié · <date> », et « Modifié N fois · <date> » au-delà
+  d'une modification. Le texte d'avant n'est **pas** conservé : il n'y a pas
+  d'historique de versions à attendre là.
+
+Fichiers : `lib/features/messages/presentation/widgets/message_input.dart`,
+`message_bubble.dart`, `message_info_sheet.dart`,
+`lib/features/messages/presentation/screens/conversation_screen.dart`,
+`lib/features/messages/domain/entities/message_entity.dart`.
 
 ---
 

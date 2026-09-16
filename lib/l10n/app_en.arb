@@ -2744,7 +2744,29 @@
   "conversationUnpinned": "Conversation unpinned",
   "editMessage": "Edit message",
   "edited": "edited",
-  "editTimeExpired": "Edit time has expired (25 min)",
+  "editTimeExpired": "Messages can no longer be edited after 48 h",
+  "editImpossibleNotAuthor": "Only the author can edit this message",
+  "editImpossibleNotText": "Only text messages can be edited",
+  "editImpossibleDeleted": "This message has been deleted",
+  "editImpossibleNotSent": "Message not sent yet",
+  "editingBannerHint": "Save to apply, cross to cancel",
+  "editUnchanged": "The text has not changed",
+  "editedAtLabel": "Edited · {time}",
+  "@editedAtLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "editedCountLabel": "{count, plural, =1{Edited once} other{Edited {count} times}}",
+  "@editedCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "messageEdited": "Message edited",
   "disappearingMessages": "Disappearing messages",
   "disappearingMessagesDescription": "New messages will disappear after the selected time",

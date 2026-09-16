@@ -25,6 +25,7 @@ import '../../../../shared/widgets/app_icon.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import '../../domain/entities/message_entity.dart';
 import '../utils/message_copy_text.dart';
+import '../utils/phrase_modification.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/utils/user_color_utils.dart';
 import '../../../reports/domain/entities/report_entity.dart'
@@ -110,7 +111,11 @@ class MessageBubble extends ConsumerStatefulWidget {
   final Function(MessageEntity message)? onUnpin;
 
   // Edit support
-  final Function(MessageEntity message, String newContent)? onEdit;
+  /// Entrer en modification sur ce message.
+  ///
+  /// Ne porte plus le nouveau texte : la saisie se fait dans la barre du bas,
+  /// pas dans une boîte de dialogue. La bulle ne fait qu'ouvrir le geste.
+  final void Function(MessageEntity message)? onEdit;
 
   // Call back support (for call messages)
   final VoidCallback? onCallBack;
@@ -1134,9 +1139,11 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   ///   écran » — il était pourtant caché. On a suivi l'intention écrite ;
   /// - **Épingler** : `canPin` est déjà restrictif, donc quand l'entrée
   ///   existe, elle est voulue ;
-  /// - **Modifier** : action courante sur son propre message, dans une
-  ///   fenêtre de 25 min ; elle était en DERNIÈRE position de la section
-  ///   repliée ;
+  /// - **Modifier** : action courante sur son propre message, dans la fenêtre
+  ///   de [MessageEntity.fenetreModification] ; elle était en DERNIÈRE
+  ///   position de la section repliée. Hors fenêtre elle reste VISIBLE mais
+  ///   désactivée, avec le motif en sous-titre : la faire disparaître donnait
+  ///   à croire à un bug de l'application ;
   /// - **Sélectionner** : seul chemin vers la multi-sélection — un appui
   ///   simple ne coche que si le mode est déjà entré.
   List<Widget> _primaryOptionRows(BuildContext ctx) {
@@ -1159,19 +1166,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           widget.message.type == MessageType.text &&
           !widget.message.deletedForEveryone &&
           widget.onEdit != null &&
-          widget.currentUserId != null &&
-          widget.message.canEdit(widget.currentUserId!))
-        ListTile(
-          leading: Icon(Icons.edit_outlined, color: context.textPrimaryColor),
-          title: Text(
-            l10n.edit,
-            style: TextStyle(color: context.textPrimaryColor),
-          ),
-          onTap: () {
-            Navigator.pop(ctx);
-            _showEditDialog(context);
-          },
-        ),
+          widget.currentUserId != null)
+        _entreeModifier(ctx, l10n),
 
       // Texte, légende de photo/vidéo, adresse d'une position, question d'un
       // sondage : la règle vit dans `messageCopyText`.
@@ -1515,45 +1511,43 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     );
   }
 
-  void _showEditDialog(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final textController = TextEditingController(text: widget.message.content);
+  /// Entrée « Modifier », désactivée avec son motif quand le geste n'est plus
+  /// possible.
+  ///
+  /// Remplace la boîte de dialogue d'avant. Celle-ci couvrait la conversation,
+  /// n'avait ni le clavier ni les emoji du composeur, et son
+  /// `TextEditingController` n'était jamais disposé ; surtout, son bouton
+  /// « Enregistrer » se fermait sans rien dire quand le texte était vide ou
+  /// inchangé. La saisie se fait maintenant dans la barre du bas.
+  Widget _entreeModifier(BuildContext ctx, AppLocalizations l10n) {
+    final motif = widget.message.motifModificationImpossible(
+      widget.currentUserId!,
+    );
+    final possible = motif == null;
+    final couleur =
+        possible ? context.textPrimaryColor : context.textTertiaryColor;
 
-    showDialog(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text(l10n.editMessage),
-            content: TextField(
-              controller: textController,
-              maxLines: 5,
-              minLines: 1,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: l10n.editMessage,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+    return ListTile(
+      enabled: possible,
+      leading: Icon(Icons.edit_outlined, color: couleur),
+      title: Text(l10n.edit, style: TextStyle(color: couleur)),
+      subtitle:
+          possible
+              ? null
+              : Text(
+                phraseModificationImpossible(l10n, motif),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.textTertiaryColor,
                 ),
               ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l10n.cancel),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final newContent = textController.text.trim();
-                  if (newContent.isNotEmpty &&
-                      newContent != widget.message.content) {
-                    widget.onEdit?.call(widget.message, newContent);
-                  }
-                  Navigator.pop(ctx);
-                },
-                child: Text(l10n.save),
-              ),
-            ],
-          ),
+      onTap:
+          possible
+              ? () {
+                Navigator.pop(ctx);
+                widget.onEdit?.call(widget.message);
+              }
+              : null,
     );
   }
 

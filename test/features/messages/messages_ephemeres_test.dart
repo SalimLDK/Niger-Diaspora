@@ -551,7 +551,11 @@ void main() {
       //   - Signaler : recours d'une personne harcelée — son propre
       //     commentaire disait « il ne disparaît pas d'un écran » alors qu'il
       //     était caché ;
-      //   - Modifier : action courante, fenêtre de 25 min ;
+      //   - Modifier : action courante, dans la fenêtre de
+      //     `MessageEntity.fenetreModification`. L'entrée est repérée par son
+      //     point d'appel (`_entreeModifier(`) et non par `l10n.edit` : elle
+      //     vit dans une méthode à elle depuis qu'elle peut s'afficher
+      //     DÉSACTIVÉE, avec le motif du refus en sous-titre ;
       //   - Épingler : `canPin` est déjà restrictif.
       final src = _source(
         'lib/features/messages/presentation/widgets/message_bubble.dart',
@@ -570,7 +574,7 @@ void main() {
       // Dans les principales, et dans cet ordre.
       const ordre = [
         'l10n.reply',
-        'l10n.edit',
+        '_entreeModifier(',
         'l10n.copy',
         'l10n.save',
         'l10n.forwardTo',

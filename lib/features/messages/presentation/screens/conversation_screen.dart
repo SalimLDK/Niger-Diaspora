@@ -28,6 +28,7 @@ import '../widgets/forward_conversation_picker.dart';
 import '../widgets/message_bubble.dart';
 import '../utils/message_copy_text.dart';
 import '../utils/message_grouping.dart';
+import '../utils/phrase_modification.dart';
 import '../widgets/message_input.dart';
 import '../widgets/note_poll_draft_sheet.dart';
 import '../widgets/typing_indicator_widget.dart';
@@ -212,6 +213,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   // Reply state
   MessageEntity? _replyToMessage;
+
+  /// Message en cours de modification, saisi dans la barre du bas.
+  MessageEntity? _editingMessage;
+
+  /// Une modification est déjà partie : ne pas la relancer sur un double tap.
+  bool _modificationEnCours = false;
 
   // Animation for scroll button
   late AnimationController _scrollButtonController;
@@ -1040,8 +1047,66 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   void _handleReply(MessageEntity message) {
     setState(() {
+      // Réponse et modification partagent le même champ : entrer dans l'une
+      // sort de l'autre, sinon le bandeau annoncerait un geste et le bouton en
+      // ferait un autre.
+      _editingMessage = null;
       _replyToMessage = message;
     });
+  }
+
+  void _handleEdit(MessageEntity message) {
+    setState(() {
+      _replyToMessage = null;
+      _editingMessage = message;
+    });
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editingMessage = null;
+    });
+  }
+
+  /// Applique le texte saisi au message en cours de modification.
+  ///
+  /// Le mode ne se referme que si l'écriture a eu lieu. Refusée, la
+  /// modification reste ouverte avec le texte saisi : le fermer obligerait à
+  /// tout retaper pour réessayer.
+  Future<void> _submitEdit(String nouveauTexte) async {
+    final message = _editingMessage;
+    if (message == null || _modificationEnCours) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final messenger = ScaffoldMessenger.of(context);
+
+    setState(() => _modificationEnCours = true);
+    final resultat = await ref
+        .read(paginatedMessagesProvider(widget.conversationId).notifier)
+        .editMessage(messageId: message.id, newContent: nouveauTexte);
+    if (!mounted) return;
+    setState(() => _modificationEnCours = false);
+
+    // Chaque cause a sa phrase. Avant, tout échec — coupure réseau, refus
+    // serveur, passerelle MLS — s'annonçait « délai de modification expiré ».
+    final (texte, succes) = switch (resultat) {
+      ModificationReussie() => (l10n.messageEdited, true),
+      ModificationSansChangement() => (l10n.editUnchanged, true),
+      ModificationRefusee(:final motif) => (
+        phraseModificationImpossible(l10n, motif),
+        false,
+      ),
+      ModificationEchouee(:final echec) => (echec.message, false),
+    };
+
+    if (succes) _cancelEdit();
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(texte),
+        backgroundColor: succes ? Colors.green : Colors.red,
+      ),
+    );
   }
 
   void _cancelReply() {
@@ -2135,6 +2200,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                     isLoading: sendMessageState.isLoading,
                     replyToMessage: _replyToMessage,
                     onCancelReply: _cancelReply,
+                    editingMessage: _editingMessage,
+                    onCancelEdit: _cancelEdit,
+                    onSubmitEdit: _submitEdit,
                     mentionCandidates: mentionCandidates,
                     onCreateEvent:
                         canCreateEvent
@@ -2880,33 +2948,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                                   )
                                   .toggleStar(msg.id);
                             },
-                            onEdit: (msg, newContent) async {
-                              final l10n = AppLocalizations.of(context)!;
-                              final messenger = ScaffoldMessenger.of(context);
-                              final success = await ref
-                                  .read(
-                                    paginatedMessagesProvider(
-                                      widget.conversationId,
-                                    ).notifier,
-                                  )
-                                  .editMessage(
-                                    messageId: msg.id,
-                                    newContent: newContent,
-                                  );
-                              if (mounted) {
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      success
-                                          ? l10n.messageEdited
-                                          : l10n.editTimeExpired,
-                                    ),
-                                    backgroundColor:
-                                        success ? Colors.green : Colors.red,
-                                  ),
-                                );
-                              }
-                            },
+                            onEdit: _handleEdit,
                             isSelectionMode: _isSelectionMode,
                             isSelected: _selectedMessageIds.contains(
                               message.id,
