@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1296 cases à cocher, 632 cochées** — 255 entrées sur 304 ont encore des cases ouvertes.
+**1300 cases à cocher, 632 cochées** — 256 entrées sur 305 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (37)
+**P0 — avant toute nouvelle version** (38)
 
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
@@ -69,6 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
+- 4 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
 - 9 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
@@ -313,7 +314,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 280 à faire, 119 faites
+- [2. Messagerie](#2-messagerie) — 284 à faire, 119 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -572,6 +573,37 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)
+
+**Priorité P0** · importance 4/5 — signalé à l'usage le 2026-09-16, juste après le déploiement de `gif-proxy` : « les gifs/stickers ne s'affichent pas dans les messages ». Deux messages `sticker` partis en MLS à 05:05 UTC, tous deux muets à l'écran.
+
+`MlsMessageMapper` ne lisait `fileUrl` que depuis `body['storagePath']`, qui
+n'existe que pour un média chiffré. Un sticker — et un GIF, qui emprunte le
+même transport — porte son URL dans `body['stickerUrl']` : l'entité sortait
+avec `fileUrl == null`, et `StickerBubble` n'affichait qu'un cadre « image
+cassée ». `isAnimated` n'était pas relu non plus.
+
+**L'expéditeur voyait la même chose** : sa propre copie est remappée depuis ce
+payload dès l'accusé d'envoi. Aucune erreur, aucun journal — le message part,
+s'affiche, et ne montre rien. C'est la deuxième perte de champ du même mapper
+(voir `mediaChiffre`, corrigé la veille) : d'où un banc par champ,
+[mls_sticker_gif_test.dart](test/features/messages/mls_sticker_gif_test.dart),
+qui échoue si la ligne saute.
+
+Les deux messages déjà envoyés portent l'URL dans leur payload chiffré : ils
+s'afficheront correctement au prochain build, sans rien réémettre.
+
+- [ ] **Envoyer un GIF dans une conversation basculée MLS** : la vignette
+      s'affiche chez l'expéditeur **et** chez le destinataire
+- [ ] **Les deux GIFs du 2026-09-16** (05:05 UTC) s'affichent après mise à
+      jour, au lieu du cadre cassé
+- [ ] **Sticker animé** : l'animation joue, elle ne se fige pas sur la
+      première trame (`isAnimated` relu)
+- [ ] **Conversation non basculée** : toujours bon — ce chemin-là passait par
+      `data->>'fileUrl'` et n'a jamais été touché
 
 ---
 
