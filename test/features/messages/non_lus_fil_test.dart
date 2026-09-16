@@ -103,6 +103,42 @@ void main() {
     });
   });
 
+  group("le fil doit aller jusqu'au bout avant tout comptage", () {
+    // Vu a l'ecran le 2026-09-16 : le separateur « 2 messages non lus » pose
+    // devant deux messages du matin. Le compte etait bon, le RANG faux — il
+    // avait ete calcule sur le fil du cache, qui s'arretait avant les vrais
+    // non-lus. `_loadCacheSync` affiche ce cache d'abord, a dessein.
+    late String source;
+
+    setUpAll(() {
+      final fichier = File(
+        'lib/features/messages/presentation/screens/conversation_screen.dart',
+      );
+      expect(fichier.existsSync(), isTrue, reason: 'ecran introuvable');
+      source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
+    });
+
+    test('la garde existe et compare au dernier message annonce', () {
+      expect(source, contains('bool _filVaJusquAuBout('));
+      expect(source, contains('_dernierMessageAnnonce = c.lastMessageAt;'));
+    });
+
+    test('elle passe AVANT les deux chemins de comptage', () {
+      final garde = source.indexOf('if (!_filVaJusquAuBout(messages)) {');
+      final visite = source.indexOf('final depuis = _derniereVisite;');
+      final repli = source.indexOf('final rang = rangDesDerniersDAutrui(');
+
+      expect(garde, isNot(-1), reason: 'la garde a saute');
+      expect(garde, lessThan(visite));
+      expect(garde, lessThan(repli));
+    });
+
+    test('sans repere de comparaison, elle ne bloque pas', () {
+      // Ouverture par lien profond : la liste n'a rien annonce.
+      expect(source, contains('if (annonce == null) return true;'));
+    });
+  });
+
   group('le repère de dernière visite', () {
     late String source;
 

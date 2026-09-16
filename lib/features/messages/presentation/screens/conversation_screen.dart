@@ -232,6 +232,29 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// et `compterNonLus` ne trouve plus rien. Voir [rangDesDerniersDAutrui].
   int _nonLusAvantOuverture = 0;
 
+  /// Date du dernier message **tel que la liste l'annonçait**, relevée en
+  /// même temps que [_nonLusAvantOuverture].
+  ///
+  /// Sert de garde au repli par rang : tant que le fil chargé s'arrête avant
+  /// cette date, il est incomplet, et compter « les N derniers messages
+  /// d'autrui » désignerait les mauvais. Vu à l'écran le 2026-09-16 : le
+  /// séparateur « 2 messages non lus » posé devant deux messages du matin,
+  /// parce que le cache s'arrêtait là et que les deux vrais non-lus
+  /// n'étaient pas encore arrivés.
+  DateTime? _dernierMessageAnnonce;
+
+  /// Le fil chargé va-t-il jusqu'au dernier message que la liste annonçait ?
+  ///
+  /// `_loadCacheSync` affiche d'abord le cache local, qui ne contient pas les
+  /// messages reçus entre deux visites. Compter les non-lus sur ce fil-là donne
+  /// un compte trop bas, et surtout un **rang faux**.
+  bool _filVaJusquAuBout(List<MessageEntity> messages) {
+    final annonce = _dernierMessageAnnonce;
+    if (annonce == null) return true; // rien à quoi comparer (lien profond)
+    if (messages.isEmpty) return false;
+    return !messages.last.createdAt.isBefore(annonce);
+  }
+
   /// Fin de la dernière visite de cette discussion **sur cet appareil**,
   /// relue au démarrage de l'écran et réécrite en le quittant.
   DateTime? _derniereVisite;
@@ -423,6 +446,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       for (final c in vivantes ?? const <ConversationEntity>[]) {
         if (c.id == widget.conversationId) {
           _nonLusAvantOuverture = c.getUnreadCountFor(moi);
+          _dernierMessageAnnonce = c.lastMessageAt;
           break;
         }
       }
@@ -650,6 +674,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Rien dans l'état de lecture — attendu, il est déjà faussé. On regarde
     // ce qui est arrivé depuis la dernière visite de cet appareil.
     if (!_visiteRelue) return; // la relecture rappellera
+    if (!_filVaJusquAuBout(messages)) {
+      // Fil incomplet : ne rien poser. La fenêtre de recompte repassera dès
+      // que la lecture réseau l'aura complété.
+      if (!_aFaitLePlacementInitial) {
+        _aFaitLePlacementInitial = true;
+        _scrollToUnreadOrBottom(null, messages.length);
+      }
+      return;
+    }
     final depuis = _derniereVisite;
     if (depuis != null) {
       final vus = compterDepuis(messages, currentUser.id, depuis);
