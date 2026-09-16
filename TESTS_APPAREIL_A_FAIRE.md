@@ -39,14 +39,14 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1204 cases à cocher, 615 cochées** — 242 entrées sur 290 ont encore des cases ouvertes.
+**1205 cases à cocher, 615 cochées** — 242 entrées sur 290 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (31)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
-- 3 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
+- 4 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
 - 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
@@ -300,7 +300,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 252 à faire, 103 faites
+- [2. Messagerie](#2-messagerie) — 253 à faire, 103 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -1153,9 +1153,25 @@ Fichiers : [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
 [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
 (`_fusionnerAvecMls`, `mlsDuCache`).
 
+**⚠️ Le correctif « ce qui arrive en direct est enfin gardé » (`1d0c6a9`) ne
+referme PAS ce cas.** Revérifié le 2026-09-16 avec ce correctif embarqué
+(APK `166f7be0…`, md5 confirmé sur l'appareil) : un message envoyé du
+SM A515F, lu sur le Pixel en ouvrant la discussion, **disparaît du fil après
+un arrêt complet**. Il n'était donc pas arrivé par le canal temps réel mais
+par le rattrapage ordinaire — ce qui déplace la cause : ce n'est pas
+seulement la livraison en direct qui échappe au cache.
+
+Deux messages plus anciens de la même conversation, eux, **survivent** au
+même redémarrage. La différence entre les deux familles reste à établir ; la
+piste la plus simple à écarter d'abord est la **limite de `getCachedMessages`**
+(le cache ne rend qu'une tranche), avant de soupçonner le curseur.
+
 - [ ] **Reproduire volontairement** : A envoie pendant que B a la discussion
   ouverte (livraison en direct), puis tuer et rouvrir B. Le message doit
   rester.
+- [ ] **Distinguer les deux familles** : pourquoi « Yo » et « Hh » survivent
+  et pas un message reçu à l'instant. Comparer ce que `getCachedMessages`
+  rend pour cette conversation avant et après le redémarrage.
 - [ ] **Vérifier l'hypothèse** : le message perdu est-il absent du cache
   Hive, alors que le curseur mémorisé l'a dépassé ?
 - [ ] **Après correctif** : même épreuve, et le cas déjà vert du message reçu
