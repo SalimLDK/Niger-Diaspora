@@ -710,6 +710,39 @@ void main() {
       );
     });
 
+    test('un média MLS reste déchiffrable à l’arrivée', () {
+      // Le mapper posait `fileUrl: body['storagePath']` et RIEN d'autre :
+      // `mediaChiffre` restait nul, donc `MediaChiffreGate` laissait passer
+      // le message tel quel (« rien à déchiffrer »), et la bulle tentait
+      // d'ouvrir le blob CHIFFRÉ. Aucune note vocale ne se lisait, et
+      // l'erreur de lecture venait déborder la rangée de contrôles.
+      // Signalé par Salim le 2026-09-15 — un seul défaut, deux symptômes.
+      final mapper = _source('lib/core/crypto/mls/mls_message_mapper.dart');
+      expect(
+        mapper.contains('mediaChiffre:'),
+        isTrue,
+        reason: 'sans la fiche du média, la porte de déchiffrement ne fait '
+            'rien et le média reste illisible',
+      );
+      for (final champ in ["'fileKey'", "'fileNonce'", "'storagePath'"]) {
+        expect(mapper.contains(champ), isTrue,
+            reason: '$champ doit être repris du payload');
+      }
+
+      // Et l'erreur de lecture ne doit plus pouvoir casser la mise en page.
+      final bulle = _source(
+        'lib/features/messages/presentation/widgets/audio_message_bubble.dart',
+      );
+      final i = bulle.indexOf('if (_error != null)');
+      expect(i, isNot(-1));
+      expect(
+        bulle.substring(i, i + 400).contains('Flexible'),
+        isTrue,
+        reason: 'la rangée de contrôles est rigide : une erreur non flexible '
+            'la fait déborder',
+      );
+    });
+
     test('le helper lit le minuteur et pose expiresAt', () {
       final src = _source(chemin);
       expect(src.contains("data['expiresAt'] ="), isTrue);

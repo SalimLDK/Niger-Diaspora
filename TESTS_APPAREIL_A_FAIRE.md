@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1209 cases à cocher, 618 cochées** — 244 entrées sur 292 ont encore des cases ouvertes.
+**1209 cases à cocher, 619 cochées** — 244 entrées sur 293 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -302,7 +302,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 257 à faire, 106 faites
+- [2. Messagerie](#2-messagerie) — 257 à faire, 107 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -888,6 +888,46 @@ n'arrive en direct » alors que **les messages n'étaient jamais partis** — le
 taps avaient ouvert « Mes notes ». C'est ce qui avait fait accuser `event: all`
 et annuler une correction saine. **Vérifier l'en-tête de la conversation PUIS
 la présence du texte dans la zone de saisie avant de conclure.**
+
+## ✅ Média chiffré illisible à l'arrivée — et le débordement qui va avec (2026-09-15)
+
+**Priorité P0** · importance 5/5 — Signalé par Salim : « je n'arrive pas à
+lire les audios et aussi il y a overflow des deux côtés ». **Corrigé, à
+vérifier sur appareil.**
+
+**Un seul défaut, deux symptômes.** Le mapper MLS posait
+`fileUrl: body['storagePath']` et **rien d'autre** : `mediaChiffre` restait
+nul. Or `MediaChiffreGate` ne déchiffre QUE si ce champ existe — nul, il
+laisse passer le message tel quel, et la bulle tente d'ouvrir le blob
+**chiffré**.
+
+1. la note vocale ne se lit pas (`_togglePlayPause` échoue) ;
+2. l'erreur est alors ajoutée dans `_buildControlsRow`, une `Row` **sans le
+   moindre `Flexible`** dans une bulle de 250 px — d'où le **débordement**,
+   des deux côtés puisque les deux appareils suivent le même chemin.
+
+Ça ne touchait pas que l'audio : **toute image, vidéo ou pièce jointe reçue
+en MLS** était concernée, la porte étant commune.
+
+Corrigé aux deux endroits : le mapper reconstruit la fiche du média depuis le
+payload (`storagePath`, `fileKey`, `fileNonce`, `fileName`, `mimeType`,
+`fileSize` — `encryptedUrl` reste vide, le téléchargement se fait par
+`storagePath`), et l'erreur de la rangée de contrôles est passée en
+`Flexible` + ellipse : une erreur doit se voir, pas casser la mise en page.
+
+- [x] **Vérifié à deux téléphones le 2026-09-15**, dans « Testeurs » :
+  - une note vocale **reçue se lit** sur le Pixel (`0:07 / 0:10`, onde
+    parcourue, tête de lecture) — donc téléchargée ET déchiffrée ;
+  - une **image reçue s'affiche** (flou d'attente, puis la photo) ;
+  - une note vocale **envoyée se lit** chez l'expéditeur (`0:03 / 0:03`) ;
+  - **plus aucun débordement** : l'erreur de lecture s'affiche tronquée
+    (« Erreur de l… ») à l'intérieur de la bulle.
+
+  ⚠️ **Les médias envoyés AVANT ce correctif restent illisibles** : leur
+  entité en cache n'a pas la fiche du média, et rien ne la recalcule. C'est
+  visible à l'écran (« Image non disponible », erreur de lecture). Ça ne se
+  répare pas tout seul — il faudrait renvoyer le média, ou purger le cache
+  local de la conversation.
 
 ## ✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)
 
