@@ -456,14 +456,28 @@ class MlsDelivery {
   /// une seule transaction : pas de message inséré sans réponse de plus
   /// qu'avant. `null` seulement si le serveur ne rend rien — l'appelant garde
   /// alors son heure locale, comme avant, et n'y perd que l'aperçu.
+  ///
+  /// **Pas de `maybeSingle()` ici, et ce n'est pas un oubli.** Sur un POST, il
+  /// remplace l'`Accept` par `application/vnd.pgrst.object+json` pour réclamer
+  /// un objet nu, et sa correction de forme (« body is List » dans
+  /// `postgrest_builder`) ne couvre que les GET. Une réponse en tableau lève
+  /// donc un `type 'List<dynamic>' is not a subtype of 'Map'` — trouvé par
+  /// `mls_publish_created_at_test.dart` avant que ça ne parte sur un
+  /// téléphone. Ce serait un échec d'envoi annoncé pour un message **déjà
+  /// inséré**, donc un doublon à la reprise, pour un horodatage dont on sait
+  /// se passer. La forme liste n'a aucune de ces arêtes : zéro ligne est une
+  /// liste vide, pas un 406 rattrapé.
+  ///
+  /// Rien ici ne lève sur une réponse inattendue : la relecture est un
+  /// confort, l'insertion est le contrat.
   Future<DateTime?> publishMessage(MlsMessageRow row) async {
     await _auth();
     final rendu = await _client
         .from('mls_messages')
         .insert(row.toInsert())
-        .select('created_at')
-        .maybeSingle();
-    return DateTime.tryParse((rendu?['created_at'] as String?) ?? '')?.toUtc();
+        .select('created_at');
+    final quand = rendu.isEmpty ? null : rendu.first['created_at'];
+    return quand is String ? DateTime.tryParse(quand)?.toUtc() : null;
   }
 
   Future<List<MlsMessageRow>> messagesAfter(

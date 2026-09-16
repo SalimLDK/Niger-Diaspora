@@ -6603,9 +6603,29 @@ même ligne, et rien pour dire laquelle fait foi.
 recolle la valeur sur la ligne rendue. La garde d'aperçu, elle, ne bouge pas :
 c'est la valeur écrite qu'on corrige, pas la comparaison.
 
-Vérifié hors appareil : `authenticated` a bien `SELECT` sur `mls_messages` et
-la policy `SELECT` « participants » couvre l'expéditeur, donc le
-`INSERT … RETURNING` passe le RLS. Reste à le voir tourner.
+**Ce qui est déjà prouvé sans appareil**, et qui n'a donc plus à être cherché
+sur un téléphone :
+
+- le RLS, joué contre la base de production en rôle `authenticated` avec le
+  `firebase_uid` de l'expéditeur, dans un `BEGIN`/`ROLLBACK` : l'insertion
+  passe la policy `INSERT` **et** l'horodatage revient par la policy `SELECT`.
+  Rien laissé derrière (0 ligne de test, conversation toujours à 6 messages) ;
+- le fil, contre un PostgREST de façade
+  (`test/core/crypto/mls_publish_created_at_test.dart`, 7 cas) : le
+  `Prefer: return=representation` est bien posé, `select=created_at` est bien
+  dans l'URL, `created_at` n'est toujours **pas** dans le corps envoyé, la
+  valeur revient en UTC même rendue avec un décalage, et trois réponses
+  dégradées (vide, colonne absente, date illisible) donnent `null` au lieu de
+  lever.
+
+Ce banc a trouvé un défaut avant qu'il ne parte : la première version relisait
+avec `maybeSingle()`, qui sur un POST réclame un objet nu et **lève** si la
+réponse est un tableau — la correction de forme de `postgrest` ne couvre que
+les GET. Ç'aurait été un échec d'envoi annoncé pour un message déjà inséré,
+donc un doublon à la reprise. La relecture se fait maintenant sous forme de
+liste, où zéro ligne est une liste vide et rien ne lève.
+
+Reste à voir tourner ce que seul un téléphone montre :
 
 - [ ] Envoyer une note chiffrée : elle part, et l'aperçu de la liste montre
       son texte **sans rouvrir le fil**
