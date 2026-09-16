@@ -77,6 +77,27 @@ import UserNotifications
           return
         }
         result(Self.exclureDeLaSauvegarde(chemin))
+      case "cheminGroupeApp":
+        guard let groupe = call.arguments as? String else {
+          result(nil)
+          return
+        }
+        result(Self.cheminGroupeApp(groupe))
+      case "deposerContexteMls":
+        guard let args = call.arguments as? [String: String],
+              let groupe = args["groupe"],
+              let userId = args["userId"],
+              let deviceId = args["deviceId"] else {
+          result(false)
+          return
+        }
+        result(Self.deposerContexteMls(groupe: groupe, userId: userId, deviceId: deviceId))
+      case "effacerContexteMls":
+        guard let groupe = call.arguments as? String else {
+          result(false)
+          return
+        }
+        result(Self.effacerContexteMls(groupe))
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -108,9 +129,9 @@ import UserNotifications
   ///
   /// Pendant iOS de ce qu'Android obtient par `regles_sauvegarde.xml` : la
   /// base SQLite du moteur MLS — clé privée de signature de l'appareil,
-  /// secrets d'epoch, arbres de groupe — vit dans
-  /// `Library/Application Support`, qui est sauvegardé par défaut. Sans cet
-  /// appel, elle quitte le téléphone.
+  /// secrets d'epoch, arbres de groupe — vit dans le conteneur du groupe
+  /// d'application (`Application Support` en repli), sauvegardé par défaut dans
+  /// les deux cas. Sans cet appel, elle quitte le téléphone.
   ///
   /// `Library/Caches` échapperait aussi à la sauvegarde, mais le système peut
   /// le vider quand il veut : un état MLS effacé sans prévenir rendrait toutes
@@ -120,6 +141,56 @@ import UserNotifications
   /// Rend `false` plutôt que de lever : une exclusion qui échoue est un
   /// problème de confidentialité, pas une raison d'empêcher l'application de
   /// démarrer. L'appelant le journalise.
+  /// Chemin du conteneur du groupe d'application, ou nil s'il n'est pas
+  /// provisionné.
+  ///
+  /// C'est le seul terrain commun entre l'application et l'extension de
+  /// notification : deux processus, deux bacs à sable. La base du moteur MLS y
+  /// vit désormais, faute de quoi l'extension n'aurait rien à ouvrir.
+  ///
+  /// **Rend nil sans drame.** Tant que la capability « App Groups » n'est pas
+  /// activée sur l'App ID et le profil régénéré, `containerURL` renvoie nil.
+  /// Le Dart reste alors sur `Application Support` : l'app fonctionne comme
+  /// avant, seul l'aperçu des notifications retombe sur le texte générique.
+  private static func cheminGroupeApp(_ groupe: String) -> String? {
+    return FileManager.default
+      .containerURL(forSecurityApplicationGroupIdentifier: groupe)?
+      .path
+  }
+
+  /// Dépose le compte courant et son identifiant d'appareil pour l'extension.
+  ///
+  /// **Pourquoi pas `SharedPreferences`.** Le greffon Flutter écrit dans
+  /// `UserDefaults.standard` en préfixant toutes ses clés par `flutter.`. Une
+  /// extension qui lit `"currentUserId"` dans la suite du groupe ne trouverait
+  /// donc rien — sans erreur et sans journal. Les clés sont écrites ici telles
+  /// que `MlsPontNatif` les lit, au caractère près.
+  private static func deposerContexteMls(
+    groupe: String,
+    userId: String,
+    deviceId: String
+  ) -> Bool {
+    guard let defaults = UserDefaults(suiteName: groupe) else {
+      NSLog("AppDelegate: suite \(groupe) indisponible, contexte MLS non déposé")
+      return false
+    }
+    defaults.set(userId, forKey: "currentUserId")
+    defaults.set(deviceId, forKey: "mls_stable_device_id_\(userId)")
+    return true
+  }
+
+  /// Efface le dépôt à la déconnexion.
+  ///
+  /// Seul `currentUserId` est retiré : c'est lui qui désigne le compte, et
+  /// l'extension n'ouvre rien sans lui. Les identifiants d'appareil restent,
+  /// car ils sont valables pour une reconnexion sur le même compte et ne
+  /// désignent personne à eux seuls.
+  private static func effacerContexteMls(_ groupe: String) -> Bool {
+    guard let defaults = UserDefaults(suiteName: groupe) else { return false }
+    defaults.removeObject(forKey: "currentUserId")
+    return true
+  }
+
   private static func exclureDeLaSauvegarde(_ chemin: String) -> Bool {
     var url = URL(fileURLWithPath: chemin)
     do {

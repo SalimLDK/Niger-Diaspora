@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../../src/rust/api/mls.dart';
 import '../../../src/rust/frb_generated.dart';
 import '../../services/e2ee/stable_device_id.dart';
+import 'mls_chemin_base.dart';
 
 /// Le moteur MLS (Rust, OpenMLS) de l'appareil courant, pour un compte.
 ///
@@ -24,7 +24,9 @@ import '../../services/e2ee/stable_device_id.dart';
 ///
 /// **Dette assumée, et ce qui la tient** : la base SQLite du moteur (clé
 /// privée de signature, secrets d'epoch, arbres de groupe) est écrite en clair
-/// dans le répertoire privé de l'app. Le plan (§ 7.4) prévoit une clé maître
+/// dans le répertoire privé de l'app — sur iOS, dans le conteneur du groupe
+/// d'application, partagé avec la seule extension de notification et fermé au
+/// reste du système comme le bac à sable l'était (`mls_chemin_base.dart`). Le plan (§ 7.4) prévoit une clé maître
 /// dans le Keystore / Keychain, en laissant le chiffrement au choix — SQLCipher
 /// ou chiffrement des valeurs par le provider. **Les deux voies ont été
 /// mesurées le 2026-09-15, et aucune n'est ouverte en l'état :**
@@ -60,14 +62,12 @@ import '../../services/e2ee/stable_device_id.dart';
 /// `TESTS_APPAREIL_A_FAIRE.md`.
 final mlsEngineProvider = FutureProvider.family<Moteur, String>((ref, userId) async {
   await _initialiserRustUneFois();
-  final support = await getApplicationSupportDirectory();
-  final dossier = Directory('${support.path}/mls');
-  if (!await dossier.exists()) {
-    await dossier.create(recursive: true);
-  }
+  // Sur iOS ce dossier est celui du **groupe d'application**, pas le bac à
+  // sable privé : l'extension de notification est un autre processus et ne
+  // verrait rien d'autre. Voir `mls_chemin_base.dart`.
+  final dossier = await dossierBaseMls();
   await _exclureDeLaSauvegardeIos(dossier);
-  // L'uid Firebase ne contient que des caractères sûrs pour un nom de fichier.
-  final chemin = '${dossier.path}/${userId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')}.sqlite';
+  final chemin = '${dossier.path}/${nomFichierBaseMls(userId)}';
   final appareil = await stableDeviceId(userId);
   return Moteur.ouvrir(dbPath: chemin, userId: userId, deviceId: appareil);
 });

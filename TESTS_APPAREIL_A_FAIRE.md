@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1206 cases à cocher, 617 cochées** — 244 entrées sur 292 ont encore des cases ouvertes.
+**1215 cases à cocher, 617 cochées** — 245 entrées sur 293 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -79,7 +79,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (81)
+**P1 — fonction importante, jamais vérifiée** (82)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -112,6 +112,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
+- 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
 - 2 · [✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)](#-lien-diasponiger-au-démarrage-à-froid--corrigé-vérifié-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)](#-le-scanner-de-laccueil-lit-tous-les-qr-du-projet-2026-09-09) · *Liens profonds, navigation et QR codes*
@@ -306,7 +307,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 88 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -8486,6 +8487,80 @@ en solo.
 # 6. Notifications et push
 
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
+
+---
+
+## ⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)
+
+**Priorité P1** · importance 4/5 — *Bloqué : ce poste n'a pas de Mac. Rien de
+ce qui suit n'a jamais été compilé.* Pendant iOS de « Aperçu des notifications
+MLS reconstruit sur l'appareil (phase 4, Android) ».
+
+**Pourquoi ce n'est pas le même code.** Sur Android l'aperçu est reconstruit
+par un isolate Dart, qui a le pont Flutter Rust Bridge et partage le bac à
+sable de l'app. iOS n'a rien de tel : une Notification Service Extension est un
+**binaire séparé**, sans moteur Flutter, sans Dart, et avec **son propre bac à
+sable**. Elle appelle donc le moteur par une ABI C (`rust/src/ffi.rs`,
+`diaspo_mls_apercu`, tampon fourni par l'appelant), et tout ce que l'app sait
+doit lui être **déposé** dans un conteneur commun.
+
+**Trois changements côté app conditionnent tout le reste**, et sont livrés :
+
+1. la base du moteur vit désormais dans le conteneur du **groupe
+   d'application** sur iOS (`mls_chemin_base.dart`) ; une base restée à
+   l'ancien emplacement est **déplacée** au premier démarrage — déplacée et non
+   copiée, deux copies de l'état MLS étant deux cliquets qui avancent
+   séparément ;
+2. le compte courant et l'identifiant d'appareil sont déposés dans les
+   `UserDefaults` du groupe (`mls_partage_extension_ios.dart`). **Pas** par
+   `SharedPreferences` : le greffon Flutter préfixe toutes ses clés par
+   `flutter.`, et une extension qui lit `currentUserId` ne trouverait rien —
+   sans erreur et sans journal ;
+3. `send-push` pose `mutable-content: 1` sur les messages MLS. **Sans ce
+   drapeau, iOS n'invoque jamais l'extension**, quoi qu'on fasse d'autre.
+
+**Un défaut réel trouvé en écrivant ceci** : `preview_without_state` rend le
+**payload** du § 6.2 — du JSON portant la citation, les mentions et les
+identifiants —, pas un texte. La première version du Swift le posait tel quel
+dans la bannière, c'est-à-dire tout le contenu sur l'écran verrouillé. Corrigé
+(`MlsPontNatif.resume`), et la table d'étiquettes est comparée à celle du Dart
+par un banc qui lit les deux fichiers.
+
+**Trois risques non levés faute de machine** : la mémoire d'une NSE est
+plafonnée vers 24 Mo et le coût du `VACUUM INTO` d'OpenMLS n'a jamais été
+mesuré ; le `-force_load` de `libdiaspo_mls.a` dans la cible d'extension tire
+la glu FRB, dont l'absence de dépendance à la VM Dart au lien reste à prouver ;
+et l'extension embarque sa propre copie du moteur, donc l'IPA grossit d'autant.
+
+Fichiers : [ios/NotificationService/](ios/NotificationService/README.md) (les
+étapes Xcode y sont listées, avec ce qu'elles conditionnent),
+[mls_chemin_base.dart](lib/core/crypto/mls/mls_chemin_base.dart),
+[mls_partage_extension_ios.dart](lib/core/crypto/mls/mls_partage_extension_ios.dart),
+[AppDelegate.swift](ios/Runner/AppDelegate.swift), `rust/src/ffi.rs`.
+Garde-fou hors appareil : `test/core/crypto/mls_apercu_ios_parite_test.dart`
+(14 cas, vérifiés en cassant deux valeurs).
+
+- [ ] **Créer la cible dans Xcode** et lier `libdiaspo_mls.a` : `project.pbxproj`
+  n'est **délibérément pas modifié à la main** ici. Tant que ce n'est pas fait,
+  ce dossier n'entre dans aucune build.
+- [ ] **Activer App Groups sur les deux App ID** et régénérer les profils.
+  Avant ça, `containerURL` rend nil, le Dart reste sur `Application Support`,
+  et l'aperçu retombe silencieusement sur le texte générique — donc ne pas
+  conclure « l'extension ne marche pas » sans avoir vérifié ce point.
+- [ ] **L'extension est bien invoquée** : un `NSLog` en tête de `didReceive`.
+  C'est la vérification du `mutable-content`.
+- [ ] **`cheminBase` désigne un fichier qui existe** : c'est là que tout se
+  joue, et l'échec est muet.
+- [ ] **La bannière affiche le vrai texte, et pas du JSON** — le défaut
+  ci-dessus, à revérifier sur l'appareil et pas seulement dans le banc.
+- [ ] **Migration d'une base existante** : installer une version antérieure,
+  basculer une conversation, mettre à jour, vérifier que la conversation reste
+  **lisible** (la base a été déplacée, pas recréée).
+- [ ] **Mémoire de l'extension** : vérifier qu'elle n'est pas tuée sur une
+  conversation à gros état (groupe fourni, plusieurs epochs).
+- [ ] **Après déconnexion**, plus aucun aperçu déchiffré : `currentUserId` est
+  retiré du groupe partagé (`effacerContexteMls`).
+- [ ] **Taille de l'IPA** avant/après, sur une vraie archive.
 
 ---
 

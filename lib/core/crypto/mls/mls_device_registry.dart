@@ -12,6 +12,7 @@ import '../../services/supabase_auth_bridge.dart';
 import 'bytea.dart' as bytea_codec;
 import 'mls_engine_provider.dart';
 import 'mls_notification_preview.dart';
+import 'mls_partage_extension_ios.dart';
 
 /// Une ligne de `mls_devices`.
 class MlsDeviceRecord {
@@ -215,6 +216,10 @@ class MlsDeviceRegistry {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(MlsNotificationPreview.cleStableId(userId), stableId);
+      // iOS n'a pas d'isolate : c'est une extension, un autre processus, qui
+      // ne lit ni `SharedPreferences` ni le bac à sable de l'app. Les mêmes
+      // deux valeurs lui sont redéposées dans le groupe partagé.
+      await deposerContexteExtensionIos(userId: userId, deviceId: stableId);
     } catch (e) {
       // Sans lui, les notifications retombent sur l'aperçu générique — c'est
       // dégradé, jamais cassé, et ça ne doit pas faire échouer l'inscription.
