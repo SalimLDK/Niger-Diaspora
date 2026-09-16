@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:diaspo_niger/core/services/notification_pile_messages.dart';
+import 'package:diaspo_niger/core/services/notification_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -159,6 +160,46 @@ void main() {
     });
   });
 
+  group('chaque ligne porte son heure', () {
+    test('l’heure précède le texte, en 24 h', () {
+      // `MessagingStyle` reçoit bien un horodatage par message, mais Android
+      // ne le rend PAS dans le volet du téléphone : il ne s'en sert que pour
+      // trier. L'en-tête ne porte donc qu'une seule heure, celle du dernier —
+      // et dans une pile de six, on ne sait pas de quand datent les cinq
+      // autres. D'où l'heure dans le texte.
+      expect(texteHorodate(DateTime(2026, 9, 16, 9, 5), 'Salut'), '09:05 · Salut');
+      expect(texteHorodate(DateTime(2026, 9, 16, 14, 30), 'Coucou'), '14:30 · Coucou');
+    });
+
+    test('minuit et midi ne se confondent pas', () {
+      expect(texteHorodate(DateTime(2026, 9, 16, 0, 0), 'a'), '00:00 · a');
+      expect(texteHorodate(DateTime(2026, 9, 16, 12, 0), 'b'), '12:00 · b');
+    });
+  });
+
+  group('le nom de l’expéditeur ne sort pas deux fois', () {
+    test('le préfixe posé par le serveur en groupe est retiré', () {
+      // Les deux déclencheurs préfixent le corps en groupe
+      // (`v_sender_name || ' : ' || v_body`), et `MessagingStyle` affiche
+      // l'expéditeur de son côté.
+      expect(sansPrefixeExpediteur('Alice : Salut', 'Alice'), 'Salut');
+      expect(sansPrefixeExpediteur('Alice: Salut', 'Alice'), 'Salut');
+    });
+
+    test('un 1:1 n’est pas touché', () {
+      expect(sansPrefixeExpediteur('Salut', 'Alice'), 'Salut');
+    });
+
+    test('un texte qui commence par le nom sans séparateur reste entier', () {
+      // « Alice a raison » n'est pas un préfixe d'expéditeur.
+      expect(sansPrefixeExpediteur('Alice a raison', 'Alice'), 'Alice a raison');
+    });
+
+    test('un expéditeur inconnu ne fait rien perdre', () {
+      expect(sansPrefixeExpediteur('Bob : Salut', ''), 'Bob : Salut');
+    });
+  });
+
   group('câblage', () {
     test('le chemin d’arrière-plan empile et pose un MessagingStyle', () {
       final source = _lire(service);
@@ -170,6 +211,9 @@ void main() {
       expect(corps, contains('styleInformation: styleMessagerie'));
       // Le compteur de la pastille du lanceur.
       expect(corps, contains('number: pile.length'));
+      // Chaque ligne porte son heure, et pas le nom de son expéditeur en double.
+      expect(corps, contains('texteHorodate(m.quand, m.texte)'));
+      expect(corps, contains('sansPrefixeExpediteur(body,'));
     });
 
     test('ouvrir la conversation vide la pile', () {

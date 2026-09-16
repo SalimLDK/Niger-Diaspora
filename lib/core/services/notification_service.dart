@@ -120,6 +120,41 @@ DateTime heureDuMessage(Map<String, dynamic> data) {
   return DateTime.fromMillisecondsSinceEpoch(ms);
 }
 
+/// `14:05 · Salut` — l'heure d'un message, collée devant son texte.
+///
+/// **Pourquoi dans le texte et pas à côté.** `MessagingStyle` reçoit bien un
+/// horodatage par message (`Message(texte, quand, personne)`), mais Android ne
+/// le REND PAS dans le volet du téléphone : il ne s'en sert que pour trier, et
+/// ne l'expose qu'à Wear et Auto. L'en-tête de la bannière ne porte donc qu'une
+/// seule heure, celle du dernier message — et dans une pile de six, on ne sait
+/// pas de quand datent les cinq autres.
+///
+/// Format 24 h à la main plutôt que `DateFormat` : ce code tourne aussi dans
+/// l'isolate de notification, où `intl` n'est pas initialisé.
+/// Retire `Alice : ` d'un corps de notification de groupe.
+///
+/// Les deux déclencheurs préfixent le corps du nom de l'expéditeur quand la
+/// conversation est un groupe (`v_sender_name || ' : ' || v_body`), parce que
+/// la bannière d'origine n'avait qu'une ligne pour tout dire. `MessagingStyle`
+/// affiche l'expéditeur DE SON CÔTÉ : garder le préfixe donnait son nom deux
+/// fois sur la même ligne.
+///
+/// Sans effet sur une conversation 1:1, où le corps n'est pas préfixé.
+String sansPrefixeExpediteur(String texte, String expediteur) {
+  if (expediteur.isEmpty) return texte;
+  for (final separateur in const [' : ', ': ']) {
+    final prefixe = '$expediteur$separateur';
+    if (texte.startsWith(prefixe)) return texte.substring(prefixe.length);
+  }
+  return texte;
+}
+
+String texteHorodate(DateTime quand, String texte) {
+  final h = quand.hour.toString().padLeft(2, '0');
+  final m = quand.minute.toString().padLeft(2, '0');
+  return '$h:$m · $texte';
+}
+
 /// Préfixe du groupe Android des notifications de messagerie.
 ///
 /// Une conversation = un groupe. Les deux chemins d'affichage — l'isolate
@@ -606,7 +641,7 @@ Future<void> _showFallbackMessageNotification({
   final pile = await PileMessagesNotifiees.empiler(
     conversationId: conversationId,
     messageId: data['messageId'] as String? ?? '',
-    texte: body,
+    texte: sansPrefixeExpediteur(body, data['senderName'] as String? ?? ''),
     expediteur: data['senderName'] as String? ?? title,
     quand: quand,
   );
@@ -620,7 +655,7 @@ Future<void> _showFallbackMessageNotification({
     messages: [
       for (final m in pile)
         Message(
-          m.texte,
+          texteHorodate(m.quand, m.texte),
           m.quand,
           Person(
             name: m.expediteur.isEmpty ? 'Utilisateur' : m.expediteur,
@@ -2019,10 +2054,11 @@ class NotificationService {
       notification: ActiveNotification(
         id: notificationId,
         title: title,
-        body: body,
+        body: sansPrefixeExpediteur(body, senderName),
         senderName: senderName,
         senderPhotoUrl: senderPhotoUrl,
         timestamp: heureDuMessage(data),
+        // Voir `sansPrefixeExpediteur` : `MessagingStyle` porte déjà le nom.
         messageType: messageType,
       ),
     );
@@ -2036,7 +2072,7 @@ class NotificationService {
       await PileMessagesNotifiees.empiler(
         conversationId: conversationId,
         messageId: data['messageId'] as String? ?? '',
-        texte: body,
+        texte: sansPrefixeExpediteur(body, senderName),
         expediteur: senderName,
         quand: heureDuMessage(data),
       );
@@ -2209,7 +2245,11 @@ class NotificationService {
           notification.messageType,
         );
 
-        messages.add(Message(messageText, notification.timestamp, person));
+        messages.add(Message(
+          texteHorodate(notification.timestamp, messageText),
+          notification.timestamp,
+          person,
+        ));
       }
     }
 
