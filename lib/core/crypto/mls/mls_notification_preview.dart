@@ -69,6 +69,24 @@ class MlsNotificationPreview {
   /// Ne lève jamais : un aperçu est du confort, et le repli générique du
   /// serveur reste affichable.
   static Future<String?> texte(Map<String, dynamic> data) async {
+    final payload = await _dechiffrer(data);
+    if (payload == null) return null;
+    final texte = resume(payload);
+    final messageId = data['messageId'] as String?;
+    if (texte != null && messageId != null && messageId.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      await _cacher(prefs, messageId, texte);
+    }
+    return texte;
+  }
+
+  /// La charge déchiffrée d'un push MLS, ou `null` si quoi que ce soit manque
+  /// ou échoue.
+  ///
+  /// Ne lève jamais — une exception non rattrapée dans l'isolate de
+  /// notification fait disparaître la bannière ENTIÈRE (vécu le 2026-08-13).
+  /// Tout échec retombe donc en silence sur le repli du serveur.
+  static Future<MlsPayload?> _dechiffrer(Map<String, dynamic> data) async {
     if (!concerne(data)) return null;
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -80,6 +98,8 @@ class MlsNotificationPreview {
       final conversationId = data['conversationId'] as String?;
       final messageId = data['messageId'] as String?;
       final senderDeviceId = data['mlsSenderDeviceId'] as String?;
+      // `content` pour un message, `control` pour une édition : l'AAD n'est
+      // pas la même, et un ciphertext présenté sous le mauvais `kind` échoue.
       final kind = data['mlsKind'] as String? ?? 'content';
       if (conversationId == null || messageId == null || senderDeviceId == null) {
         return null;
@@ -106,17 +126,35 @@ class MlsNotificationPreview {
           kind: kind,
         ),
       );
-
-      final payload = MlsPayload.decode(Uint8List.fromList(clair));
-      final texte = resume(payload);
-      if (texte != null) await _cacher(prefs, messageId, texte);
-      return texte;
+      return MlsPayload.decode(Uint8List.fromList(clair));
     } catch (e) {
       // Y compris le cas normal « message d'un epoch que cet appareil n'a pas
       // encore traité » : l'app le lira, la notification affiche le repli.
-      debugPrint('MlsNotificationPreview: aperçu indisponible ($e)');
+      debugPrint('MlsNotificationPreview: déchiffrement indisponible ($e)');
       return null;
     }
+  }
+
+  /// La correction portée par un message de CONTRÔLE, s'il s'agit d'une
+  /// édition : quel message elle vise, et par quel texte.
+  ///
+  /// Le serveur ne peut pas le savoir — `kind` vaut `control` pour une
+  /// édition, une réaction et une suppression indistinctement, et la charge
+  /// est chiffrée. Il transporte donc le contrôle tel quel, et c'est ici qu'on
+  /// trie. Une réaction ou une suppression rendent `null` : elles ont leur
+  /// propre chemin.
+  ///
+  /// Même copie jetable que [texte] : corriger une bannière ne doit pas
+  /// consommer une génération du cliquet.
+  static Future<({String cible, String texte})?> edition(
+    Map<String, dynamic> data,
+  ) async {
+    final payload = await _dechiffrer(data);
+    if (payload == null || payload.type != 'edit') return null;
+    final cible = payload.body['targetId'] as String?;
+    final texte = payload.body['content'] as String?;
+    if (cible == null || cible.isEmpty || texte == null) return null;
+    return (cible: cible, texte: texte);
   }
 
   /// Aperçu déjà déchiffré pour ce message, s'il a été posé par l'isolate.

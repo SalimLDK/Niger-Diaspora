@@ -125,7 +125,9 @@ void main() {
 
     test('tout échec retombe sur le repli, sans faire tomber la notification', () {
       final source = _source('lib/core/crypto/mls/mls_notification_preview.dart');
-      final i = source.indexOf('static Future<String?> texte(');
+      // Le try/catch a suivi le déchiffrement quand `edition()` a été ajouté :
+      // les deux entrées partagent désormais `_dechiffrer`.
+      final i = source.indexOf('static Future<MlsPayload?> _dechiffrer(');
       expect(i, greaterThan(-1));
       final corps = source.substring(i, source.indexOf('\n  }', i));
       expect(corps, contains('} catch (e) {'));

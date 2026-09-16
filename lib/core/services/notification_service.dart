@@ -576,6 +576,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     return;
   }
 
+  // Une correction : elle ne pose pas de bannière, elle en corrige une.
+  if (type == 'messageEdited') {
+    await _corrigerBanniereApresEdition(data);
+    return;
+  }
+
   // Only handle message notifications for delivery confirmation
   if (type == 'message') {
     final conversationId = data['conversationId'];
@@ -656,21 +662,9 @@ Future<void> _showFallbackMessageNotification({
   required String body,
   required Map<String, dynamic> data,
 }) async {
-  final plugin = FlutterLocalNotificationsPlugin();
-  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const iosSettings = DarwinInitializationSettings();
-  await plugin.initialize(
-    const InitializationSettings(android: androidSettings, iOS: iosSettings),
-  );
-  // Android identifie une notification par le COUPLE (tag, id), pas par le tag
-  // seul. Avec un id dérivé de la conversation, ce repli s'ajoutait à celle du
-  // SDK Firebase au lieu de la remplacer — deux bannières pour un message.
-  // Le SDK poste sous l'id 0 dès qu'un tag est fourni : on s'aligne dessus.
-  const notifId = 0;
-
   // Empiler au lieu de remplacer.
   //
-  // Ce couple (tag, id) est ce par quoi Android identifie une notification :
+  // Le couple (tag, id) est ce par quoi Android identifie une notification :
   // le message suivant ÉCRASAIT le précédent. Cinq messages reçus, un seul
   // lisible, aucun compteur. Le chemin premier plan savait déjà empiler, mais
   // son cache vit en mémoire dans le singleton — cet isolate-ci ne le voit
@@ -684,6 +678,99 @@ Future<void> _showFallbackMessageNotification({
     expediteurId: data['senderId'] as String? ?? '',
     quand: quand,
   );
+  await _posterBanniereMessagerie(
+    conversationId: conversationId,
+    title: title,
+    body: body,
+    data: data,
+    pile: pile,
+    quand: quand,
+    silencieux: false,
+  );
+}
+
+/// Corrige la bannière d'une conversation après l'édition d'un message.
+///
+/// Ne crée JAMAIS de bannière : si le message corrigé n'est pas dans la pile,
+/// il n'y a rien à corriger, et faire réapparaître une conversation déjà lue
+/// parce qu'une faute a été rectifiée serait pire que le défaut d'origine.
+/// Le serveur pose déjà le même garde de son côté — il n'envoie la correction
+/// qu'aux destinataires dont une notification `message` est encore non lue —
+/// mais les deux peuvent diverger le temps d'un aller-retour.
+///
+/// En clair, le serveur a recomposé l'aperçu et le met dans `body`. En chiffré
+/// il ne peut pas : il transporte le message de CONTRÔLE, et c'est ici qu'on
+/// déchiffre pour savoir si c'est bien une édition — `kind` vaut `control`
+/// pour une édition, une réaction et une suppression indistinctement.
+@pragma('vm:entry-point')
+Future<void> _corrigerBanniereApresEdition(Map<String, dynamic> data) async {
+  final conversationId = data['conversationId'] as String?;
+  if (conversationId == null || conversationId.isEmpty) return;
+
+  var cible = data['editedMessageId'] as String?;
+  var texte = data['body'] as String?;
+
+  if (data['protocol'] == 'mls') {
+    final edition = await MlsNotificationPreview.edition(data);
+    // Une réaction ou une suppression : elles ont leur propre chemin.
+    if (edition == null) return;
+    cible = edition.cible;
+    texte = edition.texte;
+  }
+  if (cible == null || cible.isEmpty || texte == null) return;
+
+  final pile = await PileMessagesNotifiees.remplacer(
+    conversationId: conversationId,
+    messageId: cible,
+    texte: sansPrefixeExpediteur(texte, data['senderName'] as String? ?? ''),
+  );
+  if (pile == null || pile.isEmpty) return;
+
+  await _posterBanniereMessagerie(
+    conversationId: conversationId,
+    title: data['conversationTitle'] as String? ??
+        data['senderName'] as String? ??
+        'Message',
+    // Le repli d'une seule ligne, et l'heure de l'en-tête : ceux du message le
+    // plus récent, pas ceux de la correction.
+    body: pile.last.texte,
+    data: data,
+    pile: pile,
+    quand: pile.last.quand,
+    silencieux: true,
+  );
+}
+
+/// Pose — ou repose — la bannière d'une conversation à partir de sa pile.
+///
+/// [silencieux] vaut `true` quand on ne fait que CORRIGER une bannière déjà
+/// affichée (édition d'un message). Android ne refait alors ni son ni
+/// vibration : `onlyAlertOnce` ne s'applique qu'aux mises à jour d'un couple
+/// (tag, id) déjà posé, ce qui est exactement le cas. On ne retire pas la
+/// bannière pour la reposer : ça la ferait re-sonner, et elle disparaîtrait un
+/// instant de l'écran.
+@pragma('vm:entry-point')
+Future<void> _posterBanniereMessagerie({
+  required String conversationId,
+  required String title,
+  required String body,
+  required Map<String, dynamic> data,
+  required List<MessageEmpile> pile,
+  required DateTime quand,
+  required bool silencieux,
+}) async {
+  final plugin = FlutterLocalNotificationsPlugin();
+  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const iosSettings = DarwinInitializationSettings();
+  await plugin.initialize(
+    const InitializationSettings(android: androidSettings, iOS: iosSettings),
+  );
+  // Android identifie une notification par le COUPLE (tag, id), pas par le tag
+  // seul. Avec un id dérivé de la conversation, ce repli s'ajoutait à celle du
+  // SDK Firebase au lieu de la remplacer — deux bannières pour un message.
+  // Le SDK poste sous l'id 0 dès qu'un tag est fourni : on s'aligne dessus.
+  const notifId = 0;
+
   final estGroupe = data['conversationType'] == 'group';
   final styleMessagerie = MessagingStyleInformation(
     const Person(name: 'Moi', key: 'me'),
@@ -728,6 +815,8 @@ Future<void> _showFallbackMessageNotification({
         // n'affichait aucune heure du tout.
         showWhen: true,
         when: quand.millisecondsSinceEpoch,
+        // Une correction ne refait pas sonner le téléphone.
+        onlyAlertOnce: silencieux,
         groupKey: '$kPrefixeGroupeMessages$conversationId',
         // Sans ça, le repli retombait sur l'icône par défaut du plugin
         // (`@mipmap/ic_launcher`), que la barre d'état réduit à un disque
@@ -1775,6 +1864,16 @@ class NotificationService {
       return;
     }
 
+    // Une correction d'édition n'a rien à AFFICHER au premier plan : la
+    // discussion ouverte montre déjà le texte corrigé, et l'écran
+    // Notifications n'affiche pas ce type. On tient seulement la pile à jour,
+    // pour que la prochaine bannière — posée après un passage en arrière-plan
+    // — ne ressorte pas le texte d'avant.
+    if (type == 'messageEdited') {
+      await _corrigerPileApresEdition(data);
+      return;
+    }
+
     // Confirm delivery for message notifications
     if (type == 'message') {
       await _confirmMessageDelivery(
@@ -1855,6 +1954,32 @@ class NotificationService {
       //   'Notification filtered by user preferences: ${message.data['type']}',
       // );
     }
+  }
+
+  /// Met la pile à jour après une édition, sans rien afficher.
+  ///
+  /// Pendant premier plan de `_corrigerBanniereApresEdition` : même correction
+  /// de la pile, mais aucune bannière n'est reposée — il n'y en a pas à
+  /// l'écran, l'application est ouverte.
+  Future<void> _corrigerPileApresEdition(Map<String, dynamic> data) async {
+    final conversationId = data['conversationId'] as String?;
+    if (conversationId == null || conversationId.isEmpty) return;
+
+    var cible = data['editedMessageId'] as String?;
+    var texte = data['body'] as String?;
+    if (data['protocol'] == 'mls') {
+      final edition = await MlsNotificationPreview.edition(data);
+      if (edition == null) return;
+      cible = edition.cible;
+      texte = edition.texte;
+    }
+    if (cible == null || cible.isEmpty || texte == null) return;
+
+    await PileMessagesNotifiees.remplacer(
+      conversationId: conversationId,
+      messageId: cible,
+      texte: sansPrefixeExpediteur(texte, data['senderName'] as String? ?? ''),
+    );
   }
 
   /// Handle incoming call notification

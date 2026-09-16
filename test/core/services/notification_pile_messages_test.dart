@@ -190,6 +190,66 @@ void main() {
     });
   });
 
+  group('une édition corrige la ligne, sans en créer', () {
+    test('le texte change, la place et l’heure ne bougent pas', () async {
+      final base = DateTime(2026, 9, 16, 10);
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'rdv à 17h',
+          expediteur: 'Alice', expediteurId: 'uid-a', quand: base);
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm2', texte: 'ok',
+          expediteur: 'Bob', expediteurId: 'uid-b',
+          quand: base.add(const Duration(minutes: 5)));
+
+      final pile = await PileMessagesNotifiees.remplacer(
+          conversationId: 'c1', messageId: 'm1', texte: 'rdv à 18h');
+
+      expect(pile, isNotNull);
+      expect(pile!.map((m) => m.texte), ['rdv à 18h', 'ok']);
+      // L'heure reste celle de l'ENVOI : la ligne ne saute pas de place parce
+      // qu'une faute a été corrigée.
+      expect(pile.first.quand, base);
+      expect(pile.first.expediteurId, 'uid-a');
+    });
+
+    test('un message absent de la pile ne crée RIEN', () async {
+      // Le point le plus important : faire réapparaître une conversation déjà
+      // lue parce qu'une faute a été rectifiée serait pire que le défaut.
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'a', expediteur: 'A');
+      expect(
+        await PileMessagesNotifiees.remplacer(
+            conversationId: 'c1', messageId: 'inconnu', texte: 'b'),
+        isNull,
+      );
+      expect(
+        await PileMessagesNotifiees.remplacer(
+            conversationId: 'c-vide', messageId: 'm1', texte: 'b'),
+        isNull,
+      );
+      expect((await PileMessagesNotifiees.lire('c-vide')), isEmpty);
+    });
+
+    test('corriger par le même texte ne réécrit rien', () async {
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'idem', expediteur: 'A');
+      final pile = await PileMessagesNotifiees.remplacer(
+          conversationId: 'c1', messageId: 'm1', texte: 'idem');
+      expect(pile, isNotNull);
+      expect(pile!.single.texte, 'idem');
+    });
+
+    test('sans identifiant de message, on ne corrige rien', () async {
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: '', texte: 'a', expediteur: 'A');
+      expect(
+        await PileMessagesNotifiees.remplacer(
+            conversationId: 'c1', messageId: '', texte: 'b'),
+        isNull,
+      );
+    });
+  });
+
   group('la pile se vide quand la conversation est vue', () {
     test('vider une conversation ne touche pas l’autre', () async {
       await PileMessagesNotifiees.empiler(
@@ -308,22 +368,32 @@ void main() {
   });
 
   group('câblage', () {
-    test('le chemin d’arrière-plan empile et pose un MessagingStyle', () {
+    test('le chemin d’arrière-plan empile, puis pose la bannière', () {
+      // Les deux gestes ont été séparés : une édition ne réempile rien, elle
+      // corrige une ligne déjà là et repose la MÊME bannière.
       final source = _lire(service);
       final i = source.indexOf('Future<void> _showFallbackMessageNotification(');
       expect(i, greaterThan(-1));
-      final corps = source.substring(i, source.indexOf('\n}\n', i));
+      final corps = source.substring(
+          i, source.indexOf('Future<void> _posterBanniereMessagerie(', i));
       expect(corps, contains('PileMessagesNotifiees.empiler('));
+      expect(corps, contains('_posterBanniereMessagerie('));
+      expect(corps, contains('silencieux: false'));
+      // La correction de l'expéditeur en double se fait à l'empilement.
+      expect(corps, contains('sansPrefixeExpediteur(body,'));
+      expect(corps, contains("expediteurId: data['senderId']"));
+    });
+
+    test('la bannière elle-même porte le style, le compteur et l’heure', () {
+      final source = _lire(service);
+      final i = source.indexOf('Future<void> _posterBanniereMessagerie(');
+      expect(i, greaterThan(-1));
+      final corps = source.substring(i, source.indexOf('\n}\n', i));
       expect(corps, contains('MessagingStyleInformation('));
       expect(corps, contains('styleInformation: styleMessagerie'));
-      // Le compteur de la pastille du lanceur.
       expect(corps, contains('number: pile.length'));
-      // Chaque ligne porte son heure, et pas le nom de son expéditeur en double.
       expect(corps, contains('texteHorodate(m.quand, m.texte)'));
-      expect(corps, contains('sansPrefixeExpediteur(body,'));
-      // La clé d'identité vient de l'identifiant, pas du nom affiché.
       expect(corps, contains('key: m.cleIdentite'));
-      expect(corps, contains("expediteurId: data['senderId']"));
     });
 
     test('ouvrir la conversation vide la pile', () {
@@ -362,6 +432,35 @@ void main() {
       expect(corps.contains('messages.reversed'), isFalse);
       expect(corps.contains('group.notifications.take(10)'), isFalse);
       expect(corps, contains('sublist(group.notifications.length - 10)'));
+    });
+
+    test('une correction repose la bannière SANS la faire sonner', () {
+      final source = _lire(service);
+      final i = source.indexOf('Future<void> _corrigerBanniereApresEdition(');
+      expect(i, greaterThan(-1));
+      final corps = source.substring(
+          i, source.indexOf('Future<void> _posterBanniereMessagerie(', i));
+      expect(corps, contains('PileMessagesNotifiees.remplacer('));
+      expect(corps, contains('silencieux: true'));
+      // Et elle n'en crée jamais : pile absente = on s'arrête.
+      expect(corps, contains('if (pile == null || pile.isEmpty) return;'));
+      // On ne retire pas la bannière pour la reposer : ça la ferait re-sonner.
+      expect(corps.contains('plugin.cancel'), isFalse);
+    });
+
+    test('`onlyAlertOnce` suit le caractère silencieux', () {
+      final source = _lire(service);
+      expect(source, contains('onlyAlertOnce: silencieux'));
+    });
+
+    test('une édition chiffrée passe par la copie jetable', () {
+      // Corriger une bannière ne doit pas consommer une génération du cliquet,
+      // pas plus que l'aperçu.
+      final preview = _lire('lib/core/crypto/mls/mls_notification_preview.dart');
+      final i = preview.indexOf('static Future<({String cible, String texte})?> edition(');
+      expect(i, greaterThan(-1));
+      expect(preview.substring(i, i + 400), contains('_dechiffrer(data)'));
+      expect(preview, contains('apercuSansEtat('));
     });
 
     test('les deux chemins d’affichage posent le MÊME groupe Android', () {

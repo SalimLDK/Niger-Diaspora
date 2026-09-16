@@ -130,6 +130,9 @@ const CLE_PREFERENCE_PAR_TYPE: Record<string, string> = {
   // La sourdine d'une conversation cède sur mention, l'interrupteur global
   // non : une mention reste un message.
   'messageMention': 'messages',
+  // Couper « Messages » coupe aussi les corrections : sans bannière à
+  // corriger, elles n'ont plus d'objet.
+  'messageEdited': 'messages',
 
   // Les gens.
   'friendRequest': 'friend_requests',
@@ -374,14 +377,22 @@ Deno.serve(async (req) => {
     // l'app iOS en arrière-plan ; sans bloc `notification` top-level, l'alerte
     // iOS doit être reconstruite explicitement dans `aps.alert`, sinon aucune
     // bannière ne s'affiche côté iOS.
-    const isMessageType = type === 'message'
+    // `messageEdited` voyage comme un message : en data-only, donc SANS que le
+    // système affiche quoi que ce soit. Il ne vient pas annoncer, il vient
+    // corriger une bannière déjà posée — et l'appareil la met à jour en place,
+    // sans la faire re-sonner.
+    const isMessageType = type === 'message' || type === 'messageEdited'
     const fcmMessage: Record<string, unknown> = isMessageType
       ? {
           data: dataMap,
           android: { priority: 'high' },
           apns: {
             headers: apnsHeaders,
-            payload: { aps: { ...aps, alert: { title, body } } },
+            // Une correction ne porte pas d'alerte iOS : elle réveille
+            // l'extension (`content-available`) et rien de plus.
+            payload: type === 'messageEdited'
+              ? { aps: { ...aps, badge: undefined } }
+              : { aps: { ...aps, alert: { title, body } } },
           },
         }
       : {

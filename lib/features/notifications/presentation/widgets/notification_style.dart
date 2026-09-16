@@ -38,6 +38,7 @@ Color notificationTint(BuildContext context, NotificationType type) {
     case NotificationType.system:
     case NotificationType.supportReply:
     case NotificationType.messageMention:
+    case NotificationType.messageEdited:
       return context.adaptivePrimaryColor;
 
     // Ce qui rassemble : groupes et événements.
@@ -139,6 +140,8 @@ IconData notificationIcon(NotificationType type) {
     case NotificationType.groupMention:
     case NotificationType.messageMention:
       return Icons.alternate_email;
+    case NotificationType.messageEdited:
+      return Icons.edit_outlined;
     case NotificationType.postCommented:
     case NotificationType.commentReply:
       return Icons.mode_comment_outlined;
