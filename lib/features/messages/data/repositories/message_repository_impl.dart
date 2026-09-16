@@ -935,13 +935,41 @@ class MessageRepositoryImpl implements MessageRepository {
 
   /// Exécute un envoi MLS, avec la règle du repli : avant la bascule, un
   /// échec peut encore emprunter le chemin d'aujourd'hui ; après, il remonte.
+  ///
+  /// **Et met le message en cache, comme le fait le chemin legacy.** Le clair
+  /// de nos propres messages n'existe que sur cet appareil ; le chemin legacy
+  /// le met en cache juste après l'envoi pour cette raison, le chemin MLS
+  /// l'oubliait. Le cache ne le recevait qu'au prochain chargement du fil
+  /// (`_fusionnerAvecMls`), c'est-à-dire en rouvrant la discussion.
+  ///
+  /// Ce que ça coûtait, entre l'envoi et cette réouverture : la liste des
+  /// discussions perdait son aperçu. Le serveur avance `last_message_at` sur
+  /// la note qu'on vient d'écrire, mais n'a pas son texte — il ne l'aura
+  /// jamais — et `apercuDepuisCache` ne trouvait, côté cache, que le message
+  /// d'AVANT. Les deux horodatages ne concordant pas, elle refusait, à raison.
+  /// La discussion retombait donc sur son libellé de type. Constaté sur
+  /// SM A515F le 2026-09-15, tuile « Mes notes » : « Notes, brouillons et
+  /// sondages » à la place de la note écrite trente secondes plus tôt.
+  ///
+  /// L'égalité que cette garde exige n'est atteignable que parce que
+  /// `MlsDelivery.publishMessage` relit `created_at` : le message mis en cache
+  /// ici porte l'horodatage **du serveur**, celui-là même qui vient d'être
+  /// écrit dans `last_message_at`. Les deux correctifs ne valent qu'ensemble.
+  ///
+  /// `cacheMessages` fusionne par id, donc ajouter une seule entrée est sans
+  /// risque pour le reste du fil.
   Future<Either<Failure, MessageEntity>?> _tenterEnvoiMls(
     MlsGateway passerelle,
     String conversationId,
     Future<MessageEntity> Function() envoi,
   ) async {
     try {
-      return Right(await envoi());
+      final envoye = await envoi();
+      unawaited(cacheService.cacheMessages(
+        conversationId,
+        [MessageModel.fromEntity(envoye).toJson()],
+      ));
+      return Right(envoye);
     } catch (e) {
       if (!await passerelle.repliLegacyPossible(conversationId)) rethrow;
       dev.log('MLS indisponible, envoi en clair (conversation non basculée)',

@@ -147,12 +147,11 @@ void main() {
       );
     });
 
-    test('liste hors ligne, plus vieille que le cache du fil : rien non plus', () {
-      // Ce qui a été pris pour un défaut sur le SM A515F le 2026-09-15 : la
-      // liste venait du cache Hive (donc annonçait le message d'AVANT), le
-      // cache du fil, lui, portait la note qu'on venait d'écrire. La garde
-      // refuse, et elle a raison — elle ne peut pas savoir laquelle des deux
-      // sources est en retard.
+    test('liste plus vieille que le cache du fil : rien non plus', () {
+      // L'autre sens du désaccord : la liste annonce un message ANTÉRIEUR à
+      // celui que porte le cache du fil. La garde refuse aussi, et elle a
+      // raison — elle ne peut pas savoir laquelle des deux sources est en
+      // retard.
       expect(
         MessageRepositoryImpl.apercuDepuisCache(
           conv(annonce: quandServeur.subtract(const Duration(minutes: 30))),

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1279 cases à cocher, 630 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
+**1281 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -60,7 +60,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 12 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 16 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -95,7 +95,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 3 · [⬜ Pastille de non-lus, et séparateur « nouveaux messages » (2026-09-15)](#-pastille-de-non-lus-et-séparateur--nouveaux-messages--2026-09-15) · *Messagerie*
-- 5 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
+- 4 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
 - 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
@@ -196,7 +196,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
-- 4 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
 - 2 · [✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)](#-filtre-hashtag--réparé-et-vérifié-sur-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
@@ -312,11 +312,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 273 à faire, 118 faites
+- [2. Messagerie](#2-messagerie) — 272 à faire, 119 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 122 à faire, 39 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 123 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 127 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -704,9 +704,12 @@ Réseau rétabli ensuite, vérifié à 15 ms.
       il affiche « Envoyé » de façon optimiste.
 - [x] Réseau coupé, liste déjà chargée depuis le réseau : l'ouverture aboutit
       quand même (c'est le test ci-dessus)
-- [ ] Réseau coupé **et** liste jamais chargée depuis le réseau (démarrage à
+- [x] Réseau coupé **et** liste jamais chargée depuis le réseau (démarrage à
       froid hors ligne) : doit échouer proprement sur le SnackBar
-      « Impossible d'ouvrir Mes notes pour le moment »
+      « Impossible d'ouvrir Mes notes pour le moment ». Vérifié SM A515F le
+      2026-09-15 : le SnackBar s'affiche, la liste ne bouge pas, aucun écran
+      fantôme. Le point qui comptait était qu'un refus se **dise** — un écran
+      qui n'annonce rien se lit comme « le tap n'a pas pris ».
 - [ ] Démarrage à froid en ligne, tap immédiat avant que la liste n'ait
       chargé : la tuile fait encore son aller-retour (spinner), et
       l'ouverture aboutit
@@ -716,18 +719,22 @@ Réseau rétabli ensuite, vérifié à 15 ms.
       tuile prend son aperçu dans la liste
 - [ ] Même parcours depuis « Nouvelle conversation » (l'autre appelant)
 
-**Une fausse piste, consignée pour qu'on ne la reprenne pas.** Pendant cette
-passe, la tuile est retombée sur son libellé par défaut (« Notes, brouillons
-et sondages ») juste après l'envoi de la note. Ça a été pris pour un défaut
-d'aperçu ; ce n'en est pas un. C'était **réseau coupé** : la liste venait du
-cache Hive, donc annonçait encore le message d'avant, pendant que le cache du
-fil portait la note qu'on venait d'écrire. `apercuDepuisCache` refuse quand
-les deux horodatages ne concordent pas, et elle a raison — elle ne peut pas
-savoir laquelle des deux sources est en retard. Tenu par un test
-(`test/core/crypto/mls_horodatage_envoi_test.dart`, dernier cas).
+**L'aperçu perdu après un envoi chiffré était bien un défaut.** Il a d'abord
+été attribué au hors-ligne, à tort : reproduit ensuite **réseau branché**, la
+tuile retombait sur « Notes, brouillons et sondages » dès le premier
+tirer-pour-rafraîchir suivant l'envoi. La cause n'était ni l'horodatage ni le
+cache de la liste : une note MLS envoyée n'entrait **pas** dans le cache local
+des messages, alors que le chemin legacy y met les siennes juste après
+l'envoi. Le cache ne la recevait qu'au rechargement du fil, donc en rouvrant
+la discussion. Entre les deux, le serveur avançait `last_message_at` sur une
+note dont il n'a pas le texte, le cache ne portait que celle d'avant, et
+`apercuDepuisCache` refusait — à raison.
 
-La fouille a en revanche trouvé un vrai écart à côté : voir « L'expéditeur MLS
-datait lui-même ses propres messages » au § 4.
+Corrigé dans `_tenterEnvoiMls`, qui enveloppe tous les envois MLS. Voir
+« L'expéditeur MLS datait lui-même ses propres messages » au § 4 : les deux
+correctifs ne valent qu'ensemble, l'égalité d'horodatage qu'exige l'aperçu
+n'étant atteignable que parce que le message mis en cache porte l'heure du
+serveur.
 
 Fichiers : [message_provider.dart](lib/features/messages/presentation/providers/message_provider.dart)
 (`conversationsDepuisReseauProvider`, `EnsureSelfNotesNotifier.ouvrir`),
@@ -6716,11 +6723,19 @@ liste, où zéro ligne est une liste vide et rien ne lève.
 
 Reste à voir tourner ce que seul un téléphone montre :
 
-- [ ] Envoyer une note chiffrée : elle part, et l'aperçu de la liste montre
-      son texte **sans rouvrir le fil**
+- [x] Envoyer une note chiffrée : elle part, et l'aperçu de la liste montre
+      son texte **sans rouvrir le fil**. Vérifié SM A515F le 2026-09-15, et
+      la chaîne entière est prouvée : le serveur a daté la ligne
+      `03:41:33.000957`, le cache Hive de l'appareil porte exactement
+      `2026-09-16T03:41:33.000957` pour ce message, et la tuile affiche son
+      texte — y compris après un tirer-pour-rafraîchir, qui est ce qui le
+      faisait tomber avant.
 - [ ] Régler l'horloge du téléphone à la main (avance de 3 min), envoyer une
       note chiffrée : l'aperçu doit tenir quand même. ⚠️ **Remettre l'horloge
       automatique après** — une horloge fausse perturbe TLS et les jetons.
+      *Pas faisable par adb : le shell est `uid 2000`, poser la date demande
+      le root ou l'écran Réglages. La comparaison cache/serveur ci-dessus
+      prouve la même chose sans toucher à l'horloge.*
 - [ ] Message éphémère envoyé depuis cet appareil : le minuteur affiché part
       de l'heure du serveur, pas de celle du téléphone
 - [ ] Un envoi dont la réponse se perd (couper le Wi-Fi pendant l'envoi) ne
@@ -9036,6 +9051,27 @@ retour du réseau porte son heure d'envoi, pas « à l'instant ».
 - [ ] **Ordre** : cinq messages d'affilée, le plus ancien **en haut**.
 - [ ] **Rattrapage hors ligne** : plusieurs messages d'un coup au retour du
   réseau, dans le bon ordre même s'ils n'arrivent pas dans cet ordre-là.
+
+**Complété le 2026-09-16, signalé sur appareil** : la bannière ne portait
+**qu'une seule heure**, celle de l'en-tête. `MessagingStyle` reçoit bien un
+horodatage par message, mais **Android ne le rend pas** dans le volet du
+téléphone : il ne s'en sert que pour trier, et ne l'expose qu'à Wear et Auto.
+Dans une pile de six, on ne savait donc pas de quand dataient les cinq
+premiers. L'heure est désormais **dans le texte** de chaque ligne
+(`14:30 · Salut`), format 24 h posé à la main — `intl` n'est pas initialisé
+dans l'isolate de notification.
+
+Trouvé en même temps : en **groupe**, les deux déclencheurs préfixent déjà le
+corps du nom de l'expéditeur (`v_sender_name || ' : ' || v_body`), parce que la
+bannière d'origine n'avait qu'une ligne pour tout dire. `MessagingStyle`
+affiche l'expéditeur de son côté — le nom sortait donc **deux fois sur la même
+ligne**. Il est retiré du texte, et seulement là où le serveur l'a mis.
+
+- [ ] **Heure sur chaque ligne** de la pile, pas seulement dans l'en-tête.
+- [ ] **Groupe** : chaque ligne montre son expéditeur **une seule fois**.
+- [ ] **1:1** : le texte n'a rien perdu (aucun préfixe à retirer là).
+- [ ] **Message dont le texte commence par le nom de l'expéditeur** (« Alice a
+  raison ») : rien n'est rogné.
 
 ---
 
