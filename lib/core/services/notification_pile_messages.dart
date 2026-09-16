@@ -101,6 +101,9 @@ class PileMessagesNotifiees {
         return pile;
       }
       pile.add(nouveau);
+      // Retrier AVANT de rogner : sans ça, un message arrivé en retard mais
+      // plus ancien que les autres serait gardé, et un plus récent jeté.
+      pile.sort((a, b) => a.quand.compareTo(b.quand));
       while (pile.length > maxParConversation) {
         pile.removeAt(0);
       }
@@ -185,11 +188,17 @@ class PileMessagesNotifiees {
     if (brut == null || brut.isEmpty) return [];
     try {
       final limite = DateTime.now().subtract(duree);
-      return [
+      final messages = [
         for (final e in jsonDecode(brut) as List)
           if (MessageEmpile.depuisJson(e) case final m?)
             if (m.quand.isAfter(limite)) m,
       ];
+      // Trié par l'heure du SERVEUR, pas par l'ordre d'arrivée : au retour du
+      // réseau, plusieurs messages arrivent d'un coup et pas toujours dans
+      // l'ordre où ils ont été écrits. Une conversation se lit du plus ancien
+      // au plus récent.
+      messages.sort((a, b) => a.quand.compareTo(b.quand));
+      return messages;
     } catch (_) {
       return [];
     }
