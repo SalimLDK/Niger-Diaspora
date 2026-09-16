@@ -20,7 +20,9 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:diaspo_niger/core/crypto/mls/bytea.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_conversation_service.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_delivery.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_device_registry.dart';
@@ -726,6 +728,81 @@ void main() {
       expect(sien.senderId, b.uid);
       expect((await a.service.catchUp(prive)).map((x) => x.payload?.texte),
           contains('de retour'));
+    });
+
+    test('1:1 : deux réinstallations l’une après l’autre, puis un ajout', () async {
+      // Le 2026-09-16 à 17:45 : les deux téléphones réinstallés rejoignent le
+      // même 1:1 l'un après l'autre (epochs 3 puis 4), puis le premier doit
+      // ajouter les anciennes installations encore « actives ». L'ajout
+      // échouait dans le moteur, sans diagnostic, et l'envoi avec lui.
+      final prive = await conversation(a, [a, b]);
+      await a.service.ensureGroup(prive);
+      await a.service.reconcileMembership(prive);
+      await b.service.catchUp(prive);
+
+      final a2 = Appareil(nom: 'AliceReinst', uid: a.uid, client: a.client, dossier: dossier);
+      await a2.inscrire();
+      addTearDown(a2.detruireLeMoteur);
+      await a2.service.ensureGroup(prive);
+
+      final b2 = Appareil(nom: 'BobReinst', uid: b.uid, client: b.client, dossier: dossier);
+      await b2.inscrire();
+      addTearDown(b2.detruireLeMoteur);
+      await b2.service.ensureGroup(prive);
+
+      // Une installation de plus, jamais entrée dans le groupe.
+      final b3 = Appareil(nom: 'BobFantome', uid: b.uid, client: b.client, dossier: dossier);
+      await b3.inscrire();
+      addTearDown(b3.detruireLeMoteur);
+
+      await a2.service.reconcileMembership(prive);
+      final m = await a2.service.send(prive, MlsPayload.texte(uuid.v4(), 'apres deux reinstallations'));
+      expect(m.senderId, a.uid);
+      expect((await b2.service.catchUp(prive)).map((x) => x.payload?.texte),
+          contains('apres deux reinstallations'));
+    });
+
+    test('un appareil impossible à ajouter ne bloque plus l’envoi', () async {
+      // Le 2026-09-16 sur le Samsung : l'ajout de trois anciennes
+      // installations échouait dans le moteur, l'échec remontait, et plus
+      // AUCUN message ne partait — sans une ligne de diagnostic.
+      final prive = await conversation(a, [a, b]);
+      await a.service.ensureGroup(prive);
+      await a.service.reconcileMembership(prive);
+      await b.service.catchUp(prive);
+
+      final casse = Appareil(nom: 'BobCasse', uid: b.uid, client: b.client, dossier: dossier);
+      await casse.inscrire();
+      addTearDown(casse.detruireLeMoteur);
+      // Ses paquets remplacés par des octets illisibles : le moteur refusera.
+      await b.client.from('mls_key_packages').delete().eq('device_id', casse.fiche.id);
+      await b.client.from('mls_key_packages').insert({
+        'device_id': casse.fiche.id,
+        'key_package': versBytea(Uint8List.fromList([1, 2, 3])),
+        'cipher_suite': MlsDeviceRegistry.cipherSuite,
+        'is_last_resort': false,
+        'expires_at': DateTime.now().toUtc().add(const Duration(days: 1)).toIso8601String(),
+      });
+
+      await a.service.reconcileMembership(prive); // ne lève plus
+      final m = await a.service.send(prive, MlsPayload.texte(uuid.v4(), 'malgre l appareil casse'));
+      expect(m.senderId, a.uid);
+      expect((await b.service.catchUp(prive)).map((x) => x.payload?.texte),
+          contains('malgre l appareil casse'));
+
+      final diag = await a.client
+          .from('mls_diagnostics')
+          .select('event')
+          .eq('user_id', a.uid)
+          .eq('event', 'ajout_membres_echoue')
+          .limit(1);
+      expect(diag as List, isNotEmpty, reason: 'l’échec doit s’écrire');
+
+      // Pas de nouvel essai dans la foulée : aucun paquet de plus réclamé.
+      final avant = await b.client.from('mls_key_packages').select('id').eq('device_id', casse.fiche.id).isFilter('used_at', null);
+      await a.service.reconcileMembership(prive);
+      final apres = await b.client.from('mls_key_packages').select('id').eq('device_id', casse.fiche.id).isFilter('used_at', null);
+      expect((apres as List).length, (avant as List).length);
     });
 
     test('deux jointures simultanées du même appareil : un seul commit', () async {

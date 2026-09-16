@@ -366,7 +366,10 @@ class MlsConversationService {
     final membres = {for (final m in snap.membres) m.identity: m.leafIndex};
     final identitesActives = {for (final d in actifs) d.mlsIdentity: d};
 
-    final aAjouter = actifs.where((d) => !membres.containsKey(d.mlsIdentity)).toList();
+    final aAjouter = actifs
+        .where((d) => !membres.containsKey(d.mlsIdentity))
+        .where((d) => !_ajoutsEchoues.contains('$conversationId/${d.id}'))
+        .toList();
     final aRetirer = <int>[
       for (final e in membres.entries)
         if (!identitesActives.containsKey(e.key) && e.key != appareil.mlsIdentity) e.value,
@@ -388,20 +391,30 @@ class MlsConversationService {
     }
 
     try {
-      if (paquets.isNotEmpty) {
-        final epoch = snap.epoch.toInt() + 1;
-        final out = await moteur.ajouterMembres(
-          conversationId: conversationId,
-          keyPackages: paquets,
-          aad: MlsAad.commit(conversationId: conversationId, epoch: epoch),
-        );
-        await _delivery.publishCommit(
-          conversationId: conversationId,
-          epoch: epoch,
-          senderDeviceId: appareil.id,
-          commit: out.commit,
-          groupInfo: out.groupInfo,
-        );
+      final epochAjout = snap.epoch.toInt() + 1;
+      final out = paquets.isEmpty
+          ? null
+          : await _commitOuDiagnostic(
+              moteur,
+              conversationId,
+              appareil,
+              'ajout_membres_echoue',
+              () => moteur.ajouterMembres(
+                conversationId: conversationId,
+                keyPackages: paquets,
+                aad: MlsAad.commit(conversationId: conversationId, epoch: epochAjout),
+              ),
+              exclure: destinataires,
+            );
+      if (out != null) {
+        final epoch = epochAjout;
+        await _publierOuJeter(moteur, conversationId, () => _delivery.publishCommit(
+              conversationId: conversationId,
+              epoch: epoch,
+              senderDeviceId: appareil.id,
+              commit: out.commit,
+              groupInfo: out.groupInfo,
+            ));
         await moteur.fusionnerCommitEnAttente(conversationId: conversationId);
         await _delivery.publishWelcomes(
           conversationId: conversationId,
@@ -413,20 +426,33 @@ class MlsConversationService {
         }
         await _publierArbre(conversationId, moteur);
       }
-      if (aRetirer.isNotEmpty) {
-        final snap2 = await moteur.instantane(conversationId: conversationId);
-        final epoch = snap2.epoch.toInt() + 1;
-        final out = await moteur.retirerMembres(
-          conversationId: conversationId,
-          leafIndices: aRetirer,
-          aad: MlsAad.commit(conversationId: conversationId, epoch: epoch),
-        );
-        await _delivery.publishCommit(
-          conversationId: conversationId,
-          epoch: epoch,
-          senderDeviceId: appareil.id,
-          commit: out.commit,
-        );
+      final retrait = aRetirer.isEmpty || _retraitsEchoues.contains(conversationId)
+          ? null
+          : await () async {
+              final snap2 = await moteur.instantane(conversationId: conversationId);
+              final epoch = snap2.epoch.toInt() + 1;
+              final out = await _commitOuDiagnostic(
+                moteur,
+                conversationId,
+                appareil,
+                'retrait_membres_echoue',
+                () => moteur.retirerMembres(
+                  conversationId: conversationId,
+                  leafIndices: aRetirer,
+                  aad: MlsAad.commit(conversationId: conversationId, epoch: epoch),
+                ),
+              );
+              if (out == null) _retraitsEchoues.add(conversationId);
+              return out == null ? null : (out: out, epoch: epoch);
+            }();
+      if (retrait != null) {
+        final (:out, :epoch) = retrait;
+        await _publierOuJeter(moteur, conversationId, () => _delivery.publishCommit(
+              conversationId: conversationId,
+              epoch: epoch,
+              senderDeviceId: appareil.id,
+              commit: out.commit,
+            ));
         await moteur.fusionnerCommitEnAttente(conversationId: conversationId);
         // Sans ça, l'arbre public se périme dès qu'un membre part, et plus
         // personne ne peut rejoindre le groupe par commit externe.
@@ -440,6 +466,72 @@ class MlsConversationService {
           detail: {'epoch': e.epoch});
       if (tentative >= 2) rethrow;
       return reconcileMembership(conversationId, tentative: tentative + 1);
+    }
+  }
+
+  /// Appareils dont l'ajout a échoué dans le moteur, par conversation
+  /// (`conversation/appareil`), et conversations dont le retrait a échoué.
+  /// Pour la durée du processus : réessayer à chaque envoi réclamait trois
+  /// KeyPackages de plus par minute, pour un échec certain.
+  final Set<String> _ajoutsEchoues = {};
+  final Set<String> _retraitsEchoues = {};
+
+  /// Fabrique un commit d'appartenance ; en cas d'échec **du moteur**, rend
+  /// `null` au lieu de lever.
+  ///
+  /// L'appartenance est un entretien, pas une condition de l'envoi. Le
+  /// 2026-09-16, le Samsung ne parvenait pas à ajouter au 1:1 trois
+  /// anciennes installations effacées — et comme l'échec remontait, **aucun**
+  /// message ne partait plus, vers personne, sans une ligne de diagnostic :
+  /// « Non envoyé », à chaque essai. Désormais le motif s'écrit, le commit
+  /// à moitié fait est jeté, et le message part vers les membres en place.
+  Future<CommitDto?> _commitOuDiagnostic(
+    Moteur moteur,
+    String conversationId,
+    MlsDeviceRecord appareil,
+    String evenement,
+    Future<CommitDto> Function() fabriquer, {
+    List<String> exclure = const [],
+  }) async {
+    try {
+      return await fabriquer();
+    } catch (e) {
+      await _jeterSansLever(moteur, conversationId);
+      _ajoutsEchoues.addAll([for (final id in exclure) '$conversationId/$id']);
+      await _delivery.diagnostic(userId, evenement,
+          deviceId: appareil.id,
+          detail: {
+            'conversation': conversationId,
+            'code': _code(e),
+            if (exclure.isNotEmpty) 'combien': exclure.length,
+          });
+      return null;
+    }
+  }
+
+  /// Publie un commit déjà fabriqué. Un échec autre qu'un conflict d'epoch
+  /// (réseau, droits) jette le commit en attente avant de remonter : laissé
+  /// en place, il ferait échouer tous les commits suivants de ce groupe.
+  Future<void> _publierOuJeter(
+    Moteur moteur,
+    String conversationId,
+    Future<void> Function() publier,
+  ) async {
+    try {
+      await publier();
+    } on EpochConflict {
+      rethrow;
+    } catch (_) {
+      await _jeterSansLever(moteur, conversationId);
+      rethrow;
+    }
+  }
+
+  Future<void> _jeterSansLever(Moteur moteur, String conversationId) async {
+    try {
+      await moteur.jeterCommitEnAttente(conversationId: conversationId);
+    } catch (_) {
+      // Rien en attente : rien à jeter.
     }
   }
 
