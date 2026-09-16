@@ -614,7 +614,7 @@ un message court donnait un bloc **plus haut que large**, où la citation se
 lisait comme une étiquette posée à côté du message plutôt que comme le message
 cité. Trois changements dans `message_bubble.dart` :
 
-- un plancher de largeur (52 % de l'écran, plafonné à 240) dès qu'il y a une
+- un plancher de largeur (58 % de l'écran, plafonné à 260) dès qu'il y a une
   citation ;
 - la citation étirée sur toute la largeur de la bulle — par `IntrinsicWidth`,
   **réservé au texte** : `AudioMessageBubble` et `AudioFileBubble` contiennent
@@ -627,7 +627,7 @@ La forme est fixée par `test/features/messages/bulle_citation_forme_test.dart`
 et a été regardée en golden jetable (« Aperçu UI sans build »). Ce qu'un
 golden ne dit pas :
 
-- [ ] **Thème sombre** : l'aplat blanc à 14 % sur le vert `#009600` — détaché
+- [ ] **Thème sombre** : l'aplat blanc à 12 % sur le vert `#009600` — détaché
   sans virer au laiteux.
 - [ ] **Échelle de police à 130 %** (réglages Android) : la citation tient sur
   ses deux lignes, la bulle ne déborde pas. Voir « Échelle de police ».
