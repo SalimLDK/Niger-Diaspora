@@ -26,7 +26,20 @@ enum E2EEBackupPrompt {
 
 /// Expose l'action de sauvegarde/restauration à proposer après la connexion.
 ///
-/// L'UI (cf. `MainShell`) l'observe pour afficher un bandeau non bloquant.
+/// **Plus aucune UI ne l'observe depuis le 2026-09-16**, et ce n'est pas un
+/// oubli de câblage : les deux bandeaux qui l'affichaient promettaient faux.
+/// La sauvegarde ne porte que du matériel Signal, or aucun message de
+/// production n'a jamais été chiffré par Signal (121 sur 121 en repli AES, aux
+/// clés redérivées par `crypto-keys` à chaque installation) — restaurer ne
+/// rendait rien lisible, et ne pas restaurer ne perdait rien. Raisonnement
+/// complet dans `bandeaux_shell.dart`.
+///
+/// Ce qui reste utile ici, et qui tourne toujours : `bootstrap` initialise le
+/// moteur et **refuse de générer une identité neuve par-dessus une sauvegarde
+/// restaurable**. C'est l'aiguillage, pas le bandeau, qui protège.
+///
+/// L'écran Réglages › Sécurité reste atteignable à la main, et appelle encore
+/// [E2EEBackupCoordinator.clearSnooze].
 final e2eeBackupCoordinatorProvider =
     StateNotifierProvider<E2EEBackupCoordinator, E2EEBackupPrompt>((ref) {
   return E2EEBackupCoordinator(ref);
@@ -35,9 +48,13 @@ final e2eeBackupCoordinatorProvider =
 /// Vrai quand le rappel de restauration des clés est en veille : tout bandeau
 /// qui le répète doit se taire.
 ///
-/// L'état du coordinateur ne suffit pas : il ne porte que ce que `MainShell`
-/// doit afficher, et retombe à `none` dans des cas où le bandeau de
-/// conversation, lui, s'affiche quand même (un message indéchiffrable dans un
+/// Plus personne ne le lit depuis le retrait des deux bandeaux (voir le
+/// provider ci-dessus) ; il n'est gardé que parce qu'il porte la veille
+/// persistée, qu'un futur rappel — fondé sur MLS, lui — aurait à relire.
+///
+/// L'état du coordinateur ne suffisait pas : il ne porte que ce que `MainShell`
+/// devait afficher, et retombe à `none` dans des cas où le bandeau de
+/// conversation, lui, s'affichait quand même (un message indéchiffrable dans un
 /// fil alors que l'appareil a bien ses clés).
 final e2eeRestoreNudgeMutedProvider = StateProvider<bool>((ref) => false);
 

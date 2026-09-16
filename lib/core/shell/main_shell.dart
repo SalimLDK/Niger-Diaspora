@@ -15,7 +15,6 @@ import '../../shared/widgets/tablet_navigation_rail.dart';
 import 'ecran_mise_a_jour_requise.dart';
 import '../services/version_minimale.dart';
 import '../services/app_review_service.dart';
-import '../services/e2ee/e2ee_backup_coordinator.dart';
 import '../services/mise_a_jour_service.dart';
 import '../services/shared_media_service.dart';
 import '../utils/toast_utils.dart';
@@ -39,11 +38,11 @@ class _MainShellState extends ConsumerState<MainShell> {
   /// Ce que le bandeau haut affiche actuellement, pour ne pas le reposer
   /// identique à chaque rebuild. `null` = aucun bandeau.
   ///
-  /// Une seule variable pour les deux sources, et volontairement :
-  /// `ScaffoldMessenger` n'affiche qu'un `MaterialBanner` à la fois et
-  /// `clearMaterialBanners()` vide aussi la file d'attente — deux appelants
-  /// indépendants se seraient effacés l'un l'autre selon l'ordre d'arrivée.
-  Object? _bandeauAffiche;
+  /// Une seule source depuis le retrait du rappel E2EE (voir
+  /// `bandeaux_shell.dart`), mais la variable garde son rôle : sans elle, le
+  /// bandeau était reposé à chaque rebuild — `clearMaterialBanners()` puis
+  /// `showMaterialBanner()`, donc un clignotement.
+  NoticeMiseAJour? _bandeauAffiche;
 
   @override
   void initState() {
@@ -107,11 +106,6 @@ class _MainShellState extends ConsumerState<MainShell> {
       },
     );
 
-    // Les deux sources du bandeau haut passent par le même point d'entrée.
-    ref.listen<E2EEBackupPrompt>(
-      e2eeBackupCoordinatorProvider,
-      (_, __) => _rafraichitBandeau(),
-    );
     ref.listen<NoticeMiseAJour?>(
       coordinateurMiseAJourProvider,
       (_, __) => _rafraichitBandeau(),
@@ -189,20 +183,15 @@ class _MainShellState extends ConsumerState<MainShell> {
     );
   }
 
-  /// Repose le bandeau haut d'après l'état des deux sources qui peuvent en
-  /// réclamer un. Non bloquant dans les deux cas.
+  /// Repose le bandeau haut d'après la notice de mise à jour. Non bloquant.
   ///
-  /// La sécurité passe avant la mise à jour : des clés non sauvegardées font
-  /// perdre des messages, une version en retard non. Si le rappel E2EE est
-  /// traité alors qu'une notice de mise à jour attend, celle-ci prend sa place
-  /// — l'état des deux est relu à chaque passage.
+  /// Le rappel E2EE passait ici aussi, et primait sur la mise à jour : deux
+  /// sources pour un canal qui n'affiche qu'un `MaterialBanner` à la fois.
+  /// Depuis son retrait (voir `bandeaux_shell.dart`), la notice est seule.
   void _rafraichitBandeau() {
     if (!mounted) return;
 
-    final demande = bandeauAPoser(
-      e2ee: ref.read(e2eeBackupCoordinatorProvider),
-      maj: ref.read(coordinateurMiseAJourProvider),
-    );
+    final demande = ref.read(coordinateurMiseAJourProvider);
 
     if (demande == _bandeauAffiche) return;
     _bandeauAffiche = demande;
@@ -212,41 +201,7 @@ class _MainShellState extends ConsumerState<MainShell> {
     if (demande == null) return;
 
     final l10n = AppLocalizations.of(context)!;
-    messenger.showMaterialBanner(
-      demande is E2EEBackupPrompt
-          ? _bandeauE2EE(messenger, l10n, demande)
-          : _bandeauMiseAJour(messenger, l10n, demande as NoticeMiseAJour),
-    );
-  }
-
-  /// Câble le bandeau E2EE sur ses notifiers. Le rendu est dans
-  /// `bandeaux_shell.dart`, pour qu'un banc puisse le poser sans monter le
-  /// shell entier.
-  MaterialBanner _bandeauE2EE(
-    ScaffoldMessengerState messenger,
-    AppLocalizations l10n,
-    E2EEBackupPrompt prompt,
-  ) {
-    void ferme() => messenger.hideCurrentMaterialBanner();
-    final coordinateur = ref.read(e2eeBackupCoordinatorProvider.notifier);
-
-    return bandeauE2EE(
-      l10n: l10n,
-      prompt: prompt,
-      surNePlusRappeler: () {
-        ferme();
-        coordinateur.dismissForever();
-      },
-      surPasMaintenant: () {
-        ferme();
-        coordinateur.acknowledge();
-      },
-      surAgir: () {
-        ferme();
-        coordinateur.acknowledge();
-        context.push('/settings/security/backup');
-      },
-    );
+    messenger.showMaterialBanner(_bandeauMiseAJour(messenger, l10n, demande));
   }
 
   /// Câble le bandeau de mise à jour sur son notifier.

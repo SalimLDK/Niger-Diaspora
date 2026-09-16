@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1330 cases à cocher, 637 cochées** — 261 entrées sur 310 ont encore des cases ouvertes.
+**1336 cases à cocher, 637 cochées** — 262 entrées sur 311 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -177,7 +177,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (80)
+**P2 — fonction secondaire ou cas limite** (81)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -203,6 +203,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
@@ -321,7 +322,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 307 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 127 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 141 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -6977,6 +6978,68 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)
+
+**Priorité P2** · importance 3/5 — « Restaurez vos clés de chiffrement pour
+lire vos messages chiffrés sur cet appareil » était faux dans les deux sens, et
+mesurable :
+
+- la sauvegarde ne porte que du matériel Signal — identité, pré-clés, sessions
+  (`SecureKeyStorage.exportAllKeys`) ;
+- **aucun message de production n'a jamais été chiffré par Signal.** Relevé le
+  2026-09-16 sur `public.messages` : 121 lignes en `aes`, 10 sans niveau,
+  **0 en `e2ee`** ;
+- les clés du repli AES ne sont pas dans la sauvegarde : elles sont redérivées
+  par l'Edge Function `crypto-keys` à chaque installation. Restaurer ne rendait
+  donc aucun message lisible, et ne pas restaurer n'en perdait aucun ;
+- le seul état dont la perte coûte vraiment quelque chose est celui du moteur
+  MLS, que cette sauvegarde ne touche pas — il est même volontairement exclu
+  des sauvegardes Google et iCloud.
+
+Pire que l'inutilité : un message MLS indéchiffrable prend le placeholder
+`🔐 Message chiffré`, exactement celui sur lequel le bandeau de conversation
+déclenchait. Sur un fil chiffré dont un message ne passe pas, il s'affichait
+et envoyait vers Réglages › Sécurité — une restauration qui ne peut
+structurellement rien pour MLS. La personne fait la manœuvre, ne voit aucun
+changement, et n'a aucune raison de comprendre pourquoi.
+
+Retirés : le `MaterialBanner` du shell (sauvegarde **et** restauration) et le
+bandeau de conversation. L'arbitrage « la sécurité prime sur la mise à jour »
+part avec eux — il n'y a plus qu'une source de bandeau haut. Le coordinateur
+reste entier : c'est lui, et non le bandeau, qui protège, en refusant de
+générer une identité neuve par-dessus une sauvegarde restaurable. L'écran
+Réglages › Sécurité reste atteignable à la main, sauvegarde et restauration
+comprises.
+
+Voir « Le bandeau de restauration des clés revenait sans arrêt » au § 2 : la
+mise en veille persistée réglait la fréquence, pas le mensonge.
+
+- [ ] Compte avec une sauvegarde distante, application réinstallée : **aucun**
+      bandeau de clés au démarrage (c'est le cas `needsRestore`, celui qui se
+      déclenchait à chaque installation sur les 5 comptes qui ont une
+      sauvegarde)
+- [ ] Compte neuf, première connexion : aucun bandeau « Sauvegardez vos clés »
+      non plus
+- [ ] Ouvrir un fil MLS contenant un message illisible (`🔐 Message chiffré`) :
+      plus de bandeau jaune sous l'en-tête, et la bulle reste lisible comme
+      telle
+- [ ] Le bandeau de **mise à jour**, lui, s'affiche toujours — c'est la seule
+      source restante du bandeau haut, et il ne doit pas avoir disparu avec
+      l'autre
+- [ ] Paysage, clavier ouvert, sur un fil avec un message épinglé : pas de
+      `BOTTOM OVERFLOWED` (la mesure de hauteur du `LayoutBuilder` reste, elle
+      borne toujours `MessageInput` ; seul le seuil propre au bandeau retiré a
+      disparu)
+- [ ] Réglages › Sécurité s'ouvre toujours, et sauvegarder puis restaurer y
+      fonctionne encore
+
+Fichiers : [bandeaux_shell.dart](lib/core/shell/bandeaux_shell.dart),
+[main_shell.dart](lib/core/shell/main_shell.dart),
+[conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart),
+[e2ee_backup_coordinator.dart](lib/core/services/e2ee/e2ee_backup_coordinator.dart)
 
 ---
 

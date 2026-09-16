@@ -47,8 +47,6 @@ import '../../../polls/domain/entities/poll_entity.dart';
 import '../../../polls/presentation/widgets/create_poll_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/services/analytics_service.dart';
-import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
-import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../settings/data/models/chat_background_model.dart';
@@ -1753,11 +1751,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     final blockedUsersAsync = ref.watch(blockedUsersProvider);
     final blockedUsers = blockedUsersAsync.valueOrNull ?? [];
 
-    // Veille des rappels de clés. Relevée ici, dans `build` : le bandeau qui
-    // s'en sert est posé depuis un `LayoutBuilder`, donc pendant la mise en
-    // page, où `ref.watch` n'a plus cours.
-    final rappelClesMuet = ref.watch(e2eeRestoreNudgeMutedProvider);
-
     final l10n = AppLocalizations.of(context)!;
 
     // La conversation est réputée absente **seulement** si le flux a livré une
@@ -2059,10 +2052,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             // couvre aussi le panneau ancre, qui n'est pas un inset systeme.
             //
             // En paysage, clavier ou panneau ouvert, il ne reste qu'une centaine
-            // de dp. Le bandeau epingle et le rappel de restauration des cles
-            // depassent alors a eux seuls cette hauteur : l'`Expanded` tombe a
-            // zero et la colonne deborde quand meme. Mesure sur SM A515F :
-            // 17 px avec le clavier, 4 px avec le panneau emojis, plus court.
+            // de dp — le bandeau epingle peut a lui seul depasser cette hauteur :
+            // l'`Expanded` tombe a zero et la colonne deborde quand meme. Mesure
+            // sur SM A515F : 17 px avec le clavier, 4 px avec le panneau emojis,
+            // plus court. La mesure sert aussi a borner `MessageInput`, plus bas.
             //
             // Les enfants gardent volontairement leur indentation d'origine :
             // les reindenter aurait reecrit des centaines de lignes en cours de
@@ -2070,14 +2063,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             // au formateur quand le fichier sera libre.
             LayoutBuilder(
               builder: (context, zoneCorps) {
-                // Repere mesure : portrait clavier ouvert laisse ~570 dp,
-                // paysage clavier ouvert ~150. Le seuil se pose entre les deux ;
-                // il ne s'agit pas de calculer la hauteur exacte des bandeaux,
-                // seulement de distinguer « il y a de la place » de « il n'y en
-                // a plus du tout ».
-                const hauteurMiniRappelCles = 220.0;
-                final placeRappelCles =
-                    zoneCorps.maxHeight >= hauteurMiniRappelCles;
                 return Column(
               children: [
                 // Offline indicator
@@ -2143,18 +2128,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                   onOpenMessage: _scrollToMessage,
                   // trailing: _ecoChip(context, conversation),
                 ),
-                // Invitation a restaurer les cles, quand des messages de ce
-                // fil ne sont pas dechiffrables sur cet appareil.
-                // Escamote quand la hauteur ne suffit plus. Le bandeau
-                // epingle, lui, reste toujours visible — c'est sa raison d'etre.
-                // Ce rappel est informatif : il revient des que le clavier se
-                // replie ou que l'ecran repasse en portrait.
-                if (placeRappelCles)
-                  _buildE2eeRestoreBanner(
-                    context,
-                    paginationState.messages,
-                    rappelMuet: rappelClesMuet,
-                  ),
                 // Messages
                 Expanded(
                   child: _buildMessageList(
@@ -3582,74 +3555,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     if (mounted && success) _scrollToBottom();
   }
 
-  /// Sous-barre sous l'en-tête : tuiles « Médias » (galerie partagée) et
-  /// « ÉCO » (mode données réduites, lié à `PreferencesService.dataSaverMode`).
-  /// Bandeau d'invitation a restaurer les cles (§3b).
-  ///
-  /// Sans lui, un fil dont les cles ont ete perdues n'affiche qu'une suite de
-  /// « Message chiffre », sans dire pourquoi ni quoi faire. Les deux
-  /// chaines existaient dans l'ARB mais n'etaient branchees nulle part.
-  Widget _buildE2eeRestoreBanner(
-    BuildContext context,
-    List<MessageEntity> messages, {
-    required bool rappelMuet,
-  }) {
-    // La liste des placeholders vit dans `undecryptable_placeholders.dart`.
-    // La copie locale n'en connaissait qu'un des deux, et les groupes posent
-    // l'autre (« session requise ») : sur un fil de groupe entièrement
-    // illisible, ce bandeau ne s'affichait jamais. Vu sur SM A515F le
-    // 2026-09-08. `isUndecryptableContent` ne convient pas ici : il tient
-    // aussi le contenu vide pour illisible, ce qu'est tout média sans légende.
-    if (!messages.any((m) => kUndecryptablePlaceholders.contains(m.content))) {
-      return const SizedBox.shrink();
-    }
-
-    // Le rappel a été écarté depuis le bandeau global : ne pas le répéter ici.
-    // Sans ça, ce bandeau-ci n'avait aucune mise en veille et revenait à chaque
-    // ouverture d'un fil contenant un message indéchiffrable.
-    if (rappelMuet) {
-      return const SizedBox.shrink();
-    }
-
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 6),
-      padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
-      decoration: BoxDecoration(
-        color: context.warningBackgroundColor,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.key_outlined, size: 18, color: context.warningColor),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              l10n.e2eeRestoreNudgeMessage,
-              style: TextStyle(
-                fontSize: 12.5,
-                height: 1.35,
-                color: context.textPrimaryColor,
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          TextButton(
-            onPressed: () => context.push('/settings/security/backup'),
-            child: Text(
-              l10n.e2eeRestoreNudgeAction,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: context.adaptivePrimaryColor,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
+  // Sous-barre sous l'en-tête : tuiles « Médias » (galerie partagée) et
+  // « ÉCO » (mode données réduites, lié à `PreferencesService.dataSaverMode`).
+  // Ces deux lignes ouvraient le bloc de documentation du bandeau de clés, qui
+  // n'existe plus ; elles décrivent en fait la sous-barre ci-dessous.
   // Bascule « données réduites », posée à droite de la ligne épinglée
   // (fiche 6b). Escamotée pour « Mes notes » et pour une demande de message
   // en attente, où elle n'aurait rien à réduire.
