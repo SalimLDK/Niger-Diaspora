@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1199 cases à cocher, 614 cochées** — 241 entrées sur 289 ont encore des cases ouvertes.
+**1199 cases à cocher, 615 cochées** — 241 entrées sur 289 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -299,7 +299,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 247 à faire, 102 faites
+- [2. Messagerie](#2-messagerie) — 247 à faire, 103 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -919,6 +919,13 @@ SELECT public.purger_messages_expires();
   notifications MLS » si l'entrée existe.
 - [ ] **Thème sombre** : la bulle « Message expiré » est lisible des deux
   côtés (bulle à moi, bulle de l'autre).
+- [x] **EN GROUPE aussi** — « Testeurs » (basculé, 2 membres), 2026-09-15 :
+  minuteur 24 h posé depuis le menu du groupe, écrit en base ; message envoyé
+  → `expires_at` avec un **écart de 86400 s exactement** ; le signe éphémère
+  (⏱) apparaît **chez l'expéditeur dès l'envoi** ET **chez le destinataire**
+  (donc recalculé depuis le `ttl` du payload, pas lu dans la colonne) ; la
+  pierre tombale s'affiche des deux côtés. Rien de spécifique au groupe : le
+  minuteur vit sur la conversation, quel que soit son type.
 - [x] **Côté MLS**, drapeau ouvert : `mls_messages.expires_at` renseigné à
   l'envoi — **écart mesuré 86400 s exactement** — et `length(ciphertext)` à 0
   après purge. Vérifié sur SM A515F le 2026-09-15 (la conversation bascule à
