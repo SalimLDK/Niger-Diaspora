@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../src/rust/api/mls.dart';
-import '../../../src/rust/frb_generated.dart';
 import '../../services/e2ee/stable_device_id.dart';
+import 'mls_rust_init.dart';
 
 /// Le moteur MLS (Rust, OpenMLS) de l'appareil courant, pour un compte.
 ///
@@ -53,7 +53,7 @@ import '../../services/e2ee/stable_device_id.dart';
 /// `test/core/crypto/etat_mls_hors_sauvegarde_test.dart`. Le chiffrement du
 /// fichier reste à faire, et reste consigné dans `TESTS_APPAREIL_A_FAIRE.md`.
 final mlsEngineProvider = FutureProvider.family<Moteur, String>((ref, userId) async {
-  await _initialiserRustUneFois();
+  await initialiserRustUneFois();
   final support = await getApplicationSupportDirectory();
   final dossier = Directory('${support.path}/mls');
   if (!await dossier.exists()) {
@@ -64,12 +64,3 @@ final mlsEngineProvider = FutureProvider.family<Moteur, String>((ref, userId) as
   final appareil = await stableDeviceId(userId);
   return Moteur.ouvrir(dbPath: chemin, userId: userId, deviceId: appareil);
 });
-
-Future<void>? _initRust;
-
-/// `RustLib.init()` charge la bibliothèque native : une fois par processus,
-/// et un second appel lève. Les appelants concurrents partagent le même
-/// `Future`, comme `_inFlightSync` du pont de session.
-Future<void> _initialiserRustUneFois() {
-  return _initRust ??= RustLib.init();
-}

@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1181 cases à cocher, 608 cochées** — 238 entrées sur 285 ont encore des cases ouvertes.
+**1187 cases à cocher, 608 cochées** — 239 entrées sur 286 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (29)
+**P0 — avant toute nouvelle version** (30)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
@@ -55,6 +55,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
+- 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
@@ -300,7 +301,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 104 à faire, 38 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 85 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -8129,6 +8130,55 @@ Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
 
+## ⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)
+
+**Priorité P0** · importance 5/5 — Signalé par Salim le 2026-09-15 : « les
+messages reçus affichent *Nouveau message* au lieu du contenu ». Ce n'était
+pas le chiffrement, et pas non plus le chemin décrit dans « Aperçu des
+notifications MLS reconstruit sur l'appareil (phase 4, Android) » : celui-là
+ne couvre que l'isolate d'arrière-plan. **Au premier plan, rien ne
+déchiffrait.** `_handleForegroundMessage` passait le repli générique du
+serveur à la bannière in-app comme à la notification système. Le même message
+s'affichait donc en clair app fermée et générique app ouverte.
+
+**Le piège qui aurait fait échouer le correctif évident.** Appeler
+`MlsNotificationPreview.texte` depuis cet isolate-ci ne suffisait pas :
+`RustLib.init()` y a déjà été appelé par `mlsEngineProvider`, et un second
+appel lève `StateError`. L'exception part dans le `catch` de `texte`, qui rend
+`null` — c'est-à-dire **exactement** ce que rend un déchiffrement légitimement
+impossible. Le correctif aurait eu l'air posé et n'aurait rien changé, sans
+une ligne de journal pour le dire. La garde est donc unique et partagée
+(`initialiserRustUneFois`), et elle lit `RustLib.instance.initialized` au lieu
+de se souvenir.
+
+Vérifié hors appareil : 16 cas dans
+`test/core/crypto/mls_notification_preview_test.dart`, dont un qui balaie
+`lib/` pour interdire tout autre appel à `RustLib.init()`. **Rien n'a tourné
+sur un téléphone.**
+
+Fichiers : [notification_service.dart](lib/core/services/notification_service.dart)
+(`_handleForegroundMessage`, `_showLocalNotification`),
+[mls_rust_init.dart](lib/core/crypto/mls/mls_rust_init.dart),
+[mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_preview.dart).
+
+- [ ] **App ouverte sur un AUTRE écran** (le fil, pas la discussion), message
+  MLS reçu : la bannière in-app affiche le **vrai texte**.
+- [ ] **App ouverte, notification système** (couper la bannière in-app en
+  ouvrant une autre discussion) : même texte dans le volet Android.
+- [ ] **Puis ouvrir la discussion** : le message est **lisible** dans la
+  bulle. C'est le test du cliquet — au premier plan, le moteur qui fait foi
+  est ouvert dans le même processus que la copie jetable.
+- [ ] **Deux appareils, un aller-retour de cinq messages** app ouverte des
+  deux côtés : aucun ne retombe sur « Nouveau message », aucun ne devient
+  illisible dans la conversation.
+- [ ] **Réglage « aperçu des messages » coupé** (Profil → Notifications) :
+  la bannière repasse à « Nouveau message » app ouverte comme app fermée.
+- [ ] **Sondage et appel** reçus chiffrés : libellés « Sondage » et « Appel »
+  (deux types que `resume` ignorait, d'où un repli générique alors que le
+  message était déchiffré).
+
+---
+
 ## ⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)
 
 **Priorité P0** · importance 5/5 — Ce que MLS casse et qu'il faut rebâtir :
@@ -8155,8 +8205,10 @@ ce que le push transporte. Plus un cas Rust
 (`l_apercu_ne_consomme_pas_le_cliquet`) et 22 tests Dart. **Rien n'a tourné
 sur un téléphone.**
 
-⚠️ **Une migration reste à appliquer** :
-`20260915160000_mls_notifications_base64_sans_sauts.sql`. Sans elle,
+⚠️ **Appliquée depuis** (vérifié le 2026-09-15 dans
+`supabase_migrations.schema_migrations`, et 0 saut de ligne sur les 50
+ciphertexts en base) : `20260915160000_mls_notifications_base64_sans_sauts.sql`.
+Sans elle,
 `encode(bytea,'base64')` coupe sa sortie tous les 76 caractères et
 `base64Decode` la refuse : l'aperçu échouerait **à chaque message**, en
 silence. Le client a été rendu tolérant en plus, pas à la place.
