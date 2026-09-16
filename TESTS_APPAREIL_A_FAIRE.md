@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1192 cases à cocher, 610 cochées** — 241 entrées sur 288 ont encore des cases ouvertes.
+**1199 cases à cocher, 613 cochées** — 241 entrées sur 289 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -161,7 +161,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (77)
+**P2 — fonction secondaire ou cas limite** (76)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -172,7 +172,6 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
-- 1 · [⬜ Suppressions MLS pas en direct — modifications OK (2026-09-15)](#-suppressions-mls-pas-en-direct--modifications-ok-2026-09-15) · *Messagerie*
 - 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
@@ -241,7 +240,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (52)
+**P3 — confort, cosmétique, fonction en pause** (53)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -256,6 +255,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 8 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
@@ -299,7 +299,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 240 à faire, 98 faites
+- [2. Messagerie](#2-messagerie) — 247 à faire, 101 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -561,6 +561,61 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ Squelette de chargement de la messagerie (2026-09-15)
+
+**Priorité P3** · importance 2/5 — les deux attentes de la messagerie ne
+disaient pas la même chose que ce qui allait s'afficher. La liste des
+discussions montrait un tourniquet centré au milieu du vide, et le fil d'une
+discussion, pendant sa première page (`paginationState.isLoadingInitial`),
+rendait un `SizedBox.shrink()` — donc **rien du tout** entre l'en-tête et le
+composeur : impossible de distinguer « ça charge » de « cette discussion
+n'a aucun message ».
+
+Les deux branches rendent maintenant un squelette qui reprend la géométrie
+réelle : avatar 50 au rayon 17, filets entre les lignes, marges de bulle
+16/64, rayons 18/6, et la colonne d'avatar de 28 réservée à gauche dans un
+fil de groupe. C'est tout l'intérêt de la chose : si les blocs ne tombent pas
+où le contenu tombera, l'écran saute quand même à l'arrivée des données.
+
+Vérifié hors appareil par rendu d'images (goldens jetables) en clair et en
+sombre, et par `test/features/messages/squelette_chargement_test.dart`
+(géométrie + câblage des deux branches). Ce qui ne peut pas l'être ainsi,
+c'est la **durée** et le **passage** au contenu réel.
+
+Fichiers : [messages_skeleton.dart](lib/features/messages/presentation/widgets/messages_skeleton.dart),
+[messages_screen.dart](lib/features/messages/presentation/screens/messages_screen.dart),
+[conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart).
+
+- [ ] **Liste des discussions, première ouverture après un démarrage à froid**
+  (tuer l'app, couper le Wi-Fi pour ralentir le premier chargement) : le
+  squelette apparaît sous les puces de filtre, puis la vraie liste se pose
+  **sans saut vertical** — les tuiles ne doivent pas se décaler par rapport
+  aux lignes annoncées.
+- [ ] **Le squelette ne revient pas** sur un « tirer pour rafraîchir » ni au
+  retour sur l'onglet Messages (`skipLoadingOnRefresh` / `OnReload`) : la
+  liste déjà affichée doit rester en place.
+- [ ] **Fil d'une discussion** : ouvrir une discussion à tête-tête depuis la
+  liste. Les bulles vides sont **collées en bas**, contre le composeur, comme
+  la vraie liste inversée — pas en haut de l'écran.
+- [ ] **Fil de groupe** : même geste sur un groupe. La colonne d'avatar est
+  réservée à gauche des bulles reçues, et celles-ci ne sautent pas de 28 px
+  vers la droite quand les messages arrivent.
+- [ ] **Ouverture par lien profond ou par notification** : `state.extra` est
+  nul par ce chemin, donc `widget.isGroup` est faux à l'instant du squelette
+  et un fil de groupe peut s'afficher sans sa colonne d'avatar. Vérifier si
+  le saut de 28 px se voit réellement, ou si la première page arrive trop
+  vite pour qu'on le perçoive.
+- [ ] **Thème sombre** sur les deux écrans : les blocs doivent rester lisibles
+  sur `#0F0D0A` sans virer au gris froid, et le balayage rester discret.
+- [ ] **Fond de discussion personnalisé** : avec un papier peint choisi
+  (« Fond de discussion »), vérifier que les bulles du squelette ne
+  deviennent pas illisibles par-dessus.
+- [ ] **Échelle de police à fond** (réglages Android) : le squelette est à
+  hauteurs fixes, donc il ne grandit pas ; regarder si l'écart avec le
+  contenu réel, lui bien plus haut, produit un saut visible.
+
+---
+
 ## ⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)
 
 **Priorité P0** · importance 5/5 — `conversations.data->>'lastMessage'` porte
@@ -657,46 +712,51 @@ incrémental. L'écran dédoublonne déjà par identifiant.
 - [x] **Vérifié le 2026-09-15** : `LIVE-TEST` envoyé du A515F apparaît sur le
   Pixel « À l'instant », **sans y toucher**, dans une conversation chiffrée.
 
-## ⬜ Suppressions MLS pas en direct — modifications OK (2026-09-15)
+## ✅ Temps réel des messages chiffrés — les trois cas (2026-09-15)
 
-**Priorité P2** · importance 3/5 — Signalé par Salim : « les modifications et
-suppression ne sont pas instantanés ». **Modifications corrigées et vérifiées
-à deux téléphones. Suppressions : toujours non.**
+**Priorité P0** · importance 5/5 — Signalé par Salim : « les messages ne
+s'actualisent pas », puis « les modifications et suppression ne sont pas
+instantanés ». **Corrigé et vérifié à deux téléphones, les trois cas.**
 
-Il manquait deux maillons pour les modifications, et ils sont réparés :
+- [x] **Nouveau message** : `CACHE-LIVE` envoyé du SM A515F apparaît sur le
+  Pixel « À l'instant », sans y toucher.
+- [x] **Modification** : `VRAI-MODIF · modifié` remplace le texte en direct.
+- [x] **Suppression** : après purge serveur, la bulle devient « Message
+  supprimé » en direct.
+- [x] **Ce qui arrive en direct SURVIT** à une sortie/retour de la
+  conversation.
 
-1. le dépôt ne réémettait que ce qui est plus récent que `afterTimestamp` —
-   or une modification porte la date d'**origine** du message, elle était donc
-   filtrée ;
-2. l'écran **ignorait** un identifiant déjà connu — or une édition garde le
-   sien, elle tombait toujours dans cette branche.
+**Ce qu'il fallait, et rien de plus** — trois petites pièces, aucune migration :
 
-- [x] **Vérifié le 2026-09-15** : `VRAI-LIVE` envoyé du A515F arrive sur le
-  Pixel « À l'instant », puis sa modification s'y affiche
-  « VRAI-MODIF · modifié » — **sans toucher au Pixel**.
+1. **s'abonner à `mls_messages`** : le temps réel n'écoutait que `messages`,
+   alors que depuis la bascule ce sont les messages chiffrés qui sont vivants ;
+2. **écouter `insert` ET `update`** : `insert` porte les nouveaux messages et
+   les modifications (qui voyagent dans un message de contrôle, donc une ligne
+   de plus) ; `update` porte les suppressions, qui ne sont qu'un passage de
+   `is_deleted` à vrai ;
+3. **mettre en cache ce qui arrive par ce chemin** : le cache local est le
+   SEUL endroit qui garde le clair d'un message chiffré. Sans ça un message
+   livré en direct vivait en mémoire et nulle part ailleurs — il s'affichait,
+   puis disparaissait à la reconstruction suivante.
 
-**⛔ Reste ouvert : les SUPPRESSIONS.** Une suppression (« pour tout le
-monde », ou une expiration purgée) n'est qu'un `UPDATE` de `is_deleted`, pas un
-insert. Une modification, elle, passe par un message de **contrôle**, qui est
-un insert — d'où la différence.
+⚠️ **`REPLICA IDENTITY FULL` n'est PAS nécessaire**, contrairement à ce qui
+avait été écrit ici la veille. Le filtre d'un `update` s'évalue sur la
+NOUVELLE ligne, qui porte `conversation_id`. `FULL` ne sert qu'à un `delete`
+(seule l'ancienne ligne existe, réduite à la clé primaire) ou pour lire
+`payload.oldRecord`. Preuve dans le dépôt : `getMessageUpdatesStream`
+s'abonne depuis toujours à `update` sur `messages` avec le même filtre, et
+c'est ce qui fait arriver les accusés de lecture. On ne supprime jamais de
+ligne, donc `delete` n'a rien à faire dans l'abonnement — d'où `insert` +
+`update` nommés un par un plutôt qu'un `all` fourre-tout.
 
-⚠️ **Ne pas « corriger » en passant l'abonnement en `PostgresChangeEvent.all`**
-sans autre chose : `messages` comme `mls_messages` sont en **REPLICA IDENTITY
-DEFAULT** (clé primaire seule). Un UPDATE ne transporte alors que la clé, donc
-un filtre sur `conversation_id` ne peut pas être évalué. Il faudrait
-`REPLICA IDENTITY FULL` sur la table — décision de schéma, en production, qui
-alourdit le WAL.
+⚠️ **Rien à faire pour la tombe** : la relecture la pose déjà,
+`_avecMetadonnees` marquant `deletedForEveryone` depuis `is_deleted = true`.
 
-⚠️ **Piège de recette, coûteux ce soir-là** : trois essais d'affilée ont
-conclu « rien n'arrive en direct » alors que **les messages n'étaient jamais
-partis** — les taps avaient ouvert « Mes notes » au lieu de la conversation.
-Vérifier l'EN-TÊTE de la conversation, puis la présence du texte dans la zone
-de saisie, AVANT de conclure quoi que ce soit. Une conclusion tirée d'un envoi
-fantôme envoie sur de fausses pistes (ici : accuser `event: all`).
-
-- [ ] Suppression en direct : décider si `REPLICA IDENTITY FULL` sur
-  `mls_messages` vaut son coût, ou passer par un message de contrôle comme
-  pour la modification.
+⚠️ **Piège de recette, coûteux** : trois essais d'affilée ont conclu « rien
+n'arrive en direct » alors que **les messages n'étaient jamais partis** — les
+taps avaient ouvert « Mes notes ». C'est ce qui avait fait accuser `event: all`
+et annuler une correction saine. **Vérifier l'en-tête de la conversation PUIS
+la présence du texte dans la zone de saisie avant de conclure.**
 
 ## ⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)
 

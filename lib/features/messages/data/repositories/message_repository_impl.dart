@@ -1380,6 +1380,17 @@ class MessageRepositoryImpl implements MessageRepository {
             // n'apparaissait qu'à la réouverture.
             final fil = await passerelle.messages(conversationId);
             if (fil.isEmpty) return null;
+            // **Mettre en cache, comme le fait la lecture.** Sans ça, un
+            // message arrivé UNIQUEMENT par ce chemin vivait en mémoire et
+            // nulle part ailleurs : il s'affichait, puis disparaissait dès
+            // que la passerelle était recréée — le cache local, seul à
+            // garder le clair d'un message chiffré, ne l'avait jamais vu.
+            // Mesuré à deux téléphones le 2026-09-15 : message reçu « à
+            // l'instant », absent du fil à la réouverture suivante.
+            unawaited(cacheService.cacheMessages(
+              conversationId,
+              [for (final m in fil) MessageModel.fromEntity(m).toJson()],
+            ));
             return Right<Failure, List<MessageEntity>>(fil);
           } catch (e) {
             // Un rattrapage raté ne doit pas tuer le flux : le suivant, ou la
