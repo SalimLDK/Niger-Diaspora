@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1285 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
+**1286 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -60,7 +60,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 20 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 21 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -316,7 +316,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 131 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 132 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -9074,6 +9074,10 @@ ligne**. Il est retiré du texte, et seulement là où le serveur l'a mis.
   et des avatars — à trancher à l'écran si la fin de ligne ne suffit pas.
 - [ ] **Message long qui passe à la ligne** : l'heure reste lisible et ne se
   retrouve pas seule sur une deuxième ligne de façon gênante.
+- [ ] **Pile à cheval sur minuit** : recevoir un message avant minuit et un
+  après, puis regarder la bannière. Celui d'avant doit porter « hier », sinon
+  l'ordre paraît faux — 23:50 semble plus tard que 00:05. La fenêtre de la pile
+  est de 24 h, donc le cas est atteignable toutes les nuits.
 - [ ] **Groupe** : chaque ligne montre son expéditeur **une seule fois**.
 - [ ] **1:1** : le texte n'a rien perdu (aucun préfixe à retirer là).
 - [ ] **Message dont le texte commence par le nom de l'expéditeur** (« Alice a

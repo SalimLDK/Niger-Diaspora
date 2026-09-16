@@ -239,6 +239,45 @@ void main() {
       expect(texteHorodate(DateTime(2026, 9, 16, 14, 30), 'Coucou'), 'Coucou · 14:30');
     });
 
+    test('un message d’HIER le dit, sinon l’ordre paraît faux', () {
+      // La pile garde 24 h : elle traverse minuit. À 00:10, un message de
+      // 23:50 et un de 00:05 y sont tous deux, et l'heure seule ferait passer
+      // le plus ancien (23:50) pour le plus tardif.
+      final nuit = DateTime(2026, 9, 16, 0, 10);
+      expect(
+        texteHorodate(DateTime(2026, 9, 15, 23, 50), 'avant minuit', maintenant: nuit),
+        'avant minuit · hier 23:50',
+      );
+      expect(
+        texteHorodate(DateTime(2026, 9, 16, 0, 5), 'après minuit', maintenant: nuit),
+        'après minuit · 00:05',
+      );
+    });
+
+    test('c’est le JOUR CIVIL qui tranche, pas l’écart de 24 h', () {
+      // Un message de vingt minutes peut dater d'hier.
+      expect(
+        texteHorodate(DateTime(2026, 9, 15, 23, 55), 'a',
+            maintenant: DateTime(2026, 9, 16, 0, 15)),
+        'a · hier 23:55',
+      );
+      // Et un message de vingt-trois heures peut dater d'aujourd'hui.
+      expect(
+        texteHorodate(DateTime(2026, 9, 16, 0, 5), 'b',
+            maintenant: DateTime(2026, 9, 16, 23, 5)),
+        'b · 00:05',
+      );
+    });
+
+    test('au-delà d’hier, la date courte', () {
+      // Inatteignable avec la fenêtre de 24 h, mais elle peut changer.
+      expect(
+        texteHorodate(DateTime(2026, 9, 14, 8, 0), 'vieux',
+            maintenant: DateTime(2026, 9, 16, 10, 0)),
+        'vieux · 14/09 08:00',
+      );
+    });
+
     test('minuit et midi ne se confondent pas', () {
       expect(texteHorodate(DateTime(2026, 9, 16, 0, 0), 'a'), 'a · 00:00');
       expect(texteHorodate(DateTime(2026, 9, 16, 12, 0), 'b'), 'b · 12:00');
