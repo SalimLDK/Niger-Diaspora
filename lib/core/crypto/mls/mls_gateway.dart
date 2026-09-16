@@ -91,6 +91,38 @@ class MlsGateway {
     return date;
   }
 
+  /// Les conversations dont le **dernier** message n'a jamais été déchiffré
+  /// sur cet appareil, les plus récentes d'abord.
+  ///
+  /// Sert au rattrapage de fond : sans lui, le déchiffrement n'a lieu qu'à
+  /// l'ouverture du fil, et il faut attendre réseau + déchiffrement avant de
+  /// voir le message neuf. Mesuré le 2026-09-15 sur Pixel 10 Pro XL :
+  /// **2,5 à 3 secondes** entre l'ouverture et l'apparition des trois messages
+  /// reçus — le fil s'affichait d'abord sans eux, depuis le cache.
+  ///
+  /// Borné à [maximum] : il ne s'agit pas de déchiffrer toute la messagerie au
+  /// démarrage, seulement ce que l'utilisateur va probablement ouvrir.
+  Future<List<String>> conversationsARattraper(
+    Iterable<String> conversationIds, {
+    int maximum = 3,
+  }) async {
+    try {
+      final derniers = await _meta.derniersMessages(conversationIds);
+      final sortie = <String>[];
+      // `derniersMessages` rend du plus récent au plus ancien, et Dart garde
+      // l'ordre d'insertion : les premières sont les plus urgentes.
+      for (final e in derniers.entries) {
+        if (_connus.contains(e.value)) continue;
+        sortie.add(e.key);
+        if (sortie.length >= maximum) break;
+      }
+      return sortie;
+    } catch (e) {
+      debugPrint('MlsGateway: rattrapage impossible à planifier ($e)');
+      return const [];
+    }
+  }
+
   /// Vrai une fois les dates de bascule lues en lot (voir [amorcerBascules]).
   bool _amorce = false;
 
@@ -153,7 +185,28 @@ class MlsGateway {
   /// favoris, « supprimé pour moi » et « supprimé pour tous » vivent dans les
   /// tables annexes (décision J) et sont recollés à chaque appel — eux
   /// changent sans qu'un nouveau message arrive.
-  Future<List<MessageEntity>> messages(String conversationId) async {
+  Future<List<MessageEntity>> messages(String conversationId) {
+    // **Un seul rattrapage à la fois par conversation.** `catchUp` fait
+    // avancer le cliquet MLS ; deux passages concurrents le feraient avancer
+    // en même temps, et un cliquet abîmé rend des messages illisibles pour
+    // de bon. Ce n'était pas théorique à partir du moment où la liste
+    // déclenche un rattrapage de fond pendant que l'écran peut ouvrir le
+    // même fil : les deux appelants partagent désormais le même futur.
+    final enCours = _rattrapages[conversationId];
+    if (enCours != null) return enCours;
+    final futur = _rattraper(conversationId);
+    _rattrapages[conversationId] = futur;
+    futur.whenComplete(() {
+      if (identical(_rattrapages[conversationId], futur)) {
+        _rattrapages.remove(conversationId);
+      }
+    });
+    return futur;
+  }
+
+  final Map<String, Future<List<MessageEntity>>> _rattrapages = {};
+
+  Future<List<MessageEntity>> _rattraper(String conversationId) async {
     final entrants = await _service.catchUp(conversationId);
     final fil = _fil[conversationId] ??= [];
     final deja = {for (final m in fil) m.id};

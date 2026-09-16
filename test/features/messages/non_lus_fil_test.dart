@@ -41,6 +41,92 @@ MessageEntity _m(
     );
 
 void main() {
+  group('rangDesDerniersDAutrui', () {
+    // Quand `markAsRead` a déjà tout marqué lu — il part au premier rendu,
+    // avant même que le fil chiffré ne soit récupéré — l'état de lecture ne
+    // dit plus rien. On place alors le séparateur par le **rang**, à partir du
+    // compteur serveur relevé avant l'ouverture.
+    test('trouve le rang du N-ième message d\'autrui en remontant', () {
+      final fil = [
+        _m('a', 'autre'),   // 0
+        _m('b', 'moi'),     // 1
+        _m('c', 'autre'),   // 2
+        _m('d', 'autre'),   // 3
+      ];
+
+      expect(rangDesDerniersDAutrui(fil, 'moi', 1), 3);
+      expect(rangDesDerniersDAutrui(fil, 'moi', 2), 2);
+      expect(rangDesDerniersDAutrui(fil, 'moi', 3), 0);
+    });
+
+    test('mes propres messages ne comptent pas dans le rang', () {
+      final fil = [
+        _m('a', 'autre'),
+        _m('b', 'moi'),
+        _m('c', 'moi'),
+      ];
+
+      // Un seul message d'autrui, tout au début.
+      expect(rangDesDerniersDAutrui(fil, 'moi', 1), 0);
+    });
+
+    test('un message système est sauté', () {
+      final fil = [
+        _m('a', 'autre'),
+        MlsMessageMapper.separateur(DateTime.utc(2026, 9, 15)),
+        _m('c', 'autre'),
+      ];
+
+      expect(rangDesDerniersDAutrui(fil, 'moi', 2), 0);
+    });
+
+    test('fil incomplet : on ne place rien plutôt que de se tromper', () {
+      // Le serveur annonce 5 non-lus, le fil n'en porte que deux : il n'est
+      // pas encore complet. Placer un séparateur au début serait faux.
+      final fil = [_m('a', 'autre'), _m('b', 'autre')];
+
+      expect(rangDesDerniersDAutrui(fil, 'moi', 5), isNull);
+    });
+
+    test('zéro ou négatif : rien à placer', () {
+      final fil = [_m('a', 'autre')];
+
+      expect(rangDesDerniersDAutrui(fil, 'moi', 0), isNull);
+      expect(rangDesDerniersDAutrui(fil, 'moi', -1), isNull);
+    });
+  });
+
+  group('le rattrapage MLS ne tourne pas deux fois à la fois', () {
+    // `catchUp` fait avancer le cliquet MLS. Depuis que la liste déclenche un
+    // rattrapage de fond, l'écran peut ouvrir le même fil au même moment :
+    // sans partage du futur, le cliquet avancerait deux fois en parallèle, et
+    // un cliquet abîmé rend des messages illisibles pour de bon.
+    late String source;
+
+    setUpAll(() {
+      final fichier = File('lib/core/crypto/mls/mls_gateway.dart');
+      expect(fichier.existsSync(), isTrue, reason: 'passerelle introuvable');
+      source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
+    });
+
+    test('les appelants concurrents partagent le même futur', () {
+      expect(source, contains('final enCours = _rattrapages[conversationId];'));
+      expect(source, contains('if (enCours != null) return enCours;'));
+    });
+
+    test('le futur est retiré une fois terminé', () {
+      // Sinon un échec figerait la conversation : tout appelant suivant
+      // recevrait le même futur déjà en erreur.
+      expect(source, contains('_rattrapages.remove(conversationId);'));
+    });
+
+    test('le rattrapage de fond est borné', () {
+      // Il ne s'agit pas de déchiffrer toute la messagerie au démarrage.
+      expect(source, contains('int maximum = 3'));
+      expect(source, contains('if (sortie.length >= maximum) break;'));
+    });
+  });
+
   group('le séparateur né après la lecture réseau', () {
     // `_loadCacheSync` affiche le cache local immédiatement et pose
     // `isLoadingInitial: false`. Les messages neufs, eux, ne sont PAS dans ce
