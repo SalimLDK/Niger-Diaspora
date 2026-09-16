@@ -727,5 +727,69 @@ void main() {
       expect((await a.service.catchUp(prive)).map((x) => x.payload?.texte),
           contains('de retour'));
     });
+
+    test('deux jointures simultanées du même appareil : un seul commit', () async {
+      // Le 2026-09-16 sur le Samsung : l'ouverture du fil et le rattrapage de
+      // fond ont rejoint en même temps. Deux commits (epochs 2 et 3) du même
+      // arbre, et un état local qui ne suivait plus aucune branche.
+      final prive = await conversation(a, [a, b]);
+      await a.service.ensureGroup(prive);
+      await a.service.reconcileMembership(prive);
+      await b.service.catchUp(prive);
+      final avant = await a.delivery.currentEpoch(prive);
+
+      final bis = Appareil(nom: 'BobTer', uid: b.uid, client: b.client, dossier: dossier);
+      await bis.inscrire();
+      addTearDown(bis.detruireLeMoteur);
+      await Future.wait([
+        bis.service.catchUp(prive),
+        bis.service.catchUp(prive),
+        bis.service.ensureGroup(prive),
+      ]);
+
+      expect(await a.delivery.currentEpoch(prive), avant! + 1,
+          reason: 'une seule jointure doit avoir été publiée');
+      await bis.service.send(prive, MlsPayload.texte(uuid.v4(), 'une seule fois'));
+      expect((await a.service.catchUp(prive)).map((x) => x.payload?.texte),
+          contains('une seule fois'));
+    });
+
+    test('arbre en retard sur le dernier commit : aucune branche publiée', () async {
+      // `conversations.mls_group_info` n'est republié qu'APRÈS le commit. Un
+      // arrivant qui le lisait dans l'intervalle rejoignait l'epoch d'avant et
+      // publiait sous un numéro qui n'était pas le sien : une branche.
+      final conv = await conversation(a, [a, b], type: 'group');
+      await a.service.ensureGroup(conv);
+      await a.service.reconcileMembership(conv);
+      final vieil = await a.delivery.groupInfo(conv);
+
+      // Un commit de plus : un second appareil d'Alice, ajouté par Alice
+      // (neuf, donc ses KeyPackages sont là — le commit a forcément lieu)...
+      final epochArbre = await a.delivery.currentEpoch(conv);
+      final aliceBis = Appareil(nom: 'AliceBis', uid: a.uid, client: a.client, dossier: dossier);
+      await aliceBis.inscrire();
+      addTearDown(aliceBis.detruireLeMoteur);
+      await a.service.reconcileMembership(conv);
+      expect(await a.delivery.currentEpoch(conv), epochArbre! + 1);
+      // ...et l'arbre de la conversation remis à celui d'avant.
+      await a.delivery.publierGroupInfo(conv, vieil!);
+
+      final bis = Appareil(nom: 'BobQuater', uid: b.uid, client: b.client, dossier: dossier);
+      await bis.inscrire();
+      addTearDown(bis.detruireLeMoteur);
+      final epochAvant = await a.delivery.currentEpoch(conv);
+      await expectLater(bis.service.ensureGroup(conv), throwsA(isA<MlsEnAttenteDeWelcome>()));
+      expect(await a.delivery.currentEpoch(conv), epochAvant,
+          reason: 'rien ne doit être publié depuis un arbre périmé');
+
+      // L'arbre du bon epoch reparaît : la jointure passe.
+      await a.delivery.publierGroupInfo(
+          conv, await (await a.moteur()).exporterGroupInfo(conversationId: conv));
+      await bis.service.ensureGroup(conv);
+
+      await bis.service.send(conv, MlsPayload.texte(uuid.v4(), 'epoch juste'));
+      expect((await a.service.catchUp(conv)).map((x) => x.payload?.texte),
+          contains('epoch juste'));
+    });
   });
 }

@@ -118,11 +118,35 @@ class MlsConversationService {
   Future<bool> estMembre(String conversationId) async =>
       await _instantane(conversationId) != null;
 
+  /// Jointures en cours, une par conversation.
+  final Map<String, Future<void>> _jointures = {};
+
   /// Crée le groupe, ou le rejoint depuis un Welcome qui attendait.
   ///
   /// Lève [MlsEnAttenteDeWelcome] quand le groupe existe déjà côté serveur
   /// sans Welcome pour cet appareil : un membre en ligne doit l'ajouter.
-  Future<void> ensureGroup(String conversationId) async {
+  ///
+  /// **Une seule jointure à la fois par conversation.** L'ouverture du fil et
+  /// le rattrapage de fond appellent tous deux `catchUp`, donc ici. Le
+  /// 2026-09-16, sur le Samsung, deux jointures externes simultanées ont
+  /// publié les epochs 2 et 3 d'un même arbre : la seconde, en conflit, avait
+  /// oublié le groupe que la première venait de rejoindre, puis s'était
+  /// rejointe depuis un arbre périmé. Deux branches sur le serveur, un état
+  /// local qui ne correspondait plus à rien, et `commit_perdu` en boucle —
+  /// le message restait « Envoi… ».
+  Future<void> ensureGroup(String conversationId) {
+    final enCours = _jointures[conversationId];
+    if (enCours != null) return enCours;
+    final futur = _ensureGroup(conversationId);
+    _jointures[conversationId] = futur;
+    return futur.whenComplete(() {
+      if (identical(_jointures[conversationId], futur)) {
+        _jointures.remove(conversationId);
+      }
+    });
+  }
+
+  Future<void> _ensureGroup(String conversationId) async {
     if (await estMembre(conversationId)) return;
     final moteur = await _moteur();
     final appareil = await _appareil();
@@ -143,9 +167,13 @@ class MlsConversationService {
     //    reprendre sa propre place (voir `_jointureExternePossible`).
     if (await _delivery.currentEpoch(conversationId) != null) {
       if (await _jointureExternePossible(conversationId)) {
-        final arbre = await _delivery.groupInfo(conversationId);
-        final epochCourant = await _delivery.currentEpoch(conversationId);
-        if (arbre != null && epochCourant != null) {
+        // `conversations.mls_group_info` n'est republié qu'APRÈS le commit :
+        // dans l'intervalle, il porte l'arbre de l'epoch d'avant. D'où la
+        // garde, et quelques essais le temps que le committeur le republie.
+        for (var essai = 1; ; essai++) {
+          final arbre = await _delivery.groupInfo(conversationId);
+          final epochCourant = await _delivery.currentEpoch(conversationId);
+          if (arbre == null || epochCourant == null) break;
           final epoch = epochCourant + 1;
           final aad = MlsAad.commit(conversationId: conversationId, epoch: epoch);
           final out = await moteur.rejoindreParCommitExterne(
@@ -153,6 +181,21 @@ class MlsConversationService {
             groupInfo: arbre,
             aad: aad,
           );
+          // Garde : rejoindre depuis l'arbre d'un epoch passé, puis publier
+          // sous le numéro suivant du serveur, c'est ouvrir une branche que
+          // personne ne pourra suivre — et le 2026-09-16 c'est arrivé. Ne
+          // rien publier.
+          final obtenu = (await moteur.instantane(conversationId: conversationId)).epoch.toInt();
+          if (obtenu != epoch) {
+            await moteur.oublierGroupe(conversationId: conversationId);
+            if (essai < 3) {
+              await Future<void>.delayed(const Duration(milliseconds: 800));
+              continue;
+            }
+            await _delivery.diagnostic(userId, 'arbre_perime',
+                deviceId: appareil.id, detail: {'attendu': epoch, 'obtenu': obtenu});
+            break;
+          }
           try {
             await _delivery.publishCommit(
               conversationId: conversationId,
@@ -168,7 +211,7 @@ class MlsConversationService {
             await moteur.oublierGroupe(conversationId: conversationId);
             await _delivery.diagnostic(userId, 'jointure_externe_perdue',
                 deviceId: appareil.id, detail: {'epoch': epoch});
-            return ensureGroup(conversationId);
+            return _ensureGroup(conversationId);
           }
           await _delivery.upsertConversationDevice(
               conversationId, appareil.id, 'active', epochAdded: epoch);
@@ -196,8 +239,10 @@ class MlsConversationService {
     } on EpochConflict {
       await moteur.oublierGroupe(conversationId: conversationId);
       await _delivery.diagnostic(userId, 'creation_perdue', deviceId: appareil.id);
-      // Le gagnant m'ajoutera ; peut-être l'a-t-il déjà fait.
-      return ensureGroup(conversationId);
+      // Le gagnant m'ajoutera ; peut-être l'a-t-il déjà fait. `_ensureGroup`
+      // et non `ensureGroup`, qui rendrait la jointure en cours — celle-ci :
+      // elle s'attendrait elle-même.
+      return _ensureGroup(conversationId);
     }
     await _delivery.marquerMlsSince(conversationId);
     await _delivery.upsertConversationDevice(conversationId, appareil.id, 'active', epochAdded: 0);
