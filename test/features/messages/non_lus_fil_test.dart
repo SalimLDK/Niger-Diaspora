@@ -178,8 +178,39 @@ void main() {
 
       final debut = source.indexOf('Future<void> _releverCurseur() async {');
       expect(debut, isNot(-1));
-      final corps = source.substring(debut, debut + 900);
+      final corps = source.substring(debut, debut + 2000);
       expect(corps, contains('_curseurReleve = true;'));
+    });
+
+    test('le repère vient du serveur, pas des messages chargés', () {
+      // § 11 du modèle : si la page affichée commence **après** le premier
+      // non-lu, le chercher dans les messages chargés désignerait le plus
+      // ancien de la page. L'identifiant rendu par le serveur, lui, attend que
+      // la remontée du fil l'amène à l'écran.
+      expect(source, contains('passerelle.premierNonLu('));
+      expect(source, contains('_repereServeur'));
+    });
+
+    test('le repère serveur passe AVANT les chemins basés sur la liste', () {
+      final serveur = source.indexOf('final repere = _repereServeur;');
+      final liste = source.indexOf('final depuis = _curseurALOuverture;');
+
+      expect(serveur, isNot(-1), reason: 'le repère serveur a disparu');
+      expect(liste, isNot(-1));
+      expect(
+        serveur,
+        lessThan(liste),
+        reason: 'les messages chargés ne doivent servir que de repli',
+      );
+    });
+
+    test('un premier non-lu hors page ne fait pas sauter la vue', () {
+      // On ne peut pas se placer sur un message absent : on reste en bas, et
+      // le séparateur apparaît en remontant.
+      expect(
+        source,
+        contains('_scrollToUnreadOrBottom(rang == -1 ? null : rang'),
+      );
     });
 
     test('le comptage attend que le curseur soit relevé', () {
