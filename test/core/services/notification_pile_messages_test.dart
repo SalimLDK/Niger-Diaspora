@@ -94,6 +94,74 @@ void main() {
     });
   });
 
+  group('un même expéditeur qui envoie plusieurs messages', () {
+    test('les trois sont gardés, chacun avec son heure', () async {
+      final base = DateTime(2026, 9, 16, 9, 58);
+      for (var n = 0; n < 3; n++) {
+        await PileMessagesNotifiees.empiler(
+          conversationId: 'c1',
+          messageId: 'm$n',
+          texte: 'ligne $n',
+          expediteur: 'Alice',
+          expediteurId: 'uid-alice',
+          quand: base.add(Duration(minutes: n * 3)),
+        );
+      }
+      final pile = await PileMessagesNotifiees.lire('c1');
+      expect(pile.map((m) => m.texte), ['ligne 0', 'ligne 1', 'ligne 2']);
+      expect(pile.map((m) => texteHorodate(m.quand, m.texte)),
+          ['ligne 0 · 09:58', 'ligne 1 · 10:01', 'ligne 2 · 10:04']);
+    });
+
+    test('ils portent tous la MÊME clé d’identité', () async {
+      // C'est par elle qu'Android regroupe les messages consécutifs d'une
+      // même personne sous un seul en-tête. Une clé qui change au milieu
+      // répèterait l'en-tête à chaque ligne.
+      for (var n = 0; n < 3; n++) {
+        await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm$n', texte: 't$n',
+          expediteur: 'Alice', expediteurId: 'uid-alice');
+      }
+      final cles = (await PileMessagesNotifiees.lire('c1'))
+          .map((m) => m.cleIdentite).toSet();
+      expect(cles, {'uid-alice'});
+    });
+
+    test('la clé tient même si le nom manque sur une charge', () async {
+      // En groupe, le chemin d'arrière-plan retombe sur le TITRE quand
+      // `senderName` manque — c'est-à-dire le nom du groupe. Sans identifiant,
+      // ce message-là se serait retrouvé sous un autre expéditeur au milieu
+      // de la pile.
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'a',
+          expediteur: 'Alice', expediteurId: 'uid-alice');
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm2', texte: 'b',
+          expediteur: 'Groupe Banc', expediteurId: 'uid-alice');
+      final cles = (await PileMessagesNotifiees.lire('c1'))
+          .map((m) => m.cleIdentite).toSet();
+      expect(cles, {'uid-alice'});
+    });
+
+    test('deux homónymes restent deux personnes', () async {
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'a',
+          expediteur: 'Sim A', expediteurId: 'uid-1');
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm2', texte: 'b',
+          expediteur: 'Sim A', expediteurId: 'uid-2');
+      final cles = (await PileMessagesNotifiees.lire('c1'))
+          .map((m) => m.cleIdentite).toSet();
+      expect(cles, {'uid-1', 'uid-2'});
+    });
+
+    test('une pile écrite AVANT ce champ retombe sur le nom', () async {
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'a', expediteur: 'Alice');
+      expect((await PileMessagesNotifiees.lire('c1')).single.cleIdentite, 'Alice');
+    });
+  });
+
   group('l’ordre est celui de la conversation', () {
     test('du plus ancien au plus récent, quel que soit l’ordre d’arrivée', () async {
       // Au retour du réseau, plusieurs messages arrivent d'un coup et pas
@@ -161,19 +229,58 @@ void main() {
   });
 
   group('chaque ligne porte son heure', () {
-    test('l’heure précède le texte, en 24 h', () {
+    test('l’heure ferme la ligne, en 24 h', () {
       // `MessagingStyle` reçoit bien un horodatage par message, mais Android
       // ne le rend PAS dans le volet du téléphone : il ne s'en sert que pour
       // trier. L'en-tête ne porte donc qu'une seule heure, celle du dernier —
       // et dans une pile de six, on ne sait pas de quand datent les cinq
       // autres. D'où l'heure dans le texte.
-      expect(texteHorodate(DateTime(2026, 9, 16, 9, 5), 'Salut'), '09:05 · Salut');
-      expect(texteHorodate(DateTime(2026, 9, 16, 14, 30), 'Coucou'), '14:30 · Coucou');
+      expect(texteHorodate(DateTime(2026, 9, 16, 9, 5), 'Salut'), 'Salut · 09:05');
+      expect(texteHorodate(DateTime(2026, 9, 16, 14, 30), 'Coucou'), 'Coucou · 14:30');
+    });
+
+    test('un message d’HIER le dit, sinon l’ordre paraît faux', () {
+      // La pile garde 24 h : elle traverse minuit. À 00:10, un message de
+      // 23:50 et un de 00:05 y sont tous deux, et l'heure seule ferait passer
+      // le plus ancien (23:50) pour le plus tardif.
+      final nuit = DateTime(2026, 9, 16, 0, 10);
+      expect(
+        texteHorodate(DateTime(2026, 9, 15, 23, 50), 'avant minuit', maintenant: nuit),
+        'avant minuit · hier 23:50',
+      );
+      expect(
+        texteHorodate(DateTime(2026, 9, 16, 0, 5), 'après minuit', maintenant: nuit),
+        'après minuit · 00:05',
+      );
+    });
+
+    test('c’est le JOUR CIVIL qui tranche, pas l’écart de 24 h', () {
+      // Un message de vingt minutes peut dater d'hier.
+      expect(
+        texteHorodate(DateTime(2026, 9, 15, 23, 55), 'a',
+            maintenant: DateTime(2026, 9, 16, 0, 15)),
+        'a · hier 23:55',
+      );
+      // Et un message de vingt-trois heures peut dater d'aujourd'hui.
+      expect(
+        texteHorodate(DateTime(2026, 9, 16, 0, 5), 'b',
+            maintenant: DateTime(2026, 9, 16, 23, 5)),
+        'b · 00:05',
+      );
+    });
+
+    test('au-delà d’hier, la date courte', () {
+      // Inatteignable avec la fenêtre de 24 h, mais elle peut changer.
+      expect(
+        texteHorodate(DateTime(2026, 9, 14, 8, 0), 'vieux',
+            maintenant: DateTime(2026, 9, 16, 10, 0)),
+        'vieux · 14/09 08:00',
+      );
     });
 
     test('minuit et midi ne se confondent pas', () {
-      expect(texteHorodate(DateTime(2026, 9, 16, 0, 0), 'a'), '00:00 · a');
-      expect(texteHorodate(DateTime(2026, 9, 16, 12, 0), 'b'), '12:00 · b');
+      expect(texteHorodate(DateTime(2026, 9, 16, 0, 0), 'a'), 'a · 00:00');
+      expect(texteHorodate(DateTime(2026, 9, 16, 12, 0), 'b'), 'b · 12:00');
     });
   });
 
@@ -214,6 +321,9 @@ void main() {
       // Chaque ligne porte son heure, et pas le nom de son expéditeur en double.
       expect(corps, contains('texteHorodate(m.quand, m.texte)'));
       expect(corps, contains('sansPrefixeExpediteur(body,'));
+      // La clé d'identité vient de l'identifiant, pas du nom affiché.
+      expect(corps, contains('key: m.cleIdentite'));
+      expect(corps, contains("expediteurId: data['senderId']"));
     });
 
     test('ouvrir la conversation vide la pile', () {

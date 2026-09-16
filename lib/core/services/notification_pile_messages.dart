@@ -11,6 +11,7 @@ class MessageEmpile {
     required this.texte,
     required this.expediteur,
     required this.quand,
+    this.expediteurId = '',
   });
 
   final String messageId;
@@ -18,11 +19,29 @@ class MessageEmpile {
   final String expediteur;
   final DateTime quand;
 
+  /// L'identifiant de l'expéditeur, qui sert de clé d'identité à la `Person`
+  /// d'Android — c'est par elle qu'il regroupe les messages consécutifs d'une
+  /// même personne sous un seul en-tête.
+  ///
+  /// Le nom affiché ne peut pas jouer ce rôle : deux membres d'un groupe
+  /// peuvent le partager, et surtout il peut MANQUER dans une charge — le
+  /// chemin d'arrière-plan retombe alors sur le titre de la bannière, qui en
+  /// groupe est le nom DU GROUPE. Un message se serait retrouvé sous un
+  /// expéditeur différent au milieu de la pile.
+  ///
+  /// Vide pour une pile écrite par une version antérieure : on retombe sur le
+  /// nom, comme avant.
+  final String expediteurId;
+
+  /// La clé d'identité à donner à Android.
+  String get cleIdentite => expediteurId.isNotEmpty ? expediteurId : expediteur;
+
   Map<String, dynamic> versJson() => {
         'i': messageId,
         't': texte,
         'e': expediteur,
         'q': quand.millisecondsSinceEpoch,
+        if (expediteurId.isNotEmpty) 'x': expediteurId,
       };
 
   static MessageEmpile? depuisJson(Object? brut) {
@@ -33,6 +52,7 @@ class MessageEmpile {
       messageId: brut['i']?.toString() ?? '',
       texte: brut['t']?.toString() ?? '',
       expediteur: brut['e']?.toString() ?? '',
+      expediteurId: brut['x']?.toString() ?? '',
       quand: DateTime.fromMillisecondsSinceEpoch(quand),
     );
   }
@@ -85,12 +105,14 @@ class PileMessagesNotifiees {
     required String messageId,
     required String texte,
     required String expediteur,
+    String expediteurId = '',
     DateTime? quand,
   }) async {
     final nouveau = MessageEmpile(
       messageId: messageId,
       texte: texte,
       expediteur: expediteur,
+      expediteurId: expediteurId,
       quand: quand ?? DateTime.now(),
     );
     try {

@@ -55,6 +55,10 @@ class ActiveNotification {
   final String title;
   final String body;
   final String? senderName;
+
+  /// Identifiant de l'expéditeur — la clé d'identité de la `Person` Android.
+  /// Le nom ne suffit pas : deux membres d'un groupe peuvent le partager.
+  final String? senderId;
   final String? senderPhotoUrl;
   final DateTime timestamp;
   final String? messageType; // text, image, video, audio, document
@@ -64,6 +68,7 @@ class ActiveNotification {
     required this.title,
     required this.body,
     this.senderName,
+    this.senderId,
     this.senderPhotoUrl,
     required this.timestamp,
     this.messageType,
@@ -120,7 +125,7 @@ DateTime heureDuMessage(Map<String, dynamic> data) {
   return DateTime.fromMillisecondsSinceEpoch(ms);
 }
 
-/// `14:05 · Salut` — l'heure d'un message, collée devant son texte.
+/// `Salut · 14:05` — l'heure d'un message, à la fin de sa ligne.
 ///
 /// **Pourquoi dans le texte et pas à côté.** `MessagingStyle` reçoit bien un
 /// horodatage par message (`Message(texte, quand, personne)`), mais Android ne
@@ -129,8 +134,47 @@ DateTime heureDuMessage(Map<String, dynamic> data) {
 /// seule heure, celle du dernier message — et dans une pile de six, on ne sait
 /// pas de quand datent les cinq autres.
 ///
+/// **Et pourquoi en fin de ligne plutôt qu'alignée à droite.** Une ligne de
+/// notification est du texte, pas une mise en page : rien ne permet de plaquer
+/// une portion de ligne contre le bord. `MessagingStyle` accepte du HTML
+/// (`htmlFormatContent`), mais les seules balises qu'Android sait aligner
+/// (`<p align="right">`) sont des BLOCS — l'heure partirait sur sa propre
+/// ligne. Un vrai alignement demanderait de remplacer tout le style par un
+/// `RemoteViews` maison, au prix du regroupement par expéditeur et des avatars.
+/// La fin de ligne est le plus à droite qu'on puisse aller sans tout perdre.
+///
 /// Format 24 h à la main plutôt que `DateFormat` : ce code tourne aussi dans
 /// l'isolate de notification, où `intl` n'est pas initialisé.
+///
+/// **Et pourquoi la date apparaît parfois.** La pile garde 24 h, ce qui
+/// TRAVERSE MINUIT : un message de 23:50 hier et un de 08:00 aujourd'hui sont
+/// tous deux dans la fenêtre, et l'heure seule ferait passer le plus ancien
+/// pour le plus tardif. « hier » est donc ajouté dès que le jour civil change,
+/// et la date courte au-delà — inatteignable avec la fenêtre actuelle, mais
+/// elle peut changer, et un horodatage serveur peut remonter plus loin.
+///
+/// Français en dur, comme les textes qu'écrivent les déclencheurs
+/// (« Nouveau message », « A réagi à votre message ») : `AppLocalizations`
+/// n'existe pas dans l'isolate de notification.
+String texteHorodate(DateTime quand, String texte, {DateTime? maintenant}) {
+  final h = quand.hour.toString().padLeft(2, '0');
+  final m = quand.minute.toString().padLeft(2, '0');
+  final heure = '$h:$m';
+
+  // Comparaison par JOUR CIVIL, pas par écart de 24 h : à 00:10, un message de
+  // 23:50 date bien d'hier, même s'il a vingt minutes.
+  final ref = maintenant ?? DateTime.now();
+  final jour = DateTime(quand.year, quand.month, quand.day);
+  final aujourdhui = DateTime(ref.year, ref.month, ref.day);
+  final ecart = aujourdhui.difference(jour).inDays;
+
+  if (ecart <= 0) return '$texte · $heure';
+  if (ecart == 1) return '$texte · hier $heure';
+  final j = quand.day.toString().padLeft(2, '0');
+  final mo = quand.month.toString().padLeft(2, '0');
+  return '$texte · $j/$mo $heure';
+}
+
 /// Retire `Alice : ` d'un corps de notification de groupe.
 ///
 /// Les deux déclencheurs préfixent le corps du nom de l'expéditeur quand la
@@ -147,12 +191,6 @@ String sansPrefixeExpediteur(String texte, String expediteur) {
     if (texte.startsWith(prefixe)) return texte.substring(prefixe.length);
   }
   return texte;
-}
-
-String texteHorodate(DateTime quand, String texte) {
-  final h = quand.hour.toString().padLeft(2, '0');
-  final m = quand.minute.toString().padLeft(2, '0');
-  return '$h:$m · $texte';
 }
 
 /// Préfixe du groupe Android des notifications de messagerie.
@@ -643,6 +681,7 @@ Future<void> _showFallbackMessageNotification({
     messageId: data['messageId'] as String? ?? '',
     texte: sansPrefixeExpediteur(body, data['senderName'] as String? ?? ''),
     expediteur: data['senderName'] as String? ?? title,
+    expediteurId: data['senderId'] as String? ?? '',
     quand: quand,
   );
   final estGroupe = data['conversationType'] == 'group';
@@ -659,7 +698,10 @@ Future<void> _showFallbackMessageNotification({
           m.quand,
           Person(
             name: m.expediteur.isEmpty ? 'Utilisateur' : m.expediteur,
-            key: m.expediteur,
+            // L'identifiant, pas le nom : c'est par cette clé qu'Android
+            // regroupe les messages consécutifs d'une même personne sous un
+            // seul en-tête. Voir `MessageEmpile.cleIdentite`.
+            key: m.cleIdentite,
           ),
         ),
     ],
@@ -2056,6 +2098,7 @@ class NotificationService {
         title: title,
         body: sansPrefixeExpediteur(body, senderName),
         senderName: senderName,
+        senderId: senderId,
         senderPhotoUrl: senderPhotoUrl,
         timestamp: heureDuMessage(data),
         // Voir `sansPrefixeExpediteur` : `MessagingStyle` porte déjà le nom.
@@ -2074,6 +2117,7 @@ class NotificationService {
         messageId: data['messageId'] as String? ?? '',
         texte: sansPrefixeExpediteur(body, senderName),
         expediteur: senderName,
+        expediteurId: senderId,
         quand: heureDuMessage(data),
       );
     }
@@ -2235,7 +2279,12 @@ class NotificationService {
         // Créer la Person pour l'expéditeur
         final person = await _getOrCreatePerson(
           name: notification.senderName ?? 'Utilisateur',
-          uniqueKey: notification.senderName ?? 'unknown',
+          // L'identifiant d'abord : c'est la clé de regroupement d'Android,
+          // et aussi celle du cache d'avatars. Deux membres d'un groupe
+          // peuvent porter le même nom.
+          uniqueKey: notification.senderId?.isNotEmpty == true
+              ? notification.senderId!
+              : (notification.senderName ?? 'unknown'),
           photoUrl: notification.senderPhotoUrl,
         );
 
