@@ -658,6 +658,16 @@ class MlsGateway {
     await _meta.marquer(ids, lu: true);
   }
 
+  /// Le dernier message lu de cette conversation — le curseur dont le
+  /// séparateur « nouveaux messages » est la représentation.
+  Future<({String id, DateTime quand})?> curseurDeLecture(
+    String conversationId,
+  ) => _meta.curseurDeLecture(conversationId);
+
+  /// Avance le curseur jusqu'à [jusqua] inclus, sans marquer au-delà.
+  Future<void> avancerCurseur(String conversationId, DateTime jusqua) =>
+      _meta.marquerLusJusqua(conversationId, jusqua);
+
   Future<void> marquerLivres(String conversationId) async {
     final ids = await _meta.messagesDesAutres(conversationId);
     await _meta.marquer(ids, lu: false);
