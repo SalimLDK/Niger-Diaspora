@@ -110,7 +110,7 @@ void main() {
       final pile = await PileMessagesNotifiees.lire('c1');
       expect(pile.map((m) => m.texte), ['ligne 0', 'ligne 1', 'ligne 2']);
       expect(pile.map((m) => texteHorodate(m.quand, m.texte)),
-          ['09:58 · ligne 0', '10:01 · ligne 1', '10:04 · ligne 2']);
+          ['ligne 0 · 09:58', 'ligne 1 · 10:01', 'ligne 2 · 10:04']);
     });
 
     test('ils portent tous la MÊME clé d’identité', () async {
@@ -229,19 +229,19 @@ void main() {
   });
 
   group('chaque ligne porte son heure', () {
-    test('l’heure précède le texte, en 24 h', () {
+    test('l’heure ferme la ligne, en 24 h', () {
       // `MessagingStyle` reçoit bien un horodatage par message, mais Android
       // ne le rend PAS dans le volet du téléphone : il ne s'en sert que pour
       // trier. L'en-tête ne porte donc qu'une seule heure, celle du dernier —
       // et dans une pile de six, on ne sait pas de quand datent les cinq
       // autres. D'où l'heure dans le texte.
-      expect(texteHorodate(DateTime(2026, 9, 16, 9, 5), 'Salut'), '09:05 · Salut');
-      expect(texteHorodate(DateTime(2026, 9, 16, 14, 30), 'Coucou'), '14:30 · Coucou');
+      expect(texteHorodate(DateTime(2026, 9, 16, 9, 5), 'Salut'), 'Salut · 09:05');
+      expect(texteHorodate(DateTime(2026, 9, 16, 14, 30), 'Coucou'), 'Coucou · 14:30');
     });
 
     test('minuit et midi ne se confondent pas', () {
-      expect(texteHorodate(DateTime(2026, 9, 16, 0, 0), 'a'), '00:00 · a');
-      expect(texteHorodate(DateTime(2026, 9, 16, 12, 0), 'b'), '12:00 · b');
+      expect(texteHorodate(DateTime(2026, 9, 16, 0, 0), 'a'), 'a · 00:00');
+      expect(texteHorodate(DateTime(2026, 9, 16, 12, 0), 'b'), 'b · 12:00');
     });
   });
 

@@ -125,7 +125,7 @@ DateTime heureDuMessage(Map<String, dynamic> data) {
   return DateTime.fromMillisecondsSinceEpoch(ms);
 }
 
-/// `14:05 · Salut` — l'heure d'un message, collée devant son texte.
+/// `Salut · 14:05` — l'heure d'un message, à la fin de sa ligne.
 ///
 /// **Pourquoi dans le texte et pas à côté.** `MessagingStyle` reçoit bien un
 /// horodatage par message (`Message(texte, quand, personne)`), mais Android ne
@@ -133,6 +133,15 @@ DateTime heureDuMessage(Map<String, dynamic> data) {
 /// ne l'expose qu'à Wear et Auto. L'en-tête de la bannière ne porte donc qu'une
 /// seule heure, celle du dernier message — et dans une pile de six, on ne sait
 /// pas de quand datent les cinq autres.
+///
+/// **Et pourquoi en fin de ligne plutôt qu'alignée à droite.** Une ligne de
+/// notification est du texte, pas une mise en page : rien ne permet de plaquer
+/// une portion de ligne contre le bord. `MessagingStyle` accepte du HTML
+/// (`htmlFormatContent`), mais les seules balises qu'Android sait aligner
+/// (`<p align="right">`) sont des BLOCS — l'heure partirait sur sa propre
+/// ligne. Un vrai alignement demanderait de remplacer tout le style par un
+/// `RemoteViews` maison, au prix du regroupement par expéditeur et des avatars.
+/// La fin de ligne est le plus à droite qu'on puisse aller sans tout perdre.
 ///
 /// Format 24 h à la main plutôt que `DateFormat` : ce code tourne aussi dans
 /// l'isolate de notification, où `intl` n'est pas initialisé.
@@ -157,7 +166,7 @@ String sansPrefixeExpediteur(String texte, String expediteur) {
 String texteHorodate(DateTime quand, String texte) {
   final h = quand.hour.toString().padLeft(2, '0');
   final m = quand.minute.toString().padLeft(2, '0');
-  return '$h:$m · $texte';
+  return '$texte · $h:$m';
 }
 
 /// Préfixe du groupe Android des notifications de messagerie.
