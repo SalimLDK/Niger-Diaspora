@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1224 cases à cocher, 619 cochées** — 246 entrées sur 295 ont encore des cases ouvertes.
+**1230 cases à cocher, 619 cochées** — 247 entrées sur 296 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (33)
+**P0 — avant toute nouvelle version** (34)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
@@ -53,6 +53,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 6 · [⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16)](#-la-notification-gardait-le-ciphertext-que-le-message-avait-perdu-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)](#-un-média-chiffré-de-plus-de-10-mo-était-illisible-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -306,7 +307,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 257 à faire, 107 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 94 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -6382,6 +6383,54 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16)
+
+**Priorité P0** · importance 5/5 — « Supprimer pour tous » vide
+`mls_messages.ciphertext` depuis « « Supprimer pour tous » efface vraiment le
+contenu (2026-09-16) », et la purge des éphémères fait le même geste à
+l'expiration. **Les deux oubliaient la seconde copie.** Le ciphertext est
+aussi recopié dans `notifications.data->>'mlsCiphertext'`, pour que l'appareil
+reconstruise l'aperçu (plan MLS § 8) — et cette ligne n'était touchée par
+personne.
+
+Elle est lisible par PostgREST, et par exactement celui qui sait la
+déchiffrer : `notifications_own` la rend à son destinataire, qui est membre du
+groupe à cet epoch. Supprimer pour tous vidait donc la colonne pendant que le
+contenu restait à un `select` de distance pour le destinataire qui n'avait pas
+encore rattrapé — c'est-à-dire le cas précis que la suppression visait.
+
+**Mesuré en production avant correction le 2026-09-15** : sur 50 notifications
+MLS portant une copie, **8 désignaient un message supprimé**, dont 7 déjà
+vidés côté `mls_messages`. Le rattrapage de la migration les nettoie.
+
+Le déclencheur est posé sur `UPDATE OF ciphertext`, pas dans les deux
+fonctions qui effacent : il y en a déjà deux, il y en aura une troisième, et
+c'est celle-là qu'on aurait oublié de patcher.
+
+Vérifié hors appareil : migration rejouée en `BEGIN … ROLLBACK` contre la
+production (elle passe, et retire 10 copies), 8 cas dans
+`test/core/crypto/mls_notifications_suivent_le_message_test.dart`. **Rien n'a
+tourné sur un téléphone, et la migration n'est pas encore appliquée.**
+
+Fichiers : `supabase/migrations/20260916030000_mls_notifications_suivent_le_message.sql`.
+
+- [ ] **Migration appliquée** : `supabase db push --linked`, puis vérifier
+  qu'aucune notification `message` ne porte encore `mlsCiphertext` pour un
+  message supprimé.
+- [ ] **Supprimer pour tous, destinataire hors ligne** : couper le réseau du
+  second téléphone, supprimer pour tous depuis le premier, rétablir le
+  réseau. La notification ne doit **pas** faire apparaître le texte.
+- [ ] **Message éphémère expiré** : même contrôle après l'échéance.
+- [ ] **Édition** : corriger un message déjà notifié ; la notification reste
+  **non lue** si elle l'était (c'est la différence voulue avec la
+  suppression), et ne peut plus afficher le texte d'avant.
+- [ ] **Suppression d'une conversation entière** : les notifications de tous
+  ses messages sont nettoyées en une fois, et l'app ne rame pas.
+- [ ] **Aperçu normal intact** : un message reçu et non supprimé affiche
+  toujours son texte — le nettoyage ne doit pas mordre sur le cas courant.
 
 ---
 
