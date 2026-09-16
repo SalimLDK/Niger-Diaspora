@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1292 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
+**1297 cases à cocher, 637 cochées** — 255 entrées sur 304 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -83,7 +83,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (86)
+**P1 — fonction importante, jamais vérifiée** (87)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -95,6 +95,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 5 · [✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16)](#-curseur-de-lecture-et-séparateur--nouveaux-messages--2026-09-16) · *Messagerie*
 - 3 · [⬜ Pastille de non-lus, et séparateur « nouveaux messages » (2026-09-15)](#-pastille-de-non-lus-et-séparateur--nouveaux-messages--2026-09-15) · *Messagerie*
 - 4 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
 - 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
@@ -312,7 +313,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 276 à faire, 119 faites
+- [2. Messagerie](#2-messagerie) — 281 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -571,6 +572,71 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16)
+
+**Priorité P1** · importance 4/5 — vérifié **à deux téléphones**, même build
+(Pixel 10 Pro XL = Salim, SM A515F = Sim A).
+
+Le séparateur est désormais la **représentation d'un curseur de lecture**, pas
+une propriété des messages. Trois repères avaient été essayés avant, et les
+trois mentaient : l'état de lecture des messages chargés (déjà faussé quand le
+fil arrive), le compteur de la liste (il ne dit pas **où**), et une date de
+visite locale (elle ne survit ni à la pagination ni au fuseau).
+
+**Ce que la passe a prouvé**, horodatages bruts à l'appui :
+
+- [x] **Les messages affichés sont marqués lus** : bloc visible à l'ouverture
+  (05:20:27) → `read_at` à **05:20:29**.
+- [x] **Ceux restés SOUS LE PLI ne le sont pas** — c'est le point central.
+  Quatre blocs hors écran, `read_at` **nul**, `delivered_at` posé. L'ancien
+  `markAsRead` global les aurait tous marqués.
+- [x] **Reçu ≠ lu** : deux messages livrés à 04:41:03 et lus seulement à
+  **05:02:45** — vingt minutes d'écart, tombant exactement sur l'instant où
+  les bulles ont été montrées.
+- [x] **Côté expéditeur** : « Envoyé » sur les quatre blocs sous le pli, jamais
+  « Lu ».
+- [x] **Le séparateur s'affiche au bon rang** : « 1 message non lu » posé juste
+  au-dessus du seul non-lu, et la vue s'y place.
+
+**Trois défauts trouvés par cette passe**, aucun visible autrement :
+
+1. Le garde de visibilité interrogeait l'emplacement global du routeur et
+   rendait **toujours faux** — le curseur n'avançait jamais, sans une ligne de
+   journal. L'écran de discussion est poussé **au-dessus** du shell, pas dans
+   une branche d'onglet : `ModalRoute.isCurrent` était le bon signal depuis le
+   début.
+2. Le même garde était évalué **à la réception** de l'événement de visibilité,
+   pendant la transition de route : un refus transitoire devenait définitif,
+   la visibilité ne changeant plus ensuite.
+3. Le séparateur était ancré sur un **index**, qui glisse dès que la
+   pagination complète la liste : le compte restait juste, le repère
+   n'apparaissait nulle part.
+
+Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
+(`_signalerVisibilite`, `_firstUnreadMessageId`, `_estAffichee`),
+[mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
+(`curseurDeLecture`, `marquerLusJusqua`). Recette :
+`supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`.
+
+**Ce qui reste à voir**, et qui n'a pas été exercé :
+
+- [ ] **Un défilement rapide ne doit rien « lire »** : traverser vingt bulles
+  d'un geste, puis relever les `read_at`. Le seuil (60 %) et le délai (400 ms)
+  sont là pour ça, mais aucune passe ne l'a mis à l'épreuve.
+- [ ] **En groupe** : le curseur est par utilisateur **et** par message
+  (`mls_message_receipts`), donc il devrait tenir à plusieurs membres. Jamais
+  vérifié au-delà d'un tête-à-tête.
+- [ ] **La pagination** : rouvrir une discussion dont le curseur désigne un
+  message **hors de la page chargée**. Le repère doit apparaître en remontant,
+  pas se poser au hasard.
+- [ ] **Deux appareils du même compte** : le curseur vient du serveur, il
+  devrait donc se synchroniser. Non testé.
+- [ ] **La latence d'affichage des accusés côté expéditeur** : la base disait
+  `read_at` posé alors que l'écran de Sim A montrait encore « Envoyé ». Le
+  curseur n'est pas en cause — c'est le temps réel sur `mls_message_receipts`.
 
 ---
 
