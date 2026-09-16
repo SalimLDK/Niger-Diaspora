@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1230 cases à cocher, 619 cochées** — 247 entrées sur 296 ont encore des cases ouvertes.
+**1237 cases à cocher, 619 cochées** — 248 entrées sur 297 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -80,7 +80,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (83)
+**P1 — fonction importante, jamais vérifiée** (84)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -92,6 +92,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 7 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau-2026-09-15) · *Messagerie*
 - 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
@@ -305,7 +306,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 257 à faire, 107 faites
+- [2. Messagerie](#2-messagerie) — 264 à faire, 107 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -564,6 +565,50 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ « Mes notes » s'ouvre sans aller-retour réseau (2026-09-15)
+
+**Priorité P1** · importance 4/5 — la tuile « Mes notes » était la seule de la
+liste à faire une requête **avant** de pousser son écran : un spinner à la
+place de l'icône signet, la tuile intouchable, à **chaque** ouverture. Toutes
+les autres discussions s'ouvrent d'un `context.push` synchrone.
+
+Ce coût était celui d'un correctif, pas d'un oubli. Le raccourci d'origine a
+été retiré le 2026-08-06 parce qu'il lisait le **cache Hive** : une
+conversation effacée côté serveur y reste, on ouvrait un document fantôme,
+l'écran annonçait « Ce groupe a été supprimé » et tout envoi échouait ensuite
+(« Non envoyé · Réessayer »).
+
+Le raccourci revient avec une source différente : la liste n'est crue que
+lorsqu'elle vient du **flux Supabase vivant** — qui retire une conversation
+supprimée — jamais de sa copie Hive. `conversationsDepuisReseauProvider`
+distingue les deux et repart à `false` à chaque (re)construction du flux, donc
+après un tirer-pour-rafraîchir aussi.
+
+C'est la règle qui est testée (`test/features/messages/mes_notes_ouverture_test.dart`),
+pas son câblage : la provenance réelle des émissions ne se voit qu'à
+l'exécution, et c'est précisément ce qu'il faut vérifier ici.
+
+- [ ] App déjà chargée, liste affichée : taper « Mes notes » ouvre l'écran
+      **sans spinner** sur la tuile
+- [ ] Un message envoyé depuis cette ouverture-là part vraiment — pas de
+      « Non envoyé · Réessayer » (c'est la panne de 2026-08-06)
+- [ ] Démarrage à froid, tap immédiat avant que la liste n'ait chargé : la
+      tuile fait encore son aller-retour (spinner), et l'ouverture aboutit
+- [ ] Mode avion : l'ouverture aboutit quand même si « Mes notes » a déjà été
+      ouverte dans la session, échoue proprement (SnackBar) sinon
+- [ ] Après un tirer-pour-rafraîchir, la première ouverture peut refaire
+      l'aller-retour, les suivantes non
+- [ ] Compte neuf, « Mes notes » jamais créée : le premier tap la crée et la
+      tuile prend son aperçu dans la liste
+- [ ] Même parcours depuis « Nouvelle conversation » (l'autre appelant)
+
+Fichiers : [message_provider.dart](lib/features/messages/presentation/providers/message_provider.dart)
+(`conversationsDepuisReseauProvider`, `EnsureSelfNotesNotifier.ouvrir`),
+[messages_screen.dart](lib/features/messages/presentation/screens/messages_screen.dart),
+[new_conversation_screen.dart](lib/features/messages/presentation/screens/new_conversation_screen.dart)
 
 ---
 
