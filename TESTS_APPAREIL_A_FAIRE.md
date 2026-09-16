@@ -6548,9 +6548,16 @@ Verrouillé par
       Au passage, le moteur Rust charge en debug comme en release et
       l'appareil se réinscrit avec la **même** identité — la base SQLite a
       survécu à la réinstallation, et l'idempotence tient.
-- [ ] **iOS** : rien de fait. `Library/Application Support` part dans iCloud,
-      et l'exclusion demande `NSURLIsExcludedFromBackupKey`, sans API Dart.
-      À traiter avec le reste du chantier iOS.
+- [ ] **iOS : écrit le 2026-09-16, JAMAIS COMPILÉ.** `Library/Application
+      Support` part dans iCloud, et l'exclusion demande
+      `NSURLIsExcludedFromBackupKey`, sans API Dart : le drapeau se pose donc
+      par le canal natif existant (`AppDelegate.swift`), et le moteur le
+      réclame à l'ouverture du dossier. Ce dépôt n'a pas de Mac — le Swift
+      n'est ni compilé ni éprouvé. Sur Android l'appel n'existe pas et retombe
+      dans le `catch`, donc il ne peut rien casser ici.
+      À vérifier au premier build iOS : que l'appel ne lève pas, puis que le
+      dossier est bien absent d'une sauvegarde (Xcode › Devices, ou une
+      restauration sur un second appareil).
 
 ---
 

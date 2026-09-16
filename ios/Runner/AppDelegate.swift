@@ -71,6 +71,12 @@ import UserNotifications
         // via `reset()`. On répond quand même pour ne pas laisser l'appelant
         // sur une MissingPluginException.
         result(nil)
+      case "exclureDeLaSauvegarde":
+        guard let chemin = call.arguments as? String else {
+          result(false)
+          return
+        }
+        result(Self.exclureDeLaSauvegarde(chemin))
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -96,5 +102,34 @@ import UserNotifications
   /// le comportement d'avant.
   private static func installationId() -> String? {
     return UIDevice.current.identifierForVendor?.uuidString
+  }
+
+  /// Retire un dossier de la sauvegarde iCloud.
+  ///
+  /// Pendant iOS de ce qu'Android obtient par `regles_sauvegarde.xml` : la
+  /// base SQLite du moteur MLS — clé privée de signature de l'appareil,
+  /// secrets d'epoch, arbres de groupe — vit dans
+  /// `Library/Application Support`, qui est sauvegardé par défaut. Sans cet
+  /// appel, elle quitte le téléphone.
+  ///
+  /// `Library/Caches` échapperait aussi à la sauvegarde, mais le système peut
+  /// le vider quand il veut : un état MLS effacé sans prévenir rendrait toutes
+  /// les conversations basculées illisibles. Ce drapeau est donc la seule voie
+  /// correcte.
+  ///
+  /// Rend `false` plutôt que de lever : une exclusion qui échoue est un
+  /// problème de confidentialité, pas une raison d'empêcher l'application de
+  /// démarrer. L'appelant le journalise.
+  private static func exclureDeLaSauvegarde(_ chemin: String) -> Bool {
+    var url = URL(fileURLWithPath: chemin)
+    do {
+      var valeurs = URLResourceValues()
+      valeurs.isExcludedFromBackup = true
+      try url.setResourceValues(valeurs)
+      return true
+    } catch {
+      NSLog("AppDelegate: exclusion de sauvegarde refusée pour \(chemin) : \(error)")
+      return false
+    }
   }
 }

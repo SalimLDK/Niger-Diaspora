@@ -100,4 +100,38 @@ void main() {
       );
     });
   });
+
+  group('iOS : le meme dossier, par un drapeau', () {
+    // Android l'obtient par deux fichiers de regles, declaratifs. iOS n'a pas
+    // d'equivalent : c'est un drapeau pose sur le dossier a l'execution.
+    // Sans lui, `Library/Application Support` part dans iCloud.
+    test("le natif repond a la demande d'exclusion", () {
+      final swift = _lire('ios/Runner/AppDelegate.swift');
+      expect(swift.contains('case "exclureDeLaSauvegarde"'), isTrue);
+      expect(swift.contains('isExcludedFromBackup = true'), isTrue);
+    });
+
+    test('il rend un booleen plutot que de lever', () {
+      // Une exclusion qui echoue est un probleme de confidentialite ; empecher
+      // l'application de demarrer serait une panne.
+      final swift = _lire('ios/Runner/AppDelegate.swift');
+      expect(
+        swift.contains('private static func exclureDeLaSauvegarde(_ chemin: String) -> Bool'),
+        isTrue,
+      );
+    });
+
+    test("le moteur le demande a l'ouverture, et seulement sur iOS", () {
+      final src = _lire('lib/core/crypto/mls/mls_engine_provider.dart');
+      expect(src.contains('await _exclureDeLaSauvegardeIos(dossier);'), isTrue);
+      expect(src.contains('if (!Platform.isIOS) return;'), isTrue);
+      // L'appel precede l'ouverture de la base : le drapeau se pose sur un
+      // dossier, pas sur un fichier deja ouvert.
+      expect(
+        src.indexOf('_exclureDeLaSauvegardeIos(dossier)') <
+            src.indexOf('Moteur.ouvrir('),
+        isTrue,
+      );
+    });
+  });
 }

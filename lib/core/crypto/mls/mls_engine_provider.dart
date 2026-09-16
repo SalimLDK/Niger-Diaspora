@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -46,12 +48,16 @@ import '../../services/e2ee/stable_device_id.dart';
 /// Keystore comme l'app. Chiffrer sans résoudre ce point casserait l'aperçu
 /// des notifications, déjà livré.
 ///
-/// **Ce qui est fait en attendant** : la base ne quitte plus l'appareil. Elle
-/// est exclue de la sauvegarde Google et du transfert d'appareil à appareil
-/// (`android/app/src/main/res/xml/`), ce qui ferme le seul chemin
-/// d'exfiltration qui ne demande ni root ni accès physique. Verrouillé par
-/// `test/core/crypto/etat_mls_hors_sauvegarde_test.dart`. Le chiffrement du
-/// fichier reste à faire, et reste consigné dans `TESTS_APPAREIL_A_FAIRE.md`.
+/// **Ce qui est fait en attendant** : la base ne quitte plus l'appareil, sur
+/// les deux plateformes. Android l'exclut de la sauvegarde Google et du
+/// transfert d'appareil à appareil (`android/app/src/main/res/xml/`) ; iOS la
+/// retire de la sauvegarde iCloud par un drapeau posé à l'ouverture
+/// (`_exclureDeLaSauvegardeIos`, ci-dessous). C'est le seul chemin
+/// d'exfiltration qui ne demande ni root ni accès physique, et il est fermé.
+/// Verrouillé par `test/core/crypto/etat_mls_hors_sauvegarde_test.dart`.
+///
+/// Le chiffrement du fichier lui-même reste à faire, et reste consigné dans
+/// `TESTS_APPAREIL_A_FAIRE.md`.
 final mlsEngineProvider = FutureProvider.family<Moteur, String>((ref, userId) async {
   await _initialiserRustUneFois();
   final support = await getApplicationSupportDirectory();
@@ -59,11 +65,42 @@ final mlsEngineProvider = FutureProvider.family<Moteur, String>((ref, userId) as
   if (!await dossier.exists()) {
     await dossier.create(recursive: true);
   }
+  await _exclureDeLaSauvegardeIos(dossier);
   // L'uid Firebase ne contient que des caractères sûrs pour un nom de fichier.
   final chemin = '${dossier.path}/${userId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')}.sqlite';
   final appareil = await stableDeviceId(userId);
   return Moteur.ouvrir(dbPath: chemin, userId: userId, deviceId: appareil);
 });
+
+/// Pendant iOS de l'exclusion Android : retirer le dossier du moteur de la
+/// sauvegarde iCloud.
+///
+/// Android obtient la même chose par deux fichiers de règles, déclaratifs.
+/// iOS n'a pas d'équivalent : c'est un drapeau posé sur le dossier, à
+/// l'exécution, et il faut le reposer à chaque fois puisque le dossier peut
+/// venir d'être créé.
+///
+/// **Échoue en silence, et c'est délibéré.** Une exclusion qui ne prend pas
+/// est un problème de confidentialité ; empêcher le moteur de s'ouvrir serait
+/// une panne. On journalise et on continue — l'entrée de vérification
+/// appareil porte le contrôle qui, lui, ne se contente pas du journal.
+///
+/// ⚠️ **Jamais compilé.** Ce dépôt n'a pas de Mac : le code Swift qui répond à
+/// cet appel est écrit, pas éprouvé. Sur Android, la méthode n'existe pas et
+/// l'appel retombe dans le `catch` sans rien faire — c'est pourquoi la garde
+/// de plateforme est quand même posée.
+Future<void> _exclureDeLaSauvegardeIos(Directory dossier) async {
+  if (!Platform.isIOS) return;
+  try {
+    final fait = await const MethodChannel('diaspo_niger/share_intent')
+        .invokeMethod<bool>('exclureDeLaSauvegarde', dossier.path);
+    if (fait != true) {
+      debugPrint('MLS: dossier NON exclu de la sauvegarde iCloud');
+    }
+  } catch (e) {
+    debugPrint('MLS: exclusion iCloud indisponible ($e)');
+  }
+}
 
 Future<void>? _initRust;
 
