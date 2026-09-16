@@ -289,6 +289,31 @@ Color _repos(BuildContext context) =>
 Color _balayage(BuildContext context) =>
     context.isDarkMode ? context.borderStrongColor : context.surfaceVariantColor;
 
+/// Bloc d'attente posé **dans une ligne réelle**, quand une partie seulement
+/// de la ligne n'est pas encore connue — typiquement l'avatar et le nom d'une
+/// discussion dont le profil charge encore.
+///
+/// Sans balayage, à dessein : un shimmer qui traverse un avatar et un nom
+/// pendant que l'heure et l'aperçu juste à côté sont du vrai texte ne se lit
+/// pas comme « ça charge », mais comme un défaut d'affichage. Le balayage est
+/// réservé aux écrans où **tout** est en attente.
+class SkeletonBlock extends StatelessWidget {
+  final double? width;
+  final double height;
+  final double radius;
+
+  const SkeletonBlock({
+    super.key,
+    this.width,
+    required this.height,
+    this.radius = 4,
+  });
+
+  @override
+  Widget build(BuildContext context) =>
+      _block(context, width: width, height: height, radius: radius);
+}
+
 /// Bloc plein du squelette. Opaque et sans animation propre : c'est le
 /// [ShimmerLoading] du parent qui le traverse (`BlendMode.srcATop` ne peint
 /// que les pixels déjà opaques).
