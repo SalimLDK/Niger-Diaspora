@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1356 cases à cocher, 642 cochées** — 266 entrées sur 315 ont encore des cases ouvertes.
+**1362 cases à cocher, 642 cochées** — 267 entrées sur 316 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -87,7 +87,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (90)
+**P1 — fonction importante, jamais vérifiée** (91)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -99,6 +99,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [⬜ Lecture par curseur dans les discussions en clair (2026-09-16)](#-lecture-par-curseur-dans-les-discussions-en-clair-2026-09-16) · *Messagerie*
 - 5 · [⬜ « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16)](#--message-chiffré--qui-ne-sen-va-pas-dans-la-liste-2026-09-16) · *Messagerie*
 - 5 · [✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16)](#-curseur-de-lecture-et-séparateur--nouveaux-messages--2026-09-16) · *Messagerie*
 - 3 · [⬜ Pastille de non-lus, et séparateur « nouveaux messages » (2026-09-15)](#-pastille-de-non-lus-et-séparateur--nouveaux-messages--2026-09-15) · *Messagerie*
@@ -324,7 +325,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 307 à faire, 124 faites
+- [2. Messagerie](#2-messagerie) — 313 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 135 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -583,6 +584,56 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Lecture par curseur dans les discussions en clair (2026-09-16)
+
+**Priorité P1** · importance 4/5 — le « Lu » et le séparateur « N messages non
+lus » des discussions **non chiffrées** changent de mécanisme.
+*Bloqué : la migration `20260916224700` n'est pas encore appliquée (`db push`
+refusé au classificateur de permissions). Tant qu'elle ne l'est pas, l'app
+reprend l'ancien chemin et rien de ce qui suit n'est observable.*
+
+Le modèle vérifié en MLS (voir « Curseur de lecture et séparateur « nouveaux
+messages » ») n'existait pas en clair : `mark_messages_as_read` ne connaît que
+« toute la conversation ». L'écran l'appelait au premier coup d'œil, et ce qui
+restait sous le pli partait « Lu » chez l'expéditeur. Deux RPC le remplacent :
+`repere_de_lecture` (curseur, premier non-lu et nombre, **sur les deux
+magasins** d'un coup) et `marquer_lus_jusqua` (jusqu'à un message, pas au-delà ;
+`unreadCount` recalculé au lieu d'être remis à zéro).
+
+Même migration : `mark_messages_as_read` et `mark_messages_as_delivered`
+n'acceptent plus d'accuser **au nom d'un autre** — tout compte connecté pouvait
+jusqu'ici poser « Lu » pour n'importe quel membre.
+
+Couvert côté serveur par
+[tools/rls_tests/lecture_par_curseur.sql](tools/rls_tests/lecture_par_curseur.sql)
+(30 cas, 0 en échec sur les vraies données, migration jouée puis annulée ;
+retirer les gardes d'identité fait tomber les cas 23 et 24). Côté client :
+[lecture_serveur.dart](lib/features/messages/data/datasources/lecture_serveur.dart),
+`_releverCurseur` / `_pousserCurseur` dans
+[conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart).
+Ce que le banc ne voit pas :
+
+- [ ] **En clair, sous le pli** : A envoie 6 messages à B dans une discussion non
+      chiffrée ; B ouvre, n'en voit que 3 → chez A, « Lu » sur ces 3 seulement.
+      Relever `data->'readAt'` en base : nul sur les 3 autres.
+- [ ] **Le séparateur en clair** : même scénario, B rouvre → « 3 messages non
+      lus » juste au-dessus du 4ᵉ, et la vue s'y place.
+- [ ] **La pastille de la liste descend au fil de la lecture**, sans retomber à
+      zéro d'un coup : 6, puis 3 après la première ouverture.
+- [ ] **Conversation basculée avec des messages en clair non lus d'avant la
+      bascule** : le séparateur les compte, et lire le dernier message chiffré
+      les marque aussi. Aucun cas chez de vrais comptes aujourd'hui (les 7
+      relevés sont des comptes `banc_b_…`) : à construire.
+- [ ] **Compte au drapeau MLS ouvert, discussion encore en clair** : les
+      messages y sont bien marqués lus (avant, le curseur partait côté MLS et
+      n'y trouvait rien).
+- [ ] **Accusé de livraison toujours posé** en recevant app en arrière-plan
+      (`mark_messages_as_delivered` a désormais une garde d'identité : si le
+      `currentUserId` des préférences diffère de la session, l'accusé est
+      refusé — c'est voulu, mais à confirmer qu'il ne l'est pas à tort).
 
 ---
 

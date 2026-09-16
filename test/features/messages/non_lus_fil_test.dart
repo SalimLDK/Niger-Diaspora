@@ -213,6 +213,40 @@ void main() {
       );
     });
 
+    test('un seul point d\'entrée pour le relevé, sur les deux magasins', () {
+      // `repere_de_lecture` lit `messages` ET `mls_messages` : un aiguillage
+      // « MLS ou clair » par conversation manquerait les messages en clair
+      // d'avant la bascule. La passerelle ne sert plus qu'en repli.
+      final serveur = source.indexOf('.read(lectureServeurProvider)\n          .relever(');
+      final repli = source.indexOf('await _releverCurseurMls();');
+      expect(serveur, isNot(-1), reason: 'le relevé serveur a disparu');
+      expect(repli, isNot(-1));
+      expect(serveur, lessThan(repli));
+    });
+
+    test('le relevé se termine toujours, même en échec', () {
+      // Sinon `_pousserCurseur`, qui l'attend, ne marquerait plus jamais rien.
+      final debut = source.indexOf('Future<void> _releverCurseur() async {');
+      final corps = source.substring(debut, source.indexOf('Future<void> _releverCurseurMls()'));
+      expect(corps, contains('} finally {'));
+      expect(
+        corps.indexOf('if (!_releve.isCompleted) _releve.complete();'),
+        greaterThan(corps.indexOf('} finally {')),
+      );
+    });
+
+    test('« rien à lire » du serveur passe AVANT les replis sur la liste', () {
+      // Sans ça, un fil chargé dont l'état de lecture est en retard inventait
+      // un séparateur que le serveur venait de démentir.
+      final debut = source.indexOf('void _calculateUnreadOnOpen()');
+      final corps = source.substring(debut);
+      final foi = corps.indexOf('if (_repereFaitFoi) {');
+      final liste = corps.indexOf('compterNonLus(messages, currentUser.id)');
+      expect(foi, isNot(-1));
+      expect(liste, isNot(-1));
+      expect(foi, lessThan(liste));
+    });
+
     test('le comptage attend que le curseur soit relevé', () {
       // Sans cette attente, le premier passage compterait sans repère et
       // verrouillerait un séparateur faux.
@@ -222,6 +256,62 @@ void main() {
       expect(attente, isNot(-1));
       expect(usage, isNot(-1));
       expect(attente, lessThan(usage));
+    });
+  });
+
+  group("l'avancée du curseur", () {
+    late String corps;
+
+    setUpAll(() {
+      final source = File(
+        'lib/features/messages/presentation/screens/conversation_screen.dart',
+      ).readAsStringSync().replaceAll('\r\n', '\n');
+      final debut = source.indexOf('Future<void> _pousserCurseur() async {');
+      expect(debut, isNot(-1), reason: '_pousserCurseur introuvable');
+      corps = source.substring(debut, source.indexOf('final Completer<void> _releve', debut));
+    });
+
+    test('relever, PUIS marquer', () {
+      // Dans l'autre ordre, le repère se lit sur un état déjà « lu » et le
+      // séparateur n'a plus rien à désigner. Les 1,1 s de délai le
+      // garantissaient presque toujours — pas sur un réseau lent.
+      final attente = corps.indexOf('await _releve.future;');
+      expect(attente, isNot(-1));
+      expect(attente, lessThan(corps.indexOf('avancerCurseur(')));
+      expect(attente, lessThan(corps.indexOf('avancerJusqua(')));
+    });
+
+    test('la borne envoyée est un identifiant', () {
+      expect(corps, contains('avancerJusqua(conversationId, jusquaId)'));
+    });
+
+    test('basculée se décide sur mls_since, pas sur le drapeau du compte', () {
+      // `enMls` est vrai pour TOUTE conversation dès que le drapeau est
+      // ouvert : une conversation encore en clair n'avait alors jamais ses
+      // messages marqués.
+      expect(corps, contains('passerelle.mlsSince(conversationId) != null'));
+      expect(corps, isNot(contains('enMls(')));
+    });
+
+    test('les messages en clair sont marqués même dans une conversation basculée', () {
+      // L'appel n'est pas dans la branche `if (basculee)` : il vient après le
+      // bloc MLS, sans condition.
+      final finMls = corps.indexOf("debugPrint('ConversationScreen: curseur MLS non avancé");
+      final clair = corps.indexOf('.avancerJusqua(');
+      expect(finMls, isNot(-1));
+      expect(clair, greaterThan(finMls));
+    });
+
+    test("l'ancien marquage global ne sert QUE si la fonction est absente", () {
+      // Sur un refus ou une panne, le reprendre marquerait aussi ce qui n'a pas
+      // été vu.
+      final absente = corps.indexOf('on LectureServeurAbsente {');
+      final ancien = corps.indexOf('.markAsRead(');
+      final autres = corps.indexOf('} catch (e) {', absente);
+      expect(absente, isNot(-1));
+      expect(ancien, greaterThan(absente));
+      expect(ancien, lessThan(autres));
+      expect('.markAsRead('.allMatches(corps).length, 1);
     });
   });
 

@@ -11,6 +11,7 @@ import '../../../../core/services/e2ee/models/e2ee_models.dart';
 import 'group_encryption_status_provider.dart';
 import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../data/datasources/message_supabase_datasource.dart';
+import '../../data/datasources/lecture_serveur.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -63,6 +64,10 @@ final messageRepositoryProvider = Provider<MessageRepository>((ref) {
     mlsGateway: ref.watch(mlsGatewayProvider),
   );
 });
+
+/// Les RPC de lecture par curseur : le repère du séparateur et l'avancée du
+/// « Lu », pour les conversations en clair comme basculées.
+final lectureServeurProvider = Provider<LectureServeur>((ref) => LectureServeur());
 
 // ============ Stream Providers ============
 

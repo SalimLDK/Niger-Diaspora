@@ -18,6 +18,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/locale_helper.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
+import '../../data/datasources/lecture_serveur.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
@@ -309,6 +310,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   /// Le message le plus récent effectivement vu depuis l'ouverture.
   DateTime? _vuJusqua;
+
+  /// Son identifiant : c'est lui que le serveur reçoit comme borne, pas la
+  /// date — il relit lui-même `created_at`, sans question d'horloge ni de
+  /// précision.
+  String? _vuJusquaId;
   Timer? _envoiCurseur;
 
   void _signalerVisibilite(MessageEntity message, double fraction) {
@@ -343,6 +349,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       final vu = _vuJusqua;
       if (vu != null && !message.createdAt.isAfter(vu)) return;
       _vuJusqua = message.createdAt;
+      _vuJusquaId = message.id;
       _envoiCurseur?.cancel();
       _envoiCurseur = Timer(_delaiAvantEnvoi, _pousserCurseur);
     });
@@ -350,28 +357,94 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   Future<void> _pousserCurseur() async {
     final jusqua = _vuJusqua;
-    if (jusqua == null || !mounted) return;
+    final jusquaId = _vuJusquaId;
+    if (jusqua == null || jusquaId == null || !mounted) return;
+
+    // **Relever, puis marquer.** Dans l'autre ordre, le repère se lirait sur un
+    // état déjà « lu » et le séparateur n'aurait plus rien à désigner. Les
+    // délais de visibilité (1,1 s) le garantissaient presque toujours, pas sur
+    // un réseau lent.
+    await _releve.future;
+    if (!mounted) return;
+
+    final conversationId = widget.conversationId;
+    final passerelle = ref.read(mlsGatewayProvider);
+
+    // Basculée ou non se décide sur `mls_since`, pas sur `enMls` : ce dernier
+    // est vrai pour TOUTE conversation dès que le drapeau du compte est
+    // ouvert, et une conversation encore en clair n'avait alors jamais ses
+    // messages marqués — le curseur MLS n'y trouvait rien.
+    var basculee = false;
     try {
-      final passerelle = ref.read(mlsGatewayProvider);
-      if (passerelle != null &&
-          await passerelle.enMls(widget.conversationId)) {
-        await passerelle.avancerCurseur(widget.conversationId, jusqua);
-        return;
+      basculee = passerelle != null &&
+          await passerelle.mlsSince(conversationId) != null;
+      if (basculee) {
+        await passerelle.avancerCurseur(conversationId, jusqua);
       }
-      // Chemin legacy : la RPC ne connaît pas le « jusqu'à » et marque la
-      // conversation. C'est sans conséquence — plus rien n'y arrive depuis la
-      // bascule, donc « tout » et « jusqu'ici » désignent la même chose.
+    } catch (e) {
+      debugPrint('ConversationScreen: curseur MLS non avancé ($e)');
+    }
+
+    // Les messages en clair, **toujours** — y compris dans une conversation
+    // basculée, qui peut porter des messages d'avant la bascule jamais lus.
+    // La borne peut être un message MLS : le serveur relit sa date.
+    try {
+      await ref.read(lectureServeurProvider).avancerJusqua(conversationId, jusquaId);
+    } on LectureServeurAbsente {
+      // Migration pas encore appliquée : l'ancien chemin, qui marque la
+      // conversation entière. C'est ce qui se faisait jusqu'ici — rien ne
+      // régresse, et le « jusqu'à » arrive avec la migration.
+      if (basculee || !mounted) return;
       final moi = ref.read(currentUserProvider).valueOrNull;
       if (moi == null) return;
+      // `markAsRead` rend un `Either` et ne lève pas : rien à rattraper ici.
       await ref
           .read(messageRepositoryProvider)
-          .markAsRead(conversationId: widget.conversationId, userId: moi.id);
+          .markAsRead(conversationId: conversationId, userId: moi.id);
     } catch (e) {
+      // Un refus ou une panne ne se rattrapent PAS par l'ancien chemin : il
+      // marquerait aussi ce qui n'a pas été vu. Le prochain lot vu repassera.
       debugPrint('ConversationScreen: curseur non avancé ($e)');
     }
   }
 
+  /// Se termine quand [_releverCurseur] a rendu la main, qu'il ait abouti ou
+  /// non. [_pousserCurseur] l'attend.
+  final Completer<void> _releve = Completer<void>();
+
+  /// Le serveur a répondu au relevé : son repère **fait foi**, y compris
+  /// quand il dit « rien à lire ». Les chemins fondés sur les messages chargés
+  /// ne servent plus alors — ils ignorent tout de ce que la page ne montre
+  /// pas.
+  bool _repereFaitFoi = false;
+
   Future<void> _releverCurseur() async {
+    try {
+      // Un seul point d'entrée, pour les deux magasins : `repere_de_lecture`
+      // lit `messages` ET `mls_messages` dans le même instantané.
+      final repere = await ref
+          .read(lectureServeurProvider)
+          .relever(widget.conversationId);
+      _curseurALOuverture = repere.curseurA?.toLocal();
+      if (repere.aUnSeparateur) {
+        _repereServeur = (id: repere.premierNonLuId!, nombre: repere.nonLus);
+      }
+      _repereFaitFoi = true;
+    } catch (e) {
+      debugPrint('ConversationScreen: repère serveur indisponible ($e)');
+      await _releverCurseurMls();
+    } finally {
+      _curseurReleve = true;
+      if (!_releve.isCompleted) _releve.complete();
+    }
+    // La lecture est asynchrone : le comptage a pu passer avant elle.
+    if (mounted) _calculateUnreadOnOpen();
+  }
+
+  /// Repli quand `repere_de_lecture` ne répond pas : l'ancien relevé, par la
+  /// passerelle, qui ne voit que les messages MLS. Au-delà, ce sont les
+  /// messages chargés qui décident (voir [_calculateUnreadOnOpen]).
+  Future<void> _releverCurseurMls() async {
     try {
       final passerelle = ref.read(mlsGatewayProvider);
       if (passerelle != null) {
@@ -395,11 +468,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       }
     } catch (_) {
       // Curseur indisponible : on retombe sur l'état de lecture des messages
-      // chargés, qui suffit au chemin legacy.
+      // chargés.
     }
-    _curseurReleve = true;
-    // La lecture est asynchrone : le comptage a pu passer avant elle.
-    if (mounted) _calculateUnreadOnOpen();
   }
 
   /// Au-delà, un message qui arrive est un message **reçu en direct** : il ne
@@ -779,6 +849,55 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     if (messages.isEmpty) return;
 
+    // Rien ne se décide avant le relevé serveur : les messages chargés
+    // ignorent tout de ce que la page ne montre pas. Le relevé rappellera.
+    if (!_curseurReleve) return;
+
+    // Le serveur a désigné le repère : on le prend tel quel, sans rien
+    // déduire des messages chargés. C'est le seul chemin qui reste juste quand
+    // le premier non-lu est encore hors de la page.
+    final repere = _repereServeur;
+    if (repere != null) {
+      if (_firstUnreadMessageId != repere.id) {
+        setState(() {
+          _unreadCountOnOpen = repere.nombre;
+          _firstUnreadMessageId = repere.id;
+        });
+      }
+      final rang = messages.indexWhere((m) => m.id == repere.id);
+      if (rang == -1 &&
+          !_filVaJusquAuBout(messages) &&
+          DateTime.now().difference(_ouvertA) < _fenetreRecompteNonLus) {
+        // Le fil affiché vient du cache et s'arrête avant le repère : la
+        // lecture réseau va l'amener. Se placer en bas maintenant, c'était
+        // se placer en bas pour de bon — le placement ne se rejoue pas.
+        return;
+      }
+      _hasCalculatedUnread = true;
+      if (!_aFaitLePlacementInitial) {
+        _aFaitLePlacementInitial = true;
+        // Le message peut ne pas être chargé : on ne se place alors pas
+        // dessus, mais le séparateur apparaîtra en remontant.
+        _scrollToUnreadOrBottom(rang == -1 ? null : rang, messages.length);
+      }
+      return;
+    }
+
+    // Le serveur a répondu « rien à lire » : pas de séparateur, et aucun repli
+    // sur les messages chargés ne doit en inventer un.
+    if (_repereFaitFoi) {
+      _hasCalculatedUnread = true;
+      if (!_aFaitLePlacementInitial) {
+        _aFaitLePlacementInitial = true;
+        _scrollToUnreadOrBottom(null, messages.length);
+      }
+      return;
+    }
+
+    // ── Replis : `repere_de_lecture` n'a pas répondu ─────────────────────────
+    // (réseau, ou migration pas encore appliquée). Tout ce qui suit se fonde
+    // sur les messages chargés, faute de mieux.
+
     final compte = compterNonLus(messages, currentUser.id);
     final unreadCount = compte.nombre;
     final firstUnreadIndex = compte.premier;
@@ -796,29 +915,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       return;
     }
 
-    // Rien dans l'état de lecture — attendu, il est déjà faussé. On regarde
-    // ce qui est arrivé depuis la dernière visite de cet appareil.
-    if (!_curseurReleve) return; // le relèvement rappellera
-
-    // Le serveur a désigné le repère : on le prend tel quel, sans rien
-    // déduire des messages chargés. C'est le seul chemin qui reste juste quand
-    // le premier non-lu est encore hors de la page.
-    final repere = _repereServeur;
-    if (repere != null) {
-      setState(() {
-        _unreadCountOnOpen = repere.nombre;
-        _firstUnreadMessageId = repere.id;
-        _hasCalculatedUnread = true;
-      });
-      if (!_aFaitLePlacementInitial) {
-        _aFaitLePlacementInitial = true;
-        // Le message peut ne pas être chargé : on ne se place alors pas
-        // dessus, mais le séparateur apparaîtra en remontant.
-        final rang = messages.indexWhere((m) => m.id == repere.id);
-        _scrollToUnreadOrBottom(rang == -1 ? null : rang, messages.length);
-      }
-      return;
-    }
     if (!_filVaJusquAuBout(messages)) {
       // Fil incomplet : ne rien poser. La fenêtre de recompte repassera dès
       // que la lecture réseau l'aura complété.
