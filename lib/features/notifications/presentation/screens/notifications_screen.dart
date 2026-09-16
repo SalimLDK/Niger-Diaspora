@@ -478,6 +478,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         break;
       case NotificationType.message:
       case NotificationType.messageReaction:
+      case NotificationType.messageMention:
         if (notification.targetId != null) {
           context.push('/messages/${notification.targetId}');
         }

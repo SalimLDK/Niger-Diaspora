@@ -119,6 +119,28 @@ class MlsMessageRow {
             : null,
       );
 
+  /// La même ligne, avec l'horodatage que le serveur lui a donné.
+  ///
+  /// [createdAt] est fabriqué localement au moment d'émettre, parce que
+  /// [toInsert] n'envoie pas `created_at` — la colonne a son défaut serveur.
+  /// Ce que le serveur a retenu ne se sait qu'au retour de l'insertion :
+  /// c'est là qu'on recolle la vraie valeur, et nulle part ailleurs.
+  MlsMessageRow avecCreatedAt(DateTime quand) => MlsMessageRow(
+        id: id,
+        conversationId: conversationId,
+        senderId: senderId,
+        senderDeviceId: senderDeviceId,
+        epoch: epoch,
+        kind: kind,
+        contentType: contentType,
+        ciphertext: ciphertext,
+        replyToId: replyToId,
+        isDeleted: isDeleted,
+        editedAt: editedAt,
+        createdAt: quand,
+        expiresAt: expiresAt,
+      );
+
   Map<String, dynamic> toInsert() => {
         'id': id,
         'conversation_id': conversationId,
@@ -424,9 +446,60 @@ class MlsDelivery {
 
   // ── Messages ─────────────────────────────────────────────────────────────
 
-  Future<void> publishMessage(MlsMessageRow row) async {
+  /// Insère le message et rend l'horodatage que **le serveur** lui a donné.
+  ///
+  /// `toInsert` n'envoie pas `created_at` : la colonne a son défaut serveur.
+  /// Sans ce retour, l'expéditeur gardait sa propre heure pour une ligne que
+  /// le serveur avait datée autrement — deux valeurs pour le même message,
+  /// écartées de la latence d'envoi, et rien pour dire laquelle fait foi.
+  ///
+  /// Ce que cet écart coûte, aux deux endroits qui comptent dessus :
+  ///
+  ///   - **l'échéance d'un message éphémère**, que `MlsMessageMapper` compte
+  ///     depuis `row.createdAt` en disant, juste à côté, que c'est « le seul
+  ///     horodatage que l'expéditeur ne choisit pas ». Pour ses propres
+  ///     messages, l'expéditeur le choisissait — et une horloge de téléphone
+  ///     décalée de quelques minutes, ce qui est banal, décalait d'autant la
+  ///     durée de vie réelle de la note.
+  ///   - **l'aperçu de la liste des discussions**, qui n'a que l'horodatage
+  ///     pour reconnaître dans le cache local le message que le serveur
+  ///     annonce comme le dernier. La latence seule ne suffisait pas à le
+  ///     casser — `MessageRepositoryImpl.apercuDepuisCache` tronque à la
+  ///     seconde, donc tolère l'aller-retour — mais un décalage d'horloge le
+  ///     casse, et la discussion retombe alors sur son libellé de type
+  ///     jusqu'au prochain rechargement du fil en ligne.
+  ///
+  /// La garde d'aperçu, elle, ne bouge pas : elle refuse un message caché qui
+  /// n'est pas le dernier, et elle a raison de le faire — un aperçu faux
+  /// serait pire qu'un libellé générique. C'est la valeur écrite qu'on
+  /// corrige, pas la comparaison.
+  ///
+  /// L'insertion et la relecture forment une seule requête PostgREST, donc
+  /// une seule transaction : pas de message inséré sans réponse de plus
+  /// qu'avant. `null` seulement si le serveur ne rend rien — l'appelant garde
+  /// alors son heure locale, comme avant, et n'y perd que l'aperçu.
+  ///
+  /// **Pas de `maybeSingle()` ici, et ce n'est pas un oubli.** Sur un POST, il
+  /// remplace l'`Accept` par `application/vnd.pgrst.object+json` pour réclamer
+  /// un objet nu, et sa correction de forme (« body is List » dans
+  /// `postgrest_builder`) ne couvre que les GET. Une réponse en tableau lève
+  /// donc un `type 'List<dynamic>' is not a subtype of 'Map'` — trouvé par
+  /// `mls_publish_created_at_test.dart` avant que ça ne parte sur un
+  /// téléphone. Ce serait un échec d'envoi annoncé pour un message **déjà
+  /// inséré**, donc un doublon à la reprise, pour un horodatage dont on sait
+  /// se passer. La forme liste n'a aucune de ces arêtes : zéro ligne est une
+  /// liste vide, pas un 406 rattrapé.
+  ///
+  /// Rien ici ne lève sur une réponse inattendue : la relecture est un
+  /// confort, l'insertion est le contrat.
+  Future<DateTime?> publishMessage(MlsMessageRow row) async {
     await _auth();
-    await _client.from('mls_messages').insert(row.toInsert());
+    final rendu = await _client
+        .from('mls_messages')
+        .insert(row.toInsert())
+        .select('created_at');
+    final quand = rendu.isEmpty ? null : rendu.first['created_at'];
+    return quand is String ? DateTime.tryParse(quand)?.toUtc() : null;
   }
 
   Future<List<MlsMessageRow>> messagesAfter(
