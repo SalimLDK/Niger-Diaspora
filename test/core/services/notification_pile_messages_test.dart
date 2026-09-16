@@ -94,6 +94,74 @@ void main() {
     });
   });
 
+  group('un même expéditeur qui envoie plusieurs messages', () {
+    test('les trois sont gardés, chacun avec son heure', () async {
+      final base = DateTime(2026, 9, 16, 9, 58);
+      for (var n = 0; n < 3; n++) {
+        await PileMessagesNotifiees.empiler(
+          conversationId: 'c1',
+          messageId: 'm$n',
+          texte: 'ligne $n',
+          expediteur: 'Alice',
+          expediteurId: 'uid-alice',
+          quand: base.add(Duration(minutes: n * 3)),
+        );
+      }
+      final pile = await PileMessagesNotifiees.lire('c1');
+      expect(pile.map((m) => m.texte), ['ligne 0', 'ligne 1', 'ligne 2']);
+      expect(pile.map((m) => texteHorodate(m.quand, m.texte)),
+          ['09:58 · ligne 0', '10:01 · ligne 1', '10:04 · ligne 2']);
+    });
+
+    test('ils portent tous la MÊME clé d’identité', () async {
+      // C'est par elle qu'Android regroupe les messages consécutifs d'une
+      // même personne sous un seul en-tête. Une clé qui change au milieu
+      // répèterait l'en-tête à chaque ligne.
+      for (var n = 0; n < 3; n++) {
+        await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm$n', texte: 't$n',
+          expediteur: 'Alice', expediteurId: 'uid-alice');
+      }
+      final cles = (await PileMessagesNotifiees.lire('c1'))
+          .map((m) => m.cleIdentite).toSet();
+      expect(cles, {'uid-alice'});
+    });
+
+    test('la clé tient même si le nom manque sur une charge', () async {
+      // En groupe, le chemin d'arrière-plan retombe sur le TITRE quand
+      // `senderName` manque — c'est-à-dire le nom du groupe. Sans identifiant,
+      // ce message-là se serait retrouvé sous un autre expéditeur au milieu
+      // de la pile.
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'a',
+          expediteur: 'Alice', expediteurId: 'uid-alice');
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm2', texte: 'b',
+          expediteur: 'Groupe Banc', expediteurId: 'uid-alice');
+      final cles = (await PileMessagesNotifiees.lire('c1'))
+          .map((m) => m.cleIdentite).toSet();
+      expect(cles, {'uid-alice'});
+    });
+
+    test('deux homónymes restent deux personnes', () async {
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'a',
+          expediteur: 'Sim A', expediteurId: 'uid-1');
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm2', texte: 'b',
+          expediteur: 'Sim A', expediteurId: 'uid-2');
+      final cles = (await PileMessagesNotifiees.lire('c1'))
+          .map((m) => m.cleIdentite).toSet();
+      expect(cles, {'uid-1', 'uid-2'});
+    });
+
+    test('une pile écrite AVANT ce champ retombe sur le nom', () async {
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'a', expediteur: 'Alice');
+      expect((await PileMessagesNotifiees.lire('c1')).single.cleIdentite, 'Alice');
+    });
+  });
+
   group('l’ordre est celui de la conversation', () {
     test('du plus ancien au plus récent, quel que soit l’ordre d’arrivée', () async {
       // Au retour du réseau, plusieurs messages arrivent d'un coup et pas
@@ -214,6 +282,9 @@ void main() {
       // Chaque ligne porte son heure, et pas le nom de son expéditeur en double.
       expect(corps, contains('texteHorodate(m.quand, m.texte)'));
       expect(corps, contains('sansPrefixeExpediteur(body,'));
+      // La clé d'identité vient de l'identifiant, pas du nom affiché.
+      expect(corps, contains('key: m.cleIdentite'));
+      expect(corps, contains("expediteurId: data['senderId']"));
     });
 
     test('ouvrir la conversation vide la pile', () {

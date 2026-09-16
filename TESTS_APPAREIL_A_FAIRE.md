@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1281 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
+**1284 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -60,7 +60,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 16 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 19 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -316,7 +316,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 127 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 130 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -9072,6 +9072,23 @@ ligne**. Il est retiré du texte, et seulement là où le serveur l'a mis.
 - [ ] **1:1** : le texte n'a rien perdu (aucun préfixe à retirer là).
 - [ ] **Message dont le texte commence par le nom de l'expéditeur** (« Alice a
   raison ») : rien n'est rogné.
+
+**Et le cas d'un même expéditeur qui enchaîne** : c'est là que la clé
+d'identité de la `Person` compte. Android regroupe les messages consécutifs
+d'une même personne sous un **seul** en-tête, et il le fait d'après cette clé.
+Elle était le **nom affiché** sur les deux chemins — deux membres d'un groupe
+peuvent le partager, et surtout il peut manquer dans une charge : le chemin
+d'arrière-plan retombait alors sur le TITRE de la bannière, c'est-à-dire le nom
+du groupe. Un message se serait retrouvé sous un expéditeur différent au milieu
+de la pile. C'est l'identifiant qui sert de clé désormais, le nom ne servant
+plus qu'à l'affichage.
+
+- [ ] **Trois messages d'affilée du même contact** : un seul en-tête à son nom,
+  trois lignes en dessous, chacune avec son heure.
+- [ ] **En groupe, deux personnes qui alternent** : les en-têtes alternent aussi,
+  et chaque bloc reste attribué à la bonne personne.
+- [ ] **Deux membres d'un groupe portant le même nom affiché** : ils ne sont pas
+  fondus en une seule personne.
 
 ---
 

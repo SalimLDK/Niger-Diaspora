@@ -55,6 +55,10 @@ class ActiveNotification {
   final String title;
   final String body;
   final String? senderName;
+
+  /// Identifiant de l'expéditeur — la clé d'identité de la `Person` Android.
+  /// Le nom ne suffit pas : deux membres d'un groupe peuvent le partager.
+  final String? senderId;
   final String? senderPhotoUrl;
   final DateTime timestamp;
   final String? messageType; // text, image, video, audio, document
@@ -64,6 +68,7 @@ class ActiveNotification {
     required this.title,
     required this.body,
     this.senderName,
+    this.senderId,
     this.senderPhotoUrl,
     required this.timestamp,
     this.messageType,
@@ -643,6 +648,7 @@ Future<void> _showFallbackMessageNotification({
     messageId: data['messageId'] as String? ?? '',
     texte: sansPrefixeExpediteur(body, data['senderName'] as String? ?? ''),
     expediteur: data['senderName'] as String? ?? title,
+    expediteurId: data['senderId'] as String? ?? '',
     quand: quand,
   );
   final estGroupe = data['conversationType'] == 'group';
@@ -659,7 +665,10 @@ Future<void> _showFallbackMessageNotification({
           m.quand,
           Person(
             name: m.expediteur.isEmpty ? 'Utilisateur' : m.expediteur,
-            key: m.expediteur,
+            // L'identifiant, pas le nom : c'est par cette clé qu'Android
+            // regroupe les messages consécutifs d'une même personne sous un
+            // seul en-tête. Voir `MessageEmpile.cleIdentite`.
+            key: m.cleIdentite,
           ),
         ),
     ],
@@ -2056,6 +2065,7 @@ class NotificationService {
         title: title,
         body: sansPrefixeExpediteur(body, senderName),
         senderName: senderName,
+        senderId: senderId,
         senderPhotoUrl: senderPhotoUrl,
         timestamp: heureDuMessage(data),
         // Voir `sansPrefixeExpediteur` : `MessagingStyle` porte déjà le nom.
@@ -2074,6 +2084,7 @@ class NotificationService {
         messageId: data['messageId'] as String? ?? '',
         texte: sansPrefixeExpediteur(body, senderName),
         expediteur: senderName,
+        expediteurId: senderId,
         quand: heureDuMessage(data),
       );
     }
@@ -2235,7 +2246,12 @@ class NotificationService {
         // Créer la Person pour l'expéditeur
         final person = await _getOrCreatePerson(
           name: notification.senderName ?? 'Utilisateur',
-          uniqueKey: notification.senderName ?? 'unknown',
+          // L'identifiant d'abord : c'est la clé de regroupement d'Android,
+          // et aussi celle du cache d'avatars. Deux membres d'un groupe
+          // peuvent porter le même nom.
+          uniqueKey: notification.senderId?.isNotEmpty == true
+              ? notification.senderId!
+              : (notification.senderName ?? 'unknown'),
           photoUrl: notification.senderPhotoUrl,
         );
 
