@@ -315,6 +315,78 @@ void main() {
     });
   });
 
+  group("A2 — ouvrir, c'est lire ce qui est à l'écran", () {
+    // Choix du 2026-09-16. Le mécanisme (le relevé après le saut) est éprouvé
+    // contre un vrai ListView par `releve_a_l_ecran_test.dart` ; ceci tient
+    // son branchement dans l'écran, qu'on ne peut pas monter.
+    late String source;
+
+    setUpAll(() {
+      source = File(
+        'lib/features/messages/presentation/screens/conversation_screen.dart',
+      ).readAsStringSync().replaceAll('\r\n', '\n');
+    });
+
+    String corpsDe(String debut, String fin) {
+      final i = source.indexOf(debut);
+      expect(i, isNot(-1), reason: '$debut introuvable');
+      final j = source.indexOf(fin, i + debut.length);
+      expect(j, isNot(-1), reason: '$fin introuvable après $debut');
+      return source.substring(i, j);
+    }
+
+    test('chaque sortie du placement initial pose la vue', () {
+      // Une sortie oubliée, et la vue n'est jamais posée : plus aucune bulle ne
+      // serait lue, ni à l'ouverture ni après (le filet de 6 s mis à part).
+      final corps = corpsDe('void _scrollToUnreadOrBottom(', 'void dispose()');
+      expect('_apresPlacement();'.allMatches(corps).length, 4);
+      // Et le saut d'abord : poser avant `jumpTo`, c'est lire la liste en bas.
+      expect(
+        corps.indexOf('_scrollController.jumpTo(targetPosition);'),
+        lessThan(corps.lastIndexOf('_apresPlacement();')),
+      );
+    });
+
+    test('aucun compte à rebours avant que la vue soit posée', () {
+      final corps = corpsDe('void _signalerVisibilite(', 'void _attendreAvantDeLire(');
+      final note = corps.indexOf('_aLEcran.noter(message, fraction);');
+      final verrou = corps.indexOf('if (!_aLEcran.vuePosee) return;');
+      final attente = corps.indexOf('_attendreAvantDeLire(message);');
+      expect(note, isNot(-1), reason: 'le relevé doit être tenu même avant la pose');
+      expect(verrou, greaterThan(note));
+      expect(attente, greaterThan(verrou));
+    });
+
+    test('une seule écriture pour tout l\'écran, après le relevé du repère', () {
+      final corps = corpsDe('void _lireCeQuiEstALEcran()', 'void _apresPlacement()');
+      expect(corps, contains('plusRecentALire('));
+      expect('_pousserCurseur()'.allMatches(corps).length, 1);
+      // `_pousserCurseur` attend lui-même la fin du relevé (voir « relever,
+      // PUIS marquer ») : pas de second chemin d'écriture ici.
+      expect(corps, isNot(contains('avancerJusqua(')));
+      expect(corps, isNot(contains('avancerCurseur(')));
+    });
+
+    test('gardes refusées : les comptes à rebours ordinaires, pas rien', () {
+      // Refuser sans rien armer, c'était ne plus jamais lire ces bulles : leur
+      // visibilité ne changera plus.
+      final corps = corpsDe('void _lireCeQuiEstALEcran()', 'void _apresPlacement()');
+      final garde = corps.indexOf('if (!_isAppInForeground || !_estAffichee) {');
+      expect(garde, isNot(-1));
+      expect(corps.indexOf('_attendreAvantDeLire(message);'), greaterThan(garde));
+    });
+
+    test('le retour au premier plan relit ce qui est à l\'écran', () {
+      final corps = corpsDe('void didChangeAppLifecycleState(', 'void _onScroll()');
+      expect(corps, contains('if (_aLEcran.vuePosee) _lireCeQuiEstALEcran();'));
+    });
+
+    test('un filet pose la vue si le placement n\'arrive jamais', () {
+      expect(source, contains('_filetPlacement = Timer(_fenetreRecompteNonLus, _apresPlacement);'));
+      expect(corpsDe('void dispose() {', 'super.dispose();'), contains('_filetPlacement?.cancel();'));
+    });
+  });
+
   group('rangDesDerniersDAutrui', () {
     // Quand `markAsRead` a déjà tout marqué lu — il part au premier rendu,
     // avant même que le fil chiffré ne soit récupéré — l'état de lecture ne

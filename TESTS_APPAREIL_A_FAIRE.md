@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1369 cases à cocher, 642 cochées** — 269 entrées sur 318 ont encore des cases ouvertes.
+**1376 cases à cocher, 642 cochées** — 270 entrées sur 319 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -87,7 +87,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (92)
+**P1 — fonction importante, jamais vérifiée** (93)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -99,6 +99,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 7 · [⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)](#-ouvrir-une-discussion-lit-ce-qui-est-à-lécran-tout-de-suite-2026-09-16) · *Messagerie*
 - 6 · [⬜ Lecture par curseur dans les discussions en clair (2026-09-16)](#-lecture-par-curseur-dans-les-discussions-en-clair-2026-09-16) · *Messagerie*
 - 5 · [⬜ « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16)](#--message-chiffré--qui-ne-sen-va-pas-dans-la-liste-2026-09-16) · *Messagerie*
 - 5 · [✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16)](#-curseur-de-lecture-et-séparateur--nouveaux-messages--2026-09-16) · *Messagerie*
@@ -327,7 +328,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 313 à faire, 124 faites
+- [2. Messagerie](#2-messagerie) — 320 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -586,6 +587,53 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)
+
+**Priorité P1** · importance 4/5 — le « Lu » à l'ouverture change de rythme :
+ce qui est affiché une fois la vue posée est lu **immédiatement**, sans les
+400 ms + 700 ms qui protègent un défilement. Ce qui est sous le pli reste non
+lu (choix A2).
+*Bloqué en partie : dans une discussion **en clair**, tant que la migration
+`20260916224700` n'est pas appliquée, l'app replie sur l'ancien marquage global
+— l'ouverture y marque donc TOUT, sous le pli compris. Les discussions
+**chiffrées** (MLS) sont vérifiables dès maintenant.*
+
+La difficulté n'était pas le délai mais la question « qu'est-ce qui est à
+l'écran ? » : `VisibilityDetector` ne rapporte que les changements, par lots de
+500 ms, et la liste s'ouvre en bas avant de sauter au premier non-lu. Le relevé
+([releve_a_l_ecran.dart](lib/features/messages/presentation/utils/releve_a_l_ecran.dart))
+attend l'image qui applique le saut, vide les rapports en attente, puis lit.
+Éprouvé contre un vrai `ListView` inversé par `releve_a_l_ecran_test.dart`
+(saut avant ET après le premier lot de rapports ; retirer `notifyNow` ou
+l'attente de l'image fait tomber les cas de saut).
+
+Même mécanisme au **retour au premier plan** : un message arrivé pendant que
+l'app était en arrière-plan voyait son compte à rebours refusé, et restait non
+lu sous les yeux tant qu'on ne défilait pas — la visibilité ne changeant pas,
+rien ne le relançait. Défaut déduit du code et du paquet, jamais observé.
+
+Recette : `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`.
+
+- [ ] **Ouverture, discussion chiffrée** : A envoie 12 messages à B ; B ouvre
+      → `read_at` posé **en moins d'une seconde** sur les bulles affichées,
+      nul sur celles sous le pli.
+- [ ] **Ouverture avec saut au premier non-lu** : les derniers messages, vus
+      une fraction de seconde avant le saut, ne sont PAS marqués (le cas que le
+      relevé est fait pour éviter).
+- [ ] **Côté A** : « Lu » apparaît sur les bulles affichées chez B, « Envoyé »
+      ou « Distribué » sur les autres.
+- [ ] **Retour au premier plan** : B garde la discussion ouverte, passe l'app
+      en arrière-plan, A écrit, B revient → le message visible passe à « Lu »
+      sans que B touche l'écran.
+- [ ] **Une seule écriture à l'ouverture** : dans les journaux d'API Supabase,
+      un seul appel d'avancée du curseur (et un seul `marquer_lus_jusqua` une
+      fois la migration appliquée), pas un par bulle.
+- [ ] **Discussion vide à l'ouverture**, puis un premier message reçu : il est
+      bien lu (filet de 6 s si le placement n'a pas eu lieu).
+- [ ] **En clair, après la migration** : mêmes cases que ci-dessus.
 
 ---
 
