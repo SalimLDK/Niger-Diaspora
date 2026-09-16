@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1302 cases à cocher, 637 cochées** — 256 entrées sur 305 ont encore des cases ouvertes.
+**1323 cases à cocher, 637 cochées** — 260 entrées sur 309 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (37)
+**P0 — avant toute nouvelle version** (39)
 
+- 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
@@ -69,6 +70,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
+- 4 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
 - 9 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
@@ -174,7 +176,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (78)
+**P2 — fonction secondaire ou cas limite** (80)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -185,6 +187,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 4 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
+- 6 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
 - 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
 - 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
@@ -314,7 +318,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 286 à faire, 124 faites
+- [2. Messagerie](#2-messagerie) — 307 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -576,6 +580,55 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)
+
+**Priorité P0** · importance 5/5 — jusqu'au 2026-09-16, **tout participant
+d'une conversation pouvait réécrire le texte du message de n'importe qui
+d'autre**, par PostgREST. Vérifié en production, puis corrigé et redéployé le
+jour même (migration `20260916210000`). Le correctif touche le chemin
+d'écriture de TOUTE la messagerie : ce qui doit être vérifié ici, ce n'est pas
+l'attaque — le banc SQL la couvre — mais que **rien de légitime n'a été
+emporté**.
+
+La policy `messages_update` laissait passer n'importe quel participant, et
+`authenticated` avait l'`UPDATE` au niveau table, donc sur toutes les colonnes.
+La recette habituelle (`GRANT UPDATE (colonne, …)`) ne s'applique pas ici :
+`messages` n'a que sept colonnes et tout ce qui bouge après l'envoi vit dans
+une seule, `data` (jsonb) — le contenu de l'expéditeur et les accusés des
+destinataires dans le même sac. D'où un déclencheur `BEGIN UPDATE` qui borne
+les **clés** de `data` qu'un non-expéditeur peut faire bouger, en plus du
+`REVOKE` + `GRANT UPDATE (data, is_deleted)`.
+
+**La régression à craindre est muette** : si les accusés cassent, le « Lu »
+cesse simplement d'arriver — aucune erreur, aucun journal, rien à l'écran. Un
+seul téléphone ne peut pas le voir. D'où deux appareils, obligatoirement.
+
+Couvert côté serveur par
+[tools/rls_tests/droits_update_messages.sql](tools/rls_tests/droits_update_messages.sql)
+(20 cas, 0 en échec en production ; retirer le déclencheur en fait tomber 10).
+Le banc prouve les droits, pas l'affichage — d'où cette entrée.
+
+- [ ] **Accusé de lecture, deux téléphones** : A écrit à B, B ouvre la
+      discussion → la coche passe à « Lu » chez A, en quelques secondes
+- [ ] **Accusé de livraison** : B reçoit sans ouvrir (app en arrière-plan) →
+      la coche « remis » apparaît chez A
+- [ ] **Modifier son propre message** : A modifie, le nouveau texte tient
+      après un retour arrière et une relecture (voir « Modifier un message en
+      ligne »)
+- [ ] **Réaction** : B réagit au message de A → l'emoji apparaît des deux
+      côtés
+- [ ] **Favori / signalement / supprimer pour moi** sur le message d'un
+      **autre** : les trois passent toujours (ce sont les seules écritures
+      qu'un non-expéditeur garde)
+- [ ] **Modération** : dans un groupe, un admin fait « supprimer pour tout le
+      monde » sur le message d'un membre → la bulle passe à « message
+      supprimé » chez les deux
+- [ ] **Conversation chiffrée (MLS)** : les accusés et la modification s'y
+      comportent pareil — `mls_messages` est une autre table, avec ses propres
+      droits, et n'a pas été touchée par cette migration
+
+---
+
 ## ⬜ « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16)
 
 **Priorité P1** · importance 4/5 — signalé sur Pixel 10 Pro XL le 2026-09-16,
@@ -688,6 +741,120 @@ Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens
 - [ ] **La latence d'affichage des accusés côté expéditeur** : la base disait
   `read_at` posé alors que l'écran de Sim A montrait encore « Envoyé ». Le
   curseur n'est pas en cause — c'est le temps réel sur `mls_message_receipts`.
+
+---
+
+## ⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)
+
+**Priorité P0** · importance 4/5 — signalé à l'usage le 2026-09-16, juste après le déploiement de `gif-proxy` : « les gifs/stickers ne s'affichent pas dans les messages ». Deux messages `sticker` partis en MLS à 05:05 UTC, tous deux muets à l'écran.
+
+`MlsMessageMapper` ne lisait `fileUrl` que depuis `body['storagePath']`, qui
+n'existe que pour un média chiffré. Un sticker — et un GIF, qui emprunte le
+même transport — porte son URL dans `body['stickerUrl']` : l'entité sortait
+avec `fileUrl == null`, et `StickerBubble` n'affichait qu'un cadre « image
+cassée ». `isAnimated` n'était pas relu non plus.
+
+**L'expéditeur voyait la même chose** : sa propre copie est remappée depuis ce
+payload dès l'accusé d'envoi. Aucune erreur, aucun journal — le message part,
+s'affiche, et ne montre rien. C'est la deuxième perte de champ du même mapper
+(voir `mediaChiffre`, corrigé la veille) : d'où un banc par champ,
+[mls_sticker_gif_test.dart](test/features/messages/mls_sticker_gif_test.dart),
+qui échoue si la ligne saute.
+
+Les deux messages déjà envoyés portent l'URL dans leur payload chiffré : ils
+s'afficheront correctement au prochain build, sans rien réémettre.
+
+- [ ] **Envoyer un GIF dans une conversation basculée MLS** : la vignette
+      s'affiche chez l'expéditeur **et** chez le destinataire
+- [ ] **Les deux GIFs du 2026-09-16** (05:05 UTC) s'affichent après mise à
+      jour, au lieu du cadre cassé
+- [ ] **Sticker animé** : l'animation joue, elle ne se fige pas sur la
+      première trame (`isAnimated` relu)
+- [ ] **Conversation non basculée** : toujours bon — ce chemin-là passait par
+      `data->>'fileUrl'` et n'a jamais été touché
+
+---
+
+## ⬜ Forme de la bulle qui cite un message (2026-09-16)
+
+**Priorité P2** · importance 3/5 — signalé sur capture : une réponse courte à
+un message court donnait un bloc **plus haut que large**, où la citation se
+lisait comme une étiquette posée à côté du message plutôt que comme le message
+cité. Trois changements dans `message_bubble.dart` :
+
+- un plancher de largeur (52 % de l'écran, plafonné à 240) dès qu'il y a une
+  citation ;
+- la citation étirée sur toute la largeur de la bulle — par `IntrinsicWidth`,
+  **réservé au texte** : `AudioMessageBubble` et `AudioFileBubble` contiennent
+  un `LayoutBuilder`, qui lève au lieu de rendre une dimension intrinsèque ;
+- un aplat translucide sous la citation de la bulle envoyée (le filet seul ne
+  la détachait pas), un filet de 3 px, et 12 px d'air en moins entre la
+  citation et le texte.
+
+La forme est fixée par `test/features/messages/bulle_citation_forme_test.dart`
+et a été regardée en golden jetable (« Aperçu UI sans build »). Ce qu'un
+golden ne dit pas :
+
+- [ ] **Thème sombre** : l'aplat blanc à 14 % sur le vert `#009600` — détaché
+  sans virer au laiteux.
+- [ ] **Échelle de police à 130 %** (réglages Android) : la citation tient sur
+  ses deux lignes, la bulle ne déborde pas. Voir « Échelle de police ».
+- [ ] **Réponse à une photo, puis à une note vocale** : ces bulles passent par
+  le chemin SANS `IntrinsicWidth` — la citation ne s'y étire pas, et rien ne
+  doit lever.
+- [ ] **Bulle reçue** portant une citation, en clair et en sombre.
+
+---
+
+## ⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)
+
+**Priorité P2** · importance 3/5 — le geste a été refait en entier, sur
+demande. Rien n'est vérifié sur un vrai téléphone : tout ce qui suit vient de
+`flutter test` et d'un aperçu de rendu.
+
+**Ce qui a changé.** La boîte de dialogue disparaît : la saisie se fait dans la
+barre du bas, sous un bandeau « Modifier le message » qui reprend le gabarit de
+celui de la réponse. La fenêtre passe de 25 min à 48 h
+(`MessageEntity.fenetreModification` — **rien ne l'impose côté serveur**, la
+policy `messages_update` ne connaît pas le temps). Hors fenêtre, l'entrée de
+menu reste **visible mais désactivée**, avec le motif en sous-titre, au lieu de
+disparaître. Et chaque échec porte enfin sa cause : avant, coupure réseau,
+refus serveur et échec de la passerelle MLS s'annonçaient tous « Le délai de
+modification est expiré (25 min) ».
+
+- [ ] **Le brouillon survit.** C'est le point à vérifier en premier, parce
+  qu'il se perd en silence : écrire un début de message SANS l'envoyer, entrer
+  en modification sur un message plus haut, ressortir par la croix — le
+  brouillon doit être revenu intact dans le champ. Puis recommencer en
+  **quittant la discussion** en pleine modification : à la réouverture, c'est
+  le brouillon qui doit être là, jamais le texte du message modifié. Tenu par
+  `test/features/messages/modifier_message_test.dart`, mais le cycle de vie
+  réel de l'écran n'est pas celui du banc.
+- [ ] **Le clavier.** Le bandeau ajoute une ligne au-dessus du composeur :
+  vérifier qu'aucun débordement n'apparaît, clavier ouvert, en portrait puis
+  en **paysage** — c'est là que le composeur est déjà le plus serré (voir
+  « Paysage — overflow quand le chrome dépasse la hauteur »).
+- [ ] **Le bouton.** En modification il doit porter une coche, jamais le micro,
+  et un appui long ne doit **pas** lancer un enregistrement vocal. Grisé tant
+  que le champ est vide.
+- [ ] **Message d'hier.** Un message de la veille doit encore se modifier
+  (c'était le cas le plus courant refusé par la fenêtre de 25 min). Un message
+  de plus de 48 h doit montrer l'entrée **grisée**, avec « Passé 48 h, un
+  message ne se modifie plus » en sous-titre.
+- [ ] **Les motifs, en vrai.** Couper le réseau et tenter une modification :
+  le message affiché doit parler de connexion, pas de délai. Puis dans une
+  conversation **basculée en MLS**, vérifier qu'une modification aboutit
+  réellement — la passerelle passe par un message de contrôle chiffré, et
+  l'échec y était particulièrement trompeur.
+- [ ] **« Infos » dit quand.** Le panneau d'informations d'un message modifié
+  doit afficher « Modifié · <date> », et « Modifié N fois · <date> » au-delà
+  d'une modification. Le texte d'avant n'est **pas** conservé : il n'y a pas
+  d'historique de versions à attendre là.
+
+Fichiers : `lib/features/messages/presentation/widgets/message_input.dart`,
+`message_bubble.dart`, `message_info_sheet.dart`,
+`lib/features/messages/presentation/screens/conversation_screen.dart`,
+`lib/features/messages/domain/entities/message_entity.dart`.
 
 ---
 
