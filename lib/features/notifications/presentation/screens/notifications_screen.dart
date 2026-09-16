@@ -207,9 +207,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             NotificationType.friendRequest,
             NotificationType.friendRequestAccepted,
             NotificationType.friendAccepted,
-            NotificationType.newFollower,
-            NotificationType.nearbyMember,
-            NotificationType.proximityAlert,
           };
 
           // Pas de notification de messagerie ici : la requête les écarte
@@ -346,13 +343,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     NotificationType.friendRequest,
     NotificationType.friendRequestAccepted,
     NotificationType.friendAccepted,
-    NotificationType.newFollower,
-    NotificationType.newMember,
     NotificationType.groupInvite,
     NotificationType.groupJoinRequest,
     NotificationType.eventAttendance,
-    NotificationType.nearbyMember,
-    NotificationType.proximityAlert,
     // Les vraies mentions, justement : elles n'existaient pas encore comme
     // type quand ce filtre a été écrit.
     NotificationType.mentioned,
@@ -481,8 +474,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     switch (notification.type) {
       // Location-based notifications -> navigate to map
       case NotificationType.localEvent:
-      case NotificationType.nearbyMember:
-      case NotificationType.proximityAlert:
         context.push('/map');
         break;
       case NotificationType.message:
@@ -492,7 +483,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         }
         break;
       case NotificationType.groupInvite:
-      case NotificationType.newMember:
       case NotificationType.groupJoinRequest:
       case NotificationType.groupRequestApproved:
       case NotificationType.groupRequestRejected:
@@ -509,7 +499,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           context.push('/events/${notification.targetId}');
         }
         break;
-      case NotificationType.newFollower:
       case NotificationType.friendRequest:
       case NotificationType.friendRequestAccepted:
       case NotificationType.friendAccepted:
@@ -524,6 +513,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.orderDelivered:
       case NotificationType.orderCancelled:
       case NotificationType.orderCompleted:
+      case NotificationType.orderShippingReminder:
         // All order-related notifications go to my orders
         context.push('/marketplace/my-orders');
         break;
@@ -535,6 +525,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.groupMention:
       case NotificationType.postCommented:
       case NotificationType.commentReply:
+      case NotificationType.postLiked:
+      case NotificationType.postReposted:
         if (notification.targetId != null) {
           context.push('/feed/${notification.targetId}');
         } else {
@@ -544,6 +536,29 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.reportResolved:
       case NotificationType.groupCallInvitation:
       case NotificationType.general:
+      // Écrits par les Cloud Functions et par les diffusions d'annonce. Aucun
+      // n'a d'écran dédié atteignable depuis ici : leur `data` ne porte pas
+      // d'identifiant de transfert ni de salon, seulement de quoi rédiger le
+      // texte. La fiche de la notification est donc la bonne destination —
+      // ce qu'ils faisaient déjà en se repliant sur `general`, mais sous un
+      // libellé qui ne disait rien.
+      case NotificationType.system:
+      case NotificationType.supportReply:
+      case NotificationType.missedCall:
+      case NotificationType.audioRoomReminder:
+      case NotificationType.audioRoomLive:
+      case NotificationType.audioRoomInvite:
+      case NotificationType.podcastNewEpisode:
+      case NotificationType.podcastLiveNow:
+      case NotificationType.transferReminder:
+      case NotificationType.transferReceived:
+      case NotificationType.transferCompleted:
+      case NotificationType.transferFailed:
+      case NotificationType.transfer:
+      case NotificationType.paymentFailed:
+      case NotificationType.payout:
+      case NotificationType.payoutFailed:
+      case NotificationType.stripeAccountEnabled:
         // Pas de destination propre : la fiche de la notification reste plus
         // utile qu'un appui sans effet — c'est précisément ce que faisait
         // `general` avant, et rien ne distinguait à l'écran une notification

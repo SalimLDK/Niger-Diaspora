@@ -1135,6 +1135,13 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
           'reportId': reportId,
           'resolution': resolution,
           'contentRemoved': contentRemoved,
+          // Les deux écritures de la cible, comme partout ailleurs :
+          // `NotificationSupabaseDataSource.fromRow` essaie `targetId` puis
+          // `target_id`, et `NotificationReadSync` ne sait marquer lue qu'une
+          // notification dont il retrouve la cible. Sans elles, celle-ci
+          // restait non lue pour toujours.
+          'targetId': reportId,
+          'target_id': reportId,
         },
       });
 

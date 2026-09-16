@@ -26,8 +26,6 @@ enum NotificationType {
   message,
   groupInvite,
   eventReminder,
-  newFollower,
-  newMember,
   eventUpdate,
   // Friend request notifications
   friendRequest,
@@ -37,10 +35,12 @@ enum NotificationType {
   groupJoinRequest,
   groupRequestApproved,
   groupRequestRejected,
-  // Location-based notifications
+  // Location-based notifications. `nearbyMember` et `proximityAlert` en
+  // faisaient partie : retirés le 2026-09-16, personne ne les écrivait — pas
+  // plus que `newFollower` ni `newMember`, retirés en même temps. Ils
+  // occupaient cinq `switch` et trois listes de filtres, et donnaient à lire
+  // une liste de types deux fois plus riche que ce que l'app produit.
   localEvent,
-  nearbyMember,
-  proximityAlert,
   // Event attendance
   eventAttendance,
   // Order notifications
@@ -75,6 +75,51 @@ enum NotificationType {
   // officiel (`ouvrir_groupe_de_ville`). Rien n'est ajouté d'office — la
   // fiche du groupe porte le choix.
   cityGroupInvite,
+  // ---------------------------------------------------------------------
+  // Ajoutés le 2026-09-16. Tous étaient DÉJÀ écrits, par le client, par un
+  // déclencheur SQL ou par une Cloud Function, et aucun n'était ici :
+  // `_parseNotificationType` les repliait sur `general`. Conséquence visible,
+  // sans la moindre erreur nulle part : libellé « Général » dans la liste, et
+  // pour ceux qui ont une destination, un appui qui ouvre la fiche de la
+  // notification au lieu du contenu.
+  //
+  // Le banc `notification_types_couverts_test.dart` relit maintenant les
+  // écrivains (Dart, migrations, `functions/index.js`) et exige que chaque
+  // type émis figure ici. C'est lui qui empêche l'écart de revenir, plus
+  // sûrement que cette liste.
+  // ---------------------------------------------------------------------
+  // Fil : `feed_provider._notifyPostAuthor`.
+  postLiked,
+  postReposted,
+  // Diffusion d'annonce, insérée en SQL. 37 lignes en production le
+  // 2026-09-15 — l'annonce « Vos messages bientôt chiffrés » —, toutes
+  // affichées « Général ». C'est aussi le seul type qui respecte la bascule
+  // « Messages système » côté `send-push`.
+  system,
+  // Appels.
+  missedCall,
+  // Salons audio et podcasts.
+  audioRoomReminder,
+  audioRoomLive,
+  audioRoomInvite,
+  podcastNewEpisode,
+  podcastLiveNow,
+  // Transferts d'argent.
+  transferReminder,
+  transferReceived,
+  // Générique, écrit par `onTransferStatusChanged` : le libellé du titre dit
+  // s'il a abouti ou non.
+  transfer,
+  transferCompleted,
+  transferFailed,
+  // Place de marché et paiements (Stripe).
+  orderShippingReminder,
+  paymentFailed,
+  payout,
+  payoutFailed,
+  stripeAccountEnabled,
+  // Réponse du support.
+  supportReply,
 }
 
 /// Types que l'écran Notifications n'affiche pas, et que la pastille de la
@@ -106,10 +151,6 @@ extension NotificationTypeExtension on NotificationType {
         return 'Invitation groupe';
       case NotificationType.eventReminder:
         return 'Rappel événement';
-      case NotificationType.newFollower:
-        return 'Nouveau follower';
-      case NotificationType.newMember:
-        return 'Nouveau membre';
       case NotificationType.eventUpdate:
         return 'Mise à jour événement';
       case NotificationType.friendRequest:
@@ -125,10 +166,6 @@ extension NotificationTypeExtension on NotificationType {
         return 'Demande refusée';
       case NotificationType.localEvent:
         return 'Événement local';
-      case NotificationType.nearbyMember:
-        return 'Membre à proximité';
-      case NotificationType.proximityAlert:
-        return 'Alerte proximité';
       case NotificationType.eventAttendance:
         return 'Nouvelle participation';
       case NotificationType.order:
@@ -163,6 +200,45 @@ extension NotificationTypeExtension on NotificationType {
         return 'Groupe de votre ancien pays';
       case NotificationType.cityGroupInvite:
         return 'Groupe de votre ville';
+      case NotificationType.postLiked:
+        return 'Nouveau j\'aime';
+      case NotificationType.postReposted:
+        return 'Repartage';
+      case NotificationType.system:
+        return 'Message système';
+      case NotificationType.missedCall:
+        return 'Appel manqué';
+      case NotificationType.audioRoomReminder:
+      case NotificationType.audioRoomLive:
+        return 'Salon audio';
+      case NotificationType.audioRoomInvite:
+        return 'Invitation à un salon';
+      case NotificationType.podcastNewEpisode:
+        return 'Nouvel épisode';
+      case NotificationType.podcastLiveNow:
+        return 'Podcast en direct';
+      case NotificationType.transferReminder:
+        return 'Rappel de transfert';
+      case NotificationType.transferReceived:
+        return 'Transfert reçu';
+      case NotificationType.transfer:
+        return 'Transfert';
+      case NotificationType.transferCompleted:
+        return 'Transfert effectué';
+      case NotificationType.transferFailed:
+        return 'Transfert échoué';
+      case NotificationType.orderShippingReminder:
+        return 'Expédition à faire';
+      case NotificationType.paymentFailed:
+        return 'Paiement refusé';
+      case NotificationType.payout:
+        return 'Virement effectué';
+      case NotificationType.payoutFailed:
+        return 'Virement échoué';
+      case NotificationType.stripeAccountEnabled:
+        return 'Compte de paiement actif';
+      case NotificationType.supportReply:
+        return 'Réponse du support';
     }
   }
 
@@ -176,10 +252,6 @@ extension NotificationTypeExtension on NotificationType {
         return 'group_add';
       case NotificationType.eventReminder:
         return 'event';
-      case NotificationType.newFollower:
-        return 'person_add';
-      case NotificationType.newMember:
-        return 'person';
       case NotificationType.eventUpdate:
         return 'update';
       case NotificationType.friendRequest:
@@ -195,10 +267,6 @@ extension NotificationTypeExtension on NotificationType {
         return 'cancel';
       case NotificationType.localEvent:
         return 'location_on';
-      case NotificationType.nearbyMember:
-        return 'person_pin';
-      case NotificationType.proximityAlert:
-        return 'radar';
       case NotificationType.eventAttendance:
         return 'event_available';
       case NotificationType.order:
@@ -232,6 +300,38 @@ extension NotificationTypeExtension on NotificationType {
         return 'groups';
       case NotificationType.cityGroupInvite:
         return 'groups';
+      case NotificationType.postLiked:
+        return 'favorite';
+      case NotificationType.postReposted:
+        return 'repeat';
+      case NotificationType.system:
+        return 'campaign';
+      case NotificationType.missedCall:
+        return 'call_missed';
+      case NotificationType.audioRoomReminder:
+      case NotificationType.audioRoomLive:
+      case NotificationType.audioRoomInvite:
+        return 'mic';
+      case NotificationType.podcastNewEpisode:
+      case NotificationType.podcastLiveNow:
+        return 'podcasts';
+      case NotificationType.transferReminder:
+      case NotificationType.transferReceived:
+      case NotificationType.transferCompleted:
+      case NotificationType.transfer:
+        return 'payments';
+      case NotificationType.transferFailed:
+      case NotificationType.paymentFailed:
+      case NotificationType.payoutFailed:
+        return 'error_outline';
+      case NotificationType.orderShippingReminder:
+        return 'local_shipping';
+      case NotificationType.payout:
+        return 'account_balance';
+      case NotificationType.stripeAccountEnabled:
+        return 'verified';
+      case NotificationType.supportReply:
+        return 'support_agent';
     }
   }
 }

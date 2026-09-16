@@ -128,9 +128,6 @@ class UnreadNotificationsCount extends _$UnreadNotificationsCount {
       NotificationType.friendRequest,
       NotificationType.friendRequestAccepted,
       NotificationType.friendAccepted,
-      NotificationType.newFollower,
-      NotificationType.nearbyMember,
-      NotificationType.proximityAlert,
     };
 
     final quiMOntBloque =
