@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1261 cases à cocher, 619 cochées** — 251 entrées sur 300 ont encore des cases ouvertes.
+**1270 cases à cocher, 619 cochées** — 252 entrées sur 301 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (35)
+**P0 — avant toute nouvelle version** (36)
 
 - 7 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
@@ -60,6 +60,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
+- 9 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -313,7 +314,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 111 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 120 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -8721,6 +8722,61 @@ en solo.
 # 6. Notifications et push
 
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
+
+---
+
+## ⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)
+
+**Priorité P0** · importance 5/5 — Quand l'application est en arrière-plan ou
+fermée — c'est-à-dire quand une notification sert vraiment — la bannière est
+posée par `_showFallbackMessageNotification`, sous le couple
+`(tag: 'msg_<conversation>', id: 0)`. **Android identifie une notification par
+ce couple** : chaque message écrasait le précédent. Un seul lisible, aucun
+compteur, et rien qui dise que les autres ont existé. Vaut autant pour
+plusieurs messages d'une même personne que pour un groupe qui s'anime.
+
+Le chemin premier plan, lui, savait empiler depuis toujours
+(`MessagingStyle`, `_activeGroups`) — mais son cache vit **en mémoire dans le
+singleton**, et l'isolate de notification ne le voit pas. C'est l'endroit où
+l'empilement servait le moins qui l'avait, et l'endroit où il sert le plus qui
+ne l'avait pas.
+
+D'où une pile en `SharedPreferences` — le seul état que les deux isolates
+partagent — lue par l'arrière-plan pour construire un `MessagingStyle`, et
+**alimentée aussi par le premier plan** pour que l'historique ne reparte pas
+de zéro quand l'application passe en arrière-plan.
+
+Elle se vide dès que la conversation est vue (ouverture, retrait depuis un
+autre appareil), plafonne à 6 messages, ignore un même `messageId` empilé deux
+fois (un push peut arriver en double), oublie ce qui a plus de 24 h, et
+disparaît entièrement à la déconnexion — elle porte du texte en clair.
+
+Vérifié hors appareil : 13 cas dans
+`test/core/services/notification_pile_messages_test.dart`. **Rien n'a tourné
+sur un téléphone, et c'est un comportement qui ne se juge qu'à l'écran.**
+
+Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile_messages.dart),
+[notification_service.dart](lib/core/services/notification_service.dart)
+(`_showFallbackMessageNotification`, `clearConversationNotifications`).
+
+- [ ] **App tuée, cinq messages de la même personne** : une seule bannière,
+  qui les montre **tous**, avec le compteur à 5.
+- [ ] **Groupe qui s'anime, app tuée** : la bannière porte le nom du groupe en
+  titre et **chaque message précédé de son expéditeur**.
+- [ ] **Ouvrir la conversation, puis recevoir un nouveau message** : la
+  bannière ne montre QUE le nouveau — les lus ne reviennent pas.
+- [ ] **Deux conversations en parallèle** : deux bannières distinctes, chacune
+  avec sa propre pile.
+- [ ] **Pastille du lanceur** (Samsung, Xiaomi) : le chiffre suit le nombre de
+  messages en attente, pas « 1 ».
+- [ ] **Passer du premier plan à l'arrière-plan en cours de conversation** :
+  les messages vus au premier plan figurent encore dans la bannière suivante.
+- [ ] **Même message poussé deux fois** (couper/rétablir le réseau) : une
+  seule ligne dans la bannière.
+- [ ] **Se déconnecter** : plus aucun texte de message dans les préférences
+  (`notif_pile_*`).
+- [ ] **Appui sur la bannière empilée** : ouvre la bonne conversation, et la
+  bannière disparaît.
 
 ---
 

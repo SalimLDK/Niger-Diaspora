@@ -23,6 +23,7 @@ import 'e2ee/notification_decryption_service.dart';
 import 'background_location_service.dart';
 import 'background_reply_service.dart';
 import 'notification_pref_keys.dart';
+import 'notification_pile_messages.dart';
 import 'native_call_service.dart';
 import 'notification_read_sync.dart';
 import '../../l10n/app_localizations.dart';
@@ -101,6 +102,13 @@ class NotificationGroup {
 }
 
 /// Constantes pour les actions de notification
+/// Préfixe du groupe Android des notifications de messagerie.
+///
+/// Une conversation = un groupe. Les deux chemins d'affichage — l'isolate
+/// d'arrière-plan et le premier plan — doivent poser le MÊME, sinon la même
+/// conversation se retrouve dans deux groupes selon l'état de l'application.
+const String kPrefixeGroupeMessages = 'messages_';
+
 const String kReplyActionId = 'reply_action';
 const String kMarkReadActionId = 'mark_read_action';
 
@@ -417,6 +425,10 @@ Future<void> _cancelNotificationsForConversation(
   String conversationId,
   int? currentNotificationId,
 ) async {
+  // Même raison qu'à l'ouverture : la bannière retirée ici ne doit pas
+  // revenir avec son contenu au message suivant.
+  await PileMessagesNotifiees.vider(conversationId);
+
   final localNotifications = FlutterLocalNotificationsPlugin();
 
   // Initialiser les notifications locales pour le background
@@ -564,6 +576,40 @@ Future<void> _showFallbackMessageNotification({
   // SDK Firebase au lieu de la remplacer — deux bannières pour un message.
   // Le SDK poste sous l'id 0 dès qu'un tag est fourni : on s'aligne dessus.
   const notifId = 0;
+
+  // Empiler au lieu de remplacer.
+  //
+  // Ce couple (tag, id) est ce par quoi Android identifie une notification :
+  // le message suivant ÉCRASAIT le précédent. Cinq messages reçus, un seul
+  // lisible, aucun compteur. Le chemin premier plan savait déjà empiler, mais
+  // son cache vit en mémoire dans le singleton — cet isolate-ci ne le voit
+  // pas. D'où la pile en `SharedPreferences`, le seul état partagé.
+  final pile = await PileMessagesNotifiees.empiler(
+    conversationId: conversationId,
+    messageId: data['messageId'] as String? ?? '',
+    texte: body,
+    expediteur: data['senderName'] as String? ?? title,
+  );
+  final estGroupe = data['conversationType'] == 'group';
+  final styleMessagerie = MessagingStyleInformation(
+    const Person(name: 'Moi', key: 'me'),
+    groupConversation: estGroupe,
+    // En 1:1, le titre de la bannière est déjà le nom de l'expéditeur :
+    // le répéter ici ferait doublon.
+    conversationTitle: estGroupe ? title : null,
+    messages: [
+      for (final m in pile)
+        Message(
+          m.texte,
+          m.quand,
+          Person(
+            name: m.expediteur.isEmpty ? 'Utilisateur' : m.expediteur,
+            key: m.expediteur,
+          ),
+        ),
+    ],
+  );
+
   await plugin.show(
     notifId,
     title,
@@ -576,6 +622,11 @@ Future<void> _showFallbackMessageNotification({
         importance: Importance.high,
         priority: Priority.high,
         tag: 'msg_$conversationId', // same tag as Cloud Functions → no duplicate
+        styleInformation: styleMessagerie,
+        // Le compteur que la pastille du lanceur affiche sur les surcouches qui
+        // le gèrent (Samsung, Xiaomi) : « 5 » plutôt que « 1 ».
+        number: pile.length,
+        groupKey: '$kPrefixeGroupeMessages$conversationId',
         // Sans ça, le repli retombait sur l'icône par défaut du plugin
         // (`@mipmap/ic_launcher`), que la barre d'état réduit à un disque
         // blanc — vérifié à l'écran le 2026-08-06.
@@ -715,7 +766,7 @@ class NotificationService {
   static const int _orderSummaryId = 100004;
 
   /// Préfixes pour les groupKeys automatiques
-  static const String _messageGroupPrefix = 'messages_';
+  static const String _messageGroupPrefix = kPrefixeGroupeMessages;
   static const String _groupGroupPrefix = 'group_';
   static const String _eventGroupPrefix = 'event_';
   static const String _friendGroupPrefix = 'friend_';
@@ -1951,6 +2002,20 @@ class NotificationService {
       ),
     );
 
+    // Le premier plan alimente la MÊME pile que l'arrière-plan, sans s'en
+    // servir pour afficher (il a `_activeGroups`, qui porte en plus les
+    // avatars). Sans ça, l'historique repartirait de zéro dès que
+    // l'application passe en arrière-plan : les messages vus au premier plan
+    // auraient disparu de la bannière suivante.
+    if (type == 'message' && conversationId != null) {
+      await PileMessagesNotifiees.empiler(
+        conversationId: conversationId,
+        messageId: data['messageId'] as String? ?? '',
+        texte: body,
+        expediteur: senderName,
+      );
+    }
+
     // Construire les détails Android avec MessagingStyle pour les messages
     final isMessageNotification = type == 'message' && conversationId != null;
 
@@ -2419,6 +2484,9 @@ class NotificationService {
   Future<void> clearAllCaches() async {
     _activeGroups.clear();
     _personCache.clear();
+    // Cette pile porte du texte de message en clair : elle ne survit pas à une
+    // déconnexion, au même titre que le cache d'aperçus MLS.
+    await PileMessagesNotifiees.viderTout();
 
     // Supprimer les fichiers d'avatar cachés
     for (final path in _avatarPathCache.values) {
@@ -2492,6 +2560,9 @@ class NotificationService {
   /// Efface les notifications de messages pour une conversation spécifique
   Future<void> clearConversationNotifications(String conversationId) async {
     await clearGroupNotifications('$_messageGroupPrefix$conversationId');
+    // La pile d'empilement va avec : sans ça, le prochain message de cette
+    // conversation rouvrirait une bannière portant aussi ceux déjà lus.
+    await PileMessagesNotifiees.vider(conversationId);
     // Nettoyer les IDs sauvegardés
     try {
       final prefs = await SharedPreferences.getInstance();
