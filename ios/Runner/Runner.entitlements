@@ -28,5 +28,20 @@
 	<array>
 		<string>Default</string>
 	</array>
+	<!-- Groupe partagé avec l'extension de notification. C'est la condition
+	     sine qua non de l'aperçu des messages chiffrés sur iOS : l'extension
+	     est un autre processus, avec son propre bac à sable, et ne verrait
+	     jamais la base du moteur si celle-ci restait dans celui de l'app.
+	     La MÊME valeur figure dans NotificationService.entitlements, dans
+	     MlsPontNatif.groupeApp et dans mls_partage_extension_ios.dart.
+	     ⚠️ Comme pour aps-environment, la clé seule ne suffit pas : activer la
+	     capability « App Groups » sur les DEUX App ID et régénérer les profils,
+	     sinon la signature échoue. Tant que ce n'est pas fait, containerURL
+	     renvoie nil et le Dart reste sur Application Support — l'app marche,
+	     l'aperçu retombe sur le texte générique. -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.com.diasponiger.diasponiger</string>
+	</array>
 </dict>
 </plist>

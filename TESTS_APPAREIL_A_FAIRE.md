@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1216 cases à cocher, 619 cochées** — 245 entrées sur 294 ont encore des cases ouvertes.
+**1237 cases à cocher, 619 cochées** — 248 entrées sur 297 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (33)
+**P0 — avant toute nouvelle version** (35)
 
 - 7 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
@@ -54,11 +54,13 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 6 · [⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16)](#-la-notification-gardait-le-ciphertext-que-le-message-avait-perdu-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)](#-un-média-chiffré-de-plus-de-10-mo-était-illisible-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
+- 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
@@ -79,7 +81,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (82)
+**P1 — fonction importante, jamais vérifiée** (83)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -113,6 +115,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
+- 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
 - 2 · [✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)](#-lien-diasponiger-au-démarrage-à-froid--corrigé-vérifié-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)](#-le-scanner-de-laccueil-lit-tous-les-qr-du-projet-2026-09-09) · *Liens profonds, navigation et QR codes*
@@ -305,9 +308,9 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 264 à faire, 107 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 94 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -6445,6 +6448,54 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
+## ⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16)
+
+**Priorité P0** · importance 5/5 — « Supprimer pour tous » vide
+`mls_messages.ciphertext` depuis « « Supprimer pour tous » efface vraiment le
+contenu (2026-09-16) », et la purge des éphémères fait le même geste à
+l'expiration. **Les deux oubliaient la seconde copie.** Le ciphertext est
+aussi recopié dans `notifications.data->>'mlsCiphertext'`, pour que l'appareil
+reconstruise l'aperçu (plan MLS § 8) — et cette ligne n'était touchée par
+personne.
+
+Elle est lisible par PostgREST, et par exactement celui qui sait la
+déchiffrer : `notifications_own` la rend à son destinataire, qui est membre du
+groupe à cet epoch. Supprimer pour tous vidait donc la colonne pendant que le
+contenu restait à un `select` de distance pour le destinataire qui n'avait pas
+encore rattrapé — c'est-à-dire le cas précis que la suppression visait.
+
+**Mesuré en production avant correction le 2026-09-15** : sur 50 notifications
+MLS portant une copie, **8 désignaient un message supprimé**, dont 7 déjà
+vidés côté `mls_messages`. Le rattrapage de la migration les nettoie.
+
+Le déclencheur est posé sur `UPDATE OF ciphertext`, pas dans les deux
+fonctions qui effacent : il y en a déjà deux, il y en aura une troisième, et
+c'est celle-là qu'on aurait oublié de patcher.
+
+Vérifié hors appareil : migration rejouée en `BEGIN … ROLLBACK` contre la
+production (elle passe, et retire 10 copies), 8 cas dans
+`test/core/crypto/mls_notifications_suivent_le_message_test.dart`. **Rien n'a
+tourné sur un téléphone, et la migration n'est pas encore appliquée.**
+
+Fichiers : `supabase/migrations/20260916030000_mls_notifications_suivent_le_message.sql`.
+
+- [ ] **Migration appliquée** : `supabase db push --linked`, puis vérifier
+  qu'aucune notification `message` ne porte encore `mlsCiphertext` pour un
+  message supprimé.
+- [ ] **Supprimer pour tous, destinataire hors ligne** : couper le réseau du
+  second téléphone, supprimer pour tous depuis le premier, rétablir le
+  réseau. La notification ne doit **pas** faire apparaître le texte.
+- [ ] **Message éphémère expiré** : même contrôle après l'échéance.
+- [ ] **Édition** : corriger un message déjà notifié ; la notification reste
+  **non lue** si elle l'était (c'est la différence voulue avec la
+  suppression), et ne peut plus afficher le texte d'avant.
+- [ ] **Suppression d'une conversation entière** : les notifications de tous
+  ses messages sont nettoyées en une fois, et l'app ne rame pas.
+- [ ] **Aperçu normal intact** : un message reçu et non supprimé affiche
+  toujours son texte — le nettoyage ne doit pas mordre sur le cas courant.
+
+---
+
 ## ⬜ La vidéo entre dans le chiffrement (2026-09-16)
 
 **Priorité P1** · importance 4/5 — La vidéo était écartée du chiffrement
@@ -8626,6 +8677,129 @@ Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
 
+## ⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)
+
+**Priorité P0** · importance 5/5 — Signalé par Salim le 2026-09-15 : « les
+messages reçus affichent *Nouveau message* au lieu du contenu ». Ce n'était
+pas le chiffrement, et pas non plus le chemin décrit dans « Aperçu des
+notifications MLS reconstruit sur l'appareil (phase 4, Android) » : celui-là
+ne couvre que l'isolate d'arrière-plan. **Au premier plan, rien ne
+déchiffrait.** `_handleForegroundMessage` passait le repli générique du
+serveur à la bannière in-app comme à la notification système. Le même message
+s'affichait donc en clair app fermée et générique app ouverte.
+
+**Le piège qui aurait fait échouer le correctif évident.** Appeler
+`MlsNotificationPreview.texte` depuis cet isolate-ci ne suffisait pas :
+`RustLib.init()` y a déjà été appelé par `mlsEngineProvider`, et un second
+appel lève `StateError`. L'exception part dans le `catch` de `texte`, qui rend
+`null` — c'est-à-dire **exactement** ce que rend un déchiffrement légitimement
+impossible. Le correctif aurait eu l'air posé et n'aurait rien changé, sans
+une ligne de journal pour le dire. La garde est donc unique et partagée
+(`initialiserRustUneFois`), et elle lit `RustLib.instance.initialized` au lieu
+de se souvenir.
+
+Vérifié hors appareil : 16 cas dans
+`test/core/crypto/mls_notification_preview_test.dart`, dont un qui balaie
+`lib/` pour interdire tout autre appel à `RustLib.init()`. **Rien n'a tourné
+sur un téléphone.**
+
+Fichiers : [notification_service.dart](lib/core/services/notification_service.dart)
+(`_handleForegroundMessage`, `_showLocalNotification`),
+[mls_rust_init.dart](lib/core/crypto/mls/mls_rust_init.dart),
+[mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_preview.dart).
+
+- [ ] **App ouverte sur un AUTRE écran** (le fil, pas la discussion), message
+  MLS reçu : la bannière in-app affiche le **vrai texte**.
+- [ ] **App ouverte, notification système** (couper la bannière in-app en
+  ouvrant une autre discussion) : même texte dans le volet Android.
+- [ ] **Puis ouvrir la discussion** : le message est **lisible** dans la
+  bulle. C'est le test du cliquet — au premier plan, le moteur qui fait foi
+  est ouvert dans le même processus que la copie jetable.
+- [ ] **Deux appareils, un aller-retour de cinq messages** app ouverte des
+  deux côtés : aucun ne retombe sur « Nouveau message », aucun ne devient
+  illisible dans la conversation.
+- [ ] **Réglage « aperçu des messages » coupé** (Profil → Notifications) :
+  la bannière repasse à « Nouveau message » app ouverte comme app fermée.
+- [ ] **Sondage et appel** reçus chiffrés : libellés « Sondage » et « Appel »
+  (deux types que `resume` ignorait, d'où un repli générique alors que le
+  message était déchiffré).
+
+---
+
+## ⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)
+
+**Priorité P1** · importance 4/5 — *Bloqué : ce poste n'a pas de Mac. Rien de
+ce qui suit n'a jamais été compilé.* Pendant iOS de « Aperçu des notifications
+MLS reconstruit sur l'appareil (phase 4, Android) ».
+
+**Pourquoi ce n'est pas le même code.** Sur Android l'aperçu est reconstruit
+par un isolate Dart, qui a le pont Flutter Rust Bridge et partage le bac à
+sable de l'app. iOS n'a rien de tel : une Notification Service Extension est un
+**binaire séparé**, sans moteur Flutter, sans Dart, et avec **son propre bac à
+sable**. Elle appelle donc le moteur par une ABI C (`rust/src/ffi.rs`,
+`diaspo_mls_apercu`, tampon fourni par l'appelant), et tout ce que l'app sait
+doit lui être **déposé** dans un conteneur commun.
+
+**Trois changements côté app conditionnent tout le reste**, et sont livrés :
+
+1. la base du moteur vit désormais dans le conteneur du **groupe
+   d'application** sur iOS (`mls_chemin_base.dart`) ; une base restée à
+   l'ancien emplacement est **déplacée** au premier démarrage — déplacée et non
+   copiée, deux copies de l'état MLS étant deux cliquets qui avancent
+   séparément ;
+2. le compte courant et l'identifiant d'appareil sont déposés dans les
+   `UserDefaults` du groupe (`mls_partage_extension_ios.dart`). **Pas** par
+   `SharedPreferences` : le greffon Flutter préfixe toutes ses clés par
+   `flutter.`, et une extension qui lit `currentUserId` ne trouverait rien —
+   sans erreur et sans journal ;
+3. `send-push` pose `mutable-content: 1` sur les messages MLS. **Sans ce
+   drapeau, iOS n'invoque jamais l'extension**, quoi qu'on fasse d'autre.
+
+**Un défaut réel trouvé en écrivant ceci** : `preview_without_state` rend le
+**payload** du § 6.2 — du JSON portant la citation, les mentions et les
+identifiants —, pas un texte. La première version du Swift le posait tel quel
+dans la bannière, c'est-à-dire tout le contenu sur l'écran verrouillé. Corrigé
+(`MlsPontNatif.resume`), et la table d'étiquettes est comparée à celle du Dart
+par un banc qui lit les deux fichiers.
+
+**Trois risques non levés faute de machine** : la mémoire d'une NSE est
+plafonnée vers 24 Mo et le coût du `VACUUM INTO` d'OpenMLS n'a jamais été
+mesuré ; le `-force_load` de `libdiaspo_mls.a` dans la cible d'extension tire
+la glu FRB, dont l'absence de dépendance à la VM Dart au lien reste à prouver ;
+et l'extension embarque sa propre copie du moteur, donc l'IPA grossit d'autant.
+
+Fichiers : [ios/NotificationService/](ios/NotificationService/README.md) (les
+étapes Xcode y sont listées, avec ce qu'elles conditionnent),
+[mls_chemin_base.dart](lib/core/crypto/mls/mls_chemin_base.dart),
+[mls_partage_extension_ios.dart](lib/core/crypto/mls/mls_partage_extension_ios.dart),
+[AppDelegate.swift](ios/Runner/AppDelegate.swift), `rust/src/ffi.rs`.
+Garde-fou hors appareil : `test/core/crypto/mls_apercu_ios_parite_test.dart`
+(14 cas, vérifiés en cassant deux valeurs).
+
+- [ ] **Créer la cible dans Xcode** et lier `libdiaspo_mls.a` : `project.pbxproj`
+  n'est **délibérément pas modifié à la main** ici. Tant que ce n'est pas fait,
+  ce dossier n'entre dans aucune build.
+- [ ] **Activer App Groups sur les deux App ID** et régénérer les profils.
+  Avant ça, `containerURL` rend nil, le Dart reste sur `Application Support`,
+  et l'aperçu retombe silencieusement sur le texte générique — donc ne pas
+  conclure « l'extension ne marche pas » sans avoir vérifié ce point.
+- [ ] **L'extension est bien invoquée** : un `NSLog` en tête de `didReceive`.
+  C'est la vérification du `mutable-content`.
+- [ ] **`cheminBase` désigne un fichier qui existe** : c'est là que tout se
+  joue, et l'échec est muet.
+- [ ] **La bannière affiche le vrai texte, et pas du JSON** — le défaut
+  ci-dessus, à revérifier sur l'appareil et pas seulement dans le banc.
+- [ ] **Migration d'une base existante** : installer une version antérieure,
+  basculer une conversation, mettre à jour, vérifier que la conversation reste
+  **lisible** (la base a été déplacée, pas recréée).
+- [ ] **Mémoire de l'extension** : vérifier qu'elle n'est pas tuée sur une
+  conversation à gros état (groupe fourni, plusieurs epochs).
+- [ ] **Après déconnexion**, plus aucun aperçu déchiffré : `currentUserId` est
+  retiré du groupe partagé (`effacerContexteMls`).
+- [ ] **Taille de l'IPA** avant/après, sur une vraie archive.
+
+---
+
 ## ⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)
 
 **Priorité P0** · importance 5/5 — Ce que MLS casse et qu'il faut rebâtir :
@@ -8652,8 +8826,10 @@ ce que le push transporte. Plus un cas Rust
 (`l_apercu_ne_consomme_pas_le_cliquet`) et 22 tests Dart. **Rien n'a tourné
 sur un téléphone.**
 
-⚠️ **Une migration reste à appliquer** :
-`20260915160000_mls_notifications_base64_sans_sauts.sql`. Sans elle,
+⚠️ **Appliquée depuis** (vérifié le 2026-09-15 dans
+`supabase_migrations.schema_migrations`, et 0 saut de ligne sur les 50
+ciphertexts en base) : `20260915160000_mls_notifications_base64_sans_sauts.sql`.
+Sans elle,
 `encode(bytea,'base64')` coupe sa sortie tous les 76 caractères et
 `base64Decode` la refuse : l'aperçu échouerait **à chaque message**, en
 silence. Le client a été rendu tolérant en plus, pas à la place.

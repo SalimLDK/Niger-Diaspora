@@ -175,8 +175,15 @@ Gradle et Xcode). Ce que ça impose :
 - **Alignement 16 Ko** des `.so` : cargokit + NDK 27 le produisent sans
   drapeau ; vérifier quand même dans l'APK, pas dans `target/` :
   `python tools/verifie_alignement_16k.py <lib/arm64-v8a/libdiaspo_mls.so>`.
-- `RustLib.init()` ne se fait qu'**une fois par processus** (second appel :
-  exception). Passer par `mlsEngineProvider`, jamais l'appeler soi-même.
+- `RustLib.init()` ne se fait qu'**une fois par isolate** (second appel :
+  `StateError`). Passer par `initialiserRustUneFois()`
+  (`lib/core/crypto/mls/mls_rust_init.dart`), jamais l'appeler soi-même —
+  un test balaie `lib/` pour l'interdire. Deux gardes séparées ont suffi tant
+  que chaque appelant avait son isolate ; le jour où l'aperçu de notification
+  a été reconstruit **au premier plan**, dans l'isolate de l'app, son
+  `RustLib.init()` a levé, le `catch` a rendu `null`, et la bannière a affiché
+  « Nouveau message » — indiscernable d'un déchiffrement impossible, et muet
+  dans le journal.
 
 ## Migrations Supabase sur la branche partagée
 

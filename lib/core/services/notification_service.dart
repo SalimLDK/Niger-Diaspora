@@ -28,6 +28,7 @@ import '../../l10n/app_localizations.dart';
 import 'preferences_service.dart';
 import 'supabase_auth_bridge.dart';
 import '../crypto/mls/mls_notification_preview.dart';
+import '../crypto/mls/mls_partage_extension_ios.dart';
 
 /// Représente un message pour le style MessagingStyle (comme WhatsApp)
 class NotificationMessage {
@@ -1532,6 +1533,10 @@ class NotificationService {
       await prefs.remove('currentUserId');
       await prefs.remove('currentUserDisplayName');
       await prefs.remove('currentUserPhotoUrl');
+      // Sur iOS ce n'est pas un isolate mais une extension, qui lit sa propre
+      // copie dans le groupe partagé : la retirer aussi, sinon la garde
+      // ci-dessus ne couvre que la moitié des plateformes.
+      await effacerContexteExtensionIos();
     } catch (e) {
       debugPrint('NotificationService: clear currentUserId cache error: $e');
     }
@@ -1646,6 +1651,25 @@ class NotificationService {
     // in-app, et surtout une boucle infinie (insert -> trigger -> push ->
     // insert -> ...). Le foreground se contente d'AFFICHER.
 
+    // Aperçu MLS, reconstruit AVANT les deux affichages.
+    //
+    // Le serveur ne peut plus lire un message chiffré : il envoie « Nouveau
+    // message » et le ciphertext. L'isolate d'arrière-plan le déchiffrait
+    // déjà ; ce chemin-ci, premier plan, ne le faisait pas — le même message
+    // s'affichait donc en clair app fermée et générique app ouverte, ce qui
+    // se lit comme un chiffrement qui « perd » le texte.
+    //
+    // La bannière in-app et la notification système lisent toutes les deux
+    // `data['body']` : l'aperçu se pose une seule fois, ici, sur une COPIE —
+    // `RemoteMessage.data` n'est pas garanti modifiable.
+    var donnees = data;
+    if (type == 'message') {
+      final apercuMls = await MlsNotificationPreview.texte(data);
+      if (apercuMls != null) {
+        donnees = Map<String, dynamic>.from(data)..['body'] = apercuMls;
+      }
+    }
+
     // Check if notification should be shown based on user preferences
     final shouldShow = await _shouldShowNotification(type);
     // debugPrint('Should show notification: $shouldShow');
@@ -1653,7 +1677,7 @@ class NotificationService {
     if (shouldShow) {
       // For message notifications in foreground, try to show in-app banner first
       if (type == 'message' && _inAppNotificationCallback != null) {
-        final showedBanner = _inAppNotificationCallback!(data);
+        final showedBanner = _inAppNotificationCallback!(donnees);
         if (showedBanner) {
           // Banner was shown, don't show system notification
           // debugPrint('In-app banner shown, skipping system notification');
@@ -1664,7 +1688,7 @@ class NotificationService {
       // Show local notification (system notification)
       // debugPrint('Attempting to show local notification...');
       try {
-        await _showLocalNotification(message);
+        await _showLocalNotification(message, donnees: donnees);
         // debugPrint('Local notification display completed');
       } catch (
         e //, stackTrace
@@ -1849,9 +1873,16 @@ class NotificationService {
   }
 
   /// Show local notification avec groupement style WhatsApp et MessagingStyle
-  Future<void> _showLocalNotification(RemoteMessage message) async {
+  /// [donnees] remplace `message.data` quand l'appelant a déjà enrichi le
+  /// payload — aujourd'hui l'aperçu MLS déchiffré, que `_handleForegroundMessage`
+  /// pose pour que la bannière et la notification système montrent le même
+  /// texte.
+  Future<void> _showLocalNotification(
+    RemoteMessage message, {
+    Map<String, dynamic>? donnees,
+  }) async {
     final notification = message.notification;
-    final data = message.data;
+    final data = donnees ?? message.data;
     final type = data['type'] as String?;
 
     // Get title and body from notification or fallback to data payload
@@ -1870,9 +1901,17 @@ class NotificationService {
     final conversationPhotoUrl = data['conversationPhotoUrl'] as String?;
     final isGroup = conversationType == 'group';
 
-    // Pour les messages E2EE, tenter de déchiffrer le contenu au premier plan
+    // Pour les messages E2EE **legacy** (Signal / repli AES), tenter de
+    // déchiffrer le contenu au premier plan. Un message MLS porte lui aussi
+    // `isE2EE: 'true'` mais aucun des champs que lit
+    // `cryptoPayloadFromFcmData` : sans la garde sur `protocol`, il entrait
+    // ici pour en ressortir sans rien, et le `body` déjà déchiffré par
+    // `_handleForegroundMessage` risquait d'être réécrit par un repli.
     final isE2EE = data['isE2EE'] == 'true';
-    if (isE2EE && _e2eeDecryptionCallback != null && type == 'message') {
+    if (isE2EE &&
+        data['protocol'] != 'mls' &&
+        _e2eeDecryptionCallback != null &&
+        type == 'message') {
       final cryptoPayload =
           NotificationDecryptionService.cryptoPayloadFromFcmData(data);
 

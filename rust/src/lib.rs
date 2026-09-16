@@ -4,6 +4,8 @@
 
 pub mod api;
 pub mod engine;
+/// Interface C, pour l'extension de notification iOS (pas de Dart la-bas).
+pub mod ffi;
 mod frb_generated;
 pub mod provider;
 

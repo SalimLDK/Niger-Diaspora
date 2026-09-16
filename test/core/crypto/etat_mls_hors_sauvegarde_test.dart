@@ -89,14 +89,33 @@ void main() {
     });
 
     test('le chemin exclu est bien celui que le moteur utilise', () {
-      // Si le provider changeait de dossier, les règles protégeraient un
-      // chemin qui n'existe plus — et rien ne le dirait.
+      // Si le dossier changeait, les règles protégeraient un chemin qui
+      // n'existe plus — et rien ne le dirait.
+      //
+      // Depuis le 2026-09-16 le provider ne construit plus le chemin lui-même :
+      // il passe par `dossierBaseMls`, qui doit sur iOS rendre le conteneur du
+      // groupe d'application (l'extension de notification est un autre
+      // processus). C'est donc là qu'on vérifie, et il faut vérifier les deux :
+      // que le provider délègue, et que la délégation garde `<support>/mls`
+      // **hors iOS** — le seul cas que ces règles Android couvrent.
       final provider = _lire('lib/core/crypto/mls/mls_engine_provider.dart');
       expect(
-        provider.contains("getApplicationSupportDirectory()") &&
-            provider.contains("'\${support.path}/mls'"),
+        provider.contains('await dossierBaseMls()'),
         isTrue,
-        reason: 'le moteur doit écrire dans <support>/mls, exclu par les règles',
+        reason: 'le moteur doit passer par la source unique du chemin',
+      );
+
+      final chemin = _lire('lib/core/crypto/mls/mls_chemin_base.dart');
+      expect(
+        chemin.contains('getApplicationSupportDirectory()') &&
+            chemin.contains("Directory('\${support.path}/mls')"),
+        isTrue,
+        reason: 'hors iOS, le moteur écrit dans <support>/mls',
+      );
+      expect(
+        chemin.contains('if (!Platform.isIOS) {'),
+        isTrue,
+        reason: 'Android ne doit jamais partir chercher un groupe iOS',
       );
     });
   });
