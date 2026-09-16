@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1249 cases à cocher, 622 cochées** — 250 entrées sur 299 ont encore des cases ouvertes.
+**1253 cases à cocher, 622 cochées** — 251 entrées sur 300 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -169,7 +169,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (77)
+**P2 — fonction secondaire ou cas limite** (78)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -193,6 +193,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 4 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
 - 2 · [✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)](#-filtre-hashtag--réparé-et-vérifié-sur-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
@@ -310,7 +311,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 269 à faire, 110 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 122 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 101 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -624,13 +625,18 @@ Réseau rétabli ensuite, vérifié à 15 ms.
       tuile prend son aperçu dans la liste
 - [ ] Même parcours depuis « Nouvelle conversation » (l'autre appelant)
 
-⚠️ **Vu au passage, sans rapport avec ce changement** : après l'envoi d'une
-note en MLS, l'aperçu de la tuile retombe sur son libellé par défaut
-(« Notes, brouillons et sondages ») au lieu du dernier texte — le serveur n'a
-jamais le clair d'un message MLS, et `conversations.last_message` reste vide.
-Voir « La liste n'annonce plus « Utilisateur » ni « Message chiffré » », qui
-traite la reconstruction de l'aperçu depuis le cache local, et l'entrée sur
-l'accusé « lu » et l'aperçu chiffré.
+**Une fausse piste, consignée pour qu'on ne la reprenne pas.** Pendant cette
+passe, la tuile est retombée sur son libellé par défaut (« Notes, brouillons
+et sondages ») juste après l'envoi de la note. Ça a été pris pour un défaut
+d'aperçu ; ce n'en est pas un. C'était **réseau coupé** : la liste venait du
+cache Hive, donc annonçait encore le message d'avant, pendant que le cache du
+fil portait la note qu'on venait d'écrire. `apercuDepuisCache` refuse quand
+les deux horodatages ne concordent pas, et elle a raison — elle ne peut pas
+savoir laquelle des deux sources est en retard. Tenu par un test
+(`test/core/crypto/mls_horodatage_envoi_test.dart`, dernier cas).
+
+La fouille a en revanche trouvé un vrai écart à côté : voir « L'expéditeur MLS
+datait lui-même ses propres messages » au § 4.
 
 Fichiers : [message_provider.dart](lib/features/messages/presentation/providers/message_provider.dart)
 (`conversationsDepuisReseauProvider`, `EnsureSelfNotesNotifier.ouvrir`),
@@ -6516,6 +6522,52 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)
+
+**Priorité P2** · importance 3/5 — `MlsMessageRow.toInsert` n'envoie pas
+`created_at` : la colonne a son défaut serveur. L'expéditeur en fabriquait
+pourtant un de son côté (`DateTime.now()`, au moment de chiffrer) et le
+gardait, sans jamais lire ce que le serveur avait retenu. Deux valeurs pour la
+même ligne, et rien pour dire laquelle fait foi.
+
+Ça compte parce que cet horodatage sert à deux choses :
+
+- **l'échéance d'un message éphémère**. `MlsMessageMapper` la compte depuis
+  `row.createdAt`, en écrivant juste à côté que c'est « le seul horodatage que
+  l'expéditeur ne choisit pas ». Pour ses propres messages, il le choisissait.
+  Une horloge de téléphone décalée de quelques minutes — banal — décale
+  d'autant la durée de vie réelle de la note. Voir « Messages éphémères » au
+  § 2.
+- **l'aperçu de la liste**, qui n'a que lui pour reconnaître dans le cache
+  local le message que le serveur annonce comme dernier. La latence seule ne
+  le cassait pas (la garde tronque à la seconde), un décalage d'horloge si.
+
+`publishMessage` relit maintenant `created_at` dans la même requête
+(`insert(...).select('created_at')`, donc une seule transaction) et `send`
+recolle la valeur sur la ligne rendue. La garde d'aperçu, elle, ne bouge pas :
+c'est la valeur écrite qu'on corrige, pas la comparaison.
+
+Vérifié hors appareil : `authenticated` a bien `SELECT` sur `mls_messages` et
+la policy `SELECT` « participants » couvre l'expéditeur, donc le
+`INSERT … RETURNING` passe le RLS. Reste à le voir tourner.
+
+- [ ] Envoyer une note chiffrée : elle part, et l'aperçu de la liste montre
+      son texte **sans rouvrir le fil**
+- [ ] Régler l'horloge du téléphone à la main (avance de 3 min), envoyer une
+      note chiffrée : l'aperçu doit tenir quand même. ⚠️ **Remettre l'horloge
+      automatique après** — une horloge fausse perturbe TLS et les jetons.
+- [ ] Message éphémère envoyé depuis cet appareil : le minuteur affiché part
+      de l'heure du serveur, pas de celle du téléphone
+- [ ] Un envoi dont la réponse se perd (couper le Wi-Fi pendant l'envoi) ne
+      doit pas produire de doublon au retour du réseau
+
+Fichiers : [mls_delivery.dart](lib/core/crypto/mls/mls_delivery.dart)
+(`publishMessage`, `MlsMessageRow.avecCreatedAt`),
+[mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
+(`send`)
 
 ---
 

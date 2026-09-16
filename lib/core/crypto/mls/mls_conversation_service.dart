@@ -422,12 +422,18 @@ class MlsConversationService {
       kind: kind,
       contentType: contentType,
       ciphertext: ciphertext,
+      // Provisoire, et remplacé trois lignes plus bas : `toInsert` n'envoie
+      // pas `created_at`, c'est le serveur qui date la ligne.
       createdAt: DateTime.now().toUtc(),
       expiresAt: expiresAt,
     );
-    await _delivery.publishMessage(row);
+    final quandServeur = await _delivery.publishMessage(row);
     _vus.add(id);
-    return row;
+    // L'horodatage du serveur fait foi dès qu'on l'a : l'aperçu de la liste
+    // s'y raccroche pour reconnaître le dernier message, et l'échéance des
+    // éphémères s'y compte. Le garder local, c'était laisser l'expéditeur
+    // choisir les deux.
+    return quandServeur == null ? row : row.avecCreatedAt(quandServeur);
   }
 
   /// Rattrapage : commits d'abord (par epoch), puis messages. Rend les
