@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1376 cases à cocher, 642 cochées** — 270 entrées sur 319 ont encore des cases ouvertes.
+**1384 cases à cocher, 642 cochées** — 272 entrées sur 321 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -183,7 +183,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (83)
+**P2 — fonction secondaire ou cas limite** (85)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -194,6 +194,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
 - 4 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
 - 6 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
 - 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
@@ -205,6 +206,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
 - 6 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
 - 4 · [Zone de saisie des messages — barre multi-ligne (2026-08-04)](#zone-de-saisie-des-messages--barre-multi-ligne-2026-08-04) · *Messagerie*
+- 5 · [⬜ Groupe privé : un nouveau membre ne voit plus ce qui précède son arrivée (2026-09-16)](#-groupe-privé--un-nouveau-membre-ne-voit-plus-ce-qui-précède-son-arrivée-2026-09-16) · *Groupes*
 - 5 · [⬜ Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé (2026-09-13)](#-quitter-lancien-groupe-officiel--proposé-après-6-mois-jamais-imposé-2026-09-13) · *Groupes* · bloqué
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
@@ -328,8 +330,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 320 à faire, 124 faites
-- [3. Groupes](#3-groupes) — 116 à faire, 64 faites
+- [2. Messagerie](#2-messagerie) — 323 à faire, 124 faites
+- [3. Groupes](#3-groupes) — 121 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
@@ -587,6 +589,34 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)
+
+**Priorité P2** · importance 3/5 — l'écran d'information d'un message
+(`message_info_sheet.dart`) affichait la même heure pour la livraison et la
+lecture, sur toutes les discussions en clair.
+*Bloqué : la migration `20260916235300` n'est pas encore appliquée.*
+
+Mesuré en production : 424 heures de livraison strictement égales à l'heure de
+lecture, aucune antérieure. `mark_messages_as_read` réécrivait `deliveredAt`
+de tout message qu'il marquait lu, et ajoutait le lecteur à `deliveredTo` sans
+regarder s'il y était (84 messages en doublon). La migration corrige les deux
+RPC et dédoublonne l'existant ; **les 424 heures écrasées ne se réparent pas**,
+l'heure d'origine n'étant écrite nulle part.
+
+Banc : [tools/rls_tests/accuses_sans_doublon.sql](tools/rls_tests/accuses_sans_doublon.sql)
+(8 cas ; les corps d'avant en font tomber 4). Ce que le banc ne voit pas :
+
+- [ ] **Discussion en clair, deux téléphones** : A écrit, B reçoit la
+      notification sans ouvrir, puis ouvre une minute après → sur l'écran
+      d'information du message chez A, « Distribué » et « Lu » ont **deux
+      heures différentes**, dans cet ordre.
+- [ ] **Un ancien message** (avant la migration) garde « Distribué = Lu » :
+      attendu, pas un défaut.
+- [ ] **La coche « Distribué »** apparaît toujours chez A quand B reçoit sans
+      ouvrir (non-régression de `mark_messages_as_delivered`).
 
 ---
 
@@ -4396,6 +4426,49 @@ de conclure quoi que ce soit.
 # 3. Groupes
 
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
+
+---
+
+## ⬜ Groupe privé : un nouveau membre ne voit plus ce qui précède son arrivée (2026-09-16)
+
+**Priorité P2** · importance 3/5 — une règle écrite de longue date qui ne
+s'appliquait **jamais**, et qui retire désormais des messages à l'écran d'un
+vrai membre.
+
+`_setupPrivateGroupFilter` (`conversation_screen.dart`) filtrait sur
+`GroupEntity.memberJoinedAt`, toujours vide depuis le passage à Supabase : la
+date vit dans `group_members.joined_at`, et ni la requête d'appartenance, ni
+`GroupModel`, ni `toEntity` ne la portaient. Rebranchée dans
+[group_supabase_datasource.dart](lib/features/groups/data/datasources/group_supabase_datasource.dart)
+et [group_model.dart](lib/features/groups/data/models/group_model.dart).
+
+Le filtre lui-même n'était passé qu'à la page réseau : le cache, la fusion
+MLS, la pagination et le temps réel l'ignoraient. Il vit maintenant dans le
+setter `state` de `PaginatedMessagesNotifier` (`message_provider.dart`).
+
+Mesuré en production avant de rebrancher : les dates sont fiables (personne
+n'a écrit avant sa date d'arrivée, une date distincte par membre) et un membre
+ordinaire peut les lire. **Effet réel** : dans le groupe privé `2b24986f…`, le
+membre arrivé le 11/09 cesse de voir les 6 messages envoyés avant lui. Dans
+`90a2baa1…`, rien ne change (tous les messages sont postérieurs aux deux
+arrivées).
+
+⚠️ **Ce que ça n'est pas** : une protection. Le filtre est côté client ; les
+messages restent lisibles par PostgREST pour tout participant. Et la date n'est
+connue qu'après la relecture du groupe : **une fraction de seconde** à
+l'ouverture, le cache peut encore les montrer. Les non-lus (§ C du plan) les
+comptent encore.
+
+- [ ] **Compte arrivé le 11/09 dans `2b24986f…`** : ouvrir la discussion → les
+      6 messages d'avant n'apparaissent pas, pas même brièvement au-delà de
+      l'ouverture ; les messages suivants sont bien là.
+- [ ] **Rouvrir** la même discussion (cache chaud) : pas de va-et-vient des
+      anciens messages.
+- [ ] **L'administrateur** du même groupe (arrivé le 06/08) voit toujours tout.
+- [ ] **Groupe public** : aucun changement, rien n'est filtré.
+- [ ] **Hors ligne**, discussion déjà ouverte une fois : décrire ce qui
+      s'affiche (le groupe ne se relit pas hors ligne — le filtre ne s'applique
+      probablement pas).
 
 ---
 
