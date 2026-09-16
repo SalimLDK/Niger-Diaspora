@@ -27,7 +27,7 @@
   "emailAddressLabel": "Adresse e-mail",
   "forgotShort": "Oublié ?",
   "passwordMinHelper": "Au moins 6 caractères",
-  "e2eeFooterNote": "Vos messages sont chiffrés de bout en bout.",
+  "e2eeFooterNote": "Vos messages sont chiffrés.",
   "joinDiaspora": "Rejoins la diaspora nigérienne",
   "continueWithGoogle": "Continuer avec Google",
   "continueWithApple": "Continuer avec Apple",
@@ -91,8 +91,8 @@
   "keyBackupSubtitle": "Protégez vos messages chiffrés",
   "connectedDevices": "Appareils connectés",
   "connectedDevicesSubtitle": "Gérez vos appareils (max 5)",
-  "endToEndEncryption": "Chiffrement de bout en bout",
-  "e2eeDescription": "Vos messages sont chiffrés de bout en bout. Seuls vous et vos correspondants pouvez les lire.",
+  "endToEndEncryption": "Chiffrement des messages",
+  "e2eeDescription": "Les discussions passées au chiffrement de bout en bout ne sont lisibles que par leurs participants : la clé n'existe que sur vos appareils. Les autres conversations sont chiffrées en transit et au repos, avec une clé détenue par le serveur — c'est ce qui lui permet d'afficher l'aperçu des notifications.",
   "createBackup": "Créer une sauvegarde",
   "restoreBackup": "Restaurer la sauvegarde",
   "passphrase": "Passphrase",
@@ -435,7 +435,7 @@
   "searchGroup": "Rechercher un groupe...",
   "noJoinedGroups": "Vous n'avez rejoint aucun groupe",
   "faqEncryptionQ": "Mes messages sont-ils protégés ?",
-  "faqEncryptionA": "Oui. Vos conversations sont chiffrées de bout en bout : seuls vous et vos correspondants peuvent les lire.",
+  "faqEncryptionA": "Oui, à deux niveaux. Une discussion passée au chiffrement de bout en bout n'est lisible que par ses participants — la clé n'existe que sur vos appareils, le serveur ne l'a jamais. Les autres conversations sont chiffrées en transit et au repos, mais avec une clé détenue par le serveur : c'est ce qui lui permet de vous envoyer l'aperçu d'un message en notification.",
   "faqLocationQ": "Qui voit ma position sur la carte ?",
   "faqLocationA": "Uniquement les membres dont vous voyez aussi la position (réciprocité). Vous pouvez la désactiver à tout moment, et les comptes bloqués ne vous voient jamais.",
   "faqReportQ": "Comment signaler un contenu ?",
@@ -7479,7 +7479,7 @@
   "@onbGroupsBullet1": {
     "description": "Reassurance 3/5"
   },
-  "onbGroupsBullet2": "Discussions chiffrées de bout en bout",
+  "onbGroupsBullet2": "Discussions de groupe chiffrées",
   "@onbGroupsBullet2": {
     "description": "Reassurance 3/5"
   },

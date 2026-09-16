@@ -913,7 +913,10 @@
                 <ul>
                     <li>Encryption of data in transit (TLS/SSL)</li>
                     <li>Encryption of data at rest</li>
-                    <li>End-to-end encryption for private messages</li>
+                    <li>End-to-end encryption in conversations that have been switched to it: the key
+                        exists only on the participants' devices, our servers never hold it</li>
+                    <li>In other conversations, the encryption at rest above applies with a key held by
+                        our servers — which is what makes notification previews possible</li>
                     <li>Two-factor authentication available</li>
                     <li>Access and anomaly monitoring</li>
                 </ul>

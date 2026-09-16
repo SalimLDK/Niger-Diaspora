@@ -263,7 +263,7 @@ abstract class AppLocalizations {
   /// No description provided for @e2eeFooterNote.
   ///
   /// In fr, this message translates to:
-  /// **'Vos messages sont chiffrés de bout en bout.'**
+  /// **'Vos messages sont chiffrés.'**
   String get e2eeFooterNote;
 
   /// No description provided for @joinDiaspora.
@@ -605,13 +605,13 @@ abstract class AppLocalizations {
   /// No description provided for @endToEndEncryption.
   ///
   /// In fr, this message translates to:
-  /// **'Chiffrement de bout en bout'**
+  /// **'Chiffrement des messages'**
   String get endToEndEncryption;
 
   /// No description provided for @e2eeDescription.
   ///
   /// In fr, this message translates to:
-  /// **'Vos messages sont chiffrés de bout en bout. Seuls vous et vos correspondants pouvez les lire.'**
+  /// **'Les discussions passées au chiffrement de bout en bout ne sont lisibles que par leurs participants : la clé n\'existe que sur vos appareils. Les autres conversations sont chiffrées en transit et au repos, avec une clé détenue par le serveur — c\'est ce qui lui permet d\'afficher l\'aperçu des notifications.'**
   String get e2eeDescription;
 
   /// No description provided for @createBackup.
@@ -2057,7 +2057,7 @@ abstract class AppLocalizations {
   /// No description provided for @faqEncryptionA.
   ///
   /// In fr, this message translates to:
-  /// **'Oui. Vos conversations sont chiffrées de bout en bout : seuls vous et vos correspondants peuvent les lire.'**
+  /// **'Oui, à deux niveaux. Une discussion passée au chiffrement de bout en bout n\'est lisible que par ses participants — la clé n\'existe que sur vos appareils, le serveur ne l\'a jamais. Les autres conversations sont chiffrées en transit et au repos, mais avec une clé détenue par le serveur : c\'est ce qui lui permet de vous envoyer l\'aperçu d\'un message en notification.'**
   String get faqEncryptionA;
 
   /// No description provided for @faqLocationQ.
@@ -28835,7 +28835,7 @@ abstract class AppLocalizations {
   /// Reassurance 3/5
   ///
   /// In fr, this message translates to:
-  /// **'Discussions chiffrées de bout en bout'**
+  /// **'Discussions de groupe chiffrées'**
   String get onbGroupsBullet2;
 
   /// Titre 4/5

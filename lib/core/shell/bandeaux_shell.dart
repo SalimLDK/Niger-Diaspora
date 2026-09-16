@@ -1,80 +1,32 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../services/e2ee/e2ee_backup_coordinator.dart';
 import '../services/mise_a_jour_service.dart';
 
-/// Les deux bandeaux que `MainShell` peut poser en tête d'application.
+/// Le bandeau que `MainShell` peut poser en tête d'application.
 ///
-/// Ils vivent ici, hors de l'écran, pour une raison précise : un
-/// `MaterialBanner` construit dans une méthode privée d'un `State` n'est
-/// **rendable par aucun banc** — il faudrait monter tout le shell, son
-/// routeur et ses providers. Or c'est justement le rendu qui casse : trois
-/// actions, un message qui passe à deux lignes, une échelle de police
-/// augmentée. Des fonctions libres se rendent en trois lignes de test
-/// (`test/core/shell/bandeaux_shell_test.dart`).
+/// Il vit ici, hors de l'écran, pour une raison précise : un `MaterialBanner`
+/// construit dans une méthode privée d'un `State` n'est **rendable par aucun
+/// banc** — il faudrait monter tout le shell, son routeur et ses providers. Or
+/// c'est justement le rendu qui casse : un message qui passe à deux lignes, une
+/// échelle de police augmentée. Une fonction libre se rend en trois lignes de
+/// test (`test/core/shell/bandeaux_shell_test.dart`).
 ///
-/// Elles ne décident rien : `MainShell` reste seul à arbitrer lequel des deux
-/// s'affiche, et seul à détenir les notifiers. Ici, que des callbacks.
-
-/// Lequel des deux bandeaux `MainShell` doit poser. `null` = aucun.
+/// Elle ne décide rien : `MainShell` reste seul à détenir le notifier. Ici, que
+/// des callbacks.
 ///
-/// **La sécurité passe avant la mise à jour**, et ce n'est pas un arbitrage
-/// esthétique : des clés non sauvegardées font perdre des messages pour de
-/// bon, une version en retard ne fait rien perdre du tout. Une notice de mise
-/// à jour ne doit donc jamais pouvoir masquer le rappel E2EE — c'est
-/// exactement ce que la mise en commun du canal rendait possible, puisque
-/// `ScaffoldMessenger` n'affiche qu'un `MaterialBanner` à la fois et que
-/// `clearMaterialBanners()` vide aussi la file.
-///
-/// Rien ne se perd pour autant : la fonction est rappelée à chaque changement
-/// d'état, donc la notice écartée reprend sa place dès que le rappel E2EE est
-/// traité.
-///
-/// Renvoie un `E2EEBackupPrompt` ou une [NoticeMiseAJour] ; l'appelant dédoublonne
-/// dessus, les deux types se comparant par valeur.
-Object? bandeauAPoser({
-  required E2EEBackupPrompt e2ee,
-  required NoticeMiseAJour? maj,
-}) =>
-    e2ee != E2EEBackupPrompt.none ? e2ee : maj;
-
-/// Bandeau invitant à sauvegarder ou restaurer les clés E2EE.
-MaterialBanner bandeauE2EE({
-  required AppLocalizations l10n,
-  required E2EEBackupPrompt prompt,
-  required VoidCallback surNePlusRappeler,
-  required VoidCallback surPasMaintenant,
-  required VoidCallback surAgir,
-}) {
-  final isRestore = prompt == E2EEBackupPrompt.needsRestore;
-
-  return MaterialBanner(
-    content: Text(
-      isRestore ? l10n.e2eeRestoreNudgeMessage : l10n.e2eeBackupNudgeMessage,
-    ),
-    leading: const Icon(Icons.lock_outline),
-    actions: [
-      // Sortie définitive : « Pas maintenant » ne met en veille que 7 jours,
-      // et `needsRestore` reste vrai tant que la restauration n'a pas eu
-      // lieu — le bandeau revenait donc indéfiniment.
-      TextButton(
-        onPressed: surNePlusRappeler,
-        child: Text(l10n.e2eeNudgeMuteAction),
-      ),
-      TextButton(
-        onPressed: surPasMaintenant,
-        child: Text(l10n.notNow),
-      ),
-      TextButton(
-        onPressed: surAgir,
-        child: Text(
-          isRestore ? l10n.e2eeRestoreNudgeAction : l10n.e2eeBackupNudgeAction,
-        ),
-      ),
-    ],
-  );
-}
+/// **Un second bandeau vivait ici** — le rappel E2EE, « Sauvegardez / Restaurez
+/// vos clés de chiffrement » —, avec tout un arbitrage pour qu'il prime sur la
+/// mise à jour. Retiré le 2026-09-16 : sa promesse était fausse des deux côtés.
+/// La sauvegarde ne porte que du matériel Signal (`SecureKeyStorage
+/// .exportAllKeys`), et aucun message de production n'a jamais été chiffré par
+/// Signal — 121 sur 121 en repli AES, dont les clés sont redérivées par l'Edge
+/// Function `crypto-keys` à chaque installation. Restaurer ne rendait donc
+/// aucun message lisible, et ne pas restaurer n'en perdait aucun. Le seul état
+/// dont la perte coûte vraiment quelque chose est celui du moteur MLS, que
+/// cette sauvegarde ne touche pas — il est même volontairement exclu des
+/// sauvegardes système (`mls_engine_provider.dart`). L'écran Réglages ›
+/// Sécurité reste atteignable à la main pour qui veut sauvegarder ou restaurer.
 
 /// Bandeau « une nouvelle version est disponible ».
 ///

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1336 cases à cocher, 640 cochées** — 262 entrées sur 311 ont encore des cases ouvertes.
+**1347 cases à cocher, 640 cochées** — 264 entrées sur 313 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -86,7 +86,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (89)
+**P1 — fonction importante, jamais vérifiée** (90)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -116,6 +116,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 5 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)](#-une-réaction-retirée-disparaît-vraiment-de-lécran-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -178,7 +179,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (80)
+**P2 — fonction secondaire ou cas limite** (81)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -204,6 +205,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
@@ -322,7 +324,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 307 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 132 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -6978,6 +6980,126 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)
+
+**Priorité P1** · importance 4/5 — la phrase « Vos messages sont chiffrés de
+bout en bout. Seuls vous et vos correspondants pouvez les lire » n'était vraie
+que dans les fils MLS. Pour les 121 messages `aes`, le serveur détient la
+racine des clés (`crypto-keys`) et `public.decrypt_aes_fallback` sait les lire
+— vérifié en production le 2026-09-16, la fonction existe toujours : c'est elle
+qui fabrique les aperçus push.
+
+Elle ne vivait pas seulement dans l'écran de sauvegarde, où elle se voyait le
+moins. Les huit endroits corrigés :
+
+| Surface | Avant |
+| --- | --- |
+| Écran de connexion / inscription (pied de page) | « Vos messages sont chiffrés de bout en bout. » |
+| Onboarding (pied de page + puce Groupes) | idem, plus « Discussions chiffrées de bout en bout » |
+| FAQ des Réglages | « **Oui.** Vos conversations sont chiffrées de bout en bout… » |
+| Écran Réglages › Sécurité (titre + corps de la carte) | « Chiffrement de bout en bout » |
+| `public/privacy-policy.html` et sa version anglaise | « Chiffrement de bout en bout pour les messages privés » |
+| `public/index.html`, `index-en.html`, `a-propos.html`, `fonctionnalites.html` | la même, en page d'accueil |
+
+Le parti pris : ne plus affirmer en bloc, dire les deux étages. Le chiffrement
+de bout en bout est revendiqué **là où il est vrai** — les discussions qui y
+sont passées, dont la clé n'existe que sur les appareils — et le reste est
+décrit pour ce qu'il est : chiffré en transit et au repos, avec une clé
+détenue par le serveur, ce qui est précisément ce qui permet l'aperçu des
+notifications. Le pied de page de connexion, trop court pour nuancer, dit
+simplement « Vos messages sont chiffrés ».
+
+⚠️ **Le site n'est PAS déployé** : `firebase deploy --only hosting` publie tout
+`public/` d'un coup (voir « Site web » au § 15). À faire par un aperçu, quand
+Salim l'aura relu.
+
+⚠️ **À vérifier hors du dépôt** : la déclaration « Sécurité des données » de la
+Console Play reflète probablement l'ancienne formulation. Elle ne se lit pas
+d'ici.
+
+- [ ] Écran de connexion : le pied de page tient sur **une ligne** en français
+      comme en anglais, à l'échelle de police par défaut
+- [ ] Onboarding, écran Groupes : la puce raccourcie ne casse pas l'alignement
+      des trois puces
+- [ ] FAQ › « Mes messages sont-ils protégés ? » : la réponse est bien plus
+      longue qu'avant (deux phrases au lieu d'une) — vérifier que le panneau
+      dépliant ne déborde pas, et à l'échelle de police ×2
+- [ ] Réglages › Sécurité › Sauvegarde : la carte d'en-tête tient sans
+      débordement, en clair comme en sombre
+- [ ] Les quatre écrans en **anglais** aussi (la version longue anglaise est
+      encore plus longue que la française)
+
+Voir « Les deux bandeaux de clés retirés : ils promettaient faux » juste en
+dessous : même cause, même journée.
+
+Fichiers : [app_fr.arb](lib/l10n/app_fr.arb), [app_en.arb](lib/l10n/app_en.arb),
+[privacy-policy.html](public/privacy-policy.html),
+[fonctionnalites.html](public/fonctionnalites.html)
+
+---
+
+## ⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)
+
+**Priorité P2** · importance 3/5 — « Restaurez vos clés de chiffrement pour
+lire vos messages chiffrés sur cet appareil » était faux dans les deux sens, et
+mesurable :
+
+- la sauvegarde ne porte que du matériel Signal — identité, pré-clés, sessions
+  (`SecureKeyStorage.exportAllKeys`) ;
+- **aucun message de production n'a jamais été chiffré par Signal.** Relevé le
+  2026-09-16 sur `public.messages` : 121 lignes en `aes`, 10 sans niveau,
+  **0 en `e2ee`** ;
+- les clés du repli AES ne sont pas dans la sauvegarde : elles sont redérivées
+  par l'Edge Function `crypto-keys` à chaque installation. Restaurer ne rendait
+  donc aucun message lisible, et ne pas restaurer n'en perdait aucun ;
+- le seul état dont la perte coûte vraiment quelque chose est celui du moteur
+  MLS, que cette sauvegarde ne touche pas — il est même volontairement exclu
+  des sauvegardes Google et iCloud.
+
+Pire que l'inutilité : un message MLS indéchiffrable prend le placeholder
+`🔐 Message chiffré`, exactement celui sur lequel le bandeau de conversation
+déclenchait. Sur un fil chiffré dont un message ne passe pas, il s'affichait
+et envoyait vers Réglages › Sécurité — une restauration qui ne peut
+structurellement rien pour MLS. La personne fait la manœuvre, ne voit aucun
+changement, et n'a aucune raison de comprendre pourquoi.
+
+Retirés : le `MaterialBanner` du shell (sauvegarde **et** restauration) et le
+bandeau de conversation. L'arbitrage « la sécurité prime sur la mise à jour »
+part avec eux — il n'y a plus qu'une source de bandeau haut. Le coordinateur
+reste entier : c'est lui, et non le bandeau, qui protège, en refusant de
+générer une identité neuve par-dessus une sauvegarde restaurable. L'écran
+Réglages › Sécurité reste atteignable à la main, sauvegarde et restauration
+comprises.
+
+Voir « Le bandeau de restauration des clés revenait sans arrêt » au § 2 : la
+mise en veille persistée réglait la fréquence, pas le mensonge.
+
+- [ ] Compte avec une sauvegarde distante, application réinstallée : **aucun**
+      bandeau de clés au démarrage (c'est le cas `needsRestore`, celui qui se
+      déclenchait à chaque installation sur les 5 comptes qui ont une
+      sauvegarde)
+- [ ] Compte neuf, première connexion : aucun bandeau « Sauvegardez vos clés »
+      non plus
+- [ ] Ouvrir un fil MLS contenant un message illisible (`🔐 Message chiffré`) :
+      plus de bandeau jaune sous l'en-tête, et la bulle reste lisible comme
+      telle
+- [ ] Le bandeau de **mise à jour**, lui, s'affiche toujours — c'est la seule
+      source restante du bandeau haut, et il ne doit pas avoir disparu avec
+      l'autre
+- [ ] Paysage, clavier ouvert, sur un fil avec un message épinglé : pas de
+      `BOTTOM OVERFLOWED` (la mesure de hauteur du `LayoutBuilder` reste, elle
+      borne toujours `MessageInput` ; seul le seuil propre au bandeau retiré a
+      disparu)
+- [ ] Réglages › Sécurité s'ouvre toujours, et sauvegarder puis restaurer y
+      fonctionne encore
+
+Fichiers : [bandeaux_shell.dart](lib/core/shell/bandeaux_shell.dart),
+[main_shell.dart](lib/core/shell/main_shell.dart),
+[conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart),
+[e2ee_backup_coordinator.dart](lib/core/services/e2ee/e2ee_backup_coordinator.dart)
 
 ---
 
