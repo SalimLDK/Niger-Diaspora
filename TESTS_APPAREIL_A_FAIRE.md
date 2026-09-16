@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1242 cases à cocher, 622 cochées** — 249 entrées sur 298 ont encore des cases ouvertes.
+**1249 cases à cocher, 622 cochées** — 250 entrées sur 299 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -81,7 +81,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (84)
+**P1 — fonction importante, jamais vérifiée** (85)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -116,6 +116,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
+- 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
 - 2 · [✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)](#-lien-diasponiger-au-démarrage-à-froid--corrigé-vérifié-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
@@ -311,7 +312,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 94 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 101 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -8744,6 +8745,68 @@ en solo.
 # 6. Notifications et push
 
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
+
+---
+
+## ⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)
+
+**Priorité P1** · importance 4/5 — Inventaire du 2026-09-16, à partir des
+écrivains eux-mêmes (client, migrations, `functions/index.js`) plutôt que
+d'une lecture. Trois écarts, tous muets.
+
+**1. Vingt types écrits, absents de `NotificationType`.** `postLiked`,
+`postReposted`, `system` et dix-sept types des Cloud Functions étaient repliés
+sur `general` par `_parseNotificationType` : libellé « Général » dans la liste,
+et pour les deux premiers, un appui qui ouvrait la fiche au lieu de la
+publication. `system` porte les **37 lignes** de l'annonce du 2026-09-15.
+
+**2. Sept divergences entre les deux tables de préférences.** L'app décide de
+l'affichage au premier plan, `send-push` décide de l'envoi, et la règle était
+recopiée des deux côtés. `friendAccepted`, `newFollower`, `eventAttendance`,
+`localEvent` et `system` n'étaient filtrés que côté serveur ; `officialGroupLeave`
+et `cityGroupInvite`, que côté app. Une bascule qui coupe app fermée mais pas
+app ouverte, ou l'inverse — irreproductible pour qui ne sait pas que ce sont
+deux chemins. La table vit désormais dans
+`lib/core/services/notification_pref_keys.dart`, et le TypeScript en est le
+reflet, comparé par un banc.
+
+**3. `report_resolved` n'écrivait aucune clé de cible.** Ni `targetId` ni
+`target_id` : `NotificationReadSync` ne pouvait pas la retrouver, elle restait
+non lue pour toujours.
+
+Retirés au passage : quatre types que personne n'écrit (`newFollower`,
+`newMember`, `nearbyMember`, `proximityAlert`) et les huit fichiers de la pile
+`settings/notification_preferences_*`, qui lisaient des documents `users`
+Firestore qui n'existent plus et n'avaient aucun consommateur.
+
+⚠️ **`send-push` doit être redéployée** pour que le volet serveur des
+préférences change quoi que ce soit : `supabase functions deploy send-push`.
+Sans ça, seul l'affichage au premier plan est corrigé — c'est-à-dire la moitié
+du défaut.
+
+Vérifié hors appareil : 40 cas (couverture des types, parité des tables, clés
+de cible), `flutter analyze` propre. **Rien n'a tourné sur un téléphone.**
+
+Fichiers : [notification_entity.dart](lib/features/notifications/domain/entities/notification_entity.dart),
+[notification_pref_keys.dart](lib/core/services/notification_pref_keys.dart),
+`supabase/functions/send-push/index.ts`.
+
+- [ ] **Une annonce `system`** s'affiche « Message système », pas « Général ».
+- [ ] **Un j'aime sur ma publication** : la notification s'appelle « Nouveau
+  j'aime », et l'appui ouvre **la publication**, pas la fiche.
+- [ ] **Couper « Messages système »**, puis se faire envoyer une annonce :
+  rien ne doit arriver, **app ouverte comme app fermée**. C'est le test de la
+  parité — avant, elle passait app ouverte.
+- [ ] **Couper « Groupes »**, puis déclencher une invitation de groupe de
+  ville : rien ne doit arriver app fermée non plus.
+- [ ] **Couper « Demandes d'ami »**, puis faire accepter une demande : la
+  notification d'acceptation ne doit pas arriver.
+- [ ] **Écran Notifications, filtres** : les onglets fonctionnent encore après
+  le retrait des quatre types morts (ils figuraient dans trois listes de
+  filtres).
+- [ ] **Réglages → Notifications** : les bascules s'affichent et se
+  souviennent (la pile Firestore supprimée n'était pas celle qui sert, mais
+  c'est le moment de le vérifier).
 
 ---
 

@@ -458,6 +458,9 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
                 : 'Vous invite à un appel vocal de groupe',
             'p_data': {
               'targetId': callId,
+              // Le serpent aussi : les consommateurs SQL ne lisent que
+              // `target_id` (cf. `private.lire_notifications_de_cible`).
+              'target_id': callId,
               'callId': callId,
               'callerId': currentUserId,
               'callerName': callerName,
