@@ -83,6 +83,14 @@
           }
         },
         {
+          "client_id": "539228418594-oelpu3428721hp5dtf910qftlfvl4jb4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.diasponiger.diasponiger",
+            "certificate_hash": "9fab1f60e3403ccb4ca02e5f9020e9e1e1d61395"
+          }
+        },
+        {
           "client_id": "539228418594-7br2d2ribbog8sdutpeiteoe89l21gjv.apps.googleusercontent.com",
           "client_type": 3
         }
