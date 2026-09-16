@@ -156,6 +156,10 @@ void main() {
       'file': 'Fichier',
       'location': 'Position',
       'sticker': 'Sticker',
+      // Deux types que `MlsPayload` documente et que les deux tables
+      // ignoraient : message déchiffré, aperçu générique quand même.
+      'poll': 'Sondage',
+      'call': 'Appel',
     };
 
     test('Dart et Swift rendent le même texte pour chaque type', () {

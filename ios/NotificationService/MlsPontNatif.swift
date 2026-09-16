@@ -158,6 +158,8 @@ enum MlsPontNatif {
     case "file": return "Fichier"
     case "location": return "Position"
     case "sticker": return "Sticker"
+    case "poll": return "Sondage"
+    case "call": return "Appel"
     default: return nil
     }
   }

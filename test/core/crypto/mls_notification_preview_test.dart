@@ -59,6 +59,17 @@ void main() {
       // Un type inconnu d'un ancien build ne doit pas inventer un aperçu.
       expect(MlsNotificationPreview.resume(payload('type_futur')), isNull);
     });
+
+    test('tous les types que le codec documente ont un libellé', () {
+      // `MlsPayload.type` documente la liste ; deux valeurs y étaient sans
+      // `case` ici, et retombaient donc sur le repli générique du serveur
+      // alors que l'appareil avait déchiffré le message.
+      expect(MlsNotificationPreview.resume(payload('poll')), 'Sondage');
+      expect(MlsNotificationPreview.resume(payload('call')), 'Appel');
+      expect(MlsNotificationPreview.resume(payload('video')), 'Vidéo');
+      expect(MlsNotificationPreview.resume(payload('file')), 'Fichier');
+      expect(MlsNotificationPreview.resume(payload('sticker')), 'Sticker');
+    });
   });
 
   group('ce push me concerne-t-il', () {
@@ -125,6 +136,58 @@ void main() {
       final source = _source('lib/core/services/notification_service.dart');
       expect(source, contains('await MlsNotificationPreview.texte(data)'));
       expect(source, contains('final body = apercuMls ??'));
+    });
+
+    test('le premier plan le reconstruit aussi, pour les DEUX affichages', () {
+      // Le même push affichait le texte app fermée et « Nouveau message » app
+      // ouverte : `_handleForegroundMessage` ne déchiffrait pas. La bannière
+      // in-app et la notification système lisent `data['body']` — les deux
+      // doivent recevoir la copie enrichie, pas `data`.
+      final source = _source('lib/core/services/notification_service.dart');
+      final i = source.indexOf('Future<void> _handleForegroundMessage(');
+      expect(i, greaterThan(-1));
+      // Borne prise sur du CODE : `_source` retire les lignes de commentaire,
+      // `///` compris — un titre de doc ne peut pas servir d'ancre ici.
+      final corps = source.substring(
+        i,
+        source.indexOf('void _handleIncomingCallNotification(', i),
+      );
+      expect(corps, contains('MlsNotificationPreview.texte(data)'));
+      expect(corps, contains("..['body'] = apercuMls"));
+      expect(corps, contains('_inAppNotificationCallback!(donnees)'));
+      expect(corps, contains('_showLocalNotification(message, donnees: donnees)'));
+    });
+
+    test('le déchiffrement legacy ne repasse pas sur un message MLS', () {
+      // `isE2EE` vaut 'true' des deux côtés : sans la garde sur `protocol`, la
+      // branche Signal/AES reprenait la main sur un aperçu déjà reconstruit.
+      final source = _source('lib/core/services/notification_service.dart');
+      expect(source, contains("data['protocol'] != 'mls'"));
+    });
+
+    test('`RustLib.init()` n’est appelé qu’à un seul endroit', () {
+      // Second appel dans un même isolate = StateError, avalé par le `catch`
+      // de `texte` : l'aperçu retombe sur « Nouveau message » sans qu'aucune
+      // erreur ne le dise. C'est ce qui est arrivé au premier plan, où le
+      // moteur MLS avait déjà initialisé la bibliothèque.
+      final appelants = <String>[];
+      for (final fichier in Directory('lib').listSync(recursive: true)) {
+        if (fichier is! File || !fichier.path.endsWith('.dart')) continue;
+        final chemin = fichier.path.replaceAll(r'\', '/');
+        // Le code généré par flutter_rust_bridge porte la définition.
+        if (chemin.contains('lib/src/rust/')) continue;
+        if (chemin.endsWith('lib/core/crypto/mls/mls_rust_init.dart')) continue;
+        if (_source(fichier.path).contains('RustLib.init(')) {
+          appelants.add(chemin);
+        }
+      }
+      expect(appelants, isEmpty,
+          reason: 'passer par initialiserRustUneFois() : $appelants');
+    });
+
+    test('la garde partagée interroge l’état réel avant d’initialiser', () {
+      final source = _source('lib/core/crypto/mls/mls_rust_init.dart');
+      expect(source, contains('RustLib.instance.initialized'));
     });
 
     test('l’identifiant d’appareil est mémorisé pour l’isolate', () {

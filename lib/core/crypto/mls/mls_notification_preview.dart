@@ -5,12 +5,19 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../src/rust/api/mls.dart' as rust;
-import '../../../src/rust/frb_generated.dart';
 import 'mls_chemin_base.dart';
 import 'mls_payload_codec.dart';
+import 'mls_rust_init.dart';
 
-/// Reconstruit l'aperçu d'un message MLS **dans l'isolate de notification**,
-/// sans jamais toucher à l'état qui fait foi (plan MLS § 8).
+/// Reconstruit l'aperçu d'un message MLS **sur l'appareil**, sans jamais
+/// toucher à l'état qui fait foi (plan MLS § 8).
+///
+/// Appelée depuis **deux** isolates, et c'est le point à garder en tête :
+/// celui des notifications en arrière-plan, et celui de l'application quand un
+/// message arrive au premier plan. Le second a été ajouté après coup — sans
+/// lui, une notification reçue app ouverte affichait « Nouveau message » alors
+/// que l'appareil avait tout ce qu'il fallait pour lire le texte. Voir
+/// [initialiserRustUneFois] pour ce qui distingue les deux.
 ///
 /// Ce que ça remplace : jusqu'ici, Postgres déchiffrait et mettait le vrai
 /// texte dans le push. MLS le lui interdit. Le serveur n'envoie plus qu'un
@@ -83,7 +90,7 @@ class MlsNotificationPreview {
       final chemin = await cheminBaseMls(userId);
       if (!File(chemin).existsSync()) return null;
 
-      await _initRustUneFois();
+      await initialiserRustUneFois();
       final clair = await rust.apercuSansEtat(
         dbPath: chemin,
         userId: userId,
@@ -155,6 +162,12 @@ class MlsNotificationPreview {
         return 'Position';
       case 'sticker':
         return 'Sticker';
+      case 'poll':
+        return 'Sondage';
+      case 'call':
+        return 'Appel';
+      // `system` et tout type inconnu : le repli générique du serveur est
+      // meilleur qu'un libellé inventé ici. `null` le laisse passer.
       default:
         return null;
     }
@@ -170,10 +183,4 @@ class MlsNotificationPreview {
     }
     await prefs.setString('$_prefixeApercu$messageId', texte);
   }
-
-  static Future<void>? _initRust;
-
-  /// `RustLib.init()` une fois **par isolate** : la bibliothèque native est
-  /// déjà chargée par le processus, mais chaque isolate a sa propre instance.
-  static Future<void> _initRustUneFois() => _initRust ??= RustLib.init();
 }
