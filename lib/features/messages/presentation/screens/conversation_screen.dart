@@ -9,7 +9,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:visibility_detector/visibility_detector.dart';
+
+import '../../../../core/crypto/mls/mls_providers.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -255,39 +257,109 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     return !messages.last.createdAt.isBefore(annonce);
   }
 
-  /// Fin de la dernière visite de cette discussion **sur cet appareil**,
-  /// relue au démarrage de l'écran et réécrite en le quittant.
-  DateTime? _derniereVisite;
-  bool _visiteRelue = false;
+  /// **Le curseur de lecture, relevé à l'ouverture.**
+  ///
+  /// Le séparateur « nouveaux messages » en est la représentation : le premier
+  /// non-lu est le message qui suit le curseur. Ni un compte (il ne dit pas
+  /// **où**), ni une date de visite locale (elle ne survit ni à la pagination
+  /// ni au fuseau) — un message précis, désigné par le serveur.
+  ///
+  /// Figé à l'ouverture, et **volontairement pas rafraîchi** ensuite : un
+  /// message qui arrive pendant qu'on lit ne doit pas déplacer le repère.
+  DateTime? _curseurALOuverture;
+  bool _curseurReleve = false;
 
-  String get _cleDerniereVisite => 'derniere_visite_${widget.conversationId}';
+  // ── Avancée du curseur ────────────────────────────────────────────────
+  //
+  // Un message n'est pas « lu » parce qu'il est arrivé, ni parce qu'on a
+  // ouvert la discussion : il l'est quand il a été **montré assez
+  // longtemps**. Avant, `markAsRead` partait dès `initState` et marquait la
+  // conversation entière — y compris ce qui restait sous le pli. L'expéditeur
+  // recevait « Lu » sur des messages que personne n'avait vus, et il ne restait
+  // plus rien à séparer.
 
-  Future<void> _relireDerniereVisite() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final brut = prefs.getString(_cleDerniereVisite);
-      _derniereVisite = brut == null ? null : DateTime.tryParse(brut);
-    } catch (_) {
-      // Pas de préférences lisibles : on retombe sur le compteur de la liste.
+  /// Fraction de la bulle qui doit être à l'écran pour que le compte à rebours
+  /// commence.
+  static const _visibiliteMinimale = 0.6;
+
+  /// Durée pendant laquelle elle doit le rester. Un défilement rapide qui
+  /// traverse vingt messages n'en fait lire aucun.
+  static const _dureeAvantVu = Duration(milliseconds: 400);
+
+  /// Le serveur n'est prévenu qu'une fois le défilement posé.
+  static const _delaiAvantEnvoi = Duration(milliseconds: 700);
+
+  /// Comptes à rebours en cours, par identifiant de message.
+  final Map<String, Timer> _attentesDeVisibilite = {};
+
+  /// Le message le plus récent effectivement vu depuis l'ouverture.
+  DateTime? _vuJusqua;
+  Timer? _envoiCurseur;
+
+  void _signalerVisibilite(MessageEntity message, double fraction) {
+    // Ni mes propres messages, ni les repères système : personne ne les
+    // « lit », et rien ne viendra jamais les marquer.
+    if (message.senderId == ref.read(currentUserProvider).valueOrNull?.id) {
+      return;
     }
-    _visiteRelue = true;
-    // La lecture est asynchrone : le comptage a pu passer avant elle.
-    if (mounted) _calculateUnreadOnOpen();
+    if (message.type == MessageType.system) return;
+
+    if (fraction < _visibiliteMinimale ||
+        !_isAppInForeground ||
+        !_estAffichee) {
+      _attentesDeVisibilite.remove(message.id)?.cancel();
+      return;
+    }
+    if (_attentesDeVisibilite.containsKey(message.id)) return;
+
+    _attentesDeVisibilite[message.id] = Timer(_dureeAvantVu, () {
+      _attentesDeVisibilite.remove(message.id);
+      if (!mounted) return;
+      final vu = _vuJusqua;
+      if (vu != null && !message.createdAt.isAfter(vu)) return;
+      _vuJusqua = message.createdAt;
+      _envoiCurseur?.cancel();
+      _envoiCurseur = Timer(_delaiAvantEnvoi, _pousserCurseur);
+    });
   }
 
-  /// Écrite **en quittant**, pas à l'ouverture : « j'ai vu jusque-là » vaut
-  /// pour tout ce qui était à l'écran, y compris ce qui est arrivé pendant
-  /// qu'on lisait.
-  Future<void> _noterVisite() async {
+  Future<void> _pousserCurseur() async {
+    final jusqua = _vuJusqua;
+    if (jusqua == null || !mounted) return;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-        _cleDerniereVisite,
-        DateTime.now().toUtc().toIso8601String(),
-      );
-    } catch (_) {
-      // Tant pis : au pire le séparateur se fie au compteur la fois suivante.
+      final passerelle = ref.read(mlsGatewayProvider);
+      if (passerelle != null &&
+          await passerelle.enMls(widget.conversationId)) {
+        await passerelle.avancerCurseur(widget.conversationId, jusqua);
+        return;
+      }
+      // Chemin legacy : la RPC ne connaît pas le « jusqu'à » et marque la
+      // conversation. C'est sans conséquence — plus rien n'y arrive depuis la
+      // bascule, donc « tout » et « jusqu'ici » désignent la même chose.
+      final moi = ref.read(currentUserProvider).valueOrNull;
+      if (moi == null) return;
+      await ref
+          .read(messageRepositoryProvider)
+          .markAsRead(conversationId: widget.conversationId, userId: moi.id);
+    } catch (e) {
+      debugPrint('ConversationScreen: curseur non avancé ($e)');
     }
+  }
+
+  Future<void> _releverCurseur() async {
+    try {
+      final passerelle = ref.read(mlsGatewayProvider);
+      if (passerelle != null) {
+        final curseur = await passerelle.curseurDeLecture(widget.conversationId);
+        _curseurALOuverture = curseur?.quand.toLocal();
+      }
+    } catch (_) {
+      // Curseur indisponible : on retombe sur l'état de lecture des messages
+      // chargés, qui suffit au chemin legacy.
+    }
+    _curseurReleve = true;
+    // La lecture est asynchrone : le comptage a pu passer avant elle.
+    if (mounted) _calculateUnreadOnOpen();
   }
 
   /// Au-delà, un message qui arrive est un message **reçu en direct** : il ne
@@ -487,7 +559,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    unawaited(_relireDerniereVisite());
+    unawaited(_releverCurseur());
     _semerIdentiteConnue();
 
     _scrollController.addListener(_onScroll);
@@ -505,8 +577,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Mark as read and load background after frame is built
     // Note: _calculateUnreadOnOpen() is called via ref.listen in build() when messages are loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // « Livré » vaut dès l'ouverture : l'appareil a bien reçu les messages.
+      // « Lu », non : c'est le curseur qui le dira, quand les bulles auront
+      // été montrées assez longtemps (voir [_signalerVisibilite]). Marquer
+      // tout ici, c'était promettre à l'expéditeur une lecture qui n'avait pas
+      // eu lieu — et ne rien laisser à séparer.
       ref.read(markAsDeliveredProvider.notifier).mark(widget.conversationId);
-      ref.read(markAsReadProvider.notifier).mark(widget.conversationId);
       _loadChatBackground();
       // Ne fait rien si la nature du fil n'est pas encore connue (lien
       // profond / notification) : _syncGroupIdentity le rappellera dès que la
@@ -673,7 +749,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
     // Rien dans l'état de lecture — attendu, il est déjà faussé. On regarde
     // ce qui est arrivé depuis la dernière visite de cet appareil.
-    if (!_visiteRelue) return; // la relecture rappellera
+    if (!_curseurReleve) return; // le relèvement rappellera
     if (!_filVaJusquAuBout(messages)) {
       // Fil incomplet : ne rien poser. La fenêtre de recompte repassera dès
       // que la lecture réseau l'aura complété.
@@ -683,7 +759,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       }
       return;
     }
-    final depuis = _derniereVisite;
+    final depuis = _curseurALOuverture;
     if (depuis != null) {
       final vus = compterDepuis(messages, currentUser.id, depuis);
       if (vus.nombre > 0 && vus.premier != null) {
@@ -698,10 +774,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         }
         return;
       }
-      // Rien de neuf depuis la dernière visite : pas de séparateur, et
-      // surtout pas celui du compteur de la liste, qui met quelques secondes
-      // à retomber à zéro et ferait réapparaître « N non lus » sur des
-      // messages qu'on vient de lire.
+      // Rien après le curseur : pas de séparateur. Et surtout pas celui du
+      // compteur de la liste, qui met quelques secondes à retomber à zéro et
+      // faisait réapparaître « N non lus » sur des messages qu'on venait de
+      // lire — signalé à l'usage, c'est ce qui a mené au curseur.
       if (DateTime.now().difference(_ouvertA) >= _fenetreRecompteNonLus) {
         _hasCalculatedUnread = true;
       }
@@ -793,10 +869,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
   @override
   void dispose() {
-    // « J'ai vu jusque-là » : écrit en partant, donc englobe ce qui est
-    // arrivé pendant qu'on lisait. C'est ce repère, et non le compteur de la
-    // liste, qui décide du séparateur à la prochaine ouverture.
-    unawaited(_noterVisite());
+    for (final attente in _attentesDeVisibilite.values) {
+      attente.cancel();
+    }
+    _attentesDeVisibilite.clear();
+    _envoiCurseur?.cancel();
     // Clear current conversation to re-enable in-app notifications
     NotificationService().setCurrentConversation(null);
     // Note: We don't clear the provider here because dispose() may be called
@@ -819,12 +896,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Track foreground state to prevent marking messages as read when in background
     if (state == AppLifecycleState.resumed) {
       _isAppInForeground = true;
-      // « Livré » vaut dès que l'appareil a le message : il n'a pas à
-      // attendre qu'on regarde. « Lu », si.
+      // « Livré » vaut dès que l'appareil a le message. « Lu » repart du
+      // curseur : les bulles redeviennent visibles, leurs comptes à rebours
+      // reprennent, et le curseur avance de lui-même.
       ref.read(markAsDeliveredProvider.notifier).mark(widget.conversationId);
-      if (_estAffichee) {
-        ref.read(markAsReadProvider.notifier).mark(widget.conversationId);
-      }
       setState(() {
         // Force rebuild to update date labels like "Aujourd'hui", "Hier"
       });
@@ -1758,16 +1833,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         _calculateUnreadOnOpen();
       }
 
-      // Marquer lu à l'arrivée d'un message demande les DEUX conditions :
-      // l'app au premier plan, et cette discussion effectivement affichée.
-      // Voir [_estAffichee] pour ce que la seconde a coûté.
+      // Un message qui arrive est **livré**, pas lu. S'il tombe sous les yeux,
+      // son propre compte à rebours de visibilité fera avancer le curseur ;
+      // s'il arrive sous le pli, il reste non lu — et le séparateur garde son
+      // sens. Voir [_signalerVisibilite].
       if (previous != null &&
           next.messages.length > previous.messages.length &&
           _isAppInForeground &&
           _estAffichee) {
         final currentUserId = currentUser?.id;
         if (currentUserId != null) {
-          // Check if there are new messages from other users
           final newMessagesFromOthers = next.messages
               .where((m) => !previous.messages.any((pm) => pm.id == m.id))
               .any((m) => m.senderId != currentUserId);
@@ -1776,7 +1851,6 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             ref
                 .read(markAsDeliveredProvider.notifier)
                 .mark(widget.conversationId);
-            ref.read(markAsReadProvider.notifier).mark(widget.conversationId);
           }
         }
       }
@@ -2742,7 +2816,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
         // With reverse: true, separators go BEFORE the message in the Column
         // so they appear visually ABOVE (Column still renders top-to-bottom within each item)
-        return Column(
+        final ligne = Column(
           children: [
             // Date separator (appears ABOVE message visually)
             if (needsSeparator) _buildDateSeparator(message.createdAt, l10n),
@@ -2880,6 +2954,17 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
               ),
             ),
           ],
+        );
+
+        // Le détecteur enveloppe la ligne entière : c'est lui qui fait avancer
+        // le curseur de lecture. Un message n'est pas lu parce qu'il est
+        // arrivé, ni parce qu'on a ouvert la discussion — il l'est quand il a
+        // été montré assez longtemps. Voir [_signalerVisibilite].
+        return VisibilityDetector(
+          key: ValueKey('vu-${message.id}'),
+          onVisibilityChanged:
+              (info) => _signalerVisibilite(message, info.visibleFraction),
+          child: ligne,
         );
       },
     );

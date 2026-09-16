@@ -166,10 +166,19 @@ void main() {
     });
   });
 
-  group('« lu » exige que la discussion soit affichée', () {
-    // Limite assumée, comme `etat_vide_filtre_test.dart` : ces tests lisent la
-    // source. Monter `ConversationScreen` demande GoRouter, une session
-    // Supabase et une dizaine de providers, et le garde est privé.
+  group('« lu » suit le curseur, pas l\'ouverture', () {
+    // Le séparateur « nouveaux messages » est la représentation d'un curseur
+    // de lecture. Il ne pouvait pas exister tant que `markAsRead` partait dès
+    // `initState` et marquait la conversation **entière** : les messages
+    // revenaient du serveur déjà lus, et l'expéditeur recevait « Lu » sur ce
+    // que personne n'avait vu.
+    //
+    // Mesuré sur Pixel 10 Pro XL : `delivered_at` et `read_at` posés à 7 ms
+    // d'écart à l'instant de l'ouverture.
+    //
+    // Limite assumée, comme le reste : ces tests lisent la source. Monter
+    // `ConversationScreen` demande GoRouter, une session Supabase et une
+    // dizaine de providers.
     late String source;
 
     setUpAll(() {
@@ -180,49 +189,56 @@ void main() {
       source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
     });
 
-    test('le garde de visibilité existe et interroge le routeur', () {
-      expect(source, contains('bool get _estAffichee'));
-      // L'emplacement GLOBAL, pas `ModalRoute.isCurrent` : ce dernier est vrai
-      // aussi dans une branche d'onglet inactive.
-      expect(source, contains('currentConfiguration'));
-      expect(source, isNot(contains('ModalRoute.of(context)?.isCurrent')));
-    });
-
-    test('le retour au premier plan ne marque plus lu à lui seul', () {
-      final debut = source.indexOf('if (state == AppLifecycleState.resumed) {');
-      expect(debut, isNot(-1), reason: 'la garde de cycle de vie a disparu');
-
-      final bloc = source.substring(debut, debut + 700);
-      final marqueLu = bloc.indexOf('markAsReadProvider');
-      expect(marqueLu, isNot(-1));
-
-      final garde = bloc.indexOf('if (_estAffichee) {');
-      expect(garde, isNot(-1), reason: 'le garde de visibilité a sauté');
-      expect(
-        garde,
-        lessThan(marqueLu),
-        reason: '« lu » serait de nouveau posé sans que personne ne regarde',
-      );
-    });
-
-    test("l'arrivée d'un message exige les deux conditions", () {
+    test('plus aucun marquage global de lecture', () {
       expect(
         source,
-        contains('_isAppInForeground &&\n          _estAffichee'),
-        reason: 'premier plan seul ne suffit pas : il faut être à l\'écran',
+        isNot(contains('markAsReadProvider.notifier')),
+        reason: 'ouvrir une discussion ne veut pas dire avoir tout lu',
       );
     });
 
-    test('« livré » reste posé sans condition de visibilité', () {
-      // Livré vaut dès que l'appareil a le message. N'exiger la visibilité que
-      // pour « lu » est tout l'intérêt de la distinction.
-      final debut = source.indexOf('if (state == AppLifecycleState.resumed) {');
-      final bloc = source.substring(debut, debut + 700);
-      final livre = bloc.indexOf('markAsDeliveredProvider');
-      final garde = bloc.indexOf('if (_estAffichee) {');
+    test('« livré », lui, reste posé à l\'ouverture', () {
+      // L'appareil a bien reçu les messages : c'est une vérité indépendante
+      // de ce qu'on a regardé. La distinction reçu/lu est tout l'objet.
+      expect(source, contains('markAsDeliveredProvider.notifier'));
+    });
 
-      expect(livre, isNot(-1));
-      expect(livre, lessThan(garde), reason: '« livré » ne doit pas être gardé');
+    test('le curseur avance sur la visibilité, avec un seuil et un délai', () {
+      // Sans durée, un défilement rapide « lirait » tout le fil.
+      expect(source, contains('_visibiliteMinimale = 0.6'));
+      expect(source, contains('_dureeAvantVu = Duration(milliseconds:'));
+      expect(source, contains('VisibilityDetector('));
+      expect(source, contains('_signalerVisibilite(message, info.visibleFraction)'));
+    });
+
+    test('ni mes messages ni les repères système ne font avancer le curseur', () {
+      final debut = source.indexOf('void _signalerVisibilite(');
+      expect(debut, isNot(-1));
+      final corps = source.substring(debut, debut + 1400);
+      expect(corps, contains('message.type == MessageType.system'));
+      expect(corps, contains('message.senderId =='));
+    });
+
+    test('le serveur n\'est prévenu qu\'une fois le défilement posé', () {
+      // Sans ce délai, un défilement enverrait une requête par bulle traversée.
+      expect(source, contains('_delaiAvantEnvoi = Duration(milliseconds:'));
+      expect(source, contains('Timer(_delaiAvantEnvoi, _pousserCurseur)'));
+    });
+
+    test('le curseur ne recule jamais', () {
+      // Remonter dans le fil ne défait pas une lecture.
+      final debut = source.indexOf('_attentesDeVisibilite[message.id] = Timer(');
+      expect(debut, isNot(-1));
+      final corps = source.substring(debut, debut + 500);
+      expect(corps, contains('!message.createdAt.isAfter(vu)'));
+    });
+
+    test('les comptes à rebours sont annulés en quittant', () {
+      final debut = source.indexOf('void dispose() {');
+      expect(debut, isNot(-1));
+      final corps = source.substring(debut, debut + 400);
+      expect(corps, contains('_attentesDeVisibilite'));
+      expect(corps, contains('_envoiCurseur?.cancel()'));
     });
   });
 }

@@ -125,7 +125,7 @@ void main() {
 
     test('elle passe AVANT les deux chemins de comptage', () {
       final garde = source.indexOf('if (!_filVaJusquAuBout(messages)) {');
-      final visite = source.indexOf('final depuis = _derniereVisite;');
+      final visite = source.indexOf('final depuis = _curseurALOuverture;');
       final repli = source.indexOf('final rang = rangDesDerniersDAutrui(');
 
       expect(garde, isNot(-1), reason: 'la garde a saute');
@@ -139,7 +139,18 @@ void main() {
     });
   });
 
-  group('le repère de dernière visite', () {
+  group('le curseur de lecture', () {
+    // Le séparateur est la **représentation d'un curseur**, pas une propriété
+    // des messages. Trois repères ont été essayés avant, et les trois
+    // mentaient :
+    //
+    // - l'état de lecture des messages chargés : déjà faussé à l'arrivée du
+    //   fil, `markAsRead` partant au premier rendu ;
+    // - le compteur de la liste : il ne dit pas **où**, et il met quelques
+    //   secondes à retomber à zéro après lecture ;
+    // - une date de visite locale : elle ne survit ni à la pagination ni au
+    //   fuseau, et elle a posé « 4 messages non lus » devant des messages de
+    //   la veille, vérifié à l'écran.
     late String source;
 
     setUpAll(() {
@@ -150,24 +161,36 @@ void main() {
       source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
     });
 
-    test('la visite est écrite en QUITTANT, pas à l\'ouverture', () {
-      // Écrite à l'ouverture, elle exclurait ce qui arrive pendant la lecture.
-      final debut = source.indexOf('void dispose() {');
-      expect(debut, isNot(-1));
-      expect(source.substring(debut, debut + 600), contains('_noterVisite()'));
+    test('le curseur vient du serveur, pas des préférences locales', () {
+      expect(source, contains('passerelle.curseurDeLecture('));
+      expect(
+        source,
+        isNot(contains('SharedPreferences')),
+        reason: 'la date de visite locale ne doit pas revenir',
+      );
     });
 
-    test('le compteur de la liste ne sert qu\'à la première ouverture', () {
-      // C'est lui qui faisait réapparaître le séparateur après lecture.
-      final debut = source.indexOf('final depuis = _derniereVisite;');
-      expect(debut, isNot(-1), reason: 'le repère de visite a disparu');
+    test('il est figé à l\'ouverture', () {
+      // Un message qui arrive pendant qu'on lit ne doit pas déplacer le
+      // repère : le curseur ne se relève qu'une fois.
+      expect(source, contains('DateTime? _curseurALOuverture;'));
+      expect(source, contains('unawaited(_releverCurseur());'));
 
-      final apres = source.indexOf('_nonLusAvantOuverture > 0', debut);
-      expect(
-        apres,
-        isNot(-1),
-        reason: 'le repli sur le compteur doit rester, mais APRES',
-      );
+      final debut = source.indexOf('Future<void> _releverCurseur() async {');
+      expect(debut, isNot(-1));
+      final corps = source.substring(debut, debut + 900);
+      expect(corps, contains('_curseurReleve = true;'));
+    });
+
+    test('le comptage attend que le curseur soit relevé', () {
+      // Sans cette attente, le premier passage compterait sans repère et
+      // verrouillerait un séparateur faux.
+      final attente = source.indexOf('if (!_curseurReleve) return;');
+      final usage = source.indexOf('final depuis = _curseurALOuverture;');
+
+      expect(attente, isNot(-1));
+      expect(usage, isNot(-1));
+      expect(attente, lessThan(usage));
     });
   });
 

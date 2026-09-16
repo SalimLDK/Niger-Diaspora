@@ -418,6 +418,78 @@ class MlsMetadonnees {
     }
   }
 
+  /// **Le curseur de lecture** : le dernier message de cette conversation que
+  /// j'ai réellement lu.
+  ///
+  /// C'est l'état dont le séparateur « nouveaux messages » est la
+  /// représentation — pas une date de visite, pas un compte. Un compte ne dit
+  /// pas **où**, et une date ne survit ni à la pagination ni au fuseau. Le
+  /// curseur, lui, désigne un message, et le premier non-lu est celui qui le
+  /// suit. Il reste juste même quand ce message n'est pas chargé : son
+  /// horodatage suffit à placer le repère dès que la pagination remonte
+  /// jusque-là.
+  ///
+  /// Il vit dans `mls_message_receipts`, qui porte déjà un état **par
+  /// utilisateur et par message** : en groupe, un `isRead` porté par le
+  /// message serait faux, chaque membre ayant le sien.
+  ///
+  /// `null` = rien n'a jamais été lu ici ; tout ce qui vient d'autrui est
+  /// nouveau.
+  Future<({String id, DateTime quand})?> curseurDeLecture(
+    String conversationId,
+  ) async {
+    try {
+      await _auth();
+      final rows = await _client
+          .from('mls_message_receipts')
+          .select('message_id, mls_messages!inner(conversation_id, created_at)')
+          .eq('user_id', userId)
+          .not('read_at', 'is', null)
+          .eq('mls_messages.conversation_id', conversationId);
+
+      String? id;
+      DateTime? quand;
+      for (final r in (rows as List).cast<Map<String, dynamic>>()) {
+        final message = r['mls_messages'];
+        if (message is! Map) continue;
+        final date = DateTime.tryParse(message['created_at'] as String? ?? '');
+        if (date == null) continue;
+        if (quand == null || date.isAfter(quand)) {
+          quand = date;
+          id = r['message_id'] as String?;
+        }
+      }
+      if (id == null || quand == null) return null;
+      return (id: id, quand: quand);
+    } catch (e) {
+      debugPrint('MlsMetadonnees: curseur illisible ($e)');
+      return null;
+    }
+  }
+
+  /// Avance le curseur : marque lus les messages d'autrui **jusqu'à**
+  /// [jusqua] inclus, et pas au-delà.
+  ///
+  /// C'est la différence avec [messagesDesAutres] + [marquer], qui prend la
+  /// conversation entière : ouvrir une discussion ne veut pas dire qu'on a lu
+  /// ce qui est resté sous le pli. L'accusé « Lu » que reçoit l'expéditeur
+  /// suit donc ce que l'écran a vraiment montré.
+  Future<void> marquerLusJusqua(String conversationId, DateTime jusqua) async {
+    await _auth();
+    final rows = await _client
+        .from('mls_messages')
+        .select('id')
+        .eq('conversation_id', conversationId)
+        .eq('kind', 'content')
+        .neq('sender_id', userId)
+        .lte('created_at', jusqua.toUtc().toIso8601String());
+    final ids = [
+      for (final r in (rows as List).cast<Map<String, dynamic>>())
+        r['id'] as String,
+    ];
+    await marquer(ids, lu: true);
+  }
+
   /// Les messages de la conversation qui ne sont pas de moi — ceux dont je
   /// peux accuser réception. Le RLS ne rend que mes conversations.
   Future<List<String>> messagesDesAutres(String conversationId) async {
