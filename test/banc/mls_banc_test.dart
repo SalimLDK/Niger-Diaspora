@@ -705,5 +705,27 @@ void main() {
         throwsA(isA<MlsEnAttenteDeWelcome>()),
       );
     });
+
+    test('un 1:1 dont l’appareil a été réinstallé : il reprend sa place', () async {
+      // Le cas du 2026-09-16 : les deux téléphones réinstallés, plus aucun
+      // membre vivant pour envoyer un Welcome. Bob « réinstallé », c'est un
+      // nouvel appareil du même compte ; il doit rentrer seul, écrire, et
+      // Alice le lire.
+      final prive = await conversation(a, [a, b]);
+      await a.service.ensureGroup(prive);
+      await a.service.reconcileMembership(prive);
+      await b.service.catchUp(prive);
+
+      final bis = Appareil(nom: 'BobBis', uid: b.uid, client: b.client, dossier: dossier);
+      await bis.inscrire();
+      addTearDown(bis.detruireLeMoteur);
+      // Personne n'intervient : ni Alice ni l'ancien Bob n'envoient de Welcome.
+      await bis.service.ensureGroup(prive);
+
+      final sien = await bis.service.send(prive, MlsPayload.texte(uuid.v4(), 'de retour'));
+      expect(sien.senderId, b.uid);
+      expect((await a.service.catchUp(prive)).map((x) => x.payload?.texte),
+          contains('de retour'));
+    });
   });
 }

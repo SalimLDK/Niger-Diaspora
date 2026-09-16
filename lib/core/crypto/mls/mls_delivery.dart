@@ -279,6 +279,29 @@ class MlsDelivery {
         .toList();
   }
 
+  /// Vrai si [userId] a déjà eu un appareil dans le groupe de cette
+  /// conversation — actif ou non, révoqué ou non : c'est la place qu'il y
+  /// occupait qui compte, pas l'appareil qui l'occupait.
+  Future<bool> aEuUnAppareilDans(String conversationId, String userId) async {
+    await _auth();
+    final lignes = await _client
+        .from('conversation_devices')
+        .select('device_id')
+        .eq('conversation_id', conversationId);
+    final ids = [
+      for (final l in (lignes as List).cast<Map<String, dynamic>>())
+        if (l['device_id'] is String) l['device_id'] as String,
+    ];
+    if (ids.isEmpty) return false;
+    final siens = await _client
+        .from('mls_devices')
+        .select('id')
+        .inFilter('id', ids)
+        .eq('user_id', userId)
+        .limit(1);
+    return (siens as List).isNotEmpty;
+  }
+
   Future<MlsKeyPackageClaim?> claimKeyPackage(String deviceId) async {
     await _auth();
     final r = await _client.rpc('claim_key_package', params: {'p_device_id': deviceId});

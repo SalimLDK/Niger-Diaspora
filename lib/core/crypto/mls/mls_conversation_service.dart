@@ -139,8 +139,8 @@ class MlsConversationService {
     // 2. Le groupe existe déjà. Dans un groupe, je peux m'ajouter moi-même
     //    depuis l'arbre public (§ 5.7) : c'est ce qui rend le groupe officiel
     //    d'une ville praticable, puisqu'on le rejoint automatiquement, souvent
-    //    sans qu'aucun membre ne soit en ligne. Pour un 1:1, non — il n'y a
-    //    personne à rejoindre sans invitation.
+    //    sans qu'aucun membre ne soit en ligne. Pour un 1:1, seulement pour
+    //    reprendre sa propre place (voir `_jointureExternePossible`).
     if (await _delivery.currentEpoch(conversationId) != null) {
       if (await _jointureExternePossible(conversationId)) {
         final arbre = await _delivery.groupInfo(conversationId);
@@ -257,16 +257,32 @@ class MlsConversationService {
     }
   }
 
-  /// La jointure externe n'a de sens que pour une conversation de groupe.
+  /// Qui peut entrer seul, depuis l'arbre public.
   ///
-  /// Dans un 1:1, s'ajouter soi-même à la conversation de quelqu'un d'autre
-  /// n'aurait aucune légitimité — et le RLS l'interdirait de toute façon,
-  /// puisqu'il faut déjà figurer dans `participant_ids` pour lire l'arbre.
-  /// Cette garde est donc une clarté d'intention ; la barrière, elle, est
-  /// côté serveur.
+  /// **Un groupe** : tout participant — c'est ce qui rend le groupe officiel
+  /// d'une ville praticable.
+  ///
+  /// **Un 1:1 (ou « Mes notes »)** : seulement un compte qui **y avait déjà
+  /// un appareil**, c'est-à-dire qui reprend sa propre place après une
+  /// réinstallation. Quelqu'un qu'on aurait glissé dans `participant_ids`
+  /// d'une conversation à deux attend toujours d'y être invité.
+  ///
+  /// Refuser tout 1:1, comme avant, a coûté le 2026-09-16 : les deux
+  /// téléphones de test réinstallés depuis le Play Store, la discussion
+  /// chiffrée entre eux ne contenait plus que leurs deux ANCIENS appareils,
+  /// effacés. Plus aucun membre vivant pour envoyer le Welcome, le serveur
+  /// refusant le clair : la conversation était morte pour de bon, et chaque
+  /// envoi finissait en « Non envoyé ». Aucune surface d'attaque de plus :
+  /// `reconcileMembership` ajoute déjà d'office tout appareil actif d'un
+  /// participant, dès qu'un membre écrit.
   Future<bool> _jointureExternePossible(String conversationId) async {
     final conv = await _delivery.conversation(conversationId);
-    return (conv?['type'] as String?) == 'group';
+    if (conv == null) return false;
+    if ((conv['type'] as String?) == 'group') return true;
+    final participants =
+        ((conv['participant_ids'] as List?) ?? const []).cast<String>();
+    if (!participants.contains(userId)) return false;
+    return _delivery.aEuUnAppareilDans(conversationId, userId);
   }
 
   /// Aligne les membres du groupe sur les appareils actifs des participants

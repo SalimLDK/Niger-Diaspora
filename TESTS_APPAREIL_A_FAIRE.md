@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1356 cases à cocher, 640 cochées** — 266 entrées sur 315 ont encore des cases ouvertes.
+**1357 cases à cocher, 640 cochées** — 266 entrées sur 315 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -55,7 +55,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
-- 3 · [⬜ MLS après un démarrage à froid : lire et envoyer dans une conversation chiffrée (2026-09-16)](#-mls-après-un-démarrage-à-froid--lire-et-envoyer-dans-une-conversation-chiffrée-2026-09-16) · *Chiffrement de bout en bout et clés*
+- 4 · [⬜ MLS après un démarrage à froid : lire et envoyer dans une conversation chiffrée (2026-09-16)](#-mls-après-un-démarrage-à-froid--lire-et-envoyer-dans-une-conversation-chiffrée-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 6 · [⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16)](#-la-notification-gardait-le-ciphertext-que-le-message-avait-perdu-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)](#-un-média-chiffré-de-plus-de-10-mo-était-illisible-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -326,7 +326,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 307 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 135 à faire, 40 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 136 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -7011,7 +7011,8 @@ est la panne elle-même. Deux appareils, dans une conversation déjà chiffrée 
 
 - [ ] A connecté, **app tuée puis relancée** (pas seulement mise en arrière-plan) : ouvrir la conversation — les messages chiffrés reçus s'affichent ;
 - [ ] depuis A, toujours après la relance : envoyer un texte — une ligne apparaît dans `mls_messages` (et aucun `POST messages` en 400 dans les journaux d'API), B le lit ;
-- [ ] se déconnecter puis se connecter avec **un autre compte** sans tuer l'app : envoyer dans une conversation chiffrée de ce compte — le `sender_id` de la ligne `mls_messages` est le nouveau compte.
+- [ ] se déconnecter puis se connecter avec **un autre compte** sans tuer l'app : envoyer dans une conversation chiffrée de ce compte — le `sender_id` de la ligne `mls_messages` est le nouveau compte ;
+- [ ] **1:1 chiffré après réinstallation des DEUX téléphones** (le second défaut du même jour) : A envoie dans la discussion — il part (une ligne `mls_commits` du nouvel appareil de A précède le message), sans que B ait rien fait. Avant le correctif : « Non envoyé » pour toujours, faute de membre vivant pour envoyer le Welcome ; un 1:1 refusait toute jointure externe. Désormais permise au seul compte qui avait déjà un appareil dans le groupe (`_jointureExternePossible`, `mls_conversation_service.dart`), cas couvert par `test/banc/mls_banc_test.dart`.
 
 ---
 
