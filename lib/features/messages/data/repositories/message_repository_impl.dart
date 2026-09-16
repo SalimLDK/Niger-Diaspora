@@ -220,6 +220,16 @@ class MessageRepositoryImpl implements MessageRepository {
           name: 'message_repository_impl', error: e);
     }
 
+    // Déchiffrer **avant** qu'on ouvre, et non pendant. Sans ça, le fil
+    // s'affiche depuis le cache local — donc sans les messages reçus entre
+    // deux visites — et il faut attendre réseau + déchiffrement pour les voir
+    // apparaître. Mesuré le 2026-09-15 sur Pixel 10 Pro XL : 2,5 à 3 secondes.
+    //
+    // Sans `await` : la liste ne doit pas attendre ça pour s'afficher. Borné
+    // aux trois conversations les plus récentes qui en ont besoin, et espacé
+    // de 20 s — c'est un confort, pas une synchronisation.
+    unawaited(_rattraperMlsEnArrierePlan(passerelle, avecApercu));
+
     try {
       final compteurs = await passerelle.nonLus();
       if (compteurs.isEmpty) return avecApercu;
@@ -851,6 +861,57 @@ class MessageRepositoryImpl implements MessageRepository {
     final passerelle = mlsGateway;
     if (passerelle == null) return null;
     return await passerelle.enMls(conversationId) ? passerelle : null;
+  }
+
+  /// Dernier déclenchement du rattrapage de fond.
+  DateTime? _dernierRattrapage;
+
+  /// Espacement minimal entre deux rattrapages de fond. Le flux des
+  /// conversations émet à chaque changement ; sans cette borne, la requête de
+  /// planification partirait bien plus souvent que nécessaire.
+  static const _espacementRattrapage = Duration(seconds: 20);
+
+  /// Déchiffre en tâche de fond les conversations dont le dernier message
+  /// n'a jamais été lu sur cet appareil, et met le résultat en cache.
+  ///
+  /// Le cache est le point : c'est lui que `_loadCacheSync` affiche
+  /// instantanément à l'ouverture. Déchiffrer sans mettre en cache ne ferait
+  /// gagner que la moitié du temps.
+  ///
+  /// Ne lève jamais : un rattrapage raté coûte l'attente qu'on avait avant.
+  Future<void> _rattraperMlsEnArrierePlan(
+    MlsGateway passerelle,
+    List<ConversationEntity> conversations,
+  ) async {
+    final maintenant = DateTime.now();
+    final precedent = _dernierRattrapage;
+    if (precedent != null &&
+        maintenant.difference(precedent) < _espacementRattrapage) {
+      return;
+    }
+    _dernierRattrapage = maintenant;
+
+    try {
+      final aFaire = await passerelle.conversationsARattraper(
+        [for (final c in conversations) c.id],
+      );
+      for (final id in aFaire) {
+        try {
+          final mls = await passerelle.messages(id);
+          if (mls.isEmpty) continue;
+          await cacheService.cacheMessages(
+            id,
+            [for (final m in mls) MessageModel.fromEntity(m).toJson()],
+          );
+        } catch (e) {
+          dev.log('Rattrapage MLS impossible',
+              name: 'message_repository_impl', error: e);
+        }
+      }
+    } catch (e) {
+      dev.log('Rattrapage MLS non planifié',
+          name: 'message_repository_impl', error: e);
+    }
   }
 
   /// La passerelle si **ce message-là** est un message MLS.
