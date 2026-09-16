@@ -749,12 +749,21 @@ class MlsConversationService {
   /// Un code, jamais un message libre (qui pourrait citer du contenu).
   static String _code(Object e) {
     final texte = e.toString();
-    final m = RegExp(r'[A-Za-z_]+').allMatches(texte).map((x) => x.group(0)!).toList();
+    // `openmls:CreateCommitError` reste d'un bloc : coupé au deux-points, le
+    // diagnostic ne disait que « openmls » — c'est ce que le Samsung a écrit
+    // le 2026-09-16 pour un ajout de membres impossible, sans rien de plus.
+    final m = RegExp(r'[A-Za-z_]+(?::[A-Za-z_]+)?')
+        .allMatches(texte)
+        .map((x) => x.group(0)!)
+        .toList();
     // `AnyhowException(aad_mismatch)` → aad_mismatch
     final utile = m.where((s) => s != 'AnyhowException' && s != 'Exception').toList();
     final code = utile.isEmpty ? 'inconnue' : utile.first;
-    return code.length > 40 ? code.substring(0, 40) : code;
+    return code.length > 60 ? code.substring(0, 60) : code;
   }
+
+  @visibleForTesting
+  static String codeDiagnostic(Object e) => _code(e);
 
   @visibleForTesting
   void oublierCurseur(String conversationId) {
