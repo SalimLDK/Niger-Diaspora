@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1200 cases à cocher, 616 cochées** — 242 entrées sur 290 ont encore des cases ouvertes.
+**1206 cases à cocher, 616 cochées** — 243 entrées sur 291 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -47,7 +47,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
-- 3 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
+- 4 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
 - 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
@@ -162,7 +162,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (76)
+**P2 — fonction secondaire ou cas limite** (77)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -173,6 +173,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
 - 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
@@ -300,7 +301,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 248 à faire, 104 faites
+- [2. Messagerie](#2-messagerie) — 254 à faire, 104 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -559,6 +560,51 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)
+
+**Priorité P2** · importance 3/5 — le séparateur posé dans le fil au moment
+où la conversation passe au chiffrement de bout en bout portait son libellé
+**écrit en dur, en français**, dans `MlsMessageMapper.separateur` : aucune clé
+`.arb` ne le couvrait, donc un compte en anglais lisait « Messages d'avant le
+chiffrement de bout en bout » au milieu d'une interface anglaise.
+
+Deux changements : le texte devient générique — « Les messages sont chiffrés
+de bout en bout » / « Messages are end-to-end encrypted » — et il est
+**résolu à l'affichage**, pas à la fusion des deux sources. Le séparateur ne
+transporte donc plus de `content` : son identifiant réservé est descendu dans
+`MessageEntity` (`idSeparateurMls`, `estSeparateurMls`) pour que la bulle
+système le reconnaisse sans importer la pile MLS.
+
+Nuance connue, à juger à l'œil sur un vrai fil : les messages **au-dessus**
+du repère ne sont pas chiffrés, et une phrase générique posée au milieu du fil
+ne le dit plus. Elle reste vraie pour ce qui suit.
+
+Les entrées plus anciennes de ce fichier citent l'ancien libellé : ce sont des
+constats datés, laissés tels quels.
+
+Fichiers : [mls_message_mapper.dart](lib/core/crypto/mls/mls_message_mapper.dart),
+[message_entity.dart](lib/features/messages/domain/entities/message_entity.dart),
+[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart),
+`lib/l10n/app_fr.arb` + `app_en.arb` (`mlsSeparatorEncrypted`). Tenu par
+[separateur_bascule_libelle_test.dart](test/features/messages/separateur_bascule_libelle_test.dart)
+(5 cas, dont le rendu en anglais — le défaut d'origine).
+
+- [ ] **Le fil d'une conversation basculée** (« Mes notes » sur le compte de
+  test suffit) : le repère affiche bien la nouvelle phrase, centrée dans sa
+  pastille, et **sur une seule ligne** si la largeur le permet.
+- [ ] **Compte en anglais** : passer l'app en anglais et rouvrir le même fil.
+  Le repère est en anglais. C'était impossible avant ce correctif.
+- [ ] **Thème sombre** : la pastille (`Colors.white` à 8 % d'alpha) et le texte
+  secondaire restent lisibles par-dessus un fond de discussion personnalisé.
+- [ ] **Échelle de police à fond** : la phrase se replie sur deux ou trois
+  lignes sans déborder la pastille ni pousser les bulles voisines.
+- [ ] **Le repère ne compte toujours pas comme un message** : pas de bandeau
+  « non lu » dessus, pas de réponse possible, absent de la recherche — voir
+  « Le bandeau « 1 message non lu » d'une conversation basculée ». Le `content`
+  vide ne doit avoir rien cassé de ce côté.
 
 ---
 
@@ -1140,9 +1186,25 @@ Fichiers : [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
 [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
 (`_fusionnerAvecMls`, `mlsDuCache`).
 
+**⚠️ Le correctif « ce qui arrive en direct est enfin gardé » (`1d0c6a9`) ne
+referme PAS ce cas.** Revérifié le 2026-09-16 avec ce correctif embarqué
+(APK `166f7be0…`, md5 confirmé sur l'appareil) : un message envoyé du
+SM A515F, lu sur le Pixel en ouvrant la discussion, **disparaît du fil après
+un arrêt complet**. Il n'était donc pas arrivé par le canal temps réel mais
+par le rattrapage ordinaire — ce qui déplace la cause : ce n'est pas
+seulement la livraison en direct qui échappe au cache.
+
+Deux messages plus anciens de la même conversation, eux, **survivent** au
+même redémarrage. La différence entre les deux familles reste à établir ; la
+piste la plus simple à écarter d'abord est la **limite de `getCachedMessages`**
+(le cache ne rend qu'une tranche), avant de soupçonner le curseur.
+
 - [ ] **Reproduire volontairement** : A envoie pendant que B a la discussion
   ouverte (livraison en direct), puis tuer et rouvrir B. Le message doit
   rester.
+- [ ] **Distinguer les deux familles** : pourquoi « Yo » et « Hh » survivent
+  et pas un message reçu à l'instant. Comparer ce que `getCachedMessages`
+  rend pour cette conversation avant et après le redémarrage.
 - [ ] **Vérifier l'hypothèse** : le message perdu est-il absent du cache
   Hive, alors que le curseur mémorisé l'a dépassé ?
 - [ ] **Après correctif** : même épreuve, et le cas déjà vert du message reçu

@@ -14,19 +14,23 @@ import 'mls_payload_codec.dart';
 class MlsMessageMapper {
   MlsMessageMapper._();
 
-  /// Identifiant du séparateur « avant le chiffrement de bout en bout ».
-  /// Réservé, jamais produit par un vrai message : les identifiants de
-  /// messages sont des uuid ou des identifiants Firestore.
-  static const idSeparateur = '__mls_separateur__';
+  /// Identifiant du séparateur de bascule, défini par [MessageEntity] — la
+  /// présentation doit pouvoir le reconnaître sans importer la pile MLS.
+  static const idSeparateur = MessageEntity.idSeparateurMls;
 
   /// Le repère visuel entre l'historique lisible par le serveur et ce qui
   /// suit. Sans lui, la bascule serait invisible — et l'utilisateur croirait
   /// que tout son historique est chiffré.
+  ///
+  /// [content] reste **vide** à dessein : le libellé portait ici une phrase
+  /// française en dur, que voyait aussi un compte en anglais. Il est
+  /// désormais résolu au rendu (`AppLocalizations.mlsSeparatorEncrypted`),
+  /// donc dans la langue de l'utilisateur et non dans celle de la fusion.
   static MessageEntity separateur(DateTime quand) => MessageEntity(
         id: idSeparateur,
         senderId: 'system',
         senderName: '',
-        content: 'Messages d\'avant le chiffrement de bout en bout',
+        content: '',
         type: MessageType.system,
         status: MessageStatus.sent,
         createdAt: quand,
