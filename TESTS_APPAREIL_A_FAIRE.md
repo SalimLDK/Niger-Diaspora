@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1292 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
+**1296 cases à cocher, 632 cochées** — 255 entrées sur 304 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -172,7 +172,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (78)
+**P2 — fonction secondaire ou cas limite** (79)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -183,6 +183,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 4 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
 - 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
 - 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
@@ -312,7 +313,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 276 à faire, 119 faites
+- [2. Messagerie](#2-messagerie) — 280 à faire, 119 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -571,6 +572,37 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Forme de la bulle qui cite un message (2026-09-16)
+
+**Priorité P2** · importance 3/5 — signalé sur capture : une réponse courte à
+un message court donnait un bloc **plus haut que large**, où la citation se
+lisait comme une étiquette posée à côté du message plutôt que comme le message
+cité. Trois changements dans `message_bubble.dart` :
+
+- un plancher de largeur (52 % de l'écran, plafonné à 240) dès qu'il y a une
+  citation ;
+- la citation étirée sur toute la largeur de la bulle — par `IntrinsicWidth`,
+  **réservé au texte** : `AudioMessageBubble` et `AudioFileBubble` contiennent
+  un `LayoutBuilder`, qui lève au lieu de rendre une dimension intrinsèque ;
+- un aplat translucide sous la citation de la bulle envoyée (le filet seul ne
+  la détachait pas), un filet de 3 px, et 12 px d'air en moins entre la
+  citation et le texte.
+
+La forme est fixée par `test/features/messages/bulle_citation_forme_test.dart`
+et a été regardée en golden jetable (« Aperçu UI sans build »). Ce qu'un
+golden ne dit pas :
+
+- [ ] **Thème sombre** : l'aplat blanc à 14 % sur le vert `#009600` — détaché
+  sans virer au laiteux.
+- [ ] **Échelle de police à 130 %** (réglages Android) : la citation tient sur
+  ses deux lignes, la bulle ne déborde pas. Voir « Échelle de police ».
+- [ ] **Réponse à une photo, puis à une note vocale** : ces bulles passent par
+  le chemin SANS `IntrinsicWidth` — la citation ne s'y étire pas, et rien ne
+  doit lever.
+- [ ] **Bulle reçue** portant une citation, en clair et en sombre.
 
 ---
 
