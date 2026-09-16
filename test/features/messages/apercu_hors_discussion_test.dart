@@ -229,7 +229,7 @@ void main() {
       // Remonter dans le fil ne défait pas une lecture.
       final debut = source.indexOf('_attentesDeVisibilite[message.id] = Timer(');
       expect(debut, isNot(-1));
-      final corps = source.substring(debut, debut + 500);
+      final corps = source.substring(debut, debut + 1200);
       expect(corps, contains('!message.createdAt.isAfter(vu)'));
     });
 

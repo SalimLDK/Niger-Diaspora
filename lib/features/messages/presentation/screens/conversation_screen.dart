@@ -304,9 +304,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     }
     if (message.type == MessageType.system) return;
 
-    if (fraction < _visibiliteMinimale ||
-        !_isAppInForeground ||
-        !_estAffichee) {
+    if (fraction < _visibiliteMinimale) {
       _attentesDeVisibilite.remove(message.id)?.cancel();
       return;
     }
@@ -315,6 +313,17 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     _attentesDeVisibilite[message.id] = Timer(_dureeAvantVu, () {
       _attentesDeVisibilite.remove(message.id);
       if (!mounted) return;
+      // Les deux gardes sont évaluées **à l'échéance**, pas à la réception de
+      // l'événement de visibilité.
+      //
+      // À la réception, `_estAffichee` est encore faux : `VisibilityDetector`
+      // rapporte la bulle pendant la transition de route, quand l'emplacement
+      // du routeur n'est pas encore `/messages/<id>`. Refuser là annulait le
+      // compte à rebours — et comme la visibilité ne change plus ensuite,
+      // **aucun autre événement ne venait** : le curseur n'avançait jamais.
+      // Constaté le 2026-09-16 sur Pixel 10 Pro XL, deux messages à l'écran
+      // pendant deux minutes et `read_at` toujours nul.
+      if (!_isAppInForeground || !_estAffichee) return;
       final vu = _vuJusqua;
       if (vu != null && !message.createdAt.isAfter(vu)) return;
       _vuJusqua = message.createdAt;
