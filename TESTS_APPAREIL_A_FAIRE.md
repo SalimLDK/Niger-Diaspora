@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1356 cases à cocher, 642 cochées** — 266 entrées sur 315 ont encore des cases ouvertes.
+**1359 cases à cocher, 642 cochées** — 267 entrées sur 316 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -87,7 +87,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (90)
+**P1 — fonction importante, jamais vérifiée** (91)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -117,6 +117,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)](#-une-réaction-retirée-disparaît-vraiment-de-lécran-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -326,7 +327,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 307 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 135 à faire, 42 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 138 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -6982,6 +6983,46 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)
+
+**Priorité P1** · importance 4/5 — le 2026-09-16 à 18:15:32 UTC, sur le Pixel
+(Salim L.), **trois** fiches `mls_devices` sont nées en 190 ms, sans
+réinstallation, avec un `stable_id` au format UUID au lieu des 32 caractères
+hexadécimaux habituels. Toutes trois portaient **la même** identité MLS, qui
+n'était pas celle de la vraie installation. Les autres membres ont ensuite tenté
+de les ajouter en boucle : 36 KeyPackages réclamés en 7 minutes.
+
+Cause : `stableDeviceId()` lit le SSAID par le canal `diaspo_niger/share_intent`,
+branché par `MainActivity.configureFlutterEngine`. Or audio_service exécute
+`main()` aussi depuis `AudioService.onCreate()`, **sans l'activité**, donc sans
+gestionnaire sur ce canal. Le repli tirait alors un UUID **neuf à chaque
+appel** : un moteur MLS s'est ouvert sous un identifiant inventé, puis trois
+opérations simultanées l'ont inscrit trois fois. Ce n'était **pas**
+l'aperçu de notification, qui relit l'identifiant mémorisé et n'inscrit rien.
+
+Corrigé : un canal muet fait **attendre**, jamais inventer
+(`attendreIdentifiantInstallation`, [lib/core/services/e2ee/stable_device_id.dart](lib/core/services/e2ee/stable_device_id.dart)),
+et la passerelle partage l'inscription en cours (`volUnique`,
+[lib/core/crypto/mls/mls_providers.dart](lib/core/crypto/mls/mls_providers.dart)).
+Couvert par `test/core/services/stable_device_id_test.dart` et
+`test/core/crypto/mls_inscription_unique_test.dart`, qui échouent tous deux sur
+l'ancien code. Ce que les tests ne prouvent pas : **qu'un démarrage par le
+service audio passe bien par là sur un téléphone**. Déclencheur exact du 16/09
+non observé (le Pixel n'était pas branché).
+
+Contrôle en base, avant et après chaque essai :
+
+```sql
+select stable_id, to_char(created_at at time zone 'UTC','HH24:MI:SS') as cree
+from mls_devices where created_at > now() - interval '1 hour' order by created_at;
+```
+
+- [ ] **Démarrer l'app sans son écran** : écouter un podcast, fermer l'app depuis les récents, puis relancer la lecture depuis les contrôles média du système (écran de verrouillage ou volet). Dans logcat, `flutterEngine warmed up` doit suivre un `Start proc … for service` et non `for top-activity`, sinon l'essai ne prouve rien. Attendu : `stableDeviceId: canal muet … attente` dans le journal, et **aucune** nouvelle ligne `mls_devices` ;
+- [ ] puis **ouvrir l'app** sans la tuer : `canal branché après N tentatives`, `last_seen_at` de la vraie fiche (32 hex) se met à jour, toujours aucune ligne neuve ;
+- [ ] démarrage à froid ordinaire (icône) : aucune ligne `canal muet` — sinon la fenêtre entre `main()` et `configureFlutterEngine` existe aussi au lancement normal, et chaque démarrage paierait l'attente.
 
 ---
 

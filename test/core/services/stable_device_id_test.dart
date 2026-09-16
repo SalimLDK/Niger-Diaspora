@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:diaspo_niger/core/services/e2ee/stable_device_id.dart';
@@ -47,6 +50,103 @@ void main() {
           reason: 'seul un condensé est publié, jamais le SSAID lui-même');
       expect(id, hasLength(32));
       expect(RegExp(r'^[0-9a-f]{32}$').hasMatch(id), isTrue);
+    });
+  });
+
+  /// Le 2026-09-16, sur le Pixel : le moteur qui exécute `main()` tournait sans
+  /// `MainActivity` (audio_service le crée aussi depuis son service), donc sans
+  /// gestionnaire sur le canal. Le repli tirait un UUID neuf à chaque appel, et
+  /// trois fiches `mls_devices` au format UUID sont nées en 190 ms.
+  group('attendreIdentifiantInstallation — canal muet', () {
+    MissingPluginException canalMuet() => MissingPluginException(
+          'No implementation found for method getInstallationId on channel '
+          'diaspo_niger/share_intent',
+        );
+
+    test('attend que le canal réponde au lieu d inventer un identifiant',
+        () async {
+      var lectures = 0;
+      final delais = <Duration>[];
+
+      final valeur = await attendreIdentifiantInstallation(
+        lire: () async {
+          lectures++;
+          if (lectures <= 3) throw canalMuet();
+          return 'ssaid-du-telephone';
+        },
+        repli: () async => fail(
+          'le repli ne sert que si la plateforme RÉPOND sans valeur',
+        ),
+        attendre: (d) async => delais.add(d),
+      );
+
+      expect(valeur, 'ssaid-du-telephone');
+      expect(lectures, 4);
+      expect(delais, const [
+        Duration(milliseconds: 100),
+        Duration(milliseconds: 200),
+        Duration(milliseconds: 400),
+      ]);
+    });
+
+    test('ne rend rien tant que le canal reste muet', () async {
+      var lectures = 0;
+      var rendu = false;
+      final jamais = Completer<void>();
+
+      unawaited(
+        attendreIdentifiantInstallation(
+          lire: () async {
+            lectures++;
+            throw canalMuet();
+          },
+          repli: () async => 'repli',
+          // Au 50e délai, on cesse de relâcher la boucle : elle tournerait
+          // sinon indéfiniment, ce qui est précisément le comportement voulu.
+          attendre: (_) => lectures >= 50 ? jamais.future : Future<void>.value(),
+        ).then((_) => rendu = true),
+      );
+      await pumpEventQueue(times: 500);
+
+      expect(lectures, 50);
+      expect(rendu, isFalse,
+          reason: 'toute valeur rendue ici serait un identifiant inventé, '
+              'donc un appareil fantôme de plus');
+    });
+
+    test('le délai entre deux lectures plafonne', () async {
+      var lectures = 0;
+      final delais = <Duration>[];
+
+      await attendreIdentifiantInstallation(
+        lire: () async {
+          if (++lectures <= 8) throw canalMuet();
+          return 'ssaid';
+        },
+        repli: () async => 'repli',
+        attendre: (d) async => delais.add(d),
+        delaiMax: const Duration(seconds: 1),
+      );
+
+      expect(delais.last, const Duration(seconds: 1));
+      expect(delais.every((d) => d <= const Duration(seconds: 1)), isTrue);
+    });
+
+    test('une plateforme qui répond sans identifiant prend le repli, sans '
+        'attendre', () async {
+      var replis = 0;
+
+      final valeur = await attendreIdentifiantInstallation(
+        lire: () async => null,
+        repli: () async {
+          replis++;
+          return 'uuid-range-une-fois';
+        },
+        attendre: (_) async => fail('la plateforme a répondu : rien à attendre'),
+      );
+
+      expect(valeur, 'uuid-range-une-fois');
+      expect(replis, 1);
     });
   });
 }
