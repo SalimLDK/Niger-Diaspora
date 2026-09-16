@@ -193,7 +193,16 @@ class MessageRepositoryImpl implements MessageRepository {
     // trouvé : le cache du fil reste prioritaire, car il connaît les
     // suppressions et les expirations que l'aperçu de notification ignore.
     try {
-      final apercus = await passerelle.apercusDejaDechiffres();
+      // Ne demander que pour celles qui n'ont toujours rien à montrer : le
+      // cache du fil a déjà servi juste au-dessus.
+      final enAttente = [
+        for (final c in avecApercu)
+          if ((c.lastMessage ?? '').isEmpty &&
+              c.lastMessageAt != null &&
+              c.apercuEfface == ApercuEfface.aucun)
+            c.id,
+      ];
+      final apercus = await passerelle.apercusDejaDechiffres(enAttente);
       if (apercus.isNotEmpty) {
         avecApercu = [
           for (final c in avecApercu) apercuDepuisNotification(c, apercus[c.id]),
