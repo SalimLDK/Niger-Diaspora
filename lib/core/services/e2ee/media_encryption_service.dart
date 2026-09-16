@@ -29,7 +29,15 @@ final mediaEncryptionServiceProvider = Provider<MediaEncryptionService>((ref) {
 ///
 /// Le serveur ne peut pas déchiffrer les fichiers car il n'a pas la clé.
 class MediaEncryptionService {
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  /// **Paresseux, et c'est voulu.** En champ immédiat, construire le service
+  /// exigeait un Firebase initialisé — ce qui rendait la classe entière
+  /// intestable hors appareil, y compris ses parties purement
+  /// cryptographiques, qui n'ont rien à voir avec le stockage. Le résultat est
+  /// identique à l'exécution : la première lecture a lieu au premier
+  /// téléversement ou téléchargement, quand Firebase est là depuis longtemps.
+  FirebaseStorage? _storageOptionnel;
+  FirebaseStorage get _storage =>
+      _storageOptionnel ??= FirebaseStorage.instance;
   final _aesGcm = AesGcm.with256bits();
   final _random = Random.secure();
 
@@ -158,7 +166,7 @@ class MediaEncryptionService {
       final chunk = fileBytes.sublist(offset, end);
 
       // IV unique par chunk: IV original + index du chunk
-      final chunkIv = _deriveChunkIv(iv, chunkIndex);
+      final chunkIv = deriveChunkIv(iv, chunkIndex);
 
       final secretBox = await _aesGcm.encrypt(
         chunk,
@@ -209,8 +217,12 @@ class MediaEncryptionService {
     return result;
   }
 
-  /// Dérive un IV unique pour chaque chunk
-  Uint8List _deriveChunkIv(Uint8List baseIv, int chunkIndex) {
+  /// Dérive un IV unique pour chaque chunk.
+  ///
+  /// Exposé pour les tests : c'est la moitié du format, et un test qui la
+  /// réécrirait de son côté ne verrait pas une dérivation qui change.
+  @visibleForTesting
+  Uint8List deriveChunkIv(Uint8List baseIv, int chunkIndex) {
     final chunkIv = Uint8List.fromList(baseIv);
     // XOR les derniers 4 bytes avec l'index du chunk
     chunkIv[8] ^= (chunkIndex >> 24) & 0xFF;
@@ -229,119 +241,142 @@ class MediaEncryptionService {
   /// [mediaInfo] - Les métadonnées du fichier chiffré (reçues dans le message)
   ///
   /// Returns: Le fichier déchiffré (temporaire)
+  /// Télécharge et déchiffre **sans jamais tenir le fichier entier en
+  /// mémoire**, et sans plafond de taille.
+  ///
+  /// Les deux limites qu'on lève ici, mesurées le 2026-09-16 :
+  ///
+  /// 1. `ref.getData()` sans argument plafonne à **10 Mo** — c'est le défaut
+  ///    de `firebase_storage`, pas un choix de ce code. Au-delà, le
+  ///    téléchargement échouait, donc tout média chiffré d'une photo un peu
+  ///    lourde, d'un document ou d'un audio long était **illisible**. Le
+  ///    drapeau étant fermé, personne ne l'avait encore rencontré.
+  /// 2. Tout passait par la mémoire : octets chiffrés entiers, puis la liste
+  ///    des morceaux déchiffrés, puis leur concaténation. Soit près de trois
+  ///    fois la taille du fichier au pic. C'est la raison pour laquelle la
+  ///    vidéo était écartée du chiffrement.
+  ///
+  /// `writeToFile` écrit directement sur le disque, et le déchiffrement va
+  /// d'un fichier à l'autre, un morceau à la fois : le pic mémoire ne dépend
+  /// plus de la taille du fichier, mais de celle d'un morceau.
   Future<File> downloadAndDecryptFile(EncryptedMediaInfo mediaInfo) async {
-    // Télécharger le fichier chiffré
-    final ref = _storage.ref(mediaInfo.storagePath);
-    final encryptedBytes = await ref.getData();
+    final tempDir = await getTemporaryDirectory();
+    final horodatage = DateTime.now().millisecondsSinceEpoch;
+    final chiffre = File('${tempDir.path}/enc_$horodatage.bin');
 
-    if (encryptedBytes == null) {
+    try {
+      await _storage.ref(mediaInfo.storagePath).writeToFile(chiffre);
+    } catch (e) {
+      await _effacerSansBruit(chiffre);
+      throw MediaDecryptionException('Failed to download encrypted file: $e');
+    }
+    if (!await chiffre.exists() || await chiffre.length() == 0) {
+      await _effacerSansBruit(chiffre);
       throw MediaDecryptionException('Failed to download encrypted file');
     }
 
-    // Décoder la clé et l'IV
-    final fileKeyBytes = base64Decode(mediaInfo.fileKeyBase64);
+    final fileKey = SecretKey(base64Decode(mediaInfo.fileKeyBase64));
     final iv = base64Decode(mediaInfo.ivBase64);
-    final fileKey = SecretKey(fileKeyBytes);
 
-    // Déchiffrer
-    Uint8List decryptedBytes;
-    if (encryptedBytes[0] == 1 && encryptedBytes.length > 5) {
-      // Format chunked (version 1)
-      decryptedBytes = await _decryptLargeFile(encryptedBytes, fileKey, iv);
-    } else {
-      // Format simple
-      final authTagStart = encryptedBytes.length - 16;
-      final cipherText = encryptedBytes.sublist(0, authTagStart);
-      final authTag = encryptedBytes.sublist(authTagStart);
+    final extension = _getExtensionFromMimeType(mediaInfo.mimeType);
+    final clair = File('${tempDir.path}/decrypted_$horodatage$extension');
 
-      final secretBox = SecretBox(
-        cipherText,
-        nonce: iv,
-        mac: Mac(authTag),
-      );
-
-      try {
-        decryptedBytes = Uint8List.fromList(
-          await _aesGcm.decrypt(secretBox, secretKey: fileKey),
-        );
-      } catch (e) {
-        throw MediaDecryptionException('Failed to decrypt file: invalid key or corrupted data');
-      }
+    try {
+      await dechiffrerFichierVersFichier(chiffre, clair, fileKey, iv);
+    } catch (e) {
+      await _effacerSansBruit(clair);
+      rethrow;
+    } finally {
+      await _effacerSansBruit(chiffre);
     }
 
-    // Sauvegarder dans un fichier temporaire
-    final tempDir = await getTemporaryDirectory();
-    final extension = _getExtensionFromMimeType(mediaInfo.mimeType);
-    final tempFile = File('${tempDir.path}/decrypted_${DateTime.now().millisecondsSinceEpoch}$extension');
-    await tempFile.writeAsBytes(decryptedBytes);
-
-    debugPrint('MediaEncryptionService: Decrypted file to ${tempFile.path}');
-    return tempFile;
+    debugPrint('MediaEncryptionService: Decrypted file to ${clair.path}');
+    return clair;
   }
 
-  /// Déchiffre un fichier volumineux par chunks
-  Future<Uint8List> _decryptLargeFile(
-    Uint8List encryptedBytes,
+  Future<void> _effacerSansBruit(File f) async {
+    try {
+      if (await f.exists()) await f.delete();
+    } catch (_) {
+      // Un temporaire qui survit n'est pas une raison d'échouer.
+    }
+  }
+
+  /// Déchiffre d'un fichier vers un autre, un morceau à la fois.
+  ///
+  /// Reconnaît les deux formats. Le format simple — un seul bloc GCM, sans
+  /// en-tête — n'a jamais servi qu'à de petits fichiers (au-delà de la taille
+  /// d'un morceau, l'envoi passait déjà par le format versionné) : le lire
+  /// entier ne coûte donc rien. Il reste accepté pour ne pas rendre illisible
+  /// ce qu'une version précédente aurait écrit.
+  @visibleForTesting
+  Future<void> dechiffrerFichierVersFichier(
+    File source,
+    File destination,
     SecretKey fileKey,
     Uint8List iv,
   ) async {
-    // Lire le header
-    final version = encryptedBytes[0];
-    if (version != 1) {
-      throw MediaDecryptionException('Unsupported encryption version: $version');
-    }
+    final entree = await source.open();
+    IOSink? sortie;
+    try {
+      final entete = await entree.read(5);
+      final versionne = entete.isNotEmpty && entete[0] == 1 && entete.length == 5;
 
-    final totalChunks = (encryptedBytes[1] << 24) |
-        (encryptedBytes[2] << 16) |
-        (encryptedBytes[3] << 8) |
-        encryptedBytes[4];
+      if (!versionne) {
+        // Format simple : tout le fichier, d'un bloc.
+        await entree.setPosition(0);
+        final tout = await entree.read(await source.length());
+        if (tout.length < 16) {
+          throw MediaDecryptionException('Encrypted file too short');
+        }
+        final coupe = tout.length - 16;
+        try {
+          final clair = await _aesGcm.decrypt(
+            SecretBox(tout.sublist(0, coupe),
+                nonce: iv, mac: Mac(tout.sublist(coupe))),
+            secretKey: fileKey,
+          );
+          await destination.writeAsBytes(clair);
+        } catch (e) {
+          throw MediaDecryptionException(
+              'Failed to decrypt file: invalid key or corrupted data');
+        }
+        return;
+      }
 
-    final decryptedChunks = <Uint8List>[];
-    var readOffset = 5;
+      final total =
+          (entete[1] << 24) | (entete[2] << 16) | (entete[3] << 8) | entete[4];
+      sortie = destination.openWrite();
 
-    for (var chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-      // Lire la taille du chunk
-      final chunkSize = (encryptedBytes[readOffset] << 24) |
-          (encryptedBytes[readOffset + 1] << 16) |
-          (encryptedBytes[readOffset + 2] << 8) |
-          encryptedBytes[readOffset + 3];
-      readOffset += 4;
-
-      // Lire le chunk
-      final chunkData = encryptedBytes.sublist(readOffset, readOffset + chunkSize);
-      readOffset += chunkSize;
-
-      // Séparer ciphertext et authTag
-      final cipherText = chunkData.sublist(0, chunkData.length - 16);
-      final authTag = chunkData.sublist(chunkData.length - 16);
-
-      // IV unique pour ce chunk
-      final chunkIv = _deriveChunkIv(iv, chunkIndex);
-
-      final secretBox = SecretBox(
-        cipherText,
-        nonce: chunkIv,
-        mac: Mac(authTag),
-      );
-
-      try {
-        final decrypted = await _aesGcm.decrypt(secretBox, secretKey: fileKey);
-        decryptedChunks.add(Uint8List.fromList(decrypted));
-      } catch (e) {
-        throw MediaDecryptionException('Failed to decrypt chunk $chunkIndex');
+      for (var index = 0; index < total; index++) {
+        final taille = await entree.read(4);
+        if (taille.length < 4) {
+          throw MediaDecryptionException('Truncated chunk header at $index');
+        }
+        final n = (taille[0] << 24) | (taille[1] << 16) | (taille[2] << 8) | taille[3];
+        final morceau = await entree.read(n);
+        if (morceau.length < n || n < 16) {
+          throw MediaDecryptionException('Truncated chunk $index');
+        }
+        final coupe = morceau.length - 16;
+        try {
+          final clair = await _aesGcm.decrypt(
+            SecretBox(morceau.sublist(0, coupe),
+                nonce: deriveChunkIv(iv, index), mac: Mac(morceau.sublist(coupe))),
+            secretKey: fileKey,
+          );
+          sortie.add(clair);
+        } catch (e) {
+          throw MediaDecryptionException('Failed to decrypt chunk $index');
+        }
+      }
+    } finally {
+      await entree.close();
+      if (sortie != null) {
+        await sortie.flush();
+        await sortie.close();
       }
     }
-
-    // Combiner tous les chunks
-    final totalSize = decryptedChunks.fold<int>(0, (sum, chunk) => sum + chunk.length);
-    final result = Uint8List(totalSize);
-    var writeOffset = 0;
-    for (final chunk in decryptedChunks) {
-      result.setRange(writeOffset, writeOffset + chunk.length, chunk);
-      writeOffset += chunk.length;
-    }
-
-    return result;
   }
 
   // ============================================================

@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1183 cases à cocher, 608 cochées** — 238 entrées sur 285 ont encore des cases ouvertes.
+**1188 cases à cocher, 610 cochées** — 240 entrées sur 287 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (30)
+**P0 — avant toute nouvelle version** (31)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 3 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
@@ -52,6 +52,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 4 · [⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)](#-un-média-chiffré-de-plus-de-10-mo-était-illisible-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -159,7 +160,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (76)
+**P2 — fonction secondaire ou cas limite** (77)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -170,6 +171,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 1 · [⬜ Suppressions MLS pas en direct — modifications OK (2026-09-15)](#-suppressions-mls-pas-en-direct--modifications-ok-2026-09-15) · *Messagerie*
 - 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
@@ -296,9 +298,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 239 à faire, 97 faites
+- [2. Messagerie](#2-messagerie) — 240 à faire, 98 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 104 à faire, 38 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 108 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -653,6 +655,47 @@ incrémental. L'écran dédoublonne déjà par identifiant.
 
 - [x] **Vérifié le 2026-09-15** : `LIVE-TEST` envoyé du A515F apparaît sur le
   Pixel « À l'instant », **sans y toucher**, dans une conversation chiffrée.
+
+## ⬜ Suppressions MLS pas en direct — modifications OK (2026-09-15)
+
+**Priorité P2** · importance 3/5 — Signalé par Salim : « les modifications et
+suppression ne sont pas instantanés ». **Modifications corrigées et vérifiées
+à deux téléphones. Suppressions : toujours non.**
+
+Il manquait deux maillons pour les modifications, et ils sont réparés :
+
+1. le dépôt ne réémettait que ce qui est plus récent que `afterTimestamp` —
+   or une modification porte la date d'**origine** du message, elle était donc
+   filtrée ;
+2. l'écran **ignorait** un identifiant déjà connu — or une édition garde le
+   sien, elle tombait toujours dans cette branche.
+
+- [x] **Vérifié le 2026-09-15** : `VRAI-LIVE` envoyé du A515F arrive sur le
+  Pixel « À l'instant », puis sa modification s'y affiche
+  « VRAI-MODIF · modifié » — **sans toucher au Pixel**.
+
+**⛔ Reste ouvert : les SUPPRESSIONS.** Une suppression (« pour tout le
+monde », ou une expiration purgée) n'est qu'un `UPDATE` de `is_deleted`, pas un
+insert. Une modification, elle, passe par un message de **contrôle**, qui est
+un insert — d'où la différence.
+
+⚠️ **Ne pas « corriger » en passant l'abonnement en `PostgresChangeEvent.all`**
+sans autre chose : `messages` comme `mls_messages` sont en **REPLICA IDENTITY
+DEFAULT** (clé primaire seule). Un UPDATE ne transporte alors que la clé, donc
+un filtre sur `conversation_id` ne peut pas être évalué. Il faudrait
+`REPLICA IDENTITY FULL` sur la table — décision de schéma, en production, qui
+alourdit le WAL.
+
+⚠️ **Piège de recette, coûteux ce soir-là** : trois essais d'affilée ont
+conclu « rien n'arrive en direct » alors que **les messages n'étaient jamais
+partis** — les taps avaient ouvert « Mes notes » au lieu de la conversation.
+Vérifier l'EN-TÊTE de la conversation, puis la présence du texte dans la zone
+de saisie, AVANT de conclure quoi que ce soit. Une conclusion tirée d'un envoi
+fantôme envoie sur de fausses pistes (ici : accuser `event: all`).
+
+- [ ] Suppression en direct : décider si `REPLICA IDENTITY FULL` sur
+  `mls_messages` vaut son coût, ou passer par un message de contrôle comme
+  pour la modification.
 
 ## ⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)
 
@@ -6053,6 +6096,51 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
+## ⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)
+
+**Priorité P0** · importance 5/5 — **Trouvé en cherchant pourquoi la vidéo
+était écartée, et c'est bien plus large que la vidéo.** Le téléchargement
+appelait `ref.getData()` sans argument. Le défaut de `firebase_storage` est
+**10 Mo** : au-delà, l'appel échoue. Toute photo un peu lourde, tout document,
+tout audio long, une fois chiffré, aurait été **illisible**. Le drapeau étant
+fermé, personne ne l'avait rencontré.
+
+Second défaut, superposé : tout passait par la mémoire. Octets chiffrés
+entiers, puis la liste des morceaux déchiffrés, puis leur concaténation —
+près de trois fois la taille du fichier au pic. C'est **la** raison pour
+laquelle la vidéo était exclue du chiffrement.
+
+Le format n'a pas changé : en-tête `[version][nombre de morceaux]`, puis
+`[taille][ciphertext][étiquette]` par morceau, IV dérivé de l'index. Ce qui
+change est qu'on le lit d'un fichier vers un autre, un morceau à la fois.
+`writeToFile` remplace `getData` : pas de plafond, et rien en mémoire.
+
+Le format simple d'avant reste lu — rien ne l'a encore écrit en production,
+mais le refuser rendrait illisible ce qu'une version intermédiaire aurait
+produit.
+
+Fichiers : [media_encryption_service.dart](lib/core/services/e2ee/media_encryption_service.dart)
+(`downloadAndDecryptFile`, `dechiffrerFichierVersFichier`). Couvert hors
+appareil par
+[dechiffrement_media_en_flux_test.dart](test/core/services/e2ee/dechiffrement_media_en_flux_test.dart)
+(6 cas, dont la mauvaise clé et le fichier tronqué).
+
+⚠️ **L'envoi n'est pas encore en flux.** `encryptAndUploadFile` lit toujours
+le fichier entier (`readAsBytes`) et téléverse un tampon (`putData`). La
+descente est donc réparée, la montée non — et la vidéo reste écartée tant que
+les deux ne le sont pas.
+
+- [ ] **Envoyer puis rouvrir une photo chiffrée de plus de 10 Mo** : elle
+      s'affiche. C'était impossible avant, à coup sûr.
+- [ ] **Un document chiffré de 30 à 50 Mo** : il se télécharge et s'ouvre,
+      sans que l'application soit tuée pour mémoire.
+- [ ] **Surveiller la mémoire pendant le déchiffrement** : le pic doit suivre
+      la taille d'un morceau, pas celle du fichier.
+- [ ] **Un média dont le transfert est coupé en route** : le fichier
+      temporaire chiffré ne doit pas rester sur le disque.
+
+---
+
 ## ⬜ « Supprimer pour tous » efface vraiment le contenu (2026-09-16)
 
 **Priorité P1** · importance 5/5 — **La promesse du plan n'était pas tenue.**
@@ -6130,9 +6218,16 @@ Fichiers : [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
 [metadonnees_absence_vs_echec_test.dart](test/core/crypto/metadonnees_absence_vs_echec_test.dart)
 (4 cas).
 
-- [ ] **Réagir puis retirer la réaction** : le badge disparaît, et
-      `mls_message_reactions` ne porte plus la ligne. Rouvrir la discussion ne
-      la fait pas revenir.
+- [x] **Le badge d'une réaction absente du serveur disparaît** : vérifié le
+      2026-09-16 sur SM A515F, et par le meilleur des témoins — un pouce levé
+      qui traînait sur « SondeA » depuis la veille, alors que
+      `mls_message_reactions` ne portait **aucune** ligne pour cette
+      conversation. Build neuf installé, discussion rouverte : le badge a
+      disparu. C'est exactement le cas que le correctif vise, observé sur une
+      donnée réelle et non fabriquée.
+- [ ] **Réagir puis retirer la réaction dans la foulée** : le badge disparaît,
+      et `mls_message_reactions` ne porte plus la ligne. Reste à faire — le
+      téléphone était tenu par une autre session.
 - [ ] **Étoiler puis retirer** : même chose côté `mls_message_stars`.
 - [ ] **Réagir hors ligne** : le badge ne doit pas rester figé comme un succès
       une fois la connexion revenue sans que rien n'ait été écrit.
