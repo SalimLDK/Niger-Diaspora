@@ -163,12 +163,35 @@ class _MessagePreviewCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: context.borderColor.withValues(alpha: 0.2)),
         ),
-        child: Text(
-          l10n.messageSentAt(_formatFullDateTime(message.createdAt)),
-          style: TextStyle(
-            fontSize: 13,
-            color: context.textSecondaryColor,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l10n.messageSentAt(_formatFullDateTime(message.createdAt)),
+              style: TextStyle(
+                fontSize: 13,
+                color: context.textSecondaryColor,
+              ),
+            ),
+            // Quand, et combien de fois. La bulle ne porte que la mention
+            // « modifié », qui ne dit ni l'un ni l'autre ; `editHistory`
+            // compte les passages depuis toujours sans que rien ne l'affiche.
+            //
+            // Le texte d'avant, lui, n'est nulle part : il n'est pas conservé
+            // (il reposerait en clair à côté d'un contenu chiffré). Pas
+            // d'historique des versions à attendre ici.
+            if (message.isEdited && message.editedAt != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                _libelleModification(l10n, message),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: context.textSecondaryColor,
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -641,6 +664,16 @@ List<String> _sortByTimestamp(
     if (tb == null) return -1;
     return tb.compareTo(ta);
   });
+}
+
+/// « Modifié · `date` », ou « Modifié 3 fois · `date` » au-delà d'une fois.
+String _libelleModification(AppLocalizations l10n, MessageEntity message) {
+  final quand = _formatFullDateTime(message.editedAt!);
+  // `editHistory` est absent des messages modifiés avant qu'on ne le tienne :
+  // une modification datée sans historique en vaut une.
+  final nombre = message.editHistory?.length ?? 0;
+  if (nombre <= 1) return l10n.editedAtLabel(quand);
+  return '${l10n.editedCountLabel(nombre)} · $quand';
 }
 
 String _formatFullDateTime(DateTime dateTime) {

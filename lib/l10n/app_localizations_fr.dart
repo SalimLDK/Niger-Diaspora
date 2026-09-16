@@ -5954,7 +5954,43 @@ class AppLocalizationsFr extends AppLocalizations {
   String get edited => 'modifié';
 
   @override
-  String get editTimeExpired => 'Le délai de modification est expiré (25 min)';
+  String get editTimeExpired => 'Passé 48 h, un message ne se modifie plus';
+
+  @override
+  String get editImpossibleNotAuthor =>
+      'Seul l\'auteur peut modifier ce message';
+
+  @override
+  String get editImpossibleNotText => 'Seul un message texte se modifie';
+
+  @override
+  String get editImpossibleDeleted => 'Ce message est supprimé';
+
+  @override
+  String get editImpossibleNotSent => 'Message pas encore envoyé';
+
+  @override
+  String get editingBannerHint =>
+      'Enregistrer pour appliquer, croix pour annuler';
+
+  @override
+  String get editUnchanged => 'Le texte n\'a pas changé';
+
+  @override
+  String editedAtLabel(String time) {
+    return 'Modifié · $time';
+  }
+
+  @override
+  String editedCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Modifié $count fois',
+      one: 'Modifié une fois',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get messageEdited => 'Message modifié';

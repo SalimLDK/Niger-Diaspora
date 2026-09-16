@@ -10961,8 +10961,56 @@ abstract class AppLocalizations {
   /// No description provided for @editTimeExpired.
   ///
   /// In fr, this message translates to:
-  /// **'Le délai de modification est expiré (25 min)'**
+  /// **'Passé 48 h, un message ne se modifie plus'**
   String get editTimeExpired;
+
+  /// No description provided for @editImpossibleNotAuthor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seul l\'auteur peut modifier ce message'**
+  String get editImpossibleNotAuthor;
+
+  /// No description provided for @editImpossibleNotText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seul un message texte se modifie'**
+  String get editImpossibleNotText;
+
+  /// No description provided for @editImpossibleDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce message est supprimé'**
+  String get editImpossibleDeleted;
+
+  /// No description provided for @editImpossibleNotSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message pas encore envoyé'**
+  String get editImpossibleNotSent;
+
+  /// No description provided for @editingBannerHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer pour appliquer, croix pour annuler'**
+  String get editingBannerHint;
+
+  /// No description provided for @editUnchanged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le texte n\'a pas changé'**
+  String get editUnchanged;
+
+  /// No description provided for @editedAtLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifié · {time}'**
+  String editedAtLabel(String time);
+
+  /// No description provided for @editedCountLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{Modifié une fois} other{Modifié {count} fois}}'**
+  String editedCountLabel(int count);
 
   /// No description provided for @messageEdited.
   ///
