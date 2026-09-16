@@ -1,5 +1,11 @@
 gradle-wrapper.jar
 /.gradle
+# Sessions du compilateur Kotlin et dossier de build : régénérés à chaque
+# compilation. Un `.salive` a été committé par mégarde le 2026-09-16 (un
+# `git add -A` qui ratisse large) — il aurait churné à chaque build de chaque
+# agent, et conflité entre eux.
+/.kotlin/
+/build/
 /captures/
 /gradlew
 /gradlew.bat
