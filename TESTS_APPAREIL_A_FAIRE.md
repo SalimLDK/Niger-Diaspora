@@ -39,13 +39,14 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1204 cases à cocher, 616 cochées** — 242 entrées sur 290 ont encore des cases ouvertes.
+**1205 cases à cocher, 617 cochées** — 243 entrées sur 291 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (31)
+**P0 — avant toute nouvelle version** (32)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
+- 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
 - 4 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
 - 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
@@ -300,7 +301,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 252 à faire, 104 faites
+- [2. Messagerie](#2-messagerie) — 253 à faire, 105 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -821,6 +822,38 @@ n'arrive en direct » alors que **les messages n'étaient jamais partis** — le
 taps avaient ouvert « Mes notes ». C'est ce qui avait fait accuser `event: all`
 et annuler une correction saine. **Vérifier l'en-tête de la conversation PUIS
 la présence du texte dans la zone de saisie avant de conclure.**
+
+## ✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)
+
+**Priorité P0** · importance 5/5 — **Corrigé.** Trouvé en vérifiant les
+éphémères sur l'audio, à la demande de Salim.
+
+Dans une conversation basculée MLS, une note vocale **n'arrivait nulle part** :
+ni `mls_messages`, ni `messages`. L'écran affichait « Non envoyé · Réessayer »
+sans jamais dire pourquoi. Mesuré dans « Testeurs » sur SM A515F.
+
+**La chaîne, prouvée de bout en bout :**
+
+1. le branchement MLS de l'audio exigeait `mediaChiffre != null` ;
+2. `mediaChiffre` n'était produit que si `mediasChiffresActifs()` — drapeau
+   fermé, donc nul ;
+3. l'envoi retombait sur le chemin legacy, vers `messages` ;
+4. le déclencheur `messages_refuse_conversation_mls_trg` refuse toute écriture
+   dans `messages` pour une conversation basculée ;
+5. l'échec remontait sans cause lisible.
+
+**`sendFileMessage` appliquait déjà la bonne règle** (`mediasChiffresActifs()
+|| conversationChiffree`), avec le commentaire qui l'explique : le drapeau ne
+décide que des conversations encore en clair. **Seule la note vocale avait été
+oubliée.** Images, documents et vidéo n'étaient donc pas touchés.
+
+- [x] **Vérifié après correctif** : 4 notes vocales dans `mls_messages`,
+  `content_type = voice`, chiffrées (1,7 à 4 Ko), chacune avec une échéance de
+  **86400 s** — donc l'audio porte bien le minuteur éphémère. La bulle de
+  l'expéditeur affiche le signe ⏱ dès l'envoi.
+- [ ] **Non vu** : le rendu de la note vocale REÇUE (lecture, forme d'onde,
+  signe éphémère) sur le second téléphone, et ce que devient une note vocale
+  expirée. À faire à la prochaine passe.
 
 ## ⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)
 

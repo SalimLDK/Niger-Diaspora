@@ -1444,11 +1444,25 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
-      // C4 : note vocale chiffrée avant le téléversement, quand le drapeau
-      // est ouvert. Le datasource ne téléverse alors rien lui-même.
+      // C4 : note vocale chiffrée avant le téléversement.
+      //
+      // **Le drapeau ne décide que des conversations encore en clair.** Dans
+      // une conversation basculée il faut chiffrer QUOI QU'IL ARRIVE : le
+      // corps de la note doit entrer dans le payload MLS, faute de quoi
+      // l'envoi retombe sur `messages`, que le déclencheur
+      // `messages_refuse_conversation_mls_trg` refuse — et l'écran affiche
+      // « Non envoyé · Réessayer » sans jamais dire pourquoi.
+      //
+      // `sendFileMessage` applique cette règle depuis toujours (images,
+      // documents, vidéo) ; la note vocale avait été oubliée. Mesuré sur
+      // SM A515F le 2026-09-15 dans le groupe « Testeurs » : la note vocale
+      // n'arrivait NULLE PART — ni `mls_messages`, ni `messages`.
       Map<String, dynamic>? mediaChiffre;
       final chiffrement = mediaEncryptionService;
-      if (chiffrement != null && mediasChiffresActifs()) {
+      final conversationChiffree =
+          await _passerellePour(conversationId) != null;
+      if (chiffrement != null &&
+          (mediasChiffresActifs() || conversationChiffree)) {
         final r = await chiffrement.encryptAndUploadFile(
           file: audioFile,
           conversationId: conversationId,
