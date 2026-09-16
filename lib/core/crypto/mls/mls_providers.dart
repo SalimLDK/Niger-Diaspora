@@ -1,8 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../features/messages/presentation/providers/media_dechiffre_provider.dart';
+import '../../providers/uid_firebase_provider.dart';
 import 'mls_conversation_service.dart';
 import 'mls_delivery.dart';
 import 'mls_device_registry.dart';
@@ -23,9 +23,14 @@ final mlsDeliveryProvider = Provider<MlsDelivery>((ref) => MlsDelivery());
 /// l'invalidation d'un autre repartait « non initialisé » sans que personne
 /// ne le rejoue. Le drapeau, lui, est lu à chaque appel par une fermeture,
 /// pas observé — l'ouvrir prend effet sans reconstruire quoi que ce soit.
+///
+/// Mais cet identifiant, il faut l'**observer** : lu une fois à la
+/// construction, il valait `null` au démarrage à froid, et la passerelle
+/// restait nulle pour tout le processus — messages chiffrés invisibles,
+/// envois refusés. Voir [uidFirebaseProvider].
 final mlsGatewayProvider = Provider<MlsGateway?>((ref) {
-  final userId = FirebaseAuth.instance.currentUser?.uid;
-  if (userId == null || userId.isEmpty) return null;
+  final userId = ref.watch(uidFirebaseProvider);
+  if (userId == null) return null;
 
   final delivery = ref.read(mlsDeliveryProvider);
   final registry = ref.read(mlsDeviceRegistryProvider);

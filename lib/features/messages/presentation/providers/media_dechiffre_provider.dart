@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/providers/uid_firebase_provider.dart';
 import '../../../../core/services/e2ee/media_dechiffre_cache.dart';
 import '../../../admin/presentation/providers/app_settings_provider.dart';
 import '../../domain/entities/media_chiffre.dart';
@@ -41,10 +41,10 @@ final mlsMessagesActifsProvider = Provider<bool>((ref) {
   if (drapeaux.mlsMessages) return true;
   final comptes = drapeaux.mlsMessagesComptes;
   if (comptes.isEmpty) return false;
-  // Lu à l'appel, comme le reste du chemin MLS : personne ne doit avoir à
-  // relancer l'application pour que l'ouverture prenne effet.
-  final uid = FirebaseAuth.instance.currentUser?.uid;
-  return uid != null && uid.isNotEmpty && comptes.contains(uid);
+  // Observé, pas lu : lu à la construction, l'uid valait `null` au démarrage
+  // à froid et le drapeau restait fermé pour tout le processus.
+  final uid = ref.watch(uidFirebaseProvider);
+  return uid != null && comptes.contains(uid);
 });
 
 /// Ce compte peut-il tenir **plusieurs sessions à la fois** (plan MLS,
@@ -60,8 +60,8 @@ final mlsMessagesActifsProvider = Provider<bool>((ref) {
 final multiAppareilAutoriseProvider = Provider<bool>((ref) {
   final comptes = ref.watch(featureFlagsProvider).multiAppareilComptes;
   if (comptes.isEmpty) return false;
-  final uid = FirebaseAuth.instance.currentUser?.uid;
-  return uid != null && uid.isNotEmpty && comptes.contains(uid);
+  final uid = ref.watch(uidFirebaseProvider);
+  return uid != null && comptes.contains(uid);
 });
 
 /// Clé d'une demande de déchiffrement : l'id du message suffit à identifier

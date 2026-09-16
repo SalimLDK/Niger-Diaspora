@@ -128,8 +128,14 @@ void main() {
       final debut = p.indexOf('final mlsGatewayProvider');
       final corps = p.substring(debut);
       // `ref.watch` reconstruirait la passerelle à la moindre invalidation
-      // d'un autre provider — la panne exacte du chantier Signal.
-      expect(corps.contains('ref.watch('), isFalse);
+      // d'un autre provider — la panne exacte du chantier Signal. Seul l'uid
+      // est observé : lu une fois, il figeait la passerelle à `null` au
+      // démarrage à froid (voir `uid_firebase_provider_test.dart`).
+      final observes = RegExp(r'ref\.watch\(([^)]*)\)')
+          .allMatches(corps)
+          .map((m) => m.group(1))
+          .toList();
+      expect(observes, ['uidFirebaseProvider']);
       expect(corps, contains('ref.read(mlsMessagesActifsProvider)'));
     });
 
