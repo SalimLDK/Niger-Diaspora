@@ -58,7 +58,13 @@ class GifProxyDataSource implements GifRemoteDataSource {
     // anon et reviendrait en 401 ; la version bornée évite en plus de figer le
     // picker sur un pont lent (voir SupabaseAuthBridge.ensureReadableSession).
     if (!await _ensureSession()) {
-      throw ServerException('Session Supabase absente : GIFs indisponibles');
+      // Le texte d'une exception finit régulièrement dans un bandeau ou un
+      // `SnackBar` : il ne nomme pas notre pile technique. Le détail reste au
+      // journal, qui ne s'affiche nulle part. Règle vérifiée par
+      // `test/core/architecture/noms_internes_hors_ecran_test.dart`, née d'un
+      // « Session Supabase non établie » vu en plein écran le 2026-09-14.
+      debugPrint('GifProxyDataSource: session absente, invoke non tenté');
+      throw ServerException('GIFs indisponibles pour le moment');
     }
 
     try {
