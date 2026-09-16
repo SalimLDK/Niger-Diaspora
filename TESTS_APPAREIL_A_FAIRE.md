@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1253 cases à cocher, 622 cochées** — 251 entrées sur 300 ont encore des cases ouvertes.
+**1273 cases à cocher, 626 cochées** — 253 entrées sur 302 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (35)
+**P0 — avant toute nouvelle version** (36)
 
-- 7 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
+- 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
 - 4 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
@@ -60,6 +60,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
+- 9 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 10 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -81,7 +82,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (85)
+**P1 — fonction importante, jamais vérifiée** (86)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -116,6 +117,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
+- 10 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
 - 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
@@ -309,11 +311,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 269 à faire, 110 faites
+- [2. Messagerie](#2-messagerie) — 270 à faire, 114 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 122 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 101 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 120 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -681,9 +683,60 @@ Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens
 (10 cas). Diagnostic serveur :
 `supabase db query --linked -f supabase/diagnostics/2026-09-15_non_lus_mls.sql`.
 
-- [ ] **La pastille revient** : depuis un second compte, envoyer un message
-  sans ouvrir la discussion sur l'appareil cible. La tuile doit porter sa
-  pastille de non-lus, et l'onglet Messages son badge.
+- [x] **La pastille revient** : vérifié le 2026-09-15 sur Pixel 10 Pro XL.
+  Deux messages reçus de Sim A sans ouvrir la discussion → pastille « 2 » sur
+  la tuile, puce « Non lus 3 », badge « 3 » sur l'onglet Messages. ⚠️ **Mais
+  la cause n'était pas celle annoncée** : voir « ce que j'avais dit à tort »
+  ci-dessous. À refaire une fois le correctif de la course livré, pour
+  s'assurer que la pastille tombe **aussi** quand on ouvre.
+- [x] **L'aperçu chiffré arrive sans ouvrir** : vérifié, « Hccuycyfyfyf » puis
+  « Fghg » s'affichent dans la tuile. ⚠️ Mais **un rafraîchissement en
+  retard** : l'isolate met l'aperçu en cache après l'émission de la liste. Le
+  texte n'apparaissait qu'après un « tirer pour rafraîchir ». Corrigé par une
+  seconde lecture bornée (400 ms) — à revérifier.
+
+**Ce que j'avais dit à tort, et la vraie cause.** J'ai annoncé que « plus
+aucun reçu n'était écrit, même en ouvrant ». C'était faux : mon diagnostic
+avait lu un instantané **avant** que la livraison n'ait lieu. Les reçus
+existaient, sous le bon `user_id`, avec `delivered_at` posé. Seul `read_at`
+manquait.
+
+La cause, elle, est réelle et corrigée : `initState` lance `markAsDelivered`
+**et** `markAsRead` sans `await`. Les deux lisent « aucun reçu », le premier
+insère, le second heurte la clé primaire `(message_id, user_id)` — exception
+avalée, `read_at` jamais posé, aucun journal. C'est une **course** : une heure
+plus tôt, les mêmes reçus étaient corrects. Ni les droits ni les policies RLS
+n'y étaient pour quelque chose (vérifiés en production,
+`supabase/diagnostics/2026-09-15_droits_recus_mls.sql` et `…_rls_recus_mls.sql`).
+
+- [x] **Après le correctif de la course** : vérifié le 2026-09-15 sur Pixel
+  10 Pro XL, build reconstruit. Cinq messages traînaient avec `read_at` nul
+  depuis une demi-heure ; ouvrir la discussion les a **tous** marqués lus à
+  02:37:49 UTC, une seconde après le tap. Avant, ils restaient nuls
+  indéfiniment.
+
+  | message | `delivered_at` | `read_at` |
+  |---|---|---|
+  | 02:04:23 | 02:09:23 | **02:37:49** |
+  | 02:04:53 | 02:09:23 | **02:37:49** |
+  | 02:07:47 | 02:09:23 | **02:37:49** |
+  | 02:11:25 | 02:11:30 | **02:37:49** |
+  | 02:13:19 | 02:17:14 | **02:37:49** |
+
+  Et deux messages arrivés **pendant** que la discussion était affichée
+  (02:38:35, 02:38:46) ont été marqués lus à leur tour : le garde
+  `_estAffichee` ne bloque pas la lecture légitime. Recette :
+  `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`.
+- [ ] **Ce que cette passe n'a PAS montré** : que l'expéditeur repasse à
+  « Lu » de son côté. Le A515F était piloté par un autre agent, je n'ai pas
+  regardé son écran après coup. À confirmer à deux téléphones.
+- [x] **L'aperçu chiffré arrive sans rafraîchir** : vérifié le 2026-09-15.
+  « Tggt » puis « Erty » s'affichent **dès la première image** après le
+  splash, sans « tirer pour rafraîchir ». La seconde lecture bornée (400 ms)
+  referme bien la course avec l'isolate.
+- [ ] **Deux ouvertures de suite** : la seconde ne doit pas réécrire `read_at`
+  — « lu à 14 h 03 » ne devient pas « lu à l'instant ». C'est ce que tient le
+  filtre `read_at IS NULL`.
 - [ ] **Et l'expéditeur ne voit pas « Lu »** tant que la discussion n'a pas
   été ouverte — c'est la moitié de ce correctif qui se voit **sur l'autre
   téléphone**. Les deux appareils sont nécessaires.
@@ -8797,6 +8850,118 @@ en solo.
 # 6. Notifications et push
 
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
+
+---
+
+## ⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)
+
+**Priorité P0** · importance 5/5 — Quand l'application est en arrière-plan ou
+fermée — c'est-à-dire quand une notification sert vraiment — la bannière est
+posée par `_showFallbackMessageNotification`, sous le couple
+`(tag: 'msg_<conversation>', id: 0)`. **Android identifie une notification par
+ce couple** : chaque message écrasait le précédent. Un seul lisible, aucun
+compteur, et rien qui dise que les autres ont existé. Vaut autant pour
+plusieurs messages d'une même personne que pour un groupe qui s'anime.
+
+Le chemin premier plan, lui, savait empiler depuis toujours
+(`MessagingStyle`, `_activeGroups`) — mais son cache vit **en mémoire dans le
+singleton**, et l'isolate de notification ne le voit pas. C'est l'endroit où
+l'empilement servait le moins qui l'avait, et l'endroit où il sert le plus qui
+ne l'avait pas.
+
+D'où une pile en `SharedPreferences` — le seul état que les deux isolates
+partagent — lue par l'arrière-plan pour construire un `MessagingStyle`, et
+**alimentée aussi par le premier plan** pour que l'historique ne reparte pas
+de zéro quand l'application passe en arrière-plan.
+
+Elle se vide dès que la conversation est vue (ouverture, retrait depuis un
+autre appareil), plafonne à 6 messages, ignore un même `messageId` empilé deux
+fois (un push peut arriver en double), oublie ce qui a plus de 24 h, et
+disparaît entièrement à la déconnexion — elle porte du texte en clair.
+
+Vérifié hors appareil : 13 cas dans
+`test/core/services/notification_pile_messages_test.dart`. **Rien n'a tourné
+sur un téléphone, et c'est un comportement qui ne se juge qu'à l'écran.**
+
+Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile_messages.dart),
+[notification_service.dart](lib/core/services/notification_service.dart)
+(`_showFallbackMessageNotification`, `clearConversationNotifications`).
+
+- [ ] **App tuée, cinq messages de la même personne** : une seule bannière,
+  qui les montre **tous**, avec le compteur à 5.
+- [ ] **Groupe qui s'anime, app tuée** : la bannière porte le nom du groupe en
+  titre et **chaque message précédé de son expéditeur**.
+- [ ] **Ouvrir la conversation, puis recevoir un nouveau message** : la
+  bannière ne montre QUE le nouveau — les lus ne reviennent pas.
+- [ ] **Deux conversations en parallèle** : deux bannières distinctes, chacune
+  avec sa propre pile.
+- [ ] **Pastille du lanceur** (Samsung, Xiaomi) : le chiffre suit le nombre de
+  messages en attente, pas « 1 ».
+- [ ] **Passer du premier plan à l'arrière-plan en cours de conversation** :
+  les messages vus au premier plan figurent encore dans la bannière suivante.
+- [ ] **Même message poussé deux fois** (couper/rétablir le réseau) : une
+  seule ligne dans la bannière.
+- [ ] **Se déconnecter** : plus aucun texte de message dans les préférences
+  (`notif_pile_*`).
+- [ ] **Appui sur la bannière empilée** : ouvre la bonne conversation, et la
+  bannière disparaît.
+
+---
+
+## ⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)
+
+**Priorité P1** · importance 4/5 — Trouvés en comparant les deux déclencheurs
+de production ligne à ligne, puis en recoupant avec les données. Aucun ne
+produisait d'erreur, c'est ce qui les avait gardés en place.
+
+**1. L'aperçu serveur ignorait les noms que l'app écrit.** Il traitait `audio`,
+que personne n'écrit ; l'application produit `voiceNote`, `audioFile`,
+`sticker`, `document`. Les quatre tombaient dans le `ELSE`. Vu en production :
+les **deux seules notifications de note vocale** disent « 🔒 Nouveau message ».
+Et en conversation claire, le `ELSE` rend `data->>'content'` — donc l'URL du
+sticker, ou la fiche du contact, dans le corps de la notification.
+
+**2. Une réaction en conversation chiffrée ne notifiait personne.**
+`mls_notify_recipients` sort sur `kind <> 'content'` et `mls_message_reactions`
+n'avait aucun déclencheur, là où le même geste en clair crée une
+`messageReaction`. ⚠️ **Le corps ne porte pas l'emoji**, contrairement au
+chemin en clair : l'emoji est déjà en clair côté serveur, mais le mettre dans
+le push le donnerait aussi à FCM, sur une conversation dont tout l'intérêt est
+l'inverse. Choix délibéré, à rediscuter si l'écart gêne.
+
+**3. Une mention en conversation muette ne prévenait personne.** La sourdine
+cède désormais pour les seules mentions, sous le type `messageMention` (et non
+`mentioned`, qui appartient au fil et dont l'appui ouvre `/feed/<cible>`).
+⚠️ **En clair seulement** : dans une conversation MLS les mentions voyagent
+dans la charge chiffrée, le serveur ne peut pas savoir qu'un message vous
+nomme. Une conversation chiffrée en sourdine reste donc silencieuse sur
+mention.
+
+Vérifié hors appareil : les deux migrations rejouées en `BEGIN … ROLLBACK`
+contre la production (les aperçus rendent les bons libellés, le déclencheur de
+réaction se crée), 16 cas dans
+`test/features/notifications/cas_messagerie_couverts_test.dart` — dont un qui
+compare la table cliente et la table serveur type par type, dans les deux
+sens. **Rien n'a tourné sur un téléphone.**
+
+Fichiers : migrations `20260916120000` et `20260916130000`,
+[notification_pref_keys.dart](lib/core/services/notification_pref_keys.dart),
+[notification_entity.dart](lib/features/notifications/domain/entities/notification_entity.dart).
+
+- [ ] **Note vocale reçue** (conversation chiffrée ET conversation claire) :
+  la bannière dit « 🎙️ Message vocal », plus « Nouveau message ».
+- [ ] **Sticker reçu en clair** : « 🎨 Sticker », et surtout **pas une URL**.
+- [ ] **Document reçu** : « 📄 <nom du fichier> ».
+- [ ] **Réagir à un message chiffré depuis l'autre téléphone** : l'auteur
+  reçoit « A réagi à votre message », **sans l'emoji**.
+- [ ] **Retirer cette réaction** : la notification disparaît de la liste.
+- [ ] **Réagir à son propre message** : aucune notification.
+- [ ] **Conversation en sourdine + mention** (conversation en clair) : la
+  bannière arrive, libellée « Mention », et l'appui ouvre **la discussion**.
+- [ ] **Conversation en sourdine sans mention** : toujours silencieuse.
+- [ ] **Conversation NON muette + mention** : une seule notification, pas deux.
+- [ ] **Conversation chiffrée en sourdine + mention** : silencieuse, et c'est
+  attendu — le noter si ça surprend à l'usage.
 
 ---
 

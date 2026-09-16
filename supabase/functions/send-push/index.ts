@@ -127,6 +127,9 @@ const CLE_PREFERENCE_PAR_TYPE: Record<string, string> = {
   // Messagerie.
   'message': 'messages',
   'messageReaction': 'messages',
+  // La sourdine d'une conversation cède sur mention, l'interrupteur global
+  // non : une mention reste un message.
+  'messageMention': 'messages',
 
   // Les gens.
   'friendRequest': 'friend_requests',
