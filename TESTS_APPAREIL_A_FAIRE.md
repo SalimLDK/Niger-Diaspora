@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1276 cases à cocher, 628 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
+**1276 cases à cocher, 630 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -312,7 +312,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 273 à faire, 116 faites
+- [2. Messagerie](#2-messagerie) — 273 à faire, 118 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 122 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -613,9 +613,16 @@ non-lus **avant** de marquer lu (le compteur serveur est déjà dans la tuile de
 la liste), puis poser le séparateur, puis marquer. Ce n'est pas une ligne, et
 ce n'est pas fait.
 
-- [ ] **Le séparateur, une fois l'ordre corrigé** : ouvrir une discussion
-  chiffrée portant N non-lus. Un séparateur « N nouveaux messages » doit se
-  poser au-dessus du premier, et la vue s'y placer.
+- [x] **Le séparateur** : vérifié le 2026-09-15 sur Pixel 10 Pro XL. Sept
+  messages reçus sans ouvrir, puis ouverture : la pastille orange
+  « 7 messages non lus » se pose au bon rang — sept messages d'autrui en
+  dessous, ni plus ni moins — et la vue s'y place.
+
+  L'ordre n'a finalement **pas** été changé : `markAsRead` part toujours au
+  premier rendu. C'est le **compteur** qui est relevé avant, sur la liste
+  vivante, et le séparateur qui se place par le **rang**
+  (`rangDesDerniersDAutrui`) au lieu de l'état de lecture — lequel est
+  déjà faussé quand le fil arrive.
 - [ ] **Et il ne doit PAS apparaître** sur un message reçu en direct pendant
   qu'on regarde la discussion.
 
@@ -626,9 +633,26 @@ abonné que par la discussion ouverte. Réseau + déchiffrement, à chaque
 ouverture. Le corriger demande un abonnement global et un rattrapage hors
 écran — un chantier, pas un correctif.
 
-- [ ] **Mesurer le délai** avant d'ouvrir ce chantier : rafale `screencap` sur
-  le téléphone pendant l'ouverture, compter les images sans le message neuf.
-  Si c'est 300 ms, ça ne vaut pas le coût ; si c'est deux secondes, si.
+- [x] **Mesuré, puis corrigé.** Avant : le fil s'affichait depuis le cache,
+  **sans** les messages reçus entre deux visites, et il fallait 2,5 à 3 s
+  (trois à quatre images de rafale) pour les voir apparaître. Après : ils
+  sont là dès la **première image** après le tap. La liste déclenche un
+  rattrapage de fond qui les déchiffre **et les met en cache** avant
+  qu'on ouvre.
+- [ ] **Le verrou de rattrapage, sous charge** : `messages()` partage
+  désormais un seul futur par conversation, parce que le rattrapage de
+  fond et l'ouverture du fil peuvent tomber ensemble — deux `catchUp`
+  concurrents feraient avancer le cliquet deux fois. Tenu par trois tests,
+  **jamais éprouvé sur appareil** : à voir en ouvrant une discussion à
+  l'instant précis où son rattrapage part.
+- [ ] ⚠️ **L'aperçu de la liste est retombé sur « Message chiffré »** lors de
+  cette même passe, alors qu'il marchait à la précédente. La pastille et le
+  fil, eux, sont justes. L'aperçu dépend du cache de l'isolate de
+  notification, qui n'est pas toujours écrit à temps — la seconde lecture
+  bornée (400 ms) ne referme pas toujours la fenêtre. À reprendre : le
+  rattrapage de fond remplit maintenant le cache du fil, dont
+  `_apercuDepuisLeCache` sait tirer l'aperçu — il manque sans doute une
+  émission après lui.
 
 Fichiers : [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
 (`amorcerBascules`), [mls_delivery.dart](lib/core/crypto/mls/mls_delivery.dart)
