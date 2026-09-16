@@ -362,6 +362,7 @@ class MlsGateway {
     String? fileNonce,
     String? blurhash,
     int? duration,
+    int? dureeVideo,
     List<double>? waveform,
   }) =>
       {
@@ -374,6 +375,9 @@ class MlsGateway {
         if (fileNonce != null) 'fileNonce': fileNonce,
         if (blurhash != null) 'blurhash': blurhash,
         if (duration != null) 'duration': duration,
+        // Champ distinct : `duration` est lu comme une duree AUDIO par le
+        // mapper. Y ranger une video l'aurait fait disparaitre du badge.
+        if (dureeVideo != null) 'videoDuration': dureeVideo,
         if (waveform != null) 'waveform': waveform,
       };
 

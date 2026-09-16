@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1185 cases à cocher, 610 cochées** — 239 entrées sur 286 ont encore des cases ouvertes.
+**1189 cases à cocher, 610 cochées** — 240 entrées sur 287 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -76,7 +76,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (80)
+**P1 — fonction importante, jamais vérifiée** (81)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -101,6 +101,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 4 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)](#-une-réaction-retirée-disparaît-vraiment-de-lécran-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -299,7 +300,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 237 à faire, 98 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 108 à faire, 39 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 79 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -6051,6 +6052,42 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
+## ⬜ La vidéo entre dans le chiffrement (2026-09-16)
+
+**Priorité P1** · importance 4/5 — La vidéo était écartée du chiffrement
+depuis C4, et pour une raison précise : le chiffrement passait par la mémoire,
+avec un pic proche de trois fois la taille du fichier, et le téléchargement
+plafonnait à 10 Mo. Les deux sens vont maintenant d'un fichier vers un autre,
+un morceau à la fois. La raison n'existe plus, l'exclusion non plus.
+
+Lever l'exclusion ne suffisait pas. Une vidéo chiffrée qui arriverait sans
+aperçu ni badge de durée se lirait comme un défaut d'affichage, et on
+chercherait le bug ailleurs. Trois choses l'accompagnent donc :
+
+- elle est cartographiée en `MediaType.video`, non plus en `document` ;
+- sa vignette et sa durée se calculent **sur le fichier en clair**, avant
+  l'envoi — une fois chiffré, il n'y a plus rien à décoder ;
+- la durée voyage dans un champ à elle dans la charge MLS. `duration` y est lu
+  comme une durée **audio** par le mapper : une vidéo rangée là aurait disparu
+  du badge.
+
+Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`_envoyerMediaChiffre`), [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
+(`corpsMedia`), [mls_message_mapper.dart](lib/core/crypto/mls/mls_message_mapper.dart).
+Couvert hors appareil par
+[video_chiffree_test.dart](test/features/messages/video_chiffree_test.dart)
+(6 cas).
+
+- [ ] **Envoyer une vidéo dans une conversation basculée** : elle part
+      chiffrée, la bulle montre son aperçu et son badge de durée.
+- [ ] **La rouvrir** : elle se lit, depuis le fichier déchiffré local.
+- [ ] **Une vidéo longue, au-delà de 50 Mo** : l'envoi et la lecture tiennent
+      sans que l'application soit tuée pour mémoire. C'est le cas qui
+      justifiait l'exclusion.
+- [ ] **En base** : ni URL ni clé lisibles, et `content_type` reste grossier.
+
+---
+
 ## ⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)
 
 **Priorité P0** · importance 5/5 — **Trouvé en cherchant pourquoi la vidéo
@@ -6080,10 +6117,11 @@ appareil par
 [dechiffrement_media_en_flux_test.dart](test/core/services/e2ee/dechiffrement_media_en_flux_test.dart)
 (6 cas, dont la mauvaise clé et le fichier tronqué).
 
-⚠️ **L'envoi n'est pas encore en flux.** `encryptAndUploadFile` lit toujours
-le fichier entier (`readAsBytes`) et téléverse un tampon (`putData`). La
-descente est donc réparée, la montée non — et la vidéo reste écartée tant que
-les deux ne le sont pas.
+**Les deux sens sont désormais en flux.** `encryptAndUploadFile` chiffre d'un
+fichier vers un autre et téléverse ce fichier (`putFile`), au lieu de lire le
+média entier et d'envoyer un tampon. Le conteneur versionné sert pour toute
+taille — un chemin de moins, le format simple n'est plus qu'un format qu'on
+sait lire.
 
 - [ ] **Envoyer puis rouvrir une photo chiffrée de plus de 10 Mo** : elle
       s'affiche. C'était impossible avant, à coup sûr.

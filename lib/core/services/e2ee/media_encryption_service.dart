@@ -59,8 +59,12 @@ class MediaEncryptionService {
   ///
   /// [onProgress] reçoit la progression du téléversement (0..1) ;
   /// [checkCancelled] est consulté pendant le téléversement, qui est annulé
-  /// s'il rend vrai. Le chiffrement lui-même est en mémoire (fichiers
-  /// ≤ 10 Mo en tranche 1 : pas de vidéo).
+  /// s'il rend vrai.
+  ///
+  /// **Le chiffrement ne passe plus par la mémoire** : il va d'un fichier vers
+  /// un autre, un morceau à la fois, et c'est ce fichier qui est téléversé.
+  /// Le pic mémoire ne dépend donc plus de la taille du média — ce qui lève
+  /// la raison pour laquelle la vidéo en était écartée.
   Future<EncryptedMediaResult> encryptAndUploadFile({
     required File file,
     required String conversationId,
@@ -73,30 +77,29 @@ class MediaEncryptionService {
     final fileKey = await _generateFileKey();
     final fileKeyBytes = await fileKey.extractBytes();
 
-    // Lire le fichier
-    final fileBytes = await file.readAsBytes();
-    final originalSize = fileBytes.length;
-
-    // Générer un IV aléatoire
+    final originalSize = await file.length();
     final iv = _generateRandomBytes(12); // 96 bits pour GCM
 
-    // Chiffrer le fichier
-    Uint8List encryptedBytes;
-    if (originalSize > _chunkSize) {
-      // Fichier volumineux: chiffrer par chunks
-      encryptedBytes = await _encryptLargeFile(fileBytes, fileKey, iv);
-    } else {
-      // Petit fichier: chiffrer en une fois
-      final secretBox = await _aesGcm.encrypt(
-        fileBytes,
-        secretKey: fileKey,
-        nonce: iv,
-      );
-      // Combiner ciphertext + authTag
-      encryptedBytes = Uint8List.fromList([
-        ...secretBox.cipherText,
-        ...secretBox.mac.bytes,
-      ]);
+    // **Chiffrer d'un fichier vers un autre, un morceau à la fois.**
+    //
+    // L'ancien chemin lisait le fichier entier (`readAsBytes`), assemblait le
+    // chiffré entier, puis le téléversait en tampon (`putData`) : trois fois
+    // la taille du fichier en mémoire au pic. C'est ce qui interdisait la
+    // vidéo, et ce qui faisait tuer l'application par le système sur un gros
+    // document. Ici le pic ne dépend plus que de la taille d'un morceau.
+    //
+    // Le conteneur versionné sert désormais **pour toute taille**, y compris
+    // les petits fichiers qui prenaient le format simple. Un chemin de moins,
+    // et le lecteur accepte les deux de toute façon.
+    final tempDir = await getTemporaryDirectory();
+    final chiffre = File(
+        '${tempDir.path}/enc_up_${DateTime.now().millisecondsSinceEpoch}.bin');
+    final int encryptedSize;
+    try {
+      encryptedSize = await chiffrerFichierVersFichier(file, chiffre, fileKey, iv);
+    } catch (e) {
+      await _effacerSansBruit(chiffre);
+      rethrow;
     }
 
     // Générer un nom de fichier unique (sans révéler le nom original)
@@ -105,8 +108,8 @@ class MediaEncryptionService {
 
     // Uploader sur Firebase Storage
     final ref = _storage.ref(storagePath);
-    final task = ref.putData(
-      encryptedBytes,
+    final task = ref.putFile(
+      chiffre,
       SettableMetadata(
         contentType: 'application/octet-stream', // Masquer le vrai type
         customMetadata: {
@@ -132,6 +135,10 @@ class MediaEncryptionService {
       uploadTask = await task;
     } finally {
       await suivi?.cancel();
+      // Le temporaire chiffré ne sert qu'au téléversement — y compris quand
+      // celui-ci échoue ou qu'on l'annule. Le laisser traîner remplirait le
+      // cache de l'appareil de fichiers que plus rien ne réclame.
+      await _effacerSansBruit(chiffre);
     }
 
     final downloadUrl = await uploadTask.ref.getDownloadURL();
@@ -145,76 +152,70 @@ class MediaEncryptionService {
       ivBase64: base64Encode(iv),
       originalFileName: path.basename(file.path),
       originalSize: originalSize,
-      encryptedSize: encryptedBytes.length,
+      encryptedSize: encryptedSize,
       mediaType: mediaType,
       mimeType: _getMimeType(file.path),
     );
   }
 
-  /// Chiffre un fichier volumineux par chunks
-  Future<Uint8List> _encryptLargeFile(
-    Uint8List fileBytes,
+  /// Chiffre d'un fichier vers un autre, un morceau à la fois.
+  ///
+  /// Rend la taille du fichier produit. Format inchangé : en-tête
+  /// `[version][nombre de morceaux]`, puis pour chaque morceau
+  /// `[taille sur 4 octets][ciphertext][étiquette sur 16 octets]`.
+  ///
+  /// Le nombre de morceaux ne se connaît qu'à la fin, mais il doit figurer en
+  /// tête : on réserve les cinq octets, on écrit les morceaux, puis on revient
+  /// remplir l'en-tête. C'est pour ça que l'écriture passe par un
+  /// `RandomAccessFile` et non par un simple flux.
+  @visibleForTesting
+  Future<int> chiffrerFichierVersFichier(
+    File source,
+    File destination,
     SecretKey fileKey,
     Uint8List iv,
   ) async {
-    final chunks = <Uint8List>[];
-    var offset = 0;
-    var chunkIndex = 0;
+    final entree = await source.open();
+    final sortie = await destination.open(mode: FileMode.write);
+    try {
+      await sortie.writeFrom(Uint8List(5)); // en-tête réservé
+      var index = 0;
+      while (true) {
+        final morceau = await entree.read(_chunkSize);
+        if (morceau.isEmpty) break;
+        final boite = await _aesGcm.encrypt(
+          morceau,
+          secretKey: fileKey,
+          nonce: deriveChunkIv(iv, index),
+        );
+        final n = boite.cipherText.length + 16;
+        await sortie.writeFrom(Uint8List.fromList([
+          (n >> 24) & 0xFF,
+          (n >> 16) & 0xFF,
+          (n >> 8) & 0xFF,
+          n & 0xFF,
+        ]));
+        await sortie.writeFrom(Uint8List.fromList(boite.cipherText));
+        await sortie.writeFrom(Uint8List.fromList(boite.mac.bytes));
+        index++;
+        if (morceau.length < _chunkSize) break;
+      }
 
-    while (offset < fileBytes.length) {
-      final end = (offset + _chunkSize).clamp(0, fileBytes.length);
-      final chunk = fileBytes.sublist(offset, end);
-
-      // IV unique par chunk: IV original + index du chunk
-      final chunkIv = deriveChunkIv(iv, chunkIndex);
-
-      final secretBox = await _aesGcm.encrypt(
-        chunk,
-        secretKey: fileKey,
-        nonce: chunkIv,
-      );
-
-      // Format: [4 bytes chunk size][ciphertext][16 bytes authTag]
-      final chunkSize = secretBox.cipherText.length + 16;
-      final chunkData = Uint8List(4 + chunkSize);
-      // Écrire la taille du chunk (big-endian)
-      chunkData[0] = (chunkSize >> 24) & 0xFF;
-      chunkData[1] = (chunkSize >> 16) & 0xFF;
-      chunkData[2] = (chunkSize >> 8) & 0xFF;
-      chunkData[3] = chunkSize & 0xFF;
-      // Écrire le ciphertext + authTag
-      chunkData.setRange(4, 4 + secretBox.cipherText.length, secretBox.cipherText);
-      chunkData.setRange(
-        4 + secretBox.cipherText.length,
-        4 + chunkSize,
-        secretBox.mac.bytes,
-      );
-
-      chunks.add(chunkData);
-      offset = end;
-      chunkIndex++;
+      final taille = await sortie.position();
+      await sortie.setPosition(0);
+      await sortie.writeFrom(Uint8List.fromList([
+        1,
+        (index >> 24) & 0xFF,
+        (index >> 16) & 0xFF,
+        (index >> 8) & 0xFF,
+        index & 0xFF,
+      ]));
+      await sortie.flush();
+      return taille;
+    } finally {
+      await entree.close();
+      await sortie.close();
     }
-
-    // Header: [1 byte version][4 bytes total chunks]
-    final header = Uint8List(5);
-    header[0] = 1; // Version
-    header[1] = (chunkIndex >> 24) & 0xFF;
-    header[2] = (chunkIndex >> 16) & 0xFF;
-    header[3] = (chunkIndex >> 8) & 0xFF;
-    header[4] = chunkIndex & 0xFF;
-
-    // Combiner header + tous les chunks
-    final totalSize = 5 + chunks.fold<int>(0, (sum, chunk) => sum + chunk.length);
-    final result = Uint8List(totalSize);
-    result.setRange(0, 5, header);
-
-    var writeOffset = 5;
-    for (final chunk in chunks) {
-      result.setRange(writeOffset, writeOffset + chunk.length, chunk);
-      writeOffset += chunk.length;
-    }
-
-    return result;
   }
 
   /// Dérive un IV unique pour chaque chunk.

@@ -156,4 +156,56 @@ void main() {
       expect(code.contains('writeToFile('), isTrue);
     });
   });
+
+  group('aller-retour complet, sans memoire', () {
+    test('un fichier de plusieurs morceaux revient identique', () async {
+      // 12 Mo : trois morceaux de 5 Mo, dont un partiel. C'est la taille qui
+      // faisait tuer l'application avant, et qui depassait le plafond de
+      // telechargement de 10 Mo.
+      final original = File('${dossier.path}/gros.bin');
+      final contenu = _octets(12 * 1024 * 1024, 11);
+      await original.writeAsBytes(contenu);
+
+      final chiffre = File('${dossier.path}/gros.enc');
+      final taille = await service.chiffrerFichierVersFichier(
+          original, chiffre, cle, iv);
+      expect(taille, await chiffre.length());
+      expect(taille, greaterThan(contenu.length),
+          reason: "en-tete et etiquettes s'ajoutent au clair");
+
+      final rendu = File('${dossier.path}/gros.out');
+      await service.dechiffrerFichierVersFichier(chiffre, rendu, cle, iv);
+
+      expect(await rendu.length(), contenu.length);
+      expect(await rendu.readAsBytes(), contenu);
+    });
+
+    test('un fichier vide ne produit aucun morceau, et revient vide', () async {
+      final original = File('${dossier.path}/vide.bin');
+      await original.writeAsBytes(Uint8List(0));
+
+      final chiffre = File('${dossier.path}/vide.enc');
+      final taille = await service.chiffrerFichierVersFichier(
+          original, chiffre, cle, iv);
+      expect(taille, 5, reason: "seulement l'en-tete");
+
+      final rendu = File('${dossier.path}/vide.out');
+      await service.dechiffrerFichierVersFichier(chiffre, rendu, cle, iv);
+      expect(await rendu.length(), 0);
+    });
+
+    test('un petit fichier prend lui aussi le format versionne', () async {
+      // Un chemin de moins : le format simple n'est plus jamais ecrit, il
+      // n'est plus que lu.
+      final original = File('${dossier.path}/petit.bin');
+      await original.writeAsBytes(_octets(100, 12));
+
+      final chiffre = File('${dossier.path}/petit.enc');
+      await service.chiffrerFichierVersFichier(original, chiffre, cle, iv);
+      final entete = (await chiffre.readAsBytes()).sublist(0, 5);
+
+      expect(entete[0], 1, reason: 'octet de version');
+      expect(entete[4], 1, reason: 'un seul morceau');
+    });
+  });
 }
