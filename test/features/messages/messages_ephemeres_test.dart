@@ -682,6 +682,34 @@ void main() {
       );
     });
 
+    test('TOUS les médias chiffrent dans une conversation basculée', () {
+      // Le drapeau `mediasChiffres` ne décide que des conversations encore en
+      // clair. Dans une conversation basculée, il FAUT chiffrer quoi qu'il
+      // arrive : sinon l'envoi retombe sur `messages`, que le déclencheur
+      // `messages_refuse_conversation_mls_trg` refuse — et l'écran affiche
+      // « Non envoyé · Réessayer » sans dire pourquoi.
+      //
+      // `sendFileMessage` appliquait la règle ; `sendAudioMessage` l'avait
+      // oubliée. Mesuré sur SM A515F le 2026-09-15 : la note vocale
+      // n'arrivait NULLE PART — ni `mls_messages`, ni `messages`.
+      final depot = _source(
+        'lib/features/messages/data/repositories/message_repository_impl.dart',
+      );
+      final regle = 'mediasChiffresActifs() || conversationChiffree';
+      expect(
+        RegExp(RegExp.escape(regle)).allMatches(depot).length,
+        greaterThanOrEqualTo(2),
+        reason: 'la règle doit valoir pour les fichiers ET pour la note '
+            'vocale — un seul oubli et ce type ne part plus du tout',
+      );
+      // Et surtout : plus aucun média ne doit se contenter du drapeau seul.
+      expect(
+        depot.contains('chiffrement != null && mediasChiffresActifs()'),
+        isFalse,
+        reason: 'le drapeau seul ne suffit pas dans une conversation basculée',
+      );
+    });
+
     test('le helper lit le minuteur et pose expiresAt', () {
       final src = _source(chemin);
       expect(src.contains("data['expiresAt'] ="), isTrue);
