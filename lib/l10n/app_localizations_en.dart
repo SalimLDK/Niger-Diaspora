@@ -5889,7 +5889,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get edited => 'edited';
 
   @override
-  String get editTimeExpired => 'Edit time has expired (25 min)';
+  String get editTimeExpired => 'Messages can no longer be edited after 48 h';
+
+  @override
+  String get editImpossibleNotAuthor => 'Only the author can edit this message';
+
+  @override
+  String get editImpossibleNotText => 'Only text messages can be edited';
+
+  @override
+  String get editImpossibleDeleted => 'This message has been deleted';
+
+  @override
+  String get editImpossibleNotSent => 'Message not sent yet';
+
+  @override
+  String get editingBannerHint => 'Save to apply, cross to cancel';
+
+  @override
+  String get editUnchanged => 'The text has not changed';
+
+  @override
+  String editedAtLabel(String time) {
+    return 'Edited · $time';
+  }
+
+  @override
+  String editedCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Edited $count times',
+      one: 'Edited once',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get messageEdited => 'Message edited';

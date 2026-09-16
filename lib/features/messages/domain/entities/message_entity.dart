@@ -13,6 +13,27 @@ enum MessageStatus {
 
 enum MessageType { text, image, file, audio, video, system, call, location, sticker, voiceNote, poll }
 
+/// Pourquoi la modification d'un message est refusée.
+///
+/// Sert à *dire* le refus : chaque valeur a sa phrase dans l'ARB, et l'entrée
+/// de menu reste visible mais désactivée avec ce motif en sous-titre.
+enum MotifModificationImpossible {
+  /// Le message est d'un autre : jamais modifiable.
+  pasLauteur,
+
+  /// Photo, vidéo, vocal, sondage… : seul le texte se modifie.
+  pasDuTexte,
+
+  /// Déjà supprimé pour tout le monde.
+  supprime,
+
+  /// Encore en cours d'envoi, ou en échec : aucune ligne serveur à réécrire.
+  pasEncoreEnvoye,
+
+  /// Passé [MessageEntity.fenetreModification].
+  delaiExpire,
+}
+
 /// Encryption level of a message, written to RTDB and surfaced in the UI.
 enum MessageEncryptionLevel {
   /// AES-256-GCM with a shared server key (legacy / fallback).
@@ -311,13 +332,51 @@ class MessageEntity extends Equatable {
     return remaining.isNegative ? Duration.zero : remaining;
   }
 
-  /// Check if current user can edit this message (sender only, text only, within 25 min)
-  bool canEdit(String currentUserId, {Duration timeLimit = const Duration(minutes: 25)}) {
-    if (senderId != currentUserId) return false;
-    if (type != MessageType.text) return false;
-    if (deletedForEveryone) return false;
-    return DateTime.now().difference(createdAt) <= timeLimit;
+  /// Fenêtre pendant laquelle l'auteur peut encore modifier son message.
+  ///
+  /// **Rien ne l'impose côté serveur** : la policy `messages_update` autorise
+  /// l'auteur sans jamais regarder l'heure. Cette durée est donc la seule règle
+  /// qui existe, et elle vit ici — la changer suffit, aucune migration.
+  ///
+  /// 48 h plutôt que les 25 min d'avant : le délai court n'était adossé à rien
+  /// et coupait la modification d'un message de la veille, cas le plus courant.
+  static const Duration fenetreModification = Duration(hours: 48);
+
+  /// Pourquoi « Modifier » est refusé sur ce message, ou `null` s'il est
+  /// modifiable.
+  ///
+  /// Rendre le **motif** plutôt qu'un `bool` est ce qui permet à l'écran de
+  /// dire lequel : masquer l'entrée en silence laissait croire à un bug, et
+  /// l'échec côté réseau s'annonçait « délai expiré » faute de savoir
+  /// distinguer.
+  MotifModificationImpossible? motifModificationImpossible(
+    String currentUserId, {
+    Duration fenetre = fenetreModification,
+    DateTime? maintenant,
+  }) {
+    if (senderId != currentUserId) {
+      return MotifModificationImpossible.pasLauteur;
+    }
+    if (deletedForEveryone) return MotifModificationImpossible.supprime;
+    if (type != MessageType.text) {
+      return MotifModificationImpossible.pasDuTexte;
+    }
+    // Un message encore en vol (`sending`, identifiant `temp_…`) ou en échec
+    // n'a pas de ligne serveur à modifier : `editMessage` ne toucherait aucune
+    // ligne. Le laisser passer produisait un « Message modifié » sur un geste
+    // sans effet.
+    if (status != MessageStatus.sent) {
+      return MotifModificationImpossible.pasEncoreEnvoye;
+    }
+    final age = (maintenant ?? DateTime.now()).difference(createdAt);
+    if (age > fenetre) return MotifModificationImpossible.delaiExpire;
+    return null;
   }
+
+  /// Check if current user can edit this message (sender only, text only,
+  /// within [fenetreModification]).
+  bool canEdit(String currentUserId, {Duration timeLimit = fenetreModification}) =>
+      motifModificationImpossible(currentUserId, fenetre: timeLimit) == null;
 
   /// Formatage de la durée d'appel
   String get callDurationFormatted {

@@ -20,19 +20,13 @@ class GifPickerContent extends ConsumerStatefulWidget {
   ConsumerState<GifPickerContent> createState() => _GifPickerContentState();
 }
 
+/// Largeur maximale d'une vignette de la grille, en dp.
+const double _tailleVignette = 110;
+
 class _GifPickerContentState extends ConsumerState<GifPickerContent> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
-    // Sans clé API, l'onglet n'a aucun contenu à montrer : on le dit clairement
-    // plutôt que d'afficher une erreur réseau opaque.
-    if (!ref.watch(isGifConfiguredProvider)) {
-      return _EmptyState(
-        icon: Icons.key_off_outlined,
-        message: l10n.gifProviderNotConfigured,
-      );
-    }
 
     final query = ref.watch(gifSearchQueryProvider);
     final type = ref.watch(gifContentTypeProvider);
@@ -53,10 +47,29 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
         Expanded(
           child: resultsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => _EmptyState(
-              icon: Icons.cloud_off_outlined,
-              message: l10n.gifLoadError,
-            ),
+            error: (error, __) {
+              // Une clé absente côté serveur est un état durable : le dire
+              // autrement qu'une panne, et ne pas proposer de réessayer —
+              // réessayer n'y changerait rien.
+              final nonConfigure = error is GifProvidersUnavailableException;
+              return _EmptyState(
+                icon:
+                    nonConfigure
+                        ? Icons.key_off_outlined
+                        : Icons.cloud_off_outlined,
+                message:
+                    nonConfigure
+                        ? l10n.gifProviderNotConfigured
+                        : l10n.gifLoadError,
+                retryLabel: nonConfigure ? null : l10n.retry,
+                onRetry:
+                    nonConfigure
+                        ? null
+                        : () => ref.invalidate(
+                          gifResultsProvider((query, type)),
+                        ),
+              );
+            },
             data: (gifs) {
               if (gifs.isEmpty) {
                 return _EmptyState(
@@ -100,13 +113,20 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
   }
 
   Widget _buildGrid(List<GifEntity> gifs) {
+    // Décodage à la taille réellement affichée : une vignette fait ~110 dp de
+    // large, le média d'origine bien plus. Sans cette borne, chaque image de
+    // la grille occupe en mémoire sa taille de fichier décodée — et un GIF
+    // décode *toutes* ses trames.
+    final memCacheWidth =
+        (_tailleVignette * MediaQuery.devicePixelRatioOf(context)).round();
+
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       // Colonnes déduites de la largeur (≈110 dp par vignette) : ~3-4 en
       // portrait, ~7-8 en paysage. Vignettes plus compactes = plus de GIFs
       // visibles d'un coup.
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 110,
+        maxCrossAxisExtent: _tailleVignette,
         mainAxisSpacing: 6,
         crossAxisSpacing: 6,
       ),
@@ -120,6 +140,7 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
             child: CachedNetworkImage(
               imageUrl: gif.previewUrl,
               fit: BoxFit.cover,
+              memCacheWidth: memCacheWidth,
               placeholder: (_, __) => Container(
                 color: context.surfaceVariantColor,
               ),
@@ -143,7 +164,17 @@ class _EmptyState extends StatelessWidget {
   final IconData icon;
   final String message;
 
-  const _EmptyState({required this.icon, required this.message});
+  /// Sans [onRetry], aucun bouton : proposer de recharger ce qui ne peut pas
+  /// changer donne une porte qui ne mène nulle part.
+  final String? retryLabel;
+  final VoidCallback? onRetry;
+
+  const _EmptyState({
+    required this.icon,
+    required this.message,
+    this.retryLabel,
+    this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -167,6 +198,10 @@ class _EmptyState extends StatelessWidget {
                 fontSize: 13,
               ),
             ),
+            if (onRetry != null && retryLabel != null) ...[
+              const SizedBox(height: 8),
+              TextButton(onPressed: onRetry, child: Text(retryLabel!)),
+            ],
           ],
         ),
       ),

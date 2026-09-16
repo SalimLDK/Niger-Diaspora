@@ -28,6 +28,7 @@ import '../../data/repositories/message_repository_impl.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../../domain/entities/message_entity.dart';
 import '../../domain/repositories/message_repository.dart';
+import '../../../../core/errors/app_error_messages.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
 import 'message_pagination_state.dart';
@@ -1032,23 +1033,32 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   }
 
   /// Edit a text message (within 25 minute time limit)
-  Future<bool> editMessage({
+  Future<ResultatModification> editMessage({
     required String messageId,
     required String newContent,
   }) async {
     final currentUser = await _ref.read(currentUserAsyncProvider.future);
-    if (currentUser == null) return false;
+    if (currentUser == null) {
+      return const ModificationRefusee(MotifModificationImpossible.pasLauteur);
+    }
 
     final messageIndex = state.messages.indexWhere((m) => m.id == messageId);
-    if (messageIndex == -1) return false;
+    if (messageIndex == -1) {
+      return const ModificationRefusee(
+        MotifModificationImpossible.pasEncoreEnvoye,
+      );
+    }
 
     final message = state.messages[messageIndex];
 
-    // Check if user can edit this message
-    if (!message.canEdit(currentUser.id)) return false;
+    // Le motif, et non un `bool` : c'est lui que l'écran affichera. Refaire le
+    // contrôle ici plutôt que se fier au menu — la fenêtre a pu expirer
+    // pendant que le composeur était ouvert.
+    final motif = message.motifModificationImpossible(currentUser.id);
+    if (motif != null) return ModificationRefusee(motif);
 
     final oldContent = message.content;
-    if (newContent == oldContent) return true; // No change
+    if (newContent == oldContent) return const ModificationSansChangement();
 
     // Optimistic update
     final updatedMessage = message.copyWith(
@@ -1072,18 +1082,73 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
             newContent: newContent,
             oldContent: oldContent,
           );
-      return resultat.fold((echec) => throw Exception(echec.message), (_) => true);
+      return resultat.fold(
+        // Le `Failure` remonte intact : réseau, refus serveur et échec de la
+        // passerelle MLS portent chacun leur phrase. L'ancien code les
+        // transformait tous en `false`, et l'écran les annonçait « délai de
+        // modification expiré » — un mensonge sur trois causes distinctes.
+        (echec) {
+          _revenirAuTexteDavant(messageIndex, messageId, message);
+          return ModificationEchouee(echec);
+        },
+        (_) => const ModificationReussie(),
+      );
     } catch (e) {
-      // Revert on error
-      final revertedMessages = List<MessageEntity>.from(state.messages);
-      if (revertedMessages.length > messageIndex &&
-          revertedMessages[messageIndex].id == messageId) {
-        revertedMessages[messageIndex] = message;
-        state = state.copyWith(messages: revertedMessages);
-      }
-      return false;
+      _revenirAuTexteDavant(messageIndex, messageId, message);
+      return ModificationEchouee(
+        ServerFailure(AppErrorMessages.unexpectedError),
+      );
     }
   }
+
+  /// Remet la bulle sur son texte d'avant après un échec.
+  ///
+  /// L'optimiste a déjà affiché le nouveau texte : sans ce retour en arrière,
+  /// l'écran montrerait la modification à côté du message d'erreur qui dit
+  /// qu'elle n'a pas eu lieu.
+  void _revenirAuTexteDavant(
+    int index,
+    String messageId,
+    MessageEntity avant,
+  ) {
+    final messages = List<MessageEntity>.from(state.messages);
+    if (messages.length > index && messages[index].id == messageId) {
+      messages[index] = avant;
+      state = state.copyWith(messages: messages);
+    }
+  }
+}
+
+/// Ce qu'a donné une modification de message.
+///
+/// Un `bool` forçait l'écran à inventer la raison de l'échec : il annonçait
+/// « délai expiré » aussi bien pour une coupure réseau que pour un refus
+/// serveur ou un échec de la passerelle MLS. Chaque cas remonte désormais
+/// tel quel.
+sealed class ResultatModification {
+  const ResultatModification();
+}
+
+/// Le texte est parti et la ligne est à jour.
+class ModificationReussie extends ResultatModification {
+  const ModificationReussie();
+}
+
+/// Rien à faire : le texte est identique à celui d'avant.
+class ModificationSansChangement extends ResultatModification {
+  const ModificationSansChangement();
+}
+
+/// Le geste n'était pas permis — voir [motif].
+class ModificationRefusee extends ResultatModification {
+  final MotifModificationImpossible motif;
+  const ModificationRefusee(this.motif);
+}
+
+/// Le geste était permis mais l'écriture a échoué — voir [echec].
+class ModificationEchouee extends ResultatModification {
+  final Failure echec;
+  const ModificationEchouee(this.echec);
 }
 
 // ============ Notifier pour envoyer des messages ============

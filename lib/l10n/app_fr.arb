@@ -2801,7 +2801,29 @@
   "conversationPinned": "Conversation épinglée",
   "editMessage": "Modifier le message",
   "edited": "modifié",
-  "editTimeExpired": "Le délai de modification est expiré (25 min)",
+  "editTimeExpired": "Passé 48 h, un message ne se modifie plus",
+  "editImpossibleNotAuthor": "Seul l'auteur peut modifier ce message",
+  "editImpossibleNotText": "Seul un message texte se modifie",
+  "editImpossibleDeleted": "Ce message est supprimé",
+  "editImpossibleNotSent": "Message pas encore envoyé",
+  "editingBannerHint": "Enregistrer pour appliquer, croix pour annuler",
+  "editUnchanged": "Le texte n'a pas changé",
+  "editedAtLabel": "Modifié · {time}",
+  "@editedAtLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "editedCountLabel": "{count, plural, =1{Modifié une fois} other{Modifié {count} fois}}",
+  "@editedCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "messageEdited": "Message modifié",
   "conversationUnpinned": "Conversation désépinglée",
   "disappearingMessages": "Messages éphémères",

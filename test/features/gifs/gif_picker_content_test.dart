@@ -16,20 +16,15 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 /// Repository de test : sans réseau, enregistre la dernière requête reçue.
 class _FakeGifRepository implements GifRepository {
   final List<GifEntity> results;
-  final bool configured;
   final Object? error;
 
   String? lastQuery;
   GifContentType? lastType;
 
-  _FakeGifRepository({
-    this.results = const [],
-    this.configured = true,
-    this.error,
-  });
+  /// Nombre d'appels réellement partis : c'est lui qui prouve le cache.
+  int appels = 0;
 
-  @override
-  bool get isConfigured => configured;
+  _FakeGifRepository({this.results = const [], this.error});
 
   @override
   Future<List<GifEntity>> trending({
@@ -44,6 +39,7 @@ class _FakeGifRepository implements GifRepository {
     GifContentType type = GifContentType.gif,
     int limit = 30,
   }) async {
+    appels++;
     lastQuery = query;
     lastType = type;
     if (error != null) throw error!;
@@ -116,6 +112,37 @@ Future<void> _pumpShell(WidgetTester tester, _FakeGifRepository repo) async {
   );
 }
 
+/// Monte (ou démonte) le picker **dans un conteneur fourni**, pour pouvoir le
+/// fermer puis le rouvrir sans perdre l'état des providers — ce qu'un nouveau
+/// `ProviderScope` ferait, rendant le cache invisible au test.
+Future<void> _pumpDans(
+  WidgetTester tester,
+  ProviderContainer container, {
+  required bool monte,
+}) async {
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('fr'),
+        home: Scaffold(
+          body:
+              monte
+                  ? GifPickerContent(onGifSelected: (_) {})
+                  : const SizedBox.shrink(),
+        ),
+      ),
+    ),
+  );
+}
+
 void main() {
   group('GifPickerContent', () {
     testWidgets('affiche la grille des résultats', (tester) async {
@@ -128,16 +155,22 @@ void main() {
       expect(repo.lastType, GifContentType.gif);
     });
 
-    testWidgets('sans clé API, informe au lieu de tenter le réseau',
+    testWidgets('aucune clé côté serveur -> informe, sans bouton Réessayer',
         (tester) async {
-      final repo = _FakeGifRepository(configured: false);
+      // La clé vit dans `gif-proxy` : le client ne peut l'apprendre qu'en
+      // appelant. La fonction répond 503 `no_provider`, que le datasource
+      // traduit en cette exception-là.
+      final repo = _FakeGifRepository(
+        error: GifProvidersUnavailableException('pas de clé'),
+      );
       await _pump(tester, repo);
       await tester.pumpAndSettle();
 
       expect(
           find.text('Les GIFs ne sont pas encore configurés.'), findsOneWidget);
       expect(find.byType(GridView), findsNothing);
-      expect(repo.lastQuery, isNull);
+      // Réessayer ne changerait rien tant qu'aucune clé n'est posée.
+      expect(find.text('Réessayer'), findsNothing);
     });
 
     testWidgets('résultats vides -> message dédié', (tester) async {
@@ -155,6 +188,23 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Impossible de charger les GIFs.'), findsOneWidget);
+    });
+
+    testWidgets('erreur passagère -> « Réessayer » relance un appel',
+        (tester) async {
+      final repo = _FakeGifRepository(error: Exception('boom'));
+      await _pump(tester, repo);
+      await tester.pumpAndSettle();
+
+      final avant = repo.appels;
+      expect(find.text('Réessayer'), findsOneWidget);
+
+      await tester.tap(find.text('Réessayer'));
+      await tester.pumpAndSettle();
+
+      // Sans ce bouton, une coupure réseau laissait le panneau mort jusqu'à ce
+      // que l'utilisateur retape une recherche.
+      expect(repo.appels, greaterThan(avant));
     });
 
     testWidgets('bascule Stickers -> demande le type sticker', (tester) async {
@@ -222,11 +272,49 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pumpAndSettle();
 
+      final appelsApresRecherche = repo.appels;
+
       await tester.tap(find.byIcon(Icons.close));
       await tester.pumpAndSettle();
 
       expect(find.byType(TextField), findsNothing);
-      expect(repo.lastQuery, '');
+      // `DesignSectionLabel` met son libellé en capitales.
+      expect(find.text('TENDANCES'), findsOneWidget);
+      // Les tendances ont déjà été chargées à l'ouverture : y revenir se sert
+      // du cache. C'est ce qu'on vérifie ici — pas un `lastQuery` remis à
+      // vide, qui exigerait justement l'appel réseau qu'on veut éviter.
+      expect(repo.appels, appelsApresRecherche);
+      expect(find.byType(GridView), findsOneWidget);
+    });
+  });
+
+  group('Cache des résultats', () {
+    testWidgets('rouvrir le picker ne relance pas le réseau', (tester) async {
+      final repo = _FakeGifRepository(results: [_gif('a')]);
+      final container = ProviderContainer(
+        overrides: [gifRepositoryProvider.overrideWithValue(repo)],
+      );
+
+      await _pumpDans(tester, container, monte: true);
+      await tester.pumpAndSettle();
+      expect(repo.appels, 1);
+
+      // Fermer le panneau démonte le picker : le provider est autoDispose.
+      await _pumpDans(tester, container, monte: false);
+      await tester.pumpAndSettle();
+
+      // Le rouvrir réaffiche la même grille sans repartir en réseau. Le
+      // panneau s'ouvre et se ferme sans arrêt : sans ce cache, chaque
+      // ouverture coûtait un appel de fonction et une attente.
+      await _pumpDans(tester, container, monte: true);
+      await tester.pumpAndSettle();
+
+      expect(repo.appels, 1);
+      expect(find.byType(GridView), findsOneWidget);
+
+      // Libère le minuteur de survie du cache : sans ça, le test se termine
+      // sur un Timer en attente.
+      container.dispose();
     });
   });
 }

@@ -76,6 +76,23 @@ class MessageInput extends StatefulWidget {
   final MessageEntity? replyToMessage;
   final VoidCallback? onCancelReply;
 
+  /// Message en cours de modification, ou `null` en composition normale.
+  ///
+  /// La modification se fait **dans ce champ**, pas dans une boîte de dialogue :
+  /// la conversation reste visible, le clavier ne change pas de place, et le
+  /// geste est le même que pour écrire.
+  final MessageEntity? editingMessage;
+
+  /// Quitter la modification sans l'appliquer (croix du bandeau).
+  final VoidCallback? onCancelEdit;
+
+  /// Applique le nouveau texte.
+  ///
+  /// Le composeur ne referme rien de lui-même : c'est l'écran qui sort du mode
+  /// modification une fois l'écriture faite — ou qui l'y laisse, texte intact,
+  /// si elle a été refusée.
+  final void Function(String nouveauTexte)? onSubmitEdit;
+
   // Mention support (empty for non-group conversations)
   final List<MentionCandidate> mentionCandidates;
 
@@ -97,6 +114,9 @@ class MessageInput extends StatefulWidget {
     this.isLoading = false,
     this.replyToMessage,
     this.onCancelReply,
+    this.editingMessage,
+    this.onCancelEdit,
+    this.onSubmitEdit,
     this.mentionCandidates = const [],
     this.onCreateEvent,
     this.onCreatePoll,
@@ -111,6 +131,20 @@ class _MessageInputState extends State<MessageInput>
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   final TextEditingController _controller = TextEditingController();
+
+  /// Brouillon mis de côté le temps d'une modification.
+  ///
+  /// Le champ sert aux deux usages. Sans cette mise de côté, entrer en
+  /// modification écrasait le brouillon en cours (le listener le sauvegarde
+  /// toutes les 500 ms), et en sortir laissait à sa place le texte du message
+  /// modifié : un brouillon perdu, sans un mot.
+  String? _brouillonMisDeCote;
+
+  bool get _enModification => widget.editingMessage != null;
+
+  /// Un appui long lancerait un vocal — faux pendant une modification, où le
+  /// bouton applique. Sans ce garde, il en gardait aussi le vert.
+  bool get _peutEnregistrer => widget.onSendAudio != null && !_enModification;
   final FocusNode _focusNode = FocusNode();
   final AudioRecordingService _recordingService = AudioRecordingService();
 
@@ -180,6 +214,23 @@ class _MessageInputState extends State<MessageInput>
 
     // Load saved draft
     _loadDraft();
+
+    // Monté **déjà** en modification : `didUpdateWidget` ne se déclenchera
+    // jamais pour ce cas-là. Sans ce rattrapage, le bandeau annonçait
+    // « Modifier le message » au-dessus d'un champ vide — et le brouillon
+    // restauré juste au-dessus serait parti pour le nouveau texte du message.
+    // Vu sur un aperçu de rendu, pas en usage : aujourd'hui le composeur est
+    // toujours déjà là quand on entre en modification. Ça ne tient qu'à
+    // l'arbre de la conversation.
+    if (widget.editingMessage != null) {
+      _brouillonMisDeCote = _controller.text;
+      _draftSaveTimer?.cancel();
+      _controller.text = widget.editingMessage!.content;
+      _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: _controller.text.length),
+      );
+      _syncTextState(animateMorph: false);
+    }
 
     // Le retour du clavier referme les panneaux qui occupent la même place :
     // le picker emoji ET la grille de pièces jointes (sinon elle reste
@@ -267,6 +318,10 @@ class _MessageInputState extends State<MessageInput>
   }
 
   void _scheduleDraftSave() {
+    // En modification, le champ porte le texte d'un message déjà envoyé. Le
+    // sauver comme brouillon le ferait réapparaître à la réouverture de la
+    // conversation, par-dessus celui que l'utilisateur avait commencé.
+    if (_enModification) return;
     _draftSaveTimer?.cancel();
     _draftSaveTimer = Timer(const Duration(milliseconds: 500), () {
       PreferencesService.instance.saveMessageDraft(
@@ -279,6 +334,43 @@ class _MessageInputState extends State<MessageInput>
   void _clearDraft() {
     _draftSaveTimer?.cancel();
     PreferencesService.instance.clearMessageDraft(widget.conversationId);
+  }
+
+  @override
+  void didUpdateWidget(MessageInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final avant = oldWidget.editingMessage;
+    final apres = widget.editingMessage;
+    if (avant?.id == apres?.id) return;
+
+    if (apres != null) {
+      // Entrée : le brouillon de côté, le texte du message dans le champ.
+      // `??=` et non `=` — passer d'un message à un autre sans repasser par la
+      // composition ne doit pas prendre le texte du premier pour un brouillon.
+      _brouillonMisDeCote ??= _controller.text;
+      _draftSaveTimer?.cancel();
+      _remplacerTexte(apres.content);
+      _focusNode.requestFocus();
+    } else {
+      // Sortie : le brouillon revient tel qu'il était.
+      final brouillon = _brouillonMisDeCote ?? '';
+      _brouillonMisDeCote = null;
+      _remplacerTexte(brouillon);
+    }
+  }
+
+  /// Remplace le contenu du champ et recalcule l'état dérivé.
+  ///
+  /// `_syncTextState` sans quoi le bouton resterait sur le micro jusqu'à la
+  /// première frappe — même piège que le brouillon restauré au démarrage.
+  void _remplacerTexte(String texte) {
+    _controller.text = texte;
+    _controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: texte.length),
+    );
+    _clearMentionState();
+    setState(() => _syncTextState(animateMorph: false));
   }
 
   /// Le clavier bouge : redessiner pour que le panneau suive son retrait.
@@ -295,7 +387,16 @@ class _MessageInputState extends State<MessageInput>
     // Une sauvegarde encore en attente serait perdue : on la force avant de
     // disposer le contrôleur (quitter l'écran moins de 500 ms après la
     // dernière frappe effaçait la fin du brouillon).
-    if (_draftSaveTimer?.isActive ?? false) {
+    if (_enModification) {
+      // Le champ ne porte pas un brouillon mais le texte d'une modification en
+      // cours : c'est celui mis de côté qu'il faut garder. Sans ça, quitter
+      // l'écran en pleine modification perdait ce qu'on avait commencé à
+      // écrire — la dernière sauvegarde datant d'avant.
+      PreferencesService.instance.saveMessageDraft(
+        widget.conversationId,
+        _brouillonMisDeCote ?? '',
+      );
+    } else if (_draftSaveTimer?.isActive ?? false) {
       PreferencesService.instance.saveMessageDraft(
         widget.conversationId,
         _controller.text,
@@ -397,6 +498,15 @@ class _MessageInputState extends State<MessageInput>
   void _sendMessage() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+
+    // En modification, le bouton applique. Ni `clear` ni `_clearDraft` ici :
+    // c'est l'écran qui referme la modification une fois l'écriture faite, et
+    // `didUpdateWidget` rend alors le brouillon d'avant. Refusée, la
+    // modification reste ouverte avec le texte saisi — on ne le perd pas.
+    if (_enModification) {
+      widget.onSubmitEdit?.call(text);
+      return;
+    }
 
     final finalMentions =
         _pendingMentions.where((m) => text.contains('@${m.name}')).toList();
@@ -990,8 +1100,11 @@ class _MessageInputState extends State<MessageInput>
           onSelect: _onMentionSelected,
         ),
 
-        // Reply preview (uniquement si pas en enregistrement)
-        if (widget.replyToMessage != null && !_isRecording)
+        // Bandeau de modification, sinon bandeau de réponse (jamais les deux :
+        // entrer en modification annule la réponse en cours, côté écran).
+        if (_enModification && !_isRecording)
+          _buildEditPreview(context)
+        else if (widget.replyToMessage != null && !_isRecording)
           _buildReplyPreview(context),
 
         // Panneau ancré de pièces jointes (grille 3×2), au-dessus du composer.
@@ -1015,7 +1128,9 @@ class _MessageInputState extends State<MessageInput>
               // hauteur du champ : à 6 lignes, ça laissait une colonne vide de
               // ~68 px le long du texte, alors qu'il n'occupe que la ligne du
               // bas. Dehors, le texte part du bord de la pilule.
-              if (!_isRecording) ...[
+              // Pas de « + » en modification : seul le texte d'un message se
+              // modifie, une pièce jointe n'aurait nulle part où aller.
+              if (!_isRecording && !_enModification) ...[
                 _buildPlusButton(context),
                 const SizedBox(width: 6),
               ],
@@ -1877,6 +1992,79 @@ class _MessageInputState extends State<MessageInput>
     });
   }
 
+  /// Bandeau « Modifier le message » : le texte d'origine, et la croix pour
+  /// ressortir. Même gabarit que le bandeau de réponse — c'est le même geste
+  /// au même endroit, seuls l'icône et la couleur changent.
+  Widget _buildEditPreview(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final accent = context.adaptivePrimaryColor;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: context.surfaceColor,
+        border: Border(
+          bottom: BorderSide(
+            color: context.outlineColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 40,
+            decoration: BoxDecoration(
+              color: accent,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Icon(Icons.edit_outlined, size: 18, color: accent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.editMessage,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: accent,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  widget.editingMessage!.content,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.textSecondaryColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: widget.onCancelEdit,
+            tooltip: l10n.cancel,
+            icon: AppIcon(
+              AppIcon.close,
+              size: 20,
+              color: context.textSecondaryColor,
+            ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildReplyPreview(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -2040,10 +2228,10 @@ class _MessageInputState extends State<MessageInput>
           onTap: _hasText ? _sendMessage : null,
 
           // LongPress pour démarrer l'enregistrement
+          // Un appui long en modification ne doit pas lancer un vocal : le
+          // bouton n'est plus un micro, il applique.
           onLongPressStart:
-              !_hasText && widget.onSendAudio != null
-                  ? (_) => _startRecording()
-                  : null,
+              !_hasText && _peutEnregistrer ? (_) => _startRecording() : null,
 
           // LongPressMoveUpdate gère le drag PENDANT l'enregistrement
           // C'est la clé : ce handler reste actif car le bouton reste dans l'arbre
@@ -2138,7 +2326,7 @@ class _MessageInputState extends State<MessageInput>
   Color? _getButtonFill(BuildContext context) {
     if (_isCancelling) return context.errorColor;
     if (_isRecording) return context.adaptivePrimaryColor;
-    if (_hasText || widget.onSendAudio != null) {
+    if (_hasText || _peutEnregistrer) {
       // Les teintes foncées passent mal sur un fond nuit (§6c) : chaque
       // couleur signifiante a sa variante claire pour le thème sombre.
       final sombre = context.isDarkMode;
@@ -2150,7 +2338,7 @@ class _MessageInputState extends State<MessageInput>
 
   /// Couleur de fond du bouton (si pas de gradient)
   Color? _getButtonColor(BuildContext context) {
-    if (_isRecording || _hasText || widget.onSendAudio != null) {
+    if (_isRecording || _hasText || _peutEnregistrer) {
       return null;
     }
     return context.surfaceVariantColor;
@@ -2164,7 +2352,7 @@ class _MessageInputState extends State<MessageInput>
     if (_isRecording) {
       return context.adaptivePrimaryColor.withValues(alpha: 0.4);
     }
-    if (_hasText || widget.onSendAudio != null) {
+    if (_hasText || _peutEnregistrer) {
       final base =
           _hasText
               ? (context.isDarkMode ? _kE2eeBlueLight : _kE2eeBlue)
@@ -2217,6 +2405,16 @@ class _MessageInputState extends State<MessageInput>
       );
     }
 
+    // En modification : une coche, jamais le micro. Grisée tant que le champ
+    // est vide — un message modifié à vide n'est pas une suppression, et le
+    // laisser partir effaçait le texte sans rien dire.
+    if (_enModification) {
+      return AppIcon(
+        AppIcon.check,
+        color: _hasText ? AppColors.white : context.textTertiaryColor,
+      );
+    }
+
     // Mode normal avec morphing mic <-> send
     return Stack(
       alignment: Alignment.center,
@@ -2231,7 +2429,7 @@ class _MessageInputState extends State<MessageInput>
             child: AppIcon(
               AppIcon.mic,
               color:
-                  widget.onSendAudio != null
+                  _peutEnregistrer
                       ? AppColors.white
                       : context.textTertiaryColor,
             ),
