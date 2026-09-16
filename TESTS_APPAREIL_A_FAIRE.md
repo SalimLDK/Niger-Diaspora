@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1244 cases à cocher, 619 cochées** — 249 entrées sur 298 ont encore des cases ouvertes.
+**1242 cases à cocher, 622 cochées** — 249 entrées sur 298 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -93,7 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 7 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau-2026-09-15) · *Messagerie*
+- 5 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
 - 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
@@ -307,7 +307,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 271 à faire, 107 faites
+- [2. Messagerie](#2-messagerie) — 269 à faire, 110 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -569,7 +569,7 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
-## ⬜ « Mes notes » s'ouvre sans aller-retour réseau (2026-09-15)
+## ⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)
 
 **Priorité P1** · importance 4/5 — la tuile « Mes notes » était la seule de la
 liste à faire une requête **avant** de pousser son écran : un spinner à la
@@ -592,19 +592,44 @@ C'est la règle qui est testée (`test/features/messages/mes_notes_ouverture_tes
 pas son câblage : la provenance réelle des émissions ne se voit qu'à
 l'exécution, et c'est précisément ce qu'il faut vérifier ici.
 
-- [ ] App déjà chargée, liste affichée : taper « Mes notes » ouvre l'écran
+**Passe appareil du 2026-09-15 (SM A515F, compte `vQZE49…`, le seul « Mes
+notes » basculé en MLS).** Le point décisif s'est joué **réseau coupé** :
+`svc wifi disable` + `svc data disable`, jusqu'à ce que le téléphone réponde
+`ping: unknown host` sur l'hôte Supabase. Dans cet état, `ensure` ne *peut
+pas* aboutir — il commence par `ensureAuthenticated` puis un `select`. Taper
+« Mes notes » a pourtant ouvert le fil entier, et la tuile portait encore son
+icône signet (capture à t+1,3 s), pas un tourniquet : aucun état de chargement
+n'a été posé. C'est le raccourci, et rien d'autre, qui a ouvert l'écran.
+Réseau rétabli ensuite, vérifié à 15 ms.
+
+- [x] App déjà chargée, liste affichée : taper « Mes notes » ouvre l'écran
       **sans spinner** sur la tuile
-- [ ] Un message envoyé depuis cette ouverture-là part vraiment — pas de
-      « Non envoyé · Réessayer » (c'est la panne de 2026-08-06)
-- [ ] Démarrage à froid, tap immédiat avant que la liste n'ait chargé : la
-      tuile fait encore son aller-retour (spinner), et l'ouverture aboutit
-- [ ] Mode avion : l'ouverture aboutit quand même si « Mes notes » a déjà été
-      ouverte dans la session, échoue proprement (SnackBar) sinon
+- [x] Un message envoyé depuis cette ouverture-là part vraiment — pas de
+      « Non envoyé · Réessayer » (c'est la panne de 2026-08-06). Prouvé en
+      base, pas à l'écran : `mls_messages` de `805adcaa…` est passé de 5 à 6
+      lignes, la dernière 23 s après le tap. L'écran seul ne suffirait pas,
+      il affiche « Envoyé » de façon optimiste.
+- [x] Réseau coupé, liste déjà chargée depuis le réseau : l'ouverture aboutit
+      quand même (c'est le test ci-dessus)
+- [ ] Réseau coupé **et** liste jamais chargée depuis le réseau (démarrage à
+      froid hors ligne) : doit échouer proprement sur le SnackBar
+      « Impossible d'ouvrir Mes notes pour le moment »
+- [ ] Démarrage à froid en ligne, tap immédiat avant que la liste n'ait
+      chargé : la tuile fait encore son aller-retour (spinner), et
+      l'ouverture aboutit
 - [ ] Après un tirer-pour-rafraîchir, la première ouverture peut refaire
       l'aller-retour, les suivantes non
 - [ ] Compte neuf, « Mes notes » jamais créée : le premier tap la crée et la
       tuile prend son aperçu dans la liste
 - [ ] Même parcours depuis « Nouvelle conversation » (l'autre appelant)
+
+⚠️ **Vu au passage, sans rapport avec ce changement** : après l'envoi d'une
+note en MLS, l'aperçu de la tuile retombe sur son libellé par défaut
+(« Notes, brouillons et sondages ») au lieu du dernier texte — le serveur n'a
+jamais le clair d'un message MLS, et `conversations.last_message` reste vide.
+Voir « La liste n'annonce plus « Utilisateur » ni « Message chiffré » », qui
+traite la reconstruction de l'aperçu depuis le cache local, et l'entrée sur
+l'accusé « lu » et l'aperçu chiffré.
 
 Fichiers : [message_provider.dart](lib/features/messages/presentation/providers/message_provider.dart)
 (`conversationsDepuisReseauProvider`, `EnsureSelfNotesNotifier.ouvrir`),
