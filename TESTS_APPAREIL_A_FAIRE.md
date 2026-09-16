@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1191 cases à cocher, 614 cochées** — 240 entrées sur 288 ont encore des cases ouvertes.
+**1199 cases à cocher, 614 cochées** — 241 entrées sur 289 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -240,7 +240,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (52)
+**P3 — confort, cosmétique, fonction en pause** (53)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -255,6 +255,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 8 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
@@ -298,7 +299,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 239 à faire, 102 faites
+- [2. Messagerie](#2-messagerie) — 247 à faire, 102 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -557,6 +558,61 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Squelette de chargement de la messagerie (2026-09-15)
+
+**Priorité P3** · importance 2/5 — les deux attentes de la messagerie ne
+disaient pas la même chose que ce qui allait s'afficher. La liste des
+discussions montrait un tourniquet centré au milieu du vide, et le fil d'une
+discussion, pendant sa première page (`paginationState.isLoadingInitial`),
+rendait un `SizedBox.shrink()` — donc **rien du tout** entre l'en-tête et le
+composeur : impossible de distinguer « ça charge » de « cette discussion
+n'a aucun message ».
+
+Les deux branches rendent maintenant un squelette qui reprend la géométrie
+réelle : avatar 50 au rayon 17, filets entre les lignes, marges de bulle
+16/64, rayons 18/6, et la colonne d'avatar de 28 réservée à gauche dans un
+fil de groupe. C'est tout l'intérêt de la chose : si les blocs ne tombent pas
+où le contenu tombera, l'écran saute quand même à l'arrivée des données.
+
+Vérifié hors appareil par rendu d'images (goldens jetables) en clair et en
+sombre, et par `test/features/messages/squelette_chargement_test.dart`
+(géométrie + câblage des deux branches). Ce qui ne peut pas l'être ainsi,
+c'est la **durée** et le **passage** au contenu réel.
+
+Fichiers : [messages_skeleton.dart](lib/features/messages/presentation/widgets/messages_skeleton.dart),
+[messages_screen.dart](lib/features/messages/presentation/screens/messages_screen.dart),
+[conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart).
+
+- [ ] **Liste des discussions, première ouverture après un démarrage à froid**
+  (tuer l'app, couper le Wi-Fi pour ralentir le premier chargement) : le
+  squelette apparaît sous les puces de filtre, puis la vraie liste se pose
+  **sans saut vertical** — les tuiles ne doivent pas se décaler par rapport
+  aux lignes annoncées.
+- [ ] **Le squelette ne revient pas** sur un « tirer pour rafraîchir » ni au
+  retour sur l'onglet Messages (`skipLoadingOnRefresh` / `OnReload`) : la
+  liste déjà affichée doit rester en place.
+- [ ] **Fil d'une discussion** : ouvrir une discussion à tête-tête depuis la
+  liste. Les bulles vides sont **collées en bas**, contre le composeur, comme
+  la vraie liste inversée — pas en haut de l'écran.
+- [ ] **Fil de groupe** : même geste sur un groupe. La colonne d'avatar est
+  réservée à gauche des bulles reçues, et celles-ci ne sautent pas de 28 px
+  vers la droite quand les messages arrivent.
+- [ ] **Ouverture par lien profond ou par notification** : `state.extra` est
+  nul par ce chemin, donc `widget.isGroup` est faux à l'instant du squelette
+  et un fil de groupe peut s'afficher sans sa colonne d'avatar. Vérifier si
+  le saut de 28 px se voit réellement, ou si la première page arrive trop
+  vite pour qu'on le perçoive.
+- [ ] **Thème sombre** sur les deux écrans : les blocs doivent rester lisibles
+  sur `#0F0D0A` sans virer au gris froid, et le balayage rester discret.
+- [ ] **Fond de discussion personnalisé** : avec un papier peint choisi
+  (« Fond de discussion »), vérifier que les bulles du squelette ne
+  deviennent pas illisibles par-dessus.
+- [ ] **Échelle de police à fond** (réglages Android) : le squelette est à
+  hauteurs fixes, donc il ne grandit pas ; regarder si l'écart avec le
+  contenu réel, lui bien plus haut, produit un saut visible.
 
 ---
 
@@ -6562,9 +6618,16 @@ Verrouillé par
       Au passage, le moteur Rust charge en debug comme en release et
       l'appareil se réinscrit avec la **même** identité — la base SQLite a
       survécu à la réinstallation, et l'idempotence tient.
-- [ ] **iOS** : rien de fait. `Library/Application Support` part dans iCloud,
-      et l'exclusion demande `NSURLIsExcludedFromBackupKey`, sans API Dart.
-      À traiter avec le reste du chantier iOS.
+- [ ] **iOS : écrit le 2026-09-16, JAMAIS COMPILÉ.** `Library/Application
+      Support` part dans iCloud, et l'exclusion demande
+      `NSURLIsExcludedFromBackupKey`, sans API Dart : le drapeau se pose donc
+      par le canal natif existant (`AppDelegate.swift`), et le moteur le
+      réclame à l'ouverture du dossier. Ce dépôt n'a pas de Mac — le Swift
+      n'est ni compilé ni éprouvé. Sur Android l'appel n'existe pas et retombe
+      dans le `catch`, donc il ne peut rien casser ici.
+      À vérifier au premier build iOS : que l'appel ne lève pas, puis que le
+      dossier est bien absent d'une sauvegarde (Xcode › Devices, ou une
+      restauration sur un second appareil).
 
 ---
 

@@ -14,6 +14,7 @@ import '../providers/conversation_actions_provider.dart';
 import '../../domain/entities/conversation_entity.dart';
 import '../providers/message_provider.dart';
 import '../widgets/conversation_item.dart';
+import '../widgets/messages_skeleton.dart';
 import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
@@ -489,12 +490,13 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     participantNames: participantNames,
                   );
                 },
-                loading:
-                    () => Center(
-                      child: CircularProgressIndicator(
-                        color: context.adaptivePrimaryColor,
-                      ),
-                    ),
+                // Squelette plutôt qu'un tourniquet centré : la liste se
+                // pose ensuite exactement sur les lignes annoncées, au lieu
+                // d'apparaître d'un bloc à la place d'un rond au milieu du
+                // vide. `skipLoadingOnRefresh`/`OnReload` ci-dessus le
+                // réservent au tout premier chargement — un retour à l'écran
+                // ou un « tirer pour rafraîchir » garde la liste en place.
+                loading: () => const ConversationListSkeleton(),
                 error:
                     (error, _) => Center(
                       child: Column(
