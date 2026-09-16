@@ -5728,6 +5728,10 @@
   "statusRefunding": "Remboursement",
   "noDeviceRegistered": "Aucun appareil enregistré",
   "devicesE2eeWillAppear": "Les appareils utilisant le chiffrement de bout en bout apparaîtront ici.",
+  "mlsSeparatorEncrypted": "Les messages sont chiffrés de bout en bout",
+  "@mlsSeparatorEncrypted": {
+    "description": "Repère posé dans le fil au moment où la conversation est passée au chiffrement de bout en bout"
+  },
   "mlsDevicesTitle": "Nouveau registre (MLS)",
   "mlsDevicesExplain": "Chaque appareil connecté à ce compte y est inscrit avec sa propre clé. C'est ce registre que la future messagerie chiffrée utilisera.",
   "mlsSecurityCodeLabel": "Code de sécurité",

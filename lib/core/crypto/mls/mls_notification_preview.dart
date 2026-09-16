@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../src/rust/api/mls.dart' as rust;
+import 'mls_chemin_base.dart';
 import 'mls_payload_codec.dart';
 import 'mls_rust_init.dart';
 
@@ -85,9 +85,9 @@ class MlsNotificationPreview {
         return null;
       }
 
-      final support = await getApplicationSupportDirectory();
-      final chemin =
-          '${support.path}/mls/${userId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_')}.sqlite';
+      // Même source que `mlsEngineProvider` : le chemin était recopié ici, et
+      // deux copies d'une règle de chemin finissent toujours par diverger.
+      final chemin = await cheminBaseMls(userId);
       if (!File(chemin).existsSync()) return null;
 
       await initialiserRustUneFois();

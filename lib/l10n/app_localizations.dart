@@ -22688,6 +22688,12 @@ abstract class AppLocalizations {
   /// **'Les appareils utilisant le chiffrement de bout en bout apparaîtront ici.'**
   String get devicesE2eeWillAppear;
 
+  /// Repère posé dans le fil au moment où la conversation est passée au chiffrement de bout en bout
+  ///
+  /// In fr, this message translates to:
+  /// **'Les messages sont chiffrés de bout en bout'**
+  String get mlsSeparatorEncrypted;
+
   /// No description provided for @mlsDevicesTitle.
   ///
   /// In fr, this message translates to:

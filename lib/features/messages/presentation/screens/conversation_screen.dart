@@ -26,6 +26,7 @@ import '../utils/message_grouping.dart';
 import '../widgets/message_input.dart';
 import '../widgets/note_poll_draft_sheet.dart';
 import '../widgets/typing_indicator_widget.dart';
+import '../widgets/messages_skeleton.dart';
 import '../widgets/uploading_media_skeleton.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -2170,7 +2171,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     Map<String, String>? typingNames,
   ) {
     if (paginationState.isLoadingInitial) {
-      return const SizedBox.shrink();
+      // Le fil rendait ici un `SizedBox.shrink()` : entre l'ouverture de la
+      // discussion et la première page, l'espace entre l'en-tête et le
+      // composeur était complètement vide — rien ne distinguait « ça
+      // charge » de « cette discussion n'a aucun message ».
+      return ConversationThreadSkeleton(isGroup: _isGroup);
     }
 
     if (paginationState.error != null && paginationState.messages.isEmpty) {

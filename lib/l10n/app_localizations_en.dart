@@ -12183,6 +12183,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Devices using end-to-end encryption will appear here.';
 
   @override
+  String get mlsSeparatorEncrypted => 'Messages are end-to-end encrypted';
+
+  @override
   String get mlsDevicesTitle => 'New registry (MLS)';
 
   @override

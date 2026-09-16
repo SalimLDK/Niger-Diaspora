@@ -1165,6 +1165,27 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     final controller = StreamController<void>.broadcast();
 
     ch
+        // Deux événements, nommés un par un plutôt qu'un `all` fourre-tout.
+        //
+        // `insert` porte un nouveau message ET une MODIFICATION (qui voyage
+        // dans un message de contrôle, donc une ligne de plus).
+        //
+        // `update` porte les SUPPRESSIONS : « supprimer pour tout le monde »
+        // comme une expiration purgée ne sont qu'un passage de `is_deleted` à
+        // vrai. Le filtre sur `conversation_id` fonctionne ici parce qu'il
+        // s'évalue sur la NOUVELLE ligne, qui le porte — `REPLICA IDENTITY
+        // FULL` n'est nécessaire que pour un `delete`, où seule l'ancienne
+        // ligne existe et ne contient que la clé primaire. On ne supprime
+        // jamais de ligne, donc `delete` n'a rien à faire ici : l'inclure
+        // (via `all`) n'apporterait qu'un événement infiltrable.
+        //
+        // La preuve que ça tient : `getMessageUpdatesStream` s'abonne depuis
+        // toujours à `update` sur `messages` avec le même filtre, et c'est ce
+        // qui fait arriver les accusés de lecture en direct.
+        //
+        // Rien à faire de plus pour la tombe : la relecture la pose déjà,
+        // `_avecMetadonnees` marquant `deletedForEveryone` depuis la requête
+        // `is_deleted = true`.
         .onPostgresChanges(
           event: PostgresChangeEvent.insert,
           schema: 'public',
@@ -1177,6 +1198,19 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           // On ne transmet RIEN de la ligne : elle est chiffrée, et la lire
           // ici n'apprendrait rien. Le signal suffit — le dépôt relit le fil
           // par la passerelle, qui seule sait déchiffrer.
+          callback: (payload) {
+            if (!controller.isClosed) controller.add(null);
+          },
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'mls_messages',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'conversation_id',
+            value: conversationId,
+          ),
           callback: (payload) {
             if (!controller.isClosed) controller.add(null);
           },

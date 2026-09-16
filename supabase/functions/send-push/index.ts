@@ -310,6 +310,22 @@ Deno.serve(async (req) => {
       aps['thread-id'] = conversationId
     }
 
+    // `mutable-content: 1` est la SEULE chose qui autorise iOS à invoquer une
+    // Notification Service Extension. Sans ce drapeau, l'extension peut
+    // exister, être signée et installée : elle ne sera jamais appelée, et la
+    // bannière restera le repli générique.
+    //
+    // Posé uniquement quand la charge porte un ciphertext MLS, c'est-à-dire
+    // quand une extension aurait effectivement quelque chose à déchiffrer.
+    // L'élargir à tous les messages est un `if` de moins, le jour où
+    // l'extension saura faire autre chose.
+    //
+    // Android n'en a que faire : là-bas c'est l'isolate Dart qui reconstruit
+    // l'aperçu, et ce drapeau lui est indifférent.
+    if (dataMap.protocol === 'mls' && dataMap.mlsCiphertext) {
+      aps['mutable-content'] = 1
+    }
+
     const dead: string[] = []
 
     // Les messages sont envoyés en **data-only** (pas de bloc `notification`

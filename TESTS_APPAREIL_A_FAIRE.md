@@ -39,18 +39,21 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1187 cases à cocher, 608 cochées** — 239 entrées sur 286 ont encore des cases ouvertes.
+**1224 cases à cocher, 619 cochées** — 246 entrées sur 295 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (30)
+**P0 — avant toute nouvelle version** (33)
 
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
+- 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
+- 4 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
 - 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
+- 4 · [⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)](#-un-média-chiffré-de-plus-de-10-mo-était-illisible-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -76,7 +79,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (81)
+**P1 — fonction importante, jamais vérifiée** (83)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -88,7 +91,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 1 · [⬜ Modifications et suppressions MLS n'arrivent pas en direct (2026-09-15)](#-modifications-et-suppressions-mls-narrivent-pas-en-direct-2026-09-15) · *Messagerie*
+- 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 14 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
@@ -102,6 +105,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 4 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)](#-une-réaction-retirée-disparaît-vraiment-de-lécran-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -109,6 +113,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
+- 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
 - 2 · [✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)](#-lien-diasponiger-au-démarrage-à-froid--corrigé-vérifié-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)](#-le-scanner-de-laccueil-lit-tous-les-qr-du-projet-2026-09-09) · *Liens profonds, navigation et QR codes*
@@ -160,7 +165,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (76)
+**P2 — fonction secondaire ou cas limite** (77)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -171,6 +176,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
 - 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
@@ -239,7 +245,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (52)
+**P3 — confort, cosmétique, fonction en pause** (53)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -254,6 +260,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 7 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
@@ -297,11 +304,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 237 à faire, 97 faites
+- [2. Messagerie](#2-messagerie) — 257 à faire, 107 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 104 à faire, 38 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 112 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 85 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 94 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -559,6 +566,179 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)
+
+**Priorité P1** · importance 4/5 — trouvé en filmant un démarrage à froid sur
+Pixel 10 Pro XL : rafale de captures (~0,8 s entre chaque image), app ouverte
+directement sur `/messages` par lien profond.
+
+| | t≈0 | t≈0,8 s | t≈3,2 s |
+|---|---|---|---|
+| Nom | **Utilisateur** | Sim A | Sim A |
+| Aperçu | **Message chiffré** | **Message chiffré** | Vous: good |
+| Avatar | bloc « U » | initiales | photo |
+
+Une à trois secondes pendant lesquelles la liste **affirme des choses
+fausses**. Deux causes sans rapport, et aucune n'est un « chargement » que
+l'écran savait reconnaître — c'est pourquoi le squelette de la liste (voir
+« Squelette de chargement de la messagerie ») ne les couvrait pas : il ne
+s'affiche que tant qu'`AsyncValue` est en `loading`, et le cache Hive rend la
+liste bien avant.
+
+**1. « Message chiffré » n'était pas une attente, c'était un appel manquant.**
+`getCachedConversations()` — la première émission, celle qui s'affiche — ne
+reconstruisait pas l'aperçu depuis le cache local déchiffré, alors que le
+chemin réseau le fait (`_completerAvecMls` → `_apercuDepuisLeCache`).
+L'appareil avait le texte sous la main.
+
+**2. « Utilisateur »** est le repli du nom quand le flux de profil n'a rien
+émis. Au démarrage il n'a rien émis pour personne. L'avatar et le nom cèdent
+désormais la place à un bloc d'attente (`SkeletonBlock`, sans balayage).
+
+Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`getCachedConversations`), [conversation_item.dart](lib/features/messages/presentation/widgets/conversation_item.dart)
+(`identiteEnAttente`), [messages_skeleton.dart](lib/features/messages/presentation/widgets/messages_skeleton.dart).
+Tenu par [liste_sans_placeholders_test.dart](test/features/messages/liste_sans_placeholders_test.dart).
+
+- [x] **Mesure refaite** le 2026-09-15 sur Pixel 10 Pro XL, APK reconstruit
+  et installé, **deux démarrages à froid** ouverts par lien profond sur
+  `/messages`, rafale `screencap` sur le téléphone. Sur la première image
+  après le splash — celle qui portait les deux libellés :
+  - « Utilisateur » : **absent des deux tours**, les vrais noms sont là
+    d'emblée (« Sim A », « Ibrahim Yacouba Maï… »).
+  - « Message chiffré » : **remplacé par le vrai aperçu dès la première
+    image** pour un message déjà déchiffré en cache (tour 1, message de
+    21:20) — il fallait ~3 s avant. C'est la preuve du correctif de
+    `getCachedConversations()`.
+  - ⚠️ **Il reste** au tour 2, pour un message arrivé à 21:23 pendant que
+    l'app était fermée : son clair n'est pas encore dans le cache local.
+    C'est **juste**, et aucun correctif d'aperçu ne peut inventer ce texte.
+- [ ] **Le bloc d'attente n'a pas été vu du tout**, ni dans un tour ni dans
+  l'autre : le profil était déjà résolu à la première image. La garde n'a
+  donc pas été exercée sur appareil — seul le test la tient
+  (`liste_sans_placeholders_test.dart`). À rejouer sur un appareil dont le
+  profil distant est lent ou froid : s'il apparaît puis disparaît en une
+  image, il vaut mieux que « Utilisateur » ; s'il reste plus d'une seconde
+  sur un profil déjà connu, c'est le flux de profil qui devient le sujet.
+- [ ] **Compte supprimé ou inconnu** : « Utilisateur » doit **revenir**,
+  puisque la lecture est terminée. Une ligne grise à vie serait le défaut
+  inverse. Le test le tient hors appareil, mais le cas réel vaut d'être vu.
+- [ ] **Discussion chiffrée jamais ouverte sur cet appareil** : le cache local
+  n'a pas les messages, donc « Message chiffré » reste — et c'est juste. Vérifier
+  que ça n'a pas été remplacé par un bloc gris permanent.
+- [ ] **Thème sombre** : le bloc d'attente doit se distinguer du fond `#0F0D0A`
+  sans faire un trou blanc dans la ligne.
+
+---
+
+## ⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)
+
+**Priorité P2** · importance 3/5 — le séparateur posé dans le fil au moment
+où la conversation passe au chiffrement de bout en bout portait son libellé
+**écrit en dur, en français**, dans `MlsMessageMapper.separateur` : aucune clé
+`.arb` ne le couvrait, donc un compte en anglais lisait « Messages d'avant le
+chiffrement de bout en bout » au milieu d'une interface anglaise.
+
+Deux changements : le texte devient générique — « Les messages sont chiffrés
+de bout en bout » / « Messages are end-to-end encrypted » — et il est
+**résolu à l'affichage**, pas à la fusion des deux sources. Le séparateur ne
+transporte donc plus de `content` : son identifiant réservé est descendu dans
+`MessageEntity` (`idSeparateurMls`, `estSeparateurMls`) pour que la bulle
+système le reconnaisse sans importer la pile MLS.
+
+Nuance connue, à juger à l'œil sur un vrai fil : les messages **au-dessus**
+du repère ne sont pas chiffrés, et une phrase générique posée au milieu du fil
+ne le dit plus. Elle reste vraie pour ce qui suit.
+
+Les entrées plus anciennes de ce fichier citent l'ancien libellé : ce sont des
+constats datés, laissés tels quels.
+
+Fichiers : [mls_message_mapper.dart](lib/core/crypto/mls/mls_message_mapper.dart),
+[message_entity.dart](lib/features/messages/domain/entities/message_entity.dart),
+[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart),
+`lib/l10n/app_fr.arb` + `app_en.arb` (`mlsSeparatorEncrypted`). Tenu par
+[separateur_bascule_libelle_test.dart](test/features/messages/separateur_bascule_libelle_test.dart)
+(5 cas, dont le rendu en anglais — le défaut d'origine).
+
+- [ ] **Le fil d'une conversation basculée** (« Mes notes » sur le compte de
+  test suffit) : le repère affiche bien la nouvelle phrase, centrée dans sa
+  pastille, et **sur une seule ligne** si la largeur le permet.
+- [ ] **Compte en anglais** : passer l'app en anglais et rouvrir le même fil.
+  Le repère est en anglais. C'était impossible avant ce correctif.
+- [ ] **Thème sombre** : la pastille (`Colors.white` à 8 % d'alpha) et le texte
+  secondaire restent lisibles par-dessus un fond de discussion personnalisé.
+- [ ] **Échelle de police à fond** : la phrase se replie sur deux ou trois
+  lignes sans déborder la pastille ni pousser les bulles voisines.
+- [ ] **Le repère ne compte toujours pas comme un message** : pas de bandeau
+  « non lu » dessus, pas de réponse possible, absent de la recherche — voir
+  « Le bandeau « 1 message non lu » d'une conversation basculée ». Le `content`
+  vide ne doit avoir rien cassé de ce côté.
+
+---
+
+## ⬜ Squelette de chargement de la messagerie (2026-09-15)
+
+**Priorité P3** · importance 2/5 — les deux attentes de la messagerie ne
+disaient pas la même chose que ce qui allait s'afficher. La liste des
+discussions montrait un tourniquet centré au milieu du vide, et le fil d'une
+discussion, pendant sa première page (`paginationState.isLoadingInitial`),
+rendait un `SizedBox.shrink()` — donc **rien du tout** entre l'en-tête et le
+composeur : impossible de distinguer « ça charge » de « cette discussion
+n'a aucun message ».
+
+Les deux branches rendent maintenant un squelette qui reprend la géométrie
+réelle : avatar 50 au rayon 17, filets entre les lignes, marges de bulle
+16/64, rayons 18/6, et la colonne d'avatar de 28 réservée à gauche dans un
+fil de groupe. C'est tout l'intérêt de la chose : si les blocs ne tombent pas
+où le contenu tombera, l'écran saute quand même à l'arrivée des données.
+
+Vérifié hors appareil par rendu d'images (goldens jetables) en clair et en
+sombre, et par `test/features/messages/squelette_chargement_test.dart`
+(géométrie + câblage des deux branches). Ce qui ne peut pas l'être ainsi,
+c'est la **durée** et le **passage** au contenu réel.
+
+Fichiers : [messages_skeleton.dart](lib/features/messages/presentation/widgets/messages_skeleton.dart),
+[messages_screen.dart](lib/features/messages/presentation/screens/messages_screen.dart),
+[conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart).
+
+- [ ] **Liste des discussions** : ⚠️ un `force-stop` puis un tap sur l'onglet
+  Messages **ne suffit pas** à le voir. Essayé le 2026-09-15 sur Pixel
+  10 Pro XL : sur 10 images prises pendant la transition, aucune ne porte le
+  squelette — le cache Hive rend la liste avant lui. C'est le bon
+  comportement, pas un défaut, mais ça déplace la vérification : il faut un
+  cache froid (appareil où l'app vient d'être installée) ou un réseau lent.
+  Ce qu'on regarde alors : le squelette sous les puces de filtre, puis la
+  vraie liste **sans saut vertical** par rapport aux lignes annoncées.
+- [ ] **Le squelette ne revient pas** sur un « tirer pour rafraîchir » ni au
+  retour sur l'onglet Messages (`skipLoadingOnRefresh` / `OnReload`) : la
+  liste déjà affichée doit rester en place.
+- [ ] **Fil d'une discussion** : ouvrir une discussion à tête-tête depuis la
+  liste. Les bulles vides sont **collées en bas**, contre le composeur, comme
+  la vraie liste inversée — pas en haut de l'écran.
+- [x] **Fil de groupe** : vérifié le 2026-09-15 sur Pixel 10 Pro XL, thème
+  sombre, « Groupe de test prive » ouvert depuis la liste. La colonne
+  d'avatar est bien réservée à gauche, les bulles sont collées en bas contre
+  le composeur, et le balayage traverse l'écran d'un bloc. Capturé par
+  rafale `screencap` **sur le téléphone** (une capture par USB coûte ~1 s,
+  trop lent) : 12 images pendant le tap, le squelette tient sur une seule.
+  Reste à voir : que les bulles ne sautent pas de 28 px quand les messages
+  arrivent — l'image d'après était déjà la liste chargée.
+- [ ] **Ouverture par lien profond ou par notification** : `state.extra` est
+  nul par ce chemin, donc `widget.isGroup` est faux à l'instant du squelette
+  et un fil de groupe peut s'afficher sans sa colonne d'avatar. Vérifier si
+  le saut de 28 px se voit réellement, ou si la première page arrive trop
+  vite pour qu'on le perçoive.
+- [ ] **Thème sombre** sur les deux écrans : les blocs doivent rester lisibles
+  sur `#0F0D0A` sans virer au gris froid, et le balayage rester discret.
+- [ ] **Fond de discussion personnalisé** : avec un papier peint choisi
+  (« Fond de discussion »), vérifier que les bulles du squelette ne
+  deviennent pas illisibles par-dessus.
+- [ ] **Échelle de police à fond** (réglages Android) : le squelette est à
+  hauteurs fixes, donc il ne grandit pas ; regarder si l'écart avec le
+  contenu réel, lui bien plus haut, produit un saut visible.
+
+---
+
 ## ⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)
 
 **Priorité P0** · importance 5/5 — `conversations.data->>'lastMessage'` porte
@@ -655,40 +835,133 @@ incrémental. L'écran dédoublonne déjà par identifiant.
 - [x] **Vérifié le 2026-09-15** : `LIVE-TEST` envoyé du A515F apparaît sur le
   Pixel « À l'instant », **sans y toucher**, dans une conversation chiffrée.
 
-## ⬜ Modifications et suppressions MLS n'arrivent pas en direct (2026-09-15)
+## ✅ Temps réel des messages chiffrés — les trois cas (2026-09-15)
 
-**Priorité P1** · importance 4/5 — Signalé par Salim : « les modifications et
-suppression ne sont pas instantanés ». **Non corrigé** — une première
-tentative a été ANNULÉE parce qu'elle faisait disparaître un message.
+**Priorité P0** · importance 5/5 — Signalé par Salim : « les messages ne
+s'actualisent pas », puis « les modifications et suppression ne sont pas
+instantanés ». **Corrigé et vérifié à deux téléphones, les trois cas.**
 
-**L'analyse, qui elle tient** — trois maillons manquent, un par étage :
+- [x] **Nouveau message** : `CACHE-LIVE` envoyé du SM A515F apparaît sur le
+  Pixel « À l'instant », sans y toucher.
+- [x] **Modification** : `VRAI-MODIF · modifié` remplace le texte en direct.
+- [x] **Suppression** : après purge serveur, la bulle devient « Message
+  supprimé » en direct.
+- [x] **Ce qui arrive en direct SURVIT** à une sortie/retour de la
+  conversation.
+- [x] **EN GROUPE aussi** — vérifié dans « Testeurs » (basculé le 2026-09-15 à
+  19:53, 2 membres) : `GROUPE-LIVE` arrive en direct et **déchiffré** sur le
+  Pixel, sa modification s'y affiche `GROUPE-MODIF`, et après purge la bulle
+  devient « Message supprimé ». Les trois sans jamais toucher au Pixel.
 
-1. l'abonnement temps réel sur `mls_messages` est en `insert` : une
-   **suppression** (« pour tout le monde », ou une expiration purgée) n'est
-   qu'un `UPDATE` de `is_deleted` — il ne la voit pas ;
-2. le dépôt ne réémet que ce qui est plus récent que `afterTimestamp` : une
-   **modification** porte la date d'ORIGINE du message, elle est donc filtrée ;
-3. l'écran ignore un identifiant déjà connu
-   (`else if (!existingMessages.any(...))`) — or une édition et une pierre
-   tombale gardent le leur, donc elles tombent toujours dans cette branche.
+  ⚠️ **Observation, état antérieur non causé par ces correctifs** : le message
+  chiffré déjà présent dans ce groupe (19:54) s'affiche sur le Pixel comme
+  « Message indisponible sur cet appareil » — il est illisible pour lui. Les
+  messages envoyés APRÈS se déchiffrent normalement. À regarder par qui
+  travaille sur le rattrapage MLS de groupe.
 
-⚠️ **Le canal `getMessageUpdatesStream` ne convient PAS** pour ça : il
-préserve délibérément le contenu déjà en place (la ligne brute est chiffrée et
-Signal ne peut pas re-déchiffrer, le cliquet ayant consommé la clé). Une
-édition MLS doit au contraire remplacer le contenu.
+**Ce qu'il fallait, et rien de plus** — trois petites pièces, aucune migration :
 
-**⛔ CE QUI A ÉTÉ TENTÉ PUIS ANNULÉ** — ne pas refaire tel quel : passer
-l'abonnement en `PostgresChangeEvent.all`, réémettre le fil ENTIER, et faire
-REMPLACER par l'écran un identifiant connu. Mesuré à deux téléphones : après
-l'arrivée du message de contrôle d'une édition, le message visé a **disparu**
-de l'écran du destinataire — alors qu'il était vivant côté serveur
-(`is_deleted=false`, 390 octets) — et il n'est pas revenu à la réouverture.
-Aucun `mls_diagnostics`. Cause non élucidée ; le correctif a été retiré parce
-qu'il faisait pire que le défaut visé.
+1. **s'abonner à `mls_messages`** : le temps réel n'écoutait que `messages`,
+   alors que depuis la bascule ce sont les messages chiffrés qui sont vivants ;
+2. **écouter `insert` ET `update`** : `insert` porte les nouveaux messages et
+   les modifications (qui voyagent dans un message de contrôle, donc une ligne
+   de plus) ; `update` porte les suppressions, qui ne sont qu'un passage de
+   `is_deleted` à vrai ;
+3. **mettre en cache ce qui arrive par ce chemin** : le cache local est le
+   SEUL endroit qui garde le clair d'un message chiffré. Sans ça un message
+   livré en direct vivait en mémoire et nulle part ailleurs — il s'affichait,
+   puis disparaissait à la reconstruction suivante.
 
-- [ ] Reprendre avec une sonde sur le fil du DESTINATAIRE au moment où le
-  contrôle d'édition arrive (`_traiterControle` / `_appliquerEditionsEnAttente`),
-  pour voir si l'entité sort du fil ou si c'est l'écran qui la perd.
+⚠️ **`REPLICA IDENTITY FULL` n'est PAS nécessaire**, contrairement à ce qui
+avait été écrit ici la veille. Le filtre d'un `update` s'évalue sur la
+NOUVELLE ligne, qui porte `conversation_id`. `FULL` ne sert qu'à un `delete`
+(seule l'ancienne ligne existe, réduite à la clé primaire) ou pour lire
+`payload.oldRecord`. Preuve dans le dépôt : `getMessageUpdatesStream`
+s'abonne depuis toujours à `update` sur `messages` avec le même filtre, et
+c'est ce qui fait arriver les accusés de lecture. On ne supprime jamais de
+ligne, donc `delete` n'a rien à faire dans l'abonnement — d'où `insert` +
+`update` nommés un par un plutôt qu'un `all` fourre-tout.
+
+⚠️ **Rien à faire pour la tombe** : la relecture la pose déjà,
+`_avecMetadonnees` marquant `deletedForEveryone` depuis `is_deleted = true`.
+
+⚠️ **Piège de recette, coûteux** : trois essais d'affilée ont conclu « rien
+n'arrive en direct » alors que **les messages n'étaient jamais partis** — les
+taps avaient ouvert « Mes notes ». C'est ce qui avait fait accuser `event: all`
+et annuler une correction saine. **Vérifier l'en-tête de la conversation PUIS
+la présence du texte dans la zone de saisie avant de conclure.**
+
+## ✅ Média chiffré illisible à l'arrivée — et le débordement qui va avec (2026-09-15)
+
+**Priorité P0** · importance 5/5 — Signalé par Salim : « je n'arrive pas à
+lire les audios et aussi il y a overflow des deux côtés ». **Corrigé, à
+vérifier sur appareil.**
+
+**Un seul défaut, deux symptômes.** Le mapper MLS posait
+`fileUrl: body['storagePath']` et **rien d'autre** : `mediaChiffre` restait
+nul. Or `MediaChiffreGate` ne déchiffre QUE si ce champ existe — nul, il
+laisse passer le message tel quel, et la bulle tente d'ouvrir le blob
+**chiffré**.
+
+1. la note vocale ne se lit pas (`_togglePlayPause` échoue) ;
+2. l'erreur est alors ajoutée dans `_buildControlsRow`, une `Row` **sans le
+   moindre `Flexible`** dans une bulle de 250 px — d'où le **débordement**,
+   des deux côtés puisque les deux appareils suivent le même chemin.
+
+Ça ne touchait pas que l'audio : **toute image, vidéo ou pièce jointe reçue
+en MLS** était concernée, la porte étant commune.
+
+Corrigé aux deux endroits : le mapper reconstruit la fiche du média depuis le
+payload (`storagePath`, `fileKey`, `fileNonce`, `fileName`, `mimeType`,
+`fileSize` — `encryptedUrl` reste vide, le téléchargement se fait par
+`storagePath`), et l'erreur de la rangée de contrôles est passée en
+`Flexible` + ellipse : une erreur doit se voir, pas casser la mise en page.
+
+- [x] **Vérifié à deux téléphones le 2026-09-15**, dans « Testeurs » :
+  - une note vocale **reçue se lit** sur le Pixel (`0:07 / 0:10`, onde
+    parcourue, tête de lecture) — donc téléchargée ET déchiffrée ;
+  - une **image reçue s'affiche** (flou d'attente, puis la photo) ;
+  - une note vocale **envoyée se lit** chez l'expéditeur (`0:03 / 0:03`) ;
+  - **plus aucun débordement** : l'erreur de lecture s'affiche tronquée
+    (« Erreur de l… ») à l'intérieur de la bulle.
+
+  ⚠️ **Les médias envoyés AVANT ce correctif restent illisibles** : leur
+  entité en cache n'a pas la fiche du média, et rien ne la recalcule. C'est
+  visible à l'écran (« Image non disponible », erreur de lecture). Ça ne se
+  répare pas tout seul — il faudrait renvoyer le média, ou purger le cache
+  local de la conversation.
+
+## ✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)
+
+**Priorité P0** · importance 5/5 — **Corrigé.** Trouvé en vérifiant les
+éphémères sur l'audio, à la demande de Salim.
+
+Dans une conversation basculée MLS, une note vocale **n'arrivait nulle part** :
+ni `mls_messages`, ni `messages`. L'écran affichait « Non envoyé · Réessayer »
+sans jamais dire pourquoi. Mesuré dans « Testeurs » sur SM A515F.
+
+**La chaîne, prouvée de bout en bout :**
+
+1. le branchement MLS de l'audio exigeait `mediaChiffre != null` ;
+2. `mediaChiffre` n'était produit que si `mediasChiffresActifs()` — drapeau
+   fermé, donc nul ;
+3. l'envoi retombait sur le chemin legacy, vers `messages` ;
+4. le déclencheur `messages_refuse_conversation_mls_trg` refuse toute écriture
+   dans `messages` pour une conversation basculée ;
+5. l'échec remontait sans cause lisible.
+
+**`sendFileMessage` appliquait déjà la bonne règle** (`mediasChiffresActifs()
+|| conversationChiffree`), avec le commentaire qui l'explique : le drapeau ne
+décide que des conversations encore en clair. **Seule la note vocale avait été
+oubliée.** Images, documents et vidéo n'étaient donc pas touchés.
+
+- [x] **Vérifié après correctif** : 4 notes vocales dans `mls_messages`,
+  `content_type = voice`, chiffrées (1,7 à 4 Ko), chacune avec une échéance de
+  **86400 s** — donc l'audio porte bien le minuteur éphémère. La bulle de
+  l'expéditeur affiche le signe ⏱ dès l'envoi.
+- [ ] **Non vu** : le rendu de la note vocale REÇUE (lecture, forme d'onde,
+  signe éphémère) sur le second téléphone, et ce que devient une note vocale
+  expirée. À faire à la prochaine passe.
 
 ## ⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)
 
@@ -841,6 +1114,13 @@ SELECT public.purger_messages_expires();
   notifications MLS » si l'entrée existe.
 - [ ] **Thème sombre** : la bulle « Message expiré » est lisible des deux
   côtés (bulle à moi, bulle de l'autre).
+- [x] **EN GROUPE aussi** — « Testeurs » (basculé, 2 membres), 2026-09-15 :
+  minuteur 24 h posé depuis le menu du groupe, écrit en base ; message envoyé
+  → `expires_at` avec un **écart de 86400 s exactement** ; le signe éphémère
+  (⏱) apparaît **chez l'expéditeur dès l'envoi** ET **chez le destinataire**
+  (donc recalculé depuis le `ttl` du payload, pas lu dans la colonne) ; la
+  pierre tombale s'affiche des deux côtés. Rien de spécifique au groupe : le
+  minuteur vit sur la conversation, quel que soit son type.
 - [x] **Côté MLS**, drapeau ouvert : `mls_messages.expires_at` renseigné à
   l'envoi — **écart mesuré 86400 s exactement** — et `length(ciphertext)` à 0
   après purge. Vérifié sur SM A515F le 2026-09-15 (la conversation bascule à
@@ -985,6 +1265,66 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
   texte du dernier message, repris du cache local — pas « Nouveau message ».
 - [ ] **Aperçu sur un appareil qui n'a jamais ouvert la discussion** : il
   montre le libellé de type, jamais le texte d'un message plus ancien.
+
+---
+
+## ⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)
+
+**Priorité P0** · importance 5/5 — **Défaut ouvert, reproduit deux fois sur
+deux téléphones différents.** Après un arrêt complet de l'application, le fil
+d'une conversation basculée s'arrête net à un message donné : tout ce qui est
+arrivé **après** disparaît de l'écran, alors que la base le porte toujours
+(`is_deleted` faux, ciphertext intact).
+
+Mesuré le 2026-09-16 : Pixel 10 Pro XL, conversation `debef5f0…`. Le fil
+s'arrête à 18:48 ; les messages de 00:04 et 00:08 manquent, et le SM A515F a
+perdu le même 00:04 de son côté. Les deux les affichaient **avant** le
+redémarrage.
+
+**L'hypothèse, à confirmer avant de corriger.** La reprise après redémarrage
+repose sur deux pièces qui doivent se tenir : le **curseur mémorisé** évite
+de redemander au moteur un message déjà déchiffré, et **`MlsGateway.amorcer`**
+rend le clair depuis le cache local. Un message livré par le **canal temps
+réel** (branché le 2026-09-15) s'affiche sans passer par
+`_fusionnerAvecMls` — qui est le seul endroit qui écrit dans le cache Hive.
+Il est donc vu (curseur avancé, donc jamais re-demandé) mais jamais caché
+(donc jamais restitué). Les deux mécanismes sont corrects séparément ; c'est
+leur jonction qui perd le message.
+
+**Ce que ça implique** : tout chemin qui AFFICHE un message chiffré doit
+aussi le **cacher**, ou bien le curseur ne doit pas avancer sur un message
+qui n'a pas été caché. La seconde règle est la plus sûre : elle rend la perte
+impossible plutôt qu'improbable.
+
+Fichiers : [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
+(`amorcer`, `_fil`), [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
+(`_curseurDe`, `_memoriserCurseur`),
+[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`_fusionnerAvecMls`, `mlsDuCache`).
+
+**⚠️ Le correctif « ce qui arrive en direct est enfin gardé » (`1d0c6a9`) ne
+referme PAS ce cas.** Revérifié le 2026-09-16 avec ce correctif embarqué
+(APK `166f7be0…`, md5 confirmé sur l'appareil) : un message envoyé du
+SM A515F, lu sur le Pixel en ouvrant la discussion, **disparaît du fil après
+un arrêt complet**. Il n'était donc pas arrivé par le canal temps réel mais
+par le rattrapage ordinaire — ce qui déplace la cause : ce n'est pas
+seulement la livraison en direct qui échappe au cache.
+
+Deux messages plus anciens de la même conversation, eux, **survivent** au
+même redémarrage. La différence entre les deux familles reste à établir ; la
+piste la plus simple à écarter d'abord est la **limite de `getCachedMessages`**
+(le cache ne rend qu'une tranche), avant de soupçonner le curseur.
+
+- [ ] **Reproduire volontairement** : A envoie pendant que B a la discussion
+  ouverte (livraison en direct), puis tuer et rouvrir B. Le message doit
+  rester.
+- [ ] **Distinguer les deux familles** : pourquoi « Yo » et « Hh » survivent
+  et pas un message reçu à l'instant. Comparer ce que `getCachedMessages`
+  rend pour cette conversation avant et après le redémarrage.
+- [ ] **Vérifier l'hypothèse** : le message perdu est-il absent du cache
+  Hive, alors que le curseur mémorisé l'a dépassé ?
+- [ ] **Après correctif** : même épreuve, et le cas déjà vert du message reçu
+  hors direct ne doit pas régresser.
 
 ---
 
@@ -6045,6 +6385,88 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
+## ⬜ La vidéo entre dans le chiffrement (2026-09-16)
+
+**Priorité P1** · importance 4/5 — La vidéo était écartée du chiffrement
+depuis C4, et pour une raison précise : le chiffrement passait par la mémoire,
+avec un pic proche de trois fois la taille du fichier, et le téléchargement
+plafonnait à 10 Mo. Les deux sens vont maintenant d'un fichier vers un autre,
+un morceau à la fois. La raison n'existe plus, l'exclusion non plus.
+
+Lever l'exclusion ne suffisait pas. Une vidéo chiffrée qui arriverait sans
+aperçu ni badge de durée se lirait comme un défaut d'affichage, et on
+chercherait le bug ailleurs. Trois choses l'accompagnent donc :
+
+- elle est cartographiée en `MediaType.video`, non plus en `document` ;
+- sa vignette et sa durée se calculent **sur le fichier en clair**, avant
+  l'envoi — une fois chiffré, il n'y a plus rien à décoder ;
+- la durée voyage dans un champ à elle dans la charge MLS. `duration` y est lu
+  comme une durée **audio** par le mapper : une vidéo rangée là aurait disparu
+  du badge.
+
+Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`_envoyerMediaChiffre`), [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
+(`corpsMedia`), [mls_message_mapper.dart](lib/core/crypto/mls/mls_message_mapper.dart).
+Couvert hors appareil par
+[video_chiffree_test.dart](test/features/messages/video_chiffree_test.dart)
+(6 cas).
+
+- [ ] **Envoyer une vidéo dans une conversation basculée** : elle part
+      chiffrée, la bulle montre son aperçu et son badge de durée.
+- [ ] **La rouvrir** : elle se lit, depuis le fichier déchiffré local.
+- [ ] **Une vidéo longue, au-delà de 50 Mo** : l'envoi et la lecture tiennent
+      sans que l'application soit tuée pour mémoire. C'est le cas qui
+      justifiait l'exclusion.
+- [ ] **En base** : ni URL ni clé lisibles, et `content_type` reste grossier.
+
+---
+
+## ⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)
+
+**Priorité P0** · importance 5/5 — **Trouvé en cherchant pourquoi la vidéo
+était écartée, et c'est bien plus large que la vidéo.** Le téléchargement
+appelait `ref.getData()` sans argument. Le défaut de `firebase_storage` est
+**10 Mo** : au-delà, l'appel échoue. Toute photo un peu lourde, tout document,
+tout audio long, une fois chiffré, aurait été **illisible**. Le drapeau étant
+fermé, personne ne l'avait rencontré.
+
+Second défaut, superposé : tout passait par la mémoire. Octets chiffrés
+entiers, puis la liste des morceaux déchiffrés, puis leur concaténation —
+près de trois fois la taille du fichier au pic. C'est **la** raison pour
+laquelle la vidéo était exclue du chiffrement.
+
+Le format n'a pas changé : en-tête `[version][nombre de morceaux]`, puis
+`[taille][ciphertext][étiquette]` par morceau, IV dérivé de l'index. Ce qui
+change est qu'on le lit d'un fichier vers un autre, un morceau à la fois.
+`writeToFile` remplace `getData` : pas de plafond, et rien en mémoire.
+
+Le format simple d'avant reste lu — rien ne l'a encore écrit en production,
+mais le refuser rendrait illisible ce qu'une version intermédiaire aurait
+produit.
+
+Fichiers : [media_encryption_service.dart](lib/core/services/e2ee/media_encryption_service.dart)
+(`downloadAndDecryptFile`, `dechiffrerFichierVersFichier`). Couvert hors
+appareil par
+[dechiffrement_media_en_flux_test.dart](test/core/services/e2ee/dechiffrement_media_en_flux_test.dart)
+(6 cas, dont la mauvaise clé et le fichier tronqué).
+
+**Les deux sens sont désormais en flux.** `encryptAndUploadFile` chiffre d'un
+fichier vers un autre et téléverse ce fichier (`putFile`), au lieu de lire le
+média entier et d'envoyer un tampon. Le conteneur versionné sert pour toute
+taille — un chemin de moins, le format simple n'est plus qu'un format qu'on
+sait lire.
+
+- [ ] **Envoyer puis rouvrir une photo chiffrée de plus de 10 Mo** : elle
+      s'affiche. C'était impossible avant, à coup sûr.
+- [ ] **Un document chiffré de 30 à 50 Mo** : il se télécharge et s'ouvre,
+      sans que l'application soit tuée pour mémoire.
+- [ ] **Surveiller la mémoire pendant le déchiffrement** : le pic doit suivre
+      la taille d'un morceau, pas celle du fichier.
+- [ ] **Un média dont le transfert est coupé en route** : le fichier
+      temporaire chiffré ne doit pas rester sur le disque.
+
+---
+
 ## ⬜ « Supprimer pour tous » efface vraiment le contenu (2026-09-16)
 
 **Priorité P1** · importance 5/5 — **La promesse du plan n'était pas tenue.**
@@ -6122,9 +6544,16 @@ Fichiers : [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
 [metadonnees_absence_vs_echec_test.dart](test/core/crypto/metadonnees_absence_vs_echec_test.dart)
 (4 cas).
 
-- [ ] **Réagir puis retirer la réaction** : le badge disparaît, et
-      `mls_message_reactions` ne porte plus la ligne. Rouvrir la discussion ne
-      la fait pas revenir.
+- [x] **Le badge d'une réaction absente du serveur disparaît** : vérifié le
+      2026-09-16 sur SM A515F, et par le meilleur des témoins — un pouce levé
+      qui traînait sur « SondeA » depuis la veille, alors que
+      `mls_message_reactions` ne portait **aucune** ligne pour cette
+      conversation. Build neuf installé, discussion rouverte : le badge a
+      disparu. C'est exactement le cas que le correctif vise, observé sur une
+      donnée réelle et non fabriquée.
+- [ ] **Réagir puis retirer la réaction dans la foulée** : le badge disparaît,
+      et `mls_message_reactions` ne porte plus la ligne. Reste à faire — le
+      téléphone était tenu par une autre session.
 - [ ] **Étoiler puis retirer** : même chose côté `mls_message_stars`.
 - [ ] **Réagir hors ligne** : le badge ne doit pas rester figé comme un succès
       une fois la connexion revenue sans que rien n'ait été écrit.
@@ -6407,9 +6836,16 @@ Verrouillé par
       Au passage, le moteur Rust charge en debug comme en release et
       l'appareil se réinscrit avec la **même** identité — la base SQLite a
       survécu à la réinstallation, et l'idempotence tient.
-- [ ] **iOS** : rien de fait. `Library/Application Support` part dans iCloud,
-      et l'exclusion demande `NSURLIsExcludedFromBackupKey`, sans API Dart.
-      À traiter avec le reste du chantier iOS.
+- [ ] **iOS : écrit le 2026-09-16, JAMAIS COMPILÉ.** `Library/Application
+      Support` part dans iCloud, et l'exclusion demande
+      `NSURLIsExcludedFromBackupKey`, sans API Dart : le drapeau se pose donc
+      par le canal natif existant (`AppDelegate.swift`), et le moteur le
+      réclame à l'ouverture du dossier. Ce dépôt n'a pas de Mac — le Swift
+      n'est ni compilé ni éprouvé. Sur Android l'appel n'existe pas et retombe
+      dans le `catch`, donc il ne peut rien casser ici.
+      À vérifier au premier build iOS : que l'appel ne lève pas, puis que le
+      dossier est bien absent d'une sauvegarde (Xcode › Devices, ou une
+      restauration sur un second appareil).
 
 ---
 
@@ -8176,6 +8612,80 @@ Fichiers : [notification_service.dart](lib/core/services/notification_service.da
 - [ ] **Sondage et appel** reçus chiffrés : libellés « Sondage » et « Appel »
   (deux types que `resume` ignorait, d'où un repli générique alors que le
   message était déchiffré).
+
+---
+
+## ⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)
+
+**Priorité P1** · importance 4/5 — *Bloqué : ce poste n'a pas de Mac. Rien de
+ce qui suit n'a jamais été compilé.* Pendant iOS de « Aperçu des notifications
+MLS reconstruit sur l'appareil (phase 4, Android) ».
+
+**Pourquoi ce n'est pas le même code.** Sur Android l'aperçu est reconstruit
+par un isolate Dart, qui a le pont Flutter Rust Bridge et partage le bac à
+sable de l'app. iOS n'a rien de tel : une Notification Service Extension est un
+**binaire séparé**, sans moteur Flutter, sans Dart, et avec **son propre bac à
+sable**. Elle appelle donc le moteur par une ABI C (`rust/src/ffi.rs`,
+`diaspo_mls_apercu`, tampon fourni par l'appelant), et tout ce que l'app sait
+doit lui être **déposé** dans un conteneur commun.
+
+**Trois changements côté app conditionnent tout le reste**, et sont livrés :
+
+1. la base du moteur vit désormais dans le conteneur du **groupe
+   d'application** sur iOS (`mls_chemin_base.dart`) ; une base restée à
+   l'ancien emplacement est **déplacée** au premier démarrage — déplacée et non
+   copiée, deux copies de l'état MLS étant deux cliquets qui avancent
+   séparément ;
+2. le compte courant et l'identifiant d'appareil sont déposés dans les
+   `UserDefaults` du groupe (`mls_partage_extension_ios.dart`). **Pas** par
+   `SharedPreferences` : le greffon Flutter préfixe toutes ses clés par
+   `flutter.`, et une extension qui lit `currentUserId` ne trouverait rien —
+   sans erreur et sans journal ;
+3. `send-push` pose `mutable-content: 1` sur les messages MLS. **Sans ce
+   drapeau, iOS n'invoque jamais l'extension**, quoi qu'on fasse d'autre.
+
+**Un défaut réel trouvé en écrivant ceci** : `preview_without_state` rend le
+**payload** du § 6.2 — du JSON portant la citation, les mentions et les
+identifiants —, pas un texte. La première version du Swift le posait tel quel
+dans la bannière, c'est-à-dire tout le contenu sur l'écran verrouillé. Corrigé
+(`MlsPontNatif.resume`), et la table d'étiquettes est comparée à celle du Dart
+par un banc qui lit les deux fichiers.
+
+**Trois risques non levés faute de machine** : la mémoire d'une NSE est
+plafonnée vers 24 Mo et le coût du `VACUUM INTO` d'OpenMLS n'a jamais été
+mesuré ; le `-force_load` de `libdiaspo_mls.a` dans la cible d'extension tire
+la glu FRB, dont l'absence de dépendance à la VM Dart au lien reste à prouver ;
+et l'extension embarque sa propre copie du moteur, donc l'IPA grossit d'autant.
+
+Fichiers : [ios/NotificationService/](ios/NotificationService/README.md) (les
+étapes Xcode y sont listées, avec ce qu'elles conditionnent),
+[mls_chemin_base.dart](lib/core/crypto/mls/mls_chemin_base.dart),
+[mls_partage_extension_ios.dart](lib/core/crypto/mls/mls_partage_extension_ios.dart),
+[AppDelegate.swift](ios/Runner/AppDelegate.swift), `rust/src/ffi.rs`.
+Garde-fou hors appareil : `test/core/crypto/mls_apercu_ios_parite_test.dart`
+(14 cas, vérifiés en cassant deux valeurs).
+
+- [ ] **Créer la cible dans Xcode** et lier `libdiaspo_mls.a` : `project.pbxproj`
+  n'est **délibérément pas modifié à la main** ici. Tant que ce n'est pas fait,
+  ce dossier n'entre dans aucune build.
+- [ ] **Activer App Groups sur les deux App ID** et régénérer les profils.
+  Avant ça, `containerURL` rend nil, le Dart reste sur `Application Support`,
+  et l'aperçu retombe silencieusement sur le texte générique — donc ne pas
+  conclure « l'extension ne marche pas » sans avoir vérifié ce point.
+- [ ] **L'extension est bien invoquée** : un `NSLog` en tête de `didReceive`.
+  C'est la vérification du `mutable-content`.
+- [ ] **`cheminBase` désigne un fichier qui existe** : c'est là que tout se
+  joue, et l'échec est muet.
+- [ ] **La bannière affiche le vrai texte, et pas du JSON** — le défaut
+  ci-dessus, à revérifier sur l'appareil et pas seulement dans le banc.
+- [ ] **Migration d'une base existante** : installer une version antérieure,
+  basculer une conversation, mettre à jour, vérifier que la conversation reste
+  **lisible** (la base a été déplacée, pas recréée).
+- [ ] **Mémoire de l'extension** : vérifier qu'elle n'est pas tuée sur une
+  conversation à gros état (groupe fourni, plusieurs epochs).
+- [ ] **Après déconnexion**, plus aucun aperçu déchiffré : `currentUserId` est
+  retiré du groupe partagé (`effacerContexteMls`).
+- [ ] **Taille de l'IPA** avant/après, sur une vraie archive.
 
 ---
 

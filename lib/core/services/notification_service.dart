@@ -28,6 +28,7 @@ import '../../l10n/app_localizations.dart';
 import 'preferences_service.dart';
 import 'supabase_auth_bridge.dart';
 import '../crypto/mls/mls_notification_preview.dart';
+import '../crypto/mls/mls_partage_extension_ios.dart';
 
 /// Représente un message pour le style MessagingStyle (comme WhatsApp)
 class NotificationMessage {
@@ -1532,6 +1533,10 @@ class NotificationService {
       await prefs.remove('currentUserId');
       await prefs.remove('currentUserDisplayName');
       await prefs.remove('currentUserPhotoUrl');
+      // Sur iOS ce n'est pas un isolate mais une extension, qui lit sa propre
+      // copie dans le groupe partagé : la retirer aussi, sinon la garde
+      // ci-dessus ne couvre que la moitié des plateformes.
+      await effacerContexteExtensionIos();
     } catch (e) {
       debugPrint('NotificationService: clear currentUserId cache error: $e');
     }

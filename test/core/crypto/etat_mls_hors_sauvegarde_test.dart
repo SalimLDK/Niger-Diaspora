@@ -89,14 +89,67 @@ void main() {
     });
 
     test('le chemin exclu est bien celui que le moteur utilise', () {
-      // Si le provider changeait de dossier, les règles protégeraient un
-      // chemin qui n'existe plus — et rien ne le dirait.
+      // Si le dossier changeait, les règles protégeraient un chemin qui
+      // n'existe plus — et rien ne le dirait.
+      //
+      // Depuis le 2026-09-16 le provider ne construit plus le chemin lui-même :
+      // il passe par `dossierBaseMls`, qui doit sur iOS rendre le conteneur du
+      // groupe d'application (l'extension de notification est un autre
+      // processus). C'est donc là qu'on vérifie, et il faut vérifier les deux :
+      // que le provider délègue, et que la délégation garde `<support>/mls`
+      // **hors iOS** — le seul cas que ces règles Android couvrent.
       final provider = _lire('lib/core/crypto/mls/mls_engine_provider.dart');
       expect(
-        provider.contains("getApplicationSupportDirectory()") &&
-            provider.contains("'\${support.path}/mls'"),
+        provider.contains('await dossierBaseMls()'),
         isTrue,
-        reason: 'le moteur doit écrire dans <support>/mls, exclu par les règles',
+        reason: 'le moteur doit passer par la source unique du chemin',
+      );
+
+      final chemin = _lire('lib/core/crypto/mls/mls_chemin_base.dart');
+      expect(
+        chemin.contains('getApplicationSupportDirectory()') &&
+            chemin.contains("Directory('\${support.path}/mls')"),
+        isTrue,
+        reason: 'hors iOS, le moteur écrit dans <support>/mls',
+      );
+      expect(
+        chemin.contains('if (!Platform.isIOS) {'),
+        isTrue,
+        reason: 'Android ne doit jamais partir chercher un groupe iOS',
+      );
+    });
+  });
+
+  group('iOS : le meme dossier, par un drapeau', () {
+    // Android l'obtient par deux fichiers de regles, declaratifs. iOS n'a pas
+    // d'equivalent : c'est un drapeau pose sur le dossier a l'execution.
+    // Sans lui, `Library/Application Support` part dans iCloud.
+    test("le natif repond a la demande d'exclusion", () {
+      final swift = _lire('ios/Runner/AppDelegate.swift');
+      expect(swift.contains('case "exclureDeLaSauvegarde"'), isTrue);
+      expect(swift.contains('isExcludedFromBackup = true'), isTrue);
+    });
+
+    test('il rend un booleen plutot que de lever', () {
+      // Une exclusion qui echoue est un probleme de confidentialite ; empecher
+      // l'application de demarrer serait une panne.
+      final swift = _lire('ios/Runner/AppDelegate.swift');
+      expect(
+        swift.contains('private static func exclureDeLaSauvegarde(_ chemin: String) -> Bool'),
+        isTrue,
+      );
+    });
+
+    test("le moteur le demande a l'ouverture, et seulement sur iOS", () {
+      final src = _lire('lib/core/crypto/mls/mls_engine_provider.dart');
+      expect(src.contains('await _exclureDeLaSauvegardeIos(dossier);'), isTrue);
+      expect(src.contains('if (!Platform.isIOS) return;'), isTrue);
+      // L'appel precede l'ouverture de la base : le drapeau se pose sur un
+      // dossier, pas sur un fichier deja ouvert.
+      expect(
+        src.indexOf('_exclureDeLaSauvegardeIos(dossier)') <
+            src.indexOf('Moteur.ouvrir('),
+        isTrue,
       );
     });
   });

@@ -292,7 +292,25 @@ class MessageRepositoryImpl implements MessageRepository {
               .map((model) => model.toEntity())
               .toList();
 
-      return Right(_dedupConversationsByPair(entities));
+      // Même reconstruction d'aperçu que le chemin live
+      // (`_completerAvecMls`), et pour la même raison : une conversation
+      // basculée n'a **jamais** de `lastMessage` en base — le serveur n'en
+      // voit pas le clair. Le texte vient du cache local déchiffré.
+      //
+      // Sans ce passage ici, c'est l'émission du cache qui s'affiche en
+      // premier au démarrage — elle gagne toujours, le flux réseau arrive
+      // 1 à 3 s plus tard — et chaque discussion chiffrée annonçait
+      // « Message chiffré » pendant tout ce temps, alors que l'appareil
+      // avait le texte sous la main. Mesuré le 2026-09-15 sur Pixel 10 Pro
+      // XL : encore faux à t+0,8 s, juste à t+3,2 s.
+      //
+      // Purement local et synchrone : aucune lecture réseau n'est ajoutée au
+      // chemin hors ligne.
+      final avecApercu = [
+        for (final c in _dedupConversationsByPair(entities))
+          _apercuDepuisLeCache(c),
+      ];
+      return Right(avecApercu);
     } catch (e) {
       return Left(CacheFailure(e.toString()));
     }
@@ -489,8 +507,12 @@ class MessageRepositoryImpl implements MessageRepository {
       // encore en clair.
       final chiffrement = mediaEncryptionService;
       final conversationChiffree = await _passerellePour(conversationId) != null;
+      // La video n'est plus ecartee. Elle l'etait pour une raison precise et
+      // desormais levee : le chiffrement passait par la memoire, avec un pic
+      // proche de trois fois la taille du fichier, et le telechargement
+      // plafonnait a 10 Mo. Les deux sens vont maintenant d'un fichier vers
+      // un autre, un morceau a la fois.
       if (chiffrement != null &&
-          type != MessageType.video &&
           (mediasChiffresActifs() || conversationChiffree)) {
         return _envoyerMediaChiffre(
           chiffrement,
@@ -662,6 +684,7 @@ class MessageRepositoryImpl implements MessageRepository {
       mediaType: switch (type) {
         MessageType.image => MediaType.image,
         MessageType.audio => MediaType.audio,
+        MessageType.video => MediaType.video,
         _ => MediaType.document,
       },
       onProgress: onProgress,
@@ -671,13 +694,22 @@ class MessageRepositoryImpl implements MessageRepository {
       return const Left(ServerFailure('Envoi annulé'));
     }
 
+    // Vignette et duree se calculent sur le fichier EN CLAIR, avant qu'il ne
+    // parte chiffre. Sans elles, une video chiffree arriverait sans apercu ni
+    // badge de duree, et se lirait comme un defaut d'affichage.
     String? blurhash;
     if (type == MessageType.image) {
       blurhash = await blurhashService.generateFromImage(file);
+    } else if (type == MessageType.video) {
+      blurhash = await blurhashService.generateFromVideo(file);
     }
     int? audioDuration;
     if (type == MessageType.audio) {
       audioDuration = await AudioPlaybackService.getDurationFromFile(file.path);
+    }
+    int? videoDuration;
+    if (type == MessageType.video) {
+      videoDuration = await _getVideoDurationSeconds(file.path);
     }
     final dbType = type == MessageType.audio ? 'audioFile' : type.name;
 
@@ -713,6 +745,7 @@ class MessageRepositoryImpl implements MessageRepository {
             fileNonce: resultat.ivBase64,
             blurhash: blurhash,
             duration: audioDuration,
+            dureeVideo: videoDuration,
           ),
           senderName: senderName,
           senderPhotoUrl: senderPhotoUrl,
@@ -738,6 +771,7 @@ class MessageRepositoryImpl implements MessageRepository {
       replyToMessageData: replyToMessageData,
       blurhash: blurhash,
       audioDuration: audioDuration,
+      videoDuration: videoDuration,
       mediaChiffre: media.toJson(),
     );
     return Right(message.toEntity());
@@ -1357,12 +1391,25 @@ class MessageRepositoryImpl implements MessageRepository {
             if (!await passerelle.enMls(conversationId)) return null;
             // Relire le fil, pas la ligne : `catchUp` est incrémental, il ne
             // déchiffre que ce qui est nouveau depuis son curseur.
+            // Le fil ENTIER, pas seulement ce qui est plus récent que
+            // `afterTimestamp` : une modification porte la date d'ORIGINE du
+            // message, pas celle du changement. La filtrer sur la date
+            // revenait à ne jamais la délivrer — le texte modifié
+            // n'apparaissait qu'à la réouverture.
             final fil = await passerelle.messages(conversationId);
-            final frais = fil
-                .where((m) => m.createdAt.isAfter(afterTimestamp))
-                .toList();
-            if (frais.isEmpty) return null;
-            return Right<Failure, List<MessageEntity>>(frais);
+            if (fil.isEmpty) return null;
+            // **Mettre en cache, comme le fait la lecture.** Sans ça, un
+            // message arrivé UNIQUEMENT par ce chemin vivait en mémoire et
+            // nulle part ailleurs : il s'affichait, puis disparaissait dès
+            // que la passerelle était recréée — le cache local, seul à
+            // garder le clair d'un message chiffré, ne l'avait jamais vu.
+            // Mesuré à deux téléphones le 2026-09-15 : message reçu « à
+            // l'instant », absent du fil à la réouverture suivante.
+            unawaited(cacheService.cacheMessages(
+              conversationId,
+              [for (final m in fil) MessageModel.fromEntity(m).toJson()],
+            ));
+            return Right<Failure, List<MessageEntity>>(fil);
           } catch (e) {
             // Un rattrapage raté ne doit pas tuer le flux : le suivant, ou la
             // prochaine ouverture, reprendra.
@@ -1415,11 +1462,25 @@ class MessageRepositoryImpl implements MessageRepository {
     }
 
     try {
-      // C4 : note vocale chiffrée avant le téléversement, quand le drapeau
-      // est ouvert. Le datasource ne téléverse alors rien lui-même.
+      // C4 : note vocale chiffrée avant le téléversement.
+      //
+      // **Le drapeau ne décide que des conversations encore en clair.** Dans
+      // une conversation basculée il faut chiffrer QUOI QU'IL ARRIVE : le
+      // corps de la note doit entrer dans le payload MLS, faute de quoi
+      // l'envoi retombe sur `messages`, que le déclencheur
+      // `messages_refuse_conversation_mls_trg` refuse — et l'écran affiche
+      // « Non envoyé · Réessayer » sans jamais dire pourquoi.
+      //
+      // `sendFileMessage` applique cette règle depuis toujours (images,
+      // documents, vidéo) ; la note vocale avait été oubliée. Mesuré sur
+      // SM A515F le 2026-09-15 dans le groupe « Testeurs » : la note vocale
+      // n'arrivait NULLE PART — ni `mls_messages`, ni `messages`.
       Map<String, dynamic>? mediaChiffre;
       final chiffrement = mediaEncryptionService;
-      if (chiffrement != null && mediasChiffresActifs()) {
+      final conversationChiffree =
+          await _passerellePour(conversationId) != null;
+      if (chiffrement != null &&
+          (mediasChiffresActifs() || conversationChiffree)) {
         final r = await chiffrement.encryptAndUploadFile(
           file: audioFile,
           conversationId: conversationId,

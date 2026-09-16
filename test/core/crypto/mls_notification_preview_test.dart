@@ -18,8 +18,19 @@ import 'package:flutter_test/flutter_test.dart';
 /// tout échec retombe sur le repli au lieu de faire disparaître la
 /// notification.
 
-String _source(String chemin) =>
-    File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
+/// Le source **sans ses lignes de commentaire**.
+///
+/// Les assertions d'absence ci-dessous («  `Moteur.ouvrir` n'apparaît pas »)
+/// mesurent du code, pas de la prose : sans ce filtre, un commentaire qui
+/// *nomme* le symbole interdit pour expliquer pourquoi il l'est fait tomber le
+/// test. Arrivé le 2026-09-16, et déjà arrivé ailleurs dans ce dépôt — d'où le
+/// même filtre dans `extra_non_nullable_test.dart` et quatre autres bancs.
+String _source(String chemin) => File(chemin)
+    .readAsStringSync()
+    .replaceAll('\r\n', '\n')
+    .split('\n')
+    .where((l) => !l.trimLeft().startsWith('//'))
+    .join('\n');
 
 void main() {
   group('résumé affiché', () {
@@ -135,9 +146,11 @@ void main() {
       final source = _source('lib/core/services/notification_service.dart');
       final i = source.indexOf('Future<void> _handleForegroundMessage(');
       expect(i, greaterThan(-1));
+      // Borne prise sur du CODE : `_source` retire les lignes de commentaire,
+      // `///` compris — un titre de doc ne peut pas servir d'ancre ici.
       final corps = source.substring(
         i,
-        source.indexOf('/// Handle incoming call notification', i),
+        source.indexOf('void _handleIncomingCallNotification(', i),
       );
       expect(corps, contains('MlsNotificationPreview.texte(data)'));
       expect(corps, contains("..['body'] = apercuMls"));

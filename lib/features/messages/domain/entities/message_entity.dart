@@ -210,7 +210,21 @@ class MessageEntity extends Equatable {
     this.encryptionLevel = MessageEncryptionLevel.aes,
   });
 
+  /// Identifiant réservé du séparateur posé entre l'historique lisible par
+  /// le serveur et les messages chiffrés (plan MLS § 2.3). Jamais produit par
+  /// un vrai message : ceux-là portent un uuid ou un identifiant Firestore.
+  ///
+  /// Il vit ici, et non dans `MlsMessageMapper`, pour que la bulle système
+  /// puisse le reconnaître sans importer la pile MLS dans la couche
+  /// présentation.
+  static const idSeparateurMls = '__mls_separateur__';
+
   bool get hasMentions => mentionedUsers.isNotEmpty;
+
+  /// Ce « message » n'en est pas un : c'est le repère de bascule. Son
+  /// libellé est résolu à l'affichage (`AppLocalizations`), pas porté par
+  /// [content] — sinon il serait figé dans la langue de la fusion.
+  bool get estSeparateurMls => id == idSeparateurMls;
 
   bool get isText => type == MessageType.text;
   bool get isImage => type == MessageType.image;

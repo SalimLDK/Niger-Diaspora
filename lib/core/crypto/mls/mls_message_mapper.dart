@@ -14,19 +14,23 @@ import 'mls_payload_codec.dart';
 class MlsMessageMapper {
   MlsMessageMapper._();
 
-  /// Identifiant du séparateur « avant le chiffrement de bout en bout ».
-  /// Réservé, jamais produit par un vrai message : les identifiants de
-  /// messages sont des uuid ou des identifiants Firestore.
-  static const idSeparateur = '__mls_separateur__';
+  /// Identifiant du séparateur de bascule, défini par [MessageEntity] — la
+  /// présentation doit pouvoir le reconnaître sans importer la pile MLS.
+  static const idSeparateur = MessageEntity.idSeparateurMls;
 
   /// Le repère visuel entre l'historique lisible par le serveur et ce qui
   /// suit. Sans lui, la bascule serait invisible — et l'utilisateur croirait
   /// que tout son historique est chiffré.
+  ///
+  /// [content] reste **vide** à dessein : le libellé portait ici une phrase
+  /// française en dur, que voyait aussi un compte en anglais. Il est
+  /// désormais résolu au rendu (`AppLocalizations.mlsSeparatorEncrypted`),
+  /// donc dans la langue de l'utilisateur et non dans celle de la fusion.
   static MessageEntity separateur(DateTime quand) => MessageEntity(
         id: idSeparateur,
         senderId: 'system',
         senderName: '',
-        content: 'Messages d\'avant le chiffrement de bout en bout',
+        content: '',
         type: MessageType.system,
         status: MessageStatus.sent,
         createdAt: quand,
@@ -117,10 +121,34 @@ class MlsMessageMapper {
       type: _type(payload.type),
       status: MessageStatus.sent,
       fileUrl: body['storagePath'] as String?,
+      // **Reposer la fiche du média chiffré.** Sans elle, `MediaChiffreGate`
+      // laisse passer le message tel quel (`mediaChiffre == null` = « rien à
+      // déchiffrer »), et la bulle tente d'ouvrir `fileUrl` — qui pointe sur
+      // le blob CHIFFRÉ. Résultat : aucune note vocale ne se lit, aucune
+      // image ne s'affiche, et l'erreur de lecture vient s'ajouter dans la
+      // rangée de contrôles, qui déborde. Signalé par Salim le 2026-09-15
+      // (« je n'arrive pas à lire les audios et aussi il y a overflow »), les
+      // deux symptômes ayant la même cause.
+      //
+      // La passerelle met déjà tout dans le payload (`corpsMedia`) : il ne
+      // manquait que la traduction vers la forme que la porte attend.
+      // `encryptedUrl` reste vide — le téléchargement se fait par
+      // `storagePath`, et `MediaChiffre.fromJson` tolère son absence.
+      mediaChiffre: body['fileKey'] == null || body['storagePath'] == null
+          ? null
+          : MediaChiffre.fromJson(<String, dynamic>{
+              'storagePath': body['storagePath'],
+              'fileKey': body['fileKey'],
+              'iv': body['fileNonce'],
+              'fileName': body['fileName'],
+              'mimeType': body['mimeType'],
+              'size': body['fileSize'],
+            }),
       fileName: body['fileName'] as String?,
       fileSize: (body['fileSize'] as num?)?.toInt(),
       mimeType: body['mimeType'] as String?,
       audioDuration: (body['duration'] as num?)?.toInt(),
+      videoDuration: (body['videoDuration'] as num?)?.toInt(),
       blurhash: body['blurhash'] as String?,
       createdAt: row.createdAt.toLocal(),
       deletedForEveryone: row.isDeleted,

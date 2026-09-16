@@ -633,6 +633,116 @@ void main() {
       );
     });
 
+    test('les suppressions aussi : insert ET update, jamais delete', () {
+      // Une SUPPRESSION (« pour tout le monde », ou une expiration purgée)
+      // n'est qu'un passage de `is_deleted` à vrai : sans `update`, elle
+      // n'arrive qu'à la réouverture. Le filtre sur `conversation_id` tient
+      // pour un update — il s'évalue sur la NOUVELLE ligne, qui le porte.
+      //
+      // `delete` n'a rien à faire ici : on ne supprime jamais de ligne, et
+      // lui seul exigerait REPLICA IDENTITY FULL (seule l'ancienne ligne
+      // existe, et elle ne contient que la clé primaire). Un `all` l'aurait
+      // embarqué pour rien.
+      final ds = _source(
+        'lib/features/messages/data/datasources/'
+        'message_supabase_datasource.dart',
+      );
+      final bloc = ds.substring(
+        ds.indexOf('Stream<void> mlsNouveauxMessages'),
+        ds.indexOf('// TYPING'),
+      );
+      expect(bloc.contains('PostgresChangeEvent.insert'), isTrue,
+          reason: 'les nouveaux messages et les modifications');
+      expect(bloc.contains('PostgresChangeEvent.update'), isTrue,
+          reason: 'les suppressions');
+      expect(bloc.contains('PostgresChangeEvent.delete'), isFalse,
+          reason: 'aucune ligne n’est jamais supprimée');
+      expect(bloc.contains('PostgresChangeEvent.all'), isFalse,
+          reason: '`all` embarquerait `delete` sans utilité');
+    });
+
+    test('ce qui arrive en direct est aussi mis en cache', () {
+      // Le cache local est le SEUL endroit qui garde le clair d'un message
+      // chiffré. Le chemin temps réel appelle la passerelle directement, sans
+      // passer par la lecture qui, elle, met en cache : un message arrivé
+      // uniquement par là vivait en mémoire et nulle part ailleurs. Il
+      // s'affichait « à l'instant », puis disparaissait dès que la passerelle
+      // était recréée. Mesuré à deux téléphones le 2026-09-15, deux fois.
+      final depot = _source(
+        'lib/features/messages/data/repositories/message_repository_impl.dart',
+      );
+      final debut = depot.indexOf('mlsNouveauxMessages(conversationId)');
+      expect(debut, isNot(-1));
+      final bloc = depot.substring(debut, debut + 2200);
+      expect(
+        bloc.contains('cacheService.cacheMessages('),
+        isTrue,
+        reason: 'le chemin temps réel doit écrire le cache, sinon ce qu’il '
+            'délivre est perdu à la prochaine reconstruction',
+      );
+    });
+
+    test('TOUS les médias chiffrent dans une conversation basculée', () {
+      // Le drapeau `mediasChiffres` ne décide que des conversations encore en
+      // clair. Dans une conversation basculée, il FAUT chiffrer quoi qu'il
+      // arrive : sinon l'envoi retombe sur `messages`, que le déclencheur
+      // `messages_refuse_conversation_mls_trg` refuse — et l'écran affiche
+      // « Non envoyé · Réessayer » sans dire pourquoi.
+      //
+      // `sendFileMessage` appliquait la règle ; `sendAudioMessage` l'avait
+      // oubliée. Mesuré sur SM A515F le 2026-09-15 : la note vocale
+      // n'arrivait NULLE PART — ni `mls_messages`, ni `messages`.
+      final depot = _source(
+        'lib/features/messages/data/repositories/message_repository_impl.dart',
+      );
+      final regle = 'mediasChiffresActifs() || conversationChiffree';
+      expect(
+        RegExp(RegExp.escape(regle)).allMatches(depot).length,
+        greaterThanOrEqualTo(2),
+        reason: 'la règle doit valoir pour les fichiers ET pour la note '
+            'vocale — un seul oubli et ce type ne part plus du tout',
+      );
+      // Et surtout : plus aucun média ne doit se contenter du drapeau seul.
+      expect(
+        depot.contains('chiffrement != null && mediasChiffresActifs()'),
+        isFalse,
+        reason: 'le drapeau seul ne suffit pas dans une conversation basculée',
+      );
+    });
+
+    test('un média MLS reste déchiffrable à l’arrivée', () {
+      // Le mapper posait `fileUrl: body['storagePath']` et RIEN d'autre :
+      // `mediaChiffre` restait nul, donc `MediaChiffreGate` laissait passer
+      // le message tel quel (« rien à déchiffrer »), et la bulle tentait
+      // d'ouvrir le blob CHIFFRÉ. Aucune note vocale ne se lisait, et
+      // l'erreur de lecture venait déborder la rangée de contrôles.
+      // Signalé par Salim le 2026-09-15 — un seul défaut, deux symptômes.
+      final mapper = _source('lib/core/crypto/mls/mls_message_mapper.dart');
+      expect(
+        mapper.contains('mediaChiffre:'),
+        isTrue,
+        reason: 'sans la fiche du média, la porte de déchiffrement ne fait '
+            'rien et le média reste illisible',
+      );
+      for (final champ in ["'fileKey'", "'fileNonce'", "'storagePath'"]) {
+        expect(mapper.contains(champ), isTrue,
+            reason: '$champ doit être repris du payload');
+      }
+
+      // Et l'erreur de lecture ne doit plus pouvoir casser la mise en page.
+      final bulle = _source(
+        'lib/features/messages/presentation/widgets/audio_message_bubble.dart',
+      );
+      final i = bulle.indexOf('if (_error != null)');
+      expect(i, isNot(-1));
+      expect(
+        bulle.substring(i, i + 400).contains('Flexible'),
+        isTrue,
+        reason: 'la rangée de contrôles est rigide : une erreur non flexible '
+            'la fait déborder',
+      );
+    });
+
     test('le helper lit le minuteur et pose expiresAt', () {
       final src = _source(chemin);
       expect(src.contains("data['expiresAt'] ="), isTrue);
