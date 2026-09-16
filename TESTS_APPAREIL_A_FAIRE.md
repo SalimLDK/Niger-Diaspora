@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1365 cases à cocher, 642 cochées** — 268 entrées sur 317 ont encore des cases ouvertes.
+**1369 cases à cocher, 642 cochées** — 269 entrées sur 318 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -182,7 +182,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (82)
+**P2 — fonction secondaire ou cas limite** (83)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -208,6 +208,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 4 · [⬜ « Appareils enregistrés » et « Sauvegarde des clés » ne montrent plus Signal à un compte passé à MLS (2026-09-16)](#--appareils-enregistrés--et--sauvegarde-des-clés--ne-montrent-plus-signal-à-un-compte-passé-à-mls-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -328,7 +329,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 313 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 138 à faire, 42 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -7034,6 +7035,39 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ « Appareils enregistrés » et « Sauvegarde des clés » ne montrent plus Signal à un compte passé à MLS (2026-09-16)
+
+**Priorité P2** · importance 3/5 — relevé par Salim sur le Samsung (Sim A) :
+les deux écrans étaient presque entièrement consacrés aux clés **Signal**, que
+ce compte n'utilise pas (0 message Signal sur Sim A et Salim L., toutes leurs
+discussions chiffrées sont en MLS). « Appareils » ouvrait sur « Inscrits : 3
+sur 5 », trois « Appareil Android » de juillet-août, un bandeau « Cet appareil
+n'a pas pu être identifié » et la limite de 5 — la vraie liste, sous
+« Nouveau registre (MLS) … la future messagerie », n'apparaissait qu'en
+faisant défiler. « Sauvegarde » annonçait « Cet appareil n'a pas vos clés »
+sur un téléphone qui lisait tous ses messages chiffrés, et proposait un
+transfert par QR qui n'emporte que Signal.
+
+Désormais, selon `mlsMessagesActifsProvider` :
+- **compte passé à MLS** : « Appareils » ne montre que le registre MLS
+  (texte d'introduction, « Vu le … », révoqués repliés sous « N appareils
+  révoqués », avec leur date) ; « Sauvegarde » garde la carte d'en-tête et
+  explique qu'il n'y a rien à sauvegarder ni à transférer, avec un lien vers
+  les appareils ;
+- **autre compte** : Signal comme avant, et plus de registre MLS.
+
+Couvert par `test/features/settings/appareils_et_sauvegarde_selon_mls_test.dart`
+(échoue si l'écran ignore le drapeau). Rendu vérifié par image de test, pas
+sur téléphone : ⚠️ les deux téléphones portent un APK du partage interne, un
+build local ne s'y installe pas sans désinstaller.
+
+- [ ] Samsung (Sim A), Réglages › Appareils enregistrés : aucune carte « Appareil Android », aucun « sur 5 » ; « CET APPAREIL » en tête avec « Vu le … » et son code de sécurité ; « 3 appareils révoqués » replié, qui s'ouvre sur trois fiches datées ;
+- [ ] Réglages › Sauvegarde des clés : carte « Chiffrement des messages », puis « Vos discussions chiffrées » ; aucun bouton de transfert, aucune passphrase ; la tuile « Appareils enregistrés » ouvre bien l'écran ;
+- [ ] un compte **non** passé à MLS : les deux écrans sont ceux d'avant (liste Signal, transfert, sauvegarde), sans section MLS ;
+- [ ] les nouveaux textes en thème sombre et à l'échelle de police ×2, sans débordement.
 
 ---
 

@@ -1,10 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/providers/uid_firebase_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/e2ee/device_sync_service.dart';
@@ -12,6 +12,7 @@ import '../../../../core/services/e2ee/models/e2ee_models.dart';
 import '../../../../core/crypto/mls/mls_code_qr.dart';
 import '../../../../core/crypto/mls/mls_code_securite.dart';
 import '../../../../core/crypto/mls/mls_device_registry.dart';
+import '../../../messages/presentation/providers/media_dechiffre_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Nombre maximal d'appareils par compte, imposé par la synchro E2EE.
@@ -20,6 +21,15 @@ const int _kMaxDevices = 5;
 /// Écran de gestion des appareils connectés (fiche 20b) : bandeau
 /// d'explication chiffré, carte « cet appareil » mise en avant, empreinte de
 /// clé lisible, et Renommer / Révoquer sortis du menu ⋯.
+///
+/// **Deux listes, jamais ensemble.** Un compte passé à MLS ne voit que le
+/// registre MLS : les clés Signal (`e2ee_devices`) ne servent à aucune de ses
+/// conversations — 0 message Signal sur les deux comptes basculés, mesuré le
+/// 2026-09-16. Les afficher mettait trois cartes sans rapport, un « 3 sur 5 »
+/// et un bandeau d'alarme au-dessus de la seule liste qui compte. Les autres
+/// comptes, eux, chiffrent encore en Signal (deux messages ce jour-là) : ils
+/// gardent cette liste, et le registre MLS leur reste caché tant qu'ils ne
+/// s'en servent pas.
 class DevicesScreen extends ConsumerStatefulWidget {
   const DevicesScreen({super.key});
 
@@ -41,8 +51,14 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
   }
 
   Future<void> _loadDevices() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(uidFirebaseProvider);
     if (userId == null) return;
+    // Liste masquée pour un compte passé à MLS : ni lecture, ni message
+    // d'échec sur un écran qui ne la montre pas.
+    if (ref.read(mlsMessagesActifsProvider)) {
+      setState(() => _isLoading = false);
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -100,7 +116,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
       return;
     }
 
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(uidFirebaseProvider);
     if (userId == null) return;
 
     try {
@@ -186,7 +202,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
 
     if (confirmed != true) return;
 
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(uidFirebaseProvider);
     if (userId == null) return;
 
     setState(() => _isLoading = true);
@@ -226,6 +242,13 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final mlsActif = ref.watch(mlsMessagesActifsProvider);
+    // Le drapeau vient de la configuration distante : s'il se referme écran
+    // ouvert, la liste Signal n'a jamais été chargée.
+    ref.listen<bool>(mlsMessagesActifsProvider, (_, actif) {
+      if (!actif) _loadDevices();
+    });
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       body: SafeArea(
@@ -235,7 +258,9 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
             _buildHeader(context),
             Expanded(
               child:
-                  _isLoading
+                  mlsActif
+                      ? _buildMlsBody(context)
+                      : _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : RefreshIndicator(
                         // Remplace le bouton d'actualisation de l'en-tête,
@@ -249,6 +274,19 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMlsBody(BuildContext context) {
+    final uid = ref.watch(uidFirebaseProvider);
+    if (uid == null) return const SizedBox.shrink();
+    return RefreshIndicator(
+      onRefresh: () => ref.refresh(mlsDevicesProvider(uid).future),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+        children: [_MlsRegistrySection(userId: uid)],
       ),
     );
   }
@@ -320,9 +358,6 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 14, color: context.textSecondaryColor),
         ),
-        const SizedBox(height: 28),
-        if (FirebaseAuth.instance.currentUser?.uid case final uid?)
-          _MlsRegistrySection(userId: uid),
       ],
     );
   }
@@ -352,9 +387,6 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
           ),
         const SizedBox(height: 4),
         const _LimitNotice(),
-        const SizedBox(height: 28),
-        if (FirebaseAuth.instance.currentUser?.uid case final uid?)
-          _MlsRegistrySection(userId: uid),
       ],
     );
   }
@@ -766,10 +798,9 @@ class _CardAction extends StatelessWidget {
 // Registre MLS (plan MLS, phase 2)
 // ---------------------------------------------------------------------------
 
-/// La liste `mls_devices` du compte, sous la liste Signal. Deux registres le
-/// temps de la coexistence : celui-ci est le seul que la messagerie MLS
-/// utilisera, et sa preuve de vie est en base (`last_seen_at` récent), pas à
-/// l'écran.
+/// La liste `mls_devices` du compte — le seul contenu de l'écran pour un
+/// compte passé à MLS. Pas de titre : la barre dit déjà « Appareils
+/// enregistrés ».
 class _MlsRegistrySection extends ConsumerWidget {
   final String userId;
 
@@ -784,45 +815,46 @@ class _MlsRegistrySection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n.mlsDevicesTitle,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: context.textPrimaryColor,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
           l10n.mlsDevicesExplain,
           style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
         etat.when(
           loading: () => const LinearProgressIndicator(minHeight: 2),
           error: (_, __) => Text(
             l10n.mlsDevicesLoadError,
             style: TextStyle(fontSize: 13, color: context.errorColor),
           ),
-          data: (appareils) => appareils.isEmpty
-              ? Text(
-                  l10n.mlsDevicesNone,
-                  style: TextStyle(fontSize: 13, color: context.textSecondaryColor),
-                )
-              : Column(
-                  children: [
-                    for (final appareil in appareils)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _MlsDeviceTile(
-                          userId: userId,
-                          appareil: appareil,
-                          onRevoke: appareil.estCetAppareil || appareil.estRevoque
-                              ? null
-                              : () => _revoquer(context, ref, appareil),
-                        ),
-                      ),
-                  ],
-                ),
+          data: (appareils) {
+            final actifs = appareils.where((a) => !a.estRevoque).toList();
+            final revoques = appareils.where((a) => a.estRevoque).toList();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (actifs.isEmpty)
+                  Text(
+                    l10n.mlsDevicesNone,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: context.textSecondaryColor,
+                    ),
+                  ),
+                for (final appareil in actifs)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _MlsDeviceTile(
+                      userId: userId,
+                      appareil: appareil,
+                      onRevoke: appareil.estCetAppareil
+                          ? null
+                          : () => _revoquer(context, ref, appareil),
+                    ),
+                  ),
+                if (revoques.isNotEmpty)
+                  _AppareilsRevoques(userId: userId, appareils: revoques),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -870,6 +902,52 @@ class _MlsRegistrySection extends ConsumerWidget {
   }
 }
 
+/// Les appareils révoqués, repliés sous une seule ligne.
+///
+/// À plat, ils s'empilaient sous la liste — une fiche barrée par
+/// réinstallation, sans action possible ni date : six sur le Pixel le
+/// 2026-09-16. Ils restent consultables, mais hors du chemin.
+class _AppareilsRevoques extends StatelessWidget {
+  final String userId;
+  final List<MlsDeviceRecord> appareils;
+
+  const _AppareilsRevoques({required this.userId, required this.appareils});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return ExpansionTile(
+      tilePadding: EdgeInsets.zero,
+      childrenPadding: EdgeInsets.zero,
+      // Sans formes explicites, la tuile ouverte trace un filet en haut et en
+      // bas, étranger au reste de l'écran.
+      shape: const Border(),
+      collapsedShape: const Border(),
+      iconColor: context.textSecondaryColor,
+      collapsedIconColor: context.textSecondaryColor,
+      title: Text(
+        l10n.mlsDevicesRevokedCount(appareils.length),
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: context.textSecondaryColor,
+        ),
+      ),
+      children: [
+        for (final appareil in appareils)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _MlsDeviceTile(
+              userId: userId,
+              appareil: appareil,
+              onRevoke: null,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _MlsDeviceTile extends StatelessWidget {
   final MlsDeviceRecord appareil;
   final String userId;
@@ -881,14 +959,20 @@ class _MlsDeviceTile extends StatelessWidget {
     required this.onRevoke,
   });
 
+  static String _date(DateTime instant) {
+    final t = instant.toLocal();
+    String deux(int n) => n.toString().padLeft(2, '0');
+    return '${deux(t.day)}/${deux(t.month)} ${deux(t.hour)}:${deux(t.minute)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final courant = appareil.estCetAppareil;
-    final vu = appareil.lastSeenAt.toLocal();
-    final vuTexte =
-        '${vu.day.toString().padLeft(2, '0')}/${vu.month.toString().padLeft(2, '0')} '
-        '${vu.hour.toString().padLeft(2, '0')}:${vu.minute.toString().padLeft(2, '0')}';
+    // Une date nue ne disait pas de quoi elle était la date.
+    final sousTitre = appareil.revokedAt != null
+        ? l10n.mlsDeviceRevokedOn(_date(appareil.revokedAt!))
+        : l10n.mlsDeviceLastSeen(_date(appareil.lastSeenAt));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -946,7 +1030,7 @@ class _MlsDeviceTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  appareil.estRevoque ? l10n.mlsDeviceRevokedLabel : vuTexte,
+                  sousTitre,
                   style: TextStyle(fontSize: 12, color: context.textTertiaryColor),
                 ),
                 if (!appareil.estRevoque) ...[

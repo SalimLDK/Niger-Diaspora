@@ -12378,11 +12378,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les messages sont chiffrés de bout en bout';
 
   @override
-  String get mlsDevicesTitle => 'Nouveau registre (MLS)';
-
-  @override
   String get mlsDevicesExplain =>
-      'Chaque appareil connecté à ce compte y est inscrit avec sa propre clé. C\'est ce registre que la future messagerie chiffrée utilisera.';
+      'Chaque installation de l\'application est un appareil, avec sa propre clé. Désinstaller puis réinstaller en crée un nouveau : révoquez ceux que vous n\'utilisez plus.';
 
   @override
   String get mlsSecurityCodeLabel => 'Code de sécurité';
@@ -12444,7 +12441,40 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le registre n\'a pas pu être lu. Réessayez plus tard.';
 
   @override
-  String get mlsDeviceRevokedLabel => 'Révoqué';
+  String mlsDeviceRevokedOn(String date) {
+    return 'Révoqué le $date';
+  }
+
+  @override
+  String mlsDeviceLastSeen(String date) {
+    return 'Vu le $date';
+  }
+
+  @override
+  String mlsDevicesRevokedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count appareils révoqués',
+      one: '1 appareil révoqué',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mlsBackupTitle => 'Vos discussions chiffrées';
+
+  @override
+  String get mlsBackupKeysStay =>
+      'Leurs clés restent sur ce téléphone : elles ne sont ni sauvegardées en ligne, ni transférables vers un autre appareil. Il n\'y a donc rien à sauvegarder ici.';
+
+  @override
+  String get mlsBackupNewPhone =>
+      'Sur un nouveau téléphone, ou après avoir réinstallé l\'application, vous lirez les messages envoyés après son arrivée ; les précédents n\'y sont pas lisibles. Ils le restent sur l\'ancien appareil, tant que l\'application y est installée.';
+
+  @override
+  String get mlsBackupRevokeHint =>
+      'Pensez ensuite à révoquer l\'ancien appareil.';
 
   @override
   String get mlsDeviceRevokeConfirm =>

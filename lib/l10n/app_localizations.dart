@@ -22790,16 +22790,10 @@ abstract class AppLocalizations {
   /// **'Les messages sont chiffrés de bout en bout'**
   String get mlsSeparatorEncrypted;
 
-  /// No description provided for @mlsDevicesTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Nouveau registre (MLS)'**
-  String get mlsDevicesTitle;
-
   /// No description provided for @mlsDevicesExplain.
   ///
   /// In fr, this message translates to:
-  /// **'Chaque appareil connecté à ce compte y est inscrit avec sa propre clé. C\'est ce registre que la future messagerie chiffrée utilisera.'**
+  /// **'Chaque installation de l\'application est un appareil, avec sa propre clé. Désinstaller puis réinstaller en crée un nouveau : révoquez ceux que vous n\'utilisez plus.'**
   String get mlsDevicesExplain;
 
   /// No description provided for @mlsSecurityCodeLabel.
@@ -22898,11 +22892,47 @@ abstract class AppLocalizations {
   /// **'Le registre n\'a pas pu être lu. Réessayez plus tard.'**
   String get mlsDevicesLoadError;
 
-  /// No description provided for @mlsDeviceRevokedLabel.
+  /// No description provided for @mlsDeviceRevokedOn.
   ///
   /// In fr, this message translates to:
-  /// **'Révoqué'**
-  String get mlsDeviceRevokedLabel;
+  /// **'Révoqué le {date}'**
+  String mlsDeviceRevokedOn(String date);
+
+  /// No description provided for @mlsDeviceLastSeen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vu le {date}'**
+  String mlsDeviceLastSeen(String date);
+
+  /// No description provided for @mlsDevicesRevokedCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =1{1 appareil révoqué} other{{count} appareils révoqués}}'**
+  String mlsDevicesRevokedCount(int count);
+
+  /// No description provided for @mlsBackupTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos discussions chiffrées'**
+  String get mlsBackupTitle;
+
+  /// No description provided for @mlsBackupKeysStay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Leurs clés restent sur ce téléphone : elles ne sont ni sauvegardées en ligne, ni transférables vers un autre appareil. Il n\'y a donc rien à sauvegarder ici.'**
+  String get mlsBackupKeysStay;
+
+  /// No description provided for @mlsBackupNewPhone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sur un nouveau téléphone, ou après avoir réinstallé l\'application, vous lirez les messages envoyés après son arrivée ; les précédents n\'y sont pas lisibles. Ils le restent sur l\'ancien appareil, tant que l\'application y est installée.'**
+  String get mlsBackupNewPhone;
+
+  /// No description provided for @mlsBackupRevokeHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pensez ensuite à révoquer l\'ancien appareil.'**
+  String get mlsBackupRevokeHint;
 
   /// No description provided for @mlsDeviceRevokeConfirm.
   ///

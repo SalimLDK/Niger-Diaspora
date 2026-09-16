@@ -12250,11 +12250,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mlsSeparatorEncrypted => 'Messages are end-to-end encrypted';
 
   @override
-  String get mlsDevicesTitle => 'New registry (MLS)';
-
-  @override
   String get mlsDevicesExplain =>
-      'Every device signed in to this account is listed here with its own key. The upcoming encrypted messaging will rely on this registry.';
+      'Each installation of the app is a device with its own key. Uninstalling and reinstalling creates a new one: revoke the ones you no longer use.';
 
   @override
   String get mlsSecurityCodeLabel => 'Security code';
@@ -12315,7 +12312,39 @@ class AppLocalizationsEn extends AppLocalizations {
       'The registry could not be read. Try again later.';
 
   @override
-  String get mlsDeviceRevokedLabel => 'Revoked';
+  String mlsDeviceRevokedOn(String date) {
+    return 'Revoked on $date';
+  }
+
+  @override
+  String mlsDeviceLastSeen(String date) {
+    return 'Last seen $date';
+  }
+
+  @override
+  String mlsDevicesRevokedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count revoked devices',
+      one: '1 revoked device',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mlsBackupTitle => 'Your encrypted conversations';
+
+  @override
+  String get mlsBackupKeysStay =>
+      'Their keys stay on this phone: they are neither backed up online nor transferable to another device. There is nothing to back up here.';
+
+  @override
+  String get mlsBackupNewPhone =>
+      'On a new phone, or after reinstalling the app, you will read messages sent after it was set up; earlier ones cannot be read there. They remain readable on the old device as long as the app stays installed.';
+
+  @override
+  String get mlsBackupRevokeHint => 'Then revoke the old device.';
 
   @override
   String get mlsDeviceRevokeConfirm =>

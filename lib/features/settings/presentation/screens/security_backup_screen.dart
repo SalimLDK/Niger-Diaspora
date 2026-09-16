@@ -1,6 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/providers/uid_firebase_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:flutter/services.dart';
@@ -12,11 +12,20 @@ import '../../../../core/services/e2ee/key_transfer_service.dart';
 import '../../../../core/services/e2ee/secure_key_storage.dart';
 import '../../../../core/services/e2ee/messaging_e2ee_service.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../messages/presentation/providers/media_dechiffre_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
 
 import 'package:go_router/go_router.dart';
 /// Écran de sauvegarde et restauration des clés E2EE
+///
+/// **Tout ce qu'il sauvegarde, transfère et restaure est Signal** : le QR
+/// comme la passphrase passent par `SecureKeyStorage.exportAllKeys`. Les clés
+/// MLS, elles, ne quittent jamais le téléphone (`mls_engine_provider.dart`).
+/// Un compte passé à MLS n'y voit donc que ce qui le concerne
+/// ([_DiscussionsChiffreesMls]) : avant, on lui proposait de « changer de
+/// téléphone » sans rien emporter, et on lui annonçait « Cet appareil n'a pas
+/// vos clés » sur un téléphone qui lisait tous ses messages chiffrés.
 class SecurityBackupScreen extends ConsumerStatefulWidget {
   const SecurityBackupScreen({super.key});
 
@@ -55,6 +64,11 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
   @override
   void initState() {
     super.initState();
+    // Un compte passé à MLS ne voit rien de ce que ces lectures alimentent.
+    if (!ref.read(mlsMessagesActifsProvider)) _chargerEtatSignal();
+  }
+
+  void _chargerEtatSignal() {
     _checkExistingBackup();
     _loadTransferUndo();
     _loadLocalKeyState();
@@ -69,7 +83,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
   }
 
   Future<void> _loadLocalKeyState() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(uidFirebaseProvider);
     if (userId == null) return;
     final storage = ref.read(secureKeyStorageProvider);
     await storage.initialize();
@@ -78,14 +92,14 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
   }
 
   Future<void> _loadTransferUndo() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(uidFirebaseProvider);
     if (userId == null) return;
     final undo = await ref.read(keyTransferServiceProvider).pendingUndo(userId);
     if (mounted) setState(() => _transferUndo = undo);
   }
 
   Future<void> _undoTransfer() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(uidFirebaseProvider);
     if (userId == null) return;
 
     final confirme = await showDialog<bool>(
@@ -124,7 +138,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
   }
 
   Future<void> _discardTransferUndo() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(uidFirebaseProvider);
     if (userId == null) return;
 
     final confirme = await showDialog<bool>(
@@ -150,7 +164,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
   }
 
   Future<void> _checkExistingBackup() async {
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(uidFirebaseProvider);
     if (userId == null) return;
 
     setState(() => _isLoading = true);
@@ -196,7 +210,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
 
   Future<void> _createBackup() async {
     final l10n = AppLocalizations.of(context)!;
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(uidFirebaseProvider);
     if (userId == null) return;
 
     final passphrase = _passphraseController.text;
@@ -246,7 +260,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
 
   Future<void> _restoreBackup() async {
     final l10n = AppLocalizations.of(context)!;
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(uidFirebaseProvider);
     if (userId == null) return;
 
     final passphrase = _restorePassphraseController.text;
@@ -316,7 +330,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
 
     if (confirmed != true) return;
 
-    final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userId = ref.read(uidFirebaseProvider);
     if (userId == null) return;
 
     setState(() => _isLoading = true);
@@ -355,26 +369,67 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
     );
   }
 
+  /// La carte d'en-tête, commune aux deux versions de l'écran : elle décrit
+  /// les deux étages de chiffrement sans rien promettre de plus.
+  Widget _buildCarteChiffrement(ThemeData theme, AppLocalizations l10n) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                AppIcon(AppIcon.lock, color: theme.colorScheme.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    l10n.endToEndEncryption,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(l10n.e2eeDescription, style: theme.textTheme.bodyMedium),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final mlsActif = ref.watch(mlsMessagesActifsProvider);
+    // Le drapeau vient de la configuration distante : s'il se referme écran
+    // ouvert, l'état Signal n'a jamais été lu.
+    ref.listen<bool>(mlsMessagesActifsProvider, (_, actif) {
+      if (!actif) _chargerEtatSignal();
+    });
+
+    if (mlsActif) {
+      return Scaffold(
+        appBar: _buildAppBar(context, l10n),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildCarteChiffrement(theme, l10n),
+              const SizedBox(height: 24),
+              const _DiscussionsChiffreesMls(),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
-      appBar: AppBar(
-        // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
-        // `canPop()` est faux (lien profond, notification système).
-        // Cf. test/core/router/fleche_retour_test.dart.
-        leading: BackButton(
-          onPressed:
-              () => context.canPop() ? context.pop() : context.go('/settings'),
-        ),
-        backgroundColor: context.backgroundColor,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        titleSpacing: 0,
-        title: DesignTitle(l10n.securityBackupTitle, size: 22),
-      ),
+      appBar: _buildAppBar(context, l10n),
       body:
           _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -383,38 +438,7 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Info card
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                AppIcon(
-                                  AppIcon.lock,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    l10n.endToEndEncryption,
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              l10n.e2eeDescription,
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    _buildCarteChiffrement(theme, l10n),
 
                     const SizedBox(height: 24),
 
@@ -908,6 +932,23 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
     );
   }
 
+  PreferredSizeWidget _buildAppBar(BuildContext context, AppLocalizations l10n) {
+    return AppBar(
+      // Sortie explicite : la flèche implicite de l'AppBar disparaît quand
+      // `canPop()` est faux (lien profond, notification système).
+      // Cf. test/core/router/fleche_retour_test.dart.
+      leading: BackButton(
+        onPressed:
+            () => context.canPop() ? context.pop() : context.go('/settings'),
+      ),
+      backgroundColor: context.backgroundColor,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      titleSpacing: 0,
+      title: DesignTitle(l10n.securityBackupTitle, size: 22),
+    );
+  }
+
   Widget _buildStrengthIndicator() {
     final l10n = AppLocalizations.of(context)!;
     Color color;
@@ -951,5 +992,41 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year} à ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
+  }
+}
+
+/// Ce que l'écran peut dire d'exact à un compte passé à MLS : il n'y a rien à
+/// sauvegarder ni à transférer, et ce qu'un nouveau téléphone lira ou non.
+///
+/// Le lien vers les appareils est la seule action utile ici : chaque
+/// réinstallation laisse un appareil à révoquer (trois fantômes par compte le
+/// 2026-09-16, que les autres membres tentaient d'ajouter en boucle).
+class _DiscussionsChiffreesMls extends StatelessWidget {
+  const _DiscussionsChiffreesMls();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DesignSectionLabel(l10n.mlsBackupTitle),
+        DesignBody(l10n.mlsBackupKeysStay),
+        const SizedBox(height: 10),
+        DesignBody(l10n.mlsBackupNewPhone),
+        const SizedBox(height: 10),
+        DesignBody(l10n.mlsBackupRevokeHint),
+        const SizedBox(height: 12),
+        DesignSettingsCard(
+          children: [
+            DesignSettingsTile(
+              icon: const Icon(Icons.devices_outlined),
+              title: l10n.connectedDevices,
+              onTap: () => context.push('/settings/security/devices'),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }

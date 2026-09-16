@@ -5095,8 +5095,7 @@
   "noDeviceRegistered": "No device registered",
   "devicesE2eeWillAppear": "Devices using end-to-end encryption will appear here.",
   "mlsSeparatorEncrypted": "Messages are end-to-end encrypted",
-  "mlsDevicesTitle": "New registry (MLS)",
-  "mlsDevicesExplain": "Every device signed in to this account is listed here with its own key. The upcoming encrypted messaging will rely on this registry.",
+  "mlsDevicesExplain": "Each installation of the app is a device with its own key. Uninstalling and reinstalling creates a new one: revoke the ones you no longer use.",
   "mlsSecurityCodeLabel": "Security code",
   "majObligatoireTitre": "Update required",
   "majObligatoireTexte": "This version of the app is no longer supported. Install the latest version to continue — your messages and keys stay on this device.",
@@ -5113,7 +5112,22 @@
   "mlsSecurityCodeChanged": "This device's key has changed since you verified it",
   "mlsDevicesNone": "No device registered yet. Registration happens at sign-in.",
   "mlsDevicesLoadError": "The registry could not be read. Try again later.",
-  "mlsDeviceRevokedLabel": "Revoked",
+  "mlsDeviceRevokedOn": "Revoked on {date}",
+  "@mlsDeviceRevokedOn": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "mlsDeviceLastSeen": "Last seen {date}",
+  "@mlsDeviceLastSeen": {
+    "placeholders": { "date": { "type": "String" } }
+  },
+  "mlsDevicesRevokedCount": "{count, plural, =1{1 revoked device} other{{count} revoked devices}}",
+  "@mlsDevicesRevokedCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "mlsBackupTitle": "Your encrypted conversations",
+  "mlsBackupKeysStay": "Their keys stay on this phone: they are neither backed up online nor transferable to another device. There is nothing to back up here.",
+  "mlsBackupNewPhone": "On a new phone, or after reinstalling the app, you will read messages sent after it was set up; earlier ones cannot be read there. They remain readable on the old device as long as the app stays installed.",
+  "mlsBackupRevokeHint": "Then revoke the old device.",
   "mlsDeviceRevokeConfirm": "This device will no longer be able to join encrypted conversations. Continue?",
   "rename": "Rename",
   "revokeDeviceQuestion": "Delete these keys?",
