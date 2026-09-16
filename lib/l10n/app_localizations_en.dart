@@ -91,7 +91,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwordMinHelper => 'At least 6 characters';
 
   @override
-  String get e2eeFooterNote => 'Your messages are end-to-end encrypted.';
+  String get e2eeFooterNote => 'Your messages are encrypted.';
 
   @override
   String get joinDiaspora => 'Join the Nigerien diaspora';
@@ -266,11 +266,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectedDevicesSubtitle => 'Manage your devices (max 5)';
 
   @override
-  String get endToEndEncryption => 'End-to-end encryption';
+  String get endToEndEncryption => 'Message encryption';
 
   @override
   String get e2eeDescription =>
-      'Your messages are end-to-end encrypted. Only you and your recipients can read them.';
+      'Conversations switched to end-to-end encryption can only be read by their participants: the key exists on your devices only. Other conversations are encrypted in transit and at rest, with a key held by the server — which is what lets it show notification previews.';
 
   @override
   String get createBackup => 'Create backup';
@@ -1049,7 +1049,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get faqEncryptionA =>
-      'Yes. Your conversations are end-to-end encrypted: only you and your correspondents can read them.';
+      'Yes, on two levels. A conversation switched to end-to-end encryption can only be read by its participants — the key exists on your devices only, the server never has it. Other conversations are encrypted in transit and at rest, but with a key held by the server: that is what lets it send you a message preview in a notification.';
 
   @override
   String get faqLocationQ => 'Who sees my location on the map?';
@@ -15550,7 +15550,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onbGroupsBullet1 => 'Public or private groups, your call';
 
   @override
-  String get onbGroupsBullet2 => 'End-to-end encrypted conversations';
+  String get onbGroupsBullet2 => 'Encrypted group conversations';
 
   @override
   String get onbEventsTitle => 'Take part in\nevents';

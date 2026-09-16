@@ -27,7 +27,7 @@
   "emailAddressLabel": "Email address",
   "forgotShort": "Forgot?",
   "passwordMinHelper": "At least 6 characters",
-  "e2eeFooterNote": "Your messages are end-to-end encrypted.",
+  "e2eeFooterNote": "Your messages are encrypted.",
   "joinDiaspora": "Join the Nigerien diaspora",
   "continueWithGoogle": "Continue with Google",
   "continueWithApple": "Continue with Apple",
@@ -91,8 +91,8 @@
   "keyBackupSubtitle": "Protect your encrypted messages",
   "connectedDevices": "Connected devices",
   "connectedDevicesSubtitle": "Manage your devices (max 5)",
-  "endToEndEncryption": "End-to-end encryption",
-  "e2eeDescription": "Your messages are end-to-end encrypted. Only you and your recipients can read them.",
+  "endToEndEncryption": "Message encryption",
+  "e2eeDescription": "Conversations switched to end-to-end encryption can only be read by their participants: the key exists on your devices only. Other conversations are encrypted in transit and at rest, with a key held by the server — which is what lets it show notification previews.",
   "createBackup": "Create backup",
   "restoreBackup": "Restore backup",
   "passphrase": "Passphrase",
@@ -435,7 +435,7 @@
   "searchGroup": "Search for a group...",
   "noJoinedGroups": "You haven't joined any group",
   "faqEncryptionQ": "Are my messages protected?",
-  "faqEncryptionA": "Yes. Your conversations are end-to-end encrypted: only you and your correspondents can read them.",
+  "faqEncryptionA": "Yes, on two levels. A conversation switched to end-to-end encryption can only be read by its participants — the key exists on your devices only, the server never has it. Other conversations are encrypted in transit and at rest, but with a key held by the server: that is what lets it send you a message preview in a notification.",
   "faqLocationQ": "Who sees my location on the map?",
   "faqLocationA": "Only members whose location you also see (reciprocity). You can turn it off at any time, and blocked accounts never see you.",
   "faqReportQ": "How do I report content?",
@@ -6327,7 +6327,7 @@
   "@onbGroupsBullet1": {
     "description": "Reassurance 3/5"
   },
-  "onbGroupsBullet2": "End-to-end encrypted conversations",
+  "onbGroupsBullet2": "Encrypted group conversations",
   "@onbGroupsBullet2": {
     "description": "Reassurance 3/5"
   },

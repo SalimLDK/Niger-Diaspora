@@ -91,7 +91,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passwordMinHelper => 'Au moins 6 caractères';
 
   @override
-  String get e2eeFooterNote => 'Vos messages sont chiffrés de bout en bout.';
+  String get e2eeFooterNote => 'Vos messages sont chiffrés.';
 
   @override
   String get joinDiaspora => 'Rejoins la diaspora nigérienne';
@@ -268,11 +268,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get connectedDevicesSubtitle => 'Gérez vos appareils (max 5)';
 
   @override
-  String get endToEndEncryption => 'Chiffrement de bout en bout';
+  String get endToEndEncryption => 'Chiffrement des messages';
 
   @override
   String get e2eeDescription =>
-      'Vos messages sont chiffrés de bout en bout. Seuls vous et vos correspondants pouvez les lire.';
+      'Les discussions passées au chiffrement de bout en bout ne sont lisibles que par leurs participants : la clé n\'existe que sur vos appareils. Les autres conversations sont chiffrées en transit et au repos, avec une clé détenue par le serveur — c\'est ce qui lui permet d\'afficher l\'aperçu des notifications.';
 
   @override
   String get createBackup => 'Créer une sauvegarde';
@@ -1061,7 +1061,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get faqEncryptionA =>
-      'Oui. Vos conversations sont chiffrées de bout en bout : seuls vous et vos correspondants peuvent les lire.';
+      'Oui, à deux niveaux. Une discussion passée au chiffrement de bout en bout n\'est lisible que par ses participants — la clé n\'existe que sur vos appareils, le serveur ne l\'a jamais. Les autres conversations sont chiffrées en transit et au repos, mais avec une clé détenue par le serveur : c\'est ce qui lui permet de vous envoyer l\'aperçu d\'un message en notification.';
 
   @override
   String get faqLocationQ => 'Qui voit ma position sur la carte ?';
@@ -15702,7 +15702,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get onbGroupsBullet1 => 'Groupes publics ou privés, à vous de choisir';
 
   @override
-  String get onbGroupsBullet2 => 'Discussions chiffrées de bout en bout';
+  String get onbGroupsBullet2 => 'Discussions de groupe chiffrées';
 
   @override
   String get onbEventsTitle => 'Participez aux\névénements';

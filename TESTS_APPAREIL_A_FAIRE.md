@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1333 cases à cocher, 640 cochées** — 262 entrées sur 311 ont encore des cases ouvertes.
+**1338 cases à cocher, 640 cochées** — 263 entrées sur 312 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -85,7 +85,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (89)
+**P1 — fonction importante, jamais vérifiée** (90)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -115,6 +115,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 5 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)](#-une-réaction-retirée-disparaît-vraiment-de-lécran-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -322,7 +323,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 307 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 127 à faire, 40 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 132 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -6978,6 +6979,64 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)
+
+**Priorité P1** · importance 4/5 — la phrase « Vos messages sont chiffrés de
+bout en bout. Seuls vous et vos correspondants pouvez les lire » n'était vraie
+que dans les fils MLS. Pour les 121 messages `aes`, le serveur détient la
+racine des clés (`crypto-keys`) et `public.decrypt_aes_fallback` sait les lire
+— vérifié en production le 2026-09-16, la fonction existe toujours : c'est elle
+qui fabrique les aperçus push.
+
+Elle ne vivait pas seulement dans l'écran de sauvegarde, où elle se voyait le
+moins. Les huit endroits corrigés :
+
+| Surface | Avant |
+| --- | --- |
+| Écran de connexion / inscription (pied de page) | « Vos messages sont chiffrés de bout en bout. » |
+| Onboarding (pied de page + puce Groupes) | idem, plus « Discussions chiffrées de bout en bout » |
+| FAQ des Réglages | « **Oui.** Vos conversations sont chiffrées de bout en bout… » |
+| Écran Réglages › Sécurité (titre + corps de la carte) | « Chiffrement de bout en bout » |
+| `public/privacy-policy.html` et sa version anglaise | « Chiffrement de bout en bout pour les messages privés » |
+| `public/index.html`, `index-en.html`, `a-propos.html`, `fonctionnalites.html` | la même, en page d'accueil |
+
+Le parti pris : ne plus affirmer en bloc, dire les deux étages. Le chiffrement
+de bout en bout est revendiqué **là où il est vrai** — les discussions qui y
+sont passées, dont la clé n'existe que sur les appareils — et le reste est
+décrit pour ce qu'il est : chiffré en transit et au repos, avec une clé
+détenue par le serveur, ce qui est précisément ce qui permet l'aperçu des
+notifications. Le pied de page de connexion, trop court pour nuancer, dit
+simplement « Vos messages sont chiffrés ».
+
+⚠️ **Le site n'est PAS déployé** : `firebase deploy --only hosting` publie tout
+`public/` d'un coup (voir « Site web » au § 15). À faire par un aperçu, quand
+Salim l'aura relu.
+
+⚠️ **À vérifier hors du dépôt** : la déclaration « Sécurité des données » de la
+Console Play reflète probablement l'ancienne formulation. Elle ne se lit pas
+d'ici.
+
+- [ ] Écran de connexion : le pied de page tient sur **une ligne** en français
+      comme en anglais, à l'échelle de police par défaut
+- [ ] Onboarding, écran Groupes : la puce raccourcie ne casse pas l'alignement
+      des trois puces
+- [ ] FAQ › « Mes messages sont-ils protégés ? » : la réponse est bien plus
+      longue qu'avant (deux phrases au lieu d'une) — vérifier que le panneau
+      dépliant ne déborde pas, et à l'échelle de police ×2
+- [ ] Réglages › Sécurité › Sauvegarde : la carte d'en-tête tient sans
+      débordement, en clair comme en sombre
+- [ ] Les quatre écrans en **anglais** aussi (la version longue anglaise est
+      encore plus longue que la française)
+
+Voir « Les deux bandeaux de clés retirés : ils promettaient faux » juste en
+dessous : même cause, même journée.
+
+Fichiers : [app_fr.arb](lib/l10n/app_fr.arb), [app_en.arb](lib/l10n/app_en.arb),
+[privacy-policy.html](public/privacy-policy.html),
+[fonctionnalites.html](public/fonctionnalites.html)
 
 ---
 
