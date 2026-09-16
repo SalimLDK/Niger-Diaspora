@@ -382,7 +382,17 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   bool _aFaitLePlacementInitial = false;
 
   // Unread messages separator
-  int? _firstUnreadMessageIndex;
+  /// **L'identifiant** du premier message non lu, pas son rang.
+  ///
+  /// Un index est calculé sur le fil tel qu'il était à l'instant du comptage.
+  /// Dès que la lecture réseau ou la pagination complète la liste, tous les
+  /// index glissent et la condition d'affichage ne tombe plus jamais juste :
+  /// le compte reste bon — le bouton de défilement l'affichait — mais le
+  /// repère n'est plus placé nulle part. Vu à l'écran le 2026-09-16.
+  ///
+  /// Un identifiant, lui, désigne le même message quelle que soit la page
+  /// chargée.
+  String? _firstUnreadMessageId;
   int _unreadCountOnOpen = 0;
   bool _hasCalculatedUnread = false;
   bool _hasScrolledToInitialPosition = false;
@@ -746,7 +756,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     if (unreadCount > 0 && firstUnreadIndex != null) {
       setState(() {
         _unreadCountOnOpen = unreadCount;
-        _firstUnreadMessageIndex = firstUnreadIndex;
+        _firstUnreadMessageId = messages[firstUnreadIndex].id;
         _hasCalculatedUnread = true;
       });
       if (!_aFaitLePlacementInitial) {
@@ -774,7 +784,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       if (vus.nombre > 0 && vus.premier != null) {
         setState(() {
           _unreadCountOnOpen = vus.nombre;
-          _firstUnreadMessageIndex = vus.premier;
+          _firstUnreadMessageId = messages[vus.premier!].id;
           _hasCalculatedUnread = true;
         });
         if (!_aFaitLePlacementInitial) {
@@ -814,7 +824,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       if (rang != null) {
         setState(() {
           _unreadCountOnOpen = _nonLusAvantOuverture;
-          _firstUnreadMessageIndex = rang;
+          _firstUnreadMessageId = messages[rang].id;
           _hasCalculatedUnread = true;
         });
         if (!_aFaitLePlacementInitial) {
@@ -2815,12 +2825,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         //         .map((i) => i.itemId)
         //         .toSet();
 
-        // Check if we need to show unread separator
-        // In reversed list, first unread is at a different index
-        final originalIndex = reversedMessages.length - 1 - messageIndex;
+        // Le repère se reconnaît à l'identifiant du message, pas à son rang :
+        // voir [_firstUnreadMessageId]. Il survit donc à la pagination et à
+        // l'arrivée des messages manquants.
         final showUnreadSeparator =
-            _firstUnreadMessageIndex != null &&
-            originalIndex == _firstUnreadMessageIndex &&
+            _firstUnreadMessageId != null &&
+            message.id == _firstUnreadMessageId &&
             _unreadCountOnOpen > 0;
 
         // With reverse: true, separators go BEFORE the message in the Column
