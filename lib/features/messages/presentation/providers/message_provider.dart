@@ -65,11 +65,30 @@ final messageRepositoryProvider = Provider<MessageRepository>((ref) {
 
 // ============ Stream Providers ============
 
+/// La dernière émission de [conversationsProvider] vient-elle du **réseau** ?
+///
+/// `false` tant que seule la copie Hive a été rendue, `true` dès la première
+/// émission du flux Supabase. La distinction ne sert qu'à une décision, celle
+/// de `EnsureSelfNotesNotifier.ouvrir` : une conversation portée par le flux
+/// vivant existe encore côté serveur — il la retire dès qu'elle disparaît —
+/// alors qu'une conversation venue du cache peut être un fantôme, et c'est
+/// exactement ce fantôme qui a coûté la panne du 2026-08-06.
+///
+/// Remis à `false` à chaque (re)construction du flux : le tirer-pour-
+/// rafraîchir de `messages_screen.dart` invalide [conversationsProvider], qui
+/// repart alors sur son cache. Sans cette remise à zéro, la fenêtre entre le
+/// cache et le réseau se lirait comme une confirmation du serveur.
+final conversationsDepuisReseauProvider = StateProvider<bool>((ref) => false);
+
 /// Stream des conversations de l'utilisateur (cache-first)
 final conversationsProvider = StreamProvider<List<ConversationEntity>>((ref) async* {
   // Attendre que l'utilisateur soit completement resolu
   // Utiliser .future pour attendre la premiere valeur du stream
   final currentUser = await ref.watch(currentUserProvider.future);
+
+  // Après l'`await` : on n'est plus dans la phase de construction synchrone,
+  // écrire dans un autre provider est sans danger ici.
+  ref.read(conversationsDepuisReseauProvider.notifier).state = false;
 
   if (currentUser == null) {
     yield [];
@@ -99,8 +118,10 @@ final conversationsProvider = StreamProvider<List<ConversationEntity>>((ref) asy
   yield* repository
       .getConversations(currentUser.id)
       .map(
-        (either) =>
-            either.fold((failure) => throw failure, (conversations) => conversations),
+        (either) => either.fold((failure) => throw failure, (conversations) {
+          ref.read(conversationsDepuisReseauProvider.notifier).state = true;
+          return conversations;
+        }),
       );
 });
 
@@ -2025,6 +2046,49 @@ class EnsureSelfNotesNotifier extends StateNotifier<AsyncValue<ConversationEntit
 
   EnsureSelfNotesNotifier(this._ref) : super(const AsyncValue.data(null));
 
+  /// Ouvre « Mes notes » : sans attendre quand le serveur a déjà confirmé,
+  /// par [ensure] sinon.
+  ///
+  /// Toutes les autres discussions de la liste s'ouvrent d'un `context.push`
+  /// synchrone. « Mes notes » était la seule à faire un aller-retour **avant**
+  /// de pousser l'écran : un spinner sur la tuile à chaque ouverture, et la
+  /// tuile intouchable le temps de la requête.
+  ///
+  /// Le raccourci d'origine, retiré le 2026-08-06, faisait confiance au
+  /// **cache Hive** : une conversation effacée côté serveur y reste, on
+  /// ouvrait un document fantôme, et tout envoi échouait ensuite
+  /// (« Non envoyé · Réessayer »). C'est cette source-là qui était fautive,
+  /// pas le principe du raccourci — [conversationsDepuisReseauProvider]
+  /// distingue maintenant les deux, et seule celle du serveur fait passer.
+  Future<ConversationEntity?> ouvrir() async {
+    final sure = conversationSure(
+      listeDepuisReseau: _ref.read(conversationsDepuisReseauProvider),
+      deLaListe: _ref.read(selfNotesConversationProvider),
+      deLaDerniereReponse: state.valueOrNull,
+    );
+    if (sure != null) return sure;
+    return ensure();
+  }
+
+  /// La règle seule, sans providers — pour pouvoir la tenir par un test.
+  ///
+  /// `null` = rien de sûr sous la main, il faut interroger le serveur.
+  @visibleForTesting
+  static ConversationEntity? conversationSure({
+    required bool listeDepuisReseau,
+    required ConversationEntity? deLaListe,
+    required ConversationEntity? deLaDerniereReponse,
+  }) {
+    // La liste vivante d'abord : c'est la seule des deux sources qui sache
+    // qu'une conversation vient d'être supprimée. Son `null` n'est donc pas
+    // une ignorance, c'est une absence constatée — à [ensure] de créer.
+    if (listeDepuisReseau) return deLaListe;
+    // Liste encore sur sa copie Hive (démarrage à froid, hors ligne) : la
+    // dernière réponse du serveur obtenue dans cette session fait foi. Le
+    // notifier n'est pas `autoDispose`, elle vaut pour tout le processus.
+    return deLaDerniereReponse;
+  }
+
   Future<ConversationEntity?> ensure() async {
     final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return null;
@@ -2039,8 +2103,12 @@ class EnsureSelfNotesNotifier extends StateNotifier<AsyncValue<ConversationEntit
     // (« Non envoyé · Réessayer », observé sur appareil le 2026-08-06).
     //
     // `getOrCreateSelfConversation` est justement idempotent : il retrouve la
-    // conversation si elle existe, la recrée sinon. Une requête par ouverture
-    // de « Mes notes » est un prix raisonnable pour ne pas écrire dans le vide.
+    // conversation si elle existe, la recrée sinon.
+    //
+    // Ce garde-fou vaut toujours, et [ouvrir] ne le contredit pas : le
+    // raccourci qu'elle rétablit ne lit jamais le cache, seulement une liste
+    // dont [conversationsDepuisReseauProvider] atteste qu'elle vient du flux
+    // vivant. Quand cette attestation manque, on retombe ici.
     state = const AsyncValue.loading();
     final result = await _ref
         .read(messageRepositoryProvider)
@@ -2053,7 +2121,13 @@ class EnsureSelfNotesNotifier extends StateNotifier<AsyncValue<ConversationEntit
       },
       (conversation) {
         state = AsyncValue.data(conversation);
-        _ref.invalidate(conversationsProvider);
+        // Invalider reconstruit tout l'abonnement temps réel de la liste :
+        // ne le faire que lorsqu'elle ignore la conversation, c'est-à-dire
+        // quand `getOrCreate` vient réellement de la créer. Le cas courant —
+        // elle existait déjà — ne coûte plus rien.
+        if (_ref.read(selfNotesConversationProvider)?.id != conversation.id) {
+          _ref.invalidate(conversationsProvider);
+        }
         return conversation;
       },
     );

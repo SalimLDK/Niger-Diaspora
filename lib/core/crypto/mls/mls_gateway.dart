@@ -5,6 +5,7 @@ import 'mls_conversation_service.dart';
 import 'mls_delivery.dart';
 import 'mls_message_mapper.dart';
 import 'mls_metadonnees.dart';
+import 'mls_notification_preview.dart';
 import 'mls_payload_codec.dart';
 
 /// Le point d'entrée unique de MLS pour la couche messages (plan MLS § 7.3).
@@ -573,6 +574,39 @@ class MlsGateway {
 
   /// Les compteurs de non-lus des conversations basculées, depuis la vue.
   Future<Map<String, ({int nonLus, int mentions})>> nonLus() => _meta.nonLus();
+
+  /// L'aperçu du dernier message de chaque conversation basculée, **sans
+  /// ouvrir la discussion**.
+  ///
+  /// Un message reçu pendant que la discussion est fermée n'est jamais
+  /// déchiffré par le fil : la liste affichait donc « Message chiffré »
+  /// indéfiniment. Constaté le 2026-09-15 sur Pixel 10 Pro XL — un message
+  /// de 21:23 encore illisible à 21:33, app ouverte, liste à l'écran.
+  ///
+  /// Le clair existe pourtant déjà sur l'appareil : l'isolate de notification
+  /// l'a déchiffré à l'arrivée du push, via `apercuSansEtat` — une **copie
+  /// jetable** côté Rust, qui n'avance pas le cliquet. C'est ce qui rend cette
+  /// lecture sûre : on ne déchiffre rien ici, on relit ce qui l'a déjà été.
+  /// L'app reste le seul écrivain de l'état MLS.
+  ///
+  /// Limite assumée : sans push reçu (notifications coupées, message d'un
+  /// epoch que l'isolate n'a pas su traiter), il n'y a rien à relire et le
+  /// libellé générique reste. C'est un progrès, pas une garantie.
+  Future<Map<String, String>> apercusDejaDechiffres() async {
+    try {
+      final derniers = await _meta.derniersMessages();
+      if (derniers.isEmpty) return const {};
+      final sortie = <String, String>{};
+      for (final e in derniers.entries) {
+        final texte = await MlsNotificationPreview.apercuCache(e.value);
+        if (texte != null && texte.isNotEmpty) sortie[e.key] = texte;
+      }
+      return sortie;
+    } catch (e) {
+      debugPrint('MlsGateway: aperçus indisponibles ($e)');
+      return const {};
+    }
+  }
 
   Future<String> _nom(String id) async {
     if (id == userId) return '';

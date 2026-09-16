@@ -454,4 +454,39 @@ class MlsMetadonnees {
       return const {};
     }
   }
+
+  /// Le dernier message de contenu de chaque conversation basculée, du plus
+  /// récent au plus ancien, réduit à un identifiant par conversation.
+  ///
+  /// Sert à retrouver l'aperçu déjà déchiffré par l'isolate de notification,
+  /// qui le range par identifiant de message. On ne demande **que** les
+  /// colonnes de métadonnées : le ciphertext ne sort pas d'ici.
+  ///
+  /// Une seule requête pour toute la liste, bornée : au-delà, les
+  /// conversations concernées sont de toute façon plus anciennes que ce que
+  /// l'écran montre en premier.
+  Future<Map<String, String>> derniersMessages({int limite = 200}) async {
+    try {
+      await _auth();
+      final rows = await _client
+          .from('mls_messages')
+          .select('id, conversation_id, created_at')
+          .eq('kind', 'content')
+          .eq('is_deleted', false)
+          .order('created_at', ascending: false)
+          .limit(limite);
+      final dernier = <String, String>{};
+      for (final r in (rows as List).cast<Map<String, dynamic>>()) {
+        final conv = r['conversation_id'] as String?;
+        final id = r['id'] as String?;
+        if (conv == null || id == null) continue;
+        // Tri décroissant : la première vue est la plus récente.
+        dernier.putIfAbsent(conv, () => id);
+      }
+      return dernier;
+    } catch (e) {
+      debugPrint('MlsMetadonnees: derniers messages illisibles ($e)');
+      return const {};
+    }
+  }
 }

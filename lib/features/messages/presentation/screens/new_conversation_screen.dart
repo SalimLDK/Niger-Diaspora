@@ -174,7 +174,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
   /// déjà chargée. Même flux que la tuile épinglée de MessagesScreen.
   Future<void> _openSelfNotes() async {
     final conversation =
-        await ref.read(ensureSelfNotesProvider.notifier).ensure();
+        await ref.read(ensureSelfNotesProvider.notifier).ouvrir();
     if (!mounted) return;
     if (conversation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
