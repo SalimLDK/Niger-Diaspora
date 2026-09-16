@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1237 cases à cocher, 619 cochées** — 248 entrées sur 297 ont encore des cases ouvertes.
+**1238 cases à cocher, 621 cochées** — 248 entrées sur 297 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (35)
 
-- 7 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
+- 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
 - 4 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
@@ -306,7 +306,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 264 à faire, 107 faites
+- [2. Messagerie](#2-messagerie) — 265 à faire, 109 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -604,9 +604,39 @@ Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens
 (10 cas). Diagnostic serveur :
 `supabase db query --linked -f supabase/diagnostics/2026-09-15_non_lus_mls.sql`.
 
-- [ ] **La pastille revient** : depuis un second compte, envoyer un message
-  sans ouvrir la discussion sur l'appareil cible. La tuile doit porter sa
-  pastille de non-lus, et l'onglet Messages son badge.
+- [x] **La pastille revient** : vérifié le 2026-09-15 sur Pixel 10 Pro XL.
+  Deux messages reçus de Sim A sans ouvrir la discussion → pastille « 2 » sur
+  la tuile, puce « Non lus 3 », badge « 3 » sur l'onglet Messages. ⚠️ **Mais
+  la cause n'était pas celle annoncée** : voir « ce que j'avais dit à tort »
+  ci-dessous. À refaire une fois le correctif de la course livré, pour
+  s'assurer que la pastille tombe **aussi** quand on ouvre.
+- [x] **L'aperçu chiffré arrive sans ouvrir** : vérifié, « Hccuycyfyfyf » puis
+  « Fghg » s'affichent dans la tuile. ⚠️ Mais **un rafraîchissement en
+  retard** : l'isolate met l'aperçu en cache après l'émission de la liste. Le
+  texte n'apparaissait qu'après un « tirer pour rafraîchir ». Corrigé par une
+  seconde lecture bornée (400 ms) — à revérifier.
+
+**Ce que j'avais dit à tort, et la vraie cause.** J'ai annoncé que « plus
+aucun reçu n'était écrit, même en ouvrant ». C'était faux : mon diagnostic
+avait lu un instantané **avant** que la livraison n'ait lieu. Les reçus
+existaient, sous le bon `user_id`, avec `delivered_at` posé. Seul `read_at`
+manquait.
+
+La cause, elle, est réelle et corrigée : `initState` lance `markAsDelivered`
+**et** `markAsRead` sans `await`. Les deux lisent « aucun reçu », le premier
+insère, le second heurte la clé primaire `(message_id, user_id)` — exception
+avalée, `read_at` jamais posé, aucun journal. C'est une **course** : une heure
+plus tôt, les mêmes reçus étaient corrects. Ni les droits ni les policies RLS
+n'y étaient pour quelque chose (vérifiés en production,
+`supabase/diagnostics/2026-09-15_droits_recus_mls.sql` et `…_rls_recus_mls.sql`).
+
+- [ ] **Après le correctif de la course** : ouvrir une discussion chiffrée
+  portant des non-lus. `read_at` doit être posé (recette :
+  `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`),
+  la pastille tomber, et l'expéditeur passer à « Lu ».
+- [ ] **Deux ouvertures de suite** : la seconde ne doit pas réécrire `read_at`
+  — « lu à 14 h 03 » ne devient pas « lu à l'instant ». C'est ce que tient le
+  filtre `read_at IS NULL`.
 - [ ] **Et l'expéditeur ne voit pas « Lu »** tant que la discussion n'a pas
   été ouverte — c'est la moitié de ce correctif qui se voit **sur l'autre
   téléphone**. Les deux appareils sont nécessaires.
