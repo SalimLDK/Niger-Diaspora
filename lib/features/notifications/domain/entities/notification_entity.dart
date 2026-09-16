@@ -120,6 +120,13 @@ enum NotificationType {
   stripeAccountEnabled,
   // Réponse du support.
   supportReply,
+  // Mention dans un message d'une conversation MUETTE : le seul cas où la
+  // sourdine cède (`notify_recipients_on_message_insert`). Type distinct de
+  // `mentioned`, qui appartient au fil et dont l'appui ouvre `/feed/<cible>` —
+  // ici la cible est une conversation. ⚠️ Transport en clair seulement : dans
+  // une conversation MLS les mentions sont dans la charge chiffrée, le serveur
+  // ne peut pas savoir qu'un message vous nomme.
+  messageMention,
 }
 
 /// Types que l'écran Notifications n'affiche pas, et que la pastille de la
@@ -239,6 +246,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'Compte de paiement actif';
       case NotificationType.supportReply:
         return 'Réponse du support';
+      case NotificationType.messageMention:
+        return 'Mention';
     }
   }
 
@@ -332,6 +341,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'verified';
       case NotificationType.supportReply:
         return 'support_agent';
+      case NotificationType.messageMention:
+        return 'alternate_email';
     }
   }
 }

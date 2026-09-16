@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1251 cases à cocher, 619 cochées** — 250 entrées sur 299 ont encore des cases ouvertes.
+**1261 cases à cocher, 619 cochées** — 251 entrées sur 300 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -81,7 +81,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (85)
+**P1 — fonction importante, jamais vérifiée** (86)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -116,6 +116,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
+- 10 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
 - 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
@@ -312,7 +313,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 101 à faire, 73 faites
+- [6. Notifications et push](#6-notifications-et-push) — 111 à faire, 73 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 38 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -8720,6 +8721,63 @@ en solo.
 # 6. Notifications et push
 
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
+
+---
+
+## ⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)
+
+**Priorité P1** · importance 4/5 — Trouvés en comparant les deux déclencheurs
+de production ligne à ligne, puis en recoupant avec les données. Aucun ne
+produisait d'erreur, c'est ce qui les avait gardés en place.
+
+**1. L'aperçu serveur ignorait les noms que l'app écrit.** Il traitait `audio`,
+que personne n'écrit ; l'application produit `voiceNote`, `audioFile`,
+`sticker`, `document`. Les quatre tombaient dans le `ELSE`. Vu en production :
+les **deux seules notifications de note vocale** disent « 🔒 Nouveau message ».
+Et en conversation claire, le `ELSE` rend `data->>'content'` — donc l'URL du
+sticker, ou la fiche du contact, dans le corps de la notification.
+
+**2. Une réaction en conversation chiffrée ne notifiait personne.**
+`mls_notify_recipients` sort sur `kind <> 'content'` et `mls_message_reactions`
+n'avait aucun déclencheur, là où le même geste en clair crée une
+`messageReaction`. ⚠️ **Le corps ne porte pas l'emoji**, contrairement au
+chemin en clair : l'emoji est déjà en clair côté serveur, mais le mettre dans
+le push le donnerait aussi à FCM, sur une conversation dont tout l'intérêt est
+l'inverse. Choix délibéré, à rediscuter si l'écart gêne.
+
+**3. Une mention en conversation muette ne prévenait personne.** La sourdine
+cède désormais pour les seules mentions, sous le type `messageMention` (et non
+`mentioned`, qui appartient au fil et dont l'appui ouvre `/feed/<cible>`).
+⚠️ **En clair seulement** : dans une conversation MLS les mentions voyagent
+dans la charge chiffrée, le serveur ne peut pas savoir qu'un message vous
+nomme. Une conversation chiffrée en sourdine reste donc silencieuse sur
+mention.
+
+Vérifié hors appareil : les deux migrations rejouées en `BEGIN … ROLLBACK`
+contre la production (les aperçus rendent les bons libellés, le déclencheur de
+réaction se crée), 16 cas dans
+`test/features/notifications/cas_messagerie_couverts_test.dart` — dont un qui
+compare la table cliente et la table serveur type par type, dans les deux
+sens. **Rien n'a tourné sur un téléphone.**
+
+Fichiers : migrations `20260916120000` et `20260916130000`,
+[notification_pref_keys.dart](lib/core/services/notification_pref_keys.dart),
+[notification_entity.dart](lib/features/notifications/domain/entities/notification_entity.dart).
+
+- [ ] **Note vocale reçue** (conversation chiffrée ET conversation claire) :
+  la bannière dit « 🎙️ Message vocal », plus « Nouveau message ».
+- [ ] **Sticker reçu en clair** : « 🎨 Sticker », et surtout **pas une URL**.
+- [ ] **Document reçu** : « 📄 <nom du fichier> ».
+- [ ] **Réagir à un message chiffré depuis l'autre téléphone** : l'auteur
+  reçoit « A réagi à votre message », **sans l'emoji**.
+- [ ] **Retirer cette réaction** : la notification disparaît de la liste.
+- [ ] **Réagir à son propre message** : aucune notification.
+- [ ] **Conversation en sourdine + mention** (conversation en clair) : la
+  bannière arrive, libellée « Mention », et l'appui ouvre **la discussion**.
+- [ ] **Conversation en sourdine sans mention** : toujours silencieuse.
+- [ ] **Conversation NON muette + mention** : une seule notification, pas deux.
+- [ ] **Conversation chiffrée en sourdine + mention** : silencieuse, et c'est
+  attendu — le noter si ça surprend à l'usage.
 
 ---
 
