@@ -152,6 +152,18 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   // For highlighting a message when scrolling to it
   String? _highlightedMessageId;
 
+  /// Ouverture de l'écran, pour borner le recompte des non-lus.
+  final DateTime _ouvertA = DateTime.now();
+
+  /// Au-delà, un message qui arrive est un message **reçu en direct** : il ne
+  /// doit pas se ranger sous un séparateur « nouveaux messages » sous les yeux
+  /// de quelqu'un qui regarde la discussion.
+  static const _fenetreRecompteNonLus = Duration(seconds: 6);
+
+  /// Le placement initial ne se fait qu'une fois, même si le comptage des
+  /// non-lus, lui, repasse : sinon la vue sauterait à chaque émission.
+  bool _aFaitLePlacementInitial = false;
+
   // Unread messages separator
   int? _firstUnreadMessageIndex;
   int _unreadCountOnOpen = 0;
@@ -497,9 +509,30 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         _firstUnreadMessageIndex = firstUnreadIndex;
         _hasCalculatedUnread = true;
       });
-      _scrollToUnreadOrBottom(firstUnreadIndex, messages.length);
-    } else {
+      if (!_aFaitLePlacementInitial) {
+        _aFaitLePlacementInitial = true;
+        _scrollToUnreadOrBottom(firstUnreadIndex, messages.length);
+      }
+      return;
+    }
+
+    // Zéro non-lu — mais sur quoi a-t-on compté ?
+    //
+    // `_loadCacheSync` affiche le cache local immédiatement et pose
+    // `isLoadingInitial: false` ; c'est voulu, l'écran ne doit pas rester
+    // vide. Seulement, les messages neufs ne sont PAS dans ce cache : sur une
+    // conversation chiffrée ils n'ont jamais été déchiffrés, et ils
+    // n'arrivent qu'après la lecture réseau. Le compte tombait donc sur zéro,
+    // `_hasCalculatedUnread` se fermait pour de bon, et rien ne recomptait
+    // quand ils arrivaient : **le séparateur ne s'affichait jamais**.
+    //
+    // On ne ferme donc le verrou qu'une fois la fenêtre d'ouverture passée.
+    // Le placement, lui, a déjà eu lieu : il ne se rejoue pas.
+    if (DateTime.now().difference(_ouvertA) >= _fenetreRecompteNonLus) {
       _hasCalculatedUnread = true;
+    }
+    if (!_aFaitLePlacementInitial) {
+      _aFaitLePlacementInitial = true;
       _scrollToUnreadOrBottom(null, messages.length);
     }
   }

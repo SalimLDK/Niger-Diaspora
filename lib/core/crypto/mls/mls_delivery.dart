@@ -212,6 +212,28 @@ class MlsDelivery {
         .maybeSingle();
   }
 
+  /// Les dates de bascule de plusieurs conversations, en une requête.
+  ///
+  /// Seules les basculées sont rendues : `mls_since` nul ne dit rien de plus
+  /// que « en clair », et la passerelle sait le déduire de l'absence.
+  Future<Map<String, DateTime>> bascules(Iterable<String> conversationIds) async {
+    final ids = conversationIds.toList(growable: false);
+    if (ids.isEmpty) return const {};
+    await _auth();
+    final rows = await _client
+        .from('conversations')
+        .select('id, mls_since')
+        .inFilter('id', ids)
+        .not('mls_since', 'is', null);
+    final sortie = <String, DateTime>{};
+    for (final r in (rows as List).cast<Map<String, dynamic>>()) {
+      final id = r['id'] as String?;
+      final date = DateTime.tryParse(r['mls_since'] as String? ?? '');
+      if (id != null && date != null) sortie[id] = date;
+    }
+    return sortie;
+  }
+
   /// Pose `mls_since` si absent. Idempotent ; le trigger refuse toute
   /// modification ultérieure.
   Future<void> marquerMlsSince(String conversationId) async {

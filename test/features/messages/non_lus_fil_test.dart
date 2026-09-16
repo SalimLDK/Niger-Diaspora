@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:diaspo_niger/core/crypto/mls/mls_message_mapper.dart';
 import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
 import 'package:diaspo_niger/features/messages/presentation/screens/conversation_screen.dart';
@@ -39,6 +41,60 @@ MessageEntity _m(
     );
 
 void main() {
+  group('le séparateur né après la lecture réseau', () {
+    // `_loadCacheSync` affiche le cache local immédiatement et pose
+    // `isLoadingInitial: false`. Les messages neufs, eux, ne sont PAS dans ce
+    // cache : sur une conversation chiffrée ils n'ont jamais été déchiffrés
+    // et n'arrivent qu'après le réseau. Le comptage tombait donc sur zéro,
+    // `_hasCalculatedUnread` se fermait pour de bon, et le séparateur
+    // « nouveaux messages » ne s'affichait jamais.
+    //
+    // Signalé à l'usage le 2026-09-15, en même temps que le délai avant que
+    // le message neuf lui-même apparaisse — c'est la même cause.
+    //
+    // Limite assumée, comme le reste de ce fichier : ces tests lisent la
+    // source. Monter `ConversationScreen` demande GoRouter, une session
+    // Supabase et une dizaine de providers.
+    late String source;
+
+    setUpAll(() {
+      final fichier = File(
+        'lib/features/messages/presentation/screens/conversation_screen.dart',
+      );
+      expect(fichier.existsSync(), isTrue, reason: 'écran introuvable');
+      source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
+    });
+
+    test('zéro non-lu ne ferme plus le verrou immédiatement', () {
+      // Le verrou ne se ferme qu'une fois la fenêtre d'ouverture passée.
+      expect(
+        source,
+        contains(
+          "if (DateTime.now().difference(_ouvertA) >= _fenetreRecompteNonLus) {",
+        ),
+        reason: 'le comptage se refermerait sur le cache seul',
+      );
+    });
+
+    test('la fenêtre de recompte est bornée', () {
+      // Sans borne, un message reçu en direct se rangerait sous un séparateur
+      // « nouveaux messages » sous les yeux de qui regarde la discussion.
+      expect(source, contains('_fenetreRecompteNonLus = Duration(seconds:'));
+    });
+
+    test('le placement initial ne se rejoue pas à chaque recompte', () {
+      // Sinon la vue sauterait à chaque émission pendant la fenêtre.
+      expect(source, contains('bool _aFaitLePlacementInitial = false;'));
+      final debut = source.indexOf('void _calculateUnreadOnOpen()');
+      final corps = source.substring(debut, debut + 2200);
+      expect(
+        '_aFaitLePlacementInitial'.allMatches(corps).length,
+        greaterThanOrEqualTo(4),
+        reason: 'les deux branches doivent garder le placement',
+      );
+    });
+  });
+
   const moi = 'uid-moi';
 
   group('compterNonLus', () {
