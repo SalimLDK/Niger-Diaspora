@@ -15,6 +15,7 @@ import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/design_kit.dart';
+import 'messages_skeleton.dart';
 
 class ConversationItem extends ConsumerStatefulWidget {
   final ConversationEntity conversation;
@@ -101,6 +102,7 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
     bool isBlocked = false;
     String? otherUserId;
     dynamic otherProfile;
+    AsyncValue<dynamic>? profilAsync;
 
     if (conversation.isIndividual) {
       otherUserId = conversation.getOtherParticipantId(currentUserId);
@@ -113,7 +115,8 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
       // ouvrir un flux dessus interroge `users` sur `id = ''`, ne renvoie
       // jamais rien, et coûte une relecture de confirmation à chaque fois.
       if (otherUserId.isNotEmpty) {
-        otherProfile = ref.watch(userStreamProvider(otherUserId)).valueOrNull;
+        profilAsync = ref.watch(userStreamProvider(otherUserId));
+        otherProfile = profilAsync!.valueOrNull;
       }
       // They blocked me — le test disait en réalité « j'ai bloqué l'autre »,
       // et lisait un champ toujours vide.
@@ -151,6 +154,21 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
         photoUrl = conversation.imageUrl;
       }
     }
+
+    // « Utilisateur » n'est pas un nom : c'est l'aveu qu'on n'en a pas encore.
+    // Au démarrage à froid, le flux de profil part vide et TOUTES les lignes
+    // à tête-tête l'affichaient — avec l'initiale « U » dans l'avatar — avant
+    // de basculer sur le vrai nom. Mesuré le 2026-09-15 sur Pixel 10 Pro XL.
+    //
+    // La condition porte sur `isLoading`, jamais sur « profil nul » : une fois
+    // la lecture terminée sans profil (compte supprimé, identifiant inconnu),
+    // « Utilisateur » est la réponse honnête et doit s'afficher. Sinon la ligne
+    // resterait grise à vie.
+    final identiteEnAttente =
+        conversation.isIndividual &&
+        otherProfile == null &&
+        (profilAsync?.isLoading ?? false) &&
+        (conversation.name == null || conversation.name!.isEmpty);
 
     // Indicateur de frappe dans la liste (façon WhatsApp/Telegram) : remplace
     // l'aperçu du dernier message tant que l'autre écrit.
@@ -249,13 +267,16 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
                 const SizedBox(width: 12),
               ],
               // Avatar with online indicator
-              _buildAvatar(
-                context,
-                photoUrl,
-                displayName,
-                otherUserId,
-                isVerified: otherProfile?.isVerified ?? false,
-              ),
+              if (identiteEnAttente)
+                const SkeletonBlock(width: 50, height: 50, radius: 17)
+              else
+                _buildAvatar(
+                  context,
+                  photoUrl,
+                  displayName,
+                  otherUserId,
+                  isVerified: otherProfile?.isVerified ?? false,
+                ),
               const SizedBox(width: 14),
               // Contenu
               Expanded(
@@ -265,16 +286,27 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
                     Row(
                       children: [
                         Expanded(
-                          child: _HighlightedName(
-                            text: displayName,
-                            highlight: widget.highlight,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight:
-                                  hasUnread ? FontWeight.w700 : FontWeight.w600,
-                              color: context.textPrimaryColor,
-                            ),
-                          ),
+                          child:
+                              identiteEnAttente
+                                  ? const Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: SkeletonBlock(
+                                      width: 132,
+                                      height: 14,
+                                    ),
+                                  )
+                                  : _HighlightedName(
+                                    text: displayName,
+                                    highlight: widget.highlight,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight:
+                                          hasUnread
+                                              ? FontWeight.w700
+                                              : FontWeight.w600,
+                                      color: context.textPrimaryColor,
+                                    ),
+                                  ),
                         ),
                         const SizedBox(width: 8),
                         // Pin indicator

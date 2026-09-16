@@ -292,7 +292,25 @@ class MessageRepositoryImpl implements MessageRepository {
               .map((model) => model.toEntity())
               .toList();
 
-      return Right(_dedupConversationsByPair(entities));
+      // Même reconstruction d'aperçu que le chemin live
+      // (`_completerAvecMls`), et pour la même raison : une conversation
+      // basculée n'a **jamais** de `lastMessage` en base — le serveur n'en
+      // voit pas le clair. Le texte vient du cache local déchiffré.
+      //
+      // Sans ce passage ici, c'est l'émission du cache qui s'affiche en
+      // premier au démarrage — elle gagne toujours, le flux réseau arrive
+      // 1 à 3 s plus tard — et chaque discussion chiffrée annonçait
+      // « Message chiffré » pendant tout ce temps, alors que l'appareil
+      // avait le texte sous la main. Mesuré le 2026-09-15 sur Pixel 10 Pro
+      // XL : encore faux à t+0,8 s, juste à t+3,2 s.
+      //
+      // Purement local et synchrone : aucune lecture réseau n'est ajoutée au
+      // chemin hors ligne.
+      final avecApercu = [
+        for (final c in _dedupConversationsByPair(entities))
+          _apercuDepuisLeCache(c),
+      ];
+      return Right(avecApercu);
     } catch (e) {
       return Left(CacheFailure(e.toString()));
     }
