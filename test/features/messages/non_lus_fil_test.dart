@@ -28,6 +28,7 @@ MessageEntity _m(
   String expediteur, {
   List<String> lu = const [],
   MessageType type = MessageType.text,
+  DateTime? quand,
 }) =>
     MessageEntity(
       id: id,
@@ -36,11 +37,104 @@ MessageEntity _m(
       content: id,
       type: type,
       status: MessageStatus.sent,
-      createdAt: DateTime.utc(2026, 9, 15),
+      createdAt: quand ?? DateTime.utc(2026, 9, 15),
       readBy: lu,
     );
 
 void main() {
+  group('compterDepuis', () {
+    // Le seul repère fiable pour le séparateur. Les deux autres mentent :
+    // l'état de lecture est déjà faussé quand le fil arrive (`markAsRead` part
+    // au premier rendu), et le compteur de la liste met quelques secondes à
+    // retomber à zéro — s'y fier faisait réapparaître « N non lus » en
+    // rouvrant une discussion qu'on venait de lire.
+    final visite = DateTime.utc(2026, 9, 15, 12);
+
+    test('compte ce qui est arrivé après, et donne son rang', () {
+      final fil = [
+        _m('vieux', 'autre', quand: DateTime.utc(2026, 9, 15, 11)),
+        _m('a', 'autre', quand: DateTime.utc(2026, 9, 15, 13)),
+        _m('b', 'autre', quand: DateTime.utc(2026, 9, 15, 14)),
+      ];
+
+      final vus = compterDepuis(fil, 'moi', visite);
+      expect(vus.nombre, 2);
+      expect(vus.premier, 1);
+    });
+
+    test('rien depuis la visite : aucun séparateur', () {
+      final fil = [
+        _m('vieux', 'autre', quand: DateTime.utc(2026, 9, 15, 11)),
+      ];
+
+      final vus = compterDepuis(fil, 'moi', visite);
+      expect(vus.nombre, 0);
+      expect(vus.premier, isNull);
+    });
+
+    test('mes propres messages ne comptent pas', () {
+      final fil = [
+        _m('a', 'moi', quand: DateTime.utc(2026, 9, 15, 13)),
+        _m('b', 'autre', quand: DateTime.utc(2026, 9, 15, 14)),
+      ];
+
+      final vus = compterDepuis(fil, 'moi', visite);
+      expect(vus.nombre, 1);
+      expect(vus.premier, 1);
+    });
+
+    test('un message système ne compte pas', () {
+      final fil = [
+        MlsMessageMapper.separateur(DateTime.utc(2026, 9, 15, 13)),
+        _m('a', 'autre', quand: DateTime.utc(2026, 9, 15, 14)),
+      ];
+
+      final vus = compterDepuis(fil, 'moi', visite);
+      expect(vus.nombre, 1);
+      expect(vus.premier, 1);
+    });
+
+    test('la borne est stricte : un message à l\'instant pile ne compte pas', () {
+      // La visite est écrite en quittant l'écran ; ce qui porte exactement
+      // cette date a été vu.
+      final fil = [_m('a', 'autre', quand: visite)];
+
+      expect(compterDepuis(fil, 'moi', visite).nombre, 0);
+    });
+  });
+
+  group('le repère de dernière visite', () {
+    late String source;
+
+    setUpAll(() {
+      final fichier = File(
+        'lib/features/messages/presentation/screens/conversation_screen.dart',
+      );
+      expect(fichier.existsSync(), isTrue, reason: 'écran introuvable');
+      source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
+    });
+
+    test('la visite est écrite en QUITTANT, pas à l\'ouverture', () {
+      // Écrite à l'ouverture, elle exclurait ce qui arrive pendant la lecture.
+      final debut = source.indexOf('void dispose() {');
+      expect(debut, isNot(-1));
+      expect(source.substring(debut, debut + 600), contains('_noterVisite()'));
+    });
+
+    test('le compteur de la liste ne sert qu\'à la première ouverture', () {
+      // C'est lui qui faisait réapparaître le séparateur après lecture.
+      final debut = source.indexOf('final depuis = _derniereVisite;');
+      expect(debut, isNot(-1), reason: 'le repère de visite a disparu');
+
+      final apres = source.indexOf('_nonLusAvantOuverture > 0', debut);
+      expect(
+        apres,
+        isNot(-1),
+        reason: 'le repli sur le compteur doit rester, mais APRES',
+      );
+    });
+  });
+
   group('rangDesDerniersDAutrui', () {
     // Quand `markAsRead` a déjà tout marqué lu — il part au premier rendu,
     // avant même que le fil chiffré ne soit récupéré — l'état de lecture ne
