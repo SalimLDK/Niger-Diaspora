@@ -170,6 +170,41 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   // Track app lifecycle state to prevent marking as read when in background
   bool _isAppInForeground = true;
 
+  /// Cette discussion est-elle **réellement à l'écran** ?
+  ///
+  /// `_isAppInForeground` ne suffit pas, et la différence coûtait un accusé de
+  /// lecture mensonger. `StatefulShellRoute` garde les branches **montées**
+  /// quand on change d'onglet : une discussion ouverte puis quittée par
+  /// l'onglet Accueil reste vivante, son `didChangeAppLifecycleState` et son
+  /// `ref.listen` continuent de tourner, et marquaient lu tout ce qui
+  /// arrivait — sans que personne ne regarde.
+  ///
+  /// Mesuré le 2026-09-15 sur Pixel 10 Pro XL : `read_at` posé **une seconde
+  /// après** `delivered_at`, en lot, sur trois messages dont la discussion
+  /// n'était pas affichée. Côté expéditeur, « Lu » sur des messages jamais
+  /// lus ; côté destinataire, plus aucune pastille de non-lus, jamais.
+  ///
+  /// On interroge l'emplacement **global** du routeur, pas
+  /// `ModalRoute.isCurrent` : ce dernier est vrai aussi dans une branche
+  /// d'onglet inactive, où la route reste en tête de SON navigateur.
+  bool get _estAffichee {
+    if (!mounted) return false;
+    try {
+      final uri = GoRouter.of(context)
+          .routerDelegate
+          .currentConfiguration
+          .uri
+          .toString();
+      return uri == '/messages/${widget.conversationId}' ||
+          uri.startsWith('/messages/${widget.conversationId}?') ||
+          uri.startsWith('/messages/${widget.conversationId}/');
+    } catch (_) {
+      // Pas de routeur au-dessus (test qui monte l'écran seul) : on ne bloque
+      // pas le comportement historique.
+      return true;
+    }
+  }
+
   // --- Nature réelle de la conversation --------------------------------
   // `widget.isGroup` / `widget.groupId` viennent de `state.extra`, posé par la
   // tuile de la liste des messages. Ouverte par LIEN PROFOND ou par
@@ -521,8 +556,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // Track foreground state to prevent marking messages as read when in background
     if (state == AppLifecycleState.resumed) {
       _isAppInForeground = true;
+      // « Livré » vaut dès que l'appareil a le message : il n'a pas à
+      // attendre qu'on regarde. « Lu », si.
       ref.read(markAsDeliveredProvider.notifier).mark(widget.conversationId);
-      ref.read(markAsReadProvider.notifier).mark(widget.conversationId);
+      if (_estAffichee) {
+        ref.read(markAsReadProvider.notifier).mark(widget.conversationId);
+      }
       setState(() {
         // Force rebuild to update date labels like "Aujourd'hui", "Hier"
       });
@@ -1456,10 +1495,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         _calculateUnreadOnOpen();
       }
 
-      // Mark new messages as read only if app is in foreground
+      // Marquer lu à l'arrivée d'un message demande les DEUX conditions :
+      // l'app au premier plan, et cette discussion effectivement affichée.
+      // Voir [_estAffichee] pour ce que la seconde a coûté.
       if (previous != null &&
           next.messages.length > previous.messages.length &&
-          _isAppInForeground) {
+          _isAppInForeground &&
+          _estAffichee) {
         final currentUserId = currentUser?.id;
         if (currentUserId != null) {
           // Check if there are new messages from other users

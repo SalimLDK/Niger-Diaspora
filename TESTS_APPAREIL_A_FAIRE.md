@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1237 cases à cocher, 619 cochées** — 248 entrées sur 297 ont encore des cases ouvertes.
+**1244 cases à cocher, 619 cochées** — 249 entrées sur 298 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (34)
+**P0 — avant toute nouvelle version** (35)
 
+- 7 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
 - 4 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
@@ -306,7 +307,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 264 à faire, 107 faites
+- [2. Messagerie](#2-messagerie) — 271 à faire, 107 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 118 à faire, 39 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -609,6 +610,67 @@ Fichiers : [message_provider.dart](lib/features/messages/presentation/providers/
 (`conversationsDepuisReseauProvider`, `EnsureSelfNotesNotifier.ouvrir`),
 [messages_screen.dart](lib/features/messages/presentation/screens/messages_screen.dart),
 [new_conversation_screen.dart](lib/features/messages/presentation/screens/new_conversation_screen.dart)
+
+---
+
+## ⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)
+
+**Priorité P0** · importance 5/5 — deux défauts trouvés en regardant la liste
+des discussions sur Pixel 10 Pro XL pendant qu'un autre compte envoyait des
+messages. Aucun des deux correctifs n'est vérifié sur appareil : le téléphone
+était en cours d'utilisation quand ils ont été écrits.
+
+**1. « Lu » posé sans que personne ne regarde.** Mesuré en base :
+
+| message | `delivered_at` | `read_at` |
+|---|---|---|
+| 01:23:11 | 01:31:52 | 01:31:53 |
+| 01:29:46 | 01:31:52 | 01:31:53 |
+| 01:29:58 | 01:31:52 | 01:31:53 |
+
+Une seconde après la livraison, en lot, sur des messages dont la discussion
+n'était pas affichée. `StatefulShellRoute` garde les branches **montées** au
+changement d'onglet : une discussion ouverte puis quittée par l'onglet Accueil
+continuait de marquer lu. Côté expéditeur, « Lu » sur des messages jamais lus ;
+côté destinataire, **plus aucune pastille de non-lus, jamais**.
+
+**2. « Message chiffré » indéfiniment.** Un message reçu sans ouvrir la
+discussion n'est jamais déchiffré : un message de 21:23 était encore illisible
+à 21:33, app ouverte et liste à l'écran. La liste relit désormais l'aperçu que
+l'isolate de notification a déchiffré à la réception (copie jetable côté Rust,
+le cliquet n'avance pas).
+
+Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
+(`_estAffichee`), [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
+(`apercuDepuisNotification`), [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
+(`apercusDejaDechiffres`), [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
+(`derniersMessages`). Tenus par
+[apercu_hors_discussion_test.dart](test/features/messages/apercu_hors_discussion_test.dart)
+(10 cas). Diagnostic serveur :
+`supabase db query --linked -f supabase/diagnostics/2026-09-15_non_lus_mls.sql`.
+
+- [ ] **La pastille revient** : depuis un second compte, envoyer un message
+  sans ouvrir la discussion sur l'appareil cible. La tuile doit porter sa
+  pastille de non-lus, et l'onglet Messages son badge.
+- [ ] **Et l'expéditeur ne voit pas « Lu »** tant que la discussion n'a pas
+  été ouverte — c'est la moitié de ce correctif qui se voit **sur l'autre
+  téléphone**. Les deux appareils sont nécessaires.
+- [ ] **Le piège exact du défaut** : ouvrir la discussion, revenir par
+  l'**onglet Accueil** (pas par la flèche retour — elle démonte l'écran, le
+  bug ne se reproduit pas), laisser arriver un message. Il doit rester non lu.
+- [ ] **Puis revenir à la discussion** : elle doit se marquer lue
+  immédiatement. Le garde ne doit pas empêcher la lecture normale.
+- [ ] **Mettre l'app en arrière-plan puis revenir**, discussion affichée :
+  `didChangeAppLifecycleState` doit bien marquer lu dans ce cas-là.
+- [ ] **L'aperçu chiffré arrive sans ouvrir** : la tuile doit montrer le texte
+  du message, pas « Message chiffré ». ⚠️ Ne marche que si le **push a été
+  reçu** : vérifier notifications activées, et que le réglage « aperçu des
+  messages » est ON (sinon l'isolate ne déchiffre pas, par respect du
+  réglage).
+- [ ] **Supprimer pour tout le monde son dernier message** : la liste ne doit
+  **pas** faire réapparaître le texte par l'aperçu de notification, qui a été
+  posé avant la suppression. C'est le cas le plus dangereux du lot, et le test
+  le tient hors appareil.
 
 ---
 

@@ -172,7 +172,7 @@ class MessageRepositoryImpl implements MessageRepository {
     String userId,
     List<ConversationEntity> liste,
   ) async {
-    final avecApercu = [for (final c in liste) _apercuDepuisLeCache(c)];
+    var avecApercu = [for (final c in liste) _apercuDepuisLeCache(c)];
 
     final passerelle = mlsGateway;
     // Inerte tant que rien n'est basculé et que le drapeau est fermé : pas
@@ -182,6 +182,28 @@ class MessageRepositoryImpl implements MessageRepository {
         (!passerelle.actif && !passerelle.aDesConversationsBasculees)) {
       return avecApercu;
     }
+    // Ce que le cache local ne pouvait pas donner : l'aperçu d'un message
+    // reçu **sans que la discussion ait été ouverte**. Le fil est le seul à
+    // déchiffrer, donc ces messages-là restaient « Message chiffré » pour
+    // toujours — dix minutes vérifiées le 2026-09-15 sur Pixel 10 Pro XL,
+    // app ouverte. L'isolate de notification, lui, les a déchiffrés à leur
+    // arrivée sur une copie jetable ; on relit son résultat.
+    //
+    // Appliqué **après** `_apercuDepuisLeCache` et seulement là où il n'a rien
+    // trouvé : le cache du fil reste prioritaire, car il connaît les
+    // suppressions et les expirations que l'aperçu de notification ignore.
+    try {
+      final apercus = await passerelle.apercusDejaDechiffres();
+      if (apercus.isNotEmpty) {
+        avecApercu = [
+          for (final c in avecApercu) apercuDepuisNotification(c, apercus[c.id]),
+        ];
+      }
+    } catch (e) {
+      dev.log('Aperçus MLS indisponibles',
+          name: 'message_repository_impl', error: e);
+    }
+
     try {
       final compteurs = await passerelle.nonLus();
       if (compteurs.isEmpty) return avecApercu;
@@ -213,6 +235,31 @@ class MessageRepositoryImpl implements MessageRepository {
   /// message caché : l'égalité est franche, pas approchée.
   ConversationEntity _apercuDepuisLeCache(ConversationEntity c) =>
       apercuDepuisCache(c, () => cacheService.getCachedMessages(c.id));
+
+  /// Complète l'aperçu avec le texte déchiffré par l'isolate de notification,
+  /// et seulement quand il n'y a rien d'autre à montrer.
+  ///
+  /// La règle seule, sans réseau. Trois refus, chacun pour une raison :
+  ///
+  /// - **un aperçu existe déjà** : le cache du fil est prioritaire, il
+  ///   connaît les éditions que l'aperçu de notification ignore ;
+  /// - **la base dit pourquoi l'aperçu est vide** (`apercuEfface`) : un
+  ///   message supprimé ou expiré ne doit surtout pas revenir par cette
+  ///   porte. L'aperçu de notification a été posé à la **réception**, avant
+  ///   la suppression : c'est exactement le texte qu'on vient de retirer ;
+  /// - **rien n'a jamais été envoyé** (`lastMessageAt` nul) : il n'y a pas de
+  ///   dernier message à résumer.
+  @visibleForTesting
+  static ConversationEntity apercuDepuisNotification(
+    ConversationEntity c,
+    String? texte,
+  ) {
+    if (texte == null || texte.isEmpty) return c;
+    if ((c.lastMessage ?? '').isNotEmpty) return c;
+    if (c.lastMessageAt == null) return c;
+    if (c.apercuEfface != ApercuEfface.aucun) return c;
+    return c.copyWith(lastMessage: texte);
+  }
 
   /// La règle seule, sans cache ni base — pour pouvoir la tenir par un test.
   /// Le cache n'est lu que si la conversation en a besoin.
