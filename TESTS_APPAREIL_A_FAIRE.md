@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1288 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
+**1292 cases à cocher, 632 cochées** — 254 entrées sur 303 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (36)
+**P0 — avant toute nouvelle version** (37)
 
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
@@ -69,6 +69,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
+- 9 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
 - 6 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06) · *Chiffrement de bout en bout et clés*
@@ -82,7 +83,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (87)
+**P1 — fonction importante, jamais vérifiée** (86)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -165,7 +166,6 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Notice « une nouvelle version est disponible » (2026-09-14)](#-notice--une-nouvelle-version-est-disponible--2026-09-14) · *Publication et plateformes*
 - 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
 - 3 · [Messagerie (hors refonte Fil & Discussion)](#messagerie-hors-refonte-fil--discussion) · *Messagerie* · bloqué
-- 5 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
 - 11 · [Groupes — « Découvrir » lisait le mauvais backend (2026-08-06)](#groupes---découvrir--lisait-le-mauvais-backend-2026-08-06) · *Groupes*
 - 6 · [Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06)](#demandes-dadhésion--brancher-supabase-navait-pas-suffi-2026-08-06) · *Groupes* · bloqué
 - 1 · [La porte d'entrée des groupes était grande ouverte (2026-08-06)](#la-porte-dentrée-des-groupes-était-grande-ouverte-2026-08-06) · *Groupes* · bloqué
@@ -312,7 +312,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 272 à faire, 119 faites
+- [2. Messagerie](#2-messagerie) — 276 à faire, 119 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -2770,26 +2770,47 @@ qui affichait déjà l'heure). Ce que le test ne peut pas voir :
 
 ## ⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)
 
-**Priorité P1** · importance 2/5 — Les clés ayant quitté l'APK, si gif-proxy n'est pas déployé (un relevé du 2026-09-01 voyait toutes les Edge Functions en 404), GIFs et stickers sont vides pour tous les utilisateurs de la nouvelle version.
+**Priorité P0** · importance 4/5 — L'onglet GIFs est **cassé en production depuis le 2026-08-27** : `gif-proxy` n'a jamais été déployée. Ce n'est plus une hypothèse (relevé du 2026-09-16 : `supabase functions list` en donne 16, sans elle ; un POST répond `404 NOT_FOUND`). Tout appel de l'onglet échoue, l'utilisateur lit « Impossible de charger les GIFs. »
 
-`GIPHY_API_KEY` et `TENOR_API_KEY` ne sont plus dans le `.env` embarqué : les
-appels passent par l'Edge Function `gif-proxy`, seule détentrice des clés.
+`GIPHY_API_KEY` et `TENOR_API_KEY` ne doivent plus être dans le `.env`
+embarqué : les appels passent par l'Edge Function `gif-proxy`, seule
+détentrice des clés. ⚠️ `GIPHY_API_KEY` y était **restée** jusqu'au
+2026-09-16 — donc encore livrée dans chaque APK construit depuis. Retirée du
+`.env` du poste ; **la clé est à roter**, les APK déjà diffusés la portent.
+
 Fichiers : `supabase/functions/gif-proxy/index.ts`,
-`lib/features/gifs/data/datasources/{giphy,tenor}_datasource.dart`.
+`lib/features/gifs/data/datasources/gif_proxy_datasource.dart`.
 
-`flutter analyze` et les 11 tests GIF passent, mais aucun n'atteint le réseau —
+⚠️ Prérequis avant toute vérification :
+`supabase functions deploy gif-proxy --project-ref zyrfkcjjrhddpfxcgezo`.
+Côté secrets, seule `GIPHY_API_KEY` est posée : le service tournera en Giphy
+seul tant que `TENOR_API_KEY` n'est pas ajoutée — c'est déjà le cas depuis
+toujours, Tenor n'a jamais servi.
+
+`flutter analyze` et les 19 tests GIF passent, mais aucun n'atteint le réseau —
 rien n'est prouvé tant que ce n'est pas vu sur appareil :
 
 - [ ] Onglet GIFs : les tendances se chargent (chemin `trending`)
 - [ ] Recherche : taper un mot renvoie des résultats (chemin `search`)
 - [ ] Onglet Stickers : fonds transparents (paramètre `type=sticker`)
-- [ ] Repli : avec une seule clé posée côté serveur, l'autre fournisseur doit
-      répondre 503 et le picker rester fonctionnel — c'est le seul chemin que
-      les tests ne couvrent pas du tout
 - [ ] Envoyer un GIF dans une conversation aboutit toujours
-
-⚠️ Prérequis : `supabase functions deploy gif-proxy` **et** les deux clés
-posées en secrets, sinon l'onglet reste vide.
+- [ ] **Un seul aller-retour par requête** : le repli entre fournisseurs est
+      passé côté serveur (`provider: 'auto'`). Avant, le client tentait Tenor —
+      jamais configuré — puis Giphy, soit deux appels de fonction par frappe.
+      Se lit dans les logs de la fonction : une ligne par chargement, pas deux
+- [ ] **Cache** : fermer le picker puis le rouvrir doit réafficher la grille
+      **sans** appel réseau (tendances gardées 15 min)
+- [ ] **Bouton « Réessayer »** : couper le réseau, ouvrir l'onglet, le
+      rebrancher, taper Réessayer — la grille doit se remplir sans avoir à
+      retaper une recherche
+- [ ] **Compte tout frais / app relancée** : le picker exige désormais une
+      session Supabase (la fonction refuse l'anonyme). À ouvrir dans les
+      premières secondes après un démarrage à froid, quand le pont
+      Firebase→Supabase n'a pas encore répondu — voir « Session Supabase »
+- [ ] **Poids du média envoyé** : les GIFs partent en `mediumgif` (Tenor) /
+      `downsized_medium` (Giphy) au lieu de l'original, qui montait à
+      plusieurs Mo payés par chaque destinataire. Vérifier que la qualité
+      reste acceptable en plein écran
 
 ---
 
