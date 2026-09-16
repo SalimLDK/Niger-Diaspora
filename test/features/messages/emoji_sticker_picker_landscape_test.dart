@@ -14,8 +14,6 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 class _FakeGifRepository implements GifRepository {
   @override
-  bool get isConfigured => true;
-  @override
   Future<List<GifEntity>> trending({
     GifContentType type = GifContentType.gif,
     int limit = 30,

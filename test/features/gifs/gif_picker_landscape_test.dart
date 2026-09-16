@@ -14,8 +14,6 @@ class _FakeGifRepository implements GifRepository {
   final List<GifEntity> results;
   _FakeGifRepository(this.results);
 
-  @override
-  bool get isConfigured => true;
 
   @override
   Future<List<GifEntity>> trending({

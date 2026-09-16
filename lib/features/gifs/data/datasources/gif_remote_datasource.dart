@@ -9,16 +9,27 @@ enum GifContentType {
   sticker,
 }
 
-/// Interface commune aux fournisseurs de GIFs (Tenor, Giphy).
+/// Levée quand **aucun** fournisseur n'a de clé posée côté serveur.
 ///
-/// Permet de changer de fournisseur, d'en ajouter un, ou de basculer en
-/// fallback sans toucher à la couche présentation.
+/// Distincte d'une [ServerException] : c'est un état durable de la
+/// configuration, pas une panne passagère. L'écran le dit autrement (« pas
+/// encore configurés » plutôt que « impossible de charger »), et surtout ne
+/// propose pas de réessayer — réessayer n'y changera rien.
+class GifProvidersUnavailableException implements Exception {
+  final String message;
+
+  GifProvidersUnavailableException(this.message);
+
+  @override
+  String toString() => 'GifProvidersUnavailableException: $message';
+}
+
+/// Source des GIFs distants.
+///
+/// Un seul implémenteur en production ([GifProxyDataSource]) : le choix du
+/// fournisseur appartient au serveur, qui est le seul à savoir quelles clés
+/// existent. L'abstraction reste le point d'injection des tests.
 abstract class GifRemoteDataSource {
-  GifProvider get provider;
-
-  /// True si une clé API est configurée pour ce fournisseur.
-  bool get isConfigured;
-
   /// Contenus en tendance.
   Future<List<GifEntity>> trending({
     GifContentType type = GifContentType.gif,
