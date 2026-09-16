@@ -129,8 +129,26 @@ class MessageRepositoryImpl implements MessageRepository {
   Stream<Either<Failure, List<ConversationEntity>>> getConversations(
     String userId,
   ) {
-    return remoteDataSource
-        .getConversations(userId)
+    // La dernière liste reçue du serveur, gardée pour pouvoir la rejouer
+    // telle quelle : le rattrapage de fond déchiffre APRÈS coup, et sans ce
+    // rejeu son travail n'atteint l'écran qu'à la prochaine émission du
+    // serveur. C'est ce qui laissait « Message chiffré » sur la tuile d'un
+    // message reçu, app ouverte sur la liste, jusqu'à un tirer-pour-
+    // rafraîchir ou l'ouverture de la discussion.
+    List<ConversationModel>? derniere;
+
+    final duServeur = remoteDataSource.getConversations(userId).map((
+      conversations,
+    ) {
+      derniere = conversations;
+      return conversations;
+    });
+    final rejeu = _rattrapageFini.stream
+        .map((_) => derniere)
+        .where((c) => c != null)
+        .cast<List<ConversationModel>>();
+
+    return Rx.merge([duServeur, rejeu])
         .asyncMap<Either<Failure, List<ConversationEntity>>>((
           conversations,
         ) async {
@@ -866,10 +884,37 @@ class MessageRepositoryImpl implements MessageRepository {
   /// Dernier déclenchement du rattrapage de fond.
   DateTime? _dernierRattrapage;
 
-  /// Espacement minimal entre deux rattrapages de fond. Le flux des
-  /// conversations émet à chaque changement ; sans cette borne, la requête de
-  /// planification partirait bien plus souvent que nécessaire.
-  static const _espacementRattrapage = Duration(seconds: 20);
+  /// Plancher entre deux planifications. Il ne régule plus grand-chose depuis
+  /// que [rattrapageADeclencher] filtre sur « quelque chose a bougé » : ce qui
+  /// reste est un garde-fou contre une conversation qui échoue en boucle.
+  ///
+  /// Il valait 20 s, et c'était trop : plusieurs messages reçus d'affilée —
+  /// le cas de toute conversation vivante — voyaient le deuxième et le
+  /// troisième bloqués par le premier, donc affichés « Message chiffré »
+  /// pendant tout ce temps.
+  static const _espacementRattrapage = Duration(seconds: 5);
+
+  /// Ce pour quoi un rattrapage a déjà été **tenté** : conversation →
+  /// `lastMessageAt` de la tentative. Une date neuve rouvre la tentative ; la
+  /// même, non — sinon un fil qui refuse de se déchiffrer serait redemandé à
+  /// chaque émission de la liste.
+  final Map<String, DateTime> _rattrapageTente = {};
+
+  /// Émis quand une passe de rattrapage a déchiffré et mis en cache : la
+  /// liste se rejoue alors (voir [getConversations]). Sans ce signal, le
+  /// rattrapage faisait tout le travail et personne ne le regardait.
+  final StreamController<void> _rattrapageFini =
+      StreamController<void>.broadcast();
+
+  /// Faut-il replanifier un rattrapage ? Oui dès qu'une conversation sans
+  /// aperçu porte une date qu'on n'a pas encore tentée.
+  ///
+  /// La règle seule, sans réseau ni cache, pour pouvoir la tenir par un test.
+  @visibleForTesting
+  static bool rattrapageADeclencher({
+    required Map<String, DateTime> candidats,
+    required Map<String, DateTime> dejaTente,
+  }) => candidats.entries.any((e) => dejaTente[e.key] != e.value);
 
   /// Déchiffre en tâche de fond les conversations dont le dernier message
   /// n'a jamais été lu sur cet appareil, et met le résultat en cache.
@@ -883,6 +928,24 @@ class MessageRepositoryImpl implements MessageRepository {
     MlsGateway passerelle,
     List<ConversationEntity> conversations,
   ) async {
+    // Ce qui reste à montrer : les conversations sans aperçu, avec la date du
+    // message qu'on n'arrive pas à afficher.
+    final candidats = {
+      for (final c in conversations)
+        if ((c.lastMessage ?? '').isEmpty && c.lastMessageAt != null)
+          c.id: c.lastMessageAt!,
+    };
+    // Une conversation qui a retrouvé son aperçu sort de la mémoire des
+    // tentatives : elle n'a plus rien à rattraper, et la table reste bornée.
+    _rattrapageTente.removeWhere((id, _) => !candidats.containsKey(id));
+
+    if (!rattrapageADeclencher(
+      candidats: candidats,
+      dejaTente: _rattrapageTente,
+    )) {
+      return;
+    }
+
     final maintenant = DateTime.now();
     final precedent = _dernierRattrapage;
     if (precedent != null &&
@@ -891,11 +954,17 @@ class MessageRepositoryImpl implements MessageRepository {
     }
     _dernierRattrapage = maintenant;
 
+    var dechiffre = false;
     try {
       final aFaire = await passerelle.conversationsARattraper(
         [for (final c in conversations) c.id],
       );
       for (final id in aFaire) {
+        // Retenue **avant** la tentative, et gardée même si elle échoue : une
+        // conversation qui ne se déchiffre pas ne doit pas être redemandée à
+        // chaque émission de la liste. Le prochain message y rouvrira la
+        // tentative, puisque sa date changera.
+        if (candidats[id] case final quand?) _rattrapageTente[id] = quand;
         try {
           final mls = await passerelle.messages(id);
           if (mls.isEmpty) continue;
@@ -903,6 +972,7 @@ class MessageRepositoryImpl implements MessageRepository {
             id,
             [for (final m in mls) MessageModel.fromEntity(m).toJson()],
           );
+          dechiffre = true;
         } catch (e) {
           dev.log('Rattrapage MLS impossible',
               name: 'message_repository_impl', error: e);
@@ -912,6 +982,10 @@ class MessageRepositoryImpl implements MessageRepository {
       dev.log('Rattrapage MLS non planifié',
           name: 'message_repository_impl', error: e);
     }
+
+    // Hors du `try`, et c'est tout l'objet du passage : sans ce signal, le
+    // clair est en cache et la tuile continue d'afficher « Message chiffré ».
+    if (dechiffre && !_rattrapageFini.isClosed) _rattrapageFini.add(null);
   }
 
   /// La passerelle si **ce message-là** est un message MLS.

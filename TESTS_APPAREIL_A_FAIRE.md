@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1313 cases à cocher, 632 cochées** — 258 entrées sur 307 ont encore des cases ouvertes.
+**1330 cases à cocher, 637 cochées** — 261 entrées sur 310 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (38)
+**P0 — avant toute nouvelle version** (39)
 
+- 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
@@ -84,7 +85,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (87)
+**P1 — fonction importante, jamais vérifiée** (89)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -96,6 +97,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 5 · [⬜ « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16)](#--message-chiffré--qui-ne-sen-va-pas-dans-la-liste-2026-09-16) · *Messagerie*
+- 5 · [✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16)](#-curseur-de-lecture-et-séparateur--nouveaux-messages--2026-09-16) · *Messagerie*
 - 3 · [⬜ Pastille de non-lus, et séparateur « nouveaux messages » (2026-09-15)](#-pastille-de-non-lus-et-séparateur--nouveaux-messages--2026-09-15) · *Messagerie*
 - 4 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
 - 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
@@ -316,7 +319,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 290 à faire, 119 faites
+- [2. Messagerie](#2-messagerie) — 307 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 116 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 40 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -578,6 +581,170 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)
+
+**Priorité P0** · importance 5/5 — jusqu'au 2026-09-16, **tout participant
+d'une conversation pouvait réécrire le texte du message de n'importe qui
+d'autre**, par PostgREST. Vérifié en production, puis corrigé et redéployé le
+jour même (migration `20260916210000`). Le correctif touche le chemin
+d'écriture de TOUTE la messagerie : ce qui doit être vérifié ici, ce n'est pas
+l'attaque — le banc SQL la couvre — mais que **rien de légitime n'a été
+emporté**.
+
+La policy `messages_update` laissait passer n'importe quel participant, et
+`authenticated` avait l'`UPDATE` au niveau table, donc sur toutes les colonnes.
+La recette habituelle (`GRANT UPDATE (colonne, …)`) ne s'applique pas ici :
+`messages` n'a que sept colonnes et tout ce qui bouge après l'envoi vit dans
+une seule, `data` (jsonb) — le contenu de l'expéditeur et les accusés des
+destinataires dans le même sac. D'où un déclencheur `BEGIN UPDATE` qui borne
+les **clés** de `data` qu'un non-expéditeur peut faire bouger, en plus du
+`REVOKE` + `GRANT UPDATE (data, is_deleted)`.
+
+**La régression à craindre est muette** : si les accusés cassent, le « Lu »
+cesse simplement d'arriver — aucune erreur, aucun journal, rien à l'écran. Un
+seul téléphone ne peut pas le voir. D'où deux appareils, obligatoirement.
+
+Couvert côté serveur par
+[tools/rls_tests/droits_update_messages.sql](tools/rls_tests/droits_update_messages.sql)
+(20 cas, 0 en échec en production ; retirer le déclencheur en fait tomber 10).
+Le banc prouve les droits, pas l'affichage — d'où cette entrée.
+
+- [ ] **Accusé de lecture, deux téléphones** : A écrit à B, B ouvre la
+      discussion → la coche passe à « Lu » chez A, en quelques secondes
+- [ ] **Accusé de livraison** : B reçoit sans ouvrir (app en arrière-plan) →
+      la coche « remis » apparaît chez A
+- [ ] **Modifier son propre message** : A modifie, le nouveau texte tient
+      après un retour arrière et une relecture (voir « Modifier un message en
+      ligne »)
+- [ ] **Réaction** : B réagit au message de A → l'emoji apparaît des deux
+      côtés
+- [ ] **Favori / signalement / supprimer pour moi** sur le message d'un
+      **autre** : les trois passent toujours (ce sont les seules écritures
+      qu'un non-expéditeur garde)
+- [ ] **Modération** : dans un groupe, un admin fait « supprimer pour tout le
+      monde » sur le message d'un membre → la bulle passe à « message
+      supprimé » chez les deux
+- [ ] **Conversation chiffrée (MLS)** : les accusés et la modification s'y
+      comportent pareil — `mls_messages` est une autre table, avec ses propres
+      droits, et n'a pas été touchée par cette migration
+
+---
+
+## ⬜ « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16)
+
+**Priorité P1** · importance 4/5 — signalé sur Pixel 10 Pro XL le 2026-09-16,
+dans deux cas : une discussion **jamais ouverte** sur l'appareil, et un
+message reçu **pendant que la liste est à l'écran**.
+
+Le clair d'un message chiffré n'existe que sur l'appareil : la liste le
+reconstitue depuis le cache du fil. Quand le cache ne l'a pas,
+`_rattraperMlsEnArrierePlan` le déchiffre en tâche de fond et le met en cache
+— mais **rien ne redemandait la liste après coup**. Le texte était donc prêt,
+sur l'appareil, et la tuile continuait d'afficher « Message chiffré » jusqu'à
+un tirer-pour-rafraîchir, l'ouverture de la discussion, ou le message suivant.
+
+Deux changements dans `message_repository_impl.dart` : la liste **rejoue** sa
+dernière émission quand le rattrapage a mis du clair en cache, et le
+rattrapage n'est **replanifié** que si une conversation sans aperçu porte une
+date jamais tentée (`rattrapageADeclencher`) — ce qui a permis de descendre
+l'espacement de 20 s à 5 s, les 20 s bloquant le deuxième et le troisième
+message d'une rafale.
+
+Tenu par `test/features/messages/apercu_rattrapage_rejoue_test.dart` (le cas
+du rejeu échoue sur le code d'avant). Ce qu'un test ne dit pas :
+
+- [ ] **Recevoir, app ouverte sur la liste, sans y toucher** : la tuile passe
+      du libellé au vrai texte toute seule, en quelques secondes.
+- [ ] **Rafale de 3-4 messages reçus** dans la même discussion : chacun
+      remplace le précédent, aucun ne reste sur « Message chiffré ».
+- [ ] **Discussion jamais ouverte sur ce téléphone** : la tuile finit par
+      afficher le texte sans qu'on l'ouvre. ⚠️ Le rattrapage est **borné aux
+      3 conversations les plus récentes** qui en ont besoin : au-delà, il faut
+      encore un nouvel événement serveur.
+- [ ] **Quatre discussions chiffrées en attente** : vérifier justement ce
+      qu'il advient de la 4ᵉ.
+- [ ] **Hors ligne** : la liste ne doit ni tourner en boucle de rattrapage ni
+      afficher un aperçu faux.
+
+**Première observation sur le build qui porte le correctif** (Pixel 10 Pro XL,
+APK debug `84ef4752…`, installé et relancé à 01:59 le 2026-09-16) : après un
+démarrage à froid, « Testeurs » et « Sim A » — deux discussions dont le
+message était arrivé pendant que l'app ne tournait pas — affichaient leur
+texte déchiffré (« Cfg », « Yy ») et leur pastille de non-lus dans les 30 s,
+sans qu'on les ouvre. Aucune tuile sur « Message chiffré ».
+
+⚠️ Ça ne coche aucune case ci-dessus : sur ce chemin-là, l'aperçu peut aussi
+venir de l'isolate de notification, qui déchiffre à l'arrivée du push. Ce que
+le rejeu change ne se voit qu'en **recevant liste à l'écran**, et en
+**rafale** — les deux premières cases.
+
+---
+
+## ✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16)
+
+**Priorité P1** · importance 4/5 — vérifié **à deux téléphones**, même build
+(Pixel 10 Pro XL = Salim, SM A515F = Sim A).
+
+Le séparateur est désormais la **représentation d'un curseur de lecture**, pas
+une propriété des messages. Trois repères avaient été essayés avant, et les
+trois mentaient : l'état de lecture des messages chargés (déjà faussé quand le
+fil arrive), le compteur de la liste (il ne dit pas **où**), et une date de
+visite locale (elle ne survit ni à la pagination ni au fuseau).
+
+**Ce que la passe a prouvé**, horodatages bruts à l'appui :
+
+- [x] **Les messages affichés sont marqués lus** : bloc visible à l'ouverture
+  (05:20:27) → `read_at` à **05:20:29**.
+- [x] **Ceux restés SOUS LE PLI ne le sont pas** — c'est le point central.
+  Quatre blocs hors écran, `read_at` **nul**, `delivered_at` posé. L'ancien
+  `markAsRead` global les aurait tous marqués.
+- [x] **Reçu ≠ lu** : deux messages livrés à 04:41:03 et lus seulement à
+  **05:02:45** — vingt minutes d'écart, tombant exactement sur l'instant où
+  les bulles ont été montrées.
+- [x] **Côté expéditeur** : « Envoyé » sur les quatre blocs sous le pli, jamais
+  « Lu ».
+- [x] **Le séparateur s'affiche au bon rang** : « 1 message non lu » posé juste
+  au-dessus du seul non-lu, et la vue s'y place.
+
+**Trois défauts trouvés par cette passe**, aucun visible autrement :
+
+1. Le garde de visibilité interrogeait l'emplacement global du routeur et
+   rendait **toujours faux** — le curseur n'avançait jamais, sans une ligne de
+   journal. L'écran de discussion est poussé **au-dessus** du shell, pas dans
+   une branche d'onglet : `ModalRoute.isCurrent` était le bon signal depuis le
+   début.
+2. Le même garde était évalué **à la réception** de l'événement de visibilité,
+   pendant la transition de route : un refus transitoire devenait définitif,
+   la visibilité ne changeant plus ensuite.
+3. Le séparateur était ancré sur un **index**, qui glisse dès que la
+   pagination complète la liste : le compte restait juste, le repère
+   n'apparaissait nulle part.
+
+Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
+(`_signalerVisibilite`, `_firstUnreadMessageId`, `_estAffichee`),
+[mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
+(`curseurDeLecture`, `marquerLusJusqua`). Recette :
+`supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`.
+
+**Ce qui reste à voir**, et qui n'a pas été exercé :
+
+- [ ] **Un défilement rapide ne doit rien « lire »** : traverser vingt bulles
+  d'un geste, puis relever les `read_at`. Le seuil (60 %) et le délai (400 ms)
+  sont là pour ça, mais aucune passe ne l'a mis à l'épreuve.
+- [ ] **En groupe** : le curseur est par utilisateur **et** par message
+  (`mls_message_receipts`), donc il devrait tenir à plusieurs membres. Jamais
+  vérifié au-delà d'un tête-à-tête.
+- [ ] **La pagination** : rouvrir une discussion dont le curseur désigne un
+  message **hors de la page chargée**. Le repère doit apparaître en remontant,
+  pas se poser au hasard.
+- [ ] **Deux appareils du même compte** : le curseur vient du serveur, il
+  devrait donc se synchroniser. Non testé.
+- [ ] **La latence d'affichage des accusés côté expéditeur** : la base disait
+  `read_at` posé alors que l'écran de Sim A montrait encore « Envoyé ». Le
+  curseur n'est pas en cause — c'est le temps réel sur `mls_message_receipts`.
+
+---
+
 ## ⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)
 
 **Priorité P0** · importance 4/5 — signalé à l'usage le 2026-09-16, juste après le déploiement de `gif-proxy` : « les gifs/stickers ne s'affichent pas dans les messages ». Deux messages `sticker` partis en MLS à 05:05 UTC, tous deux muets à l'écran.
@@ -616,7 +783,7 @@ un message court donnait un bloc **plus haut que large**, où la citation se
 lisait comme une étiquette posée à côté du message plutôt que comme le message
 cité. Trois changements dans `message_bubble.dart` :
 
-- un plancher de largeur (58 % de l'écran, plafonné à 260) dès qu'il y a une
+- un plancher de largeur (52 % de l'écran, plafonné à 240) dès qu'il y a une
   citation ;
 - la citation étirée sur toute la largeur de la bulle — par `IntrinsicWidth`,
   **réservé au texte** : `AudioMessageBubble` et `AudioFileBubble` contiennent
@@ -629,7 +796,7 @@ La forme est fixée par `test/features/messages/bulle_citation_forme_test.dart`
 et a été regardée en golden jetable (« Aperçu UI sans build »). Ce qu'un
 golden ne dit pas :
 
-- [ ] **Thème sombre** : l'aplat blanc à 12 % sur le vert `#009600` — détaché
+- [ ] **Thème sombre** : l'aplat blanc à 14 % sur le vert `#009600` — détaché
   sans virer au laiteux.
 - [ ] **Échelle de police à 130 %** (réglages Android) : la citation tient sur
   ses deux lignes, la bulle ne déborde pas. Voir « Échelle de police ».
