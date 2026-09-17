@@ -1498,7 +1498,7 @@ class WebRTCService {
       debugPrint('WebRTCService: Video track obtained: ${videoTrack.id}');
 
       // Add video track to the existing local stream
-      _localStream!.addTrack(videoTrack);
+      await _localStream!.addTrack(videoTrack);
       debugPrint('WebRTCService: Video track added to local stream');
 
       // Add the video track to the peer connection
@@ -1708,7 +1708,7 @@ class WebRTCService {
 
       // Adapt video quality based on network conditions
       if (_adaptiveQualityEnabled) {
-        _adaptVideoQuality(metrics);
+        await _adaptVideoQuality(metrics);
       }
     } catch (e) {
       debugPrint('WebRTCService: Error collecting quality metrics: $e');
@@ -1935,9 +1935,11 @@ class WebRTCService {
       _peerConnection = null;
 
       try {
-        _localStream?.getTracks().forEach((track) {
-          track.stop();
-        });
+        if (_localStream != null) {
+          for (final track in _localStream!.getTracks()) {
+            await track.stop();
+          }
+        }
         await _localStream?.dispose();
       } catch (e) {
         debugPrint('WebRTCService: Error disposing local stream: $e');

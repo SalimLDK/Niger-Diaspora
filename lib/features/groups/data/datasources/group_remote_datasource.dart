@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 // import 'package:flutter/foundation.dart';
@@ -173,7 +175,7 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       final group = GroupModel.fromJson(_convertTimestamps(data));
 
       // Cache in background
-      _cache.cacheGroup(groupId, group.toJson());
+      unawaited(_cache.cacheGroup(groupId, group.toJson()).catchError((_) {}));
 
       return group;
     });

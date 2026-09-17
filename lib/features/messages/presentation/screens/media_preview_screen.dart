@@ -118,7 +118,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
     }
     if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute(builder: (_) => editor));
-    _loadFileInfo();
+    await _loadFileInfo();
   }
 
   /// Enregistre le média (éventuellement édité) dans la galerie.

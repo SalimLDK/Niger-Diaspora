@@ -57,7 +57,7 @@ class ProximityService {
     if (!_isEnabled) return;
 
     try {
-      _proximitySubscription?.cancel();
+      await _proximitySubscription?.cancel();
     } catch (e) {
       // Ignore - channel may already be detached
     }

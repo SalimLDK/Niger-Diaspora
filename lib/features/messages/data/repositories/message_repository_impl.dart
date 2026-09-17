@@ -162,7 +162,11 @@ class MessageRepositoryImpl implements MessageRepository {
           // Convert models to json maps for caching
           final conversationsMap =
               filteredConversations.map((c) => c.toJson()).toList();
-          cacheService.cacheConversations(conversationsMap);
+          unawaited(
+            cacheService.cacheConversations(conversationsMap).catchError((e) {
+              dev.log('Cache conversations échoué: $e', name: 'MessageRepository');
+            }),
+          );
 
           final liste = _dedupConversationsByPair(
             filteredConversations.map((c) => c.toEntity()).toList(),
@@ -1585,7 +1589,11 @@ class MessageRepositoryImpl implements MessageRepository {
           // suivant n'avait alors plus rien de bon à récupérer.
           final healed = _healUndecryptableMessages(conversationId, messages);
           final messageMaps = healed.map((m) => m.toJson()).toList();
-          cacheService.cacheMessages(conversationId, messageMaps);
+          unawaited(
+            cacheService.cacheMessages(conversationId, messageMaps).catchError((e) {
+              dev.log('Cache messages échoué: $e', name: 'MessageRepository');
+            }),
+          );
 
           return Right<Failure, List<MessageEntity>>(
             healed.map((m) => m.toEntity()).toList(),

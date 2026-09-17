@@ -70,7 +70,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _showGlobalBackgroundPicker() async {
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
+    if (!mounted) return;
     final result = await ChatBackgroundPickerModal.show(
       context,
       currentBackground: _globalBackground,

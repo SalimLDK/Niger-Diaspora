@@ -242,10 +242,16 @@ class AuthRepositoryImpl implements AuthRepository {
       // `saveTokenForUser` est idempotente par process, ce flux peut donc
       // émettre autant qu'il veut.
       if (entity != null) {
-        NotificationService().saveTokenForUser(
-          entity.id,
-          displayName: entity.displayName,
-          photoUrl: entity.photoUrl,
+        unawaited(
+          NotificationService()
+              .saveTokenForUser(
+                entity.id,
+                displayName: entity.displayName,
+                photoUrl: entity.photoUrl,
+              )
+              .catchError((e) {
+            dev.log('saveTokenForUser échoué: $e', name: 'AuthRepository');
+          }),
         );
       }
       return entity;

@@ -501,9 +501,9 @@ Future<void> _handleNotificationDismissBackground(
 
       final count = countResult.count;
       if (count > 0) {
-        AppBadgePlus.updateBadge(count);
+        unawaited(AppBadgePlus.updateBadge(count));
       } else {
-        AppBadgePlus.updateBadge(0);
+        unawaited(AppBadgePlus.updateBadge(0));
       }
     }
   } catch (e) {
@@ -1017,7 +1017,7 @@ class NotificationService {
     }
 
     // Nettoyer les anciens fichiers d'avatar en arrière-plan
-    cleanupOldAvatarCache();
+    unawaited(cleanupOldAvatarCache());
   }
 
   /// Initialize local notifications with Android channels
@@ -3022,7 +3022,9 @@ class NotificationService {
     _currentOpenConversationId = conversationId;
     // Si on ouvre une conversation, effacer ses notifications
     if (conversationId != null) {
-      clearConversationNotifications(conversationId);
+      unawaited(clearConversationNotifications(conversationId).catchError((e) {
+        debugPrint('clearConversationNotifications a échoué: $e');
+      }));
     }
   }
 
@@ -3180,7 +3182,9 @@ class NotificationService {
       BackgroundReplyService.markAsRead(conversationId: conversationId);
     }
     // Effacer les notifications de cette conversation
-    clearConversationNotifications(conversationId);
+    unawaited(clearConversationNotifications(conversationId).catchError((e) {
+      debugPrint('clearConversationNotifications a échoué: $e');
+    }));
   }
 
   /// Confirm message delivery to Supabase (single source of truth).

@@ -260,7 +260,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
 
     if (_mode == _CaptureMode.photo) {
       try {
-        HapticFeedback.lightImpact();
+        await HapticFeedback.lightImpact();
         setState(() => _flashOverlay = true);
         final xfile = await controller.takePicture();
         if (mounted) setState(() => _flashOverlay = false);
@@ -277,7 +277,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       await Permission.microphone.request();
       try {
         await controller.startVideoRecording();
-        HapticFeedback.mediumImpact();
+        await HapticFeedback.mediumImpact();
         _recordSeconds = 0;
         _recordTimer = Timer.periodic(const Duration(seconds: 1), (_) {
           if (mounted) setState(() => _recordSeconds++);
@@ -288,7 +288,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       try {
         final xfile = await controller.stopVideoRecording();
         _recordTimer?.cancel();
-        HapticFeedback.mediumImpact();
+        await HapticFeedback.mediumImpact();
         if (mounted) setState(() => _isRecording = false);
         if (!mounted) return;
         await _confirmMedia(File(xfile.path), isVideo: true);

@@ -282,7 +282,7 @@ class BackgroundLocationService {
           final isEnabled = prefs.getBool(prefKeyEnabled) ?? false;
 
           if (!isEnabled) {
-            service.stopSelf();
+            unawaited(service.stopSelf());
             return;
           }
 
@@ -327,7 +327,7 @@ class BackgroundLocationService {
 
               // Update notification with current interval
               final currentInterval = prefs.getInt(prefKeyLocationInterval) ?? defaultLocationIntervalMinutes;
-              flutterLocalNotificationsPlugin.show(
+              await flutterLocalNotificationsPlugin.show(
                 notificationId,
                 'Diaspo Niger',
                 'Position mise à jour: ${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')} (toutes les $currentInterval min)',

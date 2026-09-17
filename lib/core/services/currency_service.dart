@@ -659,7 +659,7 @@ class CurrencyService {
         apiKey != 'YOUR_API_KEY' &&
         apiKey != oldKey) {
       debugPrint('CurrencyService: API key configured, fetching rates...');
-      fetchRates();
+      unawaited(fetchRates());
     }
   }
 
@@ -727,7 +727,7 @@ class CurrencyService {
     _startPeriodicRefresh();
 
     // Fetch fresh rates in background if we have an API key
-    fetchRates();
+    unawaited(fetchRates());
   }
 
   /// Fetch latest exchange rates from API

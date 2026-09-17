@@ -157,7 +157,7 @@ class SupabaseAuthBridge {
 
       // Propage le JWT frais au websocket Realtime : sans cet appel, les
       // canaux (feed, messages) reconnectent avec l'ancien token expiré.
-      _supabase.realtime.setAuth(accessToken);
+      await _supabase.realtime.setAuth(accessToken);
 
       _reprise.enregistrerSucces();
       _scheduleRenewal(expiresIn);

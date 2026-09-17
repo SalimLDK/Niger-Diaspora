@@ -510,7 +510,7 @@ class LiveKitService {
   Future<void> leaveRoom() async {
     debugPrint('LiveKitService: Leaving room');
 
-    _roomListener?.dispose();
+    await _roomListener?.dispose();
     _roomListener = null;
 
     await _room?.disconnect();

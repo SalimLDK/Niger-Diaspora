@@ -660,12 +660,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       backgroundColor: context.backgroundColor,
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.read(homeStatsNotifierProvider.notifier).refresh();
+          await ref.read(homeStatsNotifierProvider.notifier).refresh();
           // Les événements n'étaient jamais relus depuis l'accueil : un
           // événement supprimé ailleurs y restait jusqu'au redémarrage.
-          ref.read(eventsNotifierProvider.notifier).refresh();
+          await ref.read(eventsNotifierProvider.notifier).refresh();
           ref.invalidate(recentPastEventProvider);
-          _loadData();
+          await _loadData();
         },
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),

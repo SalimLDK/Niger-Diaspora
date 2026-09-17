@@ -363,7 +363,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     if (_myQrOpen || _isProcessing) return;
 
     setState(() => _myQrOpen = true);
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
 
     try {
       if (_controller.value.isRunning) {

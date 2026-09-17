@@ -964,7 +964,7 @@ class _MessageInputState extends State<MessageInput>
 
     final path = await _recordingService.startRecording();
     if (path != null) {
-      HapticFeedback.mediumImpact();
+      await HapticFeedback.mediumImpact();
       setState(() {
         _isRecording = true;
         _dragOffset = 0;
@@ -980,13 +980,13 @@ class _MessageInputState extends State<MessageInput>
 
     if (_isCancelling) {
       await _recordingService.cancelRecording();
-      HapticFeedback.lightImpact();
+      await HapticFeedback.lightImpact();
     } else {
       final result = await _recordingService.stopRecording();
       if (result != null && widget.onSendAudio != null) {
         final (file, duration, waveform) = result;
         widget.onSendAudio!(file, duration, waveform);
-        HapticFeedback.mediumImpact();
+        await HapticFeedback.mediumImpact();
       }
     }
 

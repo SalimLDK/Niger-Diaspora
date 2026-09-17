@@ -118,7 +118,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
         }
 
         // Auto-play
-        _controller.play();
+        await _controller.play();
       }
     } catch (e) {
       if (mounted) {

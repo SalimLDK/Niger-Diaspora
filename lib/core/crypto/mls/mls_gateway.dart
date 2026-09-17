@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../../../features/messages/domain/entities/message_entity.dart';
@@ -196,11 +198,11 @@ class MlsGateway {
     if (enCours != null) return enCours;
     final futur = _rattraper(conversationId);
     _rattrapages[conversationId] = futur;
-    futur.whenComplete(() {
+    unawaited(futur.whenComplete(() {
       if (identical(_rattrapages[conversationId], futur)) {
         _rattrapages.remove(conversationId);
       }
-    });
+    }).catchError((_) => <MessageEntity>[]));
     return futur;
   }
 

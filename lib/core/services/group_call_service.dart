@@ -347,7 +347,9 @@ class GroupCallService {
 
       debugPrint('GroupCallService: Participant left: $participantId');
       _onParticipantLeft?.call(participantId);
-      _disconnectFromParticipant(participantId);
+      unawaited(_disconnectFromParticipant(participantId).catchError((e) {
+        debugPrint('GroupCallService: Error disconnecting $participantId: $e');
+      }));
     });
 
     _signalingSubscriptions['participants_removed'] = removedSub;
@@ -372,9 +374,12 @@ class GroupCallService {
     _peerConnections[participantId] = pc;
 
     // Add local stream tracks
-    _localStream?.getTracks().forEach((track) {
-      pc.addTrack(track, _localStream!);
-    });
+    final localStream = _localStream;
+    if (localStream != null) {
+      for (final track in localStream.getTracks()) {
+        await pc.addTrack(track, localStream);
+      }
+    }
 
     // Handle incoming streams
     pc.onTrack = (RTCTrackEvent event) async {
@@ -544,11 +549,11 @@ class GroupCallService {
     final signalingRef = _database.ref(
       'group_calls/$callId/signaling/$fromId/$toId/candidates',
     );
-    signalingRef.push().set({
+    unawaited(signalingRef.push().set({
       'candidate': candidate.candidate,
       'sdpMid': candidate.sdpMid,
       'sdpMLineIndex': candidate.sdpMLineIndex,
-    });
+    }).catchError((_) {}));
   }
 
   /// Handle received ICE candidate
@@ -619,9 +624,9 @@ class GroupCallService {
     await renderer?.dispose();
 
     // Cancel signaling subscriptions for this participant
-    _signalingSubscriptions.remove('offer_$participantId')?.cancel();
-    _signalingSubscriptions.remove('answer_$participantId')?.cancel();
-    _signalingSubscriptions.remove('candidates_$participantId')?.cancel();
+    await _signalingSubscriptions.remove('offer_$participantId')?.cancel();
+    await _signalingSubscriptions.remove('answer_$participantId')?.cancel();
+    await _signalingSubscriptions.remove('candidates_$participantId')?.cancel();
 
     // Disable E2EE for this participant
     await _e2eeService.disableE2EE(participantId);
@@ -701,7 +706,7 @@ class GroupCallService {
       });
 
       final videoTrack = videoStream.getVideoTracks().first;
-      _localStream!.addTrack(videoTrack);
+      await _localStream!.addTrack(videoTrack);
 
       // Add track to all peer connections
       for (final pc in _peerConnections.values) {
@@ -738,9 +743,11 @@ class GroupCallService {
     }
 
     // Stop local stream
-    _localStream?.getTracks().forEach((track) {
-      track.stop();
-    });
+    if (_localStream != null) {
+      for (final track in _localStream!.getTracks()) {
+        await track.stop();
+      }
+    }
     await _localStream?.dispose();
     _localStream = null;
     localRenderer.srcObject = null;

@@ -76,7 +76,7 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> {
 
   Future<void> _setFilter(RequestType t) async {
     if (t == _filter) return;
-    HapticFeedback.selectionClick();
+    await HapticFeedback.selectionClick();
     setState(() {
       _filter = t;
       _assets.clear();

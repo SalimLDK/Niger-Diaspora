@@ -2950,7 +2950,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
         _currentPosition!.longitude,
       );
     }
-    _updateBusinessMarkers();
+    await _updateBusinessMarkers();
   }
 
   /// Petit bouton flottant pour rouvrir le panneau "Membres à proximité"

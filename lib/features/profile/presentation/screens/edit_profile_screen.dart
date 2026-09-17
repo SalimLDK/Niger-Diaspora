@@ -396,7 +396,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     if (recadree == null) return;
 
     final authState = ref.read(authNotifierProvider);
-    authState.maybeWhen(
+    await authState.maybeWhen(
       authenticated: (user) async {
         setState(() => _isLoading = true);
         final url = await ref
@@ -470,7 +470,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       return;
     }
 
-    HapticFeedback.mediumImpact();
+    await HapticFeedback.mediumImpact();
     setState(() => _isLoading = true);
 
     final authState = ref.read(authNotifierProvider);

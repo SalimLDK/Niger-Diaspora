@@ -95,7 +95,7 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
     final url = widget.message.fileUrl;
     if (url == null || _isDownloading || _isDownloaded) return;
 
-    HapticFeedback.selectionClick();
+    await HapticFeedback.selectionClick();
     setState(() => _isDownloading = true);
     final file = await _downloadService.downloadToAppDirectory(
       url,

@@ -162,7 +162,7 @@ class OfflineSyncService {
     // Écouter les changements de connectivité
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen((isConnected) {
       if (isConnected) {
-        syncPendingActions();
+        unawaited(syncPendingActions());
       } else {
         // Horodater la coupure pour pouvoir en donner la durée au retour.
         _offlineSince ??= DateTime.now();
@@ -211,7 +211,7 @@ class OfflineSyncService {
 
     // Tenter de synchroniser immédiatement si connecté
     if (await _connectivity.isConnected()) {
-      syncPendingActions();
+      unawaited(syncPendingActions());
     }
   }
 

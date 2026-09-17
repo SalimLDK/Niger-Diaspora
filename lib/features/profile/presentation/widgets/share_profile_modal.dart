@@ -742,7 +742,8 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
   Future<void> _shareToChat() async {
     final url = _shareUrl;
     if (url == null) return;
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
+    if (!mounted) return;
 
     // La fiche sert aussi bien à partager son propre profil (ouverte sans
     // `userName`) que celui de quelqu'un d'autre.
@@ -772,7 +773,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
 
   Future<void> _shareViaWhatsApp() async {
     if (_shareUrl == null) return;
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
     final message = 'Découvrez mon profil sur Diaspo Niger: $_shareUrl';
     final url = Uri.parse(
       'https://wa.me/?text=${Uri.encodeComponent(message)}',
@@ -784,7 +785,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
 
   Future<void> _shareViaFacebook() async {
     if (_shareUrl == null) return;
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
     final url = Uri.parse(
       'https://www.facebook.com/sharer/sharer.php?u=${Uri.encodeComponent(_shareUrl!)}',
     );
@@ -795,7 +796,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
 
   Future<void> _shareViaTwitter() async {
     if (_shareUrl == null) return;
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
     final message = 'Découvrez mon profil sur Diaspo Niger: $_shareUrl';
     final url = Uri.parse(
       'https://twitter.com/intent/tweet?text=${Uri.encodeComponent(message)}',
@@ -807,7 +808,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
 
   Future<void> _shareViaSystem() async {
     if (_shareUrl == null) return;
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
     await SharePlus.instance.share(
       ShareParams(
         text: 'Découvrez mon profil sur Diaspo Niger: $_shareUrl',

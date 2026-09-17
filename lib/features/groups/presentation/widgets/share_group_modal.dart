@@ -584,8 +584,9 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
   }
 
   Future<void> _shareToChat() async {
-    HapticFeedback.lightImpact();
     final l10n = AppLocalizations.of(context)!;
+    await HapticFeedback.lightImpact();
+    if (!mounted) return;
 
     final sent = await ShareToChatSheet.show(
       context,
@@ -607,22 +608,22 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
   }
 
   Future<void> _shareViaWhatsApp() async {
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
     await ExternalShare.whatsApp(_getShareMessage());
   }
 
   Future<void> _shareViaFacebook() async {
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
     await ExternalShare.facebook(_shareUrl);
   }
 
   Future<void> _shareViaX() async {
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
     await ExternalShare.x(_getShareMessage());
   }
 
   Future<void> _shareViaSystem() async {
-    HapticFeedback.lightImpact();
+    await HapticFeedback.lightImpact();
     await ExternalShare.system(
       text: _getShareMessage(),
       subject: widget.groupName,

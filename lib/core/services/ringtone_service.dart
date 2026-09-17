@@ -54,7 +54,7 @@ class RingtoneService {
   void _startVibrationLoop() async {
     while (_isVibrating) {
       // Vibration de 500ms
-      HapticFeedback.heavyImpact();
+      await HapticFeedback.heavyImpact();
       await Future.delayed(const Duration(milliseconds: 500));
 
       if (!_isVibrating) break;
@@ -65,7 +65,7 @@ class RingtoneService {
       if (!_isVibrating) break;
 
       // Vibration de 500ms
-      HapticFeedback.heavyImpact();
+      await HapticFeedback.heavyImpact();
       await Future.delayed(const Duration(milliseconds: 500));
 
       if (!_isVibrating) break;
@@ -108,15 +108,15 @@ class RingtoneService {
 
     while (_isRingbackPlaying) {
       // Vibration légère pour simuler le "bip"
-      HapticFeedback.lightImpact();
+      await HapticFeedback.lightImpact();
       await Future.delayed(const Duration(milliseconds: 100));
       if (!_isRingbackPlaying) break;
 
-      HapticFeedback.lightImpact();
+      await HapticFeedback.lightImpact();
       await Future.delayed(const Duration(milliseconds: 100));
       if (!_isRingbackPlaying) break;
 
-      HapticFeedback.lightImpact();
+      await HapticFeedback.lightImpact();
 
       // Silence de 3 secondes
       await Future.delayed(const Duration(seconds: 3));

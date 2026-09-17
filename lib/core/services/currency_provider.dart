@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,7 +33,9 @@ CurrencyService currencyService(Ref ref) {
   service.setRefreshInterval(exchangeRates.refreshIntervalMinutes);
 
   // Initialize in background (will fetch from API if available)
-  service.initialize();
+  unawaited(service.initialize().catchError((e) {
+    debugPrint('CurrencyService.initialize a échoué: $e');
+  }));
   return service;
 }
 
@@ -116,6 +121,13 @@ class SelectedDisplayCurrency extends _$SelectedDisplayCurrency {
   void select(Currency currency) {
     state = currency;
     // Also save as preference
-    ref.read(userCurrencyPreferenceProvider.notifier).setCurrency(currency);
+    unawaited(
+      ref
+          .read(userCurrencyPreferenceProvider.notifier)
+          .setCurrency(currency)
+          .catchError((e) {
+        debugPrint('setCurrency a échoué: $e');
+      }),
+    );
   }
 }

@@ -518,7 +518,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
     // Arrêter la tonalité d'attente
     if (_ringbackStarted) {
       _ringbackStarted = false;
-      _ringtoneService.stopRingback();
+      unawaited(_ringtoneService.stopRingback());
     }
 
     await ref.read(currentCallProvider.notifier).endCall();

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' as emoji_picker;
@@ -89,7 +90,7 @@ Future<String?> showReactionBar(
   required Rect anchor,
   String? selected,
 }) async {
-  HapticFeedback.lightImpact();
+  unawaited(HapticFeedback.lightImpact());
   final choix = await showGeneralDialog<_ChoixBarre>(
     context: context,
     barrierDismissible: true,

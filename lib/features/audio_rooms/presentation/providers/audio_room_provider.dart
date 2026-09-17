@@ -464,14 +464,14 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
       // Show ongoing notification
       final room = state.room;
       if (room != null) {
-        AudioRoomNotificationService().show(
+        unawaited(AudioRoomNotificationService().show(
           roomId: room.id,
           roomTitle: room.title,
           hostName: room.hostName,
           participantCount: room.totalParticipants,
           speakerCount: room.speakerCount,
           isMuted: state.isMuted,
-        );
+        ));
       }
 
       state = state.copyWith(isJoining: false);
@@ -520,7 +520,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
       }
 
       // Dismiss ongoing notification
-      AudioRoomNotificationService().dismiss();
+      unawaited(AudioRoomNotificationService().dismiss());
 
       // Don't update state if disposed
       if (!_isDisposed) {
@@ -547,7 +547,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
     state = state.copyWith(isMuted: newMuteState);
 
     // Update notification mute state
-    AudioRoomNotificationService().updateMuteState(newMuteState);
+    unawaited(AudioRoomNotificationService().updateMuteState(newMuteState));
 
     try {
       final dataSource = ref.read(audioRoomRemoteDataSourceProvider);

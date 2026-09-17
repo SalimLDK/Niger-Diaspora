@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../../features/podcasts/domain/entities/podcast_episode_entity.dart';
@@ -18,7 +19,9 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
   StreamSubscription<Duration>? _positionSubscription;
 
   PodcastAudioHandler() {
-    _init();
+    unawaited(_init().catchError((e) {
+      debugPrint('PodcastAudioHandler._init a échoué: $e');
+    }));
   }
 
   Future<void> _init() async {

@@ -89,7 +89,7 @@ class VideoPlaybackService extends ChangeNotifier {
     }
 
     // Stop any currently playing audio
-    AudioPlaybackService().stop();
+    await AudioPlaybackService().stop();
 
     // Stop current video if different
     await stop();
@@ -107,9 +107,9 @@ class VideoPlaybackService extends ChangeNotifier {
       }
 
       await _controller!.initialize();
-      _controller!.setLooping(_isLooping);
-      _controller!.setVolume(_isMuted ? 0.0 : 1.0);
-      _controller!.setPlaybackSpeed(_playbackSpeed);
+      await _controller!.setLooping(_isLooping);
+      await _controller!.setVolume(_isMuted ? 0.0 : 1.0);
+      await _controller!.setPlaybackSpeed(_playbackSpeed);
 
       // Add listener for state changes
       _controller!.addListener(_onVideoStateChanged);
@@ -124,7 +124,7 @@ class VideoPlaybackService extends ChangeNotifier {
       _error = 'Erreur de lecture';
       _isInitializing = false;
       _currentMessageId = null;
-      _controller?.dispose();
+      await _controller?.dispose();
       _controller = null;
       notifyListeners();
       return false;
