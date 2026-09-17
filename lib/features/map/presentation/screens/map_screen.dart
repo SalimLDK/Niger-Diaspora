@@ -2603,10 +2603,43 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   /// Crée (ou retrouve) la conversation avec [member] et l'ouvre.
   ///
-  /// En cas d'échec, prévient au lieu de laisser la feuille se refermer en
-  /// silence — sans ça, un tap sur « Message » qui échoue ramène sur la
-  /// carte sans le moindre indice que quelque chose s'est mal passé.
+  /// Regarde d'abord [conversationsProvider] (déjà chargé, cache Hive puis
+  /// Supabase — voir sa doc) : une conversation individuelle existante y est
+  /// presque toujours déjà présente, et l'ouvrir depuis ce cache évite
+  /// l'aller-retour réseau complet de `getOrCreateIndividualConversation`
+  /// (chercher, puis créer si absent) à chaque tap — c'est ce qui rendait
+  /// l'ouverture perceptiblement lente pour une conversation déjà connue.
+  /// Ne sert pas pour une conversation supprimée par l'utilisateur courant
+  /// (`deletedBy`) : la restauration reste gérée par le chemin réseau.
+  ///
+  /// En cas d'échec du chemin réseau, prévient au lieu de laisser la feuille
+  /// se refermer en silence — sans ça, un tap sur « Message » qui échoue
+  /// ramène sur la carte sans le moindre indice que quelque chose s'est mal
+  /// passé.
   Future<void> _startConversationWith(ProfileModel member) async {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId != null) {
+      final cached = ref.read(conversationsProvider).valueOrNull;
+      if (cached != null) {
+        for (final conversation in cached) {
+          if (conversation.isIndividual &&
+              conversation.participantIds.contains(member.id) &&
+              !conversation.deletedBy.containsKey(currentUserId)) {
+            context.push(
+              '/messages/${conversation.id}',
+              extra: {
+                'name': member.displayName,
+                'imageUrl': member.photoUrl,
+                'otherUserId': member.id,
+                'isGroup': false,
+              },
+            );
+            return;
+          }
+        }
+      }
+    }
+
     try {
       final conversation = await ref
           .read(createConversationProvider.notifier)
