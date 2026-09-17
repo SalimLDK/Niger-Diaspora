@@ -1847,6 +1847,12 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     }
   }
 
+  /// ⚠️ **Ne réussit jamais depuis le client.** La policy `messages_insert`
+  /// exige `firebase_uid() = sender_id`, et aucun compte ne s'appelle
+  /// `system` ; une conversation basculée en MLS refuse même avant, par
+  /// déclencheur. Appelée en tête de `removeUserFromGroup`, elle y a empêché
+  /// toute exclusion (voir ce commentaire-là). Ne pas la mettre sur le chemin
+  /// d'une action : un message système doit être écrit côté serveur.
   @override
   Future<MessageModel> sendSystemMessage({
     required String conversationId,
@@ -2655,24 +2661,44 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     }
   }
 
+  /// Exclut [userId] d'un groupe : le retire de `participant_ids` et de
+  /// `data.adminIds`. Le déclencheur `conversations_sync_group_removal` le
+  /// sort ensuite de `group_members`, et `MlsGateway.appartenanceChangee` de
+  /// l'arbre MLS si la conversation est basculée.
+  ///
+  /// **Aucun message système, volontairement.** La méthode commençait par
+  /// `sendSystemMessage` — un INSERT `sender_id = 'system'` dans `messages` —
+  /// et ne retirait la personne qu'ensuite. Cet INSERT ne peut réussir nulle
+  /// part depuis le client : la policy `messages_insert` exige
+  /// `firebase_uid() = sender_id`, et une conversation basculée le refuse
+  /// même avant (`messages_refuse_conversation_mls_trg`, 23514). L'exception
+  /// remontait, le retrait n'avait jamais lieu, et l'écran affichait « Erreur
+  /// lors du retrait » dans **tous** les groupes. La table ne contenait
+  /// d'ailleurs aucun message système le 2026-09-17. Banc :
+  /// `tools/rls_tests/retrait_membre_groupe.sql`.
+  ///
+  /// Une notice « X a été retiré » devra être écrite par le serveur, et
+  /// seulement hors MLS : en clair dans une conversation chiffrée, elle
+  /// fuirait ce que le chiffrement tait.
+  ///
+  /// Lève plutôt que de réussir à vide : une conversation illisible ou une
+  /// mise à jour qui ne touche aucune ligne ne sont pas un retrait.
   @override
   Future<void> removeUserFromGroup({
     required String conversationId,
     required String userId,
   }) async {
     try {
-      // Send system message first
-      await sendSystemMessage(
-        conversationId: conversationId,
-        content: 'Un utilisateur a été retiré du groupe',
-      );
-
       final rows = await _supabase
           .from('conversations')
           .select('participant_ids, data')
           .eq('id', conversationId)
           .limit(1);
-      if (rows.isEmpty) return;
+      if (rows.isEmpty) {
+        throw ServerException(
+          'removeUserFromGroup : conversation introuvable ou illisible',
+        );
+      }
 
       final ids = List<String>.from(
         rows.first['participant_ids'] as List? ?? [],
@@ -2686,11 +2712,16 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       adminIds.remove(userId);
       data['adminIds'] = adminIds;
 
-      await _supabase
+      final modifiees = await _supabase
           .from('conversations')
           .update({'participant_ids': ids, 'data': data})
-          .eq('id', conversationId);
+          .eq('id', conversationId)
+          .select('id');
+      if (modifiees.isEmpty) {
+        throw ServerException('removeUserFromGroup : aucune ligne modifiée');
+      }
     } catch (e) {
+      if (e is ServerException) rethrow;
       throw ServerException('removeUserFromGroup error: $e');
     }
   }

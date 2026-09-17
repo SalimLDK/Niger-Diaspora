@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1395 cases à cocher, 642 cochées** — 274 entrées sur 323 ont encore des cases ouvertes.
+**1400 cases à cocher, 642 cochées** — 275 entrées sur 324 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -87,7 +87,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (93)
+**P1 — fonction importante, jamais vérifiée** (94)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -117,6 +117,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
+- 5 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
@@ -333,7 +334,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 329 à faire, 124 faites
-- [3. Groupes](#3-groupes) — 126 à faire, 64 faites
+- [3. Groupes](#3-groupes) — 131 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
@@ -4466,6 +4467,58 @@ Création, invitations, adhésion, membres, modération, sondages et mentions de
 
 ---
 
+## ⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)
+
+**Priorité P1** · importance 4/5 — un administrateur ne pouvait exclure
+personne, dans aucun groupe : « Erreur lors du retrait » à chaque essai, et le
+membre restait.
+
+`removeUserFromGroup`
+([message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart))
+écrivait d'abord un message système « Un utilisateur a été retiré du groupe »
+(`sender_id = 'system'`) et ne retirait la personne qu'ensuite. La base refuse
+cet INSERT **partout** : la policy `messages_insert` exige `firebase_uid() =
+sender_id` (depuis `20260526270000`), et une conversation basculée en MLS le
+refuse même avant la policy, par déclencheur (23514). L'exception sautait la
+mise à jour de `participant_ids`.
+
+Mesuré en production le 2026-09-17, transaction annulée
+([tools/rls_tests/retrait_membre_groupe.sql](tools/rls_tests/retrait_membre_groupe.sql),
+9 cas) : 23514 sur le groupe chiffré `d41d4ea0…`, et **pas une ligne
+système** dans toute la table `messages` — aucune exclusion n'a jamais abouti
+par l'app. Les bancs précédents (voir « Inviter des membres dans un groupe
+privé ») rejouaient la mise à jour SQL, jamais le chemin de l'app : ils ne
+pouvaient pas le voir.
+
+Corrigé : plus de message système (le client ne peut pas l'écrire ; une notice
+devra venir du serveur, et hors MLS seulement), et le retrait lève au lieu de
+réussir à vide — conversation illisible, ou mise à jour qui ne touche aucune
+ligne. `test/features/messages/retrait_membre_groupe_test.dart` : 4 cas, les
+4 tombent sur l'ancien code.
+
+⚠️ **Rien de visible ne disparaît** : le message « Un utilisateur a été retiré
+du groupe » n'a jamais existé dans aucun fil.
+
+Pas bloqué : les deux téléphones portent un build debug, mais il faut un build
+qui contient le correctif.
+
+- [ ] **Groupe en clair** : l'administrateur ouvre Membres, appui long sur un
+      membre → « Retirer du groupe » → confirmer. « Membre retiré », la ligne
+      disparaît et `Membres · n` décroît, sans refermer l'écran.
+- [ ] **Groupe chiffré** : même geste, même résultat — pas d'erreur, pas de
+      bannière « mettez l'application à jour ». Réinviter ensuite la personne
+      si le groupe sert encore.
+- [ ] **Groupe chiffré, juste après** : l'administrateur envoie un message.
+      Il part (la sortie de l'arbre MLS ne bloque pas l'envoi), et le
+      téléphone de l'exclu ne le reçoit pas.
+- [ ] **Côté exclu** : le groupe quitte les onglets Groupes et Messages sans
+      redémarrage (voir « Acceptation et départ d'un groupe : rien ne bougeait
+      chez les autres »), et rouvrir la discussion ne l'y remet pas.
+- [ ] **Réseau coupé** au moment de confirmer : « Erreur lors du retrait », et
+      au retour du réseau le membre est toujours là.
+
+---
+
 ## ⬜ Groupes : non-lus depuis l'arrivée, messages système, « Lu » par tous (2026-09-17)
 
 **Priorité P2** · importance 3/5 — quatre règles de lecture propres aux
@@ -4482,7 +4535,10 @@ que deux aujourd'hui.*
    10 cas ; l'état d'avant en fait tomber 7).
 2. **Un message système ne compte pas** : `_updateConversationLastMessage`
    incrémentait la pastille de tous les participants — l'auteur du geste
-   compris — pour « Un utilisateur a été retiré du groupe ».
+   compris — pour « Un utilisateur a été retiré du groupe ». ⚠️ Ce message n'a
+   en fait jamais été écrit, et le retrait n'en écrit plus : voir « Exclure un
+   membre d'un groupe échouait toujours ». La règle reste juste, la case
+   « Retirer un membre » ci-dessous ne vérifie plus que l'absence de pastille.
 3. **« Lu » attend tous les membres présents**, arrivés avant le message
    ([accuse_de_groupe.dart](lib/features/messages/presentation/utils/accuse_de_groupe.dart)).
    ⚠️ **Changement visible** : « Vu par N » disparaît de la bulle ; un lecteur
