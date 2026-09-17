@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1418 cases à cocher, 642 cochées** — 277 entrées sur 326 ont encore des cases ouvertes.
+**1421 cases à cocher, 642 cochées** — 278 entrées sur 327 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -186,7 +186,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (87)
+**P2 — fonction secondaire ou cas limite** (88)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -228,6 +228,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)](#-compteurs-de-mon-espace-et-du-profil--ils-suivent-enfin-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
+- 3 · [⚠️ Carte : bouton « Message » de la fiche membre et icône de la liste des membres proches — corrigés, pas encore vérifiés sur appareil (2026-09-17)](#-carte--bouton--message--de-la-fiche-membre-et-icône-de-la-liste-des-membres-proches--corrigés-pas-encore-vérifiés-sur-appareil-2026-09-17) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
@@ -343,7 +344,7 @@ Par domaine :
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 47 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 48 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 66 à faire, 48 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 53 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
@@ -14448,6 +14449,37 @@ sur une voix réellement captée par le SFU.
 # 10. Ambassades, démarches, carte, entreprises et événements
 
 Annuaires, démarches consulaires, carte des membres et des postes, événements.
+
+---
+
+## ⚠️ Carte : bouton « Message » de la fiche membre et icône de la liste des membres proches — corrigés, pas encore vérifiés sur appareil (2026-09-17)
+
+**Priorité P2** · importance 3/5 — Deux boutons de `/map` liés à la
+messagerie se comportaient mal, signalé par Salim :
+
+1. Dans la feuille de détail d'un membre (`_showMemberDetails`), le bouton
+   « Message » (visible seulement si ami) fermait la feuille puis échouait
+   **en silence** si `createIndividual` échouait : aucun SnackBar, aucune
+   navigation, retour muet sur la carte.
+2. Dans la liste « Membres à proximité » (`_buildMemberSheetItem`), l'icône
+   bulle de discussion à droite de chaque ligne ne faisait qu'ouvrir la même
+   fiche de détail que le tap sur la ligne entière — un doublon d'action
+   mort, pas le raccourci de message qu'elle laisse croire.
+
+Corrigé dans `map_screen.dart` : une méthode partagée
+`_startConversationWith` crée/ouvre la conversation et affiche
+`messageErreurUsager` en cas d'échec ; l'icône de la liste envoie désormais
+un message direct si la personne est déjà amie, et retombe sur la fiche
+membre sinon (comportement inchangé pour les non-amis, qui ne peuvent pas
+encore être contactés directement).
+
+- [ ] **Bouton Message (fiche membre, ami)** — vérifier qu'un tap ouvre bien
+  la conversation, et qu'une coupure réseau pendant l'appel affiche le
+  SnackBar d'erreur au lieu de fermer silencieusement.
+- [ ] **Icône bulle (liste des membres proches, ami)** — vérifier qu'un tap
+  ouvre directement la conversation.
+- [ ] **Icône bulle (liste des membres proches, non-ami)** — vérifier qu'un
+  tap ouvre toujours la fiche membre (comportement inchangé).
 
 ---
 
