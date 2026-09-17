@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1421 cases à cocher, 642 cochées** — 278 entrées sur 327 ont encore des cases ouvertes.
+**1420 cases à cocher, 644 cochées** — 278 entrées sur 327 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -228,7 +228,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14)](#-compteurs-de-mon-espace-et-du-profil--ils-suivent-enfin-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)](#-supprimer-une-publication-depuis-le-fil-ne-ramène-plus-à-laccueil-2026-09-12) · *Fil, stories, salons audio et podcasts*
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
-- 3 · [⚠️ Carte : bouton « Message » de la fiche membre et icône de la liste des membres proches — corrigés, pas encore vérifiés sur appareil (2026-09-17)](#-carte--bouton--message--de-la-fiche-membre-et-icône-de-la-liste-des-membres-proches--corrigés-pas-encore-vérifiés-sur-appareil-2026-09-17) · *Ambassades, démarches, carte, entreprises et événements*
+- 2 · [⚠️ Carte : bouton « Message » de la fiche membre et icône de la liste des membres proches — corrigés, vérifiés SM A515F (partiel, 2026-09-17)](#-carte--bouton--message--de-la-fiche-membre-et-icône-de-la-liste-des-membres-proches--corrigés-vérifiés-sm-a515f-partiel-2026-09-17) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
@@ -344,7 +344,7 @@ Par domaine :
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 47 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 66 à faire, 48 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 50 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 53 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
@@ -14452,7 +14452,7 @@ Annuaires, démarches consulaires, carte des membres et des postes, événements
 
 ---
 
-## ⚠️ Carte : bouton « Message » de la fiche membre et icône de la liste des membres proches — corrigés, pas encore vérifiés sur appareil (2026-09-17)
+## ⚠️ Carte : bouton « Message » de la fiche membre et icône de la liste des membres proches — corrigés, vérifiés SM A515F (partiel, 2026-09-17)
 
 **Priorité P2** · importance 3/5 — Deux boutons de `/map` liés à la
 messagerie se comportaient mal, signalé par Salim :
@@ -14473,13 +14473,18 @@ un message direct si la personne est déjà amie, et retombe sur la fiche
 membre sinon (comportement inchangé pour les non-amis, qui ne peuvent pas
 encore être contactés directement).
 
-- [ ] **Bouton Message (fiche membre, ami)** — vérifier qu'un tap ouvre bien
-  la conversation, et qu'une coupure réseau pendant l'appel affiche le
-  SnackBar d'erreur au lieu de fermer silencieusement.
-- [ ] **Icône bulle (liste des membres proches, ami)** — vérifier qu'un tap
-  ouvre directement la conversation.
-- [ ] **Icône bulle (liste des membres proches, non-ami)** — vérifier qu'un
-  tap ouvre toujours la fiche membre (comportement inchangé).
+- [x] **Bouton Message (fiche membre, ami)** — SM A515F, build debug du
+  correctif (`6dfa7e7`) : tap sur « Message » depuis la fiche de Salim L.
+  ouvre bien la conversation existante.
+- [ ] **Bouton Message (fiche membre, ami) — coupure réseau** — pas testé :
+  couper le réseau du SM A515F est un réglage système, à faire par Salim
+  (voir `project_device_testing.md`), pas depuis une session adb seule.
+- [x] **Icône bulle (liste des membres proches, ami)** — SM A515F, même
+  build : tap sur l'icône dans la ligne de Salim L. ouvre directement la
+  conversation (avant le correctif : rouvrait la fiche, sans effet visible).
+- [ ] **Icône bulle (liste des membres proches, non-ami)** — pas testé : le
+  compte connecté n'avait qu'un seul membre autour pendant la passe (Salim L.,
+  déjà ami) — aucun non-ami disponible pour rejouer ce cas.
 
 ---
 
