@@ -653,7 +653,7 @@ class MlsConversationService {
     final moteur = await _moteur();
     final appareil = await _appareil();
     await _refuserSiRevoque(appareil);
-    await _traiterCommits(conversationId, moteur, appareil);
+    await _rattraperCommits(conversationId, moteur, appareil);
 
     final resultats = <MlsIncoming>[];
     final depart = await _curseurDe(conversationId);
@@ -668,7 +668,7 @@ class MlsConversationService {
       if (m.epoch > snap.epoch.toInt()) {
         // Un message d'un epoch que je n'ai pas encore : le commit est en
         // route. Le chercher, puis reprendre.
-        await _traiterCommits(conversationId, moteur, appareil);
+        await _rattraperCommits(conversationId, moteur, appareil);
         snap = await moteur.instantane(conversationId: conversationId);
         if (m.epoch > snap.epoch.toInt()) {
           await _delivery.diagnostic(userId, 'epoch_futur', deviceId: appareil.id,
@@ -754,6 +754,31 @@ class MlsConversationService {
   String _cleCurseur(String conversationId) =>
       'mls_curseur_${userId}_$conversationId';
 
+  /// Rejoue les commits en attente ; si l'un d'eux échoue alors qu'un Welcome
+  /// m'attend, oublie l'état local corrompu et rejoint proprement par ce
+  /// Welcome avant de reprendre.
+  ///
+  /// **Ce que ça ferme.** `_traiterCommits` seul, à l'échec d'un commit, ne
+  /// fait que journaliser et abandonner — pour toujours : au rattrapage
+  /// suivant, `estMembre` répond encore vrai sur un état que plus personne
+  /// en face ne reconnaît, donc `_ensureGroup` (le seul endroit qui regarde
+  /// `welcomesFor`) n'est jamais appelé. Un pair qui m'a retiré puis
+  /// réinvité (arbre divergé réparé par un vrai retrait + réinvitation)
+  /// publie pourtant un Welcome tout neuf, qui reste invisible. Trouvé le
+  /// 2026-09-17 sur le Pixel : retrait et réinvitation réussis côté
+  /// serveur, jamais consommés côté appareil, le commit suivant rejouant le
+  /// même `GroupStateError` à l'infini.
+  Future<void> _rattraperCommits(
+    String conversationId,
+    Moteur moteur,
+    MlsDeviceRecord appareil,
+  ) async {
+    await _traiterCommits(conversationId, moteur, appareil);
+    if (await estMembre(conversationId)) return;
+    await ensureGroup(conversationId);
+    await _traiterCommits(conversationId, moteur, appareil);
+  }
+
   Future<void> _traiterCommits(
     String conversationId,
     Moteur moteur,
@@ -776,8 +801,20 @@ class MlsConversationService {
           aadAttendu: MlsAad.commit(conversationId: conversationId, epoch: c.epoch),
         );
       } catch (e) {
-        await _delivery.diagnostic(userId, 'commit_illisible', deviceId: appareil.id,
-            detail: {'code': _code(e), 'epoch': c.epoch});
+        final code = _code(e);
+        final welcomes = await _delivery.welcomesFor(appareil.id, conversationId: conversationId);
+        if (welcomes.isNotEmpty) {
+          // Rejouer ce commit-là échouera toujours : l'arbre d'en face est
+          // reparti d'un état que le mien ne peut plus suivre. Le Welcome,
+          // lui, encode l'état complet au bon epoch — oublier le mien le
+          // laisse faire foi au prochain `ensureGroup`.
+          await moteur.oublierGroupe(conversationId: conversationId);
+          await _delivery.diagnostic(userId, 'groupe_oublie_pour_welcome',
+              deviceId: appareil.id, detail: {'code': code, 'epoch': c.epoch});
+        } else {
+          await _delivery.diagnostic(userId, 'commit_illisible', deviceId: appareil.id,
+              detail: {'code': code, 'epoch': c.epoch});
+        }
         break;
       }
       snap = await moteur.instantane(conversationId: conversationId);
