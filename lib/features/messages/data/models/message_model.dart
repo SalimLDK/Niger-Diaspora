@@ -85,8 +85,13 @@ final class MessageModel {
 
   /// `data.evenement` d'une notice de gestion de groupe, posée par les RPC
   /// `exclure_du_groupe` / `nommer_admin_du_groupe` / `retirer_admin_du_groupe`
-  /// (voir [MessageEntity.noticeDeGroupe]). Jamais écrit par le client : c'est
-  /// pourquoi il est absent de [toJson] et de [toFirestore].
+  /// (voir [MessageEntity.noticeDeGroupe]). Jamais envoyé au serveur par le
+  /// client, mais **présent dans [toJson]** : c'est aussi la forme du cache
+  /// local (`CacheService.cacheMessages`), relu en premier à l'ouverture d'une
+  /// discussion. Absent de [toJson], il se perdait au premier passage par le
+  /// cache, et la notice retombait sur `content` — en français et à la
+  /// troisième personne, jusqu'au rechargement réseau, et pour de bon hors
+  /// ligne.
   final Map<String, dynamic>? evenement;
 
   const MessageModel({
@@ -293,6 +298,7 @@ final class MessageModel {
       if (mentionedUsers.isNotEmpty) 'mentionedUsers': mentionedUsers,
       if (clientMessageId != null) 'clientMessageId': clientMessageId,
       'encryptionLevel': encryptionLevel,
+      if (evenement != null) 'evenement': evenement,
     };
   }
 

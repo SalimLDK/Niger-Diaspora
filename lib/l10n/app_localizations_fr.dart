@@ -12399,7 +12399,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String groupNoticeAdminNamedToYou(String acteur) {
-    return '$acteur vous a nommé admin';
+    return '$acteur vous a confié le rôle d\'admin';
   }
 
   @override

@@ -5803,9 +5803,9 @@
       "cible": { "type": "String", "example": "Hocine" }
     }
   },
-  "groupNoticeAdminNamedToYou": "{acteur} vous a nommé admin",
+  "groupNoticeAdminNamedToYou": "{acteur} vous a confié le rôle d'admin",
   "@groupNoticeAdminNamedToYou": {
-    "description": "Même notice quand c'est le lecteur qui a été nommé",
+    "description": "Même notice quand c'est le lecteur qui a été nommé. Pas « vous a nommé admin » : « vous », complément d'objet placé avant le verbe, impose l'accord (« nommée » pour une lectrice), que la phrase ne peut pas connaître. Ici le complément d'objet est « le rôle », placé après : aucun accord.",
     "placeholders": {
       "acteur": { "type": "String", "example": "Nasara" }
     }

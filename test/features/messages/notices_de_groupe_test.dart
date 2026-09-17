@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 
+import 'package:diaspo_niger/core/services/cache_service.dart';
 import 'package:diaspo_niger/features/messages/data/models/message_model.dart';
 import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
 import 'package:diaspo_niger/features/messages/presentation/widgets/message_bubble.dart';
@@ -143,7 +147,9 @@ void main() {
         currentUserId: 'lecteur',
       );
 
-      expect(find.text('Nasara vous a nommé admin'), findsOne);
+      // Pas « vous a nommé admin » : « vous » placé avant le verbe impose
+      // l'accord (« nommée » pour une lectrice), que la phrase ignore.
+      expect(find.text("Nasara vous a confié le rôle d'admin"), findsOne);
     });
 
     testWidgets('promotion vue par un tiers', (tester) async {
@@ -231,6 +237,81 @@ void main() {
       );
 
       expect(find.text('Aïcha a rejoint le groupe'), findsOne);
+    });
+  });
+
+  // À l'ouverture d'une discussion, le fil s'affiche d'abord DEPUIS LE CACHE
+  // (`_loadCacheSync`), écrit par `MessageModel.toJson()`. `evenement` n'y
+  // figurait pas : la notice relue du cache retombait sur `content`, en
+  // français et à la troisième personne — « Nasara a retiré Hocine » sous les
+  // yeux de Nasara, et en français pour un compte anglais. Le réseau corrigeait
+  // ensuite ; hors ligne, jamais.
+  group('relue du cache local', () {
+    const conversation = 'c9d0e1f2-0000-4000-8000-000000000042';
+    late Directory dossier;
+
+    setUpAll(() async {
+      dossier = Directory.systemTemp.createTempSync('notices_cache_test');
+      Hive.init(dossier.path);
+      await CacheService.instance.initialize();
+    });
+
+    tearDownAll(() async {
+      await Hive.close();
+      dossier.deleteSync(recursive: true);
+    });
+
+    /// Le chemin réel : écriture par `cacheMessages(… toJson())`, relecture par
+    /// `getCachedMessages` puis `MessageModel.fromJson(m).toEntity()`, comme
+    /// `MessageRepositoryImpl.getCachedMessages`.
+    Future<MessageEntity> allerRetourParLeCache(MessageEntity message) async {
+      await CacheService.instance.cacheMessages(conversation, [
+        MessageModel.fromEntity(message).toJson(),
+      ]);
+      final relus = CacheService.instance.getCachedMessages(conversation);
+      return MessageModel.fromJson(
+        relus.singleWhere((m) => m['id'] == message.id),
+      ).toEntity();
+    }
+
+    test('la notice garde son évènement', () async {
+      final relue = await allerRetourParLeCache(
+        notice('admin_retire', cibleId: 'lecteur'),
+      );
+
+      expect(relue.noticeDeGroupe, {
+        'type': 'admin_retire',
+        'acteurId': 'admin',
+        'acteurNom': 'Nasara',
+        'cibleId': 'lecteur',
+        'cibleNom': 'Hocine',
+      });
+    });
+
+    testWidgets('et la bulle dit toujours « Vous », dans la langue du lecteur', (
+      tester,
+    ) async {
+      final relue = (await tester.runAsync(
+        () => allerRetourParLeCache(
+          notice(
+            'membre_retire',
+            acteurId: 'lecteur',
+            content: 'Nasara a retiré Hocine du groupe',
+          ),
+        ),
+      ))!;
+
+      await _pump(tester, relue, currentUserId: 'lecteur');
+      expect(find.text('Vous avez retiré Hocine du groupe'), findsOne);
+      expect(find.text('Nasara a retiré Hocine du groupe'), findsNothing);
+
+      await _pump(
+        tester,
+        relue,
+        currentUserId: 'lecteur',
+        locale: const Locale('en'),
+      );
+      expect(find.text('You removed Hocine from the group'), findsOne);
     });
   });
 }

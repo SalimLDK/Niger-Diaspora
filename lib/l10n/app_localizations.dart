@@ -22814,10 +22814,10 @@ abstract class AppLocalizations {
   /// **'Vous avez nommé {cible} admin'**
   String groupNoticeAdminNamedByYou(String cible);
 
-  /// Même notice quand c'est le lecteur qui a été nommé
+  /// Même notice quand c'est le lecteur qui a été nommé. Pas « vous a nommé admin » : « vous », complément d'objet placé avant le verbe, impose l'accord (« nommée » pour une lectrice), que la phrase ne peut pas connaître. Ici le complément d'objet est « le rôle », placé après : aucun accord.
   ///
   /// In fr, this message translates to:
-  /// **'{acteur} vous a nommé admin'**
+  /// **'{acteur} vous a confié le rôle d\'admin'**
   String groupNoticeAdminNamedToYou(String acteur);
 
   /// Notice dans le fil d'un groupe non chiffré, écrite par la RPC retirer_admin_du_groupe
