@@ -169,6 +169,22 @@ class MessageEntity extends Equatable {
   /// a lock icon that accurately reflects the security level.
   final MessageEncryptionLevel encryptionLevel;
 
+  /// Notice de gestion d'un groupe, telle que le serveur l'a décrite :
+  /// `{type, acteurId, acteurNom, cibleId, cibleNom}` où `type` vaut
+  /// `membre_retire`, `admin_nomme` ou `admin_retire` (RPC `exclure_du_groupe`,
+  /// `nommer_admin_du_groupe`, `retirer_admin_du_groupe`).
+  ///
+  /// Les **identités** sont ici, la **phrase** ne l'est pas : la bulle la
+  /// compose avec `AppLocalizations`, et remplace le nom par « Vous » quand
+  /// c'est le lecteur. `content` porte bien une phrase française, mais c'est un
+  /// repli pour les versions installées de l'app qui ignorent ce champ — la
+  /// servir telle quelle à un compte en anglais serait la même faute que le
+  /// libellé figé du séparateur MLS.
+  ///
+  /// `null` sur tout autre message, y compris les notices posées avant cette
+  /// migration.
+  final Map<String, dynamic>? noticeDeGroupe;
+
   const MessageEntity({
     this.localFilePath,
     required this.id,
@@ -229,6 +245,7 @@ class MessageEntity extends Equatable {
     this.mentionedUsers = const [],
     this.clientMessageId,
     this.encryptionLevel = MessageEncryptionLevel.aes,
+    this.noticeDeGroupe,
   });
 
   /// Identifiant réservé du séparateur posé entre l'historique lisible par
@@ -256,8 +273,10 @@ class MessageEntity extends Equatable {
   /// Message système : arrivée, départ, renommage, repère de bascule MLS.
   ///
   /// Le TYPE ou l'EXPÉDITEUR `system` suffit : `sendSystemMessage` pose les
-  /// deux, et un message système mal typé ne doit ni compter comme non lu, ni
-  /// porter le séparateur, ni faire avancer le curseur.
+  /// deux — comme les RPC `exclure_du_groupe`, `nommer_admin_du_groupe` et
+  /// `retirer_admin_du_groupe` — et un message système mal typé ne doit ni
+  /// compter comme non lu, ni porter le séparateur, ni faire avancer le
+  /// curseur.
   bool get isSystem => type == MessageType.system || senderId == 'system';
   bool get isCall => type == MessageType.call;
   bool get isLocation => type == MessageType.location;
@@ -535,6 +554,7 @@ class MessageEntity extends Equatable {
     List<MentionedUser>? mentionedUsers,
     String? clientMessageId,
     MessageEncryptionLevel? encryptionLevel,
+    Map<String, dynamic>? noticeDeGroupe,
   }) {
     return MessageEntity(
       localFilePath: localFilePath ?? this.localFilePath,
@@ -596,6 +616,7 @@ class MessageEntity extends Equatable {
       mentionedUsers: mentionedUsers ?? this.mentionedUsers,
       clientMessageId: clientMessageId ?? this.clientMessageId,
       encryptionLevel: encryptionLevel ?? this.encryptionLevel,
+      noticeDeGroupe: noticeDeGroupe ?? this.noticeDeGroupe,
     );
   }
 
@@ -658,5 +679,6 @@ class MessageEntity extends Equatable {
     stickerId,
     isAnimatedSticker,
     mentionedUsers,
+    noticeDeGroupe,
   ];
 }

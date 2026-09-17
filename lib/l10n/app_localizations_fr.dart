@@ -12378,6 +12378,46 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les messages sont chiffrés de bout en bout';
 
   @override
+  String groupNoticeMemberRemoved(String acteur, String cible) {
+    return '$acteur a retiré $cible du groupe';
+  }
+
+  @override
+  String groupNoticeMemberRemovedByYou(String cible) {
+    return 'Vous avez retiré $cible du groupe';
+  }
+
+  @override
+  String groupNoticeAdminNamed(String acteur, String cible) {
+    return '$acteur a nommé $cible admin';
+  }
+
+  @override
+  String groupNoticeAdminNamedByYou(String cible) {
+    return 'Vous avez nommé $cible admin';
+  }
+
+  @override
+  String groupNoticeAdminNamedToYou(String acteur) {
+    return '$acteur vous a nommé admin';
+  }
+
+  @override
+  String groupNoticeAdminRemoved(String acteur, String cible) {
+    return '$acteur a retiré le rôle d\'admin à $cible';
+  }
+
+  @override
+  String groupNoticeAdminRemovedByYou(String cible) {
+    return 'Vous avez retiré le rôle d\'admin à $cible';
+  }
+
+  @override
+  String groupNoticeAdminRemovedToYou(String acteur) {
+    return '$acteur vous a retiré le rôle d\'admin';
+  }
+
+  @override
   String get mlsDevicesExplain =>
       'Chaque installation de l\'application est un appareil, avec sa propre clé. Désinstaller puis réinstaller en crée un nouveau : révoquez ceux que vous n\'utilisez plus.';
 

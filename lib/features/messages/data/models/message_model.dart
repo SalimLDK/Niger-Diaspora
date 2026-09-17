@@ -83,6 +83,12 @@ final class MessageModel {
   final String? clientMessageId;
   final String encryptionLevel; // 'aes' | 'e2ee'
 
+  /// `data.evenement` d'une notice de gestion de groupe, posée par les RPC
+  /// `exclure_du_groupe` / `nommer_admin_du_groupe` / `retirer_admin_du_groupe`
+  /// (voir [MessageEntity.noticeDeGroupe]). Jamais écrit par le client : c'est
+  /// pourquoi il est absent de [toJson] et de [toFirestore].
+  final Map<String, dynamic>? evenement;
+
   const MessageModel({
     required this.id,
     required this.senderId,
@@ -142,6 +148,7 @@ final class MessageModel {
     this.mentionedUsers = const [],
     this.clientMessageId,
     this.encryptionLevel = 'aes',
+    this.evenement,
   });
 
   /// Creer depuis JSON
@@ -207,6 +214,9 @@ final class MessageModel {
       mentionedUsers: _parseMentionedUsers(json['mentionedUsers']),
       clientMessageId: json['clientMessageId'] as String?,
       encryptionLevel: json['encryptionLevel'] as String? ?? 'aes',
+      evenement: json['evenement'] is Map
+          ? Map<String, dynamic>.from(json['evenement'] as Map)
+          : null,
     );
   }
   factory MessageModel.fromFirestore(DocumentSnapshot doc) {
@@ -411,6 +421,7 @@ final class MessageModel {
     encryptionLevel: encryptionLevel == 'e2ee'
         ? MessageEncryptionLevel.e2ee
         : MessageEncryptionLevel.aes,
+    noticeDeGroupe: evenement,
   );
 
   /// Creer depuis une entite de domaine
@@ -477,6 +488,7 @@ final class MessageModel {
     encryptionLevel: entity.encryptionLevel == MessageEncryptionLevel.e2ee
         ? 'e2ee'
         : 'aes',
+    evenement: entity.noticeDeGroupe,
   );
 
   /// Copier avec modifications
@@ -589,6 +601,9 @@ final class MessageModel {
       stickerId: stickerId ?? this.stickerId,
       isAnimatedSticker: isAnimatedSticker ?? this.isAnimatedSticker,
       mentionedUsers: mentionedUsers ?? this.mentionedUsers,
+      // Aucun appelant ne remplace une notice de groupe ; la perdre en
+      // recopiant le message la ferait juste retomber sur `content`.
+      evenement: evenement,
     );
   }
 
