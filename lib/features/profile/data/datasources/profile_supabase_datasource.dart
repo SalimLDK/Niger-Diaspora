@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/services/cache_service.dart';
+import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../models/profile_model.dart';
 import 'profile_remote_datasource.dart';
@@ -414,8 +416,26 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
 
   @override
   Future<String> uploadProfilePhoto(String userId, String filePath) async {
-    // Firebase Storage gardé pour les uploads media — retourner le chemin tel quel
-    throw UnimplementedError('Photo upload uses Firebase Storage');
+    // Le média part sur Firebase Storage, comme les photos de groupe,
+    // d'événement ou de story — seule l'URL est persistée sur Supabase.
+    final url = await ImageUploadService().uploadImage(
+      file: File(filePath),
+      type: ImageUploadType.profile,
+      id: userId,
+    );
+    if (url == null) {
+      throw ServerException("Échec du téléversement de la photo");
+    }
+    await _requireAuth();
+    await _supabase
+        .from('users')
+        .update({
+          'avatar_url': url,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        })
+        .eq('id', userId);
+    _cache.remove(userId);
+    return url;
   }
 
   @override
