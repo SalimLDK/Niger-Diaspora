@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../features/profile/presentation/providers/profile_provider.dart';
 import '../../../../features/auth/presentation/providers/auth_provider.dart';
 import '../../../../features/messages/presentation/providers/conversation_actions_provider.dart';
+import '../../../../features/messages/presentation/providers/media_gallery_provider.dart'
+    show groupConversationIdProvider;
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../domain/entities/group_entity.dart';
@@ -77,6 +79,35 @@ class _GroupMembersScreenState extends ConsumerState<GroupMembersScreen> {
     final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
     final estHorsLigne = !ref.watch(connectivityNotifierProvider);
 
+    // Un superAdmin plateforme gère tout groupe officiel sans détenir de ligne
+    // group_members owner/admin (cf. migration 20260813234500 côté RLS) — sans
+    // ce repli, l'écran cache le menu même quand l'écriture serait acceptée
+    // côté serveur.
+    final isCurrentUserAdmin =
+        currentUser != null &&
+        groupEntity != null &&
+        (groupEntity.adminIds.contains(currentUser.id) ||
+            (groupEntity.isOfficial && currentUser.isAdmin));
+
+    // « Promouvoir Admin », « Retirer Admin » et « Retirer du groupe »
+    // n'existent que si l'on connaît la conversation du groupe. Or la route
+    // `/groups/:groupId/members` — seul chemin vers cet écran — ne l'a jamais
+    // transmise : depuis sa création (décembre 2025), ces trois actions
+    // n'apparaissaient pour personne, et le compilateur retirait jusqu'aux
+    // appels des RPC `exclure_du_groupe` / `nommer_admin_du_groupe` /
+    // `retirer_admin_du_groupe` de l'app. Constaté le 2026-09-17 en préparant
+    // la passe appareil des notices : aucun de ces noms dans `libapp.so`.
+    //
+    // L'écran la retrouve donc lui-même, comme la fiche du groupe. Seulement
+    // pour qui peut modérer : la recherche passe par `join_group_conversation`,
+    // qui rattache l'appelant à la discussion — normal pour un admin, inutile
+    // pour un simple membre venu voir la liste.
+    final conversationId =
+        widget.conversationId ??
+        (isCurrentUserAdmin
+            ? ref.watch(groupConversationIdProvider(widget.groupId)).valueOrNull
+            : null);
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
@@ -120,21 +151,13 @@ class _GroupMembersScreenState extends ConsumerState<GroupMembersScreen> {
                 itemCount: groupEntity.memberIds.length,
                 itemBuilder: (context, index) {
                   final memberId = groupEntity.memberIds[index];
-                  // Un superAdmin plateforme gère tout groupe officiel sans
-                  // détenir de ligne group_members owner/admin (cf. migration
-                  // 20260813234500 côté RLS) — sans ce repli, l'écran cache le
-                  // menu même quand l'écriture serait acceptée côté serveur.
-                  final isCurrentUserAdmin =
-                      currentUser != null &&
-                      (groupEntity.adminIds.contains(currentUser.id) ||
-                          (groupEntity.isOfficial && currentUser.isAdmin));
                   return _MemberListItem(
                     group: groupEntity,
                     memberId: memberId,
                     isAdmin: groupEntity.adminIds.contains(memberId),
                     isModerator: groupEntity.moderatorIds.contains(memberId),
                     isCreator: groupEntity.creatorId == memberId,
-                    conversationId: widget.conversationId,
+                    conversationId: conversationId,
                     currentUserId: currentUser?.id,
                     canModerate: isCurrentUserAdmin,
                     onTap: () => context.push('/profile/$memberId'),

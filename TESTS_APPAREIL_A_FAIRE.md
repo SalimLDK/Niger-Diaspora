@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1403 cases à cocher, 642 cochées** — 276 entrées sur 325 ont encore des cases ouvertes.
+**1421 cases à cocher, 642 cochées** — 278 entrées sur 327 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (41)
+**P0 — avant toute nouvelle version** (42)
 
 - 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
@@ -54,6 +54,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
+- 4 · [⬜ Un simple membre pouvait se nommer owner de son propre groupe (2026-09-17)](#-un-simple-membre-pouvait-se-nommer-owner-de-son-propre-groupe-2026-09-17) · *Groupes*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
 - 3 · [⬜ MLS après un démarrage à froid : lire et envoyer dans une conversation chiffrée (2026-09-16)](#-mls-après-un-démarrage-à-froid--lire-et-envoyer-dans-une-conversation-chiffrée-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 6 · [⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16)](#-la-notification-gardait-le-ciphertext-que-le-message-avait-perdu-2026-09-16) · *Chiffrement de bout en bout et clés*
@@ -87,7 +88,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (94)
+**P1 — fonction importante, jamais vérifiée** (95)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -117,6 +118,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
+- 14 · [⬜ Gérer les membres d'un groupe : notices dans le fil, et deux listes d'admins réconciliées (2026-09-17)](#-gérer-les-membres-dun-groupe--notices-dans-le-fil-et-deux-listes-dadmins-réconciliées-2026-09-17) · *Groupes*
 - 5 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
@@ -335,7 +337,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 329 à faire, 124 faites
-- [3. Groupes](#3-groupes) — 131 à faire, 64 faites
+- [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
@@ -4468,6 +4470,177 @@ Création, invitations, adhésion, membres, modération, sondages et mentions de
 
 ---
 
+## ⬜ Gérer les membres d'un groupe : notices dans le fil, et deux listes d'admins réconciliées (2026-09-17)
+
+**Priorité P1** · importance 4/5 — trois gestes de la fiche des membres passent
+au serveur. Deux d'entre eux ne faisaient rien de visible.
+
+✅ **Migration appliquée en production** (constaté le 2026-09-17 dans
+`schema_migrations`, avec `20260917010000` ; code des fonctions en base
+identique au fichier, banc rejoué 32/32)
+([20260917013200_notices_de_groupe_ecrites_par_le_serveur.sql](supabase/migrations/20260917013200_notices_de_groupe_ecrites_par_le_serveur.sql)).
+Le repli `PGRST202` du client ne sert donc plus qu'à une base en retard.
+
+**Ce qui manquait.** 7b3794f a débloqué l'exclusion en retirant l'INSERT système
+qui l'empêchait ; il n'a rien mis à la place, donc plus **aucune** notice dans le
+fil. Le client ne peut pas en écrire : `messages_insert` exige `firebase_uid() =
+sender_id`, et une conversation basculée refuse même avant (23514). Trois RPC
+`SECURITY DEFINER` les écrivent maintenant — `exclure_du_groupe`,
+`nommer_admin_du_groupe`, `retirer_admin_du_groupe`.
+
+**Deux défauts trouvés en passant, et corrigés dans la même migration :**
+
+1. **Promouvoir et rétrograder ne changeaient rien de visible.** Le client
+   n'écrivait que `conversations.data.adminIds`, alors que le badge « admin » de
+   la fiche **et** `is_group_admin()` — donc les droits réels — lisent
+   `group_members.role`. Mesuré le 2026-09-17 : **3 groupes sur 7** ont les deux
+   listes désaccordées — dans le groupe officiel `b21e8f5a…`, `I54Ixk7…` est
+   admin dans `adminIds` et simple `member` dans `group_members`. Un promu
+   n'avait ni badge ni menu de gestion ; un rétrogradé gardait tous ses droits.
+   Les RPC écrivent les deux, et rattrapent la divergence existante au premier
+   passage. Depuis
+   `20260917010000_group_members_role_sans_auto_promotion.sql`, elles en sont
+   même le seul chemin possible : le client ne peut plus écrire `role` du tout.
+2. **Exclure quelqu'un absent de `participant_ids` réussissait à vide** :
+   l'écran annonçait « Membre retiré » et la personne restait dans
+   `group_members`. La RPC supprime la ligne dans tous les cas.
+
+⚠️ **Trouvé en préparant la passe (2026-09-17) : les trois actions n'étaient
+accessibles à personne.** « Promouvoir Admin », « Retirer Admin » et « Retirer
+du groupe » exigent la conversation du groupe, et la route
+`/groups/:groupId/members` ne l'a jamais transmise à
+[group_members_screen.dart](lib/features/groups/presentation/screens/group_members_screen.dart) :
+le menu d'un admin ne proposait que le rôle modérateur, depuis décembre 2025.
+L'AAB compilé pour la passe le prouvait — aucun nom des trois RPC dans
+`libapp.so`, le compilateur avait retiré les appels. L'écran retrouve
+maintenant la conversation lui-même (`groupConversationIdProvider`), pour un
+admin seulement. Test : `test/features/groups/membres_actions_admin_test.dart`.
+
+**La notice n'existe que hors MLS.** En clair dans une conversation chiffrée,
+elle dirait au serveur ce que le chiffrement lui tait. Relevé le 2026-09-17 :
+**6 groupes en clair, 1 basculé** — la notice s'y verra donc, et de moins en
+moins au fil des bascules. Dans le groupe basculé, l'action a lieu sans notice.
+
+**La phrase n'est pas écrite par le serveur**, seulement les identités
+(`data.evenement`). La bulle la compose avec `AppLocalizations` : sinon un
+compte en anglais lirait du français, la faute que le repère de bascule MLS a
+déjà coûtée. Trois voix par action — « Vous avez retiré X », « X vous a confié
+le rôle d'admin », « X a nommé Y admin » — parce que « Vous a retiré X » n'est
+pas du français. Et pas « X vous a nommé admin » : « vous » avant le verbe
+impose l'accord, « nommée » pour une lectrice.
+
+Vérifié avant livraison : la notice ne remonte pas la discussion dans la liste,
+ne compte pour personne comme non lu, ne fait pas avancer le curseur de lecture,
+ne déclenche aucune notification push, et l'exclu ne peut pas la lire.
+
+Bancs : [tools/rls_tests/notices_de_groupe.sql](tools/rls_tests/notices_de_groupe.sql)
+(32 cas, transaction annulée sur la vraie base),
+`test/features/messages/retrait_membre_groupe_test.dart` (12 cas) et
+`test/features/messages/notices_de_groupe_test.dart` (13 cas).
+
+Pas bloqué, mais **demande deux comptes** : les notices ne se lisent qu'à
+plusieurs.
+
+- [ ] **Le menu existe** : Membres → appui long sur un simple membre, en
+      admin → « Promouvoir modérateur », « Promouvoir Admin » et « Retirer du
+      groupe » (les deux derniers n'étaient jamais apparus). Sur un admin non
+      créateur : « Retirer Admin ».
+- [ ] **Groupe en clair, exclusion** : l'admin retire un membre → une ligne
+      grise centrée apparaît dans le fil, « *Vous avez retiré Hocine du
+      groupe* ». Sur le téléphone d'un autre membre, la même ligne dit « *Nasara
+      a retiré Hocine du groupe* ».
+- [ ] **La notice ne remonte pas la discussion** : dans la liste des messages,
+      le groupe garde sa place et son aperçu — l'heure et le dernier message
+      affichés ne changent pas, et **aucune pastille de non-lu** n'apparaît chez
+      les autres membres.
+- [ ] **Aucune notification** : le téléphone des autres membres ne sonne pas et
+      n'affiche rien dans le volet.
+- [ ] **Côté exclu** : il ne voit pas la notice de son exclusion — le groupe
+      disparaît de ses onglets.
+- [ ] **Promouvoir** : appui long sur un membre → « Promouvoir Admin ». La notice
+      dit « *Vous avez nommé Tchandikou admin* », et sur le téléphone du promu
+      « *Nasara vous a confié le rôle d'admin* ». **Le badge « Admin » apparaît sur sa
+      ligne** dans Membres (c'est ce qui ne marchait pas), et lui voit
+      maintenant le menu de gestion des autres membres.
+- [ ] **Rétrograder** : « Retirer Admin ». Notice symétrique, le badge
+      part, et le rétrogradé perd l'accès au menu de gestion.
+- [ ] **Rattrapage de la divergence** : sur un membre dont le badge manquait
+      alors qu'il gérait déjà le groupe, « Promouvoir Admin » fait apparaître le
+      badge.
+- [ ] **En anglais** (Réglages → langue anglaise) : « *You removed Hocine from
+      the group* », « *Nasara made you an admin* » — aucun mot français dans la
+      notice.
+- [ ] **Relue hors ligne** : après une exclusion, fermer l'app, couper le
+      réseau, rouvrir le groupe. La notice dit toujours « *Vous avez retiré
+      Hocine du groupe* » (et en anglais sur un compte anglais), pas « *Nasara
+      a retiré Hocine du groupe* ». Le fil s'affiche d'abord depuis le cache
+      local, qui perdait `evenement` avant le correctif.
+- [ ] **Groupe chiffré** : le retrait aboutit comme avant, et **aucune ligne
+      n'apparaît dans le fil**. C'est voulu.
+- [ ] **Deux appuis de suite** sur « Retirer du groupe » : pas de seconde
+      notice, et pas de message d'erreur au second.
+- [ ] **Un non-admin** : l'appui long sur un membre n'ouvre aucun menu.
+- [ ] **Réseau coupé** au moment de confirmer : « Erreur lors du retrait », le
+      membre est toujours là au retour du réseau, et aucune notice n'est
+      apparue.
+
+---
+
+## ⬜ Un simple membre pouvait se nommer owner de son propre groupe (2026-09-17)
+
+**Priorité P0** · importance 5/5 — auto-promotion mesurée en production : un
+membre ordinaire prend l'admin de son groupe par un simple `UPDATE`, avec
+tout ce qui suit (modifier le groupe, exclure/promouvoir dans la
+conversation, accès admin aux demandes et invitations).
+
+Mesuré le 2026-09-17 en production, dans une transaction annulée
+(`supabase db query --linked -f`) : le membre `vQZE49dTdyRtLwSG6lMIbhAqoFG2`
+du groupe `90a2baa1-3927-4b21-97ac-5907002ed75d` a exécuté
+
+```sql
+UPDATE group_members SET role = 'owner' WHERE group_id = … AND user_id = <lui>
+```
+
+→ 1 ligne modifiée, puis `is_group_admin(groupe) = true` pour ce compte.
+`group_members_own` (`FOR ALL USING firebase_uid() = user_id`) ne dit rien
+de la colonne `role`, et `authenticated` a `UPDATE` sur toute la table. Le
+même trou existait aussi à l'**INSERT** direct, dans un groupe **public**
+(`group_members_insert_gate` ne dit rien du rôle non plus).
+
+Effet de bord trouvé au passage, sans rapport avec l'attaque : l'upsert de
+`joinGroup` / de l'acceptation d'invitation (`role='member'` sur conflit)
+**rétrogradait silencieusement** un admin ou un owner qui « rejoint » à
+nouveau son propre groupe (bouton dupliqué, retry réseau).
+
+Corrigé par un déclencheur `BEFORE INSERT OR UPDATE` sur `group_members`
+(`supabase/migrations/20260917010000_group_members_role_sans_auto_promotion.sql`) :
+pour `authenticated`/`anon`, l'INSERT n'accepte que `role='member'`, et
+l'UPDATE refuse tout changement de `role`, `group_id` ou `user_id`. Les
+fonctions `SECURITY DEFINER` (création de groupe, groupes officiels,
+approbation d'une demande, future RPC de promotion/rétrogradation) tournent
+sous leur propriétaire, jamais `authenticated`/`anon` : elles ne voient pas
+le garde. Banc SQL en `BEGIN/ROLLBACK` :
+`tools/rls_tests/auto_promotion_group_members.sql`.
+
+- [ ] **Rejoindre un groupe public** (`joinGroup`) : la ligne se pose bien en
+      `role='member'`, aucune erreur visible dans l'app.
+- [ ] **Accepter une invitation de groupe** : idem, `role='member'`, aucune
+      régression sur le flux d'invitation.
+- [ ] **Quitter un groupe** (`leaveGroup`) : le départ reste immédiat, aucune
+      erreur — le déclencheur ne touche pas au `DELETE`.
+- [ ] Non-régression : un administrateur ou owner qui rouvre l'écran du
+      groupe et qui déclenche à nouveau `joinGroup` (double-tap, retry)
+      garde son rôle — ne doit plus jamais retomber à « membre ». **Attention
+      en vérifiant** : le déclencheur refuse maintenant cet upsert (42501),
+      et `GroupNotifier.joinGroup` avale l'échec (`result.fold((failure) =>
+      false, …)`, `group_provider.dart`) — **aucun snackbar n'apparaît, ni
+      succès ni erreur**, le tap semble n'avoir rien fait. C'est attendu :
+      avant ce correctif, le même tap affichait « Groupe rejoint » tout en
+      rétrogradant silencieusement l'admin. Vérifier le rôle dans la fiche
+      des membres, pas l'apparition d'un message.
+
+---
+
 ## ⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)
 
 **Priorité P1** · importance 4/5 — un administrateur ne pouvait exclure
@@ -4496,6 +4669,11 @@ devra venir du serveur, et hors MLS seulement), et le retrait lève au lieu de
 réussir à vide — conversation illisible, ou mise à jour qui ne touche aucune
 ligne. `test/features/messages/retrait_membre_groupe_test.dart` : 4 cas, les
 4 tombent sur l'ancien code.
+
+➡️ **Suite** : la notice serveur promise ici existe, voir « Gérer les membres
+d'un groupe » juste au-dessus. Ce fichier de test y a grossi à 12 cas, et
+couvre maintenant l'appel RPC ; le chemin décrit ci-dessous n'est plus qu'un
+repli tant que la migration n'est pas appliquée.
 
 ⚠️ **Rien de visible ne disparaît** : le message « Un utilisateur a été retiré
 du groupe » n'a jamais existé dans aucun fil.
