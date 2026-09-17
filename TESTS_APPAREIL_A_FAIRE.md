@@ -4608,7 +4608,14 @@ le garde. Banc SQL en `BEGIN/ROLLBACK` :
       erreur — le déclencheur ne touche pas au `DELETE`.
 - [ ] Non-régression : un administrateur ou owner qui rouvre l'écran du
       groupe et qui déclenche à nouveau `joinGroup` (double-tap, retry)
-      garde son rôle — ne doit plus jamais retomber à « membre ».
+      garde son rôle — ne doit plus jamais retomber à « membre ». **Attention
+      en vérifiant** : le déclencheur refuse maintenant cet upsert (42501),
+      et `GroupNotifier.joinGroup` avale l'échec (`result.fold((failure) =>
+      false, …)`, `group_provider.dart`) — **aucun snackbar n'apparaît, ni
+      succès ni erreur**, le tap semble n'avoir rien fait. C'est attendu :
+      avant ce correctif, le même tap affichait « Groupe rejoint » tout en
+      rétrogradant silencieusement l'admin. Vérifier le rôle dans la fiche
+      des membres, pas l'apparition d'un message.
 
 ---
 

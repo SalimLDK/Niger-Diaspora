@@ -25,6 +25,18 @@
 -- DEFINER, pose role='owner' pour un compte qui n'est pas encore admin du
 -- nouveau groupe).
 --
+-- Cas 8, 9, 11 rejouent l'upsert avec le `SET` complet (group_id, user_id,
+-- role = excluded.*) que `supabase_flutter` émet réellement pour
+-- `.upsert({...}, onConflict: 'group_id,user_id')` — pas une forme
+-- simplifiée `SET role = 'member'` qui laisserait passer un cas que
+-- PostgREST ne produit jamais (cf. CLAUDE.md, « un banc doit rejouer la
+-- forme exacte »).
+--
+-- Le groupe temporaire (cas 1) est créé par `insert_group()`, appelé par
+-- l'ADMINISTRATEUR — jamais par `ALTER TABLE ... DISABLE TRIGGER`, qui
+-- prendrait un verrou ACCESS EXCLUSIVE sur `public.groups` en production
+-- pour toute la durée du banc.
+--
 -- Données réelles relevées le 2026-09-17 — mêmes que
 -- tools/rls_tests/retrait_membre_groupe.sql. Si elles disparaissent, reprendre
 -- sa requête de tête pour une conversation de groupe basculée, ou plus
@@ -63,30 +75,32 @@ SELECT 0, 'préalable : rôles réels dans le groupe mesuré',
             THEN 'OK' ELSE 'ÉCHEC' END;
 
 -- Groupe public jetable pour les cas d'INSERT / adhésion / départ, sans
--- toucher aux groupes réels. Même geste que les fonctions officielles
--- (insert_group, get_or_create_official_group) : désactiver les deux
--- déclencheurs qui imposeraient un creator_id différent ou refuseraient
--- is_official, le temps de poser une ligne explicite.
+-- toucher aux groupes réels NI verrouiller `groups` en production.
+-- `ALTER TABLE ... DISABLE TRIGGER` prend un verrou ACCESS EXCLUSIVE sur
+-- TOUTE la table pour la durée de la transaction — même annulée ensuite, ça
+-- aurait bloqué toute lecture ou écriture de `groups` en prod le temps du
+-- banc. `insert_group()` (SECURITY DEFINER) pose déjà une ligne cohérente
+-- sans passer par les déclencheurs de garde : appelé par l'ADMINISTRATEUR,
+-- il en devient owner, ce qui laisse "membre" y entrer comme un simple
+-- membre — le cas qu'on veut réellement tester (cf. cas 13, qui l'appelle
+-- déjà pour "membre" plus bas, sans jamais toucher aux déclencheurs).
+SET LOCAL request.jwt.claims =
+  '{"sub":"00000000-0000-0000-0000-0000000000aa","app_metadata":{"firebase_uid":"U64HKfrjM5NwR6HO00XPKo6168z2"},"role":"authenticated"}';
+SET LOCAL ROLE authenticated;
+
 DO $$
-DECLARE v_grp uuid := gen_random_uuid();
+DECLARE v_json json;
 BEGIN
-  ALTER TABLE public.groups DISABLE TRIGGER enforce_group_creator_trigger;
-  ALTER TABLE public.groups DISABLE TRIGGER groups_guard_official;
-
-  INSERT INTO public.groups (id, name, creator_id, creator_name, category, is_private, member_count)
-  VALUES (v_grp, 'Banc auto-promotion (temp)', (SELECT v FROM ctx WHERE k='membre'), 'Banc', 'general', false, 0);
-
-  ALTER TABLE public.groups ENABLE TRIGGER enforce_group_creator_trigger;
-  ALTER TABLE public.groups ENABLE TRIGGER groups_guard_official;
-
-  INSERT INTO ctx VALUES ('groupe_temp', v_grp::text);
+  v_json := insert_group(p_name := 'Banc auto-promotion (temp)', p_creator_name := 'Banc');
+  INSERT INTO ctx VALUES ('groupe_temp', v_json->>'id');
 
   INSERT INTO resultat
-  SELECT 1, 'préalable : groupe public temporaire créé pour le banc', 'is_private=false',
-         'is_private=' || is_private::text,
-         CASE WHEN NOT is_private THEN 'OK' ELSE 'ÉCHEC' END
-    FROM public.groups WHERE id = v_grp;
+  SELECT 1, 'préalable : groupe public temporaire créé via insert_group() (sans verrou sur groups)',
+         'is_private=false', 'is_private=' || (v_json->>'is_private'),
+         CASE WHEN (v_json->>'is_private') = 'false' THEN 'OK' ELSE 'ÉCHEC' END;
 END $$;
+
+RESET ROLE;
 
 -- ═══ Le membre ══════════════════════════════════════════════════════════════
 SET LOCAL request.jwt.claims =
@@ -154,7 +168,8 @@ BEGIN
   WITH ins AS (
     INSERT INTO group_members (group_id, user_id, role)
     VALUES ((SELECT v FROM ctx WHERE k='groupe_temp')::uuid, (SELECT v FROM ctx WHERE k='membre'), 'member')
-    ON CONFLICT (group_id, user_id) DO UPDATE SET role = 'member'
+    ON CONFLICT (group_id, user_id) DO UPDATE
+       SET group_id = excluded.group_id, user_id = excluded.user_id, role = excluded.role
     RETURNING 1)
   SELECT count(*) INTO v_n FROM ins;
   INSERT INTO resultat VALUES (8, 'témoin : adhésion simple (role=''member'') dans le groupe public', '1 ligne', v_n || ' ligne(s)',
@@ -171,7 +186,8 @@ BEGIN
   WITH ins AS (
     INSERT INTO group_members (group_id, user_id, role)
     VALUES ((SELECT v FROM ctx WHERE k='groupe_temp')::uuid, (SELECT v FROM ctx WHERE k='membre'), 'member')
-    ON CONFLICT (group_id, user_id) DO UPDATE SET role = 'member'
+    ON CONFLICT (group_id, user_id) DO UPDATE
+       SET group_id = excluded.group_id, user_id = excluded.user_id, role = excluded.role
     RETURNING 1)
   SELECT count(*) INTO v_n FROM ins;
   INSERT INTO resultat VALUES (9, 'témoin : rejouer l''upsert déjà ''member'' (idempotent)', '1 ligne', v_n || ' ligne(s)',
@@ -203,7 +219,8 @@ DO $$
 BEGIN
   INSERT INTO group_members (group_id, user_id, role)
   VALUES ((SELECT v FROM ctx WHERE k='groupe_temp')::uuid, (SELECT v FROM ctx WHERE k='membre'), 'member')
-  ON CONFLICT (group_id, user_id) DO UPDATE SET role = 'member';
+  ON CONFLICT (group_id, user_id) DO UPDATE
+     SET group_id = excluded.group_id, user_id = excluded.user_id, role = excluded.role;
   INSERT INTO resultat VALUES (11, 'la rétrogradation silencieuse : l''upsert n''écrase plus l''owner', 'refusé 42501', 'ACCEPTÉ', 'ÉCHEC');
 EXCEPTION WHEN OTHERS THEN
   INSERT INTO resultat VALUES (11, 'la rétrogradation silencieuse : l''upsert n''écrase plus l''owner', 'refusé 42501',
