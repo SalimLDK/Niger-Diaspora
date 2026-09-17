@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1420 cases à cocher, 644 cochées** — 278 entrées sur 327 ont encore des cases ouvertes.
+**1420 cases à cocher, 645 cochées** — 278 entrées sur 327 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -344,7 +344,7 @@ Par domaine :
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 47 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 50 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 53 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
@@ -14485,6 +14485,12 @@ encore être contactés directement).
 - [ ] **Icône bulle (liste des membres proches, non-ami)** — pas testé : le
   compte connecté n'avait qu'un seul membre autour pendant la passe (Salim L.,
   déjà ami) — aucun non-ami disponible pour rejouer ce cas.
+- [x] **Ouverture depuis le cache (`61d3a06`)** — SM A515F, marqueurs logcat
+  (captures peu fiables ici : « membres à proximité » change de hauteur entre
+  deux taps, et un usage concurrent du téléphone a confirmé le piège
+  documenté dans `project_device_testing.md`) : le chemin rapide (conversation
+  déjà connue via `conversationsProvider`) pousse la route en 3 à 26 ms,
+  contre l'aller-retour réseau complet observé avant ce correctif.
 
 ---
 
