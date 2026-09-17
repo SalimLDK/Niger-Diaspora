@@ -45,6 +45,28 @@ void main() {
       expect(r.aUnSeparateur, isTrue);
     });
 
+    test('le dernier non-lu, quand la fonction le rend (20260917002300)', () {
+      final r = RepereDeLecture.depuisReponse([
+        {
+          'premier_non_lu_id': 'p',
+          'non_lus': 3,
+          'dernier_non_lu_id': 'd',
+          'dernier_non_lu_a': '2026-09-17T10:05:00.5+00:00',
+        },
+      ]);
+      expect(r.dernierNonLuId, 'd');
+      expect(r.dernierNonLuA, DateTime.utc(2026, 9, 17, 10, 5, 0, 500));
+    });
+
+    test('une fonction plus ancienne, sans ces colonnes, reste lisible', () {
+      final r = RepereDeLecture.depuisReponse([
+        {'premier_non_lu_id': 'p', 'non_lus': 3},
+      ]);
+      expect(r.dernierNonLuId, isNull);
+      expect(r.dernierNonLuA, isNull);
+      expect(r.aUnSeparateur, isTrue);
+    });
+
     test('rien jamais lu : pas de curseur, et tout ce qui vient est nouveau', () {
       final r = RepereDeLecture.depuisReponse([
         {

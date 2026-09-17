@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1384 cases à cocher, 642 cochées** — 272 entrées sur 321 ont encore des cases ouvertes.
+**1390 cases à cocher, 642 cochées** — 273 entrées sur 322 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -183,7 +183,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (85)
+**P2 — fonction secondaire ou cas limite** (86)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -194,6 +194,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 6 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
 - 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
 - 4 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
 - 6 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
@@ -330,7 +331,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 323 à faire, 124 faites
+- [2. Messagerie](#2-messagerie) — 329 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 121 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -589,6 +590,41 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)
+
+**Priorité P2** · importance 3/5 — le séparateur et le badge du bouton
+« aller en bas » gardaient le compte d'ouverture jusqu'à la fermeture de
+l'écran, même tout lu.
+*Bloqué en partie : sans la migration `20260917002300`, le séparateur ne part
+que quand il ne reste AUCUN non-lu — donc jamais dans une discussion où l'on
+écrit pendant qu'on lit.*
+
+Étape B du plan : après chaque avancée du curseur, un relevé
+(`repere_de_lecture`) fait descendre le badge ; quand le curseur a atteint le
+plus récent des non-lus d'ouverture, le séparateur part — **jamais sous les
+yeux** : il part en sortant de l'écran, ou tout de suite s'il n'y est pas. Une
+fois parti, il ne revient pas. Règle dans
+[suivi_des_non_lus.dart](lib/features/messages/presentation/utils/suivi_des_non_lus.dart),
+éprouvée contre un vrai `ListView` ; branchement dans `_suivreLaLecture`
+(`conversation_screen.dart`).
+
+⚠️ Non mesuré : retirer une ligne **au-dessus** de l'écran d'une liste inversée
+ne devrait pas décaler ce qu'on voit (le fil est ancré en bas). La case « le fil
+ne saute pas » est là pour le confirmer.
+
+- [ ] **Tout tient à l'écran** : 3 non-lus, ouvrir → séparateur visible, les 3
+      lus aussitôt (A2) → le séparateur **reste** tant qu'on ne bouge pas.
+- [ ] **Faire défiler** jusqu'à ce qu'il sorte par le haut, puis revenir → il a
+      disparu, et **le fil ne saute pas** au moment où il part.
+- [ ] **Beaucoup de non-lus** (20+) : en descendant, le chiffre du badge
+      descend ; arrivé en bas, le badge disparaît.
+- [ ] **Message reçu pendant la lecture** (l'autre écrit pendant qu'on
+      descend) : le séparateur part quand même une fois les anciens lus.
+- [ ] **Message reçu après que tout est lu** : aucun séparateur ne revient.
+- [ ] **Rouvrir** la discussion lue : pas de séparateur.
 
 ---
 

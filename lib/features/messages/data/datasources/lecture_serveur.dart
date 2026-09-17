@@ -10,7 +10,11 @@ import '../../../../core/services/supabase_auth_bridge.dart';
 /// - [curseurId] : le message d'autrui le plus récent que j'ai lu ;
 /// - [premierNonLuId] : le plus ancien non-lu **après** le curseur — c'est lui
 ///   que le séparateur désigne, qu'il soit chargé ou non ;
-/// - [nonLus] : combien de non-lus après le curseur, donc sous le séparateur.
+/// - [nonLus] : combien de non-lus après le curseur, donc sous le séparateur ;
+/// - [dernierNonLuId] : le plus récent d'entre eux. Quand le curseur l'atteint,
+///   tout ce qui était non lu au relevé est lu — c'est ce qui fait partir le
+///   séparateur (étape B). `null` tant que la migration `20260917002300`
+///   n'est pas appliquée : la colonne n'existe pas encore.
 ///
 /// Les trois viennent d'**une seule** lecture, sur les deux magasins
 /// (`messages` en clair et `mls_messages`). Côté MLS, trois requêtes
@@ -24,6 +28,8 @@ class RepereDeLecture {
     this.premierNonLuId,
     this.premierNonLuA,
     this.nonLus = 0,
+    this.dernierNonLuId,
+    this.dernierNonLuA,
   });
 
   final String? curseurId;
@@ -31,6 +37,8 @@ class RepereDeLecture {
   final String? premierNonLuId;
   final DateTime? premierNonLuA;
   final int nonLus;
+  final String? dernierNonLuId;
+  final DateTime? dernierNonLuA;
 
   /// Y a-t-il un séparateur à poser ?
   ///
@@ -66,6 +74,8 @@ class RepereDeLecture {
       premierNonLuId: texte(ligne['premier_non_lu_id']),
       premierNonLuA: date(ligne['premier_non_lu_a']),
       nonLus: nombre is num ? nombre.toInt() : 0,
+      dernierNonLuId: texte(ligne['dernier_non_lu_id']),
+      dernierNonLuA: date(ligne['dernier_non_lu_a']),
     );
   }
 }

@@ -31,6 +31,7 @@ import '../utils/message_copy_text.dart';
 import '../utils/message_grouping.dart';
 import '../utils/phrase_modification.dart';
 import '../utils/releve_a_l_ecran.dart';
+import '../utils/suivi_des_non_lus.dart';
 import '../widgets/message_input.dart';
 import '../widgets/note_poll_draft_sheet.dart';
 import '../widgets/typing_indicator_widget.dart';
@@ -508,6 +509,42 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       // marquerait aussi ce qui n'a pas été vu. Le prochain lot vu repassera.
       debugPrint('ConversationScreen: curseur non avancé ($e)');
     }
+
+    await _suivreLaLecture();
+  }
+
+  /// Le séparateur et le badge **après** l'ouverture (étape B). Voir
+  /// [SuiviDesNonLus].
+  final SuiviDesNonLus _suivi = SuiviDesNonLus();
+
+  /// Numéro du dernier relevé de suivi lancé : deux avancées rapprochées
+  /// lancent deux relevés, et le plus ancien peut répondre en dernier. Sans
+  /// ce garde, il ferait remonter le badge.
+  int _releveDeSuivi = 0;
+
+  /// Un relevé après chaque avancée du curseur : le badge descend, et le
+  /// séparateur part quand tout ce qui était non lu à l'ouverture est lu.
+  ///
+  /// Une lecture, pas une écriture, et seulement tant qu'il reste quelque
+  /// chose à faire descendre ou à faire partir.
+  Future<void> _suivreLaLecture() async {
+    if (!_repereFaitFoi || _unreadCountOnOpen == 0 || !_suivi.doitSuivre) {
+      return;
+    }
+    final numero = ++_releveDeSuivi;
+    try {
+      final maintenant = await ref
+          .read(lectureServeurProvider)
+          .relever(widget.conversationId);
+      if (!mounted || numero != _releveDeSuivi) return;
+      // `VisibilityDetector` rapporte par lots de 500 ms : un séparateur entré
+      // à l'écran à l'instant passerait pour absent, et partirait sous les
+      // yeux. On vide les rapports en attente avant de décider.
+      VisibilityDetectorController.instance.notifyNow();
+      if (_suivi.suivre(maintenant)) setState(() {});
+    } catch (e) {
+      debugPrint('ConversationScreen: suivi des non-lus indisponible ($e)');
+    }
   }
 
   /// Se termine quand [_releverCurseur] a rendu la main, qu'il ait abouti ou
@@ -531,6 +568,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       if (repere.aUnSeparateur) {
         _repereServeur = (id: repere.premierNonLuId!, nombre: repere.nonLus);
       }
+      _suivi.noterOuverture(repere);
       _repereFaitFoi = true;
     } catch (e) {
       debugPrint('ConversationScreen: repère serveur indisponible ($e)');
@@ -2800,7 +2838,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                           ),
                         ),
                         // Unread count badge
-                        if (_unreadCountOnOpen > 0)
+                        // Descend à mesure qu'on lit (étape B) : il gardait le
+                        // compte d'ouverture jusqu'à la fermeture de l'écran.
+                        if (_suivi.restants(_unreadCountOnOpen) > 0)
                           Positioned(
                             top: -4,
                             right: -4,
@@ -2818,9 +2858,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                                 minHeight: 18,
                               ),
                               child: Text(
-                                _unreadCountOnOpen > 99
+                                _suivi.restants(_unreadCountOnOpen) > 99
                                     ? '99+'
-                                    : _unreadCountOnOpen.toString(),
+                                    : _suivi
+                                        .restants(_unreadCountOnOpen)
+                                        .toString(),
                                 style: const TextStyle(
                                   color: AppColors.white,
                                   fontSize: 10,
@@ -3137,10 +3179,15 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         // Le repère se reconnaît à l'identifiant du message, pas à son rang :
         // voir [_firstUnreadMessageId]. Il survit donc à la pagination et à
         // l'arrivée des messages manquants.
+        //
+        // Une fois retiré (tout lu, et hors de l'écran), il ne revient pas :
+        // un message qui arrive ensuite est reçu en direct, pas « non lu
+        // depuis l'ouverture ». Voir [SuiviDesNonLus].
         final showUnreadSeparator =
             _firstUnreadMessageId != null &&
             message.id == _firstUnreadMessageId &&
-            _unreadCountOnOpen > 0;
+            _unreadCountOnOpen > 0 &&
+            !_suivi.separateurRetire;
 
         // With reverse: true, separators go BEFORE the message in the Column
         // so they appear visually ABOVE (Column still renders top-to-bottom within each item)
@@ -3150,7 +3197,19 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             if (needsSeparator) _buildDateSeparator(message.createdAt, l10n),
 
             // Unread messages separator (appears ABOVE message visually)
-            if (showUnreadSeparator) _buildUnreadSeparator(_unreadCountOnOpen),
+            if (showUnreadSeparator)
+              // Il ne part jamais sous les yeux : c'est sa sortie de l'écran
+              // qui le retire, une fois tout lu.
+              VisibilityDetector(
+                key: const ValueKey('separateur-non-lus'),
+                onVisibilityChanged: (info) {
+                  if (!mounted) return;
+                  if (_suivi.signalerSeparateur(info.visibleFraction)) {
+                    setState(() {});
+                  }
+                },
+                child: _buildUnreadSeparator(_unreadCountOnOpen),
+              ),
 
             // Message bubble with highlight animation
             // RepaintBoundary isolates repaints for better performance

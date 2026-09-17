@@ -387,6 +387,81 @@ void main() {
     });
   });
 
+  group('B — le séparateur part quand tout est lu', () {
+    // La règle elle-même est tenue par `suivi_des_non_lus_test.dart` (dont un
+    // vrai ListView). Ceci tient son branchement dans l'écran.
+    late String source;
+
+    setUpAll(() {
+      source = File(
+        'lib/features/messages/presentation/screens/conversation_screen.dart',
+      ).readAsStringSync().replaceAll('\r\n', '\n');
+    });
+
+    String corpsDe(String debut, String fin) {
+      final i = source.indexOf(debut);
+      expect(i, isNot(-1), reason: '$debut introuvable');
+      final j = source.indexOf(fin, i + debut.length);
+      expect(j, isNot(-1), reason: '$fin introuvable après $debut');
+      return source.substring(i, j);
+    }
+
+    test('la borne haute est notée au relevé d\'ouverture', () {
+      final corps = corpsDe('Future<void> _releverCurseur() async {', 'Future<void> _releverCurseurMls()');
+      expect(corps, contains('_suivi.noterOuverture(repere);'));
+    });
+
+    test('un relevé de suivi part APRÈS les écritures du curseur', () {
+      final corps = corpsDe('Future<void> _pousserCurseur() async {', 'final SuiviDesNonLus _suivi');
+      final suivi = corps.indexOf('await _suivreLaLecture();');
+      expect(suivi, isNot(-1));
+      expect(suivi, greaterThan(corps.indexOf('.avancerJusqua(')));
+      expect(suivi, greaterThan(corps.indexOf('avancerCurseur(')));
+    });
+
+    test('les rapports de visibilité sont vidés AVANT de décider', () {
+      // Sans ça, un séparateur entré à l'écran depuis moins de 500 ms passe
+      // pour absent, et part sous les yeux.
+      final corps = corpsDe('Future<void> _suivreLaLecture() async {', 'final Completer<void> _releve');
+      final vidage = corps.indexOf('VisibilityDetectorController.instance.notifyNow();');
+      expect(vidage, isNot(-1));
+      expect(vidage, lessThan(corps.indexOf('_suivi.suivre(maintenant)')));
+    });
+
+    test('un relevé ancien arrivé en dernier est ignoré', () {
+      final corps = corpsDe('Future<void> _suivreLaLecture() async {', 'final Completer<void> _releve');
+      expect(corps, contains('final numero = ++_releveDeSuivi;'));
+      expect(corps, contains('numero != _releveDeSuivi'));
+    });
+
+    test('le séparateur retiré ne s\'affiche plus, et sa sortie d\'écran est suivie', () {
+      expect(source, contains('!_suivi.separateurRetire;'));
+      expect(source, contains("key: const ValueKey('separateur-non-lus'),"));
+      expect(source, contains('if (_suivi.signalerSeparateur(info.visibleFraction)) {'));
+    });
+
+    test('le badge suit les relevés, plus le compte figé d\'ouverture', () {
+      expect(source, contains('if (_suivi.restants(_unreadCountOnOpen) > 0)'));
+      expect(source, isNot(contains('if (_unreadCountOnOpen > 0)\n                          Positioned(')));
+    });
+
+    test('un message reçu après coup ne repose pas de séparateur', () {
+      // Le repère serveur ferme le comptage dès qu'il est posé : aucune
+      // émission suivante du fil ne recalcule le séparateur. Et le suivi est
+      // `final`, jamais recréé — un séparateur retiré le reste.
+      final calcul = corpsDe('void _calculateUnreadOnOpen() {', 'void _scrollToUnreadOrBottom(');
+      // Première instruction du calcul : le verrou.
+      expect(calcul.split('\n')[1].trim(), 'if (_hasCalculatedUnread) return;');
+      final foi = calcul.indexOf('if (_repereFaitFoi) {');
+      expect(foi, isNot(-1));
+      expect(calcul.substring(foi, foi + 120), contains('_hasCalculatedUnread = true;'));
+      expect(source, contains('if (!_hasCalculatedUnread &&\n          next.messages.isNotEmpty &&'));
+      // Une seule affectation du suivi : sa déclaration `final`.
+      expect(RegExp(r'_suivi\s*=').allMatches(source).length, 1);
+      expect(source, contains('final SuiviDesNonLus _suivi = SuiviDesNonLus();'));
+    });
+  });
+
   group('rangDesDerniersDAutrui', () {
     // Quand `markAsRead` a déjà tout marqué lu — il part au premier rendu,
     // avant même que le fil chiffré ne soit récupéré — l'état de lecture ne
