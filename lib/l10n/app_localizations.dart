@@ -22790,6 +22790,54 @@ abstract class AppLocalizations {
   /// **'Les messages sont chiffrés de bout en bout'**
   String get mlsSeparatorEncrypted;
 
+  /// Notice dans le fil d'un groupe non chiffré, écrite par la RPC exclure_du_groupe
+  ///
+  /// In fr, this message translates to:
+  /// **'{acteur} a retiré {cible} du groupe'**
+  String groupNoticeMemberRemoved(String acteur, String cible);
+
+  /// Même notice quand c'est le lecteur qui a exclu. Une phrase à part, et non « Vous » injecté dans la précédente : « Vous a retiré » n'est pas du français.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez retiré {cible} du groupe'**
+  String groupNoticeMemberRemovedByYou(String cible);
+
+  /// Notice dans le fil d'un groupe non chiffré, écrite par la RPC nommer_admin_du_groupe
+  ///
+  /// In fr, this message translates to:
+  /// **'{acteur} a nommé {cible} admin'**
+  String groupNoticeAdminNamed(String acteur, String cible);
+
+  /// Même notice quand c'est le lecteur qui a nommé
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez nommé {cible} admin'**
+  String groupNoticeAdminNamedByYou(String cible);
+
+  /// Même notice quand c'est le lecteur qui a été nommé. Pas « vous a nommé admin » : « vous », complément d'objet placé avant le verbe, impose l'accord (« nommée » pour une lectrice), que la phrase ne peut pas connaître. Ici le complément d'objet est « le rôle », placé après : aucun accord.
+  ///
+  /// In fr, this message translates to:
+  /// **'{acteur} vous a confié le rôle d\'admin'**
+  String groupNoticeAdminNamedToYou(String acteur);
+
+  /// Notice dans le fil d'un groupe non chiffré, écrite par la RPC retirer_admin_du_groupe
+  ///
+  /// In fr, this message translates to:
+  /// **'{acteur} a retiré le rôle d\'admin à {cible}'**
+  String groupNoticeAdminRemoved(String acteur, String cible);
+
+  /// Même notice quand c'est le lecteur qui a rétrogradé
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez retiré le rôle d\'admin à {cible}'**
+  String groupNoticeAdminRemovedByYou(String cible);
+
+  /// Même notice quand c'est le lecteur qui a été rétrogradé
+  ///
+  /// In fr, this message translates to:
+  /// **'{acteur} vous a retiré le rôle d\'admin'**
+  String groupNoticeAdminRemovedToYou(String acteur);
+
   /// No description provided for @mlsDevicesExplain.
   ///
   /// In fr, this message translates to:
