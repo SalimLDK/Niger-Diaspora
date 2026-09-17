@@ -48,6 +48,31 @@ class MlsParticipantSansAppareil implements Exception {
       'MlsParticipantSansAppareil($conversationId, ${participants.length})';
 }
 
+/// Cet appareil est révoqué : il ne doit plus rejoindre un groupe, publier un
+/// commit, chiffrer ou déchiffrer.
+///
+/// **Le trou que ça ferme.** `MlsDeviceRegistry.ensureRegistered` détecte la
+/// révocation et écrit `appareil_revoque_au_demarrage` — mais renvoie quand
+/// même le `MlsDeviceRecord` (pour ne pas faire échouer un simple
+/// rafraîchissement d'écran). Rien, nulle part ailleurs dans la pile MLS, ne
+/// relisait `estRevoque` : un appareil révoqué rejoignait des groupes par
+/// commit externe, s'inscrivait dans `conversation_devices` comme membre
+/// actif, et chiffrait/déchiffrait avec des clés que le serveur ne tenait
+/// plus à jour pour lui (le registre saute la republication en cas de
+/// révocation, voir `ensureRegistered`) — échec cryptographique systématique
+/// (`GroupStateError`/`ValidationError`), à chaque appel, sans qu'aucun
+/// message ne le dise. Trouvé le 2026-09-17 sur le Pixel : `stableDeviceId`
+/// avait basculé sur une identité déjà révoquée après un changement de
+/// certificat de signature (voir `stable_device_id.dart`), et l'appareil a
+/// continué à opérer indéfiniment sous cette identité morte.
+class MlsAppareilRevoque implements Exception {
+  final String deviceId;
+  const MlsAppareilRevoque(this.deviceId);
+
+  @override
+  String toString() => 'MlsAppareilRevoque($deviceId)';
+}
+
 /// Orchestration MLS d'une conversation : le seul service que la couche
 /// messages appellera (plan MLS § 7.3).
 ///
@@ -118,6 +143,15 @@ class MlsConversationService {
   Future<bool> estMembre(String conversationId) async =>
       await _instantane(conversationId) != null;
 
+  /// Lève [MlsAppareilRevoque] si [appareil] est révoqué — à appeler à
+  /// l'entrée de toute opération qui rejoint un groupe, publie un commit, ou
+  /// chiffre/déchiffre. Voir la classe pour ce que ça ferme.
+  Future<void> _refuserSiRevoque(MlsDeviceRecord appareil) async {
+    if (!appareil.estRevoque) return;
+    await _delivery.diagnostic(userId, 'appareil_revoque_refuse', deviceId: appareil.id);
+    throw MlsAppareilRevoque(appareil.id);
+  }
+
   /// Jointures en cours, une par conversation.
   final Map<String, Future<void>> _jointures = {};
 
@@ -150,6 +184,7 @@ class MlsConversationService {
     if (await estMembre(conversationId)) return;
     final moteur = await _moteur();
     final appareil = await _appareil();
+    await _refuserSiRevoque(appareil);
 
     // 1. Un Welcome m'attend ?
     final welcomes = await _delivery.welcomesFor(appareil.id, conversationId: conversationId);
@@ -338,6 +373,7 @@ class MlsConversationService {
     await catchUp(conversationId);
     final moteur = await _moteur();
     final appareil = await _appareil();
+    await _refuserSiRevoque(appareil);
     final conv = await _delivery.conversation(conversationId);
     if (conv == null) throw StateError('conversation inconnue ou inaccessible');
     final participants = (conv['participant_ids'] as List).cast<String>();
@@ -546,6 +582,7 @@ class MlsConversationService {
     await catchUp(conversationId);
     final moteur = await _moteur();
     final appareil = await _appareil();
+    await _refuserSiRevoque(appareil);
     final snap = await moteur.instantane(conversationId: conversationId);
     final id = payload.id.isNotEmpty ? payload.id : _uuid.v4();
     final aad = MlsAad.message(
@@ -615,6 +652,7 @@ class MlsConversationService {
     }
     final moteur = await _moteur();
     final appareil = await _appareil();
+    await _refuserSiRevoque(appareil);
     await _traiterCommits(conversationId, moteur, appareil);
 
     final resultats = <MlsIncoming>[];
