@@ -54,6 +54,7 @@ import '../widgets/product_message_card.dart';
 import '../widgets/location_message_bubble.dart';
 import 'poll_message_bubble.dart';
 import 'reaction_picker.dart';
+import '../utils/accuse_de_groupe.dart';
 import '../../../stickers/presentation/widgets/sticker_bubble.dart';
 
 /// Position of a message in a group of consecutive messages from the same sender
@@ -130,6 +131,12 @@ class MessageBubble extends ConsumerStatefulWidget {
   // (accusés, en-tête d'expéditeur) d'un message reçu en 1:1.
   final String? groupId;
 
+  /// En groupe, les membres qui doivent avoir lu CE message pour qu'il soit
+  /// « Lu » — voir `lecteursAttendus`. `null` tant que les membres ne sont pas
+  /// connus : on n'affiche alors jamais « Lu », plutôt que de l'afficher trop
+  /// tôt.
+  final Set<String>? lecteursAttendus;
+
   const MessageBubble({
     super.key,
     required this.message,
@@ -161,6 +168,7 @@ class MessageBubble extends ConsumerStatefulWidget {
     this.skipAnimation = false,
     this.isPendingRequest = false,
     this.groupId,
+    this.lecteursAttendus,
   });
 
   @override
@@ -2577,8 +2585,8 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     final l10n = AppLocalizations.of(context)!;
     final metaColor = context.textTertiaryColor;
 
-    // Nombre de lecteurs autres que l'expéditeur : en groupe, il remplace le
-    // « Lu » générique par un « Vu par N » qui dit vraiment quelque chose.
+    // Nombre de lecteurs autres que l'expéditeur. En tête-à-tête, un seul
+    // suffit à « Lu » ; en groupe, voir `_buildReceiptLabel`.
     final groupReadCount =
         widget.message.readBy
             .where((id) => id != widget.message.senderId)
@@ -2735,7 +2743,14 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           return _receiptText(l10n.receiptSent, metaColor);
         }
 
-        final isRead = groupReadCount > 0;
+        // En groupe, « Lu » quand TOUS les membres attendus ont lu (étape C).
+        // Avant, « Vu par N » s'affichait en bleu dès le premier lecteur :
+        // l'expéditeur d'un groupe de 24 lisait « Vu par 1 » comme « lu ». Le
+        // détail par membre reste à un tap (`_showMessageInfoSheet`).
+        final isRead =
+            widget.groupId != null
+                ? tousOntLu(widget.message.readBy, widget.lecteursAttendus)
+                : groupReadCount > 0;
         final isDelivered =
             widget.message.deliveredTo
                 .where((id) => id != widget.message.senderId)
@@ -2744,10 +2759,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         late final String libelle;
         late final Color couleur;
         if (isRead) {
-          libelle =
-              widget.groupId != null
-                  ? l10n.seenByCount(groupReadCount)
-                  : l10n.receiptRead;
+          libelle = l10n.receiptRead;
           couleur = AppColors.readReceiptBlue;
         } else if (isDelivered) {
           libelle = l10n.receiptDelivered;

@@ -253,7 +253,12 @@ class MessageEntity extends Equatable {
   bool get isAudio => type == MessageType.audio;
   bool get isVoiceNote => type == MessageType.voiceNote;
   bool get isVideo => type == MessageType.video;
-  bool get isSystem => type == MessageType.system;
+  /// Message système : arrivée, départ, renommage, repère de bascule MLS.
+  ///
+  /// Le TYPE ou l'EXPÉDITEUR `system` suffit : `sendSystemMessage` pose les
+  /// deux, et un message système mal typé ne doit ni compter comme non lu, ni
+  /// porter le séparateur, ni faire avancer le curseur.
+  bool get isSystem => type == MessageType.system || senderId == 'system';
   bool get isCall => type == MessageType.call;
   bool get isLocation => type == MessageType.location;
 

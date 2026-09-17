@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1390 cases à cocher, 642 cochées** — 273 entrées sur 322 ont encore des cases ouvertes.
+**1395 cases à cocher, 642 cochées** — 274 entrées sur 323 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -183,7 +183,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (86)
+**P2 — fonction secondaire ou cas limite** (87)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -207,6 +207,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
 - 6 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
 - 4 · [Zone de saisie des messages — barre multi-ligne (2026-08-04)](#zone-de-saisie-des-messages--barre-multi-ligne-2026-08-04) · *Messagerie*
+- 5 · [⬜ Groupes : non-lus depuis l'arrivée, messages système, « Lu » par tous (2026-09-17)](#-groupes--non-lus-depuis-larrivée-messages-système--lu--par-tous-2026-09-17) · *Groupes*
 - 5 · [⬜ Groupe privé : un nouveau membre ne voit plus ce qui précède son arrivée (2026-09-16)](#-groupe-privé--un-nouveau-membre-ne-voit-plus-ce-qui-précède-son-arrivée-2026-09-16) · *Groupes*
 - 5 · [⬜ Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé (2026-09-13)](#-quitter-lancien-groupe-officiel--proposé-après-6-mois-jamais-imposé-2026-09-13) · *Groupes* · bloqué
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
@@ -332,7 +333,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 329 à faire, 124 faites
-- [3. Groupes](#3-groupes) — 121 à faire, 64 faites
+- [3. Groupes](#3-groupes) — 126 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
@@ -4462,6 +4463,44 @@ de conclure quoi que ce soit.
 # 3. Groupes
 
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
+
+---
+
+## ⬜ Groupes : non-lus depuis l'arrivée, messages système, « Lu » par tous (2026-09-17)
+
+**Priorité P2** · importance 3/5 — quatre règles de lecture propres aux
+groupes (étape C du plan du séparateur).
+*Bloqué : la migration `20260917003700` n'est pas encore appliquée, et « Lu
+par tous » demande un groupe à trois comptes sur trois appareils — il n'y en a
+que deux aujourd'hui.*
+
+1. **Rien d'avant l'arrivée ne compte comme non lu** — mesuré : trois membres
+   d'un groupe de 26 voyaient 7, 4 et 3 messages d'avant leur arrivée comptés
+   non lus, séparateur posé dessus. Serveur : `repere_de_lecture`,
+   `marquer_lus_jusqua`, vue `mls_unread_counts`
+   ([tools/rls_tests/groupes_non_lus.sql](tools/rls_tests/groupes_non_lus.sql),
+   10 cas ; l'état d'avant en fait tomber 7).
+2. **Un message système ne compte pas** : `_updateConversationLastMessage`
+   incrémentait la pastille de tous les participants — l'auteur du geste
+   compris — pour « Un utilisateur a été retiré du groupe ».
+3. **« Lu » attend tous les membres présents**, arrivés avant le message
+   ([accuse_de_groupe.dart](lib/features/messages/presentation/utils/accuse_de_groupe.dart)).
+   ⚠️ **Changement visible** : « Vu par N » disparaît de la bulle ; un lecteur
+   sur deux affiche « Reçu ». Le détail par membre reste à un tap. Dans la liste,
+   la tuile d'un groupe passait au vert dès que le premier autre membre venu
+   avait lu.
+4. Une écriture du curseur par lot vu (tenu par un test, rien à voir à l'écran).
+
+- [ ] **Nouveau membre** dans un groupe avec de l'historique non lu : à
+      l'ouverture, aucun séparateur sur les messages d'avant son arrivée ; la
+      pastille de la liste ne les compte pas.
+- [ ] **Retirer un membre** d'un groupe **en clair** : la pastille des autres
+      membres, et celle de l'administrateur, n'augmente pas.
+- [ ] **Groupe à trois** : A écrit ; B lit → chez A, « Reçu », pas « Lu » ;
+      C lit → « Lu ». La tuile de la liste suit la même règle.
+- [ ] **Membre parti** : A écrit, B lit puis quitte le groupe, C lit → « Lu ».
+- [ ] **Groupe chiffré**, membre arrivé après la bascule : la pastille ne
+      compte pas l'historique chiffré qu'il ne peut pas lire.
 
 ---
 

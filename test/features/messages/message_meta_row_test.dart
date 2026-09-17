@@ -49,6 +49,7 @@ Future<void> _pump(
   MessageEntity message, {
   bool isMe = false,
   String? groupId,
+  Set<String>? lecteursAttendus,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -67,6 +68,7 @@ Future<void> _pump(
             message: message,
             isMe: isMe,
             groupId: groupId,
+            lecteursAttendus: lecteursAttendus,
             currentUserId: 'salim',
             skipAnimation: true,
           ),
@@ -168,7 +170,7 @@ void main() {
     expect(find.text(' · Envoyé'), findsNothing);
   });
 
-  testWidgets('« Lu » en tête-à-tête, « Vu par N » en groupe', (tester) async {
+  testWidgets("« Lu » en tête-à-tête dès que l'autre a lu", (tester) async {
     await _pump(
       tester,
       _message(
@@ -179,7 +181,47 @@ void main() {
       isMe: true,
     );
     expect(find.text(' · Lu'), findsOneWidget);
+  });
 
+  // Étape C du plan : en groupe, « Lu » attend TOUS les membres attendus.
+  // Avant, « Vu par N » s'affichait en bleu dès le premier lecteur — dans un
+  // groupe de 24, « Vu par 1 » se lisait comme « lu ». Le détail par membre
+  // reste à un tap.
+  testWidgets('en groupe, un lecteur sur deux : pas encore « Lu »', (tester) async {
+    await _pump(
+      tester,
+      _message(
+        type: MessageType.text,
+        readBy: const ['salim'],
+        deliveredTo: const ['salim', 'fatou'],
+      ),
+      isMe: true,
+      groupId: 'groupe-1',
+      lecteursAttendus: const {'salim', 'fatou'},
+    );
+    expect(find.text(' · Lu'), findsNothing);
+    expect(find.text(' · Reçu'), findsOneWidget);
+    expect(find.textContaining('Vu par'), findsNothing);
+  });
+
+  testWidgets('en groupe, tous les attendus ont lu : « Lu »', (tester) async {
+    await _pump(
+      tester,
+      _message(
+        type: MessageType.text,
+        // `ancien` a lu puis quitté le groupe : il n'est plus attendu, et ne
+        // gêne pas.
+        readBy: const ['salim', 'fatou', 'ancien'],
+        deliveredTo: const ['salim', 'fatou', 'ancien'],
+      ),
+      isMe: true,
+      groupId: 'groupe-1',
+      lecteursAttendus: const {'salim', 'fatou'},
+    );
+    expect(find.text(' · Lu'), findsOneWidget);
+  });
+
+  testWidgets('en groupe, membres pas encore connus : jamais « Lu » trop tôt', (tester) async {
     await _pump(
       tester,
       _message(
@@ -190,8 +232,8 @@ void main() {
       isMe: true,
       groupId: 'groupe-1',
     );
-    expect(find.text(' · Vu par 2'), findsOneWidget);
     expect(find.text(' · Lu'), findsNothing);
+    expect(find.text(' · Reçu'), findsOneWidget);
   });
 
   testWidgets('aucun accusé sur un message reçu', (tester) async {

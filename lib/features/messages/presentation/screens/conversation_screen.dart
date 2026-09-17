@@ -30,6 +30,7 @@ import '../widgets/message_bubble.dart';
 import '../utils/message_copy_text.dart';
 import '../utils/message_grouping.dart';
 import '../utils/phrase_modification.dart';
+import '../utils/accuse_de_groupe.dart';
 import '../utils/releve_a_l_ecran.dart';
 import '../utils/suivi_des_non_lus.dart';
 import '../widgets/message_input.dart';
@@ -127,7 +128,7 @@ class ConversationScreen extends ConsumerStatefulWidget {
   int? premier;
   for (var i = 0; i < messages.length; i++) {
     final m = messages[i];
-    if (m.type == MessageType.system) continue;
+    if (m.isSystem) continue;
     if (m.senderId == moi) continue;
     if (m.readBy.contains(moi)) continue;
     nombre++;
@@ -174,7 +175,7 @@ class ConversationScreen extends ConsumerStatefulWidget {
   int? premier;
   for (var i = 0; i < messages.length; i++) {
     final m = messages[i];
-    if (m.type == MessageType.system) continue;
+    if (m.isSystem) continue;
     if (m.senderId == moi) continue;
     if (!m.createdAt.isAfter(depuis)) continue;
     nombre++;
@@ -192,7 +193,7 @@ int? rangDesDerniersDAutrui(
   var restant = combien;
   for (var i = messages.length - 1; i >= 0; i--) {
     final m = messages[i];
-    if (m.type == MessageType.system) continue;
+    if (m.isSystem) continue;
     if (m.senderId == moi) continue;
     restant--;
     if (restant == 0) return i;
@@ -221,7 +222,7 @@ MessageEntity? plusRecentALire(
   if (moi == null) return null;
   MessageEntity? cible;
   for (final m in visibles) {
-    if (m.type == MessageType.system) continue;
+    if (m.isSystem) continue;
     if (m.senderId == moi) continue;
     if (dejaVu != null && !m.createdAt.isAfter(dejaVu)) continue;
     if (cible == null || m.createdAt.isAfter(cible.createdAt)) cible = m;
@@ -372,7 +373,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     if (message.senderId == ref.read(currentUserProvider).valueOrNull?.id) {
       return;
     }
-    if (message.type == MessageType.system) return;
+    if (message.isSystem) return;
 
     _aLEcran.noter(message, fraction);
     if (fraction < _visibiliteMinimale) {
@@ -3230,6 +3231,28 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             key: ValueKey(message.id),
                             message: message,
                             isMe: isMe,
+                            // Étape C : en groupe, « Lu » attend tous les
+                            // membres présents et arrivés avant le message.
+                            // `group_members` fait foi ; la liste des
+                            // participants ne sert qu'à défaut de groupe
+                            // Supabase (groupes hérités de Firestore), sans
+                            // dates d'arrivée.
+                            lecteursAttendus:
+                                _isGroup && isMe
+                                    ? (groupForAdminCheck != null
+                                        ? lecteursAttendus(
+                                          message,
+                                          membres: groupForAdminCheck.memberIds,
+                                          arrivees:
+                                              groupForAdminCheck.memberJoinedAt,
+                                        )
+                                        : conversation != null
+                                        ? lecteursAttendus(
+                                          message,
+                                          membres: conversation.participantIds,
+                                        )
+                                        : null)
+                                    : null,
                             showSenderInfo: showSenderInfo,
                             senderIsAdmin: senderIsAdmin,
                             groupPosition: groupPosition,

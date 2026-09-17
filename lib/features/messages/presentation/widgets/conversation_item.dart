@@ -16,6 +16,7 @@ import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'messages_skeleton.dart';
+import '../utils/accuse_de_groupe.dart';
 
 class ConversationItem extends ConsumerStatefulWidget {
   final ConversationEntity conversation;
@@ -842,12 +843,27 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
       case MessageStatus.failed:
         return const AppIcon(AppIcon.warning, size: 14, color: Colors.red);
       case MessageStatus.sent:
-        final readBy = widget.conversation.lastMessageReadBy;
-        final otherId = widget.conversation.getOtherParticipantId(widget.currentUserId);
+        final conversation = widget.conversation;
+        final readBy = conversation.lastMessageReadBy;
+        final otherId = conversation.getOtherParticipantId(widget.currentUserId);
+        final estGroupe = conversation.isGroup || conversation.groupId != null;
 
-        final isRead = readBy.contains(otherId);
+        // En groupe, `getOtherParticipantId` rend le PREMIER autre membre
+        // venu : la tuile passait au vert dès que ce membre-là, pris au hasard,
+        // avait lu. « Lu » attend désormais tous les membres présents (étape
+        // C) ; les dates d'arrivée ne sont pas connues ici — un membre arrivé
+        // après le dernier message compte comme attendu.
+        final isRead = estGroupe
+            ? tousOntLu(readBy, {
+                for (final id in conversation.participantIds)
+                  if (id != widget.currentUserId) id,
+              })
+            : readBy.contains(otherId);
         final isDelivered = !isRead &&
-            widget.conversation.lastMessageDeliveredTo.contains(otherId);
+            (estGroupe
+                ? conversation.lastMessageDeliveredTo
+                    .any((id) => id != widget.currentUserId)
+                : conversation.lastMessageDeliveredTo.contains(otherId));
 
         if (isRead) {
           // Vert de lecture de la fiche 9a (#009600). Le bleu WhatsApp

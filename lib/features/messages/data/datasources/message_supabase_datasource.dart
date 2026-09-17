@@ -678,8 +678,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       final unreadCount = Map<String, dynamic>.from(
         current['unreadCount'] as Map? ?? {},
       );
+      // Un message système (« un utilisateur a été retiré du groupe ») n'est
+      // pas du courrier : son expéditeur, `system`, n'est aucun participant,
+      // et la boucle incrémentait donc la pastille de TOUT LE MONDE — y compris
+      // de l'administrateur qui venait d'agir. Le serveur ne le compte pas non
+      // plus (`repere_de_lecture`, `marquer_lus_jusqua`).
+      final estSysteme = senderId == 'system' || type == 'system';
       for (final pid in participantIds) {
-        if (pid != senderId) {
+        if (!estSysteme && pid != senderId) {
           final cur = (unreadCount[pid] as int?) ?? 0;
           unreadCount[pid] = cur + 1;
         }

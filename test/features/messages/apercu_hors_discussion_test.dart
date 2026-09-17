@@ -215,7 +215,8 @@ void main() {
       final debut = source.indexOf('void _signalerVisibilite(');
       expect(debut, isNot(-1));
       final corps = source.substring(debut, debut + 1400);
-      expect(corps, contains('message.type == MessageType.system'));
+      // `isSystem` : le type OU l'expéditeur `system` (étape C du plan).
+      expect(corps, contains('if (message.isSystem) return;'));
       expect(corps, contains('message.senderId =='));
     });
 
