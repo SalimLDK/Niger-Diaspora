@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1417 cases à cocher, 642 cochées** — 277 entrées sur 326 ont encore des cases ouvertes.
+**1418 cases à cocher, 642 cochées** — 277 entrées sur 326 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -118,7 +118,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
-- 13 · [⬜ Gérer les membres d'un groupe : notices dans le fil, et deux listes d'admins réconciliées (2026-09-17)](#-gérer-les-membres-dun-groupe--notices-dans-le-fil-et-deux-listes-dadmins-réconciliées-2026-09-17) · *Groupes*
+- 14 · [⬜ Gérer les membres d'un groupe : notices dans le fil, et deux listes d'admins réconciliées (2026-09-17)](#-gérer-les-membres-dun-groupe--notices-dans-le-fil-et-deux-listes-dadmins-réconciliées-2026-09-17) · *Groupes*
 - 5 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
@@ -336,7 +336,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 329 à faire, 124 faites
-- [3. Groupes](#3-groupes) — 148 à faire, 64 faites
+- [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
@@ -4504,6 +4504,17 @@ sender_id`, et une conversation basculée refuse même avant (23514). Trois RPC
    l'écran annonçait « Membre retiré » et la personne restait dans
    `group_members`. La RPC supprime la ligne dans tous les cas.
 
+⚠️ **Trouvé en préparant la passe (2026-09-17) : les trois actions n'étaient
+accessibles à personne.** « Promouvoir Admin », « Retirer Admin » et « Retirer
+du groupe » exigent la conversation du groupe, et la route
+`/groups/:groupId/members` ne l'a jamais transmise à
+[group_members_screen.dart](lib/features/groups/presentation/screens/group_members_screen.dart) :
+le menu d'un admin ne proposait que le rôle modérateur, depuis décembre 2025.
+L'AAB compilé pour la passe le prouvait — aucun nom des trois RPC dans
+`libapp.so`, le compilateur avait retiré les appels. L'écran retrouve
+maintenant la conversation lui-même (`groupConversationIdProvider`), pour un
+admin seulement. Test : `test/features/groups/membres_actions_admin_test.dart`.
+
 **La notice n'existe que hors MLS.** En clair dans une conversation chiffrée,
 elle dirait au serveur ce que le chiffrement lui tait. Relevé le 2026-09-17 :
 **6 groupes en clair, 1 basculé** — la notice s'y verra donc, et de moins en
@@ -4529,6 +4540,10 @@ Bancs : [tools/rls_tests/notices_de_groupe.sql](tools/rls_tests/notices_de_group
 Pas bloqué, mais **demande deux comptes** : les notices ne se lisent qu'à
 plusieurs.
 
+- [ ] **Le menu existe** : Membres → appui long sur un simple membre, en
+      admin → « Promouvoir modérateur », « Promouvoir Admin » et « Retirer du
+      groupe » (les deux derniers n'étaient jamais apparus). Sur un admin non
+      créateur : « Retirer Admin ».
 - [ ] **Groupe en clair, exclusion** : l'admin retire un membre → une ligne
       grise centrée apparaît dans le fil, « *Vous avez retiré Hocine du
       groupe* ». Sur le téléphone d'un autre membre, la même ligne dit « *Nasara
@@ -4541,15 +4556,15 @@ plusieurs.
       n'affiche rien dans le volet.
 - [ ] **Côté exclu** : il ne voit pas la notice de son exclusion — le groupe
       disparaît de ses onglets.
-- [ ] **Promouvoir** : appui long sur un membre → « Nommer admin ». La notice
+- [ ] **Promouvoir** : appui long sur un membre → « Promouvoir Admin ». La notice
       dit « *Vous avez nommé Tchandikou admin* », et sur le téléphone du promu
       « *Nasara vous a confié le rôle d'admin* ». **Le badge « Admin » apparaît sur sa
       ligne** dans Membres (c'est ce qui ne marchait pas), et lui voit
       maintenant le menu de gestion des autres membres.
-- [ ] **Rétrograder** : « Retirer le rôle d'admin ». Notice symétrique, le badge
+- [ ] **Rétrograder** : « Retirer Admin ». Notice symétrique, le badge
       part, et le rétrogradé perd l'accès au menu de gestion.
 - [ ] **Rattrapage de la divergence** : sur un membre dont le badge manquait
-      alors qu'il gérait déjà le groupe, « Nommer admin » fait apparaître le
+      alors qu'il gérait déjà le groupe, « Promouvoir Admin » fait apparaître le
       badge.
 - [ ] **En anglais** (Réglages → langue anglaise) : « *You removed Hocine from
       the group* », « *Nasara made you an admin* » — aucun mot français dans la
@@ -4563,7 +4578,7 @@ plusieurs.
       n'apparaît dans le fil**. C'est voulu.
 - [ ] **Deux appuis de suite** sur « Retirer du groupe » : pas de seconde
       notice, et pas de message d'erreur au second.
-- [ ] **Un non-admin** : le menu ne propose ni « Retirer » ni « Nommer admin ».
+- [ ] **Un non-admin** : l'appui long sur un membre n'ouvre aucun menu.
 - [ ] **Réseau coupé** au moment de confirmer : « Erreur lors du retrait », le
       membre est toujours là au retour du réseau, et aucune notice n'est
       apparue.
