@@ -6,10 +6,10 @@
 -- porte pas toujours le cas). Tout est dans un `BEGIN … ROLLBACK` — le banc
 -- écrit sur de vraies lignes de production puis annule tout.
 --
--- AVANT `db push`, pour éprouver la migration elle-même : coller le contenu de
--- `supabase/migrations/20260916224700_lecture_par_curseur_en_clair.sql` à la
--- place de la ligne `-- @@MIGRATION@@` ci-dessous (le `ROLLBACK` final
--- l'annule avec le reste).
+-- AVANT `db push`, pour éprouver une migration : coller son contenu à la place
+-- de la ligne `-- @@MIGRATION@@` ci-dessous (le `ROLLBACK` final l'annule avec
+-- le reste). Les cas 30 à 32 (dernier non-lu) demandent
+-- `20260917002300_repere_porte_le_dernier_non_lu.sql`.
 --
 -- `SET LOCAL ROLE authenticated` est indispensable : `db query --linked` se
 -- connecte en `postgres`, qui contourne la RLS. Les valeurs ATTENDUES sont
@@ -78,6 +78,11 @@ BEGIN
   INSERT INTO ctx SELECT 'non_lus_apres', count(*)::text FROM fil_attendu
    WHERE NOT lu AND created_at > COALESCE(v_curseur_a, '-infinity');
   INSERT INTO ctx SELECT 'non_lus_total', count(*)::text FROM fil_attendu WHERE NOT lu;
+  -- Le plus récent des non-lus : la borne haute que le séparateur attend
+  -- (20260917002300).
+  INSERT INTO ctx SELECT 'dernier_non_lu_id', id FROM fil_attendu
+   WHERE NOT lu AND created_at > COALESCE(v_curseur_a, '-infinity')
+   ORDER BY created_at DESC, id DESC LIMIT 1;
 
   -- La borne : le 3e non-lu après le curseur. Il en reste donc au-delà.
   SELECT id, created_at INTO v_borne FROM fil_attendu
@@ -158,7 +163,9 @@ BEGIN
     (2, 'repère : premier non-lu', (SELECT v FROM ctx WHERE k = 'premier_id'), r.premier_non_lu_id,
      CASE WHEN r.premier_non_lu_id IS NOT DISTINCT FROM (SELECT v FROM ctx WHERE k = 'premier_id') THEN 'OK' ELSE 'ÉCHEC' END),
     (3, 'repère : curseur', COALESCE((SELECT v FROM ctx WHERE k = 'curseur_id'), '<null>'), COALESCE(r.curseur_id, '<null>'),
-     CASE WHEN r.curseur_id IS NOT DISTINCT FROM (SELECT v FROM ctx WHERE k = 'curseur_id') THEN 'OK' ELSE 'ÉCHEC' END);
+     CASE WHEN r.curseur_id IS NOT DISTINCT FROM (SELECT v FROM ctx WHERE k = 'curseur_id') THEN 'OK' ELSE 'ÉCHEC' END),
+    (30, 'repère : dernier non-lu', (SELECT v FROM ctx WHERE k = 'dernier_non_lu_id'), r.dernier_non_lu_id,
+     CASE WHEN r.dernier_non_lu_id IS NOT DISTINCT FROM (SELECT v FROM ctx WHERE k = 'dernier_non_lu_id') THEN 'OK' ELSE 'ÉCHEC' END);
 EXCEPTION WHEN OTHERS THEN
   INSERT INTO resultat VALUES (1, 'repère', 'une ligne', 'ERREUR ' || SQLSTATE || ' ' || SQLERRM, 'ÉCHEC');
 END $$;
@@ -288,6 +295,12 @@ BEGIN
     CASE WHEN r.premier_non_lu_id IS NOT DISTINCT FROM (SELECT v FROM ctx WHERE k = 'suivant_id')
           AND r.curseur_id IS NOT DISTINCT FROM (SELECT v FROM ctx WHERE k = 'borne_id')
          THEN 'OK' ELSE 'ÉCHEC' END);
+  -- Le dernier ne bouge pas quand on n'a lu qu'une partie : c'est lui que le
+  -- séparateur attend.
+  INSERT INTO resultat VALUES (31, 'repère après avancée partielle : dernier non-lu inchangé',
+    (SELECT v FROM ctx WHERE k = 'dernier_non_lu_id'), COALESCE(r.dernier_non_lu_id, '<null>'),
+    CASE WHEN r.dernier_non_lu_id IS NOT DISTINCT FROM (SELECT v FROM ctx WHERE k = 'dernier_non_lu_id')
+         THEN 'OK' ELSE 'ÉCHEC' END);
 END $$;
 
 -- ── 19-21. Bornes et conversations refusées ───────────────────────────────
@@ -340,6 +353,18 @@ BEGIN
   v_reste := marquer_lus_jusqua((SELECT v FROM ctx WHERE k = 'conv'), (SELECT v FROM ctx WHERE k = 'dernier_id'));
   INSERT INTO resultat VALUES (25, 'avancer jusqu''au dernier : plus rien à lire', '0', v_reste::text,
     CASE WHEN v_reste = 0 THEN 'OK' ELSE 'ÉCHEC' END);
+END $$;
+
+DO $$
+DECLARE r record;
+BEGIN
+  SELECT * INTO r FROM repere_de_lecture((SELECT v FROM ctx WHERE k = 'conv'));
+  INSERT INTO resultat VALUES (32, 'tout lu : repère vide, et le curseur a dépassé le dernier non-lu d''ouverture',
+    '0 / <null> / <null> / curseur >= dernier',
+    r.non_lus || ' / ' || COALESCE(r.premier_non_lu_id, '<null>') || ' / ' || COALESCE(r.dernier_non_lu_id, '<null>'),
+    CASE WHEN r.non_lus = 0 AND r.premier_non_lu_id IS NULL AND r.dernier_non_lu_id IS NULL
+          AND r.curseur_a >= (SELECT m.created_at FROM messages m WHERE m.id = (SELECT v FROM ctx WHERE k = 'dernier_non_lu_id'))
+         THEN 'OK' ELSE 'ÉCHEC' END);
 END $$;
 
 RESET ROLE;
