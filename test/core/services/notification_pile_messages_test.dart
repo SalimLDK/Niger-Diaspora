@@ -19,6 +19,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 String _lire(String chemin) =>
     File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
 
+/// Aujourd'hui à [heure]:[minute], heure locale.
+///
+/// Les dates de ce banc ne peuvent pas être écrites en dur : la pile expire ses
+/// lignes au bout de 24 h (`PileMessagesNotifiees.duree`) en les comparant à
+/// `DateTime.now()`, et `texteHorodate` compare le JOUR CIVIL à `DateTime.now()`
+/// pour écrire « hier ». Un `DateTime(2026, 9, 16, …)` passait le jour où il a
+/// été écrit et cassait le lendemain, sans qu'aucun code n'ait changé.
+///
+/// « Aujourd'hui à HH:MM » reste dans la fenêtre de 24 h quelle que soit
+/// l'heure du test : `maintenant - 24 h` tombe la veille, et une heure encore
+/// à venir n'est pas expirée. Une seule exception, le jour du passage à
+/// l'heure d'hiver (journée de 25 h) : avant 01:00, une ligne peut déjà être
+/// expirée en fin de journée. Pas d'heure plus matinale que ça avec la pile.
+DateTime _aujourdhui(int heure, [int minute = 0]) {
+  final n = DateTime.now();
+  return DateTime(n.year, n.month, n.day, heure, minute);
+}
+
 void main() {
   const service = 'lib/core/services/notification_service.dart';
 
@@ -96,7 +114,7 @@ void main() {
 
   group('un même expéditeur qui envoie plusieurs messages', () {
     test('les trois sont gardés, chacun avec son heure', () async {
-      final base = DateTime(2026, 9, 16, 9, 58);
+      final base = _aujourdhui(9, 58);
       for (var n = 0; n < 3; n++) {
         await PileMessagesNotifiees.empiler(
           conversationId: 'c1',
@@ -167,7 +185,7 @@ void main() {
       // Au retour du réseau, plusieurs messages arrivent d'un coup et pas
       // toujours dans l'ordre où ils ont été écrits. C'est l'heure du serveur
       // qui tranche, pas l'ordre d'empilement.
-      final base = DateTime(2026, 9, 16, 10);
+      final base = _aujourdhui(10);
       await PileMessagesNotifiees.empiler(
           conversationId: 'c1', messageId: 'm3', texte: 'troisième',
           expediteur: 'A', quand: base.add(const Duration(minutes: 2)));
@@ -182,7 +200,7 @@ void main() {
     });
 
     test('l’heure posée est bien celle qu’on a donnée', () async {
-      final quand = DateTime(2026, 9, 16, 8, 30);
+      final quand = _aujourdhui(8, 30);
       await PileMessagesNotifiees.empiler(
           conversationId: 'c1', messageId: 'm1', texte: 'a',
           expediteur: 'A', quand: quand);
@@ -192,7 +210,7 @@ void main() {
 
   group('une édition corrige la ligne, sans en créer', () {
     test('le texte change, la place et l’heure ne bougent pas', () async {
-      final base = DateTime(2026, 9, 16, 10);
+      final base = _aujourdhui(10);
       await PileMessagesNotifiees.empiler(
           conversationId: 'c1', messageId: 'm1', texte: 'rdv à 17h',
           expediteur: 'Alice', expediteurId: 'uid-a', quand: base);
@@ -295,8 +313,8 @@ void main() {
       // trier. L'en-tête ne porte donc qu'une seule heure, celle du dernier —
       // et dans une pile de six, on ne sait pas de quand datent les cinq
       // autres. D'où l'heure dans le texte.
-      expect(texteHorodate(DateTime(2026, 9, 16, 9, 5), 'Salut'), 'Salut · 09:05');
-      expect(texteHorodate(DateTime(2026, 9, 16, 14, 30), 'Coucou'), 'Coucou · 14:30');
+      expect(texteHorodate(_aujourdhui(9, 5), 'Salut'), 'Salut · 09:05');
+      expect(texteHorodate(_aujourdhui(14, 30), 'Coucou'), 'Coucou · 14:30');
     });
 
     test('un message d’HIER le dit, sinon l’ordre paraît faux', () {
@@ -339,8 +357,8 @@ void main() {
     });
 
     test('minuit et midi ne se confondent pas', () {
-      expect(texteHorodate(DateTime(2026, 9, 16, 0, 0), 'a'), 'a · 00:00');
-      expect(texteHorodate(DateTime(2026, 9, 16, 12, 0), 'b'), 'b · 12:00');
+      expect(texteHorodate(_aujourdhui(0), 'a'), 'a · 00:00');
+      expect(texteHorodate(_aujourdhui(12), 'b'), 'b · 12:00');
     });
   });
 
