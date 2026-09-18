@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,11 +40,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   void initState() {
     super.initState();
     // Increment view count
-    Future.microtask(() {
-      ref
+    unawaited(Future.microtask(() {
+      unawaited(ref
           .read(productNotifierProvider.notifier)
-          .incrementViewCount(widget.productId);
-    });
+          .incrementViewCount(widget.productId));
+    }));
   }
 
   @override
@@ -534,7 +536,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       imageUrl: imageUrl,
     );
 
-    ShareOptionsSheet.show(
+    unawaited(ShareOptionsSheet.show(
       context,
       url: link,
       subject: product.title,
@@ -549,7 +551,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         sellerName: product.sellerName,
         message: l10n.shareLinkChatMessage(product.title, link),
       ),
-    );
+    ));
   }
 }
 
@@ -682,7 +684,7 @@ class _SellerCardState extends ConsumerState<_SellerCard> {
 
       // 4. Navigate to conversation
       if (mounted) {
-        context.push(
+        unawaited(context.push(
           '/messages/${conversation.id}',
           extra: {
             'name': widget.sellerName,
@@ -690,7 +692,7 @@ class _SellerCardState extends ConsumerState<_SellerCard> {
             'isGroup': false,
             'otherUserId': widget.sellerId,
           },
-        );
+        ));
       }
     } finally {
       if (mounted) {
@@ -717,10 +719,10 @@ class _SellerCardState extends ConsumerState<_SellerCard> {
           // Seller info row
           InkWell(
             onTap: () {
-              context.push(
+              unawaited(context.push(
                 '/profile/${widget.sellerId}',
                 extra: widget.sellerProfile,
-              );
+              ));
             },
             borderRadius: BorderRadius.circular(8),
             child: Padding(

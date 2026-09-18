@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -46,7 +48,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   }
 
   void _showCountryPicker(BuildContext context) {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (ctx) => DraggableScrollableSheet(
@@ -62,7 +64,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           },
         ),
       ),
-    );
+    ));
   }
 
   @override

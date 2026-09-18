@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/adaptive_colors.dart';
@@ -367,7 +369,7 @@ class _CartItemCard extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          context.push('/marketplace/${item.product.id}');
+          unawaited(context.push('/marketplace/${item.product.id}'));
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
