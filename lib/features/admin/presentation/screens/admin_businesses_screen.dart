@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +32,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(adminBusinessNotifierProvider.notifier).fetchAllBusinesses();
+      unawaited(ref.read(adminBusinessNotifierProvider.notifier).fetchAllBusinesses());
     });
   }
 
@@ -74,9 +76,9 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
             IconButton(
               icon: const AppIcon(AppIcon.refresh, color: _textSecondary),
               onPressed: () {
-                ref
+                unawaited(ref
                     .read(adminBusinessNotifierProvider.notifier)
-                    .fetchAllBusinesses();
+                    .fetchAllBusinesses());
               },
             ),
           ],

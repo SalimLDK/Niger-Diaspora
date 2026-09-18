@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
@@ -25,7 +27,7 @@ class _AdminRoleManagementScreenState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(roleManagementNotifierProvider.notifier).loadAdmins();
+      unawaited(ref.read(roleManagementNotifierProvider.notifier).loadAdmins());
     });
   }
 
@@ -92,7 +94,7 @@ class _AdminRoleManagementScreenState
               ),
             );
             if (result == true) {
-              ref.read(roleManagementNotifierProvider.notifier).loadAdmins();
+              await ref.read(roleManagementNotifierProvider.notifier).loadAdmins();
             }
           },
           icon: const Icon(Icons.person_add),
@@ -111,7 +113,7 @@ class _AdminRoleManagementScreenState
           icon: const Icon(Icons.refresh),
           tooltip: l10n.adminRefresh,
           onPressed: () {
-            ref.read(roleManagementNotifierProvider.notifier).loadAdmins();
+            unawaited(ref.read(roleManagementNotifierProvider.notifier).loadAdmins());
           },
         ),
       ],
@@ -134,7 +136,7 @@ class _AdminRoleManagementScreenState
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                ref.read(roleManagementNotifierProvider.notifier).loadAdmins();
+                unawaited(ref.read(roleManagementNotifierProvider.notifier).loadAdmins());
               },
               child: Text(l10n.retry),
             ),
@@ -317,7 +319,7 @@ class _AdminRoleManagementScreenState
   }
 
   void _confirmChangeRole(AdminUser admin, AdminRole newRole) {
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.adminChangeRoleTitle),
@@ -341,11 +343,11 @@ class _AdminRoleManagementScreenState
           ),
         ],
       ),
-    );
+    ));
   }
 
   void _confirmRevoke(AdminUser admin) {
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Révoquer l\'accès admin'),
@@ -374,7 +376,7 @@ class _AdminRoleManagementScreenState
           ),
         ],
       ),
-    );
+    ));
   }
 
   String _formatDate(DateTime date) {

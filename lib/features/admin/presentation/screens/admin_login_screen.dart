@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
@@ -41,11 +43,11 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         (user) {
           if (user.isAdmin) {
             if (mounted) {
-              Navigator.of(context).pushReplacementNamed('/dashboard');
+              unawaited(Navigator.of(context).pushReplacementNamed('/dashboard'));
             }
           } else {
             // Not an admin
-            authRepo.signOut();
+            unawaited(authRepo.signOut());
             setState(() {
               _errorMessage = "Accès refusé. Compte administrateur requis.";
               _isLoading = false;
@@ -84,11 +86,11 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         (user) {
           if (user.isAdmin) {
             if (mounted) {
-              Navigator.of(context).pushReplacementNamed('/dashboard');
+              unawaited(Navigator.of(context).pushReplacementNamed('/dashboard'));
             }
           } else {
             // Not an admin
-            authRepo.signOut();
+            unawaited(authRepo.signOut());
             setState(() {
               _errorMessage = "Accès refusé. Compte administrateur requis.";
               _isLoading = false;

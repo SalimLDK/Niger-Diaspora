@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
@@ -31,9 +33,9 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(adminMarketplaceNotifierProvider.notifier).fetchAllProducts();
-      ref.read(adminMarketplaceNotifierProvider.notifier).fetchOrders();
-      ref.read(adminMarketplaceNotifierProvider.notifier).fetchDisputes();
+      unawaited(ref.read(adminMarketplaceNotifierProvider.notifier).fetchAllProducts());
+      unawaited(ref.read(adminMarketplaceNotifierProvider.notifier).fetchOrders());
+      unawaited(ref.read(adminMarketplaceNotifierProvider.notifier).fetchDisputes());
     });
   }
 
@@ -193,9 +195,9 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          ref.read(adminMarketplaceNotifierProvider.notifier).fetchAllProducts();
-          ref.read(adminMarketplaceNotifierProvider.notifier).fetchOrders();
-          ref.read(adminMarketplaceNotifierProvider.notifier).fetchDisputes();
+          unawaited(ref.read(adminMarketplaceNotifierProvider.notifier).fetchAllProducts());
+          unawaited(ref.read(adminMarketplaceNotifierProvider.notifier).fetchOrders());
+          unawaited(ref.read(adminMarketplaceNotifierProvider.notifier).fetchDisputes());
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(

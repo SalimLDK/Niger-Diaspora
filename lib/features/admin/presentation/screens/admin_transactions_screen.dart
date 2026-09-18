@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
@@ -32,7 +34,7 @@ class _AdminTransactionsScreenState
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(adminTransactionsNotifierProvider.notifier).fetchAllTransactions();
+      unawaited(ref.read(adminTransactionsNotifierProvider.notifier).fetchAllTransactions());
     });
   }
 
@@ -167,7 +169,7 @@ class _AdminTransactionsScreenState
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          ref.read(adminTransactionsNotifierProvider.notifier).fetchAllTransactions();
+          unawaited(ref.read(adminTransactionsNotifierProvider.notifier).fetchAllTransactions());
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(
@@ -859,7 +861,7 @@ class _AdminTransactionsScreenState
               icon: Icons.refresh_rounded,
               color: _primaryColor,
               onPressed: () {
-                ref.read(adminTransactionsNotifierProvider.notifier).fetchAllTransactions();
+                unawaited(ref.read(adminTransactionsNotifierProvider.notifier).fetchAllTransactions());
               },
             ),
           ],

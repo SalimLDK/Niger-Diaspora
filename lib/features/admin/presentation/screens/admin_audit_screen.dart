@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +32,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(adminAuditNotifierProvider.notifier).fetchAuditLogs();
+      unawaited(ref.read(adminAuditNotifierProvider.notifier).fetchAuditLogs());
     });
   }
 
@@ -104,7 +106,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          ref.read(adminAuditNotifierProvider.notifier).fetchAuditLogs();
+          unawaited(ref.read(adminAuditNotifierProvider.notifier).fetchAuditLogs());
         },
         borderRadius: BorderRadius.circular(12),
         child: Container(
@@ -588,7 +590,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
-                ref.read(adminAuditNotifierProvider.notifier).fetchAuditLogs();
+                unawaited(ref.read(adminAuditNotifierProvider.notifier).fetchAuditLogs());
               },
               icon: const AppIcon(AppIcon.refresh),
               label: Text(l10n.retry),

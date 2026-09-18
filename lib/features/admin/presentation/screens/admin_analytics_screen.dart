@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +28,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(adminAnalyticsNotifierProvider.notifier).loadAnalytics();
+      unawaited(ref.read(adminAnalyticsNotifierProvider.notifier).loadAnalytics());
     });
   }
 
@@ -108,7 +110,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                ref.read(adminAnalyticsNotifierProvider.notifier).loadAnalytics();
+                unawaited(ref.read(adminAnalyticsNotifierProvider.notifier).loadAnalytics());
               },
               borderRadius: BorderRadius.circular(12),
               child: const Padding(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
@@ -77,7 +79,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     super.initState();
     _initDestinations();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(adminDashboardNotifierProvider.notifier).loadDashboardStats();
+      unawaited(ref.read(adminDashboardNotifierProvider.notifier).loadDashboardStats());
     });
   }
 
@@ -317,7 +319,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           icon: const AppIcon(AppIcon.refresh, color: _textSecondary, size: 20),
           tooltip: l10n.adminRefresh,
           onPressed: () {
-            ref.read(adminDashboardNotifierProvider.notifier).loadDashboardStats();
+            unawaited(ref.read(adminDashboardNotifierProvider.notifier).loadDashboardStats());
           },
         ),
         const SizedBox(width: 8),
@@ -325,7 +327,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           icon: const Icon(Icons.logout_rounded, color: AdminColors.statusRed, size: 20),
           tooltip: l10n.adminLogout,
           onPressed: () {
-            Navigator.of(context).pushReplacementNamed('/login');
+            unawaited(Navigator.of(context).pushReplacementNamed('/login'));
           },
           isDestructive: true,
         ),
@@ -451,11 +453,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             label: l10n.adminCreateEmbassy,
             icon: const AppIcon(AppIcon.add, color: Colors.white, size: 20),
             onPressed: () {
-              Navigator.of(context).push(
+              unawaited(Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => const AdminCreateEmbassyScreen(),
                 ),
-              );
+              ));
             },
           ),
         ),
@@ -915,7 +917,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
               label: l10n.retry,
               icon: const AppIcon(AppIcon.refresh, color: Colors.white, size: 20),
               onPressed: () {
-                ref.read(adminDashboardNotifierProvider.notifier).loadDashboardStats();
+                unawaited(ref.read(adminDashboardNotifierProvider.notifier).loadDashboardStats());
               },
             ),
           ],

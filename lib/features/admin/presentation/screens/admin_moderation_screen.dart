@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
@@ -32,7 +34,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(adminContentNotifierProvider.notifier).fetchAllContent();
+      unawaited(ref.read(adminContentNotifierProvider.notifier).fetchAllContent());
     });
   }
 
@@ -150,7 +152,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          ref.read(adminContentNotifierProvider.notifier).fetchAllContent();
+          unawaited(ref.read(adminContentNotifierProvider.notifier).fetchAllContent());
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(

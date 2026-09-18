@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,7 +36,7 @@ class _AdminUsersManagementScreenState
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(adminUsersNotifierProvider.notifier).fetchAllUsers();
+      unawaited(ref.read(adminUsersNotifierProvider.notifier).fetchAllUsers());
     });
   }
 
@@ -140,7 +142,7 @@ class _AdminUsersManagementScreenState
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          ref.read(adminUsersNotifierProvider.notifier).fetchAllUsers();
+          unawaited(ref.read(adminUsersNotifierProvider.notifier).fetchAllUsers());
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(
@@ -545,7 +547,7 @@ class _AdminUsersManagementScreenState
 
     if (!mounted) return;
 
-    showDialog(
+    await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

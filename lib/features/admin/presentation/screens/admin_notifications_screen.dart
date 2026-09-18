@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -35,7 +37,7 @@ class _AdminNotificationsScreenState
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(adminNotificationNotifierProvider.notifier).fetchSentNotifications();
+      unawaited(ref.read(adminNotificationNotifierProvider.notifier).fetchSentNotifications());
     });
   }
 
@@ -166,7 +168,7 @@ class _AdminNotificationsScreenState
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          ref.read(adminNotificationNotifierProvider.notifier).fetchSentNotifications();
+          unawaited(ref.read(adminNotificationNotifierProvider.notifier).fetchSentNotifications());
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(

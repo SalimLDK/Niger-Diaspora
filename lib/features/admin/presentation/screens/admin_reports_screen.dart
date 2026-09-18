@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,7 +45,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(adminReportsNotifierProvider.notifier).fetchAllReports();
+      unawaited(ref.read(adminReportsNotifierProvider.notifier).fetchAllReports());
     });
   }
 
@@ -438,7 +440,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          ref.read(adminReportsNotifierProvider.notifier).fetchAllReports();
+          unawaited(ref.read(adminReportsNotifierProvider.notifier).fetchAllReports());
         },
         borderRadius: BorderRadius.circular(10),
         child: Container(
@@ -1082,7 +1084,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
-                ref.read(adminReportsNotifierProvider.notifier).fetchAllReports();
+                unawaited(ref.read(adminReportsNotifierProvider.notifier).fetchAllReports());
               },
               icon: const Icon(Icons.refresh),
               label: Text(l10n.retry),
