@@ -121,6 +121,28 @@ class OnlineStatusService {
     // debugPrint('✅ OnlineStatusService: Initialized successfully');
   }
 
+  /// Vrai si la présence de [userId] est **déjà suivie** : identité retenue
+  /// *et* écoute de la connexion posée.
+  ///
+  /// L'identité seule ne prouve rien. `_setupPresenceForUser` retient l'uid
+  /// AVANT de lire la préférence de visibilité, puis sort sans poser d'écoute
+  /// quand le statut est masqué : un utilisateur masqué a donc un uid retenu et
+  /// aucun abonnement. Avec la seule identité, ré-afficher son statut
+  /// (`updateOnlineStatusVisibility(true)`, qui rappelle
+  /// `_setupPresenceForUser`) tombait sur « déjà suivi » et ne rétablissait
+  /// rien : l'utilisateur ne repassait « en ligne » qu'au prochain retour au
+  /// premier plan, et sans le gestionnaire de déconnexion — donc restait
+  /// « en ligne » si l'app était tuée.
+  ///
+  /// Extrait pour être testable : le service tient des singletons Firebase et
+  /// ne se monte pas en test.
+  @visibleForTesting
+  static bool isPresenceTracked({
+    required String? trackedUserId,
+    required String userId,
+    required bool hasConnectionListener,
+  }) => trackedUserId == userId && hasConnectionListener;
+
   /// Setup presence tracking for a specific user
   Future<void> _setupPresenceForUser(String userId) async {
     // Validate authentication first
@@ -131,7 +153,11 @@ class OnlineStatusService {
       return;
     }
 
-    if (_currentUserId == userId) {
+    if (isPresenceTracked(
+      trackedUserId: _currentUserId,
+      userId: userId,
+      hasConnectionListener: _connectedSubscription != null,
+    )) {
       // debugPrint('⚠️ OnlineStatusService: Already tracking user $userId');
       return;
     }

@@ -15947,12 +15947,15 @@ Fichiers :
   le message ajoute « La session n'a pas pu être fermée : réessayez ».
 - [ ] **Thème sombre et grande police** sur le snackbar d'échec (fond
   `AppColors.error`, texte blanc par défaut).
-- [ ] **⚠️ À vérifier — non corrigé, repéré à la lecture** : masquer puis
-  **ré-afficher** son statut en ligne. `_setupPresenceForUser` sort sur
-  « Already tracking user » quand `_currentUserId` vaut déjà l'uid, ce qu'il
-  vaut après un masquage : la présence ne serait rétablie qu'au prochain
-  retour au premier plan. Regarder, depuis un second téléphone, si le compte
-  repasse « en ligne » sans relancer l'app.
+- [ ] **Masquer puis ré-afficher son statut en ligne** (corrigé, jamais vu
+  sur appareil) : `_setupPresenceForUser` sortait sur « Already tracking user »
+  dès que l'uid était retenu, ce qu'il est après un masquage — la présence
+  n'était rétablie qu'au prochain retour au premier plan. La garde exige
+  maintenant aussi l'écoute de connexion (`isPresenceTracked`). Depuis un
+  second téléphone : masquer → le compte passe « hors ligne » ; ré-afficher →
+  il repasse « en ligne » **sans relancer l'app** ; tuer l'app → il repasse
+  « hors ligne » (le gestionnaire de déconnexion est bien reposé). Le banc
+  `online_status_presence_test.dart` ne fige que le prédicat, pas ce câblage.
 
 ---
 
