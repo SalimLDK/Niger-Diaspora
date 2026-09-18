@@ -4,6 +4,7 @@ import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
@@ -22,6 +23,34 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
+
+  /// Compte authentifié mais sans droits d'administration : on referme sa
+  /// session, puis on l'écrit à l'écran.
+  ///
+  /// `signOut` rend un `Either`, et un `Left` veut dire que la session est
+  /// **toujours ouverte**. Il était lancé en `unawaited(...)` et son résultat
+  /// jeté : l'écran affichait « Accès refusé » que la déconnexion ait eu lieu
+  /// ou non, et un compte sans droits restait connecté sur le panneau sans que
+  /// personne le sache. Le message n'est plus posé qu'une fois le résultat
+  /// connu, et il dit quand la session n'a pas pu être fermée.
+  Future<void> _refuseNonAdmin(AuthRepository authRepo) async {
+    var sessionClosed = false;
+    try {
+      sessionClosed = (await authRepo.signOut()).isRight();
+    } catch (_) {
+      // `signOut` ne lève pas en principe ; si cela arrive, la session est
+      // aussi peu fermée que sur un `Left`.
+    }
+    if (!mounted) return;
+    setState(() {
+      _errorMessage =
+          sessionClosed
+              ? "Accès refusé. Compte administrateur requis."
+              : "Accès refusé. Compte administrateur requis. "
+                  "La session n'a pas pu être fermée : réessayez.";
+      _isLoading = false;
+    });
+  }
 
   Future<void> _handleGoogleLogin() async {
     setState(() {
@@ -47,11 +76,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
             }
           } else {
             // Not an admin
-            unawaited(authRepo.signOut());
-            setState(() {
-              _errorMessage = "Accès refusé. Compte administrateur requis.";
-              _isLoading = false;
-            });
+            unawaited(_refuseNonAdmin(authRepo));
           }
         },
       );
@@ -90,11 +115,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
             }
           } else {
             // Not an admin
-            unawaited(authRepo.signOut());
-            setState(() {
-              _errorMessage = "Accès refusé. Compte administrateur requis.";
-              _isLoading = false;
-            });
+            unawaited(_refuseNonAdmin(authRepo));
           }
         },
       );
