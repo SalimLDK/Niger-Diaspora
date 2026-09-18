@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -70,16 +71,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
   @override
   void initState() {
     super.initState();
-    _initializeVideo();
+    unawaited(_initializeVideo());
     _setupControlsAnimation();
 
     // Mode plein écran
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    SystemChrome.setPreferredOrientations([
+    unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky));
+    unawaited(SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
-    ]);
+    ]));
   }
 
   void _setupControlsAnimation() {
@@ -91,7 +92,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
       parent: _controlsAnimationController,
       curve: Curves.easeOut,
     );
-    _controlsAnimationController.forward();
+    unawaited(_controlsAnimationController.forward());
   }
 
   Future<void> _initializeVideo() async {
@@ -144,12 +145,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
   void _togglePlayPause() {
     if (_controller.value.isPlaying) {
-      _controller.pause();
+      unawaited(_controller.pause());
     } else {
       if (_position >= _duration) {
-        _controller.seekTo(Duration.zero);
+        unawaited(_controller.seekTo(Duration.zero));
       }
-      _controller.play();
+      unawaited(_controller.play());
     }
   }
 
@@ -159,21 +160,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     });
 
     if (_showControls) {
-      _controlsAnimationController.forward();
+      unawaited(_controlsAnimationController.forward());
       // Auto-hide après 3 secondes
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted && _isPlaying && _showControls) {
           setState(() => _showControls = false);
-          _controlsAnimationController.reverse();
+          unawaited(_controlsAnimationController.reverse());
         }
       });
     } else {
-      _controlsAnimationController.reverse();
+      unawaited(_controlsAnimationController.reverse());
     }
   }
 
   void _seekTo(Duration position) {
-    _controller.seekTo(position);
+    unawaited(_controller.seekTo(position));
   }
 
   Future<void> _saveVideo() async {
@@ -240,15 +241,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
 
   @override
   void dispose() {
-    _controller.dispose();
+    unawaited(_controller.dispose());
     _controlsAnimationController.dispose();
 
     // Restaurer l'orientation et la barre système
-    SystemChrome.setEnabledSystemUIMode(
+    unawaited(SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.manual,
       overlays: SystemUiOverlay.values,
-    );
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    ));
+    unawaited(SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]));
 
     super.dispose();
   }
