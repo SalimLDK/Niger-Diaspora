@@ -195,13 +195,13 @@ class _MapScreenState extends ConsumerState<MapScreen>
   void dispose() {
     // debugPrint('🗺️ MapScreen: dispose');
     WidgetsBinding.instance.removeObserver(this);
-    _positionStreamSubscription?.cancel();
-    _memberUpdatesSubscription?.cancel();
+    unawaited(_positionStreamSubscription?.cancel());
+    unawaited(_memberUpdatesSubscription?.cancel());
     _membersRefreshTimer?.cancel();
     _uiRefreshTimer?.cancel();
     _updateMarkersDebounce?.cancel();
     _sheetController.dispose();
-    _controller.future.then((c) => c.dispose());
+    unawaited(_controller.future.then((c) => c.dispose()));
     super.dispose();
   }
 
@@ -225,11 +225,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
     for (final snap in _kSheetSnaps) {
       if ((snap - current).abs() < (best - current).abs()) best = snap;
     }
-    _sheetController.animateTo(
+    unawaited(_sheetController.animateTo(
       best,
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeOut,
-    );
+    ));
   }
 
   /// Tap sur la poignée : passe au cran suivant, et revient au plus bas une
@@ -241,11 +241,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
       (s) => s > current + 0.02,
       orElse: () => _kSheetSnaps.first,
     );
-    _sheetController.animateTo(
+    unawaited(_sheetController.animateTo(
       next,
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeOut,
-    );
+    ));
   }
 
   @override
@@ -265,7 +265,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
         // Le canal temps réel est fermé plutôt que mis en pause : une socket
         // laissée ouverte en arrière-plan est coupée par le système sans
         // prévenir, et le flux ne redémarre jamais.
-        _memberUpdatesSubscription?.cancel();
+        unawaited(_memberUpdatesSubscription?.cancel());
         _memberUpdatesSubscription = null;
         break;
       case AppLifecycleState.resumed:
@@ -275,10 +275,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
           _startMemberUpdatesStream();
           _startMembersRefreshTimer();
           // Refresh immédiat des membres après reprise
-          _loadNearbyMembers(
+          unawaited(_loadNearbyMembers(
             _currentPosition!.latitude,
             _currentPosition!.longitude,
-          );
+          ));
         }
         break;
     }
@@ -294,8 +294,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
     // réglage existait déjà, il n'était simplement pas lu ici.
     _listOnly = PreferencesService.instance.dataSaverMode;
     _showBusinesses = PreferencesService.instance.mapBusinessesLayerVisible;
-    _loadUserCountry();
-    _loadMapStyles();
+    unawaited(_loadUserCountry());
+    unawaited(_loadMapStyles());
   }
 
   /// Charge les styles de carte clair/sombre depuis les assets une seule fois.
@@ -330,7 +330,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     // Initialiser la localisation après que le context soit disponible
     if (!_hasInitialized) {
       _hasInitialized = true;
-      _initializeLocation();
+      unawaited(_initializeLocation());
     } else {
       // Si déjà initialisé, mettre à jour les marqueurs pour refléter les changements de langue/thème
       _updateMarkers();
@@ -564,7 +564,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// aussi ferait deux écritures pour un seul déplacement.
   void _startPositionStream() {
     // Annuler l'ancien stream s'il existe
-    _positionStreamSubscription?.cancel();
+    unawaited(_positionStreamSubscription?.cancel());
 
     _positionStreamSubscription = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
@@ -607,7 +607,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// comme filet (canal tombé, membre entré dans le rayon parce que c'est
   /// *nous* qui avons bougé, changement de rayon).
   void _startMemberUpdatesStream() {
-    _memberUpdatesSubscription?.cancel();
+    unawaited(_memberUpdatesSubscription?.cancel());
     _memberUpdatesSubscription = null;
 
     if (!ref.read(nearbyMembersEnabledProvider)) return;
@@ -711,10 +711,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
         if (!mounted || _currentPosition == null) return;
 
         // Rafraîchir les membres à proximité sans bloquer l'UI
-        _loadNearbyMembers(
+        unawaited(_loadNearbyMembers(
           _currentPosition!.latitude,
           _currentPosition!.longitude,
-        );
+        ));
       },
     );
 
@@ -1398,9 +1398,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// Affiche les détails d'une ambassade dans un bottom sheet
   void _showEmbassyDetails(EmbassyEntity embassy) {
     setState(() => _selectedMarkerId = 'embassy_${embassy.id}');
-    _updateEmbassyMarkers(); // Refresh marker to show selected state
+    unawaited(_updateEmbassyMarkers()); // Refresh marker to show selected state
 
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1580,7 +1580,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           child: ElevatedButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              context.push('/embassies/${embassy.id}');
+                              unawaited(context.push('/embassies/${embassy.id}'));
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: context.adaptivePrimaryColor,
@@ -1610,9 +1610,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
     ).whenComplete(() {
       if (mounted) {
         setState(() => _selectedMarkerId = null);
-        _updateEmbassyMarkers(); // Refresh to deselect
+        unawaited(_updateEmbassyMarkers()); // Refresh to deselect
       }
-    });
+    }));
   }
 
   /// Emoji représentatif par catégorie de commerce
@@ -1836,9 +1836,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
   void _showBusinessDetails(BusinessEntity business) {
     final l10n = AppLocalizations.of(context)!;
     setState(() => _selectedMarkerId = 'business_${business.id}');
-    _updateBusinessMarkers(); // Refresh marker to show selected state
+    unawaited(_updateBusinessMarkers()); // Refresh marker to show selected state
 
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1988,10 +1988,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           child: ElevatedButton(
                             onPressed: () {
                               Navigator.pop(context);
-                              context.push(
+                              unawaited(context.push(
                                 '/businesses/${business.id}',
                                 extra: business,
-                              );
+                              ));
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: context.adaptivePrimaryColor,
@@ -2021,9 +2021,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
     ).whenComplete(() {
       if (mounted) {
         setState(() => _selectedMarkerId = null);
-        _updateBusinessMarkers(); // Refresh to deselect
+        unawaited(_updateBusinessMarkers()); // Refresh to deselect
       }
-    });
+    }));
   }
 
   /// Helper method to build a contact row
@@ -2063,7 +2063,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     // Debounce pour éviter les mises à jour trop fréquentes
     _updateMarkersDebounce?.cancel();
     _updateMarkersDebounce = Timer(_updateMarkersDebounceDelay, () {
-      _updateMarkersAsync();
+      unawaited(_updateMarkersAsync());
     });
   }
 
@@ -2147,11 +2147,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   icon: icon,
                   onTap: () {
                     // Zoom sur le cluster
-                    _controller.future.then((c) {
-                      c.animateCamera(
+                    unawaited(_controller.future.then((c) {
+                      unawaited(c.animateCamera(
                         CameraUpdate.newLatLngZoom(center, _currentZoom + 2),
-                      );
-                    });
+                      ));
+                    }));
                   },
                 ),
               );
@@ -2338,7 +2338,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   void _showMemberDetails(ProfileModel member) {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -2533,10 +2533,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       child: OutlinedButton.icon(
                         onPressed: () {
                           Navigator.pop(context);
-                          context.push(
+                          unawaited(context.push(
                             '/profile/${member.id}',
                             extra: member.toEntity(),
-                          );
+                          ));
                         },
                         icon: AppIcon(
                           AppIcon.person,
@@ -2573,7 +2573,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                   .read(createConversationProvider.notifier)
                                   .createIndividual(member.id);
                               if (conversation != null && context.mounted) {
-                                context.push(
+                                unawaited(context.push(
                                   '/messages/${conversation.id}',
                                   extra: {
                                     'name': member.displayName,
@@ -2581,7 +2581,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                                     'otherUserId': member.id,
                                     'isGroup': false,
                                   },
-                                );
+                                ));
                               }
                             },
                             icon: AppIcon(
@@ -2610,7 +2610,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
               ],
             ),
           ),
-    );
+    ));
   }
 
   void _onFilterSelected(String filter) {
@@ -2626,20 +2626,20 @@ class _MapScreenState extends ConsumerState<MapScreen>
     });
     // Recharger les membres et les commerces avec le nouveau rayon
     if (_currentPosition != null) {
-      _loadNearbyMembers(
+      unawaited(_loadNearbyMembers(
         _currentPosition!.latitude,
         _currentPosition!.longitude,
-      );
-      _loadNearbyBusinesses(
+      ));
+      unawaited(_loadNearbyBusinesses(
         _currentPosition!.latitude,
         _currentPosition!.longitude,
-      );
+      ));
     }
   }
 
   void _showRadiusSelector() {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -2756,7 +2756,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
               ],
             ),
           ),
-    );
+    ));
   }
 
   void _onCameraMove(CameraPosition position) {
@@ -2789,7 +2789,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// (remplace la légende flottante et son calcul de position conditionnel).
   void _showLegendSheet(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: context.surfaceColor,
       shape: const RoundedRectangleBorder(
@@ -2824,7 +2824,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
               ),
             ),
           ),
-    );
+    ));
   }
 
   /// Bouton « calques » de l'en-tête unifié (§7d) : ouvre la feuille de
@@ -2860,7 +2860,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final businessDirectoryEnabled = ref.read(
       isBusinessDirectoryEnabledProvider,
     );
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: context.surfaceColor,
       shape: const RoundedRectangleBorder(
@@ -2917,7 +2917,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                             title: Text(l10n.adminBusinesses),
                             value: _showBusinesses,
                             onChanged: (v) {
-                              _toggleBusinessesLayer(v);
+                              unawaited(_toggleBusinessesLayer(v));
                               setModalState(() {});
                             },
                           ),
@@ -2936,7 +2936,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   ),
             ),
           ),
-    );
+    ));
   }
 
   /// Bascule la couche commerces (avec chargement paresseux + persistance),
@@ -3470,7 +3470,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
       if (prev == next) return;
       if (next) {
         // R\u00e9activ\u00e9 : reinitialiser la position et recharger les membres
-        _initializeLocation();
+        unawaited(_initializeLocation());
         _startPositionStream();
         _startMembersRefreshTimer();
       } else {
@@ -3479,7 +3479,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
         _membersRefreshTimer = null;
         _uiRefreshTimer?.cancel();
         _uiRefreshTimer = null;
-        _positionStreamSubscription?.cancel();
+        unawaited(_positionStreamSubscription?.cancel());
         _positionStreamSubscription = null;
         if (mounted) {
           setState(() {
@@ -3499,7 +3499,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             setState(() => _embassies = embassies);
-            _updateEmbassyMarkers();
+            unawaited(_updateEmbassyMarkers());
           }
         });
       }
@@ -3516,7 +3516,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               setState(() => _businesses = businesses);
-              _updateBusinessMarkers();
+              unawaited(_updateBusinessMarkers());
             }
           });
         }
@@ -3689,9 +3689,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                         }
                         // Move camera to current position if available
                         if (_currentPosition != null) {
-                          controller.animateCamera(
+                          unawaited(controller.animateCamera(
                             CameraUpdate.newLatLngZoom(_currentPosition!, 12),
-                          );
+                          ));
                         }
                       },
                       markers: {
@@ -3861,11 +3861,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
                               }
                             },
                             onPlaceSelected: (latLng, _) {
-                              _controller.future.then((c) {
-                                c.animateCamera(
+                              unawaited(_controller.future.then((c) {
+                                unawaited(c.animateCamera(
                                   CameraUpdate.newLatLngZoom(latLng, 14),
-                                );
-                              });
+                                ));
+                              }));
                             },
                           ),
                         ),

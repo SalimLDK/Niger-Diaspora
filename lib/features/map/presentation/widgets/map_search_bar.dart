@@ -66,7 +66,7 @@ class _MapSearchBarState extends State<MapSearchBar> {
 
     setState(() => _isSearching = true);
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      _search(query);
+      unawaited(_search(query));
     });
   }
 
