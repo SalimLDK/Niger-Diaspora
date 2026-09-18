@@ -40,6 +40,7 @@ import '../../domain/nearby_member_filter.dart';
 import '../widgets/map_legend.dart';
 import '../widgets/map_search_bar.dart';
 import '../../../../core/widgets/location_disclosure.dart';
+import '../../../../core/errors/message_erreur.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
@@ -2569,20 +2570,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
                           child: ElevatedButton.icon(
                             onPressed: () async {
                               Navigator.pop(context);
-                              final conversation = await ref
-                                  .read(createConversationProvider.notifier)
-                                  .createIndividual(member.id);
-                              if (conversation != null && context.mounted) {
-                                unawaited(context.push(
-                                  '/messages/${conversation.id}',
-                                  extra: {
-                                    'name': member.displayName,
-                                    'imageUrl': member.photoUrl,
-                                    'otherUserId': member.id,
-                                    'isGroup': false,
-                                  },
-                                ));
-                              }
+                              await _startConversationWith(member);
                             },
                             icon: AppIcon(
                               AppIcon.chatBubble,
@@ -2611,6 +2599,80 @@ class _MapScreenState extends ConsumerState<MapScreen>
             ),
           ),
     ));
+  }
+
+  /// Crée (ou retrouve) la conversation avec [member] et l'ouvre.
+  ///
+  /// Regarde d'abord [conversationsProvider] (déjà chargé, cache Hive puis
+  /// Supabase — voir sa doc) : une conversation individuelle existante y est
+  /// presque toujours déjà présente, et l'ouvrir depuis ce cache évite
+  /// l'aller-retour réseau complet de `getOrCreateIndividualConversation`
+  /// (chercher, puis créer si absent) à chaque tap — c'est ce qui rendait
+  /// l'ouverture perceptiblement lente pour une conversation déjà connue.
+  /// Ne sert pas pour une conversation supprimée par l'utilisateur courant
+  /// (`deletedBy`) : la restauration reste gérée par le chemin réseau.
+  ///
+  /// En cas d'échec du chemin réseau, prévient au lieu de laisser la feuille
+  /// se refermer en silence — sans ça, un tap sur « Message » qui échoue
+  /// ramène sur la carte sans le moindre indice que quelque chose s'est mal
+  /// passé.
+  Future<void> _startConversationWith(ProfileModel member) async {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId != null) {
+      final cached = ref.read(conversationsProvider).valueOrNull;
+      if (cached != null) {
+        for (final conversation in cached) {
+          if (conversation.isIndividual &&
+              conversation.participantIds.contains(member.id) &&
+              !conversation.deletedBy.containsKey(currentUserId)) {
+            unawaited(context.push(
+              '/messages/${conversation.id}',
+              extra: {
+                'name': member.displayName,
+                'imageUrl': member.photoUrl,
+                'otherUserId': member.id,
+                'isGroup': false,
+              },
+            ));
+            return;
+          }
+        }
+      }
+    }
+
+    try {
+      final conversation = await ref
+          .read(createConversationProvider.notifier)
+          .createIndividual(member.id);
+      if (!mounted) return;
+      if (conversation == null) {
+        final erreur = ref.read(createConversationProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(messageErreurUsager(erreur)),
+            backgroundColor: context.errorColor,
+          ),
+        );
+        return;
+      }
+      unawaited(context.push(
+        '/messages/${conversation.id}',
+        extra: {
+          'name': member.displayName,
+          'imageUrl': member.photoUrl,
+          'otherUserId': member.id,
+          'isGroup': false,
+        },
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(messageErreurUsager(e)),
+          backgroundColor: context.errorColor,
+        ),
+      );
+    }
   }
 
   void _onFilterSelected(String filter) {
@@ -3362,7 +3424,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
   }
 
   /// Ligne de membre dans la feuille : avatar 44 + nom + « métier · ville »,
-  /// bouton d'action 40 px (ouvre la fiche membre).
+  /// bouton d'action 40 px (message direct si ami, sinon ouvre la fiche
+  /// membre — avant ce correctif il ouvrait toujours la fiche, doublon muet
+  /// du tap sur la ligne entière).
   Widget _buildMemberSheetItem(ProfileModel member, AppLocalizations l10n) {
     // « Infirmière · 1,2 km · en ligne » (fiche 7d) : la distance remplace la
     // ville — c'est une carte de proximité, la ville n'y apprend rien de plus
@@ -3446,7 +3510,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
               ),
               child: IconButton(
                 padding: EdgeInsets.zero,
-                onPressed: () => _showMemberDetails(member),
+                onPressed: () {
+                  final isFriend =
+                      ref.read(friendshipStatusProvider(member.id)) ==
+                      FriendshipStatus.friends;
+                  if (isFriend) {
+                    unawaited(_startConversationWith(member));
+                  } else {
+                    _showMemberDetails(member);
+                  }
+                },
                 icon: AppIcon(
                   AppIcon.chatBubble,
                   size: 18,

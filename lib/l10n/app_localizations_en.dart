@@ -12250,6 +12250,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mlsSeparatorEncrypted => 'Messages are end-to-end encrypted';
 
   @override
+  String groupNoticeMemberRemoved(String acteur, String cible) {
+    return '$acteur removed $cible from the group';
+  }
+
+  @override
+  String groupNoticeMemberRemovedByYou(String cible) {
+    return 'You removed $cible from the group';
+  }
+
+  @override
+  String groupNoticeAdminNamed(String acteur, String cible) {
+    return '$acteur made $cible an admin';
+  }
+
+  @override
+  String groupNoticeAdminNamedByYou(String cible) {
+    return 'You made $cible an admin';
+  }
+
+  @override
+  String groupNoticeAdminNamedToYou(String acteur) {
+    return '$acteur made you an admin';
+  }
+
+  @override
+  String groupNoticeAdminRemoved(String acteur, String cible) {
+    return '$acteur removed $cible as an admin';
+  }
+
+  @override
+  String groupNoticeAdminRemovedByYou(String cible) {
+    return 'You removed $cible as an admin';
+  }
+
+  @override
+  String groupNoticeAdminRemovedToYou(String acteur) {
+    return '$acteur removed you as an admin';
+  }
+
+  @override
   String get mlsDevicesExplain =>
       'Each installation of the app is a device with its own key. Uninstalling and reinstalling creates a new one: revoke the ones you no longer use.';
 

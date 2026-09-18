@@ -2806,14 +2806,65 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       child: Text(
         // Le séparateur de bascule MLS ne porte pas son texte : il portait une
         // phrase française en dur, servie telle quelle à un compte en anglais.
-        // Son libellé se résout ici, donc dans la langue courante.
+        // Son libellé se résout ici, donc dans la langue courante. Même règle
+        // pour les notices de gestion de groupe.
         widget.message.estSeparateurMls
             ? AppLocalizations.of(context)!.mlsSeparatorEncrypted
-            : widget.message.content,
+            : _libelleNoticeDeGroupe() ?? widget.message.content,
         style: TextStyle(fontSize: 12, color: context.textSecondaryColor),
         textAlign: TextAlign.center,
       ),
     );
+  }
+
+  /// Phrase d'une notice de gestion de groupe, dans la langue courante, ou
+  /// `null` si ce message n'en est pas une.
+  ///
+  /// Le serveur envoie les identités (`data.evenement`), pas la phrase : lui
+  /// laisser composer le texte le figerait en français pour tout le monde —
+  /// exactement la faute que le séparateur MLS a coûtée. `content` reste le
+  /// repli pour les notices déjà en base et pour un `type` qu'une version
+  /// installée ne connaîtrait pas encore.
+  ///
+  /// Trois voix par action, et non un « Vous » injecté dans une phrase unique :
+  /// « Vous a retiré Hocine » n'est pas du français. Acteur et cible ne peuvent
+  /// pas être la même personne — la RPC refuse une action sur soi (22023) —
+  /// donc les trois cas couvrent tout.
+  String? _libelleNoticeDeGroupe() {
+    final notice = widget.message.noticeDeGroupe;
+    if (notice == null) return null;
+
+    final l10n = AppLocalizations.of(context)!;
+    String nom(String cleNom) {
+      final valeur = (notice[cleNom] as String?)?.trim();
+      return (valeur == null || valeur.isEmpty)
+          ? l10n.unknownUserLabel
+          : valeur;
+    }
+
+    final jeSuisLacteur = notice['acteurId'] == widget.currentUserId;
+    final jeSuisLaCible = notice['cibleId'] == widget.currentUserId;
+    final acteur = nom('acteurNom');
+    final cible = nom('cibleNom');
+
+    return switch (notice['type']) {
+      // La cible ne peut pas se lire : exclue de `participant_ids`, la policy
+      // `messages_select` lui refuse la notice. Pas de voix « à vous » ici.
+      'membre_retire' => jeSuisLacteur
+          ? l10n.groupNoticeMemberRemovedByYou(cible)
+          : l10n.groupNoticeMemberRemoved(acteur, cible),
+      'admin_nomme' => jeSuisLacteur
+          ? l10n.groupNoticeAdminNamedByYou(cible)
+          : jeSuisLaCible
+              ? l10n.groupNoticeAdminNamedToYou(acteur)
+              : l10n.groupNoticeAdminNamed(acteur, cible),
+      'admin_retire' => jeSuisLacteur
+          ? l10n.groupNoticeAdminRemovedByYou(cible)
+          : jeSuisLaCible
+              ? l10n.groupNoticeAdminRemovedToYou(acteur)
+              : l10n.groupNoticeAdminRemoved(acteur, cible),
+      _ => null,
+    };
   }
 
   String _formatTime(DateTime dateTime) {

@@ -2606,6 +2606,38 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   // ═══════════════════════════════════════════════════════════════════════════
   // GROUP ADMIN
   // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // Les trois actions de gestion des membres passent par une RPC
+  // `SECURITY DEFINER` (migration `20260917013200`). Trois raisons, et aucune
+  // n'est cosmétique :
+  //
+  // 1. **La notice dans le fil ne peut venir que du serveur.** La policy
+  //    `messages_insert` exige `firebase_uid() = sender_id` et aucun compte ne
+  //    s'appelle `system` ; une conversation basculée refuse même avant, par
+  //    `messages_refuse_conversation_mls_trg` (23514). `sendSystemMessage`,
+  //    placé en tête de `removeUserFromGroup`, empêchait donc TOUTE exclusion —
+  //    7b3794f l'a retiré, sans notice de remplacement. La RPC l'écrit sous son
+  //    propriétaire, et **seulement hors MLS** : en clair dans une conversation
+  //    chiffrée, la notice dirait au serveur ce que le chiffrement lui tait.
+  //
+  // 2. **Promouvoir et rétrograder ne changeaient rien de visible.** Ce code
+  //    n'écrivait que `conversations.data.adminIds`. Or la fiche des membres
+  //    lit le badge « admin » dans `group_members.role`, et c'est aussi ce que
+  //    lit `is_group_admin()` — donc les droits réels. Mesuré le 2026-09-17 :
+  //    les deux listes divergent déjà en production. Un membre « promu »
+  //    n'avait ni badge ni menu de gestion ; un « rétrogradé » gardait tous ses
+  //    droits. La RPC écrit les deux.
+  //
+  // 3. **Exclure quelqu'un qui n'a jamais ouvert la discussion réussissait à
+  //    vide** : absent de `participant_ids`, la mise à jour ne retirait rien et
+  //    `conversations_sync_group_removal` ne voyait aucun départ. La RPC
+  //    supprime aussi la ligne `group_members`.
+  //
+  // Le chemin direct reste en repli sur `PGRST202` (fonction absente) : entre
+  // la livraison de l'app et `supabase db push`, mieux vaut une exclusion sans
+  // notice qu'un écran cassé. À retirer une fois la migration appliquée.
+  //
+  // Banc serveur : `tools/rls_tests/notices_de_groupe.sql`.
 
   @override
   Future<void> promoteToAdmin({
@@ -2613,23 +2645,22 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String userId,
   }) async {
     try {
-      final rows = await _supabase
-          .from('conversations')
-          .select('data')
-          .eq('id', conversationId)
-          .limit(1);
-      if (rows.isEmpty) return;
-      final data = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
+      await _supabase.rpc(
+        'nommer_admin_du_groupe',
+        params: {'p_conversation_id': conversationId, 'p_user_id': userId},
       );
-      final adminIds = List<String>.from(data['adminIds'] as List? ?? []);
-      if (!adminIds.contains(userId)) adminIds.add(userId);
-      data['adminIds'] = adminIds;
-      await _supabase
-          .from('conversations')
-          .update({'data': data})
-          .eq('id', conversationId);
+    } on PostgrestException catch (e) {
+      if (e.code != 'PGRST202') {
+        throw ServerException('promoteToAdmin error: ${e.message}');
+      }
+      await _majAdminIdsSansRpc(
+        conversationId: conversationId,
+        userId: userId,
+        ajouter: true,
+        action: 'promoteToAdmin',
+      );
     } catch (e) {
+      if (e is ServerException) rethrow;
       throw ServerException('promoteToAdmin error: $e');
     }
   }
@@ -2640,6 +2671,38 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String userId,
   }) async {
     try {
+      await _supabase.rpc(
+        'retirer_admin_du_groupe',
+        params: {'p_conversation_id': conversationId, 'p_user_id': userId},
+      );
+    } on PostgrestException catch (e) {
+      if (e.code != 'PGRST202') {
+        throw ServerException('demoteFromAdmin error: ${e.message}');
+      }
+      await _majAdminIdsSansRpc(
+        conversationId: conversationId,
+        userId: userId,
+        ajouter: false,
+        action: 'demoteFromAdmin',
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException('demoteFromAdmin error: $e');
+    }
+  }
+
+  /// Repli de `promoteToAdmin` / `demoteFromAdmin` tant que la migration
+  /// `20260917013200` n'est pas appliquée. N'écrit que `data.adminIds` : le
+  /// badge de la fiche des membres et `is_group_admin()`, qui lisent
+  /// `group_members.role`, ne bougent pas — c'est précisément le défaut que la
+  /// RPC corrige. À retirer avec le `catch` qui l'appelle.
+  Future<void> _majAdminIdsSansRpc({
+    required String conversationId,
+    required String userId,
+    required bool ajouter,
+    required String action,
+  }) async {
+    try {
       final rows = await _supabase
           .from('conversations')
           .select('data')
@@ -2650,41 +2713,63 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         (rows.first['data'] as Map?) ?? {},
       );
       final adminIds = List<String>.from(data['adminIds'] as List? ?? []);
-      adminIds.remove(userId);
+      if (ajouter) {
+        if (!adminIds.contains(userId)) adminIds.add(userId);
+      } else {
+        adminIds.remove(userId);
+      }
       data['adminIds'] = adminIds;
       await _supabase
           .from('conversations')
           .update({'data': data})
           .eq('id', conversationId);
     } catch (e) {
-      throw ServerException('demoteFromAdmin error: $e');
+      throw ServerException('$action error: $e');
     }
   }
 
-  /// Exclut [userId] d'un groupe : le retire de `participant_ids` et de
-  /// `data.adminIds`. Le déclencheur `conversations_sync_group_removal` le
-  /// sort ensuite de `group_members`, et `MlsGateway.appartenanceChangee` de
-  /// l'arbre MLS si la conversation est basculée.
+  /// Exclut [userId] du groupe : `participant_ids`, `data.adminIds` **et** la
+  /// ligne `group_members`, plus la notice dans le fil si la conversation n'est
+  /// pas basculée en MLS. Tout est fait par `exclure_du_groupe`, en une seule
+  /// transaction serveur (voir le pavé de la section).
   ///
-  /// **Aucun message système, volontairement.** La méthode commençait par
-  /// `sendSystemMessage` — un INSERT `sender_id = 'system'` dans `messages` —
-  /// et ne retirait la personne qu'ensuite. Cet INSERT ne peut réussir nulle
-  /// part depuis le client : la policy `messages_insert` exige
-  /// `firebase_uid() = sender_id`, et une conversation basculée le refuse
-  /// même avant (`messages_refuse_conversation_mls_trg`, 23514). L'exception
-  /// remontait, le retrait n'avait jamais lieu, et l'écran affichait « Erreur
-  /// lors du retrait » dans **tous** les groupes. La table ne contenait
-  /// d'ailleurs aucun message système le 2026-09-17. Banc :
-  /// `tools/rls_tests/retrait_membre_groupe.sql`.
+  /// La RPC rend `false` quand il n'y avait plus personne à retirer — double
+  /// appui, ou un autre administrateur plus rapide. Ce n'est pas une erreur :
+  /// l'état voulu est atteint. Elle **lève** en revanche 42501 si l'appelant
+  /// n'a pas le droit et 22023 sur soi-même ; l'écran affiche alors « Erreur
+  /// lors du retrait », ce qui est juste.
   ///
-  /// Une notice « X a été retiré » devra être écrite par le serveur, et
-  /// seulement hors MLS : en clair dans une conversation chiffrée, elle
-  /// fuirait ce que le chiffrement tait.
-  ///
-  /// Lève plutôt que de réussir à vide : une conversation illisible ou une
-  /// mise à jour qui ne touche aucune ligne ne sont pas un retrait.
+  /// `MlsGateway.appartenanceChangee` reste au client : l'arbre MLS ne se
+  /// réécrit pas en SQL.
   @override
   Future<void> removeUserFromGroup({
+    required String conversationId,
+    required String userId,
+  }) async {
+    try {
+      await _supabase.rpc(
+        'exclure_du_groupe',
+        params: {'p_conversation_id': conversationId, 'p_user_id': userId},
+      );
+    } on PostgrestException catch (e) {
+      if (e.code != 'PGRST202') {
+        throw ServerException('removeUserFromGroup error: ${e.message}');
+      }
+      await _retraitSansRpc(conversationId: conversationId, userId: userId);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException('removeUserFromGroup error: $e');
+    }
+  }
+
+  /// Repli de `removeUserFromGroup` tant que la migration `20260917013200`
+  /// n'est pas appliquée : aucune notice, et un membre absent de
+  /// `participant_ids` reste dans `group_members`. À retirer avec le `catch`
+  /// qui l'appelle. Banc : `tools/rls_tests/retrait_membre_groupe.sql`.
+  ///
+  /// Lève plutôt que de réussir à vide : une conversation illisible ou une mise
+  /// à jour qui ne touche aucune ligne ne sont pas un retrait.
+  Future<void> _retraitSansRpc({
     required String conversationId,
     required String userId,
   }) async {

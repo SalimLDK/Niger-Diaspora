@@ -49,6 +49,31 @@ class MlsParticipantSansAppareil implements Exception {
       'MlsParticipantSansAppareil($conversationId, ${participants.length})';
 }
 
+/// Cet appareil est révoqué : il ne doit plus rejoindre un groupe, publier un
+/// commit, chiffrer ou déchiffrer.
+///
+/// **Le trou que ça ferme.** `MlsDeviceRegistry.ensureRegistered` détecte la
+/// révocation et écrit `appareil_revoque_au_demarrage` — mais renvoie quand
+/// même le `MlsDeviceRecord` (pour ne pas faire échouer un simple
+/// rafraîchissement d'écran). Rien, nulle part ailleurs dans la pile MLS, ne
+/// relisait `estRevoque` : un appareil révoqué rejoignait des groupes par
+/// commit externe, s'inscrivait dans `conversation_devices` comme membre
+/// actif, et chiffrait/déchiffrait avec des clés que le serveur ne tenait
+/// plus à jour pour lui (le registre saute la republication en cas de
+/// révocation, voir `ensureRegistered`) — échec cryptographique systématique
+/// (`GroupStateError`/`ValidationError`), à chaque appel, sans qu'aucun
+/// message ne le dise. Trouvé le 2026-09-17 sur le Pixel : `stableDeviceId`
+/// avait basculé sur une identité déjà révoquée après un changement de
+/// certificat de signature (voir `stable_device_id.dart`), et l'appareil a
+/// continué à opérer indéfiniment sous cette identité morte.
+class MlsAppareilRevoque implements Exception {
+  final String deviceId;
+  const MlsAppareilRevoque(this.deviceId);
+
+  @override
+  String toString() => 'MlsAppareilRevoque($deviceId)';
+}
+
 /// Orchestration MLS d'une conversation : le seul service que la couche
 /// messages appellera (plan MLS § 7.3).
 ///
@@ -119,6 +144,15 @@ class MlsConversationService {
   Future<bool> estMembre(String conversationId) async =>
       await _instantane(conversationId) != null;
 
+  /// Lève [MlsAppareilRevoque] si [appareil] est révoqué — à appeler à
+  /// l'entrée de toute opération qui rejoint un groupe, publie un commit, ou
+  /// chiffre/déchiffre. Voir la classe pour ce que ça ferme.
+  Future<void> _refuserSiRevoque(MlsDeviceRecord appareil) async {
+    if (!appareil.estRevoque) return;
+    await _delivery.diagnostic(userId, 'appareil_revoque_refuse', deviceId: appareil.id);
+    throw MlsAppareilRevoque(appareil.id);
+  }
+
   /// Jointures en cours, une par conversation.
   final Map<String, Future<void>> _jointures = {};
 
@@ -151,6 +185,7 @@ class MlsConversationService {
     if (await estMembre(conversationId)) return;
     final moteur = await _moteur();
     final appareil = await _appareil();
+    await _refuserSiRevoque(appareil);
 
     // 1. Un Welcome m'attend ?
     final welcomes = await _delivery.welcomesFor(appareil.id, conversationId: conversationId);
@@ -339,6 +374,7 @@ class MlsConversationService {
     await catchUp(conversationId);
     final moteur = await _moteur();
     final appareil = await _appareil();
+    await _refuserSiRevoque(appareil);
     final conv = await _delivery.conversation(conversationId);
     if (conv == null) throw StateError('conversation inconnue ou inaccessible');
     final participants = (conv['participant_ids'] as List).cast<String>();
@@ -547,6 +583,7 @@ class MlsConversationService {
     await catchUp(conversationId);
     final moteur = await _moteur();
     final appareil = await _appareil();
+    await _refuserSiRevoque(appareil);
     final snap = await moteur.instantane(conversationId: conversationId);
     final id = payload.id.isNotEmpty ? payload.id : _uuid.v4();
     final aad = MlsAad.message(
@@ -616,7 +653,8 @@ class MlsConversationService {
     }
     final moteur = await _moteur();
     final appareil = await _appareil();
-    await _traiterCommits(conversationId, moteur, appareil);
+    await _refuserSiRevoque(appareil);
+    await _rattraperCommits(conversationId, moteur, appareil);
 
     final resultats = <MlsIncoming>[];
     final depart = await _curseurDe(conversationId);
@@ -631,7 +669,7 @@ class MlsConversationService {
       if (m.epoch > snap.epoch.toInt()) {
         // Un message d'un epoch que je n'ai pas encore : le commit est en
         // route. Le chercher, puis reprendre.
-        await _traiterCommits(conversationId, moteur, appareil);
+        await _rattraperCommits(conversationId, moteur, appareil);
         snap = await moteur.instantane(conversationId: conversationId);
         if (m.epoch > snap.epoch.toInt()) {
           await _delivery.diagnostic(userId, 'epoch_futur', deviceId: appareil.id,
@@ -717,6 +755,31 @@ class MlsConversationService {
   String _cleCurseur(String conversationId) =>
       'mls_curseur_${userId}_$conversationId';
 
+  /// Rejoue les commits en attente ; si l'un d'eux échoue alors qu'un Welcome
+  /// m'attend, oublie l'état local corrompu et rejoint proprement par ce
+  /// Welcome avant de reprendre.
+  ///
+  /// **Ce que ça ferme.** `_traiterCommits` seul, à l'échec d'un commit, ne
+  /// fait que journaliser et abandonner — pour toujours : au rattrapage
+  /// suivant, `estMembre` répond encore vrai sur un état que plus personne
+  /// en face ne reconnaît, donc `_ensureGroup` (le seul endroit qui regarde
+  /// `welcomesFor`) n'est jamais appelé. Un pair qui m'a retiré puis
+  /// réinvité (arbre divergé réparé par un vrai retrait + réinvitation)
+  /// publie pourtant un Welcome tout neuf, qui reste invisible. Trouvé le
+  /// 2026-09-17 sur le Pixel : retrait et réinvitation réussis côté
+  /// serveur, jamais consommés côté appareil, le commit suivant rejouant le
+  /// même `GroupStateError` à l'infini.
+  Future<void> _rattraperCommits(
+    String conversationId,
+    Moteur moteur,
+    MlsDeviceRecord appareil,
+  ) async {
+    await _traiterCommits(conversationId, moteur, appareil);
+    if (await estMembre(conversationId)) return;
+    await ensureGroup(conversationId);
+    await _traiterCommits(conversationId, moteur, appareil);
+  }
+
   Future<void> _traiterCommits(
     String conversationId,
     Moteur moteur,
@@ -739,8 +802,20 @@ class MlsConversationService {
           aadAttendu: MlsAad.commit(conversationId: conversationId, epoch: c.epoch),
         );
       } catch (e) {
-        await _delivery.diagnostic(userId, 'commit_illisible', deviceId: appareil.id,
-            detail: {'code': _code(e), 'epoch': c.epoch});
+        final code = _code(e);
+        final welcomes = await _delivery.welcomesFor(appareil.id, conversationId: conversationId);
+        if (welcomes.isNotEmpty) {
+          // Rejouer ce commit-là échouera toujours : l'arbre d'en face est
+          // reparti d'un état que le mien ne peut plus suivre. Le Welcome,
+          // lui, encode l'état complet au bon epoch — oublier le mien le
+          // laisse faire foi au prochain `ensureGroup`.
+          await moteur.oublierGroupe(conversationId: conversationId);
+          await _delivery.diagnostic(userId, 'groupe_oublie_pour_welcome',
+              deviceId: appareil.id, detail: {'code': code, 'epoch': c.epoch});
+        } else {
+          await _delivery.diagnostic(userId, 'commit_illisible', deviceId: appareil.id,
+              detail: {'code': code, 'epoch': c.epoch});
+        }
         break;
       }
       snap = await moteur.instantane(conversationId: conversationId);

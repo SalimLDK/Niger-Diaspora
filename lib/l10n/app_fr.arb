@@ -5773,6 +5773,65 @@
   "@mlsSeparatorEncrypted": {
     "description": "Repère posé dans le fil au moment où la conversation est passée au chiffrement de bout en bout"
   },
+  "groupNoticeMemberRemoved": "{acteur} a retiré {cible} du groupe",
+  "@groupNoticeMemberRemoved": {
+    "description": "Notice dans le fil d'un groupe non chiffré, écrite par la RPC exclure_du_groupe",
+    "placeholders": {
+      "acteur": { "type": "String", "example": "Nasara" },
+      "cible": { "type": "String", "example": "Hocine" }
+    }
+  },
+  "groupNoticeMemberRemovedByYou": "Vous avez retiré {cible} du groupe",
+  "@groupNoticeMemberRemovedByYou": {
+    "description": "Même notice quand c'est le lecteur qui a exclu. Une phrase à part, et non « Vous » injecté dans la précédente : « Vous a retiré » n'est pas du français.",
+    "placeholders": {
+      "cible": { "type": "String", "example": "Hocine" }
+    }
+  },
+  "groupNoticeAdminNamed": "{acteur} a nommé {cible} admin",
+  "@groupNoticeAdminNamed": {
+    "description": "Notice dans le fil d'un groupe non chiffré, écrite par la RPC nommer_admin_du_groupe",
+    "placeholders": {
+      "acteur": { "type": "String", "example": "Nasara" },
+      "cible": { "type": "String", "example": "Hocine" }
+    }
+  },
+  "groupNoticeAdminNamedByYou": "Vous avez nommé {cible} admin",
+  "@groupNoticeAdminNamedByYou": {
+    "description": "Même notice quand c'est le lecteur qui a nommé",
+    "placeholders": {
+      "cible": { "type": "String", "example": "Hocine" }
+    }
+  },
+  "groupNoticeAdminNamedToYou": "{acteur} vous a confié le rôle d'admin",
+  "@groupNoticeAdminNamedToYou": {
+    "description": "Même notice quand c'est le lecteur qui a été nommé. Pas « vous a nommé admin » : « vous », complément d'objet placé avant le verbe, impose l'accord (« nommée » pour une lectrice), que la phrase ne peut pas connaître. Ici le complément d'objet est « le rôle », placé après : aucun accord.",
+    "placeholders": {
+      "acteur": { "type": "String", "example": "Nasara" }
+    }
+  },
+  "groupNoticeAdminRemoved": "{acteur} a retiré le rôle d'admin à {cible}",
+  "@groupNoticeAdminRemoved": {
+    "description": "Notice dans le fil d'un groupe non chiffré, écrite par la RPC retirer_admin_du_groupe",
+    "placeholders": {
+      "acteur": { "type": "String", "example": "Nasara" },
+      "cible": { "type": "String", "example": "Hocine" }
+    }
+  },
+  "groupNoticeAdminRemovedByYou": "Vous avez retiré le rôle d'admin à {cible}",
+  "@groupNoticeAdminRemovedByYou": {
+    "description": "Même notice quand c'est le lecteur qui a rétrogradé",
+    "placeholders": {
+      "cible": { "type": "String", "example": "Hocine" }
+    }
+  },
+  "groupNoticeAdminRemovedToYou": "{acteur} vous a retiré le rôle d'admin",
+  "@groupNoticeAdminRemovedToYou": {
+    "description": "Même notice quand c'est le lecteur qui a été rétrogradé",
+    "placeholders": {
+      "acteur": { "type": "String", "example": "Nasara" }
+    }
+  },
   "mlsDevicesExplain": "Chaque installation de l'application est un appareil, avec sa propre clé. Désinstaller puis réinstaller en crée un nouveau : révoquez ceux que vous n'utilisez plus.",
   "mlsSecurityCodeLabel": "Code de sécurité",
   "majObligatoireTitre": "Mise à jour requise",
