@@ -88,8 +88,8 @@ class _AudioFileBubbleState extends State<AudioFileBubble> {
 
   @override
   void dispose() {
-    _playerStateSubscription.cancel();
-    _positionSubscription.cancel();
+    unawaited(_playerStateSubscription.cancel());
+    unawaited(_positionSubscription.cancel());
     super.dispose();
   }
 
@@ -116,21 +116,21 @@ class _AudioFileBubbleState extends State<AudioFileBubble> {
   }
 
   void _cyclePlaybackSpeed() {
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     final currentIndex = _speedOptions.indexOf(_playbackSpeed);
     final nextIndex = (currentIndex + 1) % _speedOptions.length;
     setState(() => _playbackSpeed = _speedOptions[nextIndex]);
-    _playbackService.setSpeed(_playbackSpeed);
+    unawaited(_playbackService.setSpeed(_playbackSpeed));
   }
 
   void _onSeek(Offset localPosition, double width) {
     if (_totalDuration.inMilliseconds == 0) return;
-    HapticFeedback.selectionClick();
+    unawaited(HapticFeedback.selectionClick());
     final progress = (localPosition.dx / width).clamp(0.0, 1.0);
     final seekPosition = Duration(
       milliseconds: (_totalDuration.inMilliseconds * progress).round(),
     );
-    _playbackService.seek(seekPosition);
+    unawaited(_playbackService.seek(seekPosition));
   }
 
   String _formatDuration(Duration duration) {

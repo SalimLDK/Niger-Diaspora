@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -515,7 +517,7 @@ class _ConversationOptionsModalState
                 title: l10n.createEvent,
                 onTap: () {
                   Navigator.pop(context);
-                  context.push('/groups/${widget.groupId}/events/create');
+                  unawaited(context.push('/groups/${widget.groupId}/events/create'));
                 },
               ),
             if (!widget.isGroup)
@@ -528,9 +530,9 @@ class _ConversationOptionsModalState
                 title: l10n.createEvent,
                 onTap: () {
                   Navigator.pop(context);
-                  context.push(
+                  unawaited(context.push(
                     '/conversations/${widget.conversationId}/events/create',
-                  );
+                  ));
                 },
               ),
             if (widget.isGroup && widget.groupId != null && widget.canPostPolls)
@@ -584,7 +586,7 @@ class _ConversationOptionsModalState
               title: l10n.sharedMedia,
               onTap: () {
                 Navigator.pop(context);
-                context.push('/messages/${widget.conversationId}/media');
+                unawaited(context.push('/messages/${widget.conversationId}/media'));
               },
             ),
             _buildOption(
@@ -601,11 +603,11 @@ class _ConversationOptionsModalState
               subtitle: _getAutoDeleteLabel(l10n),
               onTap: () {
                 Navigator.pop(context);
-                AutoDeleteSettingsSheet.show(
+                unawaited(AutoDeleteSettingsSheet.show(
                   context,
                   conversationId: widget.conversationId,
                   currentDurationSeconds: widget.autoDeleteAfterSeconds,
-                );
+                ));
               },
             ),
             _buildOption(
@@ -629,7 +631,7 @@ class _ConversationOptionsModalState
               title: l10n.starredMessages,
               onTap: () {
                 Navigator.pop(context);
-                context.push('/messages/${widget.conversationId}/starred');
+                unawaited(context.push('/messages/${widget.conversationId}/starred'));
               },
             ),
             _buildOption(

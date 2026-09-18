@@ -67,7 +67,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _setup();
+    unawaited(_setup());
   }
 
   Future<void> _setup() async {
@@ -85,7 +85,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
       );
       if (_cameraIndex < 0) _cameraIndex = 0;
       await _initController();
-      _loadLatestThumb();
+      unawaited(_loadLatestThumb());
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -148,9 +148,9 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
     final controller = _controller;
     if (controller == null || !controller.value.isInitialized) return;
     if (state == AppLifecycleState.inactive) {
-      controller.dispose();
+      unawaited(controller.dispose());
     } else if (state == AppLifecycleState.resumed) {
-      _initController();
+      unawaited(_initController());
     }
   }
 
@@ -159,7 +159,7 @@ class _CameraCaptureScreenState extends State<CameraCaptureScreen>
     WidgetsBinding.instance.removeObserver(this);
     _recordTimer?.cancel();
     _focusTimer?.cancel();
-    _controller?.dispose();
+    unawaited(_controller?.dispose());
     super.dispose();
   }
 
