@@ -300,7 +300,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
     // Load cache synchronously for instant display
     _loadCacheSync();
     // Then load network data in background
-    Future.microtask(() => _loadNetworkData());
+    unawaited(Future.microtask(() => _loadNetworkData()));
 
     // Retour du réseau : la discussion ouverte hors ligne n'a jamais chargé.
     _ref.listen(connectivityNotifierProvider, (_, connecte) {
@@ -504,8 +504,8 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
 
   @override
   void dispose() {
-    _newMessagesSubscription?.cancel();
-    _messageUpdatesSubscription?.cancel();
+    unawaited(_newMessagesSubscription?.cancel());
+    unawaited(_messageUpdatesSubscription?.cancel());
     for (final timer in _optimisticTimeouts.values) {
       timer.cancel();
     }
@@ -524,7 +524,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
       // que la date soit connue. Sans ça, les messages d'avant l'arrivée
       // restaient à l'écran le temps de la relecture réseau.
       if (mounted) state = state;
-      loadInitial();
+      unawaited(loadInitial());
     }
   }
 
@@ -570,7 +570,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   }
 
   void _listenForNewMessages(DateTime afterTimestamp) {
-    _newMessagesSubscription?.cancel();
+    unawaited(_newMessagesSubscription?.cancel());
     _newMessagesSubscription = _ref
         .read(messageRepositoryProvider)
         .getNewMessagesStream(
@@ -668,7 +668,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   }
 
   void _listenForMessageUpdates() {
-    _messageUpdatesSubscription?.cancel();
+    unawaited(_messageUpdatesSubscription?.cancel());
     _messageUpdatesSubscription = _ref
         .read(messageRepositoryProvider)
         .getMessageUpdatesStream(conversationId: conversationId)
@@ -722,7 +722,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   }
 
   Future<void> refresh() async {
-    _newMessagesSubscription?.cancel();
+    unawaited(_newMessagesSubscription?.cancel());
     await loadInitial();
   }
 
@@ -2299,7 +2299,7 @@ class MarkAsReadNotifier extends StateNotifier<AsyncValue<void>> {
   /// This is fire-and-forget - we don't wait for the result
   void _syncDismissToOtherDevices(String conversationId) {
     // Run in background without awaiting
-    Future(() async {
+    unawaited(Future(() async {
       try {
         // Get current FCM token
         final currentToken = await FirebaseMessaging.instance.getToken();
@@ -2317,7 +2317,7 @@ class MarkAsReadNotifier extends StateNotifier<AsyncValue<void>> {
         // Silently fail - this is best-effort sync
         debugPrint('MarkAsRead: Failed to sync dismiss: $e');
       }
-    });
+    }));
   }
 }
 

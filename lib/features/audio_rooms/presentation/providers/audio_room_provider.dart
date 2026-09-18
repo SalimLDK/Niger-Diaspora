@@ -167,9 +167,9 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
   }
 
   void _cleanupSubscriptions() {
-    _roomSubscription?.cancel();
+    unawaited(_roomSubscription?.cancel());
     _roomSubscription = null;
-    _participantsSubscription?.cancel();
+    unawaited(_participantsSubscription?.cancel());
     _participantsSubscription = null;
   }
 
@@ -422,7 +422,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
       }
 
       // Subscribe to room updates
-      _roomSubscription?.cancel();
+      unawaited(_roomSubscription?.cancel());
       _roomSubscription = dataSource.getRoomStream(roomId).listen((roomModel) {
         if (roomModel != null) {
           final roomEntity = roomModel.toEntity();
@@ -430,23 +430,23 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
           // Update notification with latest room info
           if (AudioRoomNotificationService().isShowing) {
-            AudioRoomNotificationService().show(
+            unawaited(AudioRoomNotificationService().show(
               roomId: roomEntity.id,
               roomTitle: roomEntity.title,
               hostName: roomEntity.hostName,
               participantCount: roomEntity.totalParticipants,
               speakerCount: roomEntity.speakerCount,
               isMuted: state.isMuted,
-            );
+            ));
           }
         } else {
           // Room was deleted
-          leaveRoom();
+          unawaited(leaveRoom());
         }
       });
 
       // Subscribe to participants
-      _participantsSubscription?.cancel();
+      unawaited(_participantsSubscription?.cancel());
       _participantsSubscription = dataSource
           .getParticipantsStream(roomId)
           .listen((participants) {
@@ -455,9 +455,9 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
 
             // Update notification participant count
             if (AudioRoomNotificationService().isShowing && state.room != null) {
-              AudioRoomNotificationService().updateParticipants(
+              unawaited(AudioRoomNotificationService().updateParticipants(
                 participantList.length,
-              );
+              ));
             }
           });
 
@@ -751,17 +751,17 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
       await dataSource.joinAsGhostModerator(roomId, currentUser.id);
 
       // Subscribe to room updates
-      _roomSubscription?.cancel();
+      unawaited(_roomSubscription?.cancel());
       _roomSubscription = dataSource.getRoomStream(roomId).listen((roomModel) {
         if (roomModel != null) {
           state = state.copyWith(room: roomModel.toEntity());
         } else {
-          leaveRoom();
+          unawaited(leaveRoom());
         }
       });
 
       // Subscribe to participants
-      _participantsSubscription?.cancel();
+      unawaited(_participantsSubscription?.cancel());
       _participantsSubscription = dataSource
           .getParticipantsStream(roomId)
           .listen((participants) {
@@ -785,7 +785,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
   /// Fetch a LiveKit token and connect to the SFU room (fire-and-forget).
   /// Errors are logged but do not affect the Firestore/RTDB session.
   void _connectToLiveKit(String roomId, String participantName) {
-    Future(() async {
+    unawaited(Future(() async {
       try {
         final callable = FirebaseFunctions.instance
             .httpsCallable('getAudioRoomLiveKitToken');
@@ -813,7 +813,7 @@ class AudioRoomSessionNotifier extends Notifier<AudioRoomSessionState> {
           );
         }
       }
-    });
+    }));
   }
 
   /// Change les réglages du salon en cours (hôte uniquement).
