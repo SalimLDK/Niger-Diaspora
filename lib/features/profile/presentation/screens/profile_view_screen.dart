@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:diaspo_niger/core/constants/deleted_account.dart';
 import 'package:flutter/material.dart';
@@ -63,7 +65,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
   void initState() {
     super.initState();
     _checkIfCurrentUser();
-    _loadBackgroundLocationStatus();
+    unawaited(_loadBackgroundLocationStatus());
     // Profile is auto-loaded by the provider
   }
 
@@ -168,7 +170,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
         .createIndividual(profile.id);
 
     if (conversation != null && mounted) {
-      context.push(
+      unawaited(context.push(
         '/messages/${conversation.id}',
         extra: {
           'name': profile.displayName,
@@ -176,7 +178,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
           'otherUserId': profile.id,
           'isGroup': false,
         },
-      );
+      ));
     }
   }
 
@@ -338,7 +340,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
             onViewAll:
                 conversationId != null
                     ? () {
-                      context.push('/messages/$conversationId/media');
+                      unawaited(context.push('/messages/$conversationId/media'));
                     }
                     : null,
           ),
@@ -560,10 +562,10 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     );
     if (!mounted) return;
     if (conversationId == null || conversationId.isEmpty) {
-      context.push('/groups/${group.id}', extra: group);
+      unawaited(context.push('/groups/${group.id}', extra: group));
       return;
     }
-    context.push(
+    unawaited(context.push(
       '/messages/$conversationId',
       extra: {
         'name': group.name,
@@ -572,7 +574,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
         'groupId': group.id,
         'otherUserId': null,
       },
-    );
+    ));
   }
 
   Widget _buildProfileContent(
@@ -651,13 +653,13 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       color: context.textPrimaryColor,
                     ),
                     onPressed: () {
-                      HapticFeedback.lightImpact();
-                      ShareProfileDialog.show(
+                      unawaited(HapticFeedback.lightImpact());
+                      unawaited(ShareProfileDialog.show(
                         context,
                         userName: profile.displayName,
                         userPhotoUrl: profile.photoUrl,
                         userId: profile.id,
-                      );
+                      ));
                     },
                   ),
                 if (!_isCurrentUser && profile.displayName != DeletedAccount.storedName)
@@ -675,14 +677,14 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                     ),
                     onSelected: (value) {
                       if (value == 'block') {
-                        _blockUser(profile);
+                        unawaited(_blockUser(profile));
                       } else if (value == 'report') {
-                        ReportContentModal.show(
+                        unawaited(ReportContentModal.show(
                           context,
                           targetType: ReportTargetType.user,
                           targetId: profile.id,
                           targetName: profile.displayName,
-                        );
+                        ));
                       }
                     },
                     itemBuilder:
@@ -733,7 +735,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                         GestureDetector(
                           onTap: () {
                             if (profile.photoUrl != null) {
-                              HapticFeedback.mediumImpact();
+                              unawaited(HapticFeedback.mediumImpact());
                               FullScreenImageViewer.show(
                                 context,
                                 imageUrl: profile.photoUrl!,
@@ -1554,7 +1556,7 @@ class _CommonGroupRow extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          HapticFeedback.selectionClick();
+          unawaited(HapticFeedback.selectionClick());
           onTap();
         },
         child: Padding(
