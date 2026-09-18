@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1400 cases à cocher, 642 cochées** — 275 entrées sur 324 ont encore des cases ouvertes.
+**1404 cases à cocher, 642 cochées** — 276 entrées sur 325 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (41)
+**P0 — avant toute nouvelle version** (42)
 
 - 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
@@ -54,6 +54,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
+- 4 · [⬜ Un simple membre pouvait se nommer owner de son propre groupe (2026-09-17)](#-un-simple-membre-pouvait-se-nommer-owner-de-son-propre-groupe-2026-09-17) · *Groupes*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
 - 3 · [⬜ MLS après un démarrage à froid : lire et envoyer dans une conversation chiffrée (2026-09-16)](#-mls-après-un-démarrage-à-froid--lire-et-envoyer-dans-une-conversation-chiffrée-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 6 · [⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16)](#-la-notification-gardait-le-ciphertext-que-le-message-avait-perdu-2026-09-16) · *Chiffrement de bout en bout et clés*
@@ -334,7 +335,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 329 à faire, 124 faites
-- [3. Groupes](#3-groupes) — 131 à faire, 64 faites
+- [3. Groupes](#3-groupes) — 135 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
@@ -4466,6 +4467,52 @@ de conclure quoi que ce soit.
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
 
 ---
+
+## ⬜ Un simple membre pouvait se nommer owner de son propre groupe (2026-09-17)
+
+**Priorité P0** · importance 5/5 — auto-promotion mesurée en production : un
+membre ordinaire prend l'admin de son groupe par un simple `UPDATE`, avec
+tout ce qui suit (modifier le groupe, exclure/promouvoir dans la
+conversation, accès admin aux demandes et invitations).
+
+Mesuré le 2026-09-17 en production, dans une transaction annulée
+(`supabase db query --linked -f`) : le membre `vQZE49dTdyRtLwSG6lMIbhAqoFG2`
+du groupe `90a2baa1-3927-4b21-97ac-5907002ed75d` a exécuté
+
+```sql
+UPDATE group_members SET role = 'owner' WHERE group_id = … AND user_id = <lui>
+```
+
+→ 1 ligne modifiée, puis `is_group_admin(groupe) = true` pour ce compte.
+`group_members_own` (`FOR ALL USING firebase_uid() = user_id`) ne dit rien
+de la colonne `role`, et `authenticated` a `UPDATE` sur toute la table. Le
+même trou existait aussi à l'**INSERT** direct, dans un groupe **public**
+(`group_members_insert_gate` ne dit rien du rôle non plus).
+
+Effet de bord trouvé au passage, sans rapport avec l'attaque : l'upsert de
+`joinGroup` / de l'acceptation d'invitation (`role='member'` sur conflit)
+**rétrogradait silencieusement** un admin ou un owner qui « rejoint » à
+nouveau son propre groupe (bouton dupliqué, retry réseau).
+
+Corrigé par un déclencheur `BEFORE INSERT OR UPDATE` sur `group_members`
+(`supabase/migrations/20260917010000_group_members_role_sans_auto_promotion.sql`) :
+pour `authenticated`/`anon`, l'INSERT n'accepte que `role='member'`, et
+l'UPDATE refuse tout changement de `role`, `group_id` ou `user_id`. Les
+fonctions `SECURITY DEFINER` (création de groupe, groupes officiels,
+approbation d'une demande, future RPC de promotion/rétrogradation) tournent
+sous leur propriétaire, jamais `authenticated`/`anon` : elles ne voient pas
+le garde. Banc SQL en `BEGIN/ROLLBACK` :
+`tools/rls_tests/auto_promotion_group_members.sql`.
+
+- [ ] **Rejoindre un groupe public** (`joinGroup`) : la ligne se pose bien en
+      `role='member'`, aucune erreur visible dans l'app.
+- [ ] **Accepter une invitation de groupe** : idem, `role='member'`, aucune
+      régression sur le flux d'invitation.
+- [ ] **Quitter un groupe** (`leaveGroup`) : le départ reste immédiat, aucune
+      erreur — le déclencheur ne touche pas au `DELETE`.
+- [ ] Non-régression : un administrateur ou owner qui rouvre l'écran du
+      groupe et qui déclenche à nouveau `joinGroup` (double-tap, retry)
+      garde son rôle — ne doit plus jamais retomber à « membre ».
 
 ## ⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)
 
