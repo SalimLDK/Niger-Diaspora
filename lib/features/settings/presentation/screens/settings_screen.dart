@@ -13,6 +13,7 @@ import '../../../../core/l10n/locale_provider.dart';
 import '../../../../core/services/currency_provider.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/services/data_export_service.dart';
+import '../../../../core/utils/action_feedback.dart';
 import '../../../profile/presentation/providers/profile_preferences_provider.dart';
 import '../../../profile/presentation/providers/online_status_provider.dart';
 import '../providers/notification_preferences_provider.dart';
@@ -144,9 +145,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             true,
                         onChanged: (value) {
                           unawaited(HapticFeedback.lightImpact());
-                          unawaited(ref
-                              .read(profilePreferencesProvider)
-                              .set(ProfilePreference.isVisible, value));
+                          unawaited(reportIfFailed(
+                            context,
+                            ref
+                                .read(profilePreferencesProvider)
+                                .set(ProfilePreference.isVisible, value),
+                          ));
                         },
                       ),
                       DesignSettingsSwitchTile(
@@ -162,9 +166,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             true,
                         onChanged: (value) {
                           unawaited(HapticFeedback.lightImpact());
-                          unawaited(ref
-                              .read(profilePreferencesProvider)
-                              .set(ProfilePreference.shareLocation, value));
+                          unawaited(reportIfFailed(
+                            context,
+                            ref
+                                .read(profilePreferencesProvider)
+                                .set(ProfilePreference.shareLocation, value),
+                          ));
                         },
                       ),
                       DesignSettingsSwitchTile(
@@ -183,12 +190,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             true,
                         onChanged: (value) {
                           unawaited(HapticFeedback.lightImpact());
-                          unawaited(ref
-                              .read(
-                                currentUserOnlineStatusVisibilityProvider
-                                    .notifier,
-                              )
-                              .setValue(value));
+                          unawaited(reportIfFailed(
+                            context,
+                            ref
+                                .read(
+                                  currentUserOnlineStatusVisibilityProvider
+                                      .notifier,
+                                )
+                                .setValue(value),
+                          ));
                         },
                       ),
                     ],
@@ -244,12 +254,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 .masterEnabled,
                         onChanged: (value) {
                           unawaited(HapticFeedback.lightImpact());
-                          unawaited(ref
-                              .read(
-                                notificationPreferencesNotifierProvider
-                                    .notifier,
-                              )
-                              .setMasterEnabled(value));
+                          unawaited(reportIfFailed(
+                            context,
+                            ref
+                                .read(
+                                  notificationPreferencesNotifierProvider
+                                      .notifier,
+                                )
+                                .setMasterEnabled(value),
+                          ));
                         },
                       ),
                       DesignSettingsTile(

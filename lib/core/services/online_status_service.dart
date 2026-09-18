@@ -350,32 +350,50 @@ class OnlineStatusService {
     }
   }
 
-  /// Update user's online status visibility preference
+  /// Update user's online status visibility preference.
+  ///
+  /// **Lève** si la préférence n'a pas pu être écrite : aucun utilisateur,
+  /// session Supabase absente, ou refus du serveur. Elle rendait auparavant
+  /// sans rien dire dans ces trois cas — `_currentUserId == null` (présence pas
+  /// encore montée) et session absente sortaient sur un `return`, et un `catch`
+  /// avalait le reste. L'interrupteur affichait donc la nouvelle valeur sans
+  /// que le serveur l'ait reçue, et son seul appelant, le notifier, avait un
+  /// `try/catch` qui ne pouvait jamais se déclencher.
+  ///
+  /// L'identité vient de Firebase et non de `_currentUserId` : la préférence ne
+  /// dépend pas de la présence temps réel, qui peut ne pas être montée.
+  ///
+  /// Ce qui suit l'écriture — aligner la présence temps réel — reste au mieux :
+  /// la préférence, elle, est enregistrée.
   Future<void> updateOnlineStatusVisibility(bool showStatus) async {
-    if (_currentUserId == null) return;
+    final userId = _currentUserId ?? _auth.currentUser?.uid;
+    if (userId == null) {
+      throw StateError('Aucun utilisateur connecté');
+    }
+    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+      throw StateError('Session distante indisponible');
+    }
 
-    // debugPrint(
-    //   '🔄 OnlineStatusService: Updating status visibility to $showStatus',
-    // );
+    await _supabase
+        .from('users')
+        .update({'show_online_status': showStatus})
+        .eq('id', userId);
 
     try {
-      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) return;
-      await _supabase
-          .from('users')
-          .update({'show_online_status': showStatus})
-          .eq('id', _currentUserId!);
-
       if (showStatus) {
         // Re-setup presence tracking
-        await _setupPresenceForUser(_currentUserId!);
+        await _setupPresenceForUser(userId);
       } else {
         // Set to offline and stop tracking
-        await _setOffline(_currentUserId!);
+        await _setOffline(userId);
         await _connectedSubscription?.cancel();
         _connectedSubscription = null;
       }
     } catch (e) {
-      // debugPrint('❌ OnlineStatusService: Error updating visibility: $e');
+      debugPrint(
+        'OnlineStatusService: présence non alignée après changement de '
+        'visibilité ($e)',
+      );
     }
   }
 

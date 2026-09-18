@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../../core/services/logger_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../profile/domain/entities/profile_entity.dart';
@@ -122,19 +123,45 @@ class NotificationPreferencesNotifier
   ///
   /// Il y avait un troisième étage, l'abonnement au topic FCM `general` :
   /// retiré, aucun back-end n'émet vers un topic (voir `subscribeToTopic`).
-  Future<void> setMasterEnabled(bool enabled) async {
+  ///
+  /// Rend `false` si l'étage serveur a échoué, et **remet alors les deux étages
+  /// d'accord sur la valeur d'avant**. Sans ce retour en arrière, l'étage local
+  /// restait écrit : l'interrupteur affichait « désactivé » et masquait les
+  /// notifications au premier plan, pendant que la colonne lue par `send-push`
+  /// gardait « activé » et que le back-end continuait de pousser vers un
+  /// téléphone dont l'utilisateur croyait avoir coupé le son. Trois sorties
+  /// muettes menaient là — profil introuvable, `updateProfile` qui pose une
+  /// erreur au lieu de lever, exception — et aucune n'avait de `try/catch`.
+  ///
+  /// C'est à l'écran de dire l'échec (`reportIfFailed`) ; rendre un booléen
+  /// plutôt que lever, parce que l'appel se fait en `unawaited(...)`.
+  Future<bool> setMasterEnabled(bool enabled) async {
+    final before = state.masterEnabled;
     await _prefs.setNotificationsEnabled(enabled);
     state = state.copyWith(masterEnabled: enabled);
 
     // Étage serveur : sans lui, le back-end continue de pousser.
-    final userId = (await ref.read(currentUserAsyncProvider.future))?.id;
-    if (userId != null) {
-      final profile = await _loadProfileFor(userId);
-      if (profile != null) {
+    try {
+      final userId = (await ref.read(currentUserAsyncProvider.future))?.id;
+      if (userId != null) {
+        final profile = await _loadProfileFor(userId);
+        if (profile == null) {
+          throw StateError('Profil introuvable : étage serveur non écrit');
+        }
         await ref
             .read(profileNotifierProvider(userId).notifier)
             .updateProfile(profile.copyWith(notificationsEnabled: enabled));
+        // `updateProfile` pose une erreur au lieu de lever.
+        if (ref.read(profileNotifierProvider(userId)).hasError) {
+          throw StateError('Écriture de notifications_enabled refusée');
+        }
       }
+      return true;
+    } catch (e, s) {
+      LoggerService.w('NotificationPreferences.setMasterEnabled: échec', e, s);
+      await _prefs.setNotificationsEnabled(before);
+      state = state.copyWith(masterEnabled: before);
+      return false;
     }
   }
 

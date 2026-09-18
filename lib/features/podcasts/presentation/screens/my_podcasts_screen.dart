@@ -11,6 +11,7 @@ import '../../domain/entities/podcast_entity.dart';
 import '../providers/podcast_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
+import 'package:diaspo_niger/core/utils/action_feedback.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 /// Screen showing user's created podcasts (creator dashboard)
@@ -489,21 +490,54 @@ class _PodcastManagementCard extends ConsumerWidget {
         break;
       case 'pause':
       case 'publish':
-        unawaited(ref
-            .read(podcastNotifierProvider.notifier)
-            .togglePodcastStatus(podcast.id, podcast.status));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              action == 'pause' ? l10n.podcastPaused : l10n.podcastPublished,
-            ),
-          ),
-        );
+        unawaited(_toggleStatus(context, ref, action, l10n));
         break;
       case 'delete':
         _confirmDelete(context, ref, l10n);
         break;
     }
+  }
+
+  /// « Publié » / « mis en pause » n'est annoncé qu'une fois le changement
+  /// enregistré. Le message partait juste après l'appel, avant même sa fin, et
+  /// ne dépendait pas de son résultat : un refus du serveur se lisait comme un
+  /// succès.
+  Future<void> _toggleStatus(
+    BuildContext context,
+    WidgetRef ref,
+    String action,
+    AppLocalizations l10n,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final done = await reportIfFailed(
+      context,
+      ref
+          .read(podcastNotifierProvider.notifier)
+          .togglePodcastStatus(podcast.id, podcast.status),
+    );
+    if (!done) return;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          action == 'pause' ? l10n.podcastPaused : l10n.podcastPublished,
+        ),
+      ),
+    );
+  }
+
+  /// Même règle que [_toggleStatus] : « supprimé » seulement si c'est vrai.
+  Future<void> _delete(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final done = await reportIfFailed(
+      context,
+      ref.read(podcastNotifierProvider.notifier).deletePodcast(podcast.id),
+    );
+    if (!done) return;
+    messenger.showSnackBar(SnackBar(content: Text(l10n.podcastDeleted)));
   }
 
   void _confirmDelete(
@@ -525,12 +559,7 @@ class _PodcastManagementCard extends ConsumerWidget {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  unawaited(ref
-                      .read(podcastNotifierProvider.notifier)
-                      .deletePodcast(podcast.id));
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(l10n.podcastDeleted)));
+                  unawaited(_delete(context, ref, l10n));
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,

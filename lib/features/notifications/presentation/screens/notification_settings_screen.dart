@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/utils/action_feedback.dart';
 import '../../../../core/theme/design_kit.dart';
 import '../providers/notification_provider.dart';
 import '../../../settings/presentation/providers/notification_preferences_provider.dart';
@@ -75,7 +76,9 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 value: preferences.masterEnabled,
                 onChanged: (value) {
                   unawaited(HapticFeedback.lightImpact());
-                  unawaited(notifier.setMasterEnabled(value));
+                  unawaited(
+                    reportIfFailed(context, notifier.setMasterEnabled(value)),
+                  );
                 },
               ),
             ],
@@ -264,9 +267,13 @@ Future<void> _confirmDeleteAll(BuildContext context, WidgetRef ref) async {
   );
 
   if (confirme != true) return;
-  await ref
-      .read(notificationsNotifierProvider.notifier)
-      .deleteAllNotifications();
+  // `context` sert ici après l'attente du dialogue : le garde `mounted` évite
+  // de chercher le messager d'un écran refermé.
+  if (!context.mounted) return;
+  await reportIfFailed(
+    context,
+    ref.read(notificationsNotifierProvider.notifier).deleteAllNotifications(),
+  );
 }
 
 /// Ligne « De 22:00 à 07:00 » : ouvre le sélecteur du début puis celui de la

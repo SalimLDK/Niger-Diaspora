@@ -14,6 +14,7 @@ import '../../domain/entities/notification_entity.dart';
 import '../providers/notification_provider.dart';
 import '../widgets/notification_style.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/utils/action_feedback.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../events/presentation/providers/event_provider.dart';
@@ -126,9 +127,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: TextButton(
-                      onPressed: () => ref
-                          .read(notificationsNotifierProvider.notifier)
-                          .markAllAsRead(),
+                      onPressed: () => unawaited(
+                        reportIfFailed(
+                          context,
+                          ref
+                              .read(notificationsNotifierProvider.notifier)
+                              .markAllAsRead(),
+                        ),
+                      ),
                       style: TextButton.styleFrom(
                         backgroundColor: context.surfaceVariantColor,
                         foregroundColor: context.textPrimaryColor,
@@ -298,12 +304,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       onTap: () => _handleNotificationTap(context, ref, item),
       onLongPress: () => context.push('/notifications/${item.id}'),
       onDelete: () {
-        unawaited(ref
-            .read(notificationsNotifierProvider.notifier)
-            .deleteNotification(item.id));
+        unawaited(reportIfFailed(
+          context,
+          ref
+              .read(notificationsNotifierProvider.notifier)
+              .deleteNotification(item.id),
+        ));
       },
       onMarkAsRead: () {
-        unawaited(ref.read(notificationsNotifierProvider.notifier).markAsRead(item.id));
+        unawaited(reportIfFailed(
+          context,
+          ref.read(notificationsNotifierProvider.notifier).markAsRead(item.id),
+        ));
       },
     );
   }

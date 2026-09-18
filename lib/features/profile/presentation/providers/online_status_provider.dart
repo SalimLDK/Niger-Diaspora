@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/logger_service.dart';
 import '../../../../core/services/online_status_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'profile_provider.dart';
@@ -41,33 +42,45 @@ class CurrentUserOnlineStatusVisibility
   }
 
   /// Toggle the current user's online status visibility
-  Future<void> toggle() async {
-    final currentValue = state.valueOrNull ?? true;
-    final newValue = !currentValue;
+  Future<bool> toggle() => setValue(!(state.valueOrNull ?? true));
 
-    state = AsyncValue.data(newValue);
-
-    try {
-      final service = ref.read(onlineStatusServiceProvider);
-      await service.updateOnlineStatusVisibility(newValue);
-    } catch (e, stackTrace) {
-      // Revert on error
-      state = AsyncValue.error(e, stackTrace);
-      rethrow;
-    }
-  }
-
-  /// Set the online status visibility to a specific value
-  Future<void> setValue(bool value) async {
+  /// Écrit la préférence. Rend `false` si le serveur ne l'a pas reçue.
+  ///
+  /// Écriture optimiste : l'interrupteur suit le doigt, puis on **remet la
+  /// valeur d'avant** si l'écriture échoue — le commentaire disait « Revert on
+  /// error », le code posait `AsyncValue.error`. C'était faux de deux façons :
+  ///
+  /// - un `AsyncError` sans valeur fait retomber les lecteurs sur `?? true`,
+  ///   donc l'interrupteur revenait sur « visible » quelle que soit la vraie
+  ///   valeur — pour un réglage de confidentialité, c'est le mauvais côté ;
+  /// - l'écran Profil rend alors un interrupteur **désactivé** (« Erreur de
+  ///   chargement »), verrouillé jusqu'à la reconstruction du provider.
+  ///
+  /// Rend un booléen plutôt que de relancer : l'écran Réglages appelle en
+  /// `unawaited(...)`, où une exception deviendrait une erreur asynchrone que
+  /// personne n'affiche. C'est à l'écran de dire l'échec (`reportIfFailed`).
+  Future<bool> setValue(bool value) async {
+    // Dernière valeur connue : c'est elle qu'on remet si le serveur refuse.
+    final previous = state.valueOrNull;
     state = AsyncValue.data(value);
 
     try {
       final service = ref.read(onlineStatusServiceProvider);
       await service.updateOnlineStatusVisibility(value);
+      return true;
     } catch (e, stackTrace) {
-      // Revert on error
-      state = AsyncValue.error(e, stackTrace);
-      rethrow;
+      LoggerService.w(
+        'CurrentUserOnlineStatusVisibility: écriture refusée',
+        e,
+        stackTrace,
+      );
+      if (previous != null) {
+        state = AsyncValue.data(previous);
+      } else {
+        // Rien à remettre (chargement pas terminé) : relire la vérité.
+        ref.invalidateSelf();
+      }
+      return false;
     }
   }
 }

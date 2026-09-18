@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
+import '../../../../core/utils/action_feedback.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -703,9 +706,12 @@ class _SuggestedPodcastRow extends ConsumerWidget {
             Icon(Icons.check_rounded, size: 20, color: context.successColor)
           else
             TextButton(
-              onPressed: () => ref
-                  .read(podcastNotifierProvider.notifier)
-                  .subscribe(podcast),
+              onPressed: () => unawaited(
+                reportIfFailed(
+                  context,
+                  ref.read(podcastNotifierProvider.notifier).subscribe(podcast),
+                ),
+              ),
               child: Text(l10n.podcastsSubscribe),
             ),
         ],

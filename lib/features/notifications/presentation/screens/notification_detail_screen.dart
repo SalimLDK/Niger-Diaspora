@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../core/utils/action_feedback.dart';
 import '../../../../core/utils/locale_helper.dart';
 import '../../domain/entities/notification_entity.dart';
 import '../widgets/notification_style.dart';
@@ -247,9 +248,12 @@ class NotificationDetailScreen extends ConsumerWidget {
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: () {
-                        unawaited(ref
-                            .read(notificationsNotifierProvider.notifier)
-                            .markAsRead(notification.id));
+                        unawaited(reportIfFailed(
+                          context,
+                          ref
+                              .read(notificationsNotifierProvider.notifier)
+                              .markAsRead(notification.id),
+                        ));
                       },
                       icon: const Icon(Icons.mark_email_read),
                       label: Text(l10n.markAsRead),
@@ -264,12 +268,18 @@ class NotificationDetailScreen extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: TextButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       // Confirm deletion
-                      unawaited(ref
-                          .read(notificationsNotifierProvider.notifier)
-                          .deleteNotification(notification.id));
-                      context.pop();
+                      // On ne referme la fiche que si la suppression a eu lieu :
+                      // elle se refermait avant le résultat, et un refus du
+                      // serveur laissait croire la notification supprimée.
+                      final done = await reportIfFailed(
+                        context,
+                        ref
+                            .read(notificationsNotifierProvider.notifier)
+                            .deleteNotification(notification.id),
+                      );
+                      if (done && context.mounted) context.pop();
                     },
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
                     label: Text(

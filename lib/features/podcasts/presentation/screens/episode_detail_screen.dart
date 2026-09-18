@@ -10,6 +10,7 @@ import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/services/deep_link_service.dart';
+import '../../../../core/utils/action_feedback.dart';
 import '../../../../core/services/podcast_download_service.dart';
 import '../../../../shared/widgets/share_options_sheet.dart';
 import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
@@ -841,13 +842,20 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
   }
 
   void _toggleLike(PodcastEpisodeEntity episode) {
-    setState(() => _isLiked = !_isLiked);
+    final liked = !_isLiked;
+    setState(() => _isLiked = liked);
+    unawaited(_saveLike(episode.id, liked));
+  }
 
-    if (_isLiked) {
-      unawaited(ref.read(podcastNotifierProvider.notifier).likeEpisode(episode.id));
-    } else {
-      unawaited(ref.read(podcastNotifierProvider.notifier).unlikeEpisode(episode.id));
-    }
+  /// Le cœur suit le doigt, puis on le remet si le serveur a refusé : il
+  /// restait plein sur un « j'aime » que personne n'avait enregistré.
+  Future<void> _saveLike(String episodeId, bool liked) async {
+    final notifier = ref.read(podcastNotifierProvider.notifier);
+    final done = await reportIfFailed(
+      context,
+      liked ? notifier.likeEpisode(episodeId) : notifier.unlikeEpisode(episodeId),
+    );
+    if (!done && mounted) setState(() => _isLiked = !liked);
   }
 
   void _downloadEpisode(PodcastEpisodeEntity episode, AppLocalizations l10n) {

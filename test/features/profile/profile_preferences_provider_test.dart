@@ -30,19 +30,26 @@ class _FauxDepot implements ProfileRepository {
   /// Dernière entité effectivement envoyée à l'écriture.
   ProfileEntity? ecrit;
 
+  /// Le serveur refuse toute écriture.
+  bool refuser = false;
+
+  /// Le profil est introuvable, ni en cache ni sur le serveur.
+  bool absent = false;
+
   @override
   Future<Either<Failure, ProfileEntity>> getProfile(String userId) async =>
-      Right(profil);
+      absent ? const Left(ServerFailure('introuvable')) : Right(profil);
 
   @override
   Either<Failure, ProfileEntity?> getCachedProfile(String userId) =>
-      Right(profil);
+      absent ? const Right(null) : Right(profil);
 
   @override
   Future<Either<Failure, ProfileEntity>> updateProfile(
     ProfileEntity profile,
   ) async {
     ecrit = profile;
+    if (refuser) return const Left(ServerFailure('refusé'));
     profil = profile;
     return Right(profile);
   }
@@ -114,6 +121,59 @@ void main() {
           'sauvegarde repartait de copies locales jamais rafraîchies et '
           'remettait « profil visible » à true.',
     );
+  });
+
+  // `set` ne levait ni ne rendait rien : un refus du serveur ramenait
+  // l'interrupteur en arrière sans un mot, et — pour « ma position » — la
+  // capture GPS partait quand même sur une préférence que le serveur n'avait
+  // pas reçue. Il rend désormais `false`, et l'écran le dit (`reportIfFailed`).
+  test('écriture acceptée : rend true', () async {
+    final c = conteneur(_FauxDepot(profilDeBase()));
+    await c.read(currentUserAsyncProvider.future);
+    await Future<void>.delayed(Duration.zero);
+
+    final ok = await c
+        .read(profilePreferencesProvider)
+        .set(ProfilePreference.isVisible, false);
+
+    expect(ok, isTrue);
+  });
+
+  test('écriture refusée : rend false et l\'interrupteur garde sa valeur',
+      () async {
+    final depot = _FauxDepot(profilDeBase(isVisible: true))..refuser = true;
+    final c = conteneur(depot);
+    await c.read(currentUserAsyncProvider.future);
+    await Future<void>.delayed(Duration.zero);
+
+    final ok = await c
+        .read(profilePreferencesProvider)
+        .set(ProfilePreference.isVisible, false);
+
+    expect(depot.ecrit, isNotNull, reason: 'l\'écriture n\'a pas été tentée');
+    expect(ok, isFalse, reason: 'le refus devait remonter à l\'appelant');
+    expect(
+      c.read(profilePreferenceProvider(ProfilePreference.isVisible)),
+      isTrue,
+      reason:
+          'l\'interrupteur doit revenir à la valeur du serveur, pas rester '
+          'sur la valeur refusée',
+    );
+  });
+
+  test('profil introuvable : rend false au lieu de sortir sans rien dire',
+      () async {
+    final depot = _FauxDepot(profilDeBase())..absent = true;
+    final c = conteneur(depot);
+    await c.read(currentUserAsyncProvider.future);
+    await Future<void>.delayed(Duration.zero);
+
+    final ok = await c
+        .read(profilePreferencesProvider)
+        .set(ProfilePreference.isVisible, false);
+
+    expect(ok, isFalse);
+    expect(depot.ecrit, isNull, reason: 'rien à écrire sans profil de départ');
   });
 
   test('la valeur lue vient du profil, sans écoute à poser', () async {

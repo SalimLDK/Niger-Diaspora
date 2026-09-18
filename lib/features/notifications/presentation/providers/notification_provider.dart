@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/services/logger_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
@@ -67,47 +68,52 @@ class NotificationsNotifier extends _$NotificationsNotifier {
     );
   }
 
-  Future<void> markAsRead(String notificationId) async {
+  /// Une écriture sur les notifications. Rend `false` si elle a échoué.
+  ///
+  /// Les quatre méthodes ci-dessous avalaient toute erreur (« Handle error
+  /// silently ») et rendaient `void` : l'écran qui annonce quelque chose — la
+  /// fiche qui se referme comme si la notification était supprimée — n'avait
+  /// aucun moyen de savoir. Un booléen plutôt qu'une exception, parce que la
+  /// plupart des appelants sont en `unawaited(...)`.
+  Future<bool> _write(String what, Future<void> Function() action) async {
     try {
-      final dataSource = ref.read(notificationDataSourceProvider);
-      await dataSource.markAsRead(notificationId);
-    } catch (e) {
-      // Handle error silently or show snackbar
+      await action();
+      return true;
+    } catch (e, s) {
+      LoggerService.w('NotificationsNotifier: $what a échoué', e, s);
+      return false;
     }
   }
 
-  Future<void> markAllAsRead() async {
-    try {
-      final currentUser = await ref.read(currentUserAsyncProvider.future);
-      if (currentUser == null) return;
-
-      final dataSource = ref.read(notificationDataSourceProvider);
-      await dataSource.markAllAsRead(currentUser.id);
-    } catch (e) {
-      // Handle error silently
-    }
+  /// Id de l'utilisateur courant ; lève s'il n'y en a pas, pour que
+  /// l'écriture soit comptée comme échouée plutôt que comme faite.
+  Future<String> _currentUserId() async {
+    final currentUser = await ref.read(currentUserAsyncProvider.future);
+    if (currentUser == null) throw StateError('Aucun utilisateur connecté');
+    return currentUser.id;
   }
 
-  Future<void> deleteNotification(String notificationId) async {
-    try {
-      final dataSource = ref.read(notificationDataSourceProvider);
-      await dataSource.deleteNotification(notificationId);
-    } catch (e) {
-      // Handle error silently
-    }
-  }
+  Future<bool> markAsRead(String notificationId) => _write(
+    'markAsRead',
+    () => ref.read(notificationDataSourceProvider).markAsRead(notificationId),
+  );
 
-  Future<void> deleteAllNotifications() async {
-    try {
-      final currentUser = await ref.read(currentUserAsyncProvider.future);
-      if (currentUser == null) return;
+  Future<bool> markAllAsRead() => _write('markAllAsRead', () async {
+    final userId = await _currentUserId();
+    await ref.read(notificationDataSourceProvider).markAllAsRead(userId);
+  });
 
-      final dataSource = ref.read(notificationDataSourceProvider);
-      await dataSource.deleteAllNotifications(currentUser.id);
-    } catch (e) {
-      // Handle error silently
-    }
-  }
+  Future<bool> deleteNotification(String notificationId) => _write(
+    'deleteNotification',
+    () => ref
+        .read(notificationDataSourceProvider)
+        .deleteNotification(notificationId),
+  );
+
+  Future<bool> deleteAllNotifications() => _write('deleteAllNotifications', () async {
+    final userId = await _currentUserId();
+    await ref.read(notificationDataSourceProvider).deleteAllNotifications(userId);
+  });
 
   void loadMore() {
     ref.read(notificationLimitProvider.notifier).increment();

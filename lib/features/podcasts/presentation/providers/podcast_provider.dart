@@ -290,10 +290,24 @@ class PodcastNotifier extends AsyncNotifier<void> {
     }
   }
 
+  // Les actions que l'utilisateur déclenche d'un geste — s'abonner, aimer,
+  // supprimer, publier/mettre en pause — rendent `true` si elles ont abouti.
+  //
+  // Elles rendaient `void` et avalaient toute erreur (un `debugPrint`, ou un
+  // `AsyncError` posé sur un état que personne n'écoute). L'écran de
+  // « Mes podcasts » affichait pourtant « supprimé » / « publié » dans la
+  // foulée, avant même la fin de l'appel : un refus du serveur se lisait
+  // comme un succès. Un booléen plutôt qu'une exception, parce que la plupart
+  // des appelants sont en `unawaited(...)` (voir `reportIfFailed`).
+  //
+  // Les compteurs — `recordPlay`, `recordShare`, `recordDownload`,
+  // `updateProgress` — restent silencieux : c'est de la statistique, elle ne
+  // doit jamais faire échouer l'écoute.
+
   /// Subscribe to a free podcast
-  Future<void> subscribe(PodcastEntity podcast) async {
+  Future<bool> subscribe(PodcastEntity podcast) async {
     try {
-      if (_userId == null) return;
+      if (_userId == null) return false;
       await _dataSource.subscribeToPodcast(
         podcastId: podcast.id,
         podcastTitle: podcast.title,
@@ -301,44 +315,52 @@ class PodcastNotifier extends AsyncNotifier<void> {
         podcastCoverUrl: podcast.coverImageUrl,
       );
       ref.invalidate(podcastUserDataProvider);
+      return true;
     } catch (e) {
       debugPrint('PodcastNotifier: Error subscribing: $e');
+      return false;
     }
   }
 
   /// Unsubscribe from a podcast
-  Future<void> unsubscribe(String podcastId) async {
+  Future<bool> unsubscribe(String podcastId) async {
     try {
-      if (_userId == null) return;
+      if (_userId == null) return false;
       await _dataSource.unsubscribeFromPodcast(
         podcastId: podcastId,
         userId: _userId!,
       );
       ref.invalidate(podcastUserDataProvider);
+      return true;
     } catch (e) {
       debugPrint('PodcastNotifier: Error unsubscribing: $e');
+      return false;
     }
   }
 
   /// Like an episode
-  Future<void> likeEpisode(String episodeId) async {
+  Future<bool> likeEpisode(String episodeId) async {
     try {
-      if (_userId == null) return;
+      if (_userId == null) return false;
       await _dataSource.likeEpisode(episodeId, _userId!);
       ref.invalidate(podcastUserDataProvider);
+      return true;
     } catch (e) {
       debugPrint('PodcastNotifier: Error liking: $e');
+      return false;
     }
   }
 
   /// Unlike an episode
-  Future<void> unlikeEpisode(String episodeId) async {
+  Future<bool> unlikeEpisode(String episodeId) async {
     try {
-      if (_userId == null) return;
+      if (_userId == null) return false;
       await _dataSource.unlikeEpisode(episodeId, _userId!);
       ref.invalidate(podcastUserDataProvider);
+      return true;
     } catch (e) {
       debugPrint('PodcastNotifier: Error unliking: $e');
+      return false;
     }
   }
 
@@ -401,20 +423,22 @@ class PodcastNotifier extends AsyncNotifier<void> {
   }
 
   /// Delete a podcast
-  Future<void> deletePodcast(String podcastId) async {
+  Future<bool> deletePodcast(String podcastId) async {
     try {
       state = const AsyncLoading();
       await _dataSource.deletePodcast(podcastId);
       ref.invalidate(myPodcastsProvider);
       state = const AsyncData(null);
+      return true;
     } catch (e, st) {
       debugPrint('PodcastNotifier: Error deleting: $e');
       state = AsyncError(e, st);
+      return false;
     }
   }
 
   /// Toggle podcast status (publish/pause)
-  Future<void> togglePodcastStatus(String podcastId, PodcastStatus currentStatus) async {
+  Future<bool> togglePodcastStatus(String podcastId, PodcastStatus currentStatus) async {
     try {
       state = const AsyncLoading();
       final newStatus = currentStatus == PodcastStatus.published
@@ -424,22 +448,26 @@ class PodcastNotifier extends AsyncNotifier<void> {
       ref.invalidate(myPodcastsProvider);
       ref.invalidate(podcastStreamProvider(podcastId));
       state = const AsyncData(null);
+      return true;
     } catch (e, st) {
       debugPrint('PodcastNotifier: Error toggling status: $e');
       state = AsyncError(e, st);
+      return false;
     }
   }
 
   /// Delete an episode
-  Future<void> deleteEpisode(String episodeId, String podcastId) async {
+  Future<bool> deleteEpisode(String episodeId, String podcastId) async {
     try {
       state = const AsyncLoading();
       await _dataSource.deleteEpisode(episodeId, podcastId);
       ref.invalidate(podcastEpisodesProvider(podcastId));
       state = const AsyncData(null);
+      return true;
     } catch (e, st) {
       debugPrint('PodcastNotifier: Error deleting episode: $e');
       state = AsyncError(e, st);
+      return false;
     }
   }
 }

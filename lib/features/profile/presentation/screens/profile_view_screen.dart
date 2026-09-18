@@ -26,6 +26,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/services/background_location_service.dart';
 import '../../../../core/services/location_service.dart';
+import '../../../../core/utils/action_feedback.dart';
 import '../../../../core/widgets/location_disclosure.dart';
 import '../widgets/share_profile_modal.dart';
 import 'package:flutter/services.dart';
@@ -1120,32 +1121,20 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                       value: showStatus,
                                       activeThumbColor:
                                           context.adaptivePrimaryColor,
-                                      onChanged: (value) async {
-                                        try {
-                                          await ref
+                                      // `setValue` rend `false` au lieu de
+                                      // lever : le `try/catch` qui était ici
+                                      // ne pouvait plus se déclencher.
+                                      onChanged: (value) => unawaited(
+                                        reportIfFailed(
+                                          context,
+                                          ref
                                               .read(
                                                 currentUserOnlineStatusVisibilityProvider
                                                     .notifier,
                                               )
-                                              .setValue(value);
-                                        } catch (e) {
-                                          if (context.mounted) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  l10n.profileUpdateError(
-                                                    e.toString(),
-                                                  ),
-                                                ),
-                                                backgroundColor:
-                                                    AppColors.error,
-                                              ),
-                                            );
-                                          }
-                                        }
-                                      },
+                                              .setValue(value),
+                                        ),
+                                      ),
                                     );
                                   },
                                   loading:

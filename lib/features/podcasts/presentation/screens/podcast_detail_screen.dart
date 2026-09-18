@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/providers/revenue_cat_provider.dart';
 import '../../../../core/services/deep_link_service.dart';
+import '../../../../core/utils/action_feedback.dart';
 import '../../../../core/services/revenue_cat_service.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/widgets/share_options_sheet.dart';
@@ -376,9 +377,14 @@ class PodcastDetailScreen extends ConsumerWidget {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton.icon(
-          onPressed: () => ref
-              .read(podcastNotifierProvider.notifier)
-              .unsubscribe(podcast.id),
+          onPressed: () => unawaited(
+            reportIfFailed(
+              context,
+              ref
+                  .read(podcastNotifierProvider.notifier)
+                  .unsubscribe(podcast.id),
+            ),
+          ),
           icon: const Icon(Icons.notifications_active),
           label: Text(l10n.podcastsSubscribed),
           style: ElevatedButton.styleFrom(
@@ -403,9 +409,12 @@ class PodcastDetailScreen extends ConsumerWidget {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: () => ref
-            .read(podcastNotifierProvider.notifier)
-            .subscribe(podcast),
+        onPressed: () => unawaited(
+          reportIfFailed(
+            context,
+            ref.read(podcastNotifierProvider.notifier).subscribe(podcast),
+          ),
+        ),
         icon: const Icon(Icons.notifications_none),
         label: Text(l10n.podcastsSubscribe),
         style: ElevatedButton.styleFrom(
