@@ -49,7 +49,7 @@ class _MainShellState extends ConsumerState<MainShell> {
     super.initState();
     // Handle shares received while the app was closed.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkInitialSharedMedia();
+      unawaited(_checkInitialSharedMedia());
       // Les coordinateurs peuvent avoir déjà décidé avant que ce shell soit
       // monté : ref.listen ne rejoue pas l'état courant, on le lit donc une
       // fois ici.

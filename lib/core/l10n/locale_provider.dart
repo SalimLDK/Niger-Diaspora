@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../errors/app_error_messages.dart';
@@ -18,7 +20,7 @@ class LocaleNotifier extends _$LocaleNotifier {
 
   @override
   Locale build() {
-    _loadLocale();
+    unawaited(_loadLocale());
     return _sync(const Locale('fr'));
   }
 

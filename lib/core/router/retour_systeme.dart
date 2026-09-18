@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
@@ -71,9 +73,9 @@ class RetourSystemeVersAccueil extends RootBackButtonDispatcher {
     final etat = WidgetsBinding.instance.lifecycleState;
     if (etat == null || etat == AppLifecycleState.detached) return true;
 
-    SystemNavigator.setFrameworkHandlesBack(
+    unawaited(SystemNavigator.setFrameworkHandlesBack(
       notification.canHandlePop || peutRattraper,
-    );
+    ));
     return true;
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -1277,7 +1279,7 @@ void _bindNativeDeepLinks(GoRouter router) {
   // Un moteur tout juste créé par le service audio peut recevoir l'activité
   // avant que ce code ait tourné : le natif garde alors la route de côté, et
   // on la réclame ici.
-  reprendreLienEnAttente(_deepLinkChannel, router.go);
+  unawaited(reprendreLienEnAttente(_deepLinkChannel, router.go));
 }
 
 class _SimpleNotifier extends ChangeNotifier {

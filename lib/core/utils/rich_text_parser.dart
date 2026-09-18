@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -283,7 +285,7 @@ class RichTextParser {
                   if (onLinkTap != null) {
                     onLinkTap(segment.url!);
                   } else {
-                    _launchUrl(segment.url!);
+                    unawaited(_launchUrl(segment.url!));
                   }
                 },
         );
@@ -320,9 +322,13 @@ class RichTextParser {
 
   /// Helper to launch URLs
   static Future<void> _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('RichTextParser: échec ouverture lien "$url": $e');
     }
   }
 

@@ -199,7 +199,7 @@ class InAppNotificationNotifier extends Notifier<InAppNotificationState> {
   @override
   InAppNotificationState build() {
     // Charger les préférences
-    _loadPreferences();
+    unawaited(_loadPreferences());
     return const InAppNotificationState();
   }
 
