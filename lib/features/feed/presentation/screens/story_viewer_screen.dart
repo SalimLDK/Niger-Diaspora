@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -49,13 +51,13 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
   void dispose() {
     _progressController.dispose();
     _videoController?.removeListener(_onVideoTick);
-    _videoController?.dispose();
+    unawaited(_videoController?.dispose());
     super.dispose();
   }
 
   void _startSegment(StoryEntity story) {
     _videoController?.removeListener(_onVideoTick);
-    _videoController?.dispose();
+    unawaited(_videoController?.dispose());
     _videoController = null;
     _progressController.stop();
     _progressController.value = 0;
@@ -67,17 +69,16 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
       );
       _videoController = controller;
       controller.addListener(_onVideoTick);
-      controller.initialize().then((_) {
+      unawaited(controller.initialize().then((_) {
         if (!mounted || _videoController != controller) return;
-        controller.play();
+        unawaited(controller.play());
         setState(() {});
-      });
+      }));
     } else {
-      _progressController
-        ..duration = _segmentDuration
-        ..forward();
+      _progressController.duration = _segmentDuration;
+      unawaited(_progressController.forward());
     }
-    ref.read(storyActionsNotifierProvider.notifier).markViewed(story.id);
+    unawaited(ref.read(storyActionsNotifierProvider.notifier).markViewed(story.id));
   }
 
   void _onVideoTick() {
@@ -98,16 +99,16 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
     if (_paused) return;
     _paused = true;
     _progressController.stop();
-    _videoController?.pause();
+    unawaited(_videoController?.pause());
   }
 
   void _resume() {
     if (!_paused) return;
     _paused = false;
     if (_videoController != null) {
-      _videoController!.play();
+      unawaited(_videoController!.play());
     } else {
-      _progressController.forward();
+      unawaited(_progressController.forward());
     }
   }
 
@@ -157,7 +158,7 @@ class _StoryViewerScreenState extends ConsumerState<StoryViewerScreen>
   /// du segment affiché (après une suppression, le segment a changé).
   void _resetPlayback() {
     _videoController?.removeListener(_onVideoTick);
-    _videoController?.dispose();
+    unawaited(_videoController?.dispose());
     _videoController = null;
     _progressController.stop();
     _progressController.value = 0;
