@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -43,7 +45,7 @@ BusinessRepository businessRepository(Ref ref) {
 class BusinessesNotifier extends _$BusinessesNotifier {
   @override
   AsyncValue<List<BusinessEntity>> build() {
-    loadBusinesses();
+    unawaited(loadBusinesses());
     return const AsyncValue.loading();
   }
 
@@ -137,7 +139,7 @@ class BusinessDetailNotifier extends _$BusinessDetailNotifier {
       (business) {
         state = AsyncValue.data(business);
         // Increment view count in background
-        repository.incrementViewCount(id);
+        unawaited(repository.incrementViewCount(id));
       },
     );
   }
@@ -151,7 +153,7 @@ class MyBusinessNotifier extends _$MyBusinessNotifier {
   AsyncValue<BusinessEntity?> build() {
     final user = ref.watch(currentUserProvider).valueOrNull;
     if (user != null) {
-      loadMyBusiness(user.id);
+      unawaited(loadMyBusiness(user.id));
     }
     return const AsyncValue.loading();
   }
@@ -173,7 +175,7 @@ class MyBusinessNotifier extends _$MyBusinessNotifier {
     return result.fold((failure) => false, (created) {
       state = AsyncValue.data(created);
       // Refresh the global list
-      ref.read(businessesNotifierProvider.notifier).refresh();
+      unawaited(ref.read(businessesNotifierProvider.notifier).refresh());
       ref.invalidate(myBusinessesNotifierProvider);
       return true;
     });
@@ -185,7 +187,7 @@ class MyBusinessNotifier extends _$MyBusinessNotifier {
     return result.fold((failure) => false, (updated) {
       state = AsyncValue.data(updated);
       // Refresh the global list
-      ref.read(businessesNotifierProvider.notifier).refresh();
+      unawaited(ref.read(businessesNotifierProvider.notifier).refresh());
       ref.invalidate(myBusinessesNotifierProvider);
       return true;
     });
@@ -197,7 +199,7 @@ class MyBusinessNotifier extends _$MyBusinessNotifier {
     return result.fold((failure) => false, (_) {
       state = const AsyncValue.data(null);
       // Refresh the global list
-      ref.read(businessesNotifierProvider.notifier).refresh();
+      unawaited(ref.read(businessesNotifierProvider.notifier).refresh());
       ref.invalidate(myBusinessesNotifierProvider);
       return true;
     });
@@ -267,10 +269,10 @@ class BoostNotifier extends _$BoostNotifier {
     return result.fold((failure) => false, (boost) {
       state = AsyncValue.data(boost);
       // Refresh the business to reflect boost status
-      ref
+      unawaited(ref
           .read(myBusinessNotifierProvider.notifier)
-          .loadMyBusiness(ref.read(currentUserAsyncProvider).valueOrNull?.id ?? '');
-      ref.read(businessesNotifierProvider.notifier).refresh();
+          .loadMyBusiness(ref.read(currentUserAsyncProvider).valueOrNull?.id ?? ''));
+      unawaited(ref.read(businessesNotifierProvider.notifier).refresh());
       return true;
     });
   }
@@ -309,15 +311,15 @@ class SelectedBusinessCategory extends _$SelectedBusinessCategory {
   void select(BusinessCategory? category) {
     state = category;
     if (category != null) {
-      ref.read(businessesNotifierProvider.notifier).loadByCategory(category);
+      unawaited(ref.read(businessesNotifierProvider.notifier).loadByCategory(category));
     } else {
-      ref.read(businessesNotifierProvider.notifier).loadBusinesses();
+      unawaited(ref.read(businessesNotifierProvider.notifier).loadBusinesses());
     }
   }
 
   void clear() {
     state = null;
-    ref.read(businessesNotifierProvider.notifier).loadBusinesses();
+    unawaited(ref.read(businessesNotifierProvider.notifier).loadBusinesses());
   }
 }
 
@@ -407,17 +409,17 @@ class SelectedBusinessLocation extends _$SelectedBusinessLocation {
 
   void clear() {
     state = const BusinessLocationFilter();
-    ref.read(businessesNotifierProvider.notifier).loadBusinesses();
+    unawaited(ref.read(businessesNotifierProvider.notifier).loadBusinesses());
   }
 
   void _applyFilter() {
     final notifier = ref.read(businessesNotifierProvider.notifier);
     if (state.city != null && state.city!.isNotEmpty) {
-      notifier.loadByLocation(country: state.country, city: state.city);
+      unawaited(notifier.loadByLocation(country: state.country, city: state.city));
     } else if (state.country != null && state.country!.isNotEmpty) {
-      notifier.loadByLocation(country: state.country);
+      unawaited(notifier.loadByLocation(country: state.country));
     } else {
-      notifier.loadBusinesses();
+      unawaited(notifier.loadBusinesses());
     }
   }
 }
@@ -428,7 +430,7 @@ class SelectedBusinessLocation extends _$SelectedBusinessLocation {
 class BusinessPostsNotifier extends _$BusinessPostsNotifier {
   @override
   AsyncValue<List<BusinessPostEntity>> build(String businessId) {
-    loadPosts(businessId);
+    unawaited(loadPosts(businessId));
     return const AsyncValue.loading();
   }
 
@@ -452,7 +454,7 @@ class BusinessPostsNotifier extends _$BusinessPostsNotifier {
 class BusinessOffersNotifier extends _$BusinessOffersNotifier {
   @override
   AsyncValue<List<BusinessPostEntity>> build(String businessId) {
-    loadOffers(businessId);
+    unawaited(loadOffers(businessId));
     return const AsyncValue.loading();
   }
 
