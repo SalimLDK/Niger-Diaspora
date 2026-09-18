@@ -538,7 +538,9 @@ void main() {
     test('le futur est retiré une fois terminé', () {
       // Sinon un échec figerait la conversation : tout appelant suivant
       // recevrait le même futur déjà en erreur.
-      expect(source, contains('_rattrapages.remove(conversationId);'));
+      // Sans le `;` final : l'appel est enveloppé dans `unawaited(...)`
+      // (`remove` rend le futur retiré, que `discarded_futures` signale).
+      expect(source, contains('_rattrapages.remove(conversationId)'));
     });
 
     test('le rattrapage de fond est borné', () {

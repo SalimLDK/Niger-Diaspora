@@ -164,7 +164,10 @@ void main() {
     test('poser la date refiltre aussitôt ce qui est déjà affiché', () {
       final debut = source.indexOf('void setFilterDate(DateTime? date) {');
       final corps = source.substring(debut, source.indexOf('\n  }\n', debut));
-      expect(corps.indexOf('state = state;'), lessThan(corps.indexOf('loadInitial();')));
+      // `loadInitial()` sans `;` : l'appel est enveloppé dans `unawaited(...)`.
+      final relecture = corps.indexOf('loadInitial(');
+      expect(relecture, isNot(-1), reason: 'setFilterDate ne recharge plus');
+      expect(corps.indexOf('state = state;'), lessThan(relecture));
     });
   });
 }
