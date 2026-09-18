@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -309,9 +311,9 @@ class _MyPostsScreenState extends ConsumerState<MyPostsScreen> {
     if (!mounted || action == null) return;
     switch (action) {
       case 'bookmark':
-        ref.read(feedNotifierProvider.notifier).toggleBookmark(post.id);
+        unawaited(ref.read(feedNotifierProvider.notifier).toggleBookmark(post.id));
       case 'edit':
-        context.push('/feed/${post.id}/edit', extra: post);
+        unawaited(context.push('/feed/${post.id}/edit', extra: post));
       case 'delete':
         await _confirmDeletePost(post, l10n);
     }

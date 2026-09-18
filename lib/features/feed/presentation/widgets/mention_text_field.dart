@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -146,7 +148,7 @@ class _MentionTextFieldState extends State<MentionTextField> {
       final query = mentionMatch.group(1)!;
       if (query != _activeMentionQuery) {
         setState(() => _activeMentionQuery = query);
-        _search(query);
+        unawaited(_search(query));
       }
       _notifyTags();
       return;

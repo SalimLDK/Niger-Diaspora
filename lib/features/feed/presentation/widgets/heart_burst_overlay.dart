@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/app_icon.dart';
 
@@ -36,9 +38,9 @@ class HeartBurstState extends State<HeartBurst>
   /// Joue le burst une fois. Sans effet de bord sur l'état de like.
   void play() {
     setState(() => _visible = true);
-    _controller.forward(from: 0).whenComplete(() {
+    unawaited(_controller.forward(from: 0).whenComplete(() {
       if (mounted) setState(() => _visible = false);
-    });
+    }));
   }
 
   @override

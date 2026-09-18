@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -130,7 +132,7 @@ class CommentTile extends ConsumerWidget {
                         .where((m) => mentionHandleMatches(m.name, handle))
                         .map((m) => m.id)
                         .firstOrNull;
-                    if (uid != null) context.push('/profile/$uid');
+                    if (uid != null) unawaited(context.push('/profile/$uid'));
                   },
                   onHashtagTap: (tag) => context.push('/feed?hashtag=$tag'),
                 ),

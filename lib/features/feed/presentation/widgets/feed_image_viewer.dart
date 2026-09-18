@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
@@ -29,7 +31,7 @@ class FeedImageViewer extends StatefulWidget {
     int initialIndex = 0,
     String? heroTagPrefix,
   }) {
-    Navigator.of(context).push(
+    unawaited(Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.black87,
@@ -41,7 +43,7 @@ class FeedImageViewer extends StatefulWidget {
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
       ),
-    );
+    ));
   }
 
   @override

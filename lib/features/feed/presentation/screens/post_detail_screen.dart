@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,10 +54,10 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     super.initState();
     // Publication ouverte — depuis le fil, un lien, n'importe où : ses
     // notifications (commentaire, mention, nouvelle publication) sont lues.
-    NotificationReadSync.markTargetRead(
+    unawaited(NotificationReadSync.markTargetRead(
       widget.postId,
       keys: const ['postId', 'targetId', 'target_id'],
-    );
+    ));
   }
 
   @override
@@ -111,11 +113,11 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
-          _scrollController.animateTo(
+          unawaited(_scrollController.animateTo(
             _scrollController.position.maxScrollExtent,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
-          );
+          ));
         }
       });
     }

@@ -170,7 +170,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
           if (!mounted) return;
           switch (widget.compose) {
             case ComposeIntent.photo:
-              _pickImages();
+              unawaited(_pickImages());
             case ComposeIntent.poll:
               _pickPoll();
             case ComposeIntent.blank:
@@ -215,7 +215,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
   /// Un texte vide supprime le brouillon plutôt que d'en laisser un fantôme.
   void _persistDraft() {
     if (_isEditing || _didPublish) return;
-    _draftsNotifier?.save(_draftId, _contentController.text);
+    unawaited(_draftsNotifier?.save(_draftId, _contentController.text));
   }
 
   Future<void> _pickImages() async {
@@ -257,7 +257,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
   }
 
   void _pickPoll() {
-    showCreatePollSheet(
+    unawaited(showCreatePollSheet(
       context,
       contextType: PollContextType.post,
       contextId: '', // ignoré : onDraft intercepte la soumission
@@ -275,7 +275,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen>
           );
         });
       },
-    );
+    ));
   }
 
   Future<void> _pickLocation() async {

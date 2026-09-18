@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,7 +29,7 @@ class BookmarkedPostsNotifier
   final Ref _ref;
 
   BookmarkedPostsNotifier(this._ref) : super(const AsyncValue.loading()) {
-    load();
+    unawaited(load());
   }
 
   Future<void> load() async {
@@ -58,7 +60,7 @@ class BookmarkedPostsNotifier
   }
 
   void refresh() {
-    load();
+    unawaited(load());
   }
 }
 
