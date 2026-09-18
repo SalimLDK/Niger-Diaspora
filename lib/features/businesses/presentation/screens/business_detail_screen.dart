@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/design_kit.dart';
@@ -41,9 +43,9 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
+      unawaited(ref
           .read(businessDetailNotifierProvider.notifier)
-          .loadBusiness(widget.businessId);
+          .loadBusiness(widget.businessId));
     });
   }
 
@@ -126,9 +128,9 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        ref
+                        unawaited(ref
                             .read(businessDetailNotifierProvider.notifier)
-                            .loadBusiness(widget.businessId);
+                            .loadBusiness(widget.businessId));
                       },
                       child: Text(l10n.retry),
                     ),
@@ -194,16 +196,16 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                 onSelected: (value) {
                   switch (value) {
                     case 'edit':
-                      context.push(
+                      unawaited(context.push(
                         '/businesses/${business.id}/edit',
                         extra: business,
-                      );
+                      ));
                       break;
                     case 'boost':
-                      context.push(
+                      unawaited(context.push(
                         '/businesses/${business.id}/boost',
                         extra: business,
-                      );
+                      ));
                       break;
                   }
                 },
@@ -434,14 +436,14 @@ class _BusinessDetailScreenState extends ConsumerState<BusinessDetailScreen> {
                     width: double.infinity,
                     child: FilledButton.icon(
                       onPressed: () {
-                        context.push(
+                        unawaited(context.push(
                           '/messages/new',
                           extra: {
                             'recipientId': business.ownerId,
                             'recipientName':
                                 business.ownerName ?? business.name,
                           },
-                        );
+                        ));
                       },
                       icon: const Icon(Icons.message),
                       label: Text(l10n.contactAction),
@@ -811,7 +813,7 @@ class _PostsSection extends ConsumerWidget {
     final contentController = TextEditingController();
     BusinessPostType selectedType = BusinessPostType.announcement;
 
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder:
           (context) => StatefulBuilder(
@@ -906,7 +908,7 @@ class _PostsSection extends ConsumerWidget {
                   ],
                 ),
           ),
-    );
+    ));
   }
 
   void _deletePost(
@@ -915,7 +917,7 @@ class _PostsSection extends ConsumerWidget {
     BusinessPostEntity post,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
@@ -940,7 +942,7 @@ class _PostsSection extends ConsumerWidget {
               ),
             ],
           ),
-    );
+    ));
   }
 }
 
@@ -1119,14 +1121,14 @@ class _ReviewsPreviewSection extends ConsumerWidget {
       return;
     }
 
-    ReviewFormModal.show(
+    unawaited(ReviewFormModal.show(
       context,
       businessId: businessId,
       userId: currentUser.id,
       userDisplayName: currentUser.displayName ?? l10n.user,
       userPhotoUrl: currentUser.photoUrl,
       existingReview: existingReview,
-    );
+    ));
   }
 
   /// Réponse du gérant à un avis (§18c). Réutilise le chemin d'écriture
@@ -1134,7 +1136,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
   void _showReplyDialog(BuildContext context, WidgetRef ref, ReviewEntity review) {
     final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: review.ownerReply ?? '');
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Répondre à l\'avis'),
@@ -1185,7 +1187,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   @override
@@ -1213,7 +1215,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () {
-                context.push('/businesses/$businessId/reviews', extra: business);
+                unawaited(context.push('/businesses/$businessId/reviews', extra: business));
               },
               child: Text(l10n.seeAll),
             ),
@@ -1337,7 +1339,7 @@ class _ReviewsPreviewSection extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 8),
                     child: TextButton(
                       onPressed: () {
-                        context.push('/businesses/$businessId/reviews', extra: business);
+                        unawaited(context.push('/businesses/$businessId/reviews', extra: business));
                       },
                       child: Text('Voir les ${reviews.length - 2} autres avis'),
                     ),

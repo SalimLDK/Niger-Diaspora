@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/errors/message_erreur.dart';
 import '../../../../core/theme/design_kit.dart';
@@ -34,14 +36,14 @@ class BusinessReviewsScreen extends ConsumerWidget {
       return;
     }
 
-    ReviewFormModal.show(
+    unawaited(ReviewFormModal.show(
       context,
       businessId: businessId,
       userId: currentUser.id,
       userDisplayName: currentUser.displayName ?? l10n.user,
       userPhotoUrl: currentUser.photoUrl,
       existingReview: existingReview,
-    );
+    ));
   }
 
   /// Annonce le résultat, succès **comme** échec.
@@ -68,7 +70,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
 
   void _confirmDelete(BuildContext context, WidgetRef ref, ReviewEntity review) {
     final l10n = AppLocalizations.of(context)!;
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Supprimer l\'avis'),
@@ -93,14 +95,14 @@ class BusinessReviewsScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   /// Réponse du gérant à un avis (§18c) — réutilise updateReview.
   void _showReplyDialog(BuildContext context, WidgetRef ref, ReviewEntity review) {
     final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: review.ownerReply ?? '');
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Répondre à l\'avis'),
@@ -143,13 +145,13 @@ class BusinessReviewsScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   void _showReportDialog(BuildContext context, WidgetRef ref, String reviewId) {
     final l10n = AppLocalizations.of(context)!;
     final reasonController = TextEditingController();
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.reportReview),
@@ -190,7 +192,7 @@ class BusinessReviewsScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   @override

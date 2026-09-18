@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:io';
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
@@ -72,7 +74,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
     if (widget.initial != null) {
       _prefill(widget.initial!);
     } else if (widget.editBusinessId != null) {
-      _loadInitial(widget.editBusinessId!);
+      unawaited(_loadInitial(widget.editBusinessId!));
     }
   }
 
@@ -264,9 +266,9 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
         success = await notifier.updateBusiness(business);
         if (success) {
           // La fiche détail lit ce provider : la resynchroniser.
-          ref
+          unawaited(ref
               .read(businessDetailNotifierProvider.notifier)
-              .loadBusiness(business.id);
+              .loadBusiness(business.id));
         }
       } else {
         final business = BusinessEntity(

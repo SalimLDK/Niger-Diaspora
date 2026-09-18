@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:country_picker/country_picker.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
@@ -27,7 +29,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(businessesNotifierProvider.notifier).loadBusinesses();
+      unawaited(ref.read(businessesNotifierProvider.notifier).loadBusinesses());
     });
   }
 
@@ -72,7 +74,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                   .searchBusinesses(query),
               onClear: () {
                 _searchController.clear();
-                ref.read(businessesNotifierProvider.notifier).loadBusinesses();
+                unawaited(ref.read(businessesNotifierProvider.notifier).loadBusinesses());
                 setState(() {});
               },
               onFilterTap: () => setState(
@@ -166,10 +168,10 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                         child: BusinessCard(
                           business: business,
                           onTap: () {
-                            context.push(
+                            unawaited(context.push(
                               '/businesses/${business.id}',
                               extra: business,
-                            );
+                            ));
                           },
                         ),
                       );
@@ -196,9 +198,9 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
                           const SizedBox(height: 16),
                           ElevatedButton(
                             onPressed: () {
-                              ref
+                              unawaited(ref
                                   .read(businessesNotifierProvider.notifier)
-                                  .refresh();
+                                  .refresh());
                             },
                             child: Text(l10n.retry),
                           ),
@@ -214,7 +216,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          context.push('/businesses/create');
+          unawaited(context.push('/businesses/create'));
         },
         icon: const AppIcon(AppIcon.add),
         label: Text(l10n.add),
@@ -360,7 +362,7 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
   void _showCityDialog(ThemeData theme, String? currentCity) {
     final controller = TextEditingController(text: currentCity ?? '');
 
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.enterCity),
@@ -390,6 +392,6 @@ class _BusinessesScreenState extends ConsumerState<BusinessesScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 }
