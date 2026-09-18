@@ -129,7 +129,7 @@ class AuthNotifier extends _$AuthNotifier {
         SessionService.instance.onForceLogout = null;
       }
     });
-    _initAuthState();
+    unawaited(_initAuthState());
     return const AuthState.initial();
   }
 
@@ -180,10 +180,12 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   void _initializeE2EE(String userId) {
-    ref
-        .read(e2eeBackupCoordinatorProvider.notifier)
-        .bootstrap(userId)
-        .catchError((Object e) => dev.log('E2EE bootstrap failed: $e'));
+    unawaited(
+      ref
+          .read(e2eeBackupCoordinatorProvider.notifier)
+          .bootstrap(userId)
+          .catchError((Object e) => dev.log('E2EE bootstrap failed: $e')),
+    );
 
     // Registre d'appareils MLS (plan MLS, phase 2) : inscrit l'appareil et
     // publie ses KeyPackages, avec réessais le temps que le pont de session
@@ -288,7 +290,7 @@ class AuthNotifier extends _$AuthNotifier {
     // Consentement, onboarding, config de profil : tout est en
     // SharedPreferences, donc lisible hors ligne. Sans ce refresh, le routeur
     // resterait sur /splash à l'étape `onboardingState.isLoading`.
-    ref.read(onboardingNotifierProvider.notifier).refresh();
+    unawaited(ref.read(onboardingNotifierProvider.notifier).refresh());
   }
 
   /// Peut être appelé tardivement (requête revenue après l'expiration), donc
@@ -304,7 +306,7 @@ class AuthNotifier extends _$AuthNotifier {
       if (user != null) {
         state = AuthState.authenticated(user);
         // Resume session monitoring
-        SessionService.instance.initialize(user.id, isNewLogin: false);
+        unawaited(SessionService.instance.initialize(user.id, isNewLogin: false));
 
         // Initialise le Signal Protocol pour cet utilisateur. SANS CET APPEL,
         // `MessagingE2EEService.isInitialized` reste faux et _encryptContent
@@ -318,7 +320,7 @@ class AuthNotifier extends _$AuthNotifier {
         _marquerDerniereConnexion(user.id);
 
         // Refresh onboarding status now that user is authenticated
-        ref.read(onboardingNotifierProvider.notifier).refresh();
+        unawaited(ref.read(onboardingNotifierProvider.notifier).refresh());
       } else {
         state = const AuthState.unauthenticated();
       }
@@ -344,11 +346,11 @@ class AuthNotifier extends _$AuthNotifier {
 
     result.fold((failure) => state = AuthState.error(failure.message), (user) {
       state = AuthState.authenticated(user);
-      SessionService.instance.initialize(user.id, isNewLogin: true);
+      unawaited(SessionService.instance.initialize(user.id, isNewLogin: true));
       _initializeE2EE(user.id);
       _marquerDerniereConnexion(user.id);
       // Refresh onboarding status now that user is authenticated
-      ref.read(onboardingNotifierProvider.notifier).refresh();
+      unawaited(ref.read(onboardingNotifierProvider.notifier).refresh());
     });
   }
 
@@ -371,13 +373,13 @@ class AuthNotifier extends _$AuthNotifier {
           dev.log('AuthNotifier.signInWithGoogle: SUCCES - user.id=${user.id}, email=${user.email}', name: _tag);
           state = AuthState.authenticated(user);
           dev.log('AuthNotifier.signInWithGoogle: state = authenticated', name: _tag);
-          SessionService.instance.initialize(user.id, isNewLogin: true);
+          unawaited(SessionService.instance.initialize(user.id, isNewLogin: true));
           _initializeE2EE(user.id);
           dev.log('AuthNotifier.signInWithGoogle: SessionService initialise', name: _tag);
           _marquerDerniereConnexion(user.id);
           dev.log('AuthNotifier.signInWithGoogle: lastLogin mis a jour', name: _tag);
           // Refresh onboarding status now that user is authenticated
-          ref.read(onboardingNotifierProvider.notifier).refresh();
+          unawaited(ref.read(onboardingNotifierProvider.notifier).refresh());
           dev.log('=== AuthNotifier.signInWithGoogle: FIN SUCCES ===', name: _tag);
         },
       );
@@ -403,10 +405,10 @@ class AuthNotifier extends _$AuthNotifier {
         (user) {
           dev.log('AuthNotifier.signInWithApple: SUCCES - user.id=${user.id}', name: _tag);
           state = AuthState.authenticated(user);
-          SessionService.instance.initialize(user.id, isNewLogin: true);
+          unawaited(SessionService.instance.initialize(user.id, isNewLogin: true));
           _initializeE2EE(user.id);
           _marquerDerniereConnexion(user.id);
-          ref.read(onboardingNotifierProvider.notifier).refresh();
+          unawaited(ref.read(onboardingNotifierProvider.notifier).refresh());
           dev.log('=== AuthNotifier.signInWithApple: FIN SUCCES ===', name: _tag);
         },
       );
@@ -425,7 +427,7 @@ class AuthNotifier extends _$AuthNotifier {
 
     result.fold((failure) => state = AuthState.error(failure.message), (user) {
       state = AuthState.authenticated(user);
-      SessionService.instance.initialize(user.id, isNewLogin: true);
+      unawaited(SessionService.instance.initialize(user.id, isNewLogin: true));
       _initializeE2EE(user.id);
     });
   }
