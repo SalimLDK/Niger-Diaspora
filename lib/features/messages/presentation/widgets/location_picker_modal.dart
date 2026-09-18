@@ -67,19 +67,19 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
       _selectedLocation = initial;
       _isLoading = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _getAddressFromLatLng(initial);
+        if (mounted) unawaited(_getAddressFromLatLng(initial));
       });
     } else {
-      _getCurrentLocation();
+      unawaited(_getCurrentLocation());
     }
     _searchFocusNode.addListener(() {
       if (!_searchFocusNode.hasFocus && _searchResults.isEmpty) {
         setState(() => _showSearchResults = false);
       }
     });
-    LocationPinGenerator.getPin().then((icon) {
+    unawaited(LocationPinGenerator.getPin().then((icon) {
       if (mounted) setState(() => _pinIcon = icon);
-    });
+    }));
   }
 
   @override
@@ -108,7 +108,7 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
     setState(() => _isSearching = true);
 
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      _searchLocation(query);
+      unawaited(_searchLocation(query));
     });
   }
 
@@ -141,7 +141,7 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
 
     _searchFocusNode.unfocus();
 
-    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 16));
+    unawaited(_mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 16)));
   }
 
   /// Centre la carte sur la personne, en demandant l'autorisation si besoin.
@@ -221,9 +221,9 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
 
   void _onMapTap(LatLng latLng) {
     setState(() => _selectedLocation = latLng);
-    _getAddressFromLatLng(latLng);
+    unawaited(_getAddressFromLatLng(latLng));
     // Animate camera to selected position
-    _mapController?.animateCamera(CameraUpdate.newLatLng(latLng));
+    unawaited(_mapController?.animateCamera(CameraUpdate.newLatLng(latLng)));
   }
 
   Future<void> _sendCurrentLocation() async {
@@ -537,7 +537,7 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
                                 _errorMessage = null;
                                 _isLoading = true;
                               });
-                              _getCurrentLocation();
+                              unawaited(_getCurrentLocation());
                             },
                             child: Text(l10n.retry),
                           ),
