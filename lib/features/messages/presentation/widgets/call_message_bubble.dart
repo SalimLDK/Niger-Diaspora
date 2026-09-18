@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -326,7 +328,7 @@ class CallMessageBubble extends StatelessWidget {
     final offset = renderBox.localToGlobal(Offset.zero);
     final size = renderBox.size;
 
-    showMenu<String>(
+    unawaited(showMenu<String>(
       context: context,
       position: RelativeRect.fromLTRB(
         offset.dx,
@@ -397,7 +399,7 @@ class CallMessageBubble extends StatelessWidget {
           onDelete?.call();
           break;
       }
-    });
+    }));
   }
 
   /// Show call info dialog
@@ -413,7 +415,7 @@ class CallMessageBubble extends StatelessWidget {
         message.callDuration != null &&
         message.callDuration! > 0;
 
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder:
           (ctx) => AlertDialog(
@@ -469,7 +471,7 @@ class CallMessageBubble extends StatelessWidget {
               ),
             ],
           ),
-    );
+    ));
   }
 
   Widget _buildInfoRow(String label, String value) {

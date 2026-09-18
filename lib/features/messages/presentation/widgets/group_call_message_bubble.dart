@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -326,7 +328,7 @@ class GroupCallMessageBubble extends StatelessWidget {
     final offset = renderBox.localToGlobal(Offset.zero);
     final size = renderBox.size;
 
-    showMenu<String>(
+    unawaited(showMenu<String>(
       context: context,
       position: RelativeRect.fromLTRB(
         offset.dx,
@@ -413,7 +415,7 @@ class GroupCallMessageBubble extends StatelessWidget {
           onDelete?.call();
           break;
       }
-    });
+    }));
   }
 
   /// Show participants info dialog
@@ -423,7 +425,7 @@ class GroupCallMessageBubble extends StatelessWidget {
     bool isVideoCall,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder:
           (ctx) => AlertDialog(
@@ -489,7 +491,7 @@ class GroupCallMessageBubble extends StatelessWidget {
               ),
             ],
           ),
-    );
+    ));
   }
 
   String _getStatusText(AppLocalizations l10n) {
@@ -548,7 +550,8 @@ class _PulsingDotState extends State<_PulsingDot>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
+    );
+    unawaited(_controller.repeat(reverse: true));
 
     _animation = Tween<double>(
       begin: 0.6,

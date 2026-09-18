@@ -77,7 +77,7 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
     _setupListeners();
     _totalDuration = Duration(seconds: widget.message.audioDuration ?? 0);
     _setupAnimations();
-    _loadDownloadState();
+    unawaited(_loadDownloadState());
   }
 
   /// Reflète l'état « déjà téléchargé » au montage (coche verte au lieu de la
@@ -123,9 +123,9 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
     // Store the listener reference for cleanup in dispose
     _pulseStatusListener = (status) {
       if (status == AnimationStatus.completed) {
-        _pulseController.reverse();
+        unawaited(_pulseController.reverse());
       } else if (status == AnimationStatus.dismissed && _isPlaying) {
-        _pulseController.forward();
+        unawaited(_pulseController.forward());
       }
     };
     _pulseController.addStatusListener(_pulseStatusListener);
@@ -162,7 +162,7 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
 
       // Control pulse animation
       if (_isPlaying) {
-        _pulseController.forward();
+        unawaited(_pulseController.forward());
       } else {
         _pulseController.stop();
         _pulseController.reset();
@@ -183,7 +183,7 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
         });
         // Persiste l'état « écouté » à la première lecture d'une note reçue.
         if (justPlayed && !widget.isMe) {
-          PreferencesService.instance.markVoiceNotePlayed(widget.message.id);
+          unawaited(PreferencesService.instance.markVoiceNotePlayed(widget.message.id));
         }
       }
     });
@@ -191,8 +191,8 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
 
   @override
   void dispose() {
-    _playerStateSubscription.cancel();
-    _positionSubscription.cancel();
+    unawaited(_playerStateSubscription.cancel());
+    unawaited(_positionSubscription.cancel());
     // Remove status listener before disposing to prevent memory leaks
     _pulseController.removeStatusListener(_pulseStatusListener);
     _pulseController.dispose();
@@ -219,25 +219,25 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
   }
 
   void _cyclePlaybackSpeed() {
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     final currentIndex = _speedOptions.indexOf(_playbackSpeed);
     final nextIndex = (currentIndex + 1) % _speedOptions.length;
     setState(() {
       _playbackSpeed = _speedOptions[nextIndex];
     });
-    _playbackService.setSpeed(_playbackSpeed);
+    unawaited(_playbackService.setSpeed(_playbackSpeed));
   }
 
   void _onWaveformTap(TapDownDetails details, double width) {
     if (_totalDuration.inMilliseconds == 0) return;
 
-    HapticFeedback.selectionClick();
+    unawaited(HapticFeedback.selectionClick());
     final tapPosition = details.localPosition.dx;
     final progress = tapPosition / width;
     final seekPosition = Duration(
       milliseconds: (_totalDuration.inMilliseconds * progress).round(),
     );
-    _playbackService.seek(seekPosition);
+    unawaited(_playbackService.seek(seekPosition));
   }
 
   String _formatDuration(Duration duration) {
