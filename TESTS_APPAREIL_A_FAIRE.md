@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1400 cases à cocher, 642 cochées** — 275 entrées sur 324 ont encore des cases ouvertes.
+**1409 cases à cocher, 642 cochées** — 276 entrées sur 325 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -184,7 +184,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (87)
+**P2 — fonction secondaire ou cas limite** (88)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -229,6 +229,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 9 · [⬜ Un refus du serveur ne ment plus : interrupteurs, snackbars, connexion admin (2026-09-18)](#-un-refus-du-serveur-ne-ment-plus--interrupteurs-snackbars-connexion-admin-2026-09-18) · *Accueil, profil et réglages*
 - 6 · [⬜ L'écran des appareils ne promet plus ce qu'il ne fait pas (2026-09-16)](#-lécran-des-appareils-ne-promet-plus-ce-quil-ne-fait-pas-2026-09-16) · *Accueil, profil et réglages*
 - 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
@@ -342,7 +343,7 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 47 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 48 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 53 à faire, 34 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 62 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
@@ -15876,6 +15877,82 @@ attendre le sondage.
 # 11. Accueil, profil et réglages
 
 Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature flags d'écrans.
+
+---
+
+## ⬜ Un refus du serveur ne ment plus : interrupteurs, snackbars, connexion admin (2026-09-18)
+
+**Priorité P2** · importance 3/5 — Des écritures que l'utilisateur déclenche
+d'un geste échouaient sans le dire, et plusieurs laissaient l'écran affirmer
+le contraire de ce qui s'était passé. Relevé à la relecture de l'audit
+`unawaited`/`discarded_futures`, jamais reproduit sur appareil :
+
+- **Visibilité du statut en ligne** : le `catch` du provider ne pouvait jamais
+  se déclencher — `OnlineStatusService.updateOnlineStatusVisibility` avalait
+  lui-même toute erreur, et sortait sur un `return` si la présence n'était pas
+  encore montée ou la session Supabase absente. L'interrupteur affichait la
+  nouvelle valeur sans que le serveur l'ait reçue. Et le jour où l'erreur
+  aurait remonté, elle posait un `AsyncError` sans valeur : Réglages lit
+  `?? true` (l'interrupteur retombait sur « visible », le mauvais côté pour un
+  réglage de confidentialité) et Profil rend alors un interrupteur
+  **désactivé** « Erreur de chargement ».
+- **« Profil visible », « Ma position », interrupteur maître des
+  notifications** : `ProfilePreferences.set` et `setMasterEnabled` n'avaient
+  aucun `try/catch`. Pour le maître, l'étage local restait écrit quand le
+  serveur refusait : interrupteur sur « désactivé », notifications masquées
+  au premier plan, **back-end qui continue d'envoyer**. Pour « Ma position »,
+  la capture GPS partait sur une préférence que le serveur n'avait pas reçue.
+- **Podcasts et notifications** : les notifiers avalaient tout, et « Mes
+  podcasts » affichait « supprimé » / « publié » **avant même la fin de
+  l'appel**, sans regarder son résultat.
+- **Connexion admin** : `signOut` lancé en `unawaited`, son `Left` jeté — un
+  compte sans droits pouvait rester connecté sur le panneau derrière un
+  « Accès refusé ».
+
+Ces écritures rendent désormais `Future<bool>` (`false` = rien n'a été
+enregistré, l'état visible est déjà revenu à la vérité) et l'écran le dit par
+`reportIfFailed` : snackbar « Une erreur est survenue ». Couvert par des bancs
+Dart, dont chacun a été vérifié en remettant l'ancien comportement (il
+échoue). **Ce qu'un banc ne voit pas** : un vrai refus serveur, et le rendu du
+snackbar — d'où les cases ci-dessous.
+
+Fichiers :
+[action_feedback.dart](lib/core/utils/action_feedback.dart),
+[online_status_service.dart](lib/core/services/online_status_service.dart),
+[online_status_provider.dart](lib/features/profile/presentation/providers/online_status_provider.dart),
+[profile_preferences_provider.dart](lib/features/profile/presentation/providers/profile_preferences_provider.dart),
+[notification_preferences_provider.dart](lib/features/settings/presentation/providers/notification_preferences_provider.dart),
+[admin_login_screen.dart](lib/features/admin/presentation/screens/admin_login_screen.dart).
+
+- [ ] **Réseau coupé, Réglages → « Statut en ligne »** : basculer
+  l'interrupteur. Il revient à sa position d'origine (pas sur « visible »
+  d'office) et le snackbar d'échec s'affiche. Sur l'écran **Profil**, le même
+  interrupteur n'est plus verrouillé sur « Erreur de chargement ».
+- [ ] **Idem « Profil visible » et « Ma position »** : l'interrupteur revient,
+  snackbar. « Ma position » : réseau coupé puis rétabli, le point n'apparaît
+  pas sur la carte d'un second compte.
+- [ ] **Interrupteur maître des notifications, réseau coupé** : il revient sur
+  « activé ». Réseau rétabli, basculer : `users.notifications_enabled` suit
+  (`supabase db query --linked "select notifications_enabled from users where
+  id='…'"`), et un push de test n'arrive plus.
+- [ ] **Mes podcasts, réseau coupé** : « Mettre en pause » puis « Supprimer » →
+  snackbar d'échec, jamais « publié » / « supprimé ». Réseau rétabli : le
+  message de succès n'apparaît qu'**après** l'opération, plus au tap.
+- [ ] **Fiche d'une notification, réseau coupé** : « Supprimer » → snackbar
+  d'échec et la fiche **reste ouverte** (elle se refermait avant le résultat).
+- [ ] **Épisode de podcast, réseau coupé** : toucher le cœur → il revient vide,
+  avec le snackbar.
+- [ ] **Connexion admin (`AdminApp`) avec un compte sans droits** : « Accès
+  refusé. Compte administrateur requis. » ; réseau coupé au moment du refus :
+  le message ajoute « La session n'a pas pu être fermée : réessayez ».
+- [ ] **Thème sombre et grande police** sur le snackbar d'échec (fond
+  `AppColors.error`, texte blanc par défaut).
+- [ ] **⚠️ À vérifier — non corrigé, repéré à la lecture** : masquer puis
+  **ré-afficher** son statut en ligne. `_setupPresenceForUser` sort sur
+  « Already tracking user » quand `_currentUserId` vaut déjà l'uid, ce qu'il
+  vaut après un masquage : la présence ne serait rétablie qu'au prochain
+  retour au premier plan. Regarder, depuis un second téléphone, si le compte
+  repasse « en ligne » sans relancer l'app.
 
 ---
 
