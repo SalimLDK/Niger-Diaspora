@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,7 +60,7 @@ class FriendListItem extends ConsumerWidget {
                         .createIndividual(friend.id);
 
                     if (conversation != null && context.mounted) {
-                      context.push(
+                      unawaited(context.push(
                         '/messages/${conversation.id}',
                         extra: {
                           'name': friend.displayName,
@@ -66,7 +68,7 @@ class FriendListItem extends ConsumerWidget {
                           'isGroup': false,
                           'otherUserId': friend.id,
                         },
-                      );
+                      ));
                     }
                   } else if (value == 'remove') {
                     _showRemoveFriendDialog(context, ref);
@@ -169,7 +171,7 @@ class FriendListItem extends ConsumerWidget {
 
   void _showRemoveFriendDialog(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
@@ -213,6 +215,6 @@ class FriendListItem extends ConsumerWidget {
               ),
             ],
           ),
-    );
+    ));
   }
 }

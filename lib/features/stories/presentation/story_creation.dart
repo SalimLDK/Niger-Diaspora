@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,7 +89,7 @@ Future<StoryAudience?> showStoryAudienceSheet(
             trailing: Icon(Icons.chevron_right, color: tokens.mutedText),
             onTap: () {
               Navigator.pop(sheetContext);
-              context.push('/feed/stories/privacy');
+              unawaited(context.push('/feed/stories/privacy'));
             },
           ),
           const SizedBox(height: 8),

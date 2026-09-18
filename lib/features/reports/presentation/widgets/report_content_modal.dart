@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -169,7 +171,7 @@ class _ReportContentModalState extends ConsumerState<ReportContentModal> {
   @override
   void initState() {
     super.initState();
-    _checkIfAlreadyReported();
+    unawaited(_checkIfAlreadyReported());
   }
 
   @override

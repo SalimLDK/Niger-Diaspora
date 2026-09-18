@@ -1,4 +1,6 @@
-﻿import 'package:cached_network_image/cached_network_image.dart';
+﻿import 'dart:async';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -147,12 +149,12 @@ class StickerPacksScreen extends ConsumerWidget {
   }
 
   void _navigateToCreatePack(BuildContext context) {
-    Navigator.push(
+    unawaited(Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const CreateStickerPackScreen(),
       ),
-    );
+    ));
   }
 
   void _showPackDetails(
@@ -160,7 +162,7 @@ class StickerPacksScreen extends ConsumerWidget {
     WidgetRef ref,
     StickerPackEntity pack,
   ) {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: context.surfaceColor,
@@ -168,7 +170,7 @@ class StickerPacksScreen extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) => _PackDetailsSheet(pack: pack),
-    );
+    ));
   }
 }
 
@@ -459,9 +461,9 @@ class _PackDetailsSheet extends ConsumerWidget {
   void _togglePack(WidgetRef ref, bool hasPack) {
     final actions = ref.read(stickerActionsProvider.notifier);
     if (hasPack) {
-      actions.removePackFromUser(pack.id);
+      unawaited(actions.removePackFromUser(pack.id));
     } else {
-      actions.addPackToUser(pack.id);
+      unawaited(actions.addPackToUser(pack.id));
     }
   }
 }

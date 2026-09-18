@@ -59,7 +59,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      ref.read(searchNotifierProvider.notifier).search(query);
+      unawaited(ref.read(searchNotifierProvider.notifier).search(query));
     });
   }
 
@@ -68,7 +68,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void _onSearchSubmitted(String query) {
     if (query.trim().isEmpty) return;
     _debounce?.cancel();
-    ref.read(searchNotifierProvider.notifier).commitSearch(query);
+    unawaited(ref.read(searchNotifierProvider.notifier).commitSearch(query));
   }
 
   void _tapRecentSearch(String query) {
@@ -438,7 +438,7 @@ class _MemberItem extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          context.push('/profile/${profile.id}', extra: profile.toEntity());
+          unawaited(context.push('/profile/${profile.id}', extra: profile.toEntity()));
         },
         child: Row(
           children: [
@@ -673,7 +673,7 @@ class _FriendItem extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          context.push('/profile/${friend.id}');
+          unawaited(context.push('/profile/${friend.id}'));
         },
         child: Row(
           children: [
@@ -769,7 +769,7 @@ class _ConversationItem extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          context.push(
+          unawaited(context.push(
             '/messages/${conversation.id}',
             extra: {
               'name': displayName,
@@ -777,7 +777,7 @@ class _ConversationItem extends StatelessWidget {
               'isGroup': isGroup,
               'groupId': conversation.groupId,
             },
-          );
+          ));
         },
         child: Row(
           children: [
