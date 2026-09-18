@@ -17,7 +17,6 @@ import '../../../../core/constants/profile_options.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../domain/entities/profile_entity.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/handle_field.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -477,8 +476,33 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     final authState = ref.read(authNotifierProvider);
     await authState.maybeWhen(
       authenticated: (user) async {
-        final profile = ProfileEntity(
-          id: user.id,
+        // Base : le profil tel que le serveur le tient. `updateProfile` écrit
+        // TOUTES les colonnes de l'entité (upsert, aucune fusion en chemin) :
+        // une entité construite de zéro remettait à leur défaut tout ce que ce
+        // formulaire ne porte pas — `notifications_enabled`, `share_location`
+        // et `show_online_status` repartaient à `true`, `skills` à `[]`,
+        // `current_region` à `null`. Modifier sa bio réactivait donc, en
+        // silence, la position partagée et le statut en ligne qu'on avait
+        // coupés.
+        final base = await ref
+            .read(profileNotifierProvider(user.id).notifier)
+            .currentProfile();
+        if (base == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  AppLocalizations.of(context)!.setupErrorProfileMissing,
+                ),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          return;
+        }
+
+        final profile = base.copyWith(
           email: user.email,
           displayName: _displayNameController.text.trim(),
           handle: _handle,

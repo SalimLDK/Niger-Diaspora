@@ -114,6 +114,29 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
     unawaited(_joinOfficialCountryGroup(profile));
   }
 
+  /// Profil courant, quitte à aller le chercher. `null` s'il est introuvable.
+  ///
+  /// C'est la **base** de toute écriture partielle : `updateProfile` écrit
+  /// TOUTES les colonnes de l'entité (upsert), donc l'entité à écrire se
+  /// construit toujours par `copyWith` sur ce profil, jamais de zéro — un champ
+  /// que l'appelant ne porte pas repartirait à son défaut (`true` pour
+  /// `shareLocation`, `notificationsEnabled`, `showOnlineStatus` ; `[]` pour
+  /// `skills`).
+  ///
+  /// Ce notifier est **autoDispose** et son chargement asynchrone : il ne pose
+  /// `state` de façon synchrone que s'il trouve un cache. Sans cache — après un
+  /// redémarrage, ou si le profil n'a pas encore été consulté — un
+  /// `read(...).valueOrNull` rend `null` juste après le `read`, et l'appelant
+  /// sortait sur son garde sans rien dire, ou sautait un étage d'écriture
+  /// (constaté sur appareil le 2026-08-06). Un StateNotifierProvider
+  /// n'expose pas de `.future`, d'où le repli explicite sur le dépôt.
+  Future<ProfileEntity?> currentProfile() async {
+    final cached = state.valueOrNull;
+    if (cached != null) return cached;
+    final result = await _ref.read(profileRepositoryProvider).getProfile(userId);
+    return result.fold((_) => null, (profile) => profile);
+  }
+
   /// Écriture **optimiste** : l'état porte la valeur demandée dès l'appel, et
   /// n'est corrigé qu'en cas de refus du serveur.
   ///

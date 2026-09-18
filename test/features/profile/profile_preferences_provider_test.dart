@@ -36,13 +36,16 @@ class _FauxDepot implements ProfileRepository {
   /// Le profil est introuvable, ni en cache ni sur le serveur.
   bool absent = false;
 
+  /// Aucun cache local, mais le serveur, lui, a le profil.
+  bool sansCache = false;
+
   @override
   Future<Either<Failure, ProfileEntity>> getProfile(String userId) async =>
       absent ? const Left(ServerFailure('introuvable')) : Right(profil);
 
   @override
   Either<Failure, ProfileEntity?> getCachedProfile(String userId) =>
-      absent ? const Right(null) : Right(profil);
+      (absent || sansCache) ? const Right(null) : Right(profil);
 
   @override
   Future<Either<Failure, ProfileEntity>> updateProfile(
@@ -174,6 +177,42 @@ void main() {
 
     expect(ok, isFalse);
     expect(depot.ecrit, isNull, reason: 'rien à écrire sans profil de départ');
+  });
+
+  // `updateProfile` écrit TOUTES les colonnes : toute écriture partielle part
+  // du profil courant (`copyWith`). Or le notifier est autoDispose et son
+  // chargement asynchrone : sans cache, `state` est encore en chargement juste
+  // après sa création, et un `valueOrNull` y rend `null` — l'appelant sortait
+  // alors sur son garde sans rien dire, ou sautait un étage d'écriture.
+  test('currentProfile : sans cache, va chercher le profil au lieu de rendre '
+      'null', () async {
+    final depot = _FauxDepot(profilDeBase(isVisible: false))..sansCache = true;
+    final c = conteneur(depot);
+
+    // Aucun `await` avant : le chargement du notifier n'a pas rendu la main.
+    expect(
+      c.read(profileNotifierProvider(userId)).valueOrNull,
+      isNull,
+      reason: 'le scénario suppose un état encore en chargement',
+    );
+
+    final profil = await c
+        .read(profileNotifierProvider(userId).notifier)
+        .currentProfile();
+
+    expect(profil, isNotNull, reason: 'le repli sur le dépôt a disparu');
+    expect(profil!.isVisible, isFalse);
+  });
+
+  test('currentProfile : introuvable partout, rend null', () async {
+    final depot = _FauxDepot(profilDeBase())..absent = true;
+    final c = conteneur(depot);
+
+    final profil = await c
+        .read(profileNotifierProvider(userId).notifier)
+        .currentProfile();
+
+    expect(profil, isNull);
   });
 
   test('la valeur lue vient du profil, sans écoute à poser', () async {

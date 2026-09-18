@@ -83,7 +83,9 @@ class ProfilePreferences {
       final userId = (await _ref.read(currentUserAsyncProvider.future))?.id;
       if (userId == null) return false;
       final notifier = _ref.read(profileNotifierProvider(userId).notifier);
-      final profile = await _profil(userId);
+      // Sans profil de départ on ne peut rien écrire : la bascule sortait sur
+      // ce garde SANS RIEN DIRE quand le profil n'était pas encore chargé.
+      final profile = await notifier.currentProfile();
       if (profile == null) return false;
       await notifier.updateProfile(pref.write(profile, value));
 
@@ -118,25 +120,5 @@ class ProfilePreferences {
       }
     }
     return true;
-  }
-
-  /// Profil courant, quitte à aller le chercher.
-  ///
-  /// `profileNotifierProvider` est un StateNotifierProvider **autoDispose** :
-  /// son chargement est asynchrone et il ne pose `state` de façon synchrone
-  /// que s'il trouve un cache. Sans cache — après un redémarrage, ou si le
-  /// profil n'a pas encore été consulté — `valueOrNull` rend `null` juste
-  /// après le `read`, et la bascule sortait sur son garde SANS RIEN DIRE :
-  /// l'interrupteur revenait à sa position sans explication.
-  ///
-  /// Même défaut que celui qui empêchait `setMasterEnabled` d'écrire l'étage
-  /// serveur des notifications (constaté sur appareil le 2026-08-06). Un
-  /// StateNotifierProvider n'expose pas de `.future`, d'où le repli explicite
-  /// sur le dépôt.
-  Future<ProfileEntity?> _profil(String userId) async {
-    final cache = _ref.read(profileNotifierProvider(userId)).valueOrNull;
-    if (cache != null) return cache;
-    final res = await _ref.read(profileRepositoryProvider).getProfile(userId);
-    return res.fold((_) => null, (p) => p);
   }
 }
