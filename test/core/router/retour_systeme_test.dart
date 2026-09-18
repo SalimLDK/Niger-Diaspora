@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:diaspo_niger/core/router/retour_systeme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -78,7 +80,7 @@ void main() {
 
     routeur.go('/groups');
     await tester.pumpAndSettle();
-    routeur.push('/services');
+    unawaited(routeur.push('/services'));
     await tester.pumpAndSettle();
     expect(find.text('services'), findsOneWidget);
 

@@ -76,9 +76,9 @@ void main() {
         currentUserProvider.overrideWith((ref) => utilisateurs.stream),
       ],
     );
-    addTearDown(() {
+    addTearDown(() async {
       container.dispose();
-      utilisateurs.close();
+      await utilisateurs.close();
     });
 
     // Un écouteur ouvert, comme l'écran des groupes : sans lui le fournisseur
