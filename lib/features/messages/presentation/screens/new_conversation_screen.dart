@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -91,7 +93,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
       return;
     }
 
-    _maybeLoadNearby();
+    unawaited(_maybeLoadNearby());
   }
 
   /// Ouvre directement la discussion avec le destinataire reçu, et **remplace**
@@ -111,7 +113,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
 
       if (conversation == null) {
         setState(() => _isOpeningDirect = false);
-        _maybeLoadNearby();
+        unawaited(_maybeLoadNearby());
         return;
       }
 
@@ -127,7 +129,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isOpeningDirect = false);
-      _maybeLoadNearby();
+      unawaited(_maybeLoadNearby());
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(messageErreurUsager(e)),
@@ -184,10 +186,10 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
       );
       return;
     }
-    context.push(
+    unawaited(context.push(
       '/messages/${conversation.id}',
       extra: {'name': l10n.messagesMyNotes, 'isGroup': false, 'isSelfNotes': true},
-    );
+    ));
   }
 
   /// Obtenir les initiales du nom
@@ -294,7 +296,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
             .createIndividual(_selectedUsers.first.id);
 
         if (conversation != null && mounted) {
-          context.push(
+          unawaited(context.push(
             '/messages/${conversation.id}',
             extra: {
               'name': _selectedUsers.first.displayName,
@@ -302,7 +304,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
               'otherUserId': _selectedUsers.first.id,
               'isGroup': false,
             },
-          );
+          ));
         }
       } else {
         // Conversation de groupe
@@ -320,14 +322,14 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
             );
 
         if (conversation != null && mounted) {
-          context.push(
+          unawaited(context.push(
             '/messages/${conversation.id}',
             extra: {
               'name': _groupNameController.text.trim(),
               'imageUrl': null,
               'isGroup': true,
             },
-          );
+          ));
         }
       }
     } catch (e) {
@@ -348,7 +350,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
 
   void _showGroupNameDialog() {
     final l10n = AppLocalizations.of(context)!;
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
@@ -367,14 +369,14 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
                 onPressed: () {
                   Navigator.pop(context);
                   if (_groupNameController.text.trim().isNotEmpty) {
-                    _startConversation();
+                    unawaited(_startConversation());
                   }
                 },
                 child: Text(l10n.create),
               ),
             ],
           ),
-    );
+    ));
   }
 
   @override
@@ -795,7 +797,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
         .read(createConversationProvider.notifier)
         .createIndividual(p.id);
     if (conversation != null && mounted) {
-      context.push(
+      unawaited(context.push(
         '/messages/${conversation.id}',
         extra: {
           'name': p.displayName,
@@ -803,7 +805,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
           'otherUserId': p.id,
           'isGroup': false,
         },
-      );
+      ));
     }
   }
 
