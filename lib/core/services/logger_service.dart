@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
@@ -64,11 +66,10 @@ class LoggerService {
     StackTrace? stackTrace,
   ) {
     try {
-      FirebaseCrashlytics.instance.recordError(
-        error ?? message,
-        stackTrace,
-        reason: message,
-        fatal: false,
+      unawaited(
+        FirebaseCrashlytics.instance
+            .recordError(error ?? message, stackTrace, reason: message, fatal: false)
+            .catchError((_) {}),
       );
     } catch (_) {
       // Firebase pas encore prêt : on préfère perdre la remontée que l'app.

@@ -115,7 +115,7 @@ class GsmCallService {
   /// Libère les ressources
   void dispose() {
     stopListening();
-    _gsmCallController.close();
+    unawaited(_gsmCallController.close());
   }
 }
 

@@ -104,11 +104,11 @@ class OnlineStatusService {
     // debugPrint('🟢 OnlineStatusService: Initializing...');
 
     // Listen to auth state changes
-    _authStateSubscription = _auth.authStateChanges().listen((user) {
+    _authStateSubscription = _auth.authStateChanges().listen((user) async {
       if (user != null) {
-        _setupPresenceForUser(user.uid);
+        await _setupPresenceForUser(user.uid);
       } else {
-        _teardownPresence();
+        await _teardownPresence();
       }
     });
 
@@ -201,7 +201,7 @@ class OnlineStatusService {
   }
 
   /// Handle app lifecycle state changes
-  void _handleLifecycleStateChange(AppLifecycleState state) {
+  void _handleLifecycleStateChange(AppLifecycleState state) async {
     if (_currentUserId == null) return;
 
     // Validate authentication and user ID match before any lifecycle operations
@@ -219,13 +219,13 @@ class OnlineStatusService {
       case AppLifecycleState.resumed:
       case AppLifecycleState.inactive:
         // App is in foreground or transitioning
-        _setOnline(_currentUserId!);
+        await _setOnline(_currentUserId!);
         break;
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
       case AppLifecycleState.hidden:
         // App is in background or closing
-        _setOffline(_currentUserId!);
+        await _setOffline(_currentUserId!);
         break;
     }
   }

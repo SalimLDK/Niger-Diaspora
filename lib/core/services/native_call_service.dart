@@ -347,13 +347,13 @@ class NativeCallService {
         nativeEvent = NativeCallEvent.ended;
         _activeCallUuid = null;
         _activeCallId = null;
-        WakelockPlus.disable();
+        unawaited(WakelockPlus.disable());
         break;
       case Event.actionCallTimeout:
         nativeEvent = NativeCallEvent.timeout;
         _activeCallUuid = null;
         _activeCallId = null;
-        WakelockPlus.disable();
+        unawaited(WakelockPlus.disable());
         break;
       case Event.actionCallCallback:
         nativeEvent = NativeCallEvent.callback;

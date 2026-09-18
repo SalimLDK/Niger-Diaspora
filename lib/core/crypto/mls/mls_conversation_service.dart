@@ -1,3 +1,4 @@
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -141,7 +142,7 @@ class MlsConversationService {
     _jointures[conversationId] = futur;
     return futur.whenComplete(() {
       if (identical(_jointures[conversationId], futur)) {
-        _jointures.remove(conversationId);
+        unawaited(_jointures.remove(conversationId));
       }
     });
   }

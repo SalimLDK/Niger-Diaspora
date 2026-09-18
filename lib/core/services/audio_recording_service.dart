@@ -245,8 +245,8 @@ class AudioRecordingService {
   /// Dispose resources
   void dispose() {
     _durationTimer?.cancel();
-    _durationController.close();
-    _amplitudeController.close();
-    _recorder.dispose();
+    unawaited(_durationController.close());
+    unawaited(_amplitudeController.close());
+    unawaited(_recorder.dispose());
   }
 }

@@ -197,7 +197,7 @@ class SupabaseAuthBridge {
     _renewTimer = Timer(delai, () {
       if (hasValidSession) return;
       final user = firebase_auth.FirebaseAuth.instance.currentUser;
-      if (user != null) syncWithFirebase(user);
+      if (user != null) unawaited(syncWithFirebase(user));
     });
   }
 
@@ -230,7 +230,7 @@ class SupabaseAuthBridge {
     _reprise.autoriserUneTentative();
     if (hasValidSession) return;
     final user = firebase_auth.FirebaseAuth.instance.currentUser;
-    if (user != null) syncWithFirebase(user);
+    if (user != null) unawaited(syncWithFirebase(user));
   }
 
   void _scheduleRenewal(int expiresInSeconds) {
@@ -238,7 +238,7 @@ class SupabaseAuthBridge {
     final delay = Duration(seconds: max(expiresInSeconds - 300, 60));
     _renewTimer = Timer(delay, () {
       final user = firebase_auth.FirebaseAuth.instance.currentUser;
-      if (user != null) syncWithFirebase(user);
+      if (user != null) unawaited(syncWithFirebase(user));
     });
   }
 

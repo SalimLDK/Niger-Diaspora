@@ -268,7 +268,7 @@ class OfflineQueueService {
 
   /// Liberer les ressources
   void dispose() {
-    _failureController.close();
+    unawaited(_failureController.close());
   }
 }
 

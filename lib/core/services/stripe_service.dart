@@ -211,7 +211,7 @@ class StripeService {
       // Set up timeout
       timeoutTimer = Timer(const Duration(seconds: 30), () {
         if (!completer.isCompleted) {
-          subscription?.cancel();
+          unawaited(subscription?.cancel());
           completer.completeError(Exception(
             'Payment intent creation timeout. Verifiez que les Cloud Functions sont deployees.',
           ));
@@ -227,7 +227,7 @@ class StripeService {
             // Only complete if not already completed
             if (!completer.isCompleted) {
               timeoutTimer?.cancel();
-              subscription?.cancel();
+              unawaited(subscription?.cancel());
 
               if (data['status'] == 'error') {
                 completer.completeError(
@@ -259,7 +259,7 @@ class StripeService {
         onError: (error) {
           if (!completer.isCompleted) {
             timeoutTimer?.cancel();
-            subscription?.cancel();
+            unawaited(subscription?.cancel());
             completer.completeError(error);
           }
         },

@@ -152,6 +152,6 @@ class AudioPlaybackService {
 
   /// Dispose resources
   void dispose() {
-    _player.dispose();
+    unawaited(_player.dispose());
   }
 }

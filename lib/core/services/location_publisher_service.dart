@@ -167,7 +167,7 @@ class LocationPublisherService {
 
   /// Coupe le flux sans oublier l'utilisateur : l'app est passée en arrière-plan.
   void _suspend() {
-    _positionSubscription?.cancel();
+    unawaited(_positionSubscription?.cancel());
     _positionSubscription = null;
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;

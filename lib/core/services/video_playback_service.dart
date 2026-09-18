@@ -195,28 +195,28 @@ class VideoPlaybackService extends ChangeNotifier {
   /// Toggle mute state
   void toggleMute() {
     _isMuted = !_isMuted;
-    _controller?.setVolume(_isMuted ? 0.0 : 1.0);
+    unawaited(_controller?.setVolume(_isMuted ? 0.0 : 1.0));
     notifyListeners();
   }
 
   /// Set mute state
   void setMuted(bool muted) {
     _isMuted = muted;
-    _controller?.setVolume(_isMuted ? 0.0 : 1.0);
+    unawaited(_controller?.setVolume(_isMuted ? 0.0 : 1.0));
     notifyListeners();
   }
 
   /// Toggle loop state
   void toggleLoop() {
     _isLooping = !_isLooping;
-    _controller?.setLooping(_isLooping);
+    unawaited(_controller?.setLooping(_isLooping));
     notifyListeners();
   }
 
   /// Set loop state
   void setLooping(bool looping) {
     _isLooping = looping;
-    _controller?.setLooping(_isLooping);
+    unawaited(_controller?.setLooping(_isLooping));
     notifyListeners();
   }
 
@@ -224,7 +224,7 @@ class VideoPlaybackService extends ChangeNotifier {
   void setSpeed(double speed) {
     if (!speedOptions.contains(speed)) return;
     _playbackSpeed = speed;
-    _controller?.setPlaybackSpeed(speed);
+    unawaited(_controller?.setPlaybackSpeed(speed));
     notifyListeners();
   }
 
@@ -262,7 +262,7 @@ class VideoPlaybackService extends ChangeNotifier {
   @override
   void dispose() {
     _controller?.removeListener(_onVideoStateChanged);
-    _controller?.dispose();
+    unawaited(_controller?.dispose());
     super.dispose();
   }
 }

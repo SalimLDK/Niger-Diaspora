@@ -407,7 +407,7 @@ Future<void> _showQuickReplyConfirmation({
     // Cancel after a short delay (Android handles this with timeoutAfter)
     // For iOS, we cancel manually
     Future.delayed(const Duration(seconds: 3), () {
-      localNotifications.cancel(confirmationId);
+      unawaited(localNotifications.cancel(confirmationId));
     });
   } else {
     // Show failure notification with option to retry when app opens
@@ -1729,7 +1729,7 @@ class NotificationService {
     if (!Platform.isIOS) return;
     final callService = NativeCallService.instance;
     callService.onVoipTokenUpdated = (token) {
-      saveVoipTokenForUser(userId, token);
+      unawaited(saveVoipTokenForUser(userId, token));
     };
     final existing = callService.voipToken;
     if (existing != null && existing.isNotEmpty) {
@@ -3166,10 +3166,10 @@ class NotificationService {
       _directReplyCallback!(conversationId, replyText);
     } else {
       // Fallback: utiliser le service background si pas de callback
-      BackgroundReplyService.sendReply(
+      unawaited(BackgroundReplyService.sendReply(
         conversationId: conversationId,
         replyText: replyText,
-      );
+      ));
     }
   }
 
@@ -3179,7 +3179,7 @@ class NotificationService {
       _markAsReadCallback!(conversationId);
     } else {
       // Fallback: utiliser le service background
-      BackgroundReplyService.markAsRead(conversationId: conversationId);
+      unawaited(BackgroundReplyService.markAsRead(conversationId: conversationId));
     }
     // Effacer les notifications de cette conversation
     unawaited(clearConversationNotifications(conversationId).catchError((e) {

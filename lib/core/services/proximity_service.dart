@@ -139,7 +139,7 @@ class ProximityService {
   }
 
   /// Handle proximity sensor events
-  void _onProximityEvent(dynamic event) {
+  void _onProximityEvent(dynamic event) async {
     final isNear = event as bool? ?? false;
 
     if (isNear != _isNear) {
@@ -147,9 +147,9 @@ class ProximityService {
       _proximityController.add(isNear);
 
       if (isNear) {
-        _turnScreenOff();
+        await _turnScreenOff();
       } else {
-        _turnScreenOn();
+        await _turnScreenOn();
       }
 
       debugPrint('ProximityService: Proximity changed - isNear: $isNear');

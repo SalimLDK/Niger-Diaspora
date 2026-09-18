@@ -200,7 +200,9 @@ class MlsGateway {
     _rattrapages[conversationId] = futur;
     unawaited(futur.whenComplete(() {
       if (identical(_rattrapages[conversationId], futur)) {
-        _rattrapages.remove(conversationId);
+        // `.remove` rend la Future retirée (valeur de la map) : sans intérêt
+        // ici, juste écartée — d'où l'`unawaited` explicite.
+        unawaited(_rattrapages.remove(conversationId));
       }
     }).catchError((_) => <MessageEntity>[]));
     return futur;

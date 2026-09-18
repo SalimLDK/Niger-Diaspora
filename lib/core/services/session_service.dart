@@ -187,7 +187,7 @@ class SessionService {
   }
 
   void _startListening(String userId) {
-    _sessionSubscription?.cancel();
+    unawaited(_sessionSubscription?.cancel());
     _isListening = true;
 
     _sessionSubscription = FirebaseFirestore.instance
@@ -207,9 +207,9 @@ class SessionService {
                 sessionLocale: _currentSessionId,
                 multiAppareil: multiAppareilAutorise(),
               )) {
-                _handleForceLogout(
+                unawaited(_handleForceLogout(
                   motif: MotifDeconnexionForcee.connecteAilleurs,
-                );
+                ));
               }
             }
           },
@@ -322,11 +322,11 @@ class SessionService {
     )) {
       return;
     }
-    _handleForceLogout(
+    unawaited(_handleForceLogout(
       motif: banni
           ? MotifDeconnexionForcee.compteSuspendu
           : MotifDeconnexionForcee.sessionFermeeParAdmin,
-    );
+    ));
   }
 
   /// Faut-il sortir cet appareil sur décision de la console admin ?
@@ -432,7 +432,7 @@ class SessionService {
       return;
     }
 
-    showDialog(
+    unawaited(showDialog(
       context: context,
       barrierDismissible: false,
       builder:
@@ -468,11 +468,11 @@ class SessionService {
               ],
             ),
           ),
-    );
+    ));
   }
 
   void dispose() {
-    _sessionSubscription?.cancel();
+    unawaited(_sessionSubscription?.cancel());
     _sessionSubscription = null;
     // Le canal doit partir avec le reste : laissé en vie, il continuerait de
     // parler au nom d'un compte sorti, et `_surveillerDecisionsAdmin` se

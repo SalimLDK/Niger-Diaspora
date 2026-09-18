@@ -122,7 +122,7 @@ class MediaEncryptionService {
     if (onProgress != null || checkCancelled != null) {
       suivi = task.snapshotEvents.listen((event) {
         if (checkCancelled?.call() == true) {
-          task.cancel();
+          unawaited(task.cancel());
           return;
         }
         if (onProgress != null && event.totalBytes > 0) {

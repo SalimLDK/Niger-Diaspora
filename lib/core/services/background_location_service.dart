@@ -235,16 +235,16 @@ class BackgroundLocationService {
 
     if (service is AndroidServiceInstance) {
       service.on('setAsForeground').listen((event) {
-        service.setAsForegroundService();
+        unawaited(service.setAsForegroundService());
       });
 
       service.on('setAsBackground').listen((event) {
-        service.setAsBackgroundService();
+        unawaited(service.setAsBackgroundService());
       });
     }
 
     service.on('stopService').listen((event) {
-      service.stopSelf();
+      unawaited(service.stopSelf());
     });
 
     // Set foreground notification info after channel is created

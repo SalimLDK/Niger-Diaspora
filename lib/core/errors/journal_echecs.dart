@@ -22,6 +22,8 @@
 /// (`tools/invariants_donnees.py`).
 library;
 
+import 'dart:async';
+
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 
@@ -63,11 +65,15 @@ void signalerEchecSilencieux(Object? erreur, {required String contexte}) {
   if (!aSignaler('silencieux|$contexte|$type|$texte', DateTime.now())) return;
 
   try {
-    FirebaseCrashlytics.instance.recordError(
-      'echec avale ($contexte) : $type : $texte',
-      StackTrace.current,
-      fatal: false,
-      reason: 'echec_silencieux',
+    unawaited(
+      FirebaseCrashlytics.instance
+          .recordError(
+            'echec avale ($contexte) : $type : $texte',
+            StackTrace.current,
+            fatal: false,
+            reason: 'echec_silencieux',
+          )
+          .catchError((_) {}),
     );
   } catch (_) {
     // Crashlytics indisponible : on ne casse surtout pas l'appelant, dont tout
@@ -84,19 +90,23 @@ void _signaler(Object? erreur, FamilleEchec famille) {
 
   try {
     final crashlytics = FirebaseCrashlytics.instance;
-    crashlytics.setCustomKey('famille_echec', famille.name);
-    crashlytics.recordError(
-      // Le message **caviardé**, jamais l'exception d'origine : PostgREST met
-      // l'URL complète dans ses messages et Firebase y met le chemin du
-      // document — donc l'uid du compte. La console Crashlytics est privée,
-      // mais la règle du projet est de ne jamais journaliser de donnée
-      // personnelle, et un uid en est une.
-      'echec affiche (${famille.name}) : $type : $texte',
-      StackTrace.current,
-      fatal: false,
-      // Les échecs affichés ne sont pas des plantages : ils regroupés à part
-      // des exceptions non rattrapées.
-      reason: 'echec_affiche',
+    unawaited(crashlytics.setCustomKey('famille_echec', famille.name).catchError((_) {}));
+    unawaited(
+      crashlytics
+          .recordError(
+            // Le message **caviardé**, jamais l'exception d'origine : PostgREST met
+            // l'URL complète dans ses messages et Firebase y met le chemin du
+            // document — donc l'uid du compte. La console Crashlytics est privée,
+            // mais la règle du projet est de ne jamais journaliser de donnée
+            // personnelle, et un uid en est une.
+            'echec affiche (${famille.name}) : $type : $texte',
+            StackTrace.current,
+            fatal: false,
+            // Les échecs affichés ne sont pas des plantages : ils regroupés à part
+            // des exceptions non rattrapées.
+            reason: 'echec_affiche',
+          )
+          .catchError((_) {}),
     );
   } catch (_) {
     // Crashlytics non initialisé (tests, web, démarrage) : on n'a rien à dire

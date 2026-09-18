@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -182,12 +184,15 @@ class ErrorHandler {
     }
     debugPrint('=============');
 
-    FirebaseCrashlytics.instance.recordError(
-      error,
-      stackTrace,
-      reason: context,
-      fatal: false,
-    );
+    try {
+      unawaited(
+        FirebaseCrashlytics.instance
+            .recordError(error, stackTrace, reason: context, fatal: false)
+            .catchError((_) {}),
+      );
+    } catch (_) {
+      // Firebase pas encore prêt : on préfère perdre la remontée que l'app.
+    }
   }
 }
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -90,7 +91,7 @@ class MediaDechiffreCache {
       try {
         return await _resoudre(messageId, media);
       } finally {
-        _enVol.remove(messageId);
+        unawaited(_enVol.remove(messageId));
       }
     });
   }

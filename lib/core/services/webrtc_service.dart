@@ -655,15 +655,15 @@ class WebRTCService {
         case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
           _cancelReconnection();
           _updateConnectionState(WebRTCConnectionState.connected);
-          _verifyVideoConnection();
+          unawaited(_verifyVideoConnection());
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
           // Try to reconnect instead of immediately failing
-          _attemptReconnection();
+          unawaited(_attemptReconnection());
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
           // Try ICE restart before giving up
-          _attemptReconnection();
+          unawaited(_attemptReconnection());
           break;
         case RTCPeerConnectionState.RTCPeerConnectionStateClosed:
           _cancelReconnection();
@@ -683,7 +683,7 @@ class WebRTCService {
           debugPrint(
             'WebRTCService: ICE connection FAILED - attempting reconnection',
           );
-          _attemptReconnection();
+          unawaited(_attemptReconnection());
           break;
         case RTCIceConnectionState.RTCIceConnectionStateDisconnected:
           debugPrint('WebRTCService: ICE disconnected - will try to reconnect');
@@ -1311,21 +1311,21 @@ class WebRTCService {
     final callRef = _database.ref('calls/$_currentCallId/$candidatesPath');
 
     // Fire and forget with single retry on failure
-    callRef.push().set({
+    unawaited(callRef.push().set({
       'candidate': candidate.candidate,
       'sdpMid': candidate.sdpMid,
       'sdpMLineIndex': candidate.sdpMLineIndex,
     }).catchError((e) {
       debugPrint('WebRTCService: ICE candidate send failed, retrying: $e');
       // Single retry
-      callRef.push().set({
+      unawaited(callRef.push().set({
         'candidate': candidate.candidate,
         'sdpMid': candidate.sdpMid,
         'sdpMLineIndex': candidate.sdpMLineIndex,
       }).catchError((e2) {
         debugPrint('WebRTCService: ICE candidate retry failed: $e2');
-      });
-    });
+      }));
+    }));
   }
 
   /// Handle received ICE candidate
@@ -1575,7 +1575,7 @@ class WebRTCService {
     _stopQualityMonitoring();
     // Collect stats every 2 seconds
     _qualityMonitorTimer = Timer.periodic(const Duration(seconds: 2), (_) {
-      _collectQualityMetrics();
+      unawaited(_collectQualityMetrics());
     });
     debugPrint('WebRTCService: Quality monitoring started');
   }

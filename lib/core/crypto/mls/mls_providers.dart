@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -75,12 +77,12 @@ Future<T> Function() volUnique<T>(Future<T> Function() operation) {
     if (existant != null) return existant;
     final appel = operation();
     enCours = appel;
-    appel.then<void>(
+    unawaited(appel.then<void>(
       (_) {},
       onError: (Object _) {
         if (identical(enCours, appel)) enCours = null;
       },
-    );
+    ));
     return appel;
   };
 }

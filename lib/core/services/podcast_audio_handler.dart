@@ -59,20 +59,20 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
       if (event.begin) {
         switch (event.type) {
           case AudioInterruptionType.duck:
-            _player.setVolume(0.5);
+            unawaited(_player.setVolume(0.5));
             break;
           case AudioInterruptionType.pause:
           case AudioInterruptionType.unknown:
-            pause();
+            unawaited(pause());
             break;
         }
       } else {
         switch (event.type) {
           case AudioInterruptionType.duck:
-            _player.setVolume(1.0);
+            unawaited(_player.setVolume(1.0));
             break;
           case AudioInterruptionType.pause:
-            play();
+            unawaited(play());
             break;
           case AudioInterruptionType.unknown:
             break;
@@ -82,7 +82,7 @@ class PodcastAudioHandler extends BaseAudioHandler with SeekHandler {
 
     // Handle becoming noisy (headphones unplugged)
     session.becomingNoisyEventStream.listen((_) {
-      pause();
+      unawaited(pause());
     });
   }
 

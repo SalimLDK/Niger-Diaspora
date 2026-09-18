@@ -173,14 +173,14 @@ class OfflineSyncService {
 
     // Synchroniser au démarrage si connecté
     if (await _connectivity.isConnected()) {
-      syncPendingActions();
+      unawaited(syncPendingActions());
     }
   }
 
   void dispose() {
-    _connectivitySubscription?.cancel();
-    _syncStatusController.close();
-    _reconnectionController.close();
+    unawaited(_connectivitySubscription?.cancel());
+    unawaited(_syncStatusController.close());
+    unawaited(_reconnectionController.close());
   }
 
   /// Ajoute une action à la queue offline

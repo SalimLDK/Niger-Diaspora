@@ -177,8 +177,8 @@ class SharedMediaService {
 
   /// Cleans up resources.
   void dispose() {
-    _mediaStreamSubscription?.cancel();
-    _controller.close();
+    unawaited(_mediaStreamSubscription?.cancel());
+    unawaited(_controller.close());
   }
 }
 
