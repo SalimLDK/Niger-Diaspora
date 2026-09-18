@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,7 +43,7 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
       // ATT (iOS) + démarrage d'AdMob. Après la première frame : Apple exige
       // que l'app soit visible pour présenter la boîte de dialogue de suivi,
       // sinon elle est ignorée en silence.
-      TrackingConsentService.instance.initialize();
+      unawaited(TrackingConsentService.instance.initialize());
     });
   }
 
@@ -174,7 +176,15 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
       }
 
       // debugPrint('Pushing route: $route');
-      router.push(route, extra: extra);
+      // `push` rend un Future qui ne se résout qu'à la fermeture de la page :
+      // on ne l'attend pas, mais son échec est journalisé comme celui du
+      // `catch` ci-dessous — un `try` ne voit pas une erreur asynchrone.
+      unawaited(
+        router.push(route, extra: extra).catchError((Object e, StackTrace st) {
+          debugPrint('Error navigating to notification: $e\n$st');
+          return null;
+        }),
+      );
     } catch (e, stackTrace) {
       // Silently ignore navigation errors - notification navigation is best-effort
       debugPrint('Error navigating to notification: $e\n$stackTrace');

@@ -192,7 +192,11 @@ Future<void> _demarrer() async {
   // qu'on puisse savoir d'ou il vient.
   FlutterError.onError = (details) {
     if (kDebugMode) FlutterError.presentError(details);
-    FirebaseCrashlytics.instance.recordFlutterError(details);
+    // Un rapport qui échoue ne doit jamais relever à son tour depuis un
+    // gestionnaire d'erreurs : il reviendrait ici (ou dans `onError` ci-dessous).
+    unawaited(
+      FirebaseCrashlytics.instance.recordFlutterError(details).catchError((_) {}),
+    );
   };
 
   // Un widget qui lève ne doit jamais montrer son exception (voir la
@@ -208,10 +212,10 @@ Future<void> _demarrer() async {
   // « plantages » ouverts étaient des `Failed host lookup`. Voir
   // `classification_erreurs.dart`.
   PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(
-      error,
-      stack,
-      fatal: !estPanneReseau(error),
+    unawaited(
+      FirebaseCrashlytics.instance
+          .recordError(error, stack, fatal: !estPanneReseau(error))
+          .catchError((_) {}),
     );
     return true;
   };
