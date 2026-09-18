@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,7 +92,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
+      unawaited(_loadData());
       _loadDefaultCountryFilter();
     });
   }
@@ -601,10 +603,10 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
     );
     if (!mounted) return;
     if (conversationId == null || conversationId.isEmpty) {
-      context.push('/groups/${group.id}', extra: group);
+      unawaited(context.push('/groups/${group.id}', extra: group));
       return;
     }
-    context.push(
+    unawaited(context.push(
       '/messages/$conversationId',
       extra: {
         'name': group.name,
@@ -613,7 +615,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
         'groupId': group.id,
         'otherUserId': null,
       },
-    );
+    ));
   }
 
   Future<void> _joinGroup(String groupId) async {
@@ -625,7 +627,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
         .joinGroup(groupId, currentUser.id);
 
     if (success) {
-      _loadData();
+      unawaited(_loadData());
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -673,7 +675,7 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
           .leaveGroup(groupId, currentUser.id);
 
       if (success) {
-        _loadData();
+        unawaited(_loadData());
         if (mounted) {
           ScaffoldMessenger.of(
             context,
@@ -1992,7 +1994,7 @@ class _InviteCard extends ConsumerWidget {
   /// Aperçu des détails du groupe (nom, description, membres) avant de décider.
   void _showGroupDetails(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -2128,7 +2130,7 @@ class _InviteCard extends ConsumerWidget {
                         child: OutlinedButton(
                           onPressed: () {
                             Navigator.pop(ctx);
-                            _decline(context, ref);
+                            unawaited(_decline(context, ref));
                           },
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.red,
@@ -2145,7 +2147,7 @@ class _InviteCard extends ConsumerWidget {
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.pop(ctx);
-                            _accept(context, ref);
+                            unawaited(_accept(context, ref));
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
@@ -2165,7 +2167,7 @@ class _InviteCard extends ConsumerWidget {
           },
         );
       },
-    );
+    ));
   }
 }
 

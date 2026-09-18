@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -155,9 +157,9 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
       ToastUtils.showSuccess(context, l10n.groupModified);
 
       // Refresh groups list
-      ref.read(groupsNotifierProvider.notifier).refresh();
+      unawaited(ref.read(groupsNotifierProvider.notifier).refresh());
       // Also update the detail view
-      ref.read(groupDetailNotifierProvider.notifier).loadGroup(widget.group.id);
+      unawaited(ref.read(groupDetailNotifierProvider.notifier).loadGroup(widget.group.id));
 
       if (mounted) context.pop();
     } else if (mounted) {
@@ -206,7 +208,7 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
         ),
       );
       // Refresh groups list
-      ref.read(groupsNotifierProvider.notifier).refresh();
+      unawaited(ref.read(groupsNotifierProvider.notifier).refresh());
       // Go back to groups list
       context.go('/groups');
     } else if (mounted) {

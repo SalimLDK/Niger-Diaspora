@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,9 +45,9 @@ class _GroupMembersScreenState extends ConsumerState<GroupMembersScreen> {
     if (widget.group == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        ref
+        unawaited(ref
             .read(groupDetailNotifierProvider.notifier)
-            .loadGroup(widget.groupId);
+            .loadGroup(widget.groupId));
       });
     }
   }
@@ -240,7 +242,7 @@ class _MemberListItem extends ConsumerWidget {
       return;
     }
 
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       builder:
           (context) => SafeArea(
@@ -262,7 +264,7 @@ class _MemberListItem extends ConsumerWidget {
                     ),
                     onTap: () {
                       Navigator.pop(context);
-                      _toggleModerator(context, ref);
+                      unawaited(_toggleModerator(context, ref));
                     },
                   ),
                 if (conversationId != null && !isAdmin && !isCreator)
@@ -372,7 +374,7 @@ class _MemberListItem extends ConsumerWidget {
               ],
             ),
           ),
-    );
+    ));
   }
 
   @override

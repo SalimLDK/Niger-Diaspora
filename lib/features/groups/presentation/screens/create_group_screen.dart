@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -203,7 +205,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
         .createGroup(group);
 
     if (success) {
-      AnalyticsService.instance.logEvent(
+      unawaited(AnalyticsService.instance.logEvent(
         name: 'create_group',
         parameters: {
           'category': _selectedCategory.name,
@@ -212,7 +214,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
           'has_country': _selectedCountry != null,
           'has_origin_region': _selectedOriginRegion != null,
         },
-      );
+      ));
     }
 
     if (!mounted) return;

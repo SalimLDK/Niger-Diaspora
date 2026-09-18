@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -172,7 +174,7 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
     String lieu,
     List<GroupEntity> groups,
   ) {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -229,7 +231,7 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
                         : null,
                     onTap: () {
                       Navigator.pop(ctx);
-                      context.push('/groups/${group.id}', extra: group);
+                      unawaited(context.push('/groups/${group.id}', extra: group));
                     },
                   );
                 },
@@ -238,6 +240,6 @@ class _GroupsMapScreenState extends ConsumerState<GroupsMapScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,7 +70,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
       parent: _animationController,
       curve: Curves.easeOutBack,
     );
-    _animationController.forward();
+    unawaited(_animationController.forward());
     _shareUrl = DeepLinkService.instance.generateGroupLink(
       widget.groupId,
       groupName: widget.groupName,
@@ -543,7 +545,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
       child: OutlinedButton.icon(
         onPressed: () {
           Navigator.pop(context);
-          context.push('/qr-scanner');
+          unawaited(context.push('/qr-scanner'));
         },
         icon: Icon(
           Icons.qr_code_scanner_rounded,
@@ -567,9 +569,10 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
     );
   }
 
-  void _copyLink() {
-    HapticFeedback.mediumImpact();
-    Clipboard.setData(ClipboardData(text: _shareUrl));
+  Future<void> _copyLink() async {
+    unawaited(HapticFeedback.mediumImpact());
+    await Clipboard.setData(ClipboardData(text: _shareUrl));
+    if (!mounted) return;
     setState(() => _copied = true);
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {

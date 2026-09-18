@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -63,9 +65,9 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     super.initState();
     if (widget.initialGroup == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref
+        unawaited(ref
             .read(groupDetailNotifierProvider.notifier)
-            .loadGroup(widget.groupId);
+            .loadGroup(widget.groupId));
       });
     }
   }
@@ -389,13 +391,13 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                       OfficialGroupDepartureCard(
                         groupId: group.id,
                         onLeft: () {
-                          AnalyticsService.instance.logEvent(
+                          unawaited(AnalyticsService.instance.logEvent(
                             name: 'leave_official_group_after_move',
                             parameters: {'group_id': group.id},
-                          );
-                          ref
+                          ));
+                          unawaited(ref
                               .read(groupDetailNotifierProvider.notifier)
-                              .loadGroup(group.id);
+                              .loadGroup(group.id));
                           ref.invalidate(myGroupsNotifierProvider);
                           if (context.canPop()) context.pop();
                         },
@@ -645,10 +647,10 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         .joinGroup(groupId, currentUser.id);
 
     if (success) {
-      AnalyticsService.instance.logEvent(
+      unawaited(AnalyticsService.instance.logEvent(
         name: 'join_group',
         parameters: {'group_id': groupId},
-      );
+      ));
     }
 
     setState(() => _isLoading = false);
@@ -710,10 +712,10 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
         .leaveGroup(groupId, currentUser.id);
 
     if (success) {
-      AnalyticsService.instance.logEvent(
+      unawaited(AnalyticsService.instance.logEvent(
         name: 'leave_group',
         parameters: {'group_id': groupId},
-      );
+      ));
     }
 
     setState(() => _isLoading = false);
@@ -751,7 +753,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
     setState(() => _isLoading = false);
 
     if (conversation != null && mounted) {
-      context.push(
+      unawaited(context.push(
         '/messages/${conversation.id}',
         extra: {
           'name': group.name,
@@ -759,7 +761,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           'isGroup': true,
           'groupId': group.id, // Pass the actual group ID
         },
-      );
+      ));
     } else if (mounted) {
       // Le dépôt remonte bien la cause de l'échec ; le notifier la range dans
       // son état et l'écran ne montrait qu'un message générique. On dit ce qui
@@ -781,17 +783,17 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
   }
 
   void _shareGroup(GroupEntity group) {
-    AnalyticsService.instance.logEvent(
+    unawaited(AnalyticsService.instance.logEvent(
       name: 'share_group',
       parameters: {'group_id': group.id},
-    );
-    ShareGroupDialog.show(
+    ));
+    unawaited(ShareGroupDialog.show(
       context,
       groupName: group.name,
       groupImageUrl: group.imageUrl,
       groupId: group.id,
       category: group.category,
-    );
+    ));
   }
 
   /// « Montréal · 12, Toronto · 5 » sur la fiche d'un groupe de pays.
@@ -1010,7 +1012,7 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
           Center(
             child: TextButton(
               onPressed: () {
-                context.push('/groups/${group.id}/members', extra: group);
+                unawaited(context.push('/groups/${group.id}/members', extra: group));
               },
               child: Text(
                 l10n.groupSeeAllMembers(group.memberIds.length),
@@ -1382,7 +1384,7 @@ class _BarreInvitationState extends ConsumerState<_BarreInvitation> {
     // reste affichée sur un groupe déjà rejoint.
     ref.invalidate(myGroupsNotifierProvider);
     ref.invalidate(groupStreamProvider(widget.groupId));
-    ref.read(groupDetailNotifierProvider.notifier).loadGroup(widget.groupId);
+    unawaited(ref.read(groupDetailNotifierProvider.notifier).loadGroup(widget.groupId));
 
     if (accepter) {
       messenger.showSnackBar(
@@ -1478,18 +1480,18 @@ class _GroupOverflowMenu extends ConsumerWidget {
       onSelected: (value) {
         switch (value) {
           case 'invite':
-            InviteMembersSheet.show(context, group: group);
+            unawaited(InviteMembersSheet.show(context, group: group));
           case 'requests':
-            context.push('/groups/${group.id}/requests');
+            unawaited(context.push('/groups/${group.id}/requests'));
           case 'edit':
-            context.push('/groups/${group.id}/edit', extra: group);
+            unawaited(context.push('/groups/${group.id}/edit', extra: group));
           case 'report':
-            ReportContentModal.show(
+            unawaited(ReportContentModal.show(
               context,
               targetType: ReportTargetType.group,
               targetId: group.id,
               targetName: group.name,
-            );
+            ));
           case 'leave':
             onLeave();
         }
