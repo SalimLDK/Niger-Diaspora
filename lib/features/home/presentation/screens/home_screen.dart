@@ -102,7 +102,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
+      unawaited(_loadData());
       _checkAndShowCoachMarks();
       _inviterANoterLApp();
     });
@@ -208,10 +208,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       opacityShadow: 0.8,
       colorShadow: context.textPrimaryColor,
       onFinish: () {
-        ref.read(onboardingNotifierProvider.notifier).completeCoachMarks();
+        unawaited(ref.read(onboardingNotifierProvider.notifier).completeCoachMarks());
       },
       onSkip: () {
-        ref.read(onboardingNotifierProvider.notifier).completeCoachMarks();
+        unawaited(ref.read(onboardingNotifierProvider.notifier).completeCoachMarks());
         return true;
       },
     );
@@ -415,7 +415,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
       // Mettre à jour les stats en fonction du pays de l'utilisateur
       if (profile?.currentCountry != null) {
-        ref.read(homeStatsNotifierProvider.notifier).setCountry(profile!.currentCountry);
+        unawaited(ref.read(homeStatsNotifierProvider.notifier).setCountry(profile!.currentCountry));
       }
 
       // Déterminer la localisation
@@ -449,7 +449,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 .loadNearbyProfiles(lat, lng, radiusKm: radius),
           );
           _startRefreshTimers();
-          _resolvePlaceName(lat, lng);
+          unawaited(_resolvePlaceName(lat, lng));
         }
       } catch (_) {
         // Aucune position en cache : le point frais ci-dessous prend le relais.
@@ -485,9 +485,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
           // Mettre à jour la position du profil
           // updateLocation prend (lat, lng), userId est dans le provider
-          ref
+          unawaited(ref
               .read(profileNotifierProvider(currentUser.id).notifier)
-              .updateLocation(lat, lng);
+              .updateLocation(lat, lng));
 
           // Charger les profils à proximité UNIQUEMENT si la localisation est active
           await ref
@@ -507,7 +507,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           }
 
           // Résoudre ville/pays depuis la position (repli pour la ligne stats).
-          _resolvePlaceName(lat, lng);
+          unawaited(_resolvePlaceName(lat, lng));
         }
       } catch (e) {
         // debugPrint('Erreur de localisation HomeScreen: $e');
@@ -606,7 +606,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         // ou si l'ID a changé
         if (previous?.valueOrNull == null ||
             previous!.valueOrNull!.id != user.id) {
-          _loadData();
+          unawaited(_loadData());
         }
       }
     });
@@ -617,7 +617,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         final newCountry = next.valueOrNull?.currentCountry;
         final oldCountry = previous?.valueOrNull?.currentCountry;
         if (newCountry != oldCountry && newCountry != null) {
-          ref.read(homeStatsNotifierProvider.notifier).setCountry(newCountry);
+          unawaited(ref.read(homeStatsNotifierProvider.notifier).setCountry(newCountry));
         }
       });
     }
@@ -649,10 +649,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         if (_offlineDismissed && mounted) {
           setState(() => _offlineDismissed = false);
         }
-        ref.read(homeStatsNotifierProvider.notifier).refresh();
-        ref.read(eventsNotifierProvider.notifier).refresh();
+        unawaited(ref.read(homeStatsNotifierProvider.notifier).refresh());
+        unawaited(ref.read(eventsNotifierProvider.notifier).refresh());
         ref.invalidate(recentPastEventProvider);
-        _loadData();
+        unawaited(_loadData());
       }
     });
 
@@ -889,11 +889,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   if (showOffline) ...[
                     _OfflineBanner(
                       onRetry: () {
-                        ref
+                        unawaited(ref
                             .read(connectivityNotifierProvider.notifier)
-                            .checkConnectivity();
-                        ref.read(homeStatsNotifierProvider.notifier).refresh();
-                        _loadData();
+                            .checkConnectivity());
+                        unawaited(ref.read(homeStatsNotifierProvider.notifier).refresh());
+                        unawaited(_loadData());
                       },
                       onDismiss: () =>
                           setState(() => _offlineDismissed = true),
@@ -1370,7 +1370,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _enableLocation() async {
     await LocationService.instance.openLocationSettings();
     await Future.delayed(const Duration(seconds: 1));
-    _loadData();
+    await _loadData();
   }
 
   /// Distance formatée « 1,2 km » entre l'utilisateur et un profil, ou `null`
