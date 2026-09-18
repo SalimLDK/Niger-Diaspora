@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -252,6 +254,6 @@ class _FriendRecipientSelectScreenState
       type: RecipientType.mobileWallet, // Default type
       isFavorite: false,
     );
-    context.push('/transfers/recipient/add', extra: recipientEntity);
+    unawaited(context.push('/transfers/recipient/add', extra: recipientEntity));
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -257,9 +259,9 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
         );
       },
       onDismissed: (direction) {
-        ref
+        unawaited(ref
             .read(recipientNotifierProvider.notifier)
-            .deleteRecipient(recipient.id, userId);
+            .deleteRecipient(recipient.id, userId));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${recipient.fullName} supprimé')),
         );
@@ -301,13 +303,13 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                 color: recipient.isFavorite ? Colors.amber : null,
               ),
               onPressed: () {
-                ref
+                unawaited(ref
                     .read(recipientNotifierProvider.notifier)
                     .toggleFavorite(
                       recipient.id,
                       !recipient.isFavorite,
                       userId,
-                    );
+                    ));
               },
             ),
             const Icon(Icons.chevron_right),
@@ -337,7 +339,7 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
     RecipientEntity recipient,
     String userId,
   ) {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       builder:
           (context) => SafeArea(
@@ -378,13 +380,13 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    ref
+                    unawaited(ref
                         .read(recipientNotifierProvider.notifier)
                         .toggleFavorite(
                           recipient.id,
                           !recipient.isFavorite,
                           userId,
-                        );
+                        ));
                   },
                 ),
                 ListTile(
@@ -417,16 +419,16 @@ class _RecipientSelectScreenState extends ConsumerState<RecipientSelectScreen> {
                           ),
                     );
                     if (confirmed == true) {
-                      ref
+                      unawaited(ref
                           .read(recipientNotifierProvider.notifier)
-                          .deleteRecipient(recipient.id, userId);
+                          .deleteRecipient(recipient.id, userId));
                     }
                   },
                 ),
               ],
             ),
           ),
-    );
+    ));
   }
 
   IconData _getTypeIcon(RecipientType type) {

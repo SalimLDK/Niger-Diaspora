@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -367,7 +369,7 @@ class _TransactionHistoryScreenState
   }
 
   void _showFilterDialog(BuildContext context) {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder:
@@ -486,7 +488,7 @@ class _TransactionHistoryScreenState
                   ),
                 ),
           ),
-    );
+    ));
   }
 
   Widget _buildStatusFilterChip(TransactionStatus? status, String label) {

@@ -1057,7 +1057,7 @@ class _SendMoneyScreenState extends ConsumerState<SendMoneyScreen> {
   void _updateFeeAndRateDebounced() {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      _doUpdateFeeAndRate();
+      unawaited(_doUpdateFeeAndRate());
     });
   }
 

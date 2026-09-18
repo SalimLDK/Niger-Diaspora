@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -431,8 +433,9 @@ class TransactionDetailScreen extends ConsumerWidget {
             if (canCopy) ...[
               const SizedBox(width: 8),
               GestureDetector(
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: fullValue ?? value));
+                onTap: () async {
+                  await Clipboard.setData(ClipboardData(text: fullValue ?? value));
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Copie dans le presse-papiers'),
@@ -657,14 +660,14 @@ class TransactionDetailScreen extends ConsumerWidget {
 
   void _shareTransaction(BuildContext context, TransactionEntity? transaction) {
     if (transaction != null) {
-      SharePlus.instance.share(
+      unawaited(SharePlus.instance.share(
         ShareParams(
           text:
               'Transfert vers ${transaction.recipientName ?? 'Inconnu'}\n'
               'Montant: ${transaction.amount} ${transaction.currency}\n'
               'Ref: ${transactionId.substring(0, 8).toUpperCase()}',
         ),
-      );
+      ));
     }
   }
 
@@ -705,7 +708,7 @@ class TransactionDetailScreen extends ConsumerWidget {
     }
 
     // Navigate to send screen
-    context.push('/transfers/send');
+    unawaited(context.push('/transfers/send'));
   }
 
   /// Pré-remplit la description du ticket avec le contexte du transfert.
@@ -723,7 +726,7 @@ class TransactionDetailScreen extends ConsumerWidget {
   void _contactSupport(BuildContext context, TransactionEntity transaction, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final supportService = ref.read(supportServiceProvider);
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       builder:
           (context) => SafeArea(
@@ -745,14 +748,14 @@ class TransactionDetailScreen extends ConsumerWidget {
                   subtitle: const Text('Le transfert est joint · réponse dans l\'app'),
                   onTap: () {
                     Navigator.pop(context);
-                    context.push(
+                    unawaited(context.push(
                       '/support/new',
                       extra: {
                         'transactionId': transaction.id,
                         'subject': 'Souci avec un transfert',
                         'description': _supportPrefill(transaction),
                       },
-                    );
+                    ));
                   },
                 ),
                 ListTile(
@@ -766,7 +769,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                       path: supportService.supportEmail,
                       query: 'subject=Support Transaction ${transaction.id}',
                     );
-                    launchUrl(emailLaunchUri);
+                    unawaited(launchUrl(emailLaunchUri));
                   },
                 ),
                 // La ligne affichait le gabarit « +33 1 XX XX XX XX » et
@@ -780,16 +783,16 @@ class TransactionDetailScreen extends ConsumerWidget {
                     subtitle: Text(supportService.supportPhone),
                     onTap: () {
                       Navigator.pop(context);
-                      launchUrl(
+                      unawaited(launchUrl(
                         Uri.parse('tel:${supportService.supportPhone}'),
-                      );
+                      ));
                     },
                   ),
                 const SizedBox(height: 16),
               ],
             ),
           ),
-    );
+    ));
   }
 }
 
