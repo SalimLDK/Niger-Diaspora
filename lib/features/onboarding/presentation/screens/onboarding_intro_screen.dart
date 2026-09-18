@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,7 +40,7 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
   @override
   void initState() {
     super.initState();
-    AnalyticsService.instance.logEvent(name: 'onboarding_begin');
+    unawaited(AnalyticsService.instance.logEvent(name: 'onboarding_begin'));
   }
 
   /// Nombre d'ecrans, constant : le contenu depend de la langue, pas le
@@ -94,12 +96,12 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
 
   void _nextPage() {
     if (!_isLastPage) {
-      _pageController.nextPage(
+      unawaited(_pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-      );
+      ));
     } else {
-      _completeWithPermissions();
+      unawaited(_completeWithPermissions());
     }
   }
 
@@ -133,18 +135,25 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
     }
     if (!mounted) return;
     setState(() => _requestingPermissions = false);
-    _completeIntro();
+    await _completeIntro();
   }
 
-  void _completeIntro() {
-    ref.read(onboardingNotifierProvider.notifier).completeIntro();
-    AnalyticsService.instance.logEvent(name: 'onboarding_complete');
+  /// Attend l'écriture du drapeau avant de naviguer : la porte n° 8 du routeur
+  /// lit `hasSeenIntro`, que `completeIntro` ne pose qu'une fois
+  /// `markOnboardingComplete` terminé. Naviguer avant, c'était se faire
+  /// renvoyer sur `/onboarding/intro` par la redirection, puis n'arriver sur
+  /// `/home` qu'à la faveur du rafraîchissement suivant.
+  Future<void> _completeIntro() async {
+    await ref.read(onboardingNotifierProvider.notifier).completeIntro();
+    unawaited(AnalyticsService.instance.logEvent(name: 'onboarding_complete'));
+    if (!mounted) return;
     context.go('/home');
   }
 
-  void _skip() {
-    ref.read(onboardingNotifierProvider.notifier).skipAll();
-    AnalyticsService.instance.logEvent(name: 'onboarding_skip');
+  Future<void> _skip() async {
+    await ref.read(onboardingNotifierProvider.notifier).skipAll();
+    unawaited(AnalyticsService.instance.logEvent(name: 'onboarding_skip'));
+    if (!mounted) return;
     context.go('/home');
   }
 
