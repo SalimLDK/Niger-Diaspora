@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
@@ -52,7 +54,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _noiseSuppressionEnabled =
         PreferencesService.instance.noiseSuppressionEnabled;
     // _dataSaverMode = PreferencesService.instance.dataSaverMode;
-    _loadGlobalBackground();
+    unawaited(_loadGlobalBackground());
   }
 
   Future<void> _loadGlobalBackground() async {
@@ -89,9 +91,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _toggleNoiseSuppression(bool value) {
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     setState(() => _noiseSuppressionEnabled = value);
-    PreferencesService.instance.setNoiseSuppressionEnabled(value);
+    unawaited(PreferencesService.instance.setNoiseSuppressionEnabled(value));
   }
 
   // void _toggleDataSaverMode(bool value) {
@@ -141,10 +143,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ) ??
                             true,
                         onChanged: (value) {
-                          HapticFeedback.lightImpact();
-                          ref
+                          unawaited(HapticFeedback.lightImpact());
+                          unawaited(ref
                               .read(profilePreferencesProvider)
-                              .set(ProfilePreference.isVisible, value);
+                              .set(ProfilePreference.isVisible, value));
                         },
                       ),
                       DesignSettingsSwitchTile(
@@ -159,10 +161,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ) ??
                             true,
                         onChanged: (value) {
-                          HapticFeedback.lightImpact();
-                          ref
+                          unawaited(HapticFeedback.lightImpact());
+                          unawaited(ref
                               .read(profilePreferencesProvider)
-                              .set(ProfilePreference.shareLocation, value);
+                              .set(ProfilePreference.shareLocation, value));
                         },
                       ),
                       DesignSettingsSwitchTile(
@@ -180,13 +182,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 .valueOrNull ??
                             true,
                         onChanged: (value) {
-                          HapticFeedback.lightImpact();
-                          ref
+                          unawaited(HapticFeedback.lightImpact());
+                          unawaited(ref
                               .read(
                                 currentUserOnlineStatusVisibilityProvider
                                     .notifier,
                               )
-                              .setValue(value);
+                              .setValue(value));
                         },
                       ),
                     ],
@@ -241,13 +243,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 .watch(notificationPreferencesNotifierProvider)
                                 .masterEnabled,
                         onChanged: (value) {
-                          HapticFeedback.lightImpact();
-                          ref
+                          unawaited(HapticFeedback.lightImpact());
+                          unawaited(ref
                               .read(
                                 notificationPreferencesNotifierProvider
                                     .notifier,
                               )
-                              .setMasterEnabled(value);
+                              .setMasterEnabled(value));
                         },
                       ),
                       DesignSettingsTile(
@@ -257,8 +259,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         // endroit désormais.
                         title: l10n.notifGroupAll,
                         onTap: () {
-                          HapticFeedback.lightImpact();
-                          context.push('/notifications/settings');
+                          unawaited(HapticFeedback.lightImpact());
+                          unawaited(context.push('/notifications/settings'));
                         },
                       ),
                       DesignSettingsTile(
@@ -397,19 +399,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   /// pastille d'icône disparaît ; `isWarning` teinte encore « ZONE SENSIBLE ».
 
   void _showBlockedUsers() {
-    HapticFeedback.lightImpact();
-    showModalBottomSheet(
+    unawaited(HapticFeedback.lightImpact());
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => const BlockedUsersModal(),
-    );
+    ));
   }
 
   void _showThemeSelector(AppLocalizations l10n) {
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
 
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -500,7 +502,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               );
             },
           ),
-    );
+    ));
   }
 
   Widget _buildThemeOption(
@@ -548,8 +550,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ? Icon(Icons.check_circle, color: context.adaptivePrimaryColor)
                 : null,
         onTap: () {
-          HapticFeedback.selectionClick();
-          ref.read(themeModeNotifierProvider.notifier).setThemeMode(value);
+          unawaited(HapticFeedback.selectionClick());
+          unawaited(ref.read(themeModeNotifierProvider.notifier).setThemeMode(value));
         },
       ),
     );
@@ -598,17 +600,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ? Icon(Icons.check_circle, color: context.adaptivePrimaryColor)
               : null,
       onTap: () {
-        HapticFeedback.mediumImpact();
-        ref.read(themeColorNotifierProvider.notifier).setThemeColor(color);
+        unawaited(HapticFeedback.mediumImpact());
+        unawaited(ref.read(themeColorNotifierProvider.notifier).setThemeColor(color));
       },
     );
   }
 
   void _showLanguageSelector(AppLocalizations l10n) {
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     final currentLocale = ref.read(localeNotifierProvider);
 
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder:
@@ -668,7 +670,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ],
             ),
           ),
-    );
+    ));
   }
 
   Widget _buildLanguageOption(
@@ -733,8 +735,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 )
                 : null,
         onTap: () {
-          HapticFeedback.selectionClick();
-          ref.read(localeNotifierProvider.notifier).setLocale(locale);
+          unawaited(HapticFeedback.selectionClick());
+          unawaited(ref.read(localeNotifierProvider.notifier).setLocale(locale));
           Navigator.pop(context);
         },
       ),
@@ -750,10 +752,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   // ignore: unused_element
   void _showCurrencySelector() {
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     final currentCurrency = ref.read(selectedDisplayCurrencyProvider);
 
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -767,7 +769,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Navigator.pop(ctx);
             },
           ),
-    );
+    ));
   }
 
   /// Export RGPD (art. 20) : l'Edge Function `export-my-data` agrège les
@@ -815,10 +817,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showHelpSupport(AppLocalizations l10n) {
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     final supportService = SupportService();
 
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -909,10 +911,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     subtitle: l10n.helpUsImprove,
                     onTap: () {
                       Navigator.pop(ctx);
-                      showDialog(
+                      unawaited(showDialog(
                         context: context,
                         builder: (context) => const BugReportDialog(),
-                      );
+                      ));
                     },
                   ),
                   _HelpOption(
@@ -930,12 +932,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ),
           ),
-    );
+    ));
   }
 
   void _showAbout(AppLocalizations l10n) {
-    HapticFeedback.lightImpact();
-    showDialog(
+    unawaited(HapticFeedback.lightImpact());
+    unawaited(showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
@@ -1031,7 +1033,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ],
           ),
-    );
+    ));
   }
 }
 
@@ -1129,7 +1131,7 @@ class _HelpOption extends StatelessWidget {
           color: ctx.textTertiaryColor,
         ),
         onTap: () {
-          HapticFeedback.selectionClick();
+          unawaited(HapticFeedback.selectionClick());
           onTap();
         },
       ),

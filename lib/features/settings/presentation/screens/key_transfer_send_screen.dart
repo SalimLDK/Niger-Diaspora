@@ -41,7 +41,7 @@ class _KeyTransferSendScreenState
     // s'éteint au bout de trente secondes oblige à tout recommencer.
     unawaited(ScreenBrightnessHelper.max());
     unawaited(WakelockHelper.enable());
-    _start();
+    unawaited(_start());
   }
 
   @override

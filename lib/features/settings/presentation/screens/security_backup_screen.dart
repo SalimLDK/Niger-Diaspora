@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/providers/uid_firebase_provider.dart';
@@ -69,9 +71,9 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
   }
 
   void _chargerEtatSignal() {
-    _checkExistingBackup();
-    _loadTransferUndo();
-    _loadLocalKeyState();
+    unawaited(_checkExistingBackup());
+    unawaited(_loadTransferUndo());
+    unawaited(_loadLocalKeyState());
   }
 
   @override
@@ -834,12 +836,13 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.copy),
-                                        onPressed: () {
-                                          Clipboard.setData(
+                                        onPressed: () async {
+                                          await Clipboard.setData(
                                             ClipboardData(
                                               text: _generatedPassphrase!,
                                             ),
                                           );
+                                          if (!mounted) return;
                                           _showSuccessSnackBar(
                                             l10n.passphraseCopied,
                                           );

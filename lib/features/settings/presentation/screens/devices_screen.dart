@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -47,7 +49,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDevices();
+    unawaited(_loadDevices());
   }
 
   Future<void> _loadDevices() async {
@@ -246,7 +248,7 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     // Le drapeau vient de la configuration distante : s'il se referme écran
     // ouvert, la liste Signal n'a jamais été chargée.
     ref.listen<bool>(mlsMessagesActifsProvider, (_, actif) {
-      if (!actif) _loadDevices();
+      if (!actif) unawaited(_loadDevices());
     });
 
     return Scaffold(
@@ -1073,7 +1075,7 @@ class _CodeSecurite extends StatelessWidget {
   /// Photographié par un tiers, il ne lui apprend rien.
   void _montrerQr(BuildContext context, Uint8List empreinte) {
     final l10n = AppLocalizations.of(context)!;
-    showDialog<void>(
+    unawaited(showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.mlsSecurityCodeLabel),
@@ -1111,7 +1113,7 @@ class _CodeSecurite extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   @override
