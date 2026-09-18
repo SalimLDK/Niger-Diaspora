@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
@@ -31,26 +32,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  /// Méthode de la connexion en cours. L'événement `login` ne part qu'une fois
+  /// la session ouverte : il partait au tap, donc aussi sur un mauvais mot de
+  /// passe, une coupure réseau ou un choix de compte Google annulé.
+  String? _pendingLoginMethod;
+
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
-      ref
+      _pendingLoginMethod = 'email';
+      unawaited(ref
           .read(authNotifierProvider.notifier)
           .signInWithEmail(
             _emailController.text.trim(),
             _passwordController.text,
-          );
-      AnalyticsService.instance.logLogin(method: 'email');
+          ));
     }
   }
 
   void _handleGoogleSignIn() {
-    ref.read(authNotifierProvider.notifier).signInWithGoogle();
-    AnalyticsService.instance.logLogin(method: 'google');
+    _pendingLoginMethod = 'google';
+    unawaited(ref.read(authNotifierProvider.notifier).signInWithGoogle());
   }
 
   void _handleAppleSignIn() {
-    ref.read(authNotifierProvider.notifier).signInWithApple();
-    AnalyticsService.instance.logLogin(method: 'apple');
+    _pendingLoginMethod = 'apple';
+    unawaited(ref.read(authNotifierProvider.notifier).signInWithApple());
   }
 
   @override
@@ -59,8 +65,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authNotifierProvider);
 
     ref.listen(authNotifierProvider, (previous, next) {
+      final method = _pendingLoginMethod;
       next.whenOrNull(
-        authenticated: (_) {},
+        authenticated: (_) {
+          if (method != null) {
+            unawaited(AnalyticsService.instance.logLogin(method: method));
+          }
+        },
         error:
             (message) => ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -69,6 +80,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
       );
+      // Tout état final (session ouverte, erreur, déconnecté) clôt la tentative.
+      if (!next.maybeWhen(loading: () => true, orElse: () => false)) {
+        _pendingLoginMethod = null;
+      }
     });
 
     final isLoading = authState.maybeWhen(

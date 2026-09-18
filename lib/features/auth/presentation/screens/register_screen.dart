@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,16 +36,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     super.dispose();
   }
 
+  /// Inscription en cours. L'événement `sign_up` ne part qu'une fois le compte
+  /// créé : il partait au tap, donc aussi sur un e-mail déjà pris ou une
+  /// coupure réseau.
+  bool _signUpPending = false;
+
   void _handleRegister() {
     if (_formKey.currentState!.validate()) {
-      ref
+      _signUpPending = true;
+      unawaited(ref
           .read(authNotifierProvider.notifier)
           .signUp(
             _emailController.text.trim(),
             _passwordController.text,
             _nameController.text.trim(),
-          );
-      AnalyticsService.instance.logSignUp(method: 'email');
+          ));
     }
   }
 
@@ -60,8 +67,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final authState = ref.watch(authNotifierProvider);
 
     ref.listen(authNotifierProvider, (previous, next) {
+      final pending = _signUpPending;
       next.whenOrNull(
-        authenticated: (_) {},
+        authenticated: (_) {
+          if (pending) {
+            unawaited(AnalyticsService.instance.logSignUp(method: 'email'));
+          }
+        },
         error:
             (message) => ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -70,6 +82,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
             ),
       );
+      // Tout état final (compte créé, erreur, déconnecté) clôt la tentative.
+      if (!next.maybeWhen(loading: () => true, orElse: () => false)) {
+        _signUpPending = false;
+      }
     });
 
     final isLoading = authState.maybeWhen(
