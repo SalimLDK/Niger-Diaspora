@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -109,7 +111,7 @@ class PostCard extends ConsumerWidget {
                             .where((m) => mentionHandleMatches(m.name, handle))
                             .map((m) => m.id)
                             .firstOrNull;
-                    if (uid != null) context.push('/profile/$uid');
+                    if (uid != null) unawaited(context.push('/profile/$uid'));
                   },
                   onHashtagTap: (tag) => context.push('/feed?hashtag=$tag'),
                 ),
@@ -374,9 +376,9 @@ class _PostMenu extends ConsumerWidget {
             if (isDetail && context.canPop()) context.pop();
           }
         } else if (value == 'bookmark') {
-          ref.read(feedNotifierProvider.notifier).toggleBookmark(post.id);
+          unawaited(ref.read(feedNotifierProvider.notifier).toggleBookmark(post.id));
         } else if (value == 'edit') {
-          context.push('/feed/${post.id}/edit', extra: post);
+          unawaited(context.push('/feed/${post.id}/edit', extra: post));
         }
       },
       itemBuilder:
@@ -443,9 +445,9 @@ class _MediaGridState extends ConsumerState<_MediaGrid> {
     final liked = ref.read(feedNotifierProvider).likedPostIds.contains(post.id);
     _heartKey.currentState?.play();
     if (!liked) {
-      ref.read(feedNotifierProvider.notifier).toggleLike(post.id);
+      unawaited(ref.read(feedNotifierProvider.notifier).toggleLike(post.id));
       if (post.hashtags.isNotEmpty) {
-        recordHashtagInteraction(post.hashtags);
+        unawaited(recordHashtagInteraction(post.hashtags));
       }
     }
   }
@@ -574,9 +576,9 @@ class _ActionBar extends ConsumerWidget {
                   ? '${post.likeCount} ${l10n.likes}'
                   : (post.likeCount > 0 ? '${post.likeCount}' : ''),
               onTap: () {
-                ref.read(feedNotifierProvider.notifier).toggleLike(post.id);
+                unawaited(ref.read(feedNotifierProvider.notifier).toggleLike(post.id));
                 if (post.hashtags.isNotEmpty) {
-                  recordHashtagInteraction(post.hashtags);
+                  unawaited(recordHashtagInteraction(post.hashtags));
                 }
               },
             ),
@@ -620,7 +622,7 @@ class _ActionBar extends ConsumerWidget {
               label: '',
               onTap: () {
                 final willBeSaved = !isBookmarked;
-                ref.read(feedNotifierProvider.notifier).toggleBookmark(post.id);
+                unawaited(ref.read(feedNotifierProvider.notifier).toggleBookmark(post.id));
                 showFeedToast(
                   context,
                   willBeSaved
@@ -667,7 +669,7 @@ void _showRepostSheet(
   PostEntity post,
   bool isReposted,
 ) {
-  showModalBottomSheet<void>(
+  unawaited(showModalBottomSheet<void>(
     context: context,
     backgroundColor: Theme.of(context).colorScheme.surface,
     shape: const RoundedRectangleBorder(
@@ -686,7 +688,7 @@ void _showRepostSheet(
               title: Text(isReposted ? 'Annuler le repartage' : 'Reposter'),
               onTap: () {
                 Navigator.pop(sheetContext);
-                ref.read(feedNotifierProvider.notifier).toggleRepost(post.id);
+                unawaited(ref.read(feedNotifierProvider.notifier).toggleRepost(post.id));
               },
             ),
             ListTile(
@@ -701,12 +703,12 @@ void _showRepostSheet(
         ),
       );
     },
-  );
+  ));
 }
 
 void _showQuoteDialog(BuildContext context, WidgetRef ref, PostEntity post) {
   final controller = TextEditingController();
-  showDialog<void>(
+  unawaited(showDialog<void>(
     context: context,
     builder: (dialogContext) {
       return AlertDialog(
@@ -751,9 +753,9 @@ void _showQuoteDialog(BuildContext context, WidgetRef ref, PostEntity post) {
               Navigator.pop(dialogContext);
               final notifier = ref.read(feedNotifierProvider.notifier);
               if (text.isEmpty) {
-                notifier.toggleRepost(post.id);
+                unawaited(notifier.toggleRepost(post.id));
               } else {
-                notifier.repostWithComment(post.id, text);
+                unawaited(notifier.repostWithComment(post.id, text));
               }
             },
             child: const Text('Reposter'),
@@ -761,7 +763,7 @@ void _showQuoteDialog(BuildContext context, WidgetRef ref, PostEntity post) {
         ],
       );
     },
-  );
+  ));
 }
 
 class _ActionButton extends StatelessWidget {
