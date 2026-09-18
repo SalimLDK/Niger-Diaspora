@@ -173,13 +173,13 @@ class FeedNotifier extends Notifier<FeedState> {
 
   @override
   FeedState build() {
-    Future.microtask(loadInitial);
+    unawaited(Future.microtask(loadInitial));
     // Temps réel : nouveaux posts (pill) + patch des compteurs des cartes visibles.
     final newSub = _repo.watchNewPosts().listen(_onNewPost);
     final updSub = _repo.watchPostUpdates().listen(_onPostUpdate);
     ref.onDispose(() {
-      newSub.cancel();
-      updSub.cancel();
+      unawaited(newSub.cancel());
+      unawaited(updSub.cancel());
     });
     return const FeedState(isLoading: true);
   }
@@ -962,7 +962,7 @@ class PostDetailState {
 class PostDetailNotifier extends FamilyNotifier<PostDetailState, String> {
   @override
   PostDetailState build(String postId) {
-    _load(postId);
+    unawaited(_load(postId));
     // Temps réel : reflète les mises à jour (compteurs/édition) du post ouvert.
     final sub = ref
         .read(feedRepositoryProvider)
@@ -986,7 +986,7 @@ class PostDetailNotifier extends FamilyNotifier<PostDetailState, String> {
 
   void refresh(String postId) {
     state = const PostDetailState();
-    _load(postId);
+    unawaited(_load(postId));
   }
 
   /// Remplace le post affiché (ex. après une édition) sans re-fetch.
@@ -1034,7 +1034,7 @@ class CommentsState {
 class CommentsNotifier extends FamilyNotifier<CommentsState, String> {
   @override
   CommentsState build(String postId) {
-    Future.microtask(() => _load(postId));
+    unawaited(Future.microtask(() => _load(postId)));
     // Temps réel : nouveaux commentaires (et réponses) ajoutés en direct.
     final sub = ref
         .read(feedRepositoryProvider)
@@ -1138,26 +1138,26 @@ class CommentsNotifier extends FamilyNotifier<CommentsState, String> {
       }
       final targetUser = parent?.authorId;
       if (targetUser != null && targetUser.isNotEmpty && targetUser != me) {
-        NotificationService().createNotification(
+        unawaited(NotificationService().createNotification(
           userId: targetUser,
           title: 'Nouvelle réponse',
           body: '${_actorDisplayName()} a répondu à votre commentaire',
           type: 'commentReply',
           targetId: postId,
           data: {'postId': postId, 'senderId': me},
-        );
+        ));
       }
     } else {
       final post = ref.read(postDetailProvider(postId)).post;
       if (post != null && post.authorId.isNotEmpty && post.authorId != me) {
-        NotificationService().createNotification(
+        unawaited(NotificationService().createNotification(
           userId: post.authorId,
           title: 'Nouveau commentaire',
           body: '${_actorDisplayName()} a commenté votre publication',
           type: 'postCommented',
           targetId: postId,
           data: {'postId': postId, 'senderId': me},
-        );
+        ));
       }
     }
   }
