@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -165,7 +167,7 @@ class StickerPickerContent extends ConsumerWidget {
 
   void _showStickerOptions(BuildContext context, StickerEntity sticker) {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: context.surfaceColor,
       shape: const RoundedRectangleBorder(
@@ -207,9 +209,9 @@ class StickerPickerContent extends ConsumerWidget {
                           ),
                           title: Text(l10n.addToFavorites),
                           onTap: () {
-                            ref
+                            unawaited(ref
                                 .read(stickerActionsProvider.notifier)
-                                .toggleFavorite(sticker);
+                                .toggleFavorite(sticker));
                             Navigator.pop(sheetContext);
                           },
                         ),
@@ -218,7 +220,7 @@ class StickerPickerContent extends ConsumerWidget {
               ),
             ),
           ),
-    );
+    ));
   }
 }
 

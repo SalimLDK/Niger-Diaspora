@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -93,7 +95,7 @@ class _DocumentBubbleState extends State<DocumentBubble>
     setState(() {
       _showSuccess = true;
     });
-    _successAnimationController.forward(from: 0);
+    unawaited(_successAnimationController.forward(from: 0));
   }
 
   @override

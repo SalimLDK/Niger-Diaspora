@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -269,7 +271,7 @@ class _ForwardConversationPickerState
                         if (isMultiSelectMode) {
                           _toggleSelection(item.id);
                         } else {
-                          _forwardTo([item.conversation]);
+                          unawaited(_forwardTo([item.conversation]));
                         }
                       },
                     );

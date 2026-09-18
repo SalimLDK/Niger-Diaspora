@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -372,7 +373,7 @@ class _VideoThumbnailPreviewState extends State<_VideoThumbnailPreview> {
   @override
   void initState() {
     super.initState();
-    _generate();
+    unawaited(_generate());
   }
 
   @override
@@ -380,7 +381,7 @@ class _VideoThumbnailPreviewState extends State<_VideoThumbnailPreview> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.file.path != widget.file.path) {
       _thumbnail = null;
-      _generate();
+      unawaited(_generate());
     }
   }
 

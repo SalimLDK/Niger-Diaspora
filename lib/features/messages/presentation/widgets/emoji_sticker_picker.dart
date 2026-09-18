@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' as emoji_picker;
@@ -299,7 +300,7 @@ class _EmojiStickerPickerState extends ConsumerState<EmojiStickerPicker> {
         return StickerPickerContent(
           query: _stickerQuery,
           onStickerSelected: (sticker) {
-            ref.read(stickerActionsProvider.notifier).addToRecent(sticker);
+            unawaited(ref.read(stickerActionsProvider.notifier).addToRecent(sticker));
             widget.onStickerSelected!(sticker);
           },
         );

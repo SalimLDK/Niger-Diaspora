@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
@@ -30,7 +32,7 @@ class ProductMessageCard extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (productId != null) {
-          context.push('/marketplace/$productId');
+          unawaited(context.push('/marketplace/$productId'));
         }
       },
       child: Container(

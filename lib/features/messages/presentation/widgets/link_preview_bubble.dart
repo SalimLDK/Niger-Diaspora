@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -231,7 +233,7 @@ class LinkPreviewBubble extends StatelessWidget {
   Future<void> _open(BuildContext context, String url) async {
     final route = QrCodeParser.routeInterne(url);
     if (route != null) {
-      context.push(route);
+      unawaited(context.push(route));
       return;
     }
 

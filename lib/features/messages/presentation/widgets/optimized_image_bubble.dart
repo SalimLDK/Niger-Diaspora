@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -121,7 +122,7 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
   }
 
   void _showMediaContextMenu(BuildContext context) {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder:
@@ -199,7 +200,7 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
               ],
             ),
           ),
-    );
+    ));
   }
 
   @override
@@ -208,7 +209,7 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
       onTap:
           widget.onTap ??
           () {
-            Navigator.of(context).push(
+            unawaited(Navigator.of(context).push(
               MaterialPageRoute(
                 builder:
                     (context) => FullScreenImageViewer(
@@ -216,7 +217,7 @@ class _OptimizedImageBubbleState extends State<OptimizedImageBubble>
                       heroTag: widget.heroTag,
                     ),
               ),
-            );
+            ));
           },
       // Priorité au menu complet du message (épinglage, réponse…) s'il est
       // fourni ; sinon repli sur le petit menu média (transférer/enregistrer).

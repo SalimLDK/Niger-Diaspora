@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -122,10 +124,10 @@ class _MediaGalleryScreenState extends ConsumerState<MediaGalleryScreen>
                   images: mediaState.images,
                   isLoading: mediaState.isLoading,
                   onLoadMore: () {
-                    ref
+                    unawaited(ref
                         .read(conversationMediaProvider(widget.conversationId)
                             .notifier)
-                        .loadMore();
+                        .loadMore());
                   },
                 ),
                 _VideosTab(

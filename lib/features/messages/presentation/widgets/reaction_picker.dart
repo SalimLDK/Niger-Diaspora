@@ -223,7 +223,7 @@ class _FullReactionPickerSheet extends StatelessWidget {
             height: hauteur,
             child: emoji_picker.EmojiPicker(
               onEmojiSelected: (_, emoji) {
-                HapticFeedback.lightImpact();
+                unawaited(HapticFeedback.lightImpact());
                 Navigator.of(context).pop(emoji.emoji);
               },
               config: emoji_picker.Config(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share_plus/share_plus.dart';
@@ -36,7 +38,7 @@ class FullScreenImageViewer extends StatefulWidget {
     bool showActions = true,
     String? messageId,
   }) {
-    Navigator.of(context).push(
+    unawaited(Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.black87,
@@ -57,7 +59,7 @@ class FullScreenImageViewer extends StatefulWidget {
           );
         },
       ),
-    );
+    ));
   }
 
   @override

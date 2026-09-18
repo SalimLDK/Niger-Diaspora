@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/services/image_compressor_service.dart';
@@ -44,7 +46,7 @@ class _MediaBatchPreviewScreenState extends State<MediaBatchPreviewScreen> {
     super.initState();
     _checked = List.filled(widget.picks.length, true);
     _reduceQuality = PreferencesService.instance.dataSaverMode;
-    _computeTotalSize();
+    unawaited(_computeTotalSize());
   }
 
   int get _checkedCount => _checked.where((c) => c).length;
@@ -60,7 +62,7 @@ class _MediaBatchPreviewScreenState extends State<MediaBatchPreviewScreen> {
 
   void _toggle(int index) {
     setState(() => _checked[index] = !_checked[index]);
-    _computeTotalSize();
+    unawaited(_computeTotalSize());
   }
 
   Future<void> _confirm() async {

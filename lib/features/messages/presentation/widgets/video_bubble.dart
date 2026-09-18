@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -57,7 +58,7 @@ class VideoBubble extends StatelessWidget {
 
   void _showMediaContextMenu(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder:
@@ -135,7 +136,7 @@ class VideoBubble extends StatelessWidget {
               ],
             ),
           ),
-    );
+    ));
   }
 
   @override
