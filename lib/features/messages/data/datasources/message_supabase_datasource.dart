@@ -828,7 +828,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     }
 
     // Initial load
-    fetch();
+    unawaited(fetch());
 
     // Real-time updates
     final ch = _channel('conversations:$userId');
@@ -848,7 +848,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         );
 
     controller.onCancel = () {
-      ch.unsubscribe();
+      unawaited(ch.unsubscribe());
       _channels.remove('conversations:$userId');
     };
 
@@ -879,7 +879,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       }
     }
 
-    fetch();
+    unawaited(fetch());
 
     final ch = _channel('conversation:$conversationId');
     ch
@@ -903,7 +903,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         );
 
     controller.onCancel = () {
-      ch.unsubscribe();
+      unawaited(ch.unsubscribe());
       _channels.remove('conversation:$conversationId');
     };
 
@@ -964,7 +964,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     unawaited(_ensureJoined(channelName));
 
     controller.onCancel = () {
-      ch.unsubscribe();
+      unawaited(ch.unsubscribe());
       _forgetChannel(channelName);
     };
 
@@ -1006,7 +1006,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       }
     }
 
-    fetch();
+    unawaited(fetch());
 
     final ch = _channel('msg_requests:$userId');
     ch
@@ -1025,7 +1025,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         );
 
     controller.onCancel = () {
-      ch.unsubscribe();
+      unawaited(ch.unsubscribe());
       _channels.remove('msg_requests:$userId');
     };
 
@@ -1064,7 +1064,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         .subscribe();
 
     controller.onCancel = () {
-      ch.unsubscribe();
+      unawaited(ch.unsubscribe());
       _channels.remove(channelName);
     };
 
@@ -1157,7 +1157,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         );
 
     controller.onCancel = () {
-      ch.unsubscribe();
+      unawaited(ch.unsubscribe());
       _channels.remove(channelName);
     };
 
@@ -1224,7 +1224,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         .subscribe();
 
     controller.onCancel = () {
-      ch.unsubscribe();
+      unawaited(ch.unsubscribe());
       _channels.remove(channelName);
     };
 

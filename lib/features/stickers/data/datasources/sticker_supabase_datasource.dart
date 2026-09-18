@@ -142,7 +142,7 @@ class StickerSupabaseDataSource {
       }
     }
 
-    fetch();
+    unawaited(fetch());
 
     final channel = _supabase.channel('user_sticker_packs_$userId');
     channel.onPostgresChanges(
@@ -158,8 +158,8 @@ class StickerSupabaseDataSource {
     ).subscribe();
 
     controller.onCancel = () {
-      _supabase.removeChannel(channel);
-      controller.close();
+      unawaited(_supabase.removeChannel(channel));
+      unawaited(controller.close());
     };
 
     return controller.stream;
@@ -185,7 +185,7 @@ class StickerSupabaseDataSource {
       }
     }
 
-    fetch();
+    unawaited(fetch());
 
     final channel = _supabase.channel('sticker_packs_created_$userId');
     channel.onPostgresChanges(
@@ -201,8 +201,8 @@ class StickerSupabaseDataSource {
     ).subscribe();
 
     controller.onCancel = () {
-      _supabase.removeChannel(channel);
-      controller.close();
+      unawaited(_supabase.removeChannel(channel));
+      unawaited(controller.close());
     };
 
     return controller.stream;
@@ -267,7 +267,7 @@ class StickerSupabaseDataSource {
       }
     }
 
-    fetch();
+    unawaited(fetch());
 
     final channel = _supabase.channel('recent_stickers_$userId');
     channel.onPostgresChanges(
@@ -283,8 +283,8 @@ class StickerSupabaseDataSource {
     ).subscribe();
 
     controller.onCancel = () {
-      _supabase.removeChannel(channel);
-      controller.close();
+      unawaited(_supabase.removeChannel(channel));
+      unawaited(controller.close());
     };
 
     return controller.stream;
@@ -328,7 +328,7 @@ class StickerSupabaseDataSource {
       }
     }
 
-    fetch();
+    unawaited(fetch());
 
     final channel = _supabase.channel('favorite_stickers_$userId');
     channel.onPostgresChanges(
@@ -344,8 +344,8 @@ class StickerSupabaseDataSource {
     ).subscribe();
 
     controller.onCancel = () {
-      _supabase.removeChannel(channel);
-      controller.close();
+      unawaited(_supabase.removeChannel(channel));
+      unawaited(controller.close());
     };
 
     return controller.stream;

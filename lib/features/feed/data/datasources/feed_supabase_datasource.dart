@@ -876,8 +876,8 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
       },
     ).subscribe(rattrapageAuRejoint(rattraper, etiquette: 'fil'));
     controller.onCancel = () {
-      _supabase.removeChannel(channel);
-      controller.close();
+      unawaited(_supabase.removeChannel(channel));
+      unawaited(controller.close());
     };
     return controller.stream;
   }
@@ -906,8 +906,8 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
       },
     ).subscribe();
     controller.onCancel = () {
-      _supabase.removeChannel(channel);
-      controller.close();
+      unawaited(_supabase.removeChannel(channel));
+      unawaited(controller.close());
     };
     return controller.stream;
   }
@@ -932,8 +932,8 @@ class FeedSupabaseDataSource implements FeedRemoteDataSource {
       },
     ).subscribe();
     controller.onCancel = () {
-      _supabase.removeChannel(channel);
-      controller.close();
+      unawaited(_supabase.removeChannel(channel));
+      unawaited(controller.close());
     };
     return controller.stream;
   }

@@ -105,7 +105,7 @@ class SupportTicketSupabaseDatasource {
       }
     }
 
-    fetch();
+    unawaited(fetch());
 
     final channel = _supabase.channel('support_tickets_user_$userId');
     channel.onPostgresChanges(
@@ -121,8 +121,8 @@ class SupportTicketSupabaseDatasource {
     ).subscribe();
 
     controller.onCancel = () {
-      _supabase.removeChannel(channel);
-      controller.close();
+      unawaited(_supabase.removeChannel(channel));
+      unawaited(controller.close());
     };
 
     return controller.stream;
@@ -151,7 +151,7 @@ class SupportTicketSupabaseDatasource {
       }
     }
 
-    fetch();
+    unawaited(fetch());
 
     final channel = _supabase.channel('support_tickets_admin');
     channel.onPostgresChanges(
@@ -162,8 +162,8 @@ class SupportTicketSupabaseDatasource {
     ).subscribe();
 
     controller.onCancel = () {
-      _supabase.removeChannel(channel);
-      controller.close();
+      unawaited(_supabase.removeChannel(channel));
+      unawaited(controller.close());
     };
 
     return controller.stream;
@@ -207,7 +207,7 @@ class SupportTicketSupabaseDatasource {
       }
     }
 
-    fetch();
+    unawaited(fetch());
 
     final channel = _supabase.channel('support_ticket_msgs_$ticketId');
     channel.onPostgresChanges(
@@ -223,8 +223,8 @@ class SupportTicketSupabaseDatasource {
     ).subscribe();
 
     controller.onCancel = () {
-      _supabase.removeChannel(channel);
-      controller.close();
+      unawaited(_supabase.removeChannel(channel));
+      unawaited(controller.close());
     };
 
     return controller.stream;
@@ -315,7 +315,7 @@ class SupportTicketSupabaseDatasource {
       }
     }
 
-    fetch();
+    unawaited(fetch());
 
     final channel = _supabase.channel('support_tickets_unread_$userId');
     channel.onPostgresChanges(
@@ -331,8 +331,8 @@ class SupportTicketSupabaseDatasource {
     ).subscribe();
 
     controller.onCancel = () {
-      _supabase.removeChannel(channel);
-      controller.close();
+      unawaited(_supabase.removeChannel(channel));
+      unawaited(controller.close());
     };
 
     return controller.stream;

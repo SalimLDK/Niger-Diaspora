@@ -641,7 +641,7 @@ class MessageRepositoryImpl implements MessageRepository {
         (event) {
           // Check cancellation
           if (checkCancelled?.call() == true) {
-            uploadTask.cancel();
+            unawaited(uploadTask.cancel());
             if (!completer.isCompleted) {
               completer.complete(const Left(ServerFailure('Envoi annulé')));
             }
