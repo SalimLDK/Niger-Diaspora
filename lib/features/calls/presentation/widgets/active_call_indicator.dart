@@ -36,7 +36,8 @@ class _ActiveCallIndicatorState extends ConsumerState<ActiveCallIndicator>
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
-    )..repeat(reverse: true);
+    );
+    unawaited(_pulseController.repeat(reverse: true));
 
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
@@ -105,7 +106,7 @@ class _ActiveCallIndicatorState extends ConsumerState<ActiveCallIndicator>
           // Defer navigation to avoid triggering context.push() while the
           // navigator is locked (e.g. mid-transition after a pop).
           SchedulerBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) context.push('/calls/${call.id}');
+            if (context.mounted) unawaited(context.push('/calls/${call.id}'));
           });
         },
         child: ScaleTransition(
@@ -268,7 +269,7 @@ class _ActiveCallPillState extends ConsumerState<ActiveCallPill> {
       child: GestureDetector(
         onTap: () {
           // Navigate back to call screen
-          context.push('/calls/${call.id}');
+          unawaited(context.push('/calls/${call.id}'));
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

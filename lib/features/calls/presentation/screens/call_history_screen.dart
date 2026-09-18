@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -461,23 +463,23 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen> {
   }
 
   void _onCallTap(BuildContext context, CallEntity call, String currentUserId) {
-    context.push('/profile/${call.getOtherPartyId(currentUserId)}');
+    unawaited(context.push('/profile/${call.getOtherPartyId(currentUserId)}'));
   }
 
   void _onCallBack(CallEntity call, String currentUserId) {
-    ref
+    unawaited(ref
         .read(currentCallProvider.notifier)
         .initiateCall(
           calleeId: call.getOtherPartyId(currentUserId),
           calleeName: call.getOtherPartyName(currentUserId),
           calleePhotoUrl: call.getOtherPartyPhotoUrl(currentUserId),
           type: call.type,
-        );
+        ));
   }
 
   void _showClearHistoryDialog(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder:
           (dialogContext) => AlertDialog(
@@ -517,7 +519,7 @@ class _CallHistoryScreenState extends ConsumerState<CallHistoryScreen> {
               ),
             ],
           ),
-    );
+    ));
   }
 }
 

@@ -119,7 +119,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
     unawaited(LockScreenService.instance.acquire());
 
     // Vérifier les permissions avant d'initialiser l'appel
-    _checkPermissionsAndInitialize();
+    unawaited(_checkPermissionsAndInitialize());
   }
 
   /// Vérifie les permissions micro/caméra avant d'initialiser l'appel
@@ -192,28 +192,28 @@ class _CallScreenState extends ConsumerState<CallScreen>
     // Démarrer la tonalité d'attente si on est l'appelant
     if (widget.isInitiator) {
       _ringbackStarted = true;
-      _ringtoneService.startRingback();
+      unawaited(_ringtoneService.startRingback());
     }
 
     // Enable proximity sensor for audio calls (turns off screen when phone is near ear)
     if (!widget.isVideo) {
-      _proximityService.enable();
+      unawaited(_proximityService.enable());
     }
 
     // Enable PiP (Picture-in-Picture) for all calls (video and audio)
     // When user presses home, the call will continue in a small floating window
-    _pipService.setVideoCallActive(active: true, autoPipEnabled: true);
+    unawaited(_pipService.setVideoCallActive(active: true, autoPipEnabled: true));
 
     // Register PiP action callback for custom buttons (Mute, End Call)
     _pipService.onPipAction = _handlePipAction;
 
     if (widget.isVideo) {
       // Keep screen on during video calls
-      WakelockHelper.enable();
+      unawaited(WakelockHelper.enable());
     }
 
     // Attendre que WebRTC initialise son renderer
-    _waitForWebRTCInitialization();
+    unawaited(_waitForWebRTCInitialization());
 
     // Listen to WebRTC connection state changes for UI updates
     _connectionSubscription = _webrtcService.connectionStateStream.listen((
@@ -225,12 +225,12 @@ class _CallScreenState extends ConsumerState<CallScreen>
       // Arrêter la tonalité d'attente quand connecté
       if (state == WebRTCConnectionState.connected && _ringbackStarted) {
         _ringbackStarted = false;
-        _ringtoneService.stopRingback();
+        unawaited(_ringtoneService.stopRingback());
       }
 
       if (state == WebRTCConnectionState.disconnected ||
           state == WebRTCConnectionState.failed) {
-        _endCall();
+        unawaited(_endCall());
       }
       // Trigger rebuild for connection status
       setState(() {});
@@ -457,7 +457,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
   }
 
   void _toggleSpeaker() {
-    ref.read(currentCallProvider.notifier).toggleSpeaker();
+    unawaited(ref.read(currentCallProvider.notifier).toggleSpeaker());
   }
 
   void _toggleCamera() {
@@ -465,7 +465,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
   }
 
   void _switchCamera() {
-    ref.read(currentCallProvider.notifier).switchCamera();
+    unawaited(ref.read(currentCallProvider.notifier).switchCamera());
   }
 
   void _toggleHold() {
@@ -473,11 +473,11 @@ class _CallScreenState extends ConsumerState<CallScreen>
   }
 
   void _requestVideoUpgrade() {
-    ref.read(currentCallProvider.notifier).requestVideoUpgrade();
+    unawaited(ref.read(currentCallProvider.notifier).requestVideoUpgrade());
   }
 
   void _respondToVideoUpgrade(bool accepted) {
-    ref.read(currentCallProvider.notifier).respondToVideoUpgrade(accepted);
+    unawaited(ref.read(currentCallProvider.notifier).respondToVideoUpgrade(accepted));
   }
 
   /// Affiche une confirmation avant de terminer l'appel
@@ -535,7 +535,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
     // Arrêter la tonalité d'attente si en cours
     if (_ringbackStarted) {
       _ringbackStarted = false;
-      _ringtoneService.stopRingback();
+      unawaited(_ringtoneService.stopRingback());
     }
 
     // Afficher un message selon le statut
@@ -554,7 +554,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
 
     // Cleanup WebRTC
     final webrtc = ref.read(webRTCServiceProvider);
-    webrtc.hangUp();
+    unawaited(webrtc.hangUp());
 
     // Afficher un snackbar bref et fermer l'écran
     if (mounted) {
@@ -577,15 +577,15 @@ class _CallScreenState extends ConsumerState<CallScreen>
     // Exclude current participants (caller and callee)
     final excludeIds = [call.callerId, call.calleeId];
 
-    AddParticipantModal.show(
+    unawaited(AddParticipantModal.show(
       context: context,
       excludeIds: excludeIds,
       onParticipantsSelected: (participants) {
         if (participants.isNotEmpty) {
-          _convertToGroupCall(participants);
+          unawaited(_convertToGroupCall(participants));
         }
       },
-    );
+    ));
   }
 
   /// Convert the 1:1 call to a group call with the selected participants
@@ -662,25 +662,25 @@ class _CallScreenState extends ConsumerState<CallScreen>
     // Set flag to prevent any camera/media initialization during dispose
     _isDisposing = true;
 
-    _connectionSubscription?.cancel();
+    unawaited(_connectionSubscription?.cancel());
     _videoCheckTimer?.cancel();
     // Arrêter l'écoute des événements GSM
-    _gsmSubscription?.cancel();
+    unawaited(_gsmSubscription?.cancel());
     _gsmCallService.stopListening();
     // Arrêter la tonalité d'attente si elle est en cours
     if (_ringbackStarted) {
-      _ringtoneService.stopRingback();
+      unawaited(_ringtoneService.stopRingback());
     }
     // Disable proximity sensor
-    _proximityService.disable();
+    unawaited(_proximityService.disable());
     // Remove PiP mode listener
     _pipService.pipModeNotifier.removeListener(_onPipModeChanged);
     // Remove PiP action callback
     _pipService.onPipAction = null;
     // Disable PiP mode
-    _pipService.setVideoCallActive(active: false);
+    unawaited(_pipService.setVideoCallActive(active: false));
     // Disable wakelock (screen can turn off again)
-    WakelockHelper.disable();
+    unawaited(WakelockHelper.disable());
     // Cancel auto-hide timer
     _hideControlsTimer?.cancel();
     // Dispose PiP spring animation controller
@@ -720,11 +720,11 @@ class _CallScreenState extends ConsumerState<CallScreen>
         _toggleMute();
         // Sync mute state with native side
         final callState = ref.read(currentCallProvider);
-        _pipService.updateMuteState(callState.isMuted);
+        unawaited(_pipService.updateMuteState(callState.isMuted));
         break;
       case 'endCall':
         // End the call
-        _endCall();
+        unawaited(_endCall());
         break;
     }
   }
@@ -800,7 +800,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
               call.status == CallStatus.connected) &&
           _ringbackStarted) {
         _ringbackStarted = false;
-        _ringtoneService.stopRingback();
+        unawaited(_ringtoneService.stopRingback());
       }
 
       // Détecter si l'AUTRE partie a terminé l'appel
@@ -1169,7 +1169,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
   /// Draggable PiP (Picture-in-Picture) local video view
   /// Swap local and remote video (double-tap feature)
   void _swapVideos() {
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
     setState(() {
       _isLocalVideoFullScreen = !_isLocalVideoFullScreen;
     });
@@ -1196,8 +1196,8 @@ class _CallScreenState extends ConsumerState<CallScreen>
       }
     });
 
-    _pipSpringController!.forward(from: 0);
-    HapticFeedback.lightImpact();
+    unawaited(_pipSpringController!.forward(from: 0));
+    unawaited(HapticFeedback.lightImpact());
   }
 
   /// Draggable PiP (Picture-in-Picture) local video view with improvements
@@ -1988,7 +1988,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
     if (metrics == null) return;
 
     final l10n = AppLocalizations.of(context)!;
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
@@ -2062,7 +2062,7 @@ class _CallScreenState extends ConsumerState<CallScreen>
               ),
             ],
           ),
-    );
+    ));
   }
 
   Widget _buildMetricRow(String label, String value, Color valueColor) {
