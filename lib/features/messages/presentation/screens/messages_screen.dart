@@ -85,7 +85,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     _profileSearchDebounce?.cancel();
     _profileSearchDebounce = Timer(const Duration(milliseconds: 350), () {
       if (!mounted) return;
-      ref.read(searchProfilesNotifierProvider.notifier).search(value.trim());
+      unawaited(ref.read(searchProfilesNotifierProvider.notifier).search(value.trim()));
     });
   }
 
@@ -188,7 +188,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     final isMuted = conversation.isMutedBy(currentUserId);
     final l10n = AppLocalizations.of(context)!;
 
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -219,9 +219,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    ref
+                    unawaited(ref
                         .read(conversationActionsNotifierProvider.notifier)
-                        .archiveConversation(conversation.id, !isArchived);
+                        .archiveConversation(conversation.id, !isArchived));
                   },
                 ),
                 ListTile(
@@ -237,9 +237,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    ref
+                    unawaited(ref
                         .read(conversationActionsNotifierProvider.notifier)
-                        .muteConversation(conversation.id, !isMuted);
+                        .muteConversation(conversation.id, !isMuted));
                   },
                 ),
                 ListTile(
@@ -257,7 +257,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               ],
             ),
           ),
-    );
+    ));
   }
 
   void _showDeleteConfirmation(
@@ -265,7 +265,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     ConversationEntity conversation,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
@@ -279,9 +279,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  ref
+                  unawaited(ref
                       .read(conversationActionsNotifierProvider.notifier)
-                      .deleteConversation(conversation.id);
+                      .deleteConversation(conversation.id));
                 },
                 child: Text(
                   l10n.delete,
@@ -290,7 +290,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               ),
             ],
           ),
-    );
+    ));
   }
 
   @override
@@ -655,7 +655,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             flat: true,
             highlight: lower,
             onTap: () {
-              context.push(
+              unawaited(context.push(
                 '/messages/${c.id}',
                 extra: {
                   'name': c.name ?? 'Conversation',
@@ -665,7 +665,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   'otherUserId':
                       c.isGroup ? null : c.getOtherParticipantId(currentUserId),
                 },
-              );
+              ));
             },
             onLongPress:
                 () => _showConversationOptions(context, c, currentUserId),
@@ -842,14 +842,14 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       return;
     }
 
-    context.push(
+    unawaited(context.push(
       '/messages/${conversation.id}',
       extra: {
         'name': AppLocalizations.of(context)!.messagesMyNotes,
         'isGroup': false,
         'isSelfNotes': true,
       },
-    );
+    ));
   }
 
   /// Tuile épinglée « Mes notes », toujours en tête de liste (hors recherche
@@ -1055,7 +1055,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       currentUserId: currentUserId,
       flat: flat,
       onTap: () {
-        context.push(
+        unawaited(context.push(
           '/messages/${conversation.id}',
           extra: {
             'name': conversation.name ?? 'Conversation',
@@ -1067,7 +1067,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     ? null
                     : conversation.getOtherParticipantId(currentUserId),
           },
-        );
+        ));
       },
       onLongPress:
           () => _showConversationOptions(context, conversation, currentUserId),
