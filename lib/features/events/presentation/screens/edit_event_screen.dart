@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -81,7 +83,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
               : '',
     );
 
-    _chargerAudience();
+    unawaited(_chargerAudience());
 
     _selectedCategory = widget.event.category;
     _startDate = widget.event.startDate;
@@ -447,9 +449,9 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
         ),
       );
       // Refresh events list
-      ref.read(eventsNotifierProvider.notifier).refresh();
+      unawaited(ref.read(eventsNotifierProvider.notifier).refresh());
       // Also update the detail view
-      ref.read(eventDetailNotifierProvider.notifier).loadEvent(widget.event.id);
+      unawaited(ref.read(eventDetailNotifierProvider.notifier).loadEvent(widget.event.id));
       context.pop();
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -39,8 +41,8 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(eventsNotifierProvider.notifier).refresh();
-      ref.read(pastEventsNotifierProvider.notifier).refresh();
+      unawaited(ref.read(eventsNotifierProvider.notifier).refresh());
+      unawaited(ref.read(pastEventsNotifierProvider.notifier).refresh());
     });
   }
 
@@ -113,13 +115,13 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
                   onTap: () {
                     setState(() => _selectedCategory = null);
                     if (_tabController.index == 0) {
-                      ref
+                      unawaited(ref
                           .read(eventsNotifierProvider.notifier)
-                          .loadUpcomingEvents();
+                          .loadUpcomingEvents());
                     } else {
-                      ref
+                      unawaited(ref
                           .read(pastEventsNotifierProvider.notifier)
-                          .loadPastEvents();
+                          .loadPastEvents());
                     }
                   },
                 ),
@@ -130,13 +132,13 @@ class _EventsScreenState extends ConsumerState<EventsScreen>
                     onTap: () {
                       setState(() => _selectedCategory = category);
                       if (_tabController.index == 0) {
-                        ref
+                        unawaited(ref
                             .read(eventsNotifierProvider.notifier)
-                            .loadEventsByCategory(category);
+                            .loadEventsByCategory(category));
                       } else {
-                        ref
+                        unawaited(ref
                             .read(pastEventsNotifierProvider.notifier)
-                            .loadPastEventsByCategory(category);
+                            .loadPastEventsByCategory(category));
                       }
                     },
                   ),
@@ -573,7 +575,7 @@ class _EventCardState extends ConsumerState<_EventCard> {
       },
       (_) {
         // Rafraîchit la liste pour mettre à jour le compteur et l'état du bouton.
-        ref.read(eventsNotifierProvider.notifier).refresh();
+        unawaited(ref.read(eventsNotifierProvider.notifier).refresh());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.registrationConfirmed),

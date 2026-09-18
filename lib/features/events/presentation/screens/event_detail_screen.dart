@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,15 +46,15 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   void initState() {
     super.initState();
     // Événement ouvert : ses notifications (rappel, participation) sont lues.
-    NotificationReadSync.markTargetRead(
+    unawaited(NotificationReadSync.markTargetRead(
       widget.eventId,
       keys: const ['eventId', 'targetId', 'target_id'],
-    );
+    ));
     if (widget.initialEvent == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref
+        unawaited(ref
             .read(eventDetailNotifierProvider.notifier)
-            .loadEvent(widget.eventId);
+            .loadEvent(widget.eventId));
       });
     }
   }
@@ -174,7 +176,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                       child: Icon(Icons.edit, color: context.textPrimaryColor),
                     ),
                     onPressed: () {
-                      context.push('/events/${event.id}/edit', extra: event);
+                      unawaited(context.push('/events/${event.id}/edit', extra: event));
                     },
                   ),
                 IconButton(
@@ -187,10 +189,10 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                     child: Icon(Icons.share, color: context.textPrimaryColor),
                   ),
                   onPressed: () {
-                    AnalyticsService.instance.logEvent(
+                    unawaited(AnalyticsService.instance.logEvent(
                       name: 'share_event',
                       parameters: {'event_id': event.id},
-                    );
+                    ));
                     _shareEvent(event);
                   },
                 ),
@@ -935,10 +937,10 @@ Voir plus de d\u00e9tails sur DiaspoNiger
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            context.push(
+                            unawaited(context.push(
                               '/events/${event.id}/edit',
                               extra: event,
-                            );
+                            ));
                           },
                           icon: const Icon(Icons.edit),
                           label: Text(l10n.edit),
@@ -1143,7 +1145,7 @@ Voir plus de d\u00e9tails sur DiaspoNiger
     ).showSnackBar(SnackBar(content: Text(l10n.eventDeleted)));
     // `deleteEvent` a déjà retiré l'événement de toutes les listes
     // (`forgetDeletedEvent`) ; on relit « À venir » pour la suite.
-    ref.read(eventsNotifierProvider.notifier).refresh();
+    unawaited(ref.read(eventsNotifierProvider.notifier).refresh());
     // Ouvert par lien profond, l'écran est seul dans la pile : `pop()` ne
     // ferait rien et laisserait la fiche d'un événement qui n'existe plus.
     if (context.canPop()) {
@@ -1206,7 +1208,7 @@ Niger Diaspora
       date: event.startDate,
     );
 
-    ShareOptionsSheet.show(
+    unawaited(ShareOptionsSheet.show(
       context,
       url: link,
       subject: event.title,
@@ -1221,7 +1223,7 @@ Niger Diaspora
             event.posterUrls.isNotEmpty ? event.posterUrls.first : null,
         message: '📅 ${event.title}',
       ),
-    );
+    ));
   }
 }
 

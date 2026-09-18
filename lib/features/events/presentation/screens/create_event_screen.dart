@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -372,14 +374,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     }
 
     if (success) {
-      AnalyticsService.instance.logEvent(
+      unawaited(AnalyticsService.instance.logEvent(
         name: 'create_event',
         parameters: {
           'category': _selectedCategory.name,
           'is_online': _isOnline,
           'has_posters': _selectedPosters.isNotEmpty,
         },
-      );
+      ));
       // Bulle événement dans la discussion d'origine (DM ou chat de groupe).
       await _postEventBubble(created);
     }
@@ -399,9 +401,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         ),
       );
       // Refresh events list
-      ref.read(eventsNotifierProvider.notifier).refresh();
+      unawaited(ref.read(eventsNotifierProvider.notifier).refresh());
       // Refresh home stats
-      ref.read(homeStatsNotifierProvider.notifier).refresh();
+      unawaited(ref.read(homeStatsNotifierProvider.notifier).refresh());
       context.pop();
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -525,7 +527,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         double.tryParse(_priceController.text.trim().replaceAll(',', '.')) ??
         0.0;
 
-    showModalBottomSheet<void>(
+    unawaited(showModalBottomSheet<void>(
       context: context,
       backgroundColor: context.backgroundColor,
       isScrollControlled: true,
@@ -610,7 +612,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
               ),
             ),
           ),
-    );
+    ));
   }
 
   @override

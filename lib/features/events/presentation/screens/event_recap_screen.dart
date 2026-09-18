@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -161,9 +163,9 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
               ),
             );
             // Refresh event detail
-            ref
+            unawaited(ref
                 .read(eventDetailNotifierProvider.notifier)
-                .loadEvent(widget.event.id);
+                .loadEvent(widget.event.id));
             context.pop();
           }
         },
