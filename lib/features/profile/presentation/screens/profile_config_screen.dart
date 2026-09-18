@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -290,7 +291,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
     if (_currentStep < _stepCount - 1) {
       setState(() => _currentStep++);
     } else {
-      _handleComplete(currentUser);
+      unawaited(_handleComplete(currentUser));
     }
   }
 
@@ -935,12 +936,12 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
 
   void _selectThemeMode(AppThemeMode mode) {
     setState(() => _selectedThemeMode = mode);
-    ref.read(themeModeNotifierProvider.notifier).setThemeMode(mode);
+    unawaited(ref.read(themeModeNotifierProvider.notifier).setThemeMode(mode));
   }
 
   void _selectThemeColor(AppThemeColor color) {
     setState(() => _selectedThemeColor = color);
-    ref.read(themeColorNotifierProvider.notifier).setThemeColor(color);
+    unawaited(ref.read(themeColorNotifierProvider.notifier).setThemeColor(color));
   }
 
   /// Récapitulatif de fin : le pourcentage est calculé sur les champs
@@ -979,7 +980,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
 
   Future<void> _showImagePickerOptions() async {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder:
@@ -1010,7 +1011,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                   subtitle: l10n.takePhotoSubtitle,
                   onTap: () {
                     Navigator.pop(context);
-                    _pickImage(ImageSource.camera);
+                    unawaited(_pickImage(ImageSource.camera));
                   },
                 ),
                 _ImagePickerOption(
@@ -1022,7 +1023,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
                   subtitle: l10n.gallerySubtitle,
                   onTap: () {
                     Navigator.pop(context);
-                    _pickImage(ImageSource.gallery);
+                    unawaited(_pickImage(ImageSource.gallery));
                   },
                 ),
                 if (_photoUrl != null)
@@ -1040,7 +1041,7 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
               ],
             ),
           ),
-    );
+    ));
   }
 
   Future<void> _pickImage(ImageSource source) async {

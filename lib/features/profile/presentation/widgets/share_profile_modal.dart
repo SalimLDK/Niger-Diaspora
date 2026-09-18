@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -77,8 +79,8 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
       parent: _animationController,
       curve: Curves.easeOutBack,
     );
-    _animationController.forward();
-    _generateLink();
+    unawaited(_animationController.forward());
+    unawaited(_generateLink());
   }
 
   @override
@@ -426,7 +428,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
                 _isLoading = true;
                 _errorMessage = null;
               });
-              _generateLink();
+              unawaited(_generateLink());
             },
             icon: const Icon(Icons.refresh_rounded),
             label: Text(l10n.retry),
@@ -675,7 +677,7 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
       child: OutlinedButton.icon(
         onPressed: () {
           Navigator.pop(context);
-          context.push('/qr-scanner');
+          unawaited(context.push('/qr-scanner'));
         },
         icon: Icon(
           Icons.qr_code_scanner_rounded,
@@ -701,8 +703,8 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
 
   void _copyLink() {
     if (_shareUrl != null) {
-      HapticFeedback.mediumImpact();
-      Clipboard.setData(ClipboardData(text: _shareUrl!));
+      unawaited(HapticFeedback.mediumImpact());
+      unawaited(Clipboard.setData(ClipboardData(text: _shareUrl!)));
       setState(() => _copied = true);
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
