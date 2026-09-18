@@ -48,7 +48,7 @@ final callMessageServiceProvider = Provider<CallMessageService>((ref) {
 /// Provider for NativeCallService (CallKit/ConnectionService)
 final nativeCallServiceProvider = Provider<NativeCallService>((ref) {
   final service = NativeCallService.instance;
-  service.initialize();
+  unawaited(service.initialize());
   return service;
 });
 
@@ -250,15 +250,15 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
       _ringingTimeoutTimer?.cancel();
       _connectionTimeoutTimer?.cancel();
       _heartbeatTimer?.cancel();
-      _connectionStateSubscription?.cancel();
-      _videoUpgradeRequestSubscription?.cancel();
-      _videoUpgradeResponseSubscription?.cancel();
-      _networkDegradationSubscription?.cancel();
-      _remoteHeartbeatSubscription?.cancel();
+      unawaited(_connectionStateSubscription?.cancel());
+      unawaited(_videoUpgradeRequestSubscription?.cancel());
+      unawaited(_videoUpgradeResponseSubscription?.cancel());
+      unawaited(_networkDegradationSubscription?.cancel());
+      unawaited(_remoteHeartbeatSubscription?.cancel());
     });
 
     // Cleanup stale calls from previous session (crash recovery)
-    Future.microtask(() => _cleanupStaleCalls());
+    unawaited(Future.microtask(() => _cleanupStaleCalls()));
 
     return const CurrentCallState();
   }
@@ -406,7 +406,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     _ringingTimeoutTimer = Timer(_ringingTimeout, () {
       if (state.isRinging && state.call?.id == callId) {
         debugPrint('CurrentCallNotifier: Ringing timeout reached for call $callId');
-        endCall(reason: 'no_answer');
+        unawaited(endCall(reason: 'no_answer'));
       }
     });
   }
@@ -427,7 +427,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
           error: 'Échec de la connexion',
           errorCode: 'connection_timeout',
         );
-        endCall(reason: 'connection_timeout');
+        unawaited(endCall(reason: 'connection_timeout'));
       }
     });
   }
@@ -513,7 +513,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     final webrtc = ref.read(webRTCServiceProvider);
 
     // Listen to connection state changes
-    _connectionStateSubscription?.cancel();
+    unawaited(_connectionStateSubscription?.cancel());
     _connectionStateSubscription = webrtc.connectionStateStream.listen((
       rtcState,
     ) {
@@ -537,7 +537,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     });
 
     // Listen for video upgrade requests from the other party
-    _videoUpgradeRequestSubscription?.cancel();
+    unawaited(_videoUpgradeRequestSubscription?.cancel());
     _videoUpgradeRequestSubscription = webrtc.videoUpgradeRequestStream.listen((
       _,
     ) {
@@ -547,7 +547,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     });
 
     // Listen for video upgrade responses to our request
-    _videoUpgradeResponseSubscription?.cancel();
+    unawaited(_videoUpgradeResponseSubscription?.cancel());
     _videoUpgradeResponseSubscription = webrtc.videoUpgradeResponseStream
         .listen((accepted) {
           state = state.copyWith(
@@ -571,7 +571,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
         });
 
     // Listen for network degradation events (automatic video disable on poor network)
-    _networkDegradationSubscription?.cancel();
+    unawaited(_networkDegradationSubscription?.cancel());
     _networkDegradationSubscription = webrtc.networkDegradationStream.listen((
       event,
     ) {
@@ -631,16 +631,18 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
 
     // Update call status to connected
     if (state.call != null) {
-      ref
+      unawaited(ref
           .read(callRepositoryProvider)
-          .updateCallStatus(state.call!.id, CallStatus.connected);
+          .updateCallStatus(state.call!.id, CallStatus.connected));
 
       // Start heartbeat mechanism
       _startHeartbeat();
     }
 
     // Update native call UI to connected state
-    ref.read(nativeCallServiceProvider).setCallConnected();
+    unawaited(ref.read(nativeCallServiceProvider).setCallConnected().catchError((e) {
+      debugPrint('CurrentCallNotifier: setCallConnected a échoué: $e');
+    }));
 
     state = state.copyWith(
       isConnecting: false,
@@ -667,7 +669,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     debugPrint('CurrentCallNotifier: Starting heartbeat - myId: ${currentUser.id}, remoteId: $remoteUserId');
 
     // Send heartbeat immediately
-    repository.sendHeartbeat(call.id, currentUser.id);
+    unawaited(repository.sendHeartbeat(call.id, currentUser.id));
     _lastRemoteHeartbeat = DateTime.now(); // Assume remote is alive initially
     debugPrint('CurrentCallNotifier: Initial heartbeat sent, assuming remote alive');
 
@@ -676,13 +678,13 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     _heartbeatTimer = Timer.periodic(_heartbeatInterval, (_) {
       if (state.call != null && state.isConnected) {
         debugPrint('CurrentCallNotifier: Sending heartbeat...');
-        repository.sendHeartbeat(call.id, currentUser.id);
+        unawaited(repository.sendHeartbeat(call.id, currentUser.id));
         _checkRemoteHeartbeat();
       }
     });
 
     // Watch remote heartbeat
-    _remoteHeartbeatSubscription?.cancel();
+    unawaited(_remoteHeartbeatSubscription?.cancel());
     _remoteHeartbeatSubscription = repository
         .watchRemoteHeartbeat(call.id, remoteUserId)
         .listen((result) {
@@ -727,7 +729,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
       }
 
       debugPrint('CurrentCallNotifier: Remote party heartbeat timeout (${timeSinceLastHeartbeat.inSeconds}s) AND WebRTC disconnected - ENDING CALL');
-      endCall(reason: 'remote_heartbeat_timeout');
+      unawaited(endCall(reason: 'remote_heartbeat_timeout'));
     }
   }
 
@@ -735,7 +737,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
   void _stopHeartbeat() {
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
-    _remoteHeartbeatSubscription?.cancel();
+    unawaited(_remoteHeartbeatSubscription?.cancel());
     _remoteHeartbeatSubscription = null;
     _lastRemoteHeartbeat = null;
   }
@@ -744,7 +746,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
   void _onCallDisconnected() {
     debugPrint('CurrentCallNotifier: WebRTC disconnected/failed - ending call');
     debugPrint('CurrentCallNotifier: Call state - isConnected: ${state.isConnected}, isConnecting: ${state.isConnecting}, duration: ${state.duration}');
-    endCall(reason: 'disconnected');
+    unawaited(endCall(reason: 'disconnected'));
   }
 
   /// Start the call duration timer
@@ -1130,13 +1132,13 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     _cancelAllTimers();
     // La souscription à l'état WebRTC doit mourir avec l'appel : sinon un
     // évènement `disconnected` tardif rappelait endCall() sur l'appel SUIVANT.
-    _connectionStateSubscription?.cancel();
+    unawaited(_connectionStateSubscription?.cancel());
     _connectionStateSubscription = null;
-    _videoUpgradeRequestSubscription?.cancel();
+    unawaited(_videoUpgradeRequestSubscription?.cancel());
     _videoUpgradeRequestSubscription = null;
-    _videoUpgradeResponseSubscription?.cancel();
+    unawaited(_videoUpgradeResponseSubscription?.cancel());
     _videoUpgradeResponseSubscription = null;
-    _networkDegradationSubscription?.cancel();
+    unawaited(_networkDegradationSubscription?.cancel());
     _networkDegradationSubscription = null;
     _stopHeartbeat();
     state = const CurrentCallState();
@@ -1184,7 +1186,7 @@ class CallNotificationHandler extends Notifier<void> {
 
     // Check for pending calls when app starts (handles case where user
     // accepted call from native UI while app was killed/background)
-    _checkPendingCallsOnStart();
+    unawaited(_checkPendingCallsOnStart());
 
     // Listen for incoming calls and show native call UI
     ref.listen<CallEntity?>(incomingCallProvider, (previous, next) {
@@ -1193,12 +1195,12 @@ class CallNotificationHandler extends Notifier<void> {
         _handleIncomingCall(next);
       } else if (next == null && previous != null) {
         // Call ended - hide native call UI
-        _hideNativeCallUI();
+        unawaited(_hideNativeCallUI());
       }
     });
 
     ref.onDispose(() {
-      _nativeCallSubscription?.cancel();
+      unawaited(_nativeCallSubscription?.cancel());
     });
   }
 
@@ -1233,7 +1235,7 @@ class CallNotificationHandler extends Notifier<void> {
   /// Listen to events from native call UI (user actions on lock screen)
   void _listenToNativeCallEvents() {
     final nativeService = ref.read(nativeCallServiceProvider);
-    _nativeCallSubscription?.cancel();
+    unawaited(_nativeCallSubscription?.cancel());
     _nativeCallSubscription = nativeService.eventStream.listen((event) {
       _handleNativeCallEvent(event);
     });
@@ -1248,12 +1250,12 @@ class CallNotificationHandler extends Notifier<void> {
       case NativeCallEvent.accepted:
         // User accepted call from native UI
         if (incomingCall != null) {
-          ref.read(currentCallProvider.notifier).answerCall(incomingCall);
+          unawaited(ref.read(currentCallProvider.notifier).answerCall(incomingCall));
         } else {
           // App was in background - fetch call from repository using callId
           final callId = event.callId;
           if (callId.isNotEmpty) {
-            _answerCallFromBackground(callId);
+            unawaited(_answerCallFromBackground(callId));
           }
         }
         break;
@@ -1261,12 +1263,12 @@ class CallNotificationHandler extends Notifier<void> {
       case NativeCallEvent.declined:
         // User declined call from native UI
         if (incomingCall != null) {
-          ref.read(currentCallProvider.notifier).declineCall(incomingCall.id);
+          unawaited(ref.read(currentCallProvider.notifier).declineCall(incomingCall.id));
         } else {
           // App was in background - decline using callId
           final callId = event.callId;
           if (callId.isNotEmpty) {
-            ref.read(currentCallProvider.notifier).declineCall(callId);
+            unawaited(ref.read(currentCallProvider.notifier).declineCall(callId));
           }
         }
         break;
@@ -1274,14 +1276,14 @@ class CallNotificationHandler extends Notifier<void> {
       case NativeCallEvent.ended:
         // User ended call from native UI
         if (currentCallState.call != null) {
-          ref.read(currentCallProvider.notifier).endCall(reason: 'user_ended');
+          unawaited(ref.read(currentCallProvider.notifier).endCall(reason: 'user_ended'));
         }
         break;
 
       case NativeCallEvent.timeout:
         // Call timed out (not answered)
         if (incomingCall != null) {
-          ref.read(currentCallProvider.notifier).declineCall(incomingCall.id);
+          unawaited(ref.read(currentCallProvider.notifier).declineCall(incomingCall.id));
         }
         break;
 
@@ -1338,11 +1340,11 @@ class CallNotificationHandler extends Notifier<void> {
             '(status=${call.status}, age=${age.inSeconds}s) + CallKit cleanup',
           );
           // Purge l'entrée CallKit résiduelle pour stopper la récurrence.
-          ref.read(nativeCallServiceProvider).endAllCalls();
+          unawaited(ref.read(nativeCallServiceProvider).endAllCalls());
           return;
         }
         debugPrint('CallNotificationHandler: Found call, answering...');
-        ref.read(currentCallProvider.notifier).answerCall(call);
+        unawaited(ref.read(currentCallProvider.notifier).answerCall(call));
       },
     );
   }
@@ -1360,21 +1362,23 @@ class CallNotificationHandler extends Notifier<void> {
       required bool isVideo,
     }) {
       // Show native call UI immediately for background calls
-      _showNativeCallUI(
+      unawaited(_showNativeCallUI(
         callId: callId,
         callerName: callerName,
         callerPhotoUrl: callerPhotoUrl,
         isVideo: isVideo,
-      );
+      ).catchError((e) {
+        debugPrint('CallNotificationHandler: _showNativeCallUI a échoué: $e');
+      }));
 
       // Also fetch the call from repository
-      _handleIncomingCallFromNotification(
+      unawaited(_handleIncomingCallFromNotification(
         callId: callId,
         callerId: callerId,
         callerName: callerName,
         callerPhotoUrl: callerPhotoUrl,
         isVideo: isVideo,
-      );
+      ));
     });
 
     // Handle call status changes from FCM notification
@@ -1443,23 +1447,25 @@ class CallNotificationHandler extends Notifier<void> {
     if (currentCallState.call?.id == callId) {
       if (status == 'declined' || status == 'missed') {
         // End our call UI
-        ref.read(currentCallProvider.notifier).endCall(reason: status);
+        unawaited(ref.read(currentCallProvider.notifier).endCall(reason: status));
       }
     }
 
     // Also hide native call UI
     if (status == 'declined' || status == 'missed' || status == 'ended') {
-      _hideNativeCallUI();
+      unawaited(_hideNativeCallUI());
     }
   }
 
   void _handleIncomingCall(CallEntity call) {
     // Show native call UI (CallKit on iOS, full-screen notification on Android)
-    _showNativeCallUI(
+    unawaited(_showNativeCallUI(
       callId: call.id,
       callerName: call.callerName,
       callerPhotoUrl: call.callerPhotoUrl,
       isVideo: call.type == CallType.video,
-    );
+    ).catchError((e) {
+      debugPrint('CallNotificationHandler: _showNativeCallUI a échoué: $e');
+    }));
   }
 }
