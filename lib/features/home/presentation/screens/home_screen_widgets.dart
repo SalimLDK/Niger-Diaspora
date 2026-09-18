@@ -1460,9 +1460,17 @@ class _NotifyNextToggle extends ConsumerWidget {
           ),
           Switch.adaptive(
             value: enabled,
-            onChanged: (v) => ref
-                .read(notificationPreferencesNotifierProvider.notifier)
-                .setLocalEventsEnabled(v),
+            // Le notifier revient en arrière et rend `false` si la colonne
+            // serveur n'a pas suivi : c'est elle qui choisit les destinataires,
+            // la bascule affichait « activé » sans commander rien.
+            onChanged: (v) => unawaited(
+              reportIfFailed(
+                context,
+                ref
+                    .read(notificationPreferencesNotifierProvider.notifier)
+                    .setLocalEventsEnabled(v),
+              ),
+            ),
             activeThumbColor: _homeGreen,
           ),
         ],

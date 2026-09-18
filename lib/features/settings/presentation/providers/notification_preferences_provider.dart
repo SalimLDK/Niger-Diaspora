@@ -2,7 +2,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/logger_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../profile/domain/entities/profile_entity.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 
 part 'notification_preferences_provider.g.dart';
@@ -110,6 +109,25 @@ class NotificationPreferencesNotifier
     );
   }
 
+  /// Une écriture à la fois.
+  ///
+  /// Chaque écriture qui échoue **revient à la valeur d'avant** — et cette
+  /// valeur n'a de sens que si aucune autre écriture n'est en vol. Sans file,
+  /// deux bascules rapides sur un réseau lent, dont la première échoue,
+  /// laissaient le local et le serveur en désaccord : la seconde envoie la carte
+  /// ENTIÈRE, donc la première bascule avec elle, puis la première revient en
+  /// arrière sur le local seul.
+  ///
+  /// La file continue même si un travail lève : une exception ne doit jamais
+  /// bloquer les écritures suivantes.
+  Future<void> _queue = Future<void>.value();
+
+  Future<bool> _serialized(Future<bool> Function() job) {
+    final result = _queue.then((_) => job());
+    _queue = result.then<void>((_) {}, onError: (Object _) {});
+    return result;
+  }
+
   /// Interrupteur maître des notifications — **seul propriétaire** de ce
   /// réglage, et il écrit ses deux étages.
   ///
@@ -135,7 +153,7 @@ class NotificationPreferencesNotifier
   ///
   /// C'est à l'écran de dire l'échec (`reportIfFailed`) ; rendre un booléen
   /// plutôt que lever, parce que l'appel se fait en `unawaited(...)`.
-  Future<bool> setMasterEnabled(bool enabled) async {
+  Future<bool> setMasterEnabled(bool enabled) => _serialized(() async {
     final before = state.masterEnabled;
     await _prefs.setNotificationsEnabled(enabled);
     state = state.copyWith(masterEnabled: enabled);
@@ -144,13 +162,14 @@ class NotificationPreferencesNotifier
     try {
       final userId = (await ref.read(currentUserAsyncProvider.future))?.id;
       if (userId != null) {
-        final profile = await _loadProfileFor(userId);
+        final notifier = ref.read(profileNotifierProvider(userId).notifier);
+        final profile = await notifier.currentProfile();
         if (profile == null) {
           throw StateError('Profil introuvable : étage serveur non écrit');
         }
-        await ref
-            .read(profileNotifierProvider(userId).notifier)
-            .updateProfile(profile.copyWith(notificationsEnabled: enabled));
+        await notifier.updateProfile(
+          profile.copyWith(notificationsEnabled: enabled),
+        );
         // `updateProfile` pose une erreur au lieu de lever.
         if (ref.read(profileNotifierProvider(userId)).hasError) {
           throw StateError('Écriture de notifications_enabled refusée');
@@ -159,105 +178,153 @@ class NotificationPreferencesNotifier
       return true;
     } catch (e, s) {
       LoggerService.w('NotificationPreferences.setMasterEnabled: échec', e, s);
-      await _prefs.setNotificationsEnabled(before);
-      state = state.copyWith(masterEnabled: before);
+      await _rollback(() async {
+        await _prefs.setNotificationsEnabled(before);
+        state = state.copyWith(masterEnabled: before);
+      });
       return false;
+    }
+  });
+
+  /// Retour en arrière d'une écriture refusée. Ne lève jamais : si le
+  /// notifier a été libéré entre-temps, personne n'affiche plus cet état.
+  Future<void> _rollback(Future<void> Function() undo) async {
+    try {
+      await undo();
+    } catch (e, s) {
+      LoggerService.w('NotificationPreferences: retour arrière impossible', e, s);
     }
   }
 
-  /// Profil courant, quitte à le charger.
-  ///
-  /// `profileNotifierProvider` est un StateNotifierProvider **autoDispose** :
-  /// son `_loadProfile()` ne pose `state` de façon synchrone que s'il trouve un
-  /// cache. Sans cache — après un redémarrage, ou si le profil n'a pas encore
-  /// été consulté — un `read(...).valueOrNull` juste après le `read` rend
-  /// `null`, et l'étage serveur (la colonne que lit `send-push`) était sauté en
-  /// silence : la bascule n'éteignait alors que l'affichage local, le back-end
-  /// continuant de pousser alors que l'interrupteur affichait « désactivé ».
-  ///
-  /// Même famille que le piège `currentUserAsyncProvider`, sur un provider
-  /// différent — mais un StateNotifierProvider n'expose pas de `.future`,
-  /// d'où le repli explicite sur le dépôt.
-  ///
-  /// Vérifié sur appareil le 2026-08-06 : la bascule écrit désormais
-  /// `users.notifications_enabled` (true → false → true).
-  Future<ProfileEntity?> _loadProfileFor(String userId) async {
-    final cached = ref.read(profileNotifierProvider(userId)).valueOrNull;
-    if (cached != null) return cached;
-    final result = await ref.read(profileRepositoryProvider).getProfile(userId);
-    return result.fold((_) => null, (profile) => profile);
-  }
-
   /// Recopie **toutes** les préférences par type dans
-  /// `users.notification_prefs`, seule version que `send-push` consulte.
+  /// `users.notification_prefs`, seule version que `send-push` consulte — et,
+  /// pour un réglage qui en a une, dans sa colonne dédiée [writeColumn].
   ///
-  /// Appelé après chaque bascule : la préférence locale ne décide que de
-  /// l'affichage au premier plan (`_shouldShowNotification`), pas de l'envoi.
-  /// Sans cette recopie, couper « Messages » ne coupait rien dès que l'app
-  /// était fermée. On envoie la carte entière plutôt que la clé touchée : elle
-  /// est petite, et ça réconcilie au passage un appareil désynchronisé.
-  Future<void> _syncTypePrefsToServer() async {
+  /// La préférence locale ne décide que de l'affichage au premier plan
+  /// (`_shouldShowNotification`), pas de l'envoi. Sans cette recopie, couper
+  /// « Messages » ne coupait rien dès que l'app était fermée. On envoie la
+  /// carte entière plutôt que la clé touchée : elle est petite, et ça
+  /// réconcilie au passage un appareil désynchronisé.
+  ///
+  /// **Lève si le serveur refuse.** Elle avalait l'échec (« Best effort : la
+  /// préférence locale est déjà écrite, l'appareil se resynchronisera à la
+  /// bascule suivante »). Or l'utilisateur qui voit « Messages » sur
+  /// « désactivé » ne rebascule pas : local et serveur restaient en désaccord,
+  /// sans un signal, et le back-end continuait de pousser.
+  ///
+  /// Deux écritures (colonne, puis carte) ne sont pas atomiques : si la carte
+  /// échoue après la colonne, on **remet la colonne**, sinon c'est elle qui
+  /// diverge de la préférence locale, revenue en arrière.
+  Future<void> _writeToServer({
+    required bool enabled,
+    required bool before,
+    Future<void> Function(String userId, bool value)? writeColumn,
+  }) async {
     final userId = (await ref.read(currentUserAsyncProvider.future))?.id;
+    // Pas de compte : rien à synchroniser, la préférence reste locale.
     if (userId == null) return;
+
+    if (writeColumn != null) await writeColumn(userId, enabled);
     try {
       await ref
           .read(profileRemoteDataSourceProvider)
           .updateNotificationPrefs(userId, _prefs.notificationTypePrefs);
     } catch (_) {
-      // Best effort : la préférence locale est déjà écrite, l'appareil se
-      // resynchronisera à la bascule suivante.
+      if (writeColumn != null) {
+        await _rollback(() => writeColumn(userId, before));
+      }
+      rethrow;
     }
   }
 
-  Future<void> setMessagesEnabled(bool enabled) async {
-    await _prefs.setNotifyMessages(enabled);
-    state = state.copyWith(messagesEnabled: enabled);
-    await _syncTypePrefsToServer();
-  }
+  /// Un réglage par type : préférence locale d'abord (l'interrupteur suit le
+  /// doigt), puis serveur. Si le serveur refuse, **retour à la valeur d'avant**
+  /// des deux côtés et `false` — voir [_writeToServer].
+  Future<bool> _setTypePref(
+    bool enabled, {
+    required bool Function(NotificationPreferences) read,
+    required Future<void> Function(bool) writeLocal,
+    required NotificationPreferences Function(NotificationPreferences, bool)
+    apply,
+    Future<void> Function(String userId, bool value)? writeColumn,
+  }) => _serialized(() async {
+    final before = read(state);
+    await writeLocal(enabled);
+    state = apply(state, enabled);
+    try {
+      await _writeToServer(
+        enabled: enabled,
+        before: before,
+        writeColumn: writeColumn,
+      );
+      return true;
+    } catch (e, s) {
+      LoggerService.w(
+        'NotificationPreferences: écriture serveur refusée, retour arrière',
+        e,
+        s,
+      );
+      await _rollback(() async {
+        await writeLocal(before);
+        state = apply(state, before);
+      });
+      return false;
+    }
+  });
 
-  Future<void> setEventsEnabled(bool enabled) async {
-    await _prefs.setNotifyEvents(enabled);
-    state = state.copyWith(eventsEnabled: enabled);
-    await _syncTypePrefsToServer();
-  }
+  Future<bool> setMessagesEnabled(bool enabled) => _setTypePref(
+    enabled,
+    read: (s) => s.messagesEnabled,
+    writeLocal: _prefs.setNotifyMessages,
+    apply: (s, v) => s.copyWith(messagesEnabled: v),
+  );
 
-  Future<void> setFriendRequestsEnabled(bool enabled) async {
-    await _prefs.setNotifyFriendRequests(enabled);
-    state = state.copyWith(friendRequestsEnabled: enabled);
-    await _syncTypePrefsToServer();
-  }
+  Future<bool> setEventsEnabled(bool enabled) => _setTypePref(
+    enabled,
+    read: (s) => s.eventsEnabled,
+    writeLocal: _prefs.setNotifyEvents,
+    apply: (s, v) => s.copyWith(eventsEnabled: v),
+  );
 
-  Future<void> setGroupsEnabled(bool enabled) async {
-    await _prefs.setNotifyGroups(enabled);
-    state = state.copyWith(groupsEnabled: enabled);
-    await _syncTypePrefsToServer();
-  }
+  Future<bool> setFriendRequestsEnabled(bool enabled) => _setTypePref(
+    enabled,
+    read: (s) => s.friendRequestsEnabled,
+    writeLocal: _prefs.setNotifyFriendRequests,
+    apply: (s, v) => s.copyWith(friendRequestsEnabled: v),
+  );
 
-  Future<void> setEventRemindersEnabled(bool enabled) async {
-    await _prefs.setNotifyEventReminders(enabled);
-    state = state.copyWith(eventRemindersEnabled: enabled);
-    await _syncTypePrefsToServer();
-  }
+  Future<bool> setGroupsEnabled(bool enabled) => _setTypePref(
+    enabled,
+    read: (s) => s.groupsEnabled,
+    writeLocal: _prefs.setNotifyGroups,
+    apply: (s, v) => s.copyWith(groupsEnabled: v),
+  );
 
-  Future<void> setLocalEventsEnabled(bool enabled) async {
-    await _prefs.setNotifyLocalEvents(enabled);
-    state = state.copyWith(localEventsEnabled: enabled);
+  Future<bool> setEventRemindersEnabled(bool enabled) => _setTypePref(
+    enabled,
+    read: (s) => s.eventRemindersEnabled,
+    writeLocal: _prefs.setNotifyEventReminders,
+    apply: (s, v) => s.copyWith(eventRemindersEnabled: v),
+  );
 
+  Future<bool> setLocalEventsEnabled(bool enabled) => _setTypePref(
+    enabled,
+    read: (s) => s.localEventsEnabled,
+    writeLocal: _prefs.setNotifyLocalEvents,
+    apply: (s, v) => s.copyWith(localEventsEnabled: v),
     // Colonne dédiée : les requêtes serveur ciblent les destinataires par
     // `notify_local_events`, elles ne fouillent pas le JSONB.
-    final userId = (await ref.read(currentUserAsyncProvider.future))?.id;
-    if (userId != null) {
-      final datasource = ref.read(profileRemoteDataSourceProvider);
-      await datasource.updateNotifyLocalEvents(userId, enabled);
-    }
-    await _syncTypePrefsToServer();
-  }
+    writeColumn: (userId, value) => ref
+        .read(profileRemoteDataSourceProvider)
+        .updateNotifyLocalEvents(userId, value),
+  );
 
-  Future<void> setSystemMessagesEnabled(bool enabled) async {
-    await _prefs.setNotifySystemMessages(enabled);
-    state = state.copyWith(systemMessagesEnabled: enabled);
-    await _syncTypePrefsToServer();
-  }
+  Future<bool> setSystemMessagesEnabled(bool enabled) => _setTypePref(
+    enabled,
+    read: (s) => s.systemMessagesEnabled,
+    writeLocal: _prefs.setNotifySystemMessages,
+    apply: (s, v) => s.copyWith(systemMessagesEnabled: v),
+  );
 
   Future<void> setSoundEnabled(bool enabled) async {
     await _prefs.setNotificationSound(enabled);

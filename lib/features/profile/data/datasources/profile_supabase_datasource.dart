@@ -492,13 +492,25 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
         .eq('id', userId);
   }
 
+  /// Lève si aucune ligne n'a été touchée.
+  ///
+  /// PostgREST rend 200 sur un `UPDATE` qui ne matche aucune ligne — RLS qui
+  /// cache la ligne, ou ligne pas encore créée. `_requireAuth` n'écarte que la
+  /// cause « pas de session ». Sans ce contrôle, `NotificationPreferencesNotifier`
+  /// prenait ce faux succès pour une écriture faite : local et serveur
+  /// divergeaient, et le back-end continuait d'envoyer.
+  Never _aucuneLigneTouchee() =>
+      throw ServerException('Réglage non enregistré : aucun compte mis à jour');
+
   @override
   Future<void> updateNotifyLocalEvents(String userId, bool enabled) async {
     await _requireAuth();
-    await _supabase
+    final touchees = await _supabase
         .from('users')
         .update({'notify_local_events': enabled})
-        .eq('id', userId);
+        .eq('id', userId)
+        .select('id');
+    if (touchees.isEmpty) _aucuneLigneTouchee();
   }
 
   @override
@@ -507,10 +519,12 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     Map<String, bool> prefs,
   ) async {
     await _requireAuth();
-    await _supabase
+    final touchees = await _supabase
         .from('users')
         .update({'notification_prefs': prefs})
-        .eq('id', userId);
+        .eq('id', userId)
+        .select('id');
+    if (touchees.isEmpty) _aucuneLigneTouchee();
   }
 
   Future<void> updateShowMessagePreview(String userId, bool show) async {

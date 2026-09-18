@@ -48,6 +48,14 @@ class NotificationSettingsScreen extends ConsumerWidget {
       };
     }
 
+    /// Les réglages par type écrivent aussi côté serveur : c'est lui qui
+    /// décide de l'envoi quand l'app est fermée. Le notifier rend `false` s'il
+    /// a dû revenir en arrière ; l'écran le dit. Avant, l'échec était avalé
+    /// (« Best effort ») et l'interrupteur restait sur une valeur que le
+    /// serveur n'avait jamais reçue.
+    ValueChanged<bool>? gatedSynced(Future<bool> Function(bool) write) =>
+        gated((value) => unawaited(reportIfFailed(context, write(value))));
+
     return Scaffold(
       backgroundColor: context.backgroundColor,
       appBar: AppBar(
@@ -92,7 +100,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 title: l10n.notifyMessages,
                 subtitle: 'Conversations et groupes',
                 value: preferences.messagesEnabled,
-                onChanged: gated(notifier.setMessagesEnabled),
+                onChanged: gatedSynced(notifier.setMessagesEnabled),
               ),
               DesignSettingsSwitchTile(
                 icon: const Icon(Icons.person_add_alt),
@@ -101,21 +109,21 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 // ici »), pas ce qui vous alerte.
                 subtitle: 'Quand quelqu\'un veut se connecter',
                 value: preferences.friendRequestsEnabled,
-                onChanged: gated(notifier.setFriendRequestsEnabled),
+                onChanged: gatedSynced(notifier.setFriendRequestsEnabled),
               ),
               DesignSettingsSwitchTile(
                 icon: const Icon(Icons.groups_outlined),
                 title: l10n.notifyGroups,
                 subtitle: l10n.groupActivity,
                 value: preferences.groupsEnabled,
-                onChanged: gated(notifier.setGroupsEnabled),
+                onChanged: gatedSynced(notifier.setGroupsEnabled),
               ),
               DesignSettingsSwitchTile(
                 icon: const Icon(Icons.event_outlined),
                 title: l10n.notifyEvents,
                 subtitle: 'Invitations et changements d\'horaire',
                 value: preferences.eventsEnabled,
-                onChanged: gated(notifier.setEventsEnabled),
+                onChanged: gatedSynced(notifier.setEventsEnabled),
               ),
               DesignSettingsSwitchTile(
                 icon: const Icon(Icons.alarm),
@@ -123,21 +131,21 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 // `eventReminders` répétait le titre mot pour mot.
                 subtitle: 'La veille et une heure avant',
                 value: preferences.eventRemindersEnabled,
-                onChanged: gated(notifier.setEventRemindersEnabled),
+                onChanged: gatedSynced(notifier.setEventRemindersEnabled),
               ),
               DesignSettingsSwitchTile(
                 icon: const Icon(Icons.location_on_outlined),
                 title: l10n.localEvents,
                 subtitle: l10n.profileNewEventsInCity,
                 value: preferences.localEventsEnabled,
-                onChanged: gated(notifier.setLocalEventsEnabled),
+                onChanged: gatedSynced(notifier.setLocalEventsEnabled),
               ),
               DesignSettingsSwitchTile(
                 icon: const Icon(Icons.shield_outlined),
                 title: l10n.systemMessages,
                 subtitle: 'Sécurité, mises à jour importantes',
                 value: preferences.systemMessagesEnabled,
-                onChanged: gated(notifier.setSystemMessagesEnabled),
+                onChanged: gatedSynced(notifier.setSystemMessagesEnabled),
               ),
             ],
           ),
