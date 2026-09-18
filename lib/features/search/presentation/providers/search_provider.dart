@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -19,7 +21,7 @@ class SearchNotifier extends _$SearchNotifier {
 
   @override
   SearchState build() {
-    loadRecentSearches();
+    unawaited(loadRecentSearches());
     return const SearchState();
   }
 

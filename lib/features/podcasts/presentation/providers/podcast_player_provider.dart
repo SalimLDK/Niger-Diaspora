@@ -95,8 +95,8 @@ class PodcastPlayerNotifier extends Notifier<PodcastPlayerState> {
   @override
   PodcastPlayerState build() {
     ref.onDispose(() {
-      _playbackStateSubscription?.cancel();
-      _mediaItemSubscription?.cancel();
+      unawaited(_playbackStateSubscription?.cancel());
+      unawaited(_mediaItemSubscription?.cancel());
     });
     _setupListeners();
     return PodcastPlayerState.initial();
@@ -104,7 +104,7 @@ class PodcastPlayerNotifier extends Notifier<PodcastPlayerState> {
 
   void _setupListeners() {
     // Defer handler access until after initialization
-    Future.microtask(() async {
+    unawaited(Future.microtask(() async {
       try {
         _handler = await AudioService.init(
           builder: () => PodcastAudioHandler(),
@@ -156,7 +156,7 @@ class PodcastPlayerNotifier extends Notifier<PodcastPlayerState> {
           debugPrint('Error initializing AudioService: $e');
         }
       }
-    });
+    }));
   }
 
   /// Play a podcast episode

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,7 +50,7 @@ class LivePodcastNotifier extends Notifier<LivePodcastState> {
   LivePodcastState build() {
     ref.onDispose(() {
       if (LiveKitService.instance.isConnected) {
-        LiveKitService.instance.leaveRoom();
+        unawaited(LiveKitService.instance.leaveRoom());
       }
     });
     return const LivePodcastState();

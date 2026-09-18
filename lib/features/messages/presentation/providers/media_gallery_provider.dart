@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -60,7 +62,7 @@ class ConversationMedia extends _$ConversationMedia {
   @override
   MediaGalleryState build(String conversationId) {
     // Charger les médias immédiatement
-    _loadInitial();
+    unawaited(_loadInitial());
     return const MediaGalleryState(isLoading: true);
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -74,7 +76,7 @@ class OnboardingNotifier extends _$OnboardingNotifier {
     ref.onDispose(() => _dispose = true);
 
     if (user != null) {
-      _loadOnboardingStatus();
+      unawaited(_loadOnboardingStatus());
     }
 
     _listenToAuthChanges();
@@ -94,7 +96,7 @@ class OnboardingNotifier extends _$OnboardingNotifier {
   void _listenToAuthChanges() {
     ref.read(firebaseAuthProvider).authStateChanges().listen((user) {
       if (user != null) {
-        _loadOnboardingStatus();
+        unawaited(_loadOnboardingStatus());
       }
     });
   }

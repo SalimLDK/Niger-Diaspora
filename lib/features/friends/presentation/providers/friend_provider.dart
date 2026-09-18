@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/notification_read_sync.dart';
@@ -193,11 +195,11 @@ class FriendRequestNotifier extends _$FriendRequestNotifier {
   /// la notification « demande d'ami » n'appelle plus d'action.
   void _markRequestNotificationRead(String? senderId) {
     if (senderId == null || senderId.isEmpty) return;
-    NotificationReadSync.markTargetRead(
+    unawaited(NotificationReadSync.markTargetRead(
       senderId,
       keys: const ['senderId', 'sender_id', 'actor_id', 'targetId', 'target_id'],
       type: 'friendRequest',
-    );
+    ));
   }
 
   Future<bool> cancelRequest(String requestId, {String? receiverId}) async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/network/network_info.dart';
@@ -30,7 +32,7 @@ ReviewRepository reviewRepository(Ref ref) {
 class BusinessReviewsNotifier extends _$BusinessReviewsNotifier {
   @override
   AsyncValue<List<ReviewEntity>> build(String businessId) {
-    loadReviews(businessId);
+    unawaited(loadReviews(businessId));
     return const AsyncValue.loading();
   }
 
@@ -57,7 +59,7 @@ class UserBusinessReviewNotifier extends _$UserBusinessReviewNotifier {
   AsyncValue<ReviewEntity?> build(String businessId) {
     final user = ref.watch(currentUserProvider).valueOrNull;
     if (user != null) {
-      loadUserReview(businessId, user.id);
+      unawaited(loadUserReview(businessId, user.id));
     }
     return const AsyncValue.loading();
   }
@@ -81,7 +83,7 @@ class UserReviewsNotifier extends _$UserReviewsNotifier {
   AsyncValue<List<ReviewEntity>> build() {
     final user = ref.watch(currentUserProvider).valueOrNull;
     if (user != null) {
-      loadUserReviews(user.id);
+      unawaited(loadUserReviews(user.id));
     }
     return const AsyncValue.loading();
   }

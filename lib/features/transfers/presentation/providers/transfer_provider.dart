@@ -1,4 +1,6 @@
 // import 'package:flutter/foundation.dart';
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/providers/app_settings_provider.dart';
@@ -157,9 +159,9 @@ class TransactionNotifier extends _$TransactionNotifier {
       (transaction) {
         // Don't update state to AsyncData - causes "Future already completed" error
         // State will be updated via provider invalidation
-        Future.microtask(() {
+        unawaited(Future.microtask(() {
           ref.invalidate(userTransactionsProvider(senderId));
-        });
+        }));
         return transaction;
       },
     );
@@ -239,11 +241,11 @@ class RecipientNotifier extends _$RecipientNotifier {
 
         // Defer invalidation to refresh the recipients list
         // debugPrint('🔵 Scheduling provider invalidation');
-        Future.microtask(() {
+        unawaited(Future.microtask(() {
           // debugPrint('🔵 Invalidating userRecipientsProvider');
           ref.invalidate(userRecipientsProvider(recipient.userId));
           // debugPrint('🔵 Provider invalidated');
-        });
+        }));
         // debugPrint('🔵 Returning created recipient');
         return created;
       },

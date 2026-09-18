@@ -44,10 +44,10 @@ class TypingIndicatorNotifier extends _$TypingIndicatorNotifier {
   @override
   bool build() {
     _dataSource = ref.read(messageRemoteDataSourceProvider);
-    ref
+    unawaited(ref
         .read(currentUserAsyncProvider.future)
         .then((user) => _userId = user?.id)
-        .catchError((_) => null);
+        .catchError((_) => null));
 
     ref.onDispose(() {
       _stopTypingTimer?.cancel();

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -317,7 +318,7 @@ class CartNotifier extends _$CartNotifier {
   @override
   List<CartItem> build() {
     // Load cart on initialization
-    _loadCartFromLocal();
+    unawaited(_loadCartFromLocal());
     return [];
   }
 
@@ -480,8 +481,8 @@ class CartNotifier extends _$CartNotifier {
   }
 
   void _persistCart() {
-    _saveCartToLocal();
-    _syncToCloud();
+    unawaited(_saveCartToLocal());
+    unawaited(_syncToCloud());
   }
 
   double get totalAmount =>
