@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,25 +39,25 @@ class _FeedVideoPlayerState extends ConsumerState<FeedVideoPlayer> {
   }
 
   void _togglePlay() {
-    ref.read(videoPlaybackServiceProvider).play(widget.postId, widget.videoUrl);
+    unawaited(ref.read(videoPlaybackServiceProvider).play(widget.postId, widget.videoUrl));
   }
 
   void _onVisibilityChanged(VisibilityInfo info) {
     if (info.visibleFraction < 0.5) {
       final service = ref.read(videoPlaybackServiceProvider);
-      if (service.isActiveVideo(widget.postId)) service.stop();
+      if (service.isActiveVideo(widget.postId)) unawaited(service.stop());
     }
   }
 
   void _openFullscreen() {
     final service = ref.read(videoPlaybackServiceProvider);
     final pos = service.isActiveVideo(widget.postId) ? service.position : null;
-    service.stop();
-    VideoPlayerScreen.show(
+    unawaited(service.stop());
+    unawaited(VideoPlayerScreen.show(
       context,
       videoUrl: widget.videoUrl,
       initialPosition: pos,
-    );
+    ));
   }
 
   @override

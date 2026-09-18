@@ -109,7 +109,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
   /// (`didUpdateWidget`, `didChangeDependencies`) s'exécutent pendant la
   /// construction de l'arbre, où l'on ne peut pas modifier un provider.
   void _appliqueFiltre() {
-    Future.microtask(() {
+    unawaited(Future.microtask(() {
       if (!mounted) return;
       if (ref.read(feedNotifierProvider).hashtagFilter == widget.hashtagFilter) {
         return;
@@ -119,7 +119,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
             .read(feedNotifierProvider.notifier)
             .setHashtagFilter(widget.hashtagFilter),
       );
-    });
+    }));
   }
 
   @override
@@ -192,7 +192,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref.read(feedNotifierProvider.notifier).loadMore();
+      unawaited(ref.read(feedNotifierProvider.notifier).loadMore());
     }
     // Rail de stories replié au défilement (§4, seuil 24px).
     final collapsed = _scrollController.position.pixels > 24;
@@ -358,11 +358,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
                 collapsed: _storyRailCollapsed,
                 onExpand: () {
                   if (_scrollController.hasClients) {
-                    _scrollController.animateTo(
+                    unawaited(_scrollController.animateTo(
                       0,
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeOut,
-                    );
+                    ));
                   }
                   setState(() => _storyRailCollapsed = false);
                 },
@@ -558,11 +558,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
               onTap: () {
                 ref.read(feedNotifierProvider.notifier).showPendingPosts();
                 if (_scrollController.hasClients) {
-                  _scrollController.animateTo(
+                  unawaited(_scrollController.animateTo(
                     0,
                     duration: const Duration(milliseconds: 300),
                     curve: Curves.easeOut,
-                  );
+                  ));
                 }
               },
             ),

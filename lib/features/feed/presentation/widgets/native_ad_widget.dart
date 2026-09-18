@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -38,13 +40,13 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           if (!mounted) {
-            ad.dispose();
+            unawaited(ad.dispose());
             return;
           }
           setState(() => _isLoaded = true);
         },
         onAdFailedToLoad: (ad, error) {
-          ad.dispose();
+          unawaited(ad.dispose());
           if (mounted) setState(() => _failed = true);
         },
       ),
@@ -52,13 +54,13 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
         templateType: TemplateType.medium,
       ),
     );
-    ad.load();
+    unawaited(ad.load());
     _nativeAd = ad;
   }
 
   @override
   void dispose() {
-    _nativeAd?.dispose();
+    unawaited(_nativeAd?.dispose());
     super.dispose();
   }
 
