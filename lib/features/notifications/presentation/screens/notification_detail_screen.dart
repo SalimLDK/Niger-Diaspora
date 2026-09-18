@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -245,9 +247,9 @@ class NotificationDetailScreen extends ConsumerWidget {
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: () {
-                        ref
+                        unawaited(ref
                             .read(notificationsNotifierProvider.notifier)
-                            .markAsRead(notification.id);
+                            .markAsRead(notification.id));
                       },
                       icon: const Icon(Icons.mark_email_read),
                       label: Text(l10n.markAsRead),
@@ -264,9 +266,9 @@ class NotificationDetailScreen extends ConsumerWidget {
                   child: TextButton.icon(
                     onPressed: () {
                       // Confirm deletion
-                      ref
+                      unawaited(ref
                           .read(notificationsNotifierProvider.notifier)
-                          .deleteNotification(notification.id);
+                          .deleteNotification(notification.id));
                       context.pop();
                     },
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
@@ -302,14 +304,14 @@ class NotificationDetailScreen extends ConsumerWidget {
     switch (notification.type) {
       // Location-based notifications -> navigate to map
       case NotificationType.localEvent:
-        context.push('/map');
+        unawaited(context.push('/map'));
         break;
       case NotificationType.message:
       case NotificationType.messageReaction:
       case NotificationType.messageMention:
       case NotificationType.messageEdited:
         if (notification.targetId != null) {
-          context.push('/messages/${notification.targetId}');
+          unawaited(context.push('/messages/${notification.targetId}'));
         }
         break;
       case NotificationType.groupInvite:
@@ -319,21 +321,21 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.officialGroupLeave:
       case NotificationType.cityGroupInvite:
         if (notification.targetId != null) {
-          context.push('/groups/${notification.targetId}');
+          unawaited(context.push('/groups/${notification.targetId}'));
         }
         break;
       case NotificationType.eventReminder:
       case NotificationType.eventUpdate:
       case NotificationType.eventAttendance:
         if (notification.targetId != null) {
-          context.push('/events/${notification.targetId}');
+          unawaited(context.push('/events/${notification.targetId}'));
         }
         break;
       case NotificationType.friendRequest:
       case NotificationType.friendRequestAccepted:
       case NotificationType.friendAccepted:
         if (notification.targetId != null) {
-          context.push('/profile/${notification.targetId}');
+          unawaited(context.push('/profile/${notification.targetId}'));
         }
         break;
       case NotificationType.order:
@@ -345,7 +347,7 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.orderCompleted:
       case NotificationType.orderShippingReminder:
         // All order-related notifications go to my orders
-        context.push('/marketplace/my-orders');
+        unawaited(context.push('/marketplace/my-orders'));
         break;
       case NotificationType.newPost:
       case NotificationType.mentioned:
@@ -355,7 +357,7 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.postLiked:
       case NotificationType.postReposted:
         if (notification.targetId != null) {
-          context.push('/feed/${notification.targetId}');
+          unawaited(context.push('/feed/${notification.targetId}'));
         }
         break;
       case NotificationType.reportResolved:
@@ -482,7 +484,7 @@ class NotificationDetailScreen extends ConsumerWidget {
     NotificationEntity notification,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       builder:
           (ctx) => SafeArea(
@@ -500,7 +502,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                   leading: const Icon(Icons.timer_outlined),
                   title: Text(l10n.notificationIn1Hour),
                   onTap: () {
-                    NotificationService().scheduleNotification(
+                    unawaited(NotificationService().scheduleNotification(
                       id: notification.hashCode,
                       title: 'Rappel: ${notification.title}',
                       body: notification.body,
@@ -511,7 +513,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                         'type': 'reminder',
                         'targetId': notification.id,
                       }),
-                    );
+                    ));
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(l10n.notificationScheduled)),
@@ -533,7 +535,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                     if (scheduled.isBefore(now)) {
                       scheduled = scheduled.add(const Duration(days: 1));
                     }
-                    NotificationService().scheduleNotification(
+                    unawaited(NotificationService().scheduleNotification(
                       id: notification.hashCode,
                       title: 'Rappel: ${notification.title}',
                       body: notification.body,
@@ -542,7 +544,7 @@ class NotificationDetailScreen extends ConsumerWidget {
                         'type': 'reminder',
                         'targetId': notification.id,
                       }),
-                    );
+                    ));
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(l10n.notificationScheduled)),
@@ -553,6 +555,6 @@ class NotificationDetailScreen extends ConsumerWidget {
               ],
             ),
           ),
-    );
+    ));
   }
 }

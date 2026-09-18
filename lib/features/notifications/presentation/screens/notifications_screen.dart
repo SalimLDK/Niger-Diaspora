@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -296,12 +298,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       onTap: () => _handleNotificationTap(context, ref, item),
       onLongPress: () => context.push('/notifications/${item.id}'),
       onDelete: () {
-        ref
+        unawaited(ref
             .read(notificationsNotifierProvider.notifier)
-            .deleteNotification(item.id);
+            .deleteNotification(item.id));
       },
       onMarkAsRead: () {
-        ref.read(notificationsNotifierProvider.notifier).markAsRead(item.id);
+        unawaited(ref.read(notificationsNotifierProvider.notifier).markAsRead(item.id));
       },
     );
   }
@@ -465,23 +467,23 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   ) {
     // Mark as read
     if (!notification.isRead) {
-      ref
+      unawaited(ref
           .read(notificationsNotifierProvider.notifier)
-          .markAsRead(notification.id);
+          .markAsRead(notification.id));
     }
 
     // Navigate based on type
     switch (notification.type) {
       // Location-based notifications -> navigate to map
       case NotificationType.localEvent:
-        context.push('/map');
+        unawaited(context.push('/map'));
         break;
       case NotificationType.message:
       case NotificationType.messageReaction:
       case NotificationType.messageMention:
       case NotificationType.messageEdited:
         if (notification.targetId != null) {
-          context.push('/messages/${notification.targetId}');
+          unawaited(context.push('/messages/${notification.targetId}'));
         }
         break;
       case NotificationType.groupInvite:
@@ -491,21 +493,21 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.officialGroupLeave:
       case NotificationType.cityGroupInvite:
         if (notification.targetId != null) {
-          context.push('/groups/${notification.targetId}');
+          unawaited(context.push('/groups/${notification.targetId}'));
         }
         break;
       case NotificationType.eventReminder:
       case NotificationType.eventUpdate:
       case NotificationType.eventAttendance:
         if (notification.targetId != null) {
-          context.push('/events/${notification.targetId}');
+          unawaited(context.push('/events/${notification.targetId}'));
         }
         break;
       case NotificationType.friendRequest:
       case NotificationType.friendRequestAccepted:
       case NotificationType.friendAccepted:
         if (notification.targetId != null) {
-          context.push('/profile/${notification.targetId}');
+          unawaited(context.push('/profile/${notification.targetId}'));
         }
         break;
       case NotificationType.order:
@@ -517,7 +519,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.orderCompleted:
       case NotificationType.orderShippingReminder:
         // All order-related notifications go to my orders
-        context.push('/marketplace/my-orders');
+        unawaited(context.push('/marketplace/my-orders'));
         break;
       // Fil d'actualité : la cible est toujours l'identifiant de la
       // publication (cf. `notify_on_post_insert`, qui écrit `postId` ET
@@ -530,9 +532,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.postLiked:
       case NotificationType.postReposted:
         if (notification.targetId != null) {
-          context.push('/feed/${notification.targetId}');
+          unawaited(context.push('/feed/${notification.targetId}'));
         } else {
-          context.push('/notifications/${notification.id}');
+          unawaited(context.push('/notifications/${notification.id}'));
         }
         break;
       case NotificationType.reportResolved:
@@ -565,7 +567,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         // utile qu'un appui sans effet — c'est précisément ce que faisait
         // `general` avant, et rien ne distinguait à l'écran une notification
         // « cliquable » d'une autre.
-        context.push('/notifications/${notification.id}');
+        unawaited(context.push('/notifications/${notification.id}'));
         break;
     }
   }
@@ -1199,11 +1201,11 @@ class _FriendRequestActionsState extends ConsumerState<_FriendRequestActions> {
   void _oublierLaNotification() {
     if (_oubliFait) return;
     _oubliFait = true;
-    NotificationReadSync.markTargetRead(
+    unawaited(NotificationReadSync.markTargetRead(
       widget.requesterId,
       keys: const ['senderId', 'sender_id', 'actor_id', 'targetId', 'target_id'],
       type: 'friendRequest',
-    );
+    ));
   }
 
   Future<void> _respond(FriendRequestEntity request, bool accept) async {

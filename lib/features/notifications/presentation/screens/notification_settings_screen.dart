@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,7 +42,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
     ValueChanged<bool>? gated(ValueChanged<bool> onChanged) {
       if (!preferences.masterEnabled) return null;
       return (value) {
-        HapticFeedback.lightImpact();
+        unawaited(HapticFeedback.lightImpact());
         onChanged(value);
       };
     }
@@ -72,8 +74,8 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 subtitle: "Coupe tout d'un seul geste",
                 value: preferences.masterEnabled,
                 onChanged: (value) {
-                  HapticFeedback.lightImpact();
-                  notifier.setMasterEnabled(value);
+                  unawaited(HapticFeedback.lightImpact());
+                  unawaited(notifier.setMasterEnabled(value));
                 },
               ),
             ],
