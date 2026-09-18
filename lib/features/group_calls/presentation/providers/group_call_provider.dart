@@ -157,9 +157,9 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
   GroupCallState build() {
     ref.onDispose(() {
       _durationTimer?.cancel();
-      _callSubscription?.cancel();
-      _participantsSubscription?.cancel();
-      _speakingSubscription?.cancel();
+      unawaited(_callSubscription?.cancel());
+      unawaited(_participantsSubscription?.cancel());
+      unawaited(_speakingSubscription?.cancel());
     });
 
     // `speakingParticipantIds` était déclaré dans l'état, lu par
@@ -408,7 +408,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
         state = state.copyWith(remoteStreams: newStreams);
 
         if (newStreams.isEmpty && state.isConnected && !state.isLeaving) {
-          _endCallAsLastParticipant();
+          unawaited(_endCallAsLastParticipant());
         }
       },
     );
@@ -620,7 +620,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
         // Check if we're now alone (no more remote streams = no other participants)
         if (newStreams.isEmpty && state.isConnected && !state.isLeaving) {
           debugPrint('GroupCallProvider: No more remote streams, checking if alone');
-          _endCallAsLastParticipant();
+          unawaited(_endCallAsLastParticipant());
         }
       },
     );
@@ -642,14 +642,14 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
       enableSimulcast: true,
       enableE2EE: enableE2EE,
       onDisconnected: () {
-        leaveCall(reason: 'disconnected');
+        unawaited(leaveCall(reason: 'disconnected'));
       },
     );
   }
 
   /// Subscribe to call updates from Firestore
   void _subscribeToCallUpdates(String callId) {
-    _callSubscription?.cancel();
+    unawaited(_callSubscription?.cancel());
     _callSubscription = _firestore
         .collection('group_calls')
         .doc(callId)
@@ -657,7 +657,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
         .listen((doc) {
           if (!doc.exists) {
             // Call was deleted
-            leaveCall(reason: 'call_ended');
+            unawaited(leaveCall(reason: 'call_ended'));
             return;
           }
 
@@ -666,19 +666,21 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
           // Check if we need to switch modes
           if (callEntity.shouldSwitchToSfu &&
               state.mode == GroupCallMode.mesh) {
-            _handleModeSwitch(callEntity);
+            unawaited(_handleModeSwitch(callEntity).catchError((e) {
+              debugPrint('GroupCallProvider: _handleModeSwitch a échoué: $e');
+            }));
           }
 
           state = state.copyWith(call: callEntity);
 
           // Check if call ended
           if (callEntity.hasEnded) {
-            leaveCall(reason: 'call_ended');
+            unawaited(leaveCall(reason: 'call_ended'));
           }
         });
 
     // Subscribe to participants subcollection
-    _participantsSubscription?.cancel();
+    unawaited(_participantsSubscription?.cancel());
     _participantsSubscription = _firestore
         .collection('group_calls')
         .doc(callId)
@@ -724,7 +726,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
     // If no other participants and we're connected, end the call
     if (otherParticipants.isEmpty && state.isConnected && !state.isLeaving) {
       debugPrint('GroupCallProvider: Last participant remaining, ending call automatically');
-      _endCallAsLastParticipant();
+      unawaited(_endCallAsLastParticipant());
     }
   }
 
@@ -793,7 +795,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
     if (state.mode == GroupCallMode.mesh) {
       ref.read(groupCallServiceProvider).toggleMute();
     } else {
-      ref.read(liveKitServiceProvider).toggleMute();
+      unawaited(ref.read(liveKitServiceProvider).toggleMute());
     }
 
     state = state.copyWith(isMuted: !state.isMuted);
@@ -804,7 +806,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
     if (state.mode == GroupCallMode.mesh) {
       ref.read(groupCallServiceProvider).toggleCamera();
     } else {
-      ref.read(liveKitServiceProvider).toggleCamera();
+      unawaited(ref.read(liveKitServiceProvider).toggleCamera());
     }
 
     state = state.copyWith(isCameraOff: !state.isCameraOff);
@@ -871,8 +873,8 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
     state = state.copyWith(isLeaving: true);
 
     _durationTimer?.cancel();
-    _callSubscription?.cancel();
-    _participantsSubscription?.cancel();
+    unawaited(_callSubscription?.cancel());
+    unawaited(_participantsSubscription?.cancel());
 
     final currentUser = await ref.read(currentUserAsyncProvider.future);
     final callId = state.call!.id;
