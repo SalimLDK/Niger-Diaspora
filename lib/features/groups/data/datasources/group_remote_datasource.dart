@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
-// import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/cache_service.dart';
@@ -257,7 +257,9 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       });
 
       // Post-transaction: Send system message (non-critical, can fail)
-      _sendJoinSystemMessage(groupId, userId);
+      unawaited(_sendJoinSystemMessage(groupId, userId).catchError((e) {
+        debugPrint('GroupRemoteDataSource: _sendJoinSystemMessage a échoué: $e');
+      }));
     } on ServerException {
       rethrow;
     } on FirebaseException catch (e) {
@@ -469,7 +471,9 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       }
 
       // Send system message before removing (so user is still in conversation)
-      _sendLeaveSystemMessage(groupId, userId);
+      unawaited(_sendLeaveSystemMessage(groupId, userId).catchError((e) {
+        debugPrint('GroupRemoteDataSource: _sendLeaveSystemMessage a échoué: $e');
+      }));
 
       // Retirer l'utilisateur du groupe
       await _groupsCollection.doc(groupId).update({
@@ -507,7 +511,9 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       }
 
       // Send system message before removing (so user is still in conversation)
-      _sendRemovedSystemMessage(groupId, userId);
+      unawaited(_sendRemovedSystemMessage(groupId, userId).catchError((e) {
+        debugPrint('GroupRemoteDataSource: _sendRemovedSystemMessage a échoué: $e');
+      }));
 
       // Retirer l'utilisateur du groupe
       await _groupsCollection.doc(groupId).update({

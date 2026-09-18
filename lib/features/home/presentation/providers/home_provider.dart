@@ -93,7 +93,7 @@ class HomeStatsNotifier extends _$HomeStatsNotifier {
       );
 
       // Cache the fresh result
-      _saveToCache(stats);
+      unawaited(_saveToCache(stats));
 
       return stats;
     } catch (e) {
