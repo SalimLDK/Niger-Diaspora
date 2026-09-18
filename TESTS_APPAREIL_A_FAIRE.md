@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1429 cases à cocher, 645 cochées** — 279 entrées sur 328 ont encore des cases ouvertes.
+**1439 cases à cocher, 645 cochées** — 281 entrées sur 330 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (42)
+**P0 — avant toute nouvelle version** (43)
 
 - 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
@@ -78,6 +78,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
 - 6 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06) · *Chiffrement de bout en bout et clés*
+- 5 · [⬜ 🔴 Modifier son profil réactivait ce qu'on avait coupé (2026-09-18)](#--modifier-son-profil-réactivait-ce-quon-avait-coupé-2026-09-18) · *Accueil, profil et réglages*
 - 1 · [⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)](#-un-groupe-dont-on-est-le-seul-membre-refuse-tous-les-messages-2026-09-09) · *Groupes*
 - 2 · [E2EE réparé : la clé de signature est publiée avec le bundle (2026-08-23)](#e2ee-réparé--la-clé-de-signature-est-publiée-avec-le-bundle-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
 - 5 · [🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien](#-appels-1-à-1-mis-en-pause-2026-08-14--répondre-à-un-appel-ne-faisait-rigoureusement-rien) · *Appels*
@@ -88,7 +89,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (95)
+**P1 — fonction importante, jamais vérifiée** (96)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -164,6 +165,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
 - 2 · [✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)](#-le-bandeau--1-message-non-lu--dune-conversation-basculée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
+- 5 · [⬜ Réglages de notification par type : local et serveur ne divergent plus (2026-09-18)](#-réglages-de-notification-par-type--local-et-serveur-ne-divergent-plus-2026-09-18) · *Notifications et push*
 - 7 · [⬜ La messagerie sort de l'écran Notifications (2026-09-13)](#-la-messagerie-sort-de-lécran-notifications-2026-09-13) · *Notifications et push*
 - 7 · [⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)](#-notifications-ouvertes-ailleurs-ou-obsolètes--lues-2026-09-12) · *Notifications et push*
 - 5 · [Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)](#réponse-rapide-depuis-la-notification-nenvoyait-jamais-rien-2026-08-13) · *Notifications et push* · bloqué
@@ -341,12 +343,12 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 138 à faire, 76 faites
+- [6. Notifications et push](#6-notifications-et-push) — 143 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 47 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 62 à faire, 34 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
@@ -9998,6 +10000,58 @@ Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
 
+## ⬜ Réglages de notification par type : local et serveur ne divergent plus (2026-09-18)
+
+**Priorité P1** · importance 3/5 — Couper « Messages » (ou « Groupes »,
+« Événements »…) écrivait la préférence locale, qui ne décide que de
+l'**affichage** au premier plan, puis recopiait la carte
+`users.notification_prefs` — la seule que `send-push` consulte — dans un
+`catch` qui avalait l'échec (« Best effort : l'appareil se resynchronisera à la
+bascule suivante »). Un utilisateur qui voit « Messages » sur « désactivé » ne
+rebascule pas : le back-end continuait de pousser, sans un signal. Et
+`setLocalEventsEnabled`, qui écrit une colonne dédiée PUIS la carte, n'avait
+aucun `try/catch` : l'échec remontait à un appelant en `unawaited`,
+préférence locale déjà changée. Deux appelants, dont « M'avertir du prochain »
+sur l'Accueil.
+
+Chaque écriture rend maintenant `false` si le serveur refuse, revient à la
+valeur d'avant **des deux côtés** (et remet la colonne dédiée si la carte
+échoue après elle), et l'écran le dit. Les écritures sont **sérialisées** : le
+retour en arrière n'a de sens que si aucune autre écriture n'est en vol — deux
+bascules rapides sur un réseau lent, dont la première échoue, laissaient sinon
+le serveur avec la carte entière (première bascule comprise) et l'appareil sans.
+Enfin `updateNotificationPrefs` et `updateNotifyLocalEvents` **vérifient qu'une
+ligne a été touchée** : PostgREST rend 200 sur un `UPDATE` qui ne matche rien.
+
+Couvert par des bancs Dart (dont un vrai `SupabaseClient` sur un `MockClient`
+pour le comptage de lignes), chacun vérifié en remettant l'ancien
+comportement. **Ce qu'ils ne voient pas** : un vrai refus serveur, l'envoi
+effectif du push, le rendu du snackbar.
+
+Fichiers :
+[notification_preferences_provider.dart](lib/features/settings/presentation/providers/notification_preferences_provider.dart),
+[profile_supabase_datasource.dart](lib/features/profile/data/datasources/profile_supabase_datasource.dart),
+[notification_settings_screen.dart](lib/features/notifications/presentation/screens/notification_settings_screen.dart),
+[home_screen_widgets.dart](lib/features/home/presentation/screens/home_screen_widgets.dart).
+
+- [ ] **Réseau coupé, Notifications → « Messages »** : l'interrupteur revient à
+  sa position, le snackbar d'échec s'affiche, et en quittant puis rouvrant
+  l'écran la valeur est toujours l'ancienne (la préférence locale n'est pas
+  restée écrite).
+- [ ] **Réseau rétabli, même bascule** : elle tient, et
+  `supabase db query --linked "select notification_prefs from users where
+  id='…'"` porte la nouvelle valeur. **Le vrai test** : app fermée, un autre
+  compte écrit → aucune notification quand « Messages » est coupé.
+- [ ] **« M'avertir du prochain » (Accueil), réseau coupé** : revient, snackbar ;
+  réseau rétabli : `notify_local_events` ET `notification_prefs.local_events`
+  suivent.
+- [ ] **Deux bascules à la suite, réseau coupé entre les deux** : les deux
+  reviennent, ou la carte serveur correspond exactement à ce que l'écran
+  affiche. Jamais l'un sans l'autre.
+- [ ] **Thème sombre et grande police** sur le snackbar d'échec.
+
+---
+
 ## ⬜ Une édition corrige la bannière déjà posée (2026-09-16)
 
 **Priorité P1** · importance 4/5 — Avant : la bannière gardait le texte
@@ -16098,6 +16152,54 @@ attendre le sondage.
 # 11. Accueil, profil et réglages
 
 Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature flags d'écrans.
+
+---
+
+## ⬜ 🔴 Modifier son profil réactivait ce qu'on avait coupé (2026-09-18)
+
+**Priorité P0** · importance 4/5 — Enregistrer l'écran « Modifier le profil »
+remettait à `true` la **position partagée**, le **statut en ligne** et les
+**notifications**, quoi qu'on ait choisi dans Réglages. Aucune erreur, aucun
+message : la valeur reprenait seulement son défaut. Trouvé en relisant les
+appelants de `ProfileNotifier.updateProfile`, jamais observé sur appareil.
+
+Le mécanisme : `updateProfile` → dépôt → `ProfileSupabaseDataSource.updateProfile`
+écrit **toutes** les colonnes de l'entité par un upsert, sans fusion avec le
+profil existant (le dépôt n'ouvre l'ancien profil que pour les abonnements aux
+topics). L'écran bâtissait `ProfileEntity(...)` **de zéro** avec les seuls
+champs de son formulaire : `notifications_enabled`, `share_location` et
+`show_online_status` repartaient à `true`, `skills` à `[]`, `current_region` à
+`null`. Pour la position, ce n'est pas qu'un affichage : la capture GPS lit
+`share_location` à son prochain `start()`, donc la position d'un utilisateur
+qui l'avait coupée redevient publiable après une simple correction de bio.
+
+Corrigé : l'écran part de `currentProfile()` (le profil courant, quitte à le
+chercher) puis `copyWith`. Un banc d'architecture interdit désormais à toute
+couche de présentation de construire un `ProfileEntity(` de zéro (aucune
+exception). **⚠️ Des comptes réels ont pu être touchés** — tout compte ayant
+coupé l'un de ces réglages puis modifié son profil ; rien ne permet de les
+retrouver après coup.
+
+Fichiers :
+[edit_profile_screen.dart](lib/features/profile/presentation/screens/edit_profile_screen.dart),
+[profile_provider.dart](lib/features/profile/presentation/providers/profile_provider.dart),
+[profil_jamais_reconstruit_en_presentation_test.dart](test/core/architecture/profil_jamais_reconstruit_en_presentation_test.dart).
+
+- [ ] **Le parcours qui cassait** : dans Réglages, couper « Ma position »,
+  « Statut en ligne » et les notifications ; puis Profil → Modifier → changer la
+  bio → Enregistrer. Les trois restent coupés dans Réglages, ET côté serveur :
+  `supabase db query --linked "select share_location, show_online_status,
+  notifications_enabled from users where id='…'"` rend trois `false`. Avant :
+  trois `true`.
+- [ ] **Compétences et région** : renseignées avant la modification, intactes
+  après.
+- [ ] **Après un redémarrage à froid** (profil pas encore en cache), modifier
+  puis enregistrer : l'enregistrement aboutit — le profil est retrouvé au lieu
+  d'être reconstruit.
+- [ ] **Réseau coupé** : « Enregistrer » affiche l'erreur existante, l'écran
+  reste ouvert et le spinner s'arrête.
+- [ ] **Comptes de test existants** : lire ces trois colonnes sur les comptes qui
+  ont déjà modifié leur profil, pour mesurer s'ils ont été touchés.
 
 ---
 
