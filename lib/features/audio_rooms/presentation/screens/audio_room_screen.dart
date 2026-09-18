@@ -51,13 +51,13 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _sessionNotifier = ref.read(audioRoomSessionProvider.notifier);
-      _sessionNotifier?.joinRoom(widget.roomId);
+      unawaited(_sessionNotifier?.joinRoom(widget.roomId));
     });
   }
 
   @override
   void dispose() {
-    Future(() => _sessionNotifier?.leaveRoom());
+    unawaited(Future(() => _sessionNotifier?.leaveRoom()));
     super.dispose();
   }
 
@@ -120,9 +120,9 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
                     isSpeaker: isSpeaker,
                     isGhost: isGhost,
                     onLeave: () {
-                      ref
+                      unawaited(ref
                           .read(audioRoomSessionProvider.notifier)
-                          .leaveRoom();
+                          .leaveRoom());
                       context.pop();
                     },
                   ),
@@ -235,25 +235,25 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
               .where((p) => p.userId == currentUser?.id)
               .firstOrNull;
           if (p?.hasHandRaised == true) {
-            ref.read(audioRoomSessionProvider.notifier).lowerHand();
+            unawaited(ref.read(audioRoomSessionProvider.notifier).lowerHand());
           } else {
-            ref.read(audioRoomSessionProvider.notifier).raiseHand();
+            unawaited(ref.read(audioRoomSessionProvider.notifier).raiseHand());
           }
         },
         onTip: () {
           final target = session.speakers.firstOrNull;
           if (target != null) {
-            SendTipBottomSheet.show(
+            unawaited(SendTipBottomSheet.show(
               context,
               roomId: room.id,
               recipient: target,
               roomTitle: room.title,
-            );
+            ));
           }
         },
         onShare: () => _shareRoom(context, room),
         onLeave: () {
-          ref.read(audioRoomSessionProvider.notifier).leaveRoom();
+          unawaited(ref.read(audioRoomSessionProvider.notifier).leaveRoom());
           context.pop();
         },
         onEnd: () => _confirmEnd(context),
@@ -272,7 +272,7 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
       isLive: room.status == AudioRoomStatus.live,
     );
 
-    ShareOptionsSheet.show(
+    unawaited(ShareOptionsSheet.show(
       context,
       url: link,
       subject: room.title,
@@ -285,7 +285,7 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
         message: l10n.shareLinkChatMessage(room.title, link),
         icon: Icons.mic_rounded,
       ),
-    );
+    ));
   }
 
   Future<void> _confirmEnd(BuildContext context) async {
@@ -316,7 +316,7 @@ class _AudioRoomScreenState extends ConsumerState<AudioRoomScreen> {
       ),
     );
     if (ok == true && context.mounted) {
-      ref.read(audioRoomSessionProvider.notifier).leaveRoom();
+      unawaited(ref.read(audioRoomSessionProvider.notifier).leaveRoom());
       context.pop();
     }
   }
@@ -740,7 +740,7 @@ class _ListenersSection extends StatelessWidget {
     List<ParticipantEntity> listeners,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet<void>(
+    unawaited(showModalBottomSheet<void>(
       context: context,
       backgroundColor: context.dn.surface,
       isScrollControlled: true,
@@ -779,7 +779,7 @@ class _ListenersSection extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 
   @override
@@ -1215,7 +1215,7 @@ class _RoomFooter extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final dn = context.dn;
 
-    showModalBottomSheet<void>(
+    unawaited(showModalBottomSheet<void>(
       context: context,
       backgroundColor: dn.surface,
       shape: const RoundedRectangleBorder(
@@ -1272,7 +1272,7 @@ class _RoomFooter extends ConsumerWidget {
           );
         },
       ),
-    );
+    ));
   }
 
   /// Compteurs en direct du salon. Le bouton 📊 n'ouvrait rien, et il
@@ -1282,7 +1282,7 @@ class _RoomFooter extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final dn = context.dn;
 
-    showModalBottomSheet<void>(
+    unawaited(showModalBottomSheet<void>(
       context: context,
       backgroundColor: dn.surface,
       shape: const RoundedRectangleBorder(
@@ -1340,7 +1340,7 @@ class _RoomFooter extends ConsumerWidget {
           ),
         );
       },
-    );
+    ));
   }
 
   const _RoomFooter({

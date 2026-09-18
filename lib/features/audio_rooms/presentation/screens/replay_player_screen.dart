@@ -83,11 +83,12 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
     super.initState();
     final videoUrl = widget.replay?.videoUrl;
     if (videoUrl != null && videoUrl.isNotEmpty) {
-      _videoCtrl = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
-        ..addListener(_onVideoTick)
-        ..initialize().then((_) {
-          if (mounted) setState(() => _videoInitialized = true);
-        });
+      final ctrl = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
+        ..addListener(_onVideoTick);
+      _videoCtrl = ctrl;
+      unawaited(ctrl.initialize().then((_) {
+        if (mounted) setState(() => _videoInitialized = true);
+      }));
     } else if (_isAudio) {
       _total = Duration(seconds: widget.replay?.durationSeconds ?? 0);
       _posSub = _audio.positionStream.listen((p) {
@@ -117,7 +118,7 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
         if (mounted) setState(() => _isPlaying = playing);
       });
     }
-    _checkDownloaded();
+    unawaited(_checkDownloaded());
   }
 
   /// Play/pause de la piste audio (ou vidéo) réelle.
@@ -127,7 +128,7 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
       await _audio.togglePlayPause(replay!.audioUrl!);
     } else if (_videoCtrl != null) {
       setState(() {
-        _videoCtrl!.value.isPlaying ? _videoCtrl!.pause() : _videoCtrl!.play();
+        unawaited(_videoCtrl!.value.isPlaying ? _videoCtrl!.pause() : _videoCtrl!.play());
         _isPlaying = _videoCtrl!.value.isPlaying;
       });
     }
@@ -213,7 +214,7 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
     setState(() {
       _playbackSpeed = _playbackSpeed < 2.0 ? _playbackSpeed + 0.5 : 1.0;
     });
-    if (_isAudio) _audio.setSpeed(_playbackSpeed);
+    if (_isAudio) unawaited(_audio.setSpeed(_playbackSpeed));
   }
 
   /// Envoie un pourboire à l'hôte du salon rejoué.
@@ -274,9 +275,9 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
     if (minutes != null) {
       _sleepTimer = Timer(Duration(minutes: minutes), () {
         if (_isAudio) {
-          _audio.pause();
+          unawaited(_audio.pause());
         } else {
-          _videoCtrl?.pause();
+          unawaited(_videoCtrl?.pause());
         }
         if (mounted) setState(() => _sleepMinutes = null);
       });
@@ -285,7 +286,7 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
 
   void _showSleepMenu() {
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet<void>(
+    unawaited(showModalBottomSheet<void>(
       context: context,
       backgroundColor: DNColors.darkSurface,
       builder: (_) => SafeArea(
@@ -322,19 +323,19 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
           ],
         ),
       ),
-    );
+    ));
   }
 
   @override
   void dispose() {
     _pulseCtrl.dispose();
     _videoCtrl?.removeListener(_onVideoTick);
-    _videoCtrl?.dispose();
+    unawaited(_videoCtrl?.dispose());
     _sleepTimer?.cancel();
-    _posSub?.cancel();
-    _durSub?.cancel();
-    _playSub?.cancel();
-    if (_isAudio) _audio.pause();
+    unawaited(_posSub?.cancel());
+    unawaited(_durSub?.cancel());
+    unawaited(_playSub?.cancel());
+    if (_isAudio) unawaited(_audio.pause());
     super.dispose();
   }
 
@@ -406,9 +407,9 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
                       ? GestureDetector(
                           onTap: () {
                             setState(() {
-                              _videoCtrl!.value.isPlaying
+                              unawaited(_videoCtrl!.value.isPlaying
                                   ? _videoCtrl!.pause()
-                                  : _videoCtrl!.play();
+                                  : _videoCtrl!.play());
                               _isPlaying = _videoCtrl!.value.isPlaying;
                             });
                           },
@@ -603,7 +604,7 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
   }
 
   void _showChapters() {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: DNColors.ink2,
       shape: const RoundedRectangleBorder(
@@ -616,9 +617,9 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
             setState(() => _currentChapter = i);
             final start = Duration(seconds: _chaptersData[i].startSeconds);
             if (_isAudio) {
-              _audio.seek(start);
+              unawaited(_audio.seek(start));
             } else {
-              _videoCtrl?.seekTo(start);
+              unawaited(_videoCtrl?.seekTo(start));
             }
             Navigator.pop(context);
           },
@@ -632,7 +633,7 @@ class _ReplayPlayerScreenState extends ConsumerState<ReplayPlayerScreen>
           selectedColor: DNColors.terra,
         ),
       ),
-    );
+    ));
   }
 
   static String _fmtDuration(Duration d) {

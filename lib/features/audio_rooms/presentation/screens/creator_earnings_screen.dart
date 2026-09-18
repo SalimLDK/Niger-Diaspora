@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,8 +27,8 @@ class _CreatorEarningsScreenState extends ConsumerState<CreatorEarningsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(monetizationNotifierProvider.notifier).getOrCreateCreatorProfile();
-      ref.read(monetizationNotifierProvider.notifier).getCreatorEarnings();
+      unawaited(ref.read(monetizationNotifierProvider.notifier).getOrCreateCreatorProfile());
+      unawaited(ref.read(monetizationNotifierProvider.notifier).getCreatorEarnings());
     });
   }
 
@@ -58,12 +60,12 @@ class _CreatorEarningsScreenState extends ConsumerState<CreatorEarningsScreen> {
           IconButton(
             icon: AppIcon(AppIcon.refresh, color: theme.iconTheme.color!),
             onPressed: () {
-              ref
+              unawaited(ref
                   .read(monetizationNotifierProvider.notifier)
-                  .getCreatorEarnings();
-              ref
+                  .getCreatorEarnings());
+              unawaited(ref
                   .read(stripeConnectNotifierProvider.notifier)
-                  .refreshAccountStatus();
+                  .refreshAccountStatus());
             },
           ),
         ],
@@ -225,7 +227,7 @@ class _BalanceCard extends ConsumerWidget {
 
   void _showPayoutDialog(BuildContext context, WidgetRef ref) {
     final controller = TextEditingController();
-    showDialog<void>(
+    unawaited(showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppLocalizations.of(ctx)!.withdrawalRequestTitle),
@@ -269,7 +271,7 @@ class _BalanceCard extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }
 

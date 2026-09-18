@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 /// Floating 🪙 coin that rises and fades out — used in [SendTipBottomSheet]
@@ -23,7 +25,7 @@ class _TipCoinAnimationState extends State<TipCoinAnimation>
   void initState() {
     super.initState();
     Future.delayed(Duration(milliseconds: widget.delayMs), () {
-      if (mounted) _ctrl.repeat();
+      if (mounted) unawaited(_ctrl.repeat());
     });
   }
 

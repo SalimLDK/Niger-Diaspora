@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -283,7 +285,7 @@ class _LiveCard extends ConsumerWidget {
   const _LiveCard({required this.room});
 
   void _enterRoom(BuildContext context) {
-    context.push('/audio-rooms/${room.id}', extra: {'title': room.title});
+    unawaited(context.push('/audio-rooms/${room.id}', extra: {'title': room.title}));
   }
 
   /// Salon payant (§1h) : vérifie un billet déjà acheté avant d'entrer,

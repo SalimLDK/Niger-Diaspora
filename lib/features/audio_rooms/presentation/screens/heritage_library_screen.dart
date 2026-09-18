@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../../shared/widgets/dn_sheet_handle.dart';
@@ -910,13 +912,13 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                     ),
                     onPressed: () {
                       if (isLiked) {
-                        ref
+                        unawaited(ref
                             .read(heritageNotifierProvider.notifier)
-                            .unlikeRecording(recording.id);
+                            .unlikeRecording(recording.id));
                       } else {
-                        ref
+                        unawaited(ref
                             .read(heritageNotifierProvider.notifier)
-                            .likeRecording(recording.id);
+                            .likeRecording(recording.id));
                       }
                     },
                   ),
@@ -930,13 +932,13 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
                     ),
                     onPressed: () {
                       if (isSaved) {
-                        ref
+                        unawaited(ref
                             .read(heritageNotifierProvider.notifier)
-                            .unsaveRecording(recording.id);
+                            .unsaveRecording(recording.id));
                       } else {
-                        ref
+                        unawaited(ref
                             .read(heritageNotifierProvider.notifier)
-                            .saveRecording(recording.id);
+                            .saveRecording(recording.id));
                       }
                     },
                   ),
@@ -992,12 +994,12 @@ class _HeritageLibraryScreenState extends ConsumerState<HeritageLibraryScreen>
 
   void _openRecording(HeritageRecordingEntity recording) {
     // Navigate to recording detail or show player bottom sheet
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _RecordingPlayerSheet(recording: recording),
-    );
+    ));
   }
 
   String _getContentTypeLabel(AppLocalizations l10n, HeritageContentType type) {
@@ -1063,7 +1065,7 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
   void initState() {
     super.initState();
     // Record play when opened
-    ref.read(heritageNotifierProvider.notifier).recordPlay(widget.recording.id);
+    unawaited(ref.read(heritageNotifierProvider.notifier).recordPlay(widget.recording.id));
   }
 
   // Teintes par type de contenu sur la palette DNColors (Sahel), §1c.
@@ -1246,13 +1248,13 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
                         iconSize: 28,
                         onPressed: () {
                           if (isLiked) {
-                            ref
+                            unawaited(ref
                                 .read(heritageNotifierProvider.notifier)
-                                .unlikeRecording(recording.id);
+                                .unlikeRecording(recording.id));
                           } else {
-                            ref
+                            unawaited(ref
                                 .read(heritageNotifierProvider.notifier)
-                                .likeRecording(recording.id);
+                                .likeRecording(recording.id));
                           }
                         },
                       ),
@@ -1310,9 +1312,9 @@ class _RecordingPlayerSheetState extends ConsumerState<_RecordingPlayerSheet> {
                         ),
                         iconSize: 28,
                         onPressed: () {
-                          ref
+                          unawaited(ref
                               .read(heritageNotifierProvider.notifier)
-                              .shareRecording(recording.id);
+                              .shareRecording(recording.id));
                           // Share functionality
                         },
                       ),
@@ -1350,7 +1352,7 @@ class _HeritageDownloadButtonState extends State<_HeritageDownloadButton> {
   @override
   void initState() {
     super.initState();
-    _checkDownloaded();
+    unawaited(_checkDownloaded());
   }
 
   Future<void> _checkDownloaded() async {

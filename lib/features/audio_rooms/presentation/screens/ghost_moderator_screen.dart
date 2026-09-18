@@ -60,7 +60,7 @@ class _GhostModeratorScreenState extends ConsumerState<GhostModeratorScreen> {
     if (_joinedHere) {
       // Sinon l'admin resterait rattaché au salon (et présent dans
       // moderatorIds) après la fermeture de l'écran.
-      _notifier.leaveRoom();
+      unawaited(_notifier.leaveRoom());
     }
     super.dispose();
   }
