@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:flutter/services.dart';
@@ -52,8 +54,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadProfile();
-      _animationController.forward();
+      unawaited(_loadProfile());
+      unawaited(_animationController.forward());
     });
   }
 
@@ -360,7 +362,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           // est alignée à gauche, plus centrée sous un bandeau).
           GestureDetector(
             onTap: () {
-              HapticFeedback.mediumImpact();
+              unawaited(HapticFeedback.mediumImpact());
               if (photoUrl != null) {
                 FullScreenImageViewer.show(
                   context,
@@ -369,12 +371,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   senderName: displayName,
                 );
               } else {
-                context.push('/profile/edit');
+                unawaited(context.push('/profile/edit'));
               }
             },
             onLongPress: () {
-              HapticFeedback.mediumImpact();
-              context.push('/profile/edit');
+              unawaited(HapticFeedback.mediumImpact());
+              unawaited(context.push('/profile/edit'));
             },
             child: Stack(
               clipBehavior: Clip.none,
@@ -779,8 +781,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           Expanded(
             child: GestureDetector(
               onTap: () {
-                HapticFeedback.lightImpact();
-                context.push('/friends');
+                unawaited(HapticFeedback.lightImpact());
+                unawaited(context.push('/friends'));
               },
               child: _AnimatedProfileStat(
                 value: connectionsCount.toString(),
@@ -794,8 +796,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           Expanded(
             child: GestureDetector(
               onTap: () {
-                HapticFeedback.lightImpact();
-                context.push('/groups');
+                unawaited(HapticFeedback.lightImpact());
+                unawaited(context.push('/groups'));
               },
               child: _AnimatedProfileStat(
                 value: groupsCount.toString(),
@@ -809,8 +811,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           Expanded(
             child: GestureDetector(
               onTap: () {
-                HapticFeedback.lightImpact();
-                context.push('/events');
+                unawaited(HapticFeedback.lightImpact());
+                unawaited(context.push('/events'));
               },
               child: _AnimatedProfileStat(
                 value: eventsCount.toString(),
@@ -827,8 +829,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           Expanded(
             child: GestureDetector(
               onTap: () {
-                HapticFeedback.lightImpact();
-                context.push('/profile/my-posts');
+                unawaited(HapticFeedback.lightImpact());
+                unawaited(context.push('/profile/my-posts'));
               },
               child: _AnimatedProfileStat(
                 value: postsCount.toString(),
@@ -870,8 +872,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   /// en pastille a disparu — les appels la passent encore, elle est ignorée.
 
   void _confirmLogout(AppLocalizations l10n) {
-    HapticFeedback.mediumImpact();
-    showDialog(
+    unawaited(HapticFeedback.mediumImpact());
+    unawaited(showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
@@ -923,12 +925,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               ),
             ],
           ),
-    );
+    ));
   }
 
   void _confirmDeleteAccount(AppLocalizations l10n) {
-    HapticFeedback.heavyImpact();
-    showDialog(
+    unawaited(HapticFeedback.heavyImpact());
+    unawaited(showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
@@ -970,13 +972,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               ),
             ],
           ),
-    );
+    ));
   }
 
   void _showFinalDeleteConfirmation(AppLocalizations l10n) {
     final confirmController = TextEditingController();
 
-    showDialog(
+    unawaited(showDialog(
       context: context,
       barrierDismissible: false,
       builder:
@@ -1029,11 +1031,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               );
             },
           ),
-    );
+    ));
   }
 
   Future<void> _deleteAccount(AppLocalizations l10n) async {
-    showDialog(
+    unawaited(showDialog(
       context: context,
       barrierDismissible: false,
       builder:
@@ -1049,7 +1051,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               ],
             ),
           ),
-    );
+    ));
 
     try {
       final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
@@ -1195,7 +1197,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       onChanged: (_) => setDialogState(() {}),
                       onSubmitted: (_) {
                         if (passwordController.text.isNotEmpty) {
-                          _handlePasswordSubmit(passwordController.text, l10n);
+                          unawaited(_handlePasswordSubmit(passwordController.text, l10n));
                         }
                       },
                     ),
@@ -1214,10 +1216,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                         passwordController.text.isEmpty
                             ? null
                             : () {
-                              _handlePasswordSubmit(
+                              unawaited(_handlePasswordSubmit(
                                 passwordController.text,
                                 l10n,
-                              );
+                              ));
                               passwordController.dispose();
                             },
                     style: ElevatedButton.styleFrom(
@@ -1241,7 +1243,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   ) async {
     Navigator.pop(context);
 
-    showDialog(
+    unawaited(showDialog(
       context: context,
       barrierDismissible: false,
       builder:
@@ -1257,7 +1259,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               ],
             ),
           ),
-    );
+    ));
 
     final success = await ref
         .read(authNotifierProvider.notifier)
@@ -1312,19 +1314,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   }
 
   void _showShareProfileModal() {
-    HapticFeedback.lightImpact();
+    unawaited(HapticFeedback.lightImpact());
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     final profile =
         currentUser != null
             ? ref.read(profileNotifierProvider(currentUser.id)).valueOrNull
             : null;
 
-    ShareProfileModal.show(
+    unawaited(ShareProfileModal.show(
       context,
       userName: profile?.displayName ?? currentUser?.displayName,
       userPhotoUrl: profile?.photoUrl ?? currentUser?.photoUrl,
       userId: profile?.id ?? currentUser?.id,
-    );
+    ));
   }
 }
 
