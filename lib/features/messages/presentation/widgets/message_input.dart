@@ -255,9 +255,9 @@ class _MessageInputState extends State<MessageInput>
 
         // Animate morphing
         if (hasText) {
-          _morphController.forward();
+          unawaited(_morphController.forward());
         } else {
-          _morphController.reverse();
+          unawaited(_morphController.reverse());
         }
       }
       // Notify parent that user is typing
@@ -304,13 +304,13 @@ class _MessageInputState extends State<MessageInput>
     if (_hasText) {
       // Pas d'animation à l'ouverture : le bouton d'envoi doit être là d'emblée.
       if (animateMorph) {
-        _morphController.forward();
+        unawaited(_morphController.forward());
       } else {
         _morphController.value = _morphController.upperBound;
       }
     } else {
       if (animateMorph) {
-        _morphController.reverse();
+        unawaited(_morphController.reverse());
       } else {
         _morphController.value = _morphController.lowerBound;
       }
@@ -324,16 +324,16 @@ class _MessageInputState extends State<MessageInput>
     if (_enModification) return;
     _draftSaveTimer?.cancel();
     _draftSaveTimer = Timer(const Duration(milliseconds: 500), () {
-      PreferencesService.instance.saveMessageDraft(
+      unawaited(PreferencesService.instance.saveMessageDraft(
         widget.conversationId,
         _controller.text,
-      );
+      ));
     });
   }
 
   void _clearDraft() {
     _draftSaveTimer?.cancel();
-    PreferencesService.instance.clearMessageDraft(widget.conversationId);
+    unawaited(PreferencesService.instance.clearMessageDraft(widget.conversationId));
   }
 
   @override
@@ -392,22 +392,22 @@ class _MessageInputState extends State<MessageInput>
       // cours : c'est celui mis de côté qu'il faut garder. Sans ça, quitter
       // l'écran en pleine modification perdait ce qu'on avait commencé à
       // écrire — la dernière sauvegarde datant d'avant.
-      PreferencesService.instance.saveMessageDraft(
+      unawaited(PreferencesService.instance.saveMessageDraft(
         widget.conversationId,
         _brouillonMisDeCote ?? '',
-      );
+      ));
     } else if (_draftSaveTimer?.isActive ?? false) {
-      PreferencesService.instance.saveMessageDraft(
+      unawaited(PreferencesService.instance.saveMessageDraft(
         widget.conversationId,
         _controller.text,
-      );
+      ));
     }
     _draftSaveTimer?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     _morphController.dispose();
     if (_isRecording) {
-      _recordingService.cancelRecording();
+      unawaited(_recordingService.cancelRecording());
     }
     super.dispose();
   }
@@ -602,12 +602,12 @@ class _MessageInputState extends State<MessageInput>
     );
 
     if (isPermanent) {
-      PermissionService.showPermissionDeniedDialog(
+      unawaited(PermissionService.showPermissionDeniedDialog(
         context: context,
         title: l10n.cameraPermissionRequiredTitle,
         message: message,
         showSettingsButton: true,
-      );
+      ));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: context.errorColor),
@@ -753,7 +753,7 @@ class _MessageInputState extends State<MessageInput>
     // Unfocus to hide keyboard before showing attachment options
     _focusNode.unfocus();
     final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -798,7 +798,7 @@ class _MessageInputState extends State<MessageInput>
                       color: AttachmentAccents.camera.of(context),
                       onTap: () {
                         Navigator.pop(context);
-                        _openCamera();
+                        unawaited(_openCamera());
                       },
                     ),
                     _AttachmentOption(
@@ -807,7 +807,7 @@ class _MessageInputState extends State<MessageInput>
                       color: AttachmentAccents.gallery.of(context),
                       onTap: () {
                         Navigator.pop(context);
-                        _pickFromGalleryUnified();
+                        unawaited(_pickFromGalleryUnified());
                       },
                     ),
                     _AttachmentOption(
@@ -816,7 +816,7 @@ class _MessageInputState extends State<MessageInput>
                       color: AttachmentAccents.video.of(context),
                       onTap: () {
                         Navigator.pop(context);
-                        _pickVideo();
+                        unawaited(_pickVideo());
                       },
                     ),
                   ],
@@ -832,7 +832,7 @@ class _MessageInputState extends State<MessageInput>
                       color: AttachmentAccents.audio.of(context),
                       onTap: () {
                         Navigator.pop(context);
-                        _pickAudio();
+                        unawaited(_pickAudio());
                       },
                     ),
                     _AttachmentOption(
@@ -841,7 +841,7 @@ class _MessageInputState extends State<MessageInput>
                       color: AttachmentAccents.document.of(context),
                       onTap: () {
                         Navigator.pop(context);
-                        _pickFile();
+                        unawaited(_pickFile());
                       },
                     ),
                   ],
@@ -917,7 +917,7 @@ class _MessageInputState extends State<MessageInput>
                         color: AttachmentAccents.location.of(context),
                         onTap: () {
                           Navigator.pop(context);
-                          _showLocationPicker();
+                          unawaited(_showLocationPicker());
                         },
                       ),
                     ],
@@ -927,7 +927,7 @@ class _MessageInputState extends State<MessageInput>
               ],
             ),
           ),
-    );
+    ));
   }
 
   Future<void> _showLocationPicker() async {
@@ -1010,18 +1010,18 @@ class _MessageInputState extends State<MessageInput>
       // Verrouillage si drag vertical vers le haut > 50px
       if (_verticalDragOffset < -50) {
         _isLocked = true;
-        HapticFeedback.heavyImpact();
+        unawaited(HapticFeedback.heavyImpact());
       }
     });
 
     // Feedback haptic quand on entre dans la zone d'annulation
     if (_isCancelling && !wasCancelling) {
-      HapticFeedback.mediumImpact();
+      unawaited(HapticFeedback.mediumImpact());
     }
 
     // Feedback quand on approche du seuil de verrouillage
     if (_verticalDragOffset < -35 && !wasNearLock && !_isLocked) {
-      HapticFeedback.selectionClick();
+      unawaited(HapticFeedback.selectionClick());
     }
   }
 
@@ -1030,12 +1030,12 @@ class _MessageInputState extends State<MessageInput>
 
     if (_isCancelling) {
       // Annuler l'enregistrement
-      _recordingService.cancelRecording();
-      HapticFeedback.lightImpact();
+      unawaited(_recordingService.cancelRecording());
+      unawaited(HapticFeedback.lightImpact());
       _resetRecordingState();
     } else if (!_isLocked) {
       // Envoyer l'enregistrement
-      _stopRecording();
+      unawaited(_stopRecording());
     }
     // Si verrouillé, ne rien faire - l'utilisateur utilisera les boutons
   }
@@ -1451,7 +1451,7 @@ class _MessageInputState extends State<MessageInput>
         color: AttachmentAccents.camera.of(context),
         onTap: () {
           _toggleAttachPanel();
-          _openCamera();
+          unawaited(_openCamera());
         },
       ),
       _buildAttachTile(
@@ -1460,7 +1460,7 @@ class _MessageInputState extends State<MessageInput>
         color: AttachmentAccents.gallery.of(context),
         onTap: () {
           _toggleAttachPanel();
-          _pickFromGalleryUnified();
+          unawaited(_pickFromGalleryUnified());
         },
       ),
       _buildAttachTile(
@@ -1469,7 +1469,7 @@ class _MessageInputState extends State<MessageInput>
         color: AttachmentAccents.document.of(context),
         onTap: () {
           _toggleAttachPanel();
-          _pickFile();
+          unawaited(_pickFile());
         },
       ),
       if (widget.onSendLocation != null)
@@ -1479,7 +1479,7 @@ class _MessageInputState extends State<MessageInput>
           color: AttachmentAccents.location.of(context),
           onTap: () {
             _toggleAttachPanel();
-            _showLocationPicker();
+            unawaited(_showLocationPicker());
           },
         ),
       if (widget.onCreatePoll != null)

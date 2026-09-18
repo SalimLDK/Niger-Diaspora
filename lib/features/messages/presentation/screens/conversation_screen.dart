@@ -846,8 +846,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       // été montrées assez longtemps (voir [_signalerVisibilite]). Marquer
       // tout ici, c'était promettre à l'expéditeur une lecture qui n'avait pas
       // eu lieu — et ne rien laisser à séparer.
-      ref.read(markAsDeliveredProvider.notifier).mark(widget.conversationId);
-      _loadChatBackground();
+      unawaited(ref.read(markAsDeliveredProvider.notifier).mark(widget.conversationId));
+      unawaited(_loadChatBackground());
       // Ne fait rien si la nature du fil n'est pas encore connue (lien
       // profond / notification) : _syncGroupIdentity le rappellera dès que la
       // conversation aura révélé son group_id.
@@ -931,18 +931,18 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       final userId = ref.read(currentUserProvider).valueOrNull?.id;
       if (userId != null) {
         _unreadMentionsCleared = true;
-        ref
+        unawaited(ref
             .read(messageRepositoryProvider)
             .clearUnreadMentions(
               conversationId: widget.conversationId,
               userId: userId,
-            );
+            ));
       }
     }
 
     if (!_privateGroupFilterRequested && _effectiveGroupId != null) {
       _privateGroupFilterRequested = true;
-      _setupPrivateGroupFilter();
+      unawaited(_setupPrivateGroupFilter());
     }
   }
 
@@ -1229,7 +1229,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       // redit rien au retour. Un message arrivé pendant l'absence voyait son
       // compte à rebours refusé (app pas au premier plan), et restait non lu
       // sous les yeux tant qu'on ne défilait pas.
-      ref.read(markAsDeliveredProvider.notifier).mark(widget.conversationId);
+      unawaited(ref.read(markAsDeliveredProvider.notifier).mark(widget.conversationId));
       if (_aLEcran.vuePosee) _lireCeQuiEstALEcran();
       setState(() {
         // Force rebuild to update date labels like "Aujourd'hui", "Hier"
@@ -1253,9 +1253,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
         paginatedMessagesProvider(widget.conversationId),
       );
       if (paginationState.canLoadMore) {
-        ref
+        unawaited(ref
             .read(paginatedMessagesProvider(widget.conversationId).notifier)
-            .loadMore();
+            .loadMore());
       }
     }
 
@@ -1267,9 +1267,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     if (shouldShowButton != _showScrollToBottomButton.value) {
       _showScrollToBottomButton.value = shouldShowButton;
       if (shouldShowButton) {
-        _scrollButtonController.forward();
+        unawaited(_scrollButtonController.forward());
       } else {
-        _scrollButtonController.reverse();
+        unawaited(_scrollButtonController.reverse());
       }
     }
   }
@@ -1287,11 +1287,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       final reversedIndex = messages.length - 1 - index;
       // Estimate position - each message is roughly 80 pixels
       final estimatedPosition = reversedIndex * 80.0;
-      _scrollController.animateTo(
+      unawaited(_scrollController.animateTo(
         estimatedPosition.clamp(0, _scrollController.position.maxScrollExtent),
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
-      );
+      ));
 
       // Highlight the message temporarily
       setState(() {
@@ -1312,11 +1312,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   void _scrollToBottom() {
     // With reverse: true, position 0 is at the bottom (newest messages)
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(
+      unawaited(_scrollController.animateTo(
         0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
-      );
+      ));
     }
   }
 
@@ -1433,7 +1433,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   // --- Multi-selection & Forward ---
 
   void _handleForward(MessageEntity message) {
-    ForwardConversationPicker.show(context, messages: [message]);
+    unawaited(ForwardConversationPicker.show(context, messages: [message]));
   }
 
   // Fonctionnalité épingle mise en pause (2026-08-14) : `_pinMessage`,
@@ -1663,7 +1663,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   void _copySelectedMessages(List<MessageEntity> allMessages) {
     final texte = selectionCopyText(_getSelectedMessages(allMessages));
     if (texte == null) return;
-    Clipboard.setData(ClipboardData(text: texte));
+    unawaited(Clipboard.setData(ClipboardData(text: texte)));
     _exitSelectionMode();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1786,7 +1786,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       paginatedMessagesProvider(widget.conversationId).notifier,
     );
     for (final message in selected) {
-      notifier.toggleStar(message.id);
+      unawaited(notifier.toggleStar(message.id));
     }
     _exitSelectionMode();
   }
@@ -1889,7 +1889,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
       displayImage ??= otherUser?.photoUrl;
     }
 
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -1921,7 +1921,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
               });
             },
           ),
-    );
+    ));
   }
 
   // Get date separator label
@@ -2232,9 +2232,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
               .any((m) => m.senderId != currentUserId);
 
           if (newMessagesFromOthers) {
-            ref
+            unawaited(ref
                 .read(markAsDeliveredProvider.notifier)
-                .mark(widget.conversationId);
+                .mark(widget.conversationId));
           }
         }
       }
@@ -2569,7 +2569,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       }
 
                       if (success) {
-                        AnalyticsService.instance.logEvent(
+                        unawaited(AnalyticsService.instance.logEvent(
                           name: 'send_message',
                           parameters: {
                             'type': 'text',
@@ -2577,7 +2577,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             'is_group': _isGroup ? 'true' : 'false',
                             'is_reply': replyTo != null ? 'true' : 'false',
                           },
-                        );
+                        ));
                         _scrollToBottom();
                         if (_replyToMessage != null) _cancelReply();
                       }
@@ -2607,14 +2607,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       if (!mounted) return;
 
                       if (success) {
-                        AnalyticsService.instance.logEvent(
+                        unawaited(AnalyticsService.instance.logEvent(
                           name: 'send_message',
                           parameters: {
                             'type': type.name,
                             'conversation_id': widget.conversationId,
                             'is_group': _isGroup ? 'true' : 'false',
                           },
-                        );
+                        ));
                         _scrollToBottom();
                         if (_replyToMessage != null) _cancelReply();
                       }
@@ -2640,14 +2640,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       if (!mounted) return;
 
                       if (success) {
-                        AnalyticsService.instance.logEvent(
+                        unawaited(AnalyticsService.instance.logEvent(
                           name: 'send_message',
                           parameters: {
                             'type': 'audio',
                             'conversation_id': widget.conversationId,
                             'is_group': _isGroup ? 'true' : 'false',
                           },
-                        );
+                        ));
                         _scrollToBottom();
                         if (_replyToMessage != null) _cancelReply();
                       }
@@ -2677,7 +2677,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       if (!mounted) return;
 
                       if (success) {
-                        AnalyticsService.instance.logEvent(
+                        unawaited(AnalyticsService.instance.logEvent(
                           name: 'send_message',
                           parameters: {
                             'type': 'audio',
@@ -2685,7 +2685,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             'is_group': _isGroup ? 'true' : 'false',
                             'duration': duration,
                           },
-                        );
+                        ));
                         _scrollToBottom();
                         if (_replyToMessage != null) _cancelReply();
                       }
@@ -2715,14 +2715,14 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       if (!mounted) return;
 
                       if (success) {
-                        AnalyticsService.instance.logEvent(
+                        unawaited(AnalyticsService.instance.logEvent(
                           name: 'send_message',
                           parameters: {
                             'type': 'location',
                             'conversation_id': widget.conversationId,
                             'is_group': _isGroup ? 'true' : 'false',
                           },
-                        );
+                        ));
                         _scrollToBottom();
                         if (_replyToMessage != null) _cancelReply();
                       }
@@ -2749,7 +2749,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       if (!mounted) return;
 
                       if (success) {
-                        AnalyticsService.instance.logEvent(
+                        unawaited(AnalyticsService.instance.logEvent(
                           name: 'send_message',
                           parameters: {
                             'type': 'sticker',
@@ -2757,7 +2757,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             'conversation_id': widget.conversationId,
                             'is_group': _isGroup ? 'true' : 'false',
                           },
-                        );
+                        ));
                         _scrollToBottom();
                         if (_replyToMessage != null) _cancelReply();
                       }
@@ -2786,7 +2786,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                       if (!mounted) return;
 
                       if (success) {
-                        AnalyticsService.instance.logEvent(
+                        unawaited(AnalyticsService.instance.logEvent(
                           name: 'send_message',
                           parameters: {
                             'type': 'gif',
@@ -2794,7 +2794,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             'conversation_id': widget.conversationId,
                             'is_group': _isGroup ? 'true' : 'false',
                           },
-                        );
+                        ));
                         _scrollToBottom();
                         if (_replyToMessage != null) _cancelReply();
                       }
@@ -2948,11 +2948,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             const SizedBox(height: 16),
             TextButton.icon(
               onPressed: () {
-                ref
+                unawaited(ref
                     .read(
                       paginatedMessagesProvider(widget.conversationId).notifier,
                     )
-                    .refresh();
+                    .refresh());
               },
               icon: const AppIcon(AppIcon.refresh, color: AppColors.white),
               label: Text(l10n.retry),
@@ -3273,13 +3273,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                             onReact: _handleReact,
                             onForward: _handleForward,
                             onToggleStar: (msg) {
-                              ref
+                              unawaited(ref
                                   .read(
                                     paginatedMessagesProvider(
                                       widget.conversationId,
                                     ).notifier,
                                   )
-                                  .toggleStar(msg.id);
+                                  .toggleStar(msg.id));
                             },
                             onEdit: _handleEdit,
                             isSelectionMode: _isSelectionMode,
@@ -3323,7 +3323,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                                     : null,
                             onSenderTap: (userId) {
                               if (_isGroup) {
-                                context.push('/profile/$userId');
+                                unawaited(context.push('/profile/$userId'));
                               }
                             },
                             replyToMessage: _getReplyEntity(message),
@@ -3995,7 +3995,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
 
             if (!mounted) return;
             if (groupIdToUse != null) {
-              context.push('/groups/$groupIdToUse');
+              unawaited(context.push('/groups/$groupIdToUse'));
             } else {
               final l10n = AppLocalizations.of(context)!;
               ScaffoldMessenger.of(
@@ -4007,7 +4007,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
               return;
             }
             // debugPrint('   ➡️ Navigating to /profile/${_effectiveOtherUserId}');
-            context.push('/profile/$_effectiveOtherUserId');
+            unawaited(context.push('/profile/$_effectiveOtherUserId'));
           }
         },
         borderRadius: BorderRadius.circular(12),
