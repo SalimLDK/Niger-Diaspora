@@ -56,14 +56,14 @@ class _NetworkStatusBannerState extends ConsumerState<NetworkStatusBanner>
     if (!isConnected) {
       _wasOffline = true;
       _showRestoredMessage = false;
-      _animationController.forward();
+      unawaited(_animationController.forward());
     } else if (_wasOffline) {
       _showRestoredMessage = true;
       setState(() {});
       _restoredTimer?.cancel();
       _restoredTimer = Timer(const Duration(seconds: 3), () {
         if (mounted) {
-          _animationController.reverse();
+          unawaited(_animationController.reverse());
           setState(() {
             _showRestoredMessage = false;
             _wasOffline = false;
@@ -71,7 +71,7 @@ class _NetworkStatusBannerState extends ConsumerState<NetworkStatusBanner>
         }
       });
     } else {
-      _animationController.reverse();
+      unawaited(_animationController.reverse());
     }
   }
 

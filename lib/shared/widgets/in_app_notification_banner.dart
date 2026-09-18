@@ -107,11 +107,11 @@ class _InAppNotificationBannerState extends State<InAppNotificationBanner>
     );
 
     // Démarrer l'animation d'entrée
-    _animationController.forward();
+    unawaited(_animationController.forward());
 
     // Feedback haptique léger
     if (widget.vibrate) {
-      HapticFeedback.lightImpact();
+      unawaited(HapticFeedback.lightImpact());
     }
 
     // Timer pour auto-dismiss
@@ -132,11 +132,11 @@ class _InAppNotificationBannerState extends State<InAppNotificationBanner>
     _isDismissing = true;
     _autoDismissTimer?.cancel();
 
-    _animationController.reverse().then((_) {
+    unawaited(_animationController.reverse().then((_) {
       if (mounted) {
         widget.onDismiss();
       }
-    });
+    }));
   }
 
   void _handleTap() {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 /// A reusable animated loading skeleton widget for consistent loading states.
@@ -76,7 +78,8 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
-    )..repeat(reverse: true);
+    );
+    unawaited(_controller.repeat(reverse: true));
     _animation = Tween<double>(begin: 0.3, end: 0.7).animate(_controller);
   }
 

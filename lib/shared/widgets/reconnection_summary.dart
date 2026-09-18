@@ -37,7 +37,7 @@ class _ReconnectionWatcherState extends ConsumerState<ReconnectionWatcher> {
 
   @override
   void dispose() {
-    _sub?.cancel();
+    unawaited(_sub?.cancel());
     super.dispose();
   }
 

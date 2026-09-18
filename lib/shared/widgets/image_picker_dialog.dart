@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -88,12 +90,12 @@ class _ImagePickerSheet extends StatelessWidget {
     final isPermanent =
         result.permissionResult == PermissionResult.permanentlyDenied;
 
-    PermissionService.showPermissionDeniedDialog(
+    unawaited(PermissionService.showPermissionDeniedDialog(
       context: context,
       title: l10n.permissionRequired,
       message: result.errorMessage ?? l10n.permissionDeniedGeneric,
       showSettingsButton: isPermanent,
-    );
+    ));
   }
 
   void _showError(BuildContext context, String message) {
@@ -138,7 +140,7 @@ class _ImagePickerSheet extends StatelessWidget {
                   final result =
                       await ImageUploadService().pickImageFromCameraWithResult();
                   if (context.mounted) {
-                    _handleCameraResult(context, result);
+                    await _handleCameraResult(context, result);
                   }
                 },
               ),
@@ -149,7 +151,7 @@ class _ImagePickerSheet extends StatelessWidget {
                   final result =
                       await ImageUploadService().pickImageFromGalleryWithResult();
                   if (context.mounted) {
-                    _handleGalleryResult(context, result);
+                    await _handleGalleryResult(context, result);
                   }
                 },
               ),
@@ -211,12 +213,12 @@ class _MultiImagePickerSheet extends StatelessWidget {
     final isPermanent =
         result.permissionResult == PermissionResult.permanentlyDenied;
 
-    PermissionService.showPermissionDeniedDialog(
+    unawaited(PermissionService.showPermissionDeniedDialog(
       context: context,
       title: l10n.permissionRequired,
       message: result.errorMessage ?? l10n.permissionDeniedGeneric,
       showSettingsButton: isPermanent,
-    );
+    ));
   }
 
   void _showError(BuildContext context, String message) {
@@ -269,7 +271,7 @@ class _MultiImagePickerSheet extends StatelessWidget {
                   final result =
                       await ImageUploadService().pickImageFromCameraWithResult();
                   if (context.mounted) {
-                    _handleCameraResult(context, result);
+                    await _handleCameraResult(context, result);
                   }
                 },
               ),
@@ -282,7 +284,7 @@ class _MultiImagePickerSheet extends StatelessWidget {
                     maxImages: maxImages,
                   );
                   if (context.mounted) {
-                    _handleGalleryResult(context, result);
+                    await _handleGalleryResult(context, result);
                   }
                 },
               ),

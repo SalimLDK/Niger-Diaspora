@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -79,7 +81,7 @@ class _PhotoCropScreenState extends State<PhotoCropScreen> {
   @override
   void initState() {
     super.initState();
-    _mesurer();
+    unawaited(_mesurer());
   }
 
   @override

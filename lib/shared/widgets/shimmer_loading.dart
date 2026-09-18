@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 /// Widget de chargement avec effet shimmer
@@ -30,7 +32,8 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
-    )..repeat();
+    );
+    unawaited(_controller.repeat());
 
     _animation = Tween<double>(begin: -2, end: 2).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),

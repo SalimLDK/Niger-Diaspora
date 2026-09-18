@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 /// Widget qui anime l'apparition d'un élément de liste
@@ -49,7 +51,7 @@ class _AnimatedListItemState extends State<AnimatedListItem>
     // Délai basé sur l'index
     Future.delayed(widget.delay * widget.index, () {
       if (mounted) {
-        _controller.forward();
+        unawaited(_controller.forward());
       }
     });
   }
@@ -115,7 +117,7 @@ class _AnimatedScaleInState extends State<AnimatedScaleIn>
 
     Future.delayed(widget.delay, () {
       if (mounted) {
-        _controller.forward();
+        unawaited(_controller.forward());
       }
     });
   }
