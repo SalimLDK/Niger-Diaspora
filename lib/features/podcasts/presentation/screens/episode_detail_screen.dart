@@ -59,8 +59,8 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
 
   @override
   void dispose() {
-    _positionSubscription?.cancel();
-    _playingSubscription?.cancel();
+    unawaited(_positionSubscription?.cancel());
+    unawaited(_playingSubscription?.cancel());
     _sleepTimer?.cancel();
     _sleepCountdownTimer?.cancel();
     super.dispose();
@@ -75,7 +75,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
         if (_stopAtEndOfEpisode &&
             _totalDuration.inSeconds > 0 &&
             position.inSeconds >= _totalDuration.inSeconds - 1) {
-          _audioService.pause();
+          unawaited(_audioService.pause());
           setState(() {
             _isPlaying = false;
             _stopAtEndOfEpisode = false;
@@ -501,7 +501,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
                 onChanged: (value) {
                   final newPosition = Duration(seconds: value.toInt());
                   setState(() => _currentPosition = newPosition);
-                  _audioService.seek(newPosition);
+                  unawaited(_audioService.seek(newPosition));
                 },
               ),
             ),
@@ -804,7 +804,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
       await _audioService.pause();
     } else {
       // Record play
-      ref.read(podcastNotifierProvider.notifier).recordPlay(episode.id, episode.podcastId);
+      unawaited(ref.read(podcastNotifierProvider.notifier).recordPlay(episode.id, episode.podcastId));
       await _audioService.play(episode.audioUrl);
       await _audioService.setSpeed(_playbackSpeed);
     }
@@ -818,14 +818,14 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
       final nextIndex = (currentIndex + 1) % _speeds.length;
       _playbackSpeed = _speeds[nextIndex];
     });
-    _audioService.setSpeed(_playbackSpeed);
+    unawaited(_audioService.setSpeed(_playbackSpeed));
   }
 
   void _seek(int seconds) {
     final newPositionSeconds = (_currentPosition.inSeconds + seconds).clamp(0, _totalDuration.inSeconds);
     final newPosition = Duration(seconds: newPositionSeconds);
     setState(() => _currentPosition = newPosition);
-    _audioService.seek(newPosition);
+    unawaited(_audioService.seek(newPosition));
   }
 
   void _seekToChapter(int startSeconds) async {
@@ -844,9 +844,9 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
     setState(() => _isLiked = !_isLiked);
 
     if (_isLiked) {
-      ref.read(podcastNotifierProvider.notifier).likeEpisode(episode.id);
+      unawaited(ref.read(podcastNotifierProvider.notifier).likeEpisode(episode.id));
     } else {
-      ref.read(podcastNotifierProvider.notifier).unlikeEpisode(episode.id);
+      unawaited(ref.read(podcastNotifierProvider.notifier).unlikeEpisode(episode.id));
     }
   }
 
@@ -857,13 +857,13 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(l10n.podcastsDownloadInProgress)),
     );
-    ref.read(downloadManagerProvider.notifier).startDownload(
+    unawaited(ref.read(downloadManagerProvider.notifier).startDownload(
       episodeId: episode.id,
       audioUrl: episode.audioUrl,
-    );
+    ));
     // Sans ça, « Téléchargements » restait à 0 dans les statistiques du
     // créateur quel que soit l'usage réel.
-    ref.read(podcastNotifierProvider.notifier).recordDownload(episode.id);
+    unawaited(ref.read(podcastNotifierProvider.notifier).recordDownload(episode.id));
   }
 
   void _shareEpisode(PodcastEpisodeEntity episode) {
@@ -877,7 +877,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
 
     // Une discussion est une destination de partage comme une autre : avant,
     // « Partager » n'ouvrait que la feuille système.
-    ShareOptionsSheet.show(
+    unawaited(ShareOptionsSheet.show(
       context,
       url: link,
       subject: episode.title,
@@ -889,12 +889,12 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
         message: l10n.shareLinkChatMessage(episode.title, link),
         icon: Icons.podcasts_rounded,
       ),
-    );
-    ref.read(podcastNotifierProvider.notifier).recordShare(episode.id);
+    ));
+    unawaited(ref.read(podcastNotifierProvider.notifier).recordShare(episode.id));
   }
 
   void _showSleepTimerDialog() {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       // La feuille est poussée sur le Navigator, donc au-dessus du `Theme`
       // local de l'écran : sans ce rappel explicite elle s'ouvrirait en clair
@@ -904,7 +904,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
         data: _playerTheme(),
         child: _buildSleepTimerSheet(sheetContext),
       ),
-    );
+    ));
   }
 
   Widget _buildSleepTimerSheet(BuildContext sheetContext) {
@@ -989,7 +989,7 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
       _sleepCountdownTimer?.cancel();
       if (mounted) {
         final l10nInner = AppLocalizations.of(context)!;
-        _audioService.pause();
+        unawaited(_audioService.pause());
         setState(() {
           _isPlaying = false;
           _sleepTimerMinutes = null;
@@ -1019,13 +1019,13 @@ class _EpisodeDetailScreenState extends ConsumerState<EpisodeDetailScreen> {
         _downloadEpisode(episode, l10n);
         break;
       case 'report':
-        ReportContentModal.show(
+        unawaited(ReportContentModal.show(
           menuContext,
           targetType: ReportTargetType.message,
           targetId: episode.id,
           targetName: episode.title,
           contentSnapshot: ReportContentModal.textMessageSnapshot(episode.title),
-        );
+        ));
         break;
     }
   }

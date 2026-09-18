@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,7 +39,7 @@ class PodcastMiniPlayer extends ConsumerWidget {
       child: GestureDetector(
         onTap: () {
           // Navigate to full player screen for the episode currently playing
-          context.push('/podcasts/episodes/${episode.id}');
+          unawaited(context.push('/podcasts/episodes/${episode.id}'));
         },
         child: Container(
           height: 64,
@@ -150,9 +152,9 @@ class PodcastMiniPlayer extends ConsumerWidget {
                             size: 32,
                           ),
                           onPressed: () {
-                            ref
+                            unawaited(ref
                                 .read(podcastPlayerProvider.notifier)
-                                .togglePlayPause();
+                                .togglePlayPause());
                           },
                         ),
                       // Close button
@@ -160,7 +162,7 @@ class PodcastMiniPlayer extends ConsumerWidget {
                         icon: AppIcon(AppIcon.close,
                             color: theme.colorScheme.onSurfaceVariant, size: 20,),
                         onPressed: () {
-                          ref.read(podcastPlayerProvider.notifier).stop();
+                          unawaited(ref.read(podcastPlayerProvider.notifier).stop());
                         },
                       ),
                     ],

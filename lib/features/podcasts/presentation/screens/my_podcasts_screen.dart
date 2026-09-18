@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
@@ -480,16 +482,16 @@ class _PodcastManagementCard extends ConsumerWidget {
   ) {
     switch (action) {
       case 'view':
-        context.push('/podcasts/${podcast.id}');
+        unawaited(context.push('/podcasts/${podcast.id}'));
         break;
       case 'stats':
-        context.push('/podcasts/${podcast.id}/stats');
+        unawaited(context.push('/podcasts/${podcast.id}/stats'));
         break;
       case 'pause':
       case 'publish':
-        ref
+        unawaited(ref
             .read(podcastNotifierProvider.notifier)
-            .togglePodcastStatus(podcast.id, podcast.status);
+            .togglePodcastStatus(podcast.id, podcast.status));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -509,7 +511,7 @@ class _PodcastManagementCard extends ConsumerWidget {
     WidgetRef ref,
     AppLocalizations l10n,
   ) {
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
@@ -523,9 +525,9 @@ class _PodcastManagementCard extends ConsumerWidget {
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  ref
+                  unawaited(ref
                       .read(podcastNotifierProvider.notifier)
-                      .deletePodcast(podcast.id);
+                      .deletePodcast(podcast.id));
                   ScaffoldMessenger.of(
                     context,
                   ).showSnackBar(SnackBar(content: Text(l10n.podcastDeleted)));
@@ -538,6 +540,6 @@ class _PodcastManagementCard extends ConsumerWidget {
               ),
             ],
           ),
-    );
+    ));
   }
 }

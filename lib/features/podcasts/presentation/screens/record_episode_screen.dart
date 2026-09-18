@@ -64,10 +64,10 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
 
   @override
   void dispose() {
-    _durationSub?.cancel();
-    _amplitudeSub?.cancel();
+    unawaited(_durationSub?.cancel());
+    unawaited(_amplitudeSub?.cancel());
     // Quitter l'écran en cours d'enregistrement doit libérer le micro.
-    if (_isRecording) _recorder.cancelRecording();
+    if (_isRecording) unawaited(_recorder.cancelRecording());
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -202,7 +202,7 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
   }
 
   void _addChapter(AppLocalizations l10n) {
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (ctx) {
         final titleController = TextEditingController();
@@ -273,7 +273,7 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
           ],
         );
       },
-    );
+    ));
   }
 
   Future<void> _publishEpisode({bool asDraft = false}) async {

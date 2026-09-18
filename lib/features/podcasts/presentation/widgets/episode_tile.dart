@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/dn_text.dart';
 import '../../../../core/theme/dn_theme.dart';
@@ -355,14 +357,14 @@ class EpisodeTile extends ConsumerWidget {
     // Video episodes are streamed; offline download is audio-only.
     if (episode.isVideoEpisode) return;
 
-    ref.read(downloadManagerProvider.notifier).startDownload(
+    unawaited(ref.read(downloadManagerProvider.notifier).startDownload(
       episodeId: episode.id,
       audioUrl: episode.audioUrl,
-    );
+    ));
   }
 
   void _showDownloadOptions(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: context.dn.surface2,
       shape: const RoundedRectangleBorder(
@@ -389,9 +391,13 @@ class EpisodeTile extends ConsumerWidget {
             ListTile(
               leading: const AppIcon(AppIcon.delete, color: Colors.red),
               title: Text(AppLocalizations.of(context)!.podcastsDeleteDownload),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(ctx);
-                ref.read(downloadManagerProvider.notifier).deleteDownload(episode.id);
+                // Attendre la suppression : `isEpisodeDownloadedProvider` relit
+                // le fichier, et l'invalider avant qu'il soit effacé lui
+                // faisait répondre « toujours téléchargé ».
+                await ref.read(downloadManagerProvider.notifier).deleteDownload(episode.id);
+                if (!context.mounted) return;
                 ref.invalidate(isEpisodeDownloadedProvider(episode.id));
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(AppLocalizations.of(context)!.podcastsDownloadDeleted)),
@@ -402,11 +408,11 @@ class EpisodeTile extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 
   void _showPremiumPaywall(BuildContext context) {
-    showModalBottomSheet<void>(
+    unawaited(showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -444,7 +450,7 @@ class EpisodeTile extends ConsumerWidget {
                     Navigator.pop(ctx);
                     // Navigate to the podcast detail page which has the subscribe button
                     if (episode.podcastId.isNotEmpty) {
-                      context.push('/podcasts/${episode.podcastId}');
+                      unawaited(context.push('/podcasts/${episode.podcastId}'));
                     }
                   },
                   icon: AppIcon(AppIcon.star, color: context.dn.onSurface2),
@@ -465,7 +471,7 @@ class EpisodeTile extends ConsumerWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 
   String _formatDuration(int seconds) {

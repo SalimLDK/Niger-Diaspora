@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/dn_text.dart';
@@ -345,7 +347,7 @@ class PodcastDetailScreen extends ConsumerWidget {
       imageUrl: podcast.coverImageUrl,
     );
 
-    ShareOptionsSheet.show(
+    unawaited(ShareOptionsSheet.show(
       context,
       url: link,
       subject: podcast.title,
@@ -358,7 +360,7 @@ class PodcastDetailScreen extends ConsumerWidget {
         message: l10n.shareLinkChatMessage(podcast.title, link),
         icon: Icons.podcasts_rounded,
       ),
-    );
+    ));
   }
 
   Widget _buildSubscribeButton({
@@ -470,7 +472,7 @@ class _PremiumSubscribeButtonState
   @override
   void initState() {
     super.initState();
-    _loadStorePrice();
+    unawaited(_loadStorePrice());
   }
 
   Future<void> _loadStorePrice() async {

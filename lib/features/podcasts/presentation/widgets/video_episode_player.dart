@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:video_player/video_player.dart';
@@ -24,7 +26,7 @@ class _VideoEpisodePlayerState extends State<VideoEpisodePlayer> {
   @override
   void initState() {
     super.initState();
-    _initController();
+    unawaited(_initController());
   }
 
   @override
@@ -32,7 +34,7 @@ class _VideoEpisodePlayerState extends State<VideoEpisodePlayer> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.episode.videoUrl != widget.episode.videoUrl) {
       _disposeController();
-      _initController();
+      unawaited(_initController());
     }
   }
 
@@ -52,7 +54,7 @@ class _VideoEpisodePlayerState extends State<VideoEpisodePlayer> {
   }
 
   void _disposeController() {
-    _controller?.dispose();
+    unawaited(_controller?.dispose());
     _controller = null;
     _initialized = false;
   }
@@ -67,7 +69,7 @@ class _VideoEpisodePlayerState extends State<VideoEpisodePlayer> {
     final ctrl = _controller;
     if (ctrl == null) return;
     setState(() {
-      ctrl.value.isPlaying ? ctrl.pause() : ctrl.play();
+      unawaited(ctrl.value.isPlaying ? ctrl.pause() : ctrl.play());
       _showControls = true;
     });
     // Auto-hide controls when playing
@@ -86,16 +88,16 @@ class _VideoEpisodePlayerState extends State<VideoEpisodePlayer> {
     final url = widget.episode.videoUrl;
     if (url == null) return;
     // Pause current before going fullscreen
-    _controller?.pause();
+    unawaited(_controller?.pause());
     final pos = _controller?.value.position;
-    context.push(
+    unawaited(context.push(
       '/messages/video-player',
       extra: {
         'videoUrl': url,
         'caption': widget.episode.title,
         'startPosition': pos?.inMilliseconds ?? 0,
       },
-    );
+    ));
   }
 
   @override
