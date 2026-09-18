@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -70,7 +72,7 @@ final eventAudienceProvider =
 class EventsNotifier extends _$EventsNotifier {
   @override
   AsyncValue<List<EventEntity>> build() {
-    loadUpcomingEvents();
+    unawaited(loadUpcomingEvents());
     return const AsyncValue.loading();
   }
 
@@ -157,7 +159,7 @@ class EventDetailNotifier extends _$EventDetailNotifier {
     final repository = ref.read(eventRepositoryProvider);
     final result = await repository.attendEvent(eventId, userId);
     return result.fold((failure) => false, (_) {
-      loadEvent(eventId);
+      unawaited(loadEvent(eventId));
       return true;
     });
   }
@@ -166,7 +168,7 @@ class EventDetailNotifier extends _$EventDetailNotifier {
     final repository = ref.read(eventRepositoryProvider);
     final result = await repository.cancelAttendance(eventId, userId);
     return result.fold((failure) => false, (_) {
-      loadEvent(eventId);
+      unawaited(loadEvent(eventId));
       return true;
     });
   }
@@ -178,7 +180,7 @@ class MyEventsNotifier extends _$MyEventsNotifier {
   AsyncValue<List<EventEntity>> build() {
     final user = ref.watch(currentUserProvider).valueOrNull;
     if (user != null) {
-      loadMyEvents(user.id);
+      unawaited(loadMyEvents(user.id));
     }
     return const AsyncValue.data([]);
   }
@@ -257,7 +259,7 @@ void forgetDeletedEvent(Ref ref, String eventId) {
 class PastEventsNotifier extends _$PastEventsNotifier {
   @override
   AsyncValue<List<EventEntity>> build() {
-    loadPastEvents();
+    unawaited(loadPastEvents());
     return const AsyncValue.loading();
   }
 

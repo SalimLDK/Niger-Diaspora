@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -78,7 +80,7 @@ GroupRepository groupRepository(Ref ref) {
 class GroupsNotifier extends _$GroupsNotifier {
   @override
   AsyncValue<List<GroupEntity>> build() {
-    loadGroups();
+    unawaited(loadGroups());
     return const AsyncValue.loading();
   }
 
@@ -173,7 +175,7 @@ class GroupDetailNotifier extends _$GroupDetailNotifier {
     final repository = ref.read(groupRepositoryProvider);
     final result = await repository.joinGroup(groupId, userId);
     return result.fold((failure) => false, (_) {
-      loadGroup(groupId);
+      unawaited(loadGroup(groupId));
       return true;
     });
   }
@@ -182,7 +184,7 @@ class GroupDetailNotifier extends _$GroupDetailNotifier {
     final repository = ref.read(groupRepositoryProvider);
     final result = await repository.leaveGroup(groupId, userId);
     return result.fold((failure) => false, (_) {
-      loadGroup(groupId);
+      unawaited(loadGroup(groupId));
       return true;
     });
   }
@@ -242,7 +244,7 @@ class MyGroupsNotifier extends _$MyGroupsNotifier {
 
     final user = ref.watch(currentUserProvider).valueOrNull;
     if (user != null) {
-      loadMyGroups(user.id);
+      unawaited(loadMyGroups(user.id));
 
       // « Mes groupes » ne se chargeait qu'ici, une fois. Un groupe rejoint
       // parce qu'un admin vient d'approuver la demande, ou quitté depuis un
