@@ -47,7 +47,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
   bool _countryGroupJoinAttempted = false;
 
   ProfileNotifier(this._ref, this.userId) : super(const AsyncValue.loading()) {
-    _loadProfile();
+    unawaited(_loadProfile());
   }
 
   Future<void> _loadProfile() async {
@@ -63,7 +63,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
       // Si on a un cache, on le retourne immediatement
       state = AsyncValue.data(cachedProfile);
       // Et on lance le rafraichissement en arriere-plan
-      Future.microtask(() => _fetchAndRefresh());
+      unawaited(Future.microtask(() => _fetchAndRefresh()));
       return;
     }
 
@@ -111,7 +111,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
     if (profile.countryCode == null || profile.countryCode!.isEmpty) return;
     _countryGroupJoinAttempted = true;
     // Best-effort, ne bloque jamais l'UI.
-    _joinOfficialCountryGroup(profile);
+    unawaited(_joinOfficialCountryGroup(profile));
   }
 
   /// Écriture **optimiste** : l'état porte la valeur demandée dès l'appel, et
@@ -144,7 +144,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
       (updatedProfile) {
         state = AsyncValue.data(updatedProfile);
         // Best-effort : ne doit jamais faire echouer la sauvegarde du profil.
-        _joinOfficialCountryGroup(updatedProfile);
+        unawaited(_joinOfficialCountryGroup(updatedProfile));
       },
     );
   }
@@ -180,7 +180,7 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
 
     return result.fold((failure) => null, (url) {
       // Recharger le profil pour obtenir la nouvelle photo
-      _loadProfile();
+      unawaited(_loadProfile());
       return url;
     });
   }
@@ -389,7 +389,7 @@ Stream<ProfileEntity?> _profilAvecReprise(Ref ref, String userId) {
 
   brancher = () {
     if (ferme) return;
-    source?.cancel();
+    unawaited(source?.cancel());
     source = depot
         .getUserStream(userId)
         .listen(
@@ -445,9 +445,9 @@ Stream<ProfileEntity?> _profilAvecReprise(Ref ref, String userId) {
   ref.onDispose(() {
     ferme = true;
     palier?.cancel();
-    source?.cancel();
-    reseau?.cancel();
-    sortie.close();
+    unawaited(source?.cancel());
+    unawaited(reseau?.cancel());
+    unawaited(sortie.close());
   });
 
   // Le dernier profil connu part **avant** toute lecture réseau (mémoire de la
