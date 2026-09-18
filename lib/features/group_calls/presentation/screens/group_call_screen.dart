@@ -45,10 +45,10 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _initializeCall();
+    unawaited(_initializeCall());
 
     // Enable PiP (Picture-in-Picture) for group calls
-    _pipService.setVideoCallActive(active: true, autoPipEnabled: true);
+    unawaited(_pipService.setVideoCallActive(active: true, autoPipEnabled: true));
     _pipService.onPipAction = _handlePipAction;
 
     // Droit de s'afficher par-dessus le keyguard, le temps de l'appel seulement
@@ -61,7 +61,7 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
     WidgetsBinding.instance.removeObserver(this);
     // Clean up PiP
     _pipService.onPipAction = null;
-    _pipService.setVideoCallActive(active: false);
+    unawaited(_pipService.setVideoCallActive(active: false));
     unawaited(LockScreenService.instance.release());
     super.dispose();
   }
@@ -74,10 +74,10 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
       case 'mute':
         ref.read(currentGroupCallProvider.notifier).toggleMute();
         final callState = ref.read(currentGroupCallProvider);
-        _pipService.updateMuteState(callState.isMuted);
+        unawaited(_pipService.updateMuteState(callState.isMuted));
         break;
       case 'endCall':
-        _endCall();
+        unawaited(_endCall());
         break;
     }
   }
@@ -90,13 +90,13 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:
         // Disable camera when app goes to background
-        notifier.setCameraEnabled(false);
+        unawaited(notifier.setCameraEnabled(false));
         break;
       case AppLifecycleState.resumed:
         // Re-enable camera if it was on before
         final callState = ref.read(currentGroupCallProvider);
         if (!callState.isCameraOff) {
-          notifier.setCameraEnabled(true);
+          unawaited(notifier.setCameraEnabled(true));
         }
         break;
       default:
@@ -791,17 +791,17 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
         ),
       ),
       onTap: () {
-        ref.read(currentGroupCallProvider.notifier).setVideoQuality(
+        unawaited(ref.read(currentGroupCallProvider.notifier).setVideoQuality(
               _selectedParticipantId!,
               quality,
-            );
+            ));
         _hideQualitySelector();
       },
     );
   }
 
   void _showE2EEInfo(AppLocalizations l10n, GroupCallState callState) {
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.groupCallE2eeVerify),
@@ -855,6 +855,6 @@ class _GroupCallScreenState extends ConsumerState<GroupCallScreen>
           ),
         ],
       ),
-    );
+    ));
   }
 }
