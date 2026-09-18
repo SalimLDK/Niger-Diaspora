@@ -71,7 +71,8 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     _animationController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
-    )..repeat(reverse: true);
+    );
+    unawaited(_animationController.repeat(reverse: true));
     _animation = Tween<double>(begin: 0, end: 1).animate(_animationController);
   }
 
@@ -86,7 +87,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
       case AppLifecycleState.paused:
         // Only stop camera when fully paused (app in background)
         if (mounted && _controller.value.isInitialized) {
-          _controller.stop();
+          unawaited(_controller.stop());
         }
         break;
       case AppLifecycleState.resumed:
@@ -115,7 +116,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     WidgetsBinding.instance.removeObserver(this);
     _reprise?.cancel();
     // Dispose controller which internally handles stopping
-    _controller.dispose();
+    unawaited(_controller.dispose());
     _animationController.dispose();
     super.dispose();
   }
@@ -144,14 +145,14 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     if (premierCode == null) return;
 
     setState(() => _isProcessing = true);
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
 
     if (cible == null) {
       _showError(_messageCodeInconnu(premierCode));
       return;
     }
 
-    _ouvrir(cible);
+    unawaited(_ouvrir(cible));
   }
 
   /// Message d'echec qui montre ce qui a ete lu.
@@ -247,7 +248,7 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
 
     // Close scanner and navigate to the scanned destination
     context.pop();
-    context.push(routePath);
+    unawaited(context.push(routePath));
 
     // Show success feedback
     ScaffoldMessenger.of(context).showSnackBar(
@@ -420,13 +421,13 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
 
   void _toggleFlash() {
     setState(() => _flashOn = !_flashOn);
-    _controller.toggleTorch();
-    HapticFeedback.lightImpact();
+    unawaited(_controller.toggleTorch());
+    unawaited(HapticFeedback.lightImpact());
   }
 
   void _switchCamera() {
-    _controller.switchCamera();
-    HapticFeedback.lightImpact();
+    unawaited(_controller.switchCamera());
+    unawaited(HapticFeedback.lightImpact());
   }
 
   bool _canPop = false;
