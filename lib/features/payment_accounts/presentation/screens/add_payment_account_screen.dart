@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -437,7 +439,7 @@ class _AddPaymentAccountScreenState
                 // matchait sur '/audio-rooms/:roomId' et ouvrait un salon
                 // nommé « monetization ». L'onboarding Stripe Connect vit
                 // dans l'écran des revenus créateur.
-                context.push('/creator/earnings');
+                unawaited(context.push('/creator/earnings'));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF635BFF),

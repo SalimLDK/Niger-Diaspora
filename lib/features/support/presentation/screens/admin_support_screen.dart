@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -220,12 +222,12 @@ class _AdminTicketCard extends ConsumerWidget {
     WidgetRef ref,
     SupportTicketEntity ticket,
   ) {
-    Navigator.push(
+    unawaited(Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => _AdminTicketDetailScreen(ticket: ticket),
       ),
-    );
+    ));
   }
 
   Widget _buildStatusChip(TicketStatus status, AppLocalizations l10n) {
@@ -277,11 +279,11 @@ class _AdminTicketDetailScreenState
   @override
   void initState() {
     super.initState();
-    Future(() {
-      ref
+    unawaited(Future(() {
+      unawaited(ref
           .read(supportTicketNotifierProvider.notifier)
-          .markUserMessagesAsRead(widget.ticket.id);
-    });
+          .markUserMessagesAsRead(widget.ticket.id));
+    }));
   }
 
   @override
@@ -325,11 +327,11 @@ class _AdminTicketDetailScreenState
   void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(
+        unawaited(_scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
-        );
+        ));
       }
     });
   }

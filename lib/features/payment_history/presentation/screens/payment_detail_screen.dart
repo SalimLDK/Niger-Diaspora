@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -157,14 +159,14 @@ class PaymentDetailScreen extends ConsumerWidget {
                     '- ${l10n.dateLabel} : ${dateFormat.format(item.createdAt)}\n'
                     '- Status : ${_localizedStatus(item.status, l10n)}\n'
                     '${item.reference != null ? '- ${l10n.referenceLabel} : ${item.reference}\n' : ''}';
-                context.push(
+                unawaited(context.push(
                   '/support/new',
                   extra: {
                     'subject': subject,
                     'description': description,
                     'transactionId': item.id,
                   },
-                );
+                ));
               },
               icon: AppIcon(AppIcon.flag, color: Theme.of(context).iconTheme.color!),
               label: Text(l10n.reportIssue),
@@ -242,8 +244,9 @@ class PaymentDetailScreen extends ConsumerWidget {
           flex: 3,
           child: GestureDetector(
             onTap: canCopy
-                ? () {
-                    Clipboard.setData(ClipboardData(text: value));
+                ? () async {
+                    await Clipboard.setData(ClipboardData(text: value));
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(AppLocalizations.of(context)!.copied)),
                     );

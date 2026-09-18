@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/design_kit.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,11 +31,11 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
   void initState() {
     super.initState();
     // Mark support messages as read when opening
-    Future(() {
-      ref
+    unawaited(Future(() {
+      unawaited(ref
           .read(supportTicketNotifierProvider.notifier)
-          .markAsRead(widget.ticket.id);
-    });
+          .markAsRead(widget.ticket.id));
+    }));
   }
 
   @override
@@ -70,11 +72,11 @@ class _TicketDetailScreenState extends ConsumerState<TicketDetailScreen> {
   void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 300), () {
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(
+        unawaited(_scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
-        );
+        ));
       }
     });
   }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -141,7 +143,7 @@ class PaymentAccountsScreen extends ConsumerWidget {
     AppLocalizations l10n,
   ) {
     final theme = Theme.of(context);
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: theme.colorScheme.surface,
       shape: const RoundedRectangleBorder(
@@ -169,9 +171,9 @@ class PaymentAccountsScreen extends ConsumerWidget {
                 title: Text(l10n.setAsDefault),
                 onTap: () {
                   Navigator.pop(sheetContext);
-                  ref
+                  unawaited(ref
                       .read(paymentAccountNotifierProvider.notifier)
-                      .setDefault(userId, account.id);
+                      .setDefault(userId, account.id));
                 },
               ),
             ListTile(
@@ -189,7 +191,7 @@ class PaymentAccountsScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 
   void _confirmDelete(
@@ -199,7 +201,7 @@ class PaymentAccountsScreen extends ConsumerWidget {
     String userId,
     AppLocalizations l10n,
   ) {
-    showDialog(
+    unawaited(showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.deletePaymentAccount),
@@ -212,9 +214,9 @@ class PaymentAccountsScreen extends ConsumerWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
-              ref
+              unawaited(ref
                   .read(paymentAccountNotifierProvider.notifier)
-                  .deleteAccount(userId, account.id);
+                  .deleteAccount(userId, account.id));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(l10n.accountDeleted)),
               );
@@ -226,6 +228,6 @@ class PaymentAccountsScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }

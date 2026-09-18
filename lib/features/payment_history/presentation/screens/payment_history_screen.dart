@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -141,10 +143,10 @@ class PaymentHistoryScreen extends ConsumerWidget {
                       return _PaymentHistoryCard(
                         item: items[index],
                         onTap: () {
-                          context.push(
+                          unawaited(context.push(
                             '/payment-history/${items[index].id}',
                             extra: items[index],
-                          );
+                          ));
                         },
                       );
                     },
@@ -180,7 +182,7 @@ class _FilterChip extends StatelessWidget {
       label: Text(label),
       selected: selected,
       onSelected: (_) {
-        HapticFeedback.selectionClick();
+        unawaited(HapticFeedback.selectionClick());
         onSelected();
       },
     );
