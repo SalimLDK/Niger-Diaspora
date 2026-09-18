@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
@@ -42,7 +43,7 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
-    _init();
+    unawaited(_init());
   }
 
   @override
@@ -111,12 +112,12 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen> {
 
   void _onScroll() {
     if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 600) {
-      _loadMore();
+      unawaited(_loadMore());
     }
   }
 
   void _toggle(AssetEntity a) {
-    HapticFeedback.selectionClick();
+    unawaited(HapticFeedback.selectionClick());
     setState(() {
       if (_selected.contains(a)) {
         _selected.remove(a);

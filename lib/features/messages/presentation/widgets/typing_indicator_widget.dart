@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
@@ -74,7 +75,7 @@ class _TypingIndicatorContentState extends State<_TypingIndicatorContent>
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    _animationController.forward();
+    unawaited(_animationController.forward());
   }
 
   @override
@@ -208,7 +209,8 @@ class _TypingBubbleState extends State<TypingBubble>
     _controller = AnimationController(
       duration: const Duration(milliseconds: 250),
       vsync: this,
-    )..forward();
+    );
+    unawaited(_controller.forward());
     _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
   }
 
@@ -314,7 +316,7 @@ class _AnimatedDotsState extends State<_AnimatedDots>
     for (int i = 0; i < 3; i++) {
       Future.delayed(Duration(milliseconds: i * 150), () {
         if (mounted) {
-          _controllers[i].repeat(reverse: true);
+          unawaited(_controllers[i].repeat(reverse: true));
         }
       });
     }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,15 +81,15 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
   }
 
   void _onTapDown(TapDownDetails details) {
-    _scaleController.forward();
+    unawaited(_scaleController.forward());
   }
 
   void _onTapUp(TapUpDetails details) {
-    _scaleController.reverse();
+    unawaited(_scaleController.reverse());
   }
 
   void _onTapCancel() {
-    _scaleController.reverse();
+    unawaited(_scaleController.reverse());
   }
 
   @override

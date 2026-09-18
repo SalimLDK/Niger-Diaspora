@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -61,7 +62,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
   void initState() {
     super.initState();
     _reduceQuality = PreferencesService.instance.dataSaverMode;
-    _loadFileInfo();
+    unawaited(_loadFileInfo());
   }
 
   @override
@@ -182,7 +183,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
     }
 
     if (!mounted) return;
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
     Navigator.pop(
       context,
       MediaPreviewResult(
@@ -305,7 +306,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
   Widget _toolButton(IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: () {
-        HapticFeedback.selectionClick();
+        unawaited(HapticFeedback.selectionClick());
         onTap();
       },
       child: Column(

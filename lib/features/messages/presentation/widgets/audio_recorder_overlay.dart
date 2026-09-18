@@ -44,7 +44,8 @@ class _AudioRecorderOverlayState extends State<AudioRecorderOverlay>
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
-    )..repeat(reverse: true);
+    );
+    unawaited(_pulseController.repeat(reverse: true));
 
     _durationSubscription =
         _recordingService.durationStream.listen((duration) {
@@ -70,8 +71,8 @@ class _AudioRecorderOverlayState extends State<AudioRecorderOverlay>
   @override
   void dispose() {
     _pulseController.dispose();
-    _durationSubscription.cancel();
-    _amplitudeSubscription.cancel();
+    unawaited(_durationSubscription.cancel());
+    unawaited(_amplitudeSubscription.cancel());
     super.dispose();
   }
 
