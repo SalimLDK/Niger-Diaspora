@@ -284,7 +284,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     if (widget.skipAnimation) {
       _animationController.value = 1.0;
     } else {
-      _animationController.forward();
+      unawaited(_animationController.forward());
     }
   }
 
@@ -842,14 +842,14 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
     // Haptic feedback au franchissement du seuil (52 px).
     if (_swipeOffset.abs() > 52 && _swipeOffset.abs() < 57) {
-      HapticFeedback.lightImpact();
+      unawaited(HapticFeedback.lightImpact());
     }
   }
 
   void _onSwipeEnd(DragEndDetails details) {
     if (_swipeOffset.abs() > 52) {
       // Trigger reply
-      HapticFeedback.mediumImpact();
+      unawaited(HapticFeedback.mediumImpact());
       widget.onReply?.call(widget.message);
     }
 
@@ -872,7 +872,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
       selected: _myReaction,
       onPick: (emoji) {
         Navigator.pop(sheetContext);
-        HapticFeedback.lightImpact();
+        unawaited(HapticFeedback.lightImpact());
         widget.onReact?.call(widget.message, emoji);
       },
       onMore: () async {
@@ -886,7 +886,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   }
 
   void _onLongPress() {
-    HapticFeedback.mediumImpact();
+    unawaited(HapticFeedback.mediumImpact());
     // Unfocus any text field to prevent keyboard from appearing after modal closes
     FocusScope.of(context).unfocus();
     _showOptionsModal(context);
@@ -935,7 +935,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             widget.onReact == null
                 ? null
                 : () {
-                  HapticFeedback.lightImpact();
+                  unawaited(HapticFeedback.lightImpact());
                   widget.onReact?.call(widget.message, entry.key);
                 },
         child: Container(
@@ -1054,7 +1054,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// disparaître.
   void _showOptionsModal(BuildContext context) {
     _moreOptionsOpen = false;
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
@@ -1123,7 +1123,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           );
         },
       ),
-    );
+    ));
   }
 
   /// Les actions du message, rangées par INTENTION.
@@ -1208,9 +1208,9 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onTap: () {
             Navigator.pop(ctx);
             if (widget.message.type == MessageType.image) {
-              _saveImageToGallery(widget.message.fileUrl!);
+              unawaited(_saveImageToGallery(widget.message.fileUrl!));
             } else {
-              _saveVideoToDevice(widget.message.fileUrl!);
+              unawaited(_saveVideoToDevice(widget.message.fileUrl!));
             }
           },
         ),
@@ -1317,7 +1317,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           onTap: () {
             Navigator.pop(ctx);
             final snapshot = _createMessageSnapshot();
-            ReportContentModal.show(
+            unawaited(ReportContentModal.show(
               context,
               targetType: ReportTargetType.message,
               targetId: widget.message.id,
@@ -1328,7 +1328,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
               conversationId: widget.conversationId,
               contentSnapshot: snapshot,
               reportedUserId: widget.message.senderId,
-            );
+            ));
           },
         ),
 
@@ -1394,7 +1394,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           ),
           onTap: () {
             Navigator.pop(ctx);
-            _shareMessage();
+            unawaited(_shareMessage());
           },
         ),
       if (widget.isMe &&
@@ -1414,7 +1414,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   }
 
   void _copyToClipboard(String texte) {
-    Clipboard.setData(ClipboardData(text: texte));
+    unawaited(Clipboard.setData(ClipboardData(text: texte)));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(l10n.messageCopied),
@@ -1428,7 +1428,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// Le texte du message, sélectionnable : appui long ou double tap dedans
   /// pour choisir un passage, « Tout copier » pour le reste.
   void _showSelectTextSheet(String texte) {
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1485,14 +1485,14 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           ],
         ),
       ),
-    );
+    ));
   }
 
   void _showMessageInfoSheet(BuildContext context) {
     final conversationId = widget.conversationId;
     if (conversationId == null) return;
 
-    showModalBottomSheet(
+    unawaited(showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1502,7 +1502,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             conversationId: conversationId,
             currentUserId: widget.currentUserId,
           ),
-    );
+    ));
   }
 
   void _showDeleteModal(BuildContext context) {
@@ -1510,13 +1510,13 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     final currentUserId = widget.currentUserId;
     if (conversationId == null || currentUserId == null) return;
 
-    DeleteMessageModal.show(
+    unawaited(DeleteMessageModal.show(
       context,
       message: widget.message,
       conversationId: conversationId,
       currentUserId: currentUserId,
       isAdmin: widget.isAdmin,
-    );
+    ));
   }
 
   /// Entrée « Modifier », désactivée avec son motif quand le geste n'est plus
@@ -3008,7 +3008,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         // le `router.go` effaçait la discussion de la pile.
         final route = QrCodeParser.routeInterne(match.text);
         if (route != null) {
-          if (mounted) context.push(route);
+          if (mounted) unawaited(context.push(route));
           break;
         }
         final confirmed = await _showUrlConfirmDialog(match.text);
@@ -3041,7 +3041,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             .where((m) => mentionHandleMatches(m.name, handle))
             .map((m) => m.id)
             .firstOrNull;
-        if (userId != null && mounted) context.push('/profile/$userId');
+        if (userId != null && mounted) unawaited(context.push('/profile/$userId'));
         break;
     }
   }
