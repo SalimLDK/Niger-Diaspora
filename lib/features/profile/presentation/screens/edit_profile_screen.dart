@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -140,7 +141,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       vsync: this,
     );
     _loadCurrentProfile();
-    _animationController.forward();
+    unawaited(_animationController.forward());
     _appliquerFocusDemande();
   }
 
@@ -153,9 +154,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       if (!mounted) return;
       switch (cible) {
         case 'photo':
-          _showImagePickerOptions();
+          unawaited(_showImagePickerOptions());
         case 'languages':
-          _choisirLangues();
+          unawaited(_choisirLangues());
         case 'city':
           _cityFocus.requestFocus();
         case 'bio':
@@ -296,8 +297,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   }
 
   Future<void> _showImagePickerOptions() async {
-    HapticFeedback.mediumImpact();
-    showModalBottomSheet(
+    unawaited(HapticFeedback.mediumImpact());
+    unawaited(showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder:
@@ -346,7 +347,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                   subtitle: AppLocalizations.of(context)!.takePhotoSubtitle,
                   onTap: () {
                     Navigator.pop(context);
-                    _pickImage(ImageSource.camera);
+                    unawaited(_pickImage(ImageSource.camera));
                   },
                 ),
                 _ImagePickerOption(
@@ -355,7 +356,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                   subtitle: AppLocalizations.of(context)!.gallerySubtitle,
                   onTap: () {
                     Navigator.pop(context);
-                    _pickImage(ImageSource.gallery);
+                    unawaited(_pickImage(ImageSource.gallery));
                   },
                 ),
                 if (_photoUrl != null)
@@ -376,7 +377,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               ],
             ),
           ),
-    );
+    ));
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -664,11 +665,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                     tooltip: AppLocalizations.of(context)!.previewTooltip,
                     onPressed: () {
                       final authState = ref.read(authNotifierProvider);
-                      authState.maybeWhen(
+                      unawaited(authState.maybeWhen(
                         authenticated:
                             (user) => context.push('/profile/${user.id}'),
-                        orElse: () {},
-                      );
+                        orElse: () => Future<void>.value(),
+                      ));
                     },
                   ),
                   // §20a : « Enregistrer » est un lien texte, pas une pilule
@@ -817,7 +818,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                             videLabel: l10n.spokenLanguagesEmptyAction,
                             onOuvrir: _choisirLangues,
                             onRetirer: (cle) {
-                              HapticFeedback.selectionClick();
+                              unawaited(HapticFeedback.selectionClick());
                               setState(() => _selectedLanguages.remove(cle));
                             },
                           ),
@@ -835,7 +836,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                             videLabel: l10n.interestsEmptyAction,
                             onOuvrir: _choisirInterets,
                             onRetirer: (cle) {
-                              HapticFeedback.selectionClick();
+                              unawaited(HapticFeedback.selectionClick());
                               setState(() => _selectedInterests.remove(cle));
                             },
                           ),
@@ -942,7 +943,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                             subtitle: l10n.otherMembersCanSee,
                             value: _isVisible,
                             onChanged: (value) {
-                              HapticFeedback.selectionClick();
+                              unawaited(HapticFeedback.selectionClick());
                               setState(() => _isVisible = value);
                             },
                           ),
@@ -1227,8 +1228,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
   }
 
   void _showOtpVerificationDialog() {
-    HapticFeedback.mediumImpact();
-    showDialog(
+    unawaited(HapticFeedback.mediumImpact());
+    unawaited(showDialog(
       context: context,
       builder:
           (context) => _OtpVerificationDialog(
@@ -1261,7 +1262,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               );
             },
           ),
-    );
+    ));
   }
 
   /// « Origine au Niger » en une ligne : ce qui est choisi, ou un texte gris
@@ -1665,7 +1666,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                                 return CheckboxListTile(
                                   value: choisie,
                                   onChanged: (_) {
-                                    HapticFeedback.selectionClick();
+                                    unawaited(HapticFeedback.selectionClick());
                                     majFeuille(() {
                                       if (choisie) {
                                         brouillon.remove(e.key);
@@ -2154,7 +2155,7 @@ class _ImagePickerOption extends StatelessWidget {
             color: color.withValues(alpha: 0.5),
           ),
           onTap: () {
-            HapticFeedback.selectionClick();
+            unawaited(HapticFeedback.selectionClick());
             onTap();
           },
         ),
@@ -2265,12 +2266,12 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
   }
 
   void _startResendTimer() {
-    Future.doWhile(() async {
+    unawaited(Future.doWhile(() async {
       await Future.delayed(const Duration(seconds: 1));
       if (!mounted) return false;
       setState(() => _resendTimer--);
       return _resendTimer > 0;
-    });
+    }));
   }
 
   Future<void> _verifyOtp() async {
@@ -2520,7 +2521,7 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                             _focusNodes[index - 1].requestFocus();
                           }
                           if (index == 5 && value.isNotEmpty) {
-                            _verifyOtp();
+                            unawaited(_verifyOtp());
                           }
                         },
                       ),
