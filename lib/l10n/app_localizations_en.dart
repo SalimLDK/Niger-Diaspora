@@ -540,7 +540,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountWarning =>
-      'Your account will be deactivated right away, then permanently deleted in 30 days. You can cancel until then by signing back in.\n\nWill be deleted:\n• Your profile, posts and stories\n• Your one-to-one conversations, for you and for the other person\n• The events and businesses you created\n• Your friends, follows, favorites and notifications\n\nYou leave all your groups; those you manage go to another member.\n\nWill be kept, without your name or photo:\n• Your unencrypted messages in groups, shown as “Deleted account” (your end-to-end encrypted messages are deleted)\n\nTechnical backup copies may remain for a limited time.';
+      'Your account will be deactivated right away, then permanently deleted in 30 days. You can cancel until then by signing back in.\n\nWill be deleted:\n• Your profile, posts and stories\n• Your one-to-one conversations, for you and for the other person\n• The events and businesses you created\n• Your friends, follows, favorites and notifications\n\nYou leave all your groups; those you manage go to another member.\n\nWill be kept, without your name or photo:\n• Your unencrypted messages in groups, shown as “Deleted account” (your end-to-end encrypted messages are deleted)\n• In end-to-end encrypted groups, a technical identifier of your account remains until a group member next updates the participant list\n\nTechnical backup copies may remain for a limited time.';
 
   @override
   String unreadConversations(int count) {

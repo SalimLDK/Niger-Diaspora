@@ -21661,12 +21661,14 @@ diasponiger.web.app : pages, palette, menu, aperçus de partage.
 l'URL déclarée à Play) supprimait Firestore puis le compte Firebase, **jamais
 Supabase**, et promettait « toutes vos données effacées » : la personne partait
 en croyant tout effacé, ses messages, son profil et son e-mail restaient.
-*Bloqué : la migration `20260918224100` (branche
-`claude/priceless-feistel-ec8482`, non appliquée) et la fonction
-`finalizeAccountDeletions` (non déployée) doivent être en production. Sans la
-migration la RPC répond 404 (la page dit « service indisponible ») ; sans la
-fonction les demandes s'empilent en `pending` et rien n'est supprimé au bout
-des 30 jours, alors que la page le promet. **Ne pas publier `public/` avant.***
+*Bloqué en partie : la page n'est pas publiée — `firebase deploy --only
+hosting` envoie TOUT `public/`, c'est une décision de Salim, à part. Le backend
+dont elle dépend (migration `20260918224100` et `finalizeAccountDeletions`) est
+en production depuis le 2026-09-19 d'après la mémoire du projet (autre session,
+sur accord de Salim) ; **cette session ne l'a pas revérifié**. Sans la
+migration la RPC répondrait 404 (la page dit « service indisponible ») ; sans
+la fonction les demandes s'empileraient en `pending` et rien ne serait supprimé
+à J+30.*
 
 La page suit maintenant le même chemin que l'application : connexion Firebase
 (en mémoire, rien n'est stocké dans le navigateur), puis
@@ -21675,7 +21677,8 @@ désactivé tout de suite, la suppression tombe 30 jours plus tard, et se
 reconnecter à l'application avant l'annule. Plus de Firestore, plus de
 `deleteUser` : la page ne supprime rien elle-même. La logique vit dans
 [public/assets/delete-account.js](public/assets/delete-account.js), partagée
-par les deux langues.
+par les deux langues. Le côté application et la purge : voir « Supprimer mon
+compte : demande, 30 jours, annulation, purge ».
 
 Mesuré le 2026-09-19 sur l'échange, en lecture seule (préflight et faux jeton) :
 `verify_jwt` y est **actif** — un POST sans `Authorization` est refusé par la
@@ -21722,17 +21725,17 @@ de tout cela ne touche la production**, et tout y est de même origine :
       concerne pas (comme avant). Vérifier que la phrase « À savoir » les
       renvoie à l'application, et que « Supprimer mon compte » est bien dans le
       Profil.
-- [ ] **Aligner l'ARB.** La ligne « un identifiant technique de votre compte
-      subsiste dans les groupes chiffrés… » (la credential MLS contient l'uid
-      jusqu'au prochain commit d'un membre) est sur le site mais **pas** dans
-      `deleteAccountWarning`, sur la branche `claude/priceless-feistel-ec8482` :
-      soit l'y ajouter (FR : « Dans les groupes chiffrés de bout en bout, un
-      identifiant technique de votre compte subsiste jusqu'à ce qu'un membre du
-      groupe mette à jour la liste des participants. » ; EN : « In end-to-end
-      encrypted groups, a technical identifier of your account remains until a
-      group member next updates the participant list. »), soit la retirer d'ici.
-      Le site dit aussi qu'un groupe dont on est le dernier membre est supprimé,
-      ce que l'ARB ne précise pas.
+- [ ] **Le dialogue « Supprimer mon compte » de l'application** : son texte
+      (`deleteAccountWarning`) a gagné une puce sous « Sera conservé »
+      (l'identifiant technique qui subsiste dans les groupes chiffrés : la
+      credential MLS contient l'uid jusqu'au prochain commit d'un membre). Vérifier
+      qu'il défile jusqu'au bout et que ses deux boutons restent atteignables, en
+      français et en anglais, à 200 % de taille de police.
+
+**Écart restant, à trancher** : le site dit qu'un groupe dont on est le dernier
+membre est supprimé (vrai, décision de Salim, et l'ancienne page le disait) ;
+`deleteAccountWarning` ne le précise pas. Une seule promesse, ou deux qui
+divergent d'une phrase.
 
 ---
 
