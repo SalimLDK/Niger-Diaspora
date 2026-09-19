@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1439 cases à cocher, 645 cochées** — 281 entrées sur 330 ont encore des cases ouvertes.
+**1455 cases à cocher, 645 cochées** — 282 entrées sur 331 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (43)
+**P0 — avant toute nouvelle version** (44)
 
 - 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
@@ -67,6 +67,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
+- 16 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
 - 9 · [⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)](#-expulsion-admin-et-bannissement--ils-néjectaient-personne-2026-09-16) · *Comptes, session et onboarding*
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
@@ -345,7 +346,7 @@ Par domaine :
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 143 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
-- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 47 à faire, 7 faites
+- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
@@ -13264,6 +13265,103 @@ adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app
 # 8. Comptes, session et onboarding
 
 Connexion, déconnexion, session Supabase, onboarding et assistant de profil, blocage.
+
+---
+
+## ⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)
+
+**Priorité P0** · importance 5/5 — « Supprimer mon compte » ne supprimait presque
+rien : le profil, les publications, les messages, les amis et l'adresse e-mail
+(dans `auth.users`) restaient en base, seul le compte Firebase disparaissait,
+et le dialogue promettait « toutes vos données supprimées définitivement ».
+C'est un motif de refus Play et un défaut de conformité. Le nouveau flux
+DÉTRUIT des données pour de bon : il se vérifie sur des comptes jetables, jamais
+sur un vrai compte.
+
+Modèle : demande → désactivation immédiate → **30 jours** → purge. La demande
+(`request_account_deletion`) masque le compte tout de suite ; se reconnecter
+avant l'échéance l'annule ; à l'échéance une Cloud Function supprime le compte
+Firebase PUIS purge Supabase en une transaction.
+
+*Bloqué : rien de ceci ne tourne tant que la migration
+`20260918224100_suppression_de_compte_par_phases.sql` n'est pas APPLIQUÉE et que
+`finalizeAccountDeletions` n'est pas DÉPLOYÉE — ni l'une ni l'autre ne l'est.
+Sans la fonction, les demandes s'empilent en `pending` sans jamais être
+exécutées (rien n'est détruit, mais rien n'est supprimé non plus). Demande deux
+téléphones, deux comptes jetables et l'accès à la base.*
+
+Déployer la fonction SEULE, jamais `--force` (voir « Déploiement functions ») :
+`firebase deploy --only functions:finalizeAccountDeletions`.
+
+Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_par_phases.sql),
+[banc SQL](tools/rls_tests/suppression_compte.sql) (49 cas, rejoué dans un
+`BEGIN … ROLLBACK` en production le 2026-09-18 : 0 échec, état intact après),
+[fonction planifiée](functions/index.js) (`finalizeAccountDeletions`),
+[datasource](lib/features/auth/data/datasources/auth_remote_datasource.dart),
+[écran d'annulation](lib/features/auth/presentation/screens/account_deletion_pending_screen.dart),
+[porte du routeur](lib/core/router/app_router.dart) (étape 3b).
+
+- [ ] **Avant `db push`** : rejouer le banc avec la migration
+  (`{ echo BEGIN; cat migration; cat banc; echo ROLLBACK; }`), puis
+  `ls supabase/migrations | sort | awk -F_ '{print $1}' | uniq -d` ET
+  `select max(version) from supabase_migrations.schema_migrations` (le `uniq -d`
+  est aveugle à une jumelle déjà en base).
+- [ ] **Demande, compte à mot de passe connecté depuis plus de 4 minutes** :
+  le mot de passe est demandé AVANT toute désactivation. Un mot de passe faux
+  ne désactive rien (`account_deletion_requests` reste vide).
+- [ ] **Demande aboutie** : snackbar « Compte désactivé. Suppression définitive
+  le … » avec la bonne date (+30 jours, dans la langue de l'appareil), retour sur
+  l'écran de connexion, ligne `pending` en base, `users.is_private = true`,
+  `fcm_tokens = []`.
+- [ ] **Vu d'un AUTRE compte** : le profil, les publications et les stories du
+  compte désactivé ont disparu (profil, fil, stories) ; ses messages restent
+  dans les groupes.
+- [ ] **Se reconnecter pendant le délai** : l'écran « Suppression du compte
+  programmée » avec la date, et rien d'autre (ni onglets, ni retour possible).
+  « Se déconnecter » fonctionne.
+- [ ] **Annuler** : retour sur l'accueil, profil et publications de nouveau
+  visibles, commerces réactivés. ⚠ Les notifications push ne reprennent que si
+  le jeton FCM est ré-enregistré (la RPC ne le restaure pas) : vérifier
+  `users.fcm_tokens` non vide après la reconnexion.
+- [ ] **Deuxième téléphone connecté au même compte** au moment de la demande :
+  mesurer QUAND il tombe sur l'écran d'annulation (sa session Supabase est
+  révoquée, mais son jeton peut vivre jusqu'à une heure).
+- [ ] **Compte Google ou Apple** : aucune demande de mot de passe (limite
+  connue : la ré-authentification ne sait pas rejouer un fournisseur social).
+- [ ] **Échéance** (avancer `execute_at` en base sur le compte jetable, puis
+  attendre le passage horaire ou invoquer la fonction) : le compte Firebase
+  disparaît (connexion impossible), `cleanupUserData` a tourné (Firestore,
+  Storage), `account_deletion_requests.status = completed` avec son `summary`,
+  plus aucune ligne `users` / `auth.users` / `auth_mappings`.
+- [ ] **Se réinscrire avec la MÊME adresse e-mail** : un compte neuf et vide,
+  pas rattaché à l'ancien (l'échange Firebase retrouve l'utilisateur par
+  e-mail ; c'est pour cela que `auth.users` est supprimé).
+- [ ] **Dans un groupe où le compte était** : ses messages en clair s'affichent
+  « Compte supprimé » sans plantage de l'écran (l'`uid` `compte_supprime` est
+  inconnu du client : avatar et nom de repli) ; le groupe a un nouveau
+  propriétaire qui peut administrer ; les conversations à deux ont disparu chez
+  l'autre.
+- [ ] **Conversation MLS** : les messages du compte supprimé s'affichent
+  « message supprimé » chez les autres, sans plantage.
+- [ ] **Fenêtre de résurrection** : juste après la déconnexion de la demande, la
+  ligne `users` n'est PAS recréée par un échange de jeton (l'app ne doit rien
+  écrire en tâche de fond pour un compte masqué). À observer sur la base.
+- [ ] **Hors ligne** : se connecter avec un compte `pending` sans réseau laisse
+  entrer (choix assumé : une lecture ratée ne doit pas enfermer ; le compte
+  reste masqué côté serveur). À confirmer, et que la porte se ferme au retour du
+  réseau.
+- [ ] **Thème sombre et grande police** sur l'écran d'annulation, et sur le
+  dialogue de confirmation dont le texte est long (~20 lignes : il doit
+  défiler, sans débordement sur un petit écran).
+- [ ] **NE PAS tester sur le compte plateforme** : la demande y est refusée
+  (`compte_plateforme`) — c'est le banc SQL qui le prouve, pas un téléphone.
+
+Limites que cette entrée ne lève pas : la feuille MLS d'un appareil supprimé
+reste dans l'arbre des groupes tant qu'un membre ne commite pas ; les
+sauvegardes Supabase gardent les lignes purgées jusqu'à leur expiration (durée
+non relevée) ; le stockage sécurisé local n'est pas vidé par la demande (une
+annulation perdrait les clés) ; l'historique financier (tables vides) est
+refusé, pas traité.
 
 ---
 
