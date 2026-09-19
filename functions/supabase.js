@@ -328,7 +328,66 @@ async function setFriendship(userId, friendId, present) {
   return true;
 }
 
+/**
+ * Comptes dont le délai de suppression est échu, ou dont la purge est restée en
+ * route depuis plus de 30 minutes (migration 20260918224100).
+ *
+ * Chaque demande réclamée passe à `deleting` côté base : un second passage ne
+ * la reprend pas avant 30 minutes. Un compte devenu bloquant depuis sa demande
+ * (compte plateforme, historique financier) passe à `blocked` et n'est PAS
+ * rendu — c'est ce qui évite de supprimer son compte Firebase pour rien.
+ *
+ * @param {number} limit
+ * @returns {Promise<string[]|null>} les uid à finaliser ; `null` si la base n'a
+ *   pas répondu — à ne jamais confondre avec « personne » (`[]`).
+ */
+async function claimDueAccountDeletions(limit = 20) {
+  if (!isConfigured()) return null;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/rpc/claim_due_account_deletions`,
+    {
+      method: "POST",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ p_limit: limit }),
+    },
+  );
+  if (!res.ok) {
+    console.error(`Supabase claim_due_account_deletions ${res.status}: ${await res.text()}`);
+    return null;
+  }
+  const rows = await res.json();
+  return Array.isArray(rows) ? rows.map((r) => r.uid).filter(Boolean) : null;
+}
+
+/**
+ * Purge un compte réclamé, en une transaction (idempotente).
+ *
+ * @param {string} uid Firebase UID (users.id TEXT)
+ * @returns {Promise<null|{ok:boolean,error?:string,deja_fait?:boolean,summary?:Object}>}
+ *   `null` si la base n'a pas répondu ; sinon la réponse de la RPC, qui rend
+ *   `ok:false` plutôt que de lever quand la purge échoue (l'erreur est aussi
+ *   consignée dans `account_deletion_requests.last_error`).
+ */
+async function completeAccountDeletion(uid) {
+  if (!isConfigured()) return null;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/rpc/complete_account_deletion`,
+    {
+      method: "POST",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ p_uid: uid }),
+    },
+  );
+  if (!res.ok) {
+    console.error(`Supabase complete_account_deletion ${res.status}: ${await res.text()}`);
+    return null;
+  }
+  return res.json();
+}
+
 module.exports = {
+  claimDueAccountDeletions,
+  completeAccountDeletion,
   setFriendship,
   getFcmTokens,
   removeFcmTokens,
