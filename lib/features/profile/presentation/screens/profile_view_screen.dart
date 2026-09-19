@@ -26,6 +26,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/services/background_location_service.dart';
 import '../../../../core/services/location_service.dart';
+import '../../../../core/services/notification_read_sync.dart';
 import '../../../../core/utils/action_feedback.dart';
 import '../../../../core/widgets/location_disclosure.dart';
 import '../widgets/share_profile_modal.dart';
@@ -68,6 +69,10 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
     _checkIfCurrentUser();
     unawaited(_loadBackgroundLocationStatus());
     // Profile is auto-loaded by the provider
+
+    // Profil ouvert — depuis une notification, une discussion, la carte, un
+    // lien : l'annonce de l'acceptation de ma demande est lue.
+    unawaited(NotificationReadSync.markProfileOpened(widget.userId));
   }
 
   void _checkIfCurrentUser() {
