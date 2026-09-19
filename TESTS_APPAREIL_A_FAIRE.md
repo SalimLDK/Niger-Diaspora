@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1455 cases à cocher, 645 cochées** — 282 entrées sur 331 ont encore des cases ouvertes.
+**1457 cases à cocher, 645 cochées** — 282 entrées sur 331 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -67,7 +67,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
-- 16 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
+- 18 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
 - 9 · [⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)](#-expulsion-admin-et-bannissement--ils-néjectaient-personne-2026-09-16) · *Comptes, session et onboarding*
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
@@ -346,7 +346,7 @@ Par domaine :
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 143 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
-- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 7 faites
+- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 65 à faire, 7 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
@@ -13356,12 +13356,48 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
 - [ ] **NE PAS tester sur le compte plateforme** : la demande y est refusée
   (`compte_plateforme`) — c'est le banc SQL qui le prouve, pas un téléphone.
 
-Limites que cette entrée ne lève pas : la feuille MLS d'un appareil supprimé
-reste dans l'arbre des groupes tant qu'un membre ne commite pas ; les
-sauvegardes Supabase gardent les lignes purgées jusqu'à leur expiration (durée
-non relevée) ; le stockage sécurisé local n'est pas vidé par la demande (une
-annulation perdrait les clés) ; l'historique financier (tables vides) est
-refusé, pas traité.
+- [ ] **Feuille MLS d'un appareil supprimé** (corrige une limite annoncée à
+  tort) : après la purge d'un compte jetable membre d'un groupe chiffré, un
+  autre membre EN LIGNE commite le retrait dans l'instant (la purge retire la
+  personne de `participant_ids`, ce qui déclenche
+  `MlsGateway.appartenanceChangee` → `reconcileMembership`) ; un membre hors
+  ligne le fait à son prochain envoi. À vérifier : le groupe continue de
+  fonctionner pour les autres, l'epoch avance, et l'arbre public
+  (`mls_group_info`) ne contient plus la feuille supprimée. Le banc MLS le
+  prouve sur le vrai moteur (« appareil révoqué : retiré au prochain
+  reconcile ») ; il ne prouve ni le déclenchement par la purge ni le réseau.
+- [ ] **Après une restauration Supabase** (`docs/deploiement/ROLLBACK_AND_DATA.md`,
+  § 2.1) : ⚠️ la version DÉPLOYÉE de `finalizeAccountDeletions` est celle d'avant
+  la pierre tombale ; il faut la redéployer (`--only
+  functions:finalizeAccountDeletions`, sans `--force`, sur accord) avant que
+  `deleted_accounts/<uid>` existe. Puis, sur un compte jetable : la pierre
+  tombale est écrite AVANT la purge ; `node
+  tools/rejouer_suppressions_apres_restauration.mjs` en simulation ne liste rien
+  d'autre que des comptes à restes ; procédure essayée UNE FOIS à blanc (restaurer
+  n'est pas nécessaire : recréer à la main des restes pour l'uid jetable suffit).
+
+Ce que cette entrée ne lève pas — et qui se décide, pas se vérifie :
+- **Clés et base MLS locales.** La base MLS du téléphone vit dans un fichier par
+  compte, **en clair** (le chiffrement du fichier reste à faire, cf.
+  `mls_engine_provider.dart`), et RIEN ne l'efface : ni la déconnexion, ni la
+  demande de suppression, ni la suppression définitive. Le téléphone n'est pas
+  joignable une fois déconnecté : la « destruction à la suppression définitive »
+  qu'on voudrait écrire n'existe pas aujourd'hui. Conserver le matériel pendant
+  la période de grâce est voulu (une annulation le perdrait) ; ne jamais le
+  détruire ne l'est pas.
+- **Sauvegardes Supabase** : physiques (WAL-G) actives, PITR désactivé, durée de
+  conservation NON relevée (Dashboard > Database > Backups). Les lignes purgées y
+  survivent jusqu'à leur expiration.
+- **Ré-authentification Google / Apple** : aucune avant la demande (seule la
+  confirmation « SUPPRIMER » saisie) ; la garde de 4 minutes ne couvre que les
+  comptes à mot de passe.
+- **Historique financier** : les tables sont vides et la fonctionnalité éteinte ;
+  la demande est refusée dès qu'UNE ligne existe, y compris close — une personne
+  ayant fait une seule transaction ne pourrait plus jamais supprimer son compte.
+- **Un compte en suppression garde son accès serveur** : ses sessions Supabase
+  sont révoquées et l'écran l'enferme sur l'annulation, mais tant qu'il est
+  participant de ses conversations, un client modifié qui se reconnecte les lit
+  encore (RLS). Voulu pour qu'une annulation ne perde rien.
 
 ---
 
